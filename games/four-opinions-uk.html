@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS Games · Four Opinions</title>
+<style>
+:root {
+  --bg: #fffdf9;
+  --panel: #ffffff;
+  --border: rgba(222, 136, 45, 0.16);
+  --text: #342312;
+  --muted: #8e6643;
+  --accent: #de882d;
+  --accent-2: #fff3e2;
+  --positive: #149b71;
+  --negative: #d95e5e;
+  --balanced: #9a6ff1;
+  --practical: #3b82f6;
+  --shadow: 0 18px 42px rgba(190, 125, 44, 0.12);
+  --radius: 24px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 191, 118, 0.22), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(255, 224, 177, 0.36), transparent 24%),
+    linear-gradient(180deg, #fffdf8 0%, #fff4e5 100%);
+}
+
+.shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 8px 0 6px;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 760px;
+  line-height: 1.65;
+}
+
+.pill {
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: var(--accent);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.layout {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(340px, 390px) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.form-panel,
+.results-panel {
+  padding: 22px;
+}
+
+.form-panel {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.section-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+textarea {
+  min-height: 180px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.primary-btn,
+.copy-btn {
+  border: none;
+  cursor: pointer;
+}
+
+.primary-btn {
+  padding: 15px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f2a94a 0%, #de882d 100%);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(222, 136, 45, 0.2);
+}
+
+.results-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.copy-btn {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--accent-2);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.empty {
+  min-height: 560px;
+  border: 2px dashed rgba(222, 136, 45, 0.2);
+  border-radius: 22px;
+  background: #fffaf2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 28px;
+  line-height: 1.7;
+}
+
+.opinions {
+  display: grid;
+  gap: 14px;
+}
+
+.opinion-card {
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px;
+  background: #fff;
+}
+
+.opinion-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.persona {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #fff;
+}
+
+.tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.opinion-text {
+  color: var(--text);
+  line-height: 1.7;
+  padding-left: 54px;
+  white-space: pre-wrap;
+}
+
+.local-note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .empty { min-height: 320px; }
+}
+
+@media (max-width: 620px) {
+  .shell { padding: 14px; }
+  .hero { padding: 18px; }
+  .row { grid-template-columns: 1fr; }
+  .results-toolbar { flex-direction: column; align-items: stretch; }
+  .opinion-text { padding-left: 0; }
+}
+
+body.embed-mode {
+  background:
+    radial-gradient(circle at top left, rgba(255, 191, 118, 0.16), transparent 22%),
+    linear-gradient(180deg, #fffefb 0%, #fff7ea 100%);
+}
+
+body.embed-mode .shell {
+  max-width: none;
+  padding: 14px;
+}
+
+body.embed-mode .hero,
+body.embed-mode .panel {
+  box-shadow: none;
+}
+
+body.embed-mode .hero {
+  padding: 18px 20px;
+  border-radius: 22px;
+}
+
+body.embed-mode h1 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+body.embed-mode .layout {
+  gap: 14px;
+  margin-top: 14px;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero panel">
+    <div>
+      <div class="eyebrow">Four Opinions · локальний шаблонізатор</div>
+      <h1>Чотири думки для speaking</h1>
+      <p>У вихідному модулі відповіді генерував Gemini. Для статичного розміщення я підготував автономну версію: вона швидко створює 4 різні англомовні позиції за темою, рівнем CEFR і бажаною довжиною.</p>
+    </div>
+    <div class="pill">No API key</div>
+  </section>
+
+  <section class="layout">
+    <form class="panel form-panel" id="opinions-form">
+      <div>
+        <label class="section-label" for="topic">Тема або короткий текст</label>
+        <textarea id="topic" placeholder="Напр.: Should mobile phones be banned in schools?"></textarea>
+      </div>
+
+      <div class="row">
+        <div>
+          <label class="section-label" for="level">Рівень CEFR</label>
+          <select id="level">
+            <option>A1</option>
+            <option>A2</option>
+            <option selected>B1</option>
+            <option>B2</option>
+            <option>C1</option>
+          </select>
+        </div>
+        <div>
+          <label class="section-label" for="length">Довжина</label>
+          <select id="length">
+            <option value="short">Short</option>
+            <option value="medium" selected>Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="primary-btn" type="submit">Згенерувати 4 думки</button>
+      <div class="local-note">Результат створюється локально. Це не LLM-відповідь, а швидкий speaking-шаблон, безпечний для GitHub Pages.</div>
+    </form>
+
+    <section class="panel results-panel">
+      <div class="results-toolbar">
+        <div>
+          <div class="eyebrow">Output</div>
+          <div id="results-meta" style="color: var(--muted);">Ще немає згенерованих думок.</div>
+        </div>
+        <button class="copy-btn" id="copy-all-btn" type="button" disabled>Скопіювати все</button>
+      </div>
+      <div class="empty" id="opinions-empty">Вкажіть тему, рівень і довжину. Модуль підготує 4 різні голоси: supportive, critical, balanced and practical.</div>
+      <div class="opinions" id="opinions" hidden></div>
+    </section>
+  </section>
+</div>
+
+<script>
+const PERSONAS = [
+  { id: "A", name: "Alex", label: "Підтримує", color: "var(--positive)", bg: "rgba(20,155,113,0.12)" },
+  { id: "B", name: "Bianca", label: "Критикує", color: "var(--negative)", bg: "rgba(217,94,94,0.12)" },
+  { id: "C", name: "Chris", label: "Змішана позиція", color: "var(--balanced)", bg: "rgba(154,111,241,0.12)" },
+  { id: "D", name: "Dana", label: "Практичний погляд", color: "var(--practical)", bg: "rgba(59,130,246,0.12)" }
+];
+
+let activeOpinions = [];
+
+function normaliseTopic(topic) {
+  return topic.trim().replace(/\s+/g, " ");
+}
+
+function getLengthConfig(length) {
+  if (length === "short") return { extra: "", tail: "" };
+  if (length === "long") {
+    return {
+      extra: " It can affect motivation, classroom atmosphere, and how confident students feel when they speak.",
+      tail: " In my view, the best classroom tasks give students a reason to explain and react, not just repeat one line."
+    };
+  }
+  return {
+    extra: " It changes how students take part in the lesson.",
+    tail: ""
+  };
+}
+
+function levelPhrase(level, personaIndex, topic) {
+  const plainTopic = topic.endsWith("?") ? topic.slice(0, -1) : topic;
+
+  const library = {
+    A1: [
+      "I think " + plainTopic + " is a good idea. It helps students and makes lessons easier.",
+      "I do not like " + plainTopic + ". It can be stressful and not every student needs it.",
+      "I can see good and bad sides. It may help some people, but it may also cause problems.",
+      "For me, the main point is simple: teachers need clear rules and students need a fair system."
+    ],
+    A2: [
+      "I think " + plainTopic + " is useful because it can make lessons more focused and more organised.",
+      "I am not convinced about " + plainTopic + " because it may create pressure and reduce natural interest.",
+      "There are advantages and disadvantages. It may work in one school, but not in another.",
+      "In practice, success depends on the rules, the teacher, and the age of the students."
+    ],
+    B1: [
+      "I support " + plainTopic + " because it can improve concentration and give the class a clearer structure.",
+      "I disagree with " + plainTopic + " because students also need trust, choice, and a realistic learning environment.",
+      "I have mixed feelings about " + plainTopic + " because the idea sounds helpful, but the results may depend on context.",
+      "From a practical point of view, " + plainTopic + " only works when expectations are clear for everyone."
+    ],
+    B2: [
+      "On the whole, I support " + plainTopic + " because it can raise academic focus and reduce unnecessary distractions.",
+      "I remain critical of " + plainTopic + " because it may ignore individual needs and oversimplify a complex issue.",
+      "My view is balanced: " + plainTopic + " could be effective, yet it may also produce side effects if applied too rigidly.",
+      "What matters most is implementation. Even a sensible idea like " + plainTopic + " can fail without thoughtful planning."
+    ],
+    C1: [
+      "Broadly speaking, I am in favour of " + plainTopic + " because it can reinforce purpose, clarity, and sustained attention in the classroom.",
+      "I am sceptical about " + plainTopic + " since it risks treating a nuanced educational question as if one rule could solve everything.",
+      "My position is ambivalent: " + plainTopic + " has merit, although its impact depends heavily on context, age group, and classroom culture.",
+      "From a pragmatic perspective, the debate is less about principle and more about whether the policy is implemented intelligently."
+    ]
+  };
+
+  return library[level][personaIndex];
+}
+
+function buildOpinion(persona, level, length, topic, personaIndex) {
+  const base = levelPhrase(level, personaIndex, topic);
+  const lengthConfig = getLengthConfig(length);
+  let text = base + lengthConfig.extra;
+
+  if (personaIndex === 1 && length !== "short") {
+    text += " Students may follow the rule, but they might not become more engaged.";
+  }
+  if (personaIndex === 2 && length === "long") {
+    text += " A flexible approach is often more realistic than a strict yes-or-no policy.";
+  }
+  if (personaIndex === 3) {
+    text += " Good instructions, timing, and follow-up tasks matter more than slogans.";
+  }
+
+  if (lengthConfig.tail) {
+    text += lengthConfig.tail;
+  }
+
+  return {
+    persona,
+    text
+  };
+}
+
+function generateOpinions(topic, level, length) {
+  return PERSONAS.map((persona, index) => buildOpinion(persona, level, length, topic, index));
+}
+
+function renderOpinions(opinions, level) {
+  const opinionsEl = document.getElementById("opinions");
+  const emptyEl = document.getElementById("opinions-empty");
+  const metaEl = document.getElementById("results-meta");
+  const copyAllBtn = document.getElementById("copy-all-btn");
+
+  activeOpinions = opinions;
+  emptyEl.hidden = true;
+  opinionsEl.hidden = false;
+  copyAllBtn.disabled = false;
+  metaEl.textContent = level + " · " + opinions.length + " точки зору · English output";
+
+  opinionsEl.innerHTML = opinions.map((item) => {
+    const persona = item.persona;
+    return (
+      '<article class="opinion-card">' +
+        '<div class="opinion-head">' +
+          '<div class="persona">' +
+            '<span class="avatar" style="background:' + persona.color + ';">' + persona.id + "</span>" +
+            '<div><strong style="display:block;">' + persona.id + " " + persona.name + '</strong><span class="tag" style="background:' + persona.bg + ";color:" + persona.color + ';">' + persona.label + "</span></div>" +
+          "</div>" +
+          '<button class="copy-btn copy-one-btn" type="button" data-copy-text="' + item.text.replace(/"/g, "&quot;") + '">Copy</button>' +
+        "</div>" +
+        '<div class="opinion-text">' + item.text + "</div>" +
+      "</article>"
+    );
+  }).join("");
+}
+
+function formatAllOpinions() {
+  return activeOpinions.map((item) => {
+    return item.persona.id + " " + item.persona.name + "\n" + item.text;
+  }).join("\n\n");
+}
+
+document.getElementById("opinions-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const topic = normaliseTopic(document.getElementById("topic").value);
+  const level = document.getElementById("level").value;
+  const length = document.getElementById("length").value;
+
+  if (!topic) return;
+  renderOpinions(generateOpinions(topic, level, length), level);
+});
+
+document.getElementById("opinions").addEventListener("click", (event) => {
+  const button = event.target.closest(".copy-one-btn");
+  if (!button) return;
+  navigator.clipboard.writeText(button.dataset.copyText);
+  button.textContent = "Copied";
+  window.setTimeout(() => {
+    button.textContent = "Copy";
+  }, 1400);
+});
+
+document.getElementById("copy-all-btn").addEventListener("click", () => {
+  navigator.clipboard.writeText(formatAllOpinions());
+  const button = document.getElementById("copy-all-btn");
+  button.textContent = "Скопійовано";
+  window.setTimeout(() => {
+    button.textContent = "Скопіювати все";
+  }, 1400);
+});
+
+if (new URLSearchParams(window.location.search).get("embed") === "1") {
+  document.body.classList.add("embed-mode");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS Games · Match Terms</title>
+<style>
+:root {
+  --bg: #fff5f9;
+  --panel: rgba(255,255,255,0.92);
+  --panel-2: #ffffff;
+  --border: rgba(232, 53, 122, 0.14);
+  --text: #2d1020;
+  --muted: #86526a;
+  --accent: #e8357a;
+  --accent-2: #ffedf4;
+  --good: #0f9f6e;
+  --bad: #e24b6b;
+  --shadow: 0 18px 48px rgba(232, 53, 122, 0.14);
+  --radius: 22px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(255, 140, 184, 0.25), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 190, 212, 0.35), transparent 28%),
+    linear-gradient(180deg, #fff8fb 0%, #ffe9f2 100%);
+  color: var(--text);
+}
+
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.hero-main {
+  padding: 24px;
+}
+
+.eyebrow,
+.mini-label {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 0.98;
+}
+
+.hero-main p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.hero-side {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.hero-side select,
+.hero-side button {
+  width: 100%;
+}
+
+select,
+button {
+  font: inherit;
+  border: none;
+}
+
+select {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  outline: none;
+}
+
+.primary-btn {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff6fa3 0%, #e8357a 100%);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 16px 30px rgba(232, 53, 122, 0.24);
+}
+
+.primary-btn:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.stat {
+  padding: 16px 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 8px;
+}
+
+.board {
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  min-height: 132px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 16px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(232, 53, 122, 0.3);
+}
+
+.card.selected {
+  background: #fff0f6;
+  border-color: rgba(232, 53, 122, 0.45);
+}
+
+.card.matched {
+  background: rgba(15, 159, 110, 0.1);
+  border-color: rgba(15, 159, 110, 0.4);
+  cursor: default;
+}
+
+.card.wrong {
+  background: rgba(226, 75, 107, 0.12);
+  border-color: rgba(226, 75, 107, 0.4);
+}
+
+.card-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.card-text {
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.hint {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(42, 16, 30, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal-card {
+  width: min(100%, 460px);
+  padding: 28px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(42, 16, 30, 0.25);
+  text-align: center;
+}
+
+.modal-card h2 {
+  margin: 12px 0 10px;
+  font-size: 32px;
+}
+
+.modal-card p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.modal-stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--accent-2);
+}
+
+.modal-stat strong {
+  display: block;
+  font-size: 24px;
+  margin-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .shell { padding: 14px; }
+  .stats { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr; }
+  .card { min-height: 112px; }
+}
+
+body.embed-mode {
+  background:
+    radial-gradient(circle at top left, rgba(255, 140, 184, 0.12), transparent 24%),
+    linear-gradient(180deg, #fffafc 0%, #fff3f8 100%);
+}
+
+body.embed-mode .shell {
+  max-width: none;
+  padding: 14px;
+}
+
+body.embed-mode .hero {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+body.embed-mode .panel,
+body.embed-mode .stat {
+  box-shadow: none;
+}
+
+body.embed-mode .hero-main,
+body.embed-mode .hero-side,
+body.embed-mode .board {
+  border-radius: 20px;
+}
+
+body.embed-mode h1 {
+  font-size: clamp(26px, 3.1vw, 36px);
+}
+
+body.embed-mode .hero-main p {
+  font-size: 14px;
+}
+
+body.embed-mode .board {
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  body.embed-mode .hero {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="panel hero-main">
+      <div class="eyebrow">TeachedOS · Ігровий модуль</div>
+      <h1>Зістав слово<br>з визначенням</h1>
+      <p>Обирайте тему, відкривайте картки та знаходьте правильні пари. Модуль адаптований для GitHub Pages і працює без збірки чи зовнішнього API.</p>
+    </div>
+    <aside class="panel hero-side">
+      <div>
+        <div class="mini-label">Тема гри</div>
+        <select id="theme-select" aria-label="Тема гри"></select>
+      </div>
+      <button class="primary-btn" id="restart-btn" type="button">Почати заново</button>
+      <div style="color: var(--muted); font-size: 14px; line-height: 1.6;">
+        Натисніть будь-яку картку, щоб запустити таймер. У вас є 5 життів, щоби знайти всі відповідності.
+      </div>
+    </aside>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="mini-label">Час</div>
+      <strong id="time">00:00</strong>
+    </div>
+    <div class="stat">
+      <div class="mini-label">Знайдено пар</div>
+      <strong id="matches">0 / 8</strong>
+    </div>
+    <div class="stat">
+      <div class="mini-label">Життя</div>
+      <strong id="lives">5</strong>
+    </div>
+  </section>
+
+  <section class="panel board">
+    <div class="cards" id="cards"></div>
+    <div class="hint" id="hint">Натисніть на картку, щоб почати гру.</div>
+  </section>
+</div>
+
+<div class="modal" id="result-modal" aria-hidden="true">
+  <div class="modal-card">
+    <div id="result-icon" style="font-size: 54px;">🎉</div>
+    <h2 id="result-title">Чудова робота!</h2>
+    <p id="result-text"></p>
+    <div class="modal-grid">
+      <div class="modal-stat">
+        <div class="mini-label">Час</div>
+        <strong id="modal-time">0 с</strong>
+      </div>
+      <div class="modal-stat">
+        <div class="mini-label">Пари</div>
+        <strong id="modal-pairs">0 / 0</strong>
+      </div>
+    </div>
+    <button class="primary-btn" id="play-again-btn" type="button">Зіграти ще раз</button>
+  </div>
+</div>
+
+<script>
+const THEMES = [
+  {
+    id: "science",
+    name: "Наукові терміни",
+    pairs: [
+      { id: "s1", term: "Photosynthesis", definition: "процес, у якому рослини перетворюють світло на енергію" },
+      { id: "s2", term: "Mitochondria", definition: "частина клітини, що виробляє енергію" },
+      { id: "s3", term: "Gravity", definition: "сила, що притягує тіла з масою" },
+      { id: "s4", term: "Velocity", definition: "швидкість із зазначеним напрямком" },
+      { id: "s5", term: "Atom", definition: "найменша одиниця хімічного елемента" },
+      { id: "s6", term: "Osmosis", definition: "рух води крізь напівпроникну мембрану" },
+      { id: "s7", term: "Pi (π)", definition: "відношення довжини кола до його діаметра" },
+      { id: "s8", term: "Haiku", definition: "японський вірш із сімнадцяти складів" }
+    ]
+  },
+  {
+    id: "geo",
+    name: "Країни та столиці",
+    pairs: [
+      { id: "g1", term: "France", definition: "Paris" },
+      { id: "g2", term: "Japan", definition: "Tokyo" },
+      { id: "g3", term: "Brazil", definition: "Brasilia" },
+      { id: "g4", term: "Australia", definition: "Canberra" },
+      { id: "g5", term: "Egypt", definition: "Cairo" },
+      { id: "g6", term: "Canada", definition: "Ottawa" },
+      { id: "g7", term: "Italy", definition: "Rome" },
+      { id: "g8", term: "Germany", definition: "Berlin" }
+    ]
+  },
+  {
+    id: "coding",
+    name: "Основи програмування",
+    pairs: [
+      { id: "c1", term: "Variable", definition: "контейнер для збереження значень" },
+      { id: "c2", term: "Loop", definition: "повторення одного й того самого блоку коду" },
+      { id: "c3", term: "Function", definition: "блок коду, який виконує окреме завдання" },
+      { id: "c4", term: "Array", definition: "структура, що містить кілька значень" },
+      { id: "c5", term: "Boolean", definition: "тип даних із двома значеннями: true або false" },
+      { id: "c6", term: "API", definition: "набір правил для взаємодії між програмами" },
+      { id: "c7", term: "Bug", definition: "помилка або дефект у програмі" },
+      { id: "c8", term: "Git", definition: "розподілена система контролю версій" }
+    ]
+  }
+];
+
+const DEFAULT_LIVES = 5;
+
+let state = {
+  themeId: THEMES[0].id,
+  cards: [],
+  selectedIds: [],
+  lives: DEFAULT_LIVES,
+  matches: 0,
+  elapsed: 0,
+  timerId: null,
+  startedAt: 0,
+  locked: false,
+  status: "ready"
+};
+
+const themeSelect = document.getElementById("theme-select");
+const cardsEl = document.getElementById("cards");
+const timeEl = document.getElementById("time");
+const matchesEl = document.getElementById("matches");
+const livesEl = document.getElementById("lives");
+const hintEl = document.getElementById("hint");
+const modalEl = document.getElementById("result-modal");
+
+function shuffle(list) {
+  const clone = [...list];
+  for (let i = clone.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [clone[i], clone[j]] = [clone[j], clone[i]];
+  }
+  return clone;
+}
+
+function getTheme() {
+  return THEMES.find((theme) => theme.id === state.themeId) || THEMES[0];
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  return minutes + ":" + seconds;
+}
+
+function fillThemeOptions() {
+  themeSelect.innerHTML = THEMES.map((theme) => (
+    '<option value="' + theme.id + '">' + theme.name + "</option>"
+  )).join("");
+}
+
+function stopTimer() {
+  if (state.timerId) {
+    window.clearInterval(state.timerId);
+    state.timerId = null;
+  }
+}
+
+function startTimer() {
+  if (state.timerId) return;
+  state.status = "playing";
+  state.startedAt = Date.now() - state.elapsed * 1000;
+  state.timerId = window.setInterval(() => {
+    state.elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+    timeEl.textContent = formatTime(state.elapsed);
+  }, 1000);
+}
+
+function buildCards() {
+  const theme = getTheme();
+  const cards = [];
+  theme.pairs.forEach((pair) => {
+    cards.push({
+      id: pair.id + "-term",
+      pairId: pair.id,
+      type: "term",
+      label: "Термін",
+      text: pair.term,
+      status: "idle"
+    });
+    cards.push({
+      id: pair.id + "-definition",
+      pairId: pair.id,
+      type: "definition",
+      label: "Визначення",
+      text: pair.definition,
+      status: "idle"
+    });
+  });
+  return shuffle(cards);
+}
+
+function resetGame() {
+  stopTimer();
+  state.cards = buildCards();
+  state.selectedIds = [];
+  state.lives = DEFAULT_LIVES;
+  state.matches = 0;
+  state.elapsed = 0;
+  state.startedAt = 0;
+  state.locked = false;
+  state.status = "ready";
+  timeEl.textContent = "00:00";
+  renderStats();
+  renderCards();
+  closeModal();
+  hintEl.textContent = "Натисніть на картку, щоб почати гру.";
+}
+
+function renderStats() {
+  const totalPairs = getTheme().pairs.length;
+  matchesEl.textContent = state.matches + " / " + totalPairs;
+  livesEl.textContent = String(state.lives);
+}
+
+function renderCards() {
+  cardsEl.innerHTML = state.cards.map((card) => {
+    return (
+      '<button class="card ' + card.status + '" data-id="' + card.id + '" type="button">' +
+        '<span class="card-type">' + card.label + '</span>' +
+        '<span class="card-text">' + card.text + "</span>" +
+      "</button>"
+    );
+  }).join("");
+}
+
+function updateCardStatus(cardIds, nextStatus) {
+  state.cards = state.cards.map((card) => {
+    return cardIds.includes(card.id) ? { ...card, status: nextStatus } : card;
+  });
+  renderCards();
+}
+
+function checkEndState() {
+  const totalPairs = getTheme().pairs.length;
+  if (state.matches === totalPairs) {
+    stopTimer();
+    state.status = "won";
+    showResult(true);
+    return;
+  }
+  if (state.lives === 0) {
+    stopTimer();
+    state.status = "lost";
+    showResult(false);
+  }
+}
+
+function showResult(isWin) {
+  document.getElementById("result-icon").textContent = isWin ? "🎉" : "💔";
+  document.getElementById("result-title").textContent = isWin ? "Усі пари знайдено!" : "Життя закінчилися";
+  document.getElementById("result-text").textContent = isWin
+    ? "Ви впоралися за " + state.elapsed + " с та зберегли " + state.lives + " житт. Сильний результат."
+    : "Спроба завершена, але прогрес збережено. Перезапустіть гру та спробуйте іншу стратегію.";
+  document.getElementById("modal-time").textContent = state.elapsed + " с";
+  document.getElementById("modal-pairs").textContent = state.matches + " / " + getTheme().pairs.length;
+  modalEl.classList.add("open");
+  modalEl.setAttribute("aria-hidden", "false");
+}
+
+function closeModal() {
+  modalEl.classList.remove("open");
+  modalEl.setAttribute("aria-hidden", "true");
+}
+
+function handleCardClick(cardId) {
+  if (state.locked || state.status === "won" || state.status === "lost") return;
+  const card = state.cards.find((item) => item.id === cardId);
+  if (!card || card.status !== "idle") return;
+
+  if (state.status === "ready") {
+    startTimer();
+    hintEl.textContent = "Знайдіть відповідність між терміном і поясненням.";
+  }
+
+  card.status = "selected";
+  state.selectedIds.push(cardId);
+  renderCards();
+
+  if (state.selectedIds.length < 2) return;
+
+  const [firstId, secondId] = state.selectedIds;
+  const first = state.cards.find((item) => item.id === firstId);
+  const second = state.cards.find((item) => item.id === secondId);
+  state.selectedIds = [];
+
+  if (!first || !second) return;
+
+  state.locked = true;
+  const isMatch = first.pairId === second.pairId && first.type !== second.type;
+
+  window.setTimeout(() => {
+    if (isMatch) {
+      updateCardStatus([first.id, second.id], "matched");
+      state.matches += 1;
+      hintEl.textContent = "Є збіг. Продовжуйте!";
+    } else {
+      updateCardStatus([first.id, second.id], "wrong");
+      state.lives = Math.max(0, state.lives - 1);
+      hintEl.textContent = "Не збіглося. Спробуйте іншу пару.";
+      window.setTimeout(() => {
+        updateCardStatus([first.id, second.id], "idle");
+        state.locked = false;
+      }, 800);
+    }
+    renderStats();
+    if (isMatch) state.locked = false;
+    checkEndState();
+  }, 380);
+}
+
+fillThemeOptions();
+themeSelect.addEventListener("change", (event) => {
+  state.themeId = event.target.value;
+  resetGame();
+});
+
+document.getElementById("restart-btn").addEventListener("click", resetGame);
+document.getElementById("play-again-btn").addEventListener("click", resetGame);
+cardsEl.addEventListener("click", (event) => {
+  const button = event.target.closest(".card");
+  if (!button) return;
+  handleCardClick(button.dataset.id);
+});
+
+if (new URLSearchParams(window.location.search).get("embed") === "1") {
+  document.body.classList.add("embed-mode");
+}
+
+resetGame();
+</script>
+</body>
+</html>
