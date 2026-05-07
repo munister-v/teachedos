@@ -1,47 +1,4 @@
-const THEMES = [
-  {
-    id: "science",
-    name: "Наукові терміни",
-    pairs: [
-      { id: "s1", term: "Photosynthesis", definition: "процес, у якому рослини перетворюють світло на енергію" },
-      { id: "s2", term: "Mitochondria", definition: "частина клітини, що виробляє енергію" },
-      { id: "s3", term: "Gravity", definition: "сила, що притягує тіла з масою" },
-      { id: "s4", term: "Velocity", definition: "швидкість із зазначеним напрямком" },
-      { id: "s5", term: "Atom", definition: "найменша одиниця хімічного елемента" },
-      { id: "s6", term: "Osmosis", definition: "рух води крізь напівпроникну мембрану" },
-      { id: "s7", term: "Pi (π)", definition: "відношення довжини кола до його діаметра" },
-      { id: "s8", term: "Haiku", definition: "японський вірш із сімнадцяти складів" }
-    ]
-  },
-  {
-    id: "geo",
-    name: "Країни та столиці",
-    pairs: [
-      { id: "g1", term: "France", definition: "Paris" },
-      { id: "g2", term: "Japan", definition: "Tokyo" },
-      { id: "g3", term: "Brazil", definition: "Brasilia" },
-      { id: "g4", term: "Australia", definition: "Canberra" },
-      { id: "g5", term: "Egypt", definition: "Cairo" },
-      { id: "g6", term: "Canada", definition: "Ottawa" },
-      { id: "g7", term: "Italy", definition: "Rome" },
-      { id: "g8", term: "Germany", definition: "Berlin" }
-    ]
-  },
-  {
-    id: "coding",
-    name: "Основи програмування",
-    pairs: [
-      { id: "c1", term: "Variable", definition: "контейнер для збереження значень" },
-      { id: "c2", term: "Loop", definition: "повторення одного й того самого блоку коду" },
-      { id: "c3", term: "Function", definition: "блок коду, який виконує окреме завдання" },
-      { id: "c4", term: "Array", definition: "структура, що містить кілька значень" },
-      { id: "c5", term: "Boolean", definition: "тип даних із двома значеннями: true або false" },
-      { id: "c6", term: "API", definition: "набір правил для взаємодії між програмами" },
-      { id: "c7", term: "Bug", definition: "помилка або дефект у програмі" },
-      { id: "c8", term: "Git", definition: "розподілена система контролю версій" }
-    ]
-  }
-];
+const THEMES = window.TEACHEDOS_GAME_DATA.matchThemes;
 
 const DEFAULT_LIVES = 5;
 

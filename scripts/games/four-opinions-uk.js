@@ -1,9 +1,6 @@
-const PERSONAS = [
-  { id: "A", name: "Alex", label: "Підтримує", color: "var(--positive)", bg: "rgba(20,155,113,0.12)" },
-  { id: "B", name: "Bianca", label: "Критикує", color: "var(--negative)", bg: "rgba(217,94,94,0.12)" },
-  { id: "C", name: "Chris", label: "Змішана позиція", color: "var(--balanced)", bg: "rgba(154,111,241,0.12)" },
-  { id: "D", name: "Dana", label: "Практичний погляд", color: "var(--practical)", bg: "rgba(59,130,246,0.12)" }
-];
+const PERSONAS = window.TEACHEDOS_GAME_DATA.opinionPersonas;
+const LENGTH_CONFIGS = window.TEACHEDOS_GAME_DATA.opinionLengthConfigs;
+const LEVEL_LIBRARY = window.TEACHEDOS_GAME_DATA.opinionLevelLibrary;
 
 let activeOpinions = [];
 
@@ -12,56 +9,13 @@ function normaliseTopic(topic) {
 }
 
 function getLengthConfig(length) {
-  if (length === "short") return { extra: "", tail: "" };
-  if (length === "long") {
-    return {
-      extra: " It can affect motivation, classroom atmosphere, and how confident students feel when they speak.",
-      tail: " In my view, the best classroom tasks give students a reason to explain and react, not just repeat one line."
-    };
-  }
-  return {
-    extra: " It changes how students take part in the lesson.",
-    tail: ""
-  };
+  return LENGTH_CONFIGS[length] || LENGTH_CONFIGS.medium;
 }
 
 function levelPhrase(level, personaIndex, topic) {
   const plainTopic = topic.endsWith("?") ? topic.slice(0, -1) : topic;
-
-  const library = {
-    A1: [
-      "I think " + plainTopic + " is a good idea. It helps students and makes lessons easier.",
-      "I do not like " + plainTopic + ". It can be stressful and not every student needs it.",
-      "I can see good and bad sides. It may help some people, but it may also cause problems.",
-      "For me, the main point is simple: teachers need clear rules and students need a fair system."
-    ],
-    A2: [
-      "I think " + plainTopic + " is useful because it can make lessons more focused and more organised.",
-      "I am not convinced about " + plainTopic + " because it may create pressure and reduce natural interest.",
-      "There are advantages and disadvantages. It may work in one school, but not in another.",
-      "In practice, success depends on the rules, the teacher, and the age of the students."
-    ],
-    B1: [
-      "I support " + plainTopic + " because it can improve concentration and give the class a clearer structure.",
-      "I disagree with " + plainTopic + " because students also need trust, choice, and a realistic learning environment.",
-      "I have mixed feelings about " + plainTopic + " because the idea sounds helpful, but the results may depend on context.",
-      "From a practical point of view, " + plainTopic + " only works when expectations are clear for everyone."
-    ],
-    B2: [
-      "On the whole, I support " + plainTopic + " because it can raise academic focus and reduce unnecessary distractions.",
-      "I remain critical of " + plainTopic + " because it may ignore individual needs and oversimplify a complex issue.",
-      "My view is balanced: " + plainTopic + " could be effective, yet it may also produce side effects if applied too rigidly.",
-      "What matters most is implementation. Even a sensible idea like " + plainTopic + " can fail without thoughtful planning."
-    ],
-    C1: [
-      "Broadly speaking, I am in favour of " + plainTopic + " because it can reinforce purpose, clarity, and sustained attention in the classroom.",
-      "I am sceptical about " + plainTopic + " since it risks treating a nuanced educational question as if one rule could solve everything.",
-      "My position is ambivalent: " + plainTopic + " has merit, although its impact depends heavily on context, age group, and classroom culture.",
-      "From a pragmatic perspective, the debate is less about principle and more about whether the policy is implemented intelligently."
-    ]
-  };
-
-  return library[level][personaIndex];
+  const phrases = LEVEL_LIBRARY[level] || LEVEL_LIBRARY.B1;
+  return phrases[personaIndex].replaceAll("TOPIC", plainTopic);
 }
 
 function buildOpinion(persona, level, length, topic, personaIndex) {

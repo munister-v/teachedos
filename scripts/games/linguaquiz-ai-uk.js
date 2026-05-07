@@ -1,20 +1,5 @@
-const FOCUS_OPTIONS = [
-  "Main Idea",
-  "Detailed Comprehension",
-  "Vocabulary in Context",
-  "Inference / Implication",
-  "Grammar in Context",
-  "Exam Style"
-];
-
-const STOPWORDS = new Set([
-  "the", "and", "that", "with", "from", "this", "have", "were", "they", "their", "there",
-  "about", "would", "could", "should", "because", "which", "while", "where", "when",
-  "what", "your", "into", "been", "than", "them", "then", "also", "only", "some",
-  "many", "more", "most", "such", "very", "much", "over", "after", "before", "during",
-  "between", "through", "other", "these", "those", "each", "just", "like", "will",
-  "students", "student", "teacher", "teachers", "lesson", "lessons", "language", "english"
-]);
+const FOCUS_OPTIONS = window.TEACHEDOS_GAME_DATA.quizFocusOptions;
+const STOPWORDS = new Set(window.TEACHEDOS_GAME_DATA.quizStopwords);
 
 const focusGrid = document.getElementById("focus-grid");
 const questionsEl = document.getElementById("questions");
