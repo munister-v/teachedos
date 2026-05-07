@@ -189,6 +189,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .card-close:hover{background:rgba(239,68,68,.14);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
+.user-menu-item{padding:9px 16px;cursor:pointer;font-weight:700;color:var(--text);transition:background .12s;}
+.user-menu-item:hover{background:var(--accent-2);}
+.auth-input{width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:var(--font);font-size:.95rem;color:var(--text);outline:none;margin-bottom:11px;transition:border-color .15s;}
+.auth-input:focus{border-color:var(--accent);}
+.board-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;}
+.board-list-item:hover{border-color:var(--accent);background:var(--accent-2);}
+
 /* Game iframe overlay — hidden by default, shown when board is in drag/resize */
 .game-iframe-overlay{
   position:absolute;inset:0;z-index:30;
@@ -367,6 +374,19 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
   <div class="tb-sep"></div>
+  <!-- Auth user chip -->
+  <div id="auth-chip" style="display:none;align-items:center;gap:7px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
+    <span id="auth-avatar" style="font-size:18px;line-height:1;">🧑‍🏫</span>
+    <span id="auth-name">—</span>
+  </div>
+  <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">🔑 Sign in</div>
+  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
+    <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
+    <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
+    <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
+    <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
+  </div>
+  <div class="tb-sep"></div>
   <div class="tb-btn text danger" id="btn-clear" title="Clear board">🗑</div>
 </div>
 
@@ -431,6 +451,34 @@ body.board-dragging .game-iframe-overlay{display:block;}
 <div id="zoom-hint">Scroll · zoom · Space+drag · pan</div>
 <!-- Undo toast -->
 <div id="undo-toast"></div>
+
+<!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
+  <div id="auth-modal" style="background:#fff;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:2.2rem;">📌</div>
+      <div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-top:6px;">TeachedBoard</div>
+      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:4px;">Sign in to sync your boards</div>
+    </div>
+    <div id="auth-err" style="display:none;background:#fff0f0;border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+    <div id="auth-fields"></div>
+    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;">Sign in</button>
+    <div style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--text-3);">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
+    </div>
+    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:var(--text-3);line-height:1;">×</div>
+  </div>
+</div>
+
+<!-- BOARD LIST MODAL -->
+<div id="boards-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
+    <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:16px;">📋 My Boards</div>
+    <div id="boards-list"></div>
+    <button onclick="closeBoardList()" style="position:absolute;top:14px;right:16px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-3);">×</button>
+  </div>
+</div>
 
 <script>
 /* ════════════════════════ DATA ════════════════════════ */
@@ -859,21 +907,56 @@ function renderImage(el, card) {
 }
 
 function renderGame(el, card) {
-  const hdr = makeHeader('🎮', card.data.title || 'Game', card.id);
+  // Header with score badge on the right
+  const hdr = document.createElement('div');
+  hdr.className = 'card-header';
+  hdr.style.cursor = 'move';
+  hdr.innerHTML = `<span class="card-drag-ic">🎮</span><span class="card-title-text">${esc(card.data.title||'Game')}</span>`;
+  const scoreBadge = document.createElement('span');
+  scoreBadge.className = 'game-score-badge';
+  scoreBadge.dataset.cardId = card.id;
+  scoreBadge.textContent = '…';
+  hdr.appendChild(scoreBadge);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'card-close'; closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+  hdr.appendChild(closeBtn);
   el.appendChild(hdr);
+
+  // Body: iframe scaled to fit card
   const body = document.createElement('div');
   body.className = 'card-body';
   body.style.cssText = 'padding:0;position:relative;overflow:hidden;flex:1;';
+
+  const naturalW = card.data.naturalW || 460;
+  const naturalH = card.data.naturalH || 560;
+
   const iframe = document.createElement('iframe');
   iframe.src = card.data.src;
-  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+  iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:0 0;`;
+  iframe.dataset.cardId = card.id;
   body.appendChild(iframe);
-  // overlay blocks iframe during card drag/resize so mouse events reach the board
+
   const overlay = document.createElement('div');
   overlay.className = 'game-iframe-overlay';
   body.appendChild(overlay);
   el.appendChild(body);
+
+  // Initial scale (deferred so el has layout)
+  requestAnimationFrame(() => applyGameScale(el, card));
+}
+
+function applyGameScale(el, card) {
+  const body = el.querySelector('.card-body');
+  const iframe = el.querySelector('iframe');
+  if (!body || !iframe) return;
+  const naturalW = card.data.naturalW || 460;
+  const naturalH = card.data.naturalH || 560;
+  const bw = body.clientWidth  || card.w;
+  const bh = body.clientHeight || (card.h - 42); // subtract header height
+  const scale = Math.min(bw / naturalW, bh / naturalH);
+  iframe.style.transform = `scale(${scale})`;
 }
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1719,6 +1802,268 @@ if (!loaded) {
 
 updateEmpty();
 renderMinimap();
+
+/* ════════════════════════ API + AUTH ════════════════════════ */
+const API = 'https://teachedos-api.onrender.com';
+let authToken = localStorage.getItem('teachedos_token') || null;
+let currentUser = null;
+let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
+let authMode = 'login'; // 'login' | 'register'
+
+// ── Token helpers ────────────────────────────────────────────
+function setToken(t) { authToken = t; if (t) localStorage.setItem('teachedos_token', t); else localStorage.removeItem('teachedos_token'); }
+function apiFetch(path, opts = {}) {
+  return fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}), ...(opts.headers || {}) },
+    body: opts.body ? (typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body)) : undefined,
+  });
+}
+
+// ── Auth UI ──────────────────────────────────────────────────
+function openAuthModal(mode = 'login') {
+  authMode = mode;
+  renderAuthFields();
+  const ov = document.getElementById('auth-overlay');
+  ov.style.display = 'flex';
+  setTimeout(() => document.querySelector('.auth-input')?.focus(), 50);
+  document.getElementById('auth-err').style.display = 'none';
+}
+function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
+function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
+
+function renderAuthFields() {
+  const isLogin = authMode === 'login';
+  document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to sync your boards' : 'Create your TeachedBoard account';
+  document.getElementById('auth-submit').textContent = isLogin ? 'Sign in' : 'Create account';
+  document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+  document.getElementById('auth-toggle-link').textContent = isLogin ? 'Register' : 'Sign in';
+  const f = document.getElementById('auth-fields');
+  f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your name" autocomplete="name">` : '') +
+    `<input class="auth-input" id="af-email" type="email" placeholder="Email" autocomplete="email">
+     <input class="auth-input" id="af-pass"  type="password" placeholder="Password (min 8 chars)" autocomplete="${isLogin?'current':'new'}-password">`;
+  document.getElementById('auth-fields').querySelectorAll('.auth-input').forEach(i => {
+    i.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
+  });
+}
+
+async function submitAuth() {
+  const email = document.getElementById('af-email')?.value.trim();
+  const pass  = document.getElementById('af-pass')?.value;
+  const name  = document.getElementById('af-name')?.value?.trim();
+  const errEl = document.getElementById('auth-err');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('auth-submit');
+  btn.disabled = true; btn.textContent = '…';
+
+  try {
+    const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+    const body = authMode === 'login' ? { email, password: pass } : { email, password: pass, name };
+    const r = await apiFetch(endpoint, { method: 'POST', body });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Error');
+    setToken(d.token);
+    currentUser = d.user;
+    closeAuthModal();
+    updateAuthUI();
+    await initUserBoard();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
+  }
+}
+
+function updateAuthUI() {
+  const chip = document.getElementById('auth-chip');
+  const loginBtn = document.getElementById('auth-login-btn');
+  if (currentUser) {
+    chip.style.display = 'flex';
+    loginBtn.style.display = 'none';
+    document.getElementById('auth-avatar').textContent = currentUser.avatar || '🧑‍🏫';
+    document.getElementById('auth-name').textContent = currentUser.name.split(' ')[0];
+    document.getElementById('user-menu-email').textContent = currentUser.email;
+  } else {
+    chip.style.display = 'none';
+    loginBtn.style.display = '';
+  }
+}
+
+function showUserMenu() {
+  const m = document.getElementById('user-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('auth-chip')?.contains(e.target)) {
+    document.getElementById('user-menu').style.display = 'none';
+  }
+});
+
+async function logout() {
+  document.getElementById('user-menu').style.display = 'none';
+  try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  setToken(null);
+  currentUser = null;
+  currentBoardId = null;
+  localStorage.removeItem('teachedos_board_id');
+  updateAuthUI();
+  toast('Signed out');
+}
+
+// ── Board API ────────────────────────────────────────────────
+async function initUserBoard() {
+  if (!currentUser || !authToken) return;
+  try {
+    // Try to load saved board
+    if (currentBoardId) {
+      const r = await apiFetch('/api/boards/' + currentBoardId);
+      if (r.ok) {
+        const { board } = await r.json();
+        loadBoardData(board.data);
+        document.title = board.name + ' · TeachedBoard';
+        saveStatus.textContent = '☁ cloud';
+        return;
+      }
+    }
+    // Load first available board
+    const r2 = await apiFetch('/api/boards');
+    if (r2.ok) {
+      const { boards } = await r2.json();
+      if (boards.length) {
+        currentBoardId = boards[0].id;
+        localStorage.setItem('teachedos_board_id', currentBoardId);
+        const r3 = await apiFetch('/api/boards/' + currentBoardId);
+        if (r3.ok) {
+          const { board } = await r3.json();
+          loadBoardData(board.data);
+          document.title = board.name + ' · TeachedBoard';
+          saveStatus.textContent = '☁ cloud';
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[board] cloud load failed, using local:', e.message);
+  }
+}
+
+function loadBoardData(data) {
+  // Clear current board
+  board.querySelectorAll('.board-card').forEach(e => e.remove());
+  arrowsSvg.querySelectorAll('.arrow-path').forEach(e => e.remove());
+  state.cards = [];
+  state.arrows = [];
+  state.selected = new Set();
+  state.selectedArrows = new Set();
+  // Load
+  state.pan    = data.pan    || { x:100, y:60 };
+  state.scale  = data.scale  || 1;
+  state.nextId = data.nextId || 1;
+  (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
+  state.arrows = data.arrows || [];
+  applyTransform();
+  renderAllArrows();
+  renderMinimap();
+  updateEmpty();
+}
+
+async function saveToCloud() {
+  if (!currentUser || !authToken || !currentBoardId) return;
+  const data = { pan:state.pan, scale:state.scale, nextId:state.nextId, cards:state.cards, arrows:state.arrows };
+  try {
+    const r = await apiFetch('/api/boards/' + currentBoardId, { method: 'PUT', body: { data } });
+    if (r.ok) saveStatus.textContent = '☁ saved';
+  } catch { saveStatus.textContent = '☁ error'; }
+}
+
+// ── Boards list UI ────────────────────────────────────────────
+async function showBoardList() {
+  document.getElementById('user-menu').style.display = 'none';
+  const ov = document.getElementById('boards-overlay');
+  ov.style.display = 'flex';
+  const list = document.getElementById('boards-list');
+  list.innerHTML = '<div style="color:var(--text-3);font-size:.9rem;padding:8px;">Loading…</div>';
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    list.innerHTML = '';
+    boards.forEach(b => {
+      const item = document.createElement('div');
+      item.className = 'board-list-item';
+      item.innerHTML = `<div style="flex:1"><div style="font-weight:800;color:var(--text)">${esc(b.name)}</div><div style="font-size:.78rem;color:var(--text-3)">${b.card_count||0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div></div><div style="font-size:11px;color:var(--accent);font-weight:700">${b.id===currentBoardId?'Active':''}</div>`;
+      item.onclick = () => switchBoard(b.id, b.name);
+      list.appendChild(item);
+    });
+  } catch { list.innerHTML = '<div style="color:#e55;">Failed to load</div>'; }
+}
+function closeBoardList() { document.getElementById('boards-overlay').style.display = 'none'; }
+
+async function switchBoard(id, name) {
+  closeBoardList();
+  currentBoardId = id;
+  localStorage.setItem('teachedos_board_id', id);
+  await initUserBoard();
+  toast('Switched to: ' + name);
+}
+
+async function newBoard() {
+  document.getElementById('user-menu').style.display = 'none';
+  const name = prompt('Board name:', 'New Board');
+  if (!name) return;
+  try {
+    const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
+    const { board: b } = await r.json();
+    currentBoardId = b.id;
+    localStorage.setItem('teachedos_board_id', currentBoardId);
+    loadBoardData(b.data);
+    document.title = name + ' · TeachedBoard';
+    toast('Board created: ' + name);
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+// ── Override scheduleSave to also cloud-save ─────────────────
+const _localSave = scheduleSave;
+const origScheduleSave = scheduleSave;
+
+// Patch scheduleSave to add cloud sync
+let cloudSaveTimer = null;
+const origScheduleSaveRef = scheduleSave;
+function scheduleSave() {
+  // Local save
+  saveStatus.textContent = 'saving…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ pan:state.pan, scale:state.scale, nextId:state.nextId, cards:state.cards, arrows:state.arrows }));
+      saveStatus.textContent = currentUser ? '☁ saving…' : '✓ saved';
+    } catch(e) { saveStatus.textContent = '⚠ error'; }
+    // Cloud sync
+    if (currentUser && currentBoardId) {
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(saveToCloud, 1500);
+    }
+  }, 700);
+}
+
+// ── Init auth on load ────────────────────────────────────────
+(async () => {
+  renderAuthFields(); // pre-render fields
+  if (authToken) {
+    try {
+      const r = await apiFetch('/api/auth/me');
+      if (r.ok) {
+        const { user } = await r.json();
+        currentUser = user;
+        updateAuthUI();
+        await initUserBoard();
+        return;
+      }
+    } catch {}
+    setToken(null);
+  }
+  updateAuthUI();
+})();
 </script>
 </body>
 </html>

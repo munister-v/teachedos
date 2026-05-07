@@ -56,13 +56,17 @@ const server = http.createServer(app);
 // WebSocket
 require('./ws').setup(server);
 
-migrate()
-  .then(() => {
-    server.listen(PORT, () => {
-      console.log(`[server] TeachedOS API running on port ${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('[startup] migration failed:', err);
-    process.exit(1);
+async function main() {
+  if (process.env.DATABASE_URL) {
+    try { await migrate(); }
+    catch (err) { console.error('[startup] migration error (continuing):', err.message); }
+  } else {
+    console.warn('[startup] DATABASE_URL not set — DB features disabled until env var is added');
+  }
+
+  server.listen(PORT, () => {
+    console.log(`[server] TeachedOS API running on port ${PORT}`);
   });
+}
+
+main();
