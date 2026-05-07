@@ -7,14 +7,14 @@ Standalone static build of the `TeachedOS` language-learning interface.
 - `index.html` — main OS shell
 - `games/` — interactive embedded modules
 - `scripts/` — data and curriculum bindings
+- `styles/` — extracted application styles
 
 ## Deploy to GitHub Pages
 
-1. Create a new GitHub repository.
-2. Upload the contents of this folder to the repository root.
-3. In GitHub, open `Settings -> Pages`.
-4. Set source to `Deploy from a branch`.
-5. Choose branch `main` and folder `/ (root)`.
+1. Push the contents of this folder to a GitHub repository.
+2. In GitHub, open `Settings -> Pages`.
+3. Set source to `Deploy from a branch`.
+4. Choose branch `main` and folder `/ (root)`.
 
 ## Notes
 
