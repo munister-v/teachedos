@@ -116,7 +116,7 @@
         <span class="sb-item-badge">1</span>
       </div>
       <div class="sb-item" onclick="currFilter('games',this)">
-        <span class="sb-item-ic">🎮</span> Games
+        <span class="sb-item-ic">🎮</span> Lab
         <span class="sb-item-badge">3</span>
       </div>
       <div class="sb-section-label" style="margin-top:8px;">Progress</div>
@@ -147,7 +147,7 @@
         <div class="curr-tab" onclick="setTab(this,'grammar')">Grammar</div>
         <div class="curr-tab" onclick="setTab(this,'vocab')">Vocabulary</div>
         <div class="curr-tab" onclick="setTab(this,'speaking')">Speaking</div>
-        <div class="curr-tab" onclick="setTab(this,'games')">Games</div>
+        <div class="curr-tab" onclick="setTab(this,'games')">Lab</div>
         <div class="curr-tab" onclick="setTab(this,'mistakes')">Common Mistakes</div>
       </div>
       <div class="curr-grid" id="curr-grid"></div>
@@ -532,7 +532,7 @@
       <div class="tl min"    onclick="minWin('tools')"></div>
       <div class="tl max"></div>
     </div>
-    <div class="win-title">🪄 Teaching Tools</div>
+  <div class="win-title">🪄 Teaching Tools</div>
   </div>
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar" id="sidebar-tools">
@@ -576,7 +576,7 @@
       <div class="tl min" onclick="minWin('games')"></div>
       <div class="tl max"></div>
     </div>
-    <div class="win-title" id="games-titlebar-title">🎮 Games Lab</div>
+    <div class="win-title" id="games-titlebar-title">🎮 Interactive Lab</div>
   </div>
   <div class="win-body">
     <div class="win-sidebar" id="sidebar-games">
@@ -592,15 +592,15 @@
     <div class="win-main games-layout" style="padding:0;background:linear-gradient(180deg,rgba(255,250,252,.94),rgba(255,241,247,.94));">
       <div class="mob-win-header">
         <span style="font-size:22px;">🎮</span>
-        <div class="mob-win-title">Games Lab</div>
+        <div class="mob-win-title">Interactive Lab</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('games')">☰</div>
       </div>
       <div class="games-hero">
         <div class="games-hero-top">
           <div class="games-hero-icon" id="games-hero-icon">🎮</div>
           <div class="games-hero-copy">
-            <div class="games-hero-eyebrow" id="games-hero-eyebrow">§ integrated language game</div>
-            <div class="games-hero-title" id="games-hero-title">Games <em>Lab</em></div>
+            <div class="games-hero-eyebrow" id="games-hero-eyebrow">§ integrated teaching module</div>
+            <div class="games-hero-title" id="games-hero-title">Interactive <em>Lab</em></div>
             <div class="games-hero-desc" id="games-hero-desc">Select an interactive module from the sidebar. Each one runs inside the system window with a compact embedded layout.</div>
             <div class="games-meta" id="games-meta"></div>
             <div class="games-quicklist" id="games-quicklist"></div>
@@ -619,7 +619,7 @@
           </div>
         </div>
         <div class="games-stage-shell">
-          <iframe id="games-frame" class="games-frame" title="Games Lab module" src=""></iframe>
+          <iframe id="games-frame" class="games-frame" title="Interactive Lab module" src=""></iframe>
         </div>
       </div>
     </div>
@@ -664,9 +664,9 @@
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-games" onclick="openApp('games')" title="Games Lab">
+    <div class="di" id="di-games" onclick="openApp('games')" title="Interactive Lab">
       <div class="di-icon games">🎮</div>
-      <div class="di-label">Games</div>
+      <div class="di-label">Lab</div>
       <div class="di-dot"></div>
     </div>
     <div class="di-sep"></div>

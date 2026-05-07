@@ -354,6 +354,12 @@ let activeGameId = GAMES_DATA[0].id;
 
 let activeToolGroup = 'all';
 
+function gameMatchesTool(game, toolId) {
+  if (game.toolId === toolId) return true;
+  if (Array.isArray(game.toolIds) && game.toolIds.includes(toolId)) return true;
+  return false;
+}
+
 function toolsFilter(group, el) {
   document.querySelectorAll('#win-tools .sb-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
@@ -384,7 +390,7 @@ function toolsRender() {
       const c = TAG_COLORS[t.badge] || {};
       return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
     })() : '';
-    const footer = GAMES_DATA.some(g => g.toolId === t.id) ? 'Launch module →' : 'Use tool →';
+    const footer = GAMES_DATA.some(g => gameMatchesTool(g, t.id)) ? 'Launch module →' : 'Use tool →';
     return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(244,167,185,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(244,167,185,0.09)';this.style.borderColor='rgba(244,167,185,0.22)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(244,167,185,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
         <div style="font-size:22px;flex-shrink:0;line-height:1;">${t.icon}</div>
@@ -462,7 +468,7 @@ function gamesLaunchCurrent() {
 function toolOpen(id) {
   const t = TOOLS_DATA.find(x => x.id === id);
   if (!t) return;
-  const interactiveGame = GAMES_DATA.find(game => game.toolId === id);
+  const interactiveGame = GAMES_DATA.find(game => gameMatchesTool(game, id));
   if (interactiveGame) {
     gamesOpen(interactiveGame.id, true);
     return;

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS · Twee Module Studio</title>
+<link rel="stylesheet" href="../styles/games-base.css">
+<link rel="stylesheet" href="../styles/module-studio.css">
+</head>
+<body>
+<div class="module-shell">
+  <section class="module-topbar">
+    <div>
+      <div class="eyebrow" id="studio-eyebrow">Twee-style module · local mode</div>
+      <h1 id="studio-title">Module Studio</h1>
+      <p id="studio-desc">Відкрийте модуль через TeachedOS і згенеруйте матеріали локально без API-ключів та зовнішнього бекенду.</p>
+    </div>
+    <div class="pill" id="studio-pill">Offline ready</div>
+  </section>
+
+  <section class="module-layout">
+    <form class="module-panel module-form" id="studio-form"></form>
+
+    <section class="module-panel module-results">
+      <div class="module-results-head">
+        <div>
+          <div class="eyebrow">Output</div>
+          <div class="module-results-meta" id="studio-meta">Ще немає згенерованого результату.</div>
+        </div>
+        <button class="module-copy" id="studio-copy" type="button" disabled>Скопіювати</button>
+      </div>
+      <div class="module-empty" id="studio-empty">Оберіть модуль у `Teaching Tools` або `Interactive Lab`, заповніть форму зліва і згенеруйте матеріал.</div>
+      <div class="module-output" id="studio-output" hidden></div>
+    </section>
+  </section>
+</div>
+
+<script src="../scripts/games-embed.js"></script>
+<script src="../scripts/games-data.js"></script>
+<script src="../scripts/games/twee-module-studio.js"></script>
+</body>
+</html>
