@@ -1,18 +1,18 @@
 const { Pool } = require('pg');
 
-// Render internal DB (.internal host) doesn't use SSL
-// External DB (frankfurt-postgres.render.com) requires SSL
-const isInternal = (process.env.DATABASE_URL || '').includes('.internal');
+const dbUrl = process.env.DATABASE_URL || '';
+// Internal Render hostnames (.internal) skip SSL; external need SSL
+const ssl = dbUrl.includes('.internal') ? false : { rejectUnauthorized: false };
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: isInternal ? false : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false),
+  connectionString: dbUrl,
+  ssl,
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 8000,
 });
 
-pool.on('connect', () => console.log('[db] connected'));
+pool.on('connect', () => console.log('[db] connected to PostgreSQL'));
 pool.on('error', (err) => console.error('[db] pool error:', err.message));
 
 module.exports = pool;
