@@ -16,6 +16,8 @@ updateClock(); setInterval(updateClock, 30000);
 /* ══════════════════════ WINDOW MANAGEMENT ══════════════════════ */
 let topZ = 200;
 const zMap = {};
+const winState = {};
+const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
 
 function openApp(id) {
   const win = document.getElementById('win-' + id);
@@ -44,6 +46,39 @@ function bringToFront(id) {
   if (win) win.style.zIndex = topZ;
 }
 
+function rememberWindowState(win) {
+  const id = win.id.replace('win-', '');
+  winState[id] = {
+    top: win.style.top || `${win.offsetTop}px`,
+    left: win.style.left || `${win.offsetLeft}px`,
+    width: win.style.width || `${win.offsetWidth}px`,
+    height: win.style.height || `${win.offsetHeight}px`
+  };
+}
+
+function toggleMaxWin(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || isMobileViewport()) return;
+  if (win.dataset.maximized === 'true') {
+    const prev = winState[id];
+    if (prev) {
+      win.style.top = prev.top;
+      win.style.left = prev.left;
+      win.style.width = prev.width;
+      win.style.height = prev.height;
+    }
+    win.dataset.maximized = 'false';
+    return;
+  }
+  rememberWindowState(win);
+  win.style.top = '44px';
+  win.style.left = '20px';
+  win.style.width = 'calc(100vw - 40px)';
+  win.style.height = 'calc(100vh - 76px)';
+  win.dataset.maximized = 'true';
+  bringToFront(id);
+}
+
 /* Draggable windows */
 (function(){
   const wins = document.querySelectorAll('.win');
@@ -52,6 +87,7 @@ function bringToFront(id) {
     if (!tb) return;
     let drag = false, ox=0, oy=0, wx=0, wy=0;
     tb.addEventListener('mousedown', e => {
+      if (isMobileViewport()) return;
       if (e.target.classList.contains('tl')) return;
       drag = true;
       ox = e.clientX; oy = e.clientY;
@@ -65,14 +101,50 @@ function bringToFront(id) {
       if (!drag) return;
       win.style.left = (wx + e.clientX - ox) + 'px';
       win.style.top  = (wy + e.clientY - oy) + 'px';
+      win.dataset.maximized = 'false';
     });
     document.addEventListener('mouseup', () => { drag = false; });
     win.addEventListener('mousedown', () => {
       const id = win.id.replace('win-','');
       bringToFront(id);
     });
+
+    const maxButton = win.querySelector('.tl.max');
+    if (maxButton) {
+      maxButton.addEventListener('click', () => toggleMaxWin(win.id.replace('win-', '')));
+    }
+
+    const handle = document.createElement('div');
+    handle.className = 'win-resize-handle';
+    win.appendChild(handle);
+
+    let resize = false, sx = 0, sy = 0, sw = 0, sh = 0;
+    handle.addEventListener('mousedown', e => {
+      if (isMobileViewport()) return;
+      resize = true;
+      sx = e.clientX; sy = e.clientY;
+      sw = win.offsetWidth; sh = win.offsetHeight;
+      rememberWindowState(win);
+      win.dataset.maximized = 'false';
+      bringToFront(win.id.replace('win-', ''));
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!resize) return;
+      win.style.width = `${Math.max(420, sw + e.clientX - sx)}px`;
+      win.style.height = `${Math.max(300, sh + e.clientY - sy)}px`;
+    });
+    document.addEventListener('mouseup', () => { resize = false; });
   });
 })();
+
+function syncViewportMode() {
+  document.body.classList.toggle('mobile-mode', isMobileViewport());
+}
+
+window.addEventListener('resize', syncViewportMode);
+syncViewportMode();
 
 /* ══════════════════════ FLASHCARDS ══════════════════════ */
 const FC_DATA = {

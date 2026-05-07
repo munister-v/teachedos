@@ -109,6 +109,71 @@ const MODULES = {
     fields: [
       { type: "textarea", id: "text", label: "Текст для аналізу", placeholder: "Вставте текст англійською..." }
     ]
+  },
+  "writing-prompts": {
+    title: "Writing Prompts",
+    eyebrow: "Writing · prompt generator",
+    desc: "Створює серію writing prompts на тему з урахуванням рівня і жанру. Підходить для classwork, homework або exam-style writing warm-up.",
+    pill: "Writing set",
+    accent: "#6bc18a",
+    meta: "Writing · Prompt bank · A1–C2",
+    copyLabel: "Скопіювати prompts",
+    fields: [
+      { type: "textarea", id: "topic", label: "Тема", placeholder: "Напр.: learning to live independently" },
+      { type: "row", fields: [
+        { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1", "C2"], value: "B1" },
+        { type: "select", id: "genre", label: "Жанр", options: ["Paragraph", "Email", "Opinion Essay", "Story", "Article"], value: "Paragraph" }
+      ] }
+    ]
+  },
+  "dialogue-creator": {
+    title: "Dialogue Creator",
+    eyebrow: "Writing + Speaking · dialogue builder",
+    desc: "Створює короткий діалог між двома персонажами на тему. Добре працює для reading aloud, role-play і comprehension follow-up.",
+    pill: "Dialogue mode",
+    accent: "#59b3c5",
+    meta: "Writing · Speaking · A1–C1",
+    copyLabel: "Скопіювати діалог",
+    fields: [
+      { type: "textarea", id: "topic", label: "Ситуація", placeholder: "Напр.: a student asking for deadline extension" },
+      { type: "text", id: "roles", label: "Ролі", placeholder: "Напр.: student, teacher" },
+      { type: "row", fields: [
+        { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1"], value: "B1" },
+        { type: "select", id: "tone", label: "Тон", options: ["Friendly", "Formal", "Problem-solving", "Debate"], value: "Friendly" }
+      ] }
+    ]
+  },
+  "role-play": {
+    title: "Role-Play Scenarios",
+    eyebrow: "Speaking · pair task builder",
+    desc: "Створює role-play scenario з ролями, цілями й tension points для pair work або speaking club.",
+    pill: "Pair-work ready",
+    accent: "#a96ff5",
+    meta: "Speaking · Role-play · A1–C2",
+    copyLabel: "Скопіювати сценарій",
+    fields: [
+      { type: "textarea", id: "topic", label: "Сюжет", placeholder: "Напр.: planning a school event with limited budget" },
+      { type: "row", fields: [
+        { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1", "C2"], value: "B1" },
+        { type: "select", id: "format", label: "Формат", options: ["Pair", "Small Group", "Exam-style"], value: "Pair" }
+      ] }
+    ]
+  },
+  "error-correction": {
+    title: "Error Correction",
+    eyebrow: "Grammar · correction set",
+    desc: "Будує набір речень з навмисними помилками, щоб учні виправляли grammar, vocabulary або word order.",
+    pill: "Correction drill",
+    accent: "#ef7b67",
+    meta: "Grammar · Accuracy · A1–C2",
+    copyLabel: "Скопіювати вправу",
+    fields: [
+      { type: "textarea", id: "topic", label: "Тема або граматичний фокус", placeholder: "Напр.: present perfect vs past simple" },
+      { type: "row", fields: [
+        { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1"], value: "B1" },
+        { type: "select", id: "count", label: "Кількість", options: ["4", "5", "6", "8"], value: "5" }
+      ] }
+    ]
   }
 };
 
@@ -476,6 +541,101 @@ function generateCefr(values) {
   };
 }
 
+function generateWritingPrompts(values) {
+  const topic = values.topic.trim() || "everyday decisions";
+  const prompts = [
+    `Write a short ${values.genre.toLowerCase()} about ${topic} and explain why it matters to you.`,
+    `Describe a situation connected to ${topic} and show what someone learned from it.`,
+    `Give two advantages and one difficulty related to ${topic}.`,
+    `Add a personal example that would make your text more realistic.`
+  ];
+  const html = `<div class="module-card"><h3>Writing prompts</h3><ol>${prompts.map(item => `<li>${item}</li>`).join("")}</ol></div>`;
+  return {
+    meta: `${values.level} · ${values.genre} · ${prompts.length} prompts`,
+    html,
+    copyText: prompts.map((item, index) => `${index + 1}. ${item}`).join("\n")
+  };
+}
+
+function generateDialogue(values) {
+  const roleList = slugWords(values.roles || "Speaker A, Speaker B");
+  const left = roleList[0] || "Speaker A";
+  const right = roleList[1] || "Speaker B";
+  const topic = values.topic.trim() || "solving a lesson problem";
+  const lines = [
+    `${left}: Hi, can we talk about ${topic}?`,
+    `${right}: Yes, of course. What exactly is the main issue?`,
+    `${left}: I think we need a practical solution, not just a quick decision.`,
+    `${right}: That makes sense. Let's compare two options and choose the clearer one.`,
+    `${left}: Good idea. We should also think about how this affects other people.`,
+    `${right}: Agreed. Then we can make a final plan and explain it clearly.`
+  ];
+  const html = `<div class="module-card"><h3>Dialogue</h3><pre>${lines.join("\n")}</pre></div>`;
+  return {
+    meta: `${values.level} · ${values.tone} · 2 speakers`,
+    html,
+    copyText: lines.join("\n")
+  };
+}
+
+function generateRolePlay(values) {
+  const topic = values.topic.trim() || "a classroom decision";
+  const cards = [
+    { role: "Role A", goal: `You want to support a plan related to ${topic}. Give clear reasons and examples.` },
+    { role: "Role B", goal: `You are unsure about ${topic}. Ask questions, challenge details, and suggest alternatives.` }
+  ];
+  const html = `
+    <div class="module-card">
+      <h3>Role-play scenario</h3>
+      <p><strong>Situation:</strong> ${topic}</p>
+      <div class="module-output">
+        ${cards.map(card => `<div class="module-card"><h4>${card.role}</h4><p>${card.goal}</p></div>`).join("")}
+      </div>
+    </div>
+  `;
+  return {
+    meta: `${values.level} · ${values.format} · role-play scenario`,
+    html,
+    copyText: [`Situation: ${topic}`, ...cards.map(card => `${card.role}: ${card.goal}`)].join("\n\n")
+  };
+}
+
+function generateErrorCorrection(values) {
+  const topic = values.topic.trim() || "present perfect vs past simple";
+  const count = Number(values.count || 5);
+  const bank = [
+    `I am agree that ${topic} is important for learners.`,
+    `She have finished the task yesterday, so there is no need to repeat it.`,
+    `We discussed about the problem and found a better direction.`,
+    `He go to school every day since September.`,
+    `They made a homework exercise before dinner.`,
+    `This information are useful for the next lesson.`
+  ].slice(0, count);
+  const fixes = [
+    `I agree that ${topic} is important for learners.`,
+    `She finished the task yesterday, so there is no need to repeat it.`,
+    `We discussed the problem and found a better direction.`,
+    `He has gone to school every day since September.`,
+    `They did a homework exercise before dinner.`,
+    `This information is useful for the next lesson.`
+  ].slice(0, count);
+  const html = `
+    <div class="module-card"><h3>Error correction</h3><ol>${bank.map(item => `<li>${item}</li>`).join("")}</ol></div>
+    <div class="module-card"><h4>Answer key</h4><ol>${fixes.map(item => `<li>${item}</li>`).join("")}</ol></div>
+  `;
+  return {
+    meta: `${values.level} · ${count} correction items`,
+    html,
+    copyText: [
+      "Correct the mistakes:",
+      ...bank.map((item, index) => `${index + 1}. ${item}`),
+      "",
+      "Answer key:",
+      ...fixes.map((item, index) => `${index + 1}. ${item}`)
+    ].join("\n")
+  };
+}
+
 function readValues() {
   const values = {};
   activeModule.fields.forEach((field) => {
@@ -498,6 +658,10 @@ function generateModule(values) {
   if (activeModuleId === "sentence-list") return generateSentenceList(values);
   if (activeModuleId === "fill-gap") return generateGapFill(values);
   if (activeModuleId === "cefr-checker") return generateCefr(values);
+  if (activeModuleId === "writing-prompts") return generateWritingPrompts(values);
+  if (activeModuleId === "dialogue-creator") return generateDialogue(values);
+  if (activeModuleId === "role-play") return generateRolePlay(values);
+  if (activeModuleId === "error-correction") return generateErrorCorrection(values);
   return {
     meta: "Unknown module",
     html: `<div class="module-card"><p>Модуль ще не підключений.</p></div>`,
