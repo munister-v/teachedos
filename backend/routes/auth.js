@@ -35,8 +35,8 @@ router.post('/register', async (req, res) => {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
     }
-    console.error('[auth/register]', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('[auth/register]', err.message, err.code);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -72,8 +72,8 @@ router.post('/login', async (req, res) => {
       user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar }
     });
   } catch (err) {
-    console.error('[auth/login]', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('[auth/login]', err.message, err.code);
+    res.status(500).json({ error: err.message });
   }
 });
 
