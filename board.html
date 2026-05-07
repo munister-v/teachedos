@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS · Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#FFF0F5;--accent:#FF4B8B;--accent-2:rgba(255,75,139,.12);
+  --text:#1C0A14;--text-2:#6B2A48;--text-3:#B07090;
+  --border:rgba(255,80,140,.14);--border-2:rgba(255,80,140,.28);
+  --sb-w:248px;--tb-h:48px;
+  --font:Nunito,ui-sans-serif,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);user-select:none;-webkit-font-smoothing:antialiased;}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  position:fixed;top:0;left:0;right:0;height:var(--tb-h);z-index:1000;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:8px;
+  box-shadow:0 1px 12px rgba(255,75,139,.08);
+}
+.tb-back{
+  display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;
+  font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;
+  text-decoration:none;transition:background .15s;
+}
+.tb-back:hover{background:var(--accent-2);}
+.tb-sep{width:1px;height:24px;background:var(--border);margin:0 4px;}
+.tb-title{font-size:14px;font-weight:800;color:var(--text);letter-spacing:-.01em;}
+.tb-title em{color:var(--accent);font-style:normal;}
+.tb-spacer{flex:1;}
+.tb-zoom-display{
+  font-size:12px;font-family:var(--mono);color:var(--text-2);
+  min-width:46px;text-align:center;
+}
+.tb-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+  background:white;cursor:pointer;font-size:14px;color:var(--text-2);
+  transition:background .12s,border-color .12s;
+}
+.tb-btn:hover{background:var(--accent-2);border-color:var(--border-2);}
+.tb-btn.text{width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:5px;}
+.tb-btn.danger:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#ef4444;}
+#save-status{font-size:11px;font-family:var(--mono);color:var(--text-3);}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  position:fixed;top:var(--tb-h);left:0;bottom:0;width:var(--sb-w);z-index:900;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(16px);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-tab{
+  flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:700;
+  color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+}
+.sb-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.sb-search{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-search input{
+  width:100%;padding:5px 10px;border-radius:7px;border:1px solid var(--border);
+  background:var(--bg);font-family:var(--font);font-size:12px;color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.sb-search input:focus{border-color:var(--border-2);}
+.sb-section{
+  overflow-y:auto;flex:1;padding:8px 8px 20px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.sb-section::-webkit-scrollbar{width:4px;}
+.sb-section::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
+
+/* Snippet items */
+.snippet{
+  padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:white;cursor:grab;transition:box-shadow .15s,transform .12s,border-color .15s;
+  position:relative;
+}
+.snippet:hover{border-color:var(--border-2);box-shadow:0 3px 12px rgba(255,75,139,.10);transform:translateY(-1px);}
+.snippet:active{cursor:grabbing;}
+.snippet-label{font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;}
+.snippet-title{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;}
+.snippet-meta{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:center;}
+.badge{font-size:9px;padding:2px 7px;border-radius:20px;font-family:var(--mono);font-weight:600;}
+.badge.a2{background:rgba(96,165,250,.15);color:#60a5fa;}
+.badge.b1{background:rgba(167,139,250,.15);color:#a78bfa;}
+.badge.b2{background:rgba(110,201,138,.15);color:#6ec98a;}
+.badge.grammar{background:rgba(248,113,113,.12);color:#f87171;}
+.badge.vocab{background:rgba(244,167,185,.15);color:#f4a7b9;}
+.badge.speaking{background:rgba(167,139,250,.12);color:#a78bfa;}
+.badge.active{background:rgba(74,222,128,.12);color:#4ade80;}
+.badge.draft{background:rgba(156,163,175,.12);color:#9ca3af;}
+.badge.pink{background:rgba(255,75,139,.12);color:var(--accent);}
+
+/* Elements panel */
+.el-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;}
+.el-item{
+  padding:12px 8px;border-radius:10px;border:1px solid var(--border);
+  background:white;cursor:grab;text-align:center;transition:box-shadow .15s,transform .12s,border-color .15s;
+}
+.el-item:hover{border-color:var(--border-2);box-shadow:0 3px 12px rgba(255,75,139,.10);transform:translateY(-1px);}
+.el-item-icon{font-size:22px;line-height:1;margin-bottom:4px;}
+.el-item-label{font-size:11px;font-weight:700;color:var(--text-2);}
+
+/* ── BOARD WRAP ── */
+#board-wrap{
+  position:fixed;
+  top:var(--tb-h);left:var(--sb-w);right:0;bottom:0;
+  overflow:hidden;
+  background:
+    radial-gradient(circle,rgba(255,75,139,.06) 1px,transparent 1px),
+    radial-gradient(circle,rgba(255,75,139,.04) 1px,transparent 1px);
+  background-size:28px 28px,14px 14px;
+  background-color:#FFF4F8;
+  cursor:default;
+}
+#board{position:absolute;top:0;left:0;transform-origin:0 0;}
+
+/* ── CARDS ── */
+.board-card{
+  position:absolute;
+  border-radius:14px;
+  box-shadow:0 2px 16px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.04);
+  background:white;
+  border:2px solid transparent;
+  transition:box-shadow .15s,border-color .15s;
+  min-width:160px;min-height:80px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.board-card.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(255,75,139,.18),0 4px 24px rgba(0,0,0,.12);
+}
+.board-card:hover:not(.selected){box-shadow:0 4px 24px rgba(0,0,0,.10);}
+
+.card-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px 8px;
+  cursor:move;flex-shrink:0;
+  border-bottom:1px solid rgba(0,0,0,.05);
+}
+.card-drag-ic{font-size:14px;opacity:.5;flex-shrink:0;}
+.card-title-text{font-size:12px;font-weight:800;color:var(--text);flex:1;line-height:1.2;}
+.card-close{
+  width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(0,0,0,.06);color:var(--text-3);font-size:12px;line-height:1;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:background .12s,color .12s;
+}
+.card-close:hover{background:rgba(239,68,68,.12);color:#ef4444;}
+.card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
+.card-resize{
+  position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:se-resize;
+  background:transparent;
+}
+.card-resize::after{
+  content:'';position:absolute;right:3px;bottom:3px;
+  width:8px;height:8px;
+  border-right:2px solid var(--text-3);border-bottom:2px solid var(--text-3);
+  border-radius:1px;opacity:.4;
+}
+
+/* Sticky card */
+.card-sticky .card-header{display:none;}
+.card-sticky .card-body{padding:14px;display:flex;flex-direction:column;}
+.card-sticky textarea{
+  flex:1;border:none;outline:none;resize:none;background:transparent;
+  font-family:var(--font);font-size:13px;font-weight:600;
+  color:rgba(0,0,0,.75);line-height:1.55;cursor:text;
+  user-select:text;
+}
+.sticky-toolbar{
+  display:flex;gap:4px;margin-bottom:8px;
+  pointer-events:none;opacity:0;transition:opacity .15s;
+}
+.card-sticky:hover .sticky-toolbar,.card-sticky.selected .sticky-toolbar{opacity:1;pointer-events:all;}
+.sticky-close{
+  width:18px;height:18px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(0,0,0,.10);color:rgba(0,0,0,.5);font-size:11px;
+  display:flex;align-items:center;justify-content:center;margin-left:auto;
+}
+.sticky-close:hover{background:rgba(239,68,68,.18);color:#ef4444;}
+.color-dot{width:14px;height:14px;border-radius:50%;cursor:pointer;border:1.5px solid rgba(0,0,0,.10);transition:transform .12s;}
+.color-dot:hover{transform:scale(1.2);}
+.color-dot.active{border-color:rgba(0,0,0,.35);transform:scale(1.1);}
+
+/* Lesson plan card */
+.card-plan .card-header{background:rgba(255,75,139,.05);}
+.plan-body{padding:12px;}
+.plan-desc{font-size:11px;color:var(--text-3);line-height:1.5;margin:6px 0;}
+.plan-footer{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+
+/* Student card */
+.card-student .card-header{background:rgba(96,165,250,.05);}
+.student-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.student-flag{font-size:26px;line-height:1;}
+.student-name{font-size:13px;font-weight:800;color:var(--text);}
+.student-sub{font-size:11px;color:var(--text-3);margin-top:1px;}
+.student-prog-bar{height:5px;border-radius:3px;background:rgba(255,75,139,.12);overflow:hidden;margin-top:2px;}
+.student-prog-fill{height:100%;border-radius:3px;background:var(--accent);}
+.student-meta{display:flex;gap:8px;font-size:11px;color:var(--text-3);}
+.student-streak{color:#f59e0b;font-weight:700;}
+
+/* Schedule event card */
+.card-event .card-header{background:rgba(110,201,138,.05);}
+.event-body{padding:12px;}
+.event-time{font-size:22px;font-weight:900;color:var(--text);font-family:var(--mono);}
+.event-group{font-size:12px;color:var(--text-3);margin-top:2px;}
+.event-topic{font-size:12px;font-weight:700;color:var(--text);margin-top:6px;}
+
+/* Note card */
+.card-note .card-header{background:rgba(245,158,11,.05);}
+.note-body{padding:12px;overflow-y:auto;}
+.note-body pre{
+  font-family:var(--font);font-size:11px;color:var(--text-2);
+  white-space:pre-wrap;line-height:1.6;
+}
+
+/* Text card */
+.card-text .card-header{display:none;}
+.card-text .card-body{padding:12px;display:flex;flex-direction:column;}
+.card-text textarea{
+  flex:1;border:none;outline:none;resize:none;background:transparent;
+  font-family:var(--font);font-size:14px;font-weight:600;color:var(--text);
+  line-height:1.5;cursor:text;user-select:text;
+}
+.text-close-btn{position:absolute;top:6px;right:6px;opacity:0;transition:opacity .15s;}
+.card-text:hover .text-close-btn,.card-text.selected .text-close-btn{opacity:1;}
+
+/* Image card */
+.card-image .card-body{padding:0;display:flex;flex-direction:column;}
+.card-image img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-image .img-placeholder{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;color:var(--text-3);font-size:12px;cursor:pointer;padding:20px;
+}
+.card-image .img-placeholder-ic{font-size:28px;}
+
+/* Ghost while dragging from sidebar */
+#drag-ghost{
+  position:fixed;z-index:9999;pointer-events:none;
+  opacity:.85;transform:scale(.9);
+  border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);
+  background:white;border:2px solid var(--accent);
+  padding:12px 14px;font-size:12px;font-weight:700;color:var(--text);
+  min-width:160px;max-width:240px;
+  transition:transform .05s;
+}
+
+/* Selection box */
+#sel-box{
+  position:fixed;z-index:800;pointer-events:none;
+  border:1.5px solid var(--accent);
+  background:rgba(255,75,139,.06);
+  border-radius:4px;display:none;
+}
+
+/* Zoom hint */
+#zoom-hint{
+  position:fixed;bottom:18px;right:18px;
+  font-size:10px;font-family:var(--mono);color:var(--text-3);
+  background:rgba(255,255,255,.8);padding:5px 10px;border-radius:20px;
+  border:1px solid var(--border);pointer-events:none;
+}
+
+/* Empty state */
+#empty-state{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;color:var(--text-3);
+  transition:opacity .3s;
+}
+#empty-state.hidden{opacity:0;}
+.empty-icon{font-size:48px;line-height:1;margin-bottom:12px;}
+.empty-text{font-size:14px;font-weight:700;}
+.empty-sub{font-size:12px;margin-top:4px;}
+
+/* Context menu */
+#ctx-menu{
+  position:fixed;z-index:5000;
+  background:white;border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 4px 24px rgba(0,0,0,.12);padding:4px;min-width:160px;display:none;
+}
+.ctx-item{
+  padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;
+  color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .1s;
+}
+.ctx-item:hover{background:var(--accent-2);}
+.ctx-item.danger:hover{background:rgba(239,68,68,.08);color:#ef4444;}
+.ctx-sep{height:1px;background:var(--border);margin:4px 0;}
+
+/* Scrollbar */
+.sb-section::-webkit-scrollbar{width:4px;}
+.sb-section::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <a class="tb-back" href="index.html">← TeachedOS</a>
+  <div class="tb-sep"></div>
+  <div class="tb-title">📌 Teached<em>Board</em></div>
+  <div class="tb-spacer"></div>
+  <span id="save-status">✓ saved</span>
+  <div class="tb-sep"></div>
+  <div class="tb-btn" id="btn-zoom-out" title="Zoom out (-)">−</div>
+  <div class="tb-zoom-display" id="zoom-display">100%</div>
+  <div class="tb-btn" id="btn-zoom-in" title="Zoom in (+)">+</div>
+  <div class="tb-btn text" id="btn-fit" title="Fit all cards">⊡ Fit</div>
+  <div class="tb-sep"></div>
+  <div class="tb-btn text danger" id="btn-clear" title="Clear board">🗑 Clear</div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-tabs">
+    <div class="sb-tab active" data-tab="plans">📋 Plans</div>
+    <div class="sb-tab" data-tab="students">👥</div>
+    <div class="sb-tab" data-tab="notes">✍️</div>
+    <div class="sb-tab" data-tab="elements">＋</div>
+  </div>
+  <div class="sb-search" id="sb-search-wrap">
+    <input type="text" placeholder="Search…" id="sb-search">
+  </div>
+  <div class="sb-section" id="sb-content"></div>
+</div>
+
+<!-- BOARD -->
+<div id="board-wrap">
+  <div id="board">
+    <div id="empty-state">
+      <div class="empty-icon">📌</div>
+      <div class="empty-text">Your board is empty</div>
+      <div class="empty-sub">Drag snippets from the left panel<br>or right-click to add a sticky note</div>
+    </div>
+  </div>
+</div>
+
+<!-- Drag ghost -->
+<div id="drag-ghost" style="display:none;"></div>
+
+<!-- Selection box -->
+<div id="sel-box"></div>
+
+<!-- Context menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-sticky">🟡 Add Sticky Note</div>
+  <div class="ctx-item" id="ctx-text">🔤 Add Text</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-clear">🗑 Clear Board</div>
+</div>
+
+<div id="zoom-hint">Scroll to zoom · Drag to pan</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════════ */
+const PLANS_DATA = [
+  { title:'Articles: a, an, the',              type:'Grammar',   level:'A2', dur:'60 min', status:'active', desc:'Core challenge for Slavic speakers. Warm-up → presentation → controlled practice → free speaking.' },
+  { title:'Present Perfect vs. Past Simple',   type:'Grammar',   level:'B1', dur:'60 min', status:'active', desc:'Contrastive analysis. Timeline diagrams, Have you ever…? activities, news headlines exercise.' },
+  { title:'False Friends: RU/UA/PL → EN',      type:'Vocab',     level:'B1', dur:'45 min', status:'draft',  desc:'Магазин ≠ magazine. Фабрика ≠ fabric. Gap fill, translation traps quiz, meme creation activity.' },
+  { title:'Opinion & Agreeing/Disagreeing',    type:'Speaking',  level:'B2', dur:'60 min', status:'active', desc:'Functional language chunks. Discussion cards, structured debate, feedback on hedging & softening.' },
+  { title:'Prepositions: at / in / on',        type:'Grammar',   level:'A2', dur:'45 min', status:'active', desc:'Logic-based approach: place, time, manner. Picture descriptions, gap fill, peer check.' },
+  { title:'Phrasal Verbs: get, make, take',    type:'Vocab',     level:'B1', dur:'50 min', status:'draft',  desc:'Context-first approach. Story gap-fill, matching, role-play scenarios. TODO: B2 extension.' },
+];
+
+const STUDENTS_DATA = [
+  { name:'Anna Kovalenko',    group:'A', level:'A2', streak:12, lastSeen:'Today',      native:'🇺🇦', progress:68 },
+  { name:'Dmytro Shevchenko', group:'A', level:'A2', streak:5,  lastSeen:'Today',      native:'🇺🇦', progress:52 },
+  { name:'Olena Bondarenko',  group:'A', level:'A2', streak:21, lastSeen:'Yesterday',  native:'🇺🇦', progress:75 },
+  { name:'Natalia Sokolova',  group:'B', level:'B1', streak:17, lastSeen:'Today',      native:'🇷🇺', progress:81 },
+  { name:'Ekaterina Novak',   group:'B', level:'B1', streak:22, lastSeen:'Today',      native:'🇷🇺', progress:88 },
+  { name:'Sofia Lebedev',     group:'B', level:'B1', streak:19, lastSeen:'Today',      native:'🇷🇺', progress:84 },
+  { name:'Kamil Nowak',       group:'C', level:'B2', streak:13, lastSeen:'Today',      native:'🇵🇱', progress:79 },
+  { name:'Agnieszka Kowal',   group:'C', level:'B2', streak:25, lastSeen:'Yesterday',  native:'🇵🇱', progress:91 },
+  { name:'Monika Wójcik',     group:'C', level:'B2', streak:18, lastSeen:'Today',      native:'🇵🇱', progress:85 },
+  { name:'Katarzyna Lewanda', group:'C', level:'B2', streak:30, lastSeen:'Today',      native:'🇵🇱', progress:95 },
+  { name:'Ivan Petrenko',     group:'A', level:'A2', streak:3,  lastSeen:'3 days ago', native:'🇺🇦', progress:40 },
+  { name:'Aleksei Ivanov',    group:'B', level:'B1', streak:9,  lastSeen:'Today',      native:'🇷🇺', progress:58 },
+];
+
+const NOTES_DATA = [
+  { title:'Articles lesson — Group A', preview:'Warm-up: show pictures, ask students…',
+    body:'Articles lesson — Group A\nMay 7, 2026 · A2 · 60 min\n\nWARM-UP (10 min)\nShow 5 pictures. Ask students to name them.\nWrite answers without articles. Ask: "Something is missing?"\n\nPRESENTATION (15 min)\nA/AN = first mention, one of many\nTHE  = both speaker+listener know which\nØ    = general plurals, proper nouns\n\nCONTROLLED PRACTICE (15 min)\n• Gap-fill worksheet, 20 sentences\n• Peer check in pairs\n• Error correction round\n\nFREE SPEAKING (15 min)\nDescribe a city street scene picture.\n\nNOTES\n— Anna: struggles with THE before unique nouns\n— Andriy: still using "a" before vowel sounds' },
+  { title:'Group B — speaking feedback', preview:'Mikhail: good fluency but hedging…',
+    body:'Group B — Speaking Feedback\nMay 6, 2026 · B1\n\nNatalia — excellent! Naturally uses PP for results\nEkaterina — best in group, strong accuracy + fluency\nSofia — impressive range, ready for B2 content\nAleksei — good tense control, occasional "I have went"\nMikhail — fluent but avoids PP, defaults to past simple\nPavel — very hesitant, needs more speaking practice\n\nGROUP PATTERNS TO ADDRESS:\n• "have went / have came" — irregular verb drilling\n• "already" position — before past participle\n• Hedging phrases almost absent → add lesson' },
+  { title:'Phrasal Verbs — plan draft', preview:'TODO: add B2 extension task…',
+    body:'Phrasal Verbs: get, make, take — DRAFT\nTarget: B1 · 50 min\n\nOBJECTIVES\n• Learn 12 core phrasal verbs in context\n• Distinguish separable vs inseparable\n• Use them naturally in speaking\n\nTODO:\n☐ Write gap-fill story (office setting)\n☐ Add B2 extension: multiple meanings\n☐ Create review quiz for next class\n☐ Find image prompts for role-play cards' },
+];
+
+const STICKY_COLORS = [
+  { bg:'#FFF9C4', name:'yellow' },
+  { bg:'#FCE4EC', name:'pink'   },
+  { bg:'#E3F2FD', name:'blue'   },
+  { bg:'#E8F5E9', name:'green'  },
+  { bg:'#F3E5F5', name:'purple' },
+  { bg:'#FFF3E0', name:'orange' },
+];
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+const state = {
+  pan: { x: 100, y: 60 },
+  scale: 1,
+  cards: [],          // { id, type, x, y, w, h, data, color? }
+  selected: new Set(),
+  nextId: 1,
+};
+
+let isPanning = false;
+let panStart = { mx:0, my:0, px:0, py:0 };
+
+let isDraggingCard = false;
+let dragCards = [];   // [{card, el, ox, oy}]
+let dragStarted = false;
+let dragThreshold = 4;
+let dragStartPos = {x:0,y:0};
+
+let isResizing = false;
+let resizeTarget = null;
+let resizeStart = {};
+
+let isSidebarDragging = false;
+let sidebarDragData = null;
+const ghostEl = document.getElementById('drag-ghost');
+
+const boardWrap = document.getElementById('board-wrap');
+const board     = document.getElementById('board');
+const emptyState = document.getElementById('empty-state');
+
+/* ════════════════════════════════════════════════
+   TRANSFORM
+════════════════════════════════════════════════ */
+function applyTransform() {
+  board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
+  document.getElementById('zoom-display').textContent = Math.round(state.scale * 100) + '%';
+}
+
+function screenToBoard(sx, sy) {
+  const r = boardWrap.getBoundingClientRect();
+  return {
+    x: (sx - r.left - state.pan.x) / state.scale,
+    y: (sy - r.top  - state.pan.y) / state.scale,
+  };
+}
+
+function zoomAt(sx, sy, factor) {
+  const newScale = Math.min(4, Math.max(0.12, state.scale * factor));
+  const r = boardWrap.getBoundingClientRect();
+  const cx = sx - r.left, cy = sy - r.top;
+  state.pan.x = cx - (cx - state.pan.x) * (newScale / state.scale);
+  state.pan.y = cy - (cy - state.pan.y) * (newScale / state.scale);
+  state.scale = newScale;
+  applyTransform();
+}
+
+function fitAll() {
+  if (!state.cards.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  state.cards.forEach(c => {
+    minX = Math.min(minX, c.x);
+    minY = Math.min(minY, c.y);
+    maxX = Math.max(maxX, c.x + c.w);
+    maxY = Math.max(maxY, c.y + c.h);
+  });
+  const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
+  const cw = maxX - minX, ch = maxY - minY;
+  const scale = Math.min(0.95, Math.min((pw - 80) / cw, (ph - 80) / ch));
+  state.scale = scale;
+  state.pan.x = (pw - cw * scale) / 2 - minX * scale;
+  state.pan.y = (ph - ch * scale) / 2 - minY * scale;
+  applyTransform();
+}
+
+/* ════════════════════════════════════════════════
+   CARD CREATION
+════════════════════════════════════════════════ */
+function genId() { return 'c' + (state.nextId++); }
+
+function addCard(type, x, y, data = {}, w, h) {
+  const defaults = getDefaults(type, data);
+  const card = {
+    id: genId(),
+    type, x, y,
+    w: w || defaults.w,
+    h: h || defaults.h,
+    data,
+    color: data.color || (type === 'sticky' ? STICKY_COLORS[0].bg : null),
+  };
+  state.cards.push(card);
+  const el = renderCard(card);
+  board.appendChild(el);
+  updateEmpty();
+  scheduleSave();
+  return card;
+}
+
+function getDefaults(type) {
+  return {
+    sticky:  { w:220, h:180 },
+    plan:    { w:280, h:200 },
+    student: { w:240, h:160 },
+    event:   { w:200, h:140 },
+    note:    { w:300, h:240 },
+    text:    { w:220, h:100 },
+    image:   { w:260, h:200 },
+  }[type] || { w:220, h:160 };
+}
+
+function renderCard(card) {
+  const el = document.createElement('div');
+  el.className = 'board-card card-' + card.type;
+  el.dataset.id = card.id;
+  el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;`;
+
+  if (card.type === 'sticky') {
+    renderSticky(el, card);
+  } else if (card.type === 'text') {
+    renderText(el, card);
+  } else if (card.type === 'plan') {
+    renderPlan(el, card);
+  } else if (card.type === 'student') {
+    renderStudent(el, card);
+  } else if (card.type === 'note') {
+    renderNote(el, card);
+  } else if (card.type === 'event') {
+    renderEvent(el, card);
+  } else if (card.type === 'image') {
+    renderImage(el, card);
+  }
+
+  // Resize handle (all non-sticky non-text)
+  const rz = document.createElement('div');
+  rz.className = 'card-resize';
+  rz.addEventListener('mousedown', e => startResize(e, card, el));
+  el.appendChild(rz);
+
+  // Card drag (mousedown on card, not on interactive elements)
+  el.addEventListener('mousedown', e => {
+    if (e.target.closest('.card-resize')) return;
+    if (e.target.closest('textarea') || e.target.closest('input')) return;
+    if (e.target.closest('.card-close,.sticky-close,.text-close-btn,.color-dot')) return;
+    e.stopPropagation();
+    startCardDrag(e, card, el);
+  });
+
+  // Select on click
+  el.addEventListener('click', e => {
+    if (dragStarted) return;
+    if (!e.shiftKey) clearSelection();
+    selectCard(card.id);
+  });
+
+  return el;
+}
+
+function renderSticky(el, card) {
+  const bg = card.color || STICKY_COLORS[0].bg;
+  el.style.background = bg;
+  el.style.boxShadow = '0 3px 18px rgba(0,0,0,.10),0 1px 4px rgba(0,0,0,.06)';
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'sticky-toolbar';
+
+  STICKY_COLORS.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (c.bg === bg ? ' active' : '');
+    dot.style.background = c.bg;
+    dot.title = c.name;
+    dot.addEventListener('click', e => {
+      e.stopPropagation();
+      card.color = c.bg;
+      el.style.background = c.bg;
+      el.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      scheduleSave();
+    });
+    toolbar.appendChild(dot);
+  });
+
+  const closeBtn = document.createElement('div');
+  closeBtn.className = 'sticky-close';
+  closeBtn.textContent = '×';
+  closeBtn.title = 'Delete';
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+  toolbar.appendChild(closeBtn);
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  body.style.padding = '8px 10px 10px';
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
+  body.appendChild(toolbar);
+
+  const ta = document.createElement('textarea');
+  ta.value = card.data.text || '';
+  ta.placeholder = 'Write something…';
+  ta.addEventListener('input', () => { card.data.text = ta.value; scheduleSave(); });
+  ta.addEventListener('mousedown', e => e.stopPropagation());
+  body.appendChild(ta);
+
+  el.appendChild(body);
+}
+
+function renderText(el, card) {
+  el.style.background = 'transparent';
+  el.style.border = '2px solid transparent';
+  el.style.boxShadow = 'none';
+  el.classList.add('card-text');
+
+  const closeBtn = document.createElement('div');
+  closeBtn.className = 'text-close-btn card-close';
+  closeBtn.style.cssText = 'position:absolute;top:4px;right:4px;z-index:10;';
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  body.style.cssText = 'padding:8px 10px;display:flex;flex-direction:column;';
+
+  const ta = document.createElement('textarea');
+  ta.value = card.data.text || 'Text';
+  ta.style.cssText = 'flex:1;border:none;outline:none;resize:none;background:transparent;font-family:var(--font);font-size:'+(card.data.fontSize||16)+'px;font-weight:800;color:var(--text);line-height:1.4;cursor:text;user-select:text;';
+  ta.addEventListener('input', () => { card.data.text = ta.value; scheduleSave(); });
+  ta.addEventListener('mousedown', e => e.stopPropagation());
+  body.appendChild(ta);
+
+  el.appendChild(closeBtn);
+  el.appendChild(body);
+
+  el.addEventListener('mouseover', () => el.style.border = '2px dashed rgba(255,75,139,.3)');
+  el.addEventListener('mouseout', () => { if (!el.classList.contains('selected')) el.style.border = '2px solid transparent'; });
+}
+
+function cardHeader(title, icon, closeId) {
+  const hdr = document.createElement('div');
+  hdr.className = 'card-header';
+  hdr.innerHTML = `<span class="card-drag-ic">${icon}</span><span class="card-title-text">${title}</span>`;
+  const btn = document.createElement('button');
+  btn.className = 'card-close';
+  btn.textContent = '×';
+  btn.addEventListener('click', e => { e.stopPropagation(); removeCard(closeId); });
+  hdr.appendChild(btn);
+  return hdr;
+}
+
+function renderPlan(el, card) {
+  const d = card.data;
+  el.appendChild(cardHeader(d.title || 'Lesson Plan', '📋', card.id));
+
+  const body = document.createElement('div');
+  body.className = 'card-body plan-body';
+
+  const levelCls = (d.level||'').toLowerCase();
+  const typeCls = (d.type||'').toLowerCase();
+  const statusCls = (d.status||'').toLowerCase();
+
+  body.innerHTML = `
+    <div class="plan-desc">${d.desc || ''}</div>
+    <div class="plan-footer">
+      <span class="badge ${levelCls}">${d.level||''}</span>
+      <span class="badge ${typeCls}">${d.type||''}</span>
+      <span class="badge">${d.dur||''}</span>
+      <span class="badge ${statusCls}">${d.status==='active'?'✓ Active':'✎ Draft'}</span>
+    </div>`;
+  el.appendChild(body);
+}
+
+function renderStudent(el, card) {
+  const d = card.data;
+  el.appendChild(cardHeader(d.name || 'Student', '👤', card.id));
+
+  const body = document.createElement('div');
+  body.className = 'card-body student-body';
+  const levelCls = (d.level||'').toLowerCase();
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="student-flag">${d.native||'👤'}</div>
+      <div>
+        <div class="student-name">${d.name||''}</div>
+        <div class="student-sub">Group ${d.group||''} · ${d.level||''}</div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:3px;">
+        <span>Progress</span><span>${d.progress||0}%</span>
+      </div>
+      <div class="student-prog-bar"><div class="student-prog-fill" style="width:${d.progress||0}%"></div></div>
+    </div>
+    <div class="student-meta">
+      <span class="student-streak">${d.streak>0?'🔥'+d.streak:'—'}</span>
+      <span>${d.lastSeen||''}</span>
+      <span class="badge ${levelCls}">${d.level||''}</span>
+    </div>`;
+  el.appendChild(body);
+}
+
+function renderNote(el, card) {
+  const d = card.data;
+  el.appendChild(cardHeader(d.title || 'Note', '✍️', card.id));
+
+  const body = document.createElement('div');
+  body.className = 'card-body note-body';
+  body.innerHTML = `<pre>${escHtml(d.body || d.text || '')}</pre>`;
+  el.appendChild(body);
+}
+
+function renderEvent(el, card) {
+  const d = card.data;
+  el.appendChild(cardHeader(d.title || 'Class', '📅', card.id));
+
+  const body = document.createElement('div');
+  body.className = 'card-body event-body';
+  body.innerHTML = `
+    <div style="padding:12px;">
+      <div class="event-time">${d.time||'—'}</div>
+      <div class="event-group">${d.group||''} · ${d.level||''}</div>
+      <div class="event-topic">${d.topic||''}</div>
+    </div>`;
+  el.appendChild(body);
+}
+
+function renderImage(el, card) {
+  el.appendChild(cardHeader('Image', '🖼️', card.id));
+  const body = document.createElement('div');
+  body.className = 'card-body card-image';
+  body.style.cssText = 'padding:0;display:flex;flex-direction:column;overflow:hidden;';
+
+  if (card.data.src) {
+    const img = document.createElement('img');
+    img.src = card.data.src;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    body.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'img-placeholder';
+    ph.innerHTML = '<div class="img-placeholder-ic">🖼️</div><div>Click to paste URL</div>';
+    ph.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text-3);font-size:12px;cursor:pointer;padding:20px;';
+    ph.addEventListener('click', () => {
+      const url = prompt('Image URL:');
+      if (url) { card.data.src = url; reRenderCard(card); }
+    });
+    body.appendChild(ph);
+  }
+  el.appendChild(body);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ════════════════════════════════════════════════
+   CARD MANAGEMENT
+════════════════════════════════════════════════ */
+function removeCard(id) {
+  const idx = state.cards.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  state.cards.splice(idx, 1);
+  const el = board.querySelector(`[data-id="${id}"]`);
+  if (el) el.remove();
+  state.selected.delete(id);
+  updateEmpty();
+  scheduleSave();
+}
+
+function reRenderCard(card) {
+  const old = board.querySelector(`[data-id="${card.id}"]`);
+  if (!old) return;
+  const el = renderCard(card);
+  board.replaceChild(el, old);
+}
+
+function getCardEl(id) { return board.querySelector(`[data-id="${id}"]`); }
+
+function updateCardPos(card) {
+  const el = getCardEl(card.id);
+  if (el) {
+    el.style.left = card.x + 'px';
+    el.style.top  = card.y + 'px';
+  }
+}
+
+function selectCard(id) {
+  state.selected.add(id);
+  const el = getCardEl(id);
+  if (el) el.classList.add('selected');
+}
+
+function clearSelection() {
+  state.selected.forEach(id => {
+    const el = getCardEl(id);
+    if (el) el.classList.remove('selected');
+  });
+  state.selected.clear();
+}
+
+function deleteSelected() {
+  [...state.selected].forEach(id => removeCard(id));
+}
+
+function updateEmpty() {
+  if (state.cards.length === 0) emptyState.classList.remove('hidden');
+  else emptyState.classList.add('hidden');
+}
+
+/* ════════════════════════════════════════════════
+   CARD DRAG
+════════════════════════════════════════════════ */
+function startCardDrag(e, card, el) {
+  if (!state.selected.has(card.id)) {
+    if (!e.shiftKey) clearSelection();
+    selectCard(card.id);
+  }
+
+  const boardPos = screenToBoard(e.clientX, e.clientY);
+  dragCards = [...state.selected].map(id => {
+    const c = state.cards.find(x => x.id === id);
+    return { card: c, ox: boardPos.x - c.x, oy: boardPos.y - c.y };
+  });
+
+  dragStarted = false;
+  dragStartPos = { x: e.clientX, y: e.clientY };
+  isDraggingCard = true;
+
+  e.preventDefault();
+}
+
+/* ════════════════════════════════════════════════
+   BOARD PAN
+════════════════════════════════════════════════ */
+boardWrap.addEventListener('mousedown', e => {
+  if (e.target !== boardWrap && e.target !== board && e.target !== emptyState) return;
+  clearSelection();
+  isPanning = true;
+  panStart = { mx: e.clientX, my: e.clientY, px: state.pan.x, py: state.pan.y };
+  boardWrap.style.cursor = 'grabbing';
+  e.preventDefault();
+});
+
+/* ════════════════════════════════════════════════
+   GLOBAL MOUSE MOVE / UP
+════════════════════════════════════════════════ */
+document.addEventListener('mousemove', e => {
+  // Pan
+  if (isPanning) {
+    state.pan.x = panStart.px + (e.clientX - panStart.mx);
+    state.pan.y = panStart.py + (e.clientY - panStart.my);
+    applyTransform();
+    return;
+  }
+
+  // Card drag
+  if (isDraggingCard) {
+    const dx = Math.abs(e.clientX - dragStartPos.x);
+    const dy = Math.abs(e.clientY - dragStartPos.y);
+    if (!dragStarted && (dx > dragThreshold || dy > dragThreshold)) dragStarted = true;
+    if (!dragStarted) return;
+
+    const boardPos = screenToBoard(e.clientX, e.clientY);
+    dragCards.forEach(({ card, ox, oy }) => {
+      card.x = boardPos.x - ox;
+      card.y = boardPos.y - oy;
+      updateCardPos(card);
+    });
+    return;
+  }
+
+  // Resize
+  if (isResizing) {
+    const { card, el, startW, startH, startMx, startMy } = resizeStart;
+    const dw = (e.clientX - startMx) / state.scale;
+    const dh = (e.clientY - startMy) / state.scale;
+    card.w = Math.max(160, startW + dw);
+    card.h = Math.max(80,  startH + dh);
+    el.style.width  = card.w + 'px';
+    el.style.height = card.h + 'px';
+    return;
+  }
+
+  // Sidebar ghost drag
+  if (isSidebarDragging) {
+    ghostEl.style.left = (e.clientX - ghostEl.offsetWidth  / 2) + 'px';
+    ghostEl.style.top  = (e.clientY - ghostEl.offsetHeight / 2) + 'px';
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  if (isPanning) {
+    isPanning = false;
+    boardWrap.style.cursor = '';
+  }
+
+  if (isDraggingCard) {
+    isDraggingCard = false;
+    scheduleSave();
+    setTimeout(() => { dragStarted = false; }, 0);
+  }
+
+  if (isResizing) {
+    isResizing = false;
+    scheduleSave();
+  }
+
+  if (isSidebarDragging) {
+    isSidebarDragging = false;
+    const r = boardWrap.getBoundingClientRect();
+    if (e.clientX >= r.left) {
+      const pos = screenToBoard(e.clientX, e.clientY);
+      const { type, data, w, h } = sidebarDragData;
+      addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
+    }
+    ghostEl.style.display = 'none';
+    sidebarDragData = null;
+  }
+});
+
+/* ════════════════════════════════════════════════
+   RESIZE
+════════════════════════════════════════════════ */
+function startResize(e, card, el) {
+  e.stopPropagation();
+  e.preventDefault();
+  isResizing = true;
+  resizeStart = { card, el, startW: card.w, startH: card.h, startMx: e.clientX, startMy: e.clientY };
+}
+
+/* ════════════════════════════════════════════════
+   ZOOM
+════════════════════════════════════════════════ */
+boardWrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.08 : 0.925;
+  zoomAt(e.clientX, e.clientY, factor);
+}, { passive: false });
+
+document.getElementById('btn-zoom-in').addEventListener('click', () => {
+  const cx = boardWrap.getBoundingClientRect().left + boardWrap.clientWidth/2;
+  const cy = boardWrap.getBoundingClientRect().top  + boardWrap.clientHeight/2;
+  zoomAt(cx, cy, 1.25);
+});
+document.getElementById('btn-zoom-out').addEventListener('click', () => {
+  const cx = boardWrap.getBoundingClientRect().left + boardWrap.clientWidth/2;
+  const cy = boardWrap.getBoundingClientRect().top  + boardWrap.clientHeight/2;
+  zoomAt(cx, cy, 0.8);
+});
+document.getElementById('btn-fit').addEventListener('click', fitAll);
+
+/* ════════════════════════════════════════════════
+   KEYBOARD
+════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+  if (e.key === 'Escape') clearSelection();
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+    e.preventDefault();
+    state.cards.forEach(c => selectCard(c.id));
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+    state.scale = 1;
+    state.pan = { x: 100, y: 60 };
+    applyTransform();
+  }
+});
+
+/* ════════════════════════════════════════════════
+   CONTEXT MENU
+════════════════════════════════════════════════ */
+const ctxMenu = document.getElementById('ctx-menu');
+let ctxPos = { x: 0, y: 0 };
+
+boardWrap.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  ctxPos = screenToBoard(e.clientX, e.clientY);
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top  = e.clientY + 'px';
+  ctxMenu.style.display = 'block';
+});
+
+document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+
+document.getElementById('ctx-sticky').addEventListener('click', () => {
+  addCard('sticky', ctxPos.x - 110, ctxPos.y - 90, { text:'' });
+});
+document.getElementById('ctx-text').addEventListener('click', () => {
+  addCard('text', ctxPos.x - 110, ctxPos.y - 50, { text:'Text' });
+});
+document.getElementById('ctx-clear').addEventListener('click', clearAll);
+
+/* ════════════════════════════════════════════════
+   CLEAR
+════════════════════════════════════════════════ */
+function clearAll() {
+  if (!state.cards.length) return;
+  if (!confirm('Clear the entire board?')) return;
+  state.cards.slice().forEach(c => removeCard(c.id));
+  scheduleSave();
+}
+document.getElementById('btn-clear').addEventListener('click', clearAll);
+
+/* ════════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════════ */
+let activeTab = 'plans';
+let searchQ = '';
+
+const tabs = document.querySelectorAll('.sb-tab');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeTab = tab.dataset.tab;
+    searchQ = '';
+    document.getElementById('sb-search').value = '';
+    const searchWrap = document.getElementById('sb-search-wrap');
+    searchWrap.style.display = activeTab === 'elements' ? 'none' : '';
+    renderSidebar();
+  });
+});
+
+document.getElementById('sb-search').addEventListener('input', e => {
+  searchQ = e.target.value.toLowerCase();
+  renderSidebar();
+});
+
+function renderSidebar() {
+  const sec = document.getElementById('sb-content');
+  sec.innerHTML = '';
+
+  if (activeTab === 'plans')    renderPlansTab(sec);
+  if (activeTab === 'students') renderStudentsTab(sec);
+  if (activeTab === 'notes')    renderNotesTab(sec);
+  if (activeTab === 'elements') renderElementsTab(sec);
+}
+
+function makeSnippet(label, title, metaHtml, dragType, dragData, w, h) {
+  if (searchQ && !title.toLowerCase().includes(searchQ) && !label.toLowerCase().includes(searchQ)) return null;
+  const el = document.createElement('div');
+  el.className = 'snippet';
+  el.innerHTML = `<div class="snippet-label">${label}</div><div class="snippet-title">${title}</div><div class="snippet-meta">${metaHtml}</div>`;
+  const defaults = getDefaults(dragType);
+  const dw = w || defaults.w, dh = h || defaults.h;
+
+  el.addEventListener('mousedown', e => {
+    isSidebarDragging = true;
+    sidebarDragData = { type: dragType, data: dragData, w: dw, h: dh };
+    ghostEl.innerHTML = `<div style="font-size:11px;font-weight:800;">${title}</div>`;
+    ghostEl.style.display = 'block';
+    ghostEl.style.left = (e.clientX - dw/2) + 'px';
+    ghostEl.style.top  = (e.clientY - 30) + 'px';
+    e.preventDefault();
+  });
+
+  // Click to add at center of view
+  el.addEventListener('click', e => {
+    if (isSidebarDragging) return;
+    const cx = boardWrap.clientWidth  / 2;
+    const cy = boardWrap.clientHeight / 2;
+    const bpos = screenToBoard(boardWrap.getBoundingClientRect().left + cx, boardWrap.getBoundingClientRect().top + cy);
+    addCard(dragType, bpos.x - dw/2 + (Math.random()-0.5)*80, bpos.y - dh/2 + (Math.random()-0.5)*80, dragData, dw, dh);
+  });
+
+  return el;
+}
+
+function renderPlansTab(sec) {
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-family:var(--mono);color:var(--text-3);padding:2px 2px 6px;letter-spacing:.08em;text-transform:uppercase;';
+  label.textContent = 'Drag or click to add →';
+  sec.appendChild(label);
+
+  PLANS_DATA.forEach(d => {
+    const el = makeSnippet(
+      '📋 Lesson Plan',
+      d.title,
+      `<span class="badge ${d.level.toLowerCase()}">${d.level}</span><span class="badge ${d.type.toLowerCase()}">${d.type}</span><span class="badge ${d.status}">${d.status==='active'?'✓ Active':'✎ Draft'}</span>`,
+      'plan', { ...d }
+    );
+    if (el) sec.appendChild(el);
+  });
+}
+
+function renderStudentsTab(sec) {
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-family:var(--mono);color:var(--text-3);padding:2px 2px 6px;letter-spacing:.08em;text-transform:uppercase;';
+  label.textContent = 'Drag or click to add →';
+  sec.appendChild(label);
+
+  STUDENTS_DATA.forEach(d => {
+    const el = makeSnippet(
+      `${d.native} Group ${d.group}`,
+      d.name,
+      `<span class="badge ${d.level.toLowerCase()}">${d.level}</span><span class="badge pink">${d.progress}%</span>${d.streak>0?`<span class="badge" style="color:#f59e0b;">🔥${d.streak}</span>`:''}`,
+      'student', { ...d }
+    );
+    if (el) sec.appendChild(el);
+  });
+}
+
+function renderNotesTab(sec) {
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-family:var(--mono);color:var(--text-3);padding:2px 2px 6px;letter-spacing:.08em;text-transform:uppercase;';
+  label.textContent = 'Drag or click to add →';
+  sec.appendChild(label);
+
+  NOTES_DATA.forEach(d => {
+    const el = makeSnippet(
+      '✍️ Teacher Note',
+      d.title,
+      `<span style="font-size:10px;color:var(--text-3);">${d.preview}</span>`,
+      'note', { ...d }, 300, 240
+    );
+    if (el) sec.appendChild(el);
+  });
+
+  // Sticky notes
+  const sep = document.createElement('div');
+  sep.style.cssText = 'height:1px;background:var(--border);margin:6px 0;';
+  sec.appendChild(sep);
+
+  const stickyLabel = document.createElement('div');
+  stickyLabel.style.cssText = 'font-size:10px;font-family:var(--mono);color:var(--text-3);padding:2px 2px 6px;letter-spacing:.08em;text-transform:uppercase;';
+  stickyLabel.textContent = 'Stickies';
+  sec.appendChild(stickyLabel);
+
+  STICKY_COLORS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'snippet';
+    el.style.background = c.bg;
+    el.innerHTML = `<div class="snippet-label" style="opacity:.6;">🟡 Sticky Note</div><div class="snippet-title">${c.name.charAt(0).toUpperCase()+c.name.slice(1)} sticky</div>`;
+
+    const defaults = getDefaults('sticky');
+    el.addEventListener('mousedown', e => {
+      isSidebarDragging = true;
+      sidebarDragData = { type:'sticky', data:{ text:'', color:c.bg }, w:defaults.w, h:defaults.h };
+      ghostEl.innerHTML = `<div style="font-size:11px;font-weight:800;">Sticky</div>`;
+      ghostEl.style.background = c.bg;
+      ghostEl.style.display = 'block';
+      ghostEl.style.left = (e.clientX - 80) + 'px';
+      ghostEl.style.top  = (e.clientY - 30) + 'px';
+      e.preventDefault();
+    });
+    el.addEventListener('click', () => {
+      const cx = boardWrap.clientWidth/2, cy = boardWrap.clientHeight/2;
+      const bpos = screenToBoard(boardWrap.getBoundingClientRect().left+cx, boardWrap.getBoundingClientRect().top+cy);
+      addCard('sticky', bpos.x-110+(Math.random()-0.5)*100, bpos.y-90+(Math.random()-0.5)*100, { text:'', color:c.bg });
+    });
+    sec.appendChild(el);
+  });
+}
+
+function renderElementsTab(sec) {
+  const grid = document.createElement('div');
+  grid.className = 'el-grid';
+
+  const elements = [
+    { icon:'🟡', label:'Sticky Note',  type:'sticky',  data:{ text:'', color:'#FFF9C4' } },
+    { icon:'🔤', label:'Text',         type:'text',    data:{ text:'Title' } },
+    { icon:'🖼️', label:'Image',        type:'image',   data:{} },
+    { icon:'📋', label:'Lesson Plan',  type:'plan',    data:{ title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'active', desc:'Add description…' } },
+    { icon:'👤', label:'Student',      type:'student', data:{ name:'New Student', group:'A', level:'A2', streak:0, lastSeen:'Today', native:'👤', progress:50 } },
+    { icon:'📅', label:'Class Event',  type:'event',   data:{ title:'Class', time:'10:00', group:'Group A', level:'A2', topic:'Lesson Topic' } },
+  ];
+
+  elements.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'el-item';
+    el.innerHTML = `<div class="el-item-icon">${e.icon}</div><div class="el-item-label">${e.label}</div>`;
+    const def = getDefaults(e.type);
+
+    el.addEventListener('mousedown', ev => {
+      isSidebarDragging = true;
+      sidebarDragData = { type:e.type, data:{ ...e.data }, w:def.w, h:def.h };
+      ghostEl.innerHTML = `<div style="font-size:14px;">${e.icon} ${e.label}</div>`;
+      ghostEl.style.background = e.type==='sticky' ? (e.data.color||'#FFF9C4') : 'white';
+      ghostEl.style.display = 'block';
+      ghostEl.style.left = (ev.clientX - 80) + 'px';
+      ghostEl.style.top  = (ev.clientY - 30) + 'px';
+      ev.preventDefault();
+    });
+    el.addEventListener('click', () => {
+      const cx = boardWrap.clientWidth/2, cy = boardWrap.clientHeight/2;
+      const r = boardWrap.getBoundingClientRect();
+      const bpos = screenToBoard(r.left+cx, r.top+cy);
+      addCard(e.type, bpos.x - def.w/2 + (Math.random()-0.5)*60, bpos.y - def.h/2 + (Math.random()-0.5)*60, { ...e.data });
+    });
+
+    grid.appendChild(el);
+  });
+  sec.appendChild(grid);
+}
+
+/* ════════════════════════════════════════════════
+   SAVE / LOAD
+════════════════════════════════════════════════ */
+const SAVE_KEY = 'teachedos_board_v2';
+let saveTimer = null;
+const saveStatus = document.getElementById('save-status');
+
+function scheduleSave() {
+  saveStatus.textContent = 'saving…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveBoard, 600);
+}
+
+function saveBoard() {
+  const data = {
+    pan: state.pan,
+    scale: state.scale,
+    nextId: state.nextId,
+    cards: state.cards.map(c => ({
+      id: c.id, type: c.type, x: c.x, y: c.y, w: c.w, h: c.h,
+      data: c.data, color: c.color,
+    })),
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    saveStatus.textContent = '✓ saved';
+  } catch(e) {
+    saveStatus.textContent = '⚠ save error';
+  }
+}
+
+function loadBoard() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    state.pan   = data.pan   || { x:100, y:60 };
+    state.scale = data.scale || 1;
+    state.nextId = data.nextId || 1;
+    (data.cards || []).forEach(c => {
+      state.cards.push(c);
+      const el = renderCard(c);
+      board.appendChild(el);
+    });
+    applyTransform();
+    updateEmpty();
+    return true;
+  } catch(e) { return false; }
+}
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+applyTransform();
+renderSidebar();
+
+const loaded = loadBoard();
+if (!loaded) {
+  // Welcome cards
+  addCard('sticky', 80,  40,  { text:'👋 Welcome to TeachedBoard!\n\nDrag snippets from the left panel onto the board.\n\nRight-click anywhere to add a sticky note.', color:'#FFF9C4' }, 240, 180);
+  addCard('plan',   380, 40,  { ...PLANS_DATA[0] });
+  addCard('student',380, 280, { ...STUDENTS_DATA[0] });
+  addCard('note',   660, 40,  { ...NOTES_DATA[0] });
+}
+
+updateEmpty();
+</script>
+</body>
+</html>
