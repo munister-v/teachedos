@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Rain</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#1a0a12;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;color:#fff}
+.back{align-self:flex-start;color:#ff8cb8;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;color:#FF4B8B;margin-bottom:2px}
+.subtitle{color:#886;font-size:.85rem;margin-bottom:16px}
+.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#ff8cb8}
+.hud span{color:#fff}
+#arena{width:100%;max-width:520px;height:340px;background:#120008;border-radius:18px;position:relative;overflow:hidden;border:2px solid #3a0020}
+.falling{position:absolute;font-weight:800;font-size:1rem;color:#ff8cb8;white-space:nowrap;text-shadow:0 0 8px #ff4b8b88;transition:color .1s}
+.falling.active{color:#fff;text-shadow:0 0 12px #FF4B8B}
+.ground{position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#FF4B8B,transparent)}
+.lives{font-size:1.2rem;letter-spacing:4px}
+input{margin-top:14px;width:100%;max-width:520px;padding:12px 18px;border:2px solid #3a0020;border-radius:14px;font-size:1.1rem;font-family:'Nunito',sans-serif;font-weight:700;background:#120008;color:#fff;outline:none;text-align:center}
+input:focus{border-color:var(--accent)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#120008cc;border-radius:18px;font-size:1.3rem;font-weight:800;gap:16px}
+button.play-btn{padding:12px 28px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🌧️ Typing Rain</h1>
+<p class="subtitle">Type falling words before they hit the ground</p>
+<div class="hud"><div>Score: <span id="score">0</span></div><div>Level: <span id="level">1</span></div><div class="lives" id="lives">❤️❤️❤️</div></div>
+<div id="arena">
+  <div class="ground"></div>
+  <div class="overlay" id="overlay">
+    <div>🌧️ Typing Rain</div>
+    <button class="play-btn" onclick="startGame()">▶ Start</button>
+  </div>
+</div>
+<input id="inp" type="text" placeholder="Type here..." autocomplete="off" autocorrect="off" spellcheck="false" disabled>
+
+<script>
+const WORDS=['apple','bridge','cloud','dream','flower','garden','island','journey','knight','lemon','mirror','nation','ocean','piano','queen','river','silver','tiger','uncle','valley','winter','yellow','zebra','market','castle','danger','engine','forest','gentle','harbor','income','jungle','kitten','ladder','muffin','napkin','orange','parrot','rabbit','saddle','tennis','umbrella','village','window','yellow'];
+const HARD=['language','beautiful','together','remember','possible','difficult','decision','knowledge','important','different','grateful','surprise','generous','business','curious','ancient','fragile','precise','vivid','eager'];
+
+let drops=[],lives=3,score=0,level=1,speed=1.2,spawnInt,tickInt,running=false,nextId=0;
+
+function startGame(){
+  drops=[];lives=3;score=0;level=1;speed=1.2;running=true;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('score').textContent=0;
+  document.getElementById('level').textContent=1;
+  document.getElementById('lives').textContent='❤️❤️❤️';
+  document.getElementById('inp').disabled=false;
+  document.getElementById('inp').value='';
+  document.getElementById('inp').focus();
+  clearInterval(spawnInt);clearInterval(tickInt);
+  spawnInt=setInterval(spawn,2200/speed);
+  tickInt=setInterval(tick,50);
+}
+
+function spawn(){
+  const arena=document.getElementById('arena');
+  const w=arena.clientWidth;
+  const pool=level>=3?[...WORDS,...HARD]:WORDS;
+  const word=pool[Math.floor(Math.random()*pool.length)];
+  const x=Math.max(10,Math.random()*(w-word.length*9)-10);
+  const el=document.createElement('div');
+  el.className='falling';
+  el.textContent=word;
+  el.style.left=x+'px';
+  el.style.top='0px';
+  el.id='drop'+nextId;
+  arena.appendChild(el);
+  drops.push({id:nextId++,word,el,y:0});
+}
+
+function tick(){
+  if(!running)return;
+  const arena=document.getElementById('arena');
+  const h=arena.clientHeight-24;
+  const inp=document.getElementById('inp').value.toLowerCase().trim();
+  // highlight active match
+  drops.forEach(d=>{
+    d.el.classList.toggle('active',d.word.startsWith(inp)&&inp.length>0);
+  });
+  // move down
+  drops=drops.filter(d=>{
+    d.y+=speed*0.6;
+    d.el.style.top=d.y+'px';
+    if(d.y>=h){
+      d.el.remove();
+      lives--;
+      updateLives();
+      if(lives<=0)endGame();
+      return false;
+    }
+    return true;
+  });
+  // level up
+  const newLevel=Math.floor(score/10)+1;
+  if(newLevel!==level){level=newLevel;document.getElementById('level').textContent=level;speed=1.2+level*0.3;clearInterval(spawnInt);spawnInt=setInterval(spawn,Math.max(800,2200-level*200));}
+}
+
+function updateLives(){
+  const h=['❤️❤️❤️','❤️❤️🖤','❤️🖤🖤','🖤🖤🖤'];
+  document.getElementById('lives').textContent=h[Math.max(0,3-lives)];
+}
+
+document.getElementById('inp').addEventListener('input',e=>{
+  const val=e.target.value.toLowerCase().trim();
+  const hit=drops.find(d=>d.word===val);
+  if(hit){
+    hit.el.remove();
+    drops=drops.filter(d=>d.id!==hit.id);
+    score++;
+    document.getElementById('score').textContent=score;
+    e.target.value='';
+  }
+});
+
+function endGame(){
+  running=false;
+  clearInterval(spawnInt);clearInterval(tickInt);
+  drops.forEach(d=>d.el.remove());drops=[];
+  document.getElementById('inp').disabled=true;
+  const ov=document.getElementById('overlay');
+  ov.style.display='flex';
+  ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#ff8cb8">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
+}
+</script>
+</body>
+</html>

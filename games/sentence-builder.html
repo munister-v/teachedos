@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentence Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:500px}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.translation{font-size:.9rem;color:#bbb;margin-bottom:14px;text-align:center;font-style:italic}
+.drop-zone{min-height:56px;border:2.5px dashed #eee;border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;transition:.2s;align-items:center}
+.drop-zone.active{border-color:var(--accent);background:#fff5f9}
+.words{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;min-height:40px}
+.word-chip{padding:8px 14px;background:#fff0f5;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.95rem;color:#FF4B8B;cursor:pointer;transition:.15s;user-select:none}
+.word-chip:hover{background:#ffe0ec;transform:translateY(-2px)}
+.word-chip.placed{opacity:.35;cursor:default;transform:none}
+.placed-chip{padding:8px 14px;background:#FF4B8B;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
+.placed-chip:hover{background:#e03570}
+.btn-row{display:flex;gap:10px}
+button{flex:1;padding:11px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
+.btn-check{background:var(--accent);color:#fff}
+.btn-check:hover{background:#e03570}
+.btn-clear{background:#f5f5f5;color:#999}
+.btn-clear:hover{background:#eee}
+.feedback{margin-top:14px;font-size:1rem;font-weight:700;text-align:center;min-height:22px}
+.feedback.ok{color:#4caf50}
+.feedback.err{color:#f44336}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🧩 Sentence Builder</h1>
+<p class="subtitle">Arrange the words in the correct order</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/12</div></div>
+  <div class="translation" id="translation"></div>
+  <div class="drop-zone" id="drop-zone"></div>
+  <div class="words" id="words"></div>
+  <div class="btn-row">
+    <button class="btn-clear" onclick="clearZone()">✕ Clear</button>
+    <button class="btn-check" onclick="checkAnswer()">✓ Check</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+const SENTENCES=[
+  {s:'She goes to school every day.',t:'Вона ходить до школи щодня.'},
+  {s:'I have never been to London.',t:'Я ніколи не був у Лондоні.'},
+  {s:'They are playing football now.',t:'Вони зараз грають у футбол.'},
+  {s:'He did not finish his homework.',t:'Він не закінчив домашнє завдання.'},
+  {s:'We will travel to Spain next summer.',t:'Ми поїдемо до Іспанії наступного літа.'},
+  {s:'She has already eaten breakfast.',t:'Вона вже поснідала.'},
+  {s:'The cat is sleeping on the sofa.',t:'Кіт спить на дивані.'},
+  {s:'Do you speak any foreign languages?',t:'Ти розмовляєш якимись іноземними мовами?'},
+  {s:'I was reading when you called.',t:'Я читав, коли ти зателефонував.'},
+  {s:'They will have finished by Monday.',t:'Вони закінчать до понеділка.'},
+  {s:'She works in a big company.',t:'Вона працює у великій компанії.'},
+  {s:'He has been studying English for two years.',t:'Він вивчає англійську вже два роки.'},
+];
+let queue=[],idx=0,score=0,placed=[],wordEls=[];
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+
+function start(){
+  queue=shuffle([...SENTENCES]).slice(0,12);
+  idx=0;score=0;
+  document.getElementById('score').textContent=0;
+  nextQ();
+}
+
+function nextQ(){
+  if(idx>=queue.length){endGame();return;}
+  placed=[];wordEls=[];
+  const item=queue[idx];
+  document.getElementById('translation').textContent=item.t;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('drop-zone').innerHTML='';
+
+  const words=item.s.replace(/[.?!]/g,'').split(' ');
+  const shuffled=shuffle([...words]);
+  const container=document.getElementById('words');
+  container.innerHTML='';
+  shuffled.forEach((w,i)=>{
+    const chip=document.createElement('div');
+    chip.className='word-chip';
+    chip.textContent=w;
+    chip.dataset.idx=i;
+    chip.dataset.word=w;
+    chip.onclick=()=>addWord(chip);
+    container.appendChild(chip);
+    wordEls.push(chip);
+  });
+}
+
+function addWord(chip){
+  if(chip.classList.contains('placed'))return;
+  chip.classList.add('placed');
+  placed.push({word:chip.dataset.word,chip});
+  renderZone();
+}
+
+function renderZone(){
+  const zone=document.getElementById('drop-zone');
+  zone.innerHTML='';
+  placed.forEach((item,i)=>{
+    const pc=document.createElement('div');
+    pc.className='placed-chip';
+    pc.textContent=item.word;
+    pc.onclick=()=>removeWord(i);
+    zone.appendChild(pc);
+  });
+}
+
+function removeWord(i){
+  const item=placed.splice(i,1)[0];
+  item.chip.classList.remove('placed');
+  renderZone();
+}
+
+function clearZone(){
+  placed=[];
+  wordEls.forEach(c=>c.classList.remove('placed'));
+  document.getElementById('drop-zone').innerHTML='';
+  document.getElementById('feedback').textContent='';
+}
+
+function checkAnswer(){
+  const item=queue[idx];
+  const correct=item.s.replace(/[.?!]/g,'').split(' ');
+  const answer=placed.map(p=>p.word);
+  if(answer.join(' ')===correct.join(' ')){
+    score++;
+    document.getElementById('score').textContent=score;
+    document.getElementById('feedback').className='feedback ok';
+    document.getElementById('feedback').textContent='✓ Perfect!';
+    idx++;
+    setTimeout(nextQ,900);
+  } else {
+    document.getElementById('feedback').className='feedback err';
+    document.getElementById('feedback').textContent='✗ Not quite, try again';
+  }
+}
+
+function endGame(){
+  document.getElementById('translation').textContent='';
+  document.getElementById('drop-zone').innerHTML='';
+  document.getElementById('words').innerHTML='';
+  document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
+  document.getElementById('feedback').className='feedback ok';
+  document.getElementById('feedback').textContent='Done! Score: '+score+'/'+queue.length;
+}
+
+start();
+</script>
+</body>
+</html>

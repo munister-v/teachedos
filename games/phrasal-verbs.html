@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phrasal Verbs</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.sentence{font-size:1.2rem;font-weight:700;color:#333;min-height:60px;display:flex;align-items:center;justify-content:center;line-height:1.6;margin-bottom:8px}
+.blank{color:var(--accent);font-size:1.4rem;border-bottom:3px solid var(--accent);padding:0 8px}
+.meaning{font-size:.85rem;color:#bbb;margin-bottom:20px;font-style:italic}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{padding:12px;border:2.5px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;background:#fff;transition:.15s;color:#555}
+.choice:hover{border-color:var(--accent);color:var(--accent)}
+.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
+.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:20px;color:#888}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🔗 Phrasal Verbs</h1>
+<p class="subtitle">Complete with the right particle</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/16</div></div>
+  <div class="sentence" id="sentence"></div>
+  <div class="meaning" id="meaning"></div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+</div>
+<script>
+const QS=[
+  {s:'She gave ___ smoking last year.',a:'up',opts:['up','out','in','off'],m:'give up = quit (кинути)'},
+  {s:'Can you look ___ my cat while I\'m away?',a:'after',opts:['after','for','at','into'],m:'look after = take care of (доглядати)'},
+  {s:'He came ___ a great idea.',a:'up with',opts:['up with','out of','in for','down on'],m:'come up with = think of (придумати)'},
+  {s:'The meeting was put ___ till next week.',a:'off',opts:['off','on','up','out'],m:'put off = postpone (відкласти)'},
+  {s:'I need to find ___ when the train leaves.',a:'out',opts:['out','in','up','over'],m:'find out = discover (дізнатися)'},
+  {s:'He broke ___ with his girlfriend.',a:'up',opts:['up','down','out','in'],m:'break up = end relationship (розлучитися)'},
+  {s:'The car broke ___ on the motorway.',a:'down',opts:['down','up','out','off'],m:'break down = stop working (зламатися)'},
+  {s:'They called ___ the picnic because of rain.',a:'off',opts:['off','out','up','in'],m:'call off = cancel (скасувати)'},
+  {s:'I ran ___ an old friend at the market.',a:'into',opts:['into','over','after','out'],m:'run into = meet by chance (випадково зустріти)'},
+  {s:'Please fill ___ this form.',a:'in',opts:['in','out','up','on'],m:'fill in = complete a form (заповнити)'},
+  {s:'She turned ___ the job offer.',a:'down',opts:['down','up','off','in'],m:'turn down = refuse (відхилити)'},
+  {s:'He looked ___ all the details carefully.',a:'over',opts:['over','up','into','after'],m:'look over = review (переглянути)'},
+  {s:'We set ___ early to avoid traffic.',a:'off',opts:['off','up','out','in'],m:'set off = begin a journey (вирушити)'},
+  {s:'She brought ___ three children alone.',a:'up',opts:['up','on','out','over'],m:'bring up = raise children (виховати)'},
+  {s:'He took ___ painting after retiring.',a:'up',opts:['up','on','in','off'],m:'take up = start a hobby (зайнятися)'},
+  {s:'They fell ___ over money.',a:'out',opts:['out','off','down','apart'],m:'fall out = quarrel (посваритися)'},
+];
+let q=[],idx=0,score=0,locked=false;
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){q=shuffle([...QS]).slice(0,16);idx=0;score=0;document.getElementById('score').textContent=0;nextQ();}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  const item=q[idx];
+  document.getElementById('sentence').innerHTML=item.s.replace('___','<span class="blank">___</span>');
+  document.getElementById('meaning').textContent=item.m;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('feedback').textContent='';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  shuffle([...item.opts]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';btn.textContent=opt;
+    btn.onclick=()=>pick(opt,btn,item.a);
+    ch.appendChild(btn);
+  });
+}
+function pick(opt,btn,correct){
+  if(locked)return;locked=true;
+  const ok=opt===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)[...document.getElementById('choices').children].forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
+  if(ok){score++;document.getElementById('score').textContent=score;}
+  document.getElementById('feedback').textContent=ok?'✓ Correct!':'✗ Answer: '+correct;
+  idx++;setTimeout(nextQ,1000);
+}
+function endGame(){
+  document.getElementById('sentence').textContent='Done!';
+  document.getElementById('meaning').textContent='';
+  document.getElementById('choices').innerHTML=`<button onclick="start()" style="grid-column:span 2;padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
+  document.getElementById('feedback').textContent='Score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>

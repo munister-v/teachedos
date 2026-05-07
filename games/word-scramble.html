@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Scramble</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:24px}
+.card{background:#fff;border-radius:20px;padding:28px 24px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:480px;text-align:center}
+.score-row{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.score-row span{color:var(--accent)}
+.hint{font-size:.85rem;color:#bbb;margin-bottom:12px;min-height:20px}
+.scrambled{font-size:2.4rem;font-weight:800;letter-spacing:8px;color:#333;margin-bottom:24px;word-break:break-all}
+input{width:100%;padding:12px 16px;border:2px solid #eee;border-radius:12px;font-size:1.1rem;font-family:'Nunito',sans-serif;font-weight:700;text-align:center;outline:none;transition:.2s}
+input:focus{border-color:var(--accent)}
+input.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+input.wrong{border-color:#f44336;background:#fff0f0}
+.btn-row{display:flex;gap:10px;margin-top:14px}
+button{flex:1;padding:11px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:.15s}
+.btn-skip{background:#f5f5f5;color:#999}
+.btn-skip:hover{background:#eee}
+.btn-hint{background:#fff0f5;color:var(--accent)}
+.btn-hint:hover{background:#ffe0ec}
+.result{margin-top:20px;font-size:1.1rem;font-weight:700;min-height:24px}
+.result.ok{color:#4caf50}
+.result.err{color:#f44336}
+.progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🔀 Word Scramble</h1>
+<p class="subtitle">Unscramble the letters</p>
+<div class="card">
+  <div class="score-row"><div>Score: <span id="score">0</span></div><div>Q: <span id="qnum">1</span>/15</div><div>⏱ <span id="timer">60</span>s</div></div>
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="hint" id="hint"></div>
+  <div class="scrambled" id="scrambled"></div>
+  <input id="ans" type="text" placeholder="Type answer..." autocomplete="off" autocorrect="off" spellcheck="false">
+  <div class="btn-row">
+    <button class="btn-hint" onclick="showHint()">💡 Hint</button>
+    <button class="btn-skip" onclick="skip()">Skip →</button>
+  </div>
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+const WORDS=[
+  {w:'journey',h:'a long trip (подорож)'},
+  {w:'freedom',h:'being free (свобода)'},
+  {w:'knowledge',h:'what you know (знання)'},
+  {w:'surprise',h:'unexpected event (сюрприз)'},
+  {w:'grateful',h:'thankful (вдячний)'},
+  {w:'language',h:'system of communication (мова)'},
+  {w:'experience',h:'what you live through (досвід)'},
+  {w:'business',h:'commercial activity (бізнес)'},
+  {w:'decision',h:'a choice you make (рішення)'},
+  {w:'important',h:'significant (важливий)'},
+  {w:'remember',h:'to recall (пам\'ятати)'},
+  {w:'possible',h:'able to happen (можливий)'},
+  {w:'difficult',h:'not easy (важкий)'},
+  {w:'different',h:'not the same (різний)'},
+  {w:'beautiful',h:'very pretty (красивий)'},
+  {w:'together',h:'as one (разом)'},
+  {w:'question',h:'something you ask (питання)'},
+  {w:'continue',h:'to go on (продовжувати)'},
+];
+let queue=[],idx=0,score=0,timer=60,hintShown=false,timerInt;
+
+function scramble(w){
+  let a=w.split('');
+  for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a.join('')===w?scramble(w):a.join('');
+}
+
+function shuffle(arr){return arr.sort(()=>Math.random()-.5)}
+
+function start(){
+  queue=shuffle([...WORDS]).slice(0,15);
+  idx=0;score=0;timer=60;
+  document.getElementById('score').textContent=0;
+  document.getElementById('timer').textContent=60;
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timer--;
+    document.getElementById('timer').textContent=timer;
+    if(timer<=0){clearInterval(timerInt);endGame();}
+  },1000);
+  nextWord();
+}
+
+function nextWord(){
+  if(idx>=queue.length){endGame();return;}
+  const item=queue[idx];
+  document.getElementById('scrambled').textContent=scramble(item.w).toUpperCase();
+  document.getElementById('hint').textContent='';
+  document.getElementById('result').textContent='';
+  document.getElementById('ans').value='';
+  document.getElementById('ans').className='';
+  document.getElementById('qnum').textContent=idx+1;
+  document.getElementById('prog').style.width=((idx/queue.length)*100)+'%';
+  hintShown=false;
+}
+
+function check(){
+  const val=document.getElementById('ans').value.trim().toLowerCase();
+  const word=queue[idx].w;
+  if(val===word){
+    score+= hintShown?1:2;
+    document.getElementById('score').textContent=score;
+    document.getElementById('ans').className='correct';
+    document.getElementById('result').className='result ok';
+    document.getElementById('result').textContent='✓ Correct!';
+    idx++;
+    setTimeout(nextWord,700);
+  } else if(val.length===word.length){
+    document.getElementById('ans').className='wrong';
+    document.getElementById('result').className='result err';
+    document.getElementById('result').textContent='✗ Try again';
+    setTimeout(()=>{document.getElementById('ans').className='';document.getElementById('result').textContent='';},600);
+  }
+}
+
+function showHint(){
+  if(hintShown)return;
+  hintShown=true;
+  document.getElementById('hint').textContent='💡 '+queue[idx].h;
+}
+
+function skip(){
+  document.getElementById('result').className='result err';
+  document.getElementById('result').textContent='→ Skipped: '+queue[idx].w;
+  idx++;
+  setTimeout(nextWord,900);
+}
+
+function endGame(){
+  clearInterval(timerInt);
+  document.getElementById('scrambled').textContent='🏁';
+  document.getElementById('hint').textContent='';
+  document.getElementById('ans').style.display='none';
+  document.querySelector('.btn-row').innerHTML=`<button style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff" onclick="location.reload()">▶ Play Again</button>`;
+  document.getElementById('result').className='result ok';
+  document.getElementById('result').textContent='Game over! Score: '+score;
+}
+
+document.getElementById('ans').addEventListener('input',check);
+start();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>False Friends</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.word{font-size:2rem;font-weight:800;color:#333;margin-bottom:8px}
+.origin{font-size:.85rem;color:#bbb;margin-bottom:6px}
+.question{font-size:1rem;font-weight:700;color:#555;margin-bottom:20px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{padding:13px 16px;border:2.5px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;background:#fff;transition:.15s;text-align:left;color:#444}
+.choice:hover{border-color:var(--accent)}
+.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
+.explanation{margin-top:14px;font-size:.88rem;color:#888;min-height:36px;line-height:1.5}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🪤 False Friends</h1>
+<p class="subtitle">Don't be tricked by similar-looking words!</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/15</div></div>
+  <div class="word" id="word"></div>
+  <div class="origin" id="origin"></div>
+  <div class="question" id="question"></div>
+  <div class="choices" id="choices"></div>
+  <div class="explanation" id="explanation"></div>
+</div>
+<script>
+const QS=[
+  {w:'MAGAZINE',orig:'looks like магазин (UA/RU)',q:'What does "magazine" mean in English?',a:'a publication (журнал)',opts:['a publication (журнал)','a shop (магазин)','a storage (склад)','a warehouse'],exp:'"Magazine" = журнал. Магазин = "shop" or "store".'},
+  {w:'ACCURATE',orig:'looks like акуратний (UA)',q:'What does "accurate" mean?',a:'precise, correct',opts:['precise, correct','neat, tidy','beautiful','careful'],exp:'"Accurate" = точний. Акуратний = "neat/tidy" = "tidy".'},
+  {w:'SYMPATHETIC',orig:'looks like симпатичний (UA)',q:'What does "sympathetic" mean?',a:'showing compassion',opts:['showing compassion','attractive, nice-looking','friendly','interesting'],exp:'"Sympathetic" = той, хто співчуває. Симпатичний = "attractive".'},
+  {w:'ACTUAL',orig:'looks like актуальний (UA/RU)',q:'What does "actual" mean?',a:'real, existing in fact',opts:['real, existing in fact','current, up-to-date','important','modern'],exp:'"Actual" = реальний, справжній. Актуальний = "current/relevant".'},
+  {w:'FABRIC',orig:'looks like фабрика (RU/UA)',q:'What does "fabric" mean?',a:'cloth, material',opts:['cloth, material','a factory','a building','furniture'],exp:'"Fabric" = тканина. Фабрика = "factory".'},
+  {w:'INTELLIGENT',orig:'looks like інтелігентний (UA/RU)',q:'What does "intelligent" mean?',a:'smart, high IQ',opts:['smart, high IQ','well-mannered, cultured','educated','polite'],exp:'"Intelligent" = розумний. Інтелігентний = "cultured, refined".'},
+  {w:'CHEF',orig:'looks like шеф (RU/UA)',q:'What does "chef" mean?',a:'a professional cook',opts:['a professional cook','a boss, manager','a leader','a director'],exp:'"Chef" = кухар. Шеф = "boss" (informal).'},
+  {w:'RECEIPT',orig:'looks like рецепт (RU/UA)',q:'What does "receipt" mean?',a:'proof of purchase',opts:['proof of purchase','a cooking recipe','a prescription','an invoice'],exp:'"Receipt" = чек (після покупки). Рецепт = "recipe" or "prescription".'},
+  {w:'CABIN',orig:'looks like кабіна (UA/RU)',q:'What does "cabin" mean in context of travel?',a:'a small room on a ship or plane',opts:['a small room on a ship or plane','a cockpit only','a control panel','a booth'],exp:'"Cabin" = каюта / кабіна літака. Very close but broader in EN.'},
+  {w:'DECADE',orig:'looks like декада (RU/UA)',q:'What does "decade" mean?',a:'10 years',opts:['10 years','10 days','a decade of music','a period of 20 years'],exp:'"Decade" = 10 років. Декада (UA/RU) = 10 днів.'},
+  {w:'GYMNASIUM',orig:'looks like гімназія (UA/RU)',q:'What does "gymnasium" mean in American English?',a:'a sports hall',opts:['a sports hall','a type of school','a theatre','a university'],exp:'"Gymnasium" (AmE) = спортзал. Гімназія = a type of secondary school.'},
+  {w:'ARTIST',orig:'looks like артист (UA/RU)',q:'What does "artist" usually mean in English?',a:'a visual artist (painter etc.)',opts:['a visual artist (painter etc.)','a stage performer','a musician','an actor'],exp:'"Artist" usually = художник. Артист = "performer/entertainer".'},
+  {w:'AMBITIOUS',orig:'looks like амбітний (UA/RU)',q:'What does "ambitious" mean?',a:'having strong desire to succeed',opts:['having strong desire to succeed','arrogant, self-important','offensive','rude'],exp:'In EN "ambitious" is positive. Амбітний in UA/RU can be negative (arrogant).'},
+  {w:'COMPLEXION',orig:'looks like комплекція (UA/RU)',q:'What does "complexion" mean?',a:'skin tone and appearance',opts:['skin tone and appearance','body build, physique','a complex situation','personality'],exp:'"Complexion" = колір/стан шкіри. Комплекція = "body build".'},
+  {w:'PROSPECT',orig:'looks like проспект (UA/RU)',q:'What does "prospect" usually mean?',a:'a future possibility',opts:['a future possibility','a wide avenue','a brochure','a map'],exp:'"Prospect" = перспектива. Проспект = "avenue/boulevard".'},
+];
+let q=[],idx=0,score=0,locked=false;
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){q=shuffle([...QS]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;nextQ();}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  const item=q[idx];
+  document.getElementById('word').textContent=item.w;
+  document.getElementById('origin').textContent=item.orig;
+  document.getElementById('question').textContent=item.q;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('explanation').textContent='';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  shuffle([...item.opts]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';btn.textContent=opt;
+    btn.onclick=()=>pick(opt,btn,item.a,item.exp);
+    ch.appendChild(btn);
+  });
+}
+function pick(opt,btn,correct,exp){
+  if(locked)return;locked=true;
+  const ok=opt===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)[...document.getElementById('choices').children].forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
+  if(ok){score++;document.getElementById('score').textContent=score;}
+  document.getElementById('explanation').textContent=exp;
+  idx++;setTimeout(nextQ,1400);
+}
+function endGame(){
+  document.getElementById('word').textContent='🎉';
+  document.getElementById('origin').textContent='';
+  document.getElementById('question').textContent='Game over!';
+  document.getElementById('choices').innerHTML=`<button onclick="start()" style="padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;width:100%">▶ Play Again</button>`;
+  document.getElementById('explanation').textContent='Score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Article Rush</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.timer-bar{width:100%;height:8px;background:#f0e0e8;border-radius:4px;margin-bottom:24px;overflow:hidden}
+.timer-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .1s linear}
+.sentence{font-size:1.25rem;font-weight:700;color:#333;margin-bottom:28px;line-height:1.6;min-height:60px}
+.blank{color:var(--accent);font-size:1.4rem;letter-spacing:2px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{padding:14px;border:2.5px solid #eee;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.3rem;cursor:pointer;background:#fff;transition:.15s}
+.choice:hover{border-color:var(--accent);color:var(--accent)}
+.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
+.feedback{margin-top:18px;font-size:1rem;font-weight:700;min-height:22px;color:#888}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>⚡ Article Rush</h1>
+<p class="subtitle">Pick the right article — fast!</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/20</div><div>⏱ <span id="time">60</span>s</div></div>
+  <div class="timer-bar"><div class="timer-fill" id="tfill" style="width:100%"></div></div>
+  <div class="sentence" id="sentence"></div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+const QS=[
+  {s:'___ sun rises in the east.',a:'The',opts:['A','An','The','—']},
+  {s:'She is ___ engineer.',a:'an',opts:['a','an','the','—']},
+  {s:'I want ___ apple from that tree.',a:'an',opts:['a','an','the','—']},
+  {s:'He plays ___ guitar every day.',a:'—',opts:['a','an','the','—']},
+  {s:'___ Nile is the longest river.',a:'The',opts:['A','An','The','—']},
+  {s:'They live in ___ small village.',a:'a',opts:['a','an','the','—']},
+  {s:'I love ___ music.',a:'—',opts:['a','an','the','—']},
+  {s:'She is ___ honest person.',a:'an',opts:['a','an','the','—']},
+  {s:'We visited ___ Eiffel Tower.',a:'the',opts:['a','an','the','—']},
+  {s:'He has ___ dog and two cats.',a:'a',opts:['a','an','the','—']},
+  {s:'___ Moon orbits Earth.',a:'The',opts:['A','An','The','—']},
+  {s:'She studies ___ history.',a:'—',opts:['a','an','the','—']},
+  {s:'Can I have ___ glass of water?',a:'a',opts:['a','an','the','—']},
+  {s:'He is ___ best student in class.',a:'the',opts:['a','an','the','—']},
+  {s:'We went to ___ restaurant last night.',a:'a',opts:['a','an','the','—']},
+  {s:'___ Amazon is in South America.',a:'The',opts:['A','An','The','—']},
+  {s:'She wore ___ elegant dress.',a:'an',opts:['a','an','the','—']},
+  {s:'I play ___ tennis on weekends.',a:'—',opts:['a','an','the','—']},
+  {s:'They found ___ old map in the attic.',a:'an',opts:['a','an','the','—']},
+  {s:'___ United Kingdom has four countries.',a:'The',opts:['A','An','The','—']},
+];
+let q=[],idx=0,score=0,timer=60,tInt,locked=false;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){
+  q=shuffle([...QS]).slice(0,20);
+  idx=0;score=0;timer=60;locked=false;
+  document.getElementById('score').textContent=0;
+  document.getElementById('time').textContent=60;
+  clearInterval(tInt);
+  tInt=setInterval(()=>{
+    timer--;
+    document.getElementById('time').textContent=timer;
+    document.getElementById('tfill').style.width=(timer/60*100)+'%';
+    if(timer<=0){clearInterval(tInt);endGame();}
+  },1000);
+  nextQ();
+}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  const item=q[idx];
+  const disp=item.s.replace('___','<span class="blank">___</span>');
+  document.getElementById('sentence').innerHTML=disp;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('feedback').textContent='';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  item.opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';
+    btn.textContent=opt==='—'?'∅ (nothing)':opt;
+    btn.onclick=()=>pick(opt,btn,item.a);
+    ch.appendChild(btn);
+  });
+}
+function pick(opt,btn,correct){
+  if(locked)return;locked=true;
+  const ok=opt.toLowerCase()===correct.toLowerCase()||opt===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok){
+    [...document.getElementById('choices').children].forEach(b=>{
+      if(b.textContent.toLowerCase().includes(correct.toLowerCase()))b.classList.add('correct');
+    });
+  }
+  if(ok){score++;document.getElementById('score').textContent=score;}
+  document.getElementById('feedback').textContent=ok?'✓ Correct!':'✗ Answer: '+correct;
+  idx++;
+  setTimeout(nextQ,900);
+}
+function endGame(){
+  clearInterval(tInt);
+  document.getElementById('sentence').textContent='Game over!';
+  document.getElementById('choices').innerHTML=`<button onclick="location.reload()" style="grid-column:span 2;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1.1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
+  document.getElementById('feedback').textContent='Final score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>

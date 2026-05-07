@@ -189,6 +189,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .card-close:hover{background:rgba(239,68,68,.14);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
+/* Game iframe overlay — hidden by default, shown when board is in drag/resize */
+.game-iframe-overlay{
+  position:absolute;inset:0;z-index:30;
+  display:none;background:transparent;cursor:move;
+}
+body.board-dragging .game-iframe-overlay{display:block;}
 
 /* Resize handle */
 .card-resize{
@@ -370,6 +376,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
     <div class="sb-tab active" data-tab="plans">📋 Plans</div>
     <div class="sb-tab" data-tab="students">👥</div>
     <div class="sb-tab" data-tab="notes">✍️ Notes</div>
+    <div class="sb-tab" data-tab="games">🎮</div>
     <div class="sb-tab" data-tab="elements">＋</div>
   </div>
   <div class="sb-search" id="sb-search-wrap">
@@ -604,7 +611,7 @@ function toast(msg) {
 function getDefaults(type) {
   return ({ sticky:{w:220,h:180}, plan:{w:280,h:200}, student:{w:240,h:160},
             event:{w:200,h:140},  note:{w:300,h:240}, text:{w:200,h:90},
-            image:{w:260,h:200} })[type] || { w:220,h:160 };
+            image:{w:260,h:200},  game:{w:460,h:540} })[type] || { w:220,h:160 };
 }
 
 /* ════════════════════════ ADD CARD ════════════════════════ */
@@ -636,6 +643,7 @@ function renderCard(card) {
   else if (card.type === 'note')    renderNote(el, card);
   else if (card.type === 'event')   renderEvent(el, card);
   else if (card.type === 'image')   renderImage(el, card);
+  else if (card.type === 'game')    renderGame(el, card);
 
   // Anchor dots (connect mode)
   ['top','right','bottom','left'].forEach(anchor => {
@@ -850,6 +858,24 @@ function renderImage(el, card) {
   el.appendChild(body);
 }
 
+function renderGame(el, card) {
+  const hdr = makeHeader('🎮', card.data.title || 'Game', card.id);
+  el.appendChild(hdr);
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  body.style.cssText = 'padding:0;position:relative;overflow:hidden;flex:1;';
+  const iframe = document.createElement('iframe');
+  iframe.src = card.data.src;
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+  body.appendChild(iframe);
+  // overlay blocks iframe during card drag/resize so mouse events reach the board
+  const overlay = document.createElement('div');
+  overlay.className = 'game-iframe-overlay';
+  body.appendChild(overlay);
+  el.appendChild(body);
+}
+
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ════════════════════════ CARD OPS ════════════════════════ */
@@ -938,11 +964,13 @@ function startCardDrag(e, card) {
   dragStarted = false;
   dragStartPos = { x: e.clientX, y: e.clientY };
   isDraggingCard = true;
+  document.body.classList.add('board-dragging');
   e.preventDefault();
 }
 
 function startResize(e, card, el) {
   isResizing = true;
+  document.body.classList.add('board-dragging');
   resizeStart = { card, el, sw: card.w, sh: card.h, mx: e.clientX, my: e.clientY };
   e.preventDefault();
 }
@@ -1031,11 +1059,12 @@ document.addEventListener('mouseup', e => {
 
   if (isDraggingCard) {
     isDraggingCard = false;
+    document.body.classList.remove('board-dragging');
     if (dragStarted) { snapshot(); scheduleSave(); }
     setTimeout(() => { dragStarted = false; }, 0);
   }
 
-  if (isResizing) { isResizing = false; snapshot(); scheduleSave(); }
+  if (isResizing) { isResizing = false; document.body.classList.remove('board-dragging'); snapshot(); scheduleSave(); }
 
   if (isBoxSelecting) {
     isBoxSelecting = false;
@@ -1055,6 +1084,7 @@ document.addEventListener('mouseup', e => {
 
   if (isSidebarDrag) {
     isSidebarDrag = false;
+    document.body.classList.remove('board-dragging');
     const r = boardWrap.getBoundingClientRect();
     if (e.clientX >= r.left) {
       const pos = screenToBoard(e.clientX, e.clientY);
@@ -1462,6 +1492,7 @@ function renderSidebar() {
   if (activeTab === 'plans')    renderPlansTab(sec);
   if (activeTab === 'students') renderStudentsTab(sec);
   if (activeTab === 'notes')    renderNotesTab(sec);
+  if (activeTab === 'games')    renderGamesTab(sec);
   if (activeTab === 'elements') renderElementsTab(sec);
 }
 
@@ -1478,7 +1509,7 @@ function makeSnippet(labelText, title, metaHtml, type, data, overW, overH) {
   const w = overW||def.w, h = overH||def.h;
 
   function startDrag(e) {
-    isSidebarDrag = true;
+    isSidebarDrag = true; document.body.classList.add('board-dragging');
     sidebarDragData = { type, data:{...data}, w, h };
     ghostEl.innerHTML = `<span>${title}</span>`;
     ghostEl.style.display = 'block';
@@ -1537,7 +1568,7 @@ function renderNotesTab(sec) {
     el.innerHTML = `<div class="sn-label" style="opacity:.6;">🟡 Sticky Note</div><div class="sn-title">${colors[i]}</div>`;
     const def = getDefaults('sticky');
     function startDrag(e) {
-      isSidebarDrag = true;
+      isSidebarDrag = true; document.body.classList.add('board-dragging');
       sidebarDragData = { type:'sticky', data:{ text:'', color:c }, w:def.w, h:def.h };
       ghostEl.innerHTML = 'Sticky'; ghostEl.style.background = c; ghostEl.style.display = 'block';
       ghostEl.style.left = (e.clientX-80)+'px'; ghostEl.style.top = (e.clientY-28)+'px';
@@ -1549,6 +1580,51 @@ function renderNotesTab(sec) {
       const r = boardWrap.getBoundingClientRect();
       const bp = screenToBoard(r.left+r.width/2+(Math.random()-.5)*120, r.top+r.height/2+(Math.random()-.5)*80);
       addCard('sticky', bp.x-110, bp.y-90, { text:'', color:c });
+    });
+    sec.appendChild(el);
+  });
+}
+
+const GAMES = [
+  { icon:'🔀', title:'Word Scramble',    tag:'Vocabulary', src:'games/word-scramble.html',    w:460, h:520 },
+  { icon:'🎯', title:'Hangman',           tag:'Spelling',   src:'games/hangman.html',           w:460, h:560 },
+  { icon:'⚡', title:'Article Rush',      tag:'Grammar',    src:'games/article-rush.html',      w:460, h:520 },
+  { icon:'🧠', title:'Memory Match',      tag:'Vocabulary', src:'games/memory-match.html',      w:520, h:600 },
+  { icon:'🧩', title:'Sentence Builder',  tag:'Grammar',    src:'games/sentence-builder.html',  w:520, h:560 },
+  { icon:'🌧️', title:'Typing Rain',       tag:'Speed',      src:'games/typing-rain.html',       w:560, h:560 },
+  { icon:'✅', title:'True or False',     tag:'Grammar',    src:'games/true-false.html',        w:460, h:520 },
+  { icon:'🔗', title:'Phrasal Verbs',     tag:'Vocabulary', src:'games/phrasal-verbs.html',     w:460, h:520 },
+  { icon:'🪤', title:'False Friends',     tag:'Vocabulary', src:'games/false-friends.html',     w:460, h:580 },
+  { icon:'📍', title:'Prepositions',      tag:'Grammar',    src:'games/prepositions.html',      w:460, h:520 },
+  { icon:'🔧', title:'Grammar Fix',       tag:'Grammar',    src:'games/grammar-fix.html',       w:500, h:560 },
+  { icon:'⏱️', title:'Tense Picker',      tag:'Grammar',    src:'games/tense-picker.html',      w:480, h:580 },
+  { icon:'🔄', title:'Synonym Snap',      tag:'Vocabulary', src:'games/synonym-snap.html',      w:520, h:560 },
+  { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   src:'games/spelling-bee.html',      w:460, h:560 },
+  { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', src:'games/word-categories.html',   w:560, h:640 },
+];
+
+function renderGamesTab(sec) {
+  sec.appendChild(makeLegend('Drag to board — plays inside the card'));
+  GAMES.forEach(g => {
+    if (searchQ && !g.title.toLowerCase().includes(searchQ)) return;
+    const el = document.createElement('div');
+    el.className = 'snippet';
+    el.innerHTML = `<div class="sn-label">🎮 Mini Game</div><div class="sn-title">${g.icon} ${g.title}</div><div class="sn-meta"><span class="badge pink">${g.tag}</span></div>`;
+    function startDrag(e) {
+      isSidebarDrag = true; document.body.classList.add('board-dragging');
+      sidebarDragData = { type:'game', data:{ title:g.title, src:g.src }, w:g.w, h:g.h };
+      ghostEl.innerHTML = `${g.icon} ${g.title}`;
+      ghostEl.style.display = 'block';
+      ghostEl.style.left = (e.clientX - g.w/2) + 'px';
+      ghostEl.style.top  = (e.clientY - 28) + 'px';
+      e.preventDefault();
+    }
+    el.addEventListener('mousedown', startDrag);
+    el.addEventListener('click', () => {
+      if (isSidebarDrag) return;
+      const r = boardWrap.getBoundingClientRect();
+      const bp = screenToBoard(r.left + r.width/2 + (Math.random()-.5)*60, r.top + r.height/2 + (Math.random()-.5)*60);
+      addCard('game', bp.x - g.w/2, bp.y - g.h/2, { title:g.title, src:g.src }, g.w, g.h);
     });
     sec.appendChild(el);
   });
@@ -1569,7 +1645,7 @@ function renderElementsTab(sec) {
     el.innerHTML = `<div class="el-icon">${item.icon}</div><div class="el-label">${item.label}</div>`;
     const def = getDefaults(item.type);
     function startDrag(e) {
-      isSidebarDrag = true;
+      isSidebarDrag = true; document.body.classList.add('board-dragging');
       sidebarDragData = { type:item.type, data:{...item.data}, w:def.w, h:def.h };
       ghostEl.innerHTML = `${item.icon} ${item.label}`;
       ghostEl.style.background = item.type==='sticky'?(item.data.color||STICKY_COLORS[0]):'white';

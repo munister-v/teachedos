@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tense Picker</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4B8B}
+body{font-family:'Nunito',sans-serif;background:#fff0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #ff4b8b18;width:100%;max-width:480px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.context{font-size:.85rem;color:#bbb;margin-bottom:8px;font-style:italic;min-height:18px}
+.sentence{font-size:1.15rem;font-weight:700;color:#333;min-height:64px;display:flex;align-items:center;justify-content:center;line-height:1.6;margin-bottom:20px}
+.blank{color:var(--accent);border-bottom:3px solid var(--accent);padding:0 8px;min-width:80px;display:inline-block}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{padding:12px 16px;border:2.5px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;background:#fff;transition:.15s;color:#444}
+.choice:hover{border-color:var(--accent);color:var(--accent)}
+.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
+.feedback{margin-top:14px;font-size:.88rem;font-weight:700;min-height:20px;color:#888}
+.progress{width:100%;height:5px;background:#f0e0e8;border-radius:3px;margin-bottom:18px}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>⏱️ Tense Picker</h1>
+<p class="subtitle">Choose the correct verb form</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/18</div></div>
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="context" id="context"></div>
+  <div class="sentence" id="sentence"></div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+</div>
+<script>
+const QS=[
+  {ctx:'Right now…',s:'She ___ (read) a book.',a:'is reading',opts:['reads','is reading','has read','read'],exp:'Right now → Present Continuous'},
+  {ctx:'Every day…',s:'He ___ (go) to the gym.',a:'goes',opts:['is going','went','goes','has gone'],exp:'Habit → Present Simple'},
+  {ctx:'Yesterday…',s:'They ___ (watch) a film last night.',a:'watched',opts:['watch','were watching','watched','have watched'],exp:'Completed past → Past Simple'},
+  {ctx:'Experience question…',s:'___ you ever ___ (be) to Japan?',a:'Have … been',opts:['Did … go','Have … been','Were … being','Do … be'],exp:'Life experience → Present Perfect'},
+  {ctx:'When I arrived…',s:'She ___ (cook) dinner when I arrived.',a:'was cooking',opts:['cooked','was cooking','has cooked','is cooking'],exp:'Interrupted action → Past Continuous'},
+  {ctx:'Future plan…',s:'We ___ (fly) to Rome next Monday.',a:'are flying',opts:['fly','will fly','are flying','flew'],exp:'Arranged future → Present Continuous'},
+  {ctx:'Prediction…',s:'I think it ___ (rain) tomorrow.',a:'will rain',opts:['rains','is raining','rained','will rain'],exp:'Prediction → will'},
+  {ctx:'Already done…',s:'I ___ (finish) my homework.',a:'have finished',opts:['finished','finish','have finished','was finishing'],exp:'Relevance now → Present Perfect'},
+  {ctx:'Before another past action…',s:'She ___ (already leave) when he arrived.',a:'had already left',opts:['already left','has already left','had already left','was leaving'],exp:'Earlier past action → Past Perfect'},
+  {ctx:'Future certainty…',s:'Look at those clouds — it ___ (rain).',a:'is going to rain',opts:['will rain','rains','is going to rain','rained'],exp:'Evidence-based prediction → going to'},
+  {ctx:'Regular schedule…',s:'The train ___ (leave) at 9 every morning.',a:'leaves',opts:['is leaving','leaves','left','will leave'],exp:'Schedule → Present Simple'},
+  {ctx:'Duration until now…',s:'They ___ (live) here for ten years.',a:'have lived',opts:['live','lived','have lived','are living'],exp:'From past to now → Present Perfect'},
+  {ctx:'Ongoing past duration…',s:'She ___ (study) for three hours when he called.',a:'had been studying',opts:['studied','was studying','had been studying','has studied'],exp:'Duration before past point → Past Perfect Continuous'},
+  {ctx:'Instant decision…',s:'"I\'ll have the soup." — That\'s a decision he ___ (just make).',a:'has just made',opts:['just made','makes','has just made','will make'],exp:'Instant decision result → Present Perfect'},
+  {ctx:'Condition…',s:'If it ___ (rain), we\'ll stay inside.',a:'rains',opts:['will rain','rains','is raining','rained'],exp:'Type 1 conditional → Present Simple'},
+  {ctx:'Unreal present…',s:'If I ___ (be) rich, I\'d travel the world.',a:'were',opts:['am','was','were','would be'],exp:'Type 2 conditional → were (subjunctive)'},
+  {ctx:'Passive…',s:'The report ___ (write) by Sarah last week.',a:'was written',opts:['was written','wrote','has been written','is written'],exp:'Past passive → was + past participle'},
+  {ctx:'Future perfect…',s:'By next year, she ___ (finish) her degree.',a:'will have finished',opts:['finishes','will finish','will have finished','has finished'],exp:'Completed by future time → Future Perfect'},
+];
+let q=[],idx=0,score=0,locked=false;
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){q=shuffle([...QS]).slice(0,18);idx=0;score=0;document.getElementById('score').textContent=0;nextQ();}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  const item=q[idx];
+  document.getElementById('context').textContent=item.ctx;
+  document.getElementById('sentence').innerHTML=item.s.replace('___','<span class="blank">___</span>').replace('___','<span class="blank">___</span>');
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('prog').style.width=((idx/q.length)*100)+'%';
+  document.getElementById('feedback').textContent='';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  shuffle([...item.opts]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';btn.textContent=opt;
+    btn.onclick=()=>pick(opt,btn,item.a,item.exp);
+    ch.appendChild(btn);
+  });
+}
+function pick(opt,btn,correct,exp){
+  if(locked)return;locked=true;
+  const ok=opt===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)[...document.getElementById('choices').children].forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
+  if(ok){score++;document.getElementById('score').textContent=score;}
+  document.getElementById('feedback').textContent=(ok?'✓ ':'✗ ')+exp;
+  idx++;setTimeout(nextQ,1100);
+}
+function endGame(){
+  document.getElementById('context').textContent='';
+  document.getElementById('sentence').textContent='Done!';
+  document.getElementById('choices').innerHTML=`<button onclick="start()" style="padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;width:100%">▶ Play Again</button>`;
+  document.getElementById('feedback').textContent='Score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>
