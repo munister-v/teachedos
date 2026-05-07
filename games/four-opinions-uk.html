@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeachedOS Games · Four Opinions</title>
+<link rel="stylesheet" href="../styles/games-base.css">
 <style>
 :root {
   --bg: #fffdf9;
@@ -19,25 +20,13 @@
   --practical: #3b82f6;
   --shadow: 0 18px 42px rgba(190, 125, 44, 0.12);
   --radius: 24px;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: "Nunito", "Segoe UI", sans-serif;
-  color: var(--text);
-  background:
+  --page-background:
     radial-gradient(circle at top left, rgba(255, 191, 118, 0.22), transparent 26%),
     radial-gradient(circle at bottom right, rgba(255, 224, 177, 0.36), transparent 24%),
     linear-gradient(180deg, #fffdf8 0%, #fff4e5 100%);
-}
-
-.shell {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px;
+  --embed-background:
+    radial-gradient(circle at top left, rgba(255, 191, 118, 0.16), transparent 22%),
+    linear-gradient(180deg, #fffefb 0%, #fff7ea 100%);
 }
 
 .hero {
@@ -52,34 +41,11 @@ body {
   box-shadow: var(--shadow);
 }
 
-.eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-h1 {
-  margin: 8px 0 6px;
-  font-size: clamp(28px, 4vw, 42px);
-  line-height: 1;
-}
-
 .hero p {
   margin: 0;
   color: var(--muted);
   max-width: 760px;
   line-height: 1.65;
-}
-
-.pill {
-  border-radius: 999px;
-  background: var(--accent-2);
-  color: var(--accent);
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
 }
 
 .layout {
@@ -114,12 +80,6 @@ h1 {
   font-weight: 800;
   color: var(--muted);
   letter-spacing: 0.04em;
-}
-
-textarea,
-select,
-button {
-  font: inherit;
 }
 
 textarea,
@@ -261,29 +221,9 @@ textarea {
   .opinion-text { padding-left: 0; }
 }
 
-body.embed-mode {
-  background:
-    radial-gradient(circle at top left, rgba(255, 191, 118, 0.16), transparent 22%),
-    linear-gradient(180deg, #fffefb 0%, #fff7ea 100%);
-}
-
-body.embed-mode .shell {
-  max-width: none;
-  padding: 14px;
-}
-
-body.embed-mode .hero,
-body.embed-mode .panel {
-  box-shadow: none;
-}
-
 body.embed-mode .hero {
   padding: 18px 20px;
   border-radius: 22px;
-}
-
-body.embed-mode h1 {
-  font-size: clamp(24px, 3vw, 34px);
 }
 
 body.embed-mode .layout {
@@ -349,6 +289,7 @@ body.embed-mode .layout {
   </section>
 </div>
 
+<script src="../scripts/games-embed.js"></script>
 <script>
 const PERSONAS = [
   { id: "A", name: "Alex", label: "Підтримує", color: "var(--positive)", bg: "rgba(20,155,113,0.12)" },
@@ -509,9 +450,6 @@ document.getElementById("copy-all-btn").addEventListener("click", () => {
   }, 1400);
 });
 
-if (new URLSearchParams(window.location.search).get("embed") === "1") {
-  document.body.classList.add("embed-mode");
-}
 </script>
 </body>
 </html>

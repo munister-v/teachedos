@@ -6,8 +6,8 @@ Standalone static build of the `TeachedOS` language-learning interface.
 
 - `index.html` — main OS shell
 - `games/` — interactive embedded modules
-- `scripts/` — data and curriculum bindings
-- `styles/` — extracted application styles
+- `scripts/` — data, curriculum bindings, and shared game helpers
+- `styles/` — extracted application styles plus shared game foundation
 
 ## Deploy to GitHub Pages
 
@@ -21,3 +21,4 @@ Standalone static build of the `TeachedOS` language-learning interface.
 - No build step is required.
 - The project is fully static.
 - Embedded game mode uses `?embed=1` in iframe URLs.
+- Repeated game shell styles live in `styles/games-base.css`.

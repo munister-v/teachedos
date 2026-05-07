@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeachedOS Games · Match Terms</title>
+<link rel="stylesheet" href="../styles/games-base.css">
 <style>
 :root {
   --bg: #fff5f9;
@@ -18,25 +19,18 @@
   --bad: #e24b6b;
   --shadow: 0 18px 48px rgba(232, 53, 122, 0.14);
   --radius: 22px;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: "Nunito", "Segoe UI", sans-serif;
-  background:
+  --shell-max-width: 1200px;
+  --hero-title-size: clamp(30px, 4vw, 48px);
+  --hero-title-line-height: 0.98;
+  --hero-title-margin: 10px 0 8px;
+  --embed-heading-size: clamp(26px, 3.1vw, 36px);
+  --page-background:
     radial-gradient(circle at top left, rgba(255, 140, 184, 0.25), transparent 30%),
     radial-gradient(circle at bottom right, rgba(255, 190, 212, 0.35), transparent 28%),
     linear-gradient(180deg, #fff8fb 0%, #ffe9f2 100%);
-  color: var(--text);
-}
-
-.shell {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
+  --embed-background:
+    radial-gradient(circle at top left, rgba(255, 140, 184, 0.12), transparent 24%),
+    linear-gradient(180deg, #fffafc 0%, #fff3f8 100%);
 }
 
 .hero {
@@ -56,20 +50,6 @@ body {
 
 .hero-main {
   padding: 24px;
-}
-
-.eyebrow,
-.mini-label {
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-h1 {
-  margin: 10px 0 8px;
-  font-size: clamp(30px, 4vw, 48px);
-  line-height: 0.98;
 }
 
 .hero-main p {
@@ -93,7 +73,6 @@ h1 {
 
 select,
 button {
-  font: inherit;
   border: none;
 }
 
@@ -278,24 +257,12 @@ select {
   .card { min-height: 112px; }
 }
 
-body.embed-mode {
-  background:
-    radial-gradient(circle at top left, rgba(255, 140, 184, 0.12), transparent 24%),
-    linear-gradient(180deg, #fffafc 0%, #fff3f8 100%);
-}
-
-body.embed-mode .shell {
-  max-width: none;
-  padding: 14px;
-}
-
 body.embed-mode .hero {
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 14px;
   margin-bottom: 14px;
 }
 
-body.embed-mode .panel,
 body.embed-mode .stat {
   box-shadow: none;
 }
@@ -304,10 +271,6 @@ body.embed-mode .hero-main,
 body.embed-mode .hero-side,
 body.embed-mode .board {
   border-radius: 20px;
-}
-
-body.embed-mode h1 {
-  font-size: clamp(26px, 3.1vw, 36px);
 }
 
 body.embed-mode .hero-main p {
@@ -385,6 +348,7 @@ body.embed-mode .board {
   </div>
 </div>
 
+<script src="../scripts/games-embed.js"></script>
 <script>
 const THEMES = [
   {
@@ -652,10 +616,6 @@ cardsEl.addEventListener("click", (event) => {
   if (!button) return;
   handleCardClick(button.dataset.id);
 });
-
-if (new URLSearchParams(window.location.search).get("embed") === "1") {
-  document.body.classList.add("embed-mode");
-}
 
 resetGame();
 </script>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeachedOS Games · LinguaQuiz</title>
+<link rel="stylesheet" href="../styles/games-base.css">
 <style>
 :root {
   --bg: #f8fbff;
@@ -17,25 +18,14 @@
   --ok: #149b71;
   --shadow: 0 20px 45px rgba(53, 109, 255, 0.1);
   --radius: 24px;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: "Nunito", "Segoe UI", sans-serif;
-  color: var(--text);
-  background:
+  --shell-max-width: 1320px;
+  --page-background:
     radial-gradient(circle at top right, rgba(53, 109, 255, 0.16), transparent 28%),
     radial-gradient(circle at bottom left, rgba(126, 184, 255, 0.14), transparent 22%),
     linear-gradient(180deg, #fafdff 0%, #eef5ff 100%);
-}
-
-.shell {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 24px;
+  --embed-background:
+    radial-gradient(circle at top right, rgba(53, 109, 255, 0.10), transparent 22%),
+    linear-gradient(180deg, #fbfdff 0%, #f3f7ff 100%);
 }
 
 .topbar {
@@ -51,34 +41,11 @@ body {
   box-shadow: var(--shadow);
 }
 
-.eyebrow {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--muted);
-}
-
-h1 {
-  margin: 8px 0 6px;
-  font-size: clamp(28px, 4vw, 42px);
-  line-height: 1;
-}
-
 .topbar p {
   margin: 0;
   color: var(--muted);
   max-width: 720px;
   line-height: 1.65;
-}
-
-.pill {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: var(--accent-2);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
 }
 
 .layout {
@@ -113,13 +80,6 @@ h1 {
   font-weight: 800;
   color: var(--muted);
   letter-spacing: 0.04em;
-}
-
-textarea,
-input,
-select,
-button {
-  font: inherit;
 }
 
 textarea,
@@ -340,29 +300,9 @@ textarea {
   .result-toolbar { flex-direction: column; align-items: stretch; }
 }
 
-body.embed-mode {
-  background:
-    radial-gradient(circle at top right, rgba(53, 109, 255, 0.10), transparent 22%),
-    linear-gradient(180deg, #fbfdff 0%, #f3f7ff 100%);
-}
-
-body.embed-mode .shell {
-  max-width: none;
-  padding: 14px;
-}
-
-body.embed-mode .topbar,
-body.embed-mode .panel {
-  box-shadow: none;
-}
-
 body.embed-mode .topbar {
   padding: 18px 20px;
   border-radius: 22px;
-}
-
-body.embed-mode h1 {
-  font-size: clamp(24px, 3vw, 34px);
 }
 
 body.embed-mode .topbar p {
@@ -446,6 +386,7 @@ body.embed-mode .layout {
   </section>
 </div>
 
+<script src="../scripts/games-embed.js"></script>
 <script>
 const FOCUS_OPTIONS = [
   "Main Idea",
@@ -716,10 +657,6 @@ copyBtn.addEventListener("click", () => {
     copyBtn.textContent = "Скопіювати текст";
   }, 1600);
 });
-
-if (new URLSearchParams(window.location.search).get("embed") === "1") {
-  document.body.classList.add("embed-mode");
-}
 
 renderFocusOptions();
 </script>
