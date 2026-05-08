@@ -33,10 +33,12 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT b.id, b.name, b.data, b.thumbnail, b.updated_at, b.created_at,
-            u.name AS owner_name
+            b.user_id, u.name AS owner_name
      FROM boards b
      JOIN users u ON u.id = b.user_id
-     WHERE b.id = $1 AND b.user_id = $2`,
+     WHERE b.id = $1 AND (b.user_id = $2 OR EXISTS (
+       SELECT 1 FROM board_collaborators WHERE board_id = $1 AND user_id = $2
+     ))`,
     [req.params.id, req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
