@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireTeacher } = require('../middleware/auth');
 
 router.use(requireAuth);
 
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 /* ── POST /api/courses — create course ───────────────────────────────── */
-router.post('/', async (req, res) => {
+router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Course', description = '', level = '', color = '#FF4B8B' } = req.body;
   const { rows } = await pool.query(
     `INSERT INTO courses (user_id, name, description, level, color)
@@ -95,7 +95,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 /* ── POST /api/courses/:id/modules — add module ──────────────────────── */
-router.post('/:id/modules', async (req, res) => {
+router.post('/:id/modules', requireTeacher, async (req, res) => {
   const { name = 'New Module', ord = 0 } = req.body;
   const { rows: own } = await pool.query(
     'SELECT id FROM courses WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]

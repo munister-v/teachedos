@@ -44,6 +44,7 @@ app.use('/api/admin',  require('./routes/admin'));
 app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/members', require('./routes/members'));
 app.use('/api/courses', require('./routes/courses'));
+app.use('/api/student', require('./routes/student'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

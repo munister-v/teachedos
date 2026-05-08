@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireTeacher } = require('../middleware/auth');
 
 // All board routes require auth
 router.use(requireAuth);
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/boards — create new board
-router.post('/', async (req, res) => {
+router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Board' } = req.body;
   const { rows } = await pool.query(
     `INSERT INTO boards (user_id, name)

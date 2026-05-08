@@ -2132,7 +2132,177 @@ function mobInit() {
 mobInit();
 </script>
 <script>
-// Show user chip and wire live widgets when logged in
+/* ════════════════════════════════════════════════════
+   AUTH + ROLE ROUTING
+   ════════════════════════════════════════════════════ */
+const API_BASE = 'https://teachedos-api.onrender.com';
+let _authToken = localStorage.getItem('teachedos_token');
+let _currentUser = null;
+
+async function checkAuthAndRoute() {
+  if (!_authToken) {
+    showAuthOverlay();
+    return;
+  }
+  try {
+    const r = await fetch(API_BASE + '/api/auth/me', {
+      headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    if (!r.ok) { showAuthOverlay(); return; }
+    const { user } = await r.json();
+    _currentUser = user;
+
+    // Role routing
+    if (user.role === 'student') {
+      location.href = 'student.html';
+      return;
+    }
+
+    // Teacher / Admin: show desktop + update UI
+    applyUserToDesktop(user);
+
+  } catch {
+    // Offline or network error — show desktop anyway if token exists
+    applyUserToDesktop({ name: 'Teacher', avatar: '🧑‍🏫', role: 'teacher' });
+  }
+}
+
+function applyUserToDesktop(user) {
+  // Update any user-displaying elements
+  const nameEls = document.querySelectorAll('.user-display-name');
+  nameEls.forEach(el => el.textContent = user.name.split(' ')[0]);
+  const avatarEls = document.querySelectorAll('.user-display-avatar');
+  avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
+  // Show admin badge if admin
+  if (user.role === 'admin') {
+    const badge = document.createElement('div');
+    badge.style.cssText = 'position:fixed;bottom:12px;right:16px;background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;z-index:9999;cursor:pointer;font-family:monospace;';
+    badge.textContent = '⚡ Admin';
+    badge.onclick = () => location.href = 'admin.html';
+    document.body.appendChild(badge);
+  }
+}
+
+function showAuthOverlay() {
+  let overlay = document.getElementById('os-auth-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'os-auth-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,10,20,.65);backdrop-filter:blur(16px);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:22px;padding:36px 32px 28px;width:100%;max-width:400px;box-shadow:0 28px 80px rgba(0,0,0,.22);position:relative;">
+        <div style="text-align:center;margin-bottom:26px;">
+          <div style="font-size:2.6rem;line-height:1;margin-bottom:10px;">🏫</div>
+          <div style="font-size:1.4rem;font-weight:900;color:#1C0A14;letter-spacing:-.03em;">Teached<em style="color:#FF4B8B;font-style:normal;">OS</em></div>
+          <div id="os-auth-sub" style="font-size:.85rem;color:#B07090;margin-top:5px;">Sign in to continue</div>
+        </div>
+        <div id="os-auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+        <!-- Role picker (register only) -->
+        <div id="os-role-row" style="display:none;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:700;color:#B07090;font-family:monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:12px 8px;border-radius:12px;border:2px solid #FF4B8B;background:rgba(255,75,139,.07);cursor:pointer;text-align:center;transition:.15s;">
+              <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
+              <div style="font-size:12px;font-weight:800;color:#1C0A14;">Teacher</div>
+              <div style="font-size:10px;color:#B07090;margin-top:2px;">Create &amp; manage</div>
+            </div>
+            <div id="role-student" onclick="selectOsRole('student')" style="padding:12px 8px;border-radius:12px;border:2px solid rgba(255,80,140,.14);background:#fafafa;cursor:pointer;text-align:center;transition:.15s;">
+              <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🎓</div>
+              <div style="font-size:12px;font-weight:800;color:#1C0A14;">Student</div>
+              <div style="font-size:10px;color:#B07090;margin-top:2px;">Learn &amp; progress</div>
+            </div>
+          </div>
+        </div>
+        <div id="os-auth-fields"></div>
+        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:#FF4B8B;color:#fff;font-family:Nunito,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
+        <div style="text-align:center;margin-top:14px;font-size:.85rem;color:#B07090;">
+          <span id="os-toggle-text">Don't have an account?</span>
+          <span onclick="toggleOsAuth()" style="color:#FF4B8B;font-weight:700;cursor:pointer;margin-left:4px;" id="os-toggle-link">Register</span>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    renderOsAuthFields();
+  }
+  overlay.style.display = 'flex';
+}
+
+let _osAuthMode = 'login';
+let _osRole = 'teacher';
+
+function selectOsRole(role) {
+  _osRole = role;
+  const t = document.getElementById('role-teacher');
+  const s = document.getElementById('role-student');
+  if (t && s) {
+    t.style.borderColor = role==='teacher'?'#FF4B8B':'rgba(255,80,140,.14)';
+    t.style.background  = role==='teacher'?'rgba(255,75,139,.07)':'#fafafa';
+    s.style.borderColor = role==='student'?'#FF4B8B':'rgba(255,80,140,.14)';
+    s.style.background  = role==='student'?'rgba(255,75,139,.07)':'#fafafa';
+  }
+}
+
+function renderOsAuthFields() {
+  const isLogin = _osAuthMode === 'login';
+  const sub = document.getElementById('os-auth-sub');
+  const btn = document.getElementById('os-auth-btn');
+  const roleRow = document.getElementById('os-role-row');
+  const togText = document.getElementById('os-toggle-text');
+  const togLink = document.getElementById('os-toggle-link');
+  if (sub) sub.textContent = isLogin ? 'Sign in to your workspace' : 'Create your account';
+  if (btn) btn.textContent = isLogin ? 'Sign in' : 'Create account';
+  if (roleRow) roleRow.style.display = isLogin ? 'none' : 'block';
+  if (togText) togText.textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+  if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
+  const f = document.getElementById('os-auth-fields');
+  if (!f) return;
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:11px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4B8B'" onblur="this.style.borderColor='#eee'">` : '') +
+    `<input id="os-af-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:11px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4B8B'" onblur="this.style.borderColor='#eee'">
+     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:4px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4B8B'" onblur="this.style.borderColor='#eee'">`;
+  f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
+}
+
+function toggleOsAuth() {
+  _osAuthMode = _osAuthMode === 'login' ? 'register' : 'login';
+  document.getElementById('os-auth-err').style.display='none';
+  renderOsAuthFields();
+}
+
+async function submitOsAuth() {
+  const email = document.getElementById('os-af-email')?.value.trim();
+  const pass  = document.getElementById('os-af-pass')?.value;
+  const name  = document.getElementById('os-af-name')?.value?.trim();
+  const errEl = document.getElementById('os-auth-err');
+  const btn   = document.getElementById('os-auth-btn');
+  if (!email || !pass) return;
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const endpoint = _osAuthMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+    const body = _osAuthMode === 'login' ? {email,password:pass} : {email,password:pass,name,role:_osRole};
+    const r = await fetch(API_BASE + endpoint, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error||'Error');
+    _authToken = d.token;
+    localStorage.setItem('teachedos_token', _authToken);
+    _currentUser = d.user;
+    document.getElementById('os-auth-overlay').style.display = 'none';
+    if (d.user.role === 'student') { location.href = 'student.html'; return; }
+    applyUserToDesktop(d.user);
+  } catch(err) {
+    errEl.textContent = err.message; errEl.style.display='block';
+  } finally {
+    btn.disabled = false; btn.textContent = _osAuthMode==='login'?'Sign in':'Create account';
+  }
+}
+
+// Run on load
+checkAuthAndRoute();
+
+/* ════════════════════════════════════════════════════
+   LIVE WIDGETS (teacher/admin only — students are redirected above)
+   ════════════════════════════════════════════════════ */
 (function() {
   const API = 'https://teachedos-api.onrender.com';
   const token = localStorage.getItem('teachedos_token');
@@ -2141,6 +2311,8 @@ mobInit();
 
   fetch(API + '/api/auth/me', auth).then(r => r.json()).then(d => {
     if (!d.user) return;
+    // Students are handled by checkAuthAndRoute — skip widget wiring for them
+    if (d.user.role === 'student') return;
     const chip = document.getElementById('desktop-user-chip');
     if (chip) {
       chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;

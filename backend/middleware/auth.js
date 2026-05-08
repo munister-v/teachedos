@@ -36,4 +36,11 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin, signToken };
+function requireTeacher(req, res, next) {
+  if (!req.user || (req.user.role !== 'teacher' && req.user.role !== 'admin')) {
+    return res.status(403).json({ error: 'Teacher access required' });
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, requireTeacher, signToken };
