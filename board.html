@@ -932,6 +932,68 @@ body.board-dragging .game-iframe-overlay{display:block;}
 }
 .auth-role-btn:hover{border-color:var(--border-2);}
 .auth-role-btn.active{border-color:var(--accent);background:var(--accent-2);}
+/* ══════════════ VERSION HISTORY PANEL ══════════════ */
+#vh-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  backdrop-filter:blur(6px);z-index:4600;align-items:center;justify-content:center;
+}
+#vh-overlay.open{display:flex;}
+#vh-panel{
+  background:var(--card-bg,#fff);border-radius:20px;width:100%;max-width:520px;
+  max-height:86vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.2);border:1px solid var(--border);
+}
+.vh-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.vh-head-icon{font-size:1.4rem;}
+.vh-head-titles{flex:1;}
+.vh-head-title{font-size:14px;font-weight:900;color:var(--text);}
+.vh-head-sub{font-size:11px;color:var(--text-3);margin-top:2px;}
+.vh-close{width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.06);border:none;cursor:pointer;font-size:15px;color:var(--text-3);display:flex;align-items:center;justify-content:center;}
+.vh-close:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+.vh-body{overflow-y:auto;flex:1;padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;}
+.vh-body::-webkit-scrollbar{width:4px;}
+.vh-body::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
+.vh-version{
+  border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;
+  display:flex;align-items:center;gap:12px;transition:.15s;cursor:pointer;
+}
+.vh-version:hover{border-color:var(--accent);background:var(--accent-2);}
+.vh-version.current{border-color:var(--accent);background:var(--accent-2);}
+.vh-ver-icon{font-size:1.3rem;flex-shrink:0;}
+.vh-ver-info{flex:1;}
+.vh-ver-name{font-size:13px;font-weight:800;color:var(--text);}
+.vh-ver-meta{font-size:10px;color:var(--text-3);font-family:var(--mono);margin-top:2px;}
+.vh-ver-badge{font-size:9px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;}
+.vh-ver-badge.auto{background:rgba(156,163,175,.1);color:#9ca3af;}
+.vh-ver-restore{padding:5px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;color:var(--text-2);background:var(--card-bg,white);transition:.15s;flex-shrink:0;}
+.vh-ver-restore:hover{border-color:var(--accent);color:var(--accent);}
+.vh-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:rgba(0,0,0,.02);}
+.vh-pin-btn{padding:8px 16px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer;transition:.15s;}
+.vh-pin-btn:hover{opacity:.88;}
+.vh-empty{text-align:center;padding:30px 20px;color:var(--text-3);font-size:12px;}
+
+/* ══════════════ OFFLINE BANNER ══════════════ */
+#offline-banner{
+  display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#1c1917;color:#fef3c7;padding:8px 18px 8px 14px;border-radius:24px;
+  font-size:12px;font-weight:700;z-index:9800;align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+#offline-banner.show{display:flex;}
+
+/* ══════════════ SAVE STATUS ANIMATIONS ══════════════ */
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.35;}}
+.save-dot-saving{animation:pulse-dot .8s infinite;}
+
+/* ══════════════ CONFLICT TOAST ══════════════ */
+#conflict-banner{
+  display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);
+  background:#fff;border:1.5px solid var(--accent);border-radius:14px;
+  padding:10px 18px;font-size:12px;font-weight:700;z-index:9700;
+  align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);
+  color:var(--text);
+}
+#conflict-banner.show{display:flex;}
 </style>
 </head>
 <body>
@@ -946,7 +1008,15 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
   </div>
   <div class="tb-spacer"></div>
-  <span id="save-status">✓ saved</span>
+  <!-- Save status chip -->
+  <div id="save-chip" title="Click for version history" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-3);transition:.15s;flex-shrink:0;">
+    <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
+    <span id="save-status">✓ saved</span>
+  </div>
+  <!-- Session stats chip -->
+  <div id="session-chip" title="Session info" style="display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;">
+    <span id="session-stats">0 cards</span>
+  </div>
   <div class="tb-sep"></div>
   <div class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</div>
   <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</div>
@@ -981,6 +1051,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
+    <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
     <div class="user-menu-item" onclick="location.href='courses.html'">📚 Courses</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
     <div class="user-menu-item" onclick="location.href='schedule.html'">📅 Schedule</div>
@@ -1127,6 +1198,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
         <h4>Modes</h4>
         <div class="sp-row"><span>Connect mode</span><div class="kbd"><code>C</code></div></div>
         <div class="sp-row"><span>Search cards</span><div class="kbd"><code>Ctrl</code><code>F</code></div></div>
+        <div class="sp-row"><span>Force save</span><div class="kbd"><code>Ctrl</code><code>S</code></div></div>
+        <div class="sp-row"><span>Version history</span><div class="kbd"><code>Ctrl</code><code>H</code></div></div>
         <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
       </div>
     </div>
@@ -1480,6 +1553,39 @@ body.board-dragging .game-iframe-overlay{display:block;}
     </div>
     <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
+</div>
+
+<!-- VERSION HISTORY PANEL -->
+<div id="vh-overlay">
+  <div id="vh-panel">
+    <div class="vh-head">
+      <div class="vh-head-icon">🕐</div>
+      <div class="vh-head-titles">
+        <div class="vh-head-title">Version History</div>
+        <div class="vh-head-sub" id="vh-sub">Auto-saved snapshots · click to restore</div>
+      </div>
+      <button class="vh-close" onclick="closeVersionHistory()">✕</button>
+    </div>
+    <div class="vh-body" id="vh-list"></div>
+    <div class="vh-footer">
+      <button class="vh-pin-btn" onclick="pinCurrentVersion()">📌 Pin this version</button>
+      <div style="flex:1;font-size:11px;color:var(--text-3);" id="vh-storage-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">
+  <span>📡</span><span>Offline — saving locally, will sync when reconnected</span>
+</div>
+
+<!-- CONFLICT BANNER -->
+<div id="conflict-banner">
+  <span>⚠️</span>
+  <span>This board was updated elsewhere.</span>
+  <button onclick="resolveConflict('theirs')" style="padding:4px 10px;border-radius:7px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;">Use server version</button>
+  <button onclick="resolveConflict('mine')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:var(--card-bg,white);color:var(--text-2);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;">Keep mine</button>
+  <button onclick="document.getElementById('conflict-banner').classList.remove('show')" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:16px;line-height:1;">×</button>
 </div>
 
 <!-- BOARD LIST MODAL -->
@@ -2628,10 +2734,12 @@ document.addEventListener('keydown', e => {
 
   if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
   if ((e.ctrlKey||e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 's') { e.preventDefault(); forceSave(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'a') { e.preventDefault(); state.cards.forEach(c => selectCard(c.id)); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'd') { e.preventDefault(); duplicateSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'h') { e.preventDefault(); openVersionHistory(); return; }
 
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
   if (e.key === 'Escape') { clearSelection(); cancelConnection(); setMode('select'); closeBoardSearchBar(); closeShortcuts(); }
@@ -3319,24 +3427,180 @@ function renderElementsTab(sec) {
   });
 }
 
-/* ════════════════════════ SAVE / LOAD ════════════════════════ */
-const SAVE_KEY = 'teachedos_board_v3';
-let saveTimer = null;
+/* ════════════════════════════════════════════════════════════════
+   SAVE / LOAD  —  dual-layer (localStorage + cloud), version history,
+   offline detection, retry backoff, session stats, Ctrl+S
+   ════════════════════════════════════════════════════════════════ */
+const SAVE_KEY     = 'teachedos_board_v3';
+const VER_KEY      = 'teachedos_versions_v1';   // version snapshots
+const SESSION_KEY  = 'teachedos_session_v1';
 
-function scheduleSave() {
-  saveStatus.textContent = 'saving…';
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({
-        pan:state.pan, scale:state.scale, nextId:state.nextId,
-        cards:state.cards, arrows:state.arrows,
-      }));
-      saveStatus.textContent = '✓ saved';
-    } catch(e) { saveStatus.textContent = '⚠ error'; }
-  }, 700);
+let saveTimer       = null;
+let cloudSaveTimer  = null;
+let saveRetries     = 0;
+let lastSavedAt     = null;       // Date of last successful save
+let lastSavedHash   = '';         // hash to detect real changes
+let pendingCloudSave = false;
+let isOffline       = !navigator.onLine;
+let sessionStart    = Date.now();
+let sessionEdits    = 0;
+let autoSnapTimer   = null;
+
+/* ── Lightweight hash to detect actual changes ── */
+function boardHash() {
+  return state.cards.length + ':' + state.arrows.length + ':' +
+    (state.cards.reduce((s,c)=>s+c.x+c.y,0)|0);
 }
 
+/* ── Update the save-status chip ── */
+function setSaveUI(state, detail) {
+  const dot    = document.getElementById('save-dot');
+  const status = document.getElementById('save-status');
+  if (!dot || !status) return;
+  dot.className = '';
+  if (state === 'saving') {
+    dot.style.background = '#f59e0b'; dot.classList.add('save-dot-saving');
+    status.textContent = 'saving…';
+  } else if (state === 'saved') {
+    dot.style.background = '#22c55e';
+    status.textContent = detail || '✓ saved';
+    lastSavedAt = new Date();
+  } else if (state === 'cloud') {
+    dot.style.background = '#6366f1';
+    status.textContent = '☁ synced';
+    lastSavedAt = new Date();
+  } else if (state === 'offline') {
+    dot.style.background = '#f97316';
+    status.textContent = '📡 offline';
+  } else if (state === 'error') {
+    dot.style.background = '#ef4444';
+    status.textContent = '⚠ error';
+  } else if (state === 'conflict') {
+    dot.style.background = '#ef4444';
+    status.textContent = '⚡ conflict';
+  }
+}
+
+/* ── "X min ago" ticker — updates every 30s ── */
+setInterval(() => {
+  if (!lastSavedAt) return;
+  const diff = Math.round((Date.now() - lastSavedAt) / 60000);
+  const chip = document.getElementById('save-chip');
+  if (!chip) return;
+  if (diff < 1) chip.title = 'Last saved just now · click for version history';
+  else chip.title = `Last saved ${diff} min ago · click for version history`;
+}, 30000);
+
+/* ── Session stats ticker ── */
+setInterval(() => {
+  const el = document.getElementById('session-stats');
+  if (!el) return;
+  const mins = Math.round((Date.now()-sessionStart)/60000);
+  const cards = state.cards.length;
+  el.textContent = `${cards} card${cards!==1?'s':''} · ${mins}m session · ${sessionEdits} edit${sessionEdits!==1?'s':''}`;
+}, 5000);
+
+/* ── Serialize the full board state ── */
+function serializeBoard() {
+  return { pan:state.pan, scale:state.scale, nextId:state.nextId,
+           cards:state.cards, arrows:state.arrows, savedAt: Date.now() };
+}
+
+/* ════ LOCAL SAVE ════ */
+function saveLocal() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(serializeBoard()));
+    lastSavedHash = boardHash();
+    return true;
+  } catch(e) {
+    // localStorage full — prune old versions and retry
+    pruneVersions(3);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(serializeBoard())); return true; } catch { return false; }
+  }
+}
+
+/* ════ CLOUD SAVE with retry ════ */
+async function saveToCloud(retryCount = 0) {
+  if (!currentUser || !authToken || !currentBoardId) return;
+  if (isOffline) { pendingCloudSave = true; return; }
+  setSaveUI('saving');
+  try {
+    const data = serializeBoard();
+    const thumb = await captureThumb();
+    const r = await apiFetch('/api/boards/' + currentBoardId, {
+      method: 'PUT',
+      body: { data, thumbnail: thumb || undefined },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    saveRetries = 0;
+    pendingCloudSave = false;
+    setSaveUI('cloud', '☁ synced');
+    autoSnapshot('auto');  // auto-version every cloud save
+  } catch (err) {
+    saveRetries = retryCount + 1;
+    if (saveRetries <= 3) {
+      const delay = Math.pow(2, saveRetries) * 1000; // 2s, 4s, 8s
+      cloudSaveTimer = setTimeout(() => saveToCloud(saveRetries), delay);
+      setSaveUI('saving');
+    } else {
+      setSaveUI('error');
+      saveRetries = 0;
+    }
+  }
+}
+
+/* ════ THUMBNAIL CAPTURE ════ */
+async function captureThumb() {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 480; canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#FFF0F5';
+    ctx.fillRect(0,0,480,300);
+    // Draw minimap content as a simple visual
+    state.cards.slice(0,30).forEach(c => {
+      const sx = (c.x * state.scale + state.pan.x) / boardWrap.clientWidth  * 480;
+      const sy = (c.y * state.scale + state.pan.y) / boardWrap.clientHeight * 300;
+      const sw = c.w * state.scale / boardWrap.clientWidth  * 480;
+      const sh = c.h * state.scale / boardWrap.clientHeight * 300;
+      ctx.fillStyle = 'rgba(255,75,139,.15)';
+      ctx.beginPath();
+      ctx.roundRect(sx,sy,Math.max(4,sw),Math.max(3,sh),2);
+      ctx.fill();
+    });
+    return canvas.toDataURL('image/jpeg', 0.6);
+  } catch { return null; }
+}
+
+/* ════ SCHEDULED SAVE (debounced) ════ */
+function scheduleSave() {
+  sessionEdits++;
+  setSaveUI('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const ok = saveLocal();
+    if (!ok) { setSaveUI('error'); return; }
+    setSaveUI(currentUser ? 'saving' : 'saved');
+    if (currentUser && currentBoardId) {
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(() => saveToCloud(), 1500);
+    } else {
+      setSaveUI('saved');
+    }
+    updateSessionChip();
+  }, 600);
+}
+
+/* ════ FORCE SAVE (Ctrl+S) ════ */
+function forceSave() {
+  clearTimeout(saveTimer); clearTimeout(cloudSaveTimer);
+  const ok = saveLocal();
+  setSaveUI(ok ? 'saved' : 'error');
+  if (currentUser && currentBoardId) saveToCloud();
+  toast('Saved ✓');
+}
+
+/* ════ LOAD LOCAL ════ */
 function loadBoard() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
@@ -3345,13 +3609,223 @@ function loadBoard() {
     state.pan    = data.pan    || { x:100, y:60 };
     state.scale  = data.scale  || 1;
     state.nextId = data.nextId || 1;
-    (data.cards  || []).forEach(c => { state.cards.push(c);  board.appendChild(renderCard(c)); });
+    (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
     state.arrows = data.arrows || [];
     applyTransform();
     updateEmpty();
+    lastSavedAt = data.savedAt ? new Date(data.savedAt) : new Date();
+    lastSavedHash = boardHash();
+    if (data.savedAt) setSaveUI('saved', `✓ saved ${new Date(data.savedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`);
     return true;
   } catch(e) { return false; }
 }
+
+/* ════ SESSION CHIP ════ */
+function updateSessionChip() {
+  const el = document.getElementById('session-chip');
+  if (el) el.style.display = 'flex';
+  const s = document.getElementById('session-stats');
+  if (s) {
+    const cards = state.cards.length;
+    const mins = Math.round((Date.now()-sessionStart)/60000);
+    s.textContent = `${cards} card${cards!==1?'s':''} · ${mins}m · ${sessionEdits} edit${sessionEdits!==1?'s':''}`;
+  }
+}
+
+/* ════ AUTO SNAPSHOT (version history) ════ */
+const MAX_AUTO_VERSIONS = 8;
+const MAX_PIN_VERSIONS  = 5;
+
+function getVersions() {
+  try { return JSON.parse(localStorage.getItem(VER_KEY)) || []; } catch { return []; }
+}
+function saveVersions(v) {
+  try { localStorage.setItem(VER_KEY, JSON.stringify(v)); } catch { pruneVersions(3); }
+}
+function pruneVersions(keepN) {
+  const v = getVersions();
+  const pinned  = v.filter(x => x.pinned);
+  const autos   = v.filter(x => !x.pinned).slice(-keepN);
+  saveVersions([...pinned, ...autos]);
+}
+
+function autoSnapshot(type = 'auto') {
+  const hash = boardHash();
+  if (hash === lastSavedHash && type === 'auto') return; // nothing changed
+  const versions = getVersions();
+  const autos = versions.filter(v => !v.pinned);
+  if (autos.length >= MAX_AUTO_VERSIONS) {
+    const oldest = versions.findIndex(v => !v.pinned);
+    if (oldest !== -1) versions.splice(oldest, 1);
+  }
+  const now = Date.now();
+  versions.push({
+    id: 'v' + now,
+    type,
+    name: type === 'auto' ? 'Auto-save' : 'Manual snapshot',
+    savedAt: now,
+    boardId: currentBoardId || 'local',
+    cardCount: state.cards.length,
+    arrowCount: state.arrows.length,
+    data: serializeBoard(),
+    pinned: false,
+  });
+  saveVersions(versions);
+}
+
+function pinCurrentVersion() {
+  const versions = getVersions();
+  const pinned = versions.filter(v => v.pinned);
+  if (pinned.length >= MAX_PIN_VERSIONS) {
+    toast('Max ' + MAX_PIN_VERSIONS + ' pinned versions. Remove one first.');
+    return;
+  }
+  const now = Date.now();
+  const name = prompt('Name this version:', 'Version ' + new Date(now).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}));
+  if (!name) return;
+  versions.push({
+    id: 'v' + now, type: 'pin', name,
+    savedAt: now, boardId: currentBoardId || 'local',
+    cardCount: state.cards.length, arrowCount: state.arrows.length,
+    data: serializeBoard(), pinned: true,
+  });
+  saveVersions(versions);
+  toast('Version "' + name + '" pinned');
+  renderVersionList();
+}
+
+function restoreVersion(versionId) {
+  const versions = getVersions();
+  const ver = versions.find(v => v.id === versionId);
+  if (!ver) return;
+  if (!confirm(`Restore "${ver.name}"?\nThis will replace the current board. Your current state will be saved as a new version first.`)) return;
+  autoSnapshot('auto'); // save current state before restoring
+  snapshot(); // add to undo stack
+  loadBoardData(ver.data);
+  scheduleSave();
+  closeVersionHistory();
+  toast('Restored: ' + ver.name);
+}
+
+function deleteVersion(versionId, e) {
+  e.stopPropagation();
+  const versions = getVersions().filter(v => v.id !== versionId);
+  saveVersions(versions);
+  renderVersionList();
+}
+
+/* ════ VERSION HISTORY UI ════ */
+function openVersionHistory() {
+  renderVersionList();
+  document.getElementById('vh-overlay').classList.add('open');
+}
+function closeVersionHistory() { document.getElementById('vh-overlay').classList.remove('open'); }
+document.getElementById('vh-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('vh-overlay')) closeVersionHistory();
+});
+
+function renderVersionList() {
+  const list    = document.getElementById('vh-list');
+  const subEl   = document.getElementById('vh-sub');
+  const storeEl = document.getElementById('vh-storage-info');
+  const versions = getVersions().slice().reverse(); // newest first
+
+  if (!versions.length) {
+    list.innerHTML = '<div class="vh-empty">No versions yet.<br>Auto-snapshots appear after every cloud save.<br>Pin important versions manually.</div>';
+    if (subEl) subEl.textContent = 'No versions saved yet';
+    return;
+  }
+
+  const pinned = versions.filter(v => v.pinned);
+  const autos  = versions.filter(v => !v.pinned);
+  if (subEl) subEl.textContent = `${pinned.length} pinned · ${autos.length} auto · click version to restore`;
+
+  // Estimate storage
+  try {
+    const bytes = new Blob([localStorage.getItem(VER_KEY)||'']).size;
+    if (storeEl) storeEl.textContent = `~${(bytes/1024).toFixed(1)} KB in history`;
+  } catch {}
+
+  list.innerHTML = '';
+
+  function renderGroup(title, items) {
+    if (!items.length) return;
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:2px 0 6px;';
+    lbl.textContent = title;
+    list.appendChild(lbl);
+    items.forEach(ver => {
+      const isCurrent = ver.id === (getVersions().slice(-1)[0]?.id);
+      const el = document.createElement('div');
+      el.className = 'vh-version' + (isCurrent ? ' current' : '');
+      const ago = formatAgo(ver.savedAt);
+      el.innerHTML = `
+        <div class="vh-ver-icon">${ver.pinned ? '📌' : '🕐'}</div>
+        <div class="vh-ver-info">
+          <div class="vh-ver-name">${esc(ver.name)}</div>
+          <div class="vh-ver-meta">${ago} · ${ver.cardCount} card${ver.cardCount!==1?'s':''} · ${ver.arrowCount} arrow${ver.arrowCount!==1?'s':''}</div>
+        </div>
+        <span class="vh-ver-badge${ver.pinned?'':' auto'}">${ver.pinned?'📌 Pinned':'Auto'}</span>
+        <button class="vh-ver-restore" onclick="restoreVersion('${ver.id}')">Restore</button>
+        <button onclick="deleteVersion('${ver.id}',event)" title="Delete this version" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:14px;padding:2px 4px;border-radius:5px;transition:.1s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-3)'">✕</button>`;
+      list.appendChild(el);
+    });
+  }
+
+  if (pinned.length) renderGroup('Pinned versions', pinned);
+  if (autos.length)  renderGroup('Auto-snapshots', autos);
+}
+
+function formatAgo(ts) {
+  const diff = Math.round((Date.now() - ts) / 1000);
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return Math.round(diff/60) + ' min ago';
+  if (diff < 86400) return Math.round(diff/3600) + 'h ago';
+  return new Date(ts).toLocaleDateString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+/* ════ OFFLINE / ONLINE ════ */
+function handleOnline() {
+  isOffline = false;
+  document.getElementById('offline-banner').classList.remove('show');
+  if (pendingCloudSave && currentUser && currentBoardId) {
+    toast('Back online — syncing…');
+    saveToCloud();
+  }
+}
+function handleOffline() {
+  isOffline = true;
+  document.getElementById('offline-banner').classList.add('show');
+  setSaveUI('offline');
+  pendingCloudSave = true;
+}
+window.addEventListener('online',  handleOnline);
+window.addEventListener('offline', handleOffline);
+if (!navigator.onLine) handleOffline();
+
+/* ════ CONFLICT RESOLUTION ════ */
+let serverConflictData = null;
+function showConflict(serverData) {
+  serverConflictData = serverData;
+  document.getElementById('conflict-banner').classList.add('show');
+  setSaveUI('conflict', '⚡ conflict');
+}
+function resolveConflict(choice) {
+  document.getElementById('conflict-banner').classList.remove('show');
+  if (choice === 'theirs' && serverConflictData) {
+    autoSnapshot('auto'); // save my version first
+    loadBoardData(serverConflictData);
+    scheduleSave();
+    toast('Loaded server version');
+  } else {
+    saveToCloud(); // force push mine
+    toast('Kept your version — syncing');
+  }
+  serverConflictData = null;
+}
+
+/* ════ AUTO-SNAPSHOT TIMER (every 5 min) ════ */
+autoSnapTimer = setInterval(() => autoSnapshot('auto'), 5 * 60 * 1000);
 
 /* ════════════════════════ INIT ════════════════════════ */
 updateUndoButtons();
@@ -3565,23 +4039,23 @@ async function updateBreadcrumb(board) {
 }
 
 function loadBoardData(data) {
-  // Clear current board
   board.querySelectorAll('.board-card').forEach(e => e.remove());
   arrowsSvg.querySelectorAll('.arrow-path').forEach(e => e.remove());
   state.cards = [];
   state.arrows = [];
   state.selected = new Set();
   state.selectedArrows = new Set();
-  // Load
   state.pan    = data.pan    || { x:100, y:60 };
   state.scale  = data.scale  || 1;
   state.nextId = data.nextId || 1;
   (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = data.arrows || [];
+  if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
   applyTransform();
   renderAllArrows();
   renderMinimap();
   updateEmpty();
+  updateSessionChip();
 }
 
 async function saveToCloud() {
@@ -3676,30 +4150,6 @@ async function newBoard() {
     document.title = name + ' · TeachedBoard';
     toast('Board created: ' + name);
   } catch (e) { toast('Error: ' + e.message); }
-}
-
-// ── Override scheduleSave to also cloud-save ─────────────────
-const _localSave = scheduleSave;
-const origScheduleSave = scheduleSave;
-
-// Patch scheduleSave to add cloud sync
-let cloudSaveTimer = null;
-const origScheduleSaveRef = scheduleSave;
-function scheduleSave() {
-  // Local save
-  saveStatus.textContent = 'saving…';
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ pan:state.pan, scale:state.scale, nextId:state.nextId, cards:state.cards, arrows:state.arrows }));
-      saveStatus.textContent = currentUser ? '☁ saving…' : '✓ saved';
-    } catch(e) { saveStatus.textContent = '⚠ error'; }
-    // Cloud sync
-    if (currentUser && currentBoardId) {
-      clearTimeout(cloudSaveTimer);
-      cloudSaveTimer = setTimeout(saveToCloud, 1500);
-    }
-  }, 700);
 }
 
 // ── WebSocket Collaboration ──────────────────────────────────
