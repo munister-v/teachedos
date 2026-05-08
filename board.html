@@ -511,6 +511,10 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
   <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">—</div>
   <div class="tb-sep"></div>
+  <!-- WS status + presence -->
+  <div id="ws-dot" title="Real-time: off" style="width:9px;height:9px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;"></div>
+  <span id="presence-bar" style="font-size:11px;font-weight:700;color:var(--text-3);min-width:0;"></span>
+  <div class="tb-sep"></div>
   <!-- Auth user chip -->
   <div id="auth-chip" style="display:none;align-items:center;gap:7px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
     <span id="auth-avatar" style="font-size:18px;line-height:1;">🧑‍🏫</span>
@@ -2597,10 +2601,12 @@ function closeBoardList() { document.getElementById('boards-overlay').style.disp
 
 async function switchBoard(id, name) {
   closeBoardList();
+  wsDisconnect();
   currentBoardId = id;
   localStorage.setItem('teachedos_board_id', id);
   history.replaceState(null, '', `board.html?id=${id}`);
   await initUserBoard();
+  wsConnect();
   toast('Switched to: ' + name);
 }
 
@@ -2643,17 +2649,200 @@ function scheduleSave() {
   }, 700);
 }
 
+// ── WebSocket Collaboration ──────────────────────────────────
+const WS_BASE = API.replace('https://', 'wss://').replace('http://', 'ws://');
+let ws = null;
+let wsReconnectTimer = null;
+let wsEnabled = false;
+let remoteCursors = {}; // userId → { el, x, y }
+const PEER_COLORS = ['#6366f1','#10b981','#f97316','#06b6d4','#8b5cf6','#ef4444','#eab308'];
+let peerColorMap = {};
+let peerColorIdx = 0;
+let wsBroadcastTimer = null;
+let wsIgnoreNext = false; // prevent echo loop
+
+function peerColor(userId) {
+  if (!peerColorMap[userId]) peerColorMap[userId] = PEER_COLORS[peerColorIdx++ % PEER_COLORS.length];
+  return peerColorMap[userId];
+}
+
+function wsConnect() {
+  if (!currentBoardId || !authToken || !wsEnabled) return;
+  wsDisconnect();
+  try {
+    ws = new WebSocket(`${WS_BASE}/ws?boardId=${currentBoardId}&token=${authToken}`);
+  } catch { return; }
+
+  ws.onopen = () => {
+    document.getElementById('ws-dot').style.background = '#22c55e';
+    document.getElementById('ws-dot').title = 'Real-time: connected';
+    clearTimeout(wsReconnectTimer);
+  };
+
+  ws.onmessage = (e) => {
+    let msg; try { msg = JSON.parse(e.data); } catch { return; }
+    if (msg.type === 'board_patch' && msg.state) {
+      wsIgnoreNext = true;
+      applyRemoteState(msg.state);
+      wsIgnoreNext = false;
+    } else if (msg.type === 'cursor') {
+      updateRemoteCursor(msg.userId, msg.x, msg.y, msg.name, msg.avatar);
+    } else if (msg.type === 'peer_joined') {
+      showPeerToast(msg.userId, msg.name, msg.avatar, 'joined');
+      updatePresenceBar();
+    } else if (msg.type === 'peer_left') {
+      removeRemoteCursor(msg.userId);
+      updatePresenceBar();
+    } else if (msg.type === 'connected') {
+      updatePresenceBar();
+    }
+  };
+
+  ws.onclose = () => {
+    document.getElementById('ws-dot').style.background = '#9ca3af';
+    document.getElementById('ws-dot').title = 'Real-time: disconnected';
+    clearRemoteCursors();
+    if (wsEnabled) wsReconnectTimer = setTimeout(wsConnect, 4000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function wsDisconnect() {
+  clearTimeout(wsReconnectTimer);
+  if (ws) { wsEnabled = false; ws.close(); ws = null; wsEnabled = true; }
+  clearRemoteCursors();
+}
+
+function wsBroadcastState() {
+  if (!ws || ws.readyState !== 1 || wsIgnoreNext) return;
+  clearTimeout(wsBroadcastTimer);
+  wsBroadcastTimer = setTimeout(() => {
+    if (ws?.readyState === 1) ws.send(JSON.stringify({
+      type: 'board_patch',
+      state: { cards: state.cards, arrows: state.arrows, nextId: state.nextId }
+    }));
+  }, 400);
+}
+
+function wsSendCursor(bx, by) {
+  if (!ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify({ type:'cursor', x:bx, y:by,
+    name: currentUser?.name, avatar: currentUser?.avatar }));
+}
+
+function applyRemoteState(remote) {
+  // Only update if remote is meaningfully different (compare nextId as proxy)
+  if (remote.nextId <= state.nextId && remote.cards.length <= state.cards.length) return;
+  // Full replace
+  state.cards.forEach(c => getCardEl(c.id)?.remove());
+  arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
+  state.cards  = remote.cards;
+  state.arrows = remote.arrows;
+  state.nextId = Math.max(state.nextId, remote.nextId);
+  clearSelection();
+  state.cards.forEach(c => board.appendChild(renderCard(c)));
+  renderAllArrows();
+  updateEmpty();
+  saveStatus.textContent = '☁ synced';
+}
+
+// Remote cursors
+function updateRemoteCursor(userId, bx, by, name, avatar) {
+  if (!remoteCursors[userId]) {
+    const el = document.createElement('div');
+    el.style.cssText = `position:absolute;pointer-events:none;z-index:9000;transition:left .1s,top .1s;display:flex;flex-direction:column;align-items:flex-start;gap:2px;`;
+    const dot = document.createElement('div');
+    const col = peerColor(userId);
+    dot.style.cssText = `width:14px;height:14px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);`;
+    const label = document.createElement('div');
+    label.style.cssText = `background:${col};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;font-family:Nunito,sans-serif;`;
+    label.textContent = (avatar||'') + ' ' + (name||'…');
+    el.appendChild(dot); el.appendChild(label);
+    board.appendChild(el);
+    remoteCursors[userId] = { el };
+  }
+  const { el } = remoteCursors[userId];
+  el.style.left = bx + 'px';
+  el.style.top  = by + 'px';
+}
+
+function removeRemoteCursor(userId) {
+  if (remoteCursors[userId]) {
+    remoteCursors[userId].el.remove();
+    delete remoteCursors[userId];
+  }
+}
+
+function clearRemoteCursors() {
+  Object.keys(remoteCursors).forEach(removeRemoteCursor);
+}
+
+// Presence bar
+function updatePresenceBar() {
+  const bar = document.getElementById('presence-bar');
+  if (!bar) return;
+  const count = Object.keys(remoteCursors).length;
+  bar.textContent = count > 0 ? `👥 ${count + 1} online` : '';
+}
+
+function showPeerToast(userId, name, avatar, action) {
+  toast(`${avatar||'👤'} ${name||'Someone'} ${action}`);
+}
+
+// Broadcast on every local change
+const _origSched = scheduleSave;
+const _savedScheduleSave = scheduleSave;
+
+// Patch scheduleSave to also broadcast WS
+const __patchedScheduleSave = scheduleSave;
+// We patch by wrapping the existing scheduleSave
+(function patchWS() {
+  const orig = scheduleSave;
+  // eslint-disable-next-line no-func-assign
+  scheduleSave = function() {
+    orig();
+    if (wsEnabled) wsBroadcastState();
+  };
+})();
+
+// Cursor tracking
+boardWrap.addEventListener('mousemove', e => {
+  if (!wsEnabled || !ws || ws.readyState !== 1) return;
+  const bp = screenToBoard(e.clientX, e.clientY);
+  wsSendCursor(bp.x, bp.y);
+}, { passive: true });
+
+// ── Game Score postMessage ───────────────────────────────────
+window.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'teachedos-score') return;
+  const iframes = document.querySelectorAll('iframe[data-card-id]');
+  for (const iframe of iframes) {
+    if (iframe.contentWindow === e.source) {
+      const cardId = iframe.dataset.cardId;
+      const badge  = document.querySelector(`.game-score-badge[data-card-id="${cardId}"]`);
+      if (badge) badge.textContent = `⭐ ${e.data.score}`;
+      // Persist score in card data
+      const card = state.cards.find(c => c.id === cardId);
+      if (card) { card.data.lastScore = e.data.score; scheduleSave(); }
+      break;
+    }
+  }
+});
+
 // ── Init auth on load ────────────────────────────────────────
 (async () => {
-  renderAuthFields(); // pre-render fields
+  renderAuthFields();
   if (authToken) {
     try {
       const r = await apiFetch('/api/auth/me');
-      if (r.ok) {
-        const { user } = await r.json();
-        currentUser = user;
+      const d = await r.json();
+      if (r.ok && d.user) {
+        currentUser = d.user;
         updateAuthUI();
+        wsEnabled = true;
         await initUserBoard();
+        wsConnect();
         return;
       }
     } catch {}

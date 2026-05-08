@@ -106,7 +106,8 @@ function pick(opt,btn,correct){
       if(b.textContent.toLowerCase().includes(correct.toLowerCase()))b.classList.add('correct');
     });
   }
-  if(ok){score++;document.getElementById('score').textContent=score;}
+  if(ok){score++;document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');}
   document.getElementById('feedback').textContent=ok?'✓ Correct!':'✗ Answer: '+correct;
   idx++;
   setTimeout(nextQ,900);

@@ -94,6 +94,7 @@ function answer(val){
   const ok=val===item.a;
   if(ok)score++;
   document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
   const btn=document.querySelectorAll('.choice')[val?0:1];
   btn.classList.add(ok?'flash-ok':'flash-err');
   if(!ok){const other=document.querySelectorAll('.choice')[val?1:0];other.classList.add('flash-ok');}

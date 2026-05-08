@@ -115,6 +115,7 @@ function check(){
   if(val===word){
     score+= hintShown?1:2;
     document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
     document.getElementById('ans').className='correct';
     document.getElementById('result').className='result ok';
     document.getElementById('result').textContent='✓ Correct!';

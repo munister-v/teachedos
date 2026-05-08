@@ -192,6 +192,7 @@ function checkRound(){
   if(!allPlaced){document.getElementById('feedback').textContent='Place all 10 words first!';return;}
   score+=correct;
   document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
   document.getElementById('feedback').textContent=`${correct}/10 correct`;
   document.getElementById('btn-check').style.display='none';
   document.getElementById('btn-next').style.display='';

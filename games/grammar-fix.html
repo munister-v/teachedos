@@ -80,7 +80,8 @@ function pick(opt,btn,correct,exp){
   const ok=opt===correct;
   btn.classList.add(ok?'correct':'wrong');
   if(!ok)[...document.getElementById('choices').children].forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
-  if(ok){score++;document.getElementById('score').textContent=score;}
+  if(ok){score++;document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');}
   document.getElementById('feedback').textContent=(ok?'✓ ':'✗ ')+exp;
   idx++;setTimeout(nextQ,1200);
 }

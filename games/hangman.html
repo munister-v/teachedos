@@ -123,6 +123,7 @@ function guess(c,btn){
     if(word.split('').every(ch=>guessed.has(ch))){
       score+=Math.max(1,6-wrong);
       document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
       document.getElementById('msg').textContent='🎉 Correct! +'+Math.max(1,6-wrong);
       idx++;
       setTimeout(nextWord,1200);

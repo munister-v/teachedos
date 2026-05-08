@@ -141,6 +141,7 @@ function checkAnswer(){
   if(answer.join(' ')===correct.join(' ')){
     score++;
     document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
     document.getElementById('feedback').className='feedback ok';
     document.getElementById('feedback').textContent='✓ Perfect!';
     idx++;

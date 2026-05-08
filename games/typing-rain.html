@@ -115,6 +115,7 @@ document.getElementById('inp').addEventListener('input',e=>{
     drops=drops.filter(d=>d.id!==hit.id);
     score++;
     document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
     e.target.value='';
   }
 });

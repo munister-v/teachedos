@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Analytics · TeachedOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#FF4B8B;--accent2:#ff6fa3;--bg:#fff4f8;--card:#fff;
+  --border:rgba(255,80,140,.14);--border2:rgba(255,80,140,.28);
+  --text:#1C0A14;--text2:#6B2A48;--text3:#B07090;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;
+  --shadow:0 4px 24px rgba(255,75,139,.09);--nav-h:52px;
+  --font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+/* Nav */
+#nav{
+  position:sticky;top:0;z-index:200;height:var(--nav-h);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:10px;
+  box-shadow:0 1px 12px rgba(255,75,139,.06);
+}
+.nav-logo{font-size:17px;font-weight:900;color:var(--accent);}
+.nav-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+.nav-link{font-size:12px;font-weight:700;color:var(--text2);padding:4px 10px;border-radius:8px;transition:.15s;}
+.nav-link:hover,.nav-link.active{background:rgba(255,75,139,.08);color:var(--accent);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
+  padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+
+/* Layout */
+#page{max-width:1200px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px;}
+
+/* Header */
+.page-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.page-title{font-size:26px;font-weight:900;}
+.page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
+.head-spacer{flex:1;}
+.btn{
+  padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);
+  font-size:13px;font-weight:800;cursor:pointer;transition:.15s;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:rgba(255,75,139,.08);color:var(--accent);border:1px solid var(--border2);}
+.btn-ghost:hover{background:rgba(255,75,139,.15);}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.stat-card{
+  background:var(--card);border-radius:16px;padding:20px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:14px;
+}
+.stat-icon{font-size:28px;width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.si-pink  {background:#fff0f5;}
+.si-green {background:#f0fdf4;}
+.si-blue  {background:#eff6ff;}
+.si-orange{background:#fff7ed;}
+.si-purple{background:#faf5ff;}
+.stat-val{font-size:28px;font-weight:900;line-height:1;}
+.stat-lbl{font-size:12px;color:var(--text3);font-weight:700;margin-top:2px;}
+
+/* Section */
+.section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
+.sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sec-title{font-size:15px;font-weight:800;flex:1;}
+.sec-body{padding:18px 20px;}
+
+/* Grid 2-col */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+
+/* Lesson table */
+.lesson-table{width:100%;border-collapse:collapse;}
+.lesson-table th{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.05em;padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);background:#fafafa;}
+.lesson-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+.lesson-table tr:last-child td{border-bottom:none;}
+.lesson-table tr:hover td{background:#fafafa;}
+.status-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;font-family:var(--mono);
+}
+.sp-done     {background:rgba(34,197,94,.12); color:#16a34a;}
+.sp-progress {background:rgba(245,158,11,.12);color:#d97706;}
+.sp-available{background:rgba(59,130,246,.12);color:#1d4ed8;}
+.sp-locked   {background:rgba(107,114,128,.12);color:#6b7280;}
+
+/* Progress bar */
+.prog-wrap{margin-bottom:14px;}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px;}
+.prog-bar{height:8px;border-radius:4px;background:rgba(255,75,139,.1);overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+
+/* Pie chart (CSS) */
+.pie-wrap{display:flex;align-items:center;gap:20px;padding:8px 0;}
+.pie{width:100px;height:100px;border-radius:50%;flex-shrink:0;}
+.pie-legend{display:flex;flex-direction:column;gap:7px;}
+.pie-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;}
+.pie-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+
+/* Assignment cards */
+.assign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.assign-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafafa;}
+.ac-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.ac-meta{font-size:11px;color:var(--text3);margin-bottom:10px;}
+.ac-prog{display:flex;align-items:center;gap:8px;}
+.ac-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
+.ac-fill{height:100%;border-radius:3px;background:var(--orange);}
+.ac-pct{font-size:12px;font-weight:800;color:var(--orange);min-width:36px;text-align:right;}
+
+/* Board selector */
+.board-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.board-pill{
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:.15s;
+}
+.board-pill:hover{border-color:var(--border2);color:var(--accent);}
+.board-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* Empty */
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
+  border-radius:12px;font-size:13px;font-weight:700;background:#1a1a2e;color:#fff;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
+  opacity:0;transition:all .25s;pointer-events:none;
+}
+#toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <span class="nav-logo">🎓 TeachedOS</span>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <a class="nav-link active" href="analytics.html">Analytics</a>
+  <a class="nav-link" href="profile.html">Profile</a>
+  <div class="nav-spacer"></div>
+  <div class="nav-user" onclick="location.href='profile.html'">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </div>
+</nav>
+
+<div id="page">
+
+  <!-- Header -->
+  <div class="page-head">
+    <div>
+      <div class="page-title">📊 Analytics</div>
+      <div class="page-sub">Course progress across your boards</div>
+    </div>
+    <div class="head-spacer"></div>
+    <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn btn-primary" onclick="location.href='board.html'">📌 Open Board</button>
+  </div>
+
+  <!-- Board selector -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">📋 Select Board</div></div>
+    <div class="sec-body">
+      <div class="board-pills" id="board-pills">Loading boards…</div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-icon si-blue">📚</div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange">📝</div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-pink">🏁</div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-purple">📈</div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
+  </div>
+
+  <!-- Progress + Pie -->
+  <div class="grid2">
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">📈 Course Progress</div></div>
+      <div class="sec-body" id="progress-section">
+        <div class="empty"><div class="empty-icon">📋</div>Select a board above</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">🍩 Status Breakdown</div></div>
+      <div class="sec-body" id="pie-section">
+        <div class="empty"><div class="empty-icon">📊</div>No data yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lessons table -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">📚 Lessons</div>
+      <span id="lessons-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="lesson-table" id="lesson-table">
+        <thead><tr><th>Lesson</th><th>Level</th><th>Skill</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody id="lesson-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">Select a board to see lessons</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Assignments -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">📝 Assignments</div></div>
+    <div class="sec-body">
+      <div class="assign-grid" id="assign-grid">
+        <div class="empty" style="grid-column:1/-1"><div class="empty-icon">📝</div>No assignments found</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+let token = localStorage.getItem('teachedos_token');
+let boards = [];
+let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
+
+async function apiFetch(path, opts={}) {
+  const r = await fetch(API+path, {
+    ...opts,
+    headers: { Authorization:`Bearer ${token}`, 'Content-Type':'application/json', ...opts.headers }
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error||'Error');
+  return d;
+}
+
+async function init() {
+  if (!token) { location.href='board.html'; return; }
+  try {
+    const { user } = await apiFetch('/api/auth/me').then(r => r);
+    document.getElementById('nav-avatar').textContent = user.avatar;
+    document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
+  } catch { location.href='board.html'; return; }
+  await loadData();
+}
+
+async function loadData() {
+  try {
+    const d = await apiFetch('/api/boards');
+    boards = d.boards;
+    renderBoardPills();
+    if (activeBoardId) await loadBoardAnalytics(activeBoardId);
+  } catch(e) { toast('Failed: '+e.message); }
+}
+
+function renderBoardPills() {
+  const wrap = document.getElementById('board-pills');
+  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>'; return; }
+  wrap.innerHTML = boards.map(b =>
+    `<div class="board-pill${b.id===activeBoardId?' active':''}" onclick="selectBoard('${b.id}')">${esc(b.name)}</div>`
+  ).join('');
+}
+
+function selectBoard(id) {
+  activeBoardId = id;
+  localStorage.setItem('teachedos_board_id', id);
+  renderBoardPills();
+  loadBoardAnalytics(id);
+}
+
+async function loadBoardAnalytics(id) {
+  try {
+    const { board } = await apiFetch(`/api/boards/${id}`);
+    const data = board.data || {};
+    const cards = data.cards || [];
+    analyzeBoard(cards, board.name);
+  } catch(e) { toast('Board not found or no access'); }
+}
+
+function analyzeBoard(cards, boardName) {
+  const lessons     = cards.filter(c => c.type==='lesson');
+  const assignments = cards.filter(c => c.type==='assignment');
+  const milestones  = cards.filter(c => c.type==='milestone');
+
+  const done       = lessons.filter(c => c.data.status==='done').length;
+  const inProgress = lessons.filter(c => c.data.status==='in-progress').length;
+  const available  = lessons.filter(c => c.data.status==='available').length;
+  const locked     = lessons.filter(c => c.data.status==='locked').length;
+  const total      = lessons.length;
+  const pct        = total ? Math.round(done/total*100) : 0;
+
+  // Stats
+  document.getElementById('s-lessons').textContent    = total;
+  document.getElementById('s-done').textContent       = done;
+  document.getElementById('s-assign').textContent     = assignments.length;
+  document.getElementById('s-milestones').textContent = milestones.length;
+  document.getElementById('s-pct').textContent        = pct + '%';
+
+  // Progress bars by skill
+  const bySkill = {};
+  lessons.forEach(l => {
+    const skill = l.data.skill || 'Other';
+    if (!bySkill[skill]) bySkill[skill] = { done:0, total:0 };
+    bySkill[skill].total++;
+    if (l.data.status==='done') bySkill[skill].done++;
+  });
+
+  const progSec = document.getElementById('progress-section');
+  if (!total) {
+    progSec.innerHTML = '<div class="empty"><div class="empty-icon">📚</div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:700;">Go to board →</a></div>';
+  } else {
+    const skillColors = {Grammar:'#ef4444',Vocabulary:'#f59e0b',Speaking:'#8b5cf6',Reading:'#06b6d4',Writing:'#10b981',Listening:'#6366f1'};
+    progSec.innerHTML = `
+      <div class="prog-wrap">
+        <div class="prog-label"><span>Overall</span><span>${done}/${total} (${pct}%)</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:var(--accent);"></div></div>
+      </div>
+      ${Object.entries(bySkill).map(([skill,{done:d,total:t}])=>`
+        <div class="prog-wrap">
+          <div class="prog-label"><span>${skill}</span><span>${d}/${t}</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d/t*100)}%;background:${skillColors[skill]||'#6366f1'};"></div></div>
+        </div>`).join('')}`;
+  }
+
+  // Pie
+  const pieSec = document.getElementById('pie-section');
+  if (!total) {
+    pieSec.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>No data</div>';
+  } else {
+    const items = [
+      { label:'Done',        n:done,       color:'#22c55e' },
+      { label:'In Progress', n:inProgress, color:'#f97316' },
+      { label:'Available',   n:available,  color:'#3b82f6' },
+      { label:'Locked',      n:locked,     color:'#9ca3af' },
+    ].filter(i=>i.n>0);
+    // Build CSS conic gradient
+    let acc = 0;
+    const stops = items.map(i => {
+      const pct2 = (i.n/total)*100;
+      const stop = `${i.color} ${acc}% ${acc+pct2}%`;
+      acc += pct2;
+      return stop;
+    }).join(', ');
+    pieSec.innerHTML = `
+      <div class="pie-wrap">
+        <div class="pie" style="background:conic-gradient(${stops});"></div>
+        <div class="pie-legend">
+          ${items.map(i=>`
+            <div class="pie-item">
+              <div class="pie-dot" style="background:${i.color}"></div>
+              <span>${i.label}: <strong>${i.n}</strong></span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Lessons table
+  document.getElementById('lessons-count').textContent = total + ' lessons';
+  const tbody = document.getElementById('lesson-tbody');
+  if (!total) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">No lessons on this board</td></tr>';
+  } else {
+    const statusMap = { done:'sp-done ✅ Done', 'in-progress':'sp-progress ⏳ In Progress', available:'sp-available ▶️ Available', locked:'sp-locked 🔒 Locked' };
+    tbody.innerHTML = lessons.map(l => {
+      const [cls, ...rest] = (statusMap[l.data.status||'available']||'sp-available ▶️ Available').split(' ');
+      return `<tr>
+        <td><strong>${esc(l.data.title||'Lesson')}</strong></td>
+        <td><span class="status-pill" style="background:rgba(99,102,241,.12);color:#6366f1;">${esc(l.data.level||'—')}</span></td>
+        <td>${esc(l.data.skill||'—')}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(l.data.duration||'—')}</td>
+        <td><span class="status-pill ${cls}">${rest.join(' ')}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Assignments
+  const grid = document.getElementById('assign-grid');
+  if (!assignments.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📝</div>No assignments on this board</div>';
+  } else {
+    const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981' };
+    grid.innerHTML = assignments.map(a => {
+      const pct2 = a.data.total ? Math.round((a.data.submitted||0)/a.data.total*100) : 0;
+      const color = typeColors[a.data.type]||'#f97316';
+      const deadline = a.data.deadline ? new Date(a.data.deadline) : null;
+      const overdue  = deadline && deadline < new Date();
+      return `<div class="assign-card">
+        <div class="ac-title">${esc(a.data.title||'Assignment')}</div>
+        <div class="ac-meta">
+          <span style="color:${color};font-weight:700;">${a.data.type||''}</span>
+          ${a.data.maxScore ? ` · ${a.data.maxScore} pts` : ''}
+          ${deadline ? ` · <span style="color:${overdue?'#ef4444':'var(--text3)'};">${deadline.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>` : ''}
+        </div>
+        ${a.data.total ? `<div class="ac-prog">
+          <div class="ac-bar"><div class="ac-fill" style="width:${pct2}%;background:${color}"></div></div>
+          <div class="ac-pct" style="color:${color}">${pct2}%</div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">${a.data.submitted||0}/${a.data.total} submitted</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+}
+
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.className='show';
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='',3000);
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+init();
+</script>
+</body>
+</html>
