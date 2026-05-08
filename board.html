@@ -14,6 +14,44 @@
   --sb-w:248px;--tb-h:48px;
   --font:Nunito,ui-sans-serif,sans-serif;
   --mono:'JetBrains Mono',monospace;
+  --card-bg:#ffffff;--card-radius:14px;--board-dot1:rgba(255,75,139,.055);--board-dot2:rgba(255,75,139,.035);
+}
+/* ── Theme overrides ── */
+[data-theme="blue"]{
+  --bg:#EEF4FF;--accent:#3B82F6;--accent-2:rgba(59,130,246,.1);
+  --text:#0F172A;--text-2:#1E3A5F;--text-3:#64748B;
+  --border:rgba(59,130,246,.15);--border-2:rgba(59,130,246,.28);
+  --board-dot1:rgba(59,130,246,.05);--board-dot2:rgba(59,130,246,.03);
+}
+[data-theme="green"]{
+  --bg:#F0FDF6;--accent:#10B981;--accent-2:rgba(16,185,129,.1);
+  --text:#052E16;--text-2:#065F46;--text-3:#6EE7B7;
+  --border:rgba(16,185,129,.15);--border-2:rgba(16,185,129,.28);
+  --board-dot1:rgba(16,185,129,.05);--board-dot2:rgba(16,185,129,.03);
+}
+[data-theme="purple"]{
+  --bg:#F5F3FF;--accent:#7C3AED;--accent-2:rgba(124,58,237,.1);
+  --text:#1E1B4B;--text-2:#3B0764;--text-3:#A78BFA;
+  --border:rgba(124,58,237,.15);--border-2:rgba(124,58,237,.28);
+  --board-dot1:rgba(124,58,237,.055);--board-dot2:rgba(124,58,237,.03);
+}
+[data-theme="dark"]{
+  --bg:#13111A;--accent:#FF4B8B;--accent-2:rgba(255,75,139,.14);
+  --text:#F0E6EC;--text-2:#C8A0B4;--text-3:#7A5A68;
+  --border:rgba(255,80,140,.16);--border-2:rgba(255,80,140,.3);
+  --card-bg:#1E1A27;--board-dot1:rgba(255,75,139,.04);--board-dot2:rgba(255,75,139,.025);
+}
+[data-theme="minimal"]{
+  --bg:#FAFAFA;--accent:#18181B;--accent-2:rgba(24,24,27,.07);
+  --text:#09090B;--text-2:#3F3F46;--text-3:#A1A1AA;
+  --border:rgba(24,24,27,.1);--border-2:rgba(24,24,27,.2);
+  --card-bg:#ffffff;--board-dot1:rgba(0,0,0,.04);--board-dot2:rgba(0,0,0,.025);
+}
+[data-theme="ocean"]{
+  --bg:#0F1D2E;--accent:#38BDF8;--accent-2:rgba(56,189,248,.12);
+  --text:#E0F2FE;--text-2:#7DD3FC;--text-3:#38547A;
+  --border:rgba(56,189,248,.15);--border-2:rgba(56,189,248,.28);
+  --card-bg:#162032;--board-dot1:rgba(56,189,248,.04);--board-dot2:rgba(56,189,248,.02);
 }
 html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   background:var(--bg);color:var(--text);user-select:none;-webkit-font-smoothing:antialiased;}
@@ -21,10 +59,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* ── TOOLBAR ── */
 #toolbar{
   position:fixed;top:0;left:0;right:0;height:var(--tb-h);z-index:1000;
-  background:rgba(255,255,255,.94);backdrop-filter:blur(20px);
+  background:color-mix(in srgb,var(--card-bg,white) 94%,transparent);
+  backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 10px;gap:6px;
-  box-shadow:0 1px 12px rgba(255,75,139,.08);
+  box-shadow:0 1px 12px rgba(0,0,0,.06);
+  transition:background .3s,border-color .3s;
 }
 .tb-back{
   display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;
@@ -53,9 +93,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* ── SIDEBAR ── */
 #sidebar{
   position:fixed;top:var(--tb-h);left:0;bottom:0;width:var(--sb-w);z-index:900;
-  background:rgba(255,255,255,.97);backdrop-filter:blur(16px);
+  background:color-mix(in srgb,var(--card-bg,white) 97%,transparent);
+  backdrop-filter:blur(16px);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow:hidden;
+  transition:background .3s,border-color .3s;
 }
 .sb-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
 .sb-tab{
@@ -118,11 +160,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:fixed;top:var(--tb-h);left:var(--sb-w);right:0;bottom:0;
   overflow:hidden;
   background:
-    radial-gradient(circle,rgba(255,75,139,.055) 1px,transparent 1px),
-    radial-gradient(circle,rgba(255,75,139,.035) 1px,transparent 1px);
+    radial-gradient(circle,var(--board-dot1) 1px,transparent 1px),
+    radial-gradient(circle,var(--board-dot2) 1px,transparent 1px);
   background-size:28px 28px,14px 14px;
-  background-color:#FFF4F8;
+  background-color:var(--bg);
   cursor:default;
+  transition:background-color .3s;
 }
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
@@ -146,9 +189,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 
 /* ── CARDS ── */
 .board-card{
-  position:absolute;border-radius:14px;
+  position:absolute;border-radius:var(--card-radius,14px);
+  background:var(--card-bg,white);
   box-shadow:0 2px 14px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.04);
-  background:white;border:2px solid transparent;
+  border:2px solid transparent;
   transition:box-shadow .15s,border-color .15s;
   min-width:160px;min-height:80px;
   display:flex;flex-direction:column;overflow:hidden;
@@ -215,6 +259,85 @@ body.board-dragging .game-iframe-overlay{display:block;}
   border-right:2px solid rgba(0,0,0,.20);border-bottom:2px solid rgba(0,0,0,.20);
   border-radius:1px;
 }
+
+/* ══════════════ VIDEO CARD ══════════════ */
+.card-video .card-header{background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(220,38,38,.03));}
+.video-body{padding:0;position:relative;overflow:hidden;flex:1;background:#000;border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);}
+.video-body iframe{width:100%;height:100%;border:none;display:block;}
+.video-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;padding:20px;gap:10px;text-align:center;
+}
+.video-placeholder-icon{font-size:2.5rem;opacity:.5;}
+.video-placeholder-text{font-size:12px;color:var(--text-3);font-weight:700;}
+
+/* ══════════════ IMAGE CARD ══════════════ */
+.card-image .card-header{background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(2,132,199,.03));}
+.image-body{padding:0;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.image-body img{width:100%;height:100%;object-fit:contain;display:block;}
+
+/* ══════════════ SETTINGS OVERLAY ══════════════ */
+#settings-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(8px);z-index:4500;align-items:center;justify-content:center;
+}
+#settings-overlay.open{display:flex;}
+#settings-panel{
+  background:var(--card-bg,#fff);border-radius:22px;width:100%;max-width:540px;
+  max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,.22);border:1px solid var(--border);
+  transition:background .3s;
+}
+.stp-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.stp-head-icon{font-size:1.5rem;line-height:1;}
+.stp-head-title{font-size:15px;font-weight:900;color:var(--text);flex:1;letter-spacing:-.02em;}
+.stp-head-close{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.06);border:none;cursor:pointer;font-size:16px;color:var(--text-3);display:flex;align-items:center;justify-content:center;transition:.12s;}
+.stp-head-close:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+.stp-body{overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:22px;}
+.stp-body::-webkit-scrollbar{width:4px;}
+.stp-body::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
+.stp-section-title{font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.theme-swatch{
+  border-radius:12px;border:2.5px solid transparent;cursor:pointer;
+  padding:10px 8px;text-align:center;transition:.15s;position:relative;overflow:hidden;
+}
+.theme-swatch:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.12);}
+.theme-swatch.active{border-color:var(--accent);}
+.theme-swatch.active::after{content:'✓';position:absolute;top:5px;right:8px;font-size:11px;font-weight:800;color:var(--accent);}
+.theme-swatch-preview{height:32px;border-radius:8px;margin-bottom:7px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.theme-swatch-dot{width:10px;height:10px;border-radius:50%;}
+.theme-swatch-name{font-size:11px;font-weight:800;color:var(--text);}
+.custom-accent-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+.accent-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:.12s;flex-shrink:0;}
+.accent-dot:hover{transform:scale(1.15);}
+.accent-dot.active{border-color:var(--text);transform:scale(1.1);}
+.stp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.stp-label{font-size:13px;font-weight:700;color:var(--text);flex:1;}
+.stp-sub{font-size:11px;color:var(--text-3);margin-top:2px;}
+.stp-toggle{
+  width:42px;height:24px;border-radius:12px;background:var(--border-2);
+  border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;
+}
+.stp-toggle.on{background:var(--accent);}
+.stp-toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.stp-toggle.on::after{transform:translateX(18px);}
+.stp-select{
+  padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:var(--font);font-size:12px;font-weight:700;color:var(--text);
+  background:var(--card-bg,white);outline:none;cursor:pointer;
+  transition:border-color .15s;
+}
+.stp-select:focus{border-color:var(--accent);}
+.radius-row{display:flex;gap:8px;}
+.radius-btn{
+  padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);
+  font-size:11px;font-weight:800;cursor:pointer;background:var(--card-bg,white);
+  color:var(--text-2);transition:.15s;
+}
+.radius-btn:hover{border-color:var(--border-2);}
+.radius-btn.active{border-color:var(--accent);background:var(--accent-2);color:var(--accent);}
 
 /* ── STICKY ── */
 .card-sticky .card-body{padding:8px 10px 10px;display:flex;flex-direction:column;}
@@ -853,6 +976,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <span id="auth-avatar" style="font-size:18px;line-height:1;">🧑‍🏫</span>
     <span id="auth-name">—</span>
   </div>
+  <div class="tb-btn text" id="btn-settings" title="Board settings" onclick="openSettings()" style="font-size:15px;">⚙️</div>
   <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">🔑 Sign in</div>
   <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
@@ -945,6 +1069,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="qa-item" data-qa="vocab">🔤 Vocabulary</div>
   <div class="qa-item" data-qa="checklist">✅ Checklist</div>
   <div class="qa-item" data-qa="timer">⏱ Timer</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="video">🎬 Video Embed</div>
+  <div class="qa-item" data-qa="image">🖼 Image</div>
 </div>
 
 <!-- Board search bar (Ctrl+F) -->
@@ -1019,6 +1146,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="ctx-item" id="ctx-vocab">🔤 Vocabulary Card</div>
   <div class="ctx-item" id="ctx-checklist">✅ Checklist</div>
   <div class="ctx-item" id="ctx-timer">⏱ Timer</div>
+  <div class="ctx-item" id="ctx-video">🎬 Video Embed</div>
+  <div class="ctx-item" id="ctx-image">🖼 Image</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
   <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
@@ -1175,6 +1304,181 @@ body.board-dragging .game-iframe-overlay{display:block;}
       <button class="gen-btn secondary" style="padding:9px 16px;margin:0;" onclick="closeTaskBuilder()">Cancel</button>
       <button class="tb-save-btn" onclick="saveTaskBuilder()">✓ Save Assignment</button>
     </div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div id="settings-overlay">
+  <div id="settings-panel">
+    <div class="stp-head">
+      <div class="stp-head-icon">⚙️</div>
+      <div class="stp-head-title">Board Settings</div>
+      <button class="stp-head-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="stp-body">
+
+      <!-- Themes -->
+      <div>
+        <div class="stp-section-title">🎨 Theme</div>
+        <div class="theme-grid" id="theme-grid">
+          <div class="theme-swatch active" data-theme="pink" onclick="setTheme('pink')">
+            <div class="theme-swatch-preview" style="background:#FFF0F5;">
+              <div class="theme-swatch-dot" style="background:#FF4B8B;"></div>
+              <div class="theme-swatch-dot" style="background:#FFF9C4;"></div>
+            </div>
+            <div class="theme-swatch-name">Pink Rose</div>
+          </div>
+          <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')">
+            <div class="theme-swatch-preview" style="background:#EEF4FF;">
+              <div class="theme-swatch-dot" style="background:#3B82F6;"></div>
+              <div class="theme-swatch-dot" style="background:#E0F2FE;"></div>
+            </div>
+            <div class="theme-swatch-name">Sky Blue</div>
+          </div>
+          <div class="theme-swatch" data-theme="green" onclick="setTheme('green')">
+            <div class="theme-swatch-preview" style="background:#F0FDF6;">
+              <div class="theme-swatch-dot" style="background:#10B981;"></div>
+              <div class="theme-swatch-dot" style="background:#D1FAE5;"></div>
+            </div>
+            <div class="theme-swatch-name">Forest</div>
+          </div>
+          <div class="theme-swatch" data-theme="purple" onclick="setTheme('purple')">
+            <div class="theme-swatch-preview" style="background:#F5F3FF;">
+              <div class="theme-swatch-dot" style="background:#7C3AED;"></div>
+              <div class="theme-swatch-dot" style="background:#EDE9FE;"></div>
+            </div>
+            <div class="theme-swatch-name">Lavender</div>
+          </div>
+          <div class="theme-swatch" data-theme="dark" onclick="setTheme('dark')">
+            <div class="theme-swatch-preview" style="background:#13111A;">
+              <div class="theme-swatch-dot" style="background:#FF4B8B;"></div>
+              <div class="theme-swatch-dot" style="background:#1E1A27;"></div>
+            </div>
+            <div class="theme-swatch-name">Dark Mode</div>
+          </div>
+          <div class="theme-swatch" data-theme="ocean" onclick="setTheme('ocean')">
+            <div class="theme-swatch-preview" style="background:#0F1D2E;">
+              <div class="theme-swatch-dot" style="background:#38BDF8;"></div>
+              <div class="theme-swatch-dot" style="background:#162032;"></div>
+            </div>
+            <div class="theme-swatch-name">Deep Ocean</div>
+          </div>
+          <div class="theme-swatch" data-theme="minimal" onclick="setTheme('minimal')">
+            <div class="theme-swatch-preview" style="background:#FAFAFA;border:1px solid #e4e4e7;">
+              <div class="theme-swatch-dot" style="background:#18181B;"></div>
+              <div class="theme-swatch-dot" style="background:#F4F4F5;"></div>
+            </div>
+            <div class="theme-swatch-name">Minimal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accent color -->
+      <div>
+        <div class="stp-section-title">🎯 Accent Color</div>
+        <div class="custom-accent-row" id="accent-row">
+          <div class="accent-dot active" data-accent="#FF4B8B" style="background:#FF4B8B;" onclick="setAccentColor('#FF4B8B')"></div>
+          <div class="accent-dot" data-accent="#3B82F6" style="background:#3B82F6;" onclick="setAccentColor('#3B82F6')"></div>
+          <div class="accent-dot" data-accent="#10B981" style="background:#10B981;" onclick="setAccentColor('#10B981')"></div>
+          <div class="accent-dot" data-accent="#7C3AED" style="background:#7C3AED;" onclick="setAccentColor('#7C3AED')"></div>
+          <div class="accent-dot" data-accent="#F97316" style="background:#F97316;" onclick="setAccentColor('#F97316')"></div>
+          <div class="accent-dot" data-accent="#EAB308" style="background:#EAB308;" onclick="setAccentColor('#EAB308')"></div>
+          <div class="accent-dot" data-accent="#EC4899" style="background:#EC4899;" onclick="setAccentColor('#EC4899')"></div>
+          <div class="accent-dot" data-accent="#38BDF8" style="background:#38BDF8;" onclick="setAccentColor('#38BDF8')"></div>
+          <div class="accent-dot" data-accent="#18181B" style="background:#18181B;" onclick="setAccentColor('#18181B')"></div>
+          <input type="color" id="accent-custom" style="width:26px;height:26px;border-radius:50%;border:2.5px solid var(--border);cursor:pointer;padding:0;" onchange="setAccentColor(this.value)" title="Custom color">
+        </div>
+      </div>
+
+      <!-- Card radius -->
+      <div>
+        <div class="stp-section-title">⬜ Card Corner Radius</div>
+        <div class="radius-row">
+          <div class="radius-btn" data-radius="4px" onclick="setRadius('4px')">Sharp</div>
+          <div class="radius-btn" data-radius="8px" onclick="setRadius('8px')">Soft</div>
+          <div class="radius-btn active" data-radius="14px" onclick="setRadius('14px')">Rounded</div>
+          <div class="radius-btn" data-radius="22px" onclick="setRadius('22px')">Pill</div>
+        </div>
+      </div>
+
+      <!-- Board background -->
+      <div>
+        <div class="stp-section-title">🗺 Board Background</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="radius-btn active" data-bg="dots" onclick="setBoardBg('dots')">· Dots</div>
+          <div class="radius-btn" data-bg="grid" onclick="setBoardBg('grid')">⊞ Grid</div>
+          <div class="radius-btn" data-bg="lines" onclick="setBoardBg('lines')">≡ Lines</div>
+          <div class="radius-btn" data-bg="none" onclick="setBoardBg('none')">□ None</div>
+        </div>
+      </div>
+
+      <!-- Font size -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">UI Font Size</div><div class="stp-sub">Base size for all card text</div></div>
+          <select class="stp-select" id="stp-font-size" onchange="setFontScale(this.value)">
+            <option value="0.9">Small (90%)</option>
+            <option value="1" selected>Normal (100%)</option>
+            <option value="1.1">Large (110%)</option>
+            <option value="1.2">X-Large (120%)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sidebar width -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">Sidebar Width</div><div class="stp-sub">Panel width for the card library</div></div>
+          <select class="stp-select" id="stp-sb-width" onchange="setSidebarWidth(this.value)">
+            <option value="200px">Compact (200px)</option>
+            <option value="248px" selected>Normal (248px)</option>
+            <option value="300px">Wide (300px)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Animations -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">Reduce Motion</div><div class="stp-sub">Fewer animations (ADHD-friendly)</div></div>
+          <button class="stp-toggle" id="toggle-motion" onclick="toggleMotion()"></button>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div style="padding-top:4px;border-top:1px solid var(--border);">
+        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef4444;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO URL MODAL -->
+<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
+    <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🎬 Embed Video</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Paste a YouTube or Vimeo URL</div>
+    <input id="video-url-input" class="cfg-input" type="url" placeholder="https://www.youtube.com/watch?v=…" style="margin-bottom:14px;">
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeVideoModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmVideoEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Embed Video</button>
+    </div>
+    <div onclick="closeVideoModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- IMAGE URL MODAL -->
+<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
+    <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🖼 Add Image</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Paste an image URL (https://…)</div>
+    <input id="image-url-input" class="cfg-input" type="url" placeholder="https://example.com/image.png" style="margin-bottom:14px;">
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Image</button>
+    </div>
+    <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
 </div>
 
@@ -1366,10 +1670,11 @@ function toast(msg) {
 /* ════════════════════════ CARD DEFAULTS ════════════════════════ */
 function getDefaults(type) {
   return ({ sticky:{w:220,h:180}, plan:{w:280,h:200}, student:{w:240,h:160},
-            event:{w:200,h:140},  note:{w:300,h:240}, text:{w:200,h:90},
-            image:{w:260,h:200},  game:{w:460,h:540},
+            event:{w:200,h:140},  note:{w:300,h:240}, text:{w:180,h:80},
+            image:{w:280,h:220},  game:{w:340,h:300},
             lesson:{w:260,h:210}, assignment:{w:240,h:200}, milestone:{w:210,h:220},
-            vocab:{w:240,h:200},  checklist:{w:230,h:220},  timer:{w:200,h:200},
+            vocab:{w:220,h:200},  checklist:{w:220,h:200},  timer:{w:180,h:140},
+            video:{w:320,h:220},
           })[type] || { w:220,h:160 };
 }
 
@@ -1403,6 +1708,7 @@ function renderCard(card) {
   else if (card.type === 'event')      renderEvent(el, card);
   else if (card.type === 'image')      renderImage(el, card);
   else if (card.type === 'game')       renderGame(el, card);
+  else if (card.type === 'video')      renderVideo(el, card);
   else if (card.type === 'lesson')     renderLesson(el, card);
   else if (card.type === 'assignment') renderAssignment(el, card);
   else if (card.type === 'milestone')  renderMilestone(el, card);
@@ -1604,24 +1910,42 @@ function renderEvent(el, card) {
   el.appendChild(body);
 }
 
-function renderImage(el, card) {
-  el.appendChild(makeHeader('🖼️','Image',card.id));
+/* ══════════════════════ VIDEO RENDERER ══════════════════════ */
+function renderVideo(el, card) {
+  const hdr = makeHeader('🎬', card.data.title || 'Video', card.id);
+  el.appendChild(hdr);
   const body = document.createElement('div');
-  body.className = 'card-body'; body.style.cssText='padding:0;display:flex;flex-direction:column;overflow:hidden;';
+  body.className = 'card-body video-body';
+  if (card.data.embedUrl) {
+    const iframe = document.createElement('iframe');
+    iframe.src = card.data.embedUrl;
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    body.appendChild(iframe);
+  } else {
+    body.innerHTML = `<div class="video-placeholder">
+      <div class="video-placeholder-icon">🎬</div>
+      <div class="video-placeholder-text">No video set<br><span style="font-size:10px;color:var(--text-3);">Click Edit to add a URL</span></div>
+    </div>`;
+  }
+  el.appendChild(body);
+}
+
+/* ══════════════════════ IMAGE RENDERER ══════════════════════ */
+function renderImage(el, card) {
+  const hdr = makeHeader('🖼', card.data.title || 'Image', card.id);
+  el.appendChild(hdr);
+  const body = document.createElement('div');
+  body.className = 'card-body image-body';
   if (card.data.src) {
     const img = document.createElement('img');
     img.src = card.data.src;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    img.alt = card.data.title || 'Image';
+    img.onerror = () => { img.src = ''; body.innerHTML = `<div style="padding:12px;font-size:11px;color:var(--text-3);text-align:center;">Could not load image</div>`; };
     body.appendChild(img);
   } else {
-    const ph = document.createElement('div');
-    ph.className = 'img-ph';
-    ph.innerHTML = '<div class="img-ph-ic">🖼️</div><div>Click to add URL</div>';
-    ph.addEventListener('click', () => {
-      const url = prompt('Image URL:');
-      if (url) { snapshot(); card.data.src = url; reRenderCard(card); }
-    });
-    body.appendChild(ph);
+    body.innerHTML = `<div style="padding:16px;font-size:11px;color:var(--text-3);text-align:center;flex:1;display:flex;align-items:center;justify-content:center;">No image URL set</div>`;
   }
   el.appendChild(body);
 }
@@ -2121,7 +2445,7 @@ function startCardDrag(e, card) {
 function startResize(e, card, el) {
   isResizing = true;
   document.body.classList.add('board-dragging');
-  resizeStart = { card, el, sw: card.w, sh: card.h, mx: e.clientX, my: e.clientY };
+  resizeStart = { card, el, sw: card.w, sh: card.h, mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey };
   e.preventDefault();
 }
 
@@ -2186,8 +2510,19 @@ document.addEventListener('mousemove', e => {
 
   if (isResizing) {
     const { card, el, sw, sh, mx, my } = resizeStart;
-    card.w = Math.max(160, sw + (e.clientX - mx) / state.scale);
-    card.h = Math.max(80,  sh + (e.clientY - my) / state.scale);
+    const minSizes = {
+      sticky:{w:160,h:120}, text:{w:120,h:50}, plan:{w:200,h:140},
+      lesson:{w:200,h:160}, assignment:{w:200,h:160}, milestone:{w:160,h:160},
+      vocab:{w:180,h:160}, checklist:{w:180,h:120}, timer:{w:140,h:100},
+      game:{w:200,h:160}, video:{w:240,h:160}, image:{w:160,h:120}, student:{w:180,h:120},
+    };
+    const min = minSizes[card.type] || {w:140,h:80};
+    const lockAspect = resizeStart.shiftHeld && card.type === 'video';
+    const dw = (e.clientX - mx) / state.scale;
+    const dh = (e.clientY - my) / state.scale;
+    card.w = Math.max(min.w, sw + dw);
+    if (lockAspect) { card.h = card.w * (sh / sw); }
+    else { card.h = Math.max(min.h, sh + dh); }
     el.style.width = card.w+'px'; el.style.height = card.h+'px';
     if (card.type === 'game') applyGameScale(el, card);
     renderAllArrows(); renderMinimap(); return;
@@ -2601,6 +2936,17 @@ document.getElementById('ctx-checklist').addEventListener('click', () =>
   quickAddCard('checklist', ctxPos.x, ctxPos.y));
 document.getElementById('ctx-timer').addEventListener('click', () =>
   quickAddCard('timer', ctxPos.x, ctxPos.y));
+
+document.getElementById('ctx-video').addEventListener('click', () => {
+  ctxMenu.style.display = 'none';
+  pendingVideoPos = ctxPos;
+  openVideoModal();
+});
+document.getElementById('ctx-image').addEventListener('click', () => {
+  ctxMenu.style.display = 'none';
+  pendingImagePos = ctxPos;
+  openImageModal();
+});
 
 document.getElementById('ctx-label-arrow').addEventListener('click', () => {
   if (ctxArrowId) addArrowLabel(ctxArrowId);
@@ -3708,6 +4054,15 @@ function quickAddCard(type, bx, by) {
   else if (type === 'vocab')     card = addCard('vocab',     x, y, { word:'Word', phonetic:'/wɜːrd/', translation:'Слово', pos:'noun', example:'This is a new ___.', tags:[] });
   else if (type === 'checklist') card = addCard('checklist', x, y, { title:'Checklist', items:[{text:'Item 1',done:false},{text:'Item 2',done:false}] });
   else if (type === 'timer')     card = addCard('timer',     x, y, { title:'Timer', minutes:5, seconds:0 });
+  else if (type === 'video') {
+    pendingVideoPos = {x, y};
+    openVideoModal();
+    return;
+  } else if (type === 'image') {
+    pendingImagePos = {x, y};
+    openImageModal();
+    return;
+  }
 }
 
 /* ════════════════════════ VOCABULARY CARD ════════════════════════ */
@@ -4045,6 +4400,190 @@ function addArrowLabel(arrowId) {
   }
   updateAuthUI();
 })();
+
+/* ════════════ VIDEO & IMAGE EMBED ════════════ */
+let pendingVideoPos = null;
+let pendingImagePos = null;
+
+function openVideoModal() {
+  document.getElementById('video-url-input').value = '';
+  const ov = document.getElementById('video-url-overlay');
+  ov.style.display = 'flex';
+  setTimeout(() => document.getElementById('video-url-input').focus(), 50);
+}
+function closeVideoModal() { document.getElementById('video-url-overlay').style.display = 'none'; }
+function openImageModal() {
+  document.getElementById('image-url-input').value = '';
+  const ov = document.getElementById('image-url-overlay');
+  ov.style.display = 'flex';
+  setTimeout(() => document.getElementById('image-url-input').focus(), 50);
+}
+function closeImageModal() { document.getElementById('image-url-overlay').style.display = 'none'; }
+
+function parseVideoEmbed(url) {
+  if (!url) return null;
+  // YouTube
+  let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+  if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&modestbranding=1`;
+  // Vimeo
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (m) return `https://player.vimeo.com/video/${m[1]}?title=0&byline=0`;
+  // Direct embed URL
+  if (url.startsWith('http') && url.includes('embed')) return url;
+  return null;
+}
+
+function confirmVideoEmbed() {
+  const url = document.getElementById('video-url-input').value.trim();
+  const embedUrl = parseVideoEmbed(url);
+  if (!embedUrl) { alert('Please enter a valid YouTube or Vimeo URL.'); return; }
+  closeVideoModal();
+  const pos = pendingVideoPos || { x: 200, y: 100 };
+  const title = url.includes('youtube') ? 'YouTube Video' : url.includes('vimeo') ? 'Vimeo Video' : 'Video';
+  addCard('video', pos.x, pos.y, { title, url, embedUrl }, 320, 220);
+  pendingVideoPos = null;
+}
+
+function confirmImageEmbed() {
+  const url = document.getElementById('image-url-input').value.trim();
+  if (!url || !url.startsWith('http')) { alert('Please enter a valid image URL.'); return; }
+  closeImageModal();
+  const pos = pendingImagePos || { x: 200, y: 100 };
+  addCard('image', pos.x, pos.y, { title: 'Image', src: url }, 280, 220);
+  pendingImagePos = null;
+}
+
+// Close modals on Enter
+document.getElementById('video-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmVideoEmbed(); });
+document.getElementById('image-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmImageEmbed(); });
+
+/* ════════════ SETTINGS ════════════ */
+const SETTINGS_KEY = 'teachedos_board_settings';
+let boardSettings = { theme:'pink', accent:null, radius:'14px', bg:'dots', fontScale:1, sidebarWidth:'248px', reduceMotion:false };
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    if (saved) boardSettings = { ...boardSettings, ...saved };
+  } catch {}
+  applyAllSettings();
+}
+
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(boardSettings));
+}
+
+function applyAllSettings() {
+  setTheme(boardSettings.theme, false);
+  if (boardSettings.accent) setAccentColor(boardSettings.accent, false);
+  setRadius(boardSettings.radius, false);
+  setBoardBg(boardSettings.bg, false);
+  setFontScale(boardSettings.fontScale, false);
+  setSidebarWidth(boardSettings.sidebarWidth, false);
+  if (boardSettings.reduceMotion) document.documentElement.style.setProperty('--transition-speed','0s');
+  updateSettingsUI();
+}
+
+function updateSettingsUI() {
+  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.theme === boardSettings.theme));
+  document.querySelectorAll('.accent-dot').forEach(d => d.classList.toggle('active', d.dataset.accent === boardSettings.accent));
+  document.querySelectorAll('.radius-btn').forEach(b => b.classList.toggle('active', b.dataset.radius === boardSettings.radius));
+  document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('active', b.dataset.bg === boardSettings.bg));
+  const fs = document.getElementById('stp-font-size');
+  if (fs) fs.value = boardSettings.fontScale;
+  const sw = document.getElementById('stp-sb-width');
+  if (sw) sw.value = boardSettings.sidebarWidth;
+  const mt = document.getElementById('toggle-motion');
+  if (mt) mt.classList.toggle('on', boardSettings.reduceMotion);
+}
+
+function openSettings() {
+  updateSettingsUI();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); }
+
+function setTheme(name, save=true) {
+  boardSettings.theme = name;
+  ['blue','green','purple','dark','minimal','ocean'].forEach(() => document.documentElement.removeAttribute('data-theme'));
+  if (name !== 'pink') document.documentElement.setAttribute('data-theme', name);
+  if (save) { boardSettings.accent = null; updateSettingsUI(); saveSettings(); }
+}
+
+function setAccentColor(hex, save=true) {
+  boardSettings.accent = hex;
+  document.documentElement.style.setProperty('--accent', hex);
+  document.documentElement.style.setProperty('--accent-2', hex + '18');
+  if (save) { updateSettingsUI(); saveSettings(); }
+}
+
+function setRadius(r, save=true) {
+  boardSettings.radius = r;
+  document.documentElement.style.setProperty('--card-radius', r);
+  if (save) { updateSettingsUI(); saveSettings(); }
+}
+
+function setBoardBg(type, save=true) {
+  boardSettings.bg = type;
+  const bw = document.getElementById('board-wrap');
+  if (!bw) return;
+  if (type === 'dots') {
+    bw.style.backgroundImage = 'radial-gradient(circle,var(--board-dot1) 1px,transparent 1px),radial-gradient(circle,var(--board-dot2) 1px,transparent 1px)';
+    bw.style.backgroundSize = '28px 28px,14px 14px';
+  } else if (type === 'grid') {
+    bw.style.backgroundImage = 'linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)';
+    bw.style.backgroundSize = '28px 28px';
+  } else if (type === 'lines') {
+    bw.style.backgroundImage = 'linear-gradient(var(--border) 1px,transparent 1px)';
+    bw.style.backgroundSize = '100% 28px';
+  } else {
+    bw.style.backgroundImage = 'none';
+  }
+  if (save) { updateSettingsUI(); saveSettings(); }
+}
+
+function setFontScale(scale, save=true) {
+  boardSettings.fontScale = parseFloat(scale);
+  document.documentElement.style.fontSize = (parseFloat(scale) * 14) + 'px';
+  if (save) { saveSettings(); }
+}
+
+function setSidebarWidth(w, save=true) {
+  boardSettings.sidebarWidth = w;
+  document.documentElement.style.setProperty('--sb-w', w);
+  if (save) { saveSettings(); }
+}
+
+function toggleMotion() {
+  boardSettings.reduceMotion = !boardSettings.reduceMotion;
+  const mt = document.getElementById('toggle-motion');
+  mt.classList.toggle('on', boardSettings.reduceMotion);
+  if (boardSettings.reduceMotion) {
+    document.documentElement.style.setProperty('--transition-speed','0s');
+    document.documentElement.classList.add('reduce-motion');
+  } else {
+    document.documentElement.style.removeProperty('--transition-speed');
+    document.documentElement.classList.remove('reduce-motion');
+  }
+  saveSettings();
+}
+
+function resetSettings() {
+  boardSettings = { theme:'pink', accent:null, radius:'14px', bg:'dots', fontScale:1, sidebarWidth:'248px', reduceMotion:false };
+  document.documentElement.removeAttribute('data-theme');
+  document.documentElement.style.cssText = '';
+  saveSettings();
+  applyAllSettings();
+  toast('Settings reset to defaults');
+}
+
+// Close settings when clicking overlay bg
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+});
+
+// Load settings on startup
+loadSettings();
 
 /* ════════════════════════════════════════════════════════════
    TASK BUILDER — library + generator + UI
