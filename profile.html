@@ -203,6 +203,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   <div class="nb-sep"></div>
   <a class="nb-link" href="index.html">← Home</a>
   <a class="nb-link" href="board.html">📌 Board</a>
+  <a class="nb-link" href="courses.html">📚 Courses</a>
   <a class="nb-link" href="schedule.html">📅 Schedule</a>
   <a class="nb-link" href="analytics.html">📊 Analytics</a>
   <a class="nb-link" href="gradebook.html">📒 Gradebook</a>
@@ -393,6 +394,9 @@ async function init() {
     me = user;
     selectedAvatar = me.avatar;
     renderOverview();
+    // Preload boards & shared lists so tabs don't sit on "Loading..."
+    loadBoards().catch(() => {});
+    loadSharedBoards().catch(() => {});
     document.getElementById('page-loading').style.display = 'none';
     if (me.role === 'admin') document.getElementById('nb-admin-link').style.display = '';
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
@@ -408,9 +412,13 @@ async function renderOverview() {
   document.getElementById('profile-email-big').textContent = me.email;
   document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
 
-  const since = new Date(me.created_at);
-  const sinceStr = since.toLocaleDateString('en', { month: 'short', year: 'numeric' });
-  document.getElementById('stat-since').textContent = sinceStr;
+  if (me.created_at) {
+    const since = new Date(me.created_at);
+    document.getElementById('stat-since').textContent =
+      isNaN(since) ? '—' : since.toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  } else {
+    document.getElementById('stat-since').textContent = '—';
+  }
 
   // Load boards for stats
   try {

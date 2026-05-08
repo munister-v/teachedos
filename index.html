@@ -1114,16 +1114,14 @@ html,body {
   <div class="mb-apple">✦</div>
   <span class="mb-app-name" id="mb-app-name">TeachedOS</span>
   <nav class="mb-menu">
-    <div class="mb-item">File</div>
-    <div class="mb-item">Edit</div>
-    <div class="mb-item">View</div>
+    <div class="mb-item" onclick="location.href='board.html'" style="cursor:pointer;">Board</div>
+    <div class="mb-item" onclick="location.href='courses.html'" style="cursor:pointer;">Courses</div>
     <div class="mb-item" onclick="openSpotlight()" style="cursor:pointer;">Go To</div>
-    <div class="mb-item">Students</div>
-    <div class="mb-item">Help</div>
+    <div class="mb-item" onclick="openApp('students')" style="cursor:pointer;">Students</div>
+    <div class="mb-item" onclick="openApp('about')" style="cursor:pointer;">Help</div>
   </nav>
   <div class="mb-right">
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(255,75,139,.1);border:1px solid rgba(255,75,139,.25);margin-right:6px;"></a>
-    <span class="mb-icon">🔔</span>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1318,11 +1316,7 @@ html,body {
           <button class="sch-nav-btn" onclick="schPrev()">‹</button>
           <button class="sch-nav-btn" onclick="schNext()">›</button>
           <span class="sch-month" id="sch-month">May 2026</span>
-          <div class="sch-view-btns">
-            <div class="sch-view active">Month</div>
-            <div class="sch-view">Week</div>
-            <div class="sch-view">Day</div>
-          </div>
+          <a class="sch-view active" href="schedule.html" style="text-decoration:none;">Open full schedule →</a>
         </div>
         <div class="sch-grid-wrap">
           <div class="sch-grid" id="sch-grid">
@@ -1357,17 +1351,6 @@ html,body {
         <div class="mob-win-title">Notes</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
       </div>
-      <div class="notes-toolbar">
-        <div class="notes-tb-btn" title="Bold">𝐁</div>
-        <div class="notes-tb-btn" title="Italic">𝑰</div>
-        <div class="notes-tb-btn" title="Underline"><u>U</u></div>
-        <div class="notes-tb-sep"></div>
-        <div class="notes-tb-btn">H1</div>
-        <div class="notes-tb-btn">H2</div>
-        <div class="notes-tb-sep"></div>
-        <div class="notes-tb-btn">≡</div>
-        <div class="notes-tb-btn">•</div>
-      </div>
       <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
       <div class="notes-footer">
         <span id="notes-word-count">0 words</span>
@@ -1396,7 +1379,7 @@ html,body {
       <div class="about-body">
         <div class="about-logo">🌸</div>
         <div class="about-name">Teached<em>OS</em></div>
-        <div class="about-ver">Version 3.0 · Teacher's Platform</div>
+        <div class="about-ver">Teacher's Platform</div>
         <div class="about-desc">
           A full-featured macOS-style workspace for language teachers — visual boards, gradebook, analytics, student enrollment, real-time collaboration and AI-powered tools.
         </div>
@@ -1819,13 +1802,19 @@ function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRende
 schRender();
 
 /* ══════════════════════ NOTES ══════════════════════ */
-const NOTES = [
-  { id:1, title:'Articles lesson — Group A', preview:'Warm-up: show pictures, ask students to name…', content:'Articles lesson — Group A\nMay 7, 2026 · A2 · 60 min\n——————————————————————\n\nWARM-UP (10 min)\nShow 5 pictures of everyday objects. Ask students to\nname them. Write answers on board without articles.\nAsk: "Something is missing — what?"\n\nPRESENTATION (15 min)\nExplain the 3-article system with timeline/table:\n  A / AN  = first mention, one of many\n  THE     = both speaker+listener know which one\n  Ø       = general plurals, proper nouns\n\nKey analogy for Slavic speakers:\n  "THE = specific pointer, like pointing a finger"\n  "A = one of many, introducing"\n\nCONTROLLED PRACTICE (15 min)\n• Gap-fill worksheet with 20 sentences\n• Peer check in pairs\n• Error correction round on board\n\nFREE SPEAKING (15 min)\nDescribe a picture (city street scene).\nStudent must use all 3 article types naturally.\n\nHOMEWORK\nFind 5 sentences in any English text, explain why\neach article is used.\n\nNOTES\n— Anna struggles with THE before unique nouns\n— Andriy still using "a" before vowel sounds\n— Group progressing well overall', date:'May 7' },
-  { id:2, title:'Group B — speaking feedback', preview:'Mikhail: good fluency but hedging phrases missing…', content:'Group B — Speaking Feedback\nMay 6, 2026 · B1\n——————————————————————\n\nPRESENT PERFECT vs. PAST SIMPLE activity\nStudents narrated personal stories in pairs.\n\nFEEDBACK BY STUDENT:\n\nAleksei — good tense control, occasional "I have went"\nNatalia — excellent! Naturally uses PP for results\nMikhail — fluent but avoids PP, defaults to past simple\nEkaterina — best in group, strong accuracy + fluency\nPavel — very hesitant, needs more speaking practice\nDaria — uses PP correctly but pronunciation suffers\nRoman — confusing "yet" and "already" positions\nSofia — impressive range, ready for B2 content\n\nGROUP PATTERNS TO ADDRESS:\n• "have went / have came" — irregular verb drilling needed\n• "already" position — before past participle, not end\n• Hedging phrases almost entirely absent — add lesson\n\nNEXT CLASS PLAN:\n• Start with irregular verb speed round\n• "Have you ever…?" interview activity\n• Introduce: I think / I suppose / It seems like…', date:'May 6' },
-  { id:3, title:'Phrasal Verbs — plan draft', preview:'get, make, take — context-first approach…', content:'Phrasal Verbs: get, make, take — DRAFT\nTarget: B1 · 50 min\n——————————————————————\n\nOBJECTIVES\n• Learn 12 core phrasal verbs in context\n• Distinguish separable vs inseparable\n• Use them naturally in speaking\n\nPHRASAL VERBS TO COVER:\nGET:  get up, get over, get through, get along\nMAKE: make up, make out, make do\nTAKE: take off, take over, take up, take back\n\nACTIVITIES\n1. Story gap-fill — office setting (contextualized, not lists)\n2. Matching: phrasal verb → meaning\n3. Separable/inseparable sorting activity\n4. Role-play: use 5 phrasal verbs in 3 min conversation\n5. B2 extension: phrasal verbs with multiple meanings\n\nNOTES\n— Slavic speakers tend to translate literally\n  ("take off" → "зняти" ≠ "take off a plane")\n— Emphasize that context determines meaning\n— Add review quiz for next class', date:'May 5' },
+const NOTES_KEY = 'teachedos_notes_v1';
+const DEFAULT_NOTES = [
+  { id:1, title:'Welcome to Notes', preview:'A scratchpad for lesson prep, student feedback…', content:'Welcome to Notes\n———————————————\n\nThis is a local scratchpad — saved in your browser.\nUse it for lesson prep, student feedback, grammar\nnotes, or anything you need to remember.\n\nClick "+ New Note" to start fresh.', date:'Today' },
 ];
-let activeNote = NOTES[0].id;
+let NOTES = (() => {
+  try { const s = localStorage.getItem(NOTES_KEY); if (s) return JSON.parse(s); } catch {}
+  return DEFAULT_NOTES.slice();
+})();
+let activeNote = NOTES[0]?.id || null;
 let saveTimer = null;
+function notesPersist() {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+}
 
 function notesRender() {
   const list = document.getElementById('notes-list');
@@ -1851,8 +1840,16 @@ function notesNew() {
   const id = Date.now();
   NOTES.unshift({ id, title:'New Note', preview:'', content:'', date:'Today' });
   activeNote = id;
+  notesPersist();
   notesRender();
   document.getElementById('notes-ta').focus();
+}
+function notesDelete(id) {
+  if (!confirm('Delete this note?')) return;
+  NOTES = NOTES.filter(n => n.id !== id);
+  if (activeNote === id) activeNote = NOTES[0]?.id || null;
+  notesPersist();
+  notesRender();
 }
 function notesAutoSave() {
   const ta = document.getElementById('notes-ta');
@@ -1866,6 +1863,7 @@ function notesAutoSave() {
   document.getElementById('notes-save-status').textContent = 'editing…';
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    notesPersist();
     notesRender();
     document.getElementById('notes-save-status').textContent = 'saved';
   }, 800);
@@ -2130,19 +2128,88 @@ function mobInit() {
 mobInit();
 </script>
 <script>
-// Show user chip if logged in
+// Show user chip and wire live widgets when logged in
 (function() {
+  const API = 'https://teachedos-api.onrender.com';
   const token = localStorage.getItem('teachedos_token');
   if (!token) return;
-  fetch('https://teachedos-api.onrender.com/api/auth/me', {
-    headers: { Authorization: 'Bearer ' + token }
-  }).then(r => r.json()).then(d => {
+  const auth = { headers: { Authorization: 'Bearer ' + token } };
+
+  fetch(API + '/api/auth/me', auth).then(r => r.json()).then(d => {
     if (!d.user) return;
     const chip = document.getElementById('desktop-user-chip');
     if (chip) {
       chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
       chip.style.display = 'flex';
     }
+    const wgClockLang = document.querySelector('.wg-clock-lang');
+    if (wgClockLang) wgClockLang.innerHTML = `${d.user.avatar || '🧑‍🏫'} ${d.user.name.split(' ')[0]}`;
+  }).catch(() => {});
+
+  // Today's classes from schedule
+  fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
+    const today = new Date().getDay();
+    const all = d.schedule || [];
+    const todays = all.filter(s => s.day === today).sort((a,b) => a.start_time.localeCompare(b.start_time));
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const toMin = t => { const [h,m] = t.split(':'); return +h * 60 + +m; };
+    const done = todays.filter(s => toMin(s.end_time) <= nowMin).length;
+    const upcoming = todays.filter(s => toMin(s.start_time) >= nowMin);
+    const next = upcoming[0];
+
+    // Streak widget
+    const streakN = document.querySelector('#wg-streak .wg-streak-n');
+    const streakLabel = document.querySelector('#wg-streak .wg-streak-label');
+    const streakSub = document.querySelector('#wg-streak .wg-streak-sub');
+    if (streakN) streakN.textContent = todays.length;
+    if (streakLabel) streakLabel.textContent = todays.length === 1 ? 'Class today' : 'Classes today';
+    if (streakSub) {
+      if (!todays.length) streakSub.innerHTML = `Nothing scheduled today<br><a href="schedule.html" style="color:var(--accent);">Add class →</a>`;
+      else if (next) streakSub.innerHTML = `${done} done · ${upcoming.length} upcoming<br>Next: <span style="color:var(--accent)">${next.group_name || next.title} ${next.start_time.slice(0,5)}</span>`;
+      else streakSub.innerHTML = `All ${todays.length} done — great job!`;
+    }
+
+    // Today widget — show next class
+    const todayLabel = document.querySelector('#wg-today .wg-today-label');
+    const todayTitle = document.querySelector('#wg-today .wg-today-title');
+    const todayMeta = document.querySelector('#wg-today .wg-today-meta');
+    const todayBadge = document.querySelector('#wg-today .wg-today-badge');
+    if (next) {
+      if (todayLabel) todayLabel.textContent = 'Next class';
+      if (todayTitle) todayTitle.innerHTML = next.title.replace(/^([^:]+:)/, '$1<br>');
+      if (todayMeta) todayMeta.innerHTML = `<span>👥 ${next.group_name || '—'}</span><span>·</span><span>${next.level || ''}</span>`;
+      const dur = toMin(next.end_time) - toMin(next.start_time);
+      if (todayBadge) todayBadge.textContent = `🕐 ${next.start_time.slice(0,5)} · ${dur} min`;
+    } else {
+      if (todayLabel) todayLabel.textContent = 'Schedule';
+      if (todayTitle) todayTitle.innerHTML = todays.length ? 'All done<br><em style="font-style:normal;color:var(--accent)">for today</em>' : 'Nothing<br><em style="font-style:normal;color:var(--accent)">scheduled today</em>';
+      if (todayMeta) todayMeta.innerHTML = `<a href="schedule.html" style="color:var(--accent);text-decoration:none;">Open schedule →</a>`;
+      if (todayBadge) todayBadge.textContent = '';
+    }
+  }).catch(() => {});
+
+  // Boards count for vocab widget
+  fetch(API + '/api/boards', auth).then(r => r.json()).then(d => {
+    const boards = d.boards || [];
+    const v = {
+      label: document.querySelector('#wg-vocab .wg-vocab-label'),
+      n:     document.querySelector('#wg-vocab .wg-vocab-word'),
+      lang:  document.querySelector('#wg-vocab .wg-vocab-lang'),
+      trans: document.querySelector('#wg-vocab .wg-vocab-trans'),
+      ex:    document.querySelector('#wg-vocab .wg-vocab-ex'),
+      btn:   document.querySelector('#wg-vocab .wg-vocab-next'),
+    };
+    if (v.label) v.label.textContent = 'My boards';
+    if (v.n)     v.n.textContent = boards.length;
+    if (v.lang)  v.lang.textContent = boards.length === 1 ? 'visual board' : 'visual boards';
+    const totalCards = boards.reduce((s, b) => s + (b.card_count || 0), 0);
+    if (v.trans) v.trans.textContent = totalCards ? `${totalCards} cards total` : 'No cards yet';
+    if (v.ex) {
+      const recent = boards.slice(0, 3).map(b => b.name).join(' · ') || 'Nothing yet';
+      v.ex.innerHTML = recent;
+    }
+    if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
   }).catch(() => {});
 })();
 </script>
