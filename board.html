@@ -352,6 +352,140 @@ body.board-dragging .game-iframe-overlay{display:block;}
   background:rgba(0,0,0,.72);padding:5px 14px;border-radius:20px;
   pointer-events:none;z-index:9999;opacity:0;transition:opacity .2s;
 }
+
+/* ══════════════ LESSON CARD ══════════════ */
+.card-lesson .card-header{background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.04));}
+.lesson-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
+.lesson-status{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;font-family:var(--mono);
+}
+.lesson-status.locked    {background:rgba(107,114,128,.12);color:#6b7280;}
+.lesson-status.available {background:rgba(59,130,246,.12); color:#3b82f6;}
+.lesson-status.in-progress{background:rgba(245,158,11,.12); color:#d97706;}
+.lesson-status.done      {background:rgba(34,197,94,.14);  color:#16a34a;}
+.lesson-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.lesson-desc{font-size:11px;color:var(--text-3);line-height:1.5;flex:1;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+.lesson-footer{display:flex;gap:6px;align-items:center;border-top:1px solid rgba(0,0,0,.05);padding-top:7px;margin-top:2px;}
+.lesson-edit-btn{
+  padding:4px 10px;border:1px solid rgba(99,102,241,.3);border-radius:7px;
+  font-size:10px;font-weight:700;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);
+  transition:.15s;margin-left:auto;
+}
+.lesson-edit-btn:hover{background:rgba(99,102,241,.14);}
+
+/* Badge colors for lesson */
+.badge.b2b   {background:rgba(99,102,241,.12);color:#6366f1;}
+.badge.lesson-g{background:rgba(248,113,113,.12);color:#ef4444;}
+.badge.lesson-v{background:rgba(234,179,8,.12);color:#ca8a04;}
+.badge.lesson-s{background:rgba(139,92,246,.12);color:#7c3aed;}
+.badge.lesson-r{background:rgba(14,165,233,.12);color:#0284c7;}
+.badge.lesson-w{background:rgba(20,184,166,.12);color:#0f766e;}
+
+/* ══════════════ ASSIGNMENT CARD ══════════════ */
+.card-assignment .card-header{background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(234,88,12,.03));}
+.assign-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.assign-score{font-size:26px;font-weight:900;color:var(--text);font-family:var(--mono);line-height:1;}
+.assign-score span{font-size:12px;font-weight:600;color:var(--text-3);}
+.assign-deadline{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:4px;}
+.assign-deadline.overdue{color:#ef4444;font-weight:700;}
+.assign-desc{font-size:11px;color:var(--text-3);line-height:1.5;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.assign-prog-wrap{margin-top:2px;}
+.assign-prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-bottom:4px;}
+.assign-prog-bar{height:4px;border-radius:2px;background:rgba(249,115,22,.12);overflow:hidden;}
+.assign-prog-fill{height:100%;border-radius:2px;background:#f97316;transition:width .4s;}
+.assign-edit-btn{
+  padding:4px 10px;border:1px solid rgba(249,115,22,.3);border-radius:7px;
+  font-size:10px;font-weight:700;cursor:pointer;color:#f97316;background:rgba(249,115,22,.06);
+  transition:.15s;margin-left:auto;
+}
+.assign-edit-btn:hover{background:rgba(249,115,22,.14);}
+
+/* ══════════════ MILESTONE CARD ══════════════ */
+.card-milestone .card-header{background:linear-gradient(135deg,rgba(16,185,129,.07),rgba(5,150,105,.03));}
+.milestone-body{padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.milestone-ring{position:relative;width:88px;height:88px;flex-shrink:0;}
+.milestone-ring svg{transform:rotate(-90deg);}
+.milestone-ring-bg{fill:none;stroke:rgba(16,185,129,.14);stroke-width:8;}
+.milestone-ring-fill{fill:none;stroke:#10b981;stroke-width:8;stroke-linecap:round;
+  transition:stroke-dashoffset .6s ease;}
+.milestone-pct{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:900;color:var(--text);font-family:var(--mono);
+}
+.milestone-info{text-align:center;}
+.milestone-fraction{font-size:13px;font-weight:700;color:var(--text-2);}
+.milestone-label{font-size:11px;color:var(--text-3);margin-top:2px;}
+.milestone-desc{font-size:11px;color:var(--text-3);text-align:center;line-height:1.5;}
+
+/* ══════════════ PREREQ ARROWS ══════════════ */
+#arrows-svg .arrow-path.prereq{
+  stroke:#6366f1;stroke-width:2.5;stroke-dasharray:none;
+  marker-end:url(#arrowhead-prereq);
+}
+#arrows-svg .arrow-path.prereq.locked{stroke:#9ca3af;stroke-dasharray:6 4;}
+#arrows-svg .arrow-path.prereq.done  {stroke:#10b981;}
+
+/* ══════════════ CARD EDIT POPOVER ══════════════ */
+#card-editor{
+  position:fixed;right:16px;top:60px;width:300px;
+  background:#fff;border-radius:16px;border:1px solid var(--border);
+  box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:2000;
+  display:none;flex-direction:column;overflow:hidden;max-height:calc(100vh - 80px);
+}
+#card-editor.open{display:flex;}
+#card-editor-head{
+  padding:13px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+#card-editor-title{font-size:13px;font-weight:800;flex:1;}
+#card-editor-close{font-size:18px;cursor:pointer;color:var(--text-3);line-height:1;border:none;background:none;}
+#card-editor-body{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.ed-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:3px;font-family:var(--mono);}
+.ed-input{
+  width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;
+  font-family:var(--font);font-size:13px;color:var(--text);outline:none;background:#fafafa;
+  transition:border-color .15s;
+}
+.ed-input:focus{border-color:var(--accent);background:#fff;}
+.ed-textarea{resize:vertical;min-height:70px;line-height:1.5;}
+.ed-select{appearance:none;cursor:pointer;}
+.ed-row{display:flex;gap:8px;}
+.ed-row .ed-input{flex:1;}
+.ed-save{
+  width:100%;padding:10px;background:var(--accent);color:#fff;border:none;
+  border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;
+  cursor:pointer;transition:background .15s;margin-top:4px;
+}
+.ed-save:hover{background:#e8357a;}
+.ed-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ed-status-btn{
+  padding:7px 6px;border-radius:8px;border:1.5px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;text-align:center;
+  transition:.15s;background:#fafafa;
+}
+.ed-status-btn.active{border-color:var(--accent);background:var(--accent-2);color:var(--accent);}
+
+/* ══════════════ COURSE TAB STYLES ══════════════ */
+.course-template{
+  padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);
+  background:white;cursor:grab;transition:.15s;
+}
+.course-template:hover{border-color:var(--border-2);box-shadow:0 3px 10px rgba(255,75,139,.09);transform:translateY(-1px);}
+.ct-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.ct-icon{font-size:16px;}
+.ct-title{font-size:12px;font-weight:800;color:var(--text);}
+.ct-desc{font-size:11px;color:var(--text-3);line-height:1.4;}
+.progress-track{background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:12px;margin-bottom:8px;}
+.pt-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.pt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;}
+.pt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pt-dot.done    {background:#10b981;}
+.pt-dot.progress{background:#f97316;}
+.pt-dot.locked  {background:#9ca3af;}
 </style>
 </head>
 <body>
@@ -393,9 +527,10 @@ body.board-dragging .game-iframe-overlay{display:block;}
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="sb-tabs">
-    <div class="sb-tab active" data-tab="plans">📋 Plans</div>
+    <div class="sb-tab active" data-tab="plans">📋</div>
     <div class="sb-tab" data-tab="students">👥</div>
-    <div class="sb-tab" data-tab="notes">✍️ Notes</div>
+    <div class="sb-tab" data-tab="notes">✍️</div>
+    <div class="sb-tab" data-tab="course">📚</div>
     <div class="sb-tab" data-tab="games">🎮</div>
     <div class="sb-tab" data-tab="elements">＋</div>
   </div>
@@ -419,6 +554,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
       <marker id="arrowhead-hover" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
         <polygon points="0 0, 9 3, 0 6" fill="#E8357A"/>
       </marker>
+      <marker id="arrowhead-prereq" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#6366f1"/>
+      </marker>
+      <marker id="arrowhead-prereq-done" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#10b981"/>
+      </marker>
     </defs>
   </svg>
   <!-- Board canvas -->
@@ -441,7 +582,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="ctx-item" id="ctx-text">🔤 Add Text</div>
   <div class="ctx-item" id="ctx-plan">📋 Add Lesson Plan</div>
   <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-lesson">📚 Add Lesson</div>
+  <div class="ctx-item" id="ctx-assignment">📝 Add Assignment</div>
+  <div class="ctx-item" id="ctx-milestone">🏁 Add Milestone</div>
+  <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
+  <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
   <div class="ctx-item danger" id="ctx-clear">🗑 Clear Board</div>
 </div>
@@ -469,6 +615,15 @@ body.board-dragging .game-iframe-overlay{display:block;}
     </div>
     <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:var(--text-3);line-height:1;">×</div>
   </div>
+</div>
+
+<!-- CARD EDITOR PANEL -->
+<div id="card-editor">
+  <div id="card-editor-head">
+    <span id="card-editor-title">Edit Card</span>
+    <button id="card-editor-close" onclick="closeCardEditor()">×</button>
+  </div>
+  <div id="card-editor-body"></div>
 </div>
 
 <!-- BOARD LIST MODAL -->
@@ -659,7 +814,9 @@ function toast(msg) {
 function getDefaults(type) {
   return ({ sticky:{w:220,h:180}, plan:{w:280,h:200}, student:{w:240,h:160},
             event:{w:200,h:140},  note:{w:300,h:240}, text:{w:200,h:90},
-            image:{w:260,h:200},  game:{w:460,h:540} })[type] || { w:220,h:160 };
+            image:{w:260,h:200},  game:{w:460,h:540},
+            lesson:{w:260,h:210}, assignment:{w:240,h:200}, milestone:{w:210,h:220}
+          })[type] || { w:220,h:160 };
 }
 
 /* ════════════════════════ ADD CARD ════════════════════════ */
@@ -684,14 +841,17 @@ function renderCard(card) {
   el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;`;
 
   // Dispatch renderers
-  if      (card.type === 'sticky')  renderSticky(el, card);
-  else if (card.type === 'text')    renderText(el, card);
-  else if (card.type === 'plan')    renderPlan(el, card);
-  else if (card.type === 'student') renderStudent(el, card);
-  else if (card.type === 'note')    renderNote(el, card);
-  else if (card.type === 'event')   renderEvent(el, card);
-  else if (card.type === 'image')   renderImage(el, card);
-  else if (card.type === 'game')    renderGame(el, card);
+  if      (card.type === 'sticky')     renderSticky(el, card);
+  else if (card.type === 'text')       renderText(el, card);
+  else if (card.type === 'plan')       renderPlan(el, card);
+  else if (card.type === 'student')    renderStudent(el, card);
+  else if (card.type === 'note')       renderNote(el, card);
+  else if (card.type === 'event')      renderEvent(el, card);
+  else if (card.type === 'image')      renderImage(el, card);
+  else if (card.type === 'game')       renderGame(el, card);
+  else if (card.type === 'lesson')     renderLesson(el, card);
+  else if (card.type === 'assignment') renderAssignment(el, card);
+  else if (card.type === 'milestone')  renderMilestone(el, card);
 
   // Anchor dots (connect mode)
   ['top','right','bottom','left'].forEach(anchor => {
@@ -959,7 +1119,278 @@ function applyGameScale(el, card) {
   iframe.style.transform = `scale(${scale})`;
 }
 
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* ══════════════════════ LESSON RENDERER ══════════════════════ */
+const LESSON_STATUS_MAP = {
+  locked:      { label:'🔒 Locked',      cls:'locked' },
+  available:   { label:'▶️ Available',   cls:'available' },
+  'in-progress':{ label:'⏳ In Progress',cls:'in-progress' },
+  done:        { label:'✅ Done',         cls:'done' },
+};
+const SKILL_MAP = { Grammar:'g', Vocabulary:'v', Speaking:'s', Reading:'r', Writing:'w', Listening:'l' };
+const LEVEL_COLORS = { A1:'a1',A2:'a2',B1:'b1',B2:'b2b',C1:'c1',C2:'c2' };
+
+function renderLesson(el, card) {
+  const d = card.data;
+  const st = LESSON_STATUS_MAP[d.status||'available'] || LESSON_STATUS_MAP.available;
+  const hdr = makeHeader('📚', d.title||'Lesson', card.id);
+  el.appendChild(hdr);
+  const body = document.createElement('div');
+  body.className = 'card-body lesson-body';
+  body.innerHTML = `
+    <div class="lesson-meta">
+      <span class="lesson-status ${st.cls}">${st.label}</span>
+      ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}">${d.level}</span>` : ''}
+      ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}">${d.skill}</span>` : ''}
+      ${d.duration ? `<span class="badge" style="background:rgba(0,0,0,.05);color:var(--text-3)">⏱ ${d.duration}</span>` : ''}
+    </div>
+    ${d.desc ? `<div class="lesson-desc">${esc(d.desc)}</div>` : ''}
+    <div class="lesson-footer">
+      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:700;">🔗 Material</a>` : ''}
+      <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+    </div>`;
+  el.appendChild(body);
+}
+
+/* ══════════════════════ ASSIGNMENT RENDERER ══════════════════════ */
+function renderAssignment(el, card) {
+  const d = card.data;
+  const deadline = d.deadline ? new Date(d.deadline) : null;
+  const overdue  = deadline && deadline < new Date();
+  const submitted = d.submitted || 0;
+  const total     = d.total || 0;
+  const pct = total ? Math.round(submitted / total * 100) : 0;
+  const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981' };
+  const typeColor = typeColors[d.type] || '#f97316';
+
+  const hdr = makeHeader('📝', d.title||'Assignment', card.id);
+  el.appendChild(hdr);
+
+  const body = document.createElement('div');
+  body.className = 'card-body assign-body';
+  body.innerHTML = `
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+      <div>
+        <div class="assign-score">${d.maxScore||100}<span> pts max</span></div>
+        <div style="display:flex;gap:5px;margin-top:5px;">
+          ${d.type ? `<span class="badge" style="background:${typeColor}18;color:${typeColor}">${d.type}</span>` : ''}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="assign-deadline${overdue?' overdue':''}">
+          ${deadline ? `📅 ${deadline.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : ''}
+        </div>
+      </div>
+    </div>
+    ${d.desc ? `<div class="assign-desc">${esc(d.desc)}</div>` : ''}
+    ${total ? `
+    <div class="assign-prog-wrap">
+      <div class="assign-prog-label"><span>Submitted</span><span>${submitted}/${total}</span></div>
+      <div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>
+    </div>` : ''}
+    <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+      <button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+    </div>`;
+  el.appendChild(body);
+}
+
+/* ══════════════════════ MILESTONE RENDERER ══════════════════════ */
+function renderMilestone(el, card) {
+  const d = card.data;
+  // Calculate pct from connected done lessons
+  const pct = calcMilestonePct(card);
+  const done = pct.done, total = pct.total;
+  const percent = total ? Math.round(done / total * 100) : (d.manualPct || 0);
+
+  const R = 36, C = 2 * Math.PI * R;
+  const offset = C - (percent / 100) * C;
+
+  el.appendChild(makeHeader('🏁', d.title||'Milestone', card.id));
+  const body = document.createElement('div');
+  body.className = 'card-body milestone-body';
+  body.dataset.cardId = card.id;
+  body.innerHTML = `
+    <div class="milestone-ring">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <circle class="milestone-ring-bg" cx="44" cy="44" r="${R}"/>
+        <circle class="milestone-ring-fill" cx="44" cy="44" r="${R}"
+          stroke-dasharray="${C}" stroke-dashoffset="${offset}"
+          ${percent===100?'stroke:#10b981':''}/>
+      </svg>
+      <div class="milestone-pct">${percent}%</div>
+    </div>
+    <div class="milestone-info">
+      <div class="milestone-fraction">${done} / ${total || '?'} lessons done</div>
+      <div class="milestone-label">${percent===100?'🎉 Complete!':percent>=50?'In Progress':'Getting started'}</div>
+    </div>
+    ${d.desc ? `<div class="milestone-desc">${esc(d.desc)}</div>` : ''}`;
+  el.appendChild(body);
+}
+
+function calcMilestonePct(card) {
+  // Find all lesson cards connected to this milestone via arrows
+  const connectedIds = state.arrows
+    .filter(a => a.toCard === card.id)
+    .map(a => a.fromCard);
+  const lessons = state.cards.filter(c => connectedIds.includes(c.id) && c.type === 'lesson');
+  return { done: lessons.filter(c => c.data.status === 'done').length, total: lessons.length };
+}
+
+function refreshAllMilestones() {
+  state.cards.filter(c => c.type === 'milestone').forEach(card => {
+    const el = getCardEl(card.id);
+    if (el) { el.innerHTML = ''; renderMilestone(el, card); addCardInfrastructure(el, card); }
+  });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ══════════════════════ CARD EDITOR ══════════════════════ */
+let editorCardId = null;
+
+function openCardEditor(cardId) {
+  editorCardId = cardId;
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const editor = document.getElementById('card-editor');
+  const body   = document.getElementById('card-editor-body');
+  document.getElementById('card-editor-title').textContent =
+    card.type === 'lesson' ? '📚 Edit Lesson' :
+    card.type === 'assignment' ? '📝 Edit Assignment' : '🏁 Edit Milestone';
+
+  body.innerHTML = '';
+
+  if (card.type === 'lesson') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div><div class="ed-label">Status</div>
+        <div class="ed-status-grid">
+          ${['locked','available','in-progress','done'].map(s=>`
+            <button class="ed-status-btn${(card.data.status||'available')===s?' active':''}"
+              onclick="edSetStatus('${s}')">${LESSON_STATUS_MAP[s].label}</button>`).join('')}
+        </div></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">Level</div>
+          <select class="ed-input ed-select" id="ed-level">
+            ${['A1','A2','B1','B2','C1','C2'].map(l=>`<option${card.data.level===l?' selected':''}>${l}</option>`).join('')}
+          </select></div>
+        <div style="flex:1"><div class="ed-label">Skill</div>
+          <select class="ed-input ed-select" id="ed-skill">
+            ${['Grammar','Vocabulary','Speaking','Reading','Writing','Listening'].map(s=>`<option${card.data.skill===s?' selected':''}>${s}</option>`).join('')}
+          </select></div>
+      </div>
+      <div><div class="ed-label">Duration</div>
+        <input class="ed-input" id="ed-duration" placeholder="e.g. 45 min" value="${esc(card.data.duration||'')}"/></div>
+      <div><div class="ed-label">Description</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
+      <div><div class="ed-label">Material Link (URL)</div>
+        <input class="ed-input" id="ed-link" type="url" placeholder="https://…" value="${esc(card.data.link||'')}"/></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Lesson</button>`;
+
+  } else if (card.type === 'assignment') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">Type</div>
+          <select class="ed-input ed-select" id="ed-type">
+            ${['Quiz','Essay','Speaking','Project'].map(t=>`<option${card.data.type===t?' selected':''}>${t}</option>`).join('')}
+          </select></div>
+        <div style="flex:1"><div class="ed-label">Max Score</div>
+          <input class="ed-input" id="ed-maxScore" type="number" min="1" value="${card.data.maxScore||100}"/></div>
+      </div>
+      <div><div class="ed-label">Deadline</div>
+        <input class="ed-input" id="ed-deadline" type="date" value="${card.data.deadline||''}"/></div>
+      <div><div class="ed-label">Description</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">Submitted</div>
+          <input class="ed-input" id="ed-submitted" type="number" min="0" value="${card.data.submitted||0}"/></div>
+        <div style="flex:1"><div class="ed-label">Total Students</div>
+          <input class="ed-input" id="ed-total" type="number" min="0" value="${card.data.total||0}"/></div>
+      </div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Assignment</button>`;
+
+  } else if (card.type === 'milestone') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div><div class="ed-label">Description</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:10px;font-size:12px;color:#166534;">
+        💡 Connect lesson cards to this milestone with arrows. Progress auto-calculates from their status.
+      </div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Milestone</button>`;
+  }
+  editor.classList.add('open');
+}
+
+function edSetStatus(s) {
+  document.querySelectorAll('.ed-status-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  event.currentTarget.dataset.val = s;
+  // store temporarily
+  document.getElementById('card-editor-body').dataset.status = s;
+}
+
+function saveCardEditor() {
+  const card = state.cards.find(c => c.id === editorCardId);
+  if (!card) return;
+  snapshot();
+  const body = document.getElementById('card-editor-body');
+  const g = id => document.getElementById(id);
+
+  if (card.type === 'lesson') {
+    card.data.title    = g('ed-title').value.trim() || 'Lesson';
+    card.data.status   = body.dataset.status || document.querySelector('.ed-status-btn.active')?.textContent.includes('Lock') ? 'locked' : (body.dataset.status || card.data.status || 'available');
+    // re-read status from active button
+    const activeBtn = document.querySelector('.ed-status-btn.active');
+    if (activeBtn) {
+      const map = {'🔒 Locked':'locked','▶️ Available':'available','⏳ In Progress':'in-progress','✅ Done':'done'};
+      card.data.status = map[activeBtn.textContent.trim()] || card.data.status;
+    }
+    card.data.level    = g('ed-level').value;
+    card.data.skill    = g('ed-skill').value;
+    card.data.duration = g('ed-duration').value.trim();
+    card.data.desc     = g('ed-desc').value.trim();
+    card.data.link     = g('ed-link').value.trim();
+  } else if (card.type === 'assignment') {
+    card.data.title     = g('ed-title').value.trim() || 'Assignment';
+    card.data.type      = g('ed-type').value;
+    card.data.maxScore  = parseInt(g('ed-maxScore').value) || 100;
+    card.data.deadline  = g('ed-deadline').value;
+    card.data.desc      = g('ed-desc').value.trim();
+    card.data.submitted = parseInt(g('ed-submitted').value) || 0;
+    card.data.total     = parseInt(g('ed-total').value) || 0;
+  } else if (card.type === 'milestone') {
+    card.data.title = g('ed-title').value.trim() || 'Milestone';
+    card.data.desc  = g('ed-desc').value.trim();
+  }
+
+  reRenderCard(card);
+  refreshAllMilestones();
+  scheduleSave();
+  closeCardEditor();
+}
+
+function closeCardEditor() {
+  document.getElementById('card-editor').classList.remove('open');
+  editorCardId = null;
+}
+
+// Helper: add anchor dots + resize handle to a freshly re-rendered card el
+function addCardInfrastructure(el, card) {
+  ['top','right','bottom','left'].forEach(anchor => {
+    const dot = document.createElement('div');
+    dot.className = 'anchor-dot'; dot.dataset.anchor = anchor;
+    dot.addEventListener('mousedown', e => { e.stopPropagation(); if (state.mode==='connect') startConnection(card, anchor); });
+    el.appendChild(dot);
+  });
+  const rz = document.createElement('div');
+  rz.className = 'card-resize';
+  rz.addEventListener('mousedown', e => { e.stopPropagation(); startResize(e, card, el); });
+  el.appendChild(rz);
+}
 
 /* ════════════════════════ CARD OPS ════════════════════════ */
 function removeCard(id) {
@@ -1401,16 +1832,30 @@ function renderAllArrows() {
       e.preventDefault(); e.stopPropagation();
       ctxArrowId = arrow.id;
       document.getElementById('ctx-delete-arrow').style.display = '';
+      document.getElementById('ctx-toggle-prereq').style.display = '';
       document.getElementById('ctx-arrow-sep').style.display = '';
-      ctxMenu.style.left = e.clientX+'px';
-      ctxMenu.style.top  = e.clientY+'px';
+      document.getElementById('ctx-toggle-prereq').textContent =
+        arrow.type === 'prereq' ? '🔗 Make Regular Arrow' : '🔒 Make Prereq Arrow';
+      ctxMenu.style.left = e.clientX+'px'; ctxMenu.style.top = e.clientY+'px';
       ctxMenu.style.display = 'block';
     });
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.classList.add('arrow-path');
     path.setAttribute('d', makeBezier(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor));
-    path.setAttribute('marker-end','url(#arrowhead)');
+
+    // Style based on arrow type
+    if (arrow.type === 'prereq') {
+      const fromCardData = state.cards.find(c => c.id === arrow.fromCard);
+      const isDone   = fromCardData?.data?.status === 'done';
+      const isLocked = !fromCardData || fromCardData.data?.status === 'locked';
+      path.classList.add('prereq');
+      if (isDone)        path.classList.add('done');
+      else if (isLocked) path.classList.add('locked');
+      path.setAttribute('marker-end', isDone ? 'url(#arrowhead-prereq-done)' : 'url(#arrowhead-prereq)');
+    } else {
+      path.setAttribute('marker-end','url(#arrowhead)');
+    }
     if (state.selectedArrows.has(arrow.id)) path.classList.add('selected-arrow');
 
     g.appendChild(hit);
@@ -1454,6 +1899,7 @@ boardWrap.addEventListener('contextmenu', e => {
   e.preventDefault();
   ctxPos = screenToBoard(e.clientX, e.clientY);
   document.getElementById('ctx-delete-arrow').style.display = 'none';
+  document.getElementById('ctx-toggle-prereq').style.display = 'none';
   document.getElementById('ctx-arrow-sep').style.display = 'none';
   ctxMenu.style.left = e.clientX+'px';
   ctxMenu.style.top  = e.clientY+'px';
@@ -1467,6 +1913,29 @@ document.getElementById('ctx-text').addEventListener('click', () =>
   addCard('text', ctxPos.x-100, ctxPos.y-45, { text:'Text' }));
 document.getElementById('ctx-plan').addEventListener('click', () =>
   addCard('plan', ctxPos.x-140, ctxPos.y-100, { title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' }));
+
+document.getElementById('ctx-lesson').addEventListener('click', () => {
+  const card = addCard('lesson', ctxPos.x-130, ctxPos.y-105, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'' });
+  setTimeout(() => openCardEditor(card.id), 80);
+});
+document.getElementById('ctx-assignment').addEventListener('click', () => {
+  const card = addCard('assignment', ctxPos.x-120, ctxPos.y-100, { title:'New Assignment', type:'Quiz', maxScore:100, deadline:'', desc:'', submitted:0, total:0 });
+  setTimeout(() => openCardEditor(card.id), 80);
+});
+document.getElementById('ctx-milestone').addEventListener('click', () =>
+  addCard('milestone', ctxPos.x-105, ctxPos.y-110, { title:'Milestone', desc:'' }));
+
+document.getElementById('ctx-toggle-prereq').addEventListener('click', () => {
+  if (!ctxArrowId) return;
+  const arrow = state.arrows.find(a => a.id === ctxArrowId);
+  if (!arrow) return;
+  snapshot();
+  arrow.type = arrow.type === 'prereq' ? 'flow' : 'prereq';
+  renderAllArrows();
+  scheduleSave();
+  refreshAllMilestones();
+});
+
 document.getElementById('ctx-clear').addEventListener('click', clearAll);
 document.getElementById('btn-undo').addEventListener('click', undo);
 document.getElementById('btn-redo').addEventListener('click', redo);
@@ -1575,6 +2044,7 @@ function renderSidebar() {
   if (activeTab === 'plans')    renderPlansTab(sec);
   if (activeTab === 'students') renderStudentsTab(sec);
   if (activeTab === 'notes')    renderNotesTab(sec);
+  if (activeTab === 'course')   renderCourseTab(sec);
   if (activeTab === 'games')    renderGamesTab(sec);
   if (activeTab === 'elements') renderElementsTab(sec);
 }
@@ -1711,6 +2181,77 @@ function renderGamesTab(sec) {
     });
     sec.appendChild(el);
   });
+}
+
+/* ════════════════════════ COURSE TAB ════════════════════════ */
+function renderCourseTab(sec) {
+  // Progress summary
+  const lessons     = state.cards.filter(c => c.type === 'lesson');
+  const assignments = state.cards.filter(c => c.type === 'assignment');
+  const milestones  = state.cards.filter(c => c.type === 'milestone');
+  const doneLessons = lessons.filter(c => c.data.status === 'done').length;
+  const inProgress  = lessons.filter(c => c.data.status === 'in-progress').length;
+  const locked      = lessons.filter(c => c.data.status === 'locked').length;
+
+  if (lessons.length) {
+    const track = document.createElement('div');
+    track.className = 'progress-track';
+    track.innerHTML = `<div class="pt-title">📊 Course Progress</div>
+      <div class="pt-row"><div class="pt-dot done"></div><span>Done: <strong>${doneLessons}</strong> of ${lessons.length}</span></div>
+      <div class="pt-row"><div class="pt-dot progress"></div><span>In Progress: <strong>${inProgress}</strong></span></div>
+      <div class="pt-row"><div class="pt-dot locked"></div><span>Locked: <strong>${locked}</strong></span></div>
+      ${assignments.length ? `<div class="pt-row">📝 <span>Assignments: <strong>${assignments.length}</strong></span></div>` : ''}
+      ${milestones.length  ? `<div class="pt-row">🏁 <span>Milestones: <strong>${milestones.length}</strong></span></div>` : ''}`;
+    sec.appendChild(track);
+  }
+
+  // Add new cards
+  sec.appendChild(makeLegend('Add to Board'));
+  const templates = [
+    { icon:'📚', title:'Lesson',     desc:'Topic block with status & level', type:'lesson',
+      data:{ title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'' } },
+    { icon:'📝', title:'Assignment', desc:'Task with deadline & score',      type:'assignment',
+      data:{ title:'New Assignment', type:'Quiz', maxScore:100, deadline:'', desc:'', submitted:0, total:0 } },
+    { icon:'🏁', title:'Milestone',  desc:'Progress checkpoint (auto-calc)', type:'milestone',
+      data:{ title:'Chapter Checkpoint', desc:'' } },
+  ];
+  templates.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'course-template';
+    el.innerHTML = `<div class="ct-head"><span class="ct-icon">${t.icon}</span><span class="ct-title">${t.title}</span></div>
+      <div class="ct-desc">${t.desc}</div>`;
+    const def = getDefaults(t.type);
+    el.addEventListener('mousedown', e => {
+      isSidebarDrag = true; document.body.classList.add('board-dragging');
+      sidebarDragData = { type:t.type, data:{...t.data}, w:def.w, h:def.h };
+      ghostEl.textContent = `${t.icon} ${t.title}`;
+      ghostEl.style.background = 'white'; ghostEl.style.display = 'block';
+      ghostEl.style.left=(e.clientX-70)+'px'; ghostEl.style.top=(e.clientY-20)+'px';
+      e.preventDefault();
+    });
+    el.addEventListener('click', () => {
+      if (isSidebarDrag) return;
+      const r = boardWrap.getBoundingClientRect();
+      const bp = screenToBoard(r.left+r.width/2+(Math.random()-.5)*100, r.top+r.height/2+(Math.random()-.5)*100);
+      const card = addCard(t.type, bp.x-def.w/2, bp.y-def.h/2, {...t.data});
+      if (t.type !== 'milestone') setTimeout(() => openCardEditor(card.id), 120);
+    });
+    sec.appendChild(el);
+  });
+
+  // Quick-status changer for existing lessons
+  if (lessons.length) {
+    sec.appendChild(makeLegend('Lessons on Board'));
+    lessons.forEach(card => {
+      const st = LESSON_STATUS_MAP[card.data.status||'available'];
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;';
+      row.innerHTML = `<span>${card.data.level||''}</span><span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(card.data.title||'')}</span>
+        <span class="lesson-status ${st.cls}" style="font-size:9px;">${st.label}</span>`;
+      row.addEventListener('click', () => openCardEditor(card.id));
+      sec.appendChild(row);
+    });
+  }
 }
 
 function renderElementsTab(sec) {
