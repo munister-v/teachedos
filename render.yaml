@@ -3,14 +3,14 @@ databases:
     databaseName: teachedos
     user: teachedos_user
     plan: free
-    region: frankfurt
+    region: oregon
     ipAllowList: []
 
 services:
   - type: web
     name: teachedos-api
     runtime: node
-    region: frankfurt
+    region: oregon
     plan: free
     branch: main
     buildCommand: cd backend && npm install

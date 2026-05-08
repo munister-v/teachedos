@@ -39,6 +39,7 @@ app.get('/health', (_, res) => res.json({ ok: true, ts: new Date().toISOString()
 app.use('/api/auth',   require('./routes/auth'));
 app.use('/api/boards', require('./routes/boards'));
 app.use('/api/users',  require('./routes/users'));
+app.use('/api/admin',  require('./routes/admin'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

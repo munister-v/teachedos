@@ -111,4 +111,23 @@ router.delete('/sessions/:id', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/auth/make-admin  — promote user to admin using ADMIN_SECRET
+router.post('/make-admin', async (req, res) => {
+  const { email, secret } = req.body;
+  const ADMIN_SECRET = process.env.ADMIN_SECRET;
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin secret' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET role='admin' WHERE email=$1 RETURNING id,email,name,role`,
+      [email.toLowerCase().trim()]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

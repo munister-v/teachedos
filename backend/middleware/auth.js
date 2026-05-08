@@ -29,4 +29,11 @@ function signToken(userId) {
   return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-module.exports = { requireAuth, signToken };
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, signToken };
