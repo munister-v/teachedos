@@ -1178,21 +1178,15 @@ html,body {
   </div>
   <div class="win-body">
     <div class="win-sidebar" id="sidebar-plans">
-      <div class="sb-section-label">Filter</div>
-      <div class="sb-item active" onclick="plansFilter('all',this)">📋 All Plans <span class="sb-item-badge">12</span></div>
-      <div class="sb-section-label" style="margin-top:8px;">By Level</div>
-      <div class="sb-item" onclick="plansFilter('a1',this)">A1 <span class="sb-item-badge">2</span></div>
-      <div class="sb-item" onclick="plansFilter('a2',this)">A2 <span class="sb-item-badge">3</span></div>
-      <div class="sb-item" onclick="plansFilter('b1',this)">B1 <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" onclick="plansFilter('b2',this)">B2 <span class="sb-item-badge">2</span></div>
-      <div class="sb-item" onclick="plansFilter('c1',this)">C1 <span class="sb-item-badge">1</span></div>
-      <div class="sb-section-label" style="margin-top:8px;">By Type</div>
-      <div class="sb-item" onclick="plansFilter('grammar',this)">🔤 Grammar <span class="sb-item-badge">5</span></div>
-      <div class="sb-item" onclick="plansFilter('vocab',this)">📝 Vocab <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" onclick="plansFilter('speaking',this)">💬 Speaking <span class="sb-item-badge">3</span></div>
-      <div class="sb-section-label" style="margin-top:8px;">Status</div>
-      <div class="sb-item" onclick="plansFilter('active',this)">✓ Active <span class="sb-item-badge">8</span></div>
-      <div class="sb-item" onclick="plansFilter('draft',this)">✎ Draft <span class="sb-item-badge">3</span></div>
+      <div class="sb-section-label">Quick links</div>
+      <div class="sb-item" onclick="location.href='courses.html'">📚 All Courses</div>
+      <div class="sb-item" onclick="location.href='board.html'">📌 Open Board</div>
+      <div class="sb-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>
+      <div class="sb-item" onclick="location.href='analytics.html'">📊 Analytics</div>
+      <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
+      <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
+      <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
+      <div class="sb-item" id="bf-shared" onclick="boardsFilter('shared',this)">Shared with me</div>
     </div>
     <div class="win-main" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
@@ -1202,55 +1196,14 @@ html,body {
       </div>
       <div class="curr-header">
         <div class="curr-eyebrow">§ Teacher's workspace</div>
-        <div class="curr-title">Lesson <em>Plans</em></div>
+        <div class="curr-title">My <em>Boards</em></div>
       </div>
       <div class="curr-search">
         <span class="curr-search-ic">🔍</span>
-        <input type="text" placeholder="Search plans, topics, levels…" id="plans-search-input">
+        <input type="text" placeholder="Search your boards by name…" id="plans-search-input" oninput="boardsRender()">
       </div>
       <div class="curr-grid" id="plans-grid">
-        <div class="lesson-card">
-          <div class="lc-lang">🔤 Grammar</div>
-          <div class="lc-title">Articles: a, an, the</div>
-          <div class="lc-desc">Core challenge for Slavic speakers. Warm-up → presentation → controlled practice → free speaking. Includes error correction sheet.</div>
-          <div class="lc-meta"><span class="lc-level a2">A2</span><span class="lc-dur">60 min</span><span class="lc-dur" style="color:#4ade80;">✓ Active</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:100%"></div></div>
-        </div>
-        <div class="lesson-card">
-          <div class="lc-lang">🔤 Grammar</div>
-          <div class="lc-title">Present Perfect vs. Past Simple</div>
-          <div class="lc-desc">Contrastive analysis. Timeline diagrams, Have you ever…? activities, news headlines exercise. Homework: diary entry.</div>
-          <div class="lc-meta"><span class="lc-level b1">B1</span><span class="lc-dur">60 min</span><span class="lc-dur" style="color:#4ade80;">✓ Active</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:80%"></div></div>
-        </div>
-        <div class="lesson-card">
-          <div class="lc-lang">📝 Vocabulary</div>
-          <div class="lc-title">False Friends: RU/UA/PL → EN</div>
-          <div class="lc-desc">Магазин ≠ magazine. Фабрика ≠ fabric. Aktualny ≠ actual. Gap fill, translation traps quiz, meme creation activity.</div>
-          <div class="lc-meta"><span class="lc-level b1">B1</span><span class="lc-dur">45 min</span><span class="lc-dur" style="color:var(--text-3);">✎ Draft</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:40%"></div></div>
-        </div>
-        <div class="lesson-card">
-          <div class="lc-lang">💬 Speaking</div>
-          <div class="lc-title">Opinion & Agreeing/Disagreeing</div>
-          <div class="lc-desc">Functional language chunks. Discussion cards, structured debate, feedback on hedging & softening. Suitable for mixed groups.</div>
-          <div class="lc-meta"><span class="lc-level b2">B2</span><span class="lc-dur">60 min</span><span class="lc-dur" style="color:#4ade80;">✓ Active</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:100%"></div></div>
-        </div>
-        <div class="lesson-card">
-          <div class="lc-lang">🔤 Grammar</div>
-          <div class="lc-title">Prepositions: at / in / on</div>
-          <div class="lc-desc">Logic-based approach: place, time, manner. Picture descriptions, gap fill, student-generated sentences with peer check.</div>
-          <div class="lc-meta"><span class="lc-level a2">A2</span><span class="lc-dur">45 min</span><span class="lc-dur" style="color:#4ade80;">✓ Active</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:100%"></div></div>
-        </div>
-        <div class="lesson-card">
-          <div class="lc-lang">📝 Vocabulary</div>
-          <div class="lc-title">Phrasal Verbs: get, make, take</div>
-          <div class="lc-desc">Context-first approach. Story gap-fill, matching, role-play scenarios. B2 extension: phrasal verbs with multiple meanings.</div>
-          <div class="lc-meta"><span class="lc-level b1">B1</span><span class="lc-dur">50 min</span><span class="lc-dur" style="color:var(--text-3);">✎ Draft</span></div>
-          <div class="lc-prog"><div class="lc-prog-fill" style="width:55%"></div></div>
-        </div>
+        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-3);font-size:13px;">Loading your boards…</div>
       </div>
     </div>
   </div>
@@ -1655,103 +1608,141 @@ function bringToFront(id) {
 })();
 
 /* ══════════════════════ STUDENTS ══════════════════════ */
-const STUDENTS = [
-  { id:1,  name:'Anna Kovalenko',    group:'A', level:'A2', streak:12, lastSeen:'Today',     native:'🇺🇦', progress:68 },
-  { id:2,  name:'Dmytro Shevchenko', group:'A', level:'A2', streak:5,  lastSeen:'Today',     native:'🇺🇦', progress:52 },
-  { id:3,  name:'Olena Bondarenko',  group:'A', level:'A2', streak:21, lastSeen:'Yesterday', native:'🇺🇦', progress:75 },
-  { id:4,  name:'Ivan Petrenko',     group:'A', level:'A2', streak:3,  lastSeen:'3 days ago',native:'🇺🇦', progress:40 },
-  { id:5,  name:'Maria Kravchenko',  group:'A', level:'A2', streak:8,  lastSeen:'Today',     native:'🇺🇦', progress:61 },
-  { id:6,  name:'Serhii Melnyk',     group:'A', level:'A2', streak:0,  lastSeen:'5 days ago',native:'🇺🇦', progress:30 },
-  { id:7,  name:'Yulia Savchenko',   group:'A', level:'A2', streak:14, lastSeen:'Today',     native:'🇺🇦', progress:72 },
-  { id:8,  name:'Andriy Lysenko',    group:'A', level:'A2', streak:2,  lastSeen:'2 days ago',native:'🇺🇦', progress:45 },
-  { id:9,  name:'Aleksei Ivanov',    group:'B', level:'B1', streak:9,  lastSeen:'Today',     native:'🇷🇺', progress:58 },
-  { id:10, name:'Natalia Sokolova',  group:'B', level:'B1', streak:17, lastSeen:'Today',     native:'🇷🇺', progress:81 },
-  { id:11, name:'Mikhail Popov',     group:'B', level:'B1', streak:6,  lastSeen:'Yesterday', native:'🇷🇺', progress:55 },
-  { id:12, name:'Ekaterina Novak',   group:'B', level:'B1', streak:22, lastSeen:'Today',     native:'🇷🇺', progress:88 },
-  { id:13, name:'Pavel Morozov',     group:'B', level:'B1', streak:1,  lastSeen:'4 days ago',native:'🇷🇺', progress:37 },
-  { id:14, name:'Daria Kozlova',     group:'B', level:'B1', streak:11, lastSeen:'Today',     native:'🇷🇺', progress:66 },
-  { id:15, name:'Roman Volkov',      group:'B', level:'B1', streak:4,  lastSeen:'Yesterday', native:'🇷🇺', progress:50 },
-  { id:16, name:'Sofia Lebedev',     group:'B', level:'B1', streak:19, lastSeen:'Today',     native:'🇷🇺', progress:84 },
-  { id:17, name:'Kamil Nowak',       group:'C', level:'B2', streak:13, lastSeen:'Today',     native:'🇵🇱', progress:79 },
-  { id:18, name:'Agnieszka Kowal',   group:'C', level:'B2', streak:25, lastSeen:'Yesterday', native:'🇵🇱', progress:91 },
-  { id:19, name:'Piotr Wiśniewski',  group:'C', level:'B2', streak:7,  lastSeen:'Today',     native:'🇵🇱', progress:63 },
-  { id:20, name:'Monika Wójcik',     group:'C', level:'B2', streak:18, lastSeen:'Today',     native:'🇵🇱', progress:85 },
-  { id:21, name:'Tomasz Kowalski',   group:'C', level:'B2', streak:0,  lastSeen:'6 days ago',native:'🇵🇱', progress:28 },
-  { id:22, name:'Katarzyna Lewanda', group:'C', level:'B2', streak:30, lastSeen:'Today',     native:'🇵🇱', progress:95 },
-  { id:23, name:'Marcin Zielinski',  group:'C', level:'B2', streak:10, lastSeen:'Yesterday', native:'🇵🇱', progress:71 },
-  { id:24, name:'Joanna Szymanska',  group:'C', level:'B2', streak:16, lastSeen:'Today',     native:'🇵🇱', progress:77 },
-];
-
+let STUDENTS = [];
 let studentsActiveFilter = 'all';
 
 function studentsFilter(filter, el) {
   document.querySelectorAll('#win-students .sb-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   studentsActiveFilter = filter;
   studentsRender();
 }
 
 function studentsRender() {
-  const f = studentsActiveFilter;
   const list = document.getElementById('students-list');
   if (!list) return;
+
+  if (!STUDENTS.length) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-3);font-size:13px;">
+      No students yet.<br>
+      <a href="gradebook.html" style="color:var(--accent);font-weight:700;text-decoration:none;margin-top:10px;display:inline-block;">Open Gradebook to add →</a>
+    </div>`;
+    return;
+  }
+
+  const f = studentsActiveFilter;
   const filtered = STUDENTS.filter(s => {
     if (f === 'all') return true;
     if (f === 'today') return s.lastSeen === 'Today';
-    if (f === 'A' || f === 'B' || f === 'C') return s.group === f;
-    if (f === 'A2' || f === 'B1' || f === 'B2') return s.level === f;
-    return true;
+    return s.group === f || s.level === f;
   });
-  const levelColors = { A2:'rgba(96,165,250,.18)', B1:'rgba(167,139,250,.18)', B2:'rgba(110,201,138,.18)' };
-  const levelTextColors = { A2:'#60a5fa', B1:'#a78bfa', B2:'#6ec98a' };
+
   list.innerHTML = filtered.map(s => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,75,139,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;" onmouseenter="this.style.background='rgba(255,75,139,0.09)'" onmouseleave="this.style.background='rgba(255,75,139,0.04)'">
-      <div style="font-size:22px;flex-shrink:0;">${s.native}</div>
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,75,139,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;" onclick="location.href='gradebook.html'" onmouseenter="this.style.background='rgba(255,75,139,0.09)'" onmouseleave="this.style.background='rgba(255,75,139,0.04)'">
+      <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
       <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
-          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${levelColors[s.level]};color:${levelTextColors[s.level]};font-family:var(--font-mono);">${s.level}</span>
-          <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(255,75,139,0.10);color:var(--accent);font-family:var(--font-mono);">Gr.${s.group}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-          <div style="flex:1;height:4px;border-radius:4px;background:rgba(255,75,139,0.12);overflow:hidden;"><div style="height:100%;border-radius:4px;background:var(--accent);width:${s.progress}%;"></div></div>
-          <span style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);white-space:nowrap;">${s.progress}%</span>
-        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${s.email}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:12px;color:${s.streak>0?'#f59e0b':'var(--text-3)'};">${s.streak>0?'🔥'+s.streak:'—'}</div>
-        <div style="font-size:10px;color:var(--text-3);margin-top:2px;">${s.lastSeen}</div>
+        <div style="font-size:11px;color:var(--text-3);">${s.boardCount} board${s.boardCount === 1 ? '' : 's'}</div>
       </div>
     </div>`).join('');
 }
 
-/* ══════════════════════ PLANS FILTER ══════════════════════ */
-function plansFilter(type, el) {
+function updateStudentSidebar() {
+  const wrap = document.getElementById('sidebar-students');
+  if (!wrap) return;
+  // Just remove the static counts since we don't have group info from API
+  wrap.querySelectorAll('.sb-item-badge').forEach(b => b.remove());
+  const allBadge = wrap.querySelector('.sb-item.active');
+  if (allBadge && STUDENTS.length) {
+    const badge = document.createElement('span');
+    badge.className = 'sb-item-badge';
+    badge.textContent = STUDENTS.length;
+    allBadge.appendChild(badge);
+  }
+  // Update header sub-text
+  const sub = document.querySelector('#win-students [style*="font-family:var(--font-mono)"]');
+  if (sub) sub.textContent = STUDENTS.length
+    ? `${STUDENTS.length} student${STUDENTS.length === 1 ? '' : 's'}`
+    : 'Add students via Gradebook';
+}
+
+/* ══════════════════════ BOARDS LIST ══════════════════════ */
+let MY_BOARDS = [];
+let SHARED_BOARDS = [];
+let boardsFilterMode = 'all';
+
+function boardsFilter(mode, el) {
+  boardsFilterMode = mode;
   document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  boardsRender();
+}
+
+function boardsRender() {
+  const grid = document.getElementById('plans-grid');
+  if (!grid) return;
+  const q = (document.getElementById('plans-search-input')?.value || '').toLowerCase().trim();
+
+  let list;
+  if (boardsFilterMode === 'shared')      list = SHARED_BOARDS;
+  else if (boardsFilterMode === 'recent') list = MY_BOARDS.slice(0, 6);
+  else                                    list = MY_BOARDS;
+
+  if (q) list = list.filter(b => (b.name || '').toLowerCase().includes(q));
+
+  if (!list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
+      ${boardsFilterMode === 'shared' ? 'No boards shared with you yet.' : 'No boards yet.'}
+      <div style="margin-top:10px;">
+        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}" style="color:var(--accent);font-weight:700;text-decoration:none;">
+          ${boardsFilterMode === 'shared' ? 'Open Profile →' : 'Create your first board →'}
+        </a>
+      </div></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(b => {
+    const cards = b.card_count || 0;
+    const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
+    const owner = b.owner_name ? `<div class="lc-desc">Shared by ${b.owner_name}</div>` : '';
+    return `<div class="lesson-card" onclick="location.href='board.html?id=${b.id}'" style="cursor:pointer;">
+      <div class="lc-lang">📌 Board</div>
+      <div class="lc-title">${(b.name || 'Untitled').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</div>
+      ${owner}
+      <div class="lc-meta">
+        <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}</span>
+        ${updated ? `<span class="lc-dur">${updated}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ══════════════════════ SCHEDULE ══════════════════════ */
-let schYear = 2026, schMonth = 4; // 0-indexed, May = 4
-const EVENTS = {
-  '2026-5-7':  [{ text:'Gr.A 10:00 A2', cls:'' }, { text:'Gr.B 14:00 B1', cls:'blue' }],
-  '2026-5-8':  [{ text:'Gr.C 11:00 B2', cls:'green' }],
-  '2026-5-9':  [{ text:'Gr.A 10:00 A2', cls:'' }],
-  '2026-5-12': [{ text:'Gr.B 14:00 B1', cls:'blue' }, { text:'Gr.C 16:00 B2', cls:'green' }],
-  '2026-5-13': [{ text:'Gr.A 10:00 A2', cls:'' }],
-  '2026-5-14': [{ text:'Gr.B 14:00 B1', cls:'blue' }],
-  '2026-5-15': [{ text:'Gr.C 11:00 B2', cls:'green' }, { text:'Gr.A 15:00 A2', cls:'' }],
-  '2026-5-16': [{ text:'Gr.B 10:00 B1', cls:'blue' }],
-  '2026-5-19': [{ text:'Gr.A 10:00 A2', cls:'' }, { text:'Gr.C 14:00 B2', cls:'green' }],
-  '2026-5-20': [{ text:'Gr.B 14:00 B1', cls:'blue' }],
-  '2026-5-21': [{ text:'Gr.A 10:00 A2', cls:'' }],
-  '2026-5-22': [{ text:'Gr.C 11:00 B2', cls:'green' }],
-  '2026-5-23': [{ text:'Gr.B 14:00 B1', cls:'blue' }],
-  '2026-5-26': [{ text:'Gr.A 10:00 A2', cls:'' }, { text:'Gr.B 14:00 B1', cls:'blue' }],
-  '2026-5-27': [{ text:'Gr.C 11:00 B2', cls:'green' }],
-  '2026-5-28': [{ text:'Gr.A 10:00 A2', cls:'' }],
-  '2026-5-29': [{ text:'Gr.B 14:00 B1', cls:'blue' }, { text:'Gr.C 16:00 B2', cls:'green' }],
-};
+const _now = new Date();
+let schYear = _now.getFullYear(), schMonth = _now.getMonth();
+let SCHEDULE_RAW = []; // populated from /api/schedule (recurring weekly slots)
+const EVENT_CLS = ['', 'blue', 'green', 'orange'];
+function eventsForDate(y, m, d) {
+  const dow = new Date(y, m, d).getDay();
+  return SCHEDULE_RAW
+    .filter(s => s.day === dow)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+    .map((s, i) => ({
+      text: `${(s.group_name || s.title || 'Class').slice(0, 8)} ${s.start_time.slice(0,5)}${s.level ? ' ' + s.level : ''}`,
+      cls: EVENT_CLS[i % EVENT_CLS.length],
+    }));
+}
+const EVENTS = new Proxy({}, {
+  get(_, key) {
+    const [y, m, d] = String(key).split('-').map(Number);
+    if (!y || !m || !d) return undefined;
+    const list = eventsForDate(y, m - 1, d);
+    return list.length ? list : undefined;
+  }
+});
 const SCH_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function schRender() {
   document.getElementById('sch-month').textContent = SCH_MONTHS[schMonth] + ' ' + schYear;
@@ -1879,31 +1870,30 @@ studentsRender();
 /* ══════════════════════ TOOLS ══════════════════════ */
 const TOOLS_DATA = [
   // READING
-  { id:'r1', name:'Create a Text on Any Topic', desc:'Paste a topic, link, or word list — Twee instantly generates a level-appropriate text. Perfect for reading lessons or homework after a vocabulary lesson.', tags:['Reading','Vocabulary'], badge:null, icon:'📄', group:'reading' },
-  { id:'r2', name:'Create ABCD Questions', desc:'Generates multiple-choice questions for any text with exactly one correct answer. Ideal for comprehension tests and graded assessments.', tags:['Reading'], badge:'Pro', icon:'🔡', group:'reading' },
-  { id:'r3', name:'Create Open Questions', desc:'Produces open-ended comprehension questions that encourage critical thinking and discussion around the text.', tags:['Reading'], badge:null, icon:'❓', group:'reading' },
-  { id:'r4', name:'Create True/False Statements', desc:'Creates a true/false reading exercise to quickly check if students understood the key facts and details of the text.', tags:['Reading'], badge:'Pro', icon:'✅', group:'reading' },
+  { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
   // WRITING
-  { id:'w1', name:'Writing Prompts', desc:'Generates creative or structured writing prompts tailored to a specific topic and CEFR level — great for in-class or homework writing tasks.', tags:['Writing'], badge:null, icon:'✍️', group:'writing' },
-  { id:'w2', name:'Dialogue Creator', desc:'Creates a realistic dialogue between two characters on any topic and level. Use for reading, comprehension, or role-play speaking practice.', tags:['Writing','Speaking'], badge:null, icon:'💬', group:'writing' },
-  // LISTENING
-  { id:'l1', name:'Audio & Video Question Creator', desc:'Upload any audio or video file and auto-generate open questions, multiple-choice questions, or true/false statements based on the content.', tags:['Listening'], badge:'Pro', icon:'🎙️', group:'listening' },
-  { id:'l2', name:'Convert Audio & Video to Text', desc:'Transcribes mp3, mp4, or YouTube links into a readable transcript ready for classroom use as a reading or gap-fill activity.', tags:['Listening'], badge:'Pro', icon:'🎬', group:'listening' },
+  { id:'sentence-builder', name:'Sentence Builder', desc:'Drag scrambled words into the correct order to form a grammatically correct sentence. Works for any level.', tags:['Writing','Grammar'], badge:null, icon:'🧩', group:'writing', url:'games/sentence-builder.html' },
+  { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules — useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
   // SPEAKING
-  { id:'s1', name:'Find Discussion Questions', desc:'Creates engaging discussion questions on any topic — use as a warm-up, while-lesson discussion, or speaking fluency practice for any level.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking' },
-  { id:'s2', name:'Role-Play Scenarios', desc:'Generates role-play cards and scenario prompts for pair or group speaking activities. Set the context, and get ready-to-use speaking tasks.', tags:['Speaking'], badge:null, icon:'🎭', group:'speaking' },
+  { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic — students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
   // VOCABULARY
-  { id:'v1', name:'Word-Image Matching', desc:'Creates a vocabulary exercise where students match each word to the correct picture. Boosts visual recognition and word retention.', tags:['Vocabulary'], badge:'New', icon:'🖼️', group:'vocabulary' },
-  { id:'v2', name:'Word-Definition Matching', desc:'Automatically creates a word-to-definition matching exercise. For words with multiple meanings, add a synonym in brackets to target the right definition.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary' },
-  { id:'v3', name:'Create a List of Sentences', desc:'Generates sentences using your target vocabulary list. Great to use before a Fill-in-the-Gap task or as example sentences for a new word set.', tags:['Vocabulary'], badge:'Pro', icon:'📋', group:'vocabulary' },
-  { id:'v4', name:'Fill in the Gap', desc:'Replaces chosen words in a text with blank gaps and provides the word list separately. Works for vocabulary recall and grammar tense practice.', tags:['Vocabulary','Grammar'], badge:null, icon:'✏️', group:'vocabulary' },
+  { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap — Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
+  { id:'hangman', name:'Hangman', desc:'Classic word-guessing game. Configurable word lists by level and topic.', tags:['Vocabulary'], badge:null, icon:'🪢', group:'vocabulary', url:'games/hangman.html' },
+  { id:'memory-match', name:'Memory Match', desc:'Pair word ↔ image (or word ↔ definition) cards. Fun warm-up that boosts retention.', tags:['Vocabulary'], badge:null, icon:'🧠', group:'vocabulary', url:'games/memory-match.html' },
+  { id:'phrasal-verbs', name:'Phrasal Verbs', desc:'Match phrasal verbs to meanings or fill them into sentences. Covers the core B1/B2 set.', tags:['Vocabulary'], badge:null, icon:'🔗', group:'vocabulary', url:'games/phrasal-verbs.html' },
+  { id:'spelling-bee', name:'Spelling Bee', desc:'Type the word you hear. Pronunciation + spelling combined.', tags:['Vocabulary'], badge:null, icon:'🐝', group:'vocabulary', url:'games/spelling-bee.html' },
+  { id:'synonym-snap', name:'Synonym Snap', desc:'Tap pairs that share a meaning. Fast-paced synonym recognition drill.', tags:['Vocabulary'], badge:null, icon:'⚡', group:'vocabulary', url:'games/synonym-snap.html' },
+  { id:'typing-rain', name:'Typing Rain', desc:'Words fall from the top — type them before they hit the ground. Builds typing speed + recall.', tags:['Vocabulary'], badge:null, icon:'🌧️', group:'vocabulary', url:'games/typing-rain.html' },
+  { id:'word-categories', name:'Word Categories', desc:'Sort words into the right category (food, animals, jobs, etc.). Great for theme-based vocab.', tags:['Vocabulary'], badge:null, icon:'🗂️', group:'vocabulary', url:'games/word-categories.html' },
+  { id:'word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible — load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
+  { id:'word-scramble', name:'Word Scramble', desc:'Unscramble the letters to find the hidden word. Quick and addictive.', tags:['Vocabulary'], badge:null, icon:'🔤', group:'vocabulary', url:'games/word-scramble.html' },
   // GRAMMAR
-  { id:'g1', name:'Fill in the Gap', desc:'Replaces chosen words in a text with gaps. Add verb forms or tense markers to turn it into a grammar tense or form exercise.', tags:['Grammar','Vocabulary'], badge:null, icon:'✏️', group:'grammar' },
-  { id:'g2', name:'Grammar Worksheets', desc:'Generates structured grammar worksheets with clear explanations, examples, and progressive exercises for any grammar point and CEFR level.', tags:['Grammar'], badge:null, icon:'📑', group:'grammar' },
-  { id:'g3', name:'Error Correction', desc:'Creates sentences with intentional grammar or vocabulary mistakes for students to identify and fix. Great for proofreading and accuracy tasks.', tags:['Grammar'], badge:'Pro', icon:'🔧', group:'grammar' },
+  { id:'article-rush', name:'Article Rush', desc:'Tap a / an / the / Ø as fast as possible. Drill articles for Slavic learners.', tags:['Grammar'], badge:null, icon:'⏱️', group:'grammar', url:'games/article-rush.html' },
+  { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2–C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
+  { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap — at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
+  { id:'tense-picker', name:'Tense Picker', desc:'Choose the correct tense for the context. Covers all 12 tenses with timeline hints.', tags:['Grammar'], badge:null, icon:'⏳', group:'grammar', url:'games/tense-picker.html' },
   // UTILITY
-  { id:'u1', name:'CEFR Level Checker', desc:'Paste any text and instantly determine its CEFR proficiency level (A1–C2) according to the Common European Framework of Reference.', tags:['Utility'], badge:'Pro', icon:'📊', group:'utility' },
-  { id:'u2', name:'Lesson Plan Generator', desc:'Input a topic, level, and lesson duration — get a complete, structured lesson plan with objectives, activities, and timing suggestions.', tags:['Utility'], badge:null, icon:'📅', group:'utility' },
+  { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz — generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
 ];
 
 const TAG_COLORS = {
@@ -1966,16 +1956,25 @@ function toolsRender() {
 
 function toolOpen(id) {
   const t = TOOLS_DATA.find(x => x.id === id);
-  if (!t) return;
-  // Open notes with a template for this tool
-  const content = `Tool: ${t.name}\n${'—'.repeat(40)}\n\nSkill: ${t.tags.join(', ')}\n\nDescription:\n${t.desc}\n\n${'—'.repeat(40)}\nMy notes:\n\n`;
-  const noteId = Date.now();
-  NOTES.unshift({ id: noteId, title: t.name, preview: t.desc.slice(0,50), content, date: 'Today' });
-  activeNote = noteId;
-  notesRender();
-  openApp('notes');
+  if (!t || !t.url) return;
+  window.open(t.url, '_blank', 'noopener');
 }
 
+function updateToolSidebarCounts() {
+  const counts = { all: TOOLS_DATA.length };
+  TOOLS_DATA.forEach(t => { counts[t.group] = (counts[t.group] || 0) + 1; });
+  const map = { all:'tg-all', reading:'tg-reading', writing:'tg-writing', listening:'tg-listening',
+                speaking:'tg-speaking', vocabulary:'tg-vocabulary', grammar:'tg-grammar', utility:'tg-utility' };
+  Object.entries(map).forEach(([g, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const badge = el.querySelector('.sb-item-badge');
+    if (badge) badge.textContent = counts[g] || 0;
+    if (!counts[g] && g !== 'all') el.style.display = 'none';
+  });
+}
+
+updateToolSidebarCounts();
 toolsRender();
 
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
@@ -1993,13 +1992,18 @@ const SP_ITEMS = [
   { icon:'📊', iconBg:'linear-gradient(145deg,#34d399,#059669)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
   { icon:'📒', iconBg:'linear-gradient(145deg,#60a5fa,#2563eb)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
   { icon:'👤', iconBg:'linear-gradient(145deg,#f472b6,#db2777)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
-  // Students quick jump
-  ...STUDENTS.map(s => ({
-    icon: s.native, iconBg:'rgba(255,75,139,0.10)',
-    title: s.name, sub:`Group ${s.group} · ${s.level} · ${s.progress}% progress`,
-    kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
-  })),
+  // Students quick jump (rebuilt later when STUDENTS loads from API)
 ];
+
+function rebuildSpotlightStudents() {
+  // Strip previous student entries then re-add
+  while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length - 1].kbd === 'Student') SP_ITEMS.pop();
+  STUDENTS.forEach(s => SP_ITEMS.push({
+    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(255,75,139,0.10)',
+    title: s.name, sub: s.email || '',
+    kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
+  }));
+}
 
 let spSelectedIdx = -1;
 
@@ -2150,6 +2154,10 @@ mobInit();
   fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
     const today = new Date().getDay();
     const all = d.schedule || [];
+    if (typeof SCHEDULE_RAW !== 'undefined') {
+      SCHEDULE_RAW = all;
+      if (typeof schRender === 'function') schRender();
+    }
     const todays = all.filter(s => s.day === today).sort((a,b) => a.start_time.localeCompare(b.start_time));
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -2189,9 +2197,30 @@ mobInit();
     }
   }).catch(() => {});
 
-  // Boards count for vocab widget
+  // Boards: vocab widget + Lesson Plans grid + students aggregation
   fetch(API + '/api/boards', auth).then(r => r.json()).then(d => {
     const boards = d.boards || [];
+    if (typeof MY_BOARDS !== 'undefined') {
+      MY_BOARDS = boards;
+      if (typeof boardsRender === 'function') boardsRender();
+    }
+    // Aggregate students from all boards' members
+    const memberFetches = boards.slice(0, 20).map(b =>
+      fetch(API + `/api/members/${b.id}`, auth).then(r => r.ok ? r.json() : { members: [] }).catch(() => ({ members: [] }))
+    );
+    Promise.all(memberFetches).then(results => {
+      const seen = new Map();
+      results.forEach(r => (r.members || []).forEach(m => {
+        if (!seen.has(m.id)) seen.set(m.id, { ...m, boardCount: 1 });
+        else seen.get(m.id).boardCount++;
+      }));
+      if (typeof STUDENTS !== 'undefined') {
+        STUDENTS = Array.from(seen.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        if (typeof studentsRender === 'function') studentsRender();
+        if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
+        if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+      }
+    });
     const v = {
       label: document.querySelector('#wg-vocab .wg-vocab-label'),
       n:     document.querySelector('#wg-vocab .wg-vocab-word'),
@@ -2210,6 +2239,14 @@ mobInit();
       v.ex.innerHTML = recent;
     }
     if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
+  }).catch(() => {});
+
+  // Shared boards
+  fetch(API + '/api/members/my/boards', auth).then(r => r.ok ? r.json() : { boards: [] }).then(d => {
+    if (typeof SHARED_BOARDS !== 'undefined') {
+      SHARED_BOARDS = d.boards || [];
+      if (typeof boardsRender === 'function') boardsRender();
+    }
   }).catch(() => {});
 })();
 </script>
