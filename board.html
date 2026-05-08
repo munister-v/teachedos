@@ -486,6 +486,154 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .pt-dot.done    {background:#10b981;}
 .pt-dot.progress{background:#f97316;}
 .pt-dot.locked  {background:#9ca3af;}
+
+/* ══════════════ VOCABULARY CARD ══════════════ */
+.card-vocab .card-header{background:linear-gradient(135deg,rgba(234,179,8,.07),rgba(245,158,11,.03));}
+.vocab-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;}
+.vocab-word{font-size:20px;font-weight:900;color:var(--text);line-height:1;}
+.vocab-phonetic{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:1px;}
+.vocab-trans{font-size:13px;font-weight:700;color:#6366f1;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;}
+.vocab-pos{font-size:10px;font-family:var(--mono);color:var(--text-3);margin-bottom:2px;}
+.vocab-example{font-size:11px;color:var(--text-2);line-height:1.5;font-style:italic;}
+.vocab-example em{font-style:normal;font-weight:800;color:var(--accent);}
+
+/* ══════════════ CHECKLIST CARD ══════════════ */
+.card-checklist .card-header{background:linear-gradient(135deg,rgba(20,184,166,.07),rgba(5,150,105,.03));}
+.checklist-body{padding:8px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;}
+.cl-item{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:7px;transition:background .1s;cursor:default;}
+.cl-item:hover{background:rgba(20,184,166,.05);}
+.cl-check{width:18px;height:18px;border-radius:5px;border:2px solid rgba(20,184,166,.4);
+  background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.cl-check.done{background:#10b981;border-color:#10b981;}
+.cl-check.done::after{content:'✓';color:#fff;font-size:11px;font-weight:800;}
+.cl-text{font-size:12px;font-weight:600;color:var(--text);flex:1;line-height:1.35;}
+.cl-text.done{text-decoration:line-through;color:var(--text-3);}
+.cl-add{margin-top:4px;font-size:11px;color:var(--text-3);cursor:pointer;padding:3px 4px;border-radius:5px;
+  display:flex;align-items:center;gap:4px;font-weight:700;transition:background .1s;}
+.cl-add:hover{background:rgba(20,184,166,.08);color:#0f766e;}
+.cl-progress{height:4px;border-radius:2px;background:rgba(20,184,166,.12);overflow:hidden;margin-top:4px;}
+.cl-progress-fill{height:100%;border-radius:2px;background:#10b981;transition:width .4s;}
+
+/* ══════════════ TIMER CARD ══════════════ */
+.card-timer .card-header{background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(220,38,38,.03));}
+.timer-body{padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.timer-display{font-size:36px;font-weight:900;color:var(--text);font-family:var(--mono);letter-spacing:-.02em;line-height:1;}
+.timer-display.running{color:#ef4444;}
+.timer-display.done{color:#10b981;}
+.timer-controls{display:flex;gap:8px;}
+.timer-btn{padding:6px 14px;border-radius:8px;border:none;font-family:var(--font);font-size:12px;font-weight:800;
+  cursor:pointer;transition:.15s;}
+.timer-start{background:#ef4444;color:#fff;}  .timer-start:hover{background:#dc2626;}
+.timer-pause{background:#f59e0b;color:#fff;}  .timer-pause:hover{background:#d97706;}
+.timer-reset{background:rgba(0,0,0,.06);color:var(--text-2);}  .timer-reset:hover{background:rgba(0,0,0,.1);}
+.timer-label{font-size:11px;color:var(--text-3);text-align:center;}
+.timer-set{display:flex;gap:4px;align-items:center;}
+.timer-set input{width:44px;padding:4px 6px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:var(--mono);font-size:13px;font-weight:700;text-align:center;outline:none;
+  color:var(--text);background:var(--bg);}
+.timer-set input:focus{border-color:var(--accent);}
+
+/* ══════════════ CARD COLOR ACCENT ══════════════ */
+.card-accent-red    {border-top:3px solid #ef4444!important;}
+.card-accent-orange {border-top:3px solid #f97316!important;}
+.card-accent-yellow {border-top:3px solid #eab308!important;}
+.card-accent-green  {border-top:3px solid #22c55e!important;}
+.card-accent-blue   {border-top:3px solid #3b82f6!important;}
+.card-accent-purple {border-top:3px solid #8b5cf6!important;}
+.card-accent-pink   {border-top:3px solid #ec4899!important;}
+.card-accent-indigo {border-top:3px solid #6366f1!important;}
+
+/* ══════════════ QUICK-ADD MENU ══════════════ */
+#quick-add{
+  position:fixed;z-index:5000;background:#fff;border:1px solid var(--border);
+  border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.14);
+  padding:6px;min-width:220px;display:none;
+  animation:qaFadeIn .12s ease;
+}
+@keyframes qaFadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.qa-title{font-size:10px;font-family:var(--mono);color:var(--text-3);padding:4px 10px 6px;
+  text-transform:uppercase;letter-spacing:.07em;}
+.qa-item{
+  padding:8px 12px;border-radius:9px;font-size:12px;font-weight:700;
+  color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .1s;
+}
+.qa-item:hover{background:var(--accent-2);}
+.qa-sep{height:1px;background:var(--border);margin:4px 0;}
+
+/* ══════════════ KEYBOARD SHORTCUTS PANEL ══════════════ */
+#shortcuts-panel{
+  position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);
+  z-index:4000;display:none;align-items:center;justify-content:center;
+}
+#shortcuts-panel.open{display:flex;}
+.sp-box{
+  background:#fff;border-radius:20px;padding:28px 32px;max-width:520px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.18);max-height:80vh;overflow-y:auto;
+}
+.sp-title{font-size:18px;font-weight:900;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.sp-section{display:flex;flex-direction:column;gap:8px;}
+.sp-section h4{font-size:11px;font-family:var(--mono);color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.sp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;}
+.sp-row span{color:var(--text-2);}
+.kbd{display:inline-flex;align-items:center;gap:2px;}
+.kbd code{background:var(--bg);border:1px solid var(--border);border-radius:5px;
+  padding:2px 6px;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text-2);}
+.sp-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);}
+
+/* ══════════════ BOARD SEARCH ══════════════ */
+#board-search-bar{
+  position:fixed;top:58px;left:50%;transform:translateX(-50%);
+  z-index:1500;display:none;
+  background:#fff;border:1.5px solid var(--accent);border-radius:12px;
+  box-shadow:0 4px 20px rgba(255,75,139,.18);
+  padding:0;overflow:hidden;
+}
+#board-search-bar.open{display:flex;}
+#board-search-bar input{
+  border:none;outline:none;padding:10px 16px;font-family:var(--font);
+  font-size:13px;font-weight:700;width:280px;color:var(--text);
+}
+#board-search-count{padding:0 12px;font-size:11px;font-family:var(--mono);color:var(--text-3);
+  display:flex;align-items:center;border-left:1px solid var(--border);}
+.card-search-highlight{
+  outline:3px solid var(--accent)!important;
+  box-shadow:0 0 0 6px rgba(255,75,139,.16)!important;
+}
+
+/* ══════════════ ALIGN TOOLBAR ══════════════ */
+#align-bar{
+  position:fixed;bottom:140px;right:16px;z-index:900;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(10px);
+  border:1px solid var(--border);border-radius:12px;
+  padding:6px;box-shadow:0 2px 12px rgba(0,0,0,.1);
+  display:none;flex-direction:column;gap:4px;
+}
+#align-bar.show{display:flex;}
+.align-btn{
+  width:30px;height:30px;border:none;background:transparent;cursor:pointer;
+  border-radius:7px;font-size:15px;display:flex;align-items:center;justify-content:center;
+  transition:background .1s;
+}
+.align-btn:hover{background:var(--accent-2);}
+.align-sep{height:1px;background:var(--border);margin:2px 0;}
+
+/* ══════════════ ARROW LABEL ══════════════ */
+.arrow-label{
+  position:absolute;pointer-events:none;z-index:7;
+  background:rgba(255,255,255,.92);border:1px solid var(--border);
+  border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;
+  color:var(--text-2);font-family:var(--mono);white-space:nowrap;
+  transform:translate(-50%,-50%);
+}
+
+/* ══════════════ SNAP INDICATOR ══════════════ */
+#snap-indicator{
+  position:fixed;bottom:16px;left:calc(var(--sb-w) + 12px);
+  font-size:10px;font-family:var(--mono);color:var(--text-3);
+  background:rgba(255,255,255,.82);padding:4px 10px;border-radius:20px;
+  border:1px solid var(--border);pointer-events:none;z-index:900;display:none;
+}
 </style>
 </head>
 <body>
@@ -507,6 +655,10 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-btn text" id="btn-fit" title="Fit all (F)">⊡ Fit</div>
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
+  <div class="tb-btn text" id="btn-snap" title="Snap to grid (hold Shift while dragging)" onclick="toggleSnap()">⊞ Snap</div>
+  <div class="tb-sep"></div>
+  <div class="tb-btn text" id="btn-search" title="Search cards (Ctrl+F)" onclick="toggleBoardSearch()">🔍</div>
+  <div class="tb-btn text" id="btn-shortcuts" title="Keyboard shortcuts (?)" onclick="openShortcuts()">?</div>
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
   <div class="tb-btn text" id="btn-members" title="Manage students" onclick="location.href='gradebook.html'" style="display:none">👥 Students</div>
@@ -588,18 +740,98 @@ body.board-dragging .game-iframe-overlay{display:block;}
 <div id="drag-ghost"></div>
 <!-- Selection box -->
 <div id="sel-box"></div>
+
+<!-- Quick-add menu (double-click) -->
+<div id="quick-add">
+  <div class="qa-title">Quick Add</div>
+  <div class="qa-item" data-qa="sticky">🟡 Sticky Note</div>
+  <div class="qa-item" data-qa="text">🔤 Text Label</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="lesson">📚 Lesson</div>
+  <div class="qa-item" data-qa="assignment">📝 Assignment</div>
+  <div class="qa-item" data-qa="milestone">🏁 Milestone</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="vocab">🔤 Vocabulary</div>
+  <div class="qa-item" data-qa="checklist">✅ Checklist</div>
+  <div class="qa-item" data-qa="timer">⏱ Timer</div>
+</div>
+
+<!-- Board search bar (Ctrl+F) -->
+<div id="board-search-bar">
+  <input id="board-search-input" type="text" placeholder="Search cards… (Esc to close)"/>
+  <div id="board-search-count"></div>
+</div>
+
+<!-- Align bar (shown when ≥2 cards selected) -->
+<div id="align-bar" title="Align selected cards">
+  <button class="align-btn" onclick="alignCards('left')"    title="Align left">⬛▫▫</button>
+  <button class="align-btn" onclick="alignCards('hcenter')" title="Center horizontally">▫⬛▫</button>
+  <button class="align-btn" onclick="alignCards('right')"   title="Align right">▫▫⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="alignCards('top')"     title="Align top">⬛</button>
+  <button class="align-btn" onclick="alignCards('vcenter')" title="Center vertically">▫⬛</button>
+  <button class="align-btn" onclick="alignCards('bottom')"  title="Align bottom">▫▫⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="distributeCards('h')"  title="Distribute horizontally">⬛▫⬛▫⬛</button>
+  <button class="align-btn" onclick="distributeCards('v')"  title="Distribute vertically">⬛</button>
+</div>
+
+<!-- Snap indicator -->
+<div id="snap-indicator">⊞ Grid snap ON · hold Shift</div>
+
+<!-- Keyboard shortcuts panel -->
+<div id="shortcuts-panel">
+  <div class="sp-box">
+    <button class="sp-close" onclick="closeShortcuts()">✕</button>
+    <div class="sp-title">⌨️ Keyboard Shortcuts</div>
+    <div class="sp-grid">
+      <div class="sp-section">
+        <h4>Navigation</h4>
+        <div class="sp-row"><span>Pan (hold)</span><div class="kbd"><code>Space</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Zoom</span><div class="kbd"><code>Scroll</code></div></div>
+        <div class="sp-row"><span>Fit all</span><div class="kbd"><code>F</code></div></div>
+        <div class="sp-row"><span>Reset zoom</span><div class="kbd"><code>Ctrl</code><code>0</code></div></div>
+        <div class="sp-row"><span>Nudge card</span><div class="kbd"><code>↑↓←→</code></div></div>
+        <h4>Selection</h4>
+        <div class="sp-row"><span>Select all</span><div class="kbd"><code>Ctrl</code><code>A</code></div></div>
+        <div class="sp-row"><span>Multi-select</span><div class="kbd"><code>Shift</code>+<code>click</code></div></div>
+        <div class="sp-row"><span>Box select</span><div class="kbd"><code>drag</code> on bg</div></div>
+        <div class="sp-row"><span>Deselect</span><div class="kbd"><code>Esc</code></div></div>
+      </div>
+      <div class="sp-section">
+        <h4>Cards</h4>
+        <div class="sp-row"><span>Quick add</span><div class="kbd"><code>dbl-click</code></div></div>
+        <div class="sp-row"><span>Delete</span><div class="kbd"><code>Del</code></div></div>
+        <div class="sp-row"><span>Duplicate</span><div class="kbd"><code>Ctrl</code><code>D</code></div></div>
+        <div class="sp-row"><span>Snap to grid</span><div class="kbd"><code>Shift</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Undo</span><div class="kbd"><code>Ctrl</code><code>Z</code></div></div>
+        <div class="sp-row"><span>Redo</span><div class="kbd"><code>Ctrl</code><code>Y</code></div></div>
+        <h4>Modes</h4>
+        <div class="sp-row"><span>Connect mode</span><div class="kbd"><code>C</code></div></div>
+        <div class="sp-row"><span>Search cards</span><div class="kbd"><code>Ctrl</code><code>F</code></div></div>
+        <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Context menu -->
 <div id="ctx-menu">
-  <div class="ctx-item" id="ctx-sticky">🟡 Add Sticky Note</div>
-  <div class="ctx-item" id="ctx-text">🔤 Add Text</div>
-  <div class="ctx-item" id="ctx-plan">📋 Add Lesson Plan</div>
+  <div class="ctx-item" id="ctx-sticky">🟡 Sticky Note</div>
+  <div class="ctx-item" id="ctx-text">🔤 Text Label</div>
+  <div class="ctx-item" id="ctx-plan">📋 Lesson Plan</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" id="ctx-lesson">📚 Add Lesson</div>
-  <div class="ctx-item" id="ctx-assignment">📝 Add Assignment</div>
-  <div class="ctx-item" id="ctx-milestone">🏁 Add Milestone</div>
+  <div class="ctx-item" id="ctx-lesson">📚 Lesson</div>
+  <div class="ctx-item" id="ctx-assignment">📝 Assignment</div>
+  <div class="ctx-item" id="ctx-milestone">🏁 Milestone</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-vocab">🔤 Vocabulary Card</div>
+  <div class="ctx-item" id="ctx-checklist">✅ Checklist</div>
+  <div class="ctx-item" id="ctx-timer">⏱ Timer</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
   <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
+  <div class="ctx-item" id="ctx-label-arrow" style="display:none;">🏷 Label Arrow</div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
   <div class="ctx-item danger" id="ctx-clear">🗑 Clear Board</div>
 </div>
@@ -827,7 +1059,8 @@ function getDefaults(type) {
   return ({ sticky:{w:220,h:180}, plan:{w:280,h:200}, student:{w:240,h:160},
             event:{w:200,h:140},  note:{w:300,h:240}, text:{w:200,h:90},
             image:{w:260,h:200},  game:{w:460,h:540},
-            lesson:{w:260,h:210}, assignment:{w:240,h:200}, milestone:{w:210,h:220}
+            lesson:{w:260,h:210}, assignment:{w:240,h:200}, milestone:{w:210,h:220},
+            vocab:{w:240,h:200},  checklist:{w:230,h:220},  timer:{w:200,h:200},
           })[type] || { w:220,h:160 };
 }
 
@@ -864,6 +1097,12 @@ function renderCard(card) {
   else if (card.type === 'lesson')     renderLesson(el, card);
   else if (card.type === 'assignment') renderAssignment(el, card);
   else if (card.type === 'milestone')  renderMilestone(el, card);
+  else if (card.type === 'vocab')      renderVocab(el, card);
+  else if (card.type === 'checklist')  renderChecklist(el, card);
+  else if (card.type === 'timer')      renderTimer(el, card);
+
+  // Apply stored accent color
+  if (card.data._accent) el.classList.add(card.data._accent);
 
   // Anchor dots (connect mode)
   ['top','right','bottom','left'].forEach(anchor => {
@@ -1266,8 +1505,10 @@ function openCardEditor(cardId) {
   const editor = document.getElementById('card-editor');
   const body   = document.getElementById('card-editor-body');
   document.getElementById('card-editor-title').textContent =
-    card.type === 'lesson' ? '📚 Edit Lesson' :
-    card.type === 'assignment' ? '📝 Edit Assignment' : '🏁 Edit Milestone';
+    card.type === 'lesson'     ? '📚 Edit Lesson' :
+    card.type === 'assignment' ? '📝 Edit Assignment' :
+    card.type === 'vocab'      ? '📖 Edit Vocabulary' :
+    '🏁 Edit Milestone';
 
   body.innerHTML = '';
 
@@ -1333,7 +1574,33 @@ function openCardEditor(cardId) {
         💡 Connect lesson cards to this milestone with arrows. Progress auto-calculates from their status.
       </div>
       <button class="ed-save" onclick="saveCardEditor()">Save Milestone</button>`;
+  } else if (card.type === 'vocab') {
+    body.innerHTML = `
+      <div><div class="ed-label">Word</div>
+        <input class="ed-input" id="ed-word" value="${esc(card.data.word||'')}"/></div>
+      <div><div class="ed-label">Phonetic (IPA)</div>
+        <input class="ed-input" id="ed-phonetic" placeholder="/wɜːrd/" value="${esc(card.data.phonetic||'')}"/></div>
+      <div><div class="ed-label">Part of Speech</div>
+        <select class="ed-input ed-select" id="ed-pos">
+          ${['noun','verb','adjective','adverb','phrase','idiom'].map(p=>`<option${card.data.pos===p?' selected':''}>${p}</option>`).join('')}
+        </select></div>
+      <div><div class="ed-label">Translation</div>
+        <input class="ed-input" id="ed-translation" value="${esc(card.data.translation||'')}"/></div>
+      <div><div class="ed-label">Example (use ___ for the word)</div>
+        <textarea class="ed-input ed-textarea" id="ed-example">${esc(card.data.example||'')}</textarea></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Vocabulary</button>`;
   }
+  // Add color accent picker at bottom of all card editors
+  const accentRow = document.createElement('div');
+  accentRow.innerHTML = `<div class="ed-label">Card Accent Color</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
+      ${ACCENT_COLORS.map(a => `<div onclick="applyCardAccent('${cardId}','${a.cls}')" title="${a.name}"
+        style="width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid ${card.data._accent===a.cls?'#1a1a2e':'rgba(0,0,0,.12)'};
+        background:${a.cls?a.cls.replace('card-accent-','').replace('indigo','#6366f1').replace('pink','#ec4899').replace('purple','#8b5cf6').replace('blue','#3b82f6').replace('green','#22c55e').replace('yellow','#eab308').replace('orange','#f97316').replace('red','#ef4444'):'#f3f4f6'};transition:.1s;">
+      </div>`).join('')}
+    </div>`;
+  body.appendChild(accentRow);
+
   editor.classList.add('open');
 }
 
@@ -1377,6 +1644,12 @@ function saveCardEditor() {
   } else if (card.type === 'milestone') {
     card.data.title = g('ed-title').value.trim() || 'Milestone';
     card.data.desc  = g('ed-desc').value.trim();
+  } else if (card.type === 'vocab') {
+    card.data.word        = g('ed-word')?.value.trim() || 'Word';
+    card.data.phonetic    = g('ed-phonetic')?.value.trim();
+    card.data.pos         = g('ed-pos')?.value;
+    card.data.translation = g('ed-translation')?.value.trim();
+    card.data.example     = g('ed-example')?.value.trim();
   }
 
   reRenderCard(card);
@@ -1443,12 +1716,14 @@ function updateCardPos(card) {
 function selectCard(id) {
   state.selected.add(id);
   getCardEl(id)?.classList.add('selected');
+  updateAlignBar();
 }
 function clearSelection() {
   state.selected.forEach(id => getCardEl(id)?.classList.remove('selected'));
   state.selected.clear();
   state.selectedArrows.clear();
   arrowsSvg.querySelectorAll('.arrow-path').forEach(p => p.classList.remove('selected-arrow'));
+  updateAlignBar();
 }
 function deleteSelected() {
   snapshot();
@@ -1547,7 +1822,11 @@ document.addEventListener('mousemove', e => {
     if (!dragStarted && (dx > 4 || dy > 4)) dragStarted = true;
     if (!dragStarted) return;
     const bp = screenToBoard(e.clientX, e.clientY);
-    dragCards.forEach(({ card, ox, oy }) => { card.x = bp.x - ox; card.y = bp.y - oy; updateCardPos(card); });
+    dragCards.forEach(({ card, ox, oy }) => {
+      let nx = bp.x - ox, ny = bp.y - oy;
+      if (snapEnabled || e.shiftKey) { nx = snapVal(nx); ny = snapVal(ny); }
+      card.x = nx; card.y = ny; updateCardPos(card);
+    });
     renderAllArrows();
     renderMinimap();
     return;
@@ -1658,11 +1937,13 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === 'a') { e.preventDefault(); state.cards.forEach(c => selectCard(c.id)); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'd') { e.preventDefault(); duplicateSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
 
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-  if (e.key === 'Escape') { clearSelection(); cancelConnection(); setMode('select'); }
+  if (e.key === 'Escape') { clearSelection(); cancelConnection(); setMode('select'); closeBoardSearchBar(); closeShortcuts(); }
   if (e.key === 'f' || e.key === 'F') fitAll();
   if (e.key === 'c' || e.key === 'C') toggleConnectMode();
+  if (e.key === '?') openShortcuts();
   if (e.key === 'ArrowLeft')  nudgeSelected(-10, 0);
   if (e.key === 'ArrowRight') nudgeSelected(10, 0);
   if (e.key === 'ArrowUp')    nudgeSelected(0, -10);
@@ -1845,6 +2126,7 @@ function renderAllArrows() {
       ctxArrowId = arrow.id;
       document.getElementById('ctx-delete-arrow').style.display = '';
       document.getElementById('ctx-toggle-prereq').style.display = '';
+      document.getElementById('ctx-label-arrow').style.display = '';
       document.getElementById('ctx-arrow-sep').style.display = '';
       document.getElementById('ctx-toggle-prereq').textContent =
         arrow.type === 'prereq' ? '🔗 Make Regular Arrow' : '🔒 Make Prereq Arrow';
@@ -1872,6 +2154,23 @@ function renderAllArrows() {
 
     g.appendChild(hit);
     g.appendChild(path);
+
+    // Arrow label
+    if (arrow.label) {
+      const d = makeBezier(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor);
+      // midpoint of bezier (t=0.5 approximation)
+      const mx = (fw.x + tw.x) / 2, my = (fw.y + tw.y) / 2;
+      const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+      fo.setAttribute('x', mx - 40); fo.setAttribute('y', my - 12);
+      fo.setAttribute('width', 80); fo.setAttribute('height', 24);
+      fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
+        background:rgba(255,255,255,.92);border:1px solid rgba(255,80,140,.2);border-radius:6px;
+        padding:2px 7px;font-size:10px;font-weight:700;color:#6B2A48;
+        font-family:JetBrains Mono,monospace;text-align:center;white-space:nowrap;
+        overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
+      g.appendChild(fo);
+    }
+
     arrowsSvg.appendChild(g);
   });
 }
@@ -1936,6 +2235,18 @@ document.getElementById('ctx-assignment').addEventListener('click', () => {
 });
 document.getElementById('ctx-milestone').addEventListener('click', () =>
   addCard('milestone', ctxPos.x-105, ctxPos.y-110, { title:'Milestone', desc:'' }));
+
+document.getElementById('ctx-vocab').addEventListener('click', () =>
+  quickAddCard('vocab', ctxPos.x, ctxPos.y));
+document.getElementById('ctx-checklist').addEventListener('click', () =>
+  quickAddCard('checklist', ctxPos.x, ctxPos.y));
+document.getElementById('ctx-timer').addEventListener('click', () =>
+  quickAddCard('timer', ctxPos.x, ctxPos.y));
+
+document.getElementById('ctx-label-arrow').addEventListener('click', () => {
+  if (ctxArrowId) addArrowLabel(ctxArrowId);
+  ctxMenu.style.display = 'none';
+});
 
 document.getElementById('ctx-toggle-prereq').addEventListener('click', () => {
   if (!ctxArrowId) return;
@@ -2275,6 +2586,9 @@ function renderElementsTab(sec) {
     { icon:'👤', label:'Student',     type:'student',data:{ name:'New Student', group:'A', level:'A2', streak:0, lastSeen:'Today', native:'👤', progress:50 } },
     { icon:'📅', label:'Class Event', type:'event',  data:{ title:'Class', time:'10:00', group:'Group A', level:'A2', topic:'Lesson Topic' } },
     { icon:'🖼️', label:'Image',       type:'image',  data:{} },
+    { icon:'📖', label:'Vocabulary',  type:'vocab',  data:{ word:'Word', phonetic:'/wɜːrd/', translation:'Слово', pos:'noun', example:'Use ___ in a sentence.', tags:[] } },
+    { icon:'✅', label:'Checklist',   type:'checklist', data:{ title:'Checklist', items:[{text:'Item 1',done:false},{text:'Item 2',done:false}] } },
+    { icon:'⏱', label:'Timer',       type:'timer',  data:{ title:'Timer', minutes:5, seconds:0 } },
   ];
   items.forEach(item => {
     const el = document.createElement('div'); el.className = 'el-item';
@@ -2833,6 +3147,381 @@ window.addEventListener('message', e => {
     }
   }
 });
+
+/* ════════════════════════ SNAP TO GRID ════════════════════════ */
+const SNAP_SIZE = 20;
+let snapEnabled = false;
+function toggleSnap() {
+  snapEnabled = !snapEnabled;
+  document.getElementById('btn-snap').classList.toggle('active', snapEnabled);
+  document.getElementById('snap-indicator').style.display = snapEnabled ? '' : 'none';
+}
+function snapVal(v) { return Math.round(v / SNAP_SIZE) * SNAP_SIZE; }
+
+/* ════════════════════════ QUICK-ADD MENU ════════════════════════ */
+const quickAdd = document.getElementById('quick-add');
+let qaPos = { x:0, y:0 };
+
+boardWrap.addEventListener('dblclick', e => {
+  if (e.target.closest('.board-card')) return;
+  if (state.mode === 'connect') return;
+  e.preventDefault();
+  qaPos = screenToBoard(e.clientX, e.clientY);
+  quickAdd.style.left = e.clientX + 'px';
+  quickAdd.style.top  = e.clientY + 'px';
+  quickAdd.style.display = 'block';
+  // adjust if off-screen
+  requestAnimationFrame(() => {
+    const r = quickAdd.getBoundingClientRect();
+    if (r.right  > window.innerWidth)  quickAdd.style.left = (e.clientX - r.width)  + 'px';
+    if (r.bottom > window.innerHeight) quickAdd.style.top  = (e.clientY - r.height) + 'px';
+  });
+});
+document.addEventListener('click', e => {
+  if (!quickAdd.contains(e.target)) quickAdd.style.display = 'none';
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') quickAdd.style.display = 'none';
+});
+quickAdd.querySelectorAll('.qa-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const type = item.dataset.qa;
+    quickAdd.style.display = 'none';
+    quickAddCard(type, qaPos.x, qaPos.y);
+  });
+});
+function quickAddCard(type, bx, by) {
+  const def = getDefaults(type);
+  const x = bx - def.w/2, y = by - def.h/2;
+  let card;
+  if (type === 'sticky')     card = addCard('sticky',   x, y, { text:'', color:STICKY_COLORS[0] });
+  else if (type === 'text')  card = addCard('text',     x, y, { text:'Label' });
+  else if (type === 'lesson') {
+    card = addCard('lesson', x, y, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'' });
+    setTimeout(() => openCardEditor(card.id), 80);
+  } else if (type === 'assignment') {
+    card = addCard('assignment', x, y, { title:'New Assignment', type:'Quiz', maxScore:100, deadline:'', desc:'', submitted:0, total:0 });
+    setTimeout(() => openCardEditor(card.id), 80);
+  } else if (type === 'milestone') card = addCard('milestone', x, y, { title:'Milestone', desc:'' });
+  else if (type === 'vocab')     card = addCard('vocab',     x, y, { word:'Word', phonetic:'/wɜːrd/', translation:'Слово', pos:'noun', example:'This is a new ___.', tags:[] });
+  else if (type === 'checklist') card = addCard('checklist', x, y, { title:'Checklist', items:[{text:'Item 1',done:false},{text:'Item 2',done:false}] });
+  else if (type === 'timer')     card = addCard('timer',     x, y, { title:'Timer', minutes:5, seconds:0 });
+}
+
+/* ════════════════════════ VOCABULARY CARD ════════════════════════ */
+function renderVocab(el, card) {
+  const d = card.data;
+  el.appendChild(makeHeader('📖', d.word || 'Word', card.id));
+  const body = document.createElement('div');
+  body.className = 'card-body vocab-body';
+  const highlight = w => String(w||'').replace(/___/g, `<em>${d.word||'___'}</em>`);
+  body.innerHTML = `
+    <div>
+      <div class="vocab-word">${esc(d.word || 'Word')}</div>
+      ${d.phonetic ? `<div class="vocab-phonetic">${esc(d.phonetic)}</div>` : ''}
+    </div>
+    ${d.pos ? `<div class="vocab-pos">${esc(d.pos)}</div>` : ''}
+    ${d.translation ? `<div class="vocab-trans">${esc(d.translation)}</div>` : ''}
+    ${d.example ? `<div class="vocab-example">${highlight(d.example)}</div>` : ''}
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
+      <button style="font-size:10px;padding:3px 9px;border:1px solid rgba(234,179,8,.3);border-radius:6px;background:rgba(234,179,8,.08);color:#92400e;cursor:pointer;font-family:var(--font);font-weight:700;" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+    </div>`;
+  el.appendChild(body);
+}
+
+/* ════════════════════════ CHECKLIST CARD ════════════════════════ */
+function renderChecklist(el, card) {
+  const d = card.data;
+  if (!d.items) d.items = [];
+  el.appendChild(makeHeader('✅', d.title || 'Checklist', card.id));
+  const body = document.createElement('div');
+  body.className = 'card-body checklist-body';
+
+  function rebuildChecklist() {
+    body.innerHTML = '';
+    const done = d.items.filter(i => i.done).length;
+    const total = d.items.length;
+    if (total) {
+      const prog = document.createElement('div'); prog.className='cl-progress';
+      const fill = document.createElement('div'); fill.className='cl-progress-fill';
+      fill.style.width = (total ? Math.round(done/total*100) : 0)+'%';
+      prog.appendChild(fill); body.appendChild(prog);
+    }
+    d.items.forEach((item, idx) => {
+      const row = document.createElement('div'); row.className = 'cl-item';
+      const chk = document.createElement('div');
+      chk.className = 'cl-check' + (item.done ? ' done' : '');
+      chk.addEventListener('click', e => {
+        e.stopPropagation(); snapshot();
+        item.done = !item.done; scheduleSave(); rebuildChecklist();
+      });
+      const txt = document.createElement('div');
+      txt.className = 'cl-text' + (item.done ? ' done' : '');
+      txt.textContent = item.text;
+      txt.contentEditable = true; txt.spellcheck = false;
+      txt.style.outline = 'none';
+      txt.addEventListener('mousedown', e => e.stopPropagation());
+      txt.addEventListener('blur', () => { item.text = txt.textContent.trim() || item.text; scheduleSave(); });
+      txt.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
+        if (e.key === 'Backspace' && txt.textContent === '') {
+          e.preventDefault(); e.stopPropagation();
+          d.items.splice(idx, 1); scheduleSave(); rebuildChecklist();
+        }
+      });
+      row.appendChild(chk); row.appendChild(txt);
+      body.appendChild(row);
+    });
+    const addBtn = document.createElement('div'); addBtn.className = 'cl-add';
+    addBtn.innerHTML = '＋ Add item';
+    addBtn.addEventListener('click', e => {
+      e.stopPropagation(); snapshot();
+      d.items.push({ text: 'New item', done: false }); scheduleSave(); rebuildChecklist();
+    });
+    body.appendChild(addBtn);
+  }
+  rebuildChecklist();
+  el.appendChild(body);
+}
+
+/* ════════════════════════ TIMER CARD ════════════════════════ */
+function renderTimer(el, card) {
+  const d = card.data;
+  if (d.remaining === undefined) d.remaining = (d.minutes||5)*60 + (d.seconds||0);
+  el.appendChild(makeHeader('⏱', d.title || 'Timer', card.id));
+  const body = document.createElement('div');
+  body.className = 'card-body timer-body';
+
+  const display = document.createElement('div');
+  display.className = 'timer-display';
+
+  function formatTime(secs) {
+    const m = Math.floor(secs/60), s = secs%60;
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  display.textContent = formatTime(d.remaining);
+
+  const setRow = document.createElement('div'); setRow.className='timer-set';
+  const minInput = document.createElement('input');
+  minInput.type='number'; minInput.min=0; minInput.max=99;
+  minInput.value = d.minutes||5;
+  minInput.addEventListener('mousedown', e => e.stopPropagation());
+  minInput.addEventListener('change', () => {
+    d.minutes = parseInt(minInput.value)||0;
+    d.remaining = d.minutes*60 + (d.seconds||0);
+    display.textContent = formatTime(d.remaining);
+    display.className='timer-display';
+  });
+  const secInput = document.createElement('input');
+  secInput.type='number'; secInput.min=0; secInput.max=59;
+  secInput.value = d.seconds||0;
+  secInput.addEventListener('mousedown', e => e.stopPropagation());
+  secInput.addEventListener('change', () => {
+    d.seconds = parseInt(secInput.value)||0;
+    d.remaining = (d.minutes||5)*60 + d.seconds;
+    display.textContent = formatTime(d.remaining);
+    display.className='timer-display';
+  });
+  setRow.innerHTML = '<span style="font-size:11px;color:var(--text-3);font-weight:700;">min</span>';
+  setRow.prepend(minInput);
+  setRow.appendChild(document.createTextNode(':'));
+  setRow.appendChild(secInput);
+
+  let interval = null;
+  const controls = document.createElement('div'); controls.className='timer-controls';
+  const startBtn = document.createElement('button'); startBtn.className='timer-btn timer-start'; startBtn.textContent='▶ Start';
+  const pauseBtn = document.createElement('button'); pauseBtn.className='timer-btn timer-pause'; pauseBtn.textContent='⏸ Pause'; pauseBtn.style.display='none';
+  const resetBtn = document.createElement('button'); resetBtn.className='timer-btn timer-reset'; resetBtn.textContent='↺ Reset';
+
+  startBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    clearInterval(interval);
+    startBtn.style.display='none'; pauseBtn.style.display='';
+    display.className='timer-display running';
+    interval = setInterval(() => {
+      if (d.remaining <= 0) {
+        clearInterval(interval); d.remaining=0;
+        display.textContent='00:00'; display.className='timer-display done';
+        startBtn.style.display=''; pauseBtn.style.display='none';
+        toast('⏱ Timer done!'); return;
+      }
+      d.remaining--;
+      display.textContent = formatTime(d.remaining);
+    }, 1000);
+  });
+  pauseBtn.addEventListener('click', e => {
+    e.stopPropagation(); clearInterval(interval);
+    startBtn.style.display=''; pauseBtn.style.display='none';
+    display.className='timer-display';
+  });
+  resetBtn.addEventListener('click', e => {
+    e.stopPropagation(); clearInterval(interval);
+    d.remaining = (d.minutes||5)*60 + (d.seconds||0);
+    display.textContent = formatTime(d.remaining);
+    display.className='timer-display';
+    startBtn.style.display=''; pauseBtn.style.display='none';
+  });
+  controls.appendChild(startBtn); controls.appendChild(pauseBtn); controls.appendChild(resetBtn);
+
+  body.appendChild(display);
+  body.appendChild(setRow);
+  body.appendChild(controls);
+  el.appendChild(body);
+}
+
+/* ════════════════════════ SHORTCUTS PANEL ════════════════════════ */
+function openShortcuts() { document.getElementById('shortcuts-panel').classList.add('open'); }
+function closeShortcuts() { document.getElementById('shortcuts-panel').classList.remove('open'); }
+document.getElementById('shortcuts-panel').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeShortcuts();
+});
+
+/* ════════════════════════ BOARD SEARCH ════════════════════════ */
+let searchMatches = [], searchIdx = 0;
+function toggleBoardSearch() {
+  const bar = document.getElementById('board-search-bar');
+  if (bar.classList.contains('open')) {
+    closeBoardSearchBar();
+  } else {
+    bar.classList.add('open');
+    document.getElementById('board-search-input').focus();
+  }
+}
+function closeBoardSearchBar() {
+  document.getElementById('board-search-bar').classList.remove('open');
+  document.getElementById('board-search-input').value = '';
+  clearSearchHighlights();
+  searchMatches = [];
+}
+function clearSearchHighlights() {
+  document.querySelectorAll('.card-search-highlight').forEach(el => el.classList.remove('card-search-highlight'));
+}
+document.getElementById('board-search-input').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  clearSearchHighlights(); searchMatches = []; searchIdx = 0;
+  if (!q) { document.getElementById('board-search-count').textContent = ''; return; }
+  state.cards.forEach(card => {
+    const titleText = (card.data.title || card.data.word || card.data.text || '').toLowerCase();
+    const descText  = (card.data.desc || card.data.translation || '').toLowerCase();
+    if (titleText.includes(q) || descText.includes(q)) searchMatches.push(card.id);
+  });
+  searchMatches.forEach(id => getCardEl(id)?.classList.add('card-search-highlight'));
+  document.getElementById('board-search-count').textContent =
+    searchMatches.length ? `${searchMatches.length} found` : 'none';
+  if (searchMatches.length) jumpToCard(searchMatches[0]);
+});
+document.getElementById('board-search-input').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeBoardSearchBar(); return; }
+  if (e.key === 'Enter' && searchMatches.length) {
+    searchIdx = (searchIdx + 1) % searchMatches.length;
+    jumpToCard(searchMatches[searchIdx]);
+  }
+});
+function jumpToCard(id) {
+  const card = state.cards.find(c => c.id === id); if (!card) return;
+  const cx = card.x + card.w/2, cy = card.y + card.h/2;
+  const pw = boardWrap.clientWidth/2, ph = boardWrap.clientHeight/2;
+  state.pan.x = pw - cx*state.scale;
+  state.pan.y = ph - cy*state.scale;
+  applyTransform();
+}
+
+/* ════════════════════════ ALIGN TOOLS ════════════════════════ */
+function getSelectedCards() {
+  return [...state.selected].map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+}
+function alignCards(dir) {
+  const cards = getSelectedCards(); if (cards.length < 2) return;
+  snapshot();
+  if (dir === 'left') {
+    const minX = Math.min(...cards.map(c => c.x));
+    cards.forEach(c => { c.x = minX; updateCardPos(c); });
+  } else if (dir === 'right') {
+    const maxX = Math.max(...cards.map(c => c.x + c.w));
+    cards.forEach(c => { c.x = maxX - c.w; updateCardPos(c); });
+  } else if (dir === 'hcenter') {
+    const minX = Math.min(...cards.map(c => c.x)), maxX = Math.max(...cards.map(c => c.x+c.w));
+    const cx = (minX+maxX)/2;
+    cards.forEach(c => { c.x = cx - c.w/2; updateCardPos(c); });
+  } else if (dir === 'top') {
+    const minY = Math.min(...cards.map(c => c.y));
+    cards.forEach(c => { c.y = minY; updateCardPos(c); });
+  } else if (dir === 'bottom') {
+    const maxY = Math.max(...cards.map(c => c.y+c.h));
+    cards.forEach(c => { c.y = maxY - c.h; updateCardPos(c); });
+  } else if (dir === 'vcenter') {
+    const minY = Math.min(...cards.map(c => c.y)), maxY = Math.max(...cards.map(c => c.y+c.h));
+    const cy = (minY+maxY)/2;
+    cards.forEach(c => { c.y = cy - c.h/2; updateCardPos(c); });
+  }
+  renderAllArrows(); scheduleSave();
+}
+function distributeCards(axis) {
+  const cards = getSelectedCards(); if (cards.length < 3) return;
+  snapshot();
+  if (axis === 'h') {
+    cards.sort((a,b) => a.x - b.x);
+    const minX = cards[0].x, maxX = cards[cards.length-1].x + cards[cards.length-1].w;
+    const totalW = cards.reduce((s,c)=>s+c.w, 0);
+    const gap = (maxX - minX - totalW) / (cards.length - 1);
+    let cx = minX;
+    cards.forEach(c => { c.x = cx; cx += c.w + gap; updateCardPos(c); });
+  } else {
+    cards.sort((a,b) => a.y - b.y);
+    const minY = cards[0].y, maxY = cards[cards.length-1].y + cards[cards.length-1].h;
+    const totalH = cards.reduce((s,c)=>s+c.h, 0);
+    const gap = (maxY - minY - totalH) / (cards.length - 1);
+    let cy = minY;
+    cards.forEach(c => { c.y = cy; cy += c.h + gap; updateCardPos(c); });
+  }
+  renderAllArrows(); scheduleSave();
+}
+
+// Show align bar when 2+ cards selected
+const _origSelectCard = selectCard;
+const _origClearSel   = clearSelection;
+function updateAlignBar() {
+  document.getElementById('align-bar').classList.toggle('show', state.selected.size >= 2);
+}
+
+/* ════════════════════════ CARD COLOR ACCENTS ════════════════════════ */
+const ACCENT_COLORS = [
+  { name:'None',   cls:'' },
+  { name:'Red',    cls:'card-accent-red' },
+  { name:'Orange', cls:'card-accent-orange' },
+  { name:'Yellow', cls:'card-accent-yellow' },
+  { name:'Green',  cls:'card-accent-green' },
+  { name:'Blue',   cls:'card-accent-blue' },
+  { name:'Purple', cls:'card-accent-purple' },
+  { name:'Pink',   cls:'card-accent-pink' },
+  { name:'Indigo', cls:'card-accent-indigo' },
+];
+function applyCardAccent(cardId, accentCls) {
+  snapshot();
+  const card = state.cards.find(c => c.id === cardId); if (!card) return;
+  card.data._accent = accentCls;
+  const el = getCardEl(cardId); if (!el) return;
+  ACCENT_COLORS.forEach(a => { if (a.cls) el.classList.remove(a.cls); });
+  if (accentCls) el.classList.add(accentCls);
+  scheduleSave();
+}
+
+// ── Apply accent when rendering ──
+const _origRenderCard = renderCard;
+// Patch renderCard to apply stored accent
+const __patchRenderCard = renderCard;
+
+/* ════════════════════════ ARROW LABELS ════════════════════════ */
+function addArrowLabel(arrowId) {
+  const arrow = state.arrows.find(a => a.id === arrowId); if (!arrow) return;
+  const current = arrow.label || '';
+  const label = prompt('Arrow label:', current);
+  if (label === null) return;
+  snapshot();
+  arrow.label = label.trim();
+  renderAllArrows();
+  scheduleSave();
+}
 
 // ── Init auth on load ────────────────────────────────────────
 (async () => {
