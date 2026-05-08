@@ -643,6 +643,10 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <a class="tb-back" href="index.html">← TeachedOS</a>
   <div class="tb-sep"></div>
   <div class="tb-title">📌 Teached<em>Board</em></div>
+  <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:260px;">
+    <a id="bc-course" href="courses.html" style="color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></a>
+    <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+  </div>
   <div class="tb-spacer"></div>
   <span id="save-status">✓ saved</span>
   <div class="tb-sep"></div>
@@ -677,6 +681,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
+    <div class="user-menu-item" onclick="location.href='courses.html'">📚 Courses</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
     <div class="user-menu-item" onclick="location.href='schedule.html'">📅 Schedule</div>
     <div class="user-menu-item" onclick="location.href='analytics.html'">📊 Analytics</div>
@@ -2808,6 +2813,7 @@ async function initUserBoard() {
         document.getElementById('board-name-display').textContent = board.name;
         saveStatus.textContent = '☁ cloud';
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
+        updateBreadcrumb(board);
         return;
       } else if (URL_BOARD_ID) {
         toast('Board not found');
@@ -2834,6 +2840,24 @@ async function initUserBoard() {
   } catch (e) {
     console.warn('[board] cloud load failed, using local:', e.message);
   }
+}
+
+async function updateBreadcrumb(board) {
+  const bc = document.getElementById('course-breadcrumb');
+  if (!board.course_id) { bc.style.display = 'none'; return; }
+  bc.style.display = 'flex';
+  document.getElementById('bc-course').textContent = '📚 …';
+  document.getElementById('bc-module').textContent = '';
+  try {
+    const r = await apiFetch('/api/courses/' + board.course_id);
+    if (!r.ok) return;
+    const { course, modules } = await r.json();
+    document.getElementById('bc-course').textContent = '📚 ' + course.name;
+    if (board.module_id) {
+      const mod = modules.find(m => m.id === board.module_id);
+      if (mod) document.getElementById('bc-module').textContent = ' › ' + mod.name;
+    }
+  } catch {}
 }
 
 function loadBoardData(data) {

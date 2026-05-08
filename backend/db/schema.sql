@@ -92,3 +92,31 @@ CREATE TABLE IF NOT EXISTS student_progress (
 );
 CREATE INDEX IF NOT EXISTS idx_sp_board ON student_progress(board_id);
 CREATE INDEX IF NOT EXISTS idx_sp_user  ON student_progress(user_id);
+
+-- ── Courses ──────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS courses (
+  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        VARCHAR(255) NOT NULL DEFAULT 'New Course',
+  description TEXT         NOT NULL DEFAULT '',
+  level       VARCHAR(20)  NOT NULL DEFAULT '',
+  color       VARCHAR(20)  NOT NULL DEFAULT '#FF4B8B',
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_courses_user ON courses(user_id);
+
+-- ── Course Modules ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS course_modules (
+  id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id  UUID         NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  name       VARCHAR(255) NOT NULL DEFAULT 'New Module',
+  ord        INTEGER      NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_modules_course ON course_modules(course_id);
+
+-- ── Add course columns to boards (idempotent) ────────────────────────────────
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS course_id    UUID    REFERENCES courses(id)        ON DELETE SET NULL;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS module_id    UUID    REFERENCES course_modules(id) ON DELETE SET NULL;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS board_order  INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_boards_course ON boards(course_id);
