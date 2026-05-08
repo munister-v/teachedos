@@ -27,6 +27,12 @@ app.use(cors({
   credentials: true,
 }));
 
+// Stripe webhook needs raw body — must be before express.json()
+app.post('/api/billing/webhook',
+  express.raw({ type: 'application/json' }),
+  require('./routes/billing').handleWebhook
+);
+
 app.use(express.json({ limit: '4mb' }));   // boards can be large
 app.use(express.urlencoded({ extended: true }));
 
