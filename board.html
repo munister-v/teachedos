@@ -59,11 +59,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .sb-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
 .sb-tab{
-  flex:1;padding:9px 3px;text-align:center;font-size:11px;font-weight:700;
+  flex:1;padding:7px 2px 6px;text-align:center;font-size:11px;font-weight:700;
   color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;
-  transition:color .15s,border-color .15s;
+  transition:color .15s,border-color .15s;display:flex;flex-direction:column;align-items:center;gap:1px;
 }
 .sb-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.sb-tab-ic{font-size:14px;line-height:1;}
+.sb-tab-lbl{font-size:9px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-family:var(--mono);}
 .sb-search{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .sb-search input{
   width:100%;padding:5px 10px;border-radius:7px;border:1px solid var(--border);
@@ -303,9 +305,15 @@ body.board-dragging .game-iframe-overlay{display:block;}
   text-align:center;pointer-events:none;color:var(--text-3);transition:opacity .3s;
 }
 #empty-state.hidden{opacity:0;}
-.empty-icon{font-size:44px;line-height:1;margin-bottom:10px;}
-.empty-text{font-size:14px;font-weight:700;}
-.empty-sub{font-size:12px;margin-top:4px;line-height:1.6;}
+.empty-icon{font-size:52px;line-height:1;margin-bottom:14px;opacity:.7;}
+.empty-text{font-size:15px;font-weight:800;color:var(--text-2);margin-bottom:10px;}
+.empty-sub{display:flex;flex-direction:column;gap:6px;align-items:center;}
+.empty-hint{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:7px;}
+.empty-key{
+  display:inline-block;background:white;border:1.5px solid var(--border-2);border-radius:6px;
+  padding:1px 8px;font-size:11px;font-weight:800;font-family:var(--mono);color:var(--text-2);
+  box-shadow:0 1px 2px rgba(0,0,0,.07);
+}
 
 /* ── Context menu ── */
 #ctx-menu{
@@ -430,9 +438,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 /* ══════════════ CARD EDIT POPOVER ══════════════ */
 #card-editor{
-  position:fixed;right:16px;top:60px;width:300px;
-  background:#fff;border-radius:16px;border:1px solid var(--border);
-  box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:2000;
+  position:fixed;right:16px;top:60px;width:320px;
+  background:#fff;border-radius:18px;border:1px solid var(--border);
+  box-shadow:0 12px 40px rgba(0,0,0,.16);z-index:2000;
   display:none;flex-direction:column;overflow:hidden;max-height:calc(100vh - 80px);
 }
 #card-editor.open{display:flex;}
@@ -456,11 +464,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .ed-row{display:flex;gap:8px;}
 .ed-row .ed-input{flex:1;}
 .ed-save{
-  width:100%;padding:10px;background:var(--accent);color:#fff;border:none;
-  border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;
-  cursor:pointer;transition:background .15s;margin-top:4px;
+  width:100%;padding:11px;background:var(--accent);color:#fff;border:none;
+  border-radius:11px;font-family:var(--font);font-size:13px;font-weight:800;
+  cursor:pointer;transition:background .15s,transform .1s;margin-top:4px;letter-spacing:-.01em;
 }
-.ed-save:hover{background:#e8357a;}
+.ed-save:hover{background:#e8357a;transform:translateY(-1px);}
+.ed-save:active{transform:translateY(0);}
 .ed-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .ed-status-btn{
   padding:7px 6px;border-radius:8px;border:1.5px solid var(--border);
@@ -662,6 +671,13 @@ body.board-dragging .game-iframe-overlay{display:block;}
   border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;
 }
 #follow-banner button:hover{background:rgba(255,255,255,.3);}
+/* ── Auth role picker ── */
+.auth-role-btn{
+  padding:12px 8px;border-radius:12px;border:2px solid var(--border);
+  background:#fafafa;cursor:pointer;text-align:center;transition:.15s;
+}
+.auth-role-btn:hover{border-color:var(--border-2);}
+.auth-role-btn.active{border-color:var(--accent);background:var(--accent-2);}
 </style>
 </head>
 <body>
@@ -694,7 +710,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
   <div class="tb-btn text" id="btn-members" title="Manage students" onclick="location.href='gradebook.html'" style="display:none">👥 Students</div>
-  <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">—</div>
+  <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:4px 10px;border-radius:8px;transition:.15s;border:1px solid transparent;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="Click to rename board" onclick="startRenameBoard()">—</div>
   <div class="tb-sep"></div>
   <!-- WS status + presence -->
   <div id="ws-dot" title="Real-time: off" style="width:9px;height:9px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;"></div>
@@ -731,12 +747,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="sb-tabs">
-    <div class="sb-tab active" data-tab="plans">📋</div>
-    <div class="sb-tab" data-tab="students">👥</div>
-    <div class="sb-tab" data-tab="notes">✍️</div>
-    <div class="sb-tab" data-tab="course">📚</div>
-    <div class="sb-tab" data-tab="games">🎮</div>
-    <div class="sb-tab" data-tab="elements">＋</div>
+    <div class="sb-tab active" data-tab="plans"><span class="sb-tab-ic">📋</span><span class="sb-tab-lbl">Plans</span></div>
+    <div class="sb-tab" data-tab="students"><span class="sb-tab-ic">👥</span><span class="sb-tab-lbl">Students</span></div>
+    <div class="sb-tab" data-tab="notes"><span class="sb-tab-ic">✍️</span><span class="sb-tab-lbl">Notes</span></div>
+    <div class="sb-tab" data-tab="course"><span class="sb-tab-ic">📚</span><span class="sb-tab-lbl">Course</span></div>
+    <div class="sb-tab" data-tab="games"><span class="sb-tab-ic">🎮</span><span class="sb-tab-lbl">Games</span></div>
+    <div class="sb-tab" data-tab="elements"><span class="sb-tab-ic">＋</span><span class="sb-tab-lbl">Add</span></div>
   </div>
   <div class="sb-search" id="sb-search-wrap">
     <input type="text" placeholder="Search…" id="sb-search">
@@ -769,9 +785,13 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <!-- Board canvas -->
   <div id="board">
     <div id="empty-state">
-      <div class="empty-icon">📌</div>
-      <div class="empty-text">Your board is empty</div>
-      <div class="empty-sub">Drag snippets from the panel · Right-click to add sticky<br>Press <b>C</b> to connect cards with arrows</div>
+      <div class="empty-icon">✨</div>
+      <div class="empty-text">Start building your lesson</div>
+      <div class="empty-sub">
+        <div class="empty-hint"><span class="empty-key">double-click</span> anywhere to add a card</div>
+        <div class="empty-hint"><span class="empty-key">drag</span> items from the panel on the left</div>
+        <div class="empty-hint"><span class="empty-key">C</span> to connect cards with arrows</div>
+      </div>
     </div>
   </div>
 </div>
@@ -884,20 +904,35 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
 <div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
-  <div id="auth-modal" style="background:#fff;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
-    <div style="text-align:center;margin-bottom:24px;">
-      <div style="font-size:2.2rem;">📌</div>
-      <div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-top:6px;">TeachedBoard</div>
-      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:4px;">Sign in to sync your boards</div>
+  <div id="auth-modal" style="background:#fff;border-radius:22px;padding:34px 30px 28px;width:100%;max-width:400px;box-shadow:0 24px 70px rgba(0,0,0,.20);position:relative;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <div style="font-size:2.4rem;line-height:1;">📌</div>
+      <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-top:8px;letter-spacing:-.02em;">Teached<em style="color:var(--accent);font-style:normal;">Board</em></div>
+      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:5px;">Sign in to sync your boards</div>
     </div>
-    <div id="auth-err" style="display:none;background:#fff0f0;border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+    <div id="auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+    <div id="auth-role-row" style="display:none;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')">
+          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">Teacher</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Create boards & courses</div>
+        </div>
+        <div class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')">
+          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🎓</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">Student</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Follow & collaborate</div>
+        </div>
+      </div>
+    </div>
     <div id="auth-fields"></div>
-    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;">Sign in</button>
+    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
     <div style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--text-3);">
       <span id="auth-toggle-text">Don't have an account?</span>
       <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
     </div>
-    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:var(--text-3);line-height:1;">×</div>
+    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);line-height:1;transition:background .12s;">×</div>
   </div>
 </div>
 
@@ -1579,7 +1614,11 @@ function openCardEditor(cardId) {
         <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
       <div><div class="ed-label">Material Link (URL)</div>
         <input class="ed-input" id="ed-link" type="url" placeholder="https://…" value="${esc(card.data.link||'')}"/></div>
-      <button class="ed-save" onclick="saveCardEditor()">Save Lesson</button>`;
+      <div><div class="ed-label">Module / Section</div>
+        <input class="ed-input" id="ed-module" placeholder="e.g. Unit 3: Past Tenses" value="${esc(card.data.module||'')}"/></div>
+      <div style="background:rgba(99,102,241,.06);border-radius:10px;padding:9px 11px;font-size:11px;color:#6366f1;line-height:1.5;">
+        💡 Connect this card to a <b>Milestone</b> to track course completion.</div>
+      <button class="ed-save" onclick="saveCardEditor()">✓ Save Lesson</button>`;
 
   } else if (card.type === 'assignment') {
     body.innerHTML = `
@@ -1674,6 +1713,7 @@ function saveCardEditor() {
     card.data.duration = g('ed-duration').value.trim();
     card.data.desc     = g('ed-desc').value.trim();
     card.data.link     = g('ed-link').value.trim();
+    card.data.module   = g('ed-module')?.value.trim() ?? card.data.module;
   } else if (card.type === 'assignment') {
     card.data.title     = g('ed-title').value.trim() || 'Assignment';
     card.data.type      = g('ed-type').value;
@@ -2727,6 +2767,7 @@ let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let authMode = 'login'; // 'login' | 'register'
+let selectedRole = 'teacher';
 
 // Parse ?id= from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -2756,17 +2797,23 @@ function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'l
 
 function renderAuthFields() {
   const isLogin = authMode === 'login';
-  document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to sync your boards' : 'Create your TeachedBoard account';
+  document.getElementById('auth-subtitle').textContent = isLogin ? 'Welcome back 👋' : 'Create your account';
   document.getElementById('auth-submit').textContent = isLogin ? 'Sign in' : 'Create account';
   document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
   document.getElementById('auth-toggle-link').textContent = isLogin ? 'Register' : 'Sign in';
+  document.getElementById('auth-role-row').style.display = isLogin ? 'none' : 'block';
   const f = document.getElementById('auth-fields');
-  f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your name" autocomplete="name">` : '') +
-    `<input class="auth-input" id="af-email" type="email" placeholder="Email" autocomplete="email">
-     <input class="auth-input" id="af-pass"  type="password" placeholder="Password (min 8 chars)" autocomplete="${isLogin?'current':'new'}-password">`;
+  f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
+    `<input class="auth-input" id="af-email" type="email" placeholder="Email address" autocomplete="email">
+     <input class="auth-input" id="af-pass"  type="password" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">`;
   document.getElementById('auth-fields').querySelectorAll('.auth-input').forEach(i => {
     i.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
   });
+}
+
+function selectAuthRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.auth-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
 }
 
 async function submitAuth() {
@@ -2780,7 +2827,7 @@ async function submitAuth() {
 
   try {
     const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-    const body = authMode === 'login' ? { email, password: pass } : { email, password: pass, name };
+    const body = authMode === 'login' ? { email, password: pass } : { email, password: pass, name, role: selectedRole };
     const r = await apiFetch(endpoint, { method: 'POST', body });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Error');
