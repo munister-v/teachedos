@@ -3921,8 +3921,14 @@ async function submitAuth() {
     if (!r.ok) throw new Error(d.error || 'Error');
     setToken(d.token);
     currentUser = d.user;
+    try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
     closeAuthModal();
     updateAuthUI();
+    // Students opening board.html directly → send to their dashboard
+    if (d.user.role === 'student' && !URL_BOARD_ID) {
+      location.href = 'student.html';
+      return;
+    }
     await initUserBoard();
   } catch (err) {
     errEl.textContent = err.message;
@@ -3946,6 +3952,37 @@ function updateAuthUI() {
   } else {
     chip.style.display = 'none';
     loginBtn.style.display = '';
+    loginBtn.textContent = '🔑 Sign in';
+    loginBtn.style.pointerEvents = '';
+  }
+}
+
+// Show/hide editing controls based on ownership
+function applyRoleUI() {
+  const editTools = ['btn-clear','btn-snap','btn-undo','btn-redo','btn-export'];
+  const ownerOnly = ['btn-members','btn-share','board-name-display'];
+  editTools.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isOwner ? '' : 'none';
+  });
+  // Board name: clickable rename only for owner
+  const nameEl = document.getElementById('board-name-display');
+  if (nameEl) nameEl.onclick = isOwner ? startRenameBoard : null;
+  // Sidebar students tab: visible only for owner
+  const studTab = document.querySelector('.sb-tab[data-tab="students"]');
+  if (studTab) studTab.style.display = isOwner ? '' : 'none';
+  // Show student badge if viewer is a collaborator
+  const chip = document.getElementById('auth-chip');
+  if (chip && currentUser) {
+    const badge = document.getElementById('role-badge') || (() => {
+      const b = document.createElement('span');
+      b.id = 'role-badge';
+      b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;';
+      chip.appendChild(b);
+      return b;
+    })();
+    if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
+    else { badge.textContent = '🎓 student'; badge.style.cssText += 'background:#ede9fe;color:#7c3aed;display:inline;'; }
   }
 }
 
@@ -3973,9 +4010,7 @@ async function logout() {
 // ── Board API ────────────────────────────────────────────────
 async function initUserBoard() {
   if (!currentUser || !authToken) return;
-  // Owner loads boards via authenticated REST — if it succeeds, user is the owner
-  boardOwnerId = currentUser.id;
-  isOwner = true;
+  // isOwner will be set properly once board loads (compare user_id)
   updateFollowUI();
   try {
     // If URL has a specific board id, try to load it
@@ -3985,6 +4020,11 @@ async function initUserBoard() {
       if (r.ok) {
         const { board } = await r.json();
         currentBoardId = board.id;
+        // Set ownership correctly — collaborators are not owners
+        boardOwnerId = board.user_id || currentUser.id;
+        isOwner = board.user_id === currentUser.id;
+        updateFollowUI();
+        applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
         loadBoardData(board.data);
         document.title = board.name + ' · TeachedBoard';
@@ -3997,7 +4037,7 @@ async function initUserBoard() {
         toast('Board not found');
       }
     }
-    // Load first available board
+    // Load first available board (teacher's own boards)
     const r2 = await apiFetch('/api/boards');
     if (r2.ok) {
       const { boards } = await r2.json();
@@ -4007,16 +4047,24 @@ async function initUserBoard() {
         const r3 = await apiFetch('/api/boards/' + currentBoardId);
         if (r3.ok) {
           const { board } = await r3.json();
+          boardOwnerId = board.user_id || currentUser.id;
+          isOwner = board.user_id === currentUser.id;
+          updateFollowUI();
+          applyRoleUI();
           loadBoardData(board.data);
           document.title = board.name + ' · TeachedBoard';
           document.getElementById('board-name-display').textContent = board.name;
           saveStatus.textContent = '☁ cloud';
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         }
+      } else if (currentUser.role === 'student') {
+        // Student with no owned boards — redirect to student dashboard
+        location.href = 'student.html';
       }
     }
   } catch (e) {
     console.warn('[board] cloud load failed, using local:', e.message);
+    loadBoard();
   }
 }
 
@@ -4834,19 +4882,38 @@ function addArrowLabel(arrowId) {
 (async () => {
   renderAuthFields();
   if (authToken) {
+    const loginBtn = document.getElementById('auth-login-btn');
+    if (loginBtn) { loginBtn.textContent = '⟳'; loginBtn.style.pointerEvents = 'none'; }
     try {
       const r = await apiFetch('/api/auth/me');
       const d = await r.json();
       if (r.ok && d.user) {
         currentUser = d.user;
+        // Persist user for offline display
+        try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
         updateAuthUI();
         wsEnabled = true;
         await initUserBoard();
         wsConnect();
         return;
       }
-    } catch {}
-    setToken(null);
+      // Server explicitly rejected the token (401/403) — clear it
+      setToken(null);
+      localStorage.removeItem('teachedos_user');
+      openAuthModal('login');
+    } catch {
+      // Network failure (Render sleeping?) — keep token, load from localStorage
+      console.warn('[auth] backend unreachable, loading from localStorage');
+      const cached = localStorage.getItem('teachedos_user');
+      if (cached) try { currentUser = JSON.parse(cached); } catch {}
+      updateAuthUI();
+      loadBoard();
+      showOfflineBanner();
+      toast('⚠️ Offline — working from local save');
+    }
+  } else {
+    // No token — auto-show auth modal (unless there's a shared board to preview)
+    if (!URL_BOARD_ID) openAuthModal('login');
   }
   updateAuthUI();
 })();
