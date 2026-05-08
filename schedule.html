@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Schedule · TeachedOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#FF4B8B;--accent2:#ff6fa3;--accent-bg:rgba(255,75,139,.08);
+  --bg:#fff4f8;--card:#fff;--border:rgba(255,80,140,.14);--border2:rgba(255,80,140,.28);
+  --text:#1C0A14;--text2:#6B2A48;--text3:#B07090;
+  --shadow:0 2px 16px rgba(255,75,139,.08);
+  --font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
+  --nav-h:52px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+a{text-decoration:none;color:inherit;}
+
+/* ── Navbar ── */
+#nav{
+  position:sticky;top:0;z-index:200;height:var(--nav-h);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:10px;
+  box-shadow:0 1px 12px rgba(255,75,139,.06);
+}
+.nav-logo{font-size:17px;font-weight:900;color:var(--accent);letter-spacing:-.3px;}
+.nav-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+.nav-link{font-size:12px;font-weight:700;color:var(--text2);padding:4px 10px;border-radius:8px;transition:.15s;}
+.nav-link:hover{background:var(--accent-bg);color:var(--accent);}
+.nav-link.active{background:var(--accent-bg);color:var(--accent);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
+  padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+
+/* ── Page layout ── */
+#page{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--nav-h));}
+
+/* ── Sidebar ── */
+#side{
+  width:260px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.side-section{padding:16px 14px 10px;}
+.side-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.btn-add{
+  width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:12px;
+  font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:.15s;
+}
+.btn-add:hover{background:var(--accent2);}
+
+/* Week nav */
+.week-nav{display:flex;align-items:center;gap:6px;padding:14px 14px 8px;}
+.wn-btn{
+  width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card);
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);transition:.15s;
+}
+.wn-btn:hover{background:var(--accent-bg);border-color:var(--border2);}
+.wn-label{flex:1;text-align:center;font-size:13px;font-weight:800;color:var(--text);}
+.wn-today{
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;
+  background:var(--accent-bg);color:var(--accent);border:none;cursor:pointer;
+  font-family:var(--font);transition:.15s;
+}
+.wn-today:hover{background:var(--accent);color:#fff;}
+
+/* Class list in sidebar */
+.cls-item{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;
+  border:1px solid var(--border);margin-bottom:6px;background:#fff;cursor:pointer;transition:.15s;
+}
+.cls-item:hover{border-color:var(--border2);box-shadow:var(--shadow);}
+.cls-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cls-info{flex:1;min-width:0;}
+.cls-title{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cls-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.cls-del{
+  width:20px;height:20px;border-radius:50%;border:none;background:transparent;
+  color:var(--text3);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:.12s;
+}
+.cls-item:hover .cls-del{opacity:1;}
+.cls-del:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+
+/* Stats */
+.stat-row{display:flex;gap:8px;flex-wrap:wrap;}
+.stat-pill{flex:1;min-width:80px;padding:10px;border-radius:12px;border:1px solid var(--border);text-align:center;background:#fff;}
+.stat-num{font-size:20px;font-weight:900;color:var(--accent);}
+.stat-lbl{font-size:10px;color:var(--text3);font-weight:700;margin-top:1px;}
+
+/* ── Main grid ── */
+#main{flex:1;overflow:auto;display:flex;flex-direction:column;}
+.grid-head{display:flex;border-bottom:2px solid var(--border);background:rgba(255,255,255,.95);position:sticky;top:0;z-index:100;}
+.gh-time{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
+.gh-day{
+  flex:1;padding:10px 6px;text-align:center;font-size:12px;font-weight:800;
+  color:var(--text2);border-right:1px solid var(--border);
+}
+.gh-day.today{color:var(--accent);}
+.gh-day-num{font-size:18px;font-weight:900;color:var(--text);display:block;line-height:1.1;}
+.gh-day.today .gh-day-num{
+  background:var(--accent);color:#fff;border-radius:50%;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:14px;
+}
+
+/* Time grid */
+.grid-body{display:flex;flex:1;}
+.time-col{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
+.time-label{
+  height:60px;display:flex;align-items:flex-start;justify-content:center;
+  padding-top:4px;font-size:10px;font-family:var(--mono);color:var(--text3);
+}
+.day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;}
+.hour-line{height:60px;border-bottom:1px solid rgba(255,80,140,.07);}
+.half-line{height:30px;border-bottom:1px dashed rgba(255,80,140,.04);}
+.now-line{
+  position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:10;
+  pointer-events:none;
+}
+.now-line::before{
+  content:'';position:absolute;left:-5px;top:-4px;
+  width:10px;height:10px;border-radius:50%;background:var(--accent);
+}
+
+/* Class blocks */
+.cls-block{
+  position:absolute;left:3px;right:3px;border-radius:10px;
+  padding:6px 8px;cursor:pointer;overflow:hidden;transition:box-shadow .15s,transform .1s;
+  border-left:3px solid rgba(255,255,255,.5);
+}
+.cls-block:hover{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translateY(-1px);z-index:20;}
+.cb-title{font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-meta{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.7);margin-top:1px;}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(28,10,20,.5);backdrop-filter:blur(6px);
+  z-index:3000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#fff;border-radius:20px;padding:28px;width:480px;max-width:96vw;max-height:92vh;overflow-y:auto;
+  box-shadow:0 16px 48px rgba(0,0,0,.2);transform:translateY(-8px);transition:transform .2s;
+}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-size:18px;font-weight:900;margin-bottom:20px;}
+.form-row{display:flex;gap:12px;margin-bottom:14px;}
+.form-group{flex:1;display:flex;flex-direction:column;}
+.form-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono);}
+.form-input,.form-select{
+  padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:var(--font);font-size:13px;color:var(--text);outline:none;background:#fff;
+  transition:border-color .15s;
+}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+.color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.color-opt{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;
+  transition:.15s;
+}
+.color-opt.sel{border-color:var(--text);transform:scale(1.15);}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-cancel{padding:9px 20px;background:#f3f4f6;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;}
+.btn-cancel:hover{background:#e5e7eb;}
+.btn-save{padding:9px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;}
+.btn-save:hover{background:var(--accent2);}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;
+  background:#1a1a2e;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;
+}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.ok{background:#16a34a;}
+#toast.err{background:#ef4444;}
+
+/* Empty */
+.empty-day{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;color:var(--text3);font-size:11px;pointer-events:none;
+  opacity:.5;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav id="nav">
+  <span class="nav-logo">🎓 TeachedOS</span>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link active" href="schedule.html">Schedule</a>
+  <a class="nav-link" href="profile.html">Profile</a>
+  <div class="nav-spacer"></div>
+  <div class="nav-user" id="nav-user" onclick="location.href='profile.html'">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">Loading…</span>
+  </div>
+</nav>
+
+<div id="page">
+
+  <!-- Sidebar -->
+  <div id="side">
+    <!-- Week nav -->
+    <div class="week-nav">
+      <button class="wn-btn" onclick="shiftWeek(-1)">‹</button>
+      <span class="wn-label" id="week-label"></span>
+      <button class="wn-btn" onclick="shiftWeek(1)">›</button>
+      <button class="wn-today" onclick="goToday()">Today</button>
+    </div>
+
+    <div class="side-section">
+      <button class="btn-add" onclick="openModal()">＋ Add Class</button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">Stats</div>
+      <div class="stat-row">
+        <div class="stat-pill"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Classes</div></div>
+        <div class="stat-pill"><div class="stat-num" id="stat-hours">0</div><div class="stat-lbl">Hrs/week</div></div>
+        <div class="stat-pill"><div class="stat-num" id="stat-groups">0</div><div class="stat-lbl">Groups</div></div>
+      </div>
+    </div>
+
+    <div class="side-section" style="flex:1">
+      <div class="side-label">All Classes</div>
+      <div id="cls-list"></div>
+    </div>
+  </div>
+
+  <!-- Main timetable -->
+  <div id="main">
+    <!-- Day headers -->
+    <div class="grid-head">
+      <div class="gh-time"></div>
+      <div class="gh-day" id="gh-0"><span class="gh-day-num" id="gd-0">—</span>Mon</div>
+      <div class="gh-day" id="gh-1"><span class="gh-day-num" id="gd-1">—</span>Tue</div>
+      <div class="gh-day" id="gh-2"><span class="gh-day-num" id="gd-2">—</span>Wed</div>
+      <div class="gh-day" id="gh-3"><span class="gh-day-num" id="gd-3">—</span>Thu</div>
+      <div class="gh-day" id="gh-4"><span class="gh-day-num" id="gd-4">—</span>Fri</div>
+      <div class="gh-day" id="gh-5"><span class="gh-day-num" id="gd-5">—</span>Sat</div>
+      <div class="gh-day" id="gh-6"><span class="gh-day-num" id="gd-6">—</span>Sun</div>
+    </div>
+
+    <!-- Time grid -->
+    <div class="grid-body">
+      <div class="time-col" id="time-col"></div>
+      <div class="day-col" id="day-0"><div class="now-line" id="now-line" style="display:none"></div></div>
+      <div class="day-col" id="day-1"></div>
+      <div class="day-col" id="day-2"></div>
+      <div class="day-col" id="day-3"></div>
+      <div class="day-col" id="day-4"></div>
+      <div class="day-col" id="day-5"></div>
+      <div class="day-col" id="day-6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">➕ Add Class</div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Title</label>
+        <input class="form-input" id="f-title" placeholder="English Grammar"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Day</label>
+        <select class="form-select" id="f-day">
+          <option value="0">Monday</option><option value="1">Tuesday</option>
+          <option value="2">Wednesday</option><option value="3">Thursday</option>
+          <option value="4">Friday</option><option value="5">Saturday</option>
+          <option value="6">Sunday</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Start Time</label>
+        <input class="form-input" id="f-start" type="time" value="09:00"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">End Time</label>
+        <input class="form-input" id="f-end" type="time" value="10:30"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Group</label>
+        <input class="form-input" id="f-group" placeholder="Group A"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select class="form-select" id="f-level">
+          <option value="">—</option>
+          <option>A1</option><option>A2</option><option>B1</option>
+          <option>B2</option><option>C1</option><option>C2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room</label>
+        <input class="form-input" id="f-room" placeholder="Room 101"/>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Color</label>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="modal-save-btn" onclick="saveClass()">Add Class</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+let token = localStorage.getItem('teachedos_token');
+let schedule = [];
+let editingId = null;
+let weekOffset = 0; // weeks from current
+let selectedColor = '#FF4B8B';
+
+const COLORS = [
+  '#FF4B8B','#f97316','#eab308','#22c55e','#06b6d4',
+  '#6366f1','#8b5cf6','#ec4899','#14b8a6','#ef4444',
+  '#84cc16','#0ea5e9','#a855f7','#f43f5e','#10b981',
+];
+const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
+
+// ── Auth ─────────────────────────────────────────────────────────────
+async function init() {
+  if (!token) { location.href = 'board.html'; return; }
+  try {
+    const r = await apiFetch('/api/auth/me');
+    document.getElementById('nav-avatar').textContent = r.user.avatar;
+    document.getElementById('nav-name').textContent   = r.user.name;
+  } catch { location.href = 'board.html'; return; }
+  buildColorGrid();
+  buildTimeCol();
+  updateWeekHeader();
+  await loadSchedule();
+}
+
+// ── API ───────────────────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...opts.headers },
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Request failed');
+  return d;
+}
+
+// ── Schedule data ─────────────────────────────────────────────────────
+async function loadSchedule() {
+  try {
+    const d = await apiFetch('/api/schedule');
+    schedule = d.schedule;
+    renderGrid();
+    renderSideList();
+    renderStats();
+  } catch (e) { toast('Failed to load schedule', 'err'); }
+}
+
+// ── Week navigation ───────────────────────────────────────────────────
+function getWeekDates() {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7; // 0=Mon
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - dow + weekOffset * 7);
+  mon.setHours(0,0,0,0);
+  return Array.from({length:7}, (_,i) => { const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+}
+
+function updateWeekHeader() {
+  const dates = getWeekDates();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fmt = (d) => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  document.getElementById('week-label').textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  dates.forEach((d,i) => {
+    const gh = document.getElementById(`gh-${i}`);
+    const gd = document.getElementById(`gd-${i}`);
+    const isToday = d.getTime() === today.getTime();
+    gd.textContent = d.getDate();
+    gh.classList.toggle('today', isToday);
+  });
+  updateNowLine();
+}
+
+function updateNowLine() {
+  const line = document.getElementById('now-line');
+  const now = new Date();
+  const todayDow = (now.getDay() + 6) % 7;
+  const dates = getWeekDates();
+  const todayInWeek = dates.findIndex(d => {
+    const t = new Date(); t.setHours(0,0,0,0);
+    return d.getTime() === t.getTime();
+  });
+  if (todayInWeek < 0) { line.style.display = 'none'; return; }
+  // Move now-line to today's column
+  const todayCol = document.getElementById(`day-${todayInWeek}`);
+  if (!todayCol.contains(line)) todayCol.appendChild(line);
+  const minutes = (now.getHours() - HOUR_START) * 60 + now.getMinutes();
+  const top = minutes / 60 * PX_PER_HOUR;
+  line.style.top = top + 'px';
+  line.style.display = minutes >= 0 ? 'block' : 'none';
+}
+
+function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); }
+function goToday() { weekOffset = 0; updateWeekHeader(); renderGrid(); }
+
+// ── Grid rendering ────────────────────────────────────────────────────
+function buildTimeCol() {
+  const col = document.getElementById('time-col');
+  for (let h = HOUR_START; h <= HOUR_END; h++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'time-label';
+    lbl.textContent = h.toString().padStart(2,'0') + ':00';
+    col.appendChild(lbl);
+  }
+}
+
+function renderGrid() {
+  for (let d = 0; d < 7; d++) {
+    const col = document.getElementById(`day-${d}`);
+    // Clear blocks (keep now-line if present)
+    Array.from(col.children).forEach(c => { if (!c.id.includes('now-line')) c.remove(); });
+    // Hour lines
+    for (let h = HOUR_START; h <= HOUR_END; h++) {
+      const line = document.createElement('div');
+      line.className = 'hour-line';
+      col.appendChild(line);
+    }
+    // Render slots for this day
+    const slots = schedule.filter(s => s.day === d);
+    slots.forEach(slot => col.appendChild(buildBlock(slot)));
+  }
+  updateNowLine();
+}
+
+function timeToMinutes(t) {
+  const [h,m] = t.split(':').map(Number); return h * 60 + m;
+}
+
+function buildBlock(slot) {
+  const startMin = timeToMinutes(slot.start_time) - HOUR_START * 60;
+  const endMin   = timeToMinutes(slot.end_time)   - HOUR_START * 60;
+  const top    = startMin / 60 * PX_PER_HOUR;
+  const height = Math.max(20, (endMin - startMin) / 60 * PX_PER_HOUR);
+
+  const el = document.createElement('div');
+  el.className = 'cls-block';
+  el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#FF4B8B'};`;
+  el.innerHTML = `
+    <div class="cb-title">${esc(slot.title)}</div>
+    ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
+    ${slot.room ? `<div class="cb-meta">📍 ${esc(slot.room)}</div>` : ''}
+    <div class="cb-time">${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}</div>`;
+  el.addEventListener('click', () => openModal(slot));
+  return el;
+}
+
+// ── Sidebar list ──────────────────────────────────────────────────────
+function renderSideList() {
+  const list = document.getElementById('cls-list');
+  list.innerHTML = '';
+  if (!schedule.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px;">No classes yet</div>';
+    return;
+  }
+  const sorted = [...schedule].sort((a,b) => a.day-b.day || a.start_time.localeCompare(b.start_time));
+  sorted.forEach(slot => {
+    const el = document.createElement('div');
+    el.className = 'cls-item';
+    el.innerHTML = `
+      <div class="cls-dot" style="background:${slot.color}"></div>
+      <div class="cls-info">
+        <div class="cls-title">${esc(slot.title)}</div>
+        <div class="cls-meta">${DAY_NAMES[slot.day]} ${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}</div>
+      </div>
+      <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
+    el.addEventListener('click', () => openModal(slot));
+    list.appendChild(el);
+  });
+}
+
+function renderStats() {
+  document.getElementById('stat-total').textContent = schedule.length;
+  const hrs = schedule.reduce((acc,s) => acc + (timeToMinutes(s.end_time)-timeToMinutes(s.start_time))/60, 0);
+  document.getElementById('stat-hours').textContent = hrs.toFixed(1);
+  const groups = new Set(schedule.map(s=>s.group_name).filter(Boolean));
+  document.getElementById('stat-groups').textContent = groups.size;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────
+function buildColorGrid() {
+  const grid = document.getElementById('color-grid');
+  COLORS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'color-opt' + (c===selectedColor?' sel':'');
+    el.style.background = c;
+    el.dataset.color = c;
+    el.addEventListener('click', () => {
+      selectedColor = c;
+      document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===c));
+    });
+    grid.appendChild(el);
+  });
+}
+
+function openModal(slot = null) {
+  editingId = slot ? slot.id : null;
+  document.getElementById('modal-title').textContent = slot ? '✏️ Edit Class' : '➕ Add Class';
+  document.getElementById('modal-save-btn').textContent = slot ? 'Save Changes' : 'Add Class';
+  document.getElementById('f-title').value = slot?.title || '';
+  document.getElementById('f-day').value   = slot?.day ?? new Date().getDay() === 0 ? 6 : (new Date().getDay()-1);
+  document.getElementById('f-start').value = slot?.start_time?.slice(0,5) || '09:00';
+  document.getElementById('f-end').value   = slot?.end_time?.slice(0,5)   || '10:30';
+  document.getElementById('f-group').value = slot?.group_name || '';
+  document.getElementById('f-level').value = slot?.level || '';
+  document.getElementById('f-room').value  = slot?.room  || '';
+  const color = slot?.color || '#FF4B8B';
+  selectedColor = color;
+  document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 50);
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function handleOverlayClick(e) { if (e.target === e.currentTarget) closeModal(); }
+
+async function saveClass() {
+  const title = document.getElementById('f-title').value.trim();
+  const start = document.getElementById('f-start').value;
+  const end   = document.getElementById('f-end').value;
+  if (!title) { toast('Title is required','err'); return; }
+  if (!start || !end || start >= end) { toast('Check start/end time','err'); return; }
+
+  const body = {
+    title, day: parseInt(document.getElementById('f-day').value),
+    start_time: start, end_time: end,
+    group_name: document.getElementById('f-group').value.trim() || null,
+    level:      document.getElementById('f-level').value || null,
+    room:       document.getElementById('f-room').value.trim() || null,
+    color: selectedColor, recurring: true,
+  };
+
+  try {
+    if (editingId) {
+      await apiFetch(`/api/schedule/${editingId}`, { method:'PATCH', body: JSON.stringify(body) });
+      toast('Class updated ✅','ok');
+    } else {
+      await apiFetch('/api/schedule', { method:'POST', body: JSON.stringify(body) });
+      toast('Class added ✅','ok');
+    }
+    closeModal();
+    await loadSchedule();
+  } catch (e) { toast(e.message,'err'); }
+}
+
+async function deleteClass(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this class?')) return;
+  try {
+    await apiFetch(`/api/schedule/${id}`, { method:'DELETE' });
+    toast('Deleted','ok');
+    await loadSchedule();
+  } catch (e) { toast(e.message,'err'); }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className='', 3000);
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Update now-line every minute
+setInterval(updateNowLine, 60000);
+
+init();
+</script>
+</body>
+</html>

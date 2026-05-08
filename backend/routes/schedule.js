@@ -44,6 +44,25 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/schedule/:id — update a slot
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { day, start_time, end_time, title, group_name, level, room, color, recurring } = req.body;
+  try {
+    const { rows } = await pool.query(
+      `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4,
+        group_name=$5, level=$6, room=$7, color=$8, recurring=$9
+       WHERE id=$10 AND user_id=$11 RETURNING *`,
+      [day, start_time, end_time, title||'Class', group_name||null, level||null,
+       room||null, color||'#FF4B8B', recurring!==false, req.params.id, req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
+    res.json({ slot: rows[0] });
+  } catch (err) {
+    console.error('[schedule] PATCH error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // DELETE /api/schedule/:id — delete a slot
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
