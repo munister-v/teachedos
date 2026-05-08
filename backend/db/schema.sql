@@ -80,3 +80,15 @@ CREATE TABLE IF NOT EXISTS schedule (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_schedule_user ON schedule(user_id);
+
+-- ── Student Progress ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS student_progress (
+  board_id   UUID        NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES users(id)  ON DELETE CASCADE,
+  card_id    TEXT        NOT NULL,
+  status     VARCHAR(20) NOT NULL DEFAULT 'available',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (board_id, user_id, card_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sp_board ON student_progress(board_id);
+CREATE INDEX IF NOT EXISTS idx_sp_user  ON student_progress(user_id);

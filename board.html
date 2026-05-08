@@ -509,6 +509,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
+  <div class="tb-btn text" id="btn-members" title="Manage students" onclick="location.href='gradebook.html'" style="display:none">👥 Students</div>
   <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">—</div>
   <div class="tb-sep"></div>
   <!-- WS status + presence -->
@@ -527,6 +528,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
     <div class="user-menu-item" onclick="location.href='schedule.html'">📅 Schedule</div>
     <div class="user-menu-item" onclick="location.href='analytics.html'">📊 Analytics</div>
+    <div class="user-menu-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>
     <div class="user-menu-item" onclick="location.href='profile.html'">👤 Profile</div>
     <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
   </div>
@@ -2440,6 +2442,7 @@ function updateAuthUI() {
     document.getElementById('auth-avatar').textContent = currentUser.avatar || '🧑‍🏫';
     document.getElementById('auth-name').textContent = currentUser.name.split(' ')[0];
     document.getElementById('user-menu-email').textContent = currentUser.email;
+    document.getElementById('btn-members').style.display = '';
   } else {
     chip.style.display = 'none';
     loginBtn.style.display = '';

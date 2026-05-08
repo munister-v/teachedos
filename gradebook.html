@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gradebook · TeachedOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#FF4B8B;--accent2:#ff6fa3;--bg:#fff4f8;--card:#fff;
+  --border:rgba(255,80,140,.14);--border2:rgba(255,80,140,.28);
+  --text:#1C0A14;--text2:#6B2A48;--text3:#B07090;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;
+  --red:#ef4444;--shadow:0 4px 24px rgba(255,75,139,.09);
+  --nav-h:52px;--font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+/* Nav */
+#nav{
+  position:sticky;top:0;z-index:200;height:var(--nav-h);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:10px;
+  box-shadow:0 1px 12px rgba(255,75,139,.06);
+}
+.nav-logo{font-size:17px;font-weight:900;color:var(--accent);}
+.nav-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+.nav-link{font-size:12px;font-weight:700;color:var(--text2);padding:4px 10px;border-radius:8px;transition:.15s;}
+.nav-link:hover,.nav-link.active{background:rgba(255,75,139,.08);color:var(--accent);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
+  padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+
+/* Page */
+#page{max-width:1400px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:22px;}
+
+/* Page header */
+.page-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.page-title{font-size:26px;font-weight:900;}
+.page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
+.head-spacer{flex:1;}
+
+/* Buttons */
+.btn{padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:.15s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:rgba(255,75,139,.08);color:var(--accent);border:1px solid var(--border2);}
+.btn-ghost:hover{background:rgba(255,75,139,.15);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+
+/* Section */
+.section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
+.sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sec-title{font-size:15px;font-weight:800;flex:1;}
+.sec-body{padding:18px 20px;}
+
+/* Board selector pills */
+.board-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.board-pill{
+  padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:.15s;
+}
+.board-pill:hover{border-color:var(--border2);color:var(--accent);}
+.board-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* Invite form */
+.invite-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.invite-input{
+  flex:1;min-width:220px;padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:600;color:var(--text);background:#fff;
+  outline:none;transition:.15s;
+}
+.invite-input:focus{border-color:var(--accent);}
+
+/* Member list */
+.member-list{display:flex;flex-direction:column;gap:0;}
+.member-row{
+  display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+.member-row:last-child{border-bottom:none;}
+.m-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,75,139,.08);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.m-name{font-size:13px;font-weight:800;color:var(--text);}
+.m-email{font-size:11px;color:var(--text3);}
+.m-role{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
+.role-student{background:rgba(99,102,241,.12);color:#6366f1;}
+.role-editor {background:rgba(34,197,94,.12);color:#16a34a;}
+.m-spacer{flex:1;}
+.m-pct{font-size:14px;font-weight:900;color:var(--accent);}
+.m-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:rgba(255,75,139,.1);overflow:hidden;}
+.m-prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease;}
+
+/* Gradebook table */
+.gb-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.gb-table{border-collapse:collapse;width:100%;font-size:12px;}
+.gb-table th{
+  position:sticky;top:0;background:#fff;z-index:2;
+  padding:10px 8px;text-align:center;font-weight:800;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.05em;font-size:10px;
+  border-bottom:2px solid var(--border);white-space:nowrap;
+}
+.gb-table th.th-name{text-align:left;position:sticky;left:0;z-index:3;background:#fff;min-width:160px;}
+.gb-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:center;}
+.gb-table td.td-name{
+  text-align:left;position:sticky;left:0;background:#fff;z-index:1;
+  font-weight:700;font-size:12px;white-space:nowrap;
+  display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;
+}
+.gb-table tr:last-child td{border-bottom:none;}
+.gb-table tr:hover td{background:#fafafa;}
+.gb-table tr:hover td.td-name{background:#fafafa;}
+
+/* Status cell */
+.sc{
+  width:28px;height:28px;border-radius:8px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:14px;cursor:default;
+  transition:.1s;
+}
+.sc-done     {background:#dcfce7;color:#16a34a;}
+.sc-progress {background:#fef3c7;color:#d97706;}
+.sc-available{background:#dbeafe;color:#2563eb;}
+.sc-locked   {background:#f3f4f6;color:#9ca3af;}
+
+/* Summary row */
+.gb-table tr.gb-summary td{background:#fff4f8;font-weight:800;font-size:11px;}
+.gb-table tr.gb-summary td.td-name{background:#fff4f8;}
+
+/* Empty state */
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.stat-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:12px;}
+.stat-icon{font-size:24px;width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.si-pink{background:#fff0f5;} .si-green{background:#f0fdf4;}
+.si-blue{background:#eff6ff;} .si-orange{background:#fff7ed;}
+.stat-val{font-size:26px;font-weight:900;line-height:1;}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-top:2px;}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.modal h3{font-size:18px;font-weight:900;margin-bottom:18px;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);margin-top:-4px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.field input,.field select{
+  width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:600;outline:none;transition:.15s;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
+  border-radius:12px;font-size:13px;font-weight:700;background:#1a1a2e;color:#fff;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
+  opacity:0;transition:all .25s;pointer-events:none;
+}
+#toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <span class="nav-logo">🎓 TeachedOS</span>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <a class="nav-link" href="analytics.html">Analytics</a>
+  <a class="nav-link active" href="gradebook.html">Gradebook</a>
+  <a class="nav-link" href="profile.html">Profile</a>
+  <div class="nav-spacer"></div>
+  <div class="nav-user" onclick="location.href='profile.html'">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </div>
+</nav>
+
+<div id="page">
+
+  <!-- Page head -->
+  <div class="page-head">
+    <div>
+      <div class="page-title">📒 Gradebook</div>
+      <div class="page-sub">Track student progress across your course boards</div>
+    </div>
+    <div class="head-spacer"></div>
+    <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn btn-primary" id="btn-invite" onclick="openInviteModal()" style="display:none">➕ Invite Student</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card"><div class="stat-icon si-blue">👥</div><div><div class="stat-val" id="s-students">—</div><div class="stat-lbl">Students</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-pink">📚</div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="s-avg">—</div><div class="stat-lbl">Avg. Completion</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange">🔥</div><div><div class="stat-val" id="s-top">—</div><div class="stat-lbl">Top Student</div></div></div>
+  </div>
+
+  <!-- Board selector -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">📋 Select Board</div></div>
+    <div class="sec-body">
+      <div class="board-pills" id="board-pills">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Members + invite -->
+  <div class="section" id="members-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">👥 Students</div>
+      <span id="member-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body">
+      <div class="invite-form" style="margin-bottom:18px;">
+        <input class="invite-input" type="email" id="invite-email" placeholder="student@email.com — invite by email"/>
+        <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;">
+          <option value="student">Student</option>
+          <option value="editor">Co-teacher</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="inviteStudent()">Invite</button>
+      </div>
+      <div class="member-list" id="member-list">
+        <div class="empty"><div class="empty-icon">👋</div>No students yet. Invite someone above!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gradebook table -->
+  <div class="section" id="gb-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">📊 Progress Table</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportGradebook()">📥 Export CSV</button>
+    </div>
+    <div class="gb-wrap">
+      <table class="gb-table" id="gb-table">
+        <thead><tr><th class="th-name">Student</th></tr></thead>
+        <tbody id="gb-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Invite Modal (fallback) -->
+<div class="modal-bg" id="invite-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeInviteModal()">✕</button>
+    <h3>➕ Invite Student</h3>
+    <div class="field">
+      <label>Student Email</label>
+      <input type="email" id="modal-email" placeholder="student@email.com"/>
+    </div>
+    <div class="field">
+      <label>Role</label>
+      <select id="modal-role">
+        <option value="student">Student (view + mark lessons)</option>
+        <option value="editor">Co-teacher (full edit)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="inviteFromModal()">Send Invite</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+let token = localStorage.getItem('teachedos_token');
+let boards = [];
+let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
+let members = [], lessonCols = [];
+
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...opts.headers }
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Error');
+  return d;
+}
+
+async function init() {
+  if (!token) { location.href = 'board.html'; return; }
+  try {
+    const { user } = await apiFetch('/api/auth/me');
+    document.getElementById('nav-avatar').textContent = user.avatar;
+    document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
+  } catch { location.href = 'board.html'; return; }
+  await loadData();
+}
+
+async function loadData() {
+  try {
+    const d = await apiFetch('/api/boards');
+    boards = d.boards;
+    renderBoardPills();
+    if (activeBoardId && boards.find(b => b.id === activeBoardId)) {
+      await loadBoard(activeBoardId);
+    }
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+function renderBoardPills() {
+  const wrap = document.getElementById('board-pills');
+  if (!boards.length) {
+    wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>';
+    return;
+  }
+  wrap.innerHTML = boards.map(b =>
+    `<div class="board-pill${b.id === activeBoardId ? ' active' : ''}" onclick="selectBoard('${b.id}')">${esc(b.name)}</div>`
+  ).join('');
+}
+
+function selectBoard(id) {
+  activeBoardId = id;
+  localStorage.setItem('teachedos_board_id', id);
+  renderBoardPills();
+  loadBoard(id);
+}
+
+async function loadBoard(id) {
+  document.getElementById('members-section').style.display = '';
+  document.getElementById('btn-invite').style.display = '';
+  try {
+    const d = await apiFetch(`/api/members/${id}/progress`);
+    members   = d.members;
+    lessonCols = d.lessons;
+    renderMemberList();
+    renderGradebook();
+    updateStats();
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+function renderMemberList() {
+  document.getElementById('member-count').textContent = members.length + ' student(s)';
+  const list = document.getElementById('member-list');
+  if (!members.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">👋</div>No students yet. Invite someone above!</div>';
+    return;
+  }
+  list.innerHTML = members.map(m => {
+    const done  = m.lessons.filter(l => l.status === 'done').length;
+    const total = m.lessons.length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+    return `
+    <div class="member-row">
+      <div class="m-avatar">${m.avatar}</div>
+      <div>
+        <div class="m-name">${esc(m.name)}</div>
+        <div class="m-email">${esc(m.email)}</div>
+      </div>
+      <span class="m-role role-${m.role}">${m.role}</span>
+      <div class="m-spacer"></div>
+      <div class="m-prog"><div class="m-prog-fill" style="width:${pct}%"></div></div>
+      <div class="m-pct">${pct}%</div>
+      <button class="btn btn-danger btn-sm" onclick="removeMember('${m.user_id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderGradebook() {
+  const sec = document.getElementById('gb-section');
+  if (!members.length || !lessonCols.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  const thead = document.querySelector('#gb-table thead tr');
+  thead.innerHTML = `<th class="th-name">Student</th>` +
+    lessonCols.map(l => `<th title="${esc(l.data?.title || l.title || '')}">${esc(abbreviate(l.data?.title || l.title || 'L'))}</th>`).join('') +
+    `<th>Done</th><th>%</th>`;
+
+  const ICON = { done:'✅', 'in-progress':'⏳', available:'▶️', locked:'🔒' };
+  const CLS  = { done:'sc-done', 'in-progress':'sc-progress', available:'sc-available', locked:'sc-locked' };
+
+  // Column completion counts (for summary row)
+  const colDone = lessonCols.map(() => 0);
+
+  const rows = members.map(m => {
+    const done  = m.lessons.filter(l => l.status === 'done').length;
+    const total = m.lessons.length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+    const cells = m.lessons.map((l, i) => {
+      if (l.status === 'done') colDone[i]++;
+      const cls = CLS[l.status] || 'sc-locked';
+      const ico = ICON[l.status] || '🔒';
+      return `<td><div class="sc ${cls}" title="${l.title}: ${l.status}">${ico}</div></td>`;
+    }).join('');
+    return `<tr>
+      <td class="td-name"><div class="m-avatar" style="width:28px;height:28px;font-size:15px;">${m.avatar}</div>${esc(m.name)}</td>
+      ${cells}
+      <td style="font-weight:800;color:var(--green);">${done}</td>
+      <td style="font-weight:900;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}%</td>
+    </tr>`;
+  }).join('');
+
+  // Summary row
+  const summCells = colDone.map((n, i) => {
+    const p = members.length ? Math.round(n / members.length * 100) : 0;
+    return `<td style="font-size:10px;color:${p>=80?'var(--green)':p>=50?'var(--orange)':'var(--text3)'};">${n}/${members.length}</td>`;
+  }).join('');
+
+  document.getElementById('gb-tbody').innerHTML = rows + `
+    <tr class="gb-summary">
+      <td class="td-name" style="font-weight:900;color:var(--text2);">📊 Class avg</td>
+      ${summCells}
+      <td>—</td>
+      <td style="font-weight:900;color:var(--accent);">${classAvgPct()}%</td>
+    </tr>`;
+}
+
+function classAvgPct() {
+  if (!members.length) return 0;
+  const sum = members.reduce((acc, m) => {
+    const done  = m.lessons.filter(l => l.status === 'done').length;
+    const total = m.lessons.length;
+    return acc + (total ? done / total * 100 : 0);
+  }, 0);
+  return Math.round(sum / members.length);
+}
+
+function updateStats() {
+  document.getElementById('s-students').textContent = members.length;
+  document.getElementById('s-lessons').textContent  = lessonCols.length;
+  document.getElementById('s-avg').textContent      = classAvgPct() + '%';
+
+  if (members.length) {
+    const top = members.slice().sort((a, b) => {
+      const pctA = a.lessons.filter(l => l.status === 'done').length / (a.lessons.length || 1);
+      const pctB = b.lessons.filter(l => l.status === 'done').length / (b.lessons.length || 1);
+      return pctB - pctA;
+    })[0];
+    document.getElementById('s-top').textContent = top.avatar + ' ' + top.name.split(' ')[0];
+  } else {
+    document.getElementById('s-top').textContent = '—';
+  }
+}
+
+async function inviteStudent() {
+  const email = document.getElementById('invite-email').value.trim();
+  const role  = document.getElementById('invite-role').value;
+  if (!email) { toast('Enter email'); return; }
+  if (!activeBoardId) { toast('Select a board first'); return; }
+  try {
+    await apiFetch(`/api/members/${activeBoardId}/invite`, {
+      method: 'POST', body: JSON.stringify({ email, role })
+    });
+    document.getElementById('invite-email').value = '';
+    toast('✅ Student invited!');
+    await loadBoard(activeBoardId);
+  } catch (e) { toast('❌ ' + e.message); }
+}
+
+async function removeMember(userId) {
+  if (!activeBoardId) return;
+  try {
+    await apiFetch(`/api/members/${activeBoardId}/${userId}`, { method: 'DELETE' });
+    toast('Removed');
+    await loadBoard(activeBoardId);
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+function openInviteModal() {
+  document.getElementById('invite-modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-email').focus(), 100);
+}
+function closeInviteModal() { document.getElementById('invite-modal').classList.remove('open'); }
+
+async function inviteFromModal() {
+  const email = document.getElementById('modal-email').value.trim();
+  const role  = document.getElementById('modal-role').value;
+  if (!email) { toast('Enter email'); return; }
+  if (!activeBoardId) { toast('Select a board first'); closeInviteModal(); return; }
+  try {
+    await apiFetch(`/api/members/${activeBoardId}/invite`, {
+      method: 'POST', body: JSON.stringify({ email, role })
+    });
+    document.getElementById('modal-email').value = '';
+    closeInviteModal();
+    toast('✅ Invited!');
+    await loadBoard(activeBoardId);
+  } catch (e) { toast('❌ ' + e.message); }
+}
+
+function exportGradebook() {
+  if (!members.length) { toast('No data to export'); return; }
+  const headers = ['Student', 'Email', ...lessonCols.map(l => l.data?.title || l.title || 'Lesson'), 'Done', '%'];
+  const rows = members.map(m => {
+    const done = m.lessons.filter(l => l.status === 'done').length;
+    const pct  = m.lessons.length ? Math.round(done / m.lessons.length * 100) : 0;
+    return [m.name, m.email, ...m.lessons.map(l => l.status), done, pct + '%'];
+  });
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'gradebook.csv';
+  a.click();
+  toast('📥 Exported!');
+}
+
+function abbreviate(str) {
+  const words = String(str).trim().split(/\s+/);
+  if (words.length === 1) return str.slice(0, 6);
+  return words.map(w => w[0]).join('').slice(0, 4).toUpperCase();
+}
+
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show';
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 3000);
+}
+function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// Close modal on backdrop click
+document.getElementById('invite-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeInviteModal();
+});
+
+init();
+</script>
+</body>
+</html>

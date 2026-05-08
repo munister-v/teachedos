@@ -205,6 +205,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   <a class="nb-link" href="board.html">📌 Board</a>
   <a class="nb-link" href="schedule.html">📅 Schedule</a>
   <a class="nb-link" href="analytics.html">📊 Analytics</a>
+  <a class="nb-link" href="gradebook.html">📒 Gradebook</a>
   <a class="nb-link" id="nb-admin-link" href="admin.html">🛡 Admin</a>
   <div class="nb-spacer"></div>
   <div id="nb-user-info" style="font-size:13px;font-weight:700;color:var(--text-3);display:none;"></div>
@@ -219,6 +220,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </div>
     <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
       <span class="st-icon">📋</span> My Boards
+    </div>
+    <div class="st-item" data-tab="shared" onclick="switchTab('shared')">
+      <span class="st-icon">🎓</span> Shared with me
     </div>
     <div class="st-item" data-tab="settings" onclick="switchTab('settings')">
       <span class="st-icon">⚙️</span> Settings
@@ -267,6 +271,13 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       <button class="new-board-btn" onclick="createNewBoard()">➕ New Board</button>
       <div class="boards-grid" id="boards-grid">
         <div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- SHARED WITH ME TAB -->
+    <div id="tab-shared" class="tab-panel">
+      <div id="shared-boards-list" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>
       </div>
     </div>
 
@@ -362,6 +373,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name)?.classList.add('active');
   document.querySelector(`.st-item[data-tab="${name}"]`)?.classList.add('active');
   if (name === 'boards') loadBoards();
+  if (name === 'shared') loadSharedBoards();
   if (name === 'settings') initSettings();
 }
 
@@ -521,6 +533,31 @@ async function createNewBoard() {
     const { board } = await r.json();
     window.location.href = 'board.html?id=' + board.id;
   } catch { toast('Failed to create board'); }
+}
+
+// ── Shared Boards ─────────────────────────────────────────────
+async function loadSharedBoards() {
+  const wrap = document.getElementById('shared-boards-list');
+  wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>';
+  try {
+    const r = await apiFetch('/api/members/my/boards');
+    const { boards } = await r.json();
+    if (!boards.length) {
+      wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">No shared boards yet.<br>Ask your teacher to invite you to a board.</div>';
+      return;
+    }
+    wrap.innerHTML = boards.map(b => `
+      <div style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(255,75,139,.07);display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="location.href='board.html?id=${esc(b.id)}'">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#fff4f8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
+      </div>`).join('');
+  } catch {
+    wrap.innerHTML = '<div style="color:#e55;text-align:center;padding:20px;">Failed to load shared boards</div>';
+  }
 }
 
 // ── Settings ──────────────────────────────────────────────────
