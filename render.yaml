@@ -21,7 +21,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: ALLOWED_ORIGINS
-        value: https://munister-v.github.io
+        value: https://munister-v.github.io,https://munister.com.ua
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL

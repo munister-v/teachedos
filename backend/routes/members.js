@@ -4,6 +4,27 @@ const pool    = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
 /* ──────────────────────────────────────────────────────────────
+   GET /api/members/my/boards  — boards shared with current user (as student)
+────────────────────────────────────────────────────────────── */
+router.get('/my/boards', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT b.id, b.name, b.updated_at, bc.role,
+             u.name AS owner_name, u.avatar AS owner_avatar
+      FROM board_collaborators bc
+      JOIN boards b ON b.id = bc.board_id
+      JOIN users  u ON u.id = b.user_id
+      WHERE bc.user_id = $1
+      ORDER BY b.updated_at DESC
+    `, [req.user.id]);
+    res.json({ boards: rows });
+  } catch (err) {
+    console.error('[members] my/boards error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* ──────────────────────────────────────────────────────────────
    GET /api/members/:boardId  — list members of a board (owner only)
 ────────────────────────────────────────────────────────────── */
 router.get('/:boardId', requireAuth, async (req, res) => {
@@ -193,27 +214,6 @@ router.patch('/:boardId/progress', requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('[members] progress PATCH error:', err.message);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-/* ──────────────────────────────────────────────────────────────
-   GET /api/members/my/boards  — boards shared with current user (as student)
-────────────────────────────────────────────────────────────── */
-router.get('/my/boards', requireAuth, async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT b.id, b.name, b.updated_at, bc.role,
-             u.name AS owner_name, u.avatar AS owner_avatar
-      FROM board_collaborators bc
-      JOIN boards b ON b.id = bc.board_id
-      JOIN users  u ON u.id = b.user_id
-      WHERE bc.user_id = $1
-      ORDER BY b.updated_at DESC
-    `, [req.user.id]);
-    res.json({ boards: rows });
-  } catch (err) {
-    console.error('[members] my/boards error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -39,10 +39,12 @@ function setup(server) {
       ws.close(4001, 'Unauthorized'); return;
     }
 
-    // Verify board ownership
-    const { rows } = await pool.query(
-      'SELECT id FROM boards WHERE id = $1 AND user_id = $2', [boardId, userId]
-    );
+    // Verify board access (owner or collaborator)
+    const { rows } = await pool.query(`
+      SELECT 1 FROM boards WHERE id = $1 AND user_id = $2
+      UNION
+      SELECT 1 FROM board_collaborators WHERE board_id = $1 AND user_id = $2
+    `, [boardId, userId]);
     if (!rows.length) { ws.close(4003, 'Forbidden'); return; }
 
     // Join room

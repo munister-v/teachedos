@@ -16,6 +16,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
     'http://localhost:5500',
     'http://127.0.0.1:5500',
     'https://munister-v.github.io',
+    'https://munister.com.ua',
   ]);
 
 app.use(cors({
