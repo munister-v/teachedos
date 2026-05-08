@@ -1837,6 +1837,7 @@ document.addEventListener('mousemove', e => {
     card.w = Math.max(160, sw + (e.clientX - mx) / state.scale);
     card.h = Math.max(80,  sh + (e.clientY - my) / state.scale);
     el.style.width = card.w+'px'; el.style.height = card.h+'px';
+    if (card.type === 'game') applyGameScale(el, card);
     renderAllArrows(); renderMinimap(); return;
   }
 
@@ -1869,7 +1870,13 @@ document.addEventListener('mouseup', e => {
     setTimeout(() => { dragStarted = false; }, 0);
   }
 
-  if (isResizing) { isResizing = false; document.body.classList.remove('board-dragging'); snapshot(); scheduleSave(); }
+  if (isResizing) {
+    isResizing = false;
+    document.body.classList.remove('board-dragging');
+    const { card, el } = resizeStart;
+    if (card.type === 'game') applyGameScale(el, card);
+    snapshot(); scheduleSave();
+  }
 
   if (isBoxSelecting) {
     isBoxSelecting = false;

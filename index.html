@@ -327,6 +327,17 @@ html,body {
   letter-spacing:-0.01em;
 }
 .win-body { flex:1; overflow:hidden; display:flex; }
+.win-rz {
+  position:absolute;bottom:0;right:0;width:20px;height:20px;
+  cursor:se-resize;z-index:30;
+}
+.win-rz::after {
+  content:'';position:absolute;bottom:4px;right:4px;
+  width:10px;height:10px;
+  border-right:2.5px solid rgba(180,80,120,0.35);
+  border-bottom:2.5px solid rgba(180,80,120,0.35);
+  border-radius:1px;
+}
 .win-sidebar {
   width:200px; flex-shrink:0;
   background: rgba(255,240,248,0.70);
@@ -1602,34 +1613,57 @@ function bringToFront(id) {
   if (win) win.style.zIndex = topZ;
 }
 
-/* Draggable windows */
+/* Draggable + resizable windows */
 (function(){
   const wins = document.querySelectorAll('.win');
+  let dragWin=null, ox=0, oy=0, wx=0, wy=0;
+  let rzWin=null, rsw=0, rsh=0, rmx=0, rmy=0;
+
   wins.forEach(win => {
     const tb = win.querySelector('.win-titlebar');
-    if (!tb) return;
-    let drag = false, ox=0, oy=0, wx=0, wy=0;
-    tb.addEventListener('mousedown', e => {
-      if (e.target.classList.contains('tl')) return;
-      drag = true;
-      ox = e.clientX; oy = e.clientY;
+    if (tb) {
+      tb.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('tl')) return;
+        dragWin = win;
+        ox = e.clientX; oy = e.clientY;
+        const r = win.getBoundingClientRect();
+        wx = r.left; wy = r.top;
+        bringToFront(win.id.replace('win-',''));
+        e.preventDefault();
+      });
+    }
+    win.addEventListener('mousedown', () => bringToFront(win.id.replace('win-','')));
+
+    // Add resize handle
+    const rz = document.createElement('div');
+    rz.className = 'win-rz';
+    rz.addEventListener('mousedown', e => {
+      rzWin = win;
       const r = win.getBoundingClientRect();
-      wx = r.left; wy = r.top;
-      const id = win.id.replace('win-','');
-      bringToFront(id);
-      e.preventDefault();
+      rsw = r.width; rsh = r.height; rmx = e.clientX; rmy = e.clientY;
+      e.preventDefault(); e.stopPropagation();
     });
-    document.addEventListener('mousemove', e => {
-      if (!drag) return;
-      win.style.left = (wx + e.clientX - ox) + 'px';
-      win.style.top  = (wy + e.clientY - oy) + 'px';
-    });
-    document.addEventListener('mouseup', () => { drag = false; });
-    win.addEventListener('mousedown', () => {
-      const id = win.id.replace('win-','');
-      bringToFront(id);
-    });
+    win.appendChild(rz);
   });
+
+  document.addEventListener('mousemove', e => {
+    if (dragWin) {
+      let nx = wx + e.clientX - ox;
+      let ny = wy + e.clientY - oy;
+      const TITLEBAR_H = 28;
+      nx = Math.max(0, Math.min(nx, window.innerWidth - dragWin.offsetWidth));
+      ny = Math.max(0, Math.min(ny, window.innerHeight - TITLEBAR_H));
+      dragWin.style.left = nx+'px';
+      dragWin.style.top  = ny+'px';
+    }
+    if (rzWin) {
+      const nw = Math.max(320, rsw + e.clientX - rmx);
+      const nh = Math.max(220, rsh + e.clientY - rmy);
+      rzWin.style.width  = nw+'px';
+      rzWin.style.height = nh+'px';
+    }
+  });
+  document.addEventListener('mouseup', () => { dragWin=null; rzWin=null; });
 })();
 
 /* ══════════════════════ STUDENTS ══════════════════════ */

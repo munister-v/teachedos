@@ -115,6 +115,13 @@ a{text-decoration:none;color:inherit;}
 .ac-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
 .ac-fill{height:100%;border-radius:3px;background:var(--orange);}
 .ac-pct{font-size:12px;font-weight:800;color:var(--orange);min-width:36px;text-align:right;}
+.stu-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.stu-row:last-child{border-bottom:none;}
+.stu-avatar{width:36px;height:36px;border-radius:10px;background:#fff4f8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stu-info{flex:1;min-width:0;}
+.stu-name{font-size:13px;font-weight:800;color:var(--text);}
+.stu-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.stu-pct{font-size:15px;font-weight:900;min-width:42px;text-align:right;}
 
 /* Board selector */
 .board-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
@@ -233,6 +240,17 @@ a{text-decoration:none;color:inherit;}
     </div>
   </div>
 
+  <!-- Student progress -->
+  <div class="section" id="students-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">👥 Student Progress</div>
+      <span id="students-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body" id="students-body">
+      <div class="empty"><div class="empty-icon">👥</div>No students yet</div>
+    </div>
+  </div>
+
 </div><!-- /page -->
 
 <div id="toast"></div>
@@ -292,11 +310,11 @@ async function loadBoardAnalytics(id) {
     const { board } = await apiFetch(`/api/boards/${id}`);
     const data = board.data || {};
     const cards = data.cards || [];
-    analyzeBoard(cards, board.name);
+    analyzeBoard(id, cards, board.name);
   } catch(e) { toast('Board not found or no access'); }
 }
 
-function analyzeBoard(cards, boardName) {
+function analyzeBoard(boardId, cards, boardName) {
   const lessons     = cards.filter(c => c.type==='lesson');
   const assignments = cards.filter(c => c.type==='assignment');
   const milestones  = cards.filter(c => c.type==='milestone');
@@ -422,6 +440,9 @@ function analyzeBoard(cards, boardName) {
       </div>`;
     }).join('');
   }
+
+  // Load student progress
+  loadStudentProgress(boardId);
 }
 
 let _lastCards = [];
@@ -468,6 +489,35 @@ function buildInsights(cards, lessons, done, inProgress, assignments) {
       <div style="font-size:20px;width:32px;height:32px;border-radius:10px;background:${i.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i.icon}</div>
       <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;padding-top:5px;">${i.msg}</div>
     </div>`).join('');
+}
+
+async function loadStudentProgress(boardId) {
+  const sec = document.getElementById('students-section');
+  const body = document.getElementById('students-body');
+  const cnt = document.getElementById('students-count');
+  try {
+    const { members, lessons } = await apiFetch(`/api/members/${boardId}/progress`);
+    if (!members.length) { sec.style.display='none'; return; }
+    sec.style.display = '';
+    cnt.textContent = members.length + ' student(s)';
+    body.innerHTML = members.map(m => {
+      const done  = m.lessons.filter(l=>l.status==='done').length;
+      const total = m.lessons.length;
+      const pct   = total ? Math.round(done/total*100) : 0;
+      const color = pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--blue)';
+      return `<div class="stu-row">
+        <div class="stu-avatar">${m.avatar}</div>
+        <div class="stu-info">
+          <div class="stu-name">${esc(m.name)}</div>
+          <div class="stu-sub">${esc(m.email)} · <span style="color:var(--text3)">${done}/${total} lessons done</span></div>
+          <div style="margin-top:6px;height:5px;border-radius:3px;background:rgba(255,75,139,.1);overflow:hidden;">
+            <div style="height:100%;border-radius:3px;width:${pct}%;background:${color};transition:width .6s;"></div>
+          </div>
+        </div>
+        <div class="stu-pct" style="color:${color}">${pct}%</div>
+      </div>`;
+    }).join('');
+  } catch { sec.style.display='none'; }
 }
 
 function exportCSV() {
