@@ -634,6 +634,34 @@ body.board-dragging .game-iframe-overlay{display:block;}
   background:rgba(255,255,255,.82);padding:4px 10px;border-radius:20px;
   border:1px solid var(--border);pointer-events:none;z-index:900;display:none;
 }
+/* ══════════════ FOLLOW ME ══════════════ */
+#btn-follow-me{
+  display:none;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;
+  border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;
+  color:var(--text-2);cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0;
+}
+#btn-follow-me:hover{background:rgba(255,75,139,.07);border-color:var(--accent);}
+#btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+#presence-bar{display:flex;align-items:center;gap:4px;min-width:0;flex-shrink:0;}
+.peer-chip{
+  display:flex;align-items:center;gap:3px;padding:2px 8px 2px 4px;border-radius:20px;
+  font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:.12s;
+  white-space:nowrap;flex-shrink:0;background:#fff;
+}
+.peer-chip:hover{filter:brightness(.93);}
+.peer-chip .pc-go{font-size:9px;opacity:.65;margin-left:2px;}
+/* Student follow banner */
+#follow-banner{
+  display:none;position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:rgba(30,30,40,.88);color:#fff;padding:8px 18px;border-radius:24px;
+  font-size:13px;font-weight:700;z-index:9500;align-items:center;gap:10px;
+  backdrop-filter:blur(6px);box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+#follow-banner button{
+  background:rgba(255,255,255,.18);border:none;color:#fff;padding:3px 10px;
+  border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;
+}
+#follow-banner button:hover{background:rgba(255,255,255,.3);}
 </style>
 </head>
 <body>
@@ -670,7 +698,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-sep"></div>
   <!-- WS status + presence -->
   <div id="ws-dot" title="Real-time: off" style="width:9px;height:9px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;"></div>
-  <span id="presence-bar" style="font-size:11px;font-weight:700;color:var(--text-3);min-width:0;"></span>
+  <div id="presence-bar"></div>
+  <button id="btn-follow-me" onclick="toggleFollowMode()">👁 Follow Me</button>
   <div class="tb-sep"></div>
   <!-- Auth user chip -->
   <div id="auth-chip" style="display:none;align-items:center;gap:7px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
@@ -691,6 +720,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
   </div>
   <div class="tb-sep"></div>
   <div class="tb-btn text danger" id="btn-clear" title="Clear board">🗑</div>
+</div>
+
+<!-- Follow Me student banner -->
+<div id="follow-banner">
+  <span>📍 Following teacher</span>
+  <button onclick="releaseFollow()">Go free</button>
 </div>
 
 <!-- SIDEBAR -->
@@ -955,6 +990,7 @@ function applyTransform() {
   zoomDisp.textContent = Math.round(state.scale * 100) + '%';
   renderAllArrows();
   renderMinimap();
+  wsSendViewport();
 }
 
 function screenToBoard(sx, sy) {
@@ -1817,9 +1853,12 @@ document.addEventListener('mousemove', e => {
   }
 
   if (isPanning) {
-    state.pan.x = panStart.px + (e.clientX - panStart.mx);
-    state.pan.y = panStart.py + (e.clientY - panStart.my);
-    applyTransform(); return;
+    if (!isFollowingTeacher) {
+      state.pan.x = panStart.px + (e.clientX - panStart.mx);
+      state.pan.y = panStart.py + (e.clientY - panStart.my);
+      applyTransform();
+    }
+    return;
   }
 
   if (isDraggingCard) {
@@ -1916,7 +1955,7 @@ document.addEventListener('mouseup', e => {
 /* ════════════════════════ ZOOM ════════════════════════ */
 boardWrap.addEventListener('wheel', e => {
   e.preventDefault();
-  zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.08 : 0.925);
+  if (!isFollowingTeacher) zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.08 : 0.925);
 }, { passive:false });
 
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -2799,6 +2838,10 @@ async function logout() {
 // ── Board API ────────────────────────────────────────────────
 async function initUserBoard() {
   if (!currentUser || !authToken) return;
+  // Owner loads boards via authenticated REST — if it succeeds, user is the owner
+  boardOwnerId = currentUser.id;
+  isOwner = true;
+  updateFollowUI();
   try {
     // If URL has a specific board id, try to load it
     const targetId = URL_BOARD_ID || currentBoardId;
@@ -3010,6 +3053,15 @@ let peerColorIdx = 0;
 let wsBroadcastTimer = null;
 let wsIgnoreNext = false; // prevent echo loop
 
+// ── Follow Me state ───────────────────────────────────────────
+let boardOwnerId = null;       // UUID of board owner
+let isOwner = false;           // current user is board owner
+let followMode = false;        // teacher: follow-me is active
+let isFollowingTeacher = false; // student: locked to teacher viewport
+let peerViewports = {};        // userId → { pan, scale, name, avatar }
+let peerInfo = {};             // userId → { name, avatar }
+let vpBroadcastTimer = null;
+
 function peerColor(userId) {
   if (!peerColorMap[userId]) peerColorMap[userId] = PEER_COLORS[peerColorIdx++ % PEER_COLORS.length];
   return peerColorMap[userId];
@@ -3035,15 +3087,38 @@ function wsConnect() {
       applyRemoteState(msg.state);
       wsIgnoreNext = false;
     } else if (msg.type === 'cursor') {
+      peerInfo[msg.userId] = { name: msg.name, avatar: msg.avatar };
       updateRemoteCursor(msg.userId, msg.x, msg.y, msg.name, msg.avatar);
     } else if (msg.type === 'peer_joined') {
       showPeerToast(msg.userId, msg.name, msg.avatar, 'joined');
       updatePresenceBar();
     } else if (msg.type === 'peer_left') {
       removeRemoteCursor(msg.userId);
+      delete peerViewports[msg.userId];
+      delete peerInfo[msg.userId];
       updatePresenceBar();
     } else if (msg.type === 'connected') {
+      boardOwnerId = msg.boardOwnerId;
+      isOwner = currentUser?.id === boardOwnerId;
+      if (msg.followMode && !isOwner) {
+        isFollowingTeacher = true;
+        showFollowBanner(true);
+      }
+      updateFollowUI();
       updatePresenceBar();
+    } else if (msg.type === 'follow_mode') {
+      if (!isOwner) {
+        isFollowingTeacher = msg.enabled;
+        showFollowBanner(msg.enabled);
+      }
+      updatePresenceBar();
+    } else if (msg.type === 'viewport') {
+      peerInfo[msg.userId] = { name: msg.name, avatar: msg.avatar };
+      peerViewports[msg.userId] = { pan: msg.pan, scale: msg.scale, name: msg.name, avatar: msg.avatar };
+      if (isFollowingTeacher && msg.userId === boardOwnerId) {
+        applyFollowViewport(msg.pan, msg.scale);
+      }
+      if (isOwner) updatePresenceBar();
     }
   };
 
@@ -3131,12 +3206,93 @@ function clearRemoteCursors() {
 function updatePresenceBar() {
   const bar = document.getElementById('presence-bar');
   if (!bar) return;
-  const count = Object.keys(remoteCursors).length;
-  bar.textContent = count > 0 ? `👥 ${count + 1} online` : '';
+  const peers = Object.keys(remoteCursors);
+  if (!peers.length) { bar.innerHTML = ''; return; }
+
+  if (isOwner) {
+    // Teacher: show each student as a clickable chip
+    bar.innerHTML = peers.map(uid => {
+      const info = peerInfo[uid] || {};
+      const col  = peerColor(uid);
+      const name = (info.name || '…').split(' ')[0];
+      const av   = info.avatar || '👤';
+      const hasVp = !!peerViewports[uid];
+      return `<div class="peer-chip" style="color:${col};border-color:${col}20;background:${col}10;"
+        onclick="jumpToStudent('${uid}')" title="Jump to ${info.name||'student'}">
+        <span>${av}</span><span>${name}</span>${hasVp ? '<span class="pc-go">→</span>' : ''}
+      </div>`;
+    }).join('');
+  } else {
+    // Student: simple count
+    bar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
+  }
 }
 
 function showPeerToast(userId, name, avatar, action) {
   toast(`${avatar||'👤'} ${name||'Someone'} ${action}`);
+}
+
+// ── Follow Me functions ───────────────────────────────────────
+function updateFollowUI() {
+  const btn = document.getElementById('btn-follow-me');
+  if (!btn) return;
+  btn.style.display = isOwner ? 'flex' : 'none';
+  btn.classList.toggle('active', followMode);
+  btn.textContent = followMode ? '👁 Follow Me: ON' : '👁 Follow Me';
+}
+
+function toggleFollowMode() {
+  if (!isOwner) return;
+  followMode = !followMode;
+  updateFollowUI();
+  if (ws?.readyState === 1) ws.send(JSON.stringify({ type: 'follow_mode', enabled: followMode }));
+  toast(followMode ? '👁 Students are now following you' : '👁 Students freed');
+}
+
+function showFollowBanner(show) {
+  const b = document.getElementById('follow-banner');
+  if (b) b.style.display = show ? 'flex' : 'none';
+}
+
+function releaseFollow() {
+  isFollowingTeacher = false;
+  showFollowBanner(false);
+}
+
+function wsSendViewport() {
+  if (!ws || ws.readyState !== 1) return;
+  clearTimeout(vpBroadcastTimer);
+  vpBroadcastTimer = setTimeout(() => {
+    if (ws?.readyState === 1) ws.send(JSON.stringify({
+      type: 'viewport',
+      pan: { x: state.pan.x, y: state.pan.y },
+      scale: state.scale,
+      name: currentUser?.name,
+      avatar: currentUser?.avatar,
+    }));
+  }, 80);
+}
+
+function applyFollowViewport(pan, scale) {
+  board.style.transition = 'transform .25s ease';
+  state.pan.x = pan.x; state.pan.y = pan.y; state.scale = scale;
+  board.style.transform = `translate(${pan.x}px,${pan.y}px) scale(${scale})`;
+  zoomDisp.textContent = Math.round(scale * 100) + '%';
+  renderAllArrows();
+  setTimeout(() => { board.style.transition = ''; }, 260);
+}
+
+function jumpToStudent(userId) {
+  const vp = peerViewports[userId];
+  if (!vp) { toast('No position yet — student hasn\'t moved'); return; }
+  board.style.transition = 'transform .3s ease';
+  state.pan.x = vp.pan.x; state.pan.y = vp.pan.y; state.scale = vp.scale;
+  board.style.transform = `translate(${vp.pan.x}px,${vp.pan.y}px) scale(${vp.scale})`;
+  zoomDisp.textContent = Math.round(vp.scale * 100) + '%';
+  renderAllArrows();
+  setTimeout(() => { board.style.transition = ''; }, 310);
+  const info = peerInfo[userId] || {};
+  toast(`📍 Jumped to ${info.name || 'student'}`);
 }
 
 // Broadcast on every local change

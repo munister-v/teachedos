@@ -8,6 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
 
 // boardId → Set<ws>
 const rooms = new Map();
+// boardId → { followMode: bool, boardOwnerId: string }
+const roomMeta = new Map();
 
 function broadcast(boardId, msg, exclude) {
   const room = rooms.get(boardId);
@@ -47,8 +49,17 @@ function setup(server) {
     `, [boardId, userId]);
     if (!rows.length) { ws.close(4003, 'Forbidden'); return; }
 
+    // Get board owner
+    const { rows: ownerRows } = await pool.query(
+      'SELECT user_id FROM boards WHERE id=$1', [boardId]
+    );
+    const boardOwnerId = ownerRows[0]?.user_id;
+
     // Join room
-    if (!rooms.has(boardId)) rooms.set(boardId, new Set());
+    if (!rooms.has(boardId)) {
+      rooms.set(boardId, new Set());
+      roomMeta.set(boardId, { followMode: false, boardOwnerId });
+    }
     rooms.get(boardId).add(ws);
 
     ws.boardId = boardId;
@@ -68,7 +79,22 @@ function setup(server) {
           break;
         // Cursor / presence
         case 'cursor':
-          broadcast(boardId, { type: 'cursor', userId, x: msg.x, y: msg.y }, ws);
+          broadcast(boardId, { type: 'cursor', userId, x: msg.x, y: msg.y, name: msg.name, avatar: msg.avatar }, ws);
+          break;
+        // Teacher toggles Follow Me mode
+        case 'follow_mode': {
+          const meta = roomMeta.get(boardId);
+          if (meta) meta.followMode = !!msg.enabled;
+          broadcast(boardId, { type: 'follow_mode', enabled: !!msg.enabled, userId }, ws);
+          break;
+        }
+        // Any client broadcasts their viewport position
+        case 'viewport':
+          broadcast(boardId, {
+            type: 'viewport', userId,
+            pan: msg.pan, scale: msg.scale,
+            name: msg.name, avatar: msg.avatar,
+          }, ws);
           break;
         default:
           break;
@@ -77,13 +103,21 @@ function setup(server) {
 
     ws.on('close', () => {
       rooms.get(boardId)?.delete(ws);
-      if (rooms.get(boardId)?.size === 0) rooms.delete(boardId);
+      if (rooms.get(boardId)?.size === 0) {
+        rooms.delete(boardId);
+        roomMeta.delete(boardId);
+      }
       broadcast(boardId, { type: 'peer_left', userId });
     });
 
     ws.on('error', (err) => console.error('[ws]', err.message));
 
-    ws.send(JSON.stringify({ type: 'connected', boardId, userId }));
+    // Send initial state to new joiner
+    const meta = roomMeta.get(boardId);
+    ws.send(JSON.stringify({
+      type: 'connected', boardId, userId, boardOwnerId,
+      followMode: meta?.followMode || false,
+    }));
   });
 
   console.log('[ws] WebSocket server ready');
