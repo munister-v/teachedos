@@ -165,6 +165,7 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div class="head-spacer"></div>
     <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
     <button class="btn btn-primary" onclick="location.href='board.html'">📌 Open Board</button>
   </div>
 
@@ -183,6 +184,12 @@ a{text-decoration:none;color:inherit;}
     <div class="stat-card"><div class="stat-icon si-orange">📝</div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
     <div class="stat-card"><div class="stat-icon si-pink">🏁</div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
     <div class="stat-card"><div class="stat-icon si-purple">📈</div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
+  </div>
+
+  <!-- Insights -->
+  <div class="section" id="insight-section" style="display:none">
+    <div class="sec-head"><div class="sec-title">💡 Insights</div></div>
+    <div class="sec-body" id="insight-body"></div>
   </div>
 
   <!-- Progress + Pie -->
@@ -384,6 +391,10 @@ function analyzeBoard(cards, boardName) {
     }).join('');
   }
 
+  // Insights + export button
+  buildInsights(cards, lessons, done, inProgress, assignments);
+  document.getElementById('btn-export').style.display = total ? '' : 'none';
+
   // Assignments
   const grid = document.getElementById('assign-grid');
   if (!assignments.length) {
@@ -410,6 +421,66 @@ function analyzeBoard(cards, boardName) {
       </div>`;
     }).join('');
   }
+}
+
+let _lastCards = [];
+
+function buildInsights(cards, lessons, done, inProgress, assignments) {
+  _lastCards = cards;
+  const total = lessons.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  const insights = [];
+
+  if (total === 0) {
+    insights.push({ icon:'📌', color:'#6366f1', msg:'No lesson cards on this board yet. Add Lesson cards from the board to start tracking progress.' });
+  } else {
+    if (pct === 100) insights.push({ icon:'🏆', color:'#22c55e', msg:`Outstanding! All ${total} lessons completed. Time to create new challenges!` });
+    else if (pct >= 75)  insights.push({ icon:'🔥', color:'#f97316', msg:`Great momentum — ${pct}% complete. Just ${total-done} lessons to go!` });
+    else if (pct >= 40)  insights.push({ icon:'📈', color:'#3b82f6', msg:`Good progress at ${pct}%. ${inProgress} lesson(s) currently in progress.` });
+    else if (pct > 0)    insights.push({ icon:'🚀', color:'#8b5cf6', msg:`Started! ${done}/${total} lessons done (${pct}%). Keep the momentum going.` });
+    else                 insights.push({ icon:'📖', color:'#6366f1', msg:`${total} lessons planned — none completed yet. Click the first available lesson to begin!` });
+  }
+
+  // Overdue assignments
+  const overdue = assignments.filter(a => a.data.deadline && new Date(a.data.deadline) < new Date());
+  if (overdue.length) insights.push({ icon:'⚠️', color:'#ef4444', msg:`${overdue.length} assignment(s) past deadline: ${overdue.map(a=>a.data.title||'Untitled').join(', ')}.` });
+
+  // Skills gap
+  const bySkill = {};
+  lessons.forEach(l => {
+    const s = l.data.skill||'Other';
+    if (!bySkill[s]) bySkill[s]={done:0,total:0};
+    bySkill[s].total++;
+    if (l.data.status==='done') bySkill[s].done++;
+  });
+  const weakest = Object.entries(bySkill).sort((a,b)=>(a[1].done/a[1].total)-(b[1].done/b[1].total))[0];
+  if (weakest && weakest[1].total > 1) {
+    const pct2 = Math.round(weakest[1].done/weakest[1].total*100);
+    insights.push({ icon:'🎯', color:'#f59e0b', msg:`Focus area: <strong>${weakest[0]}</strong> has the lowest completion rate (${pct2}%). Consider allocating more time.` });
+  }
+
+  const sec = document.getElementById('insight-section');
+  const body = document.getElementById('insight-body');
+  sec.style.display = '';
+  body.innerHTML = insights.map(i => `
+    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+      <div style="font-size:20px;width:32px;height:32px;border-radius:10px;background:${i.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i.icon}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;padding-top:5px;">${i.msg}</div>
+    </div>`).join('');
+}
+
+function exportCSV() {
+  const lessons = _lastCards.filter(c=>c.type==='lesson');
+  if (!lessons.length) { toast('No lessons to export'); return; }
+  const rows = [['Title','Level','Skill','Duration','Status']];
+  lessons.forEach(l => rows.push([
+    l.data.title||'', l.data.level||'', l.data.skill||'', l.data.duration||'', l.data.status||''
+  ]));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'teachedos-lessons.csv';
+  a.click();
 }
 
 let toastT;
