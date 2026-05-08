@@ -15,6 +15,7 @@
   --mono:'JetBrains Mono',monospace;
 }
 html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
 /* ── NAV ── */
 #nav{
   position:sticky;top:0;z-index:100;
@@ -192,6 +193,16 @@ html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var
     </div>
   </div>
 
+  <!-- Live session banner -->
+  <div id="live-banner" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-radius:16px;padding:16px 20px;margin:0 0 16px;align-items:center;gap:12px;">
+    <span style="width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse-dot 1.2s infinite;flex-shrink:0;display:inline-block;"></span>
+    <div style="flex:1;">
+      <div style="font-weight:800;font-size:15px;">🔴 Live Now — Your teacher is online!</div>
+      <div id="live-class-name" style="font-size:12px;opacity:.85;margin-top:2px;">Class in progress</div>
+    </div>
+    <a id="live-join-btn" href="#" target="_blank" style="padding:10px 18px;border-radius:10px;border:2px solid rgba(255,255,255,.8);color:#fff;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;">Join →</a>
+  </div>
+
   <!-- Stats -->
   <div class="stats-row" id="stats-row">
     <div class="stat-card">
@@ -304,6 +315,9 @@ async function init() {
       renderStats(boards, stats);
     }
 
+    // Check for live sessions
+    checkLiveSessions();
+
     // Done — show UI
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('main').style.display = '';
@@ -368,6 +382,26 @@ function renderSchedule(schedule) {
         ${s.level ? `<span class="sch-badge">${esc(s.level)}</span>` : ''}
       </div>`;
   }).join('');
+}
+
+async function checkLiveSessions() {
+  try {
+    const r = await apiFetch('/api/schedule/live');
+    if (!r.ok) return;
+    const { sessions } = await r.json();
+    if (!sessions || !sessions.length) return;
+    const session = sessions[0];
+    const banner = document.getElementById('live-banner');
+    if (!banner) return;
+    banner.style.display = 'flex';
+    const nameEl = document.getElementById('live-class-name');
+    if (nameEl) nameEl.textContent = session.title || 'Class in progress';
+    const btn = document.getElementById('live-join-btn');
+    if (btn) {
+      if (session.meeting_url) btn.href = session.meeting_url;
+      else btn.style.display = 'none';
+    }
+  } catch {}
 }
 
 init();

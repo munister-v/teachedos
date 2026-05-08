@@ -82,6 +82,48 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
 
+// PATCH /api/auth/me — update profile fields
+router.patch('/me', requireAuth, async (req, res) => {
+  const { name, avatar, meeting_url, zoom_url } = req.body;
+  const updates = [];
+  const params  = [];
+
+  if (name !== undefined) {
+    if (!name.trim()) return res.status(400).json({ error: 'Name cannot be empty' });
+    updates.push(`name = $${params.length + 1}`); params.push(name.trim().slice(0, 100));
+  }
+  if (avatar !== undefined) {
+    updates.push(`avatar = $${params.length + 1}`); params.push(avatar);
+  }
+  if (meeting_url !== undefined) {
+    if (meeting_url && !/^https?:\/\/.+/.test(meeting_url)) {
+      return res.status(400).json({ error: 'meeting_url must be a valid URL' });
+    }
+    updates.push(`meeting_url = $${params.length + 1}`); params.push(meeting_url || null);
+  }
+  if (zoom_url !== undefined) {
+    if (zoom_url && !/^https?:\/\/.+/.test(zoom_url)) {
+      return res.status(400).json({ error: 'zoom_url must be a valid URL' });
+    }
+    updates.push(`zoom_url = $${params.length + 1}`); params.push(zoom_url || null);
+  }
+
+  if (!updates.length) return res.status(400).json({ error: 'No fields to update' });
+  params.push(req.user.id);
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
+       RETURNING id, email, name, role, avatar, plan, meeting_url, zoom_url`,
+      params
+    );
+    res.json({ user: rows[0] });
+  } catch (err) {
+    console.error('[auth/patch-me]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', requireAuth, async (req, res) => {
   const token = req.headers['authorization']?.slice(7);

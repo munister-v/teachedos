@@ -78,6 +78,26 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
     // can't invite yourself
     if (invitee.id === req.user.id) return res.status(400).json({ error: 'Cannot invite yourself' });
 
+    // Enforce free plan student limit (5 per board)
+    const plan = req.user.plan || 'free';
+    if (plan === 'free') {
+      const { rows: cnt } = await pool.query(
+        'SELECT COUNT(*) AS count FROM board_collaborators WHERE board_id = $1',
+        [boardId]
+      );
+      if (parseInt(cnt[0].count, 10) >= 5) {
+        return res.status(402).json({ error: 'Student limit reached', plan: 'free', limit: 5 });
+      }
+    } else if (plan === 'pro') {
+      const { rows: cnt } = await pool.query(
+        'SELECT COUNT(*) AS count FROM board_collaborators WHERE board_id = $1',
+        [boardId]
+      );
+      if (parseInt(cnt[0].count, 10) >= 30) {
+        return res.status(402).json({ error: 'Student limit reached', plan: 'pro', limit: 30 });
+      }
+    }
+
     // upsert
     await pool.query(`
       INSERT INTO board_collaborators (board_id, user_id, role)
