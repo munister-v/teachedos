@@ -392,24 +392,155 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .badge.lesson-w{background:rgba(20,184,166,.12);color:#0f766e;}
 
 /* ══════════════ ASSIGNMENT CARD ══════════════ */
-.card-assignment .card-header{background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(234,88,12,.03));}
-.assign-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
-.assign-score{font-size:26px;font-weight:900;color:var(--text);font-family:var(--mono);line-height:1;}
-.assign-score span{font-size:12px;font-weight:600;color:var(--text-3);}
+.card-assignment .card-header{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(234,88,12,.04));}
+.assign-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
+.assign-type-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:800;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 8px;border-radius:20px;
+}
+.assign-stats-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.assign-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3);font-weight:600;}
+.assign-stat strong{color:var(--text-2);font-weight:800;}
 .assign-deadline{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:4px;}
 .assign-deadline.overdue{color:#ef4444;font-weight:700;}
 .assign-desc{font-size:11px;color:var(--text-3);line-height:1.5;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.assign-q-preview{display:flex;flex-direction:column;gap:3px;margin-top:2px;}
+.assign-q-chip{
+  font-size:10px;color:var(--text-2);background:#fef3ea;border-radius:6px;
+  padding:3px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  border-left:2px solid #f97316;
+}
 .assign-prog-wrap{margin-top:2px;}
 .assign-prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-bottom:4px;}
-.assign-prog-bar{height:4px;border-radius:2px;background:rgba(249,115,22,.12);overflow:hidden;}
-.assign-prog-fill{height:100%;border-radius:2px;background:#f97316;transition:width .4s;}
+.assign-prog-bar{height:5px;border-radius:3px;background:rgba(249,115,22,.12);overflow:hidden;}
+.assign-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#f97316,#fb923c);transition:width .4s;}
+.assign-actions{display:flex;gap:5px;margin-top:2px;}
 .assign-edit-btn{
   padding:4px 10px;border:1px solid rgba(249,115,22,.3);border-radius:7px;
   font-size:10px;font-weight:700;cursor:pointer;color:#f97316;background:rgba(249,115,22,.06);
-  transition:.15s;margin-left:auto;
+  transition:.15s;flex:1;text-align:center;
 }
 .assign-edit-btn:hover{background:rgba(249,115,22,.14);}
+.assign-build-btn{
+  padding:4px 10px;border:1px solid rgba(249,115,22,.5);border-radius:7px;
+  font-size:10px;font-weight:700;cursor:pointer;color:#fff;background:#f97316;
+  transition:.15s;flex:1;text-align:center;
+}
+.assign-build-btn:hover{background:#ea6b0f;}
+
+/* ══════════════ TASK BUILDER OVERLAY ══════════════ */
+#task-builder-overlay{
+  display:none;position:fixed;inset:0;background:rgba(20,8,14,.6);
+  backdrop-filter:blur(8px);z-index:4000;align-items:center;justify-content:center;
+}
+#task-builder-overlay.open{display:flex;}
+#task-builder{
+  background:#fff;border-radius:22px;width:100%;max-width:780px;
+  max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 28px 80px rgba(0,0,0,.22);
+}
+.tb-head{
+  padding:18px 22px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.tb-head-icon{font-size:1.6rem;line-height:1;}
+.tb-head-titles{flex:1;}
+.tb-head-title{font-size:15px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+.tb-head-sub{font-size:12px;color:var(--text-3);margin-top:2px;}
+.tb-head-close{
+  width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.06);
+  border:none;cursor:pointer;font-size:16px;color:var(--text-3);
+  display:flex;align-items:center;justify-content:center;transition:background .12s;
+}
+.tb-head-close:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+.tb-body{display:flex;flex:1;overflow:hidden;}
+.tb-config{
+  width:240px;flex-shrink:0;border-right:1px solid var(--border);
+  overflow-y:auto;padding:14px 14px 20px;display:flex;flex-direction:column;gap:12px;
+}
+.tb-config::-webkit-scrollbar{width:3px;}
+.tb-config::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px;}
+.tb-questions{flex:1;overflow-y:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;}
+.tb-questions::-webkit-scrollbar{width:3px;}
+.tb-questions::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px;}
+.cfg-label{font-size:10px;font-weight:700;color:var(--text-3);font-family:var(--mono);
+  letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;}
+.cfg-select,.cfg-input{
+  width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:var(--font);font-size:12px;color:var(--text);background:#fafafa;
+  outline:none;transition:border-color .15s;
+}
+.cfg-select:focus,.cfg-input:focus{border-color:var(--accent);background:#fff;}
+.cfg-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.cfg-type-btn{
+  padding:7px 4px;border-radius:8px;border:1.5px solid var(--border);
+  font-size:10px;font-weight:700;cursor:pointer;text-align:center;background:#fafafa;
+  transition:.15s;color:var(--text-2);
+}
+.cfg-type-btn:hover{border-color:var(--border-2);}
+.cfg-type-btn.active{border-color:#f97316;background:rgba(249,115,22,.08);color:#ea580c;}
+.gen-btn{
+  width:100%;padding:10px;border:none;border-radius:10px;background:#f97316;color:#fff;
+  font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer;
+  transition:background .15s,transform .1s;letter-spacing:-.01em;margin-top:4px;
+}
+.gen-btn:hover{background:#ea6b0f;transform:translateY(-1px);}
+.gen-btn:active{transform:translateY(0);}
+.gen-btn.secondary{background:white;color:var(--text-2);border:1.5px solid var(--border);}
+.gen-btn.secondary:hover{background:var(--bg);border-color:var(--border-2);}
+.tb-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;color:var(--text-3);text-align:center;gap:10px;padding:30px;
+}
+.tb-empty-icon{font-size:3rem;opacity:.5;}
+.tb-empty-text{font-size:13px;font-weight:700;}
+.tb-empty-sub{font-size:11px;line-height:1.5;}
+/* Question item in builder */
+.tq-item{
+  background:#fafafa;border:1.5px solid var(--border);border-radius:12px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+}
+.tq-item:hover{border-color:var(--border-2);}
+.tq-row{display:flex;align-items:flex-start;gap:8px;}
+.tq-num{
+  font-size:11px;font-weight:800;color:#f97316;font-family:var(--mono);
+  min-width:20px;flex-shrink:0;margin-top:1px;
+}
+.tq-type-badge{
+  font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;
+  padding:2px 6px;border-radius:20px;background:rgba(249,115,22,.1);color:#ea580c;
+  flex-shrink:0;
+}
+.tq-text{font-size:12px;font-weight:700;color:var(--text);flex:1;line-height:1.4;}
+.tq-answer{font-size:11px;color:#16a34a;font-weight:700;font-family:var(--mono);}
+.tq-options{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;}
+.tq-opt{
+  font-size:10px;padding:2px 8px;border-radius:20px;
+  background:rgba(0,0,0,.05);color:var(--text-2);font-weight:600;
+}
+.tq-opt.correct{background:rgba(22,163,74,.12);color:#16a34a;font-weight:800;}
+.tq-pts{font-size:10px;color:var(--text-3);font-family:var(--mono);flex-shrink:0;}
+.tq-del{
+  width:20px;height:20px;border-radius:50%;background:transparent;border:none;
+  cursor:pointer;color:var(--text-3);font-size:13px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:background .12s;flex-shrink:0;
+}
+.tq-del:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+.tb-footer{
+  padding:12px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;background:#fafafa;
+}
+.tb-footer-info{flex:1;font-size:11px;color:var(--text-3);}
+.tb-footer-info strong{color:var(--text-2);}
+.tb-save-btn{
+  padding:9px 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;
+  font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer;
+  transition:background .15s,transform .1s;
+}
+.tb-save-btn:hover{background:#e8357a;transform:translateY(-1px);}
+.tb-save-btn:active{transform:translateY(0);}
 
 /* ══════════════ MILESTONE CARD ══════════════ */
 .card-milestone .card-header{background:linear-gradient(135deg,rgba(16,185,129,.07),rgba(5,150,105,.03));}
@@ -943,6 +1074,108 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <button id="card-editor-close" onclick="closeCardEditor()">×</button>
   </div>
   <div id="card-editor-body"></div>
+</div>
+
+<!-- TASK BUILDER OVERLAY -->
+<div id="task-builder-overlay">
+  <div id="task-builder">
+    <div class="tb-head">
+      <div class="tb-head-icon">🛠</div>
+      <div class="tb-head-titles">
+        <div class="tb-head-title">Assignment Builder</div>
+        <div class="tb-head-sub">Configure tasks or generate a set from the built-in library</div>
+      </div>
+      <button class="tb-head-close" onclick="closeTaskBuilder()">✕</button>
+    </div>
+    <div class="tb-body">
+      <!-- Left config panel -->
+      <div class="tb-config">
+        <div>
+          <div class="cfg-label">Assignment Title</div>
+          <input class="cfg-input" id="tb-title" placeholder="e.g. Articles Quiz">
+        </div>
+        <div>
+          <div class="cfg-label">Type</div>
+          <select class="cfg-select" id="tb-type">
+            <option>Quiz</option><option>Essay</option><option>Speaking</option><option>Project</option><option>Mixed</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Level</div>
+          <select class="cfg-select" id="tb-level">
+            <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Skill</div>
+          <select class="cfg-select" id="tb-skill">
+            <option>Grammar</option><option>Vocabulary</option><option>Speaking</option><option>Reading</option><option>Writing</option><option>Listening</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Time Limit</div>
+          <select class="cfg-select" id="tb-time">
+            <option value="0">No limit</option>
+            <option value="10">10 min</option><option value="15">15 min</option>
+            <option value="20">20 min</option><option value="30">30 min</option>
+            <option value="45">45 min</option><option value="60">60 min</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Deadline</div>
+          <input class="cfg-input" id="tb-deadline" type="date">
+        </div>
+        <div>
+          <div class="cfg-label">Points per question</div>
+          <input class="cfg-input" id="tb-pts" type="number" min="1" max="100" value="1">
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          <div class="cfg-label">Generate from library</div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Topic</div>
+            <select class="cfg-select" id="tb-gen-topic">
+              <option value="articles">Articles: a / an / the</option>
+              <option value="perfpast">Present Perfect vs Past Simple</option>
+              <option value="prepositions">Prepositions: at / in / on</option>
+              <option value="phrasalverbs">Phrasal Verbs: get / make / take</option>
+              <option value="falsefriends">False Friends (RU/UA/PL → EN)</option>
+              <option value="opinion">Opinion & Agreeing/Disagreeing</option>
+              <option value="conditionals">Conditionals: 0 / 1st / 2nd</option>
+              <option value="modals">Modal Verbs: can / must / should</option>
+            </select>
+          </div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Task type</div>
+            <div class="cfg-type-grid" id="tb-qtype-grid">
+              <div class="cfg-type-btn active" data-qtype="gap-fill">Gap-fill</div>
+              <div class="cfg-type-btn" data-qtype="mcq">MCQ</div>
+              <div class="cfg-type-btn" data-qtype="match">Match</div>
+              <div class="cfg-type-btn" data-qtype="truefalse">True/False</div>
+            </div>
+          </div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Number of questions</div>
+            <input class="cfg-input" id="tb-gen-count" type="number" min="3" max="20" value="8">
+          </div>
+          <button class="gen-btn" onclick="generateTaskSet()">⚡ Generate set</button>
+          <button class="gen-btn secondary" style="margin-top:6px;" onclick="addBlankQuestion()">＋ Add blank question</button>
+        </div>
+      </div>
+      <!-- Right questions list -->
+      <div class="tb-questions" id="tb-questions-list">
+        <div class="tb-empty" id="tb-empty-state">
+          <div class="tb-empty-icon">📋</div>
+          <div class="tb-empty-text">No questions yet</div>
+          <div class="tb-empty-sub">Pick a topic and click <strong>Generate set</strong><br>or add questions manually.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tb-footer">
+      <div class="tb-footer-info" id="tb-footer-info">0 questions · 0 pts total</div>
+      <button class="gen-btn secondary" style="padding:9px 16px;margin:0;" onclick="closeTaskBuilder()">Cancel</button>
+      <button class="tb-save-btn" onclick="saveTaskBuilder()">✓ Save Assignment</button>
+    </div>
+  </div>
 </div>
 
 <!-- BOARD LIST MODAL -->
@@ -1486,36 +1719,54 @@ function renderAssignment(el, card) {
   const submitted = d.submitted || 0;
   const total     = d.total || 0;
   const pct = total ? Math.round(submitted / total * 100) : 0;
-  const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981' };
+  const qs = d.questions || [];
+  const totalPts = qs.reduce((s,q) => s + (q.points||1), 0) || d.maxScore || 0;
+  const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981', Mixed:'#ec4899' };
   const typeColor = typeColors[d.type] || '#f97316';
+  const typeIcons = { Quiz:'📝', Essay:'✍️', Speaking:'🗣', Project:'🏗', Mixed:'🎯' };
+  const qtypeLabels = { 'gap-fill':'Gap-fill', 'mcq':'MCQ', 'match':'Match', 'truefalse':'T/F', 'open':'Open' };
 
-  const hdr = makeHeader('📝', d.title||'Assignment', card.id);
+  const hdr = makeHeader(typeIcons[d.type]||'📝', d.title||'Assignment', card.id);
   el.appendChild(hdr);
 
   const body = document.createElement('div');
   body.className = 'card-body assign-body';
-  body.innerHTML = `
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;">
-      <div>
-        <div class="assign-score">${d.maxScore||100}<span> pts max</span></div>
-        <div style="display:flex;gap:5px;margin-top:5px;">
-          ${d.type ? `<span class="badge" style="background:${typeColor}18;color:${typeColor}">${d.type}</span>` : ''}
-        </div>
-      </div>
-      <div style="text-align:right;">
-        <div class="assign-deadline${overdue?' overdue':''}">
-          ${deadline ? `📅 ${deadline.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : ''}
-        </div>
-      </div>
-    </div>
-    ${d.desc ? `<div class="assign-desc">${esc(d.desc)}</div>` : ''}
-    ${total ? `
+
+  // Stats row
+  const statsRow = `
+    <div class="assign-stats-row">
+      <span class="assign-type-pill" style="background:${typeColor}16;color:${typeColor}">${d.type||'Quiz'}</span>
+      ${d.level ? `<span class="badge ${d.level.toLowerCase()}">${d.level}</span>` : ''}
+      ${qs.length ? `<span class="assign-stat">📋 <strong>${qs.length}</strong> q</span>` : ''}
+      ${totalPts ? `<span class="assign-stat">⭐ <strong>${totalPts}</strong> pts</span>` : ''}
+      ${d.timeLimit ? `<span class="assign-stat">⏱ <strong>${d.timeLimit}</strong>m</span>` : ''}
+    </div>`;
+
+  // Show first 2 question previews
+  const preview = qs.length ? `
+    <div class="assign-q-preview">
+      ${qs.slice(0,2).map(q => `<div class="assign-q-chip">${esc(q.text||'').replace('___','___')}</div>`).join('')}
+      ${qs.length > 2 ? `<div style="font-size:9px;color:var(--text-3);font-family:var(--mono);padding-left:2px;">+${qs.length-2} more</div>` : ''}
+    </div>` : (d.desc ? `<div class="assign-desc">${esc(d.desc)}</div>` : '');
+
+  // Deadline
+  const deadlineHtml = deadline ? `
+    <div class="assign-deadline${overdue?' overdue':''}">
+      ${overdue ? '⚠️' : '📅'} ${deadline.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
+      ${overdue ? ' · Overdue' : ''}
+    </div>` : '';
+
+  // Progress bar
+  const progHtml = total ? `
     <div class="assign-prog-wrap">
-      <div class="assign-prog-label"><span>Submitted</span><span>${submitted}/${total}</span></div>
+      <div class="assign-prog-label"><span>Submitted</span><span>${submitted}/${total} (${pct}%)</span></div>
       <div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>
-    </div>` : ''}
-    <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+    </div>` : '';
+
+  body.innerHTML = statsRow + preview + deadlineHtml + progHtml + `
+    <div class="assign-actions">
       <button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+      <button class="assign-build-btn" onclick="openTaskBuilder('${card.id}')">🛠 Builder</button>
     </div>`;
   el.appendChild(body);
 }
@@ -1621,28 +1872,43 @@ function openCardEditor(cardId) {
       <button class="ed-save" onclick="saveCardEditor()">✓ Save Lesson</button>`;
 
   } else if (card.type === 'assignment') {
+    const qs = card.data.questions || [];
     body.innerHTML = `
       <div><div class="ed-label">Title</div>
         <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
       <div class="ed-row">
         <div style="flex:1"><div class="ed-label">Type</div>
           <select class="ed-input ed-select" id="ed-type">
-            ${['Quiz','Essay','Speaking','Project'].map(t=>`<option${card.data.type===t?' selected':''}>${t}</option>`).join('')}
+            ${['Quiz','Essay','Speaking','Project','Mixed'].map(t=>`<option${card.data.type===t?' selected':''}>${t}</option>`).join('')}
           </select></div>
-        <div style="flex:1"><div class="ed-label">Max Score</div>
-          <input class="ed-input" id="ed-maxScore" type="number" min="1" value="${card.data.maxScore||100}"/></div>
+        <div style="flex:1"><div class="ed-label">Level</div>
+          <select class="ed-input ed-select" id="ed-level">
+            ${['A1','A2','B1','B2','C1','C2'].map(l=>`<option${card.data.level===l?' selected':''}>${l}</option>`).join('')}
+          </select></div>
       </div>
-      <div><div class="ed-label">Deadline</div>
-        <input class="ed-input" id="ed-deadline" type="date" value="${card.data.deadline||''}"/></div>
-      <div><div class="ed-label">Description</div>
-        <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">Time Limit</div>
+          <select class="ed-input ed-select" id="ed-timeLimit">
+            <option value="0"${!card.data.timeLimit?' selected':''}>No limit</option>
+            ${[10,15,20,30,45,60].map(t=>`<option value="${t}"${card.data.timeLimit==t?' selected':''}>${t} min</option>`).join('')}
+          </select></div>
+        <div style="flex:1"><div class="ed-label">Deadline</div>
+          <input class="ed-input" id="ed-deadline" type="date" value="${card.data.deadline||''}"/></div>
+      </div>
+      <div><div class="ed-label">Instructions</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:50px;">${esc(card.data.desc||'')}</textarea></div>
+      ${qs.length ? `<div style="background:rgba(249,115,22,.07);border-radius:10px;padding:9px 11px;font-size:12px;color:#ea580c;">
+        📋 <strong>${qs.length} questions</strong> · ${qs.reduce((s,q)=>s+(q.points||1),0)} pts total
+        <br><span style="font-size:10px;color:var(--text-3);">Open the Builder to edit questions.</span>
+      </div>` : ''}
       <div class="ed-row">
         <div style="flex:1"><div class="ed-label">Submitted</div>
           <input class="ed-input" id="ed-submitted" type="number" min="0" value="${card.data.submitted||0}"/></div>
         <div style="flex:1"><div class="ed-label">Total Students</div>
           <input class="ed-input" id="ed-total" type="number" min="0" value="${card.data.total||0}"/></div>
       </div>
-      <button class="ed-save" onclick="saveCardEditor()">Save Assignment</button>`;
+      <button class="ed-save" style="background:#f97316;" onclick="saveCardEditor()">✓ Save</button>
+      <button class="ed-save" onclick="openTaskBuilder('${card.id}');closeCardEditor();">🛠 Open Builder</button>`;
 
   } else if (card.type === 'milestone') {
     body.innerHTML = `
@@ -1717,11 +1983,13 @@ function saveCardEditor() {
   } else if (card.type === 'assignment') {
     card.data.title     = g('ed-title').value.trim() || 'Assignment';
     card.data.type      = g('ed-type').value;
-    card.data.maxScore  = parseInt(g('ed-maxScore').value) || 100;
+    card.data.level     = g('ed-level')?.value || card.data.level;
+    card.data.timeLimit = parseInt(g('ed-timeLimit')?.value) || 0;
     card.data.deadline  = g('ed-deadline').value;
     card.data.desc      = g('ed-desc').value.trim();
     card.data.submitted = parseInt(g('ed-submitted').value) || 0;
     card.data.total     = parseInt(g('ed-total').value) || 0;
+    card.data.maxScore  = card.data.questions?.reduce((s,q)=>s+(q.points||1),0) || card.data.maxScore || 100;
   } else if (card.type === 'milestone') {
     card.data.title = g('ed-title').value.trim() || 'Milestone';
     card.data.desc  = g('ed-desc').value.trim();
@@ -3777,6 +4045,468 @@ function addArrowLabel(arrowId) {
   }
   updateAuthUI();
 })();
+
+/* ════════════════════════════════════════════════════════════
+   TASK BUILDER — library + generator + UI
+   ════════════════════════════════════════════════════════════ */
+
+/* Built-in question library — no external AI needed.
+   Structure: TASK_LIB[topic][level][qtype] = [ {text, answer, options?, pairs?} ]
+   Generator shuffles & picks N items, building deterministic offline sets. */
+const TASK_LIB = {
+  articles: {
+    A2: {
+      'gap-fill': [
+        {text:'___ sun rises in the east.',answer:'The',hint:'unique object — both know which one'},
+        {text:'She is ___ English teacher.',answer:'an',hint:'first mention, vowel sound'},
+        {text:'I have ___ dog. ___ dog is very friendly.',answer:['a','The'],hint:'first/second mention'},
+        {text:'Can you pass me ___ salt, please?',answer:'the',hint:'specific, on the table'},
+        {text:'He works in ___ hospital.',answer:'a',hint:'one of many hospitals'},
+        {text:'___ Eiffel Tower is in Paris.',answer:'The',hint:'unique landmark'},
+        {text:'She plays ___ piano every evening.',answer:'the',hint:'instruments take THE'},
+        {text:'I need ___ umbrella. It is raining.',answer:'an',hint:'first mention, vowel sound'},
+        {text:'We went to ___ cinema last night.',answer:'the',hint:'the specific local cinema'},
+        {text:'He is ___ honest man.',answer:'an',hint:'vowel sound /ɒ/'},
+        {text:'___ water in this bottle is cold.',answer:'The',hint:'specific water — this bottle'},
+        {text:'I saw ___ elephant at the zoo.',answer:'an',hint:'first mention, vowel sound'},
+      ],
+      'mcq': [
+        {text:'She bought ___ new car yesterday.',options:['a','an','the','—'],answer:'a',hint:'first mention'},
+        {text:'___ Amazon is the longest river in South America.',options:['A','An','The','—'],answer:'The',hint:'unique river name with THE'},
+        {text:'He is ___ best student in the class.',options:['a','an','the','—'],answer:'the',hint:'superlative → THE'},
+        {text:'I usually have ___ breakfast at 8 am.',options:['a','an','the','—'],answer:'—',hint:'meals without article'},
+        {text:'She speaks ___ English very well.',options:['a','an','the','—'],answer:'—',hint:'languages without article'},
+        {text:'We live on ___ Moon Street.',options:['a','an','the','—'],answer:'—',hint:'street names no article'},
+        {text:'___ Pacific Ocean is the largest ocean.',options:['A','An','The','—'],answer:'The',hint:'oceans take THE'},
+        {text:'He wants to be ___ doctor.',options:['a','an','the','—'],answer:'a',hint:'profession, first mention'},
+        {text:'I read ___ interesting article today.',options:['a','an','the','—'],answer:'an',hint:'vowel sound'},
+        {text:'___ history of Rome is fascinating.',options:['A','An','The','—'],answer:'The',hint:'specific history'},
+      ],
+      'truefalse': [
+        {text:'We use "a" before words that start with a vowel sound.',answer:false,hint:'We use "an" before vowel sounds'},
+        {text:'We use "the" when we talk about something for the first time.',answer:false,hint:'First mention → a/an; second mention → the'},
+        {text:'"The" can be used before both singular and plural nouns.',answer:true},
+        {text:'We always use an article before the names of countries.',answer:false,hint:'Most countries: no article (Ukraine, France). Exception: the USA, the UK'},
+        {text:'"An" is used before the word "hour".',answer:true,hint:'"Hour" starts with a vowel sound /aʊ/'},
+        {text:'We say "play the guitar" but "play football".',answer:true,hint:'Musical instruments take THE; sports take no article'},
+        {text:'We use "a/an" with superlatives.',answer:false,hint:'Superlatives always take THE'},
+        {text:'Names of oceans and seas take THE.',answer:true},
+      ],
+      'match': [
+        {pairs:[['a/an','first mention, one of many'],['the','both speaker and listener know which'],['— (no article)','general plurals and uncountable nouns'],['the','superlatives and ordinals'],['— (no article)','languages and most countries']]},
+        {pairs:[['a university','vowel letter, consonant sound /j/'],['an hour','consonant letter, vowel sound /aʊ/'],['a European','vowel letter, consonant sound /j/'],['an umbrella','vowel sound /ʌ/'],['a one-way street','vowel letter, consonant sound /w/']]},
+      ],
+    },
+    B1: {
+      'gap-fill': [
+        {text:'___ news is bad today. Have you heard ___ latest report?',answer:['The','the']},
+        {text:'She has ___ MBA from ___ University of Oxford.',answer:['an','the']},
+        {text:'___ rich should pay more taxes — it is ___ matter of fairness.',answer:['The','a']},
+        {text:'He plays ___ violin in ___ orchestra.',answer:['the','an']},
+        {text:'___ Spanish spoken in Mexico differs from ___ Spanish in Spain.',answer:['The','the']},
+      ],
+      'mcq': [
+        {text:'___ police are investigating the crime.',options:['A','An','The','—'],answer:'The'},
+        {text:'She is ___ most talented artist I have ever met.',options:['a','an','the','—'],answer:'the'},
+        {text:'We had ___ wonderful time at the party.',options:['a','an','the','—'],answer:'a'},
+        {text:'___ Mount Everest is ___ highest mountain in the world.',options:['—/the','The/a','The/the','—/—'],answer:'—/the'},
+      ],
+    },
+  },
+  prepositions: {
+    A2: {
+      'gap-fill': [
+        {text:'The meeting is ___ Monday.',answer:'on',hint:'days → on'},
+        {text:'She was born ___ 1998.',answer:'in',hint:'years → in'},
+        {text:'I will meet you ___ 3 o\'clock.',answer:'at',hint:'specific time → at'},
+        {text:'He lives ___ Paris.',answer:'in',hint:'cities → in'},
+        {text:'The keys are ___ the table.',answer:'on',hint:'surface → on'},
+        {text:'We met ___ the morning.',answer:'in',hint:'morning/afternoon/evening → in'},
+        {text:'She arrives ___ night.',answer:'at',hint:'night/noon/midnight → at'},
+        {text:'The class starts ___ January.',answer:'in',hint:'months → in'},
+        {text:'I was waiting ___ the bus stop.',answer:'at',hint:'points/locations → at'},
+        {text:'He woke up ___ midnight.',answer:'at',hint:'at midnight / at noon'},
+        {text:'The book is ___ the shelf.',answer:'on',hint:'surface'},
+        {text:'We saw him ___ Christmas.',answer:'at',hint:'holidays → at'},
+      ],
+      'mcq': [
+        {text:'I have a meeting ___ Friday morning.',options:['in','on','at','—'],answer:'on'},
+        {text:'She will be back ___ an hour.',options:['in','on','at','—'],answer:'in'},
+        {text:'He arrived ___ the airport late.',options:['in','on','at','to'],answer:'at'},
+        {text:'They got married ___ spring.',options:['in','on','at','during'],answer:'in'},
+        {text:'The train leaves ___ 7:45.',options:['in','on','at','by'],answer:'at'},
+        {text:'We are staying here ___ the weekend.',options:['in','on','at','for'],answer:'for'},
+        {text:'She was born ___ a cold winter night.',options:['in','on','at','—'],answer:'on'},
+        {text:'I will call you ___ the evening.',options:['in','on','at','during'],answer:'in'},
+      ],
+      'truefalse': [
+        {text:'We use "at" for cities and countries.',answer:false,hint:'Cities/countries → in'},
+        {text:'We say "in the morning" but "at night".',answer:true},
+        {text:'"On" is used with specific dates (e.g. on 5th May).',answer:true},
+        {text:'We use "in" for short, precise times like "at 3 o\'clock".',answer:false,hint:'Precise times use "at"'},
+        {text:'We say "at the weekend" in British English.',answer:true},
+      ],
+    },
+    B1: {
+      'gap-fill': [
+        {text:'She is responsible ___ training new staff.',answer:'for'},
+        {text:'He is interested ___ learning Japanese.',answer:'in'},
+        {text:'I am looking forward ___ seeing you.',answer:'to'},
+        {text:'She is good ___ mathematics.',answer:'at'},
+        {text:'They agreed ___ the plan after a long discussion.',answer:'on'},
+      ],
+      'mcq': [
+        {text:'She is very keen ___ photography.',options:['on','in','for','at'],answer:'on'},
+        {text:'He apologised ___ being late.',options:['for','of','about','to'],answer:'for'},
+        {text:'I am not aware ___ the problem.',options:['about','of','with','for'],answer:'of'},
+        {text:'She succeeded ___ passing the exam.',options:['in','at','to','for'],answer:'in'},
+      ],
+    },
+  },
+  perfpast: {
+    B1: {
+      'gap-fill': [
+        {text:'I ___ (never / try) sushi before.',answer:'have never tried',hint:'life experience, no specific time'},
+        {text:'She ___ (already / finish) the report.',answer:'has already finished',hint:'completion before now'},
+        {text:'We ___ (live) in London from 2010 to 2015.',answer:'lived',hint:'finished period → past simple'},
+        {text:'He ___ (just / call) you.',answer:'has just called',hint:'"just" → present perfect'},
+        {text:'___ you ever ___ (visit) New York?',answer:['Have','visited'],hint:'ever = life experience'},
+        {text:'I ___ (see) that film last weekend.',answer:'saw',hint:'specific past time → past simple'},
+        {text:'They ___ (not / arrive) yet.',answer:'haven\'t arrived',hint:'"yet" → present perfect'},
+        {text:'She ___ (work) here since 2018.',answer:'has worked',hint:'"since" → present perfect'},
+        {text:'He ___ (break) his leg when he ___ (ski).',answer:['broke','was skiing'],hint:'specific past event'},
+        {text:'I ___ (read) three books this month.',answer:'have read',hint:'this month is not over'},
+      ],
+      'mcq': [
+        {text:'I ___ my keys. I can\'t find them anywhere.',options:['lost','have lost','was losing','had lost'],answer:'have lost'},
+        {text:'She ___ in Paris for five years before moving to London.',options:['has lived','lived','is living','had lived'],answer:'lived'},
+        {text:'"___ you ever eaten insects?" "Yes, once in Thailand."',options:['Did','Have','Were','Do'],answer:'Have'},
+        {text:'He ___ just ___ the email when the boss called.',options:['had / sent','has / sent','sent / —','was / sending'],answer:'had / sent'},
+        {text:'I ___ him three times but he didn\'t answer.',options:['have called','called','have been calling','was calling'],answer:'called'},
+        {text:'She ___ in this company since she graduated.',options:['works','worked','has worked','is working'],answer:'has worked'},
+        {text:'When I arrived, they ___ already ___ dinner.',options:['had / finished','have / finished','were / finishing','did / finish'],answer:'had / finished'},
+        {text:'We ___ the news yet. What happened?',options:['didn\'t hear','haven\'t heard','don\'t hear','hadn\'t heard'],answer:'haven\'t heard'},
+      ],
+      'truefalse': [
+        {text:'We use Present Perfect when we mention a specific past time (e.g. yesterday, in 2005).',answer:false},
+        {text:'"Just", "already", and "yet" are typical signals for Present Perfect.',answer:true},
+        {text:'Both "for" and "since" can be used with Present Perfect.',answer:true},
+        {text:'Past Simple describes a past action that has a result visible now.',answer:false,hint:'That\'s Present Perfect'},
+        {text:'"I have seen that film last night" is correct English.',answer:false,hint:'Specific time → Past Simple: "I saw"'},
+        {text:'"Have you ever been to Japan?" uses Present Perfect correctly.',answer:true},
+      ],
+    },
+  },
+  phrasalverbs: {
+    B1: {
+      'gap-fill': [
+        {text:'I need to ___ up early tomorrow — my flight is at 6 am.',answer:'get',hint:'get up = rise from bed'},
+        {text:'She ___s ___ her mother — same eyes and smile.',answer:['takes','after'],hint:'take after = resemble'},
+        {text:'Can you ___ up the volume? I can\'t hear.',answer:'turn',hint:'turn up = increase'},
+        {text:'He ___ up smoking three years ago.',answer:'gave',hint:'give up = stop'},
+        {text:'They ___ the meeting ___ until Friday.',answer:['put','off'],hint:'put off = postpone'},
+        {text:'I can\'t ___ out what he is saying.',answer:'make',hint:'make out = understand/hear'},
+        {text:'She ___ ___ a great idea for the project.',answer:['came','up with'],hint:'come up with = think of'},
+        {text:'He ___ ___ his old friends at the reunion.',answer:['ran','into'],hint:'run into = meet by chance'},
+        {text:'Please ___ on — the doctor will see you soon.',answer:'hold',hint:'hold on = wait'},
+        {text:'They ___ ___ the company three years ago.',answer:['set','up'],hint:'set up = establish'},
+      ],
+      'mcq': [
+        {text:'She ___ her dream of becoming a pilot.',options:['gave up','gave in','gave out','gave away'],answer:'gave up'},
+        {text:'Can you ___ the children while I go shopping?',options:['look after','look up','look into','look out'],answer:'look after'},
+        {text:'He ___ the information in a dictionary.',options:['looked up','looked for','looked after','looked into'],answer:'looked up'},
+        {text:'The meeting has been ___ until next week.',options:['put off','put out','put up','put away'],answer:'put off'},
+        {text:'I ___ a great solution to the problem.',options:['came up with','came across','came round','came up'],answer:'came up with'},
+        {text:'She ___ her father — both are very stubborn.',options:['takes after','takes over','takes off','takes up'],answer:'takes after'},
+        {text:'The plane ___ two hours late.',options:['took off','took over','took in','took up'],answer:'took off'},
+        {text:'Could you ___ the noise? I\'m trying to work.',options:['turn down','turn up','turn off','turn into'],answer:'turn down'},
+      ],
+      'match': [
+        {pairs:[['give up','stop doing something'],['look after','take care of'],['come up with','think of an idea'],['turn down','reduce / reject'],['put off','postpone'],['run into','meet by chance'],['take off','leave the ground / remove'],['set up','establish / create']]},
+      ],
+    },
+  },
+  falsefriends: {
+    B1: {
+      'mcq': [
+        {text:'The Russian "магазин" means…',options:['magazine','shop','machine','mansion'],answer:'shop'},
+        {text:'The Ukrainian "фабрика" means…',options:['fabric','factory','fantastic','famous'],answer:'factory'},
+        {text:'The Polish "aktualny" means…',options:['actual','current / up-to-date','active','accurate'],answer:'current / up-to-date'},
+        {text:'"Sympathetic" in English means…',options:['симпатичный (attractive)','сочувствующий (understanding)','симпатизирующий (liking)','синтетический'],answer:'сочувствующий (understanding)'},
+        {text:'The Russian "реализовать" most commonly means…',options:['to realise (understand)','to implement / carry out','to sell','to make real'],answer:'to implement / carry out'},
+        {text:'"Prospect" in English means…',options:['проспект (avenue)','перспектива (future possibility)','проект (project)','проспект (brochure)'],answer:'перспектива (future possibility)'},
+        {text:'The Polish "data" means…',options:['data (information)','date','database','detail'],answer:'date'},
+        {text:'"Genial" in English means…',options:['гениальный (brilliant)','cheerful and friendly','general','genuine'],answer:'cheerful and friendly'},
+      ],
+      'truefalse': [
+        {text:'"Sympathetic" and "симпатичный" have the same meaning.',answer:false},
+        {text:'"Magazine" and "магазин" are false friends.',answer:true},
+        {text:'"Fabric" and "фабрика" mean the same thing.',answer:false,hint:'"Fabric" = material; "фабрика" = factory'},
+        {text:'In English "perspicacious" means the same as Russian "перспективный".',answer:false},
+        {text:'"Accurate" is a false friend of Ukrainian/Russian "аккуратный".',answer:true,hint:'"Accurate" = correct; "аккуратный" = neat/tidy'},
+      ],
+    },
+  },
+  opinion: {
+    B2: {
+      'gap-fill': [
+        {text:'___ my opinion, this policy needs urgent reform.',answer:'In'},
+        {text:'I strongly ___ with the idea that money brings happiness.',answer:'disagree'},
+        {text:'To be ___, I think the plan has serious flaws.',answer:'honest'},
+        {text:'She ___ out that the data was outdated.',answer:'pointed'},
+        {text:'As far as I am ___, the decision is premature.',answer:'concerned'},
+        {text:'I see your ___, but I still think we need more evidence.',answer:'point'},
+        {text:'With all due ___, I believe you have misread the figures.',answer:'respect'},
+        {text:'That is a ___ point — I had not considered that angle.',answer:'fair'},
+      ],
+      'mcq': [
+        {text:'___ my view, we should invest more in education.',options:['In','By','At','On'],answer:'In'},
+        {text:'I ___ agree with you — there are too many exceptions.',options:['broadly','strongly','deeply','softly'],answer:'broadly'},
+        {text:'She made a ___ argument for reducing carbon emissions.',options:['compelling','compelling','compelled','compulsion'],answer:'compelling'},
+        {text:'To ___ the devil\'s advocate, what if the opposite is true?',options:['play','be','take','make'],answer:'play'},
+        {text:'I take your ___, but the evidence points the other way.',options:['point','idea','thought','meaning'],answer:'point'},
+      ],
+      'match': [
+        {pairs:[['In my opinion…','Expressing a personal view'],['I strongly disagree…','Firm disagreement'],['I see your point, but…','Partial agreement before counter-argument'],['With all due respect…','Polite disagreement'],['That\'s a fair point.','Acknowledging the other side'],['As far as I\'m concerned…','Stressing personal stance']]},
+      ],
+    },
+  },
+  conditionals: {
+    B1: {
+      'gap-fill': [
+        {text:'If you heat water to 100°C, it ___ (boil).',answer:'boils',hint:'Zero conditional — fact'},
+        {text:'If I ___ (have) more time, I will call you.',answer:'have',hint:'1st conditional — real future'},
+        {text:'If she ___ (study) harder, she would pass.',answer:'studied',hint:'2nd conditional — unreal present'},
+        {text:'If it rains tomorrow, we ___ (not / go) to the park.',answer:'won\'t go',hint:'1st conditional'},
+        {text:'I would travel the world if I ___ (be) rich.',answer:'were',hint:'2nd conditional — were for all persons'},
+        {text:'If you mix red and blue, you ___ (get) purple.',answer:'get',hint:'Zero conditional'},
+        {text:'She ___ (call) you if she needs help.',answer:'will call',hint:'1st conditional'},
+        {text:'If I ___ (know) the answer, I would tell you.',answer:'knew',hint:'2nd conditional'},
+      ],
+      'mcq': [
+        {text:'If I ___ you, I would apologise immediately.',options:['am','were','will be','would be'],answer:'were'},
+        {text:'If you ___ the button, the machine starts.',options:['press','pressed','will press','would press'],answer:'press'},
+        {text:'She will fail the exam if she ___ study.',options:['doesn\'t','won\'t','wouldn\'t','didn\'t'],answer:'doesn\'t'},
+        {text:'If I had more money, I ___ buy a bigger flat.',options:['will','would','should','can'],answer:'would'},
+        {text:'What ___ if you mixed bleach and ammonia?',options:['happens','will happen','would happen','happened'],answer:'happens'},
+      ],
+      'truefalse': [
+        {text:'Zero conditional uses present tense in both clauses.',answer:true},
+        {text:'In 2nd conditional, we use "will" in the main clause.',answer:false,hint:'2nd conditional uses "would"'},
+        {text:'"If I were you" is grammatically correct.',answer:true},
+        {text:'1st conditional talks about unreal or impossible situations.',answer:false,hint:'That\'s 2nd conditional'},
+        {text:'The "if" clause can come at the end of the sentence.',answer:true},
+      ],
+    },
+  },
+  modals: {
+    A2: {
+      'gap-fill': [
+        {text:'You ___ wash your hands before eating. (obligation)',answer:'must/should',hint:'must = strong obligation'},
+        {text:'She ___ speak three languages fluently.',answer:'can',hint:'ability'},
+        {text:'___ I open the window? It is very hot.',answer:'Can/Could/May',hint:'permission'},
+        {text:'You ___ smoke in the hospital. (prohibition)',answer:'must not/cannot',hint:'must not = prohibition'},
+        {text:'He ___ be at home — his car is outside.',answer:'must',hint:'logical deduction'},
+        {text:'You ___ take an umbrella — it probably won\'t rain.',answer:'don\'t have to/needn\'t',hint:'no obligation'},
+      ],
+      'mcq': [
+        {text:'You ___ see a doctor — that cough sounds serious.',options:['should','would','might','shall'],answer:'should'},
+        {text:'Children ___ play in the street after dark.',options:['should not','do not have to','must not','need not'],answer:'must not'},
+        {text:'She ___ already be there — the meeting started an hour ago.',options:['can','must','shall','will'],answer:'must'},
+        {text:'You ___ buy a ticket in advance — it is free entry.',options:['must not','do not have to','should not','cannot'],answer:'do not have to'},
+        {text:'"___ you help me with this?" is a polite request.',options:['Must','Can','Will','Shall'],answer:'Can'},
+      ],
+      'match': [
+        {pairs:[['can','ability or permission'],['must','strong obligation or deduction'],['should','advice or recommendation'],['must not','prohibition'],['don\'t have to','no obligation — it\'s optional'],['could','past ability or polite request']]},
+      ],
+    },
+  },
+};
+
+/* ── Task Builder state ── */
+let tbCardId = null;
+let tbQuestions = [];
+let tbSelectedQtype = 'gap-fill';
+
+function openTaskBuilder(cardId) {
+  tbCardId = cardId;
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const d = card.data;
+  tbQuestions = JSON.parse(JSON.stringify(d.questions || []));
+
+  // Pre-fill config fields
+  document.getElementById('tb-title').value   = d.title || '';
+  document.getElementById('tb-type').value    = d.type || 'Quiz';
+  document.getElementById('tb-level').value   = d.level || 'B1';
+  document.getElementById('tb-skill').value   = d.skill || 'Grammar';
+  document.getElementById('tb-time').value    = d.timeLimit || 0;
+  document.getElementById('tb-deadline').value= d.deadline || '';
+  document.getElementById('tb-pts').value     = 1;
+
+  // Qtype grid
+  document.querySelectorAll('.cfg-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.qtype === tbSelectedQtype);
+    b.onclick = () => {
+      tbSelectedQtype = b.dataset.qtype;
+      document.querySelectorAll('.cfg-type-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    };
+  });
+
+  renderBuilderQuestions();
+  document.getElementById('task-builder-overlay').classList.add('open');
+}
+
+function closeTaskBuilder() {
+  document.getElementById('task-builder-overlay').classList.remove('open');
+  tbCardId = null; tbQuestions = [];
+}
+
+function renderBuilderQuestions() {
+  const list = document.getElementById('tb-questions-list');
+  const empty = document.getElementById('tb-empty-state');
+  if (!tbQuestions.length) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    empty.style.display = 'flex';
+    document.getElementById('tb-footer-info').innerHTML = '0 questions · 0 pts total';
+    return;
+  }
+  empty.style.display = 'none';
+  const totalPts = tbQuestions.reduce((s,q)=>s+(q.points||1),0);
+  document.getElementById('tb-footer-info').innerHTML =
+    `<strong>${tbQuestions.length}</strong> questions · <strong>${totalPts}</strong> pts total`;
+
+  const qtypeLabel = {'gap-fill':'Gap-fill','mcq':'MCQ','match':'Match','truefalse':'T/F','open':'Open'};
+  list.innerHTML = tbQuestions.map((q, i) => {
+    const optHtml = q.options ? q.options.map(o =>
+      `<span class="tq-opt${o===q.answer?' correct':''}">${esc(o)}</span>`).join('') : '';
+    const pairsHtml = q.pairs ? q.pairs.slice(0,3).map(p=>
+      `<span class="tq-opt">${esc(p[0])}</span>`).join(' → ') : '';
+    const ansHtml = Array.isArray(q.answer) ? q.answer.join(', ') : (q.answer||'');
+    return `
+      <div class="tq-item" id="tq-${i}">
+        <div class="tq-row">
+          <span class="tq-num">${i+1}.</span>
+          <span class="tq-type-badge">${qtypeLabel[q.type]||q.type}</span>
+          <span class="tq-text">${esc(q.text||q.pairs?.[0]?.[0]||'')}</span>
+          <span class="tq-pts">${q.points||1}pt</span>
+          <button class="tq-del" onclick="tbDeleteQ(${i})" title="Remove">✕</button>
+        </div>
+        ${optHtml ? `<div class="tq-options">${optHtml}</div>` : ''}
+        ${pairsHtml ? `<div class="tq-options">${pairsHtml}</div>` : ''}
+        ${ansHtml && q.type !== 'match' ? `<div class="tq-answer">✓ ${esc(ansHtml)}</div>` : ''}
+        ${q.hint ? `<div style="font-size:10px;color:var(--text-3);font-style:italic;">${esc(q.hint)}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function tbDeleteQ(i) {
+  tbQuestions.splice(i, 1);
+  renderBuilderQuestions();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function generateTaskSet() {
+  const topic   = document.getElementById('tb-gen-topic').value;
+  const qtype   = tbSelectedQtype;
+  const level   = document.getElementById('tb-level').value;
+  const count   = Math.max(1, Math.min(20, parseInt(document.getElementById('tb-gen-count').value)||8));
+  const pts     = parseInt(document.getElementById('tb-pts').value)||1;
+
+  // Look for exact level, fall back to adjacent
+  const levelOrder = ['A1','A2','B1','B2','C1','C2'];
+  const topicData  = TASK_LIB[topic];
+  if (!topicData) { toast('No library data for this topic yet'); return; }
+
+  let pool = null;
+  const li = levelOrder.indexOf(level);
+  for (let offset = 0; offset <= 2 && !pool; offset++) {
+    for (const dir of [0, -1, 1]) {
+      const candidate = levelOrder[li + offset * dir];
+      if (candidate && topicData[candidate]?.[qtype]?.length) {
+        pool = topicData[candidate][qtype];
+        break;
+      }
+    }
+  }
+
+  if (!pool || !pool.length) {
+    toast(`No "${qtype}" tasks found for "${topic}" at ${level}. Try a different type or level.`);
+    return;
+  }
+
+  // Handle match type — expand pairs into individual questions
+  let items = pool;
+  if (qtype === 'match') {
+    items = pool.flatMap(p => p.pairs || []).map(pair => ({
+      type:'match', text: pair[0], answer: pair[1], points: pts
+    }));
+  }
+
+  const picked = shuffle(items).slice(0, count).map((raw, idx) => {
+    if (qtype === 'gap-fill') {
+      return { id: 'q'+(Date.now()+idx), type:'gap-fill',
+        text: raw.text, answer: raw.answer, hint: raw.hint||'', points: pts };
+    }
+    if (qtype === 'mcq') {
+      const opts = shuffle(raw.options||[]);
+      return { id: 'q'+(Date.now()+idx), type:'mcq',
+        text: raw.text, options: opts, answer: raw.answer, hint: raw.hint||'', points: pts };
+    }
+    if (qtype === 'truefalse') {
+      return { id: 'q'+(Date.now()+idx), type:'truefalse',
+        text: raw.text, options:['True','False'], answer: raw.answer ? 'True' : 'False',
+        hint: raw.hint||'', points: pts };
+    }
+    if (qtype === 'match') {
+      return { id: 'q'+(Date.now()+idx), type:'match',
+        text: raw.text, answer: raw.answer, points: pts };
+    }
+    return { id:'q'+(Date.now()+idx), type:qtype, text: raw.text||'', answer: raw.answer||'', points: pts };
+  });
+
+  tbQuestions = [...tbQuestions, ...picked];
+  renderBuilderQuestions();
+  toast(`Added ${picked.length} questions from library`);
+}
+
+function addBlankQuestion() {
+  const pts = parseInt(document.getElementById('tb-pts').value)||1;
+  tbQuestions.push({
+    id: 'q'+Date.now(), type: tbSelectedQtype,
+    text: 'Enter question text here…', answer: '', points: pts
+  });
+  renderBuilderQuestions();
+}
+
+function saveTaskBuilder() {
+  if (!tbCardId) return;
+  const card = state.cards.find(c => c.id === tbCardId);
+  if (!card) return;
+  snapshot();
+  card.data.title     = document.getElementById('tb-title').value.trim() || card.data.title || 'Assignment';
+  card.data.type      = document.getElementById('tb-type').value;
+  card.data.level     = document.getElementById('tb-level').value;
+  card.data.skill     = document.getElementById('tb-skill').value;
+  card.data.timeLimit = parseInt(document.getElementById('tb-time').value)||0;
+  card.data.deadline  = document.getElementById('tb-deadline').value;
+  card.data.questions = tbQuestions;
+  card.data.maxScore  = tbQuestions.reduce((s,q)=>s+(q.points||1),0) || card.data.maxScore || 0;
+  reRenderCard(card);
+  scheduleSave();
+  closeTaskBuilder();
+  toast('Assignment saved — ' + tbQuestions.length + ' questions');
+}
 </script>
 </body>
 </html>
