@@ -508,6 +508,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
   <div class="tb-sep"></div>
+  <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
+  <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">—</div>
+  <div class="tb-sep"></div>
   <!-- Auth user chip -->
   <div id="auth-chip" style="display:none;align-items:center;gap:7px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
     <span id="auth-avatar" style="font-size:18px;line-height:1;">🧑‍🏫</span>
@@ -518,6 +521,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
+    <div class="user-menu-item" onclick="window.location.href='profile.html'">👤 Profile</div>
     <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
   </div>
   <div class="tb-sep"></div>
@@ -2351,6 +2355,10 @@ let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let authMode = 'login'; // 'login' | 'register'
 
+// Parse ?id= from URL
+const urlParams = new URLSearchParams(window.location.search);
+const URL_BOARD_ID = urlParams.get('id');
+
 // ── Token helpers ────────────────────────────────────────────
 function setToken(t) { authToken = t; if (t) localStorage.setItem('teachedos_token', t); else localStorage.removeItem('teachedos_token'); }
 function apiFetch(path, opts = {}) {
@@ -2457,15 +2465,22 @@ async function logout() {
 async function initUserBoard() {
   if (!currentUser || !authToken) return;
   try {
-    // Try to load saved board
-    if (currentBoardId) {
-      const r = await apiFetch('/api/boards/' + currentBoardId);
+    // If URL has a specific board id, try to load it
+    const targetId = URL_BOARD_ID || currentBoardId;
+    if (targetId) {
+      const r = await apiFetch('/api/boards/' + targetId);
       if (r.ok) {
         const { board } = await r.json();
+        currentBoardId = board.id;
+        localStorage.setItem('teachedos_board_id', currentBoardId);
         loadBoardData(board.data);
         document.title = board.name + ' · TeachedBoard';
+        document.getElementById('board-name-display').textContent = board.name;
         saveStatus.textContent = '☁ cloud';
+        history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         return;
+      } else if (URL_BOARD_ID) {
+        toast('Board not found');
       }
     }
     // Load first available board
@@ -2480,7 +2495,9 @@ async function initUserBoard() {
           const { board } = await r3.json();
           loadBoardData(board.data);
           document.title = board.name + ' · TeachedBoard';
+          document.getElementById('board-name-display').textContent = board.name;
           saveStatus.textContent = '☁ cloud';
+          history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         }
       }
     }
@@ -2518,6 +2535,43 @@ async function saveToCloud() {
   } catch { saveStatus.textContent = '☁ error'; }
 }
 
+// ── Share & Rename ────────────────────────────────────────────
+function copyShareLink() {
+  if (!currentBoardId) { toast('No board loaded'); return; }
+  const url = `${location.origin}${location.pathname}?id=${currentBoardId}`;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied!'));
+}
+
+function startRenameBoard() {
+  if (!currentBoardId) return;
+  const el = document.getElementById('board-name-display');
+  const oldName = el.textContent;
+  const inp = document.createElement('input');
+  inp.value = oldName;
+  inp.style.cssText = 'font-size:13px;font-weight:700;border:1px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:150px;';
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  async function save() {
+    const newName = inp.value.trim() || oldName;
+    const span = document.createElement('div');
+    span.id = 'board-name-display';
+    span.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;';
+    span.title = 'Click to rename';
+    span.onclick = startRenameBoard;
+    span.textContent = newName;
+    inp.replaceWith(span);
+    if (newName !== oldName && currentBoardId) {
+      try {
+        await apiFetch('/api/boards/' + currentBoardId + '/name', { method: 'PATCH', body: { name: newName } });
+        document.title = newName + ' · TeachedBoard';
+        toast('Renamed to: ' + newName);
+      } catch { toast('Rename failed'); }
+    }
+  }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = oldName; inp.blur(); } });
+}
+
 // ── Boards list UI ────────────────────────────────────────────
 async function showBoardList() {
   document.getElementById('user-menu').style.display = 'none';
@@ -2544,6 +2598,7 @@ async function switchBoard(id, name) {
   closeBoardList();
   currentBoardId = id;
   localStorage.setItem('teachedos_board_id', id);
+  history.replaceState(null, '', `board.html?id=${id}`);
   await initUserBoard();
   toast('Switched to: ' + name);
 }

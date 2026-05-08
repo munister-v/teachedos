@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile · TeachedOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --accent: #FF4B8B;
+  --accent-2: rgba(255,75,139,.08);
+  --accent-3: rgba(255,75,139,.15);
+  --bg: #f8f6ff;
+  --bg-2: #ffffff;
+  --border: rgba(0,0,0,.08);
+  --border-2: rgba(255,75,139,.2);
+  --text: #1a1a2e;
+  --text-2: #4a4a6a;
+  --text-3: #888aaa;
+  --shadow: 0 4px 24px rgba(0,0,0,.07);
+  --radius: 16px;
+  --font: 'Nunito', sans-serif;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── Navbar ── */
+#navbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; height: 56px;
+}
+.nb-logo { font-size: 20px; font-weight: 900; color: var(--accent); text-decoration: none; letter-spacing: -.5px; }
+.nb-sep { width: 1px; height: 20px; background: var(--border); }
+.nb-link { font-size: 13px; font-weight: 700; color: var(--text-2); text-decoration: none; padding: 4px 10px; border-radius: 8px; transition: .15s; }
+.nb-link:hover { background: var(--accent-2); color: var(--accent); }
+.nb-spacer { flex: 1; }
+#nb-admin-link { display: none; }
+
+/* ── Layout ── */
+#layout { display: flex; max-width: 1100px; margin: 0 auto; padding: 32px 20px; gap: 28px; }
+#sidebar-tabs { width: 210px; flex-shrink: 0; }
+#main-content { flex: 1; min-width: 0; }
+
+/* ── Sidebar ── */
+.st-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 12px;
+  font-size: 14px; font-weight: 700; color: var(--text-2);
+  cursor: pointer; transition: .15s; margin-bottom: 4px;
+}
+.st-item:hover { background: var(--accent-2); color: var(--accent); }
+.st-item.active { background: var(--accent-3); color: var(--accent); }
+.st-icon { font-size: 18px; width: 24px; text-align: center; }
+
+/* ── Tab Panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg-2); border-radius: var(--radius);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  padding: 24px; margin-bottom: 20px;
+}
+.card-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── Avatar area ── */
+#profile-avatar-big { font-size: 72px; line-height: 1; margin-bottom: 12px; cursor: pointer; transition: .15s; display: inline-block; }
+#profile-avatar-big:hover { transform: scale(1.08); }
+#profile-name-big { font-size: 26px; font-weight: 900; }
+#profile-email-big { font-size: 14px; color: var(--text-3); margin-top: 2px; }
+.role-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 8px; padding: 3px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  background: var(--accent-3); color: var(--accent);
+}
+
+/* ── Stats grid ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+.stat-card {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px; text-align: center;
+}
+.stat-n { font-size: 32px; font-weight: 900; color: var(--accent); line-height: 1; }
+.stat-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-top: 4px; }
+
+/* ── Recent boards ── */
+.recent-board-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 10px; cursor: pointer;
+  transition: .15s; text-decoration: none; color: inherit;
+}
+.recent-board-item:hover { background: var(--accent-2); }
+.rbi-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--accent-3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.rbi-name { font-size: 14px; font-weight: 700; }
+.rbi-meta { font-size: 12px; color: var(--text-3); }
+
+/* ── Board grid (My Boards tab) ── */
+.boards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.board-card {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+  transition: .2s;
+}
+.board-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,.1); }
+.bc-thumb { height: 100px; background: linear-gradient(135deg, var(--accent-3), rgba(120,80,200,.12)); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.bc-body { padding: 14px; flex: 1; }
+.bc-name-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.bc-name { font-size: 14px; font-weight: 800; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.bc-name:hover { color: var(--accent); }
+.bc-meta { font-size: 11px; color: var(--text-3); }
+.bc-actions { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.bc-btn {
+  flex: 1; padding: 6px 0; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: .15s; color: var(--text-2); font-family: var(--font);
+}
+.bc-btn:hover { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }
+.bc-btn.danger:hover { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.3); color: #ef4444; }
+.bc-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.bc-btn.primary:hover { background: #e03d7a; border-color: #e03d7a; }
+
+.new-board-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; border-radius: 12px;
+  border: 2px dashed var(--border-2); background: var(--accent-2);
+  color: var(--accent); font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: .15s; font-family: var(--font);
+  margin-bottom: 20px;
+}
+.new-board-btn:hover { background: var(--accent-3); border-color: var(--accent); }
+
+/* ── Settings ── */
+.setting-group { margin-bottom: 20px; }
+.setting-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.setting-input {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  border: 1.5px solid var(--border); font-family: var(--font);
+  font-size: 14px; outline: none; transition: .15s; background: var(--bg-2);
+}
+.setting-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,75,139,.12); }
+.setting-btn {
+  padding: 9px 20px; border-radius: 10px; border: none;
+  background: var(--accent); color: #fff; font-family: var(--font);
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.setting-btn:hover { background: #e03d7a; }
+.setting-btn.secondary { background: var(--bg); border: 1.5px solid var(--border); color: var(--text-2); }
+.setting-btn.secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-2); }
+.setting-btn.danger { background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.25); color: #ef4444; }
+.setting-btn.danger:hover { background: rgba(239,68,68,.15); }
+
+/* ── Emoji picker ── */
+.emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.emoji-opt {
+  font-size: 26px; padding: 8px; border-radius: 10px; cursor: pointer;
+  transition: .15s; text-align: center; border: 2px solid transparent;
+}
+.emoji-opt:hover { background: var(--accent-2); }
+.emoji-opt.selected { border-color: var(--accent); background: var(--accent-3); }
+
+/* ── Danger zone ── */
+.danger-zone { border: 1.5px solid rgba(239,68,68,.25); border-radius: 14px; padding: 20px; }
+.danger-zone-title { font-size: 14px; font-weight: 800; color: #ef4444; margin-bottom: 12px; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none;
+  transition: .25s; z-index: 9999; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Loading ── */
+#page-loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--accent-3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  #layout { flex-direction: column; padding: 16px 12px; }
+  #sidebar-tabs { width: 100%; display: flex; gap: 6px; }
+  .st-item { flex: 1; justify-content: center; font-size: 12px; padding: 8px 10px; }
+  .st-icon { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="page-loading"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <a class="nb-logo" href="index.html">✦ TeachedOS</a>
+  <div class="nb-sep"></div>
+  <a class="nb-link" href="index.html">← Home</a>
+  <a class="nb-link" href="board.html">📌 Board</a>
+  <a class="nb-link" id="nb-admin-link" href="admin.html">🛡 Admin</a>
+  <div class="nb-spacer"></div>
+  <div id="nb-user-info" style="font-size:13px;font-weight:700;color:var(--text-3);display:none;"></div>
+</nav>
+
+<!-- LAYOUT -->
+<div id="layout">
+  <!-- Sidebar Tabs -->
+  <div id="sidebar-tabs">
+    <div class="st-item active" data-tab="overview" onclick="switchTab('overview')">
+      <span class="st-icon">👤</span> Overview
+    </div>
+    <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
+      <span class="st-icon">📋</span> My Boards
+    </div>
+    <div class="st-item" data-tab="settings" onclick="switchTab('settings')">
+      <span class="st-icon">⚙️</span> Settings
+    </div>
+    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#ef4444;">
+      <span class="st-icon">🚪</span> Sign out
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')">🧑‍🏫</div>
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <div id="profile-name-big">—</div>
+          <div id="profile-email-big">—</div>
+          <div class="role-badge" id="profile-role-badge">🎓 Teacher</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Stats</div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-n" id="stat-boards">—</div><div class="stat-label">Total Boards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-cards">—</div><div class="stat-label">Total Cards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-since">—</div><div class="stat-label">Member since</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-sessions">—</div><div class="stat-label">Active sessions</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🕐 Recent Boards</div>
+        <div id="recent-boards-list">
+          <div style="color:var(--text-3);font-size:14px;">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY BOARDS TAB -->
+    <div id="tab-boards" class="tab-panel">
+      <button class="new-board-btn" onclick="createNewBoard()">➕ New Board</button>
+      <div class="boards-grid" id="boards-grid">
+        <div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-panel">
+      <!-- Change name -->
+      <div class="card">
+        <div class="card-title">✏️ Display Name</div>
+        <div class="setting-group">
+          <div class="setting-label">Name</div>
+          <input class="setting-input" id="set-name" type="text" placeholder="Your name">
+        </div>
+        <button class="setting-btn" onclick="saveName()">Save Name</button>
+      </div>
+
+      <!-- Change avatar -->
+      <div class="card">
+        <div class="card-title">😀 Avatar</div>
+        <div class="setting-label" style="margin-bottom:10px;">Choose your avatar emoji</div>
+        <div class="emoji-grid" id="emoji-grid"></div>
+        <div style="margin-top:14px;">
+          <button class="setting-btn" onclick="saveAvatar()">Save Avatar</button>
+        </div>
+      </div>
+
+      <!-- Change password -->
+      <div class="card">
+        <div class="card-title">🔒 Change Password</div>
+        <div class="setting-group">
+          <div class="setting-label">Current Password</div>
+          <input class="setting-input" id="set-pass-current" type="password" placeholder="Current password">
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">New Password</div>
+          <input class="setting-input" id="set-pass-new" type="password" placeholder="New password (min 8 chars)">
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">Confirm New Password</div>
+          <input class="setting-input" id="set-pass-confirm" type="password" placeholder="Confirm new password">
+        </div>
+        <button class="setting-btn" onclick="savePassword()">Change Password</button>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="card">
+        <div class="card-title" style="color:#ef4444;">⚠️ Danger Zone</div>
+        <div class="danger-zone">
+          <div class="danger-zone-title">Delete All Boards</div>
+          <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
+          <button class="setting-btn danger" onclick="deleteAllBoards()">🗑 Delete All Boards</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- #main-content -->
+</div><!-- #layout -->
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+let token = localStorage.getItem('teachedos_token');
+let me = null;
+let selectedAvatar = null;
+
+const AVATARS = ['🧑‍🏫','👩‍🏫','👨‍🏫','🦸','🦸‍♀️','🎓','📚','✏️','🌟','💡','🎨','🎭','🌸','🦊','🐧','🦉','🐸','🐱','🐶','🦄'];
+
+// ── Helpers ──────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let toastTimer;
+function toast(msg, dur = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function apiFetch(path, opts = {}) {
+  return fetch(API + path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token,
+      ...(opts.headers || {})
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+}
+
+// ── Tab switching ─────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.st-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('tab-' + name)?.classList.add('active');
+  document.querySelector(`.st-item[data-tab="${name}"]`)?.classList.add('active');
+  if (name === 'boards') loadBoards();
+  if (name === 'settings') initSettings();
+}
+
+// ── Auth & Init ───────────────────────────────────────────────
+async function init() {
+  if (!token) {
+    window.location.href = 'board.html';
+    return;
+  }
+  try {
+    const r = await apiFetch('/api/auth/me');
+    if (!r.ok) { window.location.href = 'board.html'; return; }
+    const { user } = await r.json();
+    me = user;
+    selectedAvatar = me.avatar;
+    renderOverview();
+    document.getElementById('page-loading').style.display = 'none';
+    if (me.role === 'admin') document.getElementById('nb-admin-link').style.display = '';
+    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    document.getElementById('nb-user-info').style.display = '';
+  } catch (e) {
+    window.location.href = 'board.html';
+  }
+}
+
+async function renderOverview() {
+  document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
+  document.getElementById('profile-name-big').textContent = me.name;
+  document.getElementById('profile-email-big').textContent = me.email;
+  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
+
+  const since = new Date(me.created_at);
+  const sinceStr = since.toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  document.getElementById('stat-since').textContent = sinceStr;
+
+  // Load boards for stats
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    document.getElementById('stat-boards').textContent = boards.length;
+    const totalCards = boards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
+    document.getElementById('stat-cards').textContent = totalCards;
+
+    // Recent boards
+    const recentBoards = boards.slice(0, 5);
+    const rbl = document.getElementById('recent-boards-list');
+    if (!recentBoards.length) {
+      rbl.innerHTML = '<div style="color:var(--text-3);font-size:14px;">No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a></div>';
+    } else {
+      rbl.innerHTML = recentBoards.map(b => `
+        <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
+          <div class="rbi-icon">📌</div>
+          <div>
+            <div class="rbi-name">${esc(b.name)}</div>
+            <div class="rbi-meta">${b.card_count || 0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div>
+          </div>
+        </a>`).join('');
+    }
+  } catch {}
+
+  // Sessions count
+  try {
+    const rs = await apiFetch('/api/auth/sessions');
+    if (rs.ok) {
+      const d = await rs.json();
+      document.getElementById('stat-sessions').textContent = d.sessions?.length || 1;
+    } else {
+      document.getElementById('stat-sessions').textContent = '1';
+    }
+  } catch {
+    document.getElementById('stat-sessions').textContent = '1';
+  }
+}
+
+// ── My Boards ─────────────────────────────────────────────────
+let boardsCache = [];
+async function loadBoards() {
+  const grid = document.getElementById('boards-grid');
+  grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>';
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    boardsCache = boards;
+    renderBoardsGrid(boards);
+  } catch {
+    grid.innerHTML = '<div style="color:#e55;grid-column:1/-1;">Failed to load boards</div>';
+  }
+}
+
+function renderBoardsGrid(boards) {
+  const grid = document.getElementById('boards-grid');
+  if (!boards.length) {
+    grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">No boards yet. Click "New Board" to create one.</div>';
+    return;
+  }
+  grid.innerHTML = boards.map(b => `
+    <div class="board-card" id="bc-${esc(b.id)}">
+      <div class="bc-thumb">📌</div>
+      <div class="bc-body">
+        <div class="bc-name-wrap">
+          <div class="bc-name" id="bc-name-${esc(b.id)}" onclick="startBoardRename('${esc(b.id)}')" title="Click to rename">${esc(b.name)}</div>
+        </div>
+        <div class="bc-meta">${b.card_count || 0} cards · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+      </div>
+      <div class="bc-actions">
+        <button class="bc-btn primary" onclick="window.location.href='board.html?id=${esc(b.id)}'">Open</button>
+        <button class="bc-btn" onclick="startBoardRename('${esc(b.id)}')">Rename</button>
+        <button class="bc-btn danger" onclick="deleteBoard('${esc(b.id)}','${esc(b.name)}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function startBoardRename(id) {
+  const el = document.getElementById('bc-name-' + id);
+  const oldName = el.textContent;
+  const inp = document.createElement('input');
+  inp.value = oldName;
+  inp.style.cssText = 'font-size:14px;font-weight:800;border:1.5px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:100%;font-family:var(--font);';
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  async function save() {
+    const newName = inp.value.trim() || oldName;
+    const span = document.createElement('div');
+    span.id = 'bc-name-' + id;
+    span.className = 'bc-name';
+    span.title = 'Click to rename';
+    span.textContent = newName;
+    span.onclick = () => startBoardRename(id);
+    inp.replaceWith(span);
+    if (newName !== oldName) {
+      try {
+        await apiFetch('/api/boards/' + id + '/name', { method: 'PATCH', body: { name: newName } });
+        toast('Renamed to: ' + newName);
+      } catch { toast('Rename failed'); }
+    }
+  }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = oldName; inp.blur(); } });
+}
+
+async function deleteBoard(id, name) {
+  if (!confirm(`Delete board "${name}"? This cannot be undone.`)) return;
+  try {
+    const r = await apiFetch('/api/boards/' + id, { method: 'DELETE' });
+    if (!r.ok) { toast('Delete failed'); return; }
+    toast('Board deleted');
+    loadBoards();
+  } catch { toast('Delete failed'); }
+}
+
+async function createNewBoard() {
+  const name = prompt('Board name:', 'New Board');
+  if (!name) return;
+  try {
+    const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
+    if (!r.ok) { toast('Failed to create board'); return; }
+    const { board } = await r.json();
+    window.location.href = 'board.html?id=' + board.id;
+  } catch { toast('Failed to create board'); }
+}
+
+// ── Settings ──────────────────────────────────────────────────
+function initSettings() {
+  document.getElementById('set-name').value = me.name;
+  renderEmojiGrid();
+}
+
+function renderEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = AVATARS.map(e => `
+    <div class="emoji-opt ${e === selectedAvatar ? 'selected' : ''}" onclick="selectAvatar('${e}')" title="${e}">${e}</div>
+  `).join('');
+}
+
+function selectAvatar(emoji) {
+  selectedAvatar = emoji;
+  renderEmojiGrid();
+}
+
+async function saveName() {
+  const name = document.getElementById('set-name').value.trim();
+  if (!name) { toast('Name cannot be empty'); return; }
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { name } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-name-big').textContent = me.name;
+    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    toast('Name updated!');
+  } catch { toast('Failed to save name'); }
+}
+
+async function saveAvatar() {
+  if (!selectedAvatar) return;
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { avatar: selectedAvatar } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-avatar-big').textContent = me.avatar;
+    toast('Avatar updated!');
+  } catch { toast('Failed to save avatar'); }
+}
+
+async function savePassword() {
+  const current = document.getElementById('set-pass-current').value;
+  const next = document.getElementById('set-pass-new').value;
+  const confirm = document.getElementById('set-pass-confirm').value;
+  if (!current || !next) { toast('Fill in all fields'); return; }
+  if (next !== confirm) { toast('Passwords do not match'); return; }
+  if (next.length < 8) { toast('Password must be at least 8 characters'); return; }
+  try {
+    const r = await apiFetch('/api/users/me/password', { method: 'PATCH', body: { current, next } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    document.getElementById('set-pass-current').value = '';
+    document.getElementById('set-pass-new').value = '';
+    document.getElementById('set-pass-confirm').value = '';
+    toast('Password changed!');
+  } catch { toast('Failed to change password'); }
+}
+
+async function deleteAllBoards() {
+  if (!confirm('Delete ALL your boards? This cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure? All board data will be lost.')) return;
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    await Promise.all(boards.map(b => apiFetch('/api/boards/' + b.id, { method: 'DELETE' })));
+    toast('All boards deleted');
+    loadBoards();
+  } catch { toast('Failed to delete boards'); }
+}
+
+// ── Logout ────────────────────────────────────────────────────
+async function doLogout() {
+  try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  localStorage.removeItem('teachedos_token');
+  localStorage.removeItem('teachedos_board_id');
+  window.location.href = 'board.html';
+}
+
+// ── Start ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

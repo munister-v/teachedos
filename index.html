@@ -1010,6 +1010,7 @@ html,body {
     <div class="mb-item">Help</div>
   </nav>
   <div class="mb-right">
+    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(255,75,139,.1);border:1px solid rgba(255,75,139,.25);margin-right:6px;"></a>
     <span class="mb-icon">🔔</span>
     <span class="mb-icon">🔍</span>
     <span id="mb-clock">--:--</span>
@@ -1806,6 +1807,23 @@ function mobInit() {
 })();
 
 mobInit();
+</script>
+<script>
+// Show user chip if logged in
+(function() {
+  const token = localStorage.getItem('teachedos_token');
+  if (!token) return;
+  fetch('https://teachedos-api.onrender.com/api/auth/me', {
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(r => r.json()).then(d => {
+    if (!d.user) return;
+    const chip = document.getElementById('desktop-user-chip');
+    if (chip) {
+      chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
+      chip.style.display = 'flex';
+    }
+  }).catch(() => {});
+})();
 </script>
 </body>
 </html>
