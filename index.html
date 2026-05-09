@@ -2100,12 +2100,24 @@ const SP_ITEMS = [
 ];
 
 function rebuildSpotlightStudents() {
-  // Strip previous student entries then re-add
-  while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length - 1].kbd === 'Student') SP_ITEMS.pop();
+  while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length-1].kbd === 'Student') SP_ITEMS.pop();
   STUDENTS.forEach(s => SP_ITEMS.push({
     icon: s.avatar || '🧑‍🎓', iconBg:'rgba(255,75,139,0.10)',
     title: s.name, sub: s.email || '',
     kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
+  }));
+}
+
+function rebuildSpotlightBoards() {
+  // Remove old Board entries, re-add from MY_BOARDS
+  let i = SP_ITEMS.length - 1;
+  while (i >= 0 && SP_ITEMS[i].kbd === 'Board') SP_ITEMS.splice(i--, 1);
+  (MY_BOARDS || []).slice(0, 12).forEach(b => SP_ITEMS.push({
+    icon: '📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)',
+    title: b.name || 'Untitled Board',
+    sub: 'Open board · ' + (b.card_count || 0) + ' cards',
+    kbd:'Board',
+    action: () => location.href = 'board.html?id=' + b.id
   }));
 }
 
@@ -2143,6 +2155,7 @@ function spotlightSearch() {
   const windows = filtered.filter(i => ['Plans','Students','Schedule','Notes','Tools','About'].some(k=>i.kbd===k));
   const pages   = filtered.filter(i => i.kbd === '⌘');
   const students = filtered.filter(i => i.kbd === 'Student');
+  const boards  = filtered.filter(i => i.kbd === 'Board');
 
   let html = '';
   const renderGroup = (label, items) => {
@@ -2167,6 +2180,7 @@ function spotlightSearch() {
     renderGroup('Windows', windows);
     renderGroup('Pages', pages);
     renderGroup('Students', students);
+    renderGroup('Boards', boards);
   }
   res.innerHTML = html;
 }
@@ -2498,6 +2512,7 @@ checkAuthAndRoute();
     if (typeof MY_BOARDS !== 'undefined') {
       MY_BOARDS = boards;
       if (typeof boardsRender === 'function') boardsRender();
+      if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
     }
     // Aggregate students from all boards' members
     const memberFetches = boards.slice(0, 20).map(b =>

@@ -576,9 +576,25 @@ async function saveClass() {
   if (!title) { toast('Title is required','err'); return; }
   if (!start || !end || start >= end) { toast('Check start/end time','err'); return; }
 
+  const day = parseInt(document.getElementById('f-day').value);
+
+  // Conflict detection
+  const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  const newStart = toMin(start), newEnd = toMin(end);
+  const conflict = schedule.find(s => {
+    if (String(s.id) === String(editingId)) return false;
+    if (s.day !== day) return false;
+    const sS = toMin(s.start_time), sE = toMin(s.end_time);
+    return newStart < sE && newEnd > sS;
+  });
+  if (conflict) {
+    const ok = confirm(`⚠️ Time conflict with "${conflict.title}" (${conflict.start_time}–${conflict.end_time}). Save anyway?`);
+    if (!ok) return;
+  }
+
   const meetUrl = document.getElementById('f-meeting-url').value.trim();
   const body = {
-    title, day: parseInt(document.getElementById('f-day').value),
+    title, day,
     start_time: start, end_time: end,
     group_name:  document.getElementById('f-group').value.trim() || null,
     level:       document.getElementById('f-level').value || null,

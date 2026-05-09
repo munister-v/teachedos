@@ -1007,6 +1007,21 @@ body.board-dragging .game-iframe-overlay{display:block;}
   color:var(--text);
 }
 #conflict-banner.show{display:flex;}
+/* Export dropdown */
+#export-menu{position:fixed;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9000;min-width:180px;overflow:hidden;display:none;}
+#export-menu.open{display:block;}
+.exp-item{padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);}
+.exp-item:hover{background:rgba(255,75,139,.06);}
+/* Print styles */
+@media print {
+  #toolbar,#sidebar,#board-live-banner,#offline-banner,#toast,#shortcuts-panel,
+  #task-builder-overlay,#student-quiz-overlay,#card-editor,#export-menu,
+  .anchor-dot,.resize-handle,.card-header .card-menu-btn{display:none!important;}
+  body{background:#fff!important;}
+  #board-wrap{overflow:visible!important;position:static!important;}
+  #board{transform:none!important;position:static!important;width:auto!important;height:auto!important;}
+  .board-card{position:static!important;display:inline-block!important;margin:8px!important;break-inside:avoid;}
+}
 </style>
 </head>
 <body>
@@ -1041,6 +1056,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
   <div class="tb-btn text" id="btn-snap" title="Snap to grid (hold Shift while dragging)" onclick="toggleSnap()">⊞ Snap</div>
+  <div class="tb-btn text" id="btn-export" title="Export board (JSON / Print)" onclick="openExportMenu(event)">⬇ Export</div>
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-search" title="Search cards (Ctrl+F)" onclick="toggleBoardSearch()">🔍</div>
   <div class="tb-btn text" id="btn-shortcuts" title="Keyboard shortcuts (?)" onclick="openShortcuts()">?</div>
@@ -1166,6 +1182,13 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="qa-sep"></div>
   <div class="qa-item" data-qa="video">🎬 Video Embed</div>
   <div class="qa-item" data-qa="image">🖼 Image</div>
+</div>
+
+<!-- Export dropdown menu -->
+<div id="export-menu">
+  <div class="exp-item" onclick="exportBoardJSON()">📄 Export JSON</div>
+  <div class="exp-item" onclick="exportBoardCSV()">📊 Export CSV</div>
+  <div class="exp-item" onclick="window.print()">🖨 Print / PDF</div>
 </div>
 
 <!-- Board search bar (Ctrl+F) -->
@@ -4668,6 +4691,44 @@ function toggleSnap() {
   document.getElementById('snap-indicator').style.display = snapEnabled ? '' : 'none';
 }
 function snapVal(v) { return Math.round(v / SNAP_SIZE) * SNAP_SIZE; }
+
+/* ════════════════════════ EXPORT ════════════════════════ */
+function openExportMenu(e) {
+  const menu = document.getElementById('export-menu');
+  const btn  = document.getElementById('btn-export').getBoundingClientRect();
+  menu.style.left = btn.left + 'px';
+  menu.style.top  = (btn.bottom + 4) + 'px';
+  menu.classList.toggle('open');
+  e.stopPropagation();
+}
+document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
+
+function exportBoardJSON() {
+  document.getElementById('export-menu').classList.remove('open');
+  const data = JSON.stringify({ cards: state.cards, arrows: state.arrows, pan: state.pan, scale: state.scale }, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = (document.getElementById('board-name-display').textContent.trim() || 'board') + '.json';
+  a.click();
+  toast('📄 Board exported as JSON');
+}
+
+function exportBoardCSV() {
+  document.getElementById('export-menu').classList.remove('open');
+  const lessons = state.cards.filter(c => c.type === 'lesson' || c.type === 'plan' || c.type === 'assignment');
+  if (!lessons.length) { toast('No lesson/assignment cards to export'); return; }
+  const headers = ['Type','Title','Level','Skill','Duration','Status','Description'];
+  const rows = lessons.map(c => {
+    const d = c.data || {};
+    return [c.type, d.title||d.word||'', d.level||'', d.skill||'', d.duration||'', d.status||'', (d.desc||d.body||'').replace(/\n/g,' ').slice(0,200)];
+  });
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = (document.getElementById('board-name-display').textContent.trim() || 'board') + '.csv';
+  a.click();
+  toast('📊 Cards exported as CSV');
+}
 
 /* ════════════════════════ QUICK-ADD MENU ════════════════════════ */
 const quickAdd = document.getElementById('quick-add');
