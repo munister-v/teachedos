@@ -1012,6 +1012,25 @@ body.board-dragging .game-iframe-overlay{display:block;}
 #export-menu.open{display:block;}
 .exp-item{padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);}
 .exp-item:hover{background:rgba(255,75,139,.06);}
+/* Mobile responsive */
+@media(max-width:768px){
+  :root{--tb-h:50px;}
+  #toolbar{padding:0 6px;gap:3px;overflow-x:auto;flex-wrap:nowrap;}
+  .tb-title{display:none;}
+  .tb-back span{display:none;}
+  #save-status{display:none;}
+  .tb-zoom-display{display:none;}
+  #export-btn{display:none;}
+  #sidebar{display:none;}
+  #board-wrap{left:0!important;}
+  .board-card{min-width:160px!important;}
+  #card-editor{right:0!important;left:0!important;width:100%!important;top:auto!important;bottom:0!important;border-radius:18px 18px 0 0!important;max-height:80vh!important;}
+  #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
+  .tb-btn span{display:none;}
+}
+@media(max-width:480px){
+  .tb-btn{min-width:26px;height:26px;font-size:12px;}
+}
 /* Print styles */
 @media print {
   #toolbar,#sidebar,#board-live-banner,#offline-banner,#toast,#shortcuts-panel,
@@ -2841,6 +2860,46 @@ document.addEventListener('mouseup', e => {
     sidebarDragData = null;
   }
 });
+
+/* ════════════════════ TOUCH PAN + PINCH ZOOM ══════════════════ */
+(function() {
+  let touches = [];
+  let lastDist = null;
+  let touchPanStart = null;
+
+  boardWrap.addEventListener('touchstart', e => {
+    touches = Array.from(e.touches);
+    if (touches.length === 1) {
+      touchPanStart = { mx: touches[0].clientX, my: touches[0].clientY, px: state.pan.x, py: state.pan.y };
+      lastDist = null;
+    } else if (touches.length === 2) {
+      lastDist = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      touchPanStart = null;
+    }
+  }, { passive: true });
+
+  boardWrap.addEventListener('touchmove', e => {
+    e.preventDefault();
+    touches = Array.from(e.touches);
+    if (touches.length === 1 && touchPanStart && !isDragging) {
+      state.pan.x = touchPanStart.px + (touches[0].clientX - touchPanStart.mx);
+      state.pan.y = touchPanStart.py + (touches[0].clientY - touchPanStart.my);
+      applyTransform();
+    } else if (touches.length === 2 && lastDist !== null) {
+      const dist = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      const cx = (touches[0].clientX + touches[1].clientX) / 2;
+      const cy = (touches[0].clientY + touches[1].clientY) / 2;
+      zoomAt(cx, cy, dist / lastDist);
+      lastDist = dist;
+    }
+  }, { passive: false });
+
+  boardWrap.addEventListener('touchend', e => {
+    touches = Array.from(e.touches);
+    if (touches.length < 2) lastDist = null;
+    if (touches.length === 0) touchPanStart = null;
+  }, { passive: true });
+})();
 
 /* ════════════════════════ ZOOM ════════════════════════ */
 boardWrap.addEventListener('wheel', e => {

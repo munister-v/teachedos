@@ -196,6 +196,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   .st-icon { display: none; }
 }
 </style>
+<link rel="stylesheet" href="dark.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -292,6 +294,19 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
     <!-- SETTINGS TAB -->
     <div id="tab-settings" class="tab-panel">
+      <!-- Dark Mode Toggle -->
+      <div class="card">
+        <div class="card-title">🌙 Appearance</div>
+        <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()">
+          <span id="dark-toggle-label">Dark Mode</span>
+          <div style="flex:1;"></div>
+          <div class="dark-toggle-track" id="dark-toggle-track">
+            <div class="dark-toggle-thumb"></div>
+          </div>
+        </button>
+        <div style="font-size:12px;color:var(--text-3);">Changes apply to all TeachedOS pages.</div>
+      </div>
+
       <!-- Change name -->
       <div class="card">
         <div class="card-title">✏️ Display Name</div>
@@ -719,6 +734,7 @@ function initSettings() {
   renderEmojiGrid();
   initMeetingRooms();
   initPlanCard();
+  updateDarkToggleUI(window.__themeGet ? window.__themeGet() : 'light');
 }
 
 // Pre-populate meeting URL inputs
@@ -850,6 +866,24 @@ async function doLogout() {
   localStorage.removeItem('teachedos_token');
   localStorage.removeItem('teachedos_board_id');
   window.location.href = 'index.html';
+}
+
+function toggleDarkMode() {
+  const next = window.__themeToggle();
+  updateDarkToggleUI(next);
+}
+
+function updateDarkToggleUI(theme) {
+  const track = document.getElementById('dark-toggle-track');
+  const label = document.getElementById('dark-toggle-label');
+  if (!track) return;
+  if (theme === 'dark') {
+    track.classList.add('on');
+    label.textContent = 'Dark Mode (on)';
+  } else {
+    track.classList.remove('on');
+    label.textContent = 'Dark Mode';
+  }
 }
 
 // ── Start ─────────────────────────────────────────────────────

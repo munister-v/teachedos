@@ -1106,6 +1106,8 @@ html,body {
   .di-icon { width:40px; height:40px; }
 }
 </style>
+<link rel="stylesheet" href="dark.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -2278,6 +2280,7 @@ async function checkAuthAndRoute() {
 
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
+    if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
     // Offline or network error — show desktop anyway if token exists
@@ -2738,5 +2741,163 @@ function showOsToast(msg) {
 }
 </script>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+
+<!-- Onboarding Modal -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
+  <div id="onboarding-box" style="background:#fff;border-radius:24px;width:min(480px,92vw);box-shadow:0 32px 100px rgba(0,0,0,.28);overflow:hidden;">
+    <!-- Steps -->
+    <div id="ob-step-1" class="ob-step">
+      <div style="background:linear-gradient(135deg,#FF4B8B,#ff8ab4);padding:36px 32px 28px;text-align:center;">
+        <div style="font-size:56px;margin-bottom:12px;">👋</div>
+        <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:8px;">Welcome to TeachedOS!</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
+      </div>
+      <div style="padding:28px 32px;">
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#fff4f8;border:1.5px solid rgba(255,75,139,.15);">
+            <div style="font-size:28px;">📋</div>
+            <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
+            <div style="font-size:28px;">🎓</div>
+            <div><div style="font-size:14px;font-weight:800;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
+            <div style="font-size:28px;">📅</div>
+            <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
+          </div>
+        </div>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#FF4B8B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
+      </div>
+    </div>
+
+    <div id="ob-step-2" class="ob-step" style="display:none;">
+      <div style="padding:32px 32px 12px;">
+        <div style="font-size:11px;font-weight:700;color:#FF4B8B;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
+        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+          ${['blank,⬜,Blank Board', 'speaking,🗣️,Speaking Lesson', 'grammar,📐,Grammar Lesson', 'testprep,📝,Test Prep'].map(t => {
+            const [id, icon, name] = t.split(',');
+            return `<div id="ob-tpl-${id}" onclick="obSelectTpl('${id}')"
+              style="padding:14px;border-radius:12px;border:2px solid ${id==='blank'?'#FF4B8B':'#e5e7eb'};cursor:pointer;transition:.15s;background:${id==='blank'?'#fff4f8':'#fafafa'};">
+              <div style="font-size:22px;margin-bottom:4px;">${icon}</div>
+              <div style="font-size:13px;font-weight:700;">${name}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
+          <input id="ob-board-name" type="text" placeholder="My First Board"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
+            onkeydown="if(event.key==='Enter')obCreateBoard()">
+        </div>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#FF4B8B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
+      </div>
+    </div>
+
+    <div id="ob-step-3" class="ob-step" style="display:none;">
+      <div style="padding:32px 32px 24px;">
+        <div style="font-size:11px;font-weight:700;color:#FF4B8B;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
+        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
+          <input id="ob-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
+          <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#FF4B8B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _obTpl = 'blank';
+let _obBoardId = null;
+
+function showOnboarding(user) {
+  document.getElementById('onboarding-overlay').style.display = 'flex';
+  document.getElementById('ob-step-1').style.display = '';
+  document.getElementById('ob-step-2').style.display = 'none';
+  document.getElementById('ob-step-3').style.display = 'none';
+}
+
+function obNext(step) {
+  document.querySelectorAll('.ob-step').forEach(el => el.style.display = 'none');
+  document.getElementById('ob-step-' + step).style.display = '';
+}
+
+function obSkipStep(nextStep) {
+  obNext(nextStep);
+}
+
+function obSelectTpl(id) {
+  _obTpl = id;
+  document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
+    const tid = el.id.replace('ob-tpl-','');
+    el.style.borderColor = tid === id ? '#FF4B8B' : '#e5e7eb';
+    el.style.background   = tid === id ? '#fff4f8' : '#fafafa';
+  });
+  const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', testprep:'Test Prep' };
+  const inp = document.getElementById('ob-board-name');
+  if (!inp.value) inp.value = names[id] || '';
+}
+
+async function obCreateBoard() {
+  const name = document.getElementById('ob-board-name').value.trim() || 'My First Board';
+  try {
+    const API = 'https://teachedos-api.onrender.com';
+    const token = localStorage.getItem('teachedos_token');
+    const r = await fetch(API + '/api/boards', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
+      body: JSON.stringify({ name })
+    });
+    const { board } = await r.json();
+    _obBoardId = board.id;
+    obNext(3);
+  } catch {
+    obNext(3);
+  }
+}
+
+async function obSaveAndFinish() {
+  const meet = document.getElementById('ob-meet-url')?.value.trim();
+  const zoom = document.getElementById('ob-zoom-url')?.value.trim();
+  if (meet || zoom) {
+    try {
+      const API = 'https://teachedos-api.onrender.com';
+      const token = localStorage.getItem('teachedos_token');
+      await fetch(API + '/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
+        body: JSON.stringify({ meeting_url: meet || undefined, zoom_url: zoom || undefined })
+      });
+    } catch {}
+  }
+  skipOnboarding();
+  if (_obBoardId) {
+    setTimeout(() => location.href = 'board.html?id=' + _obBoardId, 300);
+  }
+}
+
+function skipOnboarding() {
+  localStorage.setItem('teachedos_onboarded', '1');
+  document.getElementById('onboarding-overlay').style.display = 'none';
+}
+
+document.getElementById('onboarding-overlay').addEventListener('click', function(e) {
+  if (e.target === this) skipOnboarding();
+});
+</script>
 </body>
 </html>
