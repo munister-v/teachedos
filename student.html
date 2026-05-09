@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF4B8B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeachedOS — Student</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -384,6 +389,8 @@ function renderSchedule(schedule) {
   }).join('');
 }
 
+let _lastLiveId = null;
+
 async function checkLiveSessions() {
   try {
     const { sessions } = await apiFetch('/api/schedule/live').then(r => r.json());
@@ -391,6 +398,7 @@ async function checkLiveSessions() {
     if (!banner) return;
     if (!sessions || !sessions.length) {
       banner.style.display = 'none';
+      _lastLiveId = null;
       return;
     }
     const session = sessions[0];
@@ -402,6 +410,21 @@ async function checkLiveSessions() {
       if (session.meeting_url) { btn.href = session.meeting_url; btn.style.display = ''; }
       else btn.style.display = 'none';
     }
+    // Browser push notification when a new session goes live
+    if (session.id !== _lastLiveId) {
+      _lastLiveId = session.id;
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('🔴 Class is Live!', {
+            body: `${session.teacher_name || 'Your teacher'} started: ${session.title || 'Class'}`,
+            icon: 'icons/icon-192.png',
+            tag: 'live-session-' + session.id,
+          });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }
+    }
   } catch {}
 }
 
@@ -410,5 +433,6 @@ setInterval(checkLiveSessions, 30000);
 
 init();
 </script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>

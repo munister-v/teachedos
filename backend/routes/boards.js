@@ -104,4 +104,65 @@ router.delete('/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/boards/:id/progress — student submits quiz result
+router.post('/:id/progress', async (req, res) => {
+  const { cardId, score, maxScore, pct, answers } = req.body;
+  if (!cardId) return res.status(400).json({ error: 'cardId required' });
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS quiz_results (
+        id SERIAL PRIMARY KEY,
+        board_id TEXT NOT NULL,
+        card_id TEXT NOT NULL,
+        user_id INTEGER NOT NULL,
+        score INTEGER DEFAULT 0,
+        max_score INTEGER DEFAULT 0,
+        pct INTEGER DEFAULT 0,
+        answers JSONB,
+        submitted_at TIMESTAMPTZ DEFAULT NOW()
+      )`);
+    // upsert — one result per student per card
+    await pool.query(`
+      INSERT INTO quiz_results (board_id, card_id, user_id, score, max_score, pct, answers)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      ON CONFLICT (board_id, card_id, user_id)
+      DO UPDATE SET score=$4, max_score=$5, pct=$6, answers=$7, submitted_at=NOW()`,
+      [req.params.id, cardId, req.user.id, score||0, maxScore||0, pct||0, JSON.stringify(answers||[])]
+    );
+    // also mark lesson progress as done
+    await pool.query(`
+      INSERT INTO student_progress (board_id, user_id, card_id, status, updated_at)
+      VALUES ($1,$2,$3,'done',NOW())
+      ON CONFLICT (board_id, user_id, card_id) DO UPDATE SET status='done', updated_at=NOW()`,
+      [req.params.id, req.user.id, cardId]
+    ).catch(() => {});
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[boards] quiz progress error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/boards/:id/quiz-results — teacher views all student quiz results
+router.get('/:id/quiz-results', async (req, res) => {
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS quiz_results (
+      id SERIAL PRIMARY KEY, board_id TEXT, card_id TEXT, user_id INTEGER,
+      score INTEGER DEFAULT 0, max_score INTEGER DEFAULT 0, pct INTEGER DEFAULT 0,
+      answers JSONB, submitted_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(board_id, card_id, user_id))`);
+    const { rows } = await pool.query(`
+      SELECT qr.*, u.name as student_name, u.email as student_email
+      FROM quiz_results qr
+      JOIN users u ON u.id = qr.user_id
+      WHERE qr.board_id = $1
+      ORDER BY qr.submitted_at DESC`,
+      [req.params.id]);
+    res.json({ results: rows });
+  } catch (err) {
+    console.error('[boards] quiz-results error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

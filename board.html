@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF4B8B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeachedOS · Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -552,6 +557,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
   transition:.15s;flex:1;text-align:center;
 }
 .assign-build-btn:hover{background:#ea6b0f;}
+.assign-take-btn{
+  padding:5px 12px;border:1px solid rgba(255,75,139,.4);border-radius:7px;
+  font-size:10px;font-weight:800;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,#FF4B8B,#E8357A);width:100%;text-align:center;transition:.15s;
+}
+.assign-take-btn:hover{filter:brightness(1.08);}
 
 /* ══════════════ TASK BUILDER OVERLAY ══════════════ */
 #task-builder-overlay{
@@ -1109,6 +1120,13 @@ body.board-dragging .game-iframe-overlay{display:block;}
       </marker>
     </defs>
   </svg>
+  <!-- Student live-class banner (shown when teacher is broadcasting) -->
+  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:linear-gradient(90deg,#e8357a,#FF4B8B);color:#fff;padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:700;box-shadow:0 4px 18px rgba(232,53,122,.35);">
+    <span style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;animation:pulse-dot 1.2s infinite;flex-shrink:0;"></span>
+    <span id="board-live-label">Your teacher is live now</span>
+    <a id="board-live-join" href="#" target="_blank" style="margin-left:auto;background:#fff;color:#e8357a;padding:5px 14px;border-radius:8px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
+    <button onclick="document.getElementById('board-live-banner').style.display='none'" style="border:none;background:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">×</button>
+  </div>
   <!-- Board canvas -->
   <div id="board">
     <div id="empty-state">
@@ -2194,11 +2212,15 @@ function renderAssignment(el, card) {
       <div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>
     </div>` : '';
 
+  const actionsHtml = isOwner
+    ? `<button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+       <button class="assign-build-btn" onclick="openTaskBuilder('${card.id}')">🛠 Builder</button>`
+    : (qs.length
+        ? `<button class="assign-take-btn" onclick="openStudentQuiz('${card.id}')">📝 Take Quiz</button>`
+        : `<span style="font-size:11px;color:var(--text-3)">No questions yet</span>`);
+
   body.innerHTML = statsRow + preview + deadlineHtml + progHtml + `
-    <div class="assign-actions">
-      <button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
-      <button class="assign-build-btn" onclick="openTaskBuilder('${card.id}')">🛠 Builder</button>
-    </div>`;
+    <div class="assign-actions">${actionsHtml}</div>`;
   el.appendChild(body);
 }
 
@@ -3961,10 +3983,49 @@ function updateAuthUI() {
   }
 }
 
+let _boardOwnerMeetingUrl = null;
+let _boardLiveInterval = null;
+
 function openBoardCall() {
-  const url = (currentUser && (currentUser.meeting_url || currentUser.zoom_url));
+  const url = _boardOwnerMeetingUrl || (currentUser && (currentUser.meeting_url || currentUser.zoom_url));
   if (url) window.open(url, '_blank');
   else toast('No meeting room saved — set one in Calls & Meetings');
+}
+
+async function checkBoardLive() {
+  if (isOwner) return;
+  try {
+    const { sessions } = await apiFetch('/api/schedule/live').then(r => r.json());
+    const banner = document.getElementById('board-live-banner');
+    const joinBtn = document.getElementById('board-live-join');
+    const label = document.getElementById('board-live-label');
+    if (!sessions || !sessions.length) {
+      if (banner) banner.style.display = 'none';
+      return;
+    }
+    // show if any live session belongs to the board owner
+    if (banner) {
+      const s = sessions[0];
+      _boardOwnerMeetingUrl = s.meeting_url || null;
+      if (label) label.textContent = `${s.teacher_name || 'Your teacher'} is live — ${s.title || 'Class in progress'}`;
+      if (joinBtn) {
+        if (s.meeting_url) { joinBtn.href = s.meeting_url; joinBtn.style.display = ''; }
+        else joinBtn.style.display = 'none';
+      }
+      banner.style.display = 'flex';
+      // Update the call button in toolbar too
+      const callBtn = document.getElementById('btn-call');
+      if (callBtn) { callBtn.style.display = 'flex'; callBtn.style.animation = 'pulse-dot 1.2s infinite'; }
+      // Browser notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('🔴 Class is Live!', {
+          body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
+          icon: 'icons/icon-192.png',
+          tag: 'board-live-' + s.id,
+        });
+      }
+    }
+  } catch {}
 }
 
 // Show/hide editing controls based on ownership
@@ -3993,6 +4054,13 @@ function applyRoleUI() {
     })();
     if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
     else { badge.textContent = '🎓 student'; badge.style.cssText += 'background:#ede9fe;color:#7c3aed;display:inline;'; }
+  }
+  // Students: poll for live session
+  if (!isOwner) {
+    clearInterval(_boardLiveInterval);
+    checkBoardLive();
+    _boardLiveInterval = setInterval(checkBoardLive, 30000);
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
   }
 }
 
@@ -5573,6 +5641,233 @@ function saveTaskBuilder() {
   closeTaskBuilder();
   toast('Assignment saved — ' + tbQuestions.length + ' questions');
 }
+
+/* ── Student Quiz Modal ── */
+function openStudentQuiz(cardId) {
+  const card = boardData.cards.find(c => c.id === cardId);
+  if (!card || !card.data) return;
+  const d = card.data;
+  const qs = d.questions || [];
+  if (!qs.length) { toast('No questions in this assignment'); return; }
+
+  const overlay = document.getElementById('student-quiz-overlay');
+  const modal   = document.getElementById('student-quiz-modal');
+
+  let current = 0;
+  let answers = new Array(qs.length).fill(null);
+  let started = Date.now();
+  let timer = null;
+  let timeLeft = (d.timeLimit || 0) * 60;
+
+  function buildQuestion(idx) {
+    const q = qs[idx];
+    const typeIcons = { 'gap-fill':'✏️', 'mcq':'🔘', 'truefalse':'⚖️', 'match':'🔗', 'open':'📝' };
+    let inputHtml = '';
+    if (q.type === 'mcq') {
+      inputHtml = (q.options||[]).map((o,i) => `
+        <label class="quiz-opt ${answers[idx]===i?'selected':''}">
+          <input type="radio" name="quiz-opt" value="${i}" ${answers[idx]===i?'checked':''} onchange="quizSelectOpt(${i})">
+          <span>${esc(o)}</span>
+        </label>`).join('');
+    } else if (q.type === 'truefalse') {
+      inputHtml = `
+        <div class="quiz-tf-row">
+          <button class="quiz-tf-btn ${answers[idx]===true?'sel-true':''}" onclick="quizSetTF(true)">✅ True</button>
+          <button class="quiz-tf-btn ${answers[idx]===false?'sel-false':''}" onclick="quizSetTF(false)">❌ False</button>
+        </div>`;
+    } else if (q.type === 'match') {
+      const pairs = (q.pairs || []);
+      inputHtml = pairs.map((p,i) => `
+        <div class="quiz-match-row">
+          <span class="quiz-match-left">${esc(p.left||'')}</span>
+          <input class="quiz-match-input" placeholder="Match…" value="${answers[idx]&&answers[idx][i]!=null?esc(answers[idx][i]):''}"
+            oninput="quizSetMatch(${i}, this.value)" />
+        </div>`).join('');
+    } else {
+      // gap-fill or open
+      const placeholder = q.type === 'gap-fill' ? 'Fill in the blank…' : 'Your answer…';
+      inputHtml = `<textarea class="quiz-text-input" placeholder="${placeholder}" oninput="quizSetText(this.value)">${answers[idx]!=null?esc(answers[idx]):''}</textarea>`;
+    }
+
+    modal.innerHTML = `
+      <div class="quiz-header">
+        <div>
+          <div class="quiz-title">${esc(d.title||'Assignment')}</div>
+          <div class="quiz-meta">${typeIcons[q.type]||'📝'} ${q.type} · ${idx+1}/${qs.length} · ⭐${q.points||1} pt</div>
+        </div>
+        ${timeLeft>0?`<div class="quiz-timer" id="quiz-timer">${fmtTime(timeLeft)}</div>`:''}
+        <button class="quiz-close-btn" onclick="closeStudentQuiz()">×</button>
+      </div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/qs.length)*100}%"></div></div>
+      <div class="quiz-body">
+        <div class="quiz-question">${esc(q.text||'')}</div>
+        <div class="quiz-input-area" id="quiz-input-area">${inputHtml}</div>
+      </div>
+      <div class="quiz-footer">
+        <button class="quiz-btn-secondary" onclick="quizNav(-1)" ${idx===0?'disabled':''}>← Back</button>
+        <div class="quiz-dot-row">${qs.map((_,i)=>`<div class="quiz-dot ${answers[i]!=null?'answered':''} ${i===idx?'current':''}"></div>`).join('')}</div>
+        ${idx < qs.length-1
+          ? `<button class="quiz-btn-primary" onclick="quizNav(1)">Next →</button>`
+          : `<button class="quiz-btn-submit" onclick="submitStudentQuiz()">Submit ✓</button>`}
+      </div>`;
+
+    if (d.timeLimit && timeLeft > 0) {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        const el = document.getElementById('quiz-timer');
+        if (el) el.textContent = fmtTime(timeLeft);
+        if (timeLeft <= 0) { clearInterval(timer); submitStudentQuiz(); }
+      }, 1000);
+    }
+
+    // attach helpers in closure scope
+    window.quizSelectOpt = (i) => { answers[idx] = i; buildQuestion(idx); };
+    window.quizSetTF = (v) => { answers[idx] = v; buildQuestion(idx); };
+    window.quizSetText = (v) => { answers[idx] = v; };
+    window.quizSetMatch = (i, v) => {
+      if (!answers[idx] || !Array.isArray(answers[idx])) answers[idx] = new Array((q.pairs||[]).length).fill('');
+      answers[idx][i] = v;
+    };
+    window.quizNav = (dir) => {
+      // save text/open answer before navigating
+      const ta = document.querySelector('.quiz-text-input');
+      if (ta) answers[idx] = ta.value;
+      current = Math.max(0, Math.min(qs.length-1, idx + dir));
+      buildQuestion(current);
+    };
+  }
+
+  function fmtTime(s) {
+    return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;
+  }
+
+  window.submitStudentQuiz = async () => {
+    clearInterval(timer);
+    // Save any pending text
+    const ta = document.querySelector('.quiz-text-input');
+    if (ta) answers[current] = ta.value;
+
+    // Grade
+    let score = 0, maxScore = 0;
+    qs.forEach((q, i) => {
+      const pts = q.points || 1;
+      maxScore += pts;
+      const ans = answers[i];
+      if (q.type === 'mcq') {
+        const correctIdx = (q.options||[]).indexOf(q.answer);
+        if (ans === correctIdx) score += pts;
+      } else if (q.type === 'truefalse') {
+        const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
+        if (ans === correct) score += pts;
+      } else if (q.type === 'gap-fill') {
+        if (ans && q.answer && ans.trim().toLowerCase() === q.answer.trim().toLowerCase()) score += pts;
+      }
+      // open / match: manual grading, give partial credit
+    });
+
+    const pct = maxScore ? Math.round(score / maxScore * 100) : 0;
+
+    // Show result
+    modal.innerHTML = `
+      <div class="quiz-header">
+        <div class="quiz-title">${esc(d.title||'Assignment')} — Results</div>
+        <button class="quiz-close-btn" onclick="closeStudentQuiz()">×</button>
+      </div>
+      <div class="quiz-result-body">
+        <div class="quiz-score-circle" style="--pct:${pct}">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#f0e8f0" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#FF4B8B" stroke-width="10"
+              stroke-dasharray="${2*Math.PI*50}" stroke-dashoffset="${2*Math.PI*50*(1-pct/100)}"
+              stroke-linecap="round" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div class="quiz-score-text"><strong>${pct}%</strong><span>${score}/${maxScore} pts</span></div>
+        </div>
+        <div class="quiz-result-msg">${pct>=80?'🎉 Excellent!':pct>=60?'👍 Good job!':pct>=40?'📚 Keep practicing':'💪 Don\'t give up!'}</div>
+        <div class="quiz-answers-review">
+          ${qs.map((q,i)=>{
+            const ans = answers[i];
+            let correct = null;
+            if (q.type==='mcq') { const ci=(q.options||[]).indexOf(q.answer); correct=ans===ci; }
+            else if (q.type==='truefalse') { const c=q.answer===true||q.answer==='true'||q.answer==='True'; correct=ans===c; }
+            else if (q.type==='gap-fill') { correct=ans&&q.answer&&ans.trim().toLowerCase()===q.answer.trim().toLowerCase(); }
+            const icon = correct===true?'✅':correct===false?'❌':'📝';
+            return `<div class="quiz-review-item">${icon} Q${i+1}: ${esc((q.text||'').substring(0,60))}${q.text&&q.text.length>60?'…':''}</div>`;
+          }).join('')}
+        </div>
+        <button class="quiz-btn-primary" onclick="closeStudentQuiz()" style="margin-top:16px;width:100%">Done</button>
+      </div>`;
+
+    // Send progress to API
+    try {
+      await apiFetch('/api/boards/' + currentBoardId + '/progress', {
+        method: 'POST',
+        body: { cardId, score, maxScore, pct, answers }
+      });
+    } catch {}
+  };
+
+  window.closeStudentQuiz = () => {
+    clearInterval(timer);
+    overlay.classList.remove('open');
+  };
+
+  buildQuestion(0);
+  overlay.classList.add('open');
+}
 </script>
+
+<!-- Student Quiz Overlay -->
+<div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
+  <div id="student-quiz-modal" style="background:#fff;border-radius:20px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 32px 90px rgba(0,0,0,.22);font-family:var(--font-ui);">
+  </div>
+</div>
+
+<style>
+#student-quiz-overlay.open{display:flex!important;}
+.quiz-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:20px 20px 0;}
+.quiz-title{font-size:15px;font-weight:800;color:#1C0A14;}
+.quiz-meta{font-size:11px;color:#6B2A48;margin-top:3px;}
+.quiz-timer{font-size:15px;font-weight:800;color:#e8357a;background:#ffe0ed;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+.quiz-close-btn{border:none;background:none;font-size:20px;cursor:pointer;color:#999;line-height:1;flex-shrink:0;}
+.quiz-progress-bar{height:4px;background:#f5e6ef;margin:10px 20px 0;}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#FF4B8B,#E8357A);border-radius:2px;transition:width .3s;}
+.quiz-body{padding:20px;}
+.quiz-question{font-size:14px;font-weight:700;color:#1C0A14;line-height:1.55;margin-bottom:16px;}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid #f0dde8;cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:.15s;}
+.quiz-opt:hover{border-color:#FF4B8B;background:#fff5f9;}
+.quiz-opt.selected{border-color:#FF4B8B;background:#fff0f6;}
+.quiz-opt input{accent-color:#FF4B8B;}
+.quiz-tf-row{display:flex;gap:12px;}
+.quiz-tf-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid #f0dde8;font-size:14px;font-weight:700;cursor:pointer;background:#fff;transition:.15s;}
+.quiz-tf-btn:hover{border-color:#FF4B8B;}
+.quiz-tf-btn.sel-true{background:#d1fae5;border-color:#10b981;color:#065f46;}
+.quiz-tf-btn.sel-false{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+.quiz-match-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.quiz-match-left{flex:1;font-size:13px;font-weight:700;padding:8px 12px;background:#f9f1f5;border-radius:8px;}
+.quiz-match-input{flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid #f0dde8;font-size:13px;outline:none;font-family:inherit;}
+.quiz-match-input:focus{border-color:#FF4B8B;}
+.quiz-text-input{width:100%;min-height:80px;padding:10px 12px;border-radius:10px;border:1.5px solid #f0dde8;font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.quiz-text-input:focus{border-color:#FF4B8B;}
+.quiz-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 20px;gap:10px;}
+.quiz-dot-row{display:flex;gap:5px;flex-wrap:wrap;}
+.quiz-dot{width:8px;height:8px;border-radius:50%;background:#f0dde8;}
+.quiz-dot.answered{background:#FF4B8B;}
+.quiz-dot.current{background:#E8357A;transform:scale(1.3);}
+.quiz-btn-primary{padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#FF4B8B,#E8357A);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary{padding:9px 18px;border-radius:9px;border:1.5px solid #f0dde8;background:#fff;color:#6B2A48;font-weight:700;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary:disabled{opacity:.4;cursor:default;}
+.quiz-btn-submit{padding:9px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-result-body{padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.quiz-score-circle{position:relative;width:120px;height:120px;margin-bottom:14px;}
+.quiz-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.quiz-score-text strong{font-size:22px;font-weight:900;color:#1C0A14;}
+.quiz-score-text span{font-size:11px;color:#6B2A48;}
+.quiz-result-msg{font-size:18px;font-weight:800;margin-bottom:16px;}
+.quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
+.quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
+</style>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>

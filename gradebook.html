@@ -168,6 +168,14 @@ a{text-decoration:none;color:inherit;}
   opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
+.qr-card{border:1.5px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.qr-card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fdf4f8;font-size:12px;font-weight:700;color:#4a1d35;}
+.qr-avg{font-size:11px;color:#6B2A48;font-weight:600;}
+.qr-table{width:100%;border-collapse:collapse;font-size:12px;}
+.qr-table th{padding:7px 12px;text-align:left;font-size:11px;font-weight:800;color:var(--text-3);border-bottom:1px solid var(--border);}
+.qr-table td{padding:7px 12px;border-bottom:1px solid #fdf0f5;vertical-align:middle;}
+.qr-table tr:last-child td{border-bottom:none;}
+.qr-score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-weight:700;font-size:11px;background:linear-gradient(90deg,rgba(255,75,139,.12),rgba(232,53,122,.08));color:#e8357a;}
 </style>
 </head>
 <body>
@@ -249,6 +257,17 @@ a{text-decoration:none;color:inherit;}
         <thead><tr><th class="th-name">Student</th></tr></thead>
         <tbody id="gb-tbody"></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Quiz Results -->
+  <div class="section" id="quiz-results-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">📝 Quiz Results</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportQuizResults()">📥 Export CSV</button>
+    </div>
+    <div id="quiz-results-body" style="padding:16px;">
+      <p style="color:var(--text-3);font-size:13px;">Select a board above to load quiz results.</p>
     </div>
   </div>
 
@@ -342,6 +361,7 @@ async function loadBoard(id) {
     renderMemberList();
     renderGradebook();
     updateStats();
+    loadQuizResults(id);
   } catch (e) { toast('Error: ' + e.message); }
 }
 
@@ -539,6 +559,62 @@ function toast(msg) {
 }
 function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+let quizResultsData = [];
+async function loadQuizResults(boardId) {
+  const sec = document.getElementById('quiz-results-section');
+  const body = document.getElementById('quiz-results-body');
+  try {
+    const d = await apiFetch(`/api/boards/${boardId}/quiz-results`);
+    quizResultsData = d.results || [];
+    sec.style.display = '';
+    if (!quizResultsData.length) {
+      body.innerHTML = '<p style="color:var(--text-3);font-size:13px;padding:8px 0">No quiz submissions yet.</p>';
+      return;
+    }
+    // Group by card_id
+    const byCard = {};
+    quizResultsData.forEach(r => {
+      if (!byCard[r.card_id]) byCard[r.card_id] = [];
+      byCard[r.card_id].push(r);
+    });
+    body.innerHTML = Object.entries(byCard).map(([cardId, rows]) => {
+      const avg = Math.round(rows.reduce((s, r) => s + (r.pct || 0), 0) / rows.length);
+      const tableRows = rows.map(r => `
+        <tr>
+          <td style="font-weight:700">${esc(r.student_name || 'Unknown')}</td>
+          <td style="color:var(--text-3);font-size:11px">${esc(r.student_email || '')}</td>
+          <td><div class="qr-score-pill" style="--pct:${r.pct}">${r.score}/${r.max_score} <span style="opacity:.6">(${r.pct}%)</span></div></td>
+          <td style="font-size:11px;color:var(--text-3)">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+        </tr>`).join('');
+      return `
+        <div class="qr-card">
+          <div class="qr-card-head">
+            <span>📝 Card: <code>${cardId.slice(-8)}</code></span>
+            <span class="qr-avg">Avg: ${avg}% · ${rows.length} submission${rows.length>1?'s':''}</span>
+          </div>
+          <table class="qr-table">
+            <thead><tr><th>Student</th><th>Email</th><th>Score</th><th>Submitted</th></tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+  } catch {
+    sec.style.display = 'none';
+  }
+}
+
+function exportQuizResults() {
+  if (!quizResultsData.length) { toast('No quiz data to export'); return; }
+  const headers = ['Card ID','Student','Email','Score','Max Score','%','Submitted'];
+  const rows = quizResultsData.map(r => [r.card_id, r.student_name, r.student_email, r.score, r.max_score, r.pct+'%', r.submitted_at]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'quiz-results.csv';
+  a.click();
+  toast('📥 Exported!');
+}
+
 // Close modal on backdrop click
 document.getElementById('invite-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeInviteModal();
@@ -546,5 +622,6 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>
