@@ -8,14 +8,22 @@ router.use(requireAuth);
 // GET /api/users/me — full profile
 router.get('/me', (req, res) => res.json({ user: req.user }));
 
-// PATCH /api/users/me — update name / avatar
+// PATCH /api/users/me — update name / avatar / email
 router.patch('/me', async (req, res) => {
-  const { name, avatar } = req.body;
+  const { name, avatar, email } = req.body;
   const sets   = [];
   const params = [req.user.id];
 
   if (name)   { params.push(name.trim().slice(0, 255)); sets.push(`name = $${params.length}`); }
   if (avatar) { params.push(avatar);                    sets.push(`avatar = $${params.length}`); }
+  if (email) {
+    const e = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return res.status(400).json({ error: 'Invalid email' });
+    // Check uniqueness
+    const { rows: ex } = await pool.query('SELECT id FROM users WHERE email=$1 AND id<>$2', [e, req.user.id]);
+    if (ex.length) return res.status(409).json({ error: 'Email already in use' });
+    params.push(e); sets.push(`email = $${params.length}`);
+  }
 
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
 

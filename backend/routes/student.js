@@ -1,7 +1,64 @@
-const express = require('express');
-const router  = express.Router();
-const pool    = require('../db/pool');
+const express  = require('express');
+const router   = express.Router();
+const pool     = require('../db/pool');
+const webpush  = require('web-push');
 const { requireAuth } = require('../middleware/auth');
+
+const VAPID_PUBLIC  = process.env.VAPID_PUBLIC  || 'BDe-b9CJHHOlgRqh3KVniRiKikLAv97s5UYZYJy1Ki4a4DrUh1UACHEwEVK4iCpImJ5iBkurjIx6GqZxL_uTaKs';
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE || 'szfQ1osNlnRticn_GKsmhN0N-QYmwrKFSJXDmFH8AvY';
+webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIVATE);
+
+// GET /api/student/vapid-public-key
+router.get('/vapid-public-key', (req, res) => res.json({ key: VAPID_PUBLIC }));
+
+// POST /api/student/push-subscribe — save subscription for the authenticated user
+router.post('/push-subscribe', requireAuth, async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        subscription JSONB NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(user_id, subscription)
+      )`);
+    const sub = JSON.stringify(req.body.subscription);
+    await pool.query(
+      `INSERT INTO push_subscriptions (user_id, subscription)
+       VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [req.user.id, sub]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[push-subscribe]', err.message);
+    res.status(500).json({ error: 'Failed to save subscription' });
+  }
+});
+
+// GET /api/student/quiz-history — student's own quiz submissions
+router.get('/quiz-history', requireAuth, async (req, res) => {
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS quiz_results (
+      id SERIAL PRIMARY KEY, board_id TEXT, card_id TEXT, user_id INTEGER,
+      score INTEGER, max_score INTEGER, pct INTEGER, answers JSONB,
+      submitted_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(board_id, card_id, user_id))`);
+
+    const { rows } = await pool.query(`
+      SELECT qr.id, qr.board_id, qr.card_id, qr.score, qr.max_score, qr.pct,
+             qr.submitted_at, b.name AS board_name
+      FROM quiz_results qr
+      JOIN boards b ON b.id::text = qr.board_id
+      WHERE qr.user_id = $1
+      ORDER BY qr.submitted_at DESC
+      LIMIT 50
+    `, [req.user.id]);
+    res.json({ results: rows });
+  } catch (err) {
+    console.error('[quiz-history]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 /* GET /api/student/dashboard
    Returns all boards student is enrolled in with progress summary */

@@ -302,6 +302,17 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <button class="setting-btn" onclick="saveName()">Save Name</button>
       </div>
 
+      <!-- Change email -->
+      <div class="card">
+        <div class="card-title">📧 Email Address</div>
+        <div class="setting-group">
+          <div class="setting-label">Email</div>
+          <input class="setting-input" id="set-email" type="email" placeholder="your@email.com">
+        </div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;">Changing your email will update your login credentials.</div>
+        <button class="setting-btn" onclick="saveEmail()">Save Email</button>
+      </div>
+
       <!-- Change avatar -->
       <div class="card">
         <div class="card-title">😀 Avatar</div>
@@ -617,6 +628,7 @@ async function loadSharedBoards() {
 // ── Settings ──────────────────────────────────────────────────
 function initSettings() {
   document.getElementById('set-name').value = me.name;
+  document.getElementById('set-email').value = me.email || '';
   renderEmojiGrid();
   initMeetingRooms();
   initPlanCard();
@@ -688,6 +700,20 @@ async function saveName() {
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
     toast('Name updated!');
   } catch { toast('Failed to save name'); }
+}
+
+async function saveEmail() {
+  const email = document.getElementById('set-email').value.trim();
+  if (!email) { toast('Email cannot be empty'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Invalid email address'); return; }
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { email } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-email-big').textContent = me.email;
+    toast('Email updated!');
+  } catch { toast('Failed to save email'); }
 }
 
 async function saveAvatar() {

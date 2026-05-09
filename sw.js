@@ -26,6 +26,26 @@ self.addEventListener('activate', e => {
   );
 });
 
+self.addEventListener('push', e => {
+  let data = { title: 'TeachedOS', body: 'You have a new notification', url: '/teachedos/' };
+  try { data = { ...data, ...e.data.json() }; } catch {}
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/teachedos/icon-192.png',
+      badge: '/teachedos/icon-192.png',
+      data: { url: data.url },
+      vibrate: [200, 100, 200]
+    })
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || '/teachedos/';
+  e.waitUntil(clients.openWindow(url));
+});
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   // Network-first for API calls

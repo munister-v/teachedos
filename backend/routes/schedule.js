@@ -1,7 +1,38 @@
 const express       = require('express');
 const router        = express.Router();
 const pool          = require('../db/pool');
+const webpush       = require('web-push');
 const { requireAuth } = require('../middleware/auth');
+
+const VAPID_PUBLIC  = process.env.VAPID_PUBLIC  || 'BDe-b9CJHHOlgRqh3KVniRiKikLAv97s5UYZYJy1Ki4a4DrUh1UACHEwEVK4iCpImJ5iBkurjIx6GqZxL_uTaKs';
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE || 'szfQ1osNlnRticn_GKsmhN0N-QYmwrKFSJXDmFH8AvY';
+webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIVATE);
+
+async function notifyStudentsLive(slot) {
+  try {
+    // Find all students enrolled in any board of this teacher
+    const { rows: subs } = await pool.query(`
+      SELECT ps.subscription FROM push_subscriptions ps
+      WHERE ps.user_id IN (
+        SELECT DISTINCT bc.user_id FROM board_collaborators bc
+        JOIN boards b ON b.id = bc.board_id
+        WHERE b.user_id = $1
+      )
+    `, [slot.user_id]);
+
+    const payload = JSON.stringify({
+      title: '🔴 Live class started!',
+      body: `${slot.title} is now live. Click to join.`,
+      url: slot.meeting_url || '/'
+    });
+
+    await Promise.allSettled(
+      subs.map(r => webpush.sendNotification(r.subscription, payload).catch(() => {}))
+    );
+  } catch (err) {
+    console.error('[push live notify]', err.message);
+  }
+}
 
 // Add new columns if not present
 pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
@@ -102,6 +133,7 @@ router.patch('/:id/live', requireAuth, async (req, res) => {
       [is_live === true, meeting_url || null, req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
+    if (is_live === true) notifyStudentsLive(rows[0]);
     res.json({ slot: rows[0] });
   } catch (err) {
     console.error('[schedule] PATCH /live error:', err.message);
