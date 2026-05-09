@@ -2443,7 +2443,82 @@ function openCardEditor(cardId) {
     </div>`;
   body.appendChild(accentRow);
 
+  // Comments section
+  const commentsDiv = document.createElement('div');
+  commentsDiv.id = 'card-comments-section';
+  commentsDiv.innerHTML = `
+    <div class="ed-label" style="margin-top:4px;">💬 Comments</div>
+    <div id="card-comments-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;max-height:200px;overflow-y:auto;">
+      <div style="font-size:12px;color:var(--text-3);text-align:center;padding:8px;">Loading…</div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <textarea id="card-comment-input" placeholder="Add a comment…"
+        style="flex:1;resize:none;height:56px;padding:7px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fafafa;"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCardComment();}"></textarea>
+      <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">Send</button>
+    </div>`;
+  body.appendChild(commentsDiv);
+  loadCardComments(cardId);
+
   editor.classList.add('open');
+}
+
+let _commentsCardId = null;
+let _commentsBoardId = null;
+
+async function loadCardComments(cardId) {
+  _commentsCardId = cardId;
+  _commentsBoardId = currentBoardId;
+  const list = document.getElementById('card-comments-list');
+  if (!list) return;
+  try {
+    const r = await apiFetch(`/api/boards/${currentBoardId}/cards/${cardId}/comments`);
+    if (!r.ok) { list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;">Failed to load</div>'; return; }
+    const { comments } = await r.json();
+    if (!comments.length) {
+      list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:8px;">No comments yet</div>';
+      return;
+    }
+    list.innerHTML = comments.map(c => {
+      const time = new Date(c.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      const isOwn = c.name === (currentUser?.name);
+      return `<div style="display:flex;gap:8px;align-items:flex-start;" data-comment-id="${c.id}">
+        <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${c.avatar||'👤'}</div>
+        <div style="flex:1;background:${isOwn?'rgba(255,75,139,.07)':'#f5f5f7'};border-radius:10px;padding:7px 10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+            <span style="font-size:11px;font-weight:800;color:var(--text);">${esc(c.name)} <span style="font-weight:400;color:var(--text-3);">${c.role==='teacher'?'· Teacher':''}</span></span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:10px;color:var(--text-3);">${time}</span>
+              ${isOwn?`<span onclick="deleteCardComment(${c.id},'${cardId}')" style="font-size:10px;color:#ef4444;cursor:pointer;font-weight:700;">✕</span>`:''}
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text);white-space:pre-wrap;">${esc(c.body)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+  } catch { list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;">Error</div>'; }
+}
+
+async function submitCardComment() {
+  const inp = document.getElementById('card-comment-input');
+  const body = inp?.value.trim();
+  if (!body || !_commentsCardId) return;
+  inp.value = '';
+  try {
+    const r = await apiFetch(`/api/boards/${_commentsBoardId}/cards/${_commentsCardId}/comments`, {
+      method: 'POST', body: { body }
+    });
+    if (r.ok) loadCardComments(_commentsCardId);
+  } catch {}
+}
+
+async function deleteCardComment(commentId, cardId) {
+  if (!confirm('Delete this comment?')) return;
+  try {
+    await apiFetch(`/api/boards/${_commentsBoardId}/cards/${cardId}/comments/${commentId}`, { method: 'DELETE' });
+    loadCardComments(cardId);
+  } catch {}
 }
 
 function edSetStatus(s) {

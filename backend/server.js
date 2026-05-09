@@ -80,6 +80,12 @@ async function main() {
   server.listen(PORT, () => {
     console.log(`[server] TeachedOS API running on port ${PORT}`);
   });
+
+  // Deadline reminder job — runs every hour
+  if (process.env.DATABASE_URL) {
+    const { scheduleDeadlineReminders } = require('./jobs/deadlineReminders');
+    scheduleDeadlineReminders();
+  }
 }
 
 main();

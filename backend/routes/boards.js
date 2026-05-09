@@ -165,4 +165,69 @@ router.get('/:id/quiz-results', async (req, res) => {
   }
 });
 
+// ── Card Comments ───────────────────────────────────────────────────────────────
+
+async function ensureCommentsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS card_comments (
+      id SERIAL PRIMARY KEY,
+      board_id TEXT NOT NULL,
+      card_id TEXT NOT NULL,
+      user_id INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`);
+}
+
+// GET /api/boards/:id/cards/:cardId/comments
+router.get('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
+  try {
+    await ensureCommentsTable();
+    const { rows } = await pool.query(`
+      SELECT cc.id, cc.body, cc.created_at, u.name, u.avatar, u.role
+      FROM card_comments cc
+      JOIN users u ON u.id = cc.user_id
+      WHERE cc.board_id = $1 AND cc.card_id = $2
+      ORDER BY cc.created_at ASC`,
+      [req.params.id, req.params.cardId]);
+    res.json({ comments: rows });
+  } catch (err) {
+    console.error('[comments] GET error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/boards/:id/cards/:cardId/comments
+router.post('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
+  const { body } = req.body;
+  if (!body?.trim()) return res.status(400).json({ error: 'body required' });
+  try {
+    await ensureCommentsTable();
+    const { rows } = await pool.query(`
+      INSERT INTO card_comments (board_id, card_id, user_id, body)
+      VALUES ($1,$2,$3,$4) RETURNING id, body, created_at`,
+      [req.params.id, req.params.cardId, req.user.id, body.trim().slice(0, 2000)]
+    );
+    res.json({ comment: { ...rows[0], name: req.user.name, avatar: req.user.avatar, role: req.user.role } });
+  } catch (err) {
+    console.error('[comments] POST error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DELETE /api/boards/:id/cards/:cardId/comments/:commentId — author or board owner
+router.delete('/:id/cards/:cardId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    await ensureCommentsTable();
+    await pool.query(
+      `DELETE FROM card_comments WHERE id=$1 AND (user_id=$2 OR
+        EXISTS(SELECT 1 FROM boards WHERE id=$3 AND user_id=$2))`,
+      [req.params.commentId, req.user.id, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

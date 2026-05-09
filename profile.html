@@ -589,13 +589,100 @@ async function deleteBoard(id, name) {
   } catch { toast('Delete failed'); }
 }
 
-async function createNewBoard() {
-  const name = prompt('Board name:', 'New Board');
-  if (!name) return;
+const BOARD_TEMPLATES = [
+  { id: 'blank',    icon: '⬜', name: 'Blank Board',       desc: 'Start from scratch', cards: [] },
+  { id: 'speaking', icon: '🗣️', name: 'Speaking Lesson',   desc: 'Warm-up · Discussion · Feedback', cards: [
+    { type:'lesson', data:{ title:'Warm-up — Small Talk', status:'available', skill:'Speaking', duration:'5 min', desc:'2-minute chat prompt to get students talking.' } },
+    { type:'lesson', data:{ title:'Vocabulary Preview', status:'locked', skill:'Vocabulary', duration:'10 min', desc:'Key phrases for todays topic.' } },
+    { type:'lesson', data:{ title:'Main Discussion', status:'locked', skill:'Speaking', duration:'20 min', desc:'Guided discussion questions.' } },
+    { type:'assignment', data:{ title:'Speaking Task', type:'Speaking', desc:'Record a 1-minute response.' } },
+    { type:'milestone', data:{ title:'Lesson Complete', desc:'All tasks finished' } },
+  ]},
+  { id: 'grammar',  icon: '📐', name: 'Grammar Lesson',    desc: 'Presentation · Practice · Produce', cards: [
+    { type:'lesson', data:{ title:'Grammar Presentation', status:'available', skill:'Grammar', duration:'15 min', desc:'Explain the target grammar point with examples.' } },
+    { type:'lesson', data:{ title:'Controlled Practice', status:'locked', skill:'Grammar', duration:'15 min', desc:'Guided exercises to practise the form.' } },
+    { type:'assignment', data:{ title:'Grammar Quiz', type:'Quiz', desc:'Test understanding of the grammar point.', questions:[] } },
+    { type:'lesson', data:{ title:'Free Production', status:'locked', skill:'Speaking', duration:'10 min', desc:'Students use the grammar in their own sentences.' } },
+    { type:'milestone', data:{ title:'Grammar Unit Complete' } },
+  ]},
+  { id: 'testprep', icon: '📝', name: 'Test Prep',         desc: 'Review · Mock Test · Results', cards: [
+    { type:'lesson', data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', desc:'Quick review of key grammar and vocabulary.' } },
+    { type:'assignment', data:{ title:'Mock Test Part 1 — Reading', type:'Quiz', timeLimit:20, desc:'Reading comprehension questions.', questions:[] } },
+    { type:'assignment', data:{ title:'Mock Test Part 2 — Writing', type:'Essay', timeLimit:30, desc:'Write a short essay on a given topic.' } },
+    { type:'milestone', data:{ title:'Mock Test Done — Review Results' } },
+  ]},
+  { id: 'vocab',    icon: '📖', name: 'Vocabulary Unit',   desc: 'Word cards · Quiz', cards: [
+    { type:'vocab', data:{ word:'Example', phonetic:'/ɪɡˈzɑːmpl/', pos:'noun', translation:'Пример', example:'This is an ___ sentence.' } },
+    { type:'assignment', data:{ title:'Vocabulary Quiz', type:'Quiz', desc:'Test yourself on the new words.', questions:[] } },
+    { type:'milestone', data:{ title:'Vocabulary Unit Complete' } },
+  ]},
+  { id: 'reading',  icon: '📚', name: 'Reading Lesson',    desc: 'Pre-read · Read · Comprehension', cards: [
+    { type:'lesson', data:{ title:'Pre-reading Activity', status:'available', skill:'Vocabulary', duration:'10 min', desc:'Activate prior knowledge and preview key vocabulary.' } },
+    { type:'lesson', data:{ title:'Reading Task', status:'locked', skill:'Reading', duration:'20 min', desc:'Students read the text and identify main ideas.' } },
+    { type:'assignment', data:{ title:'Comprehension Check', type:'Quiz', desc:'Answer questions about the text.', questions:[] } },
+    { type:'milestone', data:{ title:'Reading Lesson Complete' } },
+  ]},
+];
+
+let _selectedTemplate = 'blank';
+
+function createNewBoard() {
+  _selectedTemplate = 'blank';
+  const grid = document.getElementById('tpl-grid');
+  grid.innerHTML = BOARD_TEMPLATES.map(t => `
+    <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
+      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(255,75,139,.04)':'#fafafa'};">
+      <div style="font-size:24px;margin-bottom:6px;">${t.icon}</div>
+      <div style="font-size:13px;font-weight:800;color:var(--text);">${t.name}</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${t.desc}</div>
+    </div>`).join('');
+  document.getElementById('tpl-name').value = '';
+  const modal = document.getElementById('tpl-modal');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('tpl-name').focus(), 100);
+}
+
+function selectTemplate(id) {
+  _selectedTemplate = id;
+  const tpl = BOARD_TEMPLATES.find(t => t.id === id);
+  if (tpl && !document.getElementById('tpl-name').value) {
+    document.getElementById('tpl-name').value = tpl.id === 'blank' ? '' : tpl.name;
+  }
+  document.querySelectorAll('#tpl-grid > div').forEach(el => {
+    const tid = el.id.replace('tpl-','');
+    el.style.borderColor = tid === id ? 'var(--accent)' : 'var(--border)';
+    el.style.background   = tid === id ? 'rgba(255,75,139,.04)' : '#fafafa';
+  });
+}
+
+function closeTplModal() {
+  document.getElementById('tpl-modal').style.display = 'none';
+}
+
+async function confirmNewBoard() {
+  const name = document.getElementById('tpl-name').value.trim() || 'New Board';
+  const tpl  = BOARD_TEMPLATES.find(t => t.id === _selectedTemplate) || BOARD_TEMPLATES[0];
   try {
     const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
     if (!r.ok) { toast('Failed to create board'); return; }
     const { board } = await r.json();
+    // If template has cards, seed them via board state
+    if (tpl.cards.length) {
+      const { v4: uuidv4 } = await import('https://esm.sh/uuid@9');
+      const seedCards = tpl.cards.map((c, i) => ({
+        id: 'c' + Date.now() + i,
+        type: c.type,
+        x: 60 + (i % 3) * 230,
+        y: 60 + Math.floor(i / 3) * 180,
+        w: 200, h: 120,
+        data: { ...c.data }
+      }));
+      await apiFetch(`/api/boards/${board.id}`, {
+        method: 'PATCH',
+        body: { state: { cards: seedCards, arrows: [], bg: 'dots' } }
+      });
+    }
+    closeTplModal();
     window.location.href = 'board.html?id=' + board.id;
   } catch { toast('Failed to create board'); }
 }
@@ -769,5 +856,24 @@ async function doLogout() {
 init();
 </script>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+
+<!-- Board Template Modal -->
+<div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:22px;width:min(520px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.22);padding:28px 28px 24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:18px;font-weight:900;">📋 New Board</div>
+      <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board Name</div>
+      <input id="tpl-name" type="text" placeholder="My Board"
+        style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font);outline:none;"
+        onkeydown="if(event.key==='Enter')confirmNewBoard()">
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
+    <div id="tpl-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"></div>
+    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board ➜</button>
+  </div>
+</div>
 </body>
 </html>
