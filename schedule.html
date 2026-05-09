@@ -361,12 +361,12 @@ const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
 
 // ── Auth ─────────────────────────────────────────────────────────────
 async function init() {
-  if (!token) { location.href = 'board.html'; return; }
+  if (!token) { location.href = 'index.html'; return; }
   try {
     const r = await apiFetch('/api/auth/me');
     document.getElementById('nav-avatar').textContent = r.user.avatar;
     document.getElementById('nav-name').textContent   = r.user.name;
-  } catch { location.href = 'board.html'; return; }
+  } catch { location.href = 'index.html'; return; }
   buildColorGrid();
   buildTimeCol();
   updateWeekHeader();

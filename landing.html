@@ -773,6 +773,16 @@ footer{background:var(--text);color:rgba(255,255,255,.7);padding:56px 24px 32px;
 const API = 'https://teachedos-api.onrender.com';
 const token = localStorage.getItem('teachedos_token');
 
+/* ── Update nav CTA based on auth state ── */
+(function() {
+  const tok = localStorage.getItem('teachedos_token');
+  const cta = document.querySelector('.nav-cta');
+  if (tok && cta) {
+    const user = (() => { try { return JSON.parse(localStorage.getItem('teachedos_user')); } catch { return null; } })();
+    cta.innerHTML = `<a class="btn btn-primary" href="index.html">Go to app ${user?.name ? '· ' + user.name.split(' ')[0] : ''} →</a>`;
+  }
+})();
+
 /* ── Reveal on scroll ── */
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });

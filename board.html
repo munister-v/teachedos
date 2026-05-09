@@ -1062,10 +1062,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">🔑 Sign in</div>
   <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
+    <div class="user-menu-item" onclick="location.href='index.html'">🏠 Home</div>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
-    <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
-    <div class="user-menu-item" onclick="location.href='courses.html'">📚 Courses</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
+    <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+    <div class="user-menu-item" onclick="location.href='courses.html'">📚 Courses</div>
     <div class="user-menu-item" onclick="location.href='schedule.html'">📅 Schedule</div>
     <div class="user-menu-item" onclick="location.href='analytics.html'">📊 Analytics</div>
     <div class="user-menu-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>

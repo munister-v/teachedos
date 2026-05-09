@@ -420,12 +420,12 @@ function switchTab(name) {
 // ── Auth & Init ───────────────────────────────────────────────
 async function init() {
   if (!token) {
-    window.location.href = 'board.html';
+    window.location.href = 'index.html';
     return;
   }
   try {
     const r = await apiFetch('/api/auth/me');
-    if (!r.ok) { window.location.href = 'board.html'; return; }
+    if (!r.ok) { window.location.href = 'index.html'; return; }
     const { user } = await r.json();
     me = user;
     selectedAvatar = me.avatar;
@@ -438,7 +438,7 @@ async function init() {
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
     document.getElementById('nb-user-info').style.display = '';
   } catch (e) {
-    window.location.href = 'board.html';
+    window.location.href = 'index.html';
   }
 }
 
@@ -736,7 +736,7 @@ async function doLogout() {
   try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
   localStorage.removeItem('teachedos_token');
   localStorage.removeItem('teachedos_board_id');
-  window.location.href = 'board.html';
+  window.location.href = 'index.html';
 }
 
 // ── Start ─────────────────────────────────────────────────────

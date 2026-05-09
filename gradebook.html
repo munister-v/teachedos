@@ -313,12 +313,12 @@ async function apiFetch(path, opts = {}) {
 }
 
 async function init() {
-  if (!token) { location.href = 'board.html'; return; }
+  if (!token) { location.href = 'index.html'; return; }
   try {
     const { user } = await apiFetch('/api/auth/me');
     document.getElementById('nav-avatar').textContent = user.avatar;
     document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
-  } catch { location.href = 'board.html'; return; }
+  } catch { location.href = 'index.html'; return; }
   await loadData();
 }
 
