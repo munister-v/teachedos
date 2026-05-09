@@ -386,23 +386,27 @@ function renderSchedule(schedule) {
 
 async function checkLiveSessions() {
   try {
-    const r = await apiFetch('/api/schedule/live');
-    if (!r.ok) return;
-    const { sessions } = await r.json();
-    if (!sessions || !sessions.length) return;
-    const session = sessions[0];
+    const { sessions } = await apiFetch('/api/schedule/live').then(r => r.json());
     const banner = document.getElementById('live-banner');
     if (!banner) return;
+    if (!sessions || !sessions.length) {
+      banner.style.display = 'none';
+      return;
+    }
+    const session = sessions[0];
     banner.style.display = 'flex';
     const nameEl = document.getElementById('live-class-name');
-    if (nameEl) nameEl.textContent = session.title || 'Class in progress';
+    if (nameEl) nameEl.textContent = `${session.teacher_name || 'Your teacher'} — ${session.title || 'Class in progress'}`;
     const btn = document.getElementById('live-join-btn');
     if (btn) {
-      if (session.meeting_url) btn.href = session.meeting_url;
+      if (session.meeting_url) { btn.href = session.meeting_url; btn.style.display = ''; }
       else btn.style.display = 'none';
     }
   } catch {}
 }
+
+// Poll for live sessions every 30 seconds
+setInterval(checkLiveSessions, 30000);
 
 init();
 </script>
