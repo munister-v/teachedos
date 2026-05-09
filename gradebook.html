@@ -454,9 +454,16 @@ async function inviteStudent() {
   if (!email) { toast('Enter email'); return; }
   if (!activeBoardId) { toast('Select a board first'); return; }
   try {
-    await apiFetch(`/api/members/${activeBoardId}/invite`, {
-      method: 'POST', body: JSON.stringify({ email, role })
+    const r = await fetch(API + `/api/members/${activeBoardId}/invite`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role })
     });
+    if (r.status === 402) {
+      toast('Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
+      return;
+    }
+    if (!r.ok) { const d = await r.json(); toast('❌ ' + (d.error || 'Error')); return; }
     document.getElementById('invite-email').value = '';
     toast('✅ Student invited!');
     await loadBoard(activeBoardId);
@@ -484,9 +491,17 @@ async function inviteFromModal() {
   if (!email) { toast('Enter email'); return; }
   if (!activeBoardId) { toast('Select a board first'); closeInviteModal(); return; }
   try {
-    await apiFetch(`/api/members/${activeBoardId}/invite`, {
-      method: 'POST', body: JSON.stringify({ email, role })
+    const r = await fetch(API + `/api/members/${activeBoardId}/invite`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role })
     });
+    if (r.status === 402) {
+      closeInviteModal();
+      toast('Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
+      return;
+    }
+    if (!r.ok) { const d = await r.json(); toast('❌ ' + (d.error || 'Error')); return; }
     document.getElementById('modal-email').value = '';
     closeInviteModal();
     toast('✅ Invited!');
