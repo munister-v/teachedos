@@ -340,7 +340,17 @@ function renderStats(boards, stats) {
   const doneAll  = boards.reduce((s,b)=>s+b.done_lessons,0);
   const pct = totalAll ? Math.round(doneAll/totalAll*100) : 0;
   document.getElementById('stat-pct').textContent = pct + '%';
-  document.getElementById('streak-num').textContent = stats.streak || '—';
+  document.getElementById('streak-num').textContent = stats.streak > 0 ? stats.streak : '—';
+
+  // Quiz stats badge
+  const qs = stats.quizStats;
+  if (qs && qs.submitted > 0) {
+    const streakEl = document.getElementById('streak-num');
+    const quizBadge = document.createElement('div');
+    quizBadge.style.cssText = 'margin-top:8px;padding:6px 12px;background:rgba(255,75,139,.08);border-radius:10px;font-size:12px;font-weight:700;color:#6B2A48;text-align:center;';
+    quizBadge.innerHTML = `📝 ${qs.submitted} quiz${qs.submitted>1?'zes':''} · avg <strong>${qs.avgPct}%</strong>`;
+    streakEl?.closest('.stat-card')?.after(quizBadge);
+  }
 }
 
 function renderBoards(boards) {

@@ -2169,7 +2169,10 @@ function renderAssignment(el, card) {
   const d = card.data;
   const deadline = d.deadline ? new Date(d.deadline) : null;
   const overdue  = deadline && deadline < new Date();
-  const submitted = d.submitted || 0;
+  // Use live quiz result counts if owner + data loaded, otherwise fall back to card data
+  const liveData = isOwner && _quizResultsByCard[card.id];
+  const submitted = liveData ? liveData.count : (d.submitted || 0);
+  const avgPct    = liveData ? Math.round(liveData.totalPct / liveData.count) : null;
   const total     = d.total || 0;
   const pct = total ? Math.round(submitted / total * 100) : 0;
   const qs = d.questions || [];
@@ -2209,11 +2212,14 @@ function renderAssignment(el, card) {
       ${overdue ? ' · Overdue' : ''}
     </div>` : '';
 
-  // Progress bar
-  const progHtml = total ? `
+  // Progress bar — owner sees real submission count + avg score if available
+  const progHtml = (total || liveData) ? `
     <div class="assign-prog-wrap">
-      <div class="assign-prog-label"><span>Submitted</span><span>${submitted}/${total} (${pct}%)</span></div>
-      <div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>
+      <div class="assign-prog-label">
+        <span>${liveData ? '📊 ' + submitted + ' submitted' : 'Submitted'}</span>
+        <span>${total ? submitted+'/'+total+' ('+pct+'%)' : submitted + ' submitted'}${avgPct !== null ? ' · avg <strong>'+avgPct+'%</strong>' : ''}</span>
+      </div>
+      ${total ? `<div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>` : ''}
     </div>` : '';
 
   // Student: check for previously submitted score stored in sessionStorage
@@ -3264,15 +3270,60 @@ function renderPlansTab(sec) {
   });
 }
 
+let _realMembers = null;
+let _membersLoaded = false;
+
+async function loadRealMembers() {
+  if (!currentBoardId || _membersLoaded) return;
+  try {
+    const d = await apiFetch('/api/members/' + currentBoardId + '/progress');
+    _realMembers = (d.members || []);
+    _membersLoaded = true;
+    if (activeTab === 'students') renderSidebar();
+  } catch {}
+}
+
 function renderStudentsTab(sec) {
-  sec.appendChild(makeLegend('Drag or click → add to board'));
-  STUDENTS.forEach(d => {
-    const lc=(d.level||'').toLowerCase();
-    const el = makeSnippet(`${d.native} Group ${d.group}`, d.name,
-      `<span class="badge ${lc}">${d.level}</span><span class="badge pink">${d.progress}%</span>${d.streak>0?`<span class="badge amber">🔥${d.streak}</span>`:''}`,
-      'student', {...d});
+  if (!_membersLoaded) {
+    sec.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text-3);">Loading students…</div>';
+    loadRealMembers();
+    return;
+  }
+
+  const members = _realMembers || [];
+  if (!members.length) {
+    sec.innerHTML = `<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-3);">
+      No students yet.<br><a href="gradebook.html" style="color:var(--accent);font-weight:700;">Invite via Gradebook →</a>
+    </div>`;
+    return;
+  }
+
+  sec.appendChild(makeLegend('Real students on this board'));
+
+  // Summary row
+  const doneCount = members.reduce((s,m) => s + m.lessons.filter(l=>l.status==='done').length, 0);
+  const totalLessons = members.reduce((s,m) => s + m.lessons.length, 0);
+  const summary = document.createElement('div');
+  summary.style.cssText = 'padding:8px 10px;background:rgba(255,75,139,.06);border-radius:9px;font-size:11px;font-weight:700;color:var(--text-2);margin:4px 6px 8px;';
+  summary.textContent = `${members.length} student${members.length>1?'s':''} · ${doneCount}/${totalLessons} lessons done`;
+  sec.appendChild(summary);
+
+  members.forEach(m => {
+    const done = m.lessons.filter(l=>l.status==='done').length;
+    const total = m.lessons.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const el = makeSnippet(m.avatar||'🎓', m.name,
+      `<span class="badge">${m.email.split('@')[0]}</span><span class="badge pink">${pct}% done</span>`,
+      'student', { name:m.name, avatar:m.avatar||'🎓', email:m.email, progress:pct });
     if (el) sec.appendChild(el);
   });
+
+  // Link to gradebook
+  const link = document.createElement('a');
+  link.href = 'gradebook.html';
+  link.style.cssText = 'display:block;text-align:center;font-size:11px;font-weight:700;color:var(--accent);padding:10px 0;text-decoration:none;';
+  link.textContent = '📒 Open Gradebook →';
+  sec.appendChild(link);
 }
 
 function renderNotesTab(sec) {
@@ -4112,6 +4163,7 @@ async function initUserBoard() {
       if (r.ok) {
         const { board } = await r.json();
         currentBoardId = board.id;
+        _realMembers = null; _membersLoaded = false; // reset for new board
         // Set ownership correctly — collaborators are not owners
         boardOwnerId = board.user_id || currentUser.id;
         isOwner = board.user_id === currentUser.id;
@@ -4178,6 +4230,25 @@ async function updateBreadcrumb(board) {
   } catch {}
 }
 
+let _quizResultsByCard = {}; // cardId → { count, avgPct }
+
+async function loadQuizResultsCache() {
+  if (!currentBoardId || !isOwner) return;
+  try {
+    const r = await apiFetch('/api/boards/' + currentBoardId + '/quiz-results');
+    if (!r.ok) return;
+    const { results } = await r.json();
+    _quizResultsByCard = {};
+    results.forEach(r => {
+      if (!_quizResultsByCard[r.card_id]) _quizResultsByCard[r.card_id] = { count:0, totalPct:0 };
+      _quizResultsByCard[r.card_id].count++;
+      _quizResultsByCard[r.card_id].totalPct += (r.pct || 0);
+    });
+    // Re-render assignment cards with live counts
+    state.cards.filter(c => c.type === 'assignment').forEach(c => reRenderCard(c));
+  } catch {}
+}
+
 function loadBoardData(data) {
   board.querySelectorAll('.board-card').forEach(e => e.remove());
   arrowsSvg.querySelectorAll('.arrow-path').forEach(e => e.remove());
@@ -4196,6 +4267,8 @@ function loadBoardData(data) {
   renderMinimap();
   updateEmpty();
   updateSessionChip();
+  // Load real quiz submission counts for teacher view
+  setTimeout(loadQuizResultsCache, 800);
 }
 
 async function saveToCloud() {

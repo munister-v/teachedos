@@ -61,14 +61,41 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       schedule = sch;
     } catch {}
 
-    // Stats
+    // Stats + streak (days with at least one 'done' update, consecutive up to today)
     const totalLessons = progressRows.length;
     const doneLessons  = progressRows.filter(r => r.status === 'done').length;
+
+    let streak = 0;
+    try {
+      const { rows: streakRows } = await pool.query(
+        `SELECT DISTINCT DATE(updated_at AT TIME ZONE 'UTC') AS day
+         FROM student_progress WHERE user_id=$1 AND status='done'
+         ORDER BY day DESC`, [req.user.id]
+      );
+      const today = new Date(); today.setUTCHours(0,0,0,0);
+      let expected = today.getTime();
+      for (const row of streakRows) {
+        const d = new Date(row.day); d.setUTCHours(0,0,0,0);
+        if (d.getTime() === expected) { streak++; expected -= 86400000; }
+        else if (d.getTime() === expected + 86400000) { streak = 1; expected = d.getTime() - 86400000; }
+        else break;
+      }
+    } catch {}
+
+    // Quiz summary
+    let quizStats = { submitted: 0, avgPct: 0 };
+    try {
+      const { rows: qr } = await pool.query(
+        `SELECT COUNT(*) AS cnt, ROUND(AVG(pct)) AS avg FROM quiz_results WHERE user_id=$1`,
+        [req.user.id]
+      );
+      quizStats = { submitted: Number(qr[0].cnt), avgPct: Number(qr[0].avg || 0) };
+    } catch {}
 
     res.json({
       boards: enriched,
       schedule,
-      stats: { total: totalLessons, done: doneLessons, boards: boards.length }
+      stats: { total: totalLessons, done: doneLessons, boards: boards.length, streak, quizStats }
     });
   } catch (err) {
     console.error('[student/dashboard]', err.message);
