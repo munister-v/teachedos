@@ -273,6 +273,14 @@ a{text-decoration:none;color:inherit;}
 
 </div><!-- /page -->
 
+<!-- Student Detail Modal -->
+<div class="modal-bg" id="student-detail-modal" onclick="if(event.target===this)closeStudentDetail()">
+  <div class="modal" style="max-width:560px;width:95%;">
+    <button class="modal-close" onclick="closeStudentDetail()">✕</button>
+    <div id="student-detail-body">Loading…</div>
+  </div>
+</div>
+
 <!-- Invite Modal (fallback) -->
 <div class="modal-bg" id="invite-modal">
   <div class="modal">
@@ -376,8 +384,10 @@ function renderMemberList() {
     const done  = m.lessons.filter(l => l.status === 'done').length;
     const total = m.lessons.length;
     const pct   = total ? Math.round(done / total * 100) : 0;
+    const quizzes = quizResultsData.filter(r => r.user_id === m.user_id || r.student_email === m.email);
+    const avgQuiz = quizzes.length ? Math.round(quizzes.reduce((s,r)=>s+(r.pct||0),0)/quizzes.length) : null;
     return `
-    <div class="member-row">
+    <div class="member-row" onclick="openStudentDetail('${m.user_id}')" style="cursor:pointer;" title="View student detail">
       <div class="m-avatar">${m.avatar}</div>
       <div>
         <div class="m-name">${esc(m.name)}</div>
@@ -385,9 +395,10 @@ function renderMemberList() {
       </div>
       <span class="m-role role-${m.role}">${m.role}</span>
       <div class="m-spacer"></div>
+      ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:${avgQuiz>=80?'#d1fae5':avgQuiz>=50?'#fef3c7':'#fee2e2'};color:${avgQuiz>=80?'#065f46':avgQuiz>=50?'#92400e':'#991b1b'}">📝${avgQuiz}%</span>` : ''}
       <div class="m-prog"><div class="m-prog-fill" style="width:${pct}%"></div></div>
       <div class="m-pct">${pct}%</div>
-      <button class="btn btn-danger btn-sm" onclick="removeMember('${m.user_id}')">✕</button>
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removeMember('${m.user_id}')">✕</button>
     </div>`;
   }).join('');
 }
@@ -601,6 +612,81 @@ async function loadQuizResults(boardId) {
   } catch {
     sec.style.display = 'none';
   }
+}
+
+function openStudentDetail(userId) {
+  const m = members.find(x => String(x.user_id) === String(userId));
+  if (!m) return;
+  const modal = document.getElementById('student-detail-modal');
+  const body = document.getElementById('student-detail-body');
+
+  const done  = m.lessons.filter(l => l.status === 'done').length;
+  const total = m.lessons.length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+
+  const quizzes = quizResultsData.filter(r => String(r.user_id) === String(userId) || r.student_email === m.email);
+  const avgQuiz = quizzes.length ? Math.round(quizzes.reduce((s,r)=>s+(r.pct||0),0)/quizzes.length) : null;
+
+  const lessonRows = m.lessons.map((l,i) => {
+    const icons = { done:'✅', 'in-progress':'⏳', available:'🔵', locked:'🔒' };
+    return `<tr>
+      <td style="font-size:11px;font-weight:700;padding:5px 8px;">${esc(lessonCols[i]?.data?.title || lessonCols[i]?.title || 'Lesson '+(i+1))}</td>
+      <td style="text-align:center;">${icons[l.status]||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const quizRows = quizzes.map(r => `<tr>
+    <td style="font-size:11px;padding:5px 8px;font-family:var(--mono);">${r.card_id.slice(-8)}</td>
+    <td style="text-align:center;"><span style="padding:2px 8px;border-radius:7px;font-size:11px;font-weight:800;background:${r.pct>=80?'#d1fae5':r.pct>=50?'#fef3c7':'#fee2e2'};color:${r.pct>=80?'#065f46':r.pct>=50?'#92400e':'#991b1b'}">${r.pct}%</span></td>
+    <td style="font-size:11px;text-align:center;">${r.score}/${r.max_score}</td>
+    <td style="font-size:11px;color:var(--text-3);">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
+  </tr>`).join('');
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+      <div style="font-size:44px;">${m.avatar||'🎓'}</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;">${esc(m.name)}</div>
+        <div style="font-size:12px;color:var(--text-3);">${esc(m.email)} · <span class="m-role role-${m.role}">${m.role}</span></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:var(--accent);">${pct}%</div>
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;">Lesson progress</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:#6366f1;">${done}/${total}</div>
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;">Lessons done</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:#10b981;">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div>
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;">Quiz avg (${quizzes.length})</div>
+      </div>
+    </div>
+    ${total ? `<div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Lesson Status</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr><th style="text-align:left;padding:4px 8px;color:var(--text-3);font-size:11px;">Lesson</th><th style="font-size:11px;color:var(--text-3);">Status</th></tr></thead>
+        <tbody>${lessonRows}</tbody>
+      </table>
+    </div>` : ''}
+    ${quizzes.length ? `<div>
+      <div style="font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Quiz Submissions</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr><th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text-3);">Card</th><th style="font-size:11px;color:var(--text-3);">Score%</th><th style="font-size:11px;color:var(--text-3);">Pts</th><th style="font-size:11px;color:var(--text-3);">Date</th></tr></thead>
+        <tbody>${quizRows}</tbody>
+      </table>
+    </div>` : `<p style="color:var(--text-3);font-size:13px;">No quiz submissions yet.</p>`}
+    <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+      <button class="btn btn-danger btn-sm" onclick="closeStudentDetail();removeMember('${userId}')">Remove from board</button>
+    </div>`;
+
+  modal.classList.add('open');
+}
+
+function closeStudentDetail() {
+  document.getElementById('student-detail-modal').classList.remove('open');
 }
 
 function exportQuizResults() {

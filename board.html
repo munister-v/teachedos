@@ -563,6 +563,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
   background:linear-gradient(135deg,#FF4B8B,#E8357A);width:100%;text-align:center;transition:.15s;
 }
 .assign-take-btn:hover{filter:brightness(1.08);}
+.assign-prev-score{display:flex;align-items:center;gap:6px;width:100%;}
+.assign-score-pill{flex:1;padding:4px 8px;border-radius:7px;font-size:10px;font-weight:800;text-align:center;}
 
 /* ══════════════ TASK BUILDER OVERLAY ══════════════ */
 #task-builder-overlay{
@@ -2214,11 +2216,21 @@ function renderAssignment(el, card) {
       <div class="assign-prog-bar"><div class="assign-prog-fill" style="width:${pct}%"></div></div>
     </div>` : '';
 
+  // Student: check for previously submitted score stored in sessionStorage
+  const prevResult = (() => { try { return JSON.parse(sessionStorage.getItem('quiz_result_' + card.id)); } catch { return null; } })();
+
   const actionsHtml = isOwner
     ? `<button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
        <button class="assign-build-btn" onclick="openTaskBuilder('${card.id}')">🛠 Builder</button>`
     : (qs.length
-        ? `<button class="assign-take-btn" onclick="openStudentQuiz('${card.id}')">📝 Take Quiz</button>`
+        ? (prevResult
+          ? `<div class="assign-prev-score">
+               <span class="assign-score-pill" style="background:${prevResult.pct>=80?'#d1fae5':prevResult.pct>=50?'#fef3c7':'#fee2e2'};color:${prevResult.pct>=80?'#065f46':prevResult.pct>=50?'#92400e':'#991b1b'}">
+                 ${prevResult.pct>=80?'🏆':prevResult.pct>=50?'👍':'📖'} ${prevResult.pct}% · ${prevResult.score}/${prevResult.maxScore} pts
+               </span>
+               <button class="assign-take-btn" style="padding:4px 10px;font-size:10px;" onclick="openStudentQuiz('${card.id}')">Retake</button>
+             </div>`
+          : `<button class="assign-take-btn" onclick="openStudentQuiz('${card.id}')">📝 Take Quiz</button>`)
         : `<span style="font-size:11px;color:var(--text-3)">No questions yet</span>`);
 
   body.innerHTML = statsRow + preview + deadlineHtml + progHtml + `
@@ -5800,6 +5812,12 @@ function openStudentQuiz(cardId) {
         </div>
         <button class="quiz-btn-primary" onclick="closeStudentQuiz()" style="margin-top:16px;width:100%">Done</button>
       </div>`;
+
+    // Persist score locally so card badge updates immediately
+    try { sessionStorage.setItem('quiz_result_' + cardId, JSON.stringify({ score, maxScore, pct })); } catch {}
+    // Re-render this card so the score badge appears
+    const card2 = boardData.cards.find(c => c.id === cardId);
+    if (card2) reRenderCard(card2);
 
     // Send progress to API
     try {

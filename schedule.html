@@ -221,8 +221,9 @@ a{text-decoration:none;color:inherit;}
       <button class="wn-today" onclick="goToday()">Today</button>
     </div>
 
-    <div class="side-section">
+    <div class="side-section" style="display:flex;flex-direction:column;gap:8px;">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
+      <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;padding:7px;">📅 Export to Calendar (.ics)</button>
     </div>
 
     <div class="side-section">
@@ -638,6 +639,78 @@ async function toggleLiveSlot(id, goLive) {
 setInterval(updateNowLine, 60000);
 
 init();
+
+function exportICS() {
+  if (!schedule.length) { alert('No classes to export.'); return; }
+  const days = ['SU','MO','TU','WE','TH','FR','SA'];
+  const pad2 = n => String(n).padStart(2,'0');
+
+  function toHHMM(time) {
+    // time like "09:30"
+    const [h, m] = (time || '09:00').split(':');
+    return pad2(h) + pad2(m) + '00';
+  }
+
+  function dtStart(day, time) {
+    // Find next occurrence of this weekday from today
+    const today = new Date();
+    const todayDay = today.getDay(); // 0=Sun
+    const targetDay = ['sun','mon','tue','wed','thu','fri','sat'].indexOf((day||'mon').toLowerCase());
+    let diff = (targetDay - todayDay + 7) % 7;
+    if (diff === 0) diff = 0;
+    const d = new Date(today);
+    d.setDate(d.getDate() + diff);
+    const [h, m] = (time || '09:00').split(':');
+    d.setHours(Number(h), Number(m), 0, 0);
+    return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  }
+
+  function addDuration(dtStr, mins) {
+    const d = new Date(
+      dtStr.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/,
+        '$1-$2-$3T$4:$5:$6Z')
+    );
+    d.setMinutes(d.getMinutes() + (mins || 60));
+    return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  }
+
+  const uid = () => Date.now() + '-' + Math.random().toString(36).slice(2) + '@teachedos';
+  const now = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+
+  const vevents = schedule.map(s => {
+    const dtstart = dtStart(s.day, s.time);
+    const dtend   = addDuration(dtstart, s.duration || 60);
+    const byday   = days[['sun','mon','tue','wed','thu','fri','sat'].indexOf((s.day||'mon').toLowerCase())] || 'MO';
+    return [
+      'BEGIN:VEVENT',
+      `UID:${uid()}`,
+      `DTSTAMP:${now}`,
+      `DTSTART:${dtstart}`,
+      `DTEND:${dtend}`,
+      `SUMMARY:${(s.title||'Class').replace(/[,;\\]/g,' ')}`,
+      s.meeting_url ? `LOCATION:${s.meeting_url}` : '',
+      s.meeting_url ? `URL:${s.meeting_url}` : '',
+      s.recurring !== false ? `RRULE:FREQ=WEEKLY;BYDAY=${byday}` : '',
+      'END:VEVENT',
+    ].filter(Boolean).join('\r\n');
+  }).join('\r\n');
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//TeachedOS//Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    vevents,
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'teachedos-schedule.ics';
+  a.click();
+}
 </script>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
