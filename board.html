@@ -1125,9 +1125,12 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 <!-- TOOLBAR -->
 <div id="toolbar">
-  <a class="tb-back" href="index.html">← TeachedOS</a>
+  <a class="tb-back" href="index.html" style="display:flex;align-items:center;gap:5px;">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+    TeachedOS
+  </a>
   <div class="tb-sep"></div>
-  <div class="tb-title">📌 Teached<em>Board</em></div>
+  <div class="tb-title" id="tb-board-name">📌 My Board</div>
   <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:260px;">
     <a id="bc-course" href="courses.html" style="color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></a>
     <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -4592,8 +4595,9 @@ async function initUserBoard() {
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
         loadBoardData(board.data);
-        document.title = board.name + ' · TeachedBoard';
+        document.title = board.name + ' · TeachedOS';
         document.getElementById('board-name-display').textContent = board.name;
+        const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
         saveStatus.textContent = '☁ cloud';
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         updateBreadcrumb(board);
@@ -4617,8 +4621,9 @@ async function initUserBoard() {
           updateFollowUI();
           applyRoleUI();
           loadBoardData(board.data);
-          document.title = board.name + ' · TeachedBoard';
+          document.title = board.name + ' · TeachedOS';
           document.getElementById('board-name-display').textContent = board.name;
+          const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
           saveStatus.textContent = '☁ cloud';
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         }
@@ -4824,7 +4829,8 @@ function startRenameBoard() {
     if (newName !== oldName && currentBoardId) {
       try {
         await apiFetch('/api/boards/' + currentBoardId + '/name', { method: 'PATCH', body: { name: newName } });
-        document.title = newName + ' · TeachedBoard';
+        document.title = newName + ' · TeachedOS';
+        const _tbn3 = document.getElementById('tb-board-name'); if(_tbn3) _tbn3.textContent = '📌 ' + newName;
         toast('Renamed to: ' + newName);
       } catch { toast('Rename failed'); }
     }
@@ -4876,7 +4882,8 @@ async function newBoard() {
     currentBoardId = b.id;
     localStorage.setItem('teachedos_board_id', currentBoardId);
     loadBoardData(b.data);
-    document.title = name + ' · TeachedBoard';
+    document.title = name + ' · TeachedOS';
+    const _tbn4 = document.getElementById('tb-board-name'); if(_tbn4) _tbn4.textContent = '📌 ' + name;
     toast('Board created: ' + name);
   } catch (e) { toast('Error: ' + e.message); }
 }

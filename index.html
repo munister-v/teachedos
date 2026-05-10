@@ -2266,7 +2266,13 @@ async function checkAuthAndRoute() {
     const r = await fetch(API_BASE + '/api/auth/me', {
       headers: { Authorization: 'Bearer ' + _authToken }
     });
-    if (!r.ok) { showAuthOverlay(); return; }
+    if (!r.ok) {
+      // Token invalid — clear and show login
+      localStorage.removeItem('teachedos_token');
+      _authToken = null;
+      showAuthOverlay();
+      return;
+    }
     const { user } = await r.json();
     _currentUser = user;
 
@@ -2276,12 +2282,21 @@ async function checkAuthAndRoute() {
       return;
     }
 
+    // Teacher / Admin: cache role to avoid redirect loops
+    localStorage.setItem('teachedos_role', user.role);
+
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
     if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
-    // Offline or network error — show desktop anyway if token exists
+    // Offline / Render cold start — check cached role before showing desktop
+    const cachedRole = localStorage.getItem('teachedos_role');
+    if (cachedRole === 'student') {
+      location.href = 'student.html';
+      return;
+    }
+    // Default: show desktop for teacher
     applyUserToDesktop({ name: 'Teacher', avatar: '🧑‍🏫', role: 'teacher' });
   }
 }
@@ -2432,6 +2447,7 @@ async function submitOsAuth() {
     if (!r.ok) throw new Error(d.error||'Error');
     _authToken = d.token;
     localStorage.setItem('teachedos_token', _authToken);
+    localStorage.setItem('teachedos_role', d.user.role);
     _currentUser = d.user;
     document.getElementById('os-auth-overlay').style.display = 'none';
     if (d.user.role === 'student') { location.href = 'student.html'; return; }
@@ -2783,15 +2799,27 @@ function showOsToast(msg) {
         <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
-          ${['blank,⬜,Blank Board', 'speaking,🗣️,Speaking Lesson', 'grammar,📐,Grammar Lesson', 'testprep,📝,Test Prep'].map(t => {
-            const [id, icon, name] = t.split(',');
-            return `<div id="ob-tpl-${id}" onclick="obSelectTpl('${id}')"
-              style="padding:14px;border-radius:12px;border:2px solid ${id==='blank'?'#FF4E00':'#e5e7eb'};cursor:pointer;transition:.15s;background:${id==='blank'?'#F5F5EA':'#fafafa'};">
-              <div style="font-size:22px;margin-bottom:4px;">${icon}</div>
-              <div style="font-size:13px;font-weight:700;">${name}</div>
-            </div>`;
-          }).join('')}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;" id="ob-tpl-grid">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')"
+            style="padding:14px;border-radius:12px;border:2px solid #FF4E00;cursor:pointer;transition:.15s;background:#F5F5EA;">
+            <div style="font-size:22px;margin-bottom:4px;">⬜</div>
+            <div style="font-size:13px;font-weight:700;">Blank Board</div>
+          </div>
+          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')"
+            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:22px;margin-bottom:4px;">🗣️</div>
+            <div style="font-size:13px;font-weight:700;">Speaking Lesson</div>
+          </div>
+          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')"
+            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:22px;margin-bottom:4px;">📐</div>
+            <div style="font-size:13px;font-weight:700;">Grammar Lesson</div>
+          </div>
+          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')"
+            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:22px;margin-bottom:4px;">📝</div>
+            <div style="font-size:13px;font-weight:700;">Test Prep</div>
+          </div>
         </div>
         <div style="margin-bottom:16px;">
           <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
