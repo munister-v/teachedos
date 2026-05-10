@@ -1,0 +1,102 @@
+:root {
+  --shell-max-width: 1280px;
+  --shell-padding: 24px;
+  --hero-title-size: clamp(28px, 4vw, 42px);
+  --hero-title-line-height: 1;
+  --hero-title-margin: 8px 0 6px;
+  --embed-shell-padding: 14px;
+  --embed-heading-size: clamp(24px, 3vw, 34px);
+
+  /* Palette */
+  --bg:        #F5F5EA;
+  --bg-2:      #EAEADA;
+  --bg-3:      #CAC9B7;
+  --bg-card:   #FFFFFF;
+  --border:    rgba(94,94,74,0.14);
+  --text:      #050517;
+  --text-2:    #3A3A2E;
+  --text-3:    #A2A28C;
+  --muted:     #A2A28C;
+  --accent:    #FF4E00;
+  --accent-2:  rgba(255,78,0,0.10);
+  --accent-3:  rgba(255,78,0,0.22);
+  --lime:      #D3F26A;
+  --lavender:  #9F8CE8;
+  --sand-dark: #5E5E4A;
+  --panel:     #FFFFFF;
+  --shadow:    0 4px 24px rgba(5,5,23,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  --radius:    24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--page-background, var(--bg, #fff));
+}
+
+.shell {
+  max-width: var(--shell-max-width);
+  margin: 0 auto;
+  padding: var(--shell-padding);
+}
+
+.eyebrow,
+.mini-label {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: var(--hero-title-margin);
+  font-size: var(--hero-title-size);
+  line-height: var(--hero-title-line-height);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 24px);
+  box-shadow: var(--shadow);
+}
+
+.pill {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+textarea,
+input,
+select,
+button {
+  font: inherit;
+}
+
+body.embed-mode {
+  background: var(--embed-background, var(--page-background, var(--bg, #fff)));
+}
+
+body.embed-mode .shell {
+  max-width: none;
+  padding: var(--embed-shell-padding);
+}
+
+body.embed-mode .panel {
+  box-shadow: none;
+}
+
+body.embed-mode h1 {
+  font-size: var(--embed-heading-size);
+}

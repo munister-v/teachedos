@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>True or False</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4E00}
+body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #FF4E0018;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:22px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
+.statement{font-size:1.15rem;font-weight:700;color:#333;min-height:72px;display:flex;align-items:center;justify-content:center;line-height:1.5;margin-bottom:24px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choice{padding:16px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.2rem;cursor:pointer;transition:.15s}
+.true-btn{background:#e8f5e9;color:#2e7d32}
+.true-btn:hover{background:#c8e6c9}
+.false-btn{background:#fce4ec;color:#c62828}
+.false-btn:hover{background:#f8bbd9}
+.choice.flash-ok{background:#4caf50;color:#fff}
+.choice.flash-err{background:#f44336;color:#fff}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>✅ True or False</h1>
+<p class="subtitle">Is the statement correct?</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/20</div><div>⏱ <span id="time">45</span>s</div></div>
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="statement" id="statement"></div>
+  <div class="choices">
+    <button class="choice true-btn" onclick="answer(true)">✓ True</button>
+    <button class="choice false-btn" onclick="answer(false)">✗ False</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+const QS=[
+  {s:'"She don\'t like coffee" is correct.',a:false,exp:'Should be: She doesn\'t like coffee'},
+  {s:'"He has went home" is correct.',a:false,exp:'Should be: He has gone home'},
+  {s:'"I am agree" is correct.',a:false,exp:'Should be: I agree'},
+  {s:'"They are playing tennis" is correct.',a:true,exp:'Present Continuous — correct!'},
+  {s:'"She works since Monday" is correct.',a:false,exp:'Should be: She has worked since Monday'},
+  {s:'"I have seen him yesterday" is correct.',a:false,exp:'With "yesterday" use Past Simple: I saw him'},
+  {s:'"We discussed about it" is correct.',a:false,exp:'"Discuss" takes no preposition'},
+  {s:'"He is taller than me" is correct.',a:true,exp:'Comparative — correct!'},
+  {s:'"It depends of you" is correct.',a:false,exp:'Depends ON you'},
+  {s:'"She suggested to go" is correct.',a:false,exp:'Suggest + gerund: suggested going'},
+  {s:'"I look forward to meet you" is correct.',a:false,exp:'Forward to + -ing: to meeting'},
+  {s:'"He made me laugh" is correct.',a:true,exp:'Make + bare infinitive — correct!'},
+  {s:'"Despite of the rain, we went out" is correct.',a:false,exp:'Despite (no "of") or In spite of'},
+  {s:'"She is used to wake up early" is correct.',a:false,exp:'Used to + gerund: waking up'},
+  {s:'"I wish I knew the answer" is correct.',a:true,exp:'Wish + past subjunctive — correct!'},
+  {s:'"He speaks English good" is correct.',a:false,exp:'Adverb needed: speaks English well'},
+  {s:'"There is a few people here" is correct.',a:false,exp:'People is plural: There are a few people'},
+  {s:'"She laid in the sun all day" is correct.',a:true,exp:'Past of "lie (down)" is "lay"'},
+  {s:'"We need to rise the price" is correct.',a:false,exp:'"Raise" is transitive: raise the price'},
+  {s:'"I am boring in this class" is correct.',a:false,exp:'Should be: I am bored (boring = causing boredom)'},
+];
+let q=[],idx=0,score=0,timer=45,tInt,locked=false;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){
+  q=shuffle([...QS]).slice(0,20);
+  idx=0;score=0;timer=45;locked=false;
+  document.getElementById('score').textContent=0;
+  document.getElementById('time').textContent=45;
+  clearInterval(tInt);
+  tInt=setInterval(()=>{timer--;document.getElementById('time').textContent=timer;if(timer<=0){clearInterval(tInt);endGame();}},1000);
+  nextQ();
+}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  document.getElementById('statement').textContent=q[idx].s;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('prog').style.width=((idx/q.length)*100)+'%';
+  document.getElementById('feedback').textContent='';
+  document.querySelectorAll('.choice').forEach(b=>{b.className=b.className.replace(/flash-\w+/g,'').trim();});
+}
+function answer(val){
+  if(locked)return;locked=true;
+  const item=q[idx];
+  const ok=val===item.a;
+  if(ok)score++;
+  document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
+  const btn=document.querySelectorAll('.choice')[val?0:1];
+  btn.classList.add(ok?'flash-ok':'flash-err');
+  if(!ok){const other=document.querySelectorAll('.choice')[val?1:0];other.classList.add('flash-ok');}
+  document.getElementById('feedback').textContent=(ok?'✓ ':' ✗ ')+item.exp;
+  idx++;setTimeout(nextQ,1000);
+}
+function endGame(){
+  clearInterval(tInt);
+  document.getElementById('statement').textContent='Game over!';
+  document.querySelector('.choices').innerHTML=`<button onclick="start()" style="grid-column:span 2;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
+  document.getElementById('feedback').textContent='Final score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>

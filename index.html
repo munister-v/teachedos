@@ -1,0 +1,2894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF4E00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS — Language Learning Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --bg:        #F5F5EA;
+  --bg-2:      #EAEADA;
+  --bg-3:      #CAC9B7;
+  --bg-card:   #FFFFFF;
+  --border:    rgba(94,94,74,0.14);
+  --border-2:  rgba(94,94,74,0.28);
+  --text:      #1C0A14;
+  --text-2:    #3A3A2E;
+  --text-3:    #B07090;
+  --accent:    #FF4E00;
+  --accent-2:  rgba(255,78,0,0.10);
+  --accent-3:  rgba(94,94,74,0.22);
+  --rose:      #9F8CE8;
+  --deep-rose: #D3F26A;
+  --blush:     #CAC9B7;
+  --plum:      #5E5E4A;
+  --font-serif: 'Nunito', ui-sans-serif, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+  --font-ui:    'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --radius-win: 18px;
+}
+
+html,body {
+  width:100%; height:100%; overflow:hidden;
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* ═══════════════════════════ WALLPAPER ═══════════════════════════ */
+#desktop {
+  position:fixed; inset:0;
+  background: linear-gradient(135deg, #EAEADA 0%, #F5F5EA 40%, #E8E8D8 70%, #FFFFFF 100%);
+  overflow:hidden;
+}
+/* Blob decorations */
+#desktop::before {
+  content:'';
+  position:absolute;
+  width:600px; height:600px;
+  top:-120px; left:-150px;
+  background: radial-gradient(circle, rgba(255,78,0,0.18) 0%, transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+#desktop::after {
+  content:'';
+  position:absolute;
+  width:500px; height:500px;
+  bottom:-100px; right:-100px;
+  background: radial-gradient(circle, rgba(159,140,232,0.15) 0%, transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+.blob1 {
+  position:absolute; pointer-events:none;
+  width:340px; height:280px;
+  top:60px; right:18%;
+  background: rgba(255,78,0,0.07);
+  border-radius:62% 38% 46% 54% / 60% 44% 56% 40%;
+}
+.blob2 {
+  position:absolute; pointer-events:none;
+  width:240px; height:200px;
+  bottom:120px; left:12%;
+  background: rgba(159,140,232,0.08);
+  border-radius:38% 62% 54% 46% / 44% 60% 40% 56%;
+}
+.blob3 {
+  position:absolute; pointer-events:none;
+  width:180px; height:160px;
+  top:40%; left:38%;
+  background: rgba(159,140,232,0.07);
+  border-radius:54% 46% 38% 62% / 56% 40% 60% 44%;
+}
+
+/* ═══════════════════════════ MENU BAR ═══════════════════════════ */
+#menubar {
+  position:fixed; top:0; left:0; right:0; height:32px; z-index:1000;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid rgba(94,94,74,0.12);
+  display:flex; align-items:center; padding:0 16px; gap:0;
+  box-shadow: 0 1px 12px rgba(255,78,0,0.08);
+}
+.mb-apple {
+  font-size:15px; color: var(--accent); margin-right:10px; cursor:default;
+  display:flex; align-items:center; font-weight:900;
+}
+.mb-app-name {
+  font-size:13px; font-weight:800; color: var(--accent); margin-right:4px;
+  letter-spacing:-0.01em;
+}
+.mb-menu { display:flex; gap:0; align-items:center; }
+.mb-item {
+  font-size:13px; font-weight:600; color: var(--text-2); padding:0 10px; height:32px;
+  display:flex; align-items:center; cursor:default; border-radius:8px;
+  transition: background .15s, color .15s;
+}
+.mb-item:hover { background: rgba(255,78,0,0.10); color: var(--accent); }
+.mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+.mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
+#mb-clock {
+  font-family: var(--font-ui); font-size:13px; font-weight:700; color: var(--text-2);
+}
+
+/* ═══════════════════════════ DESKTOP WIDGETS ═══════════════════════════ */
+.widget {
+  position:absolute;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(94,94,74,0.14);
+  border-radius:22px;
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  overflow:hidden;
+  box-shadow: 0 4px 24px rgba(255,78,0,0.10), 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Clock widget */
+#wg-clock {
+  top:48px; right:24px;
+  width:176px; padding:20px 20px 18px;
+  text-align:center;
+}
+.wg-clock-time {
+  font-family: var(--font-ui); font-size:52px; font-weight:900;
+  color: var(--text); line-height:1; letter-spacing:-0.03em;
+}
+.wg-clock-time em { color: var(--accent); font-style:normal; }
+.wg-clock-date {
+  font-size:11px; color: var(--text-3); margin-top:6px;
+  font-family: var(--font-mono); letter-spacing:0.06em; text-transform:uppercase;
+}
+.wg-clock-lang {
+  margin-top:10px; font-size:11px; color: var(--accent);
+  font-family: var(--font-ui); font-weight:700; letter-spacing:0.02em;
+  background: var(--accent-2); border: 1px solid var(--accent-3);
+  border-radius:20px; padding:4px 12px; display:inline-block;
+}
+
+/* Streak widget */
+#wg-streak {
+  top:262px; right:24px;
+  width:176px; padding:18px;
+}
+.wg-streak-n {
+  font-family: var(--font-ui); font-size:42px; font-weight:600;
+  color: var(--accent); line-height:1;
+}
+.wg-streak-fire { font-size:22px; margin-left:4px; }
+.wg-streak-label {
+  font-size:10px; color: var(--text-3); margin-top:4px;
+  font-family: var(--font-mono); letter-spacing:0.1em; text-transform:uppercase;
+}
+.wg-streak-sub { font-size:11px; color: var(--text-2); margin-top:8px; line-height:1.4; }
+
+/* Today widget */
+#wg-today {
+  top:398px; right:24px;
+  width:176px; padding:16px 18px;
+}
+.wg-today-label {
+  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:10px;
+}
+.wg-today-title {
+  font-family: var(--font-ui); font-size:19px; font-weight:600;
+  color: var(--text); line-height:1.2; margin-bottom:6px;
+}
+.wg-today-meta {
+  font-size:11px; color: var(--text-3); font-family: var(--font-mono);
+  display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;
+}
+.wg-today-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-family: var(--font-mono);
+  color: var(--accent); background: var(--accent-2);
+  border: 1px solid var(--accent-3); border-radius:20px; padding:3px 9px;
+  margin-top:10px; letter-spacing:0.06em;
+}
+.wg-today-prog {
+  margin-top:12px; height:3px; background: rgba(202,201,183,0.18);
+  border-radius:2px; overflow:hidden;
+}
+.wg-today-prog-fill {
+  height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
+  border-radius:2px; width:68%;
+}
+
+/* Vocab widget */
+#wg-vocab {
+  top:552px; right:24px;
+  width:176px; padding:18px;
+}
+.wg-vocab-label {
+  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:12px;
+}
+.wg-vocab-word {
+  font-family: var(--font-ui); font-size:24px; font-weight:600;
+  color: var(--text); line-height:1.2; margin-bottom:4px;
+}
+.wg-vocab-lang {
+  font-size:9px; color: var(--text-3); font-family: var(--font-mono);
+  letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px;
+}
+.wg-vocab-trans {
+  font-size:13px; color: var(--accent); margin-bottom:6px;
+}
+.wg-vocab-ex {
+  font-size:11px; color: var(--text-3); line-height:1.5; font-style:italic;
+}
+.wg-vocab-next {
+  margin-top:12px; width:100%;
+  background: var(--accent); border: none;
+  border-radius:12px; padding:8px; font-size:12px; font-family: var(--font-ui);
+  font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s;
+  text-align:center; box-shadow: 0 2px 8px rgba(255,78,0,0.25);
+}
+.wg-vocab-next:hover { opacity:0.88; }
+
+/* ═══════════════════════════ DOCK ═══════════════════════════ */
+#dock-wrap {
+  position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+  z-index:999;
+}
+#dock {
+  display:flex; align-items:flex-end; gap:7px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid rgba(255,78,0,0.16);
+  border-radius:22px; padding:8px 12px 6px;
+  box-shadow: 0 8px 40px rgba(94,94,74,0.14), 0 2px 8px rgba(0,0,0,0.08);
+}
+.di {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  cursor:pointer; position:relative; transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.di:hover { transform: translateY(-8px) scale(1.12); }
+.di-icon {
+  width:44px; height:44px; border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; position:relative; transition:inherit;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+.di-label {
+  font-size:9px; font-weight:700; color: var(--text-3); font-family: var(--font-ui);
+  transition:color .15s; white-space:nowrap;
+}
+.di:hover .di-label { color: var(--accent); }
+.di-dot {
+  width:4px; height:4px; border-radius:50%;
+  background: var(--accent); position:absolute; bottom:-6px; left:50%;
+  transform:translateX(-50%); display:none;
+}
+.di.open .di-dot { display:block; }
+.di-sep {
+  width:1px; height:44px; background: rgba(202,201,183,0.22);
+  margin:0 3px; align-self:center;
+}
+/* dock icon colors */
+.di-icon.curriculum { background: linear-gradient(145deg,#c45472,#8b2d50); }
+.di-icon.flashcards  { background: linear-gradient(145deg,#8b6bb1,#5b3a8f); }
+.di-icon.progress    { background: linear-gradient(145deg,#e87898,#5E5E4A); }
+.di-icon.schedule    { background: linear-gradient(145deg,#d4749a,#a84d70); }
+.di-icon.notes       { background: linear-gradient(145deg,#9F8CE8,#e87898); }
+.di-icon.dictionary  { background: linear-gradient(145deg,#7ca8d4,#4a72a0); }
+.di-icon.settings    { background: linear-gradient(145deg,#5a4550,#3a2d35); }
+.di-icon.finder      { background: linear-gradient(145deg,#4ab0c8,#2a7d96); }
+
+/* ═══════════════════════════ WINDOWS ═══════════════════════════ */
+.win {
+  position:fixed; border-radius:var(--radius-win); overflow:hidden;
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(94,94,74,0.14);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  box-shadow:
+    0 20px 60px rgba(94,94,74,0.14),
+    0 4px 16px rgba(0,0,0,0.08),
+    0 1px 0 rgba(255,255,255,0.9) inset;
+  display:none; flex-direction:column; z-index:100;
+  min-width:480px; min-height:320px;
+  transition: opacity .18s, transform .18s;
+}
+.win.open { display:flex; }
+.win.appear { animation: winAppear .22s cubic-bezier(.34,1.3,.64,1); }
+@keyframes winAppear {
+  from { opacity:0; transform:scale(0.92); }
+  to   { opacity:1; transform:scale(1); }
+}
+.win-titlebar {
+  height:46px; display:flex; align-items:center; padding:0 16px; gap:0;
+  background: rgba(255,240,248,0.95);
+  border-bottom: 1px solid rgba(255,78,0,0.10);
+  cursor:default; flex-shrink:0; position:relative;
+}
+.win-controls { display:flex; gap:8px; align-items:center; z-index:1; }
+.tl {
+  width:13px; height:13px; border-radius:50%; cursor:pointer;
+  transition:filter .15s; flex-shrink:0;
+}
+.tl.close  { background:#ff5f57; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
+.tl.min    { background:#febc2e; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
+.tl.max    { background:#28c840; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
+.tl:hover  { filter:brightness(1.12); }
+.win-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  font-size:13px; font-weight:800; color: var(--text-2); white-space:nowrap;
+  letter-spacing:-0.01em;
+}
+.win-body { flex:1; overflow:hidden; display:flex; }
+.win-rz {
+  position:absolute;bottom:0;right:0;width:20px;height:20px;
+  cursor:se-resize;z-index:30;
+}
+.win-rz::after {
+  content:'';position:absolute;bottom:4px;right:4px;
+  width:10px;height:10px;
+  border-right:2.5px solid rgba(180,80,120,0.35);
+  border-bottom:2.5px solid rgba(180,80,120,0.35);
+  border-radius:1px;
+}
+.win-sidebar {
+  width:200px; flex-shrink:0;
+  background: rgba(255,240,248,0.70);
+  border-right: 1px solid rgba(255,78,0,0.08);
+  display:flex; flex-direction:column;
+  overflow-y:auto;
+}
+.win-main {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  background: rgba(255,255,255,0.80);
+}
+
+/* sidebar items */
+.sb-section-label {
+  font-size:10px; font-family: var(--font-mono); letter-spacing:0.12em;
+  text-transform:uppercase; color: var(--text-3);
+  padding:16px 14px 6px; font-weight:600;
+}
+.sb-item {
+  display:flex; align-items:center; gap:10px; padding:8px 12px;
+  font-size:13px; font-weight:600; color: var(--text-2); cursor:pointer;
+  border-radius:12px; margin:2px 6px;
+  transition: background .15s, color .15s;
+}
+.sb-item:hover { background: rgba(255,78,0,0.08); color: var(--accent); }
+.sb-item.active {
+  background: rgba(255,78,0,0.13); color: var(--accent);
+}
+.sb-item-ic { font-size:15px; flex-shrink:0; width:20px; text-align:center; }
+.sb-item-badge {
+  margin-left:auto; font-size:10px; font-family: var(--font-ui);
+  background: var(--accent); color: #fff; border-radius:10px;
+  padding:1px 8px; font-weight:800;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(94,94,74,0.22); border-radius:3px; }
+
+/* ═══════════════════════════ CURRICULUM APP ═══════════════════════════ */
+#win-curriculum { top:60px; left:60px; width:820px; height:580px; }
+.curr-header {
+  padding:20px 24px 0;
+}
+.curr-eyebrow {
+  font-size:10px; font-family: var(--font-mono); letter-spacing:0.12em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:6px;
+}
+.curr-title {
+  font-family: var(--font-ui); font-size:26px; font-weight:900;
+  color: var(--text); line-height:1.2; letter-spacing:-0.02em;
+}
+.curr-title em { font-style:normal; color: var(--accent); }
+.curr-search {
+  margin:16px 24px 0;
+  display:flex; align-items:center; gap:10px;
+  background: rgba(255,78,0,0.05); border: 1px solid var(--border);
+  border-radius:14px; padding:9px 16px;
+}
+.curr-search input {
+  flex:1; background:none; border:none; outline:none;
+  font-size:13px; font-weight:600; color: var(--text); font-family: var(--font-ui);
+}
+.curr-search input::placeholder { color: var(--text-3); font-weight:500; }
+.curr-search-ic { font-size:14px; color: var(--text-3); }
+.curr-tabs {
+  display:flex; gap:4px; padding:14px 24px 0; flex-shrink:0;
+  border-bottom: 1px solid var(--border);
+}
+.curr-tab {
+  font-size:12px; font-family: var(--font-ui); font-weight:700; letter-spacing:0.01em;
+  padding:6px 16px; border-radius:20px; cursor:pointer; color: var(--text-3);
+  transition: background .15s, color .15s;
+}
+.curr-tab:hover { background: rgba(255,78,0,0.08); color: var(--text-2); }
+.curr-tab.active {
+  background: var(--accent); color: #fff;
+}
+.curr-grid {
+  display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;
+  padding:20px 24px;
+}
+.lesson-card {
+  background: #fff; border: 1.5px solid rgba(255,78,0,0.10);
+  border-radius:16px; padding:18px; cursor:pointer;
+  transition: box-shadow .18s, border-color .18s, transform .18s;
+  position:relative; overflow:hidden;
+  box-shadow: 0 2px 10px rgba(255,78,0,0.06);
+}
+.lesson-card:hover {
+  border-color: rgba(255,78,0,0.30);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(94,94,74,0.14);
+}
+.lesson-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, var(--deep-rose), var(--accent), var(--rose));
+  opacity:0; transition:opacity .18s;
+}
+.lesson-card:hover::before { opacity:1; }
+.lc-lang {
+  font-size:10px; font-family: var(--font-ui); font-weight:800; letter-spacing:0.04em;
+  text-transform:uppercase; color: var(--accent);
+  background: var(--accent-2); border: 1px solid var(--accent-3);
+  border-radius:20px; padding:3px 10px; display:inline-block; margin-bottom:10px;
+}
+.lc-title {
+  font-family: var(--font-ui); font-size:16px; font-weight:800;
+  color: var(--text); line-height:1.3; margin-bottom:6px; letter-spacing:-0.01em;
+}
+.lc-desc {
+  font-size:12px; color: var(--text-3); line-height:1.6; margin-bottom:12px; font-weight:500;
+}
+.lc-meta {
+  display:flex; gap:12px; align-items:center;
+}
+.lc-level {
+  font-size:10px; font-family: var(--font-mono); padding:2px 8px;
+  border-radius:4px; font-weight:600;
+}
+.lc-level.a1 { background:rgba(110,201,138,.12); color:#6ec98a; }
+.lc-level.a2 { background:rgba(96,165,250,.12); color:#60a5fa; }
+.lc-level.b1 { background:rgba(245,158,11,.12); color:#f59e0b; }
+.lc-level.b2 { background:rgba(202,201,183,.18); color:#9F8CE8; }
+.lc-level.c1 { background:rgba(255,78,0,.12); color:#FF4E00; }
+.lc-dur {
+  font-size:10px; color: var(--text-3); font-family: var(--font-mono);
+}
+.lc-prog {
+  margin-top:10px; height:2px; background: rgba(202,201,183,0.15); border-radius:1px;
+}
+.lc-prog-fill {
+  height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
+  border-radius:1px; transition:width .4s;
+}
+
+/* ═══════════════════════════ FLASHCARDS APP ═══════════════════════════ */
+#win-flashcards { top:80px; left:200px; width:600px; height:500px; }
+.fc-wrap {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; padding:32px; gap:24px; height:100%;
+}
+.fc-progress-bar {
+  width:100%; max-width:420px; height:3px;
+  background: rgba(202,201,183,0.15); border-radius:2px; overflow:hidden;
+}
+.fc-progress-fill {
+  height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
+  border-radius:2px; transition:width .4s;
+}
+.fc-counter {
+  font-size:11px; font-family: var(--font-mono); color: var(--text-3);
+  letter-spacing:0.06em; align-self:flex-end; margin-top:-14px;
+}
+.fc-scene {
+  perspective:1200px; width:380px; height:220px; cursor:pointer;
+}
+.fc-card {
+  width:100%; height:100%; position:relative;
+  transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,0,.2,1);
+}
+.fc-card.flipped { transform:rotateY(180deg); }
+.fc-face {
+  position:absolute; inset:0; border-radius:16px;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:28px; text-align:center;
+}
+.fc-front {
+  background: linear-gradient(145deg, #fff 0%, #FFFFFF 100%);
+  border: 1.5px solid rgba(255,78,0,0.16);
+  box-shadow: 0 4px 20px rgba(255,78,0,0.10);
+}
+.fc-back {
+  background: linear-gradient(145deg, rgba(255,78,0,0.10) 0%, rgba(159,140,232,0.06) 100%);
+  border: 1.5px solid rgba(94,94,74,0.20);
+  box-shadow: 0 4px 20px rgba(94,94,74,0.14);
+  transform:rotateY(180deg);
+}
+.fc-card-lang {
+  font-size:9px; font-family: var(--font-mono); letter-spacing:0.12em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:12px;
+}
+.fc-card-word {
+  font-family: var(--font-ui); font-size:34px; font-weight:600;
+  color: var(--text); line-height:1.1; margin-bottom:8px;
+}
+.fc-card-hint { font-size:12px; color: var(--text-3); font-style:italic; }
+.fc-card-trans {
+  font-family: var(--font-ui); font-size:22px; font-weight:600;
+  color: var(--accent); margin-bottom:10px;
+}
+.fc-card-ex { font-size:12px; color: var(--text-2); line-height:1.6; font-style:italic; }
+.fc-card-tap { font-size:10px; color: var(--text-3); margin-top:12px; font-family: var(--font-mono); }
+.fc-btns {
+  display:flex; gap:12px; align-items:center;
+}
+.fc-btn {
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; font-family: var(--font-mono); letter-spacing:0.06em;
+  padding:9px 20px; border-radius:10px; cursor:pointer;
+  transition: background .15s, transform .1s; border:none;
+  font-weight:500;
+}
+.fc-btn:active { transform:scale(0.96); }
+.fc-btn.again { background:rgba(248,113,113,.12); color:#f87171; }
+.fc-btn.hard  { background:rgba(245,158,11,.12); color:#f59e0b; }
+.fc-btn.good  { background:rgba(110,201,138,.12); color:#6ec98a; }
+.fc-btn.easy  { background:rgba(202,201,183,.18); color:#9F8CE8; }
+.fc-set-picker {
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+  max-width:400px;
+}
+.fc-set {
+  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:6px 16px;
+  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(255,78,0,0.16);
+  color: var(--text-3); background: #fff;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.fc-set:hover { background: rgba(255,78,0,0.06); color: var(--accent); border-color: var(--accent); }
+.fc-set.active {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+
+/* ═══════════════════════════ PROGRESS APP ═══════════════════════════ */
+#win-progress { top:70px; left:120px; width:680px; height:520px; }
+.prog-body { padding:24px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; }
+.prog-stats {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+}
+.prog-stat {
+  background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
+  border-radius:16px; padding:16px 14px;
+  display:flex; flex-direction:column; gap:4px;
+  box-shadow: 0 2px 10px rgba(255,78,0,0.06);
+}
+.prog-stat-n {
+  font-family: var(--font-ui); font-size:32px; font-weight:900;
+  color: var(--text); line-height:1; letter-spacing:-0.02em;
+}
+.prog-stat-n em { color: var(--accent); font-style:normal; }
+.prog-stat-l {
+  font-size:10px; font-family: var(--font-ui); font-weight:700; letter-spacing:0.04em;
+  text-transform:uppercase; color: var(--text-3); margin-top:2px;
+}
+.prog-section-title {
+  font-family: var(--font-ui); font-size:18px; font-weight:900;
+  color: var(--text); margin-bottom:10px; letter-spacing:-0.02em;
+}
+.prog-section-title em { color: var(--accent); font-style:normal; }
+.prog-langs { display:flex; flex-direction:column; gap:10px; }
+.prog-lang-row {
+  display:flex; align-items:center; gap:12px;
+}
+.prog-lang-name {
+  font-size:13px; color: var(--text-2); width:90px; flex-shrink:0;
+}
+.prog-lang-bar {
+  flex:1; height:6px; background: rgba(202,201,183,0.12); border-radius:3px; overflow:hidden;
+}
+.prog-lang-fill {
+  height:100%; border-radius:3px;
+  background: linear-gradient(90deg, var(--deep-rose), var(--accent));
+}
+.prog-lang-pct {
+  font-size:11px; font-family: var(--font-mono); color: var(--text-3); width:36px;
+  text-align:right;
+}
+.prog-activity {
+  display:flex; flex-direction:column; gap:6px;
+}
+.prog-week {
+  display:flex; gap:4px; align-items:flex-end;
+}
+.prog-day-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+.prog-bar-wrap {
+  height:80px; display:flex; align-items:flex-end; width:100%;
+}
+.prog-bar {
+  width:100%; border-radius:4px 4px 0 0;
+  background: linear-gradient(180deg, var(--accent), var(--deep-rose));
+  min-height:4px; transition:height .4s;
+}
+.prog-day-label {
+  font-size:9px; font-family: var(--font-mono); color: var(--text-3);
+  letter-spacing:0.06em; text-transform:uppercase;
+}
+.prog-achievements {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+.prog-ach {
+  background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
+  border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:center;
+  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(255,78,0,0.06);
+}
+.prog-ach-ic { font-size:24px; }
+.prog-ach-name { font-size:12px; color: var(--text-2); font-weight:600; }
+.prog-ach-desc { font-size:10px; color: var(--text-3); line-height:1.4; font-family: var(--font-mono); }
+.prog-ach.locked { opacity:0.4; }
+
+/* ═══════════════════════════ SCHEDULE APP ═══════════════════════════ */
+#win-schedule { top:90px; left:80px; width:700px; height:540px; }
+.sch-body { padding:0; display:flex; flex-direction:column; height:100%; }
+.sch-nav {
+  display:flex; align-items:center; padding:16px 20px;
+  border-bottom: 1px solid var(--border); gap:12px;
+}
+.sch-nav-btn {
+  width:30px; height:30px; border-radius:10px;
+  background: rgba(255,78,0,0.07); border: 1.5px solid rgba(94,94,74,0.14);
+  color: var(--accent); cursor:pointer; display:flex; align-items:center;
+  justify-content:center; font-size:14px; font-weight:700; transition:background .15s;
+}
+.sch-nav-btn:hover { background: rgba(94,94,74,0.14); }
+.sch-month {
+  font-family: var(--font-ui); font-size:18px; font-weight:900;
+  color: var(--text); letter-spacing:-0.02em;
+}
+.sch-view-btns {
+  margin-left:auto; display:flex; gap:4px;
+}
+.sch-view {
+  font-size:11px; font-family: var(--font-ui); font-weight:700; padding:5px 14px;
+  border-radius:20px; cursor:pointer; color: var(--text-3);
+  transition:background .15s, color .15s;
+}
+.sch-view.active { background: var(--accent); color: #fff; }
+.sch-grid-wrap { flex:1; overflow:auto; }
+.sch-grid {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  border-left: 1px solid var(--border);
+}
+.sch-dow {
+  text-align:center; padding:8px 0;
+  font-size:10px; font-family: var(--font-mono); letter-spacing:0.08em;
+  text-transform:uppercase; color: var(--text-3);
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.sch-cell {
+  min-height:80px; padding:6px 8px;
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  position:relative;
+}
+.sch-cell.other-month { opacity:0.35; }
+.sch-cell.today { background: rgba(255,78,0,0.06); }
+.sch-cell.today .sch-day-num {
+  background: var(--accent); color:#fff; border-radius:50%;
+  width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+  font-weight:800;
+}
+.sch-day-num {
+  font-size:12px; color: var(--text-3); margin-bottom:4px;
+  font-family: var(--font-mono); width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center;
+}
+.sch-event {
+  background: linear-gradient(135deg, rgba(211,242,106,0.22), rgba(202,201,183,0.20));
+  border: 1px solid rgba(202,201,183,0.28); border-radius:5px;
+  font-size:10px; padding:2px 6px; color: var(--accent); margin-bottom:3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-family: var(--font-mono); cursor:pointer;
+}
+.sch-event.green {
+  background: rgba(110,201,138,0.10); border-color: rgba(110,201,138,0.22); color:#6ec98a;
+}
+.sch-event.blue {
+  background: rgba(96,165,250,0.10); border-color: rgba(96,165,250,0.22); color:#60a5fa;
+}
+
+/* ═══════════════════════════ NOTES APP ═══════════════════════════ */
+#win-notes { top:100px; left:160px; width:660px; height:500px; }
+.notes-sidebar { overflow-y:auto; }
+.notes-list { display:flex; flex-direction:column; padding:8px; }
+.note-item {
+  padding:10px 10px; border-radius:12px; cursor:pointer; margin:1px 0;
+  transition: background .15s;
+}
+.note-item:hover { background: rgba(255,78,0,0.08); }
+.note-item.active { background: rgba(94,94,74,0.14); }
+.note-item-title { font-size:13px; color: var(--text); font-weight:500; margin-bottom:3px; }
+.note-item-preview { font-size:11px; color: var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.note-item-date { font-size:9px; color: var(--text-3); font-family: var(--font-mono); margin-top:4px; }
+.notes-toolbar {
+  height:40px; display:flex; align-items:center; gap:4px; padding:0 12px;
+  border-bottom: 1px solid var(--border); flex-shrink:0;
+  background: rgba(255,240,248,0.60);
+}
+.notes-tb-btn {
+  width:30px; height:30px; border-radius:8px; display:flex; align-items:center;
+  justify-content:center; font-size:13px; font-weight:700; color: var(--text-3); cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.notes-tb-btn:hover { background: rgba(255,78,0,0.10); color: var(--accent); }
+.notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
+.notes-editor {
+  flex:1; display:flex; flex-direction:column;
+}
+.notes-editor-area {
+  flex:1; padding:20px 24px; resize:none; border:none; outline:none;
+  background: #fff; color: var(--text); font-family: var(--font-ui);
+  font-size:14px; font-weight:500; line-height:1.75; overflow-y:auto;
+}
+.notes-footer {
+  height:28px; display:flex; align-items:center; padding:0 16px;
+  border-top: 1px solid var(--border); flex-shrink:0;
+  font-size:10px; font-weight:700; color: var(--text-3); font-family: var(--font-ui); gap:16px;
+  background: rgba(255,240,248,0.50);
+}
+.notes-new-btn {
+  display:flex; align-items:center; gap:6px; padding:8px 14px;
+  margin:8px; border-radius:12px; cursor:pointer;
+  background: var(--accent); color: #fff;
+  font-size:12px; font-family: var(--font-ui); font-weight:800;
+  transition:opacity .15s; box-shadow: 0 2px 8px rgba(255,78,0,0.25);
+}
+.notes-new-btn:hover { opacity:0.88; }
+
+/* ═══════════════════════════ DICTIONARY APP ═══════════════════════════ */
+#win-dictionary { top:70px; left:180px; width:560px; height:480px; }
+.dict-body { padding:20px; display:flex; flex-direction:column; gap:16px; height:100%; overflow-y:auto; }
+.dict-search-wrap {
+  display:flex; align-items:center; gap:10px;
+  background: #fff; border: 1.5px solid rgba(255,78,0,0.16);
+  border-radius:16px; padding:10px 16px;
+  box-shadow: 0 2px 8px rgba(255,78,0,0.06);
+}
+.dict-search-wrap input {
+  flex:1; background:none; border:none; outline:none;
+  font-size:15px; color: var(--text); font-family: var(--font-ui);
+}
+.dict-search-wrap input::placeholder { color: var(--text-3); }
+.dict-lang-select {
+  font-size:11px; font-family: var(--font-mono); color: var(--accent);
+  background: var(--accent-2); border: 1px solid var(--accent-3);
+  border-radius:8px; padding:4px 10px; cursor:pointer;
+}
+.dict-result {
+  background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
+  border-radius:16px; padding:20px;
+  box-shadow: 0 2px 10px rgba(255,78,0,0.06);
+}
+.dict-word {
+  font-family: var(--font-ui); font-size:36px; font-weight:600;
+  color: var(--text); margin-bottom:4px;
+}
+.dict-phonetic {
+  font-size:14px; color: var(--text-3); margin-bottom:12px;
+  font-family: var(--font-mono);
+}
+.dict-pos {
+  display:inline-block; font-size:10px; font-family: var(--font-mono);
+  letter-spacing:0.08em; text-transform:uppercase;
+  color: var(--accent); background: var(--accent-2); border: 1px solid var(--accent-3);
+  border-radius:20px; padding:2px 9px; margin-bottom:12px;
+}
+.dict-def {
+  font-size:14px; color: var(--text-2); line-height:1.7; margin-bottom:8px;
+}
+.dict-example {
+  font-size:13px; color: var(--text-3); font-style:italic; line-height:1.6;
+  border-left: 2px solid var(--accent-3); padding-left:12px; margin-bottom:12px;
+}
+.dict-syns { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+.dict-syn {
+  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
+  border-radius:20px; color: var(--text-3);
+  background: rgba(255,78,0,0.05); border: 1.5px solid rgba(94,94,74,0.12);
+  cursor:pointer; transition:background .15s, color .15s;
+}
+.dict-syn:hover { background: rgba(94,94,74,0.12); color: var(--accent); }
+.dict-save-btn {
+  display:flex; align-items:center; gap:6px;
+  font-size:12px; font-family: var(--font-mono); padding:8px 16px;
+  border-radius:8px; cursor:pointer; border:none;
+  background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+  color: #fff; transition:opacity .15s; font-weight:500;
+}
+.dict-save-btn:hover { opacity:0.88; }
+.dict-history-label {
+  font-size:10px; font-family: var(--font-mono); letter-spacing:0.1em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:8px;
+}
+.dict-history { display:flex; flex-wrap:wrap; gap:6px; }
+.dict-hist-item {
+  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
+  border-radius:20px; color: var(--text-3);
+  background: rgba(255,78,0,0.05); border: 1.5px solid rgba(94,94,74,0.12);
+  cursor:pointer; transition:background .15s, color .15s;
+}
+.dict-hist-item:hover { background: rgba(94,94,74,0.12); color: var(--accent); }
+
+/* ═══════════════════════════ SPOTLIGHT ═══════════════════════════ */
+#spotlight-overlay {
+  position:fixed; inset:0; z-index:2000;
+  background: rgba(30,10,20,0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display:none; align-items:flex-start; justify-content:center;
+  padding-top:80px;
+  animation: spFadeIn .15s ease;
+}
+#spotlight-overlay.open { display:flex; }
+@keyframes spFadeIn { from{opacity:0} to{opacity:1} }
+#spotlight-box {
+  width:580px; max-width:calc(100vw - 32px);
+  background: rgba(255,255,255,0.96);
+  border-radius:20px;
+  border: 1px solid rgba(255,78,0,0.18);
+  box-shadow: 0 24px 80px rgba(94,94,74,0.22), 0 4px 20px rgba(0,0,0,0.12);
+  overflow:hidden;
+  animation: spSlide .18s cubic-bezier(.34,1.3,.64,1);
+}
+@keyframes spSlide { from{transform:translateY(-16px) scale(.97)} to{transform:translateY(0) scale(1)} }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+#spotlight-input-wrap {
+  display:flex; align-items:center; gap:12px;
+  padding:16px 20px; border-bottom: 1px solid rgba(255,78,0,0.10);
+}
+#spotlight-input-wrap .sp-ic { font-size:18px; color: var(--accent); flex-shrink:0; }
+#spotlight-input {
+  flex:1; font-size:20px; font-weight:700; color: var(--text);
+  background:none; border:none; outline:none; font-family: var(--font-ui);
+}
+#spotlight-input::placeholder { color: var(--text-3); font-weight:400; font-size:17px; }
+#spotlight-clear {
+  font-size:14px; color: var(--text-3); cursor:pointer; width:22px; height:22px;
+  border-radius:50%; background: rgba(0,0,0,0.07); border:none;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:background .12s;
+}
+#spotlight-clear:hover { background:rgba(0,0,0,0.13); }
+#spotlight-results {
+  max-height:380px; overflow-y:auto; padding:8px 0;
+}
+.sp-section-hd {
+  font-size:10px; font-family: var(--font-mono); letter-spacing:0.12em;
+  text-transform:uppercase; color: var(--text-3); padding:8px 20px 4px; font-weight:600;
+}
+.sp-result {
+  display:flex; align-items:center; gap:12px;
+  padding:9px 20px; cursor:pointer;
+  transition:background .12s;
+}
+.sp-result:hover, .sp-result.selected { background: rgba(255,78,0,0.08); }
+.sp-result-icon {
+  width:36px; height:36px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.sp-result-text { flex:1; min-width:0; }
+.sp-result-title { font-size:14px; font-weight:700; color: var(--text); line-height:1.2; }
+.sp-result-sub { font-size:11px; color: var(--text-3); margin-top:1px; font-family: var(--font-mono); }
+.sp-result-kbd { font-size:10px; color: var(--text-3); font-family: var(--font-mono);
+  background: rgba(0,0,0,0.06); border-radius:5px; padding:2px 6px; flex-shrink:0; }
+#spotlight-empty { padding:32px; text-align:center; color: var(--text-3); font-size:13px; }
+
+/* ═══════════════════════════ NOTIFICATION BADGE ═══════════════════════════ */
+.di-badge {
+  position:absolute; top:-4px; right:-4px;
+  min-width:16px; height:16px; border-radius:8px;
+  background: var(--accent); color:#fff;
+  font-size:9px; font-weight:800; font-family: var(--font-ui);
+  display:flex; align-items:center; justify-content:center;
+  padding:0 4px; border:2px solid rgba(255,240,248,0.9);
+  pointer-events:none;
+}
+
+/* ═══════════════════════════ QUICK ACTIONS WIDGET ═══════════════════════════ */
+#wg-actions {
+  bottom:110px; left:24px;
+  width:190px; padding:14px 14px 10px;
+}
+.wg-actions-label {
+  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
+  text-transform:uppercase; color: var(--text-3); margin-bottom:10px;
+}
+.wg-action-btn {
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:8px 10px; border-radius:12px; border:none;
+  background: rgba(255,78,0,0.06); cursor:pointer;
+  font-size:12px; font-weight:700; color: var(--text-2);
+  font-family: var(--font-ui); text-decoration:none;
+  transition:background .15s, color .15s; margin-bottom:5px;
+}
+.wg-action-btn:hover { background: rgba(94,94,74,0.14); color: var(--accent); }
+.wg-action-btn:last-child { margin-bottom:0; }
+.wg-action-btn .wab-ic {
+  width:24px; height:24px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; flex-shrink:0;
+}
+
+/* ═══════════════════════════ ABOUT / FINDER ═══════════════════════════ */
+#win-about { top:80px; left:340px; width:520px; height:420px; }
+.about-body {
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:12px; padding:40px; text-align:center;
+  background: linear-gradient(160deg, #fff 0%, #F5F5EA 100%);
+}
+.about-logo {
+  font-size:64px; margin-bottom:4px;
+  filter:drop-shadow(0 4px 16px rgba(255,78,0,0.30));
+}
+.about-name {
+  font-family: var(--font-ui); font-size:30px; font-weight:900; color: var(--text);
+  letter-spacing:-0.03em;
+}
+.about-name em { color: var(--accent); font-style:normal; }
+.about-ver {
+  font-size:11px; font-family: var(--font-ui); font-weight:700;
+  color: var(--text-3); letter-spacing:0.04em;
+  background: var(--accent-2); border: 1px solid var(--accent-3);
+  border-radius:20px; padding:3px 12px; display:inline-block;
+}
+.about-desc {
+  font-size:13px; font-weight:500; color: var(--text-2);
+  line-height:1.65; max-width:340px; margin-top:4px;
+}
+.about-tags { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+.about-tag {
+  font-size:11px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
+  border-radius:20px; color: var(--accent); background: var(--accent-2);
+  border: 1px solid var(--accent-3);
+}
+.about-credits {
+  font-size:11px; font-weight:600; color: var(--text-3);
+  font-family: var(--font-ui); margin-top:4px;
+}
+.about-credits a { color: var(--accent); text-decoration:none; font-weight:800; }
+
+/* ═══════════════════════════ UTILS ═══════════════════════════ */
+.hidden { display:none !important; }
+.mob-win-header { display:none; } /* shown only inside mobile media query */
+
+/* ═══════════════════════════ MOBILE RESPONSIVE ═══════════════════════════ */
+@media (max-width: 768px) {
+  /* Hide desktop-only elements */
+  .widget, .di-sep, .mb-menu, .mb-apple,
+  .mb-icon, .blob1, .blob2, .blob3 { display:none !important; }
+
+  /* Menubar → compact mobile header */
+  #menubar {
+    height:52px; padding:0 16px;
+    background: rgba(255,255,255,0.95);
+    justify-content:space-between;
+  }
+  .mb-app-name {
+    font-size:20px; font-weight:900; color:var(--accent);
+    letter-spacing:-0.02em;
+  }
+  #mb-clock {
+    font-size:14px; font-weight:700; color:var(--text-3);
+  }
+
+  /* Desktop → full-screen panels */
+  #desktop {
+    background: linear-gradient(160deg,#F5F5EA 0%,#EAEADA 100%);
+  }
+  .win {
+    position:fixed !important;
+    top:52px !important; left:0 !important; right:0 !important;
+    bottom:74px !important;
+    width:100% !important; height:auto !important;
+    min-width:0 !important; border-radius:0 !important;
+    border:none !important; box-shadow:none !important;
+    display:none; flex-direction:column;
+    border-top: 1px solid var(--border) !important;
+    z-index:200 !important;
+  }
+  .win.open { display:flex !important; }
+
+  /* Win titlebar on mobile */
+  .win-titlebar { display:none; }
+  .win-controls { display:none; }
+
+  /* Mobile app header (shown inside each win) */
+  .mob-win-header {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px 10px; flex-shrink:0;
+    border-bottom:1px solid var(--border);
+    background: rgba(255,240,248,0.90);
+  }
+  .mob-win-title {
+    font-size:20px; font-weight:900; color:var(--text);
+    letter-spacing:-0.02em;
+  }
+  .mob-sidebar-btn {
+    margin-left:auto; width:34px; height:34px; border-radius:10px;
+    background:rgba(255,78,0,0.09); border:1.5px solid var(--border);
+    color:var(--accent); font-size:16px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+
+  /* Sidebar overlay on mobile */
+  .win-sidebar {
+    display:none; position:absolute; top:0; left:0; bottom:0;
+    z-index:10; width:240px;
+    box-shadow:4px 0 24px rgba(94,94,74,0.12);
+    background:rgba(255,240,248,0.98);
+  }
+  .win-sidebar.mob-open { display:flex !important; }
+
+  /* Dock → bottom tab bar */
+  #dock-wrap {
+    position:fixed; bottom:0; left:0; right:0;
+    transform:none; z-index:999;
+  }
+  #dock {
+    border-radius:0; gap:0;
+    border-left:none; border-right:none; border-bottom:none;
+    padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));
+    width:100%; justify-content:space-around;
+    box-shadow:0 -1px 0 var(--border), 0 -4px 20px rgba(255,78,0,0.08);
+  }
+  .di { flex:1; gap:3px; }
+  .di:hover { transform:none; }
+  .di-icon { width:44px; height:44px; border-radius:14px; font-size:20px; }
+  .di-label { font-size:9px; }
+  .di-dot { bottom:-4px; }
+
+  /* Content tweaks */
+  .curr-grid { grid-template-columns:1fr; }
+  .curr-search { margin:12px 14px 0; }
+  .curr-header { padding:14px 14px 0; }
+  .curr-tabs { padding:10px 14px 0; overflow-x:auto; flex-wrap:nowrap; }
+  .curr-grid { padding:14px; }
+
+  .fc-scene { width:100%; max-width:340px; }
+  .fc-card-word { font-size:26px; }
+  .fc-btns { flex-wrap:wrap; gap:8px; }
+  .fc-btn { flex:1; min-width:80px; justify-content:center; }
+
+  .prog-body { padding:14px; gap:14px; }
+  .prog-stats { grid-template-columns:1fr 1fr; gap:10px; }
+  .prog-achievements { grid-template-columns:1fr 1fr; }
+  .prog-stat-n { font-size:26px; }
+
+  .sch-nav { padding:10px 14px; }
+  .sch-grid-wrap { overflow:auto; -webkit-overflow-scrolling:touch; }
+
+  .notes-editor-area { font-size:15px; padding:14px 16px; }
+  .notes-sidebar { width:180px; }
+
+  .dict-body { padding:14px; }
+  .dict-word { font-size:28px; }
+
+  .about-body { padding:28px 20px; }
+  .about-logo { font-size:52px; }
+
+  /* Tools */
+  #tools-grid { grid-template-columns:1fr !important; }
+}
+
+@media (max-width: 420px) {
+  .fc-scene { height:190px; }
+  .prog-stats { grid-template-columns:1fr 1fr; }
+  .stat-n { font-size:22px; }
+  .di-label { display:none; }
+  .di-icon { width:40px; height:40px; }
+}
+</style>
+<link rel="stylesheet" href="dark.css">
+<script src="theme.js"></script>
+</head>
+<body>
+
+<!-- ════════════════════ DESKTOP ════════════════════ -->
+<div id="desktop">
+<div class="blob1"></div>
+<div class="blob2"></div>
+<div class="blob3"></div>
+
+<!-- MENU BAR -->
+<div id="menubar">
+  <a class="mb-apple" href="landing.html" title="Home" style="text-decoration:none;color:inherit;">✦</a>
+  <span class="mb-app-name" id="mb-app-name">TeachedOS</span>
+  <nav class="mb-menu">
+    <div class="mb-item" onclick="location.href='board.html'" style="cursor:pointer;">Board</div>
+    <div class="mb-item" onclick="location.href='courses.html'" style="cursor:pointer;">Courses</div>
+    <div class="mb-item" onclick="openSpotlight()" style="cursor:pointer;">Go To</div>
+    <div class="mb-item" onclick="openApp('students')" style="cursor:pointer;">Students</div>
+    <div class="mb-item" onclick="openApp('about')" style="cursor:pointer;">About</div>
+  </nav>
+  <div class="mb-right">
+    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(255,78,0,.25);margin-right:6px;"></a>
+    <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
+    <span id="mb-clock">--:--</span>
+  </div>
+</div>
+
+<!-- WIDGETS -->
+<div class="widget" id="wg-clock">
+  <div class="wg-clock-time" id="wg-time">10<em>:</em>42</div>
+  <div class="wg-clock-date" id="wg-date">wednesday · may 7</div>
+  <div class="wg-clock-lang">👩‍🏫 Teacher</div>
+</div>
+
+<div class="widget" id="wg-streak">
+  <div style="display:flex;align-items:baseline;gap:6px;">
+    <div class="wg-streak-n">—</div>
+    <span style="font-size:20px;">📅</span>
+  </div>
+  <div class="wg-streak-label">Classes today</div>
+  <div class="wg-streak-sub">Loading schedule…</div>
+</div>
+
+<div class="widget" id="wg-today">
+  <div class="wg-today-label">Next class</div>
+  <div class="wg-today-title">—</div>
+  <div class="wg-today-meta">
+    <span></span>
+  </div>
+  <div class="wg-today-badge"></div>
+  <div class="wg-today-prog">
+    <div class="wg-today-prog-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="widget" id="wg-vocab">
+  <div class="wg-vocab-label">My boards</div>
+  <div class="wg-vocab-word">—</div>
+  <div class="wg-vocab-lang">Loading…</div>
+  <div class="wg-vocab-trans"></div>
+  <div class="wg-vocab-ex"></div>
+  <button class="wg-vocab-next" onclick="openApp('students')">View Students →</button>
+</div>
+
+<!-- ════ WINDOWS ════ -->
+
+<!-- LESSON PLANS -->
+<div class="win open appear" id="win-plans" style="top:48px;left:60px;width:780px;height:560px;">
+  <div class="win-titlebar" id="tb-plans">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('plans')"></div>
+      <div class="tl min"    onclick="minWin('plans')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">📋 Lesson Plans</div>
+  </div>
+  <div class="win-body">
+    <div class="win-sidebar" id="sidebar-plans">
+      <div class="sb-section-label">Quick links</div>
+      <div class="sb-item" onclick="location.href='courses.html'">📚 All Courses</div>
+      <div class="sb-item" onclick="location.href='board.html'">📌 Open Board</div>
+      <div class="sb-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>
+      <div class="sb-item" onclick="location.href='analytics.html'">📊 Analytics</div>
+      <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
+      <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
+      <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
+      <div class="sb-item" id="bf-shared" onclick="boardsFilter('shared',this)">Shared with me</div>
+    </div>
+    <div class="win-main" style="display:flex;flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">📋</span>
+        <div class="mob-win-title">Lesson Plans</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')">☰</div>
+      </div>
+      <div class="curr-header">
+        <div class="curr-eyebrow">§ Teacher's workspace</div>
+        <div class="curr-title">My <em>Boards</em></div>
+      </div>
+      <div class="curr-search">
+        <span class="curr-search-ic">🔍</span>
+        <input type="text" placeholder="Search your boards by name…" id="plans-search-input" oninput="boardsRender()">
+      </div>
+      <div class="curr-grid" id="plans-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-3);font-size:13px;">Loading your boards…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENTS -->
+<div class="win" id="win-students" style="top:80px;left:680px;width:600px;height:520px;">
+  <div class="win-titlebar" id="tb-students">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('students')"></div>
+      <div class="tl min"    onclick="minWin('students')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">👥 Students</div>
+  </div>
+  <div class="win-body" style="position:relative;">
+    <div class="win-sidebar" id="sidebar-students">
+      <div class="sb-section-label">Groups</div>
+      <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students</div>
+    </div>
+    <div class="win-main" style="display:flex;flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">👥</span>
+        <div class="mob-win-title">Students</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')">☰</div>
+      </div>
+      <div style="padding:16px 20px 8px;border-bottom:1px solid var(--border);">
+        <div style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--text);">My <em style="color:var(--accent);">Students</em></div>
+        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">Add students via Gradebook</div>
+      </div>
+      <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="win" id="win-schedule" style="top:90px;left:80px;width:700px;height:540px;">
+  <div class="win-titlebar" id="tb-schedule">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('schedule')"></div>
+      <div class="tl min"    onclick="minWin('schedule')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">📅 Schedule</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main" style="flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">📅</span>
+        <div class="mob-win-title">Schedule</div>
+      </div>
+      <div class="sch-body">
+        <div class="sch-nav">
+          <button class="sch-nav-btn" onclick="schPrev()">‹</button>
+          <button class="sch-nav-btn" onclick="schNext()">›</button>
+          <span class="sch-month" id="sch-month">May 2026</span>
+          <a class="sch-view active" href="schedule.html" style="text-decoration:none;">Open full schedule →</a>
+        </div>
+        <div class="sch-grid-wrap">
+          <div class="sch-grid" id="sch-grid">
+            <!-- generated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div class="win" id="win-notes" style="top:100px;left:160px;width:660px;height:500px;">
+  <div class="win-titlebar" id="tb-notes">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('notes')"></div>
+      <div class="tl min"    onclick="minWin('notes')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">✍️ Notes</div>
+  </div>
+  <div class="win-body" style="position:relative;">
+    <div class="win-sidebar notes-sidebar" id="sidebar-notes">
+      <div class="notes-new-btn" onclick="notesNew()">
+        <span>+</span> New Note
+      </div>
+      <div class="notes-list" id="notes-list"></div>
+    </div>
+    <div class="win-main notes-editor" style="display:flex;flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">✍️</span>
+        <div class="mob-win-title">Notes</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
+      </div>
+      <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
+      <div class="notes-footer">
+        <span id="notes-word-count">0 words</span>
+        <span id="notes-save-status">saved</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="win" id="win-about" style="top:80px;left:340px;width:480px;height:340px;">
+  <div class="win-titlebar" id="tb-about">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('about')"></div>
+      <div class="tl min"    onclick="minWin('about')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">About TeachedOS</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main" style="flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">🌸</span>
+        <div class="mob-win-title">About</div>
+      </div>
+      <div class="about-body">
+        <div class="about-logo">🌸</div>
+        <div class="about-name">Teached<em>OS</em></div>
+        <div class="about-ver">Teacher's Platform</div>
+        <div class="about-desc">
+          A full-featured macOS-style workspace for language teachers — visual boards, gradebook, analytics, student enrollment, real-time collaboration and AI-powered tools.
+        </div>
+        <div class="about-tags" style="margin-top:8px;">
+          <div class="about-tag">📋 Plans</div>
+          <div class="about-tag">👥 Students</div>
+          <div class="about-tag">📅 Schedule</div>
+          <div class="about-tag">✍️ Notes</div>
+          <div class="about-tag">📌 Board</div>
+          <div class="about-tag">📊 Analytics</div>
+          <div class="about-tag">📒 Gradebook</div>
+          <div class="about-tag">🎮 Games</div>
+          <div class="about-tag">⚡ Live Collab</div>
+        </div>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--accent);">24</div>
+            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">STUDENTS</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--accent);">18</div>
+            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">TOOLS</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--accent);">∞</div>
+            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">BOARDS</div>
+          </div>
+        </div>
+        <div class="about-credits">
+          Designed &amp; built by <a href="https://munister.com.ua" target="_blank">munister.com.ua</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALLS WINDOW -->
+<div class="win" id="win-calls" style="top:85px;left:300px;width:520px;height:480px;">
+  <div class="win-titlebar" id="tb-calls">
+    <div class="win-controls">
+      <div class="tl close" onclick="closeWin('calls')"></div>
+      <div class="tl min" onclick="minWin('calls')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">📹 Calls & Meetings</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main" style="flex-direction:column;padding:20px;gap:16px;overflow-y:auto;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;">Start a call now</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <button onclick="startGoogleMeet()" style="padding:16px 12px;border-radius:14px;border:none;background:linear-gradient(135deg,#34a853,#188038);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;justify-content:center;transition:.15s;">
+          <span style="font-size:22px;">📹</span> Google Meet
+        </button>
+        <button onclick="startZoom()" style="padding:16px 12px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d8cff,#1a6fd8);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;justify-content:center;transition:.15s;">
+          <span style="font-size:22px;">💻</span> Zoom
+        </button>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-top:6px;">My permanent rooms</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="calls-rooms">
+        <div style="color:var(--text-3);font-size:13px;">Loading…</div>
+      </div>
+      <div style="background:rgba(94,94,74,.06);border-radius:12px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;">Save your room URLs</div>
+        <input id="calls-meet-url" type="url" placeholder="Google Meet room URL (meet.google.com/…)" style="width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border-2);font-family:var(--font-serif);font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box;">
+        <input id="calls-zoom-url" type="url" placeholder="Zoom room URL (zoom.us/j/…)" style="width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border-2);font-family:var(--font-serif);font-size:13px;margin-bottom:10px;outline:none;box-sizing:border-box;">
+        <button onclick="saveCallRooms()" style="padding:9px 20px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:13px;cursor:pointer;">Save rooms</button>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-top:6px;">Today's classes</div>
+      <div id="calls-today-list" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="color:var(--text-3);font-size:13px;">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BILLING WINDOW -->
+<div class="win" id="win-billing" style="top:90px;left:340px;width:560px;height:500px;">
+  <div class="win-titlebar" id="tb-billing">
+    <div class="win-controls">
+      <div class="tl close" onclick="closeWin('billing')"></div>
+      <div class="tl min" onclick="minWin('billing')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">💳 Plans & Billing</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main" style="flex-direction:column;padding:20px;gap:16px;overflow-y:auto;">
+      <div id="billing-current" style="background:linear-gradient(135deg,var(--accent),var(--deep-rose));border-radius:16px;padding:20px;color:#fff;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.8;">Current plan</div>
+        <div id="billing-plan-name" style="font-size:2rem;font-weight:900;margin-top:4px;letter-spacing:-.03em;">Free</div>
+        <div id="billing-plan-sub" style="font-size:13px;opacity:.85;margin-top:4px;">3 boards · 5 students each · Basic features</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="billing-usage">
+        <div style="background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;">Boards</div>
+          <div style="font-size:1.6rem;font-weight:900;color:var(--text);margin-top:6px;" id="usage-boards">—/—</div>
+          <div style="height:6px;background:var(--bg-2);border-radius:4px;margin-top:8px;overflow:hidden;"><div id="usage-boards-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:.5s;"></div></div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;">Students</div>
+          <div style="font-size:1.6rem;font-weight:900;color:var(--text);margin-top:6px;" id="usage-students">—</div>
+          <div style="height:6px;background:var(--bg-2);border-radius:4px;margin-top:8px;overflow:hidden;"><div id="usage-students-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:.5s;"></div></div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;">Upgrade plan</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="billing-plan-card" data-plan="pro" onclick="selectBillingPlan('pro')" style="border-radius:14px;border:2px solid var(--border);padding:14px 16px;cursor:pointer;transition:.15s;background:var(--bg-card);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:15px;font-weight:900;color:var(--text);">🚀 Teacher Pro</div><div style="font-size:12px;color:var(--text-3);margin-top:3px;">Unlimited boards · 30 students · Analytics export</div></div>
+            <div style="font-size:1.1rem;font-weight:900;color:var(--accent);">$9.90<span style="font-size:11px;font-weight:600;color:var(--text-3);">/mo</span></div>
+          </div>
+        </div>
+        <div class="billing-plan-card" data-plan="school" onclick="selectBillingPlan('school')" style="border-radius:14px;border:2px solid var(--border);padding:14px 16px;cursor:pointer;transition:.15s;background:var(--bg-card);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:15px;font-weight:900;color:var(--text);">🏫 School</div><div style="font-size:12px;color:var(--text-3);margin-top:3px;">Unlimited everything · Admin panel · Custom branding</div></div>
+            <div style="font-size:1.1rem;font-weight:900;color:var(--accent);">$29<span style="font-size:11px;font-weight:600;color:var(--text-3);">/mo</span></div>
+          </div>
+        </div>
+      </div>
+      <button id="billing-upgrade-btn" onclick="upgradePlan()" style="padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:15px;cursor:pointer;display:none;transition:.15s;">Upgrade now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS WINDOW -->
+<div class="win" id="win-tools" style="top:60px;left:80px;width:860px;height:600px;">
+  <div class="win-titlebar" id="tb-tools">
+    <div class="win-controls">
+      <div class="tl close"  onclick="closeWin('tools')"></div>
+      <div class="tl min"    onclick="minWin('tools')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">🪄 Teaching Tools</div>
+  </div>
+  <div class="win-body" style="position:relative;">
+    <div class="win-sidebar" id="sidebar-tools">
+      <div class="sb-section-label">All Skills</div>
+      <div class="sb-item active" id="tg-all" onclick="toolsFilter('all',this)">
+        <span class="sb-item-ic">✦</span> All Tools
+        <span class="sb-item-badge">14</span>
+      </div>
+      <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
+      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <span class="sb-item-ic">📖</span> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
+      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <span class="sb-item-ic">✏️</span> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
+
+      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <span class="sb-item-ic">💬</span> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
+      <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><span class="sb-item-ic">📝</span> Vocabulary <span class="sb-item-badge">4</span></div>
+      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <span class="sb-item-ic">🔤</span> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
+      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <span class="sb-item-ic">⚙️</span> Utility    <span class="sb-item-badge" style="background:rgba(156,163,175,.2);color:#9ca3af;">2</span></div>
+    </div>
+    <div class="win-main" style="padding:0;flex-direction:column;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">🪄</span>
+        <div class="mob-win-title">Teaching Tools</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')">☰</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:20px 20px 0;">
+        <div>
+          <div style="font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">§ Twee-inspired</div>
+          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text);">Teaching <em style="color:var(--accent);font-style:italic;">Tools</em></div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;font-family:var(--font-mono);color:var(--text-3);" id="tools-count">14 tools</div>
+      </div>
+      <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SPOTLIGHT OVERLAY -->
+<div id="spotlight-overlay" onclick="closeSpotlight(event)">
+  <div id="spotlight-box">
+    <div id="spotlight-input-wrap">
+      <span class="sp-ic">🔍</span>
+      <input id="spotlight-input" type="text" placeholder="Search plans, students, tools…" autocomplete="off" oninput="spotlightSearch()" onkeydown="spotlightKey(event)">
+      <button id="spotlight-clear" onclick="document.getElementById('spotlight-input').value='';spotlightSearch();">✕</button>
+    </div>
+    <div id="spotlight-results"></div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS WIDGET -->
+<div class="widget" id="wg-actions">
+  <div class="wg-actions-label">Quick Launch</div>
+  <a class="wg-action-btn" href="board.html">
+    <span class="wab-ic" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</span> Board
+  </a>
+  <a class="wg-action-btn" href="analytics.html">
+    <span class="wab-ic" style="background:linear-gradient(145deg,#34d399,#059669);">📊</span> Analytics
+  </a>
+  <a class="wg-action-btn" href="gradebook.html">
+    <span class="wab-ic" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</span> Gradebook
+  </a>
+  <a class="wg-action-btn" href="profile.html">
+    <span class="wab-ic" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</span> Profile
+  </a>
+</div>
+
+<!-- DOCK -->
+<div id="dock-wrap">
+  <div id="dock">
+    <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
+      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#FF4E00);">📋</div>
+      <div class="di-label">Plans</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-students" onclick="openApp('students')" title="Students">
+      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#3b82f6);">👥</div>
+      <div class="di-label">Students</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-schedule" onclick="openApp('schedule')" title="Schedule">
+      <div class="di-icon schedule">📅</div>
+      <div class="di-label">Schedule</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-notes" onclick="openApp('notes')" title="Notes">
+      <div class="di-icon notes">✍️</div>
+      <div class="di-label">Notes</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
+      <div class="di-icon" style="background:linear-gradient(145deg,#b87ac4,#7a4a9c);">🪄</div>
+      <div class="di-label">Tools</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-board" onclick="location.href='board.html'" title="Board">
+      <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</div>
+      <div class="di-label">Board</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-courses" onclick="location.href='courses.html'" title="Courses">
+      <div class="di-icon" style="background:linear-gradient(145deg,#a78bfa,#7c3aed);">📚</div>
+      <div class="di-label">Courses</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di-sep"></div>
+    <div class="di" id="di-analytics" onclick="location.href='analytics.html'" title="Analytics">
+      <div class="di-icon" style="background:linear-gradient(145deg,#34d399,#059669);position:relative;">📊</div>
+      <div class="di-label">Analytics</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-calls" onclick="openApp('calls')" title="Calls & Meetings">
+      <div class="di-icon" style="background:linear-gradient(145deg,#34a853,#188038);">📹</div>
+      <div class="di-label">Calls</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-billing" onclick="openApp('billing')" title="Plans & Billing">
+      <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">💳</div>
+      <div class="di-label">Billing</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-gradebook" onclick="location.href='gradebook.html'" title="Gradebook">
+      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</div>
+      <div class="di-label">Gradebook</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di" id="di-profile" onclick="location.href='profile.html'" title="Profile">
+      <div class="di-icon" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</div>
+      <div class="di-label">Profile</div>
+      <div class="di-dot"></div>
+    </div>
+    <div class="di-sep"></div>
+    <div class="di" id="di-about" onclick="openApp('about')" title="About">
+      <div class="di-icon finder">🌸</div>
+      <div class="di-label">About</div>
+      <div class="di-dot"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #desktop -->
+
+<script>
+/* ══════════════════════ CLOCK ══════════════════════ */
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('wg-time').innerHTML = h + '<em>:</em>' + m;
+  document.getElementById('mb-clock').textContent = h + ':' + m;
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('wg-date').textContent =
+    days[now.getDay()].toLowerCase() + ' · ' +
+    months[now.getMonth()].toLowerCase() + ' ' + now.getDate();
+}
+updateClock(); setInterval(updateClock, 30000);
+
+/* ══════════════════════ WINDOW MANAGEMENT ══════════════════════ */
+let topZ = 200;
+const zMap = {};
+
+function openApp(id) {
+  const win = document.getElementById('win-' + id);
+  const di  = document.getElementById('di-' + id);
+  if (!win) return;
+  const wasOpen = win.classList.contains('open');
+  win.classList.add('open');
+  if (!wasOpen) win.classList.add('appear');
+  setTimeout(()=>win.classList.remove('appear'), 300);
+  bringToFront(id);
+  if (di) di.classList.add('open');
+}
+
+function closeWin(id) {
+  const win = document.getElementById('win-' + id);
+  const di  = document.getElementById('di-' + id);
+  if (win) win.classList.remove('open');
+  if (di) di.classList.remove('open');
+}
+
+function minWin(id) { closeWin(id); }
+
+function bringToFront(id) {
+  topZ++;
+  const win = document.getElementById('win-' + id);
+  if (win) win.style.zIndex = topZ;
+}
+
+/* Draggable + resizable windows */
+(function(){
+  const wins = document.querySelectorAll('.win');
+  let dragWin=null, ox=0, oy=0, wx=0, wy=0;
+  let rzWin=null, rsw=0, rsh=0, rmx=0, rmy=0;
+
+  wins.forEach(win => {
+    const tb = win.querySelector('.win-titlebar');
+    if (tb) {
+      tb.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('tl')) return;
+        dragWin = win;
+        ox = e.clientX; oy = e.clientY;
+        const r = win.getBoundingClientRect();
+        wx = r.left; wy = r.top;
+        bringToFront(win.id.replace('win-',''));
+        e.preventDefault();
+      });
+    }
+    win.addEventListener('mousedown', () => bringToFront(win.id.replace('win-','')));
+
+    // Add resize handle
+    const rz = document.createElement('div');
+    rz.className = 'win-rz';
+    rz.addEventListener('mousedown', e => {
+      rzWin = win;
+      const r = win.getBoundingClientRect();
+      rsw = r.width; rsh = r.height; rmx = e.clientX; rmy = e.clientY;
+      e.preventDefault(); e.stopPropagation();
+    });
+    win.appendChild(rz);
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (dragWin) {
+      let nx = wx + e.clientX - ox;
+      let ny = wy + e.clientY - oy;
+      const TITLEBAR_H = 28;
+      nx = Math.max(0, Math.min(nx, window.innerWidth - dragWin.offsetWidth));
+      ny = Math.max(0, Math.min(ny, window.innerHeight - TITLEBAR_H));
+      dragWin.style.left = nx+'px';
+      dragWin.style.top  = ny+'px';
+    }
+    if (rzWin) {
+      const nw = Math.max(320, rsw + e.clientX - rmx);
+      const nh = Math.max(220, rsh + e.clientY - rmy);
+      rzWin.style.width  = nw+'px';
+      rzWin.style.height = nh+'px';
+    }
+  });
+  document.addEventListener('mouseup', () => { dragWin=null; rzWin=null; });
+})();
+
+/* ══════════════════════ STUDENTS ══════════════════════ */
+let STUDENTS = [];
+let studentsActiveFilter = 'all';
+
+function studentsFilter(filter, el) {
+  document.querySelectorAll('#win-students .sb-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  studentsActiveFilter = filter;
+  studentsRender();
+}
+
+function studentsRender() {
+  const list = document.getElementById('students-list');
+  if (!list) return;
+
+  if (!STUDENTS.length) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-3);font-size:13px;">
+      No students yet.<br>
+      <a href="gradebook.html" style="color:var(--accent);font-weight:700;text-decoration:none;margin-top:10px;display:inline-block;">Open Gradebook to add →</a>
+    </div>`;
+    return;
+  }
+
+  const f = studentsActiveFilter;
+  const filtered = STUDENTS.filter(s => {
+    if (f === 'all') return true;
+    if (f === 'today') return s.lastSeen === 'Today';
+    return s.group === f || s.level === f;
+  });
+
+  list.innerHTML = filtered.map(s => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,78,0,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;" onclick="location.href='gradebook.html'" onmouseenter="this.style.background='rgba(255,78,0,0.09)'" onmouseleave="this.style.background='rgba(255,78,0,0.04)'">
+      <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${s.email}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:11px;color:var(--text-3);">${s.boardCount} board${s.boardCount === 1 ? '' : 's'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function updateStudentSidebar() {
+  const wrap = document.getElementById('sidebar-students');
+  if (!wrap) return;
+  // Just remove the static counts since we don't have group info from API
+  wrap.querySelectorAll('.sb-item-badge').forEach(b => b.remove());
+  const allBadge = wrap.querySelector('.sb-item.active');
+  if (allBadge && STUDENTS.length) {
+    const badge = document.createElement('span');
+    badge.className = 'sb-item-badge';
+    badge.textContent = STUDENTS.length;
+    allBadge.appendChild(badge);
+  }
+  // Update header sub-text
+  const sub = document.querySelector('#win-students [style*="font-family:var(--font-mono)"]');
+  if (sub) sub.textContent = STUDENTS.length
+    ? `${STUDENTS.length} student${STUDENTS.length === 1 ? '' : 's'}`
+    : 'Add students via Gradebook';
+}
+
+/* ══════════════════════ BOARDS LIST ══════════════════════ */
+let MY_BOARDS = [];
+let SHARED_BOARDS = [];
+let boardsFilterMode = 'all';
+
+function boardsFilter(mode, el) {
+  boardsFilterMode = mode;
+  document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  boardsRender();
+}
+
+function boardsRender() {
+  const grid = document.getElementById('plans-grid');
+  if (!grid) return;
+  const q = (document.getElementById('plans-search-input')?.value || '').toLowerCase().trim();
+
+  let list;
+  if (boardsFilterMode === 'shared')      list = SHARED_BOARDS;
+  else if (boardsFilterMode === 'recent') list = MY_BOARDS.slice(0, 6);
+  else                                    list = MY_BOARDS;
+
+  if (q) list = list.filter(b => (b.name || '').toLowerCase().includes(q));
+
+  if (!list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
+      ${boardsFilterMode === 'shared' ? 'No boards shared with you yet.' : 'No boards yet.'}
+      <div style="margin-top:10px;">
+        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}" style="color:var(--accent);font-weight:700;text-decoration:none;">
+          ${boardsFilterMode === 'shared' ? 'Open Profile →' : 'Create your first board →'}
+        </a>
+      </div></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(b => {
+    const cards = b.card_count || 0;
+    const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
+    const owner = b.owner_name ? `<div class="lc-desc">Shared by ${b.owner_name}</div>` : '';
+    return `<div class="lesson-card" onclick="location.href='board.html?id=${b.id}'" style="cursor:pointer;">
+      <div class="lc-lang">📌 Board</div>
+      <div class="lc-title">${(b.name || 'Untitled').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</div>
+      ${owner}
+      <div class="lc-meta">
+        <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}</span>
+        ${updated ? `<span class="lc-dur">${updated}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════ SCHEDULE ══════════════════════ */
+const _now = new Date();
+let schYear = _now.getFullYear(), schMonth = _now.getMonth();
+let SCHEDULE_RAW = []; // populated from /api/schedule (recurring weekly slots)
+const EVENT_CLS = ['', 'blue', 'green', 'orange'];
+function eventsForDate(y, m, d) {
+  const dow = new Date(y, m, d).getDay();
+  return SCHEDULE_RAW
+    .filter(s => s.day === dow)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+    .map((s, i) => ({
+      text: `${(s.group_name || s.title || 'Class').slice(0, 8)} ${s.start_time.slice(0,5)}${s.level ? ' ' + s.level : ''}`,
+      cls: EVENT_CLS[i % EVENT_CLS.length],
+    }));
+}
+const EVENTS = new Proxy({}, {
+  get(_, key) {
+    const [y, m, d] = String(key).split('-').map(Number);
+    if (!y || !m || !d) return undefined;
+    const list = eventsForDate(y, m - 1, d);
+    return list.length ? list : undefined;
+  }
+});
+const SCH_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function schRender() {
+  document.getElementById('sch-month').textContent = SCH_MONTHS[schMonth] + ' ' + schYear;
+  const grid = document.getElementById('sch-grid');
+  grid.innerHTML = '';
+  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  dows.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'sch-dow'; el.textContent = d;
+    grid.appendChild(el);
+  });
+  const first = new Date(schYear, schMonth, 1).getDay();
+  const total = new Date(schYear, schMonth+1, 0).getDate();
+  const today = new Date();
+  for (let i = 0; i < first; i++) {
+    const prev = new Date(schYear, schMonth, -first+i+1).getDate();
+    const el = document.createElement('div');
+    el.className = 'sch-cell other-month';
+    el.innerHTML = '<div class="sch-day-num">' + prev + '</div>';
+    grid.appendChild(el);
+  }
+  for (let d = 1; d <= total; d++) {
+    const el = document.createElement('div');
+    const key = schYear + '-' + (schMonth+1) + '-' + d;
+    const isToday = today.getFullYear()===schYear && today.getMonth()===schMonth && today.getDate()===d;
+    el.className = 'sch-cell' + (isToday?' today':'');
+    let html = '<div class="sch-day-num">' + d + '</div>';
+    if (EVENTS[key]) {
+      EVENTS[key].forEach(ev => {
+        html += '<div class="sch-event ' + ev.cls + '">' + ev.text + '</div>';
+      });
+    }
+    el.innerHTML = html;
+    grid.appendChild(el);
+  }
+  const remain = (first + total) % 7;
+  if (remain > 0) {
+    for (let i = 1; i <= 7-remain; i++) {
+      const el = document.createElement('div');
+      el.className = 'sch-cell other-month';
+      el.innerHTML = '<div class="sch-day-num">' + i + '</div>';
+      grid.appendChild(el);
+    }
+  }
+}
+function schPrev() { schMonth--; if(schMonth<0){schMonth=11;schYear--;} schRender(); }
+function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRender(); }
+schRender();
+
+/* ══════════════════════ NOTES ══════════════════════ */
+const NOTES_KEY = 'teachedos_notes_v1';
+const DEFAULT_NOTES = [
+  { id:1, title:'Welcome to Notes', preview:'A scratchpad for lesson prep, student feedback…', content:'Welcome to Notes\n———————————————\n\nThis is a local scratchpad — saved in your browser.\nUse it for lesson prep, student feedback, grammar\nnotes, or anything you need to remember.\n\nClick "+ New Note" to start fresh.', date:'Today' },
+];
+let NOTES = (() => {
+  try { const s = localStorage.getItem(NOTES_KEY); if (s) return JSON.parse(s); } catch {}
+  return DEFAULT_NOTES.slice();
+})();
+let activeNote = NOTES[0]?.id || null;
+let saveTimer = null;
+function notesPersist() {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+}
+
+function notesRender() {
+  const list = document.getElementById('notes-list');
+  list.innerHTML = '';
+  NOTES.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'note-item' + (n.id===activeNote?' active':'');
+    el.innerHTML = `<div class="note-item-title">${n.title}</div><div class="note-item-preview">${n.preview}</div><div class="note-item-date">${n.date}</div>`;
+    el.onclick = () => notesOpen(n.id);
+    list.appendChild(el);
+  });
+  const active = NOTES.find(n=>n.id===activeNote);
+  if (active) {
+    document.getElementById('notes-ta').value = active.content;
+    notesUpdateCount();
+  }
+}
+function notesOpen(id) {
+  activeNote = id;
+  notesRender();
+}
+function notesNew() {
+  const id = Date.now();
+  NOTES.unshift({ id, title:'New Note', preview:'', content:'', date:'Today' });
+  activeNote = id;
+  notesPersist();
+  notesRender();
+  document.getElementById('notes-ta').focus();
+}
+function notesDelete(id) {
+  if (!confirm('Delete this note?')) return;
+  NOTES = NOTES.filter(n => n.id !== id);
+  if (activeNote === id) activeNote = NOTES[0]?.id || null;
+  notesPersist();
+  notesRender();
+}
+function notesAutoSave() {
+  const ta = document.getElementById('notes-ta');
+  const note = NOTES.find(n=>n.id===activeNote);
+  if (!note) return;
+  note.content = ta.value;
+  const lines = ta.value.split('\n');
+  note.title = lines[0] || 'New Note';
+  note.preview = (lines[1] || '').slice(0,50);
+  notesUpdateCount();
+  document.getElementById('notes-save-status').textContent = 'editing…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    notesPersist();
+    notesRender();
+    document.getElementById('notes-save-status').textContent = 'saved';
+  }, 800);
+}
+function notesUpdateCount() {
+  const ta = document.getElementById('notes-ta');
+  const words = ta.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('notes-word-count').textContent = words + ' word' + (words===1?'':'s');
+}
+notesRender();
+studentsRender();
+
+/* ══════════════════════ TOOLS ══════════════════════ */
+const TOOLS_DATA = [
+  // READING
+  { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
+  // WRITING
+  { id:'sentence-builder', name:'Sentence Builder', desc:'Drag scrambled words into the correct order to form a grammatically correct sentence. Works for any level.', tags:['Writing','Grammar'], badge:null, icon:'🧩', group:'writing', url:'games/sentence-builder.html' },
+  { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules — useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
+  // SPEAKING
+  { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic — students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
+  // VOCABULARY
+  { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap — Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
+  { id:'hangman', name:'Hangman', desc:'Classic word-guessing game. Configurable word lists by level and topic.', tags:['Vocabulary'], badge:null, icon:'🪢', group:'vocabulary', url:'games/hangman.html' },
+  { id:'memory-match', name:'Memory Match', desc:'Pair word ↔ image (or word ↔ definition) cards. Fun warm-up that boosts retention.', tags:['Vocabulary'], badge:null, icon:'🧠', group:'vocabulary', url:'games/memory-match.html' },
+  { id:'phrasal-verbs', name:'Phrasal Verbs', desc:'Match phrasal verbs to meanings or fill them into sentences. Covers the core B1/B2 set.', tags:['Vocabulary'], badge:null, icon:'🔗', group:'vocabulary', url:'games/phrasal-verbs.html' },
+  { id:'spelling-bee', name:'Spelling Bee', desc:'Type the word you hear. Pronunciation + spelling combined.', tags:['Vocabulary'], badge:null, icon:'🐝', group:'vocabulary', url:'games/spelling-bee.html' },
+  { id:'synonym-snap', name:'Synonym Snap', desc:'Tap pairs that share a meaning. Fast-paced synonym recognition drill.', tags:['Vocabulary'], badge:null, icon:'⚡', group:'vocabulary', url:'games/synonym-snap.html' },
+  { id:'typing-rain', name:'Typing Rain', desc:'Words fall from the top — type them before they hit the ground. Builds typing speed + recall.', tags:['Vocabulary'], badge:null, icon:'🌧️', group:'vocabulary', url:'games/typing-rain.html' },
+  { id:'word-categories', name:'Word Categories', desc:'Sort words into the right category (food, animals, jobs, etc.). Great for theme-based vocab.', tags:['Vocabulary'], badge:null, icon:'🗂️', group:'vocabulary', url:'games/word-categories.html' },
+  { id:'word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible — load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
+  { id:'word-scramble', name:'Word Scramble', desc:'Unscramble the letters to find the hidden word. Quick and addictive.', tags:['Vocabulary'], badge:null, icon:'🔤', group:'vocabulary', url:'games/word-scramble.html' },
+  // GRAMMAR
+  { id:'article-rush', name:'Article Rush', desc:'Tap a / an / the / Ø as fast as possible. Drill articles for Slavic learners.', tags:['Grammar'], badge:null, icon:'⏱️', group:'grammar', url:'games/article-rush.html' },
+  { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2–C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
+  { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap — at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
+  { id:'tense-picker', name:'Tense Picker', desc:'Choose the correct tense for the context. Covers all 12 tenses with timeline hints.', tags:['Grammar'], badge:null, icon:'⏳', group:'grammar', url:'games/tense-picker.html' },
+  // UTILITY
+  { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz — generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
+];
+
+const TAG_COLORS = {
+  Reading:    { bg:'rgba(96,165,250,.12)',    color:'#60a5fa' },
+  Writing:    { bg:'rgba(110,201,138,.12)',   color:'#6ec98a' },
+  Listening:  { bg:'rgba(245,158,11,.12)',    color:'#f59e0b' },
+  Speaking:   { bg:'rgba(167,139,250,.12)',   color:'#a78bfa' },
+  Vocabulary: { bg:'rgba(202,201,183,.18)',   color:'#9F8CE8' },
+  Grammar:    { bg:'rgba(248,113,113,.12)',   color:'#f87171' },
+  Utility:    { bg:'rgba(156,163,175,.12)',   color:'#9ca3af' },
+  New:        { bg:'rgba(110,201,138,.18)',   color:'#6ec98a' },
+  Pro:        { bg:'rgba(202,201,183,.22)',   color:'#9F8CE8' },
+};
+
+let activeToolGroup = 'all';
+
+function toolsFilter(group, el) {
+  document.querySelectorAll('#win-tools .sb-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  activeToolGroup = group;
+  toolsRender();
+}
+
+function toolsRender() {
+  const filtered = activeToolGroup === 'all'
+    ? TOOLS_DATA
+    : TOOLS_DATA.filter(t => t.group === activeToolGroup);
+
+  const seen = new Set();
+  const unique = filtered.filter(t => {
+    if (seen.has(t.id)) return false;
+    seen.add(t.id); return true;
+  });
+
+  document.getElementById('tools-count').textContent = unique.length + ' tool' + (unique.length === 1 ? '' : 's');
+
+  const grid = document.getElementById('tools-grid');
+  grid.innerHTML = unique.map(t => {
+    const tagHtml = t.tags.map(tag => {
+      const c = TAG_COLORS[tag] || {};
+      return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:${c.bg};color:${c.color};">${tag}</span>`;
+    }).join('');
+    const badgeHtml = t.badge ? (() => {
+      const c = TAG_COLORS[t.badge] || {};
+      return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
+    })() : '';
+    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(94,94,74,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(94,94,74,0.09)';this.style.borderColor='rgba(202,201,183,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(94,94,74,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+        <div style="font-size:22px;flex-shrink:0;line-height:1;">${t.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px;">${t.name}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${tagHtml}${badgeHtml}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-3);line-height:1.65;">${t.desc}</div>
+      <div style="margin-top:12px;font-size:11px;font-family:var(--font-mono);color:var(--accent);display:flex;align-items:center;gap:4px;">Use tool →</div>
+    </div>`;
+  }).join('');
+}
+
+function toolOpen(id) {
+  const t = TOOLS_DATA.find(x => x.id === id);
+  if (!t || !t.url) return;
+  window.open(t.url, '_blank', 'noopener');
+}
+
+function updateToolSidebarCounts() {
+  const counts = { all: TOOLS_DATA.length };
+  TOOLS_DATA.forEach(t => { counts[t.group] = (counts[t.group] || 0) + 1; });
+  const map = { all:'tg-all', reading:'tg-reading', writing:'tg-writing',
+                speaking:'tg-speaking', vocabulary:'tg-vocabulary', grammar:'tg-grammar', utility:'tg-utility' };
+  Object.entries(map).forEach(([g, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const badge = el.querySelector('.sb-item-badge');
+    if (badge) badge.textContent = counts[g] || 0;
+    if (!counts[g] && g !== 'all') el.style.display = 'none';
+  });
+}
+
+updateToolSidebarCounts();
+toolsRender();
+
+/* ══════════════════════ SPOTLIGHT ══════════════════════ */
+const SP_ITEMS = [
+  // Windows
+  { icon:'📋', iconBg:'linear-gradient(145deg,#9F8CE8,#FF4E00)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
+  { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
+  { icon:'✍️', iconBg:'linear-gradient(145deg,#9F8CE8,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
+  { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open tools library', kbd:'Tools', action:()=>openApp('tools') },
+  { icon:'ℹ️', iconBg:'linear-gradient(145deg,#4ab0c8,#2a7d96)', title:'About TeachedOS', sub:'Version info & credits', kbd:'About', action:()=>openApp('about') },
+  // External pages
+  { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
+  { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
+  { icon:'📊', iconBg:'linear-gradient(145deg,#34d399,#059669)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
+  { icon:'📒', iconBg:'linear-gradient(145deg,#60a5fa,#2563eb)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
+  { icon:'👤', iconBg:'linear-gradient(145deg,#f472b6,#db2777)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
+  // Students quick jump (rebuilt later when STUDENTS loads from API)
+];
+
+function rebuildSpotlightStudents() {
+  while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length-1].kbd === 'Student') SP_ITEMS.pop();
+  STUDENTS.forEach(s => SP_ITEMS.push({
+    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(255,78,0,0.10)',
+    title: s.name, sub: s.email || '',
+    kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
+  }));
+}
+
+function rebuildSpotlightBoards() {
+  // Remove old Board entries, re-add from MY_BOARDS
+  let i = SP_ITEMS.length - 1;
+  while (i >= 0 && SP_ITEMS[i].kbd === 'Board') SP_ITEMS.splice(i--, 1);
+  (MY_BOARDS || []).slice(0, 12).forEach(b => SP_ITEMS.push({
+    icon: '📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)',
+    title: b.name || 'Untitled Board',
+    sub: 'Open board · ' + (b.card_count || 0) + ' cards',
+    kbd:'Board',
+    action: () => location.href = 'board.html?id=' + b.id
+  }));
+}
+
+let spSelectedIdx = -1;
+
+function openSpotlight() {
+  const ov = document.getElementById('spotlight-overlay');
+  ov.classList.add('open');
+  const inp = document.getElementById('spotlight-input');
+  inp.value = '';
+  spSelectedIdx = -1;
+  spotlightSearch();
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closeSpotlight(e) {
+  if (!e || e.target === document.getElementById('spotlight-overlay')) {
+    document.getElementById('spotlight-overlay').classList.remove('open');
+  }
+}
+
+function spotlightSearch() {
+  const q = document.getElementById('spotlight-input').value.toLowerCase().trim();
+  const res = document.getElementById('spotlight-results');
+  const filtered = q ? SP_ITEMS.filter(i =>
+    i.title.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q)
+  ) : SP_ITEMS.slice(0, 8);
+
+  if (!filtered.length) {
+    res.innerHTML = `<div id="spotlight-empty">No results for "<strong>${q}</strong>"</div>`;
+    return;
+  }
+
+  // Group into categories
+  const windows = filtered.filter(i => ['Plans','Students','Schedule','Notes','Tools','About'].some(k=>i.kbd===k));
+  const pages   = filtered.filter(i => i.kbd === '⌘');
+  const students = filtered.filter(i => i.kbd === 'Student');
+  const boards  = filtered.filter(i => i.kbd === 'Board');
+
+  let html = '';
+  const renderGroup = (label, items) => {
+    if (!items.length) return;
+    html += `<div class="sp-section-hd">${label}</div>`;
+    items.forEach((item, idx) => {
+      const globalIdx = filtered.indexOf(item);
+      html += `<div class="sp-result${globalIdx===spSelectedIdx?' selected':''}" onclick="spRun(${SP_ITEMS.indexOf(item)})">
+        <div class="sp-result-icon" style="background:${item.iconBg};">${item.icon}</div>
+        <div class="sp-result-text">
+          <div class="sp-result-title">${item.title}</div>
+          <div class="sp-result-sub">${item.sub}</div>
+        </div>
+        <div class="sp-result-kbd">${item.kbd==='⌘'||item.kbd==='Student'?'↗':'↩'}</div>
+      </div>`;
+    });
+  };
+
+  if (q) {
+    renderGroup('Results', filtered);
+  } else {
+    renderGroup('Windows', windows);
+    renderGroup('Pages', pages);
+    renderGroup('Students', students);
+    renderGroup('Boards', boards);
+  }
+  res.innerHTML = html;
+}
+
+function spRun(idx) {
+  SP_ITEMS[idx]?.action();
+  document.getElementById('spotlight-overlay').classList.remove('open');
+}
+
+function spotlightKey(e) {
+  const items = document.querySelectorAll('.sp-result');
+  if (e.key === 'Escape') { closeSpotlight(); e.preventDefault(); }
+  else if (e.key === 'ArrowDown') {
+    spSelectedIdx = Math.min(spSelectedIdx + 1, items.length - 1);
+    spotlightSearch(); e.preventDefault();
+  } else if (e.key === 'ArrowUp') {
+    spSelectedIdx = Math.max(spSelectedIdx - 1, 0);
+    spotlightSearch(); e.preventDefault();
+  } else if (e.key === 'Enter') {
+    const q = document.getElementById('spotlight-input').value.toLowerCase().trim();
+    const filtered = q ? SP_ITEMS.filter(i =>
+      i.title.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q)
+    ) : SP_ITEMS.slice(0, 8);
+    const target = spSelectedIdx >= 0 ? filtered[spSelectedIdx] : filtered[0];
+    if (target) { target.action(); document.getElementById('spotlight-overlay').classList.remove('open'); }
+    e.preventDefault();
+  }
+}
+
+// Keyboard shortcut: Cmd+K / Ctrl+K
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); }
+  if (e.key === 'Escape' && document.getElementById('spotlight-overlay').classList.contains('open')) {
+    closeSpotlight();
+  }
+});
+
+/* ══════════════════════ MOBILE ══════════════════════ */
+function mobToggleSidebar(winId) {
+  const sidebar = document.getElementById('sidebar-' + winId)
+    || document.querySelector('#win-' + winId + ' .win-sidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('mob-open');
+}
+
+function mobInit() {
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    // Close all windows, then open curriculum as default
+    document.querySelectorAll('.win').forEach(w => w.classList.remove('open'));
+    document.querySelectorAll('.di').forEach(d => d.classList.remove('open'));
+    openApp('plans');
+  }
+}
+
+// On mobile, tapping a dock item closes others (single-window mode)
+(function() {
+  const isMob = () => window.matchMedia('(max-width: 768px)').matches;
+  document.querySelectorAll('.di').forEach(di => {
+    di.addEventListener('click', () => {
+      if (!isMob()) return;
+      document.querySelectorAll('.win').forEach(w => w.classList.remove('open'));
+      document.querySelectorAll('.di').forEach(d => d.classList.remove('open'));
+    }, true); // capture phase — fires before openApp
+  });
+})();
+
+mobInit();
+</script>
+<script>
+/* ════════════════════════════════════════════════════
+   AUTH + ROLE ROUTING
+   ════════════════════════════════════════════════════ */
+const API_BASE = 'https://teachedos-api.onrender.com';
+let _authToken = localStorage.getItem('teachedos_token');
+let _currentUser = null;
+
+async function checkAuthAndRoute() {
+  if (!_authToken) {
+    showAuthOverlay();
+    return;
+  }
+  try {
+    const r = await fetch(API_BASE + '/api/auth/me', {
+      headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    if (!r.ok) { showAuthOverlay(); return; }
+    const { user } = await r.json();
+    _currentUser = user;
+
+    // Role routing
+    if (user.role === 'student') {
+      location.href = 'student.html';
+      return;
+    }
+
+    // Teacher / Admin: show desktop + update UI
+    applyUserToDesktop(user);
+    if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
+
+  } catch {
+    // Offline or network error — show desktop anyway if token exists
+    applyUserToDesktop({ name: 'Teacher', avatar: '🧑‍🏫', role: 'teacher' });
+  }
+}
+
+function applyUserToDesktop(user) {
+  // Update any user-displaying elements
+  const nameEls = document.querySelectorAll('.user-display-name');
+  nameEls.forEach(el => el.textContent = user.name.split(' ')[0]);
+  const avatarEls = document.querySelectorAll('.user-display-avatar');
+  avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
+  // Show admin badge if admin
+  if (user.role === 'admin') {
+    const badge = document.createElement('div');
+    badge.style.cssText = 'position:fixed;bottom:12px;right:16px;background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;z-index:9999;cursor:pointer;font-family:monospace;';
+    badge.textContent = '⚡ Admin';
+    badge.onclick = () => location.href = 'admin.html';
+    document.body.appendChild(badge);
+  }
+  // Show plan badge in menubar
+  const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
+  const planBadge = document.getElementById('mb-plan-badge') || (() => {
+    const b = document.createElement('span');
+    b.id = 'mb-plan-badge';
+    b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+    b.onclick = () => openApp('billing');
+    const mbRight = document.querySelector('.mb-right');
+    if (mbRight) mbRight.prepend(b);
+    return b;
+  })();
+  const plan = user.plan || 'free';
+  planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
+  planBadge.style.background = plan === 'free' ? '#f3f4f6' : plan === 'pro' ? '#ede9fe' : '#d1fae5';
+  planBadge.style.color = planColors[plan] || '#6b7280';
+  // Load calls + billing data
+  renderCallRooms();
+  renderCallsToday();
+  loadBillingData();
+}
+
+function showAuthOverlay() {
+  let overlay = document.getElementById('os-auth-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'os-auth-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,10,20,.65);backdrop-filter:blur(16px);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:22px;padding:36px 32px 28px;width:100%;max-width:400px;box-shadow:0 28px 80px rgba(0,0,0,.22);position:relative;">
+        <div style="text-align:center;margin-bottom:26px;">
+          <div style="font-size:2.6rem;line-height:1;margin-bottom:10px;">🏫</div>
+          <div style="font-size:1.4rem;font-weight:900;color:#1C0A14;letter-spacing:-.03em;">Teached<em style="color:#FF4E00;font-style:normal;">OS</em></div>
+          <div id="os-auth-sub" style="font-size:.85rem;color:#B07090;margin-top:5px;">Sign in to continue</div>
+        </div>
+        <div id="os-auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+        <!-- Role picker (register only) -->
+        <div id="os-role-row" style="display:none;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:700;color:#B07090;font-family:monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:12px 8px;border-radius:12px;border:2px solid #FF4E00;background:rgba(255,78,0,.07);cursor:pointer;text-align:center;transition:.15s;">
+              <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
+              <div style="font-size:12px;font-weight:800;color:#1C0A14;">Teacher</div>
+              <div style="font-size:10px;color:#B07090;margin-top:2px;">Create &amp; manage</div>
+            </div>
+            <div id="role-student" onclick="selectOsRole('student')" style="padding:12px 8px;border-radius:12px;border:2px solid rgba(94,94,74,.14);background:#fafafa;cursor:pointer;text-align:center;transition:.15s;">
+              <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🎓</div>
+              <div style="font-size:12px;font-weight:800;color:#1C0A14;">Student</div>
+              <div style="font-size:10px;color:#B07090;margin-top:2px;">Learn &amp; progress</div>
+            </div>
+          </div>
+        </div>
+        <div id="os-auth-fields"></div>
+        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:#FF4E00;color:#fff;font-family:Nunito,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
+        <div style="text-align:center;margin-top:14px;font-size:.85rem;color:#B07090;">
+          <span id="os-toggle-text">Don't have an account?</span>
+          <span onclick="toggleOsAuth()" style="color:#FF4E00;font-weight:700;cursor:pointer;margin-left:4px;" id="os-toggle-link">Register</span>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    renderOsAuthFields();
+  }
+  overlay.style.display = 'flex';
+}
+
+let _osAuthMode = 'login';
+let _osRole = 'teacher';
+
+function selectOsRole(role) {
+  _osRole = role;
+  const t = document.getElementById('role-teacher');
+  const s = document.getElementById('role-student');
+  if (t && s) {
+    t.style.borderColor = role==='teacher'?'#FF4E00':'rgba(94,94,74,.14)';
+    t.style.background  = role==='teacher'?'rgba(255,78,0,.07)':'#fafafa';
+    s.style.borderColor = role==='student'?'#FF4E00':'rgba(94,94,74,.14)';
+    s.style.background  = role==='student'?'rgba(255,78,0,.07)':'#fafafa';
+  }
+}
+
+function renderOsAuthFields() {
+  const isLogin = _osAuthMode === 'login';
+  const sub = document.getElementById('os-auth-sub');
+  const btn = document.getElementById('os-auth-btn');
+  const roleRow = document.getElementById('os-role-row');
+  const togText = document.getElementById('os-toggle-text');
+  const togLink = document.getElementById('os-toggle-link');
+  if (sub) sub.textContent = isLogin ? 'Sign in to your workspace' : 'Create your account';
+  if (btn) btn.textContent = isLogin ? 'Sign in' : 'Create account';
+  if (roleRow) roleRow.style.display = isLogin ? 'none' : 'block';
+  if (togText) togText.textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+  if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
+  const f = document.getElementById('os-auth-fields');
+  if (!f) return;
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:11px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4E00'" onblur="this.style.borderColor='#eee'">` : '') +
+    `<input id="os-af-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:11px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4E00'" onblur="this.style.borderColor='#eee'">
+     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C0A14;outline:none;margin-bottom:4px;transition:border-color .15s;" onfocus="this.style.borderColor='#FF4E00'" onblur="this.style.borderColor='#eee'">`;
+  f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
+}
+
+function toggleOsAuth() {
+  _osAuthMode = _osAuthMode === 'login' ? 'register' : 'login';
+  document.getElementById('os-auth-err').style.display='none';
+  renderOsAuthFields();
+}
+
+async function submitOsAuth() {
+  const email = document.getElementById('os-af-email')?.value.trim();
+  const pass  = document.getElementById('os-af-pass')?.value;
+  const name  = document.getElementById('os-af-name')?.value?.trim();
+  const errEl = document.getElementById('os-auth-err');
+  const btn   = document.getElementById('os-auth-btn');
+  if (!email || !pass) return;
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const endpoint = _osAuthMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+    const body = _osAuthMode === 'login' ? {email,password:pass} : {email,password:pass,name,role:_osRole};
+    const r = await fetch(API_BASE + endpoint, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error||'Error');
+    _authToken = d.token;
+    localStorage.setItem('teachedos_token', _authToken);
+    _currentUser = d.user;
+    document.getElementById('os-auth-overlay').style.display = 'none';
+    if (d.user.role === 'student') { location.href = 'student.html'; return; }
+    applyUserToDesktop(d.user);
+  } catch(err) {
+    errEl.textContent = err.message; errEl.style.display='block';
+  } finally {
+    btn.disabled = false; btn.textContent = _osAuthMode==='login'?'Sign in':'Create account';
+  }
+}
+
+// Run on load
+checkAuthAndRoute();
+
+/* ════════════════════════════════════════════════════
+   LIVE WIDGETS (teacher/admin only — students are redirected above)
+   ════════════════════════════════════════════════════ */
+(function() {
+  const API = 'https://teachedos-api.onrender.com';
+  const token = localStorage.getItem('teachedos_token');
+  if (!token) return;
+  const auth = { headers: { Authorization: 'Bearer ' + token } };
+
+  fetch(API + '/api/auth/me', auth).then(r => r.json()).then(d => {
+    if (!d.user) return;
+    // Students are handled by checkAuthAndRoute — skip widget wiring for them
+    if (d.user.role === 'student') return;
+    const chip = document.getElementById('desktop-user-chip');
+    if (chip) {
+      chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
+      chip.style.display = 'flex';
+    }
+    const wgClockLang = document.querySelector('.wg-clock-lang');
+    if (wgClockLang) wgClockLang.innerHTML = `${d.user.avatar || '🧑‍🏫'} ${d.user.name.split(' ')[0]}`;
+  }).catch(() => {});
+
+  // Today's classes from schedule
+  fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
+    const today = new Date().getDay();
+    const all = d.schedule || [];
+    if (typeof SCHEDULE_RAW !== 'undefined') {
+      SCHEDULE_RAW = all;
+      if (typeof schRender === 'function') schRender();
+    }
+    const todays = all.filter(s => s.day === today).sort((a,b) => a.start_time.localeCompare(b.start_time));
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const toMin = t => { const [h,m] = t.split(':'); return +h * 60 + +m; };
+    const done = todays.filter(s => toMin(s.end_time) <= nowMin).length;
+    const upcoming = todays.filter(s => toMin(s.start_time) >= nowMin);
+    const next = upcoming[0];
+
+    // Streak widget
+    const streakN = document.querySelector('#wg-streak .wg-streak-n');
+    const streakLabel = document.querySelector('#wg-streak .wg-streak-label');
+    const streakSub = document.querySelector('#wg-streak .wg-streak-sub');
+    if (streakN) streakN.textContent = todays.length;
+    if (streakLabel) streakLabel.textContent = todays.length === 1 ? 'Class today' : 'Classes today';
+    if (streakSub) {
+      if (!todays.length) streakSub.innerHTML = `Nothing scheduled today<br><a href="schedule.html" style="color:var(--accent);">Add class →</a>`;
+      else if (next) streakSub.innerHTML = `${done} done · ${upcoming.length} upcoming<br>Next: <span style="color:var(--accent)">${next.group_name || next.title} ${next.start_time.slice(0,5)}</span>`;
+      else streakSub.innerHTML = `All ${todays.length} done — great job!`;
+    }
+
+    // Today widget — show next class
+    const todayLabel = document.querySelector('#wg-today .wg-today-label');
+    const todayTitle = document.querySelector('#wg-today .wg-today-title');
+    const todayMeta = document.querySelector('#wg-today .wg-today-meta');
+    const todayBadge = document.querySelector('#wg-today .wg-today-badge');
+    if (next) {
+      if (todayLabel) todayLabel.textContent = 'Next class';
+      if (todayTitle) todayTitle.innerHTML = next.title.replace(/^([^:]+:)/, '$1<br>');
+      if (todayMeta) todayMeta.innerHTML = `<span>👥 ${next.group_name || '—'}</span><span>·</span><span>${next.level || ''}</span>`;
+      const dur = toMin(next.end_time) - toMin(next.start_time);
+      if (todayBadge) todayBadge.textContent = `🕐 ${next.start_time.slice(0,5)} · ${dur} min`;
+    } else {
+      if (todayLabel) todayLabel.textContent = 'Schedule';
+      if (todayTitle) todayTitle.innerHTML = todays.length ? 'All done<br><em style="font-style:normal;color:var(--accent)">for today</em>' : 'Nothing<br><em style="font-style:normal;color:var(--accent)">scheduled today</em>';
+      if (todayMeta) todayMeta.innerHTML = `<a href="schedule.html" style="color:var(--accent);text-decoration:none;">Open schedule →</a>`;
+      if (todayBadge) todayBadge.textContent = '';
+    }
+  }).catch(() => {});
+
+  // Boards: vocab widget + Lesson Plans grid + students aggregation
+  fetch(API + '/api/boards', auth).then(r => r.json()).then(d => {
+    const boards = d.boards || [];
+    if (typeof MY_BOARDS !== 'undefined') {
+      MY_BOARDS = boards;
+      if (typeof boardsRender === 'function') boardsRender();
+      if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
+    }
+    // Aggregate students from all boards' members
+    const memberFetches = boards.slice(0, 20).map(b =>
+      fetch(API + `/api/members/${b.id}`, auth).then(r => r.ok ? r.json() : { members: [] }).catch(() => ({ members: [] }))
+    );
+    Promise.all(memberFetches).then(results => {
+      const seen = new Map();
+      results.forEach(r => (r.members || []).forEach(m => {
+        if (!seen.has(m.id)) seen.set(m.id, { ...m, boardCount: 1 });
+        else seen.get(m.id).boardCount++;
+      }));
+      if (typeof STUDENTS !== 'undefined') {
+        STUDENTS = Array.from(seen.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        if (typeof studentsRender === 'function') studentsRender();
+        if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
+        if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+      }
+    });
+    const v = {
+      label: document.querySelector('#wg-vocab .wg-vocab-label'),
+      n:     document.querySelector('#wg-vocab .wg-vocab-word'),
+      lang:  document.querySelector('#wg-vocab .wg-vocab-lang'),
+      trans: document.querySelector('#wg-vocab .wg-vocab-trans'),
+      ex:    document.querySelector('#wg-vocab .wg-vocab-ex'),
+      btn:   document.querySelector('#wg-vocab .wg-vocab-next'),
+    };
+    if (v.label) v.label.textContent = 'My boards';
+    if (v.n)     v.n.textContent = boards.length;
+    if (v.lang)  v.lang.textContent = boards.length === 1 ? 'visual board' : 'visual boards';
+    const totalCards = boards.reduce((s, b) => s + (b.card_count || 0), 0);
+    if (v.trans) v.trans.textContent = totalCards ? `${totalCards} cards total` : 'No cards yet';
+    if (v.ex) {
+      const recent = boards.slice(0, 3).map(b => b.name).join(' · ') || 'Nothing yet';
+      v.ex.innerHTML = recent;
+    }
+    if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
+  }).catch(() => {});
+
+  // Shared boards
+  fetch(API + '/api/members/my/boards', auth).then(r => r.ok ? r.json() : { boards: [] }).then(d => {
+    if (typeof SHARED_BOARDS !== 'undefined') {
+      SHARED_BOARDS = d.boards || [];
+      if (typeof boardsRender === 'function') boardsRender();
+    }
+  }).catch(() => {});
+})();
+</script>
+
+<script>
+/* ════════════ CALLS ════════════ */
+let _selectedBillingPlan = null;
+
+function startGoogleMeet() {
+  if (_currentUser && _currentUser.meeting_url) window.open(_currentUser.meeting_url, '_blank');
+  else window.open('https://meet.google.com/new', '_blank');
+}
+function startZoom() {
+  if (_currentUser && _currentUser.zoom_url) window.open(_currentUser.zoom_url, '_blank');
+  else window.open('https://zoom.us/start/videomeeting', '_blank');
+}
+
+function renderCallRooms() {
+  const el = document.getElementById('calls-rooms');
+  if (!el) return;
+  const rooms = [];
+  if (_currentUser && _currentUser.meeting_url) rooms.push({ label:'Google Meet room', url: _currentUser.meeting_url, color:'#34a853' });
+  if (_currentUser && _currentUser.zoom_url) rooms.push({ label:'Zoom room', url: _currentUser.zoom_url, color:'#2d8cff' });
+  if (!rooms.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No saved rooms yet — add below.</div>'; return; }
+  el.innerHTML = rooms.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border);">
+      <span style="width:10px;height:10px;border-radius:50%;background:${r.color};flex-shrink:0;"></span>
+      <span style="font-size:12px;font-weight:700;color:var(--text-2);flex:1;">${r.label}</span>
+      <a href="${r.url}" target="_blank" style="font-size:12px;color:var(--accent);font-weight:700;text-decoration:none;">Open →</a>
+      <button onclick="goLiveWith('${r.url}')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:800;cursor:pointer;">🔴 Go Live</button>
+    </div>`).join('');
+  const meetInput = document.getElementById('calls-meet-url');
+  const zoomInput = document.getElementById('calls-zoom-url');
+  if (_currentUser && _currentUser.meeting_url && meetInput) meetInput.value = _currentUser.meeting_url;
+  if (_currentUser && _currentUser.zoom_url && zoomInput) zoomInput.value = _currentUser.zoom_url;
+}
+
+async function saveCallRooms() {
+  const meetInput = document.getElementById('calls-meet-url');
+  const zoomInput = document.getElementById('calls-zoom-url');
+  const meeting_url = meetInput ? meetInput.value.trim() : '';
+  const zoom_url = zoomInput ? zoomInput.value.trim() : '';
+  try {
+    const r = await fetch(API_BASE + '/api/auth/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ meeting_url, zoom_url })
+    });
+    const d = await r.json();
+    if (r.ok && d.user) {
+      _currentUser = d.user;
+      try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
+      renderCallRooms();
+      showOsToast('Rooms saved ✓');
+    } else {
+      showOsToast(d.error || 'Error saving');
+    }
+  } catch { showOsToast('Error saving'); }
+}
+
+function renderCallsToday() {
+  const el = document.getElementById('calls-today-list');
+  if (!el) return;
+  if (!SCHEDULE_RAW || !SCHEDULE_RAW.length) {
+    el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No classes today.</div>';
+    return;
+  }
+  const today = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+  const todaySlots = SCHEDULE_RAW.filter(s => s.day === today);
+  if (!todaySlots.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No classes today.</div>'; return; }
+  el.innerHTML = todaySlots.map(s => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:${s.is_live ? 'rgba(239,68,68,.05)' : 'var(--bg)'};border:1px solid ${s.is_live ? 'rgba(239,68,68,.3)' : 'var(--border)'};">
+      ${s.is_live ? '<span style="width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;flex-shrink:0;"></span>' : '<span style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;"></span>'}
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text);">${s.title || 'Class'} <span style="font-weight:400;color:var(--text-3);">${s.start_time || ''}</span></span>
+      <button onclick="toggleLive(${JSON.stringify(s.id)}, ${!s.is_live})" style="padding:4px 10px;border-radius:7px;border:1.5px solid ${s.is_live ? '#ef4444' : 'var(--accent)'};background:transparent;color:${s.is_live ? '#ef4444' : 'var(--accent)'};font-size:11px;font-weight:800;cursor:pointer;">${s.is_live ? '⏹ End' : '🔴 Go Live'}</button>
+    </div>`).join('');
+}
+
+async function toggleLive(slotId, goLive) {
+  const meeting_url = (_currentUser && _currentUser.meeting_url) ? _currentUser.meeting_url : '';
+  try {
+    const r = await fetch(API_BASE + '/api/schedule/' + slotId + '/live', {
+      method: 'PATCH',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ is_live: goLive, meeting_url })
+    });
+    if (r.ok) {
+      const slot = SCHEDULE_RAW.find(s => s.id === slotId);
+      if (slot) { slot.is_live = goLive; slot.meeting_url = meeting_url; }
+      renderCallsToday();
+      showOsToast(goLive ? '🔴 You are now live!' : 'Session ended');
+    }
+  } catch { showOsToast('Error'); }
+}
+
+function goLiveWith(url) {
+  window.open(url, '_blank');
+}
+
+/* ════════════ BILLING ════════════ */
+
+async function loadBillingData() {
+  if (!_authToken) return;
+  try {
+    const r = await fetch(API_BASE + '/api/billing/usage', {
+      headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    const planNames = { free:'Free', pro:'Teacher Pro 🚀', school:'School 🏫' };
+    const planSubs = {
+      free: '3 boards · 5 students each · Basic',
+      pro: 'Unlimited boards · 30 students · Analytics',
+      school: 'Unlimited everything · Admin · Branding'
+    };
+    const pnEl = document.getElementById('billing-plan-name');
+    const psEl = document.getElementById('billing-plan-sub');
+    if (pnEl) pnEl.textContent = planNames[d.plan] || d.plan;
+    if (psEl) psEl.textContent = planSubs[d.plan] || '';
+    const bLimit = d.limits && d.limits.boards === -1 ? '∞' : (d.limits ? d.limits.boards : '—');
+    const sLimit = d.limits && d.limits.students_per_board === -1 ? '∞' : (d.limits ? d.limits.students_per_board : '—');
+    const ubEl = document.getElementById('usage-boards');
+    const usEl = document.getElementById('usage-students');
+    if (ubEl) ubEl.textContent = d.boards_count + '/' + bLimit;
+    if (usEl) usEl.textContent = d.students_total + ' total';
+    const bPct = (d.limits && d.limits.boards === -1) ? 20 : (d.limits ? Math.min(100, (d.boards_count / d.limits.boards) * 100) : 0);
+    const sPct = (d.limits && d.limits.students_per_board === -1) ? 20 : (d.limits ? Math.min(100, (d.students_total / (d.limits.students_per_board * Math.max(1, d.boards_count))) * 100) : 0);
+    const bbEl = document.getElementById('usage-boards-bar');
+    const sbEl = document.getElementById('usage-students-bar');
+    if (bbEl) { bbEl.style.width = bPct + '%'; bbEl.style.background = bPct > 80 ? '#ef4444' : 'var(--accent)'; }
+    if (sbEl) sbEl.style.width = sPct + '%';
+  } catch {}
+}
+
+function selectBillingPlan(plan) {
+  _selectedBillingPlan = plan;
+  document.querySelectorAll('.billing-plan-card').forEach(c => {
+    c.style.border = c.dataset.plan === plan ? '2px solid var(--accent)' : '2px solid var(--border)';
+    c.style.background = c.dataset.plan === plan ? 'rgba(94,94,74,.05)' : 'var(--bg-card)';
+  });
+  const btn = document.getElementById('billing-upgrade-btn');
+  if (btn) btn.style.display = plan ? '' : 'none';
+}
+
+async function upgradePlan() {
+  if (!_selectedBillingPlan || !_authToken) return;
+  const btn = document.getElementById('billing-upgrade-btn');
+  if (btn) { btn.textContent = 'Processing…'; btn.disabled = true; }
+  try {
+    const r = await fetch(API_BASE + '/api/billing/upgrade', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ plan: _selectedBillingPlan })
+    });
+    const d = await r.json();
+    if (r.ok) {
+      _currentUser = Object.assign({}, _currentUser, { plan: d.plan });
+      try { localStorage.setItem('teachedos_user', JSON.stringify(_currentUser)); } catch {}
+      applyUserToDesktop(_currentUser);
+      loadBillingData();
+      showOsToast('Plan upgraded to ' + d.plan + ' ✓');
+    } else { showOsToast(d.error || 'Error'); }
+  } catch { showOsToast('Error'); }
+  finally { if (btn) { btn.textContent = 'Upgrade now →'; btn.disabled = false; } }
+}
+
+function showOsToast(msg) {
+  let t = document.getElementById('os-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'os-toast';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:Nunito,sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
+}
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+
+<!-- Onboarding Modal -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
+  <div id="onboarding-box" style="background:#fff;border-radius:24px;width:min(480px,92vw);box-shadow:0 32px 100px rgba(0,0,0,.28);overflow:hidden;">
+    <!-- Steps -->
+    <div id="ob-step-1" class="ob-step">
+      <div style="background:linear-gradient(135deg,#FF4E00,#ff8ab4);padding:36px 32px 28px;text-align:center;">
+        <div style="font-size:56px;margin-bottom:12px;">👋</div>
+        <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:8px;">Welcome to TeachedOS!</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
+      </div>
+      <div style="padding:28px 32px;">
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F5EA;border:1.5px solid rgba(255,78,0,.15);">
+            <div style="font-size:28px;">📋</div>
+            <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
+            <div style="font-size:28px;">🎓</div>
+            <div><div style="font-size:14px;font-weight:800;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
+            <div style="font-size:28px;">📅</div>
+            <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
+          </div>
+        </div>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
+      </div>
+    </div>
+
+    <div id="ob-step-2" class="ob-step" style="display:none;">
+      <div style="padding:32px 32px 12px;">
+        <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
+        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+          ${['blank,⬜,Blank Board', 'speaking,🗣️,Speaking Lesson', 'grammar,📐,Grammar Lesson', 'testprep,📝,Test Prep'].map(t => {
+            const [id, icon, name] = t.split(',');
+            return `<div id="ob-tpl-${id}" onclick="obSelectTpl('${id}')"
+              style="padding:14px;border-radius:12px;border:2px solid ${id==='blank'?'#FF4E00':'#e5e7eb'};cursor:pointer;transition:.15s;background:${id==='blank'?'#F5F5EA':'#fafafa'};">
+              <div style="font-size:22px;margin-bottom:4px;">${icon}</div>
+              <div style="font-size:13px;font-weight:700;">${name}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
+          <input id="ob-board-name" type="text" placeholder="My First Board"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
+            onkeydown="if(event.key==='Enter')obCreateBoard()">
+        </div>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
+      </div>
+    </div>
+
+    <div id="ob-step-3" class="ob-step" style="display:none;">
+      <div style="padding:32px 32px 24px;">
+        <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
+        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
+          <input id="ob-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
+          <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _obTpl = 'blank';
+let _obBoardId = null;
+
+function showOnboarding(user) {
+  document.getElementById('onboarding-overlay').style.display = 'flex';
+  document.getElementById('ob-step-1').style.display = '';
+  document.getElementById('ob-step-2').style.display = 'none';
+  document.getElementById('ob-step-3').style.display = 'none';
+}
+
+function obNext(step) {
+  document.querySelectorAll('.ob-step').forEach(el => el.style.display = 'none');
+  document.getElementById('ob-step-' + step).style.display = '';
+}
+
+function obSkipStep(nextStep) {
+  obNext(nextStep);
+}
+
+function obSelectTpl(id) {
+  _obTpl = id;
+  document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
+    const tid = el.id.replace('ob-tpl-','');
+    el.style.borderColor = tid === id ? '#FF4E00' : '#e5e7eb';
+    el.style.background   = tid === id ? '#F5F5EA' : '#fafafa';
+  });
+  const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', testprep:'Test Prep' };
+  const inp = document.getElementById('ob-board-name');
+  if (!inp.value) inp.value = names[id] || '';
+}
+
+async function obCreateBoard() {
+  const name = document.getElementById('ob-board-name').value.trim() || 'My First Board';
+  try {
+    const API = 'https://teachedos-api.onrender.com';
+    const token = localStorage.getItem('teachedos_token');
+    const r = await fetch(API + '/api/boards', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
+      body: JSON.stringify({ name })
+    });
+    const { board } = await r.json();
+    _obBoardId = board.id;
+    obNext(3);
+  } catch {
+    obNext(3);
+  }
+}
+
+async function obSaveAndFinish() {
+  const meet = document.getElementById('ob-meet-url')?.value.trim();
+  const zoom = document.getElementById('ob-zoom-url')?.value.trim();
+  if (meet || zoom) {
+    try {
+      const API = 'https://teachedos-api.onrender.com';
+      const token = localStorage.getItem('teachedos_token');
+      await fetch(API + '/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
+        body: JSON.stringify({ meeting_url: meet || undefined, zoom_url: zoom || undefined })
+      });
+    } catch {}
+  }
+  skipOnboarding();
+  if (_obBoardId) {
+    setTimeout(() => location.href = 'board.html?id=' + _obBoardId, 300);
+  }
+}
+
+function skipOnboarding() {
+  localStorage.setItem('teachedos_onboarded', '1');
+  document.getElementById('onboarding-overlay').style.display = 'none';
+}
+
+document.getElementById('onboarding-overlay').addEventListener('click', function(e) {
+  if (e.target === this) skipOnboarding();
+});
+</script>
+</body>
+</html>

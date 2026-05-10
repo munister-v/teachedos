@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4E00}
+body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.top{display:flex;gap:24px;margin-bottom:16px;font-weight:700;color:#888;font-size:.95rem}
+.top span{color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:500px}
+.tile{aspect-ratio:1;border-radius:14px;cursor:pointer;perspective:600px;position:relative}
+.tile-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .35s}
+.tile.flipped .tile-inner,.tile.matched .tile-inner{transform:rotateY(180deg)}
+.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700;font-size:.78rem;text-align:center;padding:6px;line-height:1.3}
+.back-face{background:linear-gradient(135deg,#FF4E00,#D3F26A);color:#fff;font-size:1.4rem}
+.front-face{background:#fff;border:2.5px solid #eee;color:#333;transform:rotateY(180deg)}
+.tile.matched .front-face{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.msg{margin-top:18px;font-size:1.1rem;font-weight:700;color:var(--accent);min-height:24px;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🧠 Memory Match</h1>
+<p class="subtitle">Match word + definition pairs</p>
+<div class="top"><div>Pairs: <span id="pairs">0</span>/8</div><div>Moves: <span id="moves">0</span></div><div>⏱ <span id="timer">0</span>s</div></div>
+<div class="grid" id="grid"></div>
+<div class="msg" id="msg"></div>
+
+<script>
+const PAIRS=[
+  {w:'curious',d:'eager to know'},
+  {w:'ancient',d:'very old'},
+  {w:'brave',d:'not afraid'},
+  {w:'fragile',d:'easily broken'},
+  {w:'generous',d:'giving freely'},
+  {w:'humble',d:'not proud'},
+  {w:'precise',d:'exact, accurate'},
+  {w:'vivid',d:'bright, clear'},
+  {w:'eager',d:'very willing'},
+  {w:'scarce',d:'hard to find'},
+];
+let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+
+function start(){
+  matched=0;moves=0;timerSec=0;locked=false;
+  document.getElementById('pairs').textContent=0;
+  document.getElementById('moves').textContent=0;
+  document.getElementById('timer').textContent=0;
+  document.getElementById('msg').textContent='';
+  clearInterval(tInt);
+  tInt=setInterval(()=>{timerSec++;document.getElementById('timer').textContent=timerSec;},1000);
+
+  const chosen=shuffle([...PAIRS]).slice(0,8);
+  const cards=[];
+  chosen.forEach(p=>{
+    cards.push({id:p.w,text:p.w,type:'word'});
+    cards.push({id:p.w,text:p.d,type:'def'});
+  });
+  shuffle(cards);
+
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  cards.forEach((c,i)=>{
+    const tile=document.createElement('div');
+    tile.className='tile';
+    tile.dataset.id=c.id;
+    tile.dataset.idx=i;
+    tile.innerHTML=`<div class="tile-inner"><div class="face back-face">🌸</div><div class="face front-face">${c.text}</div></div>`;
+    tile.addEventListener('click',()=>flip(tile));
+    grid.appendChild(tile);
+  });
+}
+
+function flip(tile){
+  if(locked||tile.classList.contains('flipped')||tile.classList.contains('matched'))return;
+  tile.classList.add('flipped');
+  flipped.push(tile);
+  if(flipped.length===2){
+    locked=true;
+    moves++;
+    document.getElementById('moves').textContent=moves;
+    setTimeout(check,700);
+  }
+}
+
+function check(){
+  const [a,b]=flipped;
+  if(a.dataset.id===b.dataset.id){
+    a.classList.add('matched');b.classList.add('matched');
+    matched++;
+    document.getElementById('pairs').textContent=matched;
+    if(matched===8){
+      clearInterval(tInt);
+      document.getElementById('msg').innerHTML=`🎉 Done in ${timerSec}s & ${moves} moves! <button onclick="start()" style="margin-left:12px;padding:6px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
+    }
+  } else {
+    a.classList.remove('flipped');b.classList.remove('flipped');
+  }
+  flipped=[];locked=false;
+}
+
+start();
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spelling Bee</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4E00}
+body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #FF4E0018;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.bee{font-size:3rem;margin-bottom:12px}
+.definition{font-size:1.1rem;font-weight:700;color:#333;min-height:54px;display:flex;align-items:center;justify-content:center;line-height:1.5;margin-bottom:6px;padding:0 8px}
+.translation{font-size:.88rem;color:#bbb;margin-bottom:20px;font-style:italic}
+.letters{font-size:1.6rem;letter-spacing:6px;color:#eee;margin-bottom:16px;font-weight:800;min-height:36px}
+.letters span.revealed{color:#333}
+input{width:100%;padding:12px 16px;border:2.5px solid #eee;border-radius:12px;font-size:1.2rem;font-family:'Nunito',sans-serif;font-weight:700;text-align:center;outline:none;transition:.2s}
+input:focus{border-color:var(--accent)}
+input.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+input.wrong{border-color:#f44336;background:#fff0f0}
+.btn-row{display:flex;gap:10px;margin-top:12px}
+button{flex:1;padding:11px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
+.btn-hint{background:#F5F5EA;color:var(--accent)}
+.btn-skip{background:#f5f5f5;color:#999}
+.feedback{margin-top:14px;font-size:1rem;font-weight:700;min-height:22px}
+.feedback.ok{color:#4caf50}
+.feedback.err{color:#f44336}
+.progress{width:100%;height:5px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🐝 Spelling Bee</h1>
+<p class="subtitle">Type the word from its definition</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/15</div></div>
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="bee">🐝</div>
+  <div class="definition" id="definition"></div>
+  <div class="translation" id="translation"></div>
+  <div class="letters" id="letters"></div>
+  <input id="ans" type="text" placeholder="Spell it..." autocomplete="off" autocorrect="off" spellcheck="false">
+  <div class="btn-row">
+    <button class="btn-hint" onclick="revealLetter()">💡 Letter</button>
+    <button class="btn-skip" onclick="skip()">Skip →</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+<script>
+const WORDS=[
+  {w:'comfortable',d:'feeling physically relaxed and at ease',t:'зручний, комфортний'},
+  {w:'necessary',d:'required; cannot be done without',t:'необхідний'},
+  {w:'receive',d:'to get something that is given or sent',t:'отримувати'},
+  {w:'achieve',d:'to successfully reach a goal',t:'досягати'},
+  {w:'separate',d:'to divide or keep apart',t:'розділяти, окремий'},
+  {w:'definitely',d:'without doubt; certainly',t:'безумовно, точно'},
+  {w:'recommend',d:'to suggest as worth doing or using',t:'рекомендувати'},
+  {w:'embarrass',d:'to make someone feel awkward or ashamed',t:'збентежувати'},
+  {w:'colleague',d:'a person you work with',t:'колега'},
+  {w:'guarantee',d:'a formal promise that something will happen',t:'гарантія'},
+  {w:'accommodate',d:'to provide room or space for someone',t:'розміщувати'},
+  {w:'conscience',d:'inner sense of right and wrong',t:'совість'},
+  {w:'privilege',d:'a special right or advantage',t:'привілей'},
+  {w:'immediately',d:'at once; without delay',t:'негайно'},
+  {w:'approximately',d:'close to but not exactly',t:'приблизно'},
+];
+let q=[],idx=0,score=0,revealed=0,hintsUsed=false;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){q=shuffle([...WORDS]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;nextWord();}
+
+function nextWord(){
+  if(idx>=q.length){endGame();return;}
+  revealed=0;hintsUsed=false;
+  const item=q[idx];
+  document.getElementById('definition').textContent=item.d;
+  document.getElementById('translation').textContent=item.t;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('prog').style.width=((idx/q.length)*100)+'%';
+  document.getElementById('ans').value='';
+  document.getElementById('ans').className='';
+  document.getElementById('feedback').textContent='';
+  renderLetters(item.w,0);
+}
+
+function renderLetters(word,rev){
+  const html=word.split('').map((c,i)=>i<rev?`<span class="revealed">${c}</span>`:'_').join('');
+  document.getElementById('letters').innerHTML=html;
+}
+
+function revealLetter(){
+  const word=q[idx].w;
+  if(revealed>=word.length-1)return;
+  revealed++;hintsUsed=true;
+  renderLetters(word,revealed);
+}
+
+function check(){
+  const val=document.getElementById('ans').value.trim().toLowerCase();
+  const word=q[idx].w;
+  if(val===word){
+    const pts=hintsUsed?1:3;
+    score+=pts;
+    document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
+    document.getElementById('ans').className='correct';
+    document.getElementById('feedback').className='feedback ok';
+    document.getElementById('feedback').textContent='✓ Correct! +'+pts;
+    idx++;setTimeout(nextWord,800);
+  } else if(val.length>=word.length){
+    document.getElementById('ans').className='wrong';
+    document.getElementById('feedback').className='feedback err';
+    document.getElementById('feedback').textContent='✗ Try again';
+    setTimeout(()=>{document.getElementById('ans').className='';document.getElementById('feedback').textContent='';},700);
+  }
+}
+
+function skip(){
+  document.getElementById('feedback').className='feedback err';
+  document.getElementById('feedback').textContent='→ Answer: '+q[idx].w;
+  idx++;setTimeout(nextWord,1000);
+}
+
+function endGame(){
+  document.getElementById('definition').textContent='Game over!';
+  document.getElementById('translation').textContent='';
+  document.getElementById('letters').textContent='';
+  document.getElementById('ans').style.display='none';
+  document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
+  document.getElementById('feedback').className='feedback ok';
+  document.getElementById('feedback').textContent='Score: '+score;
+}
+
+document.getElementById('ans').addEventListener('input',check);
+start();
+</script>
+</body>
+</html>

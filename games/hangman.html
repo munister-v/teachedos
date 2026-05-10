@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hangman</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4E00}
+body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px #FF4E0018;width:100%;max-width:460px;text-align:center}
+.score-row{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.score-row span{color:var(--accent)}
+svg.gallows{width:160px;height:140px}
+.lives{font-size:1.4rem;letter-spacing:4px;margin:8px 0}
+.hint-label{font-size:.82rem;color:#bbb;margin-bottom:6px}
+.word-display{font-size:1.9rem;font-weight:800;letter-spacing:10px;color:#333;margin:14px 0;min-height:44px}
+.keyboard{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.key{width:36px;height:36px;border:none;border-radius:8px;background:#f5f5f5;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
+.key:hover:not(:disabled){background:#ffe0ec;color:var(--accent)}
+.key:disabled{opacity:.3;cursor:default}
+.key.wrong{background:#fdd;color:#e55}
+.key.right{background:#d4f7e0;color:#2e7d32}
+.msg{margin-top:16px;font-size:1.1rem;font-weight:700;min-height:24px;color:var(--accent)}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🎯 Hangman</h1>
+<p class="subtitle">Guess the word — 6 chances</p>
+<div class="card">
+  <div class="score-row"><div>Score: <span id="score">0</span></div><div>Round: <span id="round">1</span></div></div>
+  <svg class="gallows" viewBox="0 0 160 140" id="svg">
+    <line x1="20" y1="135" x2="140" y2="135" stroke="#ddd" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="135" x2="60" y2="10" stroke="#ddd" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="10" x2="110" y2="10" stroke="#ddd" stroke-width="4" stroke-linecap="round"/>
+    <line x1="110" y1="10" x2="110" y2="28" stroke="#ddd" stroke-width="4" stroke-linecap="round"/>
+    <circle id="p0" cx="110" cy="40" r="12" stroke="#FF4E00" stroke-width="3" fill="none" opacity="0"/>
+    <line id="p1" x1="110" y1="52" x2="110" y2="90" stroke="#FF4E00" stroke-width="3" stroke-linecap="round" opacity="0"/>
+    <line id="p2" x1="110" y1="65" x2="88" y2="82" stroke="#FF4E00" stroke-width="3" stroke-linecap="round" opacity="0"/>
+    <line id="p3" x1="110" y1="65" x2="132" y2="82" stroke="#FF4E00" stroke-width="3" stroke-linecap="round" opacity="0"/>
+    <line id="p4" x1="110" y1="90" x2="90" y2="115" stroke="#FF4E00" stroke-width="3" stroke-linecap="round" opacity="0"/>
+    <line id="p5" x1="110" y1="90" x2="130" y2="115" stroke="#FF4E00" stroke-width="3" stroke-linecap="round" opacity="0"/>
+  </svg>
+  <div class="hint-label" id="hint-label"></div>
+  <div class="word-display" id="word-display"></div>
+  <div class="keyboard" id="keyboard"></div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+const WORDS=[
+  {w:'apple',h:'a fruit (яблуко)'},
+  {w:'bridge',h:'crosses water (міст)'},
+  {w:'cloud',h:'in the sky (хмара)'},
+  {w:'dream',h:'you see it at night (сон)'},
+  {w:'earth',h:'our planet (земля)'},
+  {w:'flower',h:'blooms in spring (квітка)'},
+  {w:'garden',h:'where plants grow (сад)'},
+  {w:'health',h:'being well (здоров\'я)'},
+  {w:'island',h:'land in water (острів)'},
+  {w:'jungle',h:'dense tropical forest (джунглі)'},
+  {w:'knight',h:'medieval warrior (лицар)'},
+  {w:'lemon',h:'sour yellow fruit (лимон)'},
+  {w:'mirror',h:'you see yourself (дзеркало)'},
+  {w:'needle',h:'used for sewing (голка)'},
+  {w:'ocean',h:'vast body of water (океан)'},
+];
+const PARTS=['p0','p1','p2','p3','p4','p5'];
+let queue=[],idx=0,score=0,word='',guessed=new Set(),wrong=0;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+
+function start(){
+  queue=shuffle([...WORDS]);
+  idx=0;score=0;
+  document.getElementById('score').textContent=0;
+  nextWord();
+}
+
+function nextWord(){
+  if(idx>=queue.length){idx=0;queue=shuffle([...WORDS]);}
+  const item=queue[idx];
+  word=item.w;
+  guessed=new Set();
+  wrong=0;
+  document.getElementById('hint-label').textContent='💡 '+item.h;
+  document.getElementById('round').textContent=idx+1;
+  document.getElementById('msg').textContent='';
+  PARTS.forEach(id=>document.getElementById(id).style.opacity=0);
+  renderWord();
+  buildKeyboard();
+}
+
+function renderWord(){
+  document.getElementById('word-display').textContent=
+    word.split('').map(c=>guessed.has(c)?c:'_').join(' ');
+}
+
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard');
+  kb.innerHTML='';
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='key';
+    btn.textContent=c.toUpperCase();
+    btn.onclick=()=>guess(c,btn);
+    kb.appendChild(btn);
+  });
+}
+
+function guess(c,btn){
+  if(guessed.has(c))return;
+  guessed.add(c);
+  btn.disabled=true;
+  if(word.includes(c)){
+    btn.classList.add('right');
+    renderWord();
+    if(word.split('').every(ch=>guessed.has(ch))){
+      score+=Math.max(1,6-wrong);
+      document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');
+      document.getElementById('msg').textContent='🎉 Correct! +'+Math.max(1,6-wrong);
+      idx++;
+      setTimeout(nextWord,1200);
+    }
+  } else {
+    btn.classList.add('wrong');
+    document.getElementById('p'+wrong).style.opacity=1;
+    wrong++;
+    if(wrong>=6){
+      document.getElementById('msg').textContent='💀 It was: '+word.toUpperCase();
+      document.getElementById('keyboard').querySelectorAll('.key').forEach(b=>b.disabled=true);
+      idx++;
+      setTimeout(nextWord,1800);
+    }
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key.length===1&&e.key.match(/[a-zA-Z]/)){
+    const c=e.key.toLowerCase();
+    const kb=document.getElementById('keyboard');
+    const btn=[...kb.querySelectorAll('.key')].find(b=>b.textContent===c.toUpperCase());
+    if(btn&&!btn.disabled)guess(c,btn);
+  }
+});
+
+start();
+</script>
+</body>
+</html>

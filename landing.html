@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF4E00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS — The OS for Language Teachers</title>
+<meta name="description" content="A full-featured macOS-style workspace for language teachers. Visual lesson boards, real-time collaboration, gradebook, analytics, student management and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --accent:#FF4E00;--accent2:#9F8CE8;--deep:#D3F26A;
+  --bg:#F5F5EA;--bg2:#EAEADA;--bg3:#CAC9B7;
+  --text:#1C0A14;--text2:#3A3A2E;--text3:#B07090;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --font:'Nunito',ui-sans-serif,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:18px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);color:var(--text);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(20px) saturate(1.6);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 32px;height:58px;gap:0;}
+.nav-logo{font-size:1.15rem;font-weight:900;color:var(--text);letter-spacing:-.03em;margin-right:auto;text-decoration:none;}
+.nav-logo em{color:var(--accent);font-style:normal;}
+.nav-links{display:flex;gap:2px;margin-right:24px;}
+.nav-links a{font-size:.875rem;font-weight:700;color:var(--text2);text-decoration:none;padding:6px 14px;border-radius:9px;transition:.15s;}
+.nav-links a:hover{background:var(--bg2);}
+.nav-cta{display:flex;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:11px;font-family:var(--font);font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;transition:.18s;border:none;}
+.btn-ghost{border:1.5px solid var(--border2);color:var(--text2);background:transparent;}
+.btn-ghost:hover{background:var(--bg2);}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 18px rgba(255,78,0,.32);}
+.btn-primary:hover{background:var(--lime);box-shadow:0 6px 24px rgba(255,78,0,.42);transform:translateY(-1px);}
+.btn-lg{padding:15px 32px;font-size:1.05rem;border-radius:14px;}
+.btn-white{background:#fff;color:var(--accent);box-shadow:0 4px 20px rgba(0,0,0,.12);}
+.btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.16);}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;
+  background:linear-gradient(135deg,#EAEADA 0%,#F5F5EA 45%,#E8E8D8 80%,#FFFFFF 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:120px 24px 80px;text-align:center;position:relative;overflow:hidden;
+}
+.hero-blob{position:absolute;border-radius:50%;pointer-events:none;}
+.hero-blob1{width:700px;height:700px;top:-200px;left:-180px;background:radial-gradient(circle,rgba(255,78,0,.15) 0%,transparent 70%);}
+.hero-blob2{width:500px;height:500px;bottom:-100px;right:-120px;background:radial-gradient(circle,rgba(159,140,232,.13) 0%,transparent 70%);}
+.hero-blob3{width:300px;height:300px;top:40%;left:55%;background:radial-gradient(circle,rgba(255,180,210,.1) 0%,transparent 70%);}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;background:rgba(94,94,74,.1);border:1px solid rgba(255,78,0,.25);font-size:.78rem;font-weight:800;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px;}
+.hero-h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:900;line-height:1.08;letter-spacing:-.04em;max-width:800px;margin:0 auto 20px;}
+.hero-h1 em{font-style:normal;color:var(--accent);}
+.hero-sub{font-size:clamp(1rem,2vw,1.2rem);color:var(--text2);max-width:580px;margin:0 auto 36px;line-height:1.6;font-weight:600;}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px;}
+.hero-stats{display:flex;gap:36px;justify-content:center;flex-wrap:wrap;}
+.stat-item{text-align:center;}
+.stat-n{font-size:1.8rem;font-weight:900;color:var(--text);letter-spacing:-.03em;}
+.stat-l{font-size:.78rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px;}
+
+/* ── MOCKUP ── */
+.hero-mockup{margin:60px auto 0;max-width:900px;width:100%;position:relative;}
+.mockup-frame{background:#fff;border-radius:20px;box-shadow:0 32px 90px rgba(0,0,0,.15),0 0 0 1px rgba(0,0,0,.06);overflow:hidden;}
+.mockup-bar{height:38px;background:linear-gradient(90deg,#f9fafb,#f3f4f6);display:flex;align-items:center;padding:0 14px;gap:7px;border-bottom:1px solid #e5e7eb;}
+.mockup-dot{width:12px;height:12px;border-radius:50%;}
+.mockup-dot.r{background:#ff5f57;}.mockup-dot.y{background:#febc2e;}.mockup-dot.g{background:#28c840;}
+.mockup-title{font-size:12px;font-weight:700;color:#9ca3af;margin:0 auto;}
+.mockup-body{padding:20px;background:linear-gradient(135deg,#EAEADA,#FFFFFF);min-height:340px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.mock-card{background:#fff;border-radius:14px;padding:14px;border:1px solid rgba(94,94,74,.14);box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.mc-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;}
+.mc-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;}
+.mc-meta{font-size:11px;color:var(--text3);margin-top:6px;}
+.mc-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-top:6px;}
+.mc-bar{height:5px;border-radius:3px;background:#f3f4f6;margin-top:8px;overflow:hidden;}
+.mc-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+
+/* ── SECTION COMMON ── */
+section{padding:88px 24px;}
+.section-eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-family:var(--mono);}
+.section-h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:900;letter-spacing:-.03em;line-height:1.12;margin-bottom:16px;}
+.section-h2 em{font-style:normal;color:var(--accent);}
+.section-sub{font-size:1.05rem;color:var(--text2);max-width:560px;line-height:1.65;font-weight:600;}
+.center{text-align:center;display:flex;flex-direction:column;align-items:center;}
+.container{max-width:1080px;margin:0 auto;}
+
+/* ── FEATURES ── */
+#features{background:#fff;}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:52px;}
+.feat-card{padding:26px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;transition:.2s;position:relative;overflow:hidden;}
+.feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(94,94,74,.03),transparent);pointer-events:none;}
+.feat-card:hover{border-color:var(--border2);box-shadow:0 8px 32px rgba(94,94,74,.1);transform:translateY(-3px);}
+.feat-icon{font-size:2rem;line-height:1;margin-bottom:14px;}
+.feat-title{font-size:1.05rem;font-weight:900;color:var(--text);margin-bottom:8px;letter-spacing:-.02em;}
+.feat-desc{font-size:.9rem;color:var(--text2);line-height:1.65;font-weight:600;}
+.feat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.feat-tag{padding:3px 9px;border-radius:8px;font-size:.72rem;font-weight:800;background:rgba(94,94,74,.09);color:var(--accent);}
+
+/* ── HOW IT WORKS ── */
+#how{background:linear-gradient(135deg,#EAEADA 0%,#F5F5EA 100%);}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px;margin-top:52px;position:relative;}
+.steps::before{content:'';position:absolute;top:40px;left:calc(16.7% + 40px);right:calc(16.7% + 40px);height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.3;pointer-events:none;}
+.step{text-align:center;}
+.step-num{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));color:#fff;font-size:1.8rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 24px rgba(255,78,0,.3);}
+.step-title{font-size:1.05rem;font-weight:900;color:var(--text);margin-bottom:8px;}
+.step-desc{font-size:.9rem;color:var(--text2);line-height:1.65;font-weight:600;}
+
+/* ── FEATURE DEEP DIVE ── */
+#deep{background:#fff;}
+.deep-row{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:64px;}
+.deep-row.reverse{direction:rtl;}.deep-row.reverse>*{direction:ltr;}
+.deep-visual{border-radius:20px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 16px 48px rgba(0,0,0,.09);}
+.deep-visual-inner{background:linear-gradient(135deg,#EAEADA,#FFFFFF);padding:24px;min-height:280px;display:flex;flex-direction:column;gap:12px;}
+.deep-text .section-eyebrow{margin-bottom:10px;}
+.deep-text h3{font-size:1.8rem;font-weight:900;letter-spacing:-.03em;line-height:1.15;margin-bottom:14px;}
+.deep-text h3 em{color:var(--accent);font-style:normal;}
+.deep-text p{font-size:.95rem;color:var(--text2);line-height:1.7;font-weight:600;margin-bottom:18px;}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--text2);font-weight:700;}
+.feature-list li::before{content:'✓';width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));color:#fff;font-size:.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+/* Board preview mini-cards */
+.mini-board{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mini-card{background:#fff;border-radius:11px;padding:12px;border:1px solid rgba(94,94,74,.14);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.mini-card-h{font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.mini-card-t{font-size:.85rem;font-weight:800;color:var(--text);line-height:1.3;}
+.mini-card-prog{height:4px;border-radius:2px;background:#f3f4f6;margin-top:7px;overflow:hidden;}
+.mini-card-prog div{height:100%;background:var(--accent);border-radius:2px;}
+.mini-badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:.68rem;font-weight:800;margin-top:5px;}
+
+/* Gradebook preview */
+.mini-grade{background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.mini-grade-head{display:grid;grid-template-columns:1fr repeat(3,60px);background:var(--bg);padding:8px 12px;font-size:.7rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;gap:4px;}
+.mini-grade-row{display:grid;grid-template-columns:1fr repeat(3,60px);padding:8px 12px;font-size:.8rem;gap:4px;border-top:1px solid var(--border);align-items:center;}
+.mini-grade-name{font-weight:800;color:var(--text);}
+.mini-grade-score{text-align:center;font-weight:800;}
+.score-a{color:#059669;}.score-b{color:#2563eb;}.score-c{color:#d97706;}
+
+/* Schedule preview */
+.mini-sch{display:flex;flex-direction:column;gap:8px;}
+.mini-sch-item{background:#fff;border-radius:10px;padding:10px 12px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.mini-sch-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.mini-sch-t{font-size:.82rem;font-weight:800;color:var(--text);flex:1;}
+.mini-sch-time{font-size:.75rem;color:var(--text3);font-family:var(--mono);}
+.mini-sch-live{padding:2px 7px;border-radius:6px;background:rgba(239,68,68,.1);color:#ef4444;font-size:.68rem;font-weight:800;}
+
+/* ── PRICING ── */
+#pricing{background:linear-gradient(135deg,#EAEADA 0%,#F5F5EA 100%);}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:52px;max-width:940px;margin-left:auto;margin-right:auto;}
+.plan-card{background:#fff;border-radius:22px;padding:30px;border:2px solid var(--border);position:relative;transition:.2s;}
+.plan-card:hover{border-color:var(--border2);box-shadow:0 12px 40px rgba(94,94,74,.12);}
+.plan-card.popular{border-color:var(--accent);box-shadow:0 0 0 4px rgba(94,94,74,.1);}
+.plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;padding:4px 14px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+.plan-name{font-size:.85rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;font-family:var(--mono);margin-bottom:10px;}
+.plan-price{font-size:2.8rem;font-weight:900;color:var(--text);letter-spacing:-.04em;line-height:1;}
+.plan-price span{font-size:1rem;font-weight:700;color:var(--text3);}
+.plan-per{font-size:.8rem;color:var(--text3);font-weight:700;margin-bottom:24px;margin-top:4px;}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:28px;}
+.plan-features li{display:flex;align-items:flex-start;gap:9px;font-size:.88rem;font-weight:700;color:var(--text2);}
+.plan-features li .chk{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));color:#fff;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.plan-features li .chk.grey{background:#e5e7eb;color:#9ca3af;}
+.plan-btn{width:100%;padding:13px;border-radius:12px;font-family:var(--font);font-weight:800;font-size:.95rem;cursor:pointer;border:none;transition:.18s;}
+.plan-btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(255,78,0,.28);}
+.plan-btn.primary:hover{background:var(--lime);}
+.plan-btn.ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2);}
+.plan-btn.ghost:hover{background:var(--bg2);}
+
+/* ── TESTIMONIALS ── */
+#testimonials{background:#fff;}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:52px;}
+.testi-card{background:var(--bg);border-radius:var(--r);padding:26px;border:1.5px solid var(--border);}
+.testi-stars{color:#f59e0b;font-size:1rem;margin-bottom:14px;letter-spacing:2px;}
+.testi-text{font-size:.93rem;color:var(--text);line-height:1.7;font-weight:700;margin-bottom:18px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:12px;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.testi-name{font-size:.88rem;font-weight:900;color:var(--text);}
+.testi-role{font-size:.78rem;color:var(--text3);font-weight:700;}
+
+/* ── FAQ ── */
+#faq{background:linear-gradient(135deg,#EAEADA 0%,#F5F5EA 100%);}
+.faq-list{max-width:680px;margin:48px auto 0;display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;}
+.faq-q{padding:18px 22px;font-size:.95rem;font-weight:800;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:.15s;}
+.faq-q:hover{background:var(--bg);}
+.faq-arrow{font-size:1.1rem;color:var(--text3);transition:transform .25s;flex-shrink:0;}
+.faq-a{padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;font-size:.9rem;color:var(--text2);line-height:1.7;font-weight:600;}
+.faq-item.open .faq-a{max-height:300px;padding:0 22px 18px;}
+.faq-item.open .faq-arrow{transform:rotate(180deg);}
+
+/* ── CTA BANNER ── */
+#cta{
+  background:linear-gradient(135deg,var(--accent),var(--lime));
+  padding:88px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;
+}
+#cta::before{content:'';position:absolute;width:600px;height:600px;top:-200px;left:-180px;background:rgba(255,255,255,.07);border-radius:50%;pointer-events:none;}
+#cta::after{content:'';position:absolute;width:400px;height:400px;bottom:-150px;right:-100px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none;}
+#cta h2{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:900;letter-spacing:-.03em;margin-bottom:14px;position:relative;}
+#cta p{font-size:1.05rem;opacity:.88;max-width:500px;margin:0 auto 36px;line-height:1.65;font-weight:600;position:relative;}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;}
+
+/* ── FOOTER ── */
+footer{background:var(--text);color:rgba(255,255,255,.7);padding:56px 24px 32px;}
+.footer-inner{max-width:1080px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;margin-bottom:48px;}
+.footer-brand{font-size:1.15rem;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:12px;}
+.footer-brand em{color:var(--accent2);font-style:normal;}
+.footer-desc{font-size:.88rem;line-height:1.7;font-weight:600;max-width:260px;}
+.footer-col h4{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:14px;font-family:var(--mono);}
+.footer-col a{display:block;font-size:.88rem;font-weight:700;color:rgba(255,255,255,.65);text-decoration:none;margin-bottom:8px;transition:.15s;}
+.footer-col a:hover{color:#fff;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.82rem;font-weight:700;}
+.footer-bottom a{color:rgba(255,255,255,.55);text-decoration:none;}
+.footer-bottom a:hover{color:#fff;}
+
+/* ── ANIMATIONS ── */
+@keyframes float-up{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.anim{opacity:0;animation:float-up .6s ease forwards;}
+.anim-delay-1{animation-delay:.1s;}
+.anim-delay-2{animation-delay:.2s;}
+.anim-delay-3{animation-delay:.3s;}
+.anim-delay-4{animation-delay:.4s;}
+.anim-delay-5{animation-delay:.5s;}
+
+/* Intersection observer animate */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .65s ease,transform .65s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .deep-row{grid-template-columns:1fr;gap:32px;}
+  .deep-row.reverse{direction:ltr;}
+  .footer-top{grid-template-columns:1fr 1fr;gap:32px;}
+  .steps::before{display:none;}
+  nav .nav-links{display:none;}
+}
+@media(max-width:600px){
+  .footer-top{grid-template-columns:1fr;}
+  .hero-stats{gap:20px;}
+  .mockup-body{grid-template-columns:1fr;}
+}
+</style>
+<link rel="stylesheet" href="dark.css">
+<script src="theme.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav>
+  <a class="nav-logo" href="landing.html">Teached<em>OS</em></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="nav-cta">
+    <a class="btn btn-ghost" href="index.html">Sign in</a>
+    <a class="btn btn-primary" href="index.html#register">Get started free</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section id="hero">
+  <div class="hero-blob hero-blob1"></div>
+  <div class="hero-blob hero-blob2"></div>
+  <div class="hero-blob hero-blob3"></div>
+
+  <div class="hero-tag anim">✦ Made for language teachers</div>
+  <h1 class="hero-h1 anim anim-delay-1">The <em>OS</em> your classroom deserves.</h1>
+  <p class="hero-sub anim anim-delay-2">Visual lesson boards, real-time collaboration, gradebook, student analytics, live calls — all in one macOS-style workspace. Built by teachers, for teachers.</p>
+  <div class="hero-btns anim anim-delay-3">
+    <a class="btn btn-primary btn-lg" href="index.html#register">Start for free →</a>
+    <a class="btn btn-ghost btn-lg" href="#features">See all features</a>
+  </div>
+  <div class="hero-stats anim anim-delay-4">
+    <div class="stat-item"><div class="stat-n">12+</div><div class="stat-l">Card types</div></div>
+    <div class="stat-item"><div class="stat-n">7</div><div class="stat-l">Themes</div></div>
+    <div class="stat-item"><div class="stat-n">∞</div><div class="stat-l">Boards on Pro</div></div>
+    <div class="stat-item"><div class="stat-n">Real-time</div><div class="stat-l">Collaboration</div></div>
+  </div>
+
+  <div class="hero-mockup anim anim-delay-5">
+    <div class="mockup-frame">
+      <div class="mockup-bar">
+        <div class="mockup-dot r"></div>
+        <div class="mockup-dot y"></div>
+        <div class="mockup-dot g"></div>
+        <span class="mockup-title">📋 Lesson Plans — TeachedOS</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mock-card">
+          <div class="mc-label">📘 Lesson</div>
+          <div class="mc-title">Articles: a, an, the</div>
+          <div class="mc-meta">👥 Group B · B1 · 60 min</div>
+          <span class="mc-tag" style="background:rgba(34,197,94,.12);color:#16a34a;">✓ Complete</span>
+          <div class="mc-bar"><div class="mc-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="mock-card">
+          <div class="mc-label">📝 Assignment</div>
+          <div class="mc-title">Gap-fill: Prepositions of time</div>
+          <div class="mc-meta">⏱ 20 min · 12 questions · 24 pts</div>
+          <span class="mc-tag" style="background:rgba(94,94,74,.1);color:var(--accent);">In progress</span>
+          <div class="mc-bar"><div class="mc-bar-fill" style="width:60%"></div></div>
+        </div>
+        <div class="mock-card">
+          <div class="mc-label">📅 Schedule</div>
+          <div class="mc-title">Group A — Today 14:00</div>
+          <div class="mc-meta">📍 Room 301 · Phrasal Verbs</div>
+          <span class="mc-tag" style="background:rgba(239,68,68,.1);color:#ef4444;">🔴 Live</span>
+        </div>
+        <div class="mock-card">
+          <div class="mc-label">🏆 Milestone</div>
+          <div class="mc-title">B2 Speaking Test</div>
+          <div class="mc-meta">📅 Due: 15 May · 5 students</div>
+          <div class="mc-bar"><div class="mc-bar-fill" style="width:40%"></div></div>
+        </div>
+        <div class="mock-card">
+          <div class="mc-label">📊 Analytics</div>
+          <div class="mc-title">Group B progress</div>
+          <div class="mc-meta">Avg score: 78% · 6 lessons done</div>
+          <span class="mc-tag" style="background:rgba(99,102,241,.1);color:#6366f1;">↑ +12% this week</span>
+        </div>
+        <div class="mock-card">
+          <div class="mc-label">📚 Vocab</div>
+          <div class="mc-title">Phrasal verbs — unit 4</div>
+          <div class="mc-meta">12 words · A2 → B1</div>
+          <span class="mc-tag" style="background:rgba(245,158,11,.1);color:#d97706;">🔁 Review due</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<section id="features">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">Everything you need</div>
+      <h2 class="section-h2">One platform, <em>zero chaos</em></h2>
+      <p class="section-sub">Every tool a language teacher needs — designed to work together beautifully.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon">📌</div>
+        <div class="feat-title">Visual Lesson Boards</div>
+        <div class="feat-desc">A free-form canvas with 12+ card types — lesson plans, assignments, vocab sets, milestones, timers, games, videos, checklists and more. Drag, connect, zoom.</div>
+        <div class="feat-tags"><span class="feat-tag">Sticky notes</span><span class="feat-tag">Lessons</span><span class="feat-tag">Assignments</span><span class="feat-tag">Vocab</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Real-time Collaboration</div>
+        <div class="feat-desc">Students and teachers edit the same board simultaneously over WebSockets. See each other's cursors, get instant updates, and use Follow Me mode for guided walkthroughs.</div>
+        <div class="feat-tags"><span class="feat-tag">Live cursors</span><span class="feat-tag">Follow Me</span><span class="feat-tag">Sync</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">📒</div>
+        <div class="feat-title">Gradebook & Progress</div>
+        <div class="feat-desc">Track every student's assignment scores, lesson completion, and skill progress in a clean gradebook. Export to CSV or view detailed per-student timelines.</div>
+        <div class="feat-tags"><span class="feat-tag">Scores</span><span class="feat-tag">Progress</span><span class="feat-tag">CSV export</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">📅</div>
+        <div class="feat-title">Smart Schedule</div>
+        <div class="feat-desc">Weekly calendar with recurring classes. Attach Google Meet or Zoom links to any slot. Hit "Go Live" to broadcast to students — they see a live banner instantly.</div>
+        <div class="feat-tags"><span class="feat-tag">Recurring</span><span class="feat-tag">Go Live</span><span class="feat-tag">Zoom/Meet</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">📹</div>
+        <div class="feat-title">Video Call Integration</div>
+        <div class="feat-desc">Start a Google Meet or Zoom session in one click from the Calls window. Save your permanent room URLs. Students see a "🔴 Live Now" banner with a direct join link.</div>
+        <div class="feat-tags"><span class="feat-tag">Google Meet</span><span class="feat-tag">Zoom</span><span class="feat-tag">Live banner</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Analytics Dashboard</div>
+        <div class="feat-desc">Visualize class performance over time — completion rates, average scores, lesson streaks, and group comparisons. Filter by date range, group, or skill area.</div>
+        <div class="feat-tags"><span class="feat-tag">Charts</span><span class="feat-tag">Groups</span><span class="feat-tag">Trends</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🏗️</div>
+        <div class="feat-title">Assignment Builder</div>
+        <div class="feat-desc">Build gap-fills, MCQs, true/false, and matching exercises with a drag-and-drop editor. Or generate 300+ ready-made ESL tasks by topic, level, and type — no AI API needed.</div>
+        <div class="feat-tags"><span class="feat-tag">300+ tasks</span><span class="feat-tag">A1–C2</span><span class="feat-tag">Offline</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-title">7 Themes & Customization</div>
+        <div class="feat-desc">Switch between 7 full color themes, pick accent colors, adjust card radius and font scale, set board backgrounds and sidebar width — every detail is yours to control.</div>
+        <div class="feat-tags"><span class="feat-tag">Dark mode</span><span class="feat-tag">Custom colors</span><span class="feat-tag">Compact UI</span></div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">☁️</div>
+        <div class="feat-title">Dual-layer Autosave</div>
+        <div class="feat-desc">Every change saves to localStorage instantly and syncs to the cloud with retry. Version history with 8 auto-snapshots and 5 pinned versions — restore any past state in one click.</div>
+        <div class="feat-tags"><span class="feat-tag">Offline</span><span class="feat-tag">Versions</span><span class="feat-tag">Restore</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+<section id="how">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">Get started in minutes</div>
+      <h2 class="section-h2">From signup to <em>first lesson</em></h2>
+      <p class="section-sub">No complicated setup. No training required. TeachedOS works the way you think.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div class="step-title">Create your workspace</div>
+        <div class="step-desc">Register as a teacher, pick your theme, and you're inside your personal macOS-style desktop in under 60 seconds.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <div class="step-title">Build your first board</div>
+        <div class="step-desc">Open the Board editor, drag cards onto the canvas — lessons, assignments, vocab lists — and arrange them how you think, not how a template tells you.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <div class="step-title">Invite students</div>
+        <div class="step-desc">Share a board link or invite by email. Students join, see their progress, complete assignments, and track scores — all from their own student dashboard.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">4</div>
+        <div class="step-title">Go live & teach</div>
+        <div class="step-desc">Hit Go Live on a schedule slot to broadcast to students. Start a Google Meet or Zoom call from the Calls window. Teach, collaborate, grade — all in one place.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ DEEP DIVE ═══════════════════ -->
+<section id="deep">
+  <div class="container">
+
+    <!-- Board -->
+    <div class="deep-row reveal">
+      <div class="deep-visual">
+        <div class="deep-visual-inner">
+          <div class="mini-board">
+            <div class="mini-card">
+              <div class="mini-card-h">📘 Lesson</div>
+              <div class="mini-card-t">Present Perfect — have/has + V3</div>
+              <span class="mini-badge" style="background:rgba(34,197,94,.12);color:#16a34a;">✓ Done</span>
+              <div class="mini-card-prog"><div style="width:100%;background:var(--accent);height:100%;border-radius:2px;"></div></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-h">📝 Assignment</div>
+              <div class="mini-card-t">Gap-fill: Articles a/an/the</div>
+              <span class="mini-badge" style="background:rgba(94,94,74,.1);color:var(--accent);">In progress</span>
+              <div class="mini-card-prog"><div style="width:65%;background:var(--accent);height:100%;border-radius:2px;"></div></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-h">📚 Vocab set</div>
+              <div class="mini-card-t">Phrasal verbs: come, go, take</div>
+              <span class="mini-badge" style="background:rgba(245,158,11,.1);color:#d97706;">Review due</span>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-h">🏆 Milestone</div>
+              <div class="mini-card-t">Speaking test — Unit 3</div>
+              <span class="mini-badge" style="background:rgba(99,102,241,.1);color:#6366f1;">Upcoming</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="deep-text">
+        <div class="section-eyebrow">Visual boards</div>
+        <h3>Think in <em>space,</em><br>not in rows.</h3>
+        <p>Traditional lesson planners force your thinking into rigid tables. TeachedOS gives you an infinite canvas — place cards where they make sense, connect lessons to assignments with arrows, group by topic or timeline.</p>
+        <ul class="feature-list">
+          <li>12 card types: sticky, lesson, assignment, vocab, milestone, checklist, timer, game, video, image, and more</li>
+          <li>Arrow connections to show prerequisites and learning paths</li>
+          <li>Pan, zoom, snap-to-grid — works on any screen size</li>
+          <li>Ctrl+Z undo history with 50 steps, plus version snapshots</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Gradebook -->
+    <div class="deep-row reverse reveal" style="margin-top:72px;">
+      <div class="deep-visual">
+        <div class="deep-visual-inner">
+          <div class="mini-grade">
+            <div class="mini-grade-head"><span>Student</span><span>Lesson</span><span>Quiz</span><span>Avg</span></div>
+            <div class="mini-grade-row"><span class="mini-grade-name">Ana S.</span><span class="mini-grade-score score-a">100%</span><span class="mini-grade-score score-a">92%</span><span class="mini-grade-score score-a">96%</span></div>
+            <div class="mini-grade-row"><span class="mini-grade-name">Marco B.</span><span class="mini-grade-score score-b">88%</span><span class="mini-grade-score score-b">85%</span><span class="mini-grade-score score-b">86%</span></div>
+            <div class="mini-grade-row"><span class="mini-grade-name">Lena K.</span><span class="mini-grade-score score-c">74%</span><span class="mini-grade-score score-c">68%</span><span class="mini-grade-score score-c">71%</span></div>
+            <div class="mini-grade-row"><span class="mini-grade-name">Ivan P.</span><span class="mini-grade-score score-a">95%</span><span class="mini-grade-score score-b">82%</span><span class="mini-grade-score score-a">88%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="deep-text">
+        <div class="section-eyebrow">Gradebook & Analytics</div>
+        <h3>Know exactly <em>who's</em><br>falling behind.</h3>
+        <p>Every lesson completion and assignment score is tracked automatically. The gradebook gives you instant clarity on who needs extra attention — no manual entry, no spreadsheets.</p>
+        <ul class="feature-list">
+          <li>Per-student score tracking across all boards and assignments</li>
+          <li>Group averages and class-wide completion rates</li>
+          <li>Skill-based progress (Grammar, Speaking, Writing, Reading)</li>
+          <li>CSV export for school reports</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Schedule + Calls -->
+    <div class="deep-row reveal" style="margin-top:72px;">
+      <div class="deep-visual">
+        <div class="deep-visual-inner">
+          <div class="mini-sch">
+            <div class="mini-sch-item">
+              <div class="mini-sch-dot" style="background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.5);"></div>
+              <span class="mini-sch-t">Group A — Phrasal Verbs</span>
+              <span class="mini-sch-time">09:00</span>
+              <span class="mini-sch-live">🔴 Live</span>
+            </div>
+            <div class="mini-sch-item">
+              <div class="mini-sch-dot" style="background:var(--accent);"></div>
+              <span class="mini-sch-t">Group B — Present Perfect</span>
+              <span class="mini-sch-time">11:30</span>
+            </div>
+            <div class="mini-sch-item">
+              <div class="mini-sch-dot" style="background:#6366f1;"></div>
+              <span class="mini-sch-t">Group C — Speaking Practice</span>
+              <span class="mini-sch-time">14:00</span>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(52,168,83,.12),rgba(24,128,56,.06));border-radius:10px;padding:10px 12px;border:1px solid rgba(52,168,83,.2);display:flex;align-items:center;gap:10px;margin-top:4px;">
+              <span style="font-size:1.3rem;">📹</span>
+              <div>
+                <div style="font-size:.78rem;font-weight:800;color:#059669;">Google Meet</div>
+                <div style="font-size:.72rem;color:#6b7280;">meet.google.com/abc-defg-hij</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="deep-text">
+        <div class="section-eyebrow">Schedule & Live calls</div>
+        <h3>Schedule, then <em>go live</em><br>in one click.</h3>
+        <p>Your weekly timetable lives alongside your boards. Attach a Zoom or Google Meet link to any class slot. When you're ready, hit "Go Live" — every student in that class sees a live banner with a join button, instantly.</p>
+        <ul class="feature-list">
+          <li>Recurring weekly slots with color coding</li>
+          <li>Per-slot meeting URL (or use your permanent room)</li>
+          <li>One-click "Go Live" broadcasts to all students in the class</li>
+          <li>Students see real-time "🔴 Live Now" banner on their dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════ PRICING ═══════════════════ -->
+<section id="pricing">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">Simple, honest pricing</div>
+      <h2 class="section-h2">Start free, <em>grow freely</em></h2>
+      <p class="section-sub">No hidden fees, no per-student charges. Pick the plan that fits your classroom.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <!-- Free -->
+      <div class="plan-card reveal">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-per">forever</div>
+        <ul class="plan-features">
+          <li><span class="chk">✓</span>3 lesson boards</li>
+          <li><span class="chk">✓</span>5 students per board</li>
+          <li><span class="chk">✓</span>Basic card types</li>
+          <li><span class="chk">✓</span>Local autosave</li>
+          <li><span class="chk">✓</span>Google Meet / Zoom quick-start</li>
+          <li><span class="chk grey">✓</span><span style="color:var(--text3);">Analytics export</span></li>
+          <li><span class="chk grey">✓</span><span style="color:var(--text3);">Version history</span></li>
+        </ul>
+        <button class="plan-btn ghost" onclick="location.href='index.html#register'">Get started free</button>
+      </div>
+
+      <!-- Pro -->
+      <div class="plan-card popular reveal">
+        <div class="plan-badge">Most popular</div>
+        <div class="plan-name">Teacher Pro</div>
+        <div class="plan-price">$9<span>.90</span></div>
+        <div class="plan-per">per month, billed monthly</div>
+        <ul class="plan-features">
+          <li><span class="chk">✓</span>Unlimited boards</li>
+          <li><span class="chk">✓</span>30 students per board</li>
+          <li><span class="chk">✓</span>All card types including assignments & games</li>
+          <li><span class="chk">✓</span>Analytics export & gradebook</li>
+          <li><span class="chk">✓</span>Real-time collaboration (WebSockets)</li>
+          <li><span class="chk">✓</span>Live session broadcasting</li>
+          <li><span class="chk">✓</span>Version history (8 auto + 5 pinned)</li>
+          <li><span class="chk">✓</span>Priority support</li>
+        </ul>
+        <button class="plan-btn primary" onclick="startCheckout('pro')">Get Teacher Pro →</button>
+      </div>
+
+      <!-- School -->
+      <div class="plan-card reveal">
+        <div class="plan-name">School</div>
+        <div class="plan-price">$29</div>
+        <div class="plan-per">per month, billed monthly</div>
+        <ul class="plan-features">
+          <li><span class="chk">✓</span>Everything in Pro</li>
+          <li><span class="chk">✓</span>Unlimited students per board</li>
+          <li><span class="chk">✓</span>Admin panel with school-wide analytics</li>
+          <li><span class="chk">✓</span>Custom branding & colors</li>
+          <li><span class="chk">✓</span>Bulk student import (CSV)</li>
+          <li><span class="chk">✓</span>Course builder with modules</li>
+          <li><span class="chk">✓</span>Dedicated support channel</li>
+        </ul>
+        <button class="plan-btn primary" onclick="startCheckout('school')">Get School plan →</button>
+      </div>
+
+    </div>
+    <p style="text-align:center;font-size:.85rem;color:var(--text3);font-weight:700;margin-top:28px;">All plans include SSL, automatic backups, and GDPR-compliant data handling. Cancel anytime.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ TESTIMONIALS ═══════════════════ -->
+<section id="testimonials">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">From the community</div>
+      <h2 class="section-h2">Teachers <em>love it</em></h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"I replaced three separate apps with TeachedOS. My lesson boards, gradebook, and student communication are all in one place. The visual canvas is unlike anything else out there."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">🧑‍🏫</div>
+          <div><div class="testi-name">Sarah M.</div><div class="testi-role">ESL Teacher, Madrid</div></div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The Go Live feature changed how I run online classes. I click one button and all my students immediately see the meeting link. The student dashboard is gorgeous too."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">👩‍🏫</div>
+          <div><div class="testi-name">Katja B.</div><div class="testi-role">English Tutor, Berlin</div></div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The assignment builder with 300+ built-in tasks saved me hours every week. I just pick a topic and level, generate a set, and it's ready. My students love the interactive format."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">🧑‍💻</div>
+          <div><div class="testi-name">Ivan K.</div><div class="testi-role">Online Language Coach, Kyiv</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FAQ ═══════════════════ -->
+<section id="faq">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">FAQ</div>
+      <h2 class="section-h2">Common <em>questions</em></h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I really use it for free forever?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes. The Free plan never expires. You get 3 boards and 5 students per board — enough for individual tutors starting out. Upgrade when you need more.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Does TeachedOS work offline?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes. Every change saves to your browser's localStorage immediately. If you lose internet, you keep working. When you're back online, changes sync to the cloud automatically.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How does the Zoom / Google Meet integration work?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">You save your permanent room URLs in the Calls window. When you click "Go Live" on a schedule slot, all students enrolled in that class see a real-time "🔴 Live Now" banner with a direct join link. No plugins required.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What languages and levels does the assignment builder support?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">The built-in task library covers English grammar topics (articles, prepositions, phrasal verbs, conditionals, tenses, and more) from A1 to C2. Gap-fill, MCQ, true/false, and matching question types are all included — no internet or AI API needed.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can students use TeachedOS on mobile?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes. The student dashboard is fully mobile-responsive. The board editor works on tablets and larger phones. The macOS desktop interface (teacher view) is optimized for laptop/desktop screens.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Is my data secure?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">All data is transmitted over HTTPS. Passwords are hashed with bcrypt. Sessions use signed JWTs with 7-day expiry. The backend runs on Render with PostgreSQL — no student data is ever sold or shared.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I cancel my subscription anytime?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes, cancel anytime from the billing portal — no questions asked. Your boards and student data remain accessible on the Free plan after downgrade.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CTA ═══════════════════ -->
+<section id="cta">
+  <h2>Your classroom is waiting.</h2>
+  <p>Join teachers who've already moved their lesson planning, grading, and student management into one beautiful workspace.</p>
+  <div class="cta-btns">
+    <a class="btn btn-white btn-lg" href="index.html#register">Start free today →</a>
+    <a class="btn btn-lg" href="#pricing" style="border:2px solid rgba(255,255,255,.5);color:#fff;background:transparent;">See pricing</a>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Teached<em>OS</em></div>
+        <div class="footer-desc">The macOS-style workspace for language teachers. Visual boards, real-time collaboration, gradebook, analytics, and live calls.</div>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="board.html">Board editor</a>
+        <a href="index.html">Teacher desktop</a>
+        <a href="student.html">Student dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <a href="courses.html">Courses</a>
+        <a href="gradebook.html">Gradebook</a>
+        <a href="analytics.html">Analytics</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="profile.html">Profile</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#faq">FAQ</a>
+        <a href="admin.html">Admin</a>
+        <a href="#" onclick="return false;">Privacy Policy</a>
+        <a href="#" onclick="return false;">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TeachedOS. All rights reserved.</span>
+      <div style="display:flex;gap:18px;">
+        <a href="#" onclick="return false;">Privacy</a>
+        <a href="#" onclick="return false;">Terms</a>
+        <a href="index.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Checkout modal overlay ── -->
+<div id="checkout-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.6);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:22px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.2);text-align:center;position:relative;">
+    <div style="font-size:2.4rem;margin-bottom:12px;" id="co-icon">🚀</div>
+    <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-bottom:8px;letter-spacing:-.02em;" id="co-title">Upgrade to Teacher Pro</div>
+    <div style="font-size:.88rem;color:var(--text2);margin-bottom:24px;font-weight:600;line-height:1.6;" id="co-sub">You need an account to subscribe. Sign in or register, then come back to upgrade.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <a class="btn btn-primary" id="co-signin-btn" href="index.html" style="justify-content:center;">Sign in to continue →</a>
+      <button class="btn btn-ghost" onclick="closeCheckout()" style="justify-content:center;">Maybe later</button>
+    </div>
+    <div onclick="closeCheckout()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text3);">×</div>
+  </div>
+</div>
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+const token = localStorage.getItem('teachedos_token');
+
+/* ── Update nav CTA based on auth state ── */
+(function() {
+  const tok = localStorage.getItem('teachedos_token');
+  const cta = document.querySelector('.nav-cta');
+  if (tok && cta) {
+    const user = (() => { try { return JSON.parse(localStorage.getItem('teachedos_user')); } catch { return null; } })();
+    cta.innerHTML = `<a class="btn btn-primary" href="index.html">Go to app ${user?.name ? '· ' + user.name.split(' ')[0] : ''} →</a>`;
+  }
+})();
+
+/* ── Reveal on scroll ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ── FAQ accordion ── */
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ── Checkout flow ── */
+async function startCheckout(plan) {
+  // If not logged in — show sign-in prompt
+  if (!token) {
+    const icons = { pro:'🚀', school:'🏫' };
+    const names = { pro:'Teacher Pro', school:'School' };
+    document.getElementById('co-icon').textContent = icons[plan];
+    document.getElementById('co-title').textContent = `Upgrade to ${names[plan]}`;
+    document.getElementById('co-sub').textContent = `You need a teacher account to subscribe. Sign in or create one, then open the Billing window to upgrade.`;
+    document.getElementById('co-signin-btn').href = 'index.html';
+    const ov = document.getElementById('checkout-overlay');
+    ov.style.display = 'flex';
+    return;
+  }
+  // Logged in — call checkout API
+  const btn = event?.target;
+  if (btn) { btn.textContent = '⟳ Redirecting…'; btn.disabled = true; }
+  try {
+    const r = await fetch(API + '/api/billing/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ plan }),
+    });
+    const d = await r.json();
+    if (d.url) {
+      location.href = d.url; // Stripe Checkout
+    } else if (d.dev_mode) {
+      // No Stripe configured — plan upgraded directly
+      showToast('Plan upgraded to ' + plan + ' ✓ (dev mode)');
+      setTimeout(() => location.href = 'index.html', 1200);
+    } else {
+      throw new Error(d.error || 'Checkout failed');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message);
+    if (btn) { btn.textContent = btn.textContent.replace('⟳ Redirecting…', 'Get ' + plan + ' →'); btn.disabled = false; }
+  }
+}
+
+function closeCheckout() {
+  document.getElementById('checkout-overlay').style.display = 'none';
+}
+
+/* ── Menubar clock ── */
+function updateNavClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  // Could inject clock but not needed for landing
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  let t = document.getElementById('landing-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'landing-toast';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.9);color:#fff;padding:12px 24px;border-radius:22px;font-size:14px;font-weight:700;z-index:99999;font-family:Nunito,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.opacity = '0', 2800);
+}
+
+/* ── Smooth nav active link ── */
+window.addEventListener('scroll', () => {
+  const sections = ['features','how','deep','pricing','faq'];
+  const scrollY = window.scrollY + 100;
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+    if (!link) return;
+    const inView = scrollY >= el.offsetTop && scrollY < el.offsetTop + el.offsetHeight;
+    link.style.background = inView ? 'rgba(94,94,74,.1)' : '';
+    link.style.color = inView ? 'var(--accent)' : '';
+  });
+}, { passive: true });
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+</body>
+</html>

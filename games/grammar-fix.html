@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Fix</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#FF4E00}
+body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #FF4E0018;width:100%;max-width:500px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.label{font-size:.82rem;color:#bbb;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.sentence{font-size:1.1rem;font-weight:700;color:#c62828;background:#fff5f5;border-radius:12px;padding:14px 16px;line-height:1.6;margin-bottom:20px;text-decoration:line-through;text-decoration-color:#ffaabb}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{padding:12px 16px;border:2.5px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;background:#fff;transition:.15s;text-align:left;color:#444}
+.choice:hover{border-color:var(--accent)}
+.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
+.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
+.feedback{margin-top:14px;font-size:.88rem;font-weight:700;min-height:20px;color:#888;line-height:1.5}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🔧 Grammar Fix</h1>
+<p class="subtitle">Choose the corrected version</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/16</div></div>
+  <div class="label">❌ Incorrect sentence:</div>
+  <div class="sentence" id="sentence"></div>
+  <div class="label">✅ Which version is correct?</div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+</div>
+<script>
+const QS=[
+  {wrong:'She don\'t like spicy food.',a:'She doesn\'t like spicy food.',opts:['She doesn\'t like spicy food.','She don\'t likes spicy food.','She not like spicy food.'],exp:'3rd person singular → doesn\'t'},
+  {wrong:'I am agree with you.',a:'I agree with you.',opts:['I agree with you.','I am agreeing with you.','I do agree with you always.'],exp:'"Agree" is a stative verb — no "am"'},
+  {wrong:'He has went to the store.',a:'He has gone to the store.',opts:['He has gone to the store.','He has go to the store.','He went has to the store.'],exp:'go → gone (past participle)'},
+  {wrong:'They discussed about the problem.',a:'They discussed the problem.',opts:['They discussed the problem.','They discussed of the problem.','They talk discussed the problem.'],exp:'"Discuss" takes no preposition'},
+  {wrong:'She is more taller than him.',a:'She is taller than him.',opts:['She is taller than him.','She is most tall than him.','She is the tallest than him.'],exp:'Don\'t double the comparative'},
+  {wrong:'I have seen her yesterday.',a:'I saw her yesterday.',opts:['I saw her yesterday.','I had seen her yesterday.','I see her yesterday.'],exp:'"Yesterday" = Past Simple, not Present Perfect'},
+  {wrong:'He suggested to go out.',a:'He suggested going out.',opts:['He suggested going out.','He suggested go out.','He suggested that going out.'],exp:'suggest + gerund (-ing)'},
+  {wrong:'Despite of the rain, they played.',a:'Despite the rain, they played.',opts:['Despite the rain, they played.','Despite of rain, they played.','In despite the rain, they played.'],exp:'"Despite" needs no "of"'],
+  {wrong:'I look forward to meet you.',a:'I look forward to meeting you.',opts:['I look forward to meeting you.','I look forward to met you.','I look forward meet you.'],exp:'"Look forward to" + gerund'},
+  {wrong:'She made me to laugh.',a:'She made me laugh.',opts:['She made me laugh.','She made me laughing.','She made me to laughed.'],exp:'"Make" + bare infinitive (no "to")'},
+  {wrong:'There is many people here.',a:'There are many people here.',opts:['There are many people here.','There is much people here.','There being many people here.'],exp:'"People" is plural → "are"'},
+  {wrong:'He is used to wake up early.',a:'He is used to waking up early.',opts:['He is used to waking up early.','He is used to woke up early.','He used to waking up early.'],exp:'"Used to" (habit) + gerund when preceded by "is"'},
+  {wrong:'I wish I would know the answer.',a:'I wish I knew the answer.',opts:['I wish I knew the answer.','I wish I will know the answer.','I wish I know the answer.'],exp:'"Wish" + past subjunctive for present wishes'},
+  {wrong:'She works since five years.',a:'She has worked for five years.',opts:['She has worked for five years.','She works for five years.','She worked since five years.'],exp:'Duration → Present Perfect + "for"'},
+  {wrong:'He speaks English very good.',a:'He speaks English very well.',opts:['He speaks English very well.','He speaks English very goodly.','He speaks English very best.'],exp:'"Well" is the adverb form of "good"'},
+  {wrong:'We need to rise our prices.',a:'We need to raise our prices.',opts:['We need to raise our prices.','We need to arise our prices.','We need to risen our prices.'],exp:'"Raise" = to increase something (transitive)'},
+];
+let q=[],idx=0,score=0,locked=false;
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function start(){q=shuffle([...QS]).slice(0,16);idx=0;score=0;document.getElementById('score').textContent=0;nextQ();}
+function nextQ(){
+  if(idx>=q.length){endGame();return;}
+  locked=false;
+  const item=q[idx];
+  document.getElementById('sentence').textContent=item.wrong;
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('feedback').textContent='';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  shuffle([...item.opts]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';btn.textContent=opt;
+    btn.onclick=()=>pick(opt,btn,item.a,item.exp);
+    ch.appendChild(btn);
+  });
+}
+function pick(opt,btn,correct,exp){
+  if(locked)return;locked=true;
+  const ok=opt===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)[...document.getElementById('choices').children].forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
+  if(ok){score++;document.getElementById('score').textContent=score;
+    window.parent.postMessage({type:'teachedos-score',score:score},'*');}
+  document.getElementById('feedback').textContent=(ok?'✓ ':'✗ ')+exp;
+  idx++;setTimeout(nextQ,1200);
+}
+function endGame(){
+  document.getElementById('sentence').textContent='All done!';
+  document.getElementById('choices').innerHTML=`<button onclick="start()" style="padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;width:100%">▶ Play Again</button>`;
+  document.getElementById('feedback').textContent='Score: '+score+'/'+q.length;
+}
+start();
+</script>
+</body>
+</html>

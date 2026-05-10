@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachedOS Games · Match Terms</title>
+<link rel="stylesheet" href="../styles/games-base.css">
+<style>
+:root {
+  --bg: #F5F5EA;
+  --panel: rgba(255,255,255,0.92);
+  --panel-2: #ffffff;
+  --border: rgba(232, 53, 122, 0.14);
+  --text: #2d1020;
+  --muted: #86526a;
+  --accent: #D3F26A;
+  --accent-2: #ffedf4;
+  --good: #0f9f6e;
+  --bad: #e24b6b;
+  --shadow: 0 18px 48px rgba(232, 53, 122, 0.14);
+  --radius: 22px;
+  --shell-max-width: 1200px;
+  --hero-title-size: clamp(30px, 4vw, 48px);
+  --hero-title-line-height: 0.98;
+  --hero-title-margin: 10px 0 8px;
+  --embed-heading-size: clamp(26px, 3.1vw, 36px);
+  --page-background:
+    radial-gradient(circle at top left, rgba(255, 140, 184, 0.25), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 190, 212, 0.35), transparent 28%),
+    linear-gradient(180deg, #fff8fb 0%, #ffe9f2 100%);
+  --embed-background:
+    radial-gradient(circle at top left, rgba(255, 140, 184, 0.12), transparent 24%),
+    linear-gradient(180deg, #fffafc 0%, #fff3f8 100%);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.hero-main {
+  padding: 24px;
+}
+
+.hero-main p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.hero-side {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.hero-side select,
+.hero-side button {
+  width: 100%;
+}
+
+select,
+button {
+  border: none;
+}
+
+select {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  outline: none;
+}
+
+.primary-btn {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #9F8CE8 0%, #D3F26A 100%);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 16px 30px rgba(232, 53, 122, 0.24);
+}
+
+.primary-btn:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.stat {
+  padding: 16px 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 8px;
+}
+
+.board {
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  min-height: 132px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 16px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(232, 53, 122, 0.3);
+}
+
+.card.selected {
+  background: #fff0f6;
+  border-color: rgba(232, 53, 122, 0.45);
+}
+
+.card.matched {
+  background: rgba(15, 159, 110, 0.1);
+  border-color: rgba(15, 159, 110, 0.4);
+  cursor: default;
+}
+
+.card.wrong {
+  background: rgba(226, 75, 107, 0.12);
+  border-color: rgba(226, 75, 107, 0.4);
+}
+
+.card-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.card-text {
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.hint {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(42, 16, 30, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal-card {
+  width: min(100%, 460px);
+  padding: 28px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(42, 16, 30, 0.25);
+  text-align: center;
+}
+
+.modal-card h2 {
+  margin: 12px 0 10px;
+  font-size: 32px;
+}
+
+.modal-card p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.modal-stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--accent-2);
+}
+
+.modal-stat strong {
+  display: block;
+  font-size: 24px;
+  margin-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .shell { padding: 14px; }
+  .stats { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr; }
+  .card { min-height: 112px; }
+}
+
+body.embed-mode .hero {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+body.embed-mode .stat {
+  box-shadow: none;
+}
+
+body.embed-mode .hero-main,
+body.embed-mode .hero-side,
+body.embed-mode .board {
+  border-radius: 20px;
+}
+
+body.embed-mode .hero-main p {
+  font-size: 14px;
+}
+
+body.embed-mode .board {
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  body.embed-mode .hero {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="panel hero-main">
+      <div class="eyebrow">TeachedOS · Ігровий модуль</div>
+      <h1>Зістав слово<br>з визначенням</h1>
+      <p>Обирайте тему, відкривайте картки та знаходьте правильні пари. Модуль адаптований для GitHub Pages і працює без збірки чи зовнішнього API.</p>
+    </div>
+    <aside class="panel hero-side">
+      <div>
+        <div class="mini-label">Тема гри</div>
+        <select id="theme-select" aria-label="Тема гри"></select>
+      </div>
+      <button class="primary-btn" id="restart-btn" type="button">Почати заново</button>
+      <div style="color: var(--muted); font-size: 14px; line-height: 1.6;">
+        Натисніть будь-яку картку, щоб запустити таймер. У вас є 5 життів, щоби знайти всі відповідності.
+      </div>
+    </aside>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="mini-label">Час</div>
+      <strong id="time">00:00</strong>
+    </div>
+    <div class="stat">
+      <div class="mini-label">Знайдено пар</div>
+      <strong id="matches">0 / 8</strong>
+    </div>
+    <div class="stat">
+      <div class="mini-label">Життя</div>
+      <strong id="lives">5</strong>
+    </div>
+  </section>
+
+  <section class="panel board">
+    <div class="cards" id="cards"></div>
+    <div class="hint" id="hint">Натисніть на картку, щоб почати гру.</div>
+  </section>
+</div>
+
+<div class="modal" id="result-modal" aria-hidden="true">
+  <div class="modal-card">
+    <div id="result-icon" style="font-size: 54px;">🎉</div>
+    <h2 id="result-title">Чудова робота!</h2>
+    <p id="result-text"></p>
+    <div class="modal-grid">
+      <div class="modal-stat">
+        <div class="mini-label">Час</div>
+        <strong id="modal-time">0 с</strong>
+      </div>
+      <div class="modal-stat">
+        <div class="mini-label">Пари</div>
+        <strong id="modal-pairs">0 / 0</strong>
+      </div>
+    </div>
+    <button class="primary-btn" id="play-again-btn" type="button">Зіграти ще раз</button>
+  </div>
+</div>
+
+<script src="../scripts/games-embed.js"></script>
+<script src="../scripts/games-data.js"></script>
+<script src="../scripts/games/word-definition-match.js"></script>
+</body>
+</html>
