@@ -195,4 +195,21 @@ router.post('/set-role', async (req, res) => {
   }
 });
 
+// POST /api/auth/list-users  — list users using ADMIN_SECRET (temp debug)
+router.post('/list-users', async (req, res) => {
+  const { secret } = req.body;
+  const ADMIN_SECRET = process.env.ADMIN_SECRET;
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT email, name, role, created_at FROM users ORDER BY created_at DESC LIMIT 20`
+    );
+    res.json({ users: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
