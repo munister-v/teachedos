@@ -100,10 +100,13 @@ html,body {
 .mb-menu { display:flex; gap:0; align-items:center; }
 .mb-item {
   font-size:13px; font-weight:600; color: var(--text-2); padding:0 10px; height:32px;
-  display:flex; align-items:center; cursor:default; border-radius:6px;
+  display:flex; align-items:center; cursor:pointer; border-radius:6px;
   transition: background .12s, color .12s;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-.mb-item:hover { background: rgba(5,5,23,0.06); color: var(--text); }
+.mb-item:hover, .mb-item:active { background: rgba(5,5,23,0.07); color: var(--text); }
 .mb-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
 .mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
 #mb-clock {

@@ -117,10 +117,13 @@ html,body {
 .mb-menu { display:flex; gap:0; align-items:center; }
 .mb-item {
   font-size:13px; font-weight:600; color: var(--text-2); padding:0 10px; height:32px;
-  display:flex; align-items:center; cursor:default; border-radius:8px;
-  transition: background .15s, color .15s;
+  display:flex; align-items:center; cursor:pointer; border-radius:8px;
+  transition: background .12s, color .12s;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-.mb-item:hover { background: rgba(255,78,0,0.10); color: var(--accent); }
+.mb-item:hover, .mb-item:active { background: rgba(5,5,23,0.07); color: var(--text); }
 .mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
 .mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
 #mb-clock {
@@ -1121,14 +1124,16 @@ html,body {
 
 <!-- MENU BAR -->
 <div id="menubar">
-  <a class="mb-apple" href="index.html" title="Home" style="text-decoration:none;color:inherit;">✦</a>
+  <a class="mb-apple" href="index.html" title="Desktop" style="text-decoration:none;color:inherit;">✦</a>
   <span class="mb-app-name" id="mb-app-name">TeachedOS</span>
   <nav class="mb-menu">
-    <div class="mb-item" onclick="location.href='board.html'" style="cursor:pointer;">Board</div>
-    <div class="mb-item" onclick="location.href='courses.html'" style="cursor:pointer;">Courses</div>
-    <div class="mb-item" onclick="openSpotlight()" style="cursor:pointer;">Go To</div>
-    <div class="mb-item" onclick="openApp('students')" style="cursor:pointer;">Students</div>
-    <div class="mb-item" onclick="openApp('about')" style="cursor:pointer;">About</div>
+    <a class="mb-item" href="index.html">Home</a>
+    <a class="mb-item" href="board.html">Board</a>
+    <a class="mb-item" href="courses.html">Courses</a>
+    <a class="mb-item" href="schedule.html">Schedule</a>
+    <a class="mb-item" href="analytics.html">Analytics</a>
+    <a class="mb-item" href="gradebook.html">Gradebook</a>
+    <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(255,78,0,.25);margin-right:6px;"></a>
