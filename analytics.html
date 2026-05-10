@@ -32,7 +32,7 @@ a{text-decoration:none;color:inherit;}
 .nav-link:hover,.nav-link.active{background:rgba(255,78,0,.08);color:var(--accent);}
 .nav-spacer{flex:1;}
 .nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
-  padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+  padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
 /* Layout */
 #page{max-width:1200px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px;}
@@ -161,9 +161,9 @@ a{text-decoration:none;color:inherit;}
   <a class="nav-link" href="gradebook.html">Gradebook</a>
   <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
-  <div class="nav-user" onclick="location.href='profile.html'">
+  <a class="nav-user" href="profile.html" style="text-decoration:none;">
     <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
-  </div>
+  </a>
 </nav>
 
 <div id="page">
@@ -177,7 +177,7 @@ a{text-decoration:none;color:inherit;}
     <div class="head-spacer"></div>
     <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
     <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
-    <button class="btn btn-primary" onclick="location.href='board.html'">📌 Open Board</button>
+    <a class="btn btn-primary" href="board.html" style="text-decoration:none;">📌 Open Board</a>
   </div>
 
   <!-- Board selector -->

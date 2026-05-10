@@ -75,6 +75,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;
   font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;
   text-decoration:none;transition:background .15s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
 .tb-back:hover{background:var(--accent-2);}
 .tb-sep{width:1px;height:24px;background:var(--border);margin:0 2px;flex-shrink:0;}
@@ -88,6 +89,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   height:30px;min-width:30px;border-radius:7px;border:1px solid var(--border);
   background:white;cursor:pointer;font-size:13px;color:var(--text-2);
   transition:background .12s,border-color .12s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
 .tb-btn:hover{background:var(--accent-2);border-color:var(--border-2);}
 .tb-btn.text{padding:0 9px;font-size:12px;font-weight:700;gap:4px;}
@@ -1175,16 +1177,16 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">🔑 Sign in</div>
   <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
-    <div class="user-menu-item" onclick="location.href='index.html'">🏠 Home</div>
+    <a class="user-menu-item" href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">🏠 Home</a>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
     <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <div class="user-menu-item" onclick="location.href='courses.html'">📚 Courses</div>
-    <div class="user-menu-item" onclick="location.href='schedule.html'">📅 Schedule</div>
-    <div class="user-menu-item" onclick="location.href='analytics.html'">📊 Analytics</div>
-    <div class="user-menu-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>
-    <div class="user-menu-item" onclick="location.href='profile.html'">👤 Profile</div>
+    <a class="user-menu-item" href="courses.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📚 Courses</a>
+    <a class="user-menu-item" href="schedule.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📅 Schedule</a>
+    <a class="user-menu-item" href="analytics.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📊 Analytics</a>
+    <a class="user-menu-item" href="gradebook.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📒 Gradebook</a>
+    <a class="user-menu-item" href="profile.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">👤 Profile</a>
     <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
   </div>
   <div class="tb-sep"></div>

@@ -43,7 +43,7 @@ html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var
   background:var(--accent-2);display:flex;align-items:center;justify-content:center;
   font-size:16px;cursor:pointer;
 }
-.nav-menu-btn{
+.nav-menu-btn{-webkit-tap-highlight-color:transparent;
   padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);
   font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;color:var(--text-2);
   transition:.15s;
@@ -134,7 +134,7 @@ html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var
 .sch-badge{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--accent-2);color:var(--accent);}
 
 /* ── EMPTY STATES ── */
-.quiz-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--border);margin-bottom:10px;cursor:default;}
+.quiz-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--border);margin-bottom:10px;cursor:pointer;}
 .quiz-item-score{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;}
 .quiz-item-info{flex:1;min-width:0;}
 .quiz-item-board{font-size:12px;color:var(--text-3);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -187,7 +187,7 @@ html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var
   <div class="nav-spacer"></div>
   <span class="nav-name" id="nav-name">—</span>
   <div class="nav-avatar" id="nav-avatar">🎓</div>
-  <button class="nav-menu-btn" onclick="location.href='profile.html'">👤 Profile</button>
+  <a class="nav-menu-btn" href="profile.html" style="text-decoration:none;">👤 Profile</a>
   <button class="nav-menu-btn danger" onclick="logout()">Sign out</button>
 </nav>
 
@@ -380,7 +380,7 @@ function renderBoards(boards) {
   const grid = document.getElementById('boards-grid');
   if (!boards.length) return;
   grid.innerHTML = boards.map(b => `
-    <div class="board-card" onclick="location.href='board.html?id=${b.id}'">
+    <a class="board-card" href="board.html?id=${b.id}" style="text-decoration:none;display:block;">
       <div class="bc-thumb">
         ${b.thumbnail ? `<img src="${esc(b.thumbnail)}" alt="">` : `<div class="bc-thumb-placeholder">📋</div>`}
       </div>

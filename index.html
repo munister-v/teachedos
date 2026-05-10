@@ -1194,10 +1194,10 @@ html,body {
   <div class="win-body">
     <div class="win-sidebar" id="sidebar-plans">
       <div class="sb-section-label">Quick links</div>
-      <div class="sb-item" onclick="location.href='courses.html'">📚 All Courses</div>
-      <div class="sb-item" onclick="location.href='board.html'">📌 Open Board</div>
-      <div class="sb-item" onclick="location.href='gradebook.html'">📒 Gradebook</div>
-      <div class="sb-item" onclick="location.href='analytics.html'">📊 Analytics</div>
+      <a class="sb-item" href="courses.html" style="text-decoration:none;">📚 All Courses</a>
+      <a class="sb-item" href="board.html" style="text-decoration:none;">�� Open Board</a>
+      <a class="sb-item" href="gradebook.html" style="text-decoration:none;">📒 Gradebook</a>
+      <a class="sb-item" href="analytics.html" style="text-decoration:none;">📊 Analytics</a>
       <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
       <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
       <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
@@ -1564,22 +1564,22 @@ html,body {
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-board" onclick="location.href='board.html'" title="Board">
+    <a class="di" id="di-board" href="board.html" style="text-decoration:none;" " title="Board">
       <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</div>
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-courses" onclick="location.href='courses.html'" title="Courses">
+    </a>
+    <a class="di" id="di-courses" href="courses.html" style="text-decoration:none;" " title="Courses">
       <div class="di-icon" style="background:linear-gradient(145deg,#a78bfa,#7c3aed);">📚</div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
-    </div>
+    </a>
     <div class="di-sep"></div>
-    <div class="di" id="di-analytics" onclick="location.href='analytics.html'" title="Analytics">
+    <a class="di" id="di-analytics" href="analytics.html" style="text-decoration:none;" " title="Analytics">
       <div class="di-icon" style="background:linear-gradient(145deg,#34d399,#059669);position:relative;">📊</div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
-    </div>
+    </a>
     <div class="di" id="di-calls" onclick="openApp('calls')" title="Calls & Meetings">
       <div class="di-icon" style="background:linear-gradient(145deg,#34a853,#188038);">📹</div>
       <div class="di-label">Calls</div>
@@ -1590,16 +1590,16 @@ html,body {
       <div class="di-label">Billing</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-gradebook" onclick="location.href='gradebook.html'" title="Gradebook">
+    <a class="di" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" " title="Gradebook">
       <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</div>
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-profile" onclick="location.href='profile.html'" title="Profile">
+    </a>
+    <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" " title="Profile">
       <div class="di-icon" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
-    </div>
+    </a>
     <div class="di-sep"></div>
     <div class="di" id="di-about" onclick="openApp('about')" title="About">
       <div class="di-icon finder">🌸</div>
@@ -1742,7 +1742,7 @@ function studentsRender() {
   });
 
   list.innerHTML = filtered.map(s => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,78,0,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;" onclick="location.href='gradebook.html'" onmouseenter="this.style.background='rgba(255,78,0,0.09)'" onmouseleave="this.style.background='rgba(255,78,0,0.04)'">
+    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,78,0,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(255,78,0,0.09)'" onmouseleave="this.style.background='rgba(255,78,0,0.04)'">
       <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>

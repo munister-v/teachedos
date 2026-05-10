@@ -226,7 +226,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <div class="st-item active" data-tab="overview" onclick="switchTab('overview')">
       <span class="st-icon">👤</span> Overview
     </div>
-    <div class="st-item" onclick="location.href='courses.html'">
+    <a class="st-item" href="courses.html" style="text-decoration:none;display:flex;">
       <span class="st-icon">📚</span> Courses
     </div>
     <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
@@ -714,7 +714,7 @@ async function loadSharedBoards() {
       return;
     }
     wrap.innerHTML = boards.map(b => `
-      <div style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(255,78,0,.07);display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="location.href='board.html?id=${esc(b.id)}'">
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
         <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F5EA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
