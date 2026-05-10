@@ -5,127 +5,432 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Games Hub — TeachedOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:#F5F5EA;min-height:100vh;padding:32px 20px}
-header{text-align:center;margin-bottom:36px}
-header h1{font-size:2rem;font-weight:800;color:#FF4E00}
-header p{color:#888;margin-top:6px}
-.back{display:inline-block;margin-bottom:24px;color:#FF4E00;font-weight:700;text-decoration:none;font-size:.95rem}
-.back:hover{text-decoration:underline}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;max-width:1100px;margin:0 auto}
-.card{background:#fff;border-radius:18px;padding:22px 18px;box-shadow:0 4px 18px #FF4E0018;cursor:pointer;transition:.2s;text-decoration:none;display:flex;flex-direction:column;gap:8px;border:2px solid transparent}
-.card:hover{border-color:#FF4E00;transform:translateY(-3px);box-shadow:0 8px 28px #FF4E0028}
-.card-icon{font-size:2.2rem}
-.card-title{font-size:1rem;font-weight:800;color:#333}
-.card-desc{font-size:.83rem;color:#999;line-height:1.4}
-.card-tag{align-self:flex-start;background:#F5F5EA;color:#FF4E00;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:4px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --bg:       #F5F5EA;
+  --bg-2:     #EAEADA;
+  --surface:  #FFFFFF;
+  --border:   rgba(94,94,74,0.12);
+  --border-2: rgba(94,94,74,0.24);
+  --text:     #050517;
+  --text-2:   #3A3A2E;
+  --text-3:   #A2A28C;
+  --accent:   #FF4E00;
+  --lime:     #D3F26A;
+  --lavender: #9F8CE8;
+  --font:     'Nunito', ui-sans-serif, sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --r:        16px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,245,234,0.88);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; height: 52px; gap: 12px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+}
+.nav-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--text-2);
+  text-decoration: none; padding: 6px 12px; border-radius: 8px;
+  transition: background .12s, color .12s;
+}
+.nav-back:hover { background: rgba(5,5,23,0.06); color: var(--text); }
+.nav-back svg { width:14px; height:14px; flex-shrink:0; }
+.nav-title {
+  font-size: 14px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em;
+}
+.nav-title em { color: var(--accent); font-style: normal; }
+.nav-sep { width:1px; height:18px; background: var(--border-2); }
+.nav-count {
+  font-size: 11px; font-family: var(--mono); color: var(--text-3);
+  margin-left: auto;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 56px 24px 40px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(211,242,106,0.18) 0%, transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(159,140,232,0.14) 0%, transparent 50%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-family: var(--mono); font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); background: rgba(255,78,0,0.08);
+  border: 1px solid rgba(255,78,0,0.20); border-radius: 999px;
+  padding: 4px 12px; margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900; letter-spacing: -0.04em; line-height: 1.05;
+  color: var(--text); margin-bottom: 12px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p {
+  font-size: 1.05rem; color: var(--text-2); font-weight: 600;
+  max-width: 480px; margin: 0 auto 32px; line-height: 1.6;
+}
+
+/* ── FILTER TABS ── */
+.filters {
+  display: flex; gap: 6px; justify-content: center;
+  flex-wrap: wrap; padding: 0 24px 40px;
+}
+.filter-btn {
+  font-size: 12px; font-family: var(--font); font-weight: 700;
+  padding: 7px 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--border-2); color: var(--text-3);
+  background: var(--surface); transition: all .15s;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,78,0,0.05); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── GRID ── */
+.grid-wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 22px 20px 18px;
+  border: 1.5px solid var(--border);
+  text-decoration: none;
+  display: flex; flex-direction: column; gap: 0;
+  position: relative; overflow: hidden;
+  transition: transform .18s cubic-bezier(.34,1.3,.64,1),
+              box-shadow .18s, border-color .18s;
+  box-shadow: 0 2px 8px rgba(5,5,23,0.05);
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--lime), var(--accent), var(--lavender));
+  opacity: 0; transition: opacity .18s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,78,0,0.28);
+  box-shadow: 0 12px 32px rgba(5,5,23,0.10), 0 2px 8px rgba(255,78,0,0.08);
+}
+.card:hover::before { opacity: 1; }
+
+.card-icon {
+  font-size: 2rem; margin-bottom: 14px; line-height: 1;
+  display: block;
+}
+.card-title {
+  font-size: 15px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 6px;
+}
+.card-desc {
+  font-size: 12.5px; color: var(--text-3); line-height: 1.55;
+  font-weight: 500; flex: 1; margin-bottom: 14px;
+}
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: auto;
+}
+.card-tag {
+  font-size: 10px; font-family: var(--mono); font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--bg-2, #EAEADA); color: var(--text-3);
+  border: 1px solid var(--border);
+}
+.card-tag.vocab    { background: rgba(159,140,232,0.10); color: #9F8CE8; border-color: rgba(159,140,232,0.20); }
+.card-tag.grammar  { background: rgba(255,78,0,0.08);    color: #FF4E00; border-color: rgba(255,78,0,0.18); }
+.card-tag.spelling { background: rgba(211,242,106,0.18); color: #5E6E1A; border-color: rgba(211,242,106,0.40); }
+.card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
+.card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
+
+.card-arrow {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255,78,0,0.08); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .15s;
+  flex-shrink: 0;
+}
+.card:hover .card-arrow {
+  background: var(--accent); color: #fff;
+  transform: translateX(2px);
+}
+.card-arrow svg { width: 14px; height: 14px; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 10px; font-family: var(--mono); font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-3); margin: 32px 0 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ── FOOTER ── */
+.page-footer {
+  text-align: center; padding: 32px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-3); font-family: var(--mono);
+}
+.page-footer a { color: var(--accent); text-decoration: none; font-weight: 700; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero { padding: 40px 16px 28px; }
+  .grid-wrap { padding: 0 16px 60px; }
+  .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { padding: 16px 14px 14px; }
+  .card-icon { font-size: 1.6rem; margin-bottom: 10px; }
+  .card-title { font-size: 13px; }
+  .card-desc { display: none; }
+}
+@media (max-width: 380px) {
+  .grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<a class="back" href="../index.html">← TeachedOS</a>
-<header>
-  <h1>🎮 Mini Games</h1>
-  <p>Practice English — fast, fun, competitive</p>
-</header>
-<div class="grid">
-  <a class="card" href="word-scramble.html">
-    <div class="card-icon">🔀</div>
-    <div class="card-title">Word Scramble</div>
-    <div class="card-desc">Unscramble the letters to form the correct word</div>
-    <div class="card-tag">Vocabulary</div>
+
+<nav class="nav">
+  <a class="nav-back" href="../index.html">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 12L6 8l4-4"/>
+    </svg>
+    TeachedOS
   </a>
-  <a class="card" href="hangman.html">
-    <div class="card-icon">🎯</div>
-    <div class="card-title">Hangman</div>
-    <div class="card-desc">Guess the hidden word letter by letter</div>
-    <div class="card-tag">Spelling</div>
-  </a>
-  <a class="card" href="article-rush.html">
-    <div class="card-icon">⚡</div>
-    <div class="card-title">Article Rush</div>
-    <div class="card-desc">Pick a / an / the / ∅ as fast as you can</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="memory-match.html">
-    <div class="card-icon">🧠</div>
-    <div class="card-title">Memory Match</div>
-    <div class="card-desc">Flip cards to match words with definitions</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
-  <a class="card" href="sentence-builder.html">
-    <div class="card-icon">🧩</div>
-    <div class="card-title">Sentence Builder</div>
-    <div class="card-desc">Arrange shuffled words into correct sentences</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="typing-rain.html">
-    <div class="card-icon">🌧️</div>
-    <div class="card-title">Typing Rain</div>
-    <div class="card-desc">Type falling words before they hit the ground</div>
-    <div class="card-tag">Speed</div>
-  </a>
-  <a class="card" href="true-false.html">
-    <div class="card-icon">✅</div>
-    <div class="card-title">True or False</div>
-    <div class="card-desc">Rapid-fire grammar and vocabulary statements</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="phrasal-verbs.html">
-    <div class="card-icon">🔗</div>
-    <div class="card-title">Phrasal Verbs</div>
-    <div class="card-desc">Complete phrasal verbs with the right particle</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
-  <a class="card" href="false-friends.html">
-    <div class="card-icon">🪤</div>
-    <div class="card-title">False Friends</div>
-    <div class="card-desc">Identify tricky false cognates from RU/UA/PL</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
-  <a class="card" href="prepositions.html">
-    <div class="card-icon">📍</div>
-    <div class="card-title">Prepositions</div>
-    <div class="card-desc">Fill in at / in / on / by in context</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="grammar-fix.html">
-    <div class="card-icon">🔧</div>
-    <div class="card-title">Grammar Fix</div>
-    <div class="card-desc">Spot and correct the error in each sentence</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="tense-picker.html">
-    <div class="card-icon">⏱️</div>
-    <div class="card-title">Tense Picker</div>
-    <div class="card-desc">Choose the correct verb tense form</div>
-    <div class="card-tag">Grammar</div>
-  </a>
-  <a class="card" href="synonym-snap.html">
-    <div class="card-icon">🔄</div>
-    <div class="card-title">Synonym Snap</div>
-    <div class="card-desc">Match synonym pairs before time runs out</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
-  <a class="card" href="spelling-bee.html">
-    <div class="card-icon">🐝</div>
-    <div class="card-title">Spelling Bee</div>
-    <div class="card-desc">Type the word from its definition clue</div>
-    <div class="card-tag">Spelling</div>
-  </a>
-  <a class="card" href="word-categories.html">
-    <div class="card-icon">🗂️</div>
-    <div class="card-title">Word Categories</div>
-    <div class="card-desc">Sort words into the correct topic groups</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
-  <a class="card" href="word-definition-match.html">
-    <div class="card-icon">🎴</div>
-    <div class="card-title">Definition Match</div>
-    <div class="card-desc">Match words to their definitions</div>
-    <div class="card-tag">Vocabulary</div>
-  </a>
+  <div class="nav-sep"></div>
+  <div class="nav-title"><em>✦</em> Games Hub</div>
+  <div class="nav-count">16 games</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">🎮 Interactive Practice</div>
+  <h1>Learn by <em>Playing</em></h1>
+  <p>Fast, fun, competitive mini-games to sharpen your English skills every day.</p>
+</section>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterCards('all', this)">All</button>
+  <button class="filter-btn" onclick="filterCards('vocab', this)">Vocabulary</button>
+  <button class="filter-btn" onclick="filterCards('grammar', this)">Grammar</button>
+  <button class="filter-btn" onclick="filterCards('spelling', this)">Spelling</button>
+  <button class="filter-btn" onclick="filterCards('speed', this)">Speed</button>
+  <button class="filter-btn" onclick="filterCards('ai', this)">AI-Powered</button>
 </div>
+
+<div class="grid-wrap">
+  <div class="grid" id="games-grid">
+
+    <a class="card" href="word-scramble.html" data-tag="vocab">
+      <span class="card-icon">🔀</span>
+      <div class="card-title">Word Scramble</div>
+      <div class="card-desc">Unscramble the letters to form the correct word</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="hangman.html" data-tag="spelling">
+      <span class="card-icon">🎯</span>
+      <div class="card-title">Hangman</div>
+      <div class="card-desc">Guess the hidden word letter by letter</div>
+      <div class="card-footer">
+        <span class="card-tag spelling">Spelling</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="article-rush.html" data-tag="grammar">
+      <span class="card-icon">⚡</span>
+      <div class="card-title">Article Rush</div>
+      <div class="card-desc">Pick a / an / the / ∅ as fast as you can</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="memory-match.html" data-tag="vocab">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Memory Match</div>
+      <div class="card-desc">Flip cards to match words with definitions</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="sentence-builder.html" data-tag="grammar">
+      <span class="card-icon">🧩</span>
+      <div class="card-title">Sentence Builder</div>
+      <div class="card-desc">Arrange shuffled words into correct sentences</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="typing-rain.html" data-tag="speed">
+      <span class="card-icon">🌧️</span>
+      <div class="card-title">Typing Rain</div>
+      <div class="card-desc">Type falling words before they hit the ground</div>
+      <div class="card-footer">
+        <span class="card-tag speed">Speed</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="true-false.html" data-tag="grammar">
+      <span class="card-icon">✅</span>
+      <div class="card-title">True or False</div>
+      <div class="card-desc">Rapid-fire grammar and vocabulary statements</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="phrasal-verbs.html" data-tag="vocab">
+      <span class="card-icon">🔗</span>
+      <div class="card-title">Phrasal Verbs</div>
+      <div class="card-desc">Complete phrasal verbs with the right particle</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="false-friends.html" data-tag="vocab">
+      <span class="card-icon">🪤</span>
+      <div class="card-title">False Friends</div>
+      <div class="card-desc">Identify tricky false cognates from RU/UA/PL</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="prepositions.html" data-tag="grammar">
+      <span class="card-icon">📍</span>
+      <div class="card-title">Prepositions</div>
+      <div class="card-desc">Fill in at / in / on / by in context</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="grammar-fix.html" data-tag="grammar">
+      <span class="card-icon">🔧</span>
+      <div class="card-title">Grammar Fix</div>
+      <div class="card-desc">Spot and correct the error in each sentence</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="tense-picker.html" data-tag="grammar">
+      <span class="card-icon">⏱️</span>
+      <div class="card-title">Tense Picker</div>
+      <div class="card-desc">Choose the correct verb tense form</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="synonym-snap.html" data-tag="vocab">
+      <span class="card-icon">🔄</span>
+      <div class="card-title">Synonym Snap</div>
+      <div class="card-desc">Match synonym pairs before time runs out</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="spelling-bee.html" data-tag="spelling">
+      <span class="card-icon">🐝</span>
+      <div class="card-title">Spelling Bee</div>
+      <div class="card-desc">Type the word from its definition clue</div>
+      <div class="card-footer">
+        <span class="card-tag spelling">Spelling</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="word-categories.html" data-tag="vocab">
+      <span class="card-icon">🗂️</span>
+      <div class="card-title">Word Categories</div>
+      <div class="card-desc">Sort words into the correct topic groups</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="word-definition-match.html" data-tag="vocab">
+      <span class="card-icon">🎴</span>
+      <div class="card-title">Definition Match</div>
+      <div class="card-desc">Match words to their definitions</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<footer class="page-footer">
+  <a href="../index.html">← Back to TeachedOS</a> &nbsp;·&nbsp; 16 games available
+</footer>
+
+<script>
+function filterCards(tag, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(card => {
+    const show = tag === 'all' || card.dataset.tag === tag;
+    card.style.display = show ? '' : 'none';
+  });
+}
+</script>
 </body>
 </html>
