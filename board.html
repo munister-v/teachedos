@@ -2391,11 +2391,15 @@ function openCardEditor(cardId) {
   if (!card) return;
   const editor = document.getElementById('card-editor');
   const body   = document.getElementById('card-editor-body');
-  document.getElementById('card-editor-title').textContent =
-    card.type === 'lesson'     ? '📚 Edit Lesson' :
-    card.type === 'assignment' ? '📝 Edit Assignment' :
-    card.type === 'vocab'      ? '📖 Edit Vocabulary' :
-    '🏁 Edit Milestone';
+  const editorTitles = {
+    lesson:'📚 Edit Lesson', assignment:'📝 Edit Assignment',
+    vocab:'📖 Edit Vocabulary', milestone:'🏁 Edit Milestone',
+    timer:'⏱ Edit Timer', checklist:'✅ Edit Checklist',
+    sticky:'📌 Edit Sticky', text:'📝 Edit Text',
+    event:'📅 Edit Event', plan:'📋 Edit Plan',
+    image:'🖼 Edit Image', video:'🎬 Edit Video',
+  };
+  document.getElementById('card-editor-title').textContent = editorTitles[card.type] || '✏️ Edit Card';
 
   body.innerHTML = '';
 
@@ -2407,7 +2411,7 @@ function openCardEditor(cardId) {
         <div class="ed-status-grid">
           ${['locked','available','in-progress','done'].map(s=>`
             <button class="ed-status-btn${(card.data.status||'available')===s?' active':''}"
-              onclick="edSetStatus('${s}')">${LESSON_STATUS_MAP[s].label}</button>`).join('')}
+              data-val="${s}" onclick="edSetStatus('${s}',this)">${LESSON_STATUS_MAP[s].label}</button>`).join('')}
         </div></div>
       <div class="ed-row">
         <div style="flex:1"><div class="ed-label">Level</div>
@@ -2495,6 +2499,76 @@ function openCardEditor(cardId) {
       <div><div class="ed-label">Example (use ___ for the word)</div>
         <textarea class="ed-input ed-textarea" id="ed-example">${esc(card.data.example||'')}</textarea></div>
       <button class="ed-save" onclick="saveCardEditor()">Save Vocabulary</button>`;
+
+  } else if (card.type === 'timer') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'Timer')}"/></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">Minutes</div>
+          <input class="ed-input" id="ed-minutes" type="number" min="0" max="99" value="${card.data.minutes||5}"/></div>
+        <div style="flex:1"><div class="ed-label">Seconds</div>
+          <input class="ed-input" id="ed-seconds" type="number" min="0" max="59" value="${card.data.seconds||0}"/></div>
+      </div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Timer</button>`;
+
+  } else if (card.type === 'checklist') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'Checklist')}"/></div>
+      <div style="font-size:12px;color:var(--text-3);padding:4px 0;">Edit items directly on the card. Use the editor to rename.</div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Checklist</button>`;
+
+  } else if (card.type === 'sticky') {
+    body.innerHTML = `
+      <div><div class="ed-label">Note Text</div>
+        <textarea class="ed-input ed-textarea" id="ed-sticky-text" style="min-height:100px;">${esc(card.data.text||card.data.content||'')}</textarea></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Note</button>`;
+
+  } else if (card.type === 'text') {
+    body.innerHTML = `
+      <div><div class="ed-label">Heading</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||card.data.text||'')}"/></div>
+      <div><div class="ed-label">Body</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:80px;">${esc(card.data.body||card.data.desc||'')}</textarea></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Text</button>`;
+
+  } else if (card.type === 'event') {
+    body.innerHTML = `
+      <div><div class="ed-label">Event Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div><div class="ed-label">Date</div>
+        <input class="ed-input" id="ed-deadline" type="date" value="${card.data.date||card.data.deadline||''}"/></div>
+      <div><div class="ed-label">Description</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Event</button>`;
+
+  } else if (card.type === 'plan') {
+    body.innerHTML = `
+      <div><div class="ed-label">Plan Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div><div class="ed-label">Description / Goals</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:80px;">${esc(card.data.desc||'')}</textarea></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Plan</button>`;
+
+  } else if (card.type === 'image') {
+    body.innerHTML = `
+      <div><div class="ed-label">Caption</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.caption||card.data.title||'')}"/></div>
+      <div><div class="ed-label">Image URL</div>
+        <input class="ed-input" id="ed-link" type="url" placeholder="https://…" value="${esc(card.data.url||card.data.src||'')}"/></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Image</button>`;
+
+  } else if (card.type === 'video') {
+    body.innerHTML = `
+      <div><div class="ed-label">Title</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
+      <div><div class="ed-label">Video URL (YouTube / direct)</div>
+        <input class="ed-input" id="ed-link" type="url" placeholder="https://youtube.com/…" value="${esc(card.data.url||card.data.src||'')}"/></div>
+      <button class="ed-save" onclick="saveCardEditor()">Save Video</button>`;
+
+  } else {
+    body.innerHTML = `<div style="font-size:13px;color:var(--text-3);padding:8px;">No editor for this card type.</div>`;
   }
   // Add color accent picker at bottom of all card editors
   const accentRow = document.createElement('div');
@@ -2585,11 +2659,9 @@ async function deleteCardComment(commentId, cardId) {
   } catch {}
 }
 
-function edSetStatus(s) {
+function edSetStatus(s, btn) {
   document.querySelectorAll('.ed-status-btn').forEach(b => b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  event.currentTarget.dataset.val = s;
-  // store temporarily
+  if (btn) btn.classList.add('active');
   document.getElementById('card-editor-body').dataset.status = s;
 }
 
@@ -2602,13 +2674,8 @@ function saveCardEditor() {
 
   if (card.type === 'lesson') {
     card.data.title    = g('ed-title').value.trim() || 'Lesson';
-    card.data.status   = body.dataset.status || document.querySelector('.ed-status-btn.active')?.textContent.includes('Lock') ? 'locked' : (body.dataset.status || card.data.status || 'available');
-    // re-read status from active button
-    const activeBtn = document.querySelector('.ed-status-btn.active');
-    if (activeBtn) {
-      const map = {'🔒 Locked':'locked','▶️ Available':'available','⏳ In Progress':'in-progress','✅ Done':'done'};
-      card.data.status = map[activeBtn.textContent.trim()] || card.data.status;
-    }
+    const activeStatusBtn = document.querySelector('.ed-status-btn.active');
+    card.data.status = activeStatusBtn?.dataset.val || body.dataset.status || card.data.status || 'available';
     card.data.level    = g('ed-level').value;
     card.data.skill    = g('ed-skill').value;
     card.data.duration = g('ed-duration').value.trim();
@@ -2634,6 +2701,38 @@ function saveCardEditor() {
     card.data.pos         = g('ed-pos')?.value;
     card.data.translation = g('ed-translation')?.value.trim();
     card.data.example     = g('ed-example')?.value.trim();
+  } else if (card.type === 'timer') {
+    card.data.title   = g('ed-title')?.value.trim() || 'Timer';
+    card.data.minutes = parseInt(g('ed-minutes')?.value) || 5;
+    card.data.seconds = parseInt(g('ed-seconds')?.value) || 0;
+    card.data.remaining = card.data.minutes * 60 + card.data.seconds;
+  } else if (card.type === 'checklist') {
+    card.data.title = g('ed-title')?.value.trim() || 'Checklist';
+  } else if (card.type === 'sticky') {
+    card.data.text = g('ed-sticky-text')?.value || '';
+    card.data.content = card.data.text;
+  } else if (card.type === 'text') {
+    card.data.title = g('ed-title')?.value.trim() || '';
+    card.data.text  = card.data.title;
+    card.data.body  = g('ed-desc')?.value.trim() || '';
+    card.data.desc  = card.data.body;
+  } else if (card.type === 'event') {
+    card.data.title    = g('ed-title')?.value.trim() || 'Event';
+    card.data.date     = g('ed-deadline')?.value || '';
+    card.data.deadline = card.data.date;
+    card.data.desc     = g('ed-desc')?.value.trim() || '';
+  } else if (card.type === 'plan') {
+    card.data.title = g('ed-title')?.value.trim() || 'Plan';
+    card.data.desc  = g('ed-desc')?.value.trim() || '';
+  } else if (card.type === 'image') {
+    card.data.caption = g('ed-title')?.value.trim() || '';
+    card.data.title   = card.data.caption;
+    card.data.url     = g('ed-link')?.value.trim() || '';
+    card.data.src     = card.data.url;
+  } else if (card.type === 'video') {
+    card.data.title = g('ed-title')?.value.trim() || 'Video';
+    card.data.url   = g('ed-link')?.value.trim() || '';
+    card.data.src   = card.data.url;
   }
 
   reRenderCard(card);
@@ -2738,6 +2837,7 @@ let isResizing     = false, resizeStart = {};
 let isSidebarDrag  = false, sidebarDragData = null;
 let isBoxSelecting = false, boxSelStart = {};
 let spaceDown      = false;
+const _timerIntervals = new Map(); // card.id → intervalId
 
 function startCardDrag(e, card) {
   if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
@@ -2926,7 +3026,7 @@ document.addEventListener('mouseup', e => {
   boardWrap.addEventListener('touchmove', e => {
     e.preventDefault();
     touches = Array.from(e.touches);
-    if (touches.length === 1 && touchPanStart && !isDragging) {
+    if (touches.length === 1 && touchPanStart && !isDraggingCard) {
       state.pan.x = touchPanStart.px + (touches[0].clientX - touchPanStart.mx);
       state.pan.y = touchPanStart.py + (touches[0].clientY - touchPanStart.my);
       applyTransform();
@@ -4496,14 +4596,7 @@ function loadBoardData(data) {
   setTimeout(loadQuizResultsCache, 800);
 }
 
-async function saveToCloud() {
-  if (!currentUser || !authToken || !currentBoardId) return;
-  const data = { pan:state.pan, scale:state.scale, nextId:state.nextId, cards:state.cards, arrows:state.arrows };
-  try {
-    const r = await apiFetch('/api/boards/' + currentBoardId, { method: 'PUT', body: { data } });
-    if (r.ok) saveStatus.textContent = '☁ saved';
-  } catch { saveStatus.textContent = '☁ error'; }
-}
+// (duplicate saveToCloud removed — canonical version with retry is defined above)
 
 // ── Share & Rename ────────────────────────────────────────────
 // ── Share panel ───────────────────────────────────────────────
@@ -4518,7 +4611,6 @@ function openSharePanel() {
   const url = `${location.origin}${location.pathname}?id=${currentBoardId}`;
   document.getElementById('sp-link-input').value = url;
   // Show invite section only for board owner
-  const isOwner = currentUser && currentBoardId;
   document.getElementById('sp-invite-section').style.display = isOwner ? '' : 'none';
   document.getElementById('sp-members-section').style.display = isOwner ? '' : 'none';
   if (isOwner) spLoadMembers();
@@ -5173,6 +5265,8 @@ function renderChecklist(el, card) {
 /* ════════════════════════ TIMER CARD ════════════════════════ */
 function renderTimer(el, card) {
   const d = card.data;
+  // Kill any old interval for this card before creating a new DOM
+  if (_timerIntervals.has(card.id)) { clearInterval(_timerIntervals.get(card.id)); _timerIntervals.delete(card.id); }
   if (d.remaining === undefined) d.remaining = (d.minutes||5)*60 + (d.seconds||0);
   el.appendChild(makeHeader('⏱', d.title || 'Timer', card.id));
   const body = document.createElement('div');
@@ -5213,20 +5307,23 @@ function renderTimer(el, card) {
   setRow.appendChild(document.createTextNode(':'));
   setRow.appendChild(secInput);
 
-  let interval = null;
   const controls = document.createElement('div'); controls.className='timer-controls';
   const startBtn = document.createElement('button'); startBtn.className='timer-btn timer-start'; startBtn.textContent='▶ Start';
   const pauseBtn = document.createElement('button'); pauseBtn.className='timer-btn timer-pause'; pauseBtn.textContent='⏸ Pause'; pauseBtn.style.display='none';
   const resetBtn = document.createElement('button'); resetBtn.className='timer-btn timer-reset'; resetBtn.textContent='↺ Reset';
 
+  function stopTimer() {
+    if (_timerIntervals.has(card.id)) { clearInterval(_timerIntervals.get(card.id)); _timerIntervals.delete(card.id); }
+  }
+
   startBtn.addEventListener('click', e => {
     e.stopPropagation();
-    clearInterval(interval);
+    stopTimer();
     startBtn.style.display='none'; pauseBtn.style.display='';
     display.className='timer-display running';
-    interval = setInterval(() => {
+    const iv = setInterval(() => {
       if (d.remaining <= 0) {
-        clearInterval(interval); d.remaining=0;
+        stopTimer(); d.remaining=0;
         display.textContent='00:00'; display.className='timer-display done';
         startBtn.style.display=''; pauseBtn.style.display='none';
         toast('⏱ Timer done!'); return;
@@ -5234,14 +5331,15 @@ function renderTimer(el, card) {
       d.remaining--;
       display.textContent = formatTime(d.remaining);
     }, 1000);
+    _timerIntervals.set(card.id, iv);
   });
   pauseBtn.addEventListener('click', e => {
-    e.stopPropagation(); clearInterval(interval);
+    e.stopPropagation(); stopTimer();
     startBtn.style.display=''; pauseBtn.style.display='none';
     display.className='timer-display';
   });
   resetBtn.addEventListener('click', e => {
-    e.stopPropagation(); clearInterval(interval);
+    e.stopPropagation(); stopTimer();
     d.remaining = (d.minutes||5)*60 + (d.seconds||0);
     display.textContent = formatTime(d.remaining);
     display.className='timer-display';

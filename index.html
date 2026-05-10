@@ -139,8 +139,8 @@ html,body {
 
 /* Clock widget */
 #wg-clock {
-  top:56px; right:24px;
-  width:172px; padding:20px 20px 18px;
+  top:48px; right:24px;
+  width:176px; padding:20px 20px 18px;
   text-align:center;
 }
 .wg-clock-time {
@@ -161,8 +161,8 @@ html,body {
 
 /* Streak widget */
 #wg-streak {
-  top:56px; right:212px;
-  width:160px; padding:18px;
+  top:262px; right:24px;
+  width:176px; padding:18px;
 }
 .wg-streak-n {
   font-family: var(--font-ui); font-size:42px; font-weight:600;
@@ -177,8 +177,8 @@ html,body {
 
 /* Today widget */
 #wg-today {
-  top:56px; right:388px;
-  width:220px; padding:18px 20px;
+  top:398px; right:24px;
+  width:176px; padding:16px 18px;
 }
 .wg-today-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
@@ -210,8 +210,8 @@ html,body {
 
 /* Vocab widget */
 #wg-vocab {
-  top:290px; right:24px;
-  width:172px; padding:18px;
+  top:552px; right:24px;
+  width:176px; padding:18px;
 }
 .wg-vocab-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
@@ -246,27 +246,27 @@ html,body {
   z-index:999;
 }
 #dock {
-  display:flex; align-items:flex-end; gap:10px;
+  display:flex; align-items:flex-end; gap:7px;
   background: rgba(255,255,255,0.82);
   backdrop-filter: blur(28px) saturate(1.6);
   -webkit-backdrop-filter: blur(28px) saturate(1.6);
   border: 1px solid rgba(255,75,139,0.16);
-  border-radius:24px; padding:10px 14px 8px;
+  border-radius:22px; padding:8px 12px 6px;
   box-shadow: 0 8px 40px rgba(255,75,139,0.14), 0 2px 8px rgba(0,0,0,0.08);
 }
 .di {
-  display:flex; flex-direction:column; align-items:center; gap:5px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
   cursor:pointer; position:relative; transition:transform .2s cubic-bezier(.34,1.56,.64,1);
 }
-.di:hover { transform: translateY(-10px) scale(1.12); }
+.di:hover { transform: translateY(-8px) scale(1.12); }
 .di-icon {
-  width:52px; height:52px; border-radius:13px;
+  width:44px; height:44px; border-radius:11px;
   display:flex; align-items:center; justify-content:center;
-  font-size:24px; position:relative; transition:inherit;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  font-size:20px; position:relative; transition:inherit;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
 .di-label {
-  font-size:10px; font-weight:700; color: var(--text-3); font-family: var(--font-ui);
+  font-size:9px; font-weight:700; color: var(--text-3); font-family: var(--font-ui);
   transition:color .15s; white-space:nowrap;
 }
 .di:hover .di-label { color: var(--accent); }
@@ -277,8 +277,8 @@ html,body {
 }
 .di.open .di-dot { display:block; }
 .di-sep {
-  width:1px; height:52px; background: rgba(244,167,185,0.14);
-  margin:0 2px; align-self:center;
+  width:1px; height:44px; background: rgba(244,167,185,0.18);
+  margin:0 3px; align-self:center;
 }
 /* dock icon colors */
 .di-icon.curriculum { background: linear-gradient(145deg,#c45472,#8b2d50); }
@@ -913,8 +913,8 @@ html,body {
 
 /* ═══════════════════════════ QUICK ACTIONS WIDGET ═══════════════════════════ */
 #wg-actions {
-  bottom:100px; left:24px;
-  width:200px; padding:16px 16px 12px;
+  bottom:110px; left:24px;
+  width:190px; padding:14px 14px 10px;
 }
 .wg-actions-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
@@ -1175,7 +1175,7 @@ html,body {
 <!-- ════ WINDOWS ════ -->
 
 <!-- LESSON PLANS -->
-<div class="win open appear" id="win-plans" style="top:60px;left:60px;">
+<div class="win open appear" id="win-plans" style="top:48px;left:60px;width:780px;height:560px;">
   <div class="win-titlebar" id="tb-plans">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('plans')"></div>
