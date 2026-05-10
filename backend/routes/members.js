@@ -135,6 +135,53 @@ router.delete('/:boardId/:userId', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
+   POST /api/members/:boardId/bulk-invite  — invite multiple by email (CSV)
+   body: { emails: ["a@b.com", "c@d.com"], role? }
+────────────────────────────────────────────────────────────── */
+router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
+  const { boardId } = req.params;
+  const { emails = [], role = 'student' } = req.body;
+  if (!Array.isArray(emails) || !emails.length) return res.status(400).json({ error: 'emails array required' });
+
+  try {
+    const { rows: own } = await pool.query(
+      'SELECT id FROM boards WHERE id=$1 AND user_id=$2', [boardId, req.user.id]
+    );
+    if (!own.length) return res.status(403).json({ error: 'Not your board' });
+
+    const results = { added: [], notFound: [], alreadyMember: [] };
+
+    for (const rawEmail of emails.slice(0, 100)) {
+      const email = rawEmail.trim().toLowerCase();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
+
+      const { rows: users } = await pool.query(
+        'SELECT id, name, email, avatar FROM users WHERE email=$1', [email]
+      );
+      if (!users.length) { results.notFound.push(email); continue; }
+      const invitee = users[0];
+      if (invitee.id === req.user.id) continue;
+
+      try {
+        await pool.query(`
+          INSERT INTO board_collaborators (board_id, user_id, role)
+          VALUES ($1,$2,$3) ON CONFLICT (board_id, user_id) DO NOTHING`,
+          [boardId, invitee.id, role]
+        );
+        results.added.push({ email: invitee.email, name: invitee.name });
+      } catch {
+        results.alreadyMember.push(email);
+      }
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error('[members] bulk-invite error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* ──────────────────────────────────────────────────────────────
    GET /api/members/:boardId/progress  — per-student lesson progress
    Returns: [{ user_id, name, avatar, email, lessons: [{id, status}] }]
 ────────────────────────────────────────────────────────────── */

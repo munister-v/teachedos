@@ -1138,8 +1138,20 @@ html,body {
   <div class="mb-right">
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(255,78,0,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
+    <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
+      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#FF4E00;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+    </span>
     <span id="mb-clock">--:--</span>
   </div>
+</div>
+
+<!-- NOTIFICATIONS PANEL -->
+<div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
+  <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
+    <span style="font-size:14px;font-weight:800;color:#050517;letter-spacing:-.02em;">Notifications</span>
+    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#FF4E00;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
+  </div>
+  <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
 </div>
 
 <!-- WIDGETS -->
@@ -1310,10 +1322,17 @@ html,body {
         <div class="mob-win-title">Notes</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
       </div>
+      <div class="notes-toolbar">
+        <button class="notes-tb-btn" onclick="notesTogglePin()" title="Pin note">📌</button>
+        <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note">🗑</button>
+        <div class="notes-tb-sep"></div>
+        <button class="notes-tb-btn" onclick="document.execCommand('bold')" title="Bold"><b>B</b></button>
+        <button class="notes-tb-btn" onclick="document.execCommand('italic')" title="Italic"><i>I</i></button>
+      </div>
       <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
       <div class="notes-footer">
         <span id="notes-word-count">0 words</span>
-        <span id="notes-save-status">saved</span>
+        <span id="notes-save-status" style="margin-left:auto;">saved</span>
       </div>
     </div>
   </div>
@@ -1897,78 +1916,154 @@ function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRende
 schRender();
 
 /* ══════════════════════ NOTES ══════════════════════ */
+/* ══════════════════════ NOTES — API connected ══════════════════════ */
 const NOTES_KEY = 'teachedos_notes_v1';
-const DEFAULT_NOTES = [
-  { id:1, title:'Welcome to Notes', preview:'A scratchpad for lesson prep, student feedback…', content:'Welcome to Notes\n———————————————\n\nThis is a local scratchpad — saved in your browser.\nUse it for lesson prep, student feedback, grammar\nnotes, or anything you need to remember.\n\nClick "+ New Note" to start fresh.', date:'Today' },
-];
-let NOTES = (() => {
-  try { const s = localStorage.getItem(NOTES_KEY); if (s) return JSON.parse(s); } catch {}
-  return DEFAULT_NOTES.slice();
-})();
-let activeNote = NOTES[0]?.id || null;
-let saveTimer = null;
-function notesPersist() {
-  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+let NOTES = [];
+let activeNote = null;
+let _notesSaveTimer = null;
+let _notesLoaded = false;
+
+async function notesLoad() {
+  if (_notesLoaded) return;
+  _notesLoaded = true;
+  try {
+    const r = await fetch(API_BASE + '/api/notes', { headers: { Authorization: 'Bearer ' + _authToken } });
+    if (r.ok) {
+      const { notes } = await r.json();
+      NOTES = notes;
+      if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
+      notesRender();
+    }
+  } catch {
+    // fallback to localStorage
+    try { const s = localStorage.getItem(NOTES_KEY); if (s) NOTES = JSON.parse(s); } catch {}
+    if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
+    notesRender();
+  }
 }
 
 function notesRender() {
   const list = document.getElementById('notes-list');
+  if (!list) return;
   list.innerHTML = '';
   NOTES.forEach(n => {
     const el = document.createElement('div');
     el.className = 'note-item' + (n.id===activeNote?' active':'');
-    el.innerHTML = `<div class="note-item-title">${n.title}</div><div class="note-item-preview">${n.preview}</div><div class="note-item-date">${n.date}</div>`;
+    const date = n.updated_at ? new Date(n.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${n.pinned ? '<span style="font-size:10px;color:var(--accent);">📌</span>' : ''}
+        <div class="note-item-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(n.title||'Untitled')}</div>
+      </div>
+      <div class="note-item-preview">${esc((n.body||'').slice(0,60))}</div>
+      <div class="note-item-date">${date}</div>`;
     el.onclick = () => notesOpen(n.id);
     list.appendChild(el);
   });
   const active = NOTES.find(n=>n.id===activeNote);
-  if (active) {
-    document.getElementById('notes-ta').value = active.content;
+  const ta = document.getElementById('notes-ta');
+  if (active && ta) {
+    ta.value = active.body || '';
     notesUpdateCount();
   }
 }
+
 function notesOpen(id) {
   activeNote = id;
   notesRender();
+  document.getElementById('notes-ta')?.focus();
 }
-function notesNew() {
-  const id = Date.now();
-  NOTES.unshift({ id, title:'New Note', preview:'', content:'', date:'Today' });
-  activeNote = id;
-  notesPersist();
-  notesRender();
-  document.getElementById('notes-ta').focus();
+
+async function notesNew() {
+  try {
+    const r = await fetch(API_BASE + '/api/notes', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'New Note', body: '' })
+    });
+    if (r.ok) {
+      const { note } = await r.json();
+      NOTES.unshift(note);
+      activeNote = note.id;
+      notesRender();
+      document.getElementById('notes-ta')?.focus();
+    }
+  } catch {
+    const id = 'local_' + Date.now();
+    NOTES.unshift({ id, title:'New Note', body:'', updated_at: new Date().toISOString() });
+    activeNote = id;
+    notesRender();
+  }
 }
-function notesDelete(id) {
+
+async function notesDelete(id) {
   if (!confirm('Delete this note?')) return;
+  try {
+    await fetch(API_BASE + '/api/notes/' + id, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + _authToken }
+    });
+  } catch {}
   NOTES = NOTES.filter(n => n.id !== id);
   if (activeNote === id) activeNote = NOTES[0]?.id || null;
-  notesPersist();
   notesRender();
 }
+
+async function notesTogglePin() {
+  const note = NOTES.find(n=>n.id===activeNote);
+  if (!note) return;
+  note.pinned = !note.pinned;
+  try {
+    await fetch(API_BASE + '/api/notes/' + note.id, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned: note.pinned })
+    });
+  } catch {}
+  NOTES.sort((a,b) => (b.pinned?1:0)-(a.pinned?1:0));
+  notesRender();
+}
+
 function notesAutoSave() {
   const ta = document.getElementById('notes-ta');
   const note = NOTES.find(n=>n.id===activeNote);
-  if (!note) return;
-  note.content = ta.value;
+  if (!note || !ta) return;
+  note.body = ta.value;
   const lines = ta.value.split('\n');
-  note.title = lines[0] || 'New Note';
-  note.preview = (lines[1] || '').slice(0,50);
+  note.title = lines[0]?.trim() || 'Untitled';
   notesUpdateCount();
-  document.getElementById('notes-save-status').textContent = 'editing…';
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    notesPersist();
+  const statusEl = document.getElementById('notes-save-status');
+  if (statusEl) statusEl.textContent = 'editing…';
+  clearTimeout(_notesSaveTimer);
+  _notesSaveTimer = setTimeout(async () => {
+    try {
+      await fetch(API_BASE + '/api/notes/' + note.id, {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: note.title, body: note.body })
+      });
+      if (statusEl) statusEl.textContent = '✓ saved';
+    } catch {
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+      if (statusEl) statusEl.textContent = '✓ local';
+    }
     notesRender();
-    document.getElementById('notes-save-status').textContent = 'saved';
-  }, 800);
+  }, 900);
 }
+
 function notesUpdateCount() {
   const ta = document.getElementById('notes-ta');
+  const el = document.getElementById('notes-word-count');
+  if (!ta || !el) return;
   const words = ta.value.trim().split(/\s+/).filter(Boolean).length;
-  document.getElementById('notes-word-count').textContent = words + ' word' + (words===1?'':'s');
+  el.textContent = words + ' word' + (words===1?'':'s');
 }
-notesRender();
+
+// Load notes when window opens
+document.getElementById('win-notes')?.addEventListener('click', () => {
+  if (!_notesLoaded) notesLoad();
+}, { once: true });
+
 studentsRender();
 
 /* ══════════════════════ TOOLS ══════════════════════ */
@@ -2334,6 +2429,8 @@ function applyUserToDesktop(user) {
   renderCallRooms();
   renderCallsToday();
   loadBillingData();
+  // Load notifications
+  setTimeout(loadNotifications, 1500);
 }
 
 function showAuthOverlay() {
@@ -2461,6 +2558,93 @@ async function submitOsAuth() {
 
 // Run on load
 checkAuthAndRoute();
+
+/* ══════════════════════ NOTIFICATIONS ══════════════════════ */
+let _notifOpen = false;
+let _notifData = [];
+
+async function loadNotifications() {
+  if (!_authToken) return;
+  try {
+    const r = await fetch(API_BASE + '/api/notifications', {
+      headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    if (!r.ok) return;
+    const { notifications, unread } = await r.json();
+    _notifData = notifications;
+    const badge = document.getElementById('mb-notif-badge');
+    if (badge) {
+      if (unread > 0) {
+        badge.textContent = unread > 9 ? '9+' : unread;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    renderNotifList();
+  } catch {}
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!_notifData.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:#A2A28C;">No notifications yet</div>';
+    return;
+  }
+  list.innerHTML = _notifData.map(n => `
+    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(255,78,0,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(255,78,0,.05)'}'">
+      <span style="font-size:18px;flex-shrink:0;">${n.type==='live'?'🔴':n.type==='grade'?'📊':n.type==='invite'?'📩':'🔔'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:${n.read?'600':'800'};color:#050517;line-height:1.3;">${esc(n.title)}</div>
+        ${n.body?`<div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${esc(n.body)}</div>`:''}
+        <div style="font-size:10px;color:#A2A28C;margin-top:3px;">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#FF4E00;flex-shrink:0;margin-top:4px;"></span>':''}
+    </div>`).join('');
+}
+
+async function notifRead(id, link) {
+  try {
+    await fetch(API_BASE + '/api/notifications/' + id + '/read', {
+      method: 'PATCH', headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    const n = _notifData.find(x=>x.id===id);
+    if (n) n.read = true;
+    renderNotifList();
+    loadNotifications();
+  } catch {}
+  if (link && link !== 'undefined') { toggleNotifPanel(); location.href = link; }
+}
+
+async function notifReadAll() {
+  try {
+    await fetch(API_BASE + '/api/notifications/read-all', {
+      method: 'PATCH', headers: { Authorization: 'Bearer ' + _authToken }
+    });
+    _notifData.forEach(n => n.read = true);
+    renderNotifList();
+    document.getElementById('mb-notif-badge').style.display = 'none';
+  } catch {}
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  _notifOpen = !_notifOpen;
+  panel.style.display = _notifOpen ? 'flex' : 'none';
+  if (_notifOpen) loadNotifications();
+}
+
+// Close notif panel on outside click
+document.addEventListener('click', e => {
+  if (_notifOpen && !e.target.closest('#notif-panel') && !e.target.closest('#mb-notif-btn')) {
+    _notifOpen = false;
+    document.getElementById('notif-panel').style.display = 'none';
+  }
+});
+
+// Load notifications every 2 minutes
+setInterval(loadNotifications, 120000);
 
 /* ════════════════════════════════════════════════════
    LIVE WIDGETS (teacher/admin only — students are redirected above)

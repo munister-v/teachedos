@@ -39,6 +39,61 @@ pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS meeting_url TEXT`).cat
 pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS is_live BOOLEAN DEFAULT FALSE`).catch(() => {});
 pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS specific_date DATE`).catch(() => {});
 
+// Fix quiz_results and push_subscriptions to use UUID user_id (not INTEGER)
+pool.query(`
+  DO $$ BEGIN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name='quiz_results' AND column_name='user_id' AND data_type='integer'
+    ) THEN
+      ALTER TABLE quiz_results ALTER COLUMN user_id TYPE UUID USING user_id::text::uuid;
+    END IF;
+  END $$;
+`).catch(() => {});
+
+pool.query(`
+  DO $$ BEGIN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name='push_subscriptions' AND column_name='user_id' AND data_type='integer'
+    ) THEN
+      ALTER TABLE push_subscriptions ALTER COLUMN user_id TYPE UUID USING user_id::text::uuid;
+    END IF;
+  END $$;
+`).catch(() => {});
+
+// Notes table
+pool.query(`
+  CREATE TABLE IF NOT EXISTS notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL DEFAULT 'Untitled',
+    body TEXT NOT NULL DEFAULT '',
+    color VARCHAR(20) DEFAULT '#FFFFFF',
+    pinned BOOLEAN DEFAULT FALSE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`).catch(() => {});
+
+pool.query(`CREATE INDEX IF NOT EXISTS idx_notes_user ON notes(user_id)`).catch(() => {});
+
+// Notifications table
+pool.query(`
+  CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL DEFAULT 'info',
+    title VARCHAR(255) NOT NULL,
+    body TEXT,
+    read BOOLEAN DEFAULT FALSE,
+    link TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`).catch(() => {});
+
+pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read)`).catch(() => {});
+
 // GET /api/schedule — get user's weekly schedule
 router.get('/', requireAuth, async (req, res) => {
   try {
