@@ -4240,6 +4240,10 @@ function resolveConflict(choice) {
 /* ════ AUTO-SNAPSHOT TIMER (every 5 min) ════ */
 autoSnapTimer = setInterval(() => autoSnapshot('auto'), 5 * 60 * 1000);
 
+/* ── Early WS variable declarations (must precede applyTransform → wsSendViewport) ── */
+let ws = null;
+let vpBroadcastTimer = null;
+
 /* ════════════════════════ INIT ════════════════════════ */
 updateUndoButtons();
 applyTransform();
@@ -4787,7 +4791,7 @@ async function newBoard() {
 
 // ── WebSocket Collaboration ──────────────────────────────────
 const WS_BASE = API.replace('https://', 'wss://').replace('http://', 'ws://');
-let ws = null;
+ws = null;
 let wsReconnectTimer = null;
 let wsEnabled = false;
 let remoteCursors = {}; // userId → { el, x, y }
@@ -4804,7 +4808,7 @@ let followMode = false;        // teacher: follow-me is active
 let isFollowingTeacher = false; // student: locked to teacher viewport
 let peerViewports = {};        // userId → { pan, scale, name, avatar }
 let peerInfo = {};             // userId → { name, avatar }
-let vpBroadcastTimer = null;
+vpBroadcastTimer = null;
 
 function peerColor(userId) {
   if (!peerColorMap[userId]) peerColorMap[userId] = PEER_COLORS[peerColorIdx++ % PEER_COLORS.length];
