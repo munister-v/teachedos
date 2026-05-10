@@ -172,4 +172,27 @@ router.post('/make-admin', async (req, res) => {
   }
 });
 
+// POST /api/auth/set-role  — set any role using ADMIN_SECRET
+router.post('/set-role', async (req, res) => {
+  const { email, role, secret } = req.body;
+  const ADMIN_SECRET = process.env.ADMIN_SECRET;
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret' });
+  }
+  const allowed = ['teacher', 'student', 'admin'];
+  if (!allowed.includes(role)) {
+    return res.status(400).json({ error: 'Role must be teacher, student, or admin' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET role=$1 WHERE email=$2 RETURNING id,email,name,role`,
+      [role, email.toLowerCase().trim()]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
