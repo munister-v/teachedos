@@ -62,18 +62,19 @@ router.get('/:id', async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-// PUT /api/boards/:id — save board state
-router.put('/:id', async (req, res) => {
-  const { data, name, thumbnail } = req.body;
-  if (!data) return res.status(400).json({ error: 'data is required' });
+// PUT /api/boards/:id — save board state (legacy)
+router.put('/:id', requireAuth, async (req, res) => {
+  const { data, state: stateBody, name, thumbnail } = req.body;
+  const boardData = data || stateBody;
+  if (!boardData) return res.status(400).json({ error: 'data or state is required' });
 
   const sets    = ['data = $3'];
-  const params  = [req.params.id, req.user.id, data];
+  const params  = [req.params.id, req.user.id, boardData];
   if (name !== undefined)      { sets.push(`name = $${params.length + 1}`);      params.push(name.trim().slice(0, 255)); }
   if (thumbnail !== undefined) { sets.push(`thumbnail = $${params.length + 1}`); params.push(thumbnail); }
 
   const { rows } = await pool.query(
-    `UPDATE boards SET ${sets.join(', ')}
+    `UPDATE boards SET ${sets.join(', ')}, updated_at = NOW()
      WHERE id = $1 AND user_id = $2
      RETURNING id, name, thumbnail, updated_at`,
     params
@@ -82,12 +83,35 @@ router.put('/:id', async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-// PATCH /api/boards/:id/name — rename board
-router.patch('/:id/name', async (req, res) => {
+// PATCH /api/boards/:id — update board (state, name, or thumbnail)
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { data, state: stateBody, name, thumbnail } = req.body;
+  const boardData = data || stateBody;
+  const sets   = [];
+  const params = [req.params.id, req.user.id];
+
+  if (boardData !== undefined)  { params.push(boardData);                      sets.push(`data = $${params.length}`); }
+  if (name !== undefined)       { params.push(name.trim().slice(0, 255));      sets.push(`name = $${params.length}`); }
+  if (thumbnail !== undefined)  { params.push(thumbnail);                      sets.push(`thumbnail = $${params.length}`); }
+
+  if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
+
+  const { rows } = await pool.query(
+    `UPDATE boards SET ${sets.join(', ')}, updated_at = NOW()
+     WHERE id = $1 AND user_id = $2
+     RETURNING id, name, thumbnail, updated_at`,
+    params
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Board not found or not owner' });
+  res.json({ board: rows[0] });
+});
+
+// PATCH /api/boards/:id/name — rename board (legacy)
+router.patch('/:id/name', requireAuth, async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'name is required' });
   const { rows } = await pool.query(
-    `UPDATE boards SET name = $3 WHERE id = $1 AND user_id = $2 RETURNING id, name`,
+    `UPDATE boards SET name = $3, updated_at = NOW() WHERE id = $1 AND user_id = $2 RETURNING id, name`,
     [req.params.id, req.user.id, name.trim().slice(0, 255)]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });

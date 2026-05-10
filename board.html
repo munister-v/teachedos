@@ -1041,6 +1041,51 @@ body.board-dragging .game-iframe-overlay{display:block;}
   #board{transform:none!important;position:static!important;width:auto!important;height:auto!important;}
   .board-card{position:static!important;display:inline-block!important;margin:8px!important;break-inside:avoid;}
 }
+
+/* ── Share / Invite panel ── */
+#share-panel{
+  position:fixed;top:calc(var(--tb-h) + 8px);right:12px;z-index:3000;
+  width:340px;background:var(--card-bg,#fff);border:1px solid var(--border);
+  border-radius:18px;box-shadow:0 16px 48px rgba(0,0,0,.18);
+  display:none;flex-direction:column;overflow:hidden;max-height:calc(100vh - 80px);
+}
+#share-panel.open{display:flex;}
+#share-panel-head{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+#share-panel-title{font-size:13px;font-weight:900;flex:1;color:var(--text);}
+.sp-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);line-height:1;padding:0;}
+#share-panel-body{padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.sp-section-label{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.sp-link-row{display:flex;gap:6px;}
+.sp-link-input{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-family:var(--mono);color:var(--text-2);background:transparent;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sp-copy-btn{padding:8px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.sp-copy-btn:hover{filter:brightness(1.08);}
+.sp-invite-row{display:flex;gap:6px;}
+.sp-email-input{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:var(--font);color:var(--text);background:transparent;outline:none;}
+.sp-email-input:focus{border-color:var(--accent);}
+.sp-invite-btn{padding:8px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.sp-invite-btn:hover{filter:brightness(1.08);}
+.sp-member-row{display:flex;align-items:center;gap:10px;padding:8px 0;}
+.sp-member-avatar{font-size:20px;flex-shrink:0;}
+.sp-member-info{flex:1;min-width:0;}
+.sp-member-name{font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sp-member-email{font-size:11px;color:var(--text-3);}
+.sp-member-remove{background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:2px 5px;border-radius:6px;transition:.15s;}
+.sp-member-remove:hover{background:rgba(239,68,68,.1);color:#ef4444;}
+.sp-empty{font-size:12px;color:var(--text-3);text-align:center;padding:12px 0;}
+.sp-err{font-size:12px;color:#ef4444;text-align:center;display:none;}
+
+/* ── Reconnecting banner ── */
+#reconnect-banner{
+  position:fixed;bottom:56px;left:50%;transform:translateX(-50%);
+  background:#1a1a2e;color:#fff;padding:9px 20px;border-radius:20px;
+  font-size:12px;font-weight:700;z-index:5000;display:none;
+  align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+#reconnect-banner.show{display:flex;}
+.rcn-dot{width:8px;height:8px;border-radius:50%;background:#fbbf24;animation:pulse-dot 1s ease-in-out infinite;}
 </style>
 </head>
 <body>
@@ -1081,8 +1126,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-btn text" id="btn-shortcuts" title="Keyboard shortcuts (?)" onclick="openShortcuts()">?</div>
   <div class="tb-sep"></div>
   <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:#34a853;display:none;">📹 Call</div>
-  <div class="tb-btn text" id="btn-share" title="Copy share link" onclick="copyShareLink()">📎 Share</div>
-  <div class="tb-btn text" id="btn-members" title="Manage students" onclick="location.href='gradebook.html'" style="display:none">👥 Students</div>
+  <div class="tb-btn text" id="btn-share" title="Share & invite students" onclick="openSharePanel()">📎 Share</div>
+  <div class="tb-btn text" id="btn-members" title="Manage students" onclick="openSharePanel()" style="display:none">👥 Students</div>
   <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:4px 10px;border-radius:8px;transition:.15s;border:1px solid transparent;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="Click to rename board" onclick="startRenameBoard()">—</div>
   <div class="tb-sep"></div>
   <!-- WS status + presence -->
@@ -3712,8 +3757,9 @@ function setSaveUI(state, detail) {
     lastSavedAt = new Date();
   } else if (state === 'cloud') {
     dot.style.background = '#6366f1';
-    status.textContent = '☁ synced';
-    lastSavedAt = new Date();
+    const now = new Date();
+    status.textContent = `☁ synced ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+    lastSavedAt = now;
   } else if (state === 'offline') {
     dot.style.background = '#f97316';
     status.textContent = '📡 offline';
@@ -3734,6 +3780,19 @@ setInterval(() => {
   if (!chip) return;
   if (diff < 1) chip.title = 'Last saved just now · click for version history';
   else chip.title = `Last saved ${diff} min ago · click for version history`;
+  // Warn if not saved in 5+ min
+  const status = document.getElementById('save-status');
+  if (diff >= 5 && status && !pendingCloudSave) status.textContent = `⚠ ${diff}m unsaved`;
+}, 30000);
+
+/* ── Periodic forced cloud save every 30s if there are unsaved changes ── */
+setInterval(() => {
+  if (currentUser && currentBoardId && !isOffline && pendingCloudSave) {
+    saveToCloud();
+  } else if (currentUser && currentBoardId && !isOffline && lastSavedAt) {
+    const diff = Date.now() - lastSavedAt.getTime();
+    if (diff > 30000 && sessionEdits > 0) saveToCloud(); // force save every 30s during active session
+  }
 }, 30000);
 
 /* ── Session stats ticker ── */
@@ -3772,23 +3831,32 @@ async function saveToCloud(retryCount = 0) {
   try {
     const data = serializeBoard();
     const thumb = await captureThumb();
-    const r = await apiFetch('/api/boards/' + currentBoardId, {
-      method: 'PUT',
-      body: { data, thumbnail: thumb || undefined },
-    });
+    const r = await apiFetchTimeout('/api/boards/' + currentBoardId, {
+      method: 'PATCH',
+      body: { state: data, thumbnail: thumb || undefined },
+    }, 15000);
+    if (r.status === 401 || r.status === 403) {
+      // Token expired mid-session — show reconnect
+      setSaveUI('error');
+      pendingCloudSave = true;
+      startReconnectLoop();
+      return;
+    }
     if (!r.ok) throw new Error('HTTP ' + r.status);
     saveRetries = 0;
     pendingCloudSave = false;
-    setSaveUI('cloud', '☁ synced');
-    autoSnapshot('auto');  // auto-version every cloud save
+    setSaveUI('cloud');
+    autoSnapshot('auto');
   } catch (err) {
     saveRetries = retryCount + 1;
-    if (saveRetries <= 3) {
-      const delay = Math.pow(2, saveRetries) * 1000; // 2s, 4s, 8s
+    if (saveRetries <= 4) {
+      const delay = Math.min(Math.pow(2, saveRetries) * 1000, 30000);
       cloudSaveTimer = setTimeout(() => saveToCloud(saveRetries), delay);
       setSaveUI('saving');
+      pendingCloudSave = true;
     } else {
       setSaveUI('error');
+      pendingCloudSave = true;
       saveRetries = 0;
     }
   }
@@ -4438,10 +4506,113 @@ async function saveToCloud() {
 }
 
 // ── Share & Rename ────────────────────────────────────────────
-function copyShareLink() {
-  if (!currentBoardId) { toast('No board loaded'); return; }
+// ── Share panel ───────────────────────────────────────────────
+let _sharePanelOpen = false;
+
+function openSharePanel() {
+  if (!currentBoardId) { toast('Load a board first'); return; }
+  const panel = document.getElementById('share-panel');
+  _sharePanelOpen = true;
+  panel.classList.add('open');
+  // Set link
   const url = `${location.origin}${location.pathname}?id=${currentBoardId}`;
-  navigator.clipboard.writeText(url).then(() => toast('Link copied!'));
+  document.getElementById('sp-link-input').value = url;
+  // Show invite section only for board owner
+  const isOwner = currentUser && currentBoardId;
+  document.getElementById('sp-invite-section').style.display = isOwner ? '' : 'none';
+  document.getElementById('sp-members-section').style.display = isOwner ? '' : 'none';
+  if (isOwner) spLoadMembers();
+}
+
+function closeSharePanel() {
+  _sharePanelOpen = false;
+  document.getElementById('share-panel').classList.remove('open');
+}
+
+function spCopyLink() {
+  const url = document.getElementById('sp-link-input').value;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.sp-copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+async function spInvite() {
+  const email = document.getElementById('sp-email-input').value.trim();
+  const errEl = document.getElementById('sp-err');
+  errEl.style.display = 'none';
+  if (!email) return;
+  const btn = document.querySelector('.sp-invite-btn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const r = await apiFetch(`/api/members/${currentBoardId}/invite`, {
+      method: 'POST', body: { email, role: 'student' }
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      errEl.textContent = d.error || 'Failed to invite';
+      errEl.style.display = 'block';
+    } else {
+      document.getElementById('sp-email-input').value = '';
+      toast(`✓ ${d.member.name} invited!`);
+      await spLoadMembers();
+    }
+  } catch {
+    errEl.textContent = 'Network error'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Invite';
+  }
+}
+
+async function spLoadMembers() {
+  const list = document.getElementById('sp-members-list');
+  list.innerHTML = '<div class="sp-empty">Loading…</div>';
+  try {
+    const r = await apiFetch(`/api/members/${currentBoardId}`);
+    if (!r.ok) { list.innerHTML = '<div class="sp-empty">No access</div>'; return; }
+    const { members } = await r.json();
+    if (!members.length) {
+      list.innerHTML = '<div class="sp-empty">No students yet. Invite them above.</div>';
+      return;
+    }
+    list.innerHTML = members.map(m => `
+      <div class="sp-member-row">
+        <div class="sp-member-avatar">${m.avatar || '🎓'}</div>
+        <div class="sp-member-info">
+          <div class="sp-member-name">${esc(m.name)}</div>
+          <div class="sp-member-email">${esc(m.email)}</div>
+        </div>
+        <button class="sp-member-remove" title="Remove" onclick="spRemoveMember(${m.user_id})">✕</button>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div class="sp-empty">Failed to load</div>';
+  }
+}
+
+async function spRemoveMember(userId) {
+  if (!confirm('Remove this student from the board?')) return;
+  try {
+    await apiFetch(`/api/members/${currentBoardId}/${userId}`, { method: 'DELETE' });
+    await spLoadMembers();
+    toast('Student removed');
+  } catch { toast('Failed to remove'); }
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', e => {
+  if (_sharePanelOpen) {
+    const panel = document.getElementById('share-panel');
+    const shareBtn = document.getElementById('btn-share');
+    const membersBtn = document.getElementById('btn-members');
+    if (!panel.contains(e.target) && e.target !== shareBtn && e.target !== membersBtn) {
+      closeSharePanel();
+    }
+  }
+});
+
+function copyShareLink() {
+  openSharePanel();
 }
 
 function startRenameBoard() {
@@ -5238,6 +5409,55 @@ function addArrowLabel(arrowId) {
   scheduleSave();
 }
 
+// ── Auth fetch with timeout ───────────────────────────────────
+function apiFetchTimeout(path, opts = {}, ms = 10000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  return apiFetch(path, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(id));
+}
+
+// ── Background reconnect after cold start ────────────────────
+let _reconnectTimer = null;
+function startReconnectLoop() {
+  const banner = document.getElementById('reconnect-banner');
+  const msg    = document.getElementById('reconnect-msg');
+  if (banner) banner.classList.add('show');
+  let attempt = 0;
+  const delays = [5000, 10000, 15000, 30000, 60000]; // backoff
+
+  async function tryReconnect() {
+    attempt++;
+    if (msg) msg.textContent = `Reconnecting… (attempt ${attempt})`;
+    try {
+      const r = await apiFetchTimeout('/api/auth/me', {}, 8000);
+      const d = await r.json();
+      if (r.ok && d.user) {
+        currentUser = d.user;
+        try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
+        updateAuthUI();
+        wsEnabled = true;
+        isOffline = false;
+        hideOfflineBanner();
+        if (banner) banner.classList.remove('show');
+        if (pendingCloudSave) saveToCloud();
+        wsConnect();
+        if (!currentBoardId) await initUserBoard();
+        toast('✓ Connected');
+        return;
+      }
+      if (r.status === 401 || r.status === 403) {
+        // Token invalid — stop retrying, show login
+        if (banner) banner.classList.remove('show');
+        setToken(null); localStorage.removeItem('teachedos_user');
+        openAuthModal('login'); return;
+      }
+    } catch { /* still unreachable */ }
+    const delay = delays[Math.min(attempt - 1, delays.length - 1)];
+    _reconnectTimer = setTimeout(tryReconnect, delay);
+  }
+  _reconnectTimer = setTimeout(tryReconnect, delays[0]);
+}
+
 // ── Init auth on load ────────────────────────────────────────
 (async () => {
   renderAuthFields();
@@ -5245,11 +5465,10 @@ function addArrowLabel(arrowId) {
     const loginBtn = document.getElementById('auth-login-btn');
     if (loginBtn) { loginBtn.textContent = '⟳'; loginBtn.style.pointerEvents = 'none'; }
     try {
-      const r = await apiFetch('/api/auth/me');
+      const r = await apiFetchTimeout('/api/auth/me', {}, 10000);
       const d = await r.json();
       if (r.ok && d.user) {
         currentUser = d.user;
-        // Persist user for offline display
         try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
         updateAuthUI();
         wsEnabled = true;
@@ -5257,23 +5476,29 @@ function addArrowLabel(arrowId) {
         wsConnect();
         return;
       }
-      // Server explicitly rejected the token (401/403) — clear it
+      // 401/403 — token genuinely invalid
       setToken(null);
       localStorage.removeItem('teachedos_user');
       openAuthModal('login');
     } catch {
-      // Network failure (Render sleeping?) — keep token, load from localStorage
-      console.warn('[auth] backend unreachable, loading from localStorage');
+      // Network failure / timeout (Render cold start) — load from cache, retry in background
+      console.warn('[auth] backend unreachable — loading cache, starting reconnect loop');
       const cached = localStorage.getItem('teachedos_user');
       if (cached) try { currentUser = JSON.parse(cached); } catch {}
       updateAuthUI();
       loadBoard();
       showOfflineBanner();
-      toast('⚠️ Offline — working from local save');
+      toast('⚠️ Server starting up — reconnecting…');
+      startReconnectLoop();
     }
   } else {
-    // No token — auto-show auth modal (unless there's a shared board to preview)
-    if (!URL_BOARD_ID) openAuthModal('login');
+    // No token
+    if (URL_BOARD_ID) {
+      // Someone opened a shared link without being logged in — show auth modal
+      openAuthModal('login');
+    } else {
+      openAuthModal('login');
+    }
   }
   updateAuthUI();
 })();
@@ -6157,5 +6382,44 @@ function openStudentQuiz(cardId) {
 .quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
 </style>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+
+<!-- Reconnecting banner -->
+<div id="reconnect-banner">
+  <div class="rcn-dot"></div>
+  <span id="reconnect-msg">Reconnecting to server…</span>
+</div>
+
+<!-- Share & Invite panel -->
+<div id="share-panel">
+  <div id="share-panel-head">
+    <span id="share-panel-title">📎 Share Board</span>
+    <button class="sp-close" onclick="closeSharePanel()">×</button>
+  </div>
+  <div id="share-panel-body">
+    <!-- Board link -->
+    <div>
+      <div class="sp-section-label">Board link</div>
+      <div class="sp-link-row">
+        <input class="sp-link-input" id="sp-link-input" readonly>
+        <button class="sp-copy-btn" onclick="spCopyLink()">Copy</button>
+      </div>
+    </div>
+    <!-- Invite by email -->
+    <div id="sp-invite-section" style="display:none;">
+      <div class="sp-section-label">Invite student by email</div>
+      <div class="sp-invite-row">
+        <input class="sp-email-input" id="sp-email-input" type="email" placeholder="student@email.com"
+          onkeydown="if(event.key==='Enter')spInvite()">
+        <button class="sp-invite-btn" onclick="spInvite()">Invite</button>
+      </div>
+      <div class="sp-err" id="sp-err"></div>
+    </div>
+    <!-- Current members -->
+    <div id="sp-members-section" style="display:none;">
+      <div class="sp-section-label">Students on this board</div>
+      <div id="sp-members-list"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
