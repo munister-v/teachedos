@@ -7,14 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--accent-bg:#F5F5EA;
-  --dark:#1a1a2e;--dark2:#16213e;--sidebar-w:240px;
-  --text:#2d2d3a;--muted:#888;--border:#eee;
+  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;
+  --bg:#F5F5EA;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --text:#050517;--text2:#3A3A2E;--muted:#A2A28C;
   --green:#22c55e;--red:#ef4444;--orange:#f97316;--blue:#3b82f6;
-  --card-r:16px;--shadow:0 4px 24px rgba(94,94,74,.10);
+  --dark:#050517;--dark2:#0F0F26;--sidebar-w:240px;
+  --card-r:14px;--shadow:0 4px 24px rgba(5,5,23,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Nunito,sans-serif;background:#f8f6fb;color:var(--text);min-height:100vh;display:flex}
+body{font-family:Nunito,sans-serif;background:#F5F5EA;color:var(--text);min-height:100vh;display:flex}
 
 /* ── Login screen ───────────────────────────────────────────────────────── */
 #login-screen{
@@ -182,7 +184,7 @@ tr:hover td{background:#fafafa}
 /* ── Toast ───────────────────────────────────────────────────────────────── */
 #toast{
   position:fixed;bottom:28px;right:28px;z-index:9999;
-  background:#1a1a2e;color:#fff;padding:13px 22px;border-radius:14px;
+  background:#050517;color:#fff;padding:13px 22px;border-radius:14px;
   font-size:14px;font-weight:700;box-shadow:0 4px 24px rgba(0,0,0,.25);
   transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;
 }
@@ -448,7 +450,7 @@ tr:hover td{background:#fafafa}
       <div class="setting-card">
         <div class="setting-title">🔗 API Endpoint</div>
         <div class="setting-desc">Current backend URL being used by this panel.</div>
-        <div style="font-family:monospace;font-size:13px;padding:12px;background:#f8f6fb;border-radius:10px;word-break:break-all" id="api-url-display"></div>
+        <div style="font-family:monospace;font-size:13px;padding:12px;background:#F5F5EA;border-radius:10px;word-break:break-all" id="api-url-display"></div>
       </div>
 
     </div>

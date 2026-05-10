@@ -8,11 +8,13 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;--accent-bg:rgba(255,78,0,.08);
-  --bg:#F5F5EA;--card:#fff;--border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;
+  --bg:#F5F5EA;--bg2:#EAEADA;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
   --text:#050517;--text2:#3A3A2E;--text3:#A2A28C;
-  --shadow:0 2px 16px rgba(5,5,23,.07);
-  --font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
+  --shadow:0 4px 24px rgba(5,5,23,.08);
+  --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
   --nav-h:52px;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
@@ -174,7 +176,7 @@ a{text-decoration:none;color:inherit;}
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;
   padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;
-  background:#1a1a2e;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.2);
+  background:#050517;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.2);
   transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
@@ -196,18 +198,17 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html" style="text-decoration:none;">🎓 TeachedOS</a>
+  <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
   <a class="nav-link" href="courses.html">Courses</a>
   <a class="nav-link active" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="analytics.html">Analytics</a>
   <a class="nav-link" href="gradebook.html">Gradebook</a>
   <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
-  <a class="nav-user" id="nav-user" href="profile.html" style="text-decoration:none;">
-    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">Loading…</span>
+  <a class="nav-user" href="profile.html" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
   </a>
 </nav>
 

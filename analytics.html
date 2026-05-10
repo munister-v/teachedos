@@ -8,12 +8,14 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--bg:#F5F5EA;--card:#fff;
+  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;
+  --bg:#F5F5EA;--bg2:#EAEADA;--card:#fff;
   --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
   --text:#050517;--text2:#3A3A2E;--text3:#A2A28C;
-  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;
-  --shadow:0 4px 24px rgba(94,94,74,.09);--nav-h:52px;
-  --font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
+  --shadow:0 4px 24px rgba(5,5,23,.08);
+  --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
+  --nav-h:52px;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 a{text-decoration:none;color:inherit;}
@@ -39,7 +41,7 @@ a{text-decoration:none;color:inherit;}
 
 /* Header */
 .page-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.page-title{font-size:26px;font-weight:900;}
+.page-title{font-size:26px;font-weight:900;letter-spacing:-.03em;letter-spacing:-.03em;}
 .page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 .head-spacer{flex:1;}
 .btn{
@@ -64,7 +66,7 @@ a{text-decoration:none;color:inherit;}
 .si-blue  {background:#eff6ff;}
 .si-orange{background:#fff7ed;}
 .si-purple{background:#faf5ff;}
-.stat-val{font-size:28px;font-weight:900;line-height:1;}
+.stat-val{font-size:28px;font-weight:900;letter-spacing:-.03em;line-height:1;}
 .stat-lbl{font-size:12px;color:var(--text3);font-weight:700;margin-top:2px;}
 
 /* Section */
@@ -139,7 +141,7 @@ a{text-decoration:none;color:inherit;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:700;background:#1a1a2e;color:#fff;
+  border-radius:12px;font-size:13px;font-weight:700;background:#050517;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
@@ -151,7 +153,7 @@ a{text-decoration:none;color:inherit;}
 <body>
 
 <nav id="nav">
-  <a class="nav-logo" href="index.html" style="text-decoration:none;">🎓 TeachedOS</a>
+  <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
@@ -161,7 +163,7 @@ a{text-decoration:none;color:inherit;}
   <a class="nav-link" href="gradebook.html">Gradebook</a>
   <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
-  <a class="nav-user" href="profile.html" style="text-decoration:none;">
+  <a class="nav-user" href="profile.html" id="nav-user">
     <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
   </a>
 </nav>

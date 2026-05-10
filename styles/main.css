@@ -145,7 +145,7 @@ html,body {
 }
 .wg-clock-time {
   font-family: var(--font-ui); font-size:52px; font-weight:900;
-  color: var(--text); line-height:1; letter-spacing:-0.03em;
+  color: var(--text); line-height:1; letter-spacing:-0.05em;
 }
 .wg-clock-time em { color: var(--accent); font-style:normal; }
 .wg-clock-date {
@@ -274,7 +274,7 @@ html,body {
   font-size:10px; font-weight:700; color: var(--text-3); font-family: var(--font-ui);
   transition:color .15s, opacity .15s; white-space:nowrap;
   opacity:0; position:absolute; bottom:-18px;
-  background: rgba(5,5,23,0.75); color:#fff;
+  background: #050517; color:#fff;
   padding:2px 8px; border-radius:6px; font-size:11px;
   pointer-events:none; white-space:nowrap;
 }
@@ -430,7 +430,7 @@ html,body {
 }
 .curr-title {
   font-family: var(--font-ui); font-size:26px; font-weight:900;
-  color: var(--text); line-height:1.2; letter-spacing:-0.02em;
+  color: var(--text); line-height:1.2; letter-spacing:-0.04em;
 }
 .curr-title em { font-style:normal; color: var(--accent); }
 .curr-search {
