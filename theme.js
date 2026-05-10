@@ -1,8 +1,7 @@
 // TeachedOS shared theme manager
 (function() {
   const stored = localStorage.getItem('teachedos_theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = stored || (prefersDark ? 'dark' : 'light');
+  const theme = stored || 'light';
   if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
   // Expose toggle for profile page
