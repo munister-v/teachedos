@@ -176,4 +176,31 @@ router.get('/shared/list', async (req, res) => {
   res.json({ courses: rows });
 });
 
+/* ── GET /api/courses/:id/boards — boards in a course (student-accessible) */
+router.get('/:id/boards', async (req, res) => {
+  try {
+    // Allow owner OR enrolled student
+    const { rows: access } = await pool.query(
+      `SELECT 1 FROM courses WHERE id=$1 AND user_id=$2
+       UNION
+       SELECT 1 FROM board_collaborators bc
+       JOIN boards b ON b.id=bc.board_id
+       WHERE b.course_id=$1 AND bc.user_id=$2`,
+      [req.params.id, req.user.id]
+    );
+    if (!access.length) return res.status(403).json({ error: 'No access' });
+
+    const { rows } = await pool.query(
+      `SELECT id, name, thumbnail, updated_at, board_order,
+              jsonb_array_length(data->'cards') AS card_count
+       FROM boards WHERE course_id=$1
+       ORDER BY board_order, updated_at DESC`,
+      [req.params.id]
+    );
+    res.json({ boards: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

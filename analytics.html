@@ -184,7 +184,10 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Board selector -->
   <div class="section">
-    <div class="sec-head"><div class="sec-title">📋 Select Board</div></div>
+    <div class="sec-head">
+      <div class="sec-title">📋 Select Board</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportAllCSV()" title="Export all data">📥 Export All</button>
+    </div>
     <div class="sec-body">
       <div class="board-pills" id="board-pills">Loading boards…</div>
     </div>
@@ -596,6 +599,29 @@ function exportCSV() {
   a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
   a.download = 'teachedos-lessons.csv';
   a.click();
+}
+
+function exportAllCSV() {
+  // Export current board's student progress as CSV
+  const boardId = activeBoardId;
+  if (!boardId) { toast('Select a board first'); return; }
+  const rows = [['Student','Email','Lesson','Status']];
+  const studentsBody = document.getElementById('students-body');
+  if (!studentsBody) { toast('No data to export'); return; }
+  // Re-fetch and export
+  apiFetch(`/api/members/${boardId}/progress`).then(d => {
+    d.members.forEach(m => {
+      m.lessons.forEach(l => {
+        rows.push([m.name, m.email, l.title, l.status]);
+      });
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `analytics-${boardId}.csv`;
+    a.click();
+    toast('📥 Exported!');
+  }).catch(() => toast('Export failed'));
 }
 
 let toastT;

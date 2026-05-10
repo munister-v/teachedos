@@ -549,15 +549,31 @@ function toggleModule(mid) {
 /* ── SHARED COURSE VIEW (students) ──────────────────────────── */
 async function openSharedCourse(id) {
   try {
-    // Build a read-only view from accessible boards in this course
-    const { courses: shared } = await api('/api/courses/shared/list');
-    const c = shared.find(x => x.id === id);
-    if (!c) return;
-    toast('Opening: ' + c.name);
-    // For students, load boards they have access to via board_collaborators
-    // Simplified: redirect to board list filtered by course
-    // Full implementation would load per-course board listing
-    alert('Student course view — coming next. You can access individual boards via Gradebook.');
+    const course = sharedCourses.find(x => x.id === id);
+    if (!course) return;
+    // Load boards for this course that student has access to
+    let boards = [];
+    try {
+      const r = await api('/api/courses/' + id + '/boards');
+      boards = r.boards || [];
+    } catch {}
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;display:flex;align-items:center;justify-content:center;';
+    const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    modal.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">' +
+      '<div style="font-size:18px;font-weight:900;color:#050517;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
+      '<div style="font-size:13px;color:#A2A28C;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
+      (boards.length ? boards.map(b =>
+        '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F5EA;">' +
+        '<span style="font-size:20px;">📌</span>' +
+        '<div><div style="font-size:14px;font-weight:800;color:#050517;">' + esc2(b.name) + '</div>' +
+        '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
+        '<span style="margin-left:auto;color:#FF4E00;font-weight:700;font-size:13px;">Open →</span></a>'
+      ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
+      '<button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F5EA;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      '</div>';
+    modal.onclick = e => { if(e.target===modal) modal.remove(); };
+    document.body.appendChild(modal);
   } catch(e) { toast(e.message); }
 }
 

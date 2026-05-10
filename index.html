@@ -1338,6 +1338,46 @@ html,body {
   </div>
 </div>
 
+<!-- DICTIONARY -->
+<div class="win" id="win-dictionary" style="top:70px;left:180px;width:560px;height:480px;">
+  <div class="win-titlebar" id="tb-dictionary">
+    <div class="win-controls">
+      <div class="tl close" onclick="closeWin('dictionary')"></div>
+      <div class="tl min"   onclick="minWin('dictionary')"></div>
+      <div class="tl max"></div>
+    </div>
+    <div class="win-title">📖 Dictionary</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main">
+      <div class="dict-body">
+        <div class="dict-search-wrap">
+          <input id="dict-input" type="text" placeholder="Search a word…" autocomplete="off"
+            onkeydown="if(event.key==='Enter')dictLookup()"
+            style="flex:1;background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:var(--font-ui);">
+          <select id="dict-lang" class="dict-lang-select">
+            <option value="en">EN</option>
+            <option value="de">DE</option>
+            <option value="es">ES</option>
+            <option value="fr">FR</option>
+            <option value="it">IT</option>
+          </select>
+          <button onclick="dictLookup()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:var(--font-ui);font-weight:800;font-size:12px;cursor:pointer;">Search</button>
+        </div>
+        <div id="dict-result-area">
+          <div style="text-align:center;padding:40px;color:var(--text-3);font-size:13px;">
+            Type a word and press Enter to look it up
+          </div>
+        </div>
+        <div id="dict-history-wrap" style="display:none;">
+          <div class="dict-history-label">Recent searches</div>
+          <div class="dict-history" id="dict-history"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ABOUT -->
 <div class="win" id="win-about" style="top:80px;left:340px;width:480px;height:340px;">
   <div class="win-titlebar" id="tb-about">
@@ -2555,6 +2595,88 @@ async function submitOsAuth() {
     btn.disabled = false; btn.textContent = _osAuthMode==='login'?'Sign in':'Create account';
   }
 }
+
+/* ══════════════════════ DICTIONARY ══════════════════════ */
+const _dictHistory = JSON.parse(localStorage.getItem('teachedos_dict_history') || '[]');
+
+async function dictLookup() {
+  const word = document.getElementById('dict-input').value.trim();
+  if (!word) return;
+  const lang = document.getElementById('dict-lang').value;
+  const area = document.getElementById('dict-result-area');
+  area.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-3);font-size:13px;">Looking up…</div>';
+
+  try {
+    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/${lang}/${encodeURIComponent(word)}`);
+    if (!r.ok) throw new Error('Word not found');
+    const data = await r.json();
+    const entry = data[0];
+    const phonetic = entry.phonetics?.find(p => p.text)?.text || '';
+    const audioUrl = entry.phonetics?.find(p => p.audio)?.audio || '';
+
+    let html = `
+      <div class="dict-result">
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+          <div class="dict-word">${esc(entry.word)}</div>
+          ${phonetic ? `<div class="dict-phonetic">${esc(phonetic)}</div>` : ''}
+          ${audioUrl ? `<button onclick="new Audio('${audioUrl}').play()" style="background:var(--accent-2);border:1px solid var(--accent-3);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--accent);font-weight:700;">🔊 Play</button>` : ''}
+        </div>`;
+
+    entry.meanings?.slice(0,3).forEach(m => {
+      html += `<div class="dict-pos">${esc(m.partOfSpeech)}</div>`;
+      m.definitions?.slice(0,2).forEach(d => {
+        html += `<div class="dict-def">${esc(d.definition)}</div>`;
+        if (d.example) html += `<div class="dict-example">"${esc(d.example)}"</div>`;
+      });
+      if (m.synonyms?.length) {
+        html += `<div class="dict-syns">${m.synonyms.slice(0,6).map(s=>`<span class="dict-syn" onclick="document.getElementById('dict-input').value='${esc(s)}';dictLookup()">${esc(s)}</span>`).join('')}</div>`;
+      }
+    });
+    html += `</div>`;
+    area.innerHTML = html;
+
+    // Save to history
+    const idx = _dictHistory.indexOf(word);
+    if (idx > -1) _dictHistory.splice(idx, 1);
+    _dictHistory.unshift(word);
+    if (_dictHistory.length > 10) _dictHistory.pop();
+    localStorage.setItem('teachedos_dict_history', JSON.stringify(_dictHistory));
+    dictRenderHistory();
+  } catch {
+    area.innerHTML = `<div style="text-align:center;padding:32px;color:#ef4444;font-size:13px;font-weight:700;">Word not found. Try another spelling.</div>`;
+  }
+}
+
+function dictRenderHistory() {
+  const wrap = document.getElementById('dict-history-wrap');
+  const hist = document.getElementById('dict-history');
+  if (!hist) return;
+  if (!_dictHistory.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  hist.innerHTML = _dictHistory.map(w =>
+    `<span class="dict-hist-item" onclick="document.getElementById('dict-input').value='${esc(w)}';dictLookup()">${esc(w)}</span>`
+  ).join('');
+}
+
+// Init history on open
+document.getElementById('win-dictionary')?.addEventListener('click', dictRenderHistory, { once: true });
+
+/* ══════════════════════ KEYBOARD SHORTCUTS ══════════════════════ */
+document.addEventListener('keydown', e => {
+  // ⌘K / Ctrl+K — Spotlight
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); return; }
+  // ⌘N / Ctrl+N — New note
+  if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openApp('notes'); notesNew(); return; }
+  // ⌘B / Ctrl+B — Open board
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); location.href = 'board.html'; return; }
+  // ⌘D / Ctrl+D — Dictionary
+  if ((e.metaKey || e.ctrlKey) && e.key === 'd') { e.preventDefault(); openApp('dictionary'); document.getElementById('dict-input')?.focus(); return; }
+  // Escape — close top window
+  if (e.key === 'Escape') {
+    const open = [...document.querySelectorAll('.win.open')];
+    if (open.length) { const top = open[open.length-1]; const id = top.id.replace('win-',''); closeWin(id); }
+  }
+});
 
 // Run on load
 checkAuthAndRoute();
