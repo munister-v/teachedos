@@ -37,6 +37,7 @@ async function notifyStudentsLive(slot) {
 // Add new columns if not present
 pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
 pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS is_live BOOLEAN DEFAULT FALSE`).catch(() => {});
+pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS specific_date DATE`).catch(() => {});
 
 // GET /api/schedule — get user's weekly schedule
 router.get('/', requireAuth, async (req, res) => {
@@ -76,23 +77,21 @@ router.get('/live', requireAuth, async (req, res) => {
 
 // POST /api/schedule — create or update a class slot
 router.post('/', requireAuth, async (req, res) => {
-  const { id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live } = req.body;
+  const { id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date } = req.body;
   try {
     if (id) {
-      // Update existing slot if it belongs to this user
       const { rows } = await pool.query(
-        `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4, group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11
-         WHERE id=$12 AND user_id=$13 RETURNING *`,
-        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4B8B', recurring !== false, meeting_url || null, is_live || false, id, req.user.id]
+        `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4, group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12
+         WHERE id=$13 AND user_id=$14 RETURNING *`,
+        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4E00', recurring !== false, meeting_url || null, is_live || false, specific_date || null, id, req.user.id]
       );
       if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
       return res.json({ slot: rows[0] });
     }
-    // Create new slot
     const { rows } = await pool.query(
-      `INSERT INTO schedule (user_id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4B8B', recurring !== false, meeting_url || null, is_live || false]
+      `INSERT INTO schedule (user_id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4E00', recurring !== false, meeting_url || null, is_live || false, specific_date || null]
     );
     res.status(201).json({ slot: rows[0] });
   } catch (err) {
@@ -103,17 +102,16 @@ router.post('/', requireAuth, async (req, res) => {
 
 // PATCH /api/schedule/:id — update a slot
 router.patch('/:id', requireAuth, async (req, res) => {
-  // Special sub-route: /:id/live handled below — but Express matches literally, so check manually
   if (req.params.id === 'live') return res.status(404).json({ error: 'Not found' });
-  const { day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live } = req.body;
+  const { day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date } = req.body;
   try {
     const { rows } = await pool.query(
       `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4,
-        group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11
-       WHERE id=$12 AND user_id=$13 RETURNING *`,
+        group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12
+       WHERE id=$13 AND user_id=$14 RETURNING *`,
       [day, start_time, end_time, title||'Class', group_name||null, level||null,
-       room||null, color||'#FF4B8B', recurring!==false, meeting_url||null, is_live||false,
-       req.params.id, req.user.id]
+       room||null, color||'#FF4E00', recurring!==false, meeting_url||null, is_live||false,
+       specific_date||null, req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
     res.json({ slot: rows[0] });

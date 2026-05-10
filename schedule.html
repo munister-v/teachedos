@@ -8,10 +8,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--accent-bg:rgba(255,78,0,.08);
+  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;--accent-bg:rgba(255,78,0,.08);
   --bg:#F5F5EA;--card:#fff;--border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#1C0A14;--text2:#3A3A2E;--text3:#B07090;
-  --shadow:0 2px 16px rgba(255,78,0,.08);
+  --text:#050517;--text2:#3A3A2E;--text3:#A2A28C;
+  --shadow:0 2px 16px rgba(5,5,23,.07);
   --font:Nunito,sans-serif;--mono:'JetBrains Mono',monospace;
   --nav-h:52px;
 }
@@ -333,8 +333,21 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-      <input type="checkbox" id="f-recurring" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
+      <input type="checkbox" id="f-recurring" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" onchange="toggleRecurring(this.checked)">
       <label for="f-recurring" style="font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;">Recurring (repeats weekly)</label>
+    </div>
+
+    <!-- Specific date — shown only when recurring is OFF -->
+    <div id="f-date-row" class="form-row" style="display:none;margin-bottom:14px;">
+      <div class="form-group">
+        <label class="form-label">📅 Specific Date</label>
+        <input class="form-input" id="f-specific-date" type="date"/>
+      </div>
+      <div class="form-group" style="justify-content:flex-end;padding-bottom:2px;">
+        <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-top:auto;">
+          One-time class on<br>this exact date
+        </div>
+      </div>
     </div>
 
     <div class="modal-footer">
@@ -457,6 +470,7 @@ function buildTimeCol() {
 }
 
 function renderGrid() {
+  const weekDates = getWeekDates();
   for (let d = 0; d < 7; d++) {
     const col = document.getElementById(`day-${d}`);
     // Clear blocks (keep now-line if present)
@@ -468,7 +482,18 @@ function renderGrid() {
       col.appendChild(line);
     }
     // Render slots for this day
-    const slots = schedule.filter(s => s.day === d);
+    const colDate = weekDates[d];
+    const colDateStr = colDate.toISOString().slice(0, 10);
+
+    const slots = schedule.filter(s => {
+      if (s.day !== d) return false;
+      if (s.specific_date) {
+        // One-time: only show in the week that contains this date
+        return s.specific_date.slice(0, 10) === colDateStr;
+      }
+      // Recurring: always show
+      return true;
+    });
     slots.forEach(slot => col.appendChild(buildBlock(slot)));
   }
   updateNowLine();
@@ -490,6 +515,7 @@ function buildBlock(slot) {
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #ef4444, 0 4px 14px rgba(239,68,68,.3)';
   el.innerHTML = `
     ${slot.is_live ? '<div style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;"></div>' : ''}
+    ${slot.specific_date ? '<div style="position:absolute;top:4px;right:5px;font-size:9px;background:rgba(0,0,0,.25);color:#fff;padding:1px 5px;border-radius:4px;font-weight:700;">📅 Once</div>' : ''}
     <div class="cb-title">${esc(slot.title)}</div>
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
     ${slot.room ? `<div class="cb-meta">📍 ${esc(slot.room)}</div>` : ''}
@@ -512,11 +538,14 @@ function renderSideList() {
   sorted.forEach(slot => {
     const el = document.createElement('div');
     el.className = 'cls-item';
+    const dateLabel = slot.specific_date
+      ? new Date(slot.specific_date + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short'})
+      : DAY_NAMES[slot.day];
     el.innerHTML = `
       <div class="cls-dot" style="background:${slot.color};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
       <div class="cls-info">
-        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#ef4444;font-weight:800;">🔴 LIVE</span>':''}</div>
-        <div class="cls-meta">${DAY_NAMES[slot.day]} ${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · 📹':''}</div>
+        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#ef4444;font-weight:800;">🔴 LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(255,78,0,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">Once</span>':''}</div>
+        <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · 📹':''}</div>
       </div>
       <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
     el.addEventListener('click', () => openModal(slot));
@@ -548,24 +577,58 @@ function buildColorGrid() {
   });
 }
 
+function toggleRecurring(checked) {
+  const dateRow = document.getElementById('f-date-row');
+  const dayGroup = document.getElementById('f-day').closest('.form-group');
+  dateRow.style.display = checked ? 'none' : 'flex';
+  // When switching to specific date, auto-set day from date picker
+  if (!checked) {
+    const dateInput = document.getElementById('f-specific-date');
+    if (!dateInput.value) {
+      // Default to today
+      const today = new Date();
+      dateInput.value = today.toISOString().slice(0, 10);
+    }
+    syncDayFromDate();
+  }
+}
+
+function syncDayFromDate() {
+  const dateInput = document.getElementById('f-specific-date');
+  if (!dateInput.value) return;
+  const d = new Date(dateInput.value + 'T00:00:00');
+  const dow = (d.getDay() + 6) % 7; // 0=Mon
+  document.getElementById('f-day').value = dow;
+}
+
 function openModal(slot = null) {
   editingId = slot ? slot.id : null;
   document.getElementById('modal-title').textContent = slot ? '✏️ Edit Class' : '➕ Add Class';
   document.getElementById('modal-save-btn').textContent = slot ? 'Save Changes' : 'Add Class';
   document.getElementById('f-title').value = slot?.title || '';
-  document.getElementById('f-day').value   = slot?.day ?? new Date().getDay() === 0 ? 6 : (new Date().getDay()-1);
+  document.getElementById('f-day').value   = slot?.day ?? ((new Date().getDay() + 6) % 7);
   document.getElementById('f-start').value = slot?.start_time?.slice(0,5) || '09:00';
   document.getElementById('f-end').value   = slot?.end_time?.slice(0,5)   || '10:30';
   document.getElementById('f-group').value = slot?.group_name || '';
   document.getElementById('f-level').value = slot?.level || '';
   document.getElementById('f-room').value        = slot?.room  || '';
   document.getElementById('f-meeting-url').value = slot?.meeting_url || '';
-  document.getElementById('f-recurring').checked  = slot ? (slot.recurring !== false) : true;
+
+  const isRecurring = slot ? (slot.recurring !== false && !slot.specific_date) : true;
+  document.getElementById('f-recurring').checked = isRecurring;
+
+  // Specific date
+  const specificDate = slot?.specific_date ? slot.specific_date.slice(0, 10) : '';
+  document.getElementById('f-specific-date').value = specificDate || new Date().toISOString().slice(0, 10);
+  document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
+
   const color = slot?.color || '#FF4E00';
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
   document.getElementById('modal').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 50);
+  // Sync day when date changes
+  document.getElementById('f-specific-date').onchange = syncDayFromDate;
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
@@ -578,7 +641,17 @@ async function saveClass() {
   if (!title) { toast('Title is required','err'); return; }
   if (!start || !end || start >= end) { toast('Check start/end time','err'); return; }
 
-  const day = parseInt(document.getElementById('f-day').value);
+  const isRecurring = document.getElementById('f-recurring').checked;
+  let specificDate = null;
+  let day = parseInt(document.getElementById('f-day').value);
+
+  if (!isRecurring) {
+    specificDate = document.getElementById('f-specific-date').value;
+    if (!specificDate) { toast('Please pick a date','err'); return; }
+    // Derive day-of-week from the specific date
+    const d = new Date(specificDate + 'T00:00:00');
+    day = (d.getDay() + 6) % 7;
+  }
 
   // Conflict detection
   const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
@@ -586,6 +659,8 @@ async function saveClass() {
   const conflict = schedule.find(s => {
     if (String(s.id) === String(editingId)) return false;
     if (s.day !== day) return false;
+    // For specific-date events, only conflict if same date or both recurring
+    if (specificDate && s.specific_date && s.specific_date.slice(0,10) !== specificDate) return false;
     const sS = toMin(s.start_time), sE = toMin(s.end_time);
     return newStart < sE && newEnd > sS;
   });
@@ -598,12 +673,13 @@ async function saveClass() {
   const body = {
     title, day,
     start_time: start, end_time: end,
-    group_name:  document.getElementById('f-group').value.trim() || null,
-    level:       document.getElementById('f-level').value || null,
-    room:        document.getElementById('f-room').value.trim() || null,
-    meeting_url: meetUrl || null,
-    color: selectedColor,
-    recurring: document.getElementById('f-recurring').checked,
+    group_name:    document.getElementById('f-group').value.trim() || null,
+    level:         document.getElementById('f-level').value || null,
+    room:          document.getElementById('f-room').value.trim() || null,
+    meeting_url:   meetUrl || null,
+    color:         selectedColor,
+    recurring:     isRecurring,
+    specific_date: specificDate,
   };
 
   try {
