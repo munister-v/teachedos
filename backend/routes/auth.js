@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
       [user.id, 'My First Board']
     );
 
-    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar } });
+    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, created_at: user.created_at } });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, avatar, created_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, created_at: user.created_at }
     });
   } catch (err) {
     console.error('[auth/login]', err.message, err.code);

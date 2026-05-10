@@ -1126,7 +1126,7 @@ html,body {
     <div class="mb-item" onclick="location.href='courses.html'" style="cursor:pointer;">Courses</div>
     <div class="mb-item" onclick="openSpotlight()" style="cursor:pointer;">Go To</div>
     <div class="mb-item" onclick="openApp('students')" style="cursor:pointer;">Students</div>
-    <div class="mb-item" onclick="openApp('about')" style="cursor:pointer;">Help</div>
+    <div class="mb-item" onclick="openApp('about')" style="cursor:pointer;">About</div>
   </nav>
   <div class="mb-right">
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(255,75,139,.1);border:1px solid rgba(255,75,139,.25);margin-right:6px;"></a>
@@ -1144,31 +1144,31 @@ html,body {
 
 <div class="widget" id="wg-streak">
   <div style="display:flex;align-items:baseline;gap:6px;">
-    <div class="wg-streak-n">3</div>
+    <div class="wg-streak-n">—</div>
     <span style="font-size:20px;">📅</span>
   </div>
   <div class="wg-streak-label">Classes today</div>
-  <div class="wg-streak-sub">2 done · 1 upcoming<br>Next: <span style="color:var(--accent)">Group B 14:00</span></div>
+  <div class="wg-streak-sub">Loading schedule…</div>
 </div>
 
 <div class="widget" id="wg-today">
   <div class="wg-today-label">Next class</div>
-  <div class="wg-today-title">Articles:<br><em style="font-style:normal;color:var(--accent)">a, an, the</em></div>
+  <div class="wg-today-title">—</div>
   <div class="wg-today-meta">
-    <span>👥 Group B</span><span>·</span><span>B1</span>
+    <span></span>
   </div>
-  <div class="wg-today-badge">🕐 14:00 · 60 min</div>
+  <div class="wg-today-badge"></div>
   <div class="wg-today-prog">
     <div class="wg-today-prog-fill" style="width:0%"></div>
   </div>
 </div>
 
 <div class="widget" id="wg-vocab">
-  <div class="wg-vocab-label">My students</div>
-  <div class="wg-vocab-word">24</div>
-  <div class="wg-vocab-lang">students · 3 groups</div>
-  <div class="wg-vocab-trans">Active today: 8</div>
-  <div class="wg-vocab-ex">Group A · Group B · Group C<br><em>Levels: A2 · B1 · B2</em></div>
+  <div class="wg-vocab-label">My boards</div>
+  <div class="wg-vocab-word">—</div>
+  <div class="wg-vocab-lang">Loading…</div>
+  <div class="wg-vocab-trans"></div>
+  <div class="wg-vocab-ex"></div>
   <button class="wg-vocab-next" onclick="openApp('students')">View Students →</button>
 </div>
 
@@ -1230,16 +1230,7 @@ html,body {
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar" id="sidebar-students">
       <div class="sb-section-label">Groups</div>
-      <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students <span class="sb-item-badge">24</span></div>
-      <div class="sb-item" onclick="studentsFilter('A',this)">Group A <span class="sb-item-badge">8</span></div>
-      <div class="sb-item" onclick="studentsFilter('B',this)">Group B <span class="sb-item-badge">8</span></div>
-      <div class="sb-item" onclick="studentsFilter('C',this)">Group C <span class="sb-item-badge">8</span></div>
-      <div class="sb-section-label" style="margin-top:8px;">Level</div>
-      <div class="sb-item" onclick="studentsFilter('A2',this)">A2 <span class="sb-item-badge">8</span></div>
-      <div class="sb-item" onclick="studentsFilter('B1',this)">B1 <span class="sb-item-badge">8</span></div>
-      <div class="sb-item" onclick="studentsFilter('B2',this)">B2 <span class="sb-item-badge">8</span></div>
-      <div class="sb-section-label" style="margin-top:8px;">Activity</div>
-      <div class="sb-item" onclick="studentsFilter('today',this)">Active Today <span class="sb-item-badge">8</span></div>
+      <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students</div>
     </div>
     <div class="win-main" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
@@ -1249,7 +1240,7 @@ html,body {
       </div>
       <div style="padding:16px 20px 8px;border-bottom:1px solid var(--border);">
         <div style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--text);">My <em style="color:var(--accent);">Students</em></div>
-        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">24 students · 3 groups · Active today: 8</div>
+        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">Add students via Gradebook</div>
       </div>
       <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
@@ -1485,7 +1476,7 @@ html,body {
       <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
       <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <span class="sb-item-ic">📖</span> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
       <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <span class="sb-item-ic">✏️</span> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
-      <div class="sb-item" id="tg-listening"  onclick="toolsFilter('listening',this)"> <span class="sb-item-ic">🎧</span> Listening  <span class="sb-item-badge" style="background:rgba(245,158,11,.3);color:#f59e0b;">2</span></div>
+
       <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <span class="sb-item-ic">💬</span> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
       <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><span class="sb-item-ic">📝</span> Vocabulary <span class="sb-item-badge">4</span></div>
       <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <span class="sb-item-ic">🔤</span> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
@@ -2069,7 +2060,7 @@ function toolOpen(id) {
 function updateToolSidebarCounts() {
   const counts = { all: TOOLS_DATA.length };
   TOOLS_DATA.forEach(t => { counts[t.group] = (counts[t.group] || 0) + 1; });
-  const map = { all:'tg-all', reading:'tg-reading', writing:'tg-writing', listening:'tg-listening',
+  const map = { all:'tg-all', reading:'tg-reading', writing:'tg-writing',
                 speaking:'tg-speaking', vocabulary:'tg-vocabulary', grammar:'tg-grammar', utility:'tg-utility' };
   Object.entries(map).forEach(([g, id]) => {
     const el = document.getElementById(id);

@@ -8,7 +8,7 @@ pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS zoom_url TEXT`).catch(() => {});
 
-// Verify JWT, attach req.user = { id, email, name, role, plan, meeting_url, zoom_url }
+// Verify JWT, attach req.user = { id, email, name, role, plan, meeting_url, zoom_url, created_at }
 async function requireAuth(req, res, next) {
   const header = req.headers['authorization'];
   if (!header || !header.startsWith('Bearer ')) {
@@ -19,7 +19,7 @@ async function requireAuth(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET);
     // Light DB check: make sure user still exists
     const { rows } = await pool.query(
-      'SELECT id, email, name, role, avatar, plan, meeting_url, zoom_url FROM users WHERE id = $1',
+      'SELECT id, email, name, role, avatar, plan, meeting_url, zoom_url, created_at FROM users WHERE id = $1',
       [payload.sub]
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found' });
