@@ -253,6 +253,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .zc-pct:hover { color:var(--accent); }
 .zc-sep { height:1px;background:var(--border);margin:2px 3px; }
+#board-wrap{
   position:fixed;top:var(--tb-h);left:var(--sb-w);right:0;bottom:0;
   overflow:hidden;
   background:
@@ -265,6 +266,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
+
+/* Group outlines */
+.group-outline{
+  position:absolute;border:2px dashed var(--accent);border-radius:18px;
+  pointer-events:none;z-index:5;opacity:.45;
+  transition:opacity .15s;
+}
+.group-outline .group-badge{
+  position:absolute;top:-10px;left:12px;
+  background:var(--accent);color:#fff;font-size:9px;font-weight:800;
+  padding:1px 7px;border-radius:6px;font-family:var(--mono);
+  pointer-events:auto;cursor:pointer;opacity:.7;transition:opacity .12s;
+}
+.group-outline .group-badge:hover{opacity:1;}
 
 /* SVG arrows layer — covers board-wrap, pointer-events on paths */
 #arrows-svg{
@@ -1486,6 +1501,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="align-sep"></div>
   <button class="align-btn" onclick="distributeCards('h')"  title="Distribute horizontally">⬛▫⬛▫⬛</button>
   <button class="align-btn" onclick="distributeCards('v')"  title="Distribute vertically">⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="groupSelected()"   title="Group (Ctrl+G)" style="font-size:11px;">⊞</button>
+  <button class="align-btn" onclick="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)" style="font-size:11px;">⊟</button>
 </div>
 
 <!-- Snap indicator -->
@@ -1499,7 +1517,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <div class="sp-grid">
       <div class="sp-section">
         <h4>Navigation</h4>
-        <div class="sp-row"><span>Pan (hold)</span><div class="kbd"><code>Space</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Pan (hold)</span><div class="kbd"><code>Space</code>+<code>drag</code> / <code>right-drag</code></div></div>
         <div class="sp-row"><span>Zoom</span><div class="kbd"><code>Scroll</code></div></div>
         <div class="sp-row"><span>Fit all</span><div class="kbd"><code>F</code></div></div>
         <div class="sp-row"><span>Reset zoom</span><div class="kbd"><code>Ctrl</code><code>0</code></div></div>
@@ -1516,6 +1534,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
         <div class="sp-row"><span>Delete</span><div class="kbd"><code>Del</code></div></div>
         <div class="sp-row"><span>Duplicate</span><div class="kbd"><code>Ctrl</code><code>D</code></div></div>
         <div class="sp-row"><span>Snap to grid</span><div class="kbd"><code>Shift</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Group</span><div class="kbd"><code>Ctrl</code><code>G</code></div></div>
+        <div class="sp-row"><span>Ungroup</span><div class="kbd"><code>Ctrl</code><code>Shift</code><code>G</code></div></div>
         <div class="sp-row"><span>Undo</span><div class="kbd"><code>Ctrl</code><code>Z</code></div></div>
         <div class="sp-row"><span>Redo</span><div class="kbd"><code>Ctrl</code><code>Y</code></div></div>
         <h4>Modes</h4>
@@ -2023,6 +2043,7 @@ const state = {
   selected: new Set(),
   selectedArrows: new Set(),
   mode: 'select', // 'select' | 'connect'
+  groups: [], // { id, cardIds: Set<string> }
   nextId: 1,
 };
 
@@ -2096,20 +2117,42 @@ function zoomAt(sx, sy, factor) {
   applyTransform();
 }
 
-function fitAll() {
+function fitAll(animate) {
   if (!state.cards.length) return;
+  // Cancel momentum
+  if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
   state.cards.forEach(c => {
     minX=Math.min(minX,c.x); minY=Math.min(minY,c.y);
     maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h);
   });
+  const PAD = 60;
   const pw=boardWrap.clientWidth, ph=boardWrap.clientHeight;
   const cw=maxX-minX, ch=maxY-minY;
-  const sc = Math.min(0.95, Math.min((pw-80)/cw, (ph-80)/ch));
-  state.scale = sc;
-  state.pan.x = (pw-cw*sc)/2 - minX*sc;
-  state.pan.y = (ph-ch*sc)/2 - minY*sc;
-  applyTransform();
+  if (cw <= 0 || ch <= 0) return;
+  const targetScale = Math.min(2, Math.max(0.08, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
+  const targetPanX = (pw-cw*targetScale)/2 - minX*targetScale;
+  const targetPanY = (ph-ch*targetScale)/2 - minY*targetScale;
+  if (animate !== false) {
+    const startScale = state.scale, startPanX = state.pan.x, startPanY = state.pan.y;
+    const duration = 320;
+    const t0 = performance.now();
+    function tick(now) {
+      const p = Math.min(1, (now - t0) / duration);
+      const ease = 1 - Math.pow(1 - p, 3);
+      state.scale = startScale + (targetScale - startScale) * ease;
+      state.pan.x = startPanX + (targetPanX - startPanX) * ease;
+      state.pan.y = startPanY + (targetPanY - startPanY) * ease;
+      applyTransform();
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  } else {
+    state.scale = targetScale;
+    state.pan.x = targetPanX;
+    state.pan.y = targetPanY;
+    applyTransform();
+  }
 }
 
 /* ════════════════════════ UNDO / REDO ════════════════════════ */
@@ -2125,6 +2168,7 @@ function serialize() {
   return JSON.stringify({
     cards:  state.cards.map(c => ({ ...c, data: { ...c.data } })),
     arrows: state.arrows.map(a => ({ ...a })),
+    groups: state.groups ? state.groups.map(g => ({ ...g, cardIds: [...g.cardIds] })) : [],
     nextId: state.nextId,
   });
 }
@@ -2135,13 +2179,16 @@ function restoreState(json) {
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = [];
   state.arrows = [];
+  state.groups = [];
   clearSelection();
   s.cards.forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = s.arrows;
+  state.groups = (s.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   state.nextId = s.nextId;
   renderAllArrows();
   updateEmpty();
   updateUndoButtons();
+  updateGroupOutlines();
 }
 
 function undo() {
@@ -3085,9 +3132,13 @@ function updateCardPos(card) {
   if (el) { el.style.left = card.x+'px'; el.style.top = card.y+'px'; }
 }
 
-function selectCard(id) {
+function selectCard(id, _fromGroup) {
   state.selected.add(id);
   getCardEl(id)?.classList.add('selected');
+  if (!_fromGroup) {
+    const g = state.groups.find(g => g.cardIds.has(id));
+    if (g) g.cardIds.forEach(cid => { if (cid !== id) selectCard(cid, true); });
+  }
   updateAlignBar();
 }
 function clearSelection() {
@@ -3110,6 +3161,13 @@ function deleteSelected() {
   });
   state.selected.clear();
   state.selectedArrows.clear();
+  // Clean up groups referencing deleted cards
+  if (state.groups) {
+    const cardIds = new Set(state.cards.map(c => c.id));
+    state.groups.forEach(g => { g.cardIds.forEach(id => { if (!cardIds.has(id)) g.cardIds.delete(id); }); });
+    state.groups = state.groups.filter(g => g.cardIds.size >= 2);
+    updateGroupOutlines();
+  }
   renderAllArrows();
   updateEmpty();
   scheduleSave();
@@ -3152,9 +3210,10 @@ function startResize(e, card, el) {
 /* ════════════════════════ PAN — with momentum ════════════════════════ */
 let _panVelX = 0, _panVelY = 0, _panRaf = null;
 let _lastPanTime = 0, _lastPanX = 0, _lastPanY = 0;
+let _didPan = false; // track whether a real pan happened (suppress context menu)
 
 boardWrap.addEventListener('mousedown', e => {
-  if (e.button === 1) { // middle mouse = pan
+  if (e.button === 1 || e.button === 2) { // middle or right mouse = pan
     isPanning = true;
     panStart = { mx: e.clientX, my: e.clientY, px: state.pan.x, py: state.pan.y };
     _panVelX = 0; _panVelY = 0;
@@ -3162,7 +3221,7 @@ boardWrap.addEventListener('mousedown', e => {
     boardWrap.classList.add('panning');
     e.preventDefault(); return;
   }
-  if (spaceDown || e.button === 2) return;
+  if (spaceDown) return;
 
   // Only if clicking on background
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
@@ -3196,6 +3255,7 @@ document.addEventListener('mousemove', e => {
       const now = performance.now();
       const nx = panStart.px + (e.clientX - panStart.mx);
       const ny = panStart.py + (e.clientY - panStart.my);
+      if (Math.abs(e.clientX - panStart.mx) > 3 || Math.abs(e.clientY - panStart.my) > 3) _didPan = true;
       if (_lastPanTime) {
         const dt = Math.max(1, now - _lastPanTime);
         _panVelX = (nx - _lastPanX) / dt * 16;
@@ -3220,6 +3280,7 @@ document.addEventListener('mousemove', e => {
     });
     _scheduleArrows();
     _scheduleMinimap();
+    _scheduleGroupOutlines();
     return;
   }
 
@@ -3402,18 +3463,10 @@ boardWrap.addEventListener('wheel', e => {
   e.preventDefault();
   if (isFollowingTeacher) return;
 
-  // Trackpad pinch OR Ctrl/Cmd+scroll = zoom
-  if (e.ctrlKey || e.metaKey || e.deltaMode === 0 && Math.abs(e.deltaY) < 50 && e.deltaX === 0 && !e.shiftKey) {
-    // Distinguish pinch (ctrlKey set by browser) from scroll
-    if (e.ctrlKey || e.metaKey) {
-      const factor = e.deltaY < 0 ? 1.06 : 0.94;
-      zoomAt(e.clientX, e.clientY, factor);
-      return;
-    }
-  }
-
+  // Ctrl/Cmd+scroll or trackpad pinch = zoom
   if (e.ctrlKey || e.metaKey) {
-    const factor = e.deltaY < 0 ? 1.06 : 0.94;
+    const intensity = Math.min(Math.abs(e.deltaY), 20);
+    const factor = e.deltaY < 0 ? (1 + intensity * 0.008) : (1 / (1 + intensity * 0.008));
     zoomAt(e.clientX, e.clientY, factor);
     return;
   }
@@ -3460,6 +3513,8 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'h') { e.preventDefault(); openVersionHistory(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'g' && !e.shiftKey) { e.preventDefault(); groupSelected(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'g' && e.shiftKey)  { e.preventDefault(); ungroupSelected(); return; }
 
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
   if (e.key === 'Escape') { clearSelection(); cancelConnection(); setMode('select'); closeBoardSearchBar(); closeShortcuts(); }
@@ -3481,6 +3536,73 @@ function nudgeSelected(dx, dy) {
   });
   renderAllArrows();
   scheduleSave();
+}
+
+/* ════════════════════════ GROUPING ════════════════════════ */
+let _groupNextId = 1;
+
+function groupSelected() {
+  if (state.selected.size < 2) { toast('Select 2+ cards to group'); return; }
+  snapshot();
+  const ids = new Set(state.selected);
+  // Remove selected cards from any existing groups
+  state.groups.forEach(g => { ids.forEach(id => g.cardIds.delete(id)); });
+  state.groups = state.groups.filter(g => g.cardIds.size >= 2);
+  state.groups.push({ id: 'g' + (_groupNextId++), cardIds: ids });
+  updateGroupOutlines();
+  scheduleSave();
+  toast('Grouped ' + ids.size + ' cards');
+}
+
+function ungroupSelected() {
+  if (!state.selected.size) return;
+  snapshot();
+  const toRemove = new Set();
+  state.groups.forEach(g => {
+    state.selected.forEach(id => { if (g.cardIds.has(id)) toRemove.add(g.id); });
+  });
+  if (!toRemove.size) { toast('No groups to ungroup'); return; }
+  state.groups = state.groups.filter(g => !toRemove.has(g.id));
+  updateGroupOutlines();
+  scheduleSave();
+  toast('Ungrouped');
+}
+
+function updateGroupOutlines() {
+  board.querySelectorAll('.group-outline').forEach(el => el.remove());
+  if (!state.groups) return;
+  state.groups.forEach(g => {
+    const cards = [...g.cardIds].map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+    if (cards.length < 2) return;
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    cards.forEach(c => {
+      minX=Math.min(minX,c.x-8); minY=Math.min(minY,c.y-8);
+      maxX=Math.max(maxX,c.x+c.w+8); maxY=Math.max(maxY,c.y+c.h+8);
+    });
+    const outline = document.createElement('div');
+    outline.className = 'group-outline';
+    outline.dataset.groupId = g.id;
+    outline.style.cssText = `left:${minX}px;top:${minY}px;width:${maxX-minX}px;height:${maxY-minY}px;`;
+    const badge = document.createElement('div');
+    badge.className = 'group-badge';
+    badge.textContent = cards.length + ' grouped';
+    badge.title = 'Click to select group · Ctrl+Shift+G to ungroup';
+    badge.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      clearSelection();
+      g.cardIds.forEach(id => selectCard(id, true));
+    });
+    outline.appendChild(badge);
+    board.appendChild(outline);
+  });
+}
+
+// Refresh group outlines after card moves
+const _origScheduleArrows = _scheduleArrows;
+let _groupOutlineRaf = null;
+function _scheduleGroupOutlines() {
+  if (_groupOutlineRaf) return;
+  _groupOutlineRaf = requestAnimationFrame(() => { _groupOutlineRaf = null; updateGroupOutlines(); });
 }
 
 function duplicateSelected() {
@@ -3730,6 +3852,7 @@ document.addEventListener('mousedown', e => {
 let ctxPos = { x:0, y:0 };
 boardWrap.addEventListener('contextmenu', e => {
   e.preventDefault();
+  if (_didPan) { _didPan = false; return; }
   ctxPos = screenToBoard(e.clientX, e.clientY);
   document.getElementById('ctx-delete-arrow').style.display = 'none';
   document.getElementById('ctx-toggle-prereq').style.display = 'none';
@@ -3804,8 +3927,10 @@ function clearAll() {
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   state.cards = [];
   state.arrows = [];
+  state.groups = [];
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   clearSelection();
+  updateGroupOutlines();
   updateEmpty();
   scheduleSave();
 }
@@ -4286,7 +4411,9 @@ setInterval(() => {
 /* ── Serialize the full board state ── */
 function serializeBoard() {
   return { pan:state.pan, scale:state.scale, nextId:state.nextId,
-           cards:state.cards, arrows:state.arrows, savedAt: Date.now() };
+           cards:state.cards, arrows:state.arrows,
+           groups: (state.groups || []).map(g => ({ ...g, cardIds: [...g.cardIds] })),
+           savedAt: Date.now() };
 }
 
 /* ════ LOCAL SAVE ════ */
@@ -4403,8 +4530,10 @@ function loadBoard() {
     state.nextId = data.nextId || 1;
     (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
     state.arrows = data.arrows || [];
+    state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
     applyTransform();
     updateEmpty();
+    updateGroupOutlines();
     lastSavedAt = data.savedAt ? new Date(data.savedAt) : new Date();
     lastSavedHash = boardHash();
     if (data.savedAt) setSaveUI('saved', `✓ saved ${new Date(data.savedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`);
@@ -4971,12 +5100,14 @@ function loadBoardData(data) {
   state.nextId = data.nextId || 1;
   (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = data.arrows || [];
+  state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
   applyTransform();
   renderAllArrows();
   renderMinimap();
   updateEmpty();
   updateSessionChip();
+  updateGroupOutlines();
   // Load real quiz submission counts for teacher view
   setTimeout(loadQuizResultsCache, 800);
 }
