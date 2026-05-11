@@ -628,10 +628,15 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 /* ══════════════ LESSON CARD ══════════════ */
 .card-lesson .card-header{background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.04));}
+.card-lesson.status-done .card-header{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(16,163,127,.04));}
+.card-lesson.status-in-progress .card-header{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(234,88,12,.04));}
+.card-lesson.status-locked{opacity:.7;filter:grayscale(.3);}
+.card-lesson.status-locked:hover{opacity:.85;filter:grayscale(.1);}
 .lesson-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
 .lesson-status{
   display:inline-flex;align-items:center;gap:5px;
   font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;font-family:var(--mono);
+  transition:background .2s,color .2s;
 }
 .lesson-status.locked    {background:rgba(107,114,128,.12);color:#6b7280;}
 .lesson-status.available {background:rgba(59,130,246,.12); color:#3b82f6;}
@@ -640,6 +645,19 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .lesson-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
 .lesson-desc{font-size:11px;color:var(--text-3);line-height:1.5;flex:1;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+.lesson-objectives{padding:6px 0 0;display:flex;flex-direction:column;gap:3px;}
+.lesson-obj-item{display:flex;align-items:flex-start;gap:5px;font-size:10px;color:var(--text-2);line-height:1.4;}
+.lesson-obj-check{flex-shrink:0;width:13px;height:13px;border-radius:4px;border:1.5px solid var(--border-2,rgba(94,94,74,.28));
+  display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;margin-top:1px;transition:.15s;}
+.lesson-obj-check.checked{background:rgba(34,197,94,.15);border-color:#16a34a;color:#16a34a;}
+.lesson-attachments{display:flex;gap:4px;flex-wrap:wrap;padding:2px 0;}
+.lesson-attach-chip{
+  display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:6px;
+  font-size:9px;font-weight:700;background:rgba(59,130,246,.08);color:#3b82f6;
+  text-decoration:none;transition:.15s;cursor:pointer;
+}
+.lesson-attach-chip:hover{background:rgba(59,130,246,.16);}
+.lesson-notes-indicator{font-size:9px;color:var(--text-3);display:flex;align-items:center;gap:3px;}
 .lesson-footer{display:flex;gap:6px;align-items:center;border-top:1px solid rgba(0,0,0,.05);padding-top:7px;margin-top:2px;}
 .lesson-edit-btn{
   padding:4px 10px;border:1px solid rgba(99,102,241,.3);border-radius:7px;
@@ -647,6 +665,69 @@ body.board-dragging .game-iframe-overlay{display:block;}
   transition:.15s;margin-left:auto;
 }
 .lesson-edit-btn:hover{background:rgba(99,102,241,.14);}
+.lesson-present-btn{
+  padding:4px 10px;border:1px solid rgba(34,197,94,.3);border-radius:7px;
+  font-size:10px;font-weight:700;cursor:pointer;color:#16a34a;background:rgba(34,197,94,.06);
+  transition:.15s;
+}
+.lesson-present-btn:hover{background:rgba(34,197,94,.14);}
+.lesson-status-btn{
+  padding:3px 8px;border:1px solid rgba(99,102,241,.2);border-radius:6px;
+  font-size:9px;font-weight:700;cursor:pointer;color:var(--text-3);background:transparent;
+  transition:.15s;
+}
+.lesson-status-btn:hover{background:rgba(99,102,241,.08);color:#6366f1;}
+
+/* Lesson present mode */
+#lesson-present-overlay{
+  position:fixed;inset:0;background:rgba(5,5,23,.92);z-index:9999;
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(12px);animation:fadeIn .25s ease;
+}
+#lesson-present-overlay.open{display:flex;}
+#lesson-present-card{
+  background:var(--card-bg,#fff);border-radius:24px;width:min(740px,90vw);max-height:85vh;
+  overflow-y:auto;box-shadow:0 32px 100px rgba(0,0,0,.35);padding:32px 36px;
+  animation:slideUp .3s cubic-bezier(.16,1,.3,1);
+}
+#lesson-present-card .lp-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+#lesson-present-card .lp-title{font-size:22px;font-weight:900;flex:1;letter-spacing:-.02em;}
+#lesson-present-card .lp-close{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.06);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+#lesson-present-card .lp-close:hover{background:rgba(0,0,0,.12);}
+#lesson-present-card .lp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+#lesson-present-card .lp-section{margin-bottom:18px;}
+#lesson-present-card .lp-section-title{font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+#lesson-present-card .lp-desc{font-size:15px;line-height:1.7;color:var(--text-2);}
+#lesson-present-card .lp-objectives{list-style:none;padding:0;}
+#lesson-present-card .lp-objectives li{padding:6px 0;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,.04);}
+#lesson-present-card .lp-objectives li::before{content:'◻';font-size:12px;color:var(--accent);}
+#lesson-present-card .lp-attachments{display:flex;gap:8px;flex-wrap:wrap;}
+#lesson-present-card .lp-attach-item{
+  padding:8px 14px;border-radius:10px;background:rgba(59,130,246,.08);
+  font-size:13px;font-weight:700;color:#3b82f6;text-decoration:none;
+  display:flex;align-items:center;gap:6px;transition:.15s;
+}
+#lesson-present-card .lp-attach-item:hover{background:rgba(59,130,246,.16);}
+#lesson-present-card .lp-notes{
+  padding:14px;border-radius:12px;background:rgba(255,200,0,.08);
+  border:1px solid rgba(255,200,0,.2);font-size:13px;line-height:1.6;color:var(--text-2);
+  white-space:pre-wrap;
+}
+#lesson-present-card .lp-footer{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,.06);}
+#lesson-present-card .lp-action-btn{
+  flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:800;
+  cursor:pointer;transition:.15s;font-family:var(--font);
+}
+.lp-action-btn.primary{background:var(--accent);color:#fff;}
+.lp-action-btn.primary:hover{background:#e64500;}
+.lp-action-btn.secondary{background:rgba(99,102,241,.08);color:#6366f1;border:1.5px solid rgba(99,102,241,.2);}
+.lp-action-btn.secondary:hover{background:rgba(99,102,241,.14);}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* Badge colors for lesson */
 .badge.b2b   {background:rgba(99,102,241,.12);color:#6366f1;}
@@ -655,6 +736,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .badge.lesson-s{background:rgba(139,92,246,.12);color:#7c3aed;}
 .badge.lesson-r{background:rgba(14,165,233,.12);color:#0284c7;}
 .badge.lesson-w{background:rgba(20,184,166,.12);color:#0f766e;}
+.badge.lesson-l{background:rgba(236,72,153,.12);color:#db2777;}
 
 /* ══════════════ ASSIGNMENT CARD ══════════════ */
 .card-assignment .card-header{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(234,88,12,.04));}
@@ -1622,6 +1704,11 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div id="card-editor-body"></div>
 </div>
 
+<!-- LESSON PRESENT MODE -->
+<div id="lesson-present-overlay" onclick="if(event.target===this)closeLessonPresent()">
+  <div id="lesson-present-card"></div>
+</div>
+
 <!-- TASK BUILDER OVERLAY -->
 <div id="task-builder-overlay">
   <div id="task-builder">
@@ -2568,22 +2655,57 @@ const LEVEL_COLORS = { A1:'a1',A2:'a2',B1:'b1',B2:'b2b',C1:'c1',C2:'c2' };
 function renderLesson(el, card) {
   const d = card.data;
   const st = LESSON_STATUS_MAP[d.status||'available'] || LESSON_STATUS_MAP.available;
+  // Add status class to card element
+  el.classList.add('status-' + (d.status || 'available'));
   const hdr = makeHeader('📚', d.title||'Lesson', card.id);
   el.appendChild(hdr);
   const body = document.createElement('div');
   body.className = 'card-body lesson-body';
-  body.innerHTML = `
+
+  // Meta row
+  const metaHtml = `
     <div class="lesson-meta">
       <span class="lesson-status ${st.cls}">${st.label}</span>
       ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}">${d.level}</span>` : ''}
       ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}">${d.skill}</span>` : ''}
       ${d.duration ? `<span class="badge" style="background:rgba(0,0,0,.05);color:var(--text-3)">⏱ ${d.duration}</span>` : ''}
-    </div>
-    ${d.desc ? `<div class="lesson-desc">${esc(d.desc)}</div>` : ''}
+      ${d.module ? `<span class="badge" style="background:rgba(139,92,246,.08);color:#7c3aed;font-size:9px;">📂 ${esc(d.module)}</span>` : ''}
+    </div>`;
+
+  // Description
+  const descHtml = d.desc ? `<div class="lesson-desc">${esc(d.desc)}</div>` : '';
+
+  // Objectives (checkable list)
+  const objectives = d.objectives || [];
+  const objHtml = objectives.length ? `
+    <div class="lesson-objectives">
+      ${objectives.map((o, i) => `
+        <div class="lesson-obj-item">
+          <div class="lesson-obj-check${o.done ? ' checked' : ''}" onclick="event.stopPropagation();toggleLessonObjective('${card.id}',${i})">${o.done ? '✓' : ''}</div>
+          <span>${esc(o.text)}</span>
+        </div>`).join('')}
+    </div>` : '';
+
+  // Attachments
+  const attachments = d.attachments || [];
+  const attachHtml = attachments.length ? `
+    <div class="lesson-attachments">
+      ${attachments.map(a => `<a class="lesson-attach-chip" href="${esc(a.url)}" target="_blank" onclick="event.stopPropagation()">${a.icon||'📎'} ${esc(a.name)}</a>`).join('')}
+    </div>` : '';
+
+  // Teacher notes indicator
+  const notesHtml = d.notes ? `<div class="lesson-notes-indicator">📝 Teacher notes</div>` : '';
+
+  // Footer
+  const footerHtml = `
     <div class="lesson-footer">
-      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:700;">🔗 Material</a>` : ''}
+      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:700;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
+      <button class="lesson-present-btn" onclick="event.stopPropagation();openLessonPresent('${card.id}')">▶ Present</button>
+      ${isOwner ? `<button class="lesson-status-btn" onclick="event.stopPropagation();cycleLessonStatus('${card.id}')" title="Cycle status">↻</button>` : ''}
       <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
     </div>`;
+
+  body.innerHTML = metaHtml + descHtml + objHtml + attachHtml + notesHtml + footerHtml;
   el.appendChild(body);
 }
 
@@ -2740,6 +2862,8 @@ function openCardEditor(cardId) {
   body.innerHTML = '';
 
   if (card.type === 'lesson') {
+    const objectives = card.data.objectives || [];
+    const attachments = card.data.attachments || [];
     body.innerHTML = `
       <div><div class="ed-label">Title</div>
         <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
@@ -2767,8 +2891,41 @@ function openCardEditor(cardId) {
         <input class="ed-input" id="ed-link" type="url" placeholder="https://…" value="${esc(card.data.link||'')}"/></div>
       <div><div class="ed-label">Module / Section</div>
         <input class="ed-input" id="ed-module" placeholder="e.g. Unit 3: Past Tenses" value="${esc(card.data.module||'')}"/></div>
+
+      <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
+        <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
+          Objectives
+          <button type="button" onclick="edAddObjective()" style="padding:2px 8px;border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);">+ Add</button>
+        </div>
+        <div id="ed-objectives" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+          ${objectives.map((o,i) => `
+            <div style="display:flex;gap:4px;align-items:center;">
+              <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" value="${esc(o.text)}" data-obj-idx="${i}"/>
+              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
+        <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
+          Attachments
+          <button type="button" onclick="edAddAttachment()" style="padding:2px 8px;border:1px solid rgba(59,130,246,.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#3b82f6;background:rgba(59,130,246,.06);">+ Add</button>
+        </div>
+        <div id="ed-attachments" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+          ${attachments.map((a,i) => `
+            <div style="display:flex;gap:4px;align-items:center;" data-att-idx="${i}">
+              <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" value="${esc(a.name)}" placeholder="Name" data-att-name/>
+              <input class="ed-input" style="flex:2;padding:5px 8px;font-size:11px;" value="${esc(a.url)}" placeholder="URL" data-att-url/>
+              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div><div class="ed-label">Teacher Notes (private)</div>
+        <textarea class="ed-input ed-textarea" id="ed-notes" placeholder="Notes visible in Present mode…" style="min-height:50px;">${esc(card.data.notes||'')}</textarea></div>
+
       <div style="background:rgba(99,102,241,.06);border-radius:10px;padding:9px 11px;font-size:11px;color:#6366f1;line-height:1.5;">
-        💡 Connect this card to a <b>Milestone</b> to track course completion.</div>
+        💡 Connect this card to a <b>Milestone</b> to track course completion. Use arrows to chain lessons — when you mark a lesson Done, the next one auto-unlocks.</div>
       <button class="ed-save" onclick="saveCardEditor()">✓ Save Lesson</button>`;
 
   } else if (card.type === 'assignment') {
@@ -3011,6 +3168,7 @@ function saveCardEditor() {
   if (card.type === 'lesson') {
     card.data.title    = g('ed-title').value.trim() || 'Lesson';
     const activeStatusBtn = document.querySelector('.ed-status-btn.active');
+    const oldStatus = card.data.status;
     card.data.status = activeStatusBtn?.dataset.val || body.dataset.status || card.data.status || 'available';
     card.data.level    = g('ed-level').value;
     card.data.skill    = g('ed-skill').value;
@@ -3018,6 +3176,34 @@ function saveCardEditor() {
     card.data.desc     = g('ed-desc').value.trim();
     card.data.link     = g('ed-link').value.trim();
     card.data.module   = g('ed-module')?.value.trim() ?? card.data.module;
+    card.data.notes    = g('ed-notes')?.value.trim() || '';
+    // Gather objectives from editor
+    const objContainer = document.getElementById('ed-objectives');
+    if (objContainer) {
+      const objInputs = objContainer.querySelectorAll('input[data-obj-idx], input:not([data-att-name]):not([data-att-url])');
+      const oldObjs = card.data.objectives || [];
+      card.data.objectives = Array.from(objContainer.children).map((row, i) => {
+        const inp = row.querySelector('input');
+        const text = inp ? inp.value.trim() : '';
+        if (!text) return null;
+        const oldIdx = parseInt(inp?.dataset?.objIdx);
+        return { text, done: !isNaN(oldIdx) && oldObjs[oldIdx] ? oldObjs[oldIdx].done : false };
+      }).filter(Boolean);
+    }
+    // Gather attachments from editor
+    const attContainer = document.getElementById('ed-attachments');
+    if (attContainer) {
+      card.data.attachments = Array.from(attContainer.children).map(row => {
+        const nameInp = row.querySelector('[data-att-name]');
+        const urlInp = row.querySelector('[data-att-url]');
+        const name = nameInp ? nameInp.value.trim() : '';
+        const url = urlInp ? urlInp.value.trim() : '';
+        if (!url) return null;
+        return { name: name || url.split('/').pop() || 'File', url, icon: guessAttachIcon(url) };
+      }).filter(Boolean);
+    }
+    // Auto-unlock next lessons when marking done
+    if (card.data.status === 'done' && oldStatus !== 'done') autoUnlockNextLessons(card.id);
   } else if (card.type === 'assignment') {
     card.data.title     = g('ed-title').value.trim() || 'Assignment';
     card.data.type      = g('ed-type').value;
@@ -3080,6 +3266,187 @@ function saveCardEditor() {
 function closeCardEditor() {
   document.getElementById('card-editor').classList.remove('open');
   editorCardId = null;
+}
+
+/* ══════════════════════ LESSON EDITOR HELPERS ════════════════ */
+
+function edAddObjective() {
+  const container = document.getElementById('ed-objectives');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:4px;align-items:center;';
+  row.innerHTML = `
+    <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" placeholder="e.g. Students can use Past Perfect" data-obj-idx="new"/>
+    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function edAddAttachment() {
+  const container = document.getElementById('ed-attachments');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:4px;align-items:center;';
+  row.innerHTML = `
+    <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" placeholder="Name" data-att-name/>
+    <input class="ed-input" style="flex:2;padding:5px 8px;font-size:11px;" placeholder="https://..." data-att-url/>
+    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
+  container.appendChild(row);
+  row.querySelector('[data-att-name]').focus();
+}
+
+function guessAttachIcon(url) {
+  if (!url) return '📎';
+  const u = url.toLowerCase();
+  if (u.includes('docs.google') || u.includes('.doc'))  return '📄';
+  if (u.includes('sheets.google') || u.includes('.xls')) return '📊';
+  if (u.includes('slides.google') || u.includes('.ppt')) return '📽';
+  if (u.includes('youtube') || u.includes('youtu.be') || u.includes('.mp4')) return '🎬';
+  if (u.includes('.pdf')) return '📕';
+  if (u.includes('.mp3') || u.includes('.wav') || u.includes('soundcloud')) return '🎧';
+  if (u.includes('.jpg') || u.includes('.png') || u.includes('.svg')) return '🖼';
+  if (u.includes('quizlet') || u.includes('kahoot')) return '🎮';
+  if (u.includes('drive.google')) return '☁️';
+  return '🔗';
+}
+
+/* ══════════════════════ LESSON FUNCTIONS ══════════════════════ */
+
+// Toggle a lesson objective checkbox
+function toggleLessonObjective(cardId, idx) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || !card.data.objectives || !card.data.objectives[idx]) return;
+  snapshot();
+  card.data.objectives[idx].done = !card.data.objectives[idx].done;
+  reRenderCard(card);
+  scheduleSave();
+}
+
+// Cycle lesson status: locked → available → in-progress → done → locked
+function cycleLessonStatus(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  snapshot();
+  const order = ['locked','available','in-progress','done'];
+  const cur = order.indexOf(card.data.status || 'available');
+  const next = order[(cur + 1) % order.length];
+  card.data.status = next;
+  reRenderCard(card);
+  refreshAllMilestones();
+  scheduleSave();
+  // Auto-unlock next connected lesson when marking done
+  if (next === 'done') autoUnlockNextLessons(cardId);
+}
+
+// When a lesson is marked done, find lessons connected via arrows and unlock them
+function autoUnlockNextLessons(fromId) {
+  const outgoing = state.arrows.filter(a => a.from === fromId);
+  let changed = false;
+  outgoing.forEach(a => {
+    const target = state.cards.find(c => c.id === a.to);
+    if (target && target.type === 'lesson' && target.data.status === 'locked') {
+      target.data.status = 'available';
+      reRenderCard(target);
+      changed = true;
+    }
+  });
+  if (changed) {
+    refreshAllMilestones();
+    scheduleSave();
+  }
+}
+
+// Open lesson in fullscreen present mode
+function openLessonPresent(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const d = card.data;
+  const st = LESSON_STATUS_MAP[d.status||'available'] || LESSON_STATUS_MAP.available;
+  const overlay = document.getElementById('lesson-present-overlay');
+  const inner = document.getElementById('lesson-present-card');
+
+  // Objectives section
+  const objectives = d.objectives || [];
+  const objSection = objectives.length ? `
+    <div class="lp-section">
+      <div class="lp-section-title">Objectives</div>
+      <ul class="lp-objectives">
+        ${objectives.map(o => `<li>${esc(o.text)}</li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  // Attachments section
+  const attachments = d.attachments || [];
+  const attachSection = attachments.length ? `
+    <div class="lp-section">
+      <div class="lp-section-title">Materials</div>
+      <div class="lp-attachments">
+        ${attachments.map(a => `<a class="lp-attach-item" href="${esc(a.url)}" target="_blank">${a.icon||'📎'} ${esc(a.name)}</a>`).join('')}
+      </div>
+    </div>` : '';
+
+  // Notes section
+  const notesSection = d.notes ? `
+    <div class="lp-section">
+      <div class="lp-section-title">Teacher Notes</div>
+      <div class="lp-notes">${esc(d.notes)}</div>
+    </div>` : '';
+
+  inner.innerHTML = `
+    <div class="lp-header">
+      <div>
+        <div class="lp-title">📚 ${esc(d.title || 'Lesson')}</div>
+        ${d.module ? `<div style="font-size:12px;color:var(--text-3);margin-top:2px;">📂 ${esc(d.module)}</div>` : ''}
+      </div>
+      <button class="lp-close" onclick="closeLessonPresent()">×</button>
+    </div>
+    <div class="lp-meta">
+      <span class="lesson-status ${st.cls}" style="font-size:12px;padding:5px 12px;">${st.label}</span>
+      ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}" style="font-size:12px;padding:4px 10px;">${d.level}</span>` : ''}
+      ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}" style="font-size:12px;padding:4px 10px;">${d.skill}</span>` : ''}
+      ${d.duration ? `<span class="badge" style="background:rgba(0,0,0,.05);color:var(--text-3);font-size:12px;padding:4px 10px;">⏱ ${d.duration}</span>` : ''}
+    </div>
+    ${d.desc ? `<div class="lp-section"><div class="lp-section-title">Description</div><div class="lp-desc">${esc(d.desc)}</div></div>` : ''}
+    ${objSection}
+    ${attachSection}
+    ${d.link ? `<div class="lp-section"><div class="lp-section-title">Material Link</div><a class="lp-attach-item" href="${esc(d.link)}" target="_blank">🔗 ${esc(d.link)}</a></div>` : ''}
+    ${notesSection}
+    <div class="lp-footer">
+      <button class="lp-action-btn secondary" onclick="closeLessonPresent();openCardEditor('${card.id}')">✏️ Edit Lesson</button>
+      ${d.status !== 'done' ? `<button class="lp-action-btn primary" onclick="markLessonDoneFromPresent('${card.id}')">
+        ${d.status === 'locked' ? '🔓 Unlock' : d.status === 'in-progress' ? '✅ Mark Done' : '⏳ Start Lesson'}
+      </button>` : `<button class="lp-action-btn primary" style="background:#16a34a;">✅ Completed</button>`}
+    </div>`;
+
+  overlay.classList.add('open');
+  // ESC to close
+  document.addEventListener('keydown', _lessonPresentEscHandler);
+}
+
+function _lessonPresentEscHandler(e) {
+  if (e.key === 'Escape') closeLessonPresent();
+}
+
+function closeLessonPresent() {
+  document.getElementById('lesson-present-overlay').classList.remove('open');
+  document.removeEventListener('keydown', _lessonPresentEscHandler);
+}
+
+function markLessonDoneFromPresent(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  snapshot();
+  const order = ['locked','available','in-progress','done'];
+  const cur = order.indexOf(card.data.status || 'available');
+  if (cur < order.length - 1) {
+    card.data.status = order[cur + 1];
+  }
+  reRenderCard(card);
+  refreshAllMilestones();
+  scheduleSave();
+  if (card.data.status === 'done') autoUnlockNextLessons(cardId);
+  // Re-open present mode to reflect changes
+  openLessonPresent(cardId);
 }
 
 // Helper: add anchor dots + resize handle to a freshly re-rendered card el
@@ -3871,7 +4238,7 @@ document.getElementById('ctx-plan').addEventListener('click', () =>
   addCard('plan', ctxPos.x-140, ctxPos.y-100, { title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' }));
 
 document.getElementById('ctx-lesson').addEventListener('click', () => {
-  const card = addCard('lesson', ctxPos.x-130, ctxPos.y-105, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'' });
+  const card = addCard('lesson', ctxPos.x-130, ctxPos.y-105, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'', objectives:[], attachments:[], notes:'' });
   setTimeout(() => openCardEditor(card.id), 80);
 });
 document.getElementById('ctx-assignment').addEventListener('click', () => {
@@ -5749,7 +6116,7 @@ function quickAddCard(type, bx, by) {
   if (type === 'sticky')     card = addCard('sticky',   x, y, { text:'', color:STICKY_COLORS[0] });
   else if (type === 'text')  card = addCard('text',     x, y, { text:'Label' });
   else if (type === 'lesson') {
-    card = addCard('lesson', x, y, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'' });
+    card = addCard('lesson', x, y, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'', objectives:[], attachments:[], notes:'' });
     setTimeout(() => openCardEditor(card.id), 80);
   } else if (type === 'assignment') {
     card = addCard('assignment', x, y, { title:'New Assignment', type:'Quiz', maxScore:100, deadline:'', desc:'', submitted:0, total:0 });
