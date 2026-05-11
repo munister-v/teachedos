@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v3';
+const CACHE = 'teachedos-v4';
 const SHELL = [
   '/teachedos/',
   '/teachedos/index.html',
@@ -46,6 +46,11 @@ self.addEventListener('notificationclick', e => {
   e.waitUntil(clients.openWindow(url));
 });
 
+// Listen for skipWaiting message from pages
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
+});
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   // Network-first for API calls
@@ -55,8 +60,11 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Network-first for HTML pages (aggressive freshness)
-  if (e.request.mode === 'navigate' || (e.request.headers.get('accept') || '').includes('text/html')) {
+  // Network-first for ALL same-origin pages, CSS, and JS (always fresh design)
+  if (e.request.mode === 'navigate'
+    || (e.request.headers.get('accept') || '').includes('text/html')
+    || url.pathname.endsWith('.css')
+    || url.pathname.endsWith('.js')) {
     e.respondWith(
       fetch(e.request).then(resp => {
         if (resp && resp.status === 200) {
@@ -68,7 +76,7 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Stale-while-revalidate for static assets (fonts, images, CSS)
+  // Stale-while-revalidate for static assets (fonts, images)
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetchPromise = fetch(e.request).then(resp => {
