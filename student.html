@@ -286,6 +286,50 @@ html,body{min-height:100%;font-family:var(--font);background:var(--bg);color:var
   <div class="section">
     <div class="section-head">
       <div>
+        <div class="section-title">📖 My Vocabulary</div>
+        <div class="section-sub">Words to learn and review</div>
+      </div>
+      <button onclick="openVocabModal()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;">+ Add word</button>
+    </div>
+    <div id="vocab-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:var(--accent);font-family:var(--mono);" id="v-learned">—</div>
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Learned</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:#9F8CE8;font-family:var(--mono);" id="v-tolearn">—</div>
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">To Learn</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:#D3F26A;font-family:var(--mono);" id="v-total">—</div>
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Total</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:#22c55e;font-family:var(--mono);" id="v-pct">—</div>
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Progress</div>
+      </div>
+    </div>
+    <div id="vocab-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
+  <!-- Vocab Modal -->
+  <div id="vocab-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:18px;padding:24px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(5,5,23,.18);">
+      <div style="font-size:16px;font-weight:900;margin-bottom:16px;">📖 Add Word</div>
+      <input id="vm-word" placeholder="Word or phrase" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;margin-bottom:10px;background:#F5F5EA;">
+      <input id="vm-trans" placeholder="Translation" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;margin-bottom:10px;background:#F5F5EA;">
+      <input id="vm-ex" placeholder="Example sentence (optional)" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;margin-bottom:16px;background:#F5F5EA;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('vocab-modal').style.display='none'" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F5EA;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;">Cancel</button>
+        <button onclick="addVocabWord()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#FF4E00;color:#fff;font-family:Nunito,sans-serif;font-weight:800;cursor:pointer;">Add Word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice Games -->
+  <div class="section">
+    <div class="section-head">
+      <div>
         <div class="section-title">🎮 Practice Games</div>
         <div class="section-sub">Sharpen your skills with mini-games</div>
       </div>
@@ -586,6 +630,52 @@ function showToast(msg) {
 }
 
 init();
+
+/* ── VOCABULARY ── */
+let _vocabData = [];
+async function loadVocab() {
+  try {
+    const r = await apiFetch('/api/journal/vocab/list');
+    if (!r.ok) return;
+    const { words, learned, toLearn } = await r.json();
+    _vocabData = words;
+    document.getElementById('v-learned').textContent = learned;
+    document.getElementById('v-tolearn').textContent = toLearn;
+    document.getElementById('v-total').textContent = words.length;
+    document.getElementById('v-pct').textContent = words.length ? Math.round(learned/words.length*100)+'%' : '0%';
+    renderVocab();
+  } catch {}
+}
+function renderVocab() {
+  const list = document.getElementById('vocab-list');
+  if (!list) return;
+  if (!_vocabData.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:13px;">No words yet — add your first word!</div>'; return; }
+  list.innerHTML = _vocabData.slice(0,20).map(w => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-radius:12px;border:1.5px solid ${w.learned?'rgba(34,197,94,.2)':'rgba(94,94,74,.14)'};">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:800;color:var(--text);">${esc(w.word)}</div>
+        ${w.translation?`<div style="font-size:12px;color:var(--text-3);margin-top:1px;">${esc(w.translation)}</div>`:''}
+        ${w.example?`<div style="font-size:11px;color:var(--text-3);font-style:italic;margin-top:2px;">"${esc(w.example)}"</div>`:''}
+      </div>
+      <button onclick="toggleVocabLearned('${w.id}',${!w.learned})" style="padding:5px 12px;border-radius:8px;border:1.5px solid ${w.learned?'rgba(34,197,94,.3)':'rgba(94,94,74,.18)'};background:${w.learned?'rgba(34,197,94,.08)':'transparent'};color:${w.learned?'#16a34a':'var(--text-3)'};font-family:Nunito,sans-serif;font-size:11px;font-weight:800;cursor:pointer;">${w.learned?'✓ Learned':'Mark learned'}</button>
+    </div>`).join('');
+}
+function openVocabModal() { document.getElementById('vocab-modal').style.display='flex'; document.getElementById('vm-word').focus(); }
+async function addVocabWord() {
+  const word = document.getElementById('vm-word').value.trim();
+  if (!word) return;
+  try {
+    const r = await apiFetch('/api/journal/vocab', { method:'POST', body:{ word, translation: document.getElementById('vm-trans').value.trim(), example: document.getElementById('vm-ex').value.trim() }});
+    if (r.ok) { document.getElementById('vocab-modal').style.display='none'; await loadVocab(); }
+  } catch {}
+}
+async function toggleVocabLearned(id, learned) {
+  try { await apiFetch('/api/journal/vocab/'+id, { method:'PATCH', body:{ learned } }); await loadVocab(); } catch {}
+}
+function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
+
+// Load vocab after dashboard
+setTimeout(loadVocab, 1000);
 </script>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
