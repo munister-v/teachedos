@@ -213,38 +213,6 @@ html,body {
   border-radius:2px; width:68%;
 }
 
-/* Vocab widget */
-#wg-vocab {
-  top:552px; right:24px;
-  width:176px; padding:18px;
-}
-.wg-vocab-label {
-  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: var(--text-3); margin-bottom:12px;
-}
-.wg-vocab-word {
-  font-family: var(--font-ui); font-size:24px; font-weight:600;
-  color: var(--text); line-height:1.2; margin-bottom:4px;
-}
-.wg-vocab-lang {
-  font-size:9px; color: var(--text-3); font-family: var(--font-mono);
-  letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px;
-}
-.wg-vocab-trans {
-  font-size:13px; color: var(--accent); margin-bottom:6px;
-}
-.wg-vocab-ex {
-  font-size:11px; color: var(--text-3); line-height:1.5; font-style:italic;
-}
-.wg-vocab-next {
-  margin-top:12px; width:100%;
-  background: var(--accent); border: none;
-  border-radius:12px; padding:8px; font-size:12px; font-family: var(--font-ui);
-  font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s;
-  text-align:center; box-shadow: 0 2px 8px rgba(255,78,0,0.25);
-}
-.wg-vocab-next:hover { opacity:0.88; }
-
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
   position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
@@ -916,31 +884,6 @@ html,body {
   pointer-events:none;
 }
 
-/* ═══════════════════════════ QUICK ACTIONS WIDGET ═══════════════════════════ */
-#wg-actions {
-  bottom:110px; left:24px;
-  width:190px; padding:14px 14px 10px;
-}
-.wg-actions-label {
-  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: var(--text-3); margin-bottom:10px;
-}
-.wg-action-btn {
-  display:flex; align-items:center; gap:10px; width:100%;
-  padding:8px 10px; border-radius:12px; border:none;
-  background: rgba(255,78,0,0.06); cursor:pointer;
-  font-size:12px; font-weight:700; color: var(--text-2);
-  font-family: var(--font-ui); text-decoration:none;
-  transition:background .15s, color .15s; margin-bottom:5px;
-}
-.wg-action-btn:hover { background: rgba(94,94,74,0.14); color: var(--accent); }
-.wg-action-btn:last-child { margin-bottom:0; }
-.wg-action-btn .wab-ic {
-  width:24px; height:24px; border-radius:7px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; flex-shrink:0;
-}
-
 /* ═══════════════════════════ ABOUT / FINDER ═══════════════════════════ */
 #win-about { top:80px; left:340px; width:520px; height:420px; }
 .about-body {
@@ -1183,15 +1126,6 @@ html,body {
   </div>
 </div>
 
-<div class="widget" id="wg-vocab">
-  <div class="wg-vocab-label">My boards</div>
-  <div class="wg-vocab-word">—</div>
-  <div class="wg-vocab-lang">Loading…</div>
-  <div class="wg-vocab-trans"></div>
-  <div class="wg-vocab-ex"></div>
-  <button class="wg-vocab-next" onclick="openApp('students')">View Students →</button>
-</div>
-
 <!-- ════ WINDOWS ════ -->
 
 <!-- LESSON PLANS -->
@@ -1206,12 +1140,7 @@ html,body {
   </div>
   <div class="win-body">
     <div class="win-sidebar" id="sidebar-plans">
-      <div class="sb-section-label">Quick links</div>
-      <a class="sb-item" href="courses.html" style="text-decoration:none;">📚 All Courses</a>
-      <a class="sb-item" href="board.html" style="text-decoration:none;">�� Open Board</a>
-      <a class="sb-item" href="gradebook.html" style="text-decoration:none;">📒 Gradebook</a>
-      <a class="sb-item" href="analytics.html" style="text-decoration:none;">📊 Analytics</a>
-      <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
+      <div class="sb-section-label">Filter boards</div>
       <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
       <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
       <div class="sb-item" id="bf-shared" onclick="boardsFilter('shared',this)">Shared with me</div>
@@ -1579,22 +1508,7 @@ html,body {
   </div>
 </div>
 
-<!-- QUICK ACTIONS WIDGET -->
-<div class="widget" id="wg-actions">
-  <div class="wg-actions-label">Quick Launch</div>
-  <a class="wg-action-btn" href="board.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</span> Board
-  </a>
-  <a class="wg-action-btn" href="analytics.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#34d399,#059669);">📊</span> Analytics
-  </a>
-  <a class="wg-action-btn" href="gradebook.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</span> Gradebook
-  </a>
-  <a class="wg-action-btn" href="profile.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</span> Profile
-  </a>
-</div>
+
 
 <!-- DOCK -->
 <div id="dock-wrap">
@@ -2863,24 +2777,6 @@ setInterval(loadNotifications, 120000);
         if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
       }
     });
-    const v = {
-      label: document.querySelector('#wg-vocab .wg-vocab-label'),
-      n:     document.querySelector('#wg-vocab .wg-vocab-word'),
-      lang:  document.querySelector('#wg-vocab .wg-vocab-lang'),
-      trans: document.querySelector('#wg-vocab .wg-vocab-trans'),
-      ex:    document.querySelector('#wg-vocab .wg-vocab-ex'),
-      btn:   document.querySelector('#wg-vocab .wg-vocab-next'),
-    };
-    if (v.label) v.label.textContent = 'My boards';
-    if (v.n)     v.n.textContent = boards.length;
-    if (v.lang)  v.lang.textContent = boards.length === 1 ? 'visual board' : 'visual boards';
-    const totalCards = boards.reduce((s, b) => s + (b.card_count || 0), 0);
-    if (v.trans) v.trans.textContent = totalCards ? `${totalCards} cards total` : 'No cards yet';
-    if (v.ex) {
-      const recent = boards.slice(0, 3).map(b => b.name).join(' · ') || 'Nothing yet';
-      v.ex.innerHTML = recent;
-    }
-    if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
   }).catch(() => {});
 
   // Shared boards
