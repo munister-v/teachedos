@@ -1313,7 +1313,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
-    <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="toggleMoreMenu()">🗑 Clear board</div>
+    <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="clearAll();toggleMoreMenu()">🗑 Clear board</div>
   </div>
 </div>
 
@@ -2044,15 +2044,28 @@ const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas.getContext('2d');
 
 /* ════════════════════════ TRANSFORM ════════════════════════ */
+
+/* ── RAF-guarded rendering helpers ── */
+let _arrowRaf = null, _minimapRaf = null;
+function _scheduleArrows() {
+  if (_arrowRaf) return;
+  _arrowRaf = requestAnimationFrame(() => { _arrowRaf = null; renderAllArrows(); });
+}
+function _scheduleMinimap() {
+  if (_minimapRaf) return;
+  _minimapRaf = requestAnimationFrame(() => { _minimapRaf = null; renderMinimap(); });
+}
+let _zcPct = null;
+let _isMomentum = false;
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
   const pct = Math.round(state.scale * 100) + '%';
   if (zoomDisp) zoomDisp.textContent = pct;
-  const zcPct = document.getElementById('zc-pct');
-  if (zcPct) zcPct.textContent = pct;
-  renderAllArrows();
-  renderMinimap();
-  wsSendViewport();
+  if (!_zcPct) _zcPct = document.getElementById('zc-pct');
+  if (_zcPct) _zcPct.textContent = pct;
+  _scheduleArrows();
+  _scheduleMinimap();
+  if (!_isMomentum) wsSendViewport();
 }
 
 function screenToBoard(sx, sy) {
@@ -3062,7 +3075,7 @@ function reRenderCard(card) {
   if (!old) return;
   const el = renderCard(card);
   board.replaceChild(el, old);
-  renderAllArrows();
+  _scheduleArrows();
 }
 
 function getCardEl(id) { return board.querySelector(`[data-id="${id}"]`); }
@@ -3205,8 +3218,8 @@ document.addEventListener('mousemove', e => {
       if (snapEnabled || e.shiftKey) { nx = snapVal(nx); ny = snapVal(ny); }
       card.x = nx; card.y = ny; updateCardPos(card);
     });
-    renderAllArrows();
-    renderMinimap();
+    _scheduleArrows();
+    _scheduleMinimap();
     return;
   }
 
@@ -3227,7 +3240,7 @@ document.addEventListener('mousemove', e => {
     else { card.h = Math.max(min.h, sh + dh); }
     el.style.width = card.w+'px'; el.style.height = card.h+'px';
     if (card.type === 'game') applyGameScale(el, card);
-    renderAllArrows(); renderMinimap(); return;
+    _scheduleArrows(); _scheduleMinimap(); return;
   }
 
   if (isBoxSelecting) {
@@ -3260,7 +3273,7 @@ document.addEventListener('mouseup', e => {
       function momentum() {
         _panVelX *= decay; _panVelY *= decay;
         state.pan.x += _panVelX; state.pan.y += _panVelY;
-        applyTransform();
+        _isMomentum = true; applyTransform(); _isMomentum = false;
         if (Math.abs(_panVelX) > 0.3 || Math.abs(_panVelY) > 0.3) {
           _panRaf = requestAnimationFrame(momentum);
         } else { _panRaf = null; }
@@ -3327,6 +3340,8 @@ document.addEventListener('mouseup', e => {
   function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
 
   boardWrap.addEventListener('touchstart', e => {
+    // Cancel momentum on new touch
+    if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
     const ts = Array.from(e.touches);
     if (ts.length === 1) {
       t0 = ts[0]; t1 = null;
@@ -3424,18 +3439,17 @@ document.getElementById('btn-fit').addEventListener('click', fitAll);
 /* Sync zoom % to bottom-right control — handled in applyTransform above */
 
 /* ════════════════════════ SPACE PAN ════════════════════════ */
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
-    if (!spaceDown) { spaceDown = true; boardWrap.style.cursor = 'grab'; }
-    e.preventDefault();
-  }
-});
 document.addEventListener('keyup', e => {
   if (e.code === 'Space') { spaceDown = false; boardWrap.style.cursor = ''; }
 });
 
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
+  // Space = pan
+  if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+    if (!spaceDown) { spaceDown = true; boardWrap.style.cursor = 'grab'; }
+    e.preventDefault(); return;
+  }
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
 
   if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
@@ -3797,14 +3811,18 @@ function clearAll() {
 }
 
 /* ════════════════════════ MINIMAP ════════════════════════ */
+let _minimapInited = false;
 function renderMinimap() {
   const MW = 160, MH = 110;
-  minimapCanvas.width = MW * devicePixelRatio;
-  minimapCanvas.height = MH * devicePixelRatio;
-  minimapCanvas.style.width = MW+'px';
-  minimapCanvas.style.height = MH+'px';
+  if (!_minimapInited) {
+    minimapCanvas.width = MW * devicePixelRatio;
+    minimapCanvas.height = MH * devicePixelRatio;
+    minimapCanvas.style.width = MW+'px';
+    minimapCanvas.style.height = MH+'px';
+    _minimapInited = true;
+  }
   const ctx = minimapCtx;
-  ctx.scale(devicePixelRatio, devicePixelRatio);
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
   ctx.clearRect(0, 0, MW, MH);
 
   if (!state.cards.length) return;
@@ -5262,8 +5280,12 @@ function wsBroadcastState() {
   }, 400);
 }
 
+let _cursorThrottle = 0;
 function wsSendCursor(bx, by) {
   if (!ws || ws.readyState !== 1) return;
+  const now = Date.now();
+  if (now - _cursorThrottle < 50) return; // max 20fps
+  _cursorThrottle = now;
   ws.send(JSON.stringify({ type:'cursor', x:bx, y:by,
     name: currentUser?.name, avatar: currentUser?.avatar }));
 }
@@ -5383,7 +5405,7 @@ function wsSendViewport() {
       name: currentUser?.name,
       avatar: currentUser?.avatar,
     }));
-  }, 80);
+  }, 150);
 }
 
 function applyFollowViewport(pan, scale) {
@@ -5540,10 +5562,7 @@ document.addEventListener('click', e => {
     document.getElementById('more-menu').style.display = 'none';
   }
 });
-// Wire clear board from more menu
-document.getElementById('btn-clear-menu')?.addEventListener('click', () => {
-  document.getElementById('btn-clear')?.click();
-});
+// Wire clear board from more menu - handled inline in HTML
 
 /* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
 let _miroTool = 'select';
@@ -6111,7 +6130,7 @@ function confirmAudioEmbed() {
   const pos = _pendingAudioPos || { x: 200, y: 100 };
   addCard('audio', pos.x, pos.y, { title, src: _pendingAudioDataUrl });
   _pendingAudioDataUrl = null;
-  markDirty(); renderAll(); saveLocal();
+  scheduleSave(); saveLocal();
 }
 
 function openVideoModal() {
