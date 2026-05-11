@@ -7500,27 +7500,18 @@ function openStudentQuiz(cardId) {
 .quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
 </style>
 <script>
-// Aggressive SW cache update
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    // Force check for updates on every load
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
     reg.update();
-    // When a new SW is found, activate it immediately
-    reg.addEventListener('updatefound', () => {
-      const nw = reg.installing;
-      if (nw) nw.addEventListener('statechange', () => {
-        if (nw.state === 'activated') {
-          // Clear old caches
-          caches.keys().then(keys => keys.forEach(k => { if (k !== 'teachedos-v3') caches.delete(k); }));
-        }
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      if(nw)nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed'&&navigator.serviceWorker.controller)nw.postMessage('skipWaiting');
       });
     });
   });
-  // If SW controller changes, reload to get fresh content
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) { refreshing = true; location.reload(); }
-  });
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
 
