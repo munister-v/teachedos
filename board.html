@@ -162,8 +162,84 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .el-icon{font-size:20px;line-height:1;margin-bottom:4px;}
 .el-label{font-size:11px;font-weight:700;color:var(--text-2);}
 
-/* ── BOARD WRAP ── */
-#board-wrap{
+/* ── MIRO-STYLE LEFT FLOATING TOOLBAR ── */
+#miro-toolbar {
+  position:fixed;
+  left:calc(var(--sb-w) + 12px);
+  top:50%;
+  transform:translateY(-50%);
+  z-index:950;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  background:var(--card-bg,#fff);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:6px;
+  box-shadow:0 4px 24px rgba(5,5,23,.12), 0 1px 4px rgba(5,5,23,.06);
+  backdrop-filter:blur(16px);
+  transition:left .25s cubic-bezier(.4,0,.2,1);
+}
+.mt-btn {
+  width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:17px;
+  color:var(--text-2);
+  transition:background .12s,color .12s,transform .1s;
+  position:relative;
+  border:none;background:transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+.mt-btn:hover { background:var(--accent-2); color:var(--accent); }
+.mt-btn.active { background:var(--accent); color:#fff; }
+.mt-btn:active { transform:scale(.92); }
+.mt-sep {
+  height:1px;background:var(--border);margin:3px 4px;
+}
+/* Tooltip */
+.mt-btn::after {
+  content:attr(data-tip);
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#050517;color:#fff;
+  font-size:11px;font-weight:700;font-family:var(--font);
+  padding:4px 9px;border-radius:7px;white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .15s;
+  z-index:9999;
+}
+.mt-btn:hover::after { opacity:1; }
+
+/* ── ZOOM CONTROLS (bottom-right) ── */
+#zoom-controls {
+  position:fixed;
+  right:16px;
+  bottom:20px;
+  z-index:950;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  background:var(--card-bg,#fff);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:5px;
+  box-shadow:0 4px 20px rgba(5,5,23,.10);
+}
+.zc-btn {
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;font-weight:700;
+  color:var(--text-2);border:none;background:transparent;
+  transition:background .12s,color .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.zc-btn:hover { background:var(--accent-2);color:var(--accent); }
+.zc-pct {
+  font-size:11px;font-family:var(--mono);font-weight:700;
+  color:var(--text-3);text-align:center;padding:2px 0;
+  cursor:pointer;
+}
+.zc-pct:hover { color:var(--accent); }
+.zc-sep { height:1px;background:var(--border);margin:2px 3px; }
   position:fixed;top:var(--tb-h);left:var(--sb-w);right:0;bottom:0;
   overflow:hidden;
   background:
@@ -1060,6 +1136,8 @@ body.board-dragging .game-iframe-overlay{display:block;}
   #card-editor{right:0!important;left:0!important;width:100%!important;top:auto!important;bottom:0!important;border-radius:18px 18px 0 0!important;max-height:80vh!important;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
   .tb-btn span{display:none;}
+  #miro-toolbar{display:none;}
+  #zoom-controls{display:none;}
 }
 @media(max-width:480px){
   .tb-btn{min-width:26px;height:26px;font-size:12px;}
@@ -1068,6 +1146,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 @media print {
   #toolbar,#sidebar,#board-live-banner,#offline-banner,#toast,#shortcuts-panel,
   #task-builder-overlay,#student-quiz-overlay,#card-editor,#export-menu,
+  #miro-toolbar,#zoom-controls,
   .anchor-dot,.resize-handle,.card-header .card-menu-btn{display:none!important;}
   body{background:#fff!important;}
   #board-wrap{overflow:visible!important;position:static!important;}
@@ -1216,6 +1295,46 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <input type="text" placeholder="Search…" id="sb-search">
   </div>
   <div class="sb-body" id="sb-content"></div>
+</div>
+
+<!-- MIRO-STYLE LEFT TOOLBAR -->
+<div id="miro-toolbar">
+  <button class="mt-btn active" id="mt-select" data-tip="Select (V)" onclick="setMiroTool('select')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1l12 6-5 1.5L7 14 2 1z"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('sticky');quickAddCard('sticky',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M10 2v4l-2-1-2 1V2"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="setMiroTool('text');quickAddCard('text',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="setMiroTool('select');quickAddCard('lesson',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-image" data-tip="Image" onclick="setMiroTool('select');openImageModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-video" data-tip="Video" onclick="setMiroTool('select');openVideoModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-fit" data-tip="Fit all (F)" onclick="document.getElementById('btn-fit').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+  </button>
+</div>
+
+<!-- ZOOM CONTROLS (bottom-right) -->
+<div id="zoom-controls">
+  <button class="zc-btn" title="Zoom in (+)" onclick="document.getElementById('btn-zoom-in').click()">+</button>
+  <div class="zc-sep"></div>
+  <div class="zc-pct" id="zc-pct" title="Reset zoom (click)" onclick="document.getElementById('btn-fit').click()">100%</div>
+  <div class="zc-sep"></div>
+  <button class="zc-btn" title="Zoom out (-)" onclick="document.getElementById('btn-zoom-out').click()">−</button>
 </div>
 
 <!-- BOARD WRAP -->
@@ -1870,7 +1989,10 @@ const minimapCtx = minimapCanvas.getContext('2d');
 /* ════════════════════════ TRANSFORM ════════════════════════ */
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
-  zoomDisp.textContent = Math.round(state.scale * 100) + '%';
+  const pct = Math.round(state.scale * 100) + '%';
+  if (zoomDisp) zoomDisp.textContent = pct;
+  const zcPct = document.getElementById('zc-pct');
+  if (zcPct) zcPct.textContent = pct;
   renderAllArrows();
   renderMinimap();
   wsSendViewport();
@@ -3141,10 +3263,28 @@ document.addEventListener('mouseup', e => {
   }, { passive: true });
 })();
 
-/* ════════════════════════ ZOOM ════════════════════════ */
+/* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
 boardWrap.addEventListener('wheel', e => {
   e.preventDefault();
-  if (!isFollowingTeacher) zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.08 : 0.925);
+  if (isFollowingTeacher) return;
+
+  // Ctrl/Cmd + scroll OR pinch = zoom (like Miro)
+  if (e.ctrlKey || e.metaKey) {
+    const factor = e.deltaY < 0 ? 1.08 : 0.925;
+    zoomAt(e.clientX, e.clientY, factor);
+    return;
+  }
+
+  // Plain scroll = pan (like Miro — no zoom on plain scroll)
+  const speed = e.shiftKey ? 1.5 : 1;
+  // Shift+scroll = horizontal pan
+  if (e.shiftKey) {
+    state.pan.x -= e.deltaY * speed;
+  } else {
+    state.pan.x -= e.deltaX * speed;
+    state.pan.y -= e.deltaY * speed;
+  }
+  applyTransform();
 }, { passive:false });
 
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -3156,6 +3296,8 @@ document.getElementById('btn-zoom-out').addEventListener('click', () => {
   zoomAt(r.left + r.width/2, r.top + r.height/2, 0.8);
 });
 document.getElementById('btn-fit').addEventListener('click', fitAll);
+
+/* Sync zoom % to bottom-right control — handled in applyTransform above */
 
 /* ════════════════════════ SPACE PAN ════════════════════════ */
 document.addEventListener('keydown', e => {
@@ -5262,6 +5404,53 @@ quickAdd.querySelectorAll('.qa-item').forEach(item => {
     quickAddCard(type, qaPos.x, qaPos.y);
   });
 });
+/* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
+let _miroTool = 'select';
+function setMiroTool(tool) {
+  _miroTool = tool;
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mt-' + tool);
+  if (btn) btn.classList.add('active');
+  // Update cursor
+  if (tool === 'connect') {
+    boardWrap.style.cursor = 'crosshair';
+  } else {
+    boardWrap.style.cursor = '';
+  }
+}
+
+// Update miro toolbar position when sidebar toggles
+function updateMiroToolbarPos() {
+  const sb = document.getElementById('sidebar');
+  const mt = document.getElementById('miro-toolbar');
+  if (!mt) return;
+  const sbVisible = sb && sb.style.display !== 'none' && getComputedStyle(sb).display !== 'none';
+  mt.style.left = sbVisible ? 'calc(var(--sb-w) + 12px)' : '12px';
+}
+
+// Double-click on canvas = add card at cursor (Miro-style)
+boardWrap.addEventListener('dblclick', e => {
+  if (e.target !== boardWrap && e.target !== board && !e.target.closest('#arrows-svg')) return;
+  if (_miroTool === 'select') {
+    // Show quick-add at cursor
+    const qa = document.getElementById('quick-add');
+    if (qa) {
+      qaPos = screenToBoard(e.clientX, e.clientY);
+      qa.style.left = e.clientX + 'px';
+      qa.style.top  = e.clientY + 'px';
+      qa.style.display = 'block';
+    }
+  } else if (_miroTool === 'sticky') {
+    const pos = screenToBoard(e.clientX, e.clientY);
+    quickAddCard('sticky', pos.x, pos.y);
+    setMiroTool('select');
+  } else if (_miroTool === 'text') {
+    const pos = screenToBoard(e.clientX, e.clientY);
+    quickAddCard('text', pos.x, pos.y);
+    setMiroTool('select');
+  }
+});
+
 function quickAddCard(type, bx, by) {
   const def = getDefaults(type);
   const x = bx - def.w/2, y = by - def.h/2;
