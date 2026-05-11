@@ -632,37 +632,113 @@ async function deleteBoard(id, name) {
 }
 
 const BOARD_TEMPLATES = [
-  { id: 'blank',    icon: '⬜', name: 'Blank Board',       desc: 'Start from scratch', cards: [] },
-  { id: 'speaking', icon: '🗣️', name: 'Speaking Lesson',   desc: 'Warm-up · Discussion · Feedback', cards: [
-    { type:'lesson', data:{ title:'Warm-up — Small Talk', status:'available', skill:'Speaking', duration:'5 min', desc:'2-minute chat prompt to get students talking.' } },
-    { type:'lesson', data:{ title:'Vocabulary Preview', status:'locked', skill:'Vocabulary', duration:'10 min', desc:'Key phrases for todays topic.' } },
-    { type:'lesson', data:{ title:'Main Discussion', status:'locked', skill:'Speaking', duration:'20 min', desc:'Guided discussion questions.' } },
-    { type:'assignment', data:{ title:'Speaking Task', type:'Speaking', desc:'Record a 1-minute response.' } },
-    { type:'milestone', data:{ title:'Lesson Complete', desc:'All tasks finished' } },
+  { id:'blank',      icon:'⬜', name:'Blank Board',          desc:'Start from scratch', cards:[] },
+
+  { id:'speaking',   icon:'🗣️', name:'Speaking Lesson',      desc:'Warm-up · Discussion · Feedback', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:200, data:{ title:'Warm-up — Small Talk', status:'available', skill:'Speaking', duration:'5 min', level:'A2', desc:'2-minute chat prompt: "What did you do last weekend?" Students share in pairs.' }},
+    { type:'vocab',      x:340, y:80,  w:220, h:180, data:{ word:'Conversation starters', phonetic:'', pos:'phrase', translation:'Фрази для початку розмови', example:'By the way… / Speaking of which… / That reminds me…' }},
+    { type:'lesson',     x:60,  y:310, w:260, h:200, data:{ title:'Main Discussion', status:'locked', skill:'Speaking', duration:'20 min', level:'B1', desc:'Guided discussion questions on the topic. Use opinion phrases: I think… / In my view… / I agree because…' }},
+    { type:'assignment', x:340, y:310, w:260, h:180, data:{ title:'Speaking Task', type:'Speaking', maxScore:20, desc:'Record a 1-minute response to the discussion question. Focus on fluency and vocabulary range.' }},
+    { type:'checklist',  x:60,  y:540, w:260, h:180, data:{ title:'Lesson Checklist', items:[{text:'Warm-up done',done:false},{text:'New vocabulary covered',done:false},{text:'Discussion completed',done:false},{text:'Speaking task submitted',done:false}]}},
+    { type:'milestone',  x:340, y:540, w:220, h:120, data:{ title:'Speaking Lesson ✓', desc:'All tasks complete — great work!' }},
   ]},
-  { id: 'grammar',  icon: '📐', name: 'Grammar Lesson',    desc: 'Presentation · Practice · Produce', cards: [
-    { type:'lesson', data:{ title:'Grammar Presentation', status:'available', skill:'Grammar', duration:'15 min', desc:'Explain the target grammar point with examples.' } },
-    { type:'lesson', data:{ title:'Controlled Practice', status:'locked', skill:'Grammar', duration:'15 min', desc:'Guided exercises to practise the form.' } },
-    { type:'assignment', data:{ title:'Grammar Quiz', type:'Quiz', desc:'Test understanding of the grammar point.', questions:[] } },
-    { type:'lesson', data:{ title:'Free Production', status:'locked', skill:'Speaking', duration:'10 min', desc:'Students use the grammar in their own sentences.' } },
-    { type:'milestone', data:{ title:'Grammar Unit Complete' } },
+
+  { id:'grammar',    icon:'📐', name:'Grammar Lesson',       desc:'PPP: Present · Practice · Produce', cards:[
+    { type:'lesson',     x:60,  y:80,  w:280, h:210, data:{ title:'Grammar Presentation', status:'available', skill:'Grammar', duration:'15 min', level:'B1', desc:'Present the Past Perfect with a timeline diagram. Contrast with Past Simple. Show 5 example sentences.' }},
+    { type:'sticky',     x:360, y:80,  w:200, h:160, data:{ text:'💡 Form:\nHad + past participle\n\nBy the time she arrived,\nhe had already left.', color:'#FFF9C4' }},
+    { type:'lesson',     x:60,  y:320, w:280, h:200, data:{ title:'Controlled Practice', status:'locked', skill:'Grammar', duration:'15 min', level:'B1', desc:'Gap-fill exercise: complete 10 sentences using Past Perfect. Check in pairs.' }},
+    { type:'assignment', x:360, y:260, w:260, h:180, data:{ title:'Grammar Quiz', type:'Quiz', maxScore:20, desc:'10 multiple-choice questions on Past Perfect vs Past Simple.', questions:[] }},
+    { type:'lesson',     x:60,  y:550, w:280, h:180, data:{ title:'Free Production', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Students write 3 sentences about their life using Past Perfect. Share with the class.' }},
+    { type:'milestone',  x:360, y:460, w:220, h:120, data:{ title:'Grammar Unit ✓', desc:'PPP cycle complete' }},
   ]},
-  { id: 'testprep', icon: '📝', name: 'Test Prep',         desc: 'Review · Mock Test · Results', cards: [
-    { type:'lesson', data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', desc:'Quick review of key grammar and vocabulary.' } },
-    { type:'assignment', data:{ title:'Mock Test Part 1 — Reading', type:'Quiz', timeLimit:20, desc:'Reading comprehension questions.', questions:[] } },
-    { type:'assignment', data:{ title:'Mock Test Part 2 — Writing', type:'Essay', timeLimit:30, desc:'Write a short essay on a given topic.' } },
-    { type:'milestone', data:{ title:'Mock Test Done — Review Results' } },
+
+  { id:'reading',    icon:'📚', name:'Reading Lesson',       desc:'Pre-read · Read · Comprehend', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Pre-reading Activity', status:'available', skill:'Vocabulary', duration:'10 min', level:'B1', desc:'Activate prior knowledge. Preview 8 key words from the text. Predict: what is the article about?' }},
+    { type:'vocab',      x:350, y:80,  w:220, h:180, data:{ word:'Key Vocabulary', phonetic:'', pos:'noun list', translation:'Ключові слова', example:'controversial · significant · impact · perspective · evidence' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:200, data:{ title:'Reading Task', status:'locked', skill:'Reading', duration:'20 min', level:'B1', desc:'Read the article. Task 1: identify main idea per paragraph. Task 2: find 3 supporting details.' }},
+    { type:'assignment', x:350, y:290, w:260, h:180, data:{ title:'Comprehension Check', type:'Quiz', maxScore:15, desc:'5 True/False + 5 multiple choice questions about the text.', questions:[] }},
+    { type:'assignment', x:60,  y:540, w:270, h:160, data:{ title:'Critical Thinking', type:'Essay', maxScore:10, desc:'In 100 words: Do you agree with the author\'s main argument? Give 2 reasons.' }},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Reading Lesson ✓', desc:'Comprehension + critical thinking done' }},
   ]},
-  { id: 'vocab',    icon: '📖', name: 'Vocabulary Unit',   desc: 'Word cards · Quiz', cards: [
-    { type:'vocab', data:{ word:'Example', phonetic:'/ɪɡˈzɑːmpl/', pos:'noun', translation:'Пример', example:'This is an ___ sentence.' } },
-    { type:'assignment', data:{ title:'Vocabulary Quiz', type:'Quiz', desc:'Test yourself on the new words.', questions:[] } },
-    { type:'milestone', data:{ title:'Vocabulary Unit Complete' } },
+
+  { id:'writing',    icon:'✍️', name:'Writing Lesson',       desc:'Model · Plan · Write · Feedback', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Analyse the Model Text', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Read a model essay. Identify: thesis, topic sentences, supporting evidence, conclusion. Highlight linking words.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:180, data:{ text:'📝 Essay Structure:\n\n1. Introduction + thesis\n2. Body ¶1 — Point + Evidence\n3. Body ¶2 — Point + Evidence\n4. Conclusion', color:'#E8F5E9' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:180, data:{ title:'Planning Stage', status:'locked', skill:'Writing', duration:'10 min', level:'B2', desc:'Students create a mind map / outline for their own essay. Teacher checks plans before writing.' }},
+    { type:'assignment', x:350, y:290, w:260, h:180, data:{ title:'Essay Writing Task', type:'Essay', maxScore:30, desc:'Write a 250-word opinion essay. Use the model structure. Time limit: 30 minutes.' }},
+    { type:'checklist',  x:60,  y:520, w:270, h:180, data:{ title:'Self-check Before Submitting', items:[{text:'Clear thesis statement',done:false},{text:'2 body paragraphs with evidence',done:false},{text:'Linking words used (however, therefore…)',done:false},{text:'Conclusion restates thesis',done:false},{text:'Word count 230-270',done:false}]}},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Writing Task ✓', desc:'Draft submitted for feedback' }},
   ]},
-  { id: 'reading',  icon: '📚', name: 'Reading Lesson',    desc: 'Pre-read · Read · Comprehension', cards: [
-    { type:'lesson', data:{ title:'Pre-reading Activity', status:'available', skill:'Vocabulary', duration:'10 min', desc:'Activate prior knowledge and preview key vocabulary.' } },
-    { type:'lesson', data:{ title:'Reading Task', status:'locked', skill:'Reading', duration:'20 min', desc:'Students read the text and identify main ideas.' } },
-    { type:'assignment', data:{ title:'Comprehension Check', type:'Quiz', desc:'Answer questions about the text.', questions:[] } },
-    { type:'milestone', data:{ title:'Reading Lesson Complete' } },
+
+  { id:'listening',  icon:'🎧', name:'Listening Lesson',     desc:'Pre-listen · Listen · Respond', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Pre-listening', status:'available', skill:'Listening', duration:'8 min', level:'B1', desc:'Predict content from the title and images. Pre-teach 5 key words. Set the listening task.' }},
+    { type:'lesson',     x:350, y:80,  w:270, h:200, data:{ title:'First Listen — Gist', status:'locked', skill:'Listening', duration:'5 min', level:'B1', desc:'Listen once for the main idea. Answer: What is the speaker\'s main point? Where/when is this happening?' }},
+    { type:'assignment', x:60,  y:310, w:270, h:180, data:{ title:'Second Listen — Detail', type:'Quiz', maxScore:10, desc:'Listen again. Answer 5 specific detail questions. Note key numbers, names, and facts.' }},
+    { type:'lesson',     x:350, y:310, w:270, h:180, data:{ title:'Post-listening Discussion', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'React to the content. Do you agree with the speaker? Has this changed your opinion?' }},
+    { type:'milestone',  x:60,  y:520, w:270, h:120, data:{ title:'Listening Lesson ✓', desc:'Gist + detail + discussion complete' }},
+  ]},
+
+  { id:'vocab',      icon:'📖', name:'Vocabulary Unit',      desc:'Introduce · Practise · Use', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:190, data:{ title:'Vocabulary Introduction', status:'available', skill:'Vocabulary', duration:'15 min', level:'B1', desc:'Present 10 new words in context. Use images, definitions, and example sentences. Students guess meaning from context.' }},
+    { type:'vocab',      x:340, y:80,  w:220, h:170, data:{ word:'ambitious', phonetic:'/æmˈbɪʃəs/', pos:'adjective', translation:'амбітний', example:'She is very ambitious — she wants to become CEO by 30.' }},
+    { type:'vocab',      x:340, y:270, w:220, h:170, data:{ word:'resilient', phonetic:'/rɪˈzɪliənt/', pos:'adjective', translation:'стійкий', example:'You need to be resilient to succeed in business.' }},
+    { type:'assignment', x:60,  y:300, w:260, h:170, data:{ title:'Vocabulary Quiz', type:'Quiz', maxScore:20, desc:'Match words to definitions. Fill gaps in sentences. 10 questions total.', questions:[] }},
+    { type:'lesson',     x:60,  y:500, w:260, h:170, data:{ title:'Vocabulary in Use', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Students create 2 original sentences using 5 of the new words. Share and peer-correct.' }},
+    { type:'milestone',  x:340, y:460, w:220, h:120, data:{ title:'Vocabulary Unit ✓', desc:'10 words learned and practised' }},
+  ]},
+
+  { id:'testprep',   icon:'📝', name:'Exam Preparation',     desc:'Review · Mock Test · Debrief', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', level:'B2', desc:'Quick review of key grammar (conditionals, passive, reported speech) and topic vocabulary. Mind map on board.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'⏱ Exam Tips:\n• Read questions first\n• Manage your time\n• Check for spelling\n• Don\'t leave blanks', color:'#FFF3E0' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Mock Test — Part 1: Use of English', type:'Quiz', maxScore:30, timeLimit:20, desc:'15 multiple choice grammar questions. Exam conditions — no dictionaries.', questions:[] }},
+    { type:'assignment', x:350, y:270, w:270, h:170, data:{ title:'Mock Test — Part 2: Writing', type:'Essay', maxScore:20, timeLimit:30, desc:'Write a formal email (150 words) responding to a complaint. Use appropriate register.' }},
+    { type:'lesson',     x:60,  y:510, w:270, h:170, data:{ title:'Test Debrief', status:'locked', skill:'Grammar', duration:'15 min', level:'B2', desc:'Go through answers together. Focus on most common mistakes. Students note their weak areas.' }},
+    { type:'milestone',  x:350, y:460, w:220, h:120, data:{ title:'Mock Exam ✓', desc:'Results reviewed — target weak areas' }},
+  ]},
+
+  { id:'conversation', icon:'💬', name:'Conversation Class',  desc:'Topic · Debate · Reflection', cards:[
+    { type:'sticky',     x:60,  y:80,  w:240, h:160, data:{ text:'🎯 Today\'s Topic:\n\n"Is social media doing more harm than good?"\n\nLevel: B2 | Time: 60 min', color:'#E3F2FD' }},
+    { type:'lesson',     x:320, y:80,  w:270, h:190, data:{ title:'Warm-up — Opinion Poll', status:'available', skill:'Speaking', duration:'5 min', level:'B2', desc:'Quick show of hands: agree / disagree / not sure. Students give one-sentence reasons.' }},
+    { type:'vocab',      x:60,  y:270, w:240, h:180, data:{ word:'Debate phrases', phonetic:'', pos:'functional language', translation:'Фрази для дискусії', example:'I\'d argue that… / On the other hand… / That\'s a fair point, but… / The evidence suggests…' }},
+    { type:'lesson',     x:320, y:300, w:270, h:190, data:{ title:'Structured Debate', status:'locked', skill:'Speaking', duration:'25 min', level:'B2', desc:'Split into FOR / AGAINST groups. 5 min prep, then 15 min debate. Teacher notes language errors for feedback.' }},
+    { type:'assignment', x:60,  y:480, w:240, h:160, data:{ title:'Reflection Task', type:'Essay', maxScore:10, desc:'Write 5 sentences: What was the strongest argument? Did your opinion change? Why / why not?' }},
+    { type:'milestone',  x:320, y:510, w:220, h:120, data:{ title:'Conversation Class ✓', desc:'Debate + reflection complete' }},
+  ]},
+
+  { id:'pronunciation', icon:'🔊', name:'Pronunciation Lesson', desc:'Sound · Drill · Minimal pairs', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Sound Introduction', status:'available', skill:'Speaking', duration:'10 min', level:'A2', desc:'Introduce the target sound /θ/ (th). Show mouth position diagram. Teacher models: think, three, through.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'👄 /θ/ vs /ð/\n\nVoiceless: think, three, bath\nVoiced: this, that, breathe\n\nTip: tongue between teeth!', color:'#FCE4EC' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:180, data:{ title:'Minimal Pairs Drill', status:'locked', skill:'Speaking', duration:'10 min', level:'A2', desc:'Practise: think/sink, three/tree, bath/bat. Students listen and repeat. Record yourself and compare.' }},
+    { type:'assignment', x:350, y:270, w:260, h:170, data:{ title:'Pronunciation Quiz', type:'Quiz', maxScore:10, desc:'Listen to 10 words. Write: does it contain /θ/ or /ð/? Circle the correct sound.' }},
+    { type:'lesson',     x:60,  y:520, w:270, h:160, data:{ title:'Connected Speech Practice', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Read a short paragraph aloud focusing on /θ/ sounds. Peer feedback on accuracy.' }},
+    { type:'milestone',  x:350, y:460, w:220, h:120, data:{ title:'Pronunciation ✓', desc:'/θ/ and /ð/ mastered' }},
+  ]},
+
+  { id:'business',   icon:'💼', name:'Business English',     desc:'Emails · Meetings · Presentations', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Formal vs Informal Register', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Compare formal email vs casual message. Identify: salutation, body, closing. Key phrases for each register.' }},
+    { type:'vocab',      x:350, y:80,  w:220, h:180, data:{ word:'Business phrases', phonetic:'', pos:'functional language', translation:'Ділові фрази', example:'I am writing with regard to… / Please find attached… / I look forward to hearing from you…' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Email Writing Task', type:'Essay', maxScore:20, desc:'Write a formal email (120 words) to a client apologising for a delayed delivery. Use appropriate register.' }},
+    { type:'lesson',     x:350, y:290, w:270, h:180, data:{ title:'Meeting Language', status:'locked', skill:'Speaking', duration:'20 min', level:'B2', desc:'Phrases for: opening a meeting, agreeing/disagreeing politely, summarising, closing. Role-play a team meeting.' }},
+    { type:'checklist',  x:60,  y:510, w:270, h:170, data:{ title:'Business English Checklist', items:[{text:'Formal email written',done:false},{text:'Register appropriate',done:false},{text:'Meeting phrases practised',done:false},{text:'Presentation vocabulary covered',done:false}]}},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Business English ✓', desc:'Email + meeting skills complete' }},
+  ]},
+
+  { id:'ielts',      icon:'🎓', name:'IELTS Preparation',    desc:'Task 1 · Task 2 · Speaking', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'IELTS Writing Task 1', status:'available', skill:'Writing', duration:'20 min', level:'C1', desc:'Describe a bar chart. Structure: overview → key features → comparison. Use: rose significantly, remained stable, peaked at…' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'📊 Task 1 Tips:\n• Write 150+ words\n• Start with overview\n• Use data selectively\n• No personal opinion\n• 20 minutes max', color:'#F3E5F5' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Task 1 Practice', type:'Essay', maxScore:9, timeLimit:20, desc:'Describe the bar chart showing internet usage by age group 2010-2020. Write at least 150 words.' }},
+    { type:'lesson',     x:350, y:270, w:270, h:180, data:{ title:'IELTS Writing Task 2', status:'locked', skill:'Writing', duration:'40 min', level:'C1', desc:'Opinion essay structure. Thesis → 2 body paragraphs → conclusion. Band 7+ requires: complex sentences, range of vocabulary, clear position.' }},
+    { type:'assignment', x:60,  y:510, w:270, h:170, data:{ title:'Task 2 Practice Essay', type:'Essay', maxScore:9, timeLimit:40, desc:'Some people think technology has made our lives more complicated. To what extent do you agree? Write 250 words.' }},
+    { type:'milestone',  x:350, y:470, w:220, h:120, data:{ title:'IELTS Writing ✓', desc:'Task 1 + Task 2 practised' }},
+  ]},
+
+  { id:'kids',       icon:'🧒', name:'Kids Lesson (A1)',     desc:'Fun · Games · Simple tasks', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! / Hi! / Good morning! / How are you? / I\'m fine, thank you!' }},
+    { type:'sticky',     x:340, y:80,  w:200, h:160, data:{ text:'🌈 Today we learn:\n\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun! 🎉', color:'#E8F5E9' }},
+    { type:'lesson',     x:60,  y:300, w:260, h:180, data:{ title:'Vocabulary — Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word. Repeat 3 times. Then: "What colour is the cat?"' }},
+    { type:'assignment', x:340, y:270, w:240, h:160, data:{ title:'Colour & Match Activity', type:'Quiz', maxScore:10, desc:'Match the animal to its colour. Draw and colour 3 animals. Label them in English.' }},
+    { type:'lesson',     x:60,  y:510, w:260, h:160, data:{ title:'Song & Game — Goodbye', status:'locked', skill:'Speaking', duration:'5 min', level:'A1', desc:'Play "Simon Says" with vocabulary from the lesson. Finish with the goodbye song.' }},
+    { type:'milestone',  x:340, y:450, w:220, h:110, data:{ title:'Kids Lesson ✓ 🌟', desc:'Great job today!' }},
   ]},
 ];
 
@@ -673,10 +749,11 @@ function createNewBoard() {
   const grid = document.getElementById('tpl-grid');
   grid.innerHTML = BOARD_TEMPLATES.map(t => `
     <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
-      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(94,94,74,.04)':'#fafafa'};">
-      <div style="font-size:24px;margin-bottom:6px;">${t.icon}</div>
-      <div style="font-size:13px;font-weight:800;color:var(--text);">${t.name}</div>
-      <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${t.desc}</div>
+      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(255,78,0,.05)':'#F5F5EA'};">
+      <div style="font-size:22px;margin-bottom:6px;">${t.icon}</div>
+      <div style="font-size:13px;font-weight:800;color:#050517;letter-spacing:-.01em;">${t.name}</div>
+      <div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${t.desc}</div>
+      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#FF4E00;font-family:monospace;">${t.cards.length} cards</div>` : ''}
     </div>`).join('');
   document.getElementById('tpl-name').value = '';
   const modal = document.getElementById('tpl-modal');
@@ -708,20 +785,22 @@ async function confirmNewBoard() {
     const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
     if (!r.ok) { toast('Failed to create board'); return; }
     const { board } = await r.json();
-    // If template has cards, seed them via board state
+    // If template has cards, seed them with proper positions
     if (tpl.cards.length) {
-      const { v4: uuidv4 } = await import('https://esm.sh/uuid@9');
       const seedCards = tpl.cards.map((c, i) => ({
-        id: 'c' + Date.now() + i,
+        id: 'c' + (Date.now() + i),
         type: c.type,
-        x: 60 + (i % 3) * 230,
-        y: 60 + Math.floor(i / 3) * 180,
-        w: 200, h: 120,
-        data: { ...c.data }
+        x: c.x !== undefined ? c.x : 60 + (i % 3) * 280,
+        y: c.y !== undefined ? c.y : 60 + Math.floor(i / 3) * 220,
+        w: c.w || (c.type === 'sticky' ? 200 : c.type === 'milestone' ? 220 : 260),
+        h: c.h || (c.type === 'sticky' ? 160 : c.type === 'milestone' ? 120 : 180),
+        data: { ...c.data },
+        color: c.color || null,
       }));
       await apiFetch(`/api/boards/${board.id}`, {
         method: 'PATCH',
-        body: { state: { cards: seedCards, arrows: [], bg: 'dots' } }
+        body: { data: { cards: seedCards, arrows: [], pan: { x: 40, y: 40 }, scale: 1, nextId: seedCards.length + 1 } }
+      });
       });
     }
     closeTplModal();
@@ -960,7 +1039,7 @@ init();
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:22px;width:min(520px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.22);padding:28px 28px 24px;">
+  <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(5,5,23,.18);padding:28px 28px 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <div style="font-size:18px;font-weight:900;">📋 New Board</div>
       <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
@@ -972,8 +1051,8 @@ init();
         onkeydown="if(event.key==='Enter')confirmNewBoard()">
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
-    <div id="tpl-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"></div>
-    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board ➜</button>
+    <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;max-height:360px;overflow-y:auto;padding-right:4px;"></div>
+    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
 </body>

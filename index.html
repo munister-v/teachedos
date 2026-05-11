@@ -3105,26 +3105,42 @@ function showOsToast(msg) {
         <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')"
-            style="padding:14px;border-radius:12px;border:2px solid #FF4E00;cursor:pointer;transition:.15s;background:#F5F5EA;">
-            <div style="font-size:22px;margin-bottom:4px;">⬜</div>
-            <div style="font-size:13px;font-weight:700;">Blank Board</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #FF4E00;cursor:pointer;transition:.15s;background:#F5F5EA;">
+            <div style="font-size:20px;margin-bottom:4px;">⬜</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Blank Board</div>
           </div>
-          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')"
-            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:22px;margin-bottom:4px;">🗣️</div>
-            <div style="font-size:13px;font-weight:700;">Speaking Lesson</div>
+          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">🗣️</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Speaking</div>
           </div>
-          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')"
-            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:22px;margin-bottom:4px;">📐</div>
-            <div style="font-size:13px;font-weight:700;">Grammar Lesson</div>
+          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">📐</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Grammar</div>
           </div>
-          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')"
-            style="padding:14px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:22px;margin-bottom:4px;">📝</div>
-            <div style="font-size:13px;font-weight:700;">Test Prep</div>
+          <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">📚</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Reading</div>
+          </div>
+          <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">✍️</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Writing</div>
+          </div>
+          <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">📖</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Vocabulary</div>
+          </div>
+          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">📝</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Exam Prep</div>
+          </div>
+          <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">💼</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Business</div>
+          </div>
+          <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+            <div style="font-size:20px;margin-bottom:4px;">🧒</div>
+            <div style="font-size:12px;font-weight:800;color:#050517;">Kids (A1)</div>
           </div>
         </div>
         <div style="margin-bottom:16px;">
@@ -3187,7 +3203,7 @@ function obSelectTpl(id) {
     el.style.borderColor = tid === id ? '#FF4E00' : '#e5e7eb';
     el.style.background   = tid === id ? '#F5F5EA' : '#fafafa';
   });
-  const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', testprep:'Test Prep' };
+  const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', reading:'Reading Lesson', writing:'Writing Lesson', vocab:'Vocabulary Unit', testprep:'Exam Preparation', business:'Business English', kids:'Kids Lesson', listening:'Listening Lesson', conversation:'Conversation Class', pronunciation:'Pronunciation Lesson', ielts:'IELTS Preparation' };
   const inp = document.getElementById('ob-board-name');
   if (!inp.value) inp.value = names[id] || '';
 }
@@ -3197,6 +3213,7 @@ async function obCreateBoard() {
   try {
     const API = 'https://teachedos-api.onrender.com';
     const token = localStorage.getItem('teachedos_token');
+    // Create board
     const r = await fetch(API + '/api/boards', {
       method: 'POST',
       headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
@@ -3204,6 +3221,34 @@ async function obCreateBoard() {
     });
     const { board } = await r.json();
     _obBoardId = board.id;
+
+    // Seed template cards if not blank
+    if (_obTpl && _obTpl !== 'blank') {
+      try {
+        const resp = await fetch('profile.html');
+        // We inline a minimal template map here for onboarding
+        const OB_TEMPLATES = {
+          speaking:  [{ type:'lesson', x:60, y:80, w:260, h:200, data:{ title:'Warm-up — Small Talk', status:'available', skill:'Speaking', duration:'5 min', level:'A2', desc:'2-minute chat prompt to get students talking.' }}, { type:'lesson', x:340, y:80, w:260, h:200, data:{ title:'Main Discussion', status:'locked', skill:'Speaking', duration:'20 min', level:'B1', desc:'Guided discussion questions on the topic.' }}, { type:'assignment', x:60, y:310, w:260, h:160, data:{ title:'Speaking Task', type:'Speaking', maxScore:20, desc:'Record a 1-minute response.' }}, { type:'milestone', x:340, y:310, w:220, h:120, data:{ title:'Speaking Lesson ✓', desc:'All tasks complete!' }}],
+          grammar:   [{ type:'lesson', x:60, y:80, w:280, h:200, data:{ title:'Grammar Presentation', status:'available', skill:'Grammar', duration:'15 min', level:'B1', desc:'Present the target grammar point with examples.' }}, { type:'lesson', x:360, y:80, w:280, h:200, data:{ title:'Controlled Practice', status:'locked', skill:'Grammar', duration:'15 min', level:'B1', desc:'Guided exercises to practise the form.' }}, { type:'assignment', x:60, y:310, w:280, h:160, data:{ title:'Grammar Quiz', type:'Quiz', maxScore:20, desc:'Test understanding of the grammar point.', questions:[] }}, { type:'milestone', x:360, y:310, w:220, h:120, data:{ title:'Grammar Unit ✓' }}],
+          reading:   [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Pre-reading Activity', status:'available', skill:'Vocabulary', duration:'10 min', level:'B1', desc:'Activate prior knowledge and preview key vocabulary.' }}, { type:'lesson', x:350, y:80, w:270, h:200, data:{ title:'Reading Task', status:'locked', skill:'Reading', duration:'20 min', level:'B1', desc:'Read the text and identify main ideas.' }}, { type:'assignment', x:60, y:310, w:270, h:160, data:{ title:'Comprehension Check', type:'Quiz', maxScore:15, desc:'Answer questions about the text.', questions:[] }}, { type:'milestone', x:350, y:310, w:220, h:120, data:{ title:'Reading Lesson ✓' }}],
+          writing:   [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Analyse the Model Text', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Read a model essay. Identify structure and linking words.' }}, { type:'assignment', x:350, y:80, w:260, h:180, data:{ title:'Essay Writing Task', type:'Essay', maxScore:30, desc:'Write a 250-word opinion essay using the model structure.' }}, { type:'checklist', x:60, y:310, w:270, h:180, data:{ title:'Self-check', items:[{text:'Clear thesis',done:false},{text:'2 body paragraphs',done:false},{text:'Linking words used',done:false},{text:'Conclusion written',done:false}]}}, { type:'milestone', x:350, y:290, w:220, h:120, data:{ title:'Writing Task ✓' }}],
+          vocab:     [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Vocabulary Introduction', status:'available', skill:'Vocabulary', duration:'15 min', level:'B1', desc:'Present 10 new words in context with images and examples.' }}, { type:'vocab', x:340, y:80, w:220, h:170, data:{ word:'ambitious', phonetic:'/æmˈbɪʃəs/', pos:'adjective', translation:'амбітний', example:'She is very ambitious — she wants to become CEO.' }}, { type:'assignment', x:60, y:300, w:260, h:160, data:{ title:'Vocabulary Quiz', type:'Quiz', maxScore:20, desc:'Match words to definitions. Fill gaps in sentences.', questions:[] }}, { type:'milestone', x:340, y:280, w:220, h:120, data:{ title:'Vocabulary Unit ✓' }}],
+          testprep:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', level:'B2', desc:'Quick review of key grammar and vocabulary.' }}, { type:'assignment', x:350, y:80, w:270, h:170, data:{ title:'Mock Test — Grammar', type:'Quiz', maxScore:30, timeLimit:20, desc:'15 multiple choice grammar questions. Exam conditions.', questions:[] }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Mock Test — Writing', type:'Essay', maxScore:20, timeLimit:30, desc:'Write a formal email (150 words).' }}, { type:'milestone', x:350, y:280, w:220, h:120, data:{ title:'Mock Exam ✓' }}],
+          business:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Formal vs Informal Register', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Compare formal email vs casual message. Key phrases for each register.' }}, { type:'vocab', x:350, y:80, w:220, h:180, data:{ word:'Business phrases', phonetic:'', pos:'functional language', translation:'Ділові фрази', example:'I am writing with regard to… / Please find attached…' }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Email Writing Task', type:'Essay', maxScore:20, desc:'Write a formal email (120 words) to a client.' }}, { type:'milestone', x:350, y:290, w:220, h:120, data:{ title:'Business English ✓' }}],
+          kids:      [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! Hi! Good morning!' }}, { type:'sticky', x:340, y:80, w:200, h:160, data:{ text:'🌈 Today we learn:\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun! 🎉', color:'#E8F5E9' }}, { type:'lesson', x:60, y:300, w:260, h:180, data:{ title:'Vocabulary — Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word.' }}, { type:'milestone', x:340, y:280, w:220, h:110, data:{ title:'Kids Lesson ✓ 🌟', desc:'Great job today!' }}],
+        };
+        const tplCards = OB_TEMPLATES[_obTpl];
+        if (tplCards) {
+          const seedCards = tplCards.map((c, i) => ({ id:'c'+(Date.now()+i), type:c.type, x:c.x, y:c.y, w:c.w, h:c.h, data:{...c.data} }));
+          await fetch(API + '/api/boards/' + board.id, {
+            method: 'PATCH',
+            headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token },
+            body: JSON.stringify({ data: { cards: seedCards, arrows: [], pan:{x:40,y:40}, scale:1, nextId: seedCards.length+1 } })
+          });
+        }
+      } catch {}
+    }
+
     obNext(3);
   } catch {
     obNext(3);
