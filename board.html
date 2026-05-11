@@ -67,35 +67,48 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   background:color-mix(in srgb,var(--card-bg,white) 94%,transparent);
   backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 10px;gap:6px;
-  box-shadow:0 1px 12px rgba(0,0,0,.06);
+  display:flex;align-items:center;padding:0 10px;gap:4px;
+  box-shadow:0 1px 8px rgba(5,5,23,.06);
   transition:background .3s,border-color .3s;
 }
 .tb-back{
   display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;
   font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;
-  text-decoration:none;transition:background .15s;flex-shrink:0;
+  text-decoration:none;transition:background .12s;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
 }
 .tb-back:hover{background:var(--accent-2);}
-.tb-sep{width:1px;height:24px;background:var(--border);margin:0 2px;flex-shrink:0;}
-.tb-title{font-size:14px;font-weight:800;color:var(--text);letter-spacing:-.01em;flex-shrink:0;}
-.tb-title em{color:var(--accent);font-style:normal;}
+.tb-sep{width:1px;height:22px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.tb-title{font-size:14px;font-weight:800;color:var(--text);letter-spacing:-.02em;flex-shrink:0;}
 .tb-spacer{flex:1;}
 #save-status{font-size:11px;font-family:var(--mono);color:var(--text-3);flex-shrink:0;}
 .tb-zoom-display{font-size:12px;font-family:var(--mono);color:var(--text-2);min-width:44px;text-align:center;}
 .tb-btn{
   display:flex;align-items:center;justify-content:center;
-  height:30px;min-width:30px;border-radius:7px;border:1px solid var(--border);
-  background:white;cursor:pointer;font-size:13px;color:var(--text-2);
+  height:30px;min-width:30px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card-bg,white);cursor:pointer;font-size:13px;color:var(--text-2);
   transition:background .12s,border-color .12s;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
 }
 .tb-btn:hover{background:var(--accent-2);border-color:var(--border-2);}
-.tb-btn.text{padding:0 9px;font-size:12px;font-weight:700;gap:4px;}
+.tb-btn.text{padding:0 9px;font-size:12px;font-weight:700;gap:5px;}
 .tb-btn.active{background:var(--accent-2);border-color:var(--accent);color:var(--accent);}
 .tb-btn.danger:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#ef4444;}
 .tb-btn:disabled{opacity:.35;cursor:default;}
+.user-menu-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;font-size:13px;font-weight:600;color:var(--text-2);
+  cursor:pointer;transition:background .12s;text-decoration:none;
+}
+.user-menu-item:hover{background:var(--accent-2);color:var(--text);}
+#btn-follow-me{
+  padding:4px 10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card-bg,white);font-family:var(--font);font-size:11px;
+  font-weight:700;cursor:pointer;color:var(--text-2);transition:.12s;flex-shrink:0;
+  display:none;
+}
+#btn-follow-me:hover{background:var(--accent-2);border-color:var(--accent);color:var(--accent);}
+#btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* ── SIDEBAR ── */
 #sidebar{
@@ -1204,75 +1217,119 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 <!-- TOOLBAR -->
 <div id="toolbar">
-  <a class="tb-back" href="index.html" style="display:flex;align-items:center;gap:5px;">
+  <!-- Left: back + board name -->
+  <a class="tb-back" href="index.html" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
-    TeachedOS
+    <span>Home</span>
   </a>
   <div class="tb-sep"></div>
-  <div class="tb-title" id="tb-board-name">📌 My Board</div>
-  <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:260px;">
+  <div id="board-name-display" class="tb-title" style="cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid transparent;padding:4px 8px;border-radius:8px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">My Board</div>
+  <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:180px;">
     <a id="bc-course" href="courses.html" style="color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></a>
     <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
   </div>
+
   <div class="tb-spacer"></div>
-  <!-- Save status chip -->
-  <div id="save-chip" title="Click for version history" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-3);transition:.15s;flex-shrink:0;">
-    <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
-    <span id="save-status">✓ saved</span>
+
+  <!-- Center: core actions -->
+  <div class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7a5 5 0 1 1 .5 4"/><path d="M3 3v4h4"/></svg>
   </div>
-  <!-- Session stats chip -->
-  <div id="session-chip" title="Session info" style="display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;">
+  <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 7a5 5 0 1 0-.5 4"/><path d="M13 3v4H9"/></svg>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+    <span>Connect</span>
+  </div>
+  <div class="tb-btn text" id="btn-fit" title="Fit all (F)">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+    <span>Fit</span>
+  </div>
+  <div class="tb-sep"></div>
+
+  <!-- Save status -->
+  <div id="save-chip" title="Version history" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-3);transition:.15s;flex-shrink:0;">
+    <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
+    <span id="save-status">saved</span>
+  </div>
+  <div id="session-chip" style="display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;">
     <span id="session-stats">0 cards</span>
   </div>
   <div class="tb-sep"></div>
-  <div class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</div>
-  <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn" id="btn-zoom-out" title="Zoom out (-)">−</div>
-  <div class="tb-zoom-display" id="zoom-display">100%</div>
-  <div class="tb-btn" id="btn-zoom-in" title="Zoom in (+)">+</div>
-  <div class="tb-btn text" id="btn-fit" title="Fit all (F)">⊡ Fit</div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
-  <div class="tb-btn text" id="btn-snap" title="Snap to grid (hold Shift while dragging)" onclick="toggleSnap()">⊞ Snap</div>
-  <div class="tb-btn text" id="btn-export" title="Export board (JSON / Print)" onclick="openExportMenu(event)">⬇ Export</div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn text" id="btn-search" title="Search cards (Ctrl+F)" onclick="toggleBoardSearch()">🔍</div>
-  <div class="tb-btn text" id="btn-shortcuts" title="Keyboard shortcuts (?)" onclick="openShortcuts()">?</div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:#34a853;display:none;">📹 Call</div>
-  <div class="tb-btn text" id="btn-share" title="Share & invite students" onclick="openSharePanel()">📎 Share</div>
-  <div class="tb-btn text" id="btn-members" title="Manage students" onclick="openSharePanel()" style="display:none">👥 Students</div>
-  <div id="board-name-display" style="font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:4px 10px;border-radius:8px;transition:.15s;border:1px solid transparent;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="Click to rename board" onclick="startRenameBoard()">—</div>
-  <div class="tb-sep"></div>
-  <!-- WS status + presence -->
-  <div id="ws-dot" title="Real-time: off" style="width:9px;height:9px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;"></div>
-  <div id="presence-bar"></div>
-  <button id="btn-follow-me" onclick="toggleFollowMode()">👁 Follow Me</button>
-  <div class="tb-sep"></div>
-  <!-- Auth user chip -->
-  <div id="auth-chip" style="display:none;align-items:center;gap:7px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
-    <span id="auth-avatar" style="font-size:18px;line-height:1;">🧑‍🏫</span>
-    <span id="auth-name">—</span>
+
+  <!-- Right: share + live + user -->
+  <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:rgba(52,168,83,.3);display:none;">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="10" height="8" rx="2"/><path d="M11 7l4-2v6l-4-2V7z"/></svg>
+    <span>Live</span>
   </div>
-  <div class="tb-btn text" id="btn-settings" title="Board settings" onclick="openSettings()" style="font-size:15px;">⚙️</div>
-  <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">🔑 Sign in</div>
-  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px 0;z-index:2000;min-width:180px;font-size:13px;">
+  <div class="tb-btn text" id="btn-share" title="Share & invite" onclick="openSharePanel()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
+    <span>Share</span>
+  </div>
+
+  <!-- WS dot + presence -->
+  <div id="ws-dot" title="Real-time" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;margin:0 2px;"></div>
+  <div id="presence-bar"></div>
+  <button id="btn-follow-me" onclick="toggleFollowMode()">👁 Follow</button>
+
+  <div class="tb-sep"></div>
+
+  <!-- User chip + overflow menu -->
+  <div id="auth-chip" style="display:none;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,#fff);cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
+    <span id="auth-avatar" style="font-size:16px;line-height:1;">🧑‍🏫</span>
+    <span id="auth-name">—</span>
+    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+  </div>
+  <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">Sign in</div>
+
+  <!-- ⋯ overflow menu button -->
+  <div class="tb-btn" id="btn-more" title="More options" onclick="toggleMoreMenu()" style="font-size:16px;font-weight:900;letter-spacing:.05em;">⋯</div>
+
+  <!-- User dropdown -->
+  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
-    <a class="user-menu-item" href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">🏠 Home</a>
+    <a class="user-menu-item" href="index.html">🏠 Home</a>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
     <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
     <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <a class="user-menu-item" href="courses.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📚 Courses</a>
-    <a class="user-menu-item" href="schedule.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📅 Schedule</a>
-    <a class="user-menu-item" href="analytics.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📊 Analytics</a>
-    <a class="user-menu-item" href="gradebook.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">📒 Gradebook</a>
-    <a class="user-menu-item" href="profile.html" style="text-decoration:none;display:flex;align-items:center;gap:8px;">👤 Profile</a>
+    <a class="user-menu-item" href="courses.html">📚 Courses</a>
+    <a class="user-menu-item" href="schedule.html">📅 Schedule</a>
+    <a class="user-menu-item" href="journal.html">📓 Journal</a>
+    <a class="user-menu-item" href="analytics.html">📊 Analytics</a>
+    <a class="user-menu-item" href="gradebook.html">📒 Gradebook</a>
+    <a class="user-menu-item" href="profile.html">👤 Profile</a>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
   </div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn text danger" id="btn-clear" title="Clear board">🗑</div>
+
+  <!-- ⋯ More menu -->
+  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
+    <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
+    <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
+    <div class="user-menu-item" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
+    <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+    <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
+    <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="toggleMoreMenu()">🗑 Clear board</div>
+  </div>
+</div>
+
+<!-- Hidden zoom buttons for JS compatibility -->
+<div style="display:none;">
+  <div id="btn-zoom-in"></div>
+  <div id="btn-zoom-out"></div>
+  <div id="zoom-display"></div>
+  <div id="btn-snap"></div>
+  <div id="btn-search"></div>
+  <div id="btn-shortcuts"></div>
+  <div id="btn-settings"></div>
+  <div id="btn-export"></div>
+  <div id="btn-members"></div>
+  <div id="btn-clear"></div>
+  <div id="tb-board-name"></div>
 </div>
 
 <!-- Follow Me student banner -->
@@ -5404,6 +5461,23 @@ quickAdd.querySelectorAll('.qa-item').forEach(item => {
     quickAddCard(type, qaPos.x, qaPos.y);
   });
 });
+/* ════════════════════════ MORE MENU ════════════════════════ */
+let _moreOpen = false;
+function toggleMoreMenu() {
+  _moreOpen = !_moreOpen;
+  document.getElementById('more-menu').style.display = _moreOpen ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  if (_moreOpen && !e.target.closest('#more-menu') && !e.target.closest('#btn-more')) {
+    _moreOpen = false;
+    document.getElementById('more-menu').style.display = 'none';
+  }
+});
+// Wire clear board from more menu
+document.getElementById('btn-clear-menu')?.addEventListener('click', () => {
+  document.getElementById('btn-clear')?.click();
+});
+
 /* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
 let _miroTool = 'select';
 function setMiroTool(tool) {
