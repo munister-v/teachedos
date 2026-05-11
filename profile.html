@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Profile · TeachedOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -220,6 +223,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   <a class="nav-link active" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <span id="nb-admin-link" style="display:none;"></span>
+  <span id="nb-user-info" class="nav-link" style="display:none;cursor:default;"></span>
 </nav>
 
 <!-- LAYOUT -->
@@ -231,7 +235,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </div>
     <a class="st-item" href="courses.html" style="text-decoration:none;display:flex;">
       <span class="st-icon">📚</span> Courses
-    </div>
+    </a>
     <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
       <span class="st-icon">📋</span> My Boards
     </div>
@@ -409,9 +413,57 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
             <div style="font-size:12px;color:var(--text-3);font-weight:700;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
           </div>
         </div>
+
+        <!-- Upgrade options -->
+        <div id="plan-upgrade-section" style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Upgrade via bank transfer</div>
+          <div style="display:grid;gap:10px;">
+            <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
+              style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:1.5rem;">🚀</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:800;">Teacher Pro</div>
+                <div style="font-size:11px;color:var(--text-3);">Unlimited boards · 30 students · Analytics</div>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:var(--accent);">$9/mo</div>
+            </div>
+            <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
+              style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:1.5rem;">🏫</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:800;">School</div>
+                <div style="font-size:11px;color:var(--text-3);">Unlimited everything · Admin panel</div>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:var(--accent);">$29/mo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IBAN payment details (shown after selecting a plan) -->
+        <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
+          <div style="padding:16px;background:linear-gradient(135deg,rgba(211,242,106,.12),rgba(255,78,0,.06));border-radius:12px;border:1.5px solid rgba(211,242,106,.3);">
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">💳 Payment Details</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
+              <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
+                <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:700;cursor:pointer;color:var(--text-2);">Copy</button>
+              </div>
+              <div><strong>Plan:</strong> <span id="iban-plan-name">—</span></div>
+              <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.6;">
+              After payment, enter your transaction details below to activate your subscription.
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <input class="setting-input" id="iban-payer-name" type="text" placeholder="Full name (as in bank statement)">
+              <input class="setting-input" id="iban-tx-date" type="date" placeholder="Payment date">
+              <textarea class="setting-input" id="iban-tx-note" rows="2" placeholder="Transaction reference / comment (optional)" style="resize:vertical;font-family:var(--font);"></textarea>
+            </div>
+            <button class="setting-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Activate Subscription →</button>
+          </div>
+        </div>
+
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <a class="setting-btn" href="index.html" style="text-decoration:none;display:inline-block;text-align:center;">Upgrade plan →</a>
-          <button class="setting-btn" style="background:transparent;border:1.5px solid var(--accent-3);color:var(--text-2);" onclick="openBillingPortal()">Manage subscription</button>
+          <button class="setting-btn secondary" onclick="openBillingPortal()">Manage subscription</button>
         </div>
       </div>
 
@@ -827,7 +879,7 @@ async function loadSharedBoards() {
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
         </div>
         <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
-      </div>`).join('');
+      </a>`).join('');
   } catch {
     wrap.innerHTML = '<div style="color:#e55;text-align:center;padding:20px;">Failed to load shared boards</div>';
   }
@@ -861,6 +913,9 @@ function initPlanCard() {
   document.getElementById('plan-icon').textContent = planIcons[plan] || '⭐';
   document.getElementById('plan-name-display').textContent = planNames[plan] || plan;
   document.getElementById('plan-desc-display').textContent = planDescs[plan] || '';
+  // Hide upgrade section if already on a paid plan
+  const upgradeSection = document.getElementById('plan-upgrade-section');
+  if (upgradeSection) upgradeSection.style.display = (plan === 'free') ? 'block' : 'none';
 }
 
 async function saveMeetingRooms() {
@@ -1032,10 +1087,82 @@ function updateDarkToggleUI(theme) {
   }
 }
 
+// ── Subscription / IBAN payment ──────────────────────────────
+let _selectedPlan = null;
+const PLAN_PRICES = { pro: '$9/mo', school: '$29/mo' };
+const PLAN_NAMES  = { pro: 'Teacher Pro', school: 'School' };
+
+function selectPlan(plan) {
+  _selectedPlan = plan;
+  document.querySelectorAll('.plan-option').forEach(el => {
+    el.style.borderColor = 'var(--border)';
+    el.style.background = 'transparent';
+  });
+  const opt = document.getElementById('plan-opt-' + plan);
+  if (opt) {
+    opt.style.borderColor = 'var(--accent)';
+    opt.style.background = 'rgba(255,78,0,.05)';
+  }
+  document.getElementById('iban-plan-name').textContent = PLAN_NAMES[plan] || plan;
+  document.getElementById('iban-plan-price').textContent = PLAN_PRICES[plan] || '';
+  document.getElementById('iban-payment-section').style.display = 'block';
+}
+
+function copyIBAN() {
+  navigator.clipboard.writeText('UA623052990262056400990700807').then(() => toast('IBAN copied!')).catch(() => {
+    const el = document.getElementById('iban-display');
+    const range = document.createRange(); range.selectNodeContents(el);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    toast('Select & copy manually');
+  });
+}
+
+async function submitIBANPayment() {
+  if (!_selectedPlan) { toast('Select a plan first'); return; }
+  const payerName = document.getElementById('iban-payer-name').value.trim();
+  const txDate = document.getElementById('iban-tx-date').value;
+  const txNote = document.getElementById('iban-tx-note').value.trim();
+  if (!payerName) { toast('Enter your full name'); return; }
+  if (!txDate) { toast('Enter payment date'); return; }
+  try {
+    const r = await apiFetch('/api/billing/iban-activate', {
+      method: 'POST',
+      body: { plan: _selectedPlan, payer_name: payerName, tx_date: txDate, tx_note: txNote }
+    });
+    if (r.ok) {
+      const d = await r.json();
+      me.plan = _selectedPlan;
+      try { localStorage.setItem('teachedos_user', JSON.stringify(me)); } catch {}
+      initPlanCard();
+      toast('Subscription activated! Welcome to ' + (PLAN_NAMES[_selectedPlan] || _selectedPlan) + '!');
+      document.getElementById('iban-payment-section').style.display = 'none';
+    } else {
+      const d = await r.json().catch(() => ({}));
+      toast(d.error || 'Payment activation sent. We will verify and activate within 24 hours.');
+    }
+  } catch {
+    toast('Request sent! Subscription will be activated after payment verification.');
+  }
+}
+
 // ── Start ─────────────────────────────────────────────────────
 init();
 </script>
-<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update();
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (nw) nw.addEventListener('statechange', () => {
+        if (nw.state === 'activated') caches.keys().then(keys => keys.forEach(k => { if (k !== 'teachedos-v3') caches.delete(k); }));
+      });
+    });
+  });
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!refreshing) { refreshing = true; location.reload(); } });
+}
+</script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
