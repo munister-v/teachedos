@@ -13,6 +13,16 @@ if (process.env.STRIPE_SECRET_KEY) {
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ`).catch(() => {});
+pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  plan TEXT NOT NULL,
+  payer_name TEXT NOT NULL,
+  tx_date DATE NOT NULL,
+  tx_note TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)`).catch(() => {});
 
 // ── Plan definitions ─────────────────────────────────────────────────────
 const PLANS = {
@@ -185,6 +195,34 @@ router.post('/upgrade', requireAuth, async (req, res) => {
     res.json({ ok: true, plan });
   } catch (err) {
     console.error('[billing] upgrade:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── POST /api/billing/iban-activate ───────────────────────────────────────
+// Activate subscription via IBAN bank transfer.
+// Stores payment info and upgrades the plan immediately.
+router.post('/iban-activate', requireAuth, async (req, res) => {
+  const { plan, payer_name, tx_date, tx_note } = req.body;
+  if (!['pro', 'school'].includes(plan)) {
+    return res.status(400).json({ error: 'Invalid plan' });
+  }
+  if (!payer_name || !tx_date) {
+    return res.status(400).json({ error: 'Payer name and payment date are required' });
+  }
+  try {
+    // Log the IBAN payment for audit
+    await pool.query(
+      `INSERT INTO iban_payments (user_id, plan, payer_name, tx_date, tx_note, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', NOW())
+       ON CONFLICT DO NOTHING`,
+      [req.user.id, plan, payer_name, tx_date, tx_note || null]
+    ).catch(() => {});
+    // Activate the plan immediately (trust-based for IBAN)
+    await pool.query('UPDATE users SET plan=$1 WHERE id=$2', [plan, req.user.id]);
+    res.json({ ok: true, plan });
+  } catch (err) {
+    console.error('[billing] iban-activate:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
