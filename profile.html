@@ -802,7 +802,6 @@ async function confirmNewBoard() {
         method: 'PATCH',
         body: { data: { cards: seedCards, arrows: [], pan: { x: 40, y: 40 }, scale: 1, nextId: seedCards.length + 1 } }
       });
-      });
     }
     closeTplModal();
     window.location.href = 'board.html?id=' + board.id;
