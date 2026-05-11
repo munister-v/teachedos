@@ -281,7 +281,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #arrows-svg .arrow-pending{fill:none;stroke:rgba(255,78,0,.5);stroke-width:2;stroke-dasharray:8 4;}
 
 /* Board canvas */
-#board{position:absolute;top:0;left:0;transform-origin:0 0;z-index:10;}
+#board{position:absolute;top:0;left:0;transform-origin:0 0;z-index:10;will-change:transform;}
 
 /* ── CARDS ── */
 .board-card{
@@ -2072,7 +2072,9 @@ function boardToWrap(bx, by) {
 }
 
 function zoomAt(sx, sy, factor) {
-  const newScale = Math.min(4, Math.max(0.1, state.scale * factor));
+  // Cancel any momentum
+  if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
+  const newScale = Math.min(4, Math.max(0.08, state.scale * factor));
   const r = boardWrap.getBoundingClientRect();
   const cx = sx - r.left, cy = sy - r.top;
   state.pan.x = cx - (cx - state.pan.x) * (newScale / state.scale);
@@ -3134,11 +3136,16 @@ function startResize(e, card, el) {
   e.preventDefault();
 }
 
-/* ════════════════════════ PAN ════════════════════════ */
+/* ════════════════════════ PAN — with momentum ════════════════════════ */
+let _panVelX = 0, _panVelY = 0, _panRaf = null;
+let _lastPanTime = 0, _lastPanX = 0, _lastPanY = 0;
+
 boardWrap.addEventListener('mousedown', e => {
-  if (e.button === 1) { // middle mouse
+  if (e.button === 1) { // middle mouse = pan
     isPanning = true;
     panStart = { mx: e.clientX, my: e.clientY, px: state.pan.x, py: state.pan.y };
+    _panVelX = 0; _panVelY = 0;
+    if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
     boardWrap.classList.add('panning');
     e.preventDefault(); return;
   }
@@ -3165,14 +3172,24 @@ document.addEventListener('mousemove', e => {
     if (!isPanning) {
       isPanning = true;
       panStart = { mx: e.clientX, my: e.clientY, px: state.pan.x, py: state.pan.y };
+      _panVelX = 0; _panVelY = 0;
+      if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
       boardWrap.classList.add('panning');
     }
   }
 
   if (isPanning) {
     if (!isFollowingTeacher) {
-      state.pan.x = panStart.px + (e.clientX - panStart.mx);
-      state.pan.y = panStart.py + (e.clientY - panStart.my);
+      const now = performance.now();
+      const nx = panStart.px + (e.clientX - panStart.mx);
+      const ny = panStart.py + (e.clientY - panStart.my);
+      if (_lastPanTime) {
+        const dt = Math.max(1, now - _lastPanTime);
+        _panVelX = (nx - _lastPanX) / dt * 16;
+        _panVelY = (ny - _lastPanY) / dt * 16;
+      }
+      _lastPanX = nx; _lastPanY = ny; _lastPanTime = now;
+      state.pan.x = nx; state.pan.y = ny;
       applyTransform();
     }
     return;
@@ -3233,7 +3250,24 @@ document.addEventListener('mousemove', e => {
 
 /* ════════════════════════ MOUSE UP ════════════════════════ */
 document.addEventListener('mouseup', e => {
-  if (isPanning) { isPanning = false; boardWrap.classList.remove('panning'); }
+  if (isPanning) {
+    isPanning = false;
+    boardWrap.classList.remove('panning');
+    _lastPanTime = 0;
+    // Momentum / inertia
+    if (Math.abs(_panVelX) > 0.5 || Math.abs(_panVelY) > 0.5) {
+      const decay = 0.88;
+      function momentum() {
+        _panVelX *= decay; _panVelY *= decay;
+        state.pan.x += _panVelX; state.pan.y += _panVelY;
+        applyTransform();
+        if (Math.abs(_panVelX) > 0.3 || Math.abs(_panVelY) > 0.3) {
+          _panRaf = requestAnimationFrame(momentum);
+        } else { _panRaf = null; }
+      }
+      _panRaf = requestAnimationFrame(momentum);
+    }
+  }
 
   if (isDraggingCard) {
     isDraggingCard = false;
@@ -3280,43 +3314,71 @@ document.addEventListener('mouseup', e => {
   }
 });
 
-/* ════════════════════ TOUCH PAN + PINCH ZOOM ══════════════════ */
+/* ════════════════════ TOUCH — Miro-quality ══════════════════ */
 (function() {
-  let touches = [];
-  let lastDist = null;
-  let touchPanStart = null;
+  let t0 = null, t1 = null;
+  let panOrigin = null;
+  let pinchOrigin = null;
+  let lastPinchDist = 0;
+  let lastPinchScale = 1;
+  let _raf = null;
+
+  function midpoint(a, b) { return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2 }; }
+  function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
 
   boardWrap.addEventListener('touchstart', e => {
-    touches = Array.from(e.touches);
-    if (touches.length === 1) {
-      touchPanStart = { mx: touches[0].clientX, my: touches[0].clientY, px: state.pan.x, py: state.pan.y };
-      lastDist = null;
-    } else if (touches.length === 2) {
-      lastDist = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-      touchPanStart = null;
+    const ts = Array.from(e.touches);
+    if (ts.length === 1) {
+      t0 = ts[0]; t1 = null;
+      panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
+      pinchOrigin = null;
+    } else if (ts.length === 2) {
+      t0 = ts[0]; t1 = ts[1];
+      lastPinchDist = tdist(t0, t1);
+      lastPinchScale = state.scale;
+      const mid = midpoint(t0, t1);
+      pinchOrigin = { mx:mid.x, my:mid.y, px:state.pan.x, py:state.pan.y };
+      panOrigin = null;
     }
   }, { passive: true });
 
   boardWrap.addEventListener('touchmove', e => {
     e.preventDefault();
-    touches = Array.from(e.touches);
-    if (touches.length === 1 && touchPanStart && !isDraggingCard) {
-      state.pan.x = touchPanStart.px + (touches[0].clientX - touchPanStart.mx);
-      state.pan.y = touchPanStart.py + (touches[0].clientY - touchPanStart.my);
-      applyTransform();
-    } else if (touches.length === 2 && lastDist !== null) {
-      const dist = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-      const cx = (touches[0].clientX + touches[1].clientX) / 2;
-      const cy = (touches[0].clientY + touches[1].clientY) / 2;
-      zoomAt(cx, cy, dist / lastDist);
-      lastDist = dist;
+    const ts = Array.from(e.touches);
+    if (ts.length === 1 && panOrigin && !isDraggingCard) {
+      const dx = ts[0].clientX - panOrigin.mx;
+      const dy = ts[0].clientY - panOrigin.my;
+      if (_raf) cancelAnimationFrame(_raf);
+      _raf = requestAnimationFrame(() => {
+        state.pan.x = panOrigin.px + dx;
+        state.pan.y = panOrigin.py + dy;
+        applyTransform();
+      });
+    } else if (ts.length === 2 && pinchOrigin) {
+      const a = ts[0], b = ts[1];
+      const d = tdist(a, b);
+      const mid = midpoint(a, b);
+      const newScale = Math.min(4, Math.max(0.08, lastPinchScale * (d / lastPinchDist)));
+      const r = boardWrap.getBoundingClientRect();
+      const cx = mid.x - r.left, cy = mid.y - r.top;
+      const panDx = mid.x - pinchOrigin.mx, panDy = mid.y - pinchOrigin.my;
+      if (_raf) cancelAnimationFrame(_raf);
+      _raf = requestAnimationFrame(() => {
+        state.pan.x = cx - (cx - pinchOrigin.px) * (newScale / lastPinchScale) + panDx;
+        state.pan.y = cy - (cy - pinchOrigin.py) * (newScale / lastPinchScale) + panDy;
+        state.scale = newScale;
+        applyTransform();
+      });
     }
   }, { passive: false });
 
   boardWrap.addEventListener('touchend', e => {
-    touches = Array.from(e.touches);
-    if (touches.length < 2) lastDist = null;
-    if (touches.length === 0) touchPanStart = null;
+    const ts = Array.from(e.touches);
+    if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
+    else if (ts.length === 1) {
+      t0 = ts[0]; t1 = null; pinchOrigin = null;
+      panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
+    }
   }, { passive: true });
 })();
 
@@ -3325,24 +3387,29 @@ boardWrap.addEventListener('wheel', e => {
   e.preventDefault();
   if (isFollowingTeacher) return;
 
-  // Ctrl/Cmd + scroll OR pinch = zoom (like Miro)
+  // Trackpad pinch OR Ctrl/Cmd+scroll = zoom
+  if (e.ctrlKey || e.metaKey || e.deltaMode === 0 && Math.abs(e.deltaY) < 50 && e.deltaX === 0 && !e.shiftKey) {
+    // Distinguish pinch (ctrlKey set by browser) from scroll
+    if (e.ctrlKey || e.metaKey) {
+      const factor = e.deltaY < 0 ? 1.06 : 0.94;
+      zoomAt(e.clientX, e.clientY, factor);
+      return;
+    }
+  }
+
   if (e.ctrlKey || e.metaKey) {
-    const factor = e.deltaY < 0 ? 1.08 : 0.925;
+    const factor = e.deltaY < 0 ? 1.06 : 0.94;
     zoomAt(e.clientX, e.clientY, factor);
     return;
   }
 
-  // Plain scroll = pan (like Miro — no zoom on plain scroll)
-  const speed = e.shiftKey ? 1.5 : 1;
-  // Shift+scroll = horizontal pan
-  if (e.shiftKey) {
-    state.pan.x -= e.deltaY * speed;
-  } else {
-    state.pan.x -= e.deltaX * speed;
-    state.pan.y -= e.deltaY * speed;
-  }
+  // Plain scroll = pan (Miro default)
+  const dx = e.shiftKey ? e.deltaY : e.deltaX;
+  const dy = e.shiftKey ? 0        : e.deltaY;
+  state.pan.x -= dx;
+  state.pan.y -= dy;
   applyTransform();
-}, { passive:false });
+}, { passive: false });
 
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
   const r = boardWrap.getBoundingClientRect();
