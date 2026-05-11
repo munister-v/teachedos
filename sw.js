@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v1';
+const CACHE = 'teachedos-v3';
 const SHELL = [
   '/teachedos/',
   '/teachedos/index.html',
@@ -55,17 +55,30 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Cache-first for app shell
+  // Network-first for HTML pages (aggressive freshness)
+  if (e.request.mode === 'navigate' || (e.request.headers.get('accept') || '').includes('text/html')) {
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        if (resp && resp.status === 200) {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return resp;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('/teachedos/index.html')))
+    );
+    return;
+  }
+  // Stale-while-revalidate for static assets (fonts, images, CSS)
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(resp => {
+      const fetchPromise = fetch(e.request).then(resp => {
         if (resp && resp.status === 200 && e.request.method === 'GET') {
           const clone = resp.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return resp;
-      }).catch(() => caches.match('/teachedos/index.html'));
+      }).catch(() => cached);
+      return cached || fetchPromise;
     })
   );
 });

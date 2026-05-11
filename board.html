@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>TeachedOS · Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -270,7 +273,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* Group outlines */
 .group-outline{
   position:absolute;border:2px dashed var(--accent);border-radius:18px;
-  pointer-events:none;z-index:5;opacity:.45;
+  pointer-events:none;z-index:2;opacity:.45;
   transition:opacity .15s;
 }
 .group-outline .group-badge{
@@ -307,10 +310,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   transition:box-shadow .15s,border-color .15s;
   min-width:160px;min-height:80px;
   display:flex;flex-direction:column;overflow:hidden;
+  contain:layout style;
+  isolation:isolate;
 }
 .board-card.selected{
-  border-color:var(--accent)!important;
-  box-shadow:0 0 0 3px rgba(94,94,74,.16),0 4px 20px rgba(0,0,0,.10)!important;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(94,94,74,.16),0 4px 20px rgba(0,0,0,.10);
+  z-index:11;
 }
 .board-card:hover:not(.selected){box-shadow:0 4px 20px rgba(0,0,0,.10);}
 
@@ -359,6 +365,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   display:none;background:transparent;cursor:move;
 }
 body.board-dragging .game-iframe-overlay{display:block;}
+body.board-dragging .board-card{will-change:transform,left,top;}
 
 /* Resize handle */
 .card-resize{
@@ -530,9 +537,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .event-topic{font-size:12px;font-weight:700;color:var(--text);margin-top:6px;}
 
 /* ── TEXT ── */
-.card-text{background:transparent!important;box-shadow:none!important;border:2px solid transparent!important;}
-.card-text:hover{border:2px dashed rgba(255,78,0,.3)!important;}
-.card-text.selected{border:2px solid var(--accent)!important;background:rgba(255,255,255,.6)!important;}
+.card-text{background:transparent;box-shadow:none;border:2px solid transparent;}
+.card-text:hover:not(.selected){border:2px dashed rgba(255,78,0,.3);}
+.card-text.selected{border-color:var(--accent);background:rgba(255,255,255,.6);}
 .card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;}
 .card-text textarea{
   flex:1;border:none;outline:none;resize:none;background:transparent;
@@ -552,7 +559,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 #drag-ghost{
   position:fixed;z-index:9999;pointer-events:none;display:none;
   opacity:.88;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);
-  background:white;border:2px solid var(--accent);
+  background:var(--card-bg,#fff);border:2px solid var(--accent);
   padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);
   min-width:140px;max-width:220px;
 }
@@ -582,7 +589,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 /* ── Context menu ── */
 #ctx-menu{
-  position:fixed;z-index:5000;background:white;border:1px solid var(--border);
+  position:fixed;z-index:5000;background:var(--card-bg,#fff);border:1px solid var(--border);
   border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.12);
   padding:4px;min-width:170px;display:none;
 }
@@ -958,7 +965,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 
 /* ══════════════ QUICK-ADD MENU ══════════════ */
 #quick-add{
-  position:fixed;z-index:5000;background:#fff;border:1px solid var(--border);
+  position:fixed;z-index:5000;background:var(--card-bg,#fff);border:1px solid var(--border);
   border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.14);
   padding:6px;min-width:220px;display:none;
   animation:qaFadeIn .12s ease;
@@ -998,7 +1005,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 #board-search-bar{
   position:fixed;top:58px;left:50%;transform:translateX(-50%);
   z-index:1500;display:none;
-  background:#fff;border:1.5px solid var(--accent);border-radius:12px;
+  background:var(--card-bg,#fff);border:1.5px solid var(--accent);border-radius:12px;
   box-shadow:0 4px 20px rgba(255,78,0,.18);
   padding:0;overflow:hidden;
 }
@@ -1017,7 +1024,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 /* ══════════════ ALIGN TOOLBAR ══════════════ */
 #align-bar{
   position:fixed;bottom:140px;right:16px;z-index:900;
-  background:rgba(255,255,255,.95);backdrop-filter:blur(10px);
+  background:color-mix(in srgb,var(--card-bg,#fff) 95%,transparent);backdrop-filter:blur(10px);
   border:1px solid var(--border);border-radius:12px;
   padding:6px;box-shadow:0 2px 12px rgba(0,0,0,.1);
   display:none;flex-direction:column;gap:4px;
@@ -1034,7 +1041,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 /* ══════════════ ARROW LABEL ══════════════ */
 .arrow-label{
   position:absolute;pointer-events:none;z-index:7;
-  background:rgba(255,255,255,.92);border:1px solid var(--border);
+  background:color-mix(in srgb,var(--card-bg,#fff) 92%,transparent);border:1px solid var(--border);
   border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;
   color:var(--text-2);font-family:var(--mono);white-space:nowrap;
   transform:translate(-50%,-50%);
@@ -1145,7 +1152,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 }
 #conflict-banner.show{display:flex;}
 /* Export dropdown */
-#export-menu{position:fixed;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9000;min-width:180px;overflow:hidden;display:none;}
+#export-menu{position:fixed;background:var(--card-bg,#fff);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9000;min-width:180px;overflow:hidden;display:none;}
 #export-menu.open{display:block;}
 .exp-item{padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);}
 .exp-item:hover{background:rgba(94,94,74,.06);}
@@ -2345,11 +2352,9 @@ function makeHeader(icon, title, cardId) {
 }
 
 function renderSticky(el, card) {
-  el.style.background = card.color || STICKY_COLORS[0];
-  el.style.boxShadow = '0 3px 16px rgba(0,0,0,.10)';
+  el.style.backgroundColor = card.color || STICKY_COLORS[0];
   const body = document.createElement('div');
   body.className = 'card-body';
-  body.style.cssText = 'padding:8px 10px 10px;display:flex;flex-direction:column;';
 
   const tb = document.createElement('div');
   tb.className = 'sticky-toolbar';
@@ -2360,7 +2365,7 @@ function renderSticky(el, card) {
     dot.addEventListener('click', e => {
       e.stopPropagation();
       snapshot();
-      card.color = c; el.style.background = c;
+      card.color = c; el.style.backgroundColor = c;
       el.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
       dot.classList.add('active');
     });
@@ -2384,14 +2389,13 @@ function renderSticky(el, card) {
 function renderText(el, card) {
   const tc = document.createElement('div');
   tc.className = 'card-close text-close'; tc.textContent = '×';
-  tc.style.cssText = 'position:absolute;top:4px;right:4px;z-index:20;';
   tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
 
   const body = document.createElement('div');
-  body.className = 'card-body'; body.style.cssText = 'padding:6px 8px;display:flex;flex-direction:column;';
+  body.className = 'card-body';
   const ta = document.createElement('textarea');
   ta.value = card.data.text || 'Text';
-  ta.style.cssText = `flex:1;border:none;outline:none;resize:none;background:transparent;font-family:var(--font);font-size:${card.data.fontSize||16}px;font-weight:800;color:var(--text);line-height:1.35;cursor:text;user-select:text;`;
+  if (card.data.fontSize && card.data.fontSize !== 16) ta.style.fontSize = card.data.fontSize + 'px';
   ta.addEventListener('input', () => { card.data.text = ta.value; scheduleSave(); });
   ta.addEventListener('mousedown', e => e.stopPropagation());
   body.appendChild(ta);
@@ -5658,10 +5662,21 @@ boardWrap.addEventListener('dblclick', e => {
   if (state.mode === 'connect') return;
   e.preventDefault();
   qaPos = screenToBoard(e.clientX, e.clientY);
+  // Miro tool modes: direct add for sticky/text tools
+  if (typeof _miroTool !== 'undefined' && _miroTool === 'sticky') {
+    quickAddCard('sticky', qaPos.x, qaPos.y);
+    setMiroTool('select');
+    return;
+  }
+  if (typeof _miroTool !== 'undefined' && _miroTool === 'text') {
+    quickAddCard('text', qaPos.x, qaPos.y);
+    setMiroTool('select');
+    return;
+  }
+  // Default: show quick-add menu
   quickAdd.style.left = e.clientX + 'px';
   quickAdd.style.top  = e.clientY + 'px';
   quickAdd.style.display = 'block';
-  // adjust if off-screen
   requestAnimationFrame(() => {
     const r = quickAdd.getBoundingClientRect();
     if (r.right  > window.innerWidth)  quickAdd.style.left = (e.clientX - r.width)  + 'px';
@@ -5719,28 +5734,7 @@ function updateMiroToolbarPos() {
   mt.style.left = sbVisible ? 'calc(var(--sb-w) + 12px)' : '12px';
 }
 
-// Double-click on canvas = add card at cursor (Miro-style)
-boardWrap.addEventListener('dblclick', e => {
-  if (e.target !== boardWrap && e.target !== board && !e.target.closest('#arrows-svg')) return;
-  if (_miroTool === 'select') {
-    // Show quick-add at cursor
-    const qa = document.getElementById('quick-add');
-    if (qa) {
-      qaPos = screenToBoard(e.clientX, e.clientY);
-      qa.style.left = e.clientX + 'px';
-      qa.style.top  = e.clientY + 'px';
-      qa.style.display = 'block';
-    }
-  } else if (_miroTool === 'sticky') {
-    const pos = screenToBoard(e.clientX, e.clientY);
-    quickAddCard('sticky', pos.x, pos.y);
-    setMiroTool('select');
-  } else if (_miroTool === 'text') {
-    const pos = screenToBoard(e.clientX, e.clientY);
-    quickAddCard('text', pos.x, pos.y);
-    setMiroTool('select');
-  }
-});
+// (Miro-tool dblclick integrated into primary quick-add handler above)
 
 function quickAddCard(type, bx, by) {
   const def = getDefaults(type);
@@ -7138,7 +7132,30 @@ function openStudentQuiz(cardId) {
 .quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
 .quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
 </style>
-<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+<script>
+// Aggressive SW cache update
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // Force check for updates on every load
+    reg.update();
+    // When a new SW is found, activate it immediately
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (nw) nw.addEventListener('statechange', () => {
+        if (nw.state === 'activated') {
+          // Clear old caches
+          caches.keys().then(keys => keys.forEach(k => { if (k !== 'teachedos-v3') caches.delete(k); }));
+        }
+      });
+    });
+  });
+  // If SW controller changes, reload to get fresh content
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; location.reload(); }
+  });
+}
+</script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
