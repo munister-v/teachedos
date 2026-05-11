@@ -209,37 +209,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .mt-btn:hover::after { opacity:1; }
 
-/* ── ZOOM CONTROLS (bottom-right) ── */
-#zoom-controls {
-  position:fixed;
-  right:16px;
-  bottom:20px;
-  z-index:950;
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  background:var(--card-bg,#fff);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:5px;
-  box-shadow:0 4px 20px rgba(5,5,23,.10);
-}
-.zc-btn {
-  width:32px;height:32px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:16px;font-weight:700;
-  color:var(--text-2);border:none;background:transparent;
-  transition:background .12s,color .12s;
-  -webkit-tap-highlight-color:transparent;
-}
-.zc-btn:hover { background:var(--accent-2);color:var(--accent); }
-.zc-pct {
-  font-size:11px;font-family:var(--mono);font-weight:700;
-  color:var(--text-3);text-align:center;padding:2px 0;
-  cursor:pointer;
-}
-.zc-pct:hover { color:var(--accent); }
-.zc-sep { height:1px;background:var(--border);margin:2px 3px; }
+/* ── BOARD WRAP ── */
+#board-wrap{
   position:fixed;top:var(--tb-h);left:var(--sb-w);right:0;bottom:0;
   overflow:hidden;
   background:
@@ -580,14 +551,6 @@ body.board-dragging .game-iframe-overlay{display:block;}
 #minimap-label{
   position:absolute;top:4px;left:7px;
   font-size:9px;font-family:var(--mono);color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;
-}
-
-/* ── Zoom hint ── */
-#zoom-hint{
-  position:fixed;bottom:16px;left:calc(var(--sb-w) + 12px);
-  font-size:10px;font-family:var(--mono);color:var(--text-3);
-  background:rgba(255,255,255,.82);padding:4px 10px;border-radius:20px;
-  border:1px solid var(--border);pointer-events:none;z-index:900;
 }
 
 /* ── Undo tooltip ── */
@@ -1137,7 +1100,6 @@ body.board-dragging .game-iframe-overlay{display:block;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
   .tb-btn span{display:none;}
   #miro-toolbar{display:none;}
-  #zoom-controls{display:none;}
 }
 @media(max-width:480px){
   .tb-btn{min-width:26px;height:26px;font-size:12px;}
@@ -1146,7 +1108,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 @media print {
   #toolbar,#sidebar,#board-live-banner,#offline-banner,#toast,#shortcuts-panel,
   #task-builder-overlay,#student-quiz-overlay,#card-editor,#export-menu,
-  #miro-toolbar,#zoom-controls,
+  #miro-toolbar,
   .anchor-dot,.resize-handle,.card-header .card-menu-btn{display:none!important;}
   body{background:#fff!important;}
   #board-wrap{overflow:visible!important;position:static!important;}
@@ -1231,9 +1193,9 @@ body.board-dragging .game-iframe-overlay{display:block;}
   <div class="tb-btn" id="btn-zoom-out" title="Zoom out (-)">−</div>
   <div class="tb-zoom-display" id="zoom-display">100%</div>
   <div class="tb-btn" id="btn-zoom-in" title="Zoom in (+)">+</div>
-  <div class="tb-btn text" id="btn-fit" title="Fit all (F)">⊡ Fit</div>
+  <div class="tb-btn text" id="btn-fit" title="Fit all (F)" style="display:none">⊡ Fit</div>
+  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)" style="display:none">🔗 Connect</div>
   <div class="tb-sep"></div>
-  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">🔗 Connect</div>
   <div class="tb-btn text" id="btn-snap" title="Snap to grid (hold Shift while dragging)" onclick="toggleSnap()">⊞ Snap</div>
   <div class="tb-btn text" id="btn-export" title="Export board (JSON / Print)" onclick="openExportMenu(event)">⬇ Export</div>
   <div class="tb-sep"></div>
@@ -1319,23 +1281,16 @@ body.board-dragging .game-iframe-overlay{display:block;}
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
   </button>
   <div class="mt-sep"></div>
-  <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
+  <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');toggleConnectMode()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
   </button>
   <div class="mt-sep"></div>
-  <button class="mt-btn" id="mt-fit" data-tip="Fit all (F)" onclick="document.getElementById('btn-fit').click()">
+  <button class="mt-btn" id="mt-fit" data-tip="Fit all (F)" onclick="fitAll()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
   </button>
 </div>
 
-<!-- ZOOM CONTROLS (bottom-right) -->
-<div id="zoom-controls">
-  <button class="zc-btn" title="Zoom in (+)" onclick="document.getElementById('btn-zoom-in').click()">+</button>
-  <div class="zc-sep"></div>
-  <div class="zc-pct" id="zc-pct" title="Reset zoom (click)" onclick="document.getElementById('btn-fit').click()">100%</div>
-  <div class="zc-sep"></div>
-  <button class="zc-btn" title="Zoom out (-)" onclick="document.getElementById('btn-zoom-out').click()">−</button>
-</div>
+
 
 <!-- BOARD WRAP -->
 <div id="board-wrap">
@@ -1498,7 +1453,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 <!-- Minimap -->
 <div id="minimap"><canvas id="minimap-canvas"></canvas><div id="minimap-label">Board</div></div>
 <!-- Zoom hint -->
-<div id="zoom-hint">Scroll · zoom · Space+drag · pan</div>
+
 <!-- Undo toast -->
 <div id="undo-toast"></div>
 
@@ -1991,8 +1946,7 @@ function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
   const pct = Math.round(state.scale * 100) + '%';
   if (zoomDisp) zoomDisp.textContent = pct;
-  const zcPct = document.getElementById('zc-pct');
-  if (zcPct) zcPct.textContent = pct;
+
   renderAllArrows();
   renderMinimap();
   wsSendViewport();
