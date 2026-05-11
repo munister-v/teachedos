@@ -11,6 +11,163 @@ webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIV
 // GET /api/student/vapid-public-key
 router.get('/vapid-public-key', (req, res) => res.json({ key: VAPID_PUBLIC }));
 
+// GET /api/student/portal/:studentId — teacher views a student's portal
+router.get('/portal/:studentId', requireAuth, async (req, res) => {
+  const { studentId } = req.params;
+  try {
+    // Allow: the student themselves OR a teacher who has this student on a board
+    const isOwn = req.user.id === studentId;
+    let isTeacher = false;
+    if (!isOwn) {
+      const { rows } = await pool.query(`
+        SELECT 1 FROM board_collaborators bc
+        JOIN boards b ON b.id = bc.board_id
+        WHERE bc.user_id = $1 AND b.user_id = $2
+        LIMIT 1
+      `, [studentId, req.user.id]);
+      isTeacher = rows.length > 0;
+    }
+    if (!isOwn && !isTeacher) return res.status(403).json({ error: 'No access' });
+
+    // Get student info
+    const { rows: users } = await pool.query(
+      'SELECT id, name, avatar, email, role FROM users WHERE id=$1', [studentId]
+    );
+    if (!users.length) return res.status(404).json({ error: 'Student not found' });
+    const student = users[0];
+
+    // Get boards shared with student
+    const { rows: boards } = await pool.query(`
+      SELECT b.id, b.name, b.thumbnail, b.updated_at, bc.role,
+             u.name AS teacher_name, u.avatar AS teacher_avatar
+      FROM board_collaborators bc
+      JOIN boards b ON b.id = bc.board_id
+      JOIN users u ON u.id = b.user_id
+      WHERE bc.user_id = $1
+      ORDER BY b.updated_at DESC
+    `, [studentId]);
+
+    // Progress
+    let progressRows = [];
+    try {
+      const pr = await pool.query(
+        'SELECT board_id, card_id, status FROM student_progress WHERE user_id=$1', [studentId]
+      );
+      progressRows = pr.rows;
+    } catch {}
+
+    const progByBoard = {};
+    progressRows.forEach(r => {
+      if (!progByBoard[r.board_id]) progByBoard[r.board_id] = {};
+      progByBoard[r.board_id][r.card_id] = r.status;
+    });
+
+    const enriched = boards.map(b => {
+      const prog = progByBoard[b.id] || {};
+      const total = Object.keys(prog).length;
+      const done = Object.values(prog).filter(s => s === 'done').length;
+      return { ...b, total_lessons: total, done_lessons: done, pct: total ? Math.round(done/total*100) : 0 };
+    });
+
+    // Journal entry (lesson balance)
+    let journalEntry = null;
+    try {
+      const { rows: je } = await pool.query(
+        `SELECT j.*, COUNT(a.id) FILTER (WHERE a.status='present') AS attended,
+                COUNT(a.id) AS total_sessions
+         FROM student_journal j
+         LEFT JOIN attendance a ON a.journal_id = j.id
+         WHERE j.email = $1
+         GROUP BY j.id LIMIT 1`,
+        [student.email]
+      );
+      journalEntry = je[0] || null;
+    } catch {}
+
+    // Vocabulary
+    let vocab = [];
+    try {
+      const { rows: vr } = await pool.query(
+        'SELECT * FROM vocabulary WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100', [studentId]
+      );
+      vocab = vr;
+    } catch {}
+
+    // Quiz history
+    let quizHistory = [];
+    try {
+      const { rows: qr } = await pool.query(`
+        SELECT qr.score, qr.max_score, qr.pct, qr.submitted_at, b.name AS board_name
+        FROM quiz_results qr
+        JOIN boards b ON b.id::text = qr.board_id
+        WHERE qr.user_id = $1
+        ORDER BY qr.submitted_at DESC LIMIT 20
+      `, [studentId]);
+      quizHistory = qr;
+    } catch {}
+
+    // Teacher notes (from journal)
+    const teacherNotes = journalEntry?.notes || '';
+
+    res.json({
+      student,
+      boards: enriched,
+      journalEntry,
+      vocab,
+      quizHistory,
+      teacherNotes,
+      isTeacherView: isTeacher,
+      stats: {
+        total: progressRows.length,
+        done: progressRows.filter(r => r.status === 'done').length,
+        boards: boards.length,
+        lessonsLeft: journalEntry?.lessons_left || 0,
+        vocabLearned: vocab.filter(v => v.learned).length,
+        vocabTotal: vocab.length,
+        quizAvg: quizHistory.length ? Math.round(quizHistory.reduce((s,q) => s+(q.pct||0), 0) / quizHistory.length) : 0,
+      }
+    });
+  } catch (err) {
+    console.error('[student/portal]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PATCH /api/student/portal/:studentId/note — teacher adds note
+router.patch('/portal/:studentId/note', requireAuth, async (req, res) => {
+  const { studentId } = req.params;
+  const { note } = req.body;
+  try {
+    // Verify teacher has this student
+    const { rows } = await pool.query(`
+      SELECT 1 FROM board_collaborators bc
+      JOIN boards b ON b.id = bc.board_id
+      WHERE bc.user_id = $1 AND b.user_id = $2 LIMIT 1
+    `, [studentId, req.user.id]);
+    if (!rows.length) return res.status(403).json({ error: 'Not your student' });
+
+    // Get student email to find journal entry
+    const { rows: u } = await pool.query('SELECT email FROM users WHERE id=$1', [studentId]);
+    if (!u.length) return res.status(404).json({ error: 'Student not found' });
+
+    // Update or create journal entry
+    await pool.query(`
+      INSERT INTO student_journal (teacher_id, name, email, notes)
+      SELECT $1, name, email, $2 FROM users WHERE id=$3
+      ON CONFLICT DO NOTHING
+    `, [req.user.id, note, studentId]);
+
+    await pool.query(`
+      UPDATE student_journal SET notes=$1
+      WHERE email=(SELECT email FROM users WHERE id=$2) AND teacher_id=$3
+    `, [note, studentId, req.user.id]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/student/push-subscribe — save subscription for the authenticated user
 router.post('/push-subscribe', requireAuth, async (req, res) => {
   try {
