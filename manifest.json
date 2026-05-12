@@ -1,6 +1,6 @@
 {
-  "name": "TeachedOS",
-  "short_name": "TeachedOS",
+  "name": "TeachEd",
+  "short_name": "TeachEd",
   "description": "The operating system for modern teachers",
   "start_url": "/teachedos/index.html",
   "display": "standalone",

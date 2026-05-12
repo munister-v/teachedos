@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>TeachedOS · Board</title>
+<title>TeachEd · Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -5380,7 +5380,7 @@ async function initUserBoard() {
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
         loadBoardData(board.data);
-        document.title = board.name + ' · TeachedOS';
+        document.title = board.name + ' · TeachEd';
         document.getElementById('board-name-display').textContent = board.name;
         const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
         saveStatus.textContent = '☁ cloud';
@@ -5406,7 +5406,7 @@ async function initUserBoard() {
           updateFollowUI();
           applyRoleUI();
           loadBoardData(board.data);
-          document.title = board.name + ' · TeachedOS';
+          document.title = board.name + ' · TeachEd';
           document.getElementById('board-name-display').textContent = board.name;
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
           saveStatus.textContent = '☁ cloud';
@@ -5616,7 +5616,7 @@ function startRenameBoard() {
     if (newName !== oldName && currentBoardId) {
       try {
         await apiFetch('/api/boards/' + currentBoardId + '/name', { method: 'PATCH', body: { name: newName } });
-        document.title = newName + ' · TeachedOS';
+        document.title = newName + ' · TeachEd';
         const _tbn3 = document.getElementById('tb-board-name'); if(_tbn3) _tbn3.textContent = '📌 ' + newName;
         toast('Renamed to: ' + newName);
       } catch { toast('Rename failed'); }
@@ -5669,7 +5669,7 @@ async function newBoard() {
     currentBoardId = b.id;
     localStorage.setItem('teachedos_board_id', currentBoardId);
     loadBoardData(b.data);
-    document.title = name + ' · TeachedOS';
+    document.title = name + ' · TeachEd';
     const _tbn4 = document.getElementById('tb-board-name'); if(_tbn4) _tbn4.textContent = '📌 ' + name;
     toast('Board created: ' + name);
   } catch (e) { toast('Error: ' + e.message); }
