@@ -1,463 +1,163 @@
-<!-- ════════════════════ DESKTOP ════════════════════ -->
-<div id="desktop">
-<div class="blob1"></div>
-<div class="blob2"></div>
-<div class="blob3"></div>
-
-<!-- MENU BAR -->
-<div id="menubar">
-  <a class="mb-apple" routerLink="/index" title="Desktop" style="text-decoration:none;color:inherit;"><img src="logo.png" alt="TeachEd"></a>
-  <span class="mb-app-name" id="mb-app-name">TeachEd</span>
-  <nav class="mb-menu">
-    <a class="mb-item" routerLink="/index">Home</a>
-    <a class="mb-item" routerLink="/board">Board</a>
-    <a class="mb-item" routerLink="/courses">Courses</a>
-    <a class="mb-item" routerLink="/schedule">Schedule</a>
-    <a class="mb-item" routerLink="/analytics">Analytics</a>
-    <a class="mb-item" routerLink="/journal">Journal</a>
-    <a class="mb-item" routerLink="/gradebook">Gradebook</a>
-    <a class="mb-item" routerLink="/profile">Profile</a>
-  </nav>
-  <div class="mb-right">
-    <a id="desktop-user-chip" routerLink="/profile" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(232,93,117,.25);margin-right:6px;"></a>
-    <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
-    <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#E85D75;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
-    </span>
-    <span id="mb-clock">--:--</span>
-  </div>
-</div>
-
-<!-- NOTIFICATIONS PANEL -->
-<div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
-  <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
-    <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
-    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#E85D75;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
-  </div>
-  <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
-</div>
-
-<!-- WIDGETS -->
-<div class="widget" id="wg-clock">
-  <div class="wg-clock-time" id="wg-time">10<em>:</em>42</div>
-  <div class="wg-clock-date" id="wg-date">wednesday · may 7</div>
-  <div class="wg-clock-lang">👩‍🏫 Teacher</div>
-</div>
-
-<div class="widget" id="wg-streak">
-  <div style="display:flex;align-items:baseline;gap:6px;">
-    <div class="wg-streak-n">—</div>
-    <span style="font-size:20px;">📅</span>
-  </div>
-  <div class="wg-streak-label">Classes today</div>
-  <div class="wg-streak-sub">Loading schedule…</div>
-</div>
-
-<div class="widget" id="wg-today">
-  <div class="wg-today-label">Next class</div>
-  <div class="wg-today-title">—</div>
-  <div class="wg-today-meta">
-    <span></span>
-  </div>
-  <div class="wg-today-badge"></div>
-  <div class="wg-today-prog">
-    <div class="wg-today-prog-fill" style="width:0%"></div>
-  </div>
-</div>
-
-<div class="widget" id="wg-vocab">
-  <div class="wg-vocab-label">My boards</div>
-  <div class="wg-vocab-word">—</div>
-  <div class="wg-vocab-lang">Loading…</div>
-  <div class="wg-vocab-trans"></div>
-  <div class="wg-vocab-ex"></div>
-  <button class="wg-vocab-next" onclick="openApp('students')">View Students →</button>
-</div>
-
-<!-- ════ WINDOWS ════ -->
-
-<!-- LESSON PLANS -->
-<div class="win open appear" id="win-plans" style="top:48px;left:60px;width:780px;height:560px;">
-  <div class="win-titlebar" id="tb-plans">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('plans')"></div>
-      <div class="tl min"    onclick="minWin('plans')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">📋 Lesson Plans</div>
-  </div>
-  <div class="win-body">
-    <div class="win-sidebar" id="sidebar-plans">
-      <div class="sb-section-label">Quick links</div>
-      <a class="sb-item" routerLink="/courses" style="text-decoration:none;">📚 All Courses</a>
-      <a class="sb-item" routerLink="/board" style="text-decoration:none;">📌 Open Board</a>
-      <a class="sb-item" routerLink="/gradebook" style="text-decoration:none;">📒 Gradebook</a>
-      <a class="sb-item" routerLink="/analytics" style="text-decoration:none;">📊 Analytics</a>
-      <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
-      <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
-      <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
-      <div class="sb-item" id="bf-shared" onclick="boardsFilter('shared',this)">Shared with me</div>
-    </div>
-    <div class="win-main" style="display:flex;flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">📋</span>
-        <div class="mob-win-title">Lesson Plans</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')">☰</div>
-      </div>
-      <div class="curr-header">
-        <div class="curr-eyebrow">§ Teacher's workspace</div>
-        <div class="curr-title">My <em>Boards</em></div>
-      </div>
-      <div class="curr-search">
-        <span class="curr-search-ic">🔍</span>
-        <input type="text" placeholder="Search your boards by name…" id="plans-search-input" oninput="boardsRender()">
-      </div>
-      <div class="curr-grid" id="plans-grid">
-        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-3);font-size:13px;">Loading your boards…</div>
+<!-- ═══ HEADER (dark) ═══ -->
+<header class="home-header">
+  <div class="header-top">
+    <div class="header-user">
+      <div class="avatar-circle">{{ userInitials() }}</div>
+      <div>
+        <div class="header-date">{{ todayLabel() }}</div>
+        <div class="header-greeting">Hi, {{ userName() }}</div>
       </div>
     </div>
+    <div class="header-actions">
+      <button class="icon-btn" title="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn" title="Notifications">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </button>
+    </div>
   </div>
-</div>
+</header>
 
-<!-- STUDENTS -->
-<div class="win" id="win-students" style="top:80px;left:680px;width:600px;height:520px;">
-  <div class="win-titlebar" id="tb-students">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('students')"></div>
-      <div class="tl min"    onclick="minWin('students')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">👥 Students</div>
-  </div>
-  <div class="win-body" style="position:relative;">
-    <div class="win-sidebar" id="sidebar-students">
-      <div class="sb-section-label">Groups</div>
-      <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students</div>
-    </div>
-    <div class="win-main" style="display:flex;flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">👥</span>
-        <div class="mob-win-title">Students</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')">☰</div>
-      </div>
-      <div style="padding:16px 20px 8px;border-bottom:1px solid var(--border);">
-        <div style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--text);">My <em style="color:var(--accent);">Students</em></div>
-        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">Add students via Gradebook</div>
-      </div>
-      <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
-    </div>
-  </div>
-</div>
+<!-- ═══ CONTENT ═══ -->
+<main class="home-content">
 
-<!-- SCHEDULE -->
-<div class="win" id="win-schedule" style="top:90px;left:80px;width:700px;height:540px;">
-  <div class="win-titlebar" id="tb-schedule">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('schedule')"></div>
-      <div class="tl min"    onclick="minWin('schedule')"></div>
-      <div class="tl max"></div>
+  <!-- Next Lesson Card -->
+  <section class="next-lesson-card">
+    <div class="nl-eyebrow">
+      <span>NEXT LESSON</span>
+      <span class="nl-badge">IN 28 MIN</span>
     </div>
-    <div class="win-title">📅 Schedule</div>
-  </div>
-  <div class="win-body">
-    <div class="win-main" style="flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">📅</span>
-        <div class="mob-win-title">Schedule</div>
-      </div>
-      <div class="sch-body">
-        <div class="sch-nav">
-          <button class="sch-nav-btn" onclick="schPrev()">‹</button>
-          <button class="sch-nav-btn" onclick="schNext()">›</button>
-          <span class="sch-month" id="sch-month">May 2026</span>
-          <a class="sch-view active" routerLink="/schedule" style="text-decoration:none;">Open full schedule →</a>
+    <div class="nl-student">Christina Novik</div>
+    <div class="nl-meta">16:30 · 1-on-1 · Past Perfect drill</div>
+    <div class="nl-actions">
+      <a class="btn-nl-primary" routerLink="/board">
+        <span class="play-icon">&#9654;</span> Open board
+      </a>
+      <button class="btn-nl-ghost">Reschedule</button>
+    </div>
+  </section>
+
+  <!-- Stats Row -->
+  <section class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">THIS WEEK</div>
+      <div class="stat-value">7</div>
+      <div class="stat-sub">lessons</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">STUDENTS</div>
+      <div class="stat-value">24</div>
+      <div class="stat-sub">active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">BOARDS</div>
+      <div class="stat-value">42</div>
+      <div class="stat-sub">in library</div>
+    </div>
+  </section>
+
+  <!-- My Boards -->
+  <section class="section-block">
+    <div class="section-header">
+      <h2 class="section-title">My Boards</h2>
+      <a class="section-link" routerLink="/board">See all</a>
+    </div>
+    <div class="boards-scroll">
+      <div class="board-card">
+        <div class="board-tags">
+          <span class="board-tag tag-level">B1</span>
+          <span class="board-tag tag-type">GRAMMAR</span>
         </div>
-        <div class="sch-grid-wrap">
-          <div class="sch-grid" id="sch-grid">
-            <!-- generated by JS -->
-          </div>
+        <div class="board-name">Past Perfect vs. Past Simple</div>
+        <div class="board-footer">
+          <span class="board-meta">45 MIN</span>
+          <span class="board-status active">Active</span>
+        </div>
+      </div>
+      <div class="board-card">
+        <div class="board-tags">
+          <span class="board-tag tag-level">A2</span>
+          <span class="board-tag tag-type">VOCAB</span>
+        </div>
+        <div class="board-name">False Friends · RU</div>
+        <div class="board-footer">
+          <span class="board-meta">30 MIN</span>
+        </div>
+      </div>
+      <div class="board-card">
+        <div class="board-tags">
+          <span class="board-tag tag-level">B2</span>
+          <span class="board-tag tag-type">SPEAKING</span>
+        </div>
+        <div class="board-name">Opinion Club Topics</div>
+        <div class="board-footer">
+          <span class="board-meta">50 MIN</span>
+          <span class="board-status active">Active</span>
         </div>
       </div>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- NOTES -->
-<div class="win" id="win-notes" style="top:100px;left:160px;width:660px;height:500px;">
-  <div class="win-titlebar" id="tb-notes">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('notes')"></div>
-      <div class="tl min"    onclick="minWin('notes')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">✍️ Notes</div>
-  </div>
-  <div class="win-body" style="position:relative;">
-    <div class="win-sidebar notes-sidebar" id="sidebar-notes">
-      <div class="notes-new-btn" onclick="notesNew()">
-        <span>+</span> New Note
-      </div>
-      <div class="notes-list" id="notes-list"></div>
-    </div>
-    <div class="win-main notes-editor" style="display:flex;flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">✍️</span>
-        <div class="mob-win-title">Notes</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
-      </div>
-      <div class="notes-toolbar">
-        <button class="notes-tb-btn" onclick="notesTogglePin()" title="Pin note">📌</button>
-        <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note">🗑</button>
-        <div class="notes-tb-sep"></div>
-        <button class="notes-tb-btn" onclick="document.execCommand('bold')" title="Bold"><b>B</b></button>
-        <button class="notes-tb-btn" onclick="document.execCommand('italic')" title="Italic"><i>I</i></button>
-      </div>
-      <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
-      <div class="notes-footer">
-        <span id="notes-word-count">0 words</span>
-        <span id="notes-save-status" style="margin-left:auto;">saved</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-<!-- TOOLS WINDOW -->
-<div class="win" id="win-tools" style="top:60px;left:80px;width:860px;height:600px;">
-  <div class="win-titlebar" id="tb-tools">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('tools')"></div>
-      <div class="tl min"    onclick="minWin('tools')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">🪄 Teaching Tools</div>
-  </div>
-  <div class="win-body" style="position:relative;">
-    <div class="win-sidebar" id="sidebar-tools">
-      <div class="sb-section-label">All Skills</div>
-      <div class="sb-item active" id="tg-all" onclick="toolsFilter('all',this)">
-        <span class="sb-item-ic">✦</span> All Tools
-        <span class="sb-item-badge">14</span>
-      </div>
-      <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
-      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <span class="sb-item-ic">📖</span> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
-      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <span class="sb-item-ic">✏️</span> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
-
-      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <span class="sb-item-ic">💬</span> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
-      <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><span class="sb-item-ic">📝</span> Vocabulary <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <span class="sb-item-ic">🔤</span> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
-      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <span class="sb-item-ic">⚙️</span> Utility    <span class="sb-item-badge" style="background:rgba(156,163,175,.2);color:#9ca3af;">2</span></div>
-    </div>
-    <div class="win-main" style="padding:0;flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">🪄</span>
-        <div class="mob-win-title">Teaching Tools</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')">☰</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:20px 20px 0;">
-        <div>
-          <div style="font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">§ Twee-inspired</div>
-          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text);">Teaching <em style="color:var(--accent);font-style:italic;">Tools</em></div>
+  <!-- Quick Start -->
+  <section class="section-block">
+    <h2 class="section-title">Quick start</h2>
+    <div class="quick-list">
+      <a class="quick-item" routerLink="/board">
+        <div class="quick-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </div>
-        <div style="margin-left:auto;font-size:11px;font-family:var(--font-mono);color:var(--text-3);" id="tools-count">14 tools</div>
-      </div>
-      <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- SPOTLIGHT OVERLAY -->
-<div id="spotlight-overlay" onclick="closeSpotlight(event)">
-  <div id="spotlight-box">
-    <div id="spotlight-input-wrap">
-      <span class="sp-ic">🔍</span>
-      <input id="spotlight-input" type="text" placeholder="Search plans, students, tools…" autocomplete="off" oninput="spotlightSearch()" onkeydown="spotlightKey(event)">
-      <button id="spotlight-clear" onclick="document.getElementById('spotlight-input').value='';spotlightSearch();">✕</button>
-    </div>
-    <div id="spotlight-results"></div>
-  </div>
-</div>
-
-
-
-<!-- DOCK -->
-<div id="dock-wrap">
-  <div id="dock">
-    <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#E85D75);">📋</div>
-      <div class="di-label">Plans</div>
-      <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-students" onclick="openApp('students')" title="Students">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#3b82f6);">👥</div>
-      <div class="di-label">Students</div>
-      <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-schedule" onclick="openApp('schedule')" title="Schedule">
-      <div class="di-icon schedule">📅</div>
-      <div class="di-label">Schedule</div>
-      <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-notes" onclick="openApp('notes')" title="Notes">
-      <div class="di-icon notes">✍️</div>
-      <div class="di-label">Notes</div>
-      <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
-      <div class="di-icon" style="background:linear-gradient(145deg,#b87ac4,#7a4a9c);">🪄</div>
-      <div class="di-label">Tools</div>
-      <div class="di-dot"></div>
-    </div>
-    <a class="di" id="di-board" routerLink="/board" style="text-decoration:none;" title="Board">
-      <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</div>
-      <div class="di-label">Board</div>
-      <div class="di-dot"></div>
-    </a>
-    <a class="di" id="di-courses" routerLink="/courses" style="text-decoration:none;" title="Courses">
-      <div class="di-icon" style="background:linear-gradient(145deg,#a78bfa,#7c3aed);">📚</div>
-      <div class="di-label">Courses</div>
-      <div class="di-dot"></div>
-    </a>
-    <div class="di-sep"></div>
-    <a class="di" id="di-analytics" routerLink="/analytics" style="text-decoration:none;" title="Analytics">
-      <div class="di-icon" style="background:linear-gradient(145deg,#34d399,#059669);position:relative;">📊</div>
-      <div class="di-label">Analytics</div>
-      <div class="di-dot"></div>
-    </a>
-
-    <a class="di" id="di-gradebook" routerLink="/gradebook" style="text-decoration:none;" title="Gradebook">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</div>
-      <div class="di-label">Gradebook</div>
-      <div class="di-dot"></div>
-    </a>
-    <a class="di" id="di-profile" routerLink="/profile" style="text-decoration:none;" title="Profile">
-      <div class="di-icon" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</div>
-      <div class="di-label">Profile</div>
-      <div class="di-dot"></div>
-    </a>
-
-  </div>
-</div>
-
-</div><!-- #desktop -->
-
-
-
-
-
-
-
-<!-- Onboarding Modal -->
-<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
-  <div id="onboarding-box" style="background:#fff;border-radius:24px;width:min(480px,92vw);box-shadow:0 32px 100px rgba(0,0,0,.28);overflow:hidden;">
-    <!-- Steps -->
-    <div id="ob-step-1" class="ob-step">
-      <div style="background:linear-gradient(135deg,#2D2D2D,#1a1a1a);padding:36px 32px 28px;text-align:center;">
-        <div style="margin-bottom:12px;"><img src="logo.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;"></div>
-        <div style="font-size:22px;font-weight:900;color:#C8E64A;margin-bottom:8px;">Welcome to TeachEd!</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
-      </div>
-      <div style="padding:28px 32px;">
-        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(232,93,117,.15);">
-            <div style="font-size:28px;">📋</div>
-            <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
-            <div style="font-size:28px;">🎓</div>
-            <div><div style="font-size:14px;font-weight:800;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
-            <div style="font-size:28px;">📅</div>
-            <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
-          </div>
+        <div class="quick-text">
+          <div class="quick-title">New board</div>
+          <div class="quick-sub">Start from blank or template</div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
-        <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
-      </div>
+        <span class="quick-arrow">&rarr;</span>
+      </a>
+      <a class="quick-item" routerLink="/student">
+        <div class="quick-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">Invite a student</div>
+          <div class="quick-sub">Share a join code or link</div>
+        </div>
+        <span class="quick-arrow">&rarr;</span>
+      </a>
+      <a class="quick-item" routerLink="/schedule">
+        <div class="quick-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">Add a class</div>
+          <div class="quick-sub">Schedule a lesson for this week</div>
+        </div>
+        <span class="quick-arrow">&rarr;</span>
+      </a>
     </div>
+  </section>
 
-    <div id="ob-step-2" class="ob-step" style="display:none;">
-      <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
-        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #E85D75;cursor:pointer;transition:.15s;background:#F5F0E8;">
-            <div style="font-size:20px;margin-bottom:4px;">⬜</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
-          </div>
-          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">🗣️</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Speaking</div>
-          </div>
-          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📐</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Grammar</div>
-          </div>
-          <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📚</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Reading</div>
-          </div>
-          <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">✍️</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Writing</div>
-          </div>
-          <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📖</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Vocabulary</div>
-          </div>
-          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📝</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Exam Prep</div>
-          </div>
-          <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">💼</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Business</div>
-          </div>
-          <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">🧒</div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Kids (A1)</div>
-          </div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
-          <input id="ob-board-name" type="text" placeholder="My First Board"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
-            onkeydown="if(event.key==='Enter')obCreateBoard()">
-        </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
-        <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
-      </div>
-    </div>
+</main>
 
-    <div id="ob-step-3" class="ob-step" style="display:none;">
-      <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
-        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
-          <input id="ob-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
-        </div>
-        <div style="margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
-          <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
-        </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
-        <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
+<!-- ═══ BOTTOM TABS ═══ -->
+<nav class="bottom-tabs">
+  <a class="tab active" routerLink="/home" routerLinkActive="active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="tab" routerLink="/schedule" routerLinkActive="active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Schedule</span>
+  </a>
+  <a class="tab" routerLink="/courses" routerLinkActive="active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Community</span>
+  </a>
+  <a class="tab" routerLink="/student" routerLinkActive="active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <span>Students</span>
+  </a>
+  <a class="tab" routerLink="/profile" routerLinkActive="active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profile</span>
+  </a>
+</nav>
