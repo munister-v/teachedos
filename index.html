@@ -795,79 +795,8 @@ html,body {
 }
 .notes-new-btn:hover { opacity:0.88; }
 
-/* ═══════════════════════════ DICTIONARY APP ═══════════════════════════ */
-#win-dictionary { top:70px; left:180px; width:560px; height:480px; }
-.dict-body { padding:20px; display:flex; flex-direction:column; gap:16px; height:100%; overflow-y:auto; }
-.dict-search-wrap {
-  display:flex; align-items:center; gap:10px;
-  background: #fff; border: 1.5px solid rgba(255,78,0,0.16);
-  border-radius:16px; padding:10px 16px;
-  box-shadow: 0 2px 8px rgba(255,78,0,0.06);
-}
-.dict-search-wrap input {
-  flex:1; background:none; border:none; outline:none;
-  font-size:15px; color: var(--text); font-family: var(--font-ui);
-}
-.dict-search-wrap input::placeholder { color: var(--text-3); }
-.dict-lang-select {
-  font-size:11px; font-family: var(--font-mono); color: var(--accent);
-  background: var(--accent-2); border: 1px solid var(--accent-3);
-  border-radius:8px; padding:4px 10px; cursor:pointer;
-}
-.dict-result {
-  background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
-  border-radius:16px; padding:20px;
-  box-shadow: 0 2px 10px rgba(255,78,0,0.06);
-}
-.dict-word {
-  font-family: var(--font-ui); font-size:36px; font-weight:600;
-  color: var(--text); margin-bottom:4px;
-}
-.dict-phonetic {
-  font-size:14px; color: var(--text-3); margin-bottom:12px;
-  font-family: var(--font-mono);
-}
-.dict-pos {
-  display:inline-block; font-size:10px; font-family: var(--font-mono);
-  letter-spacing:0.08em; text-transform:uppercase;
-  color: var(--accent); background: var(--accent-2); border: 1px solid var(--accent-3);
-  border-radius:20px; padding:2px 9px; margin-bottom:12px;
-}
-.dict-def {
-  font-size:14px; color: var(--text-2); line-height:1.7; margin-bottom:8px;
-}
-.dict-example {
-  font-size:13px; color: var(--text-3); font-style:italic; line-height:1.6;
-  border-left: 2px solid var(--accent-3); padding-left:12px; margin-bottom:12px;
-}
-.dict-syns { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
-.dict-syn {
-  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
-  border-radius:20px; color: var(--text-3);
-  background: rgba(255,78,0,0.05); border: 1.5px solid rgba(94,94,74,0.12);
-  cursor:pointer; transition:background .15s, color .15s;
-}
-.dict-syn:hover { background: rgba(94,94,74,0.12); color: var(--accent); }
-.dict-save-btn {
-  display:flex; align-items:center; gap:6px;
-  font-size:12px; font-family: var(--font-mono); padding:8px 16px;
-  border-radius:8px; cursor:pointer; border:none;
-  background: linear-gradient(135deg, var(--deep-rose), var(--rose));
-  color: #fff; transition:opacity .15s; font-weight:500;
-}
-.dict-save-btn:hover { opacity:0.88; }
-.dict-history-label {
-  font-size:10px; font-family: var(--font-mono); letter-spacing:0.1em;
-  text-transform:uppercase; color: var(--text-3); margin-bottom:8px;
-}
-.dict-history { display:flex; flex-wrap:wrap; gap:6px; }
-.dict-hist-item {
-  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
-  border-radius:20px; color: var(--text-3);
-  background: rgba(255,78,0,0.05); border: 1.5px solid rgba(94,94,74,0.12);
-  cursor:pointer; transition:background .15s, color .15s;
-}
-.dict-hist-item:hover { background: rgba(94,94,74,0.12); color: var(--accent); }
+
+
 
 /* ═══════════════════════════ SPOTLIGHT ═══════════════════════════ */
 #spotlight-overlay {
@@ -947,69 +876,7 @@ html,body {
   pointer-events:none;
 }
 
-/* ═══════════════════════════ QUICK ACTIONS WIDGET ═══════════════════════════ */
-#wg-actions {
-  bottom:110px; left:24px;
-  width:190px; padding:14px 14px 10px;
-}
-.wg-actions-label {
-  font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: var(--text-3); margin-bottom:10px;
-}
-.wg-action-btn {
-  display:flex; align-items:center; gap:10px; width:100%;
-  padding:8px 10px; border-radius:12px; border:none;
-  background: rgba(255,78,0,0.06); cursor:pointer;
-  font-size:12px; font-weight:700; color: var(--text-2);
-  font-family: var(--font-ui); text-decoration:none;
-  transition:background .15s, color .15s; margin-bottom:5px;
-}
-.wg-action-btn:hover { background: rgba(94,94,74,0.14); color: var(--accent); }
-.wg-action-btn:last-child { margin-bottom:0; }
-.wg-action-btn .wab-ic {
-  width:24px; height:24px; border-radius:7px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; flex-shrink:0;
-}
 
-/* ═══════════════════════════ ABOUT / FINDER ═══════════════════════════ */
-#win-about { top:80px; left:340px; width:520px; height:420px; }
-.about-body {
-  display:flex; align-items:center; justify-content:center;
-  flex-direction:column; gap:12px; padding:40px; text-align:center;
-  background: linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(245,245,234,0.8) 100%);
-  backdrop-filter:blur(8px);
-}
-.about-logo {
-  font-size:64px; margin-bottom:4px;
-  filter:drop-shadow(0 4px 16px rgba(255,78,0,0.30));
-}
-.about-name {
-  font-family: var(--font-ui); font-size:30px; font-weight:900; color: var(--text);
-  letter-spacing:-0.03em;
-}
-.about-name em { color: var(--accent); font-style:normal; }
-.about-ver {
-  font-size:11px; font-family: var(--font-ui); font-weight:700;
-  color: var(--text-3); letter-spacing:0.04em;
-  background: var(--accent-2); border: 1px solid var(--accent-3);
-  border-radius:20px; padding:3px 12px; display:inline-block;
-}
-.about-desc {
-  font-size:13px; font-weight:500; color: var(--text-2);
-  line-height:1.65; max-width:340px; margin-top:4px;
-}
-.about-tags { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
-.about-tag {
-  font-size:11px; font-family: var(--font-ui); font-weight:700; padding:5px 13px;
-  border-radius:20px; color: var(--accent); background: var(--accent-2);
-  border: 1px solid var(--accent-3);
-}
-.about-credits {
-  font-size:11px; font-weight:600; color: var(--text-3);
-  font-family: var(--font-ui); margin-top:4px;
-}
-.about-credits a { color: var(--accent); text-decoration:none; font-weight:800; }
 
 /* ═══════════════════════════ UTILS ═══════════════════════════ */
 .hidden { display:none !important; }
@@ -1124,12 +991,6 @@ html,body {
 
   .notes-editor-area { font-size:15px; padding:14px 16px; }
   .notes-sidebar { width:180px; }
-
-  .dict-body { padding:14px; }
-  .dict-word { font-size:28px; }
-
-  .about-body { padding:28px 20px; }
-  .about-logo { font-size:52px; }
 
   /* Tools */
   #tools-grid { grid-template-columns:1fr !important; }
@@ -1371,189 +1232,13 @@ html,body {
   </div>
 </div>
 
-<!-- DICTIONARY -->
-<div class="win" id="win-dictionary" style="top:70px;left:180px;width:560px;height:480px;">
-  <div class="win-titlebar" id="tb-dictionary">
-    <div class="win-controls">
-      <div class="tl close" onclick="closeWin('dictionary')"></div>
-      <div class="tl min"   onclick="minWin('dictionary')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">📖 Dictionary</div>
-  </div>
-  <div class="win-body">
-    <div class="win-main">
-      <div class="dict-body">
-        <div class="dict-search-wrap">
-          <input id="dict-input" type="text" placeholder="Search a word…" autocomplete="off"
-            onkeydown="if(event.key==='Enter')dictLookup()"
-            style="flex:1;background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:var(--font-ui);">
-          <select id="dict-lang" class="dict-lang-select">
-            <option value="en">EN</option>
-            <option value="de">DE</option>
-            <option value="es">ES</option>
-            <option value="fr">FR</option>
-            <option value="it">IT</option>
-          </select>
-          <button onclick="dictLookup()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:var(--font-ui);font-weight:800;font-size:12px;cursor:pointer;">Search</button>
-        </div>
-        <div id="dict-result-area">
-          <div style="text-align:center;padding:40px;color:var(--text-3);font-size:13px;">
-            Type a word and press Enter to look it up
-          </div>
-        </div>
-        <div id="dict-history-wrap" style="display:none;">
-          <div class="dict-history-label">Recent searches</div>
-          <div class="dict-history" id="dict-history"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- ABOUT -->
-<div class="win" id="win-about" style="top:80px;left:340px;width:480px;height:340px;">
-  <div class="win-titlebar" id="tb-about">
-    <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('about')"></div>
-      <div class="tl min"    onclick="minWin('about')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">About TeachedOS</div>
-  </div>
-  <div class="win-body">
-    <div class="win-main" style="flex-direction:column;">
-      <div class="mob-win-header">
-        <span style="font-size:22px;">🌸</span>
-        <div class="mob-win-title">About</div>
-      </div>
-      <div class="about-body">
-        <div class="about-logo">🌸</div>
-        <div class="about-name">Teached<em>OS</em></div>
-        <div class="about-ver">Teacher's Platform</div>
-        <div class="about-desc">
-          A full-featured macOS-style workspace for language teachers — visual boards, gradebook, analytics, student enrollment, real-time collaboration and AI-powered tools.
-        </div>
-        <div class="about-tags" style="margin-top:8px;">
-          <div class="about-tag">📋 Plans</div>
-          <div class="about-tag">👥 Students</div>
-          <div class="about-tag">📅 Schedule</div>
-          <div class="about-tag">✍️ Notes</div>
-          <div class="about-tag">📌 Board</div>
-          <div class="about-tag">📊 Analytics</div>
-          <div class="about-tag">📒 Gradebook</div>
-          <div class="about-tag">🎮 Games</div>
-          <div class="about-tag">⚡ Live Collab</div>
-        </div>
-        <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;">
-          <div style="text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:var(--accent);">24</div>
-            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">STUDENTS</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:var(--accent);">18</div>
-            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">TOOLS</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:var(--accent);">∞</div>
-            <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">BOARDS</div>
-          </div>
-        </div>
-        <div class="about-credits">
-          Designed &amp; built by <a href="https://munister.com.ua" target="_blank">munister.com.ua</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- CALLS WINDOW -->
-<div class="win" id="win-calls" style="top:85px;left:300px;width:520px;height:480px;">
-  <div class="win-titlebar" id="tb-calls">
-    <div class="win-controls">
-      <div class="tl close" onclick="closeWin('calls')"></div>
-      <div class="tl min" onclick="minWin('calls')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">📹 Calls & Meetings</div>
-  </div>
-  <div class="win-body">
-    <div class="win-main" style="flex-direction:column;padding:20px;gap:16px;overflow-y:auto;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;">Start a call now</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <button onclick="startGoogleMeet()" style="padding:16px 12px;border-radius:14px;border:none;background:linear-gradient(135deg,#34a853,#188038);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;justify-content:center;transition:.15s;">
-          <span style="font-size:22px;">📹</span> Google Meet
-        </button>
-        <button onclick="startZoom()" style="padding:16px 12px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d8cff,#1a6fd8);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;justify-content:center;transition:.15s;">
-          <span style="font-size:22px;">💻</span> Zoom
-        </button>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-top:6px;">My permanent rooms</div>
-      <div style="display:flex;flex-direction:column;gap:8px;" id="calls-rooms">
-        <div style="color:var(--text-3);font-size:13px;">Loading…</div>
-      </div>
-      <div style="background:rgba(94,94,74,.06);border-radius:12px;padding:14px;border:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;">Save your room URLs</div>
-        <input id="calls-meet-url" type="url" placeholder="Google Meet room URL (meet.google.com/…)" style="width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border-2);font-family:var(--font-serif);font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box;">
-        <input id="calls-zoom-url" type="url" placeholder="Zoom room URL (zoom.us/j/…)" style="width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border-2);font-family:var(--font-serif);font-size:13px;margin-bottom:10px;outline:none;box-sizing:border-box;">
-        <button onclick="saveCallRooms()" style="padding:9px 20px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:13px;cursor:pointer;">Save rooms</button>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;margin-top:6px;">Today's classes</div>
-      <div id="calls-today-list" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="color:var(--text-3);font-size:13px;">Loading…</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- BILLING WINDOW -->
-<div class="win" id="win-billing" style="top:90px;left:340px;width:560px;height:500px;">
-  <div class="win-titlebar" id="tb-billing">
-    <div class="win-controls">
-      <div class="tl close" onclick="closeWin('billing')"></div>
-      <div class="tl min" onclick="minWin('billing')"></div>
-      <div class="tl max"></div>
-    </div>
-    <div class="win-title">💳 Plans & Billing</div>
-  </div>
-  <div class="win-body">
-    <div class="win-main" style="flex-direction:column;padding:20px;gap:16px;overflow-y:auto;">
-      <div id="billing-current" style="background:linear-gradient(135deg,var(--accent),var(--deep-rose));border-radius:16px;padding:20px;color:#fff;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.8;">Current plan</div>
-        <div id="billing-plan-name" style="font-size:2rem;font-weight:900;margin-top:4px;letter-spacing:-.03em;">Free</div>
-        <div id="billing-plan-sub" style="font-size:13px;opacity:.85;margin-top:4px;">3 boards · 5 students each · Basic features</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="billing-usage">
-        <div style="background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:14px;">
-          <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;">Boards</div>
-          <div style="font-size:1.6rem;font-weight:900;color:var(--text);margin-top:6px;" id="usage-boards">—/—</div>
-          <div style="height:6px;background:var(--bg-2);border-radius:4px;margin-top:8px;overflow:hidden;"><div id="usage-boards-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:.5s;"></div></div>
-        </div>
-        <div style="background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:14px;">
-          <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;">Students</div>
-          <div style="font-size:1.6rem;font-weight:900;color:var(--text);margin-top:6px;" id="usage-students">—</div>
-          <div style="height:6px;background:var(--bg-2);border-radius:4px;margin-top:8px;overflow:hidden;"><div id="usage-students-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:.5s;"></div></div>
-        </div>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--font-mono);letter-spacing:.07em;text-transform:uppercase;">Upgrade plan</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div class="billing-plan-card" data-plan="pro" onclick="selectBillingPlan('pro')" style="border-radius:14px;border:2px solid var(--border);padding:14px 16px;cursor:pointer;transition:.15s;background:var(--bg-card);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><div style="font-size:15px;font-weight:900;color:var(--text);">🚀 Teacher Pro</div><div style="font-size:12px;color:var(--text-3);margin-top:3px;">Unlimited boards · 30 students · Analytics export</div></div>
-            <div style="font-size:1.1rem;font-weight:900;color:var(--accent);">$9.90<span style="font-size:11px;font-weight:600;color:var(--text-3);">/mo</span></div>
-          </div>
-        </div>
-        <div class="billing-plan-card" data-plan="school" onclick="selectBillingPlan('school')" style="border-radius:14px;border:2px solid var(--border);padding:14px 16px;cursor:pointer;transition:.15s;background:var(--bg-card);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><div style="font-size:15px;font-weight:900;color:var(--text);">🏫 School</div><div style="font-size:12px;color:var(--text-3);margin-top:3px;">Unlimited everything · Admin panel · Custom branding</div></div>
-            <div style="font-size:1.1rem;font-weight:900;color:var(--accent);">$29<span style="font-size:11px;font-weight:600;color:var(--text-3);">/mo</span></div>
-          </div>
-        </div>
-      </div>
-      <button id="billing-upgrade-btn" onclick="upgradePlan()" style="padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:var(--font-serif);font-weight:800;font-size:15px;cursor:pointer;display:none;transition:.15s;">Upgrade now →</button>
-    </div>
-  </div>
-</div>
+
+
+
+
 
 <!-- TOOLS WINDOW -->
 <div class="win" id="win-tools" style="top:60px;left:80px;width:860px;height:600px;">
@@ -1611,22 +1296,7 @@ html,body {
   </div>
 </div>
 
-<!-- QUICK ACTIONS WIDGET -->
-<div class="widget" id="wg-actions">
-  <div class="wg-actions-label">Quick Launch</div>
-  <a class="wg-action-btn" href="board.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</span> Board
-  </a>
-  <a class="wg-action-btn" href="analytics.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#34d399,#059669);">📊</span> Analytics
-  </a>
-  <a class="wg-action-btn" href="gradebook.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</span> Gradebook
-  </a>
-  <a class="wg-action-btn" href="profile.html">
-    <span class="wab-ic" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</span> Profile
-  </a>
-</div>
+
 
 <!-- DOCK -->
 <div id="dock-wrap">
@@ -1672,16 +1342,7 @@ html,body {
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
-    <div class="di" id="di-calls" onclick="openApp('calls')" title="Calls & Meetings">
-      <div class="di-icon" style="background:linear-gradient(145deg,#34a853,#188038);">📹</div>
-      <div class="di-label">Calls</div>
-      <div class="di-dot"></div>
-    </div>
-    <div class="di" id="di-billing" onclick="openApp('billing')" title="Plans & Billing">
-      <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">💳</div>
-      <div class="di-label">Billing</div>
-      <div class="di-dot"></div>
-    </div>
+
     <a class="di" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" " title="Gradebook">
       <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</div>
       <div class="di-label">Gradebook</div>
@@ -1692,12 +1353,7 @@ html,body {
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
     </a>
-    <div class="di-sep"></div>
-    <div class="di" id="di-about" onclick="openApp('about')" title="About">
-      <div class="di-icon finder">🌸</div>
-      <div class="di-label">About</div>
-      <div class="di-dot"></div>
-    </div>
+
   </div>
 </div>
 
@@ -2257,7 +1913,6 @@ const SP_ITEMS = [
   { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#9F8CE8,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
   { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open tools library', kbd:'Tools', action:()=>openApp('tools') },
-  { icon:'ℹ️', iconBg:'linear-gradient(145deg,#4ab0c8,#2a7d96)', title:'About TeachedOS', sub:'Version info & credits', kbd:'About', action:()=>openApp('about') },
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
   { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
@@ -2489,7 +2144,7 @@ function applyUserToDesktop(user) {
     const b = document.createElement('span');
     b.id = 'mb-plan-badge';
     b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
-    b.onclick = () => openApp('billing');
+    b.onclick = () => {};
     const mbRight = document.querySelector('.mb-right');
     if (mbRight) mbRight.prepend(b);
     return b;
@@ -2499,9 +2154,7 @@ function applyUserToDesktop(user) {
   planBadge.style.background = plan === 'free' ? '#f3f4f6' : plan === 'pro' ? '#ede9fe' : '#d1fae5';
   planBadge.style.color = planColors[plan] || '#6b7280';
   // Load calls + billing data
-  renderCallRooms();
-  renderCallsToday();
-  loadBillingData();
+
   // Load notifications
   setTimeout(loadNotifications, 1500);
 }
@@ -2631,70 +2284,7 @@ async function submitOsAuth() {
   }
 }
 
-/* ══════════════════════ DICTIONARY ══════════════════════ */
-const _dictHistory = JSON.parse(localStorage.getItem('teachedos_dict_history') || '[]');
 
-async function dictLookup() {
-  const word = document.getElementById('dict-input').value.trim();
-  if (!word) return;
-  const lang = document.getElementById('dict-lang').value;
-  const area = document.getElementById('dict-result-area');
-  area.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-3);font-size:13px;">Looking up…</div>';
-
-  try {
-    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/${lang}/${encodeURIComponent(word)}`);
-    if (!r.ok) throw new Error('Word not found');
-    const data = await r.json();
-    const entry = data[0];
-    const phonetic = entry.phonetics?.find(p => p.text)?.text || '';
-    const audioUrl = entry.phonetics?.find(p => p.audio)?.audio || '';
-
-    let html = `
-      <div class="dict-result">
-        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
-          <div class="dict-word">${esc(entry.word)}</div>
-          ${phonetic ? `<div class="dict-phonetic">${esc(phonetic)}</div>` : ''}
-          ${audioUrl ? `<button onclick="new Audio('${audioUrl}').play()" style="background:var(--accent-2);border:1px solid var(--accent-3);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--accent);font-weight:700;">🔊 Play</button>` : ''}
-        </div>`;
-
-    entry.meanings?.slice(0,3).forEach(m => {
-      html += `<div class="dict-pos">${esc(m.partOfSpeech)}</div>`;
-      m.definitions?.slice(0,2).forEach(d => {
-        html += `<div class="dict-def">${esc(d.definition)}</div>`;
-        if (d.example) html += `<div class="dict-example">"${esc(d.example)}"</div>`;
-      });
-      if (m.synonyms?.length) {
-        html += `<div class="dict-syns">${m.synonyms.slice(0,6).map(s=>`<span class="dict-syn" onclick="document.getElementById('dict-input').value='${esc(s)}';dictLookup()">${esc(s)}</span>`).join('')}</div>`;
-      }
-    });
-    html += `</div>`;
-    area.innerHTML = html;
-
-    // Save to history
-    const idx = _dictHistory.indexOf(word);
-    if (idx > -1) _dictHistory.splice(idx, 1);
-    _dictHistory.unshift(word);
-    if (_dictHistory.length > 10) _dictHistory.pop();
-    localStorage.setItem('teachedos_dict_history', JSON.stringify(_dictHistory));
-    dictRenderHistory();
-  } catch {
-    area.innerHTML = `<div style="text-align:center;padding:32px;color:#ef4444;font-size:13px;font-weight:700;">Word not found. Try another spelling.</div>`;
-  }
-}
-
-function dictRenderHistory() {
-  const wrap = document.getElementById('dict-history-wrap');
-  const hist = document.getElementById('dict-history');
-  if (!hist) return;
-  if (!_dictHistory.length) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  hist.innerHTML = _dictHistory.map(w =>
-    `<span class="dict-hist-item" onclick="document.getElementById('dict-input').value='${esc(w)}';dictLookup()">${esc(w)}</span>`
-  ).join('');
-}
-
-// Init history on open
-document.getElementById('win-dictionary')?.addEventListener('click', dictRenderHistory, { once: true });
 
 /* ══════════════════════ KEYBOARD SHORTCUTS ══════════════════════ */
 document.addEventListener('keydown', e => {
@@ -2704,8 +2294,7 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openApp('notes'); notesNew(); return; }
   // ⌘B / Ctrl+B — Open board
   if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); location.href = 'board.html'; return; }
-  // ⌘D / Ctrl+D — Dictionary
-  if ((e.metaKey || e.ctrlKey) && e.key === 'd') { e.preventDefault(); openApp('dictionary'); document.getElementById('dict-input')?.focus(); return; }
+
   // Escape — close top window
   if (e.key === 'Escape') {
     const open = [...document.querySelectorAll('.win.open')];
@@ -2928,166 +2517,8 @@ setInterval(loadNotifications, 120000);
 </script>
 
 <script>
-/* ════════════ CALLS ════════════ */
-let _selectedBillingPlan = null;
 
-function startGoogleMeet() {
-  if (_currentUser && _currentUser.meeting_url) window.open(_currentUser.meeting_url, '_blank');
-  else window.open('https://meet.google.com/new', '_blank');
-}
-function startZoom() {
-  if (_currentUser && _currentUser.zoom_url) window.open(_currentUser.zoom_url, '_blank');
-  else window.open('https://zoom.us/start/videomeeting', '_blank');
-}
 
-function renderCallRooms() {
-  const el = document.getElementById('calls-rooms');
-  if (!el) return;
-  const rooms = [];
-  if (_currentUser && _currentUser.meeting_url) rooms.push({ label:'Google Meet room', url: _currentUser.meeting_url, color:'#34a853' });
-  if (_currentUser && _currentUser.zoom_url) rooms.push({ label:'Zoom room', url: _currentUser.zoom_url, color:'#2d8cff' });
-  if (!rooms.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No saved rooms yet — add below.</div>'; return; }
-  el.innerHTML = rooms.map(r => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border);">
-      <span style="width:10px;height:10px;border-radius:50%;background:${r.color};flex-shrink:0;"></span>
-      <span style="font-size:12px;font-weight:700;color:var(--text-2);flex:1;">${r.label}</span>
-      <a href="${r.url}" target="_blank" style="font-size:12px;color:var(--accent);font-weight:700;text-decoration:none;">Open →</a>
-      <button onclick="goLiveWith('${r.url}')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:800;cursor:pointer;">🔴 Go Live</button>
-    </div>`).join('');
-  const meetInput = document.getElementById('calls-meet-url');
-  const zoomInput = document.getElementById('calls-zoom-url');
-  if (_currentUser && _currentUser.meeting_url && meetInput) meetInput.value = _currentUser.meeting_url;
-  if (_currentUser && _currentUser.zoom_url && zoomInput) zoomInput.value = _currentUser.zoom_url;
-}
-
-async function saveCallRooms() {
-  const meetInput = document.getElementById('calls-meet-url');
-  const zoomInput = document.getElementById('calls-zoom-url');
-  const meeting_url = meetInput ? meetInput.value.trim() : '';
-  const zoom_url = zoomInput ? zoomInput.value.trim() : '';
-  try {
-    const r = await fetch(API_BASE + '/api/auth/me', {
-      method: 'PATCH',
-      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
-      body: JSON.stringify({ meeting_url, zoom_url })
-    });
-    const d = await r.json();
-    if (r.ok && d.user) {
-      _currentUser = d.user;
-      try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
-      renderCallRooms();
-      showOsToast('Rooms saved ✓');
-    } else {
-      showOsToast(d.error || 'Error saving');
-    }
-  } catch { showOsToast('Error saving'); }
-}
-
-function renderCallsToday() {
-  const el = document.getElementById('calls-today-list');
-  if (!el) return;
-  if (!SCHEDULE_RAW || !SCHEDULE_RAW.length) {
-    el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No classes today.</div>';
-    return;
-  }
-  const today = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
-  const todaySlots = SCHEDULE_RAW.filter(s => s.day === today);
-  if (!todaySlots.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No classes today.</div>'; return; }
-  el.innerHTML = todaySlots.map(s => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:${s.is_live ? 'rgba(239,68,68,.05)' : 'var(--bg)'};border:1px solid ${s.is_live ? 'rgba(239,68,68,.3)' : 'var(--border)'};">
-      ${s.is_live ? '<span style="width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;flex-shrink:0;"></span>' : '<span style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;"></span>'}
-      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text);">${s.title || 'Class'} <span style="font-weight:400;color:var(--text-3);">${s.start_time || ''}</span></span>
-      <button onclick="toggleLive(${JSON.stringify(s.id)}, ${!s.is_live})" style="padding:4px 10px;border-radius:7px;border:1.5px solid ${s.is_live ? '#ef4444' : 'var(--accent)'};background:transparent;color:${s.is_live ? '#ef4444' : 'var(--accent)'};font-size:11px;font-weight:800;cursor:pointer;">${s.is_live ? '⏹ End' : '🔴 Go Live'}</button>
-    </div>`).join('');
-}
-
-async function toggleLive(slotId, goLive) {
-  const meeting_url = (_currentUser && _currentUser.meeting_url) ? _currentUser.meeting_url : '';
-  try {
-    const r = await fetch(API_BASE + '/api/schedule/' + slotId + '/live', {
-      method: 'PATCH',
-      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
-      body: JSON.stringify({ is_live: goLive, meeting_url })
-    });
-    if (r.ok) {
-      const slot = SCHEDULE_RAW.find(s => s.id === slotId);
-      if (slot) { slot.is_live = goLive; slot.meeting_url = meeting_url; }
-      renderCallsToday();
-      showOsToast(goLive ? '🔴 You are now live!' : 'Session ended');
-    }
-  } catch { showOsToast('Error'); }
-}
-
-function goLiveWith(url) {
-  window.open(url, '_blank');
-}
-
-/* ════════════ BILLING ════════════ */
-
-async function loadBillingData() {
-  if (!_authToken) return;
-  try {
-    const r = await fetch(API_BASE + '/api/billing/usage', {
-      headers: { Authorization: 'Bearer ' + _authToken }
-    });
-    if (!r.ok) return;
-    const d = await r.json();
-    const planNames = { free:'Free', pro:'Teacher Pro 🚀', school:'School 🏫' };
-    const planSubs = {
-      free: '3 boards · 5 students each · Basic',
-      pro: 'Unlimited boards · 30 students · Analytics',
-      school: 'Unlimited everything · Admin · Branding'
-    };
-    const pnEl = document.getElementById('billing-plan-name');
-    const psEl = document.getElementById('billing-plan-sub');
-    if (pnEl) pnEl.textContent = planNames[d.plan] || d.plan;
-    if (psEl) psEl.textContent = planSubs[d.plan] || '';
-    const bLimit = d.limits && d.limits.boards === -1 ? '∞' : (d.limits ? d.limits.boards : '—');
-    const sLimit = d.limits && d.limits.students_per_board === -1 ? '∞' : (d.limits ? d.limits.students_per_board : '—');
-    const ubEl = document.getElementById('usage-boards');
-    const usEl = document.getElementById('usage-students');
-    if (ubEl) ubEl.textContent = d.boards_count + '/' + bLimit;
-    if (usEl) usEl.textContent = d.students_total + ' total';
-    const bPct = (d.limits && d.limits.boards === -1) ? 20 : (d.limits ? Math.min(100, (d.boards_count / d.limits.boards) * 100) : 0);
-    const sPct = (d.limits && d.limits.students_per_board === -1) ? 20 : (d.limits ? Math.min(100, (d.students_total / (d.limits.students_per_board * Math.max(1, d.boards_count))) * 100) : 0);
-    const bbEl = document.getElementById('usage-boards-bar');
-    const sbEl = document.getElementById('usage-students-bar');
-    if (bbEl) { bbEl.style.width = bPct + '%'; bbEl.style.background = bPct > 80 ? '#ef4444' : 'var(--accent)'; }
-    if (sbEl) sbEl.style.width = sPct + '%';
-  } catch {}
-}
-
-function selectBillingPlan(plan) {
-  _selectedBillingPlan = plan;
-  document.querySelectorAll('.billing-plan-card').forEach(c => {
-    c.style.border = c.dataset.plan === plan ? '2px solid var(--accent)' : '2px solid var(--border)';
-    c.style.background = c.dataset.plan === plan ? 'rgba(94,94,74,.05)' : 'var(--bg-card)';
-  });
-  const btn = document.getElementById('billing-upgrade-btn');
-  if (btn) btn.style.display = plan ? '' : 'none';
-}
-
-async function upgradePlan() {
-  if (!_selectedBillingPlan || !_authToken) return;
-  const btn = document.getElementById('billing-upgrade-btn');
-  if (btn) { btn.textContent = 'Processing…'; btn.disabled = true; }
-  try {
-    const r = await fetch(API_BASE + '/api/billing/upgrade', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + _authToken },
-      body: JSON.stringify({ plan: _selectedBillingPlan })
-    });
-    const d = await r.json();
-    if (r.ok) {
-      _currentUser = Object.assign({}, _currentUser, { plan: d.plan });
-      try { localStorage.setItem('teachedos_user', JSON.stringify(_currentUser)); } catch {}
-      applyUserToDesktop(_currentUser);
-      loadBillingData();
-      showOsToast('Plan upgraded to ' + d.plan + ' ✓');
-    } else { showOsToast(d.error || 'Error'); }
-  } catch { showOsToast('Error'); }
-  finally { if (btn) { btn.textContent = 'Upgrade now →'; btn.disabled = false; } }
-}
 
 function showOsToast(msg) {
   let t = document.getElementById('os-toast');
