@@ -1,0 +1,51 @@
+@use 'styles/tokens.scss';
+@use 'styles/dark.scss';
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #F5F0E8;
+  --bg-2:      #EDE8E0;
+  --bg-3:      #CAC9B7;
+  --bg-card:   #FFFFFF;
+  --border:    rgba(94,94,74,0.14);
+  --border-2:  rgba(94,94,74,0.28);
+  --text:      #1C1C1E;
+  --text-2:    #3A3A2E;
+  --text-3:    #A2A28C;
+  --accent:    #E85D75;
+  --accent-2:  rgba(232,93,117,0.10);
+  --accent-3:  rgba(232,93,117,0.22);
+  --lime:      #C8E632;
+  --lavender:  #9F8CE8;
+  --sand-dark: #5E5E4A;
+  --font-ui:   'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius:    16px;
+  --shadow:    0 4px 24px rgba(5,5,23,0.08);
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--font-ui); cursor: pointer; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(94,94,74,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(94,94,74,0.32); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

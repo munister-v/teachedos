@@ -1,0 +1,865 @@
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <!-- Left: back + board name -->
+  <a class="tb-back" routerLink="/index" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+    <span>Home</span>
+  </a>
+  <div class="tb-sep"></div>
+  <div id="board-name-display" class="tb-title" style="cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid transparent;padding:4px 8px;border-radius:8px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">My Board</div>
+  <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:180px;">
+    <a id="bc-course" routerLink="/courses" style="color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></a>
+    <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+  </div>
+
+  <div class="tb-spacer"></div>
+
+  <!-- Center: core actions -->
+  <div class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7a5 5 0 1 1 .5 4"/><path d="M3 3v4h4"/></svg>
+  </div>
+  <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 7a5 5 0 1 0-.5 4"/><path d="M13 3v4H9"/></svg>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+    <span>Connect</span>
+  </div>
+  <div class="tb-btn text" id="btn-fit" title="Fit all (F)">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+    <span>Fit</span>
+  </div>
+  <div class="tb-sep"></div>
+
+  <!-- Save status -->
+  <div id="save-chip" title="Version history" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-3);transition:.15s;flex-shrink:0;">
+    <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
+    <span id="save-status">saved</span>
+  </div>
+  <div id="session-chip" style="display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;">
+    <span id="session-stats">0 cards</span>
+  </div>
+  <div class="tb-sep"></div>
+
+  <!-- Right: share + live + user -->
+  <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:rgba(52,168,83,.3);display:none;">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="10" height="8" rx="2"/><path d="M11 7l4-2v6l-4-2V7z"/></svg>
+    <span>Live</span>
+  </div>
+  <div class="tb-btn text" id="btn-share" title="Share & invite" onclick="openSharePanel()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
+    <span>Share</span>
+  </div>
+
+  <!-- WS dot + presence -->
+  <div id="ws-dot" title="Real-time" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;margin:0 2px;"></div>
+  <div id="presence-bar"></div>
+  <button id="btn-follow-me" onclick="toggleFollowMode()">👁 Follow</button>
+
+  <div class="tb-sep"></div>
+
+  <!-- User chip + overflow menu -->
+  <div id="auth-chip" style="display:none;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,#fff);cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
+    <span id="auth-avatar" style="font-size:16px;line-height:1;">🧑‍🏫</span>
+    <span id="auth-name">—</span>
+    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+  </div>
+  <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">Sign in</div>
+
+  <!-- ⋯ overflow menu button -->
+  <div class="tb-btn" id="btn-more" title="More options" onclick="toggleMoreMenu()" style="font-size:16px;font-weight:900;letter-spacing:.05em;">⋯</div>
+
+  <!-- User dropdown -->
+  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
+    <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
+    <a class="user-menu-item" routerLink="/index">🏠 Home</a>
+    <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
+    <div class="user-menu-item" onclick="newBoard()">➕ New Board</div>
+    <div class="user-menu-item" onclick="openVersionHistory()">🕐 Version History</div>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+    <a class="user-menu-item" routerLink="/courses">📚 Courses</a>
+    <a class="user-menu-item" routerLink="/schedule">📅 Schedule</a>
+    <a class="user-menu-item" routerLink="/journal">📓 Journal</a>
+    <a class="user-menu-item" routerLink="/analytics">📊 Analytics</a>
+    <a class="user-menu-item" routerLink="/gradebook">📒 Gradebook</a>
+    <a class="user-menu-item" routerLink="/profile">👤 Profile</a>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+    <div class="user-menu-item" style="color:#ef4444;" onclick="logout()">🚪 Sign out</div>
+  </div>
+
+  <!-- ⋯ More menu -->
+  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
+    <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
+    <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
+    <div class="user-menu-item" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
+    <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+    <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
+    <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="clearAll();toggleMoreMenu()">🗑 Clear board</div>
+  </div>
+</div>
+
+<!-- Hidden zoom buttons for JS compatibility -->
+<div style="display:none;">
+  <div id="btn-zoom-in"></div>
+  <div id="btn-zoom-out"></div>
+  <div id="zoom-display"></div>
+  <div id="btn-snap"></div>
+  <div id="btn-search"></div>
+  <div id="btn-shortcuts"></div>
+  <div id="btn-settings"></div>
+  <div id="btn-export"></div>
+  <div id="btn-members"></div>
+  <div id="btn-clear"></div>
+  <div id="tb-board-name"></div>
+</div>
+
+<!-- Follow Me student banner -->
+<div id="follow-banner">
+  <span>📍 Following teacher</span>
+  <button onclick="releaseFollow()">Go free</button>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-tabs">
+    <div class="sb-tab active" data-tab="plans"><span class="sb-tab-ic">📋</span><span class="sb-tab-lbl">Plans</span></div>
+    <div class="sb-tab" data-tab="students"><span class="sb-tab-ic">👥</span><span class="sb-tab-lbl">Students</span></div>
+    <div class="sb-tab" data-tab="notes"><span class="sb-tab-ic">✍️</span><span class="sb-tab-lbl">Notes</span></div>
+    <div class="sb-tab" data-tab="course"><span class="sb-tab-ic">📚</span><span class="sb-tab-lbl">Course</span></div>
+    <div class="sb-tab" data-tab="games"><span class="sb-tab-ic">🎮</span><span class="sb-tab-lbl">Games</span></div>
+    <div class="sb-tab" data-tab="elements"><span class="sb-tab-ic">＋</span><span class="sb-tab-lbl">Add</span></div>
+  </div>
+  <div class="sb-search" id="sb-search-wrap">
+    <input type="text" placeholder="Search…" id="sb-search">
+  </div>
+  <div class="sb-body" id="sb-content"></div>
+</div>
+
+<!-- MIRO-STYLE LEFT TOOLBAR -->
+<div id="miro-toolbar">
+  <button class="mt-btn active" id="mt-select" data-tip="Select (V)" onclick="setMiroTool('select')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1l12 6-5 1.5L7 14 2 1z"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('sticky');quickAddCard('sticky',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M10 2v4l-2-1-2 1V2"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="setMiroTool('text');quickAddCard('text',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="setMiroTool('select');quickAddCard('lesson',400,300)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-image" data-tip="Image" onclick="setMiroTool('select');openImageModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-video" data-tip="Video" onclick="setMiroTool('select');openVideoModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-fit" data-tip="Fit all (F)" onclick="document.getElementById('btn-fit').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+  </button>
+</div>
+
+<!-- ZOOM CONTROLS (bottom-right) -->
+<div id="zoom-controls">
+  <button class="zc-btn" title="Zoom in (+)" onclick="document.getElementById('btn-zoom-in').click()">+</button>
+  <div class="zc-sep"></div>
+  <div class="zc-pct" id="zc-pct" title="Reset zoom (click)" onclick="document.getElementById('btn-fit').click()">100%</div>
+  <div class="zc-sep"></div>
+  <button class="zc-btn" title="Zoom out (-)" onclick="document.getElementById('btn-zoom-out').click()">−</button>
+</div>
+
+<!-- BOARD WRAP -->
+<div id="board-wrap">
+  <!-- Arrow SVG layer (screen-space) -->
+  <svg id="arrows-svg" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrowhead" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#E85D75"/>
+      </marker>
+      <marker id="arrowhead-sel" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#C8E632"/>
+      </marker>
+      <marker id="arrowhead-hover" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#C8E632"/>
+      </marker>
+      <marker id="arrowhead-prereq" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#6366f1"/>
+      </marker>
+      <marker id="arrowhead-prereq-done" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#10b981"/>
+      </marker>
+    </defs>
+  </svg>
+  <!-- Student live-class banner (shown when teacher is broadcasting) -->
+  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:linear-gradient(90deg,#C8E632,#E85D75);color:#fff;padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:700;box-shadow:0 4px 18px rgba(232,53,122,.35);">
+    <span style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;animation:pulse-dot 1.2s infinite;flex-shrink:0;"></span>
+    <span id="board-live-label">Your teacher is live now</span>
+    <a id="board-live-join" href="#" target="_blank" style="margin-left:auto;background:#fff;color:#C8E632;padding:5px 14px;border-radius:8px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
+    <button onclick="document.getElementById('board-live-banner').style.display='none'" style="border:none;background:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">×</button>
+  </div>
+  <!-- Board canvas -->
+  <div id="board">
+    <div id="empty-state">
+      <div class="empty-icon">✨</div>
+      <div class="empty-text">Start building your lesson</div>
+      <div class="empty-sub">
+        <div class="empty-hint"><span class="empty-key">double-click</span> anywhere to add a card</div>
+        <div class="empty-hint"><span class="empty-key">drag</span> items from the panel on the left</div>
+        <div class="empty-hint"><span class="empty-key">C</span> to connect cards with arrows</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drag ghost -->
+<div id="drag-ghost"></div>
+<!-- Selection box -->
+<div id="sel-box"></div>
+
+<!-- Quick-add menu (double-click) -->
+<div id="quick-add">
+  <div class="qa-title">Quick Add</div>
+  <div class="qa-item" data-qa="sticky">🟡 Sticky Note</div>
+  <div class="qa-item" data-qa="text">🔤 Text Label</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="lesson">📚 Lesson</div>
+  <div class="qa-item" data-qa="assignment">📝 Assignment</div>
+  <div class="qa-item" data-qa="milestone">🏁 Milestone</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="vocab">🔤 Vocabulary</div>
+  <div class="qa-item" data-qa="checklist">✅ Checklist</div>
+  <div class="qa-item" data-qa="timer">⏱ Timer</div>
+  <div class="qa-sep"></div>
+  <div class="qa-item" data-qa="video">🎬 Video Embed</div>
+  <div class="qa-item" data-qa="audio">🎵 Audio Player</div>
+  <div class="qa-item" data-qa="image">🖼 Image</div>
+</div>
+
+<!-- Export dropdown menu -->
+<div id="export-menu">
+  <div class="exp-item" onclick="exportBoardJSON()">📄 Export JSON</div>
+  <div class="exp-item" onclick="exportBoardCSV()">📊 Export CSV</div>
+  <div class="exp-item" onclick="window.print()">🖨 Print / PDF</div>
+</div>
+
+<!-- Board search bar (Ctrl+F) -->
+<div id="board-search-bar">
+  <input id="board-search-input" type="text" placeholder="Search cards… (Esc to close)"/>
+  <div id="board-search-count"></div>
+</div>
+
+<!-- Align bar (shown when ≥2 cards selected) -->
+<div id="align-bar" title="Align selected cards">
+  <button class="align-btn" onclick="alignCards('left')"    title="Align left">⬛▫▫</button>
+  <button class="align-btn" onclick="alignCards('hcenter')" title="Center horizontally">▫⬛▫</button>
+  <button class="align-btn" onclick="alignCards('right')"   title="Align right">▫▫⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="alignCards('top')"     title="Align top">⬛</button>
+  <button class="align-btn" onclick="alignCards('vcenter')" title="Center vertically">▫⬛</button>
+  <button class="align-btn" onclick="alignCards('bottom')"  title="Align bottom">▫▫⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="distributeCards('h')"  title="Distribute horizontally">⬛▫⬛▫⬛</button>
+  <button class="align-btn" onclick="distributeCards('v')"  title="Distribute vertically">⬛</button>
+  <div class="align-sep"></div>
+  <button class="align-btn" onclick="groupSelected()"   title="Group (Ctrl+G)" style="font-size:11px;">⊞</button>
+  <button class="align-btn" onclick="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)" style="font-size:11px;">⊟</button>
+</div>
+
+<!-- Snap indicator -->
+<div id="snap-indicator">⊞ Grid snap ON · hold Shift</div>
+
+<!-- Keyboard shortcuts panel -->
+<div id="shortcuts-panel">
+  <div class="sp-box">
+    <button class="sp-close" onclick="closeShortcuts()">✕</button>
+    <div class="sp-title">⌨️ Keyboard Shortcuts</div>
+    <div class="sp-grid">
+      <div class="sp-section">
+        <h4>Navigation</h4>
+        <div class="sp-row"><span>Pan (hold)</span><div class="kbd"><code>Space</code>+<code>drag</code> / <code>right-drag</code></div></div>
+        <div class="sp-row"><span>Zoom</span><div class="kbd"><code>Scroll</code></div></div>
+        <div class="sp-row"><span>Fit all</span><div class="kbd"><code>F</code></div></div>
+        <div class="sp-row"><span>Reset zoom</span><div class="kbd"><code>Ctrl</code><code>0</code></div></div>
+        <div class="sp-row"><span>Nudge card</span><div class="kbd"><code>↑↓←→</code></div></div>
+        <h4>Selection</h4>
+        <div class="sp-row"><span>Select all</span><div class="kbd"><code>Ctrl</code><code>A</code></div></div>
+        <div class="sp-row"><span>Multi-select</span><div class="kbd"><code>Shift</code>+<code>click</code></div></div>
+        <div class="sp-row"><span>Box select</span><div class="kbd"><code>drag</code> on bg</div></div>
+        <div class="sp-row"><span>Deselect</span><div class="kbd"><code>Esc</code></div></div>
+      </div>
+      <div class="sp-section">
+        <h4>Cards</h4>
+        <div class="sp-row"><span>Quick add</span><div class="kbd"><code>dbl-click</code></div></div>
+        <div class="sp-row"><span>Delete</span><div class="kbd"><code>Del</code></div></div>
+        <div class="sp-row"><span>Duplicate</span><div class="kbd"><code>Ctrl</code><code>D</code></div></div>
+        <div class="sp-row"><span>Snap to grid</span><div class="kbd"><code>Shift</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Group</span><div class="kbd"><code>Ctrl</code><code>G</code></div></div>
+        <div class="sp-row"><span>Ungroup</span><div class="kbd"><code>Ctrl</code><code>Shift</code><code>G</code></div></div>
+        <div class="sp-row"><span>Undo</span><div class="kbd"><code>Ctrl</code><code>Z</code></div></div>
+        <div class="sp-row"><span>Redo</span><div class="kbd"><code>Ctrl</code><code>Y</code></div></div>
+        <h4>Modes</h4>
+        <div class="sp-row"><span>Connect mode</span><div class="kbd"><code>C</code></div></div>
+        <div class="sp-row"><span>Search cards</span><div class="kbd"><code>Ctrl</code><code>F</code></div></div>
+        <div class="sp-row"><span>Force save</span><div class="kbd"><code>Ctrl</code><code>S</code></div></div>
+        <div class="sp-row"><span>Version history</span><div class="kbd"><code>Ctrl</code><code>H</code></div></div>
+        <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-sticky">🟡 Sticky Note</div>
+  <div class="ctx-item" id="ctx-text">🔤 Text Label</div>
+  <div class="ctx-item" id="ctx-plan">📋 Lesson Plan</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-lesson">📚 Lesson</div>
+  <div class="ctx-item" id="ctx-assignment">📝 Assignment</div>
+  <div class="ctx-item" id="ctx-milestone">🏁 Milestone</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-vocab">🔤 Vocabulary Card</div>
+  <div class="ctx-item" id="ctx-checklist">✅ Checklist</div>
+  <div class="ctx-item" id="ctx-timer">⏱ Timer</div>
+  <div class="ctx-item" id="ctx-video">🎬 Video Embed</div>
+  <div class="ctx-item" id="ctx-audio">🎵 Audio Player</div>
+  <div class="ctx-item" id="ctx-image">🖼 Image</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
+  <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
+  <div class="ctx-item" id="ctx-label-arrow" style="display:none;">🏷 Label Arrow</div>
+  <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
+  <div class="ctx-item danger" id="ctx-clear">🗑 Clear Board</div>
+</div>
+<!-- Minimap -->
+<div id="minimap"><canvas id="minimap-canvas"></canvas><div id="minimap-label">Board</div></div>
+<!-- Zoom hint -->
+<div id="zoom-hint">Scroll · zoom · Space+drag · pan</div>
+<!-- Undo toast -->
+<div id="undo-toast"></div>
+
+<!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
+  <div id="auth-modal" style="background:#fff;border-radius:22px;padding:34px 30px 28px;width:100%;max-width:400px;box-shadow:0 24px 70px rgba(0,0,0,.20);position:relative;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <div style="font-size:2.4rem;line-height:1;">📌</div>
+      <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-top:8px;letter-spacing:-.02em;">Teached<em style="color:var(--accent);font-style:normal;">Board</em></div>
+      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:5px;">Sign in to sync your boards</div>
+    </div>
+    <div id="auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+    <div id="auth-role-row" style="display:none;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')">
+          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">Teacher</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Create boards & courses</div>
+        </div>
+        <div class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')">
+          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🎓</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">Student</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Follow & collaborate</div>
+        </div>
+      </div>
+    </div>
+    <div id="auth-fields"></div>
+    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
+    <div style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--text-3);">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
+    </div>
+    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);line-height:1;transition:background .12s;">×</div>
+  </div>
+</div>
+
+<!-- CARD EDITOR PANEL -->
+<div id="card-editor">
+  <div id="card-editor-head">
+    <span id="card-editor-title">Edit Card</span>
+    <button id="card-editor-close" onclick="closeCardEditor()">×</button>
+  </div>
+  <div id="card-editor-body"></div>
+</div>
+
+<!-- LESSON PRESENT MODE -->
+<div id="lesson-present-overlay" onclick="if(event.target===this)closeLessonPresent()">
+  <div id="lesson-present-card"></div>
+</div>
+
+<!-- TASK BUILDER OVERLAY -->
+<div id="task-builder-overlay">
+  <div id="task-builder">
+    <div class="tb-head">
+      <div class="tb-head-icon">🛠</div>
+      <div class="tb-head-titles">
+        <div class="tb-head-title">Assignment Builder</div>
+        <div class="tb-head-sub">Configure tasks or generate a set from the built-in library</div>
+      </div>
+      <button class="tb-head-close" onclick="closeTaskBuilder()">✕</button>
+    </div>
+    <div class="tb-body">
+      <!-- Left config panel -->
+      <div class="tb-config">
+        <div>
+          <div class="cfg-label">Assignment Title</div>
+          <input class="cfg-input" id="tb-title" placeholder="e.g. Articles Quiz">
+        </div>
+        <div>
+          <div class="cfg-label">Type</div>
+          <select class="cfg-select" id="tb-type">
+            <option>Quiz</option><option>Essay</option><option>Speaking</option><option>Project</option><option>Mixed</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Level</div>
+          <select class="cfg-select" id="tb-level">
+            <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Skill</div>
+          <select class="cfg-select" id="tb-skill">
+            <option>Grammar</option><option>Vocabulary</option><option>Speaking</option><option>Reading</option><option>Writing</option><option>Listening</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Time Limit</div>
+          <select class="cfg-select" id="tb-time">
+            <option value="0">No limit</option>
+            <option value="10">10 min</option><option value="15">15 min</option>
+            <option value="20">20 min</option><option value="30">30 min</option>
+            <option value="45">45 min</option><option value="60">60 min</option>
+          </select>
+        </div>
+        <div>
+          <div class="cfg-label">Deadline</div>
+          <input class="cfg-input" id="tb-deadline" type="date">
+        </div>
+        <div>
+          <div class="cfg-label">Points per question</div>
+          <input class="cfg-input" id="tb-pts" type="number" min="1" max="100" value="1">
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          <div class="cfg-label">Generate from library</div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Topic</div>
+            <select class="cfg-select" id="tb-gen-topic">
+              <option value="articles">Articles: a / an / the</option>
+              <option value="perfpast">Present Perfect vs Past Simple</option>
+              <option value="prepositions">Prepositions: at / in / on</option>
+              <option value="phrasalverbs">Phrasal Verbs: get / make / take</option>
+              <option value="falsefriends">False Friends (RU/UA/PL → EN)</option>
+              <option value="opinion">Opinion & Agreeing/Disagreeing</option>
+              <option value="conditionals">Conditionals: 0 / 1st / 2nd</option>
+              <option value="modals">Modal Verbs: can / must / should</option>
+            </select>
+          </div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Task type</div>
+            <div class="cfg-type-grid" id="tb-qtype-grid">
+              <div class="cfg-type-btn active" data-qtype="gap-fill">Gap-fill</div>
+              <div class="cfg-type-btn" data-qtype="mcq">MCQ</div>
+              <div class="cfg-type-btn" data-qtype="match">Match</div>
+              <div class="cfg-type-btn" data-qtype="truefalse">True/False</div>
+            </div>
+          </div>
+          <div style="margin-bottom:7px;">
+            <div class="cfg-label" style="margin-bottom:3px;">Number of questions</div>
+            <input class="cfg-input" id="tb-gen-count" type="number" min="3" max="20" value="8">
+          </div>
+          <button class="gen-btn" onclick="generateTaskSet()">⚡ Generate set</button>
+          <button class="gen-btn secondary" style="margin-top:6px;" onclick="addBlankQuestion()">＋ Add blank question</button>
+        </div>
+      </div>
+      <!-- Right questions list -->
+      <div class="tb-questions" id="tb-questions-list">
+        <div class="tb-empty" id="tb-empty-state">
+          <div class="tb-empty-icon">📋</div>
+          <div class="tb-empty-text">No questions yet</div>
+          <div class="tb-empty-sub">Pick a topic and click <strong>Generate set</strong><br>or add questions manually.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tb-footer">
+      <div class="tb-footer-info" id="tb-footer-info">0 questions · 0 pts total</div>
+      <button class="gen-btn secondary" style="padding:9px 16px;margin:0;" onclick="closeTaskBuilder()">Cancel</button>
+      <button class="tb-save-btn" onclick="saveTaskBuilder()">✓ Save Assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div id="settings-overlay">
+  <div id="settings-panel">
+    <div class="stp-head">
+      <div class="stp-head-icon">⚙️</div>
+      <div class="stp-head-title">Board Settings</div>
+      <button class="stp-head-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="stp-body">
+
+      <!-- Themes -->
+      <div>
+        <div class="stp-section-title">🎨 Theme</div>
+        <div class="theme-grid" id="theme-grid">
+          <div class="theme-swatch active" data-theme="pink" onclick="setTheme('pink')">
+            <div class="theme-swatch-preview" style="background:#F5F0E8;">
+              <div class="theme-swatch-dot" style="background:#E85D75;"></div>
+              <div class="theme-swatch-dot" style="background:#FFF9C4;"></div>
+            </div>
+            <div class="theme-swatch-name">Pink Rose</div>
+          </div>
+          <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')">
+            <div class="theme-swatch-preview" style="background:#EEF4FF;">
+              <div class="theme-swatch-dot" style="background:#3B82F6;"></div>
+              <div class="theme-swatch-dot" style="background:#E0F2FE;"></div>
+            </div>
+            <div class="theme-swatch-name">Sky Blue</div>
+          </div>
+          <div class="theme-swatch" data-theme="green" onclick="setTheme('green')">
+            <div class="theme-swatch-preview" style="background:#F0FDF6;">
+              <div class="theme-swatch-dot" style="background:#10B981;"></div>
+              <div class="theme-swatch-dot" style="background:#D1FAE5;"></div>
+            </div>
+            <div class="theme-swatch-name">Forest</div>
+          </div>
+          <div class="theme-swatch" data-theme="purple" onclick="setTheme('purple')">
+            <div class="theme-swatch-preview" style="background:#F5F3FF;">
+              <div class="theme-swatch-dot" style="background:#7C3AED;"></div>
+              <div class="theme-swatch-dot" style="background:#EDE9FE;"></div>
+            </div>
+            <div class="theme-swatch-name">Lavender</div>
+          </div>
+          <div class="theme-swatch" data-theme="dark" onclick="setTheme('dark')">
+            <div class="theme-swatch-preview" style="background:#13111A;">
+              <div class="theme-swatch-dot" style="background:#E85D75;"></div>
+              <div class="theme-swatch-dot" style="background:#1E1A27;"></div>
+            </div>
+            <div class="theme-swatch-name">Dark Mode</div>
+          </div>
+          <div class="theme-swatch" data-theme="ocean" onclick="setTheme('ocean')">
+            <div class="theme-swatch-preview" style="background:#0F1D2E;">
+              <div class="theme-swatch-dot" style="background:#38BDF8;"></div>
+              <div class="theme-swatch-dot" style="background:#162032;"></div>
+            </div>
+            <div class="theme-swatch-name">Deep Ocean</div>
+          </div>
+          <div class="theme-swatch" data-theme="minimal" onclick="setTheme('minimal')">
+            <div class="theme-swatch-preview" style="background:#FAFAFA;border:1px solid #e4e4e7;">
+              <div class="theme-swatch-dot" style="background:#18181B;"></div>
+              <div class="theme-swatch-dot" style="background:#F4F4F5;"></div>
+            </div>
+            <div class="theme-swatch-name">Minimal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accent color -->
+      <div>
+        <div class="stp-section-title">🎯 Accent Color</div>
+        <div class="custom-accent-row" id="accent-row">
+          <div class="accent-dot active" data-accent="#E85D75" style="background:#E85D75;" onclick="setAccentColor('#E85D75')"></div>
+          <div class="accent-dot" data-accent="#3B82F6" style="background:#3B82F6;" onclick="setAccentColor('#3B82F6')"></div>
+          <div class="accent-dot" data-accent="#10B981" style="background:#10B981;" onclick="setAccentColor('#10B981')"></div>
+          <div class="accent-dot" data-accent="#7C3AED" style="background:#7C3AED;" onclick="setAccentColor('#7C3AED')"></div>
+          <div class="accent-dot" data-accent="#F97316" style="background:#F97316;" onclick="setAccentColor('#F97316')"></div>
+          <div class="accent-dot" data-accent="#EAB308" style="background:#EAB308;" onclick="setAccentColor('#EAB308')"></div>
+          <div class="accent-dot" data-accent="#EC4899" style="background:#EC4899;" onclick="setAccentColor('#EC4899')"></div>
+          <div class="accent-dot" data-accent="#38BDF8" style="background:#38BDF8;" onclick="setAccentColor('#38BDF8')"></div>
+          <div class="accent-dot" data-accent="#18181B" style="background:#18181B;" onclick="setAccentColor('#18181B')"></div>
+          <input type="color" id="accent-custom" style="width:26px;height:26px;border-radius:50%;border:2.5px solid var(--border);cursor:pointer;padding:0;" onchange="setAccentColor(this.value)" title="Custom color">
+        </div>
+      </div>
+
+      <!-- Card radius -->
+      <div>
+        <div class="stp-section-title">⬜ Card Corner Radius</div>
+        <div class="radius-row">
+          <div class="radius-btn" data-radius="4px" onclick="setRadius('4px')">Sharp</div>
+          <div class="radius-btn" data-radius="8px" onclick="setRadius('8px')">Soft</div>
+          <div class="radius-btn active" data-radius="14px" onclick="setRadius('14px')">Rounded</div>
+          <div class="radius-btn" data-radius="22px" onclick="setRadius('22px')">Pill</div>
+        </div>
+      </div>
+
+      <!-- Board background -->
+      <div>
+        <div class="stp-section-title">🗺 Board Background</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="radius-btn active" data-bg="dots" onclick="setBoardBg('dots')">· Dots</div>
+          <div class="radius-btn" data-bg="grid" onclick="setBoardBg('grid')">⊞ Grid</div>
+          <div class="radius-btn" data-bg="lines" onclick="setBoardBg('lines')">≡ Lines</div>
+          <div class="radius-btn" data-bg="none" onclick="setBoardBg('none')">□ None</div>
+        </div>
+      </div>
+
+      <!-- Font size -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">UI Font Size</div><div class="stp-sub">Base size for all card text</div></div>
+          <select class="stp-select" id="stp-font-size" onchange="setFontScale(this.value)">
+            <option value="0.9">Small (90%)</option>
+            <option value="1" selected>Normal (100%)</option>
+            <option value="1.1">Large (110%)</option>
+            <option value="1.2">X-Large (120%)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sidebar width -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">Sidebar Width</div><div class="stp-sub">Panel width for the card library</div></div>
+          <select class="stp-select" id="stp-sb-width" onchange="setSidebarWidth(this.value)">
+            <option value="200px">Compact (200px)</option>
+            <option value="248px" selected>Normal (248px)</option>
+            <option value="300px">Wide (300px)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Animations -->
+      <div>
+        <div class="stp-row">
+          <div><div class="stp-label">Reduce Motion</div><div class="stp-sub">Fewer animations (ADHD-friendly)</div></div>
+          <button class="stp-toggle" id="toggle-motion" onclick="toggleMotion()"></button>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div style="padding-top:4px;border-top:1px solid var(--border);">
+        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef4444;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO URL MODAL -->
+<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,white);border-radius:20px;padding:28px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(5,5,23,.2);position:relative;border:1px solid var(--border);">
+    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🎬 Add Video</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">Embed from YouTube/Vimeo or upload from your computer</div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:18px;background:var(--bg,#F5F0E8);border-radius:10px;padding:3px;">
+      <button id="vtab-url" onclick="switchVideoTab('url')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;background:#E85D75;color:#fff;transition:.15s;">🔗 URL</button>
+      <button id="vtab-file" onclick="switchVideoTab('file')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;background:transparent;color:var(--text-2);transition:.15s;">📁 Upload from PC</button>
+    </div>
+
+    <!-- URL tab -->
+    <div id="vpanel-url">
+      <input id="video-url-input" class="cfg-input" type="url" placeholder="https://www.youtube.com/watch?v=… or Vimeo" style="margin-bottom:14px;">
+    </div>
+
+    <!-- File tab -->
+    <div id="vpanel-file" style="display:none;">
+      <div id="video-drop-zone" onclick="document.getElementById('video-file-input').click()"
+        style="border:2px dashed rgba(94,94,74,.28);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F5F0E8);"
+        ondragover="event.preventDefault();this.style.borderColor='#E85D75'"
+        ondragleave="this.style.borderColor='rgba(94,94,74,.28)'"
+        ondrop="handleVideoFileDrop(event)">
+        <div style="font-size:2rem;margin-bottom:8px;">🎬</div>
+        <div style="font-size:13px;font-weight:800;color:var(--text);">Click or drag a video file</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP4, WebM, MOV · max 50 MB</div>
+      </div>
+      <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleVideoFileSelect(this)">
+      <div id="video-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(200,230,50,.15);border-radius:8px;border:1px solid rgba(200,230,50,.4);margin-bottom:14px;"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeVideoModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmVideoEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Video</button>
+    </div>
+    <div onclick="closeVideoModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- AUDIO MODAL -->
+<div id="audio-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,white);border-radius:20px;padding:28px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(5,5,23,.2);position:relative;border:1px solid var(--border);">
+    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🎵 Add Audio</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Upload an audio file from your computer</div>
+
+    <div id="audio-drop-zone" onclick="document.getElementById('audio-file-input').click()"
+      style="border:2px dashed rgba(94,94,74,.28);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F5F0E8);"
+      ondragover="event.preventDefault();this.style.borderColor='#9F8CE8'"
+      ondragleave="this.style.borderColor='rgba(94,94,74,.28)'"
+      ondrop="handleAudioFileDrop(event)">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🎵</div>
+      <div style="font-size:13px;font-weight:800;color:var(--text);">Click or drag an audio file</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP3, WAV, OGG, M4A · max 20 MB</div>
+    </div>
+    <input id="audio-file-input" type="file" accept="audio/mp3,audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/*" style="display:none;" onchange="handleAudioFileSelect(this)">
+    <div id="audio-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(159,140,232,.12);border-radius:8px;border:1px solid rgba(159,140,232,.3);margin-bottom:14px;"></div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Title (optional)</div>
+      <input id="audio-title-input" class="cfg-input" type="text" placeholder="e.g. Listening Exercise 1">
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeAudioModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmAudioEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#9F8CE8;color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Audio</button>
+    </div>
+    <div onclick="closeAudioModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- IMAGE URL MODAL -->
+<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
+    <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🖼 Add Image</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Paste an image URL (https://…)</div>
+    <input id="image-url-input" class="cfg-input" type="url" placeholder="https://example.com/image.png" style="margin-bottom:14px;">
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Image</button>
+    </div>
+    <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- VERSION HISTORY PANEL -->
+<div id="vh-overlay">
+  <div id="vh-panel">
+    <div class="vh-head">
+      <div class="vh-head-icon">🕐</div>
+      <div class="vh-head-titles">
+        <div class="vh-head-title">Version History</div>
+        <div class="vh-head-sub" id="vh-sub">Auto-saved snapshots · click to restore</div>
+      </div>
+      <button class="vh-close" onclick="closeVersionHistory()">✕</button>
+    </div>
+    <div class="vh-body" id="vh-list"></div>
+    <div class="vh-footer">
+      <button class="vh-pin-btn" onclick="pinCurrentVersion()">📌 Pin this version</button>
+      <div style="flex:1;font-size:11px;color:var(--text-3);" id="vh-storage-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">
+  <span>📡</span><span>Offline — saving locally, will sync when reconnected</span>
+</div>
+
+<!-- CONFLICT BANNER -->
+<div id="conflict-banner">
+  <span>⚠️</span>
+  <span>This board was updated elsewhere.</span>
+  <button onclick="resolveConflict('theirs')" style="padding:4px 10px;border-radius:7px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;">Use server version</button>
+  <button onclick="resolveConflict('mine')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:var(--card-bg,white);color:var(--text-2);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;">Keep mine</button>
+  <button onclick="document.getElementById('conflict-banner').classList.remove('show')" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:16px;line-height:1;">×</button>
+</div>
+
+<!-- BOARD LIST MODAL -->
+<div id="boards-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
+    <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:16px;">📋 My Boards</div>
+    <div id="boards-list"></div>
+    <button onclick="closeBoardList()" style="position:absolute;top:14px;right:16px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-3);">×</button>
+  </div>
+</div>
+
+
+
+<!-- Student Quiz Overlay -->
+<div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
+  <div id="student-quiz-modal" style="background:#fff;border-radius:20px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 32px 90px rgba(0,0,0,.22);font-family:var(--font-ui);">
+  </div>
+</div>
+
+<style>
+#student-quiz-overlay.open{display:flex!important;}
+.quiz-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:20px 20px 0;}
+.quiz-title{font-size:15px;font-weight:800;color:#1C1C1E;}
+.quiz-meta{font-size:11px;color:#3A3A2E;margin-top:3px;}
+.quiz-timer{font-size:15px;font-weight:800;color:#C8E632;background:#E8E8D8;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+.quiz-close-btn{border:none;background:none;font-size:20px;cursor:pointer;color:#999;line-height:1;flex-shrink:0;}
+.quiz-progress-bar{height:4px;background:#f5e6ef;margin:10px 20px 0;}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#E85D75,#C8E632);border-radius:2px;transition:width .3s;}
+.quiz-body{padding:20px;}
+.quiz-question{font-size:14px;font-weight:700;color:#1C1C1E;line-height:1.55;margin-bottom:16px;}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:.15s;}
+.quiz-opt:hover{border-color:#E85D75;background:#FFFFFF;}
+.quiz-opt.selected{border-color:#E85D75;background:#fff0f6;}
+.quiz-opt input{accent-color:#E85D75;}
+.quiz-tf-row{display:flex;gap:12px;}
+.quiz-tf-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);font-size:14px;font-weight:700;cursor:pointer;background:#fff;transition:.15s;}
+.quiz-tf-btn:hover{border-color:#E85D75;}
+.quiz-tf-btn.sel-true{background:#d1fae5;border-color:#10b981;color:#065f46;}
+.quiz-tf-btn.sel-false{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+.quiz-match-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.quiz-match-left{flex:1;font-size:13px;font-weight:700;padding:8px 12px;background:#f9f1f5;border-radius:8px;}
+.quiz-match-input{flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;outline:none;font-family:inherit;}
+.quiz-match-input:focus{border-color:#E85D75;}
+.quiz-text-input{width:100%;min-height:80px;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.quiz-text-input:focus{border-color:#E85D75;}
+.quiz-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 20px;gap:10px;}
+.quiz-dot-row{display:flex;gap:5px;flex-wrap:wrap;}
+.quiz-dot{width:8px;height:8px;border-radius:50%;background:#f0dde8;}
+.quiz-dot.answered{background:#E85D75;}
+.quiz-dot.current{background:#C8E632;transform:scale(1.3);}
+.quiz-btn-primary{padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#E85D75,#C8E632);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary{padding:9px 18px;border-radius:9px;border:1.5px solid rgba(94,94,74,.14);background:#fff;color:#3A3A2E;font-weight:700;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary:disabled{opacity:.4;cursor:default;}
+.quiz-btn-submit{padding:9px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-result-body{padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.quiz-score-circle{position:relative;width:120px;height:120px;margin-bottom:14px;}
+.quiz-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.quiz-score-text strong{font-size:22px;font-weight:900;color:#1C1C1E;}
+.quiz-score-text span{font-size:11px;color:#3A3A2E;}
+.quiz-result-msg{font-size:18px;font-weight:800;margin-bottom:16px;}
+.quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
+.quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
+</style>
+
+
+<!-- Reconnecting banner -->
+<div id="reconnect-banner">
+  <div class="rcn-dot"></div>
+  <span id="reconnect-msg">Reconnecting to server…</span>
+</div>
+
+<!-- Share & Invite panel -->
+<div id="share-panel">
+  <div id="share-panel-head">
+    <span id="share-panel-title">📎 Share Board</span>
+    <button class="sp-close" onclick="closeSharePanel()">×</button>
+  </div>
+  <div id="share-panel-body">
+    <!-- Board link -->
+    <div>
+      <div class="sp-section-label">Board link</div>
+      <div class="sp-link-row">
+        <input class="sp-link-input" id="sp-link-input" readonly>
+        <button class="sp-copy-btn" onclick="spCopyLink()">Copy</button>
+      </div>
+    </div>
+    <!-- Invite by email -->
+    <div id="sp-invite-section" style="display:none;">
+      <div class="sp-section-label">Invite student by email</div>
+      <div class="sp-invite-row">
+        <input class="sp-email-input" id="sp-email-input" type="email" placeholder="student@email.com"
+          onkeydown="if(event.key==='Enter')spInvite()">
+        <button class="sp-invite-btn" onclick="spInvite()">Invite</button>
+      </div>
+      <div class="sp-err" id="sp-err"></div>
+    </div>
+    <!-- Current members -->
+    <div id="sp-members-section" style="display:none;">
+      <div class="sp-section-label">Students on this board</div>
+      <div id="sp-members-list"></div>
+    </div>
+  </div>
+</div>

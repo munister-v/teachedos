@@ -1,0 +1,231 @@
+<div id="loading-screen">
+  <div style="font-size:2rem;">📚</div>
+  <div class="spinner"></div>
+  <div style="font-size:13px;font-weight:700;color:var(--text-3);">Loading dashboard…</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="shell">
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo"><img src="logo.png" alt=""> Teach<em>Ed</em></div>
+
+    <div class="sb-profile">
+      <div class="sb-avatar" id="sb-avatar">🎓</div>
+      <div class="sb-name" id="sb-name">Student</div>
+      <div class="sb-role">Student</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">My Classes</div>
+      <div id="sb-classes">
+        <div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px;">No classes yet</div>
+      </div>
+    </div>
+
+    <div class="sb-counter" id="sb-counter-wrap">
+      <div class="sb-counter-num" id="sb-lessons-left">—</div>
+      <div class="sb-counter-label">Lessons Left</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">My Milestones</div>
+      <div class="sb-milestone" id="sb-milestone">
+        <div class="sb-milestone-labels">
+          <span class="sb-milestone-level from" id="ms-from">—</span>
+          <span class="sb-milestone-level to" id="ms-to">—</span>
+        </div>
+        <div class="sb-milestone-bar">
+          <div class="sb-milestone-fill" id="ms-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-footer">
+      <a routerLink="/profile" style="display:block;text-align:center;padding:8px;color:var(--text-2);font-size:12px;font-weight:700;text-decoration:none;margin-bottom:8px;">👤 Profile</a>
+      <button class="sb-signout" onclick="logout()">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="mob-toggle" id="mob-toggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="tb-guide" href="javascript:void(0)" onclick="showGuide()">💡 How does it work</a>
+      <div class="tb-spacer"></div>
+      <button class="tb-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">☀️</button>
+      <div class="tb-btn" style="cursor:default;">
+        🔔
+        <div class="tb-dot" id="notif-dot" style="display:none;"></div>
+      </div>
+      <a routerLink="/profile" class="tb-avatar" id="tb-avatar" title="Profile">🎓</a>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="main-content" style="display:none;">
+
+      <!-- Live session banner -->
+      <div class="live-banner" id="live-banner">
+        <div class="live-dot"></div>
+        <div class="live-info">
+          <div class="live-title">🔴 Live Now — Your teacher is online!</div>
+          <div class="live-sub" id="live-class-name">Class in progress</div>
+        </div>
+        <a class="live-join" id="live-join-btn" href="#" target="_blank">Join →</a>
+      </div>
+
+      <!-- Welcome -->
+      <div class="welcome">
+        <div class="welcome-text" id="welcome-text">Welcome back!</div>
+      </div>
+
+      <!-- Vocabulary section -->
+      <div class="sec-title">My Vocabulary</div>
+      <div class="vocab-stats">
+        <div class="vs-card">
+          <span class="vs-icon">📋</span>
+          <div class="vs-label">Learned Words</div>
+          <div class="vs-num" id="v-learned">—</div>
+        </div>
+        <div class="vs-card">
+          <span class="vs-icon">🎯</span>
+          <div class="vs-label">To Learn</div>
+          <div class="vs-num" id="v-tolearn" style="color:var(--lavender)">—</div>
+        </div>
+        <div class="vs-card">
+          <span class="vs-icon">⚡</span>
+          <div class="vs-label">Pace / Day</div>
+          <div class="vs-num" id="v-pace">—</div>
+        </div>
+        <div class="vs-card">
+          <span class="vs-icon">🏆</span>
+          <div class="vs-label">Day Record</div>
+          <div class="vs-num" id="v-record" style="color:var(--lime)">—</div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="vocab-actions">
+        <button class="va-btn primary" onclick="learnWords()">→ Learn words</button>
+        <span class="va-btn"><span class="va-lang" id="lang-pair">EN</span>&nbsp;→&nbsp;<span id="lang-to">RU</span></span>
+        <button class="va-btn" onclick="openVocabModal()">+ Add new word</button>
+        <button class="va-btn" onclick="loadVocab()" title="Refresh">🔄</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="assignments">Assignments</button>
+        <button class="tab" data-tab="vocabulary">Vocabulary</button>
+        <button class="tab" data-tab="progress">Progress</button>
+        <button class="tab" data-tab="schedule">Schedule</button>
+        <button class="tab" data-tab="games">Games</button>
+      </div>
+
+      <!-- Tab: Assignments -->
+      <div class="tab-pane active" id="pane-assignments">
+        <div id="assignments-notif"></div>
+        <div id="assignments-list">
+          <div class="empty-state">No assignments yet</div>
+        </div>
+        <div id="teacher-feedback"></div>
+      </div>
+
+      <!-- Tab: Vocabulary -->
+      <div class="tab-pane" id="pane-vocabulary">
+        <div id="vocab-list"></div>
+      </div>
+
+      <!-- Tab: Progress -->
+      <div class="tab-pane" id="pane-progress">
+        <div class="progress-grid" id="progress-grid">
+          <div class="prog-card">
+            <div class="prog-card-num" id="pg-boards">—</div>
+            <div class="prog-card-label">Enrolled Boards</div>
+          </div>
+          <div class="prog-card">
+            <div class="prog-card-num" id="pg-done">—</div>
+            <div class="prog-card-label">Lessons Done</div>
+          </div>
+          <div class="prog-card">
+            <div class="prog-card-num" id="pg-pct">—%</div>
+            <div class="prog-card-label">Overall Progress</div>
+            <div class="prog-bar-wrap">
+              <div class="prog-bar"><div class="prog-bar-fill" id="pg-bar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="prog-card">
+            <div class="prog-card-num" id="pg-streak" style="color:var(--orange)">—</div>
+            <div class="prog-card-label">🔥 Day Streak</div>
+          </div>
+        </div>
+        <div id="quiz-history-section" style="margin-top:20px;display:none;">
+          <div class="sec-title" style="margin-top:8px;">Quiz History</div>
+          <div id="quiz-history-list"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Schedule -->
+      <div class="tab-pane" id="pane-schedule">
+        <div id="schedule-list">
+          <div class="empty-state">No upcoming lessons scheduled</div>
+        </div>
+      </div>
+
+      <!-- Tab: Games -->
+      <div class="tab-pane" id="pane-games">
+        <div class="games-grid">
+          <a class="game-card" href="games/word-scramble.html"><span class="game-card-icon">🔀</span><div class="game-card-name">Word Scramble</div><div class="game-card-cat">Vocabulary</div></a>
+          <a class="game-card" href="games/grammar-fix.html"><span class="game-card-icon">🔧</span><div class="game-card-name">Grammar Fix</div><div class="game-card-cat">Grammar</div></a>
+          <a class="game-card" href="games/typing-rain.html"><span class="game-card-icon">🌧️</span><div class="game-card-name">Typing Rain</div><div class="game-card-cat">Speed</div></a>
+          <a class="game-card" href="games/spelling-bee.html"><span class="game-card-icon">🐝</span><div class="game-card-name">Spelling Bee</div><div class="game-card-cat">Spelling</div></a>
+          <a class="game-card" href="games/memory-match.html"><span class="game-card-icon">🃏</span><div class="game-card-name">Memory Match</div><div class="game-card-cat">Recall</div></a>
+          <a class="game-card" href="games/sentence-builder.html"><span class="game-card-icon">🧱</span><div class="game-card-name">Sentence Builder</div><div class="game-card-cat">Grammar</div></a>
+          <a class="game-card" href="games/tense-picker.html"><span class="game-card-icon">⏰</span><div class="game-card-name">Tense Picker</div><div class="game-card-cat">Tenses</div></a>
+          <a class="game-card" href="games/hangman.html"><span class="game-card-icon">💀</span><div class="game-card-name">Hangman</div><div class="game-card-cat">Vocabulary</div></a>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <a routerLink="/games" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;">See all games →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Vocab modal -->
+<div class="modal-overlay" id="vocab-modal">
+  <div class="modal-box">
+    <div class="modal-title">📖 Add Word</div>
+    <input class="modal-input" id="vm-word" placeholder="Word or phrase">
+    <input class="modal-input" id="vm-trans" placeholder="Translation">
+    <input class="modal-input" id="vm-ex" placeholder="Example sentence (optional)">
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeVocabModal()">Cancel</button>
+      <button class="modal-submit" onclick="addVocabWord()">Add Word</button>
+    </div>
+  </div>
+</div>
+
+<!-- Guide modal -->
+<div class="modal-overlay" id="guide-modal">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-title">💡 How does it work</div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.7;">
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">1. Your teacher creates boards</strong> — structured lesson plans with materials, exercises, and vocabulary.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">2. You learn and practice</strong> — open boards, study materials, complete assignments, and play vocabulary games.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">3. Track your progress</strong> — see your streak, lessons done, vocabulary growth, and quiz scores.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">4. Stay connected</strong> — get notified when your teacher goes live or adds new tasks.</p>
+    </div>
+    <button class="modal-submit" style="width:100%;margin-top:8px;" onclick="closeGuide()">Got it!</button>
+  </div>
+</div>

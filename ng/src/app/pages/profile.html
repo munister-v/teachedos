@@ -1,0 +1,296 @@
+<div id="page-loading"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<!-- NAVBAR -->
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/courses">Courses</a>
+  <a class="nav-link" routerLink="/schedule">Schedule</a>
+  <a class="nav-link" routerLink="/analytics">Analytics</a>
+  <a class="nav-link" routerLink="/journal">Journal</a>
+  <a class="nav-link" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link active" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <span id="nb-admin-link" style="display:none;"></span>
+  <span id="nb-user-info" class="nav-link" style="display:none;cursor:default;"></span>
+</nav>
+
+<!-- LAYOUT -->
+<div id="layout">
+  <!-- Sidebar Tabs -->
+  <div id="sidebar-tabs">
+    <div class="st-item active" data-tab="overview" onclick="switchTab('overview')">
+      <span class="st-icon">👤</span> Overview
+    </div>
+    <a class="st-item" routerLink="/courses" style="text-decoration:none;display:flex;">
+      <span class="st-icon">📚</span> Courses
+    </a>
+    <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
+      <span class="st-icon">📋</span> My Boards
+    </div>
+    <div class="st-item" data-tab="shared" onclick="switchTab('shared')">
+      <span class="st-icon">🎓</span> Shared with me
+    </div>
+    <div class="st-item" data-tab="settings" onclick="switchTab('settings')">
+      <span class="st-icon">⚙️</span> Settings
+    </div>
+    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#ef4444;">
+      <span class="st-icon">🚪</span> Sign out
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')">🧑‍🏫</div>
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <div id="profile-name-big">—</div>
+          <div id="profile-email-big">—</div>
+          <div class="role-badge" id="profile-role-badge">🎓 Teacher</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Stats</div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-n" id="stat-boards">—</div><div class="stat-label">Total Boards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-cards">—</div><div class="stat-label">Total Cards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-since">—</div><div class="stat-label">Member since</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-sessions">—</div><div class="stat-label">Active sessions</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🕐 Recent Boards</div>
+        <div id="recent-boards-list">
+          <div style="color:var(--text-3);font-size:14px;">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY BOARDS TAB -->
+    <div id="tab-boards" class="tab-panel">
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+        <button class="new-board-btn" onclick="createNewBoard()" style="margin-bottom:0;">➕ New Board</button>
+        <button class="new-board-btn" onclick="openBulkImport()" style="margin-bottom:0;background:transparent;color:var(--accent);border:1.5px solid var(--accent-3);">📥 Bulk Invite Students</button>
+      </div>
+      <div class="boards-grid" id="boards-grid">
+        <div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- BULK IMPORT MODAL -->
+    <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
+        <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">📥 Bulk Invite Students</div>
+        <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
+        </div>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
+        </div>
+        <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:Nunito,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
+        </div>
+        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
+      </div>
+    </div>
+
+    <!-- SHARED WITH ME TAB -->
+    <div id="tab-shared" class="tab-panel">
+      <div id="shared-boards-list" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-panel">
+      <!-- Dark Mode Toggle -->
+      <div class="card">
+        <div class="card-title">🌙 Appearance</div>
+        <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()">
+          <span id="dark-toggle-label">Dark Mode</span>
+          <div style="flex:1;"></div>
+          <div class="dark-toggle-track" id="dark-toggle-track">
+            <div class="dark-toggle-thumb"></div>
+          </div>
+        </button>
+        <div style="font-size:12px;color:var(--text-3);">Changes apply to all TeachEd pages.</div>
+      </div>
+
+      <!-- Change name -->
+      <div class="card">
+        <div class="card-title">✏️ Display Name</div>
+        <div class="setting-group">
+          <div class="setting-label">Name</div>
+          <input class="setting-input" id="set-name" type="text" placeholder="Your name">
+        </div>
+        <button class="setting-btn" onclick="saveName()">Save Name</button>
+      </div>
+
+      <!-- Change email -->
+      <div class="card">
+        <div class="card-title">📧 Email Address</div>
+        <div class="setting-group">
+          <div class="setting-label">Email</div>
+          <input class="setting-input" id="set-email" type="email" placeholder="your@email.com">
+        </div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;">Changing your email will update your login credentials.</div>
+        <button class="setting-btn" onclick="saveEmail()">Save Email</button>
+      </div>
+
+      <!-- Change avatar -->
+      <div class="card">
+        <div class="card-title">😀 Avatar</div>
+        <div class="setting-label" style="margin-bottom:10px;">Choose your avatar emoji</div>
+        <div class="emoji-grid" id="emoji-grid"></div>
+        <div style="margin-top:14px;">
+          <button class="setting-btn" onclick="saveAvatar()">Save Avatar</button>
+        </div>
+      </div>
+
+      <!-- Change password -->
+      <div class="card">
+        <div class="card-title">🔒 Change Password</div>
+        <div class="setting-group">
+          <div class="setting-label">Current Password</div>
+          <input class="setting-input" id="set-pass-current" type="password" placeholder="Current password">
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">New Password</div>
+          <input class="setting-input" id="set-pass-new" type="password" placeholder="New password (min 8 chars)">
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">Confirm New Password</div>
+          <input class="setting-input" id="set-pass-confirm" type="password" placeholder="Confirm new password">
+        </div>
+        <button class="setting-btn" onclick="savePassword()">Change Password</button>
+      </div>
+
+      <!-- Meeting Rooms -->
+      <div class="card">
+        <div class="card-title">📹 Meeting Rooms</div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Save your permanent Google Meet or Zoom room URLs. Students see these links when you go live.</p>
+        <div class="setting-group">
+          <div class="setting-label">Google Meet URL</div>
+          <input class="setting-input" id="set-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">Zoom URL</div>
+          <input class="setting-input" id="set-zoom-url" type="url" placeholder="https://zoom.us/j/123456789">
+        </div>
+        <button class="setting-btn" onclick="saveMeetingRooms()">Save Meeting Rooms</button>
+      </div>
+
+      <!-- Plan -->
+      <div class="card" id="plan-card">
+        <div class="card-title">💳 Subscription Plan</div>
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(232,93,117,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+          <div style="font-size:2rem;" id="plan-icon">⭐</div>
+          <div>
+            <div style="font-size:1rem;font-weight:900;color:var(--text);" id="plan-name-display">Free</div>
+            <div style="font-size:12px;color:var(--text-3);font-weight:700;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
+          </div>
+        </div>
+
+        <!-- Upgrade options -->
+        <div id="plan-upgrade-section" style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Upgrade via bank transfer</div>
+          <div style="display:grid;gap:10px;">
+            <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
+              style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:1.5rem;">🚀</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:800;">Teacher Pro</div>
+                <div style="font-size:11px;color:var(--text-3);">Unlimited boards · 30 students · Analytics</div>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:var(--accent);">$9/mo</div>
+            </div>
+            <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
+              style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:1.5rem;">🏫</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:800;">School</div>
+                <div style="font-size:11px;color:var(--text-3);">Unlimited everything · Admin panel</div>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:var(--accent);">$29/mo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IBAN payment details (shown after selecting a plan) -->
+        <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
+          <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(232,93,117,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">💳 Payment Details</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
+              <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
+                <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:700;cursor:pointer;color:var(--text-2);">Copy</button>
+              </div>
+              <div><strong>Plan:</strong> <span id="iban-plan-name">—</span></div>
+              <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.6;">
+              After payment, enter your transaction details below to activate your subscription.
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <input class="setting-input" id="iban-payer-name" type="text" placeholder="Full name (as in bank statement)">
+              <input class="setting-input" id="iban-tx-date" type="date" placeholder="Payment date">
+              <textarea class="setting-input" id="iban-tx-note" rows="2" placeholder="Transaction reference / comment (optional)" style="resize:vertical;font-family:var(--font);"></textarea>
+            </div>
+            <button class="setting-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Activate Subscription →</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="setting-btn secondary" onclick="openBillingPortal()">Manage subscription</button>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="card">
+        <div class="card-title" style="color:#ef4444;">⚠️ Danger Zone</div>
+        <div class="danger-zone">
+          <div class="danger-zone-title">Delete All Boards</div>
+          <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
+          <button class="setting-btn danger" onclick="deleteAllBoards()">🗑 Delete All Boards</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- #main-content -->
+</div><!-- #layout -->
+
+
+
+
+<!-- Board Template Modal -->
+<div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(5,5,23,.18);padding:28px 28px 24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:18px;font-weight:900;">📋 New Board</div>
+      <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board Name</div>
+      <input id="tpl-name" type="text" placeholder="My Board"
+        style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font);outline:none;"
+        onkeydown="if(event.key==='Enter')confirmNewBoard()">
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
+    <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;max-height:360px;overflow-y:auto;padding-right:4px;"></div>
+    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
+  </div>
+</div>

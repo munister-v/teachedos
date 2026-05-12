@@ -1,0 +1,21 @@
+{
+  "name": "TeachEd",
+  "short_name": "TeachEd",
+  "description": "The operating system for modern teachers",
+  "start_url": "/teachedos/index.html",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#E85D75",
+  "orientation": "any",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    { "name": "My Boards", "url": "/teachedos/index.html", "description": "Open board workspace" },
+    { "name": "Schedule",  "url": "/teachedos/schedule.html", "description": "View class schedule" },
+    { "name": "Gradebook", "url": "/teachedos/gradebook.html", "description": "Open gradebook" }
+  ]
+}

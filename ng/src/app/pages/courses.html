@@ -1,0 +1,90 @@
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/schedule">Schedule</a>
+  <a class="nav-link active" routerLink="/courses">Courses</a>
+  <a class="nav-link" routerLink="/journal">Journal</a>
+  <a class="nav-link" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" routerLink="/profile" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </a>
+</nav>
+
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sb-head">
+      <div id="sb-head-title">📚 My Courses</div>
+      <button class="btn-new-course" onclick="openCourseForm()">+ New</button>
+    </div>
+    <div id="course-list"></div>
+    <div id="sb-shared-head">Shared with me</div>
+    <div id="shared-list" style="padding:4px 8px 12px;"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="welcome">
+      <div class="w-icon">📚</div>
+      <div class="w-title">Organize your lessons into courses</div>
+      <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module — no more chaos.</div>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
+    </div>
+    <div id="course-view" style="display:none;flex-direction:column;flex:1;">
+      <div id="course-header"></div>
+      <div id="modules-area"></div>
+      <div id="unassigned-section" style="display:none;">
+        <div class="unassigned-head">Unassigned lessons</div>
+        <div class="lessons-grid" id="unassigned-grid"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Board picker modal -->
+<div id="picker-overlay" onclick="if(event.target===this)closePicker()">
+  <div id="picker-modal">
+    <div id="picker-title">Add lesson board</div>
+    <input id="picker-search" placeholder="Search boards…" oninput="filterPicker(this.value)"/>
+    <div id="picker-list"></div>
+    <div id="picker-actions">
+      <button class="btn btn-ghost" onclick="closePicker()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmPicker()">Add selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Course / Module form modal -->
+<div id="form-overlay" onclick="if(event.target===this)closeForm()">
+  <div id="form-modal">
+    <div id="form-title">New Course</div>
+    <div class="form-field">
+      <div class="form-label">Name</div>
+      <input class="form-input" id="f-name" placeholder="e.g. English B1"/>
+    </div>
+    <div class="form-field" id="f-desc-wrap">
+      <div class="form-label">Description (optional)</div>
+      <input class="form-input" id="f-desc" placeholder="Short description…"/>
+    </div>
+    <div class="form-field" id="f-level-wrap">
+      <div class="form-label">Level</div>
+      <input class="form-input" id="f-level" placeholder="A1, A2, B1, B2, C1…"/>
+    </div>
+    <div class="form-field" id="f-color-wrap">
+      <div class="form-label">Color</div>
+      <div class="color-row" id="color-row"></div>
+    </div>
+    <div id="form-actions">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-primary" id="form-submit" onclick="submitForm()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>

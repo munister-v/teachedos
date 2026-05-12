@@ -1,0 +1,145 @@
+/* TeachedOS — dark theme for all non-board pages */
+[data-theme="dark"] {
+  --bg:        #1C1C1E;
+  --bg-2:      #2C2C2E;
+  --bg-3:      #3A3A3C;
+  --bg-card:   #2C2C2E;
+  --card:      #2C2C2E;
+  --border:    rgba(202,201,183,0.14);
+  --border-2:  rgba(202,201,183,0.24);
+  --text:      #F5F0E8;
+  --text-2:    #CAC9B7;
+  --text-3:    #5E5E4A;
+  --accent:    #E85D75;
+  --accent-2:  rgba(232,93,117,0.12);
+  --accent-3:  rgba(232,93,117,0.24);
+  --lime:      #C8E632;
+  --lavender:  #9F8CE8;
+  --sand-dark: #5E5E4A;
+  --sand-mid:  #A2A28C;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Cards / panels */
+[data-theme="dark"] .card,
+[data-theme="dark"] [class*="-card"],
+[data-theme="dark"] [class*="card-"],
+[data-theme="dark"] .modal,
+[data-theme="dark"] .panel,
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] nav,
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .nb {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+}
+
+/* Inputs */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: #1C1C1E !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-3) !important;
+}
+
+/* Tables */
+[data-theme="dark"] table,
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] tr:nth-child(even) {
+  background: rgba(232,93,117,.04) !important;
+}
+
+/* White backgrounds on generic divs */
+[data-theme="dark"] [style*="background:#fff"],
+[data-theme="dark"] [style*="background: #fff"],
+[data-theme="dark"] [style*="background:white"],
+[data-theme="dark"] [style*="background: white"] {
+  background: var(--bg-card) !important;
+}
+
+/* Navbar specifically */
+[data-theme="dark"] .nb {
+  border-bottom-color: var(--border) !important;
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+/* Spotlight */
+[data-theme="dark"] #spotlight-box {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .sp-result {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .sp-result:hover,
+[data-theme="dark"] .sp-result.selected {
+  background: var(--accent-2) !important;
+}
+
+/* Modals overlays */
+[data-theme="dark"] #tpl-modal > div,
+[data-theme="dark"] .modal-inner,
+[data-theme="dark"] [id$="-modal"] > div {
+  background: var(--bg-card) !important;
+}
+
+/* Dark toggle button */
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--accent-2);
+  border: 1px solid var(--accent-3);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  width: 100%;
+  margin-bottom: 10px;
+  transition: background .15s;
+}
+
+.dark-toggle:hover { background: var(--accent-3); }
+
+.dark-toggle-track {
+  width: 36px; height: 20px;
+  border-radius: 10px;
+  background: var(--border-2);
+  position: relative;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+
+.dark-toggle-track.on { background: var(--accent); }
+
+.dark-toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+}
+
+.dark-toggle-track.on .dark-toggle-thumb { transform: translateX(16px); }

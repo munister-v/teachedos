@@ -1,0 +1,165 @@
+<!-- Navbar -->
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/courses">Courses</a>
+  <a class="nav-link active" routerLink="/schedule">Schedule</a>
+  <a class="nav-link" routerLink="/journal">Journal</a>
+  <a class="nav-link" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" routerLink="/profile" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </a>
+</nav>
+
+<div id="page">
+
+  <!-- Sidebar -->
+  <div id="side">
+    <!-- Week nav -->
+    <div class="week-nav">
+      <button class="wn-btn" onclick="shiftWeek(-1)">‹</button>
+      <span class="wn-label" id="week-label"></span>
+      <button class="wn-btn" onclick="shiftWeek(1)">›</button>
+      <button class="wn-today" onclick="goToday()">Today</button>
+    </div>
+
+    <div class="side-section" style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn-add" onclick="openModal()">＋ Add Class</button>
+      <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;padding:7px;">📅 Export .ics</button>
+      <button class="btn-add" onclick="location.href='board.html'" style="background:transparent;color:var(--text2);border:1.5px solid var(--border);font-size:11px;padding:7px;">📌 Open Board</button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">Stats</div>
+      <div class="stat-row">
+        <div class="stat-pill"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Classes</div></div>
+        <div class="stat-pill"><div class="stat-num" id="stat-hours">0</div><div class="stat-lbl">Hrs/week</div></div>
+        <div class="stat-pill"><div class="stat-num" id="stat-groups">0</div><div class="stat-lbl">Groups</div></div>
+      </div>
+    </div>
+
+    <div class="side-section" style="flex:1">
+      <div class="side-label">All Classes</div>
+      <div id="cls-list"></div>
+    </div>
+  </div>
+
+  <!-- Main timetable -->
+  <div id="main">
+    <!-- Day headers -->
+    <div class="grid-head">
+      <div class="gh-time"></div>
+      <div class="gh-day" id="gh-0"><span class="gh-day-num" id="gd-0">—</span>Mon</div>
+      <div class="gh-day" id="gh-1"><span class="gh-day-num" id="gd-1">—</span>Tue</div>
+      <div class="gh-day" id="gh-2"><span class="gh-day-num" id="gd-2">—</span>Wed</div>
+      <div class="gh-day" id="gh-3"><span class="gh-day-num" id="gd-3">—</span>Thu</div>
+      <div class="gh-day" id="gh-4"><span class="gh-day-num" id="gd-4">—</span>Fri</div>
+      <div class="gh-day" id="gh-5"><span class="gh-day-num" id="gd-5">—</span>Sat</div>
+      <div class="gh-day" id="gh-6"><span class="gh-day-num" id="gd-6">—</span>Sun</div>
+    </div>
+
+    <!-- Time grid -->
+    <div class="grid-body">
+      <div class="time-col" id="time-col"></div>
+      <div class="day-col" id="day-0"><div class="now-line" id="now-line" style="display:none"></div></div>
+      <div class="day-col" id="day-1"></div>
+      <div class="day-col" id="day-2"></div>
+      <div class="day-col" id="day-3"></div>
+      <div class="day-col" id="day-4"></div>
+      <div class="day-col" id="day-5"></div>
+      <div class="day-col" id="day-6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">➕ Add Class</div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Title</label>
+        <input class="form-input" id="f-title" placeholder="English Grammar"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Day</label>
+        <select class="form-select" id="f-day">
+          <option value="0">Monday</option><option value="1">Tuesday</option>
+          <option value="2">Wednesday</option><option value="3">Thursday</option>
+          <option value="4">Friday</option><option value="5">Saturday</option>
+          <option value="6">Sunday</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Start Time</label>
+        <input class="form-input" id="f-start" type="time" value="09:00"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">End Time</label>
+        <input class="form-input" id="f-end" type="time" value="10:30"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Group</label>
+        <input class="form-input" id="f-group" placeholder="Group A"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select class="form-select" id="f-level">
+          <option value="">—</option>
+          <option>A1</option><option>A2</option><option>B1</option>
+          <option>B2</option><option>C1</option><option>C2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room</label>
+        <input class="form-input" id="f-room" placeholder="Room 101"/>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Color</label>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">📹 Meeting URL <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional — Zoom or Meet link)</span></label>
+      <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…">
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="f-recurring" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" onchange="toggleRecurring(this.checked)">
+      <label for="f-recurring" style="font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;">Recurring (repeats weekly)</label>
+    </div>
+
+    <!-- Specific date — shown only when recurring is OFF -->
+    <div id="f-date-row" class="form-row" style="display:none;margin-bottom:14px;">
+      <div class="form-group">
+        <label class="form-label">📅 Specific Date</label>
+        <input class="form-input" id="f-specific-date" type="date"/>
+      </div>
+      <div class="form-group" style="justify-content:flex-end;padding-bottom:2px;">
+        <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-top:auto;">
+          One-time class on<br>this exact date
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="modal-save-btn" onclick="saveClass()">Add Class</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>

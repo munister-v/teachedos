@@ -1,0 +1,122 @@
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/courses">Courses</a>
+  <a class="nav-link" routerLink="/schedule">Schedule</a>
+  <a class="nav-link active" routerLink="/analytics">Analytics</a>
+  <a class="nav-link" routerLink="/journal">Journal</a>
+  <a class="nav-link" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" routerLink="/profile" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </a>
+</nav>
+
+<div id="page">
+
+  <!-- Header -->
+  <div class="page-head">
+    <div>
+      <div class="page-title">📊 Analytics</div>
+      <div class="page-sub">Course progress across your boards</div>
+    </div>
+    <div class="head-spacer"></div>
+    <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
+    <a class="btn btn-primary" routerLink="/board" style="text-decoration:none;">📌 Open Board</a>
+  </div>
+
+  <!-- Board selector -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">📋 Select Board</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportAllCSV()" title="Export all data">📥 Export All</button>
+    </div>
+    <div class="sec-body">
+      <div class="board-pills" id="board-pills">Loading boards…</div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-icon si-blue">📚</div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange">📝</div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-pink">🏁</div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-purple">📈</div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
+  </div>
+
+  <!-- Insights -->
+  <div class="section" id="insight-section" style="display:none">
+    <div class="sec-head"><div class="sec-title">💡 Insights</div></div>
+    <div class="sec-body" id="insight-body"></div>
+  </div>
+
+  <!-- Progress + Pie -->
+  <div class="grid2">
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">📈 Course Progress</div></div>
+      <div class="sec-body" id="progress-section">
+        <div class="empty"><div class="empty-icon">📋</div>Select a board above</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">🍩 Status Breakdown</div></div>
+      <div class="sec-body" id="pie-section">
+        <div class="empty"><div class="empty-icon">📊</div>No data yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lessons table -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">📚 Lessons</div>
+      <span id="lessons-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="lesson-table" id="lesson-table">
+        <thead><tr><th>Lesson</th><th>Level</th><th>Skill</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody id="lesson-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">Select a board to see lessons</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Assignments -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">📝 Assignments</div></div>
+    <div class="sec-body">
+      <div class="assign-grid" id="assign-grid">
+        <div class="empty" style="grid-column:1/-1"><div class="empty-icon">📝</div>No assignments found</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student progress -->
+  <div class="section" id="students-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">👥 Student Progress</div>
+      <span id="students-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body" id="students-body">
+      <div class="empty"><div class="empty-icon">👥</div>No students yet</div>
+    </div>
+  </div>
+
+  <!-- Quiz Results Analytics -->
+  <div class="section" id="quiz-analytics-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">📝 Quiz Results</div>
+      <span id="quiz-analytics-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body" id="quiz-analytics-body">
+      <div class="empty"><div class="empty-icon">📝</div>No quiz submissions yet</div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div id="toast"></div>
