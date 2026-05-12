@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-bottom-tabs',
-  imports: [],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './bottom-tabs.html',
   styleUrl: './bottom-tabs.scss',
 })

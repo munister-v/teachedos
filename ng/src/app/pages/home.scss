@@ -109,25 +109,27 @@ html,body {
     inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
-/* Clock widget */
+/* Clock widget — dark card */
 #wg-clock {
   top:48px; right:24px;
-  width:176px; padding:20px 20px 18px;
+  width:176px; padding:22px 20px 18px;
   text-align:center;
+  background: #1C1C1E;
+  border-color: rgba(255,255,255,.08);
 }
 .wg-clock-time {
   font-family: var(--font-ui); font-size:52px; font-weight:900;
-  color: var(--text); line-height:1; letter-spacing:-0.03em;
+  color: #fff; line-height:1; letter-spacing:-0.03em;
 }
-.wg-clock-time em { color: var(--accent); font-style:normal; }
+.wg-clock-time em { color: var(--lime, #C8E632); font-style:normal; }
 .wg-clock-date {
-  font-size:11px; color: var(--text-3); margin-top:6px;
+  font-size:11px; color: rgba(255,255,255,.45); margin-top:6px;
   font-family: var(--font-mono); letter-spacing:0.06em; text-transform:uppercase;
 }
 .wg-clock-lang {
-  margin-top:10px; font-size:11px; color: var(--accent);
-  font-family: var(--font-ui); font-weight:700; letter-spacing:0.02em;
-  background: var(--accent-2); border: 1px solid var(--accent-3);
+  margin-top:10px; font-size:11px; color: #1C1C1E;
+  font-family: var(--font-ui); font-weight:800; letter-spacing:0.02em;
+  background: var(--lime, #C8E632); border: none;
   border-radius:20px; padding:4px 12px; display:inline-block;
 }
 
@@ -137,7 +139,7 @@ html,body {
   width:176px; padding:18px;
 }
 .wg-streak-n {
-  font-family: var(--font-ui); font-size:42px; font-weight:600;
+  font-family: var(--font-ui); font-size:42px; font-weight:900;
   color: var(--accent); line-height:1;
 }
 .wg-streak-fire { font-size:22px; margin-left:4px; }
@@ -147,36 +149,38 @@ html,body {
 }
 .wg-streak-sub { font-size:11px; color: var(--text-2); margin-top:8px; line-height:1.4; }
 
-/* Today widget */
+/* Today widget — dark card */
 #wg-today {
   top:398px; right:24px;
   width:176px; padding:16px 18px;
+  background: #1C1C1E;
+  border-color: rgba(255,255,255,.08);
 }
 .wg-today-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: var(--text-3); margin-bottom:10px;
+  text-transform:uppercase; color: rgba(255,255,255,.45); margin-bottom:10px;
 }
 .wg-today-title {
-  font-family: var(--font-ui); font-size:19px; font-weight:600;
-  color: var(--text); line-height:1.2; margin-bottom:6px;
+  font-family: var(--font-ui); font-size:19px; font-weight:700;
+  color: #fff; line-height:1.2; margin-bottom:6px;
 }
 .wg-today-meta {
-  font-size:11px; color: var(--text-3); font-family: var(--font-mono);
+  font-size:11px; color: rgba(255,255,255,.4); font-family: var(--font-mono);
   display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;
 }
 .wg-today-badge {
   display:inline-flex; align-items:center; gap:4px;
   font-size:10px; font-family: var(--font-mono);
-  color: var(--accent); background: var(--accent-2);
-  border: 1px solid var(--accent-3); border-radius:20px; padding:3px 9px;
-  margin-top:10px; letter-spacing:0.06em;
+  color: #1C1C1E; background: var(--lime, #C8E632);
+  border: none; border-radius:20px; padding:3px 9px;
+  margin-top:10px; letter-spacing:0.06em; font-weight:800;
 }
 .wg-today-prog {
-  margin-top:12px; height:3px; background: rgba(202,201,183,0.18);
+  margin-top:12px; height:4px; background: rgba(255,255,255,.1);
   border-radius:2px; overflow:hidden;
 }
 .wg-today-prog-fill {
-  height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
+  height:100%; background: linear-gradient(90deg, var(--lime, #C8E632), var(--accent));
   border-radius:2px; width:68%;
 }
 
@@ -205,12 +209,12 @@ html,body {
 }
 .wg-vocab-next {
   margin-top:12px; width:100%;
-  background: linear-gradient(135deg, var(--accent), #D04A63); border: none;
-  border-radius:12px; padding:9px; font-size:12px; font-family: var(--font-ui);
+  background: var(--accent); border: none;
+  border-radius:12px; padding:10px; font-size:12px; font-family: var(--font-ui);
   font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
-  text-align:center; box-shadow: 0 4px 14px rgba(232,93,117,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-align:center; box-shadow: 0 4px 16px rgba(232,93,117,0.3);
 }
-.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(232,93,117,0.30); }
+.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 20px rgba(232,93,117,0.35); }
 
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
@@ -255,15 +259,15 @@ html,body {
   width:1px; height:44px; background: rgba(202,201,183,0.22);
   margin:0 3px; align-self:center;
 }
-/* dock icon colors */
-.di-icon.curriculum { background: linear-gradient(145deg,#c45472,#8b2d50); }
-.di-icon.flashcards  { background: linear-gradient(145deg,#8b6bb1,#5b3a8f); }
-.di-icon.progress    { background: linear-gradient(145deg,#e87898,#5E5E4A); }
-.di-icon.schedule    { background: linear-gradient(145deg,#d4749a,#a84d70); }
-.di-icon.notes       { background: linear-gradient(145deg,#9F8CE8,#e87898); }
-.di-icon.dictionary  { background: linear-gradient(145deg,#7ca8d4,#4a72a0); }
-.di-icon.settings    { background: linear-gradient(145deg,#5a4550,#3a2d35); }
-.di-icon.finder      { background: linear-gradient(145deg,#4ab0c8,#2a7d96); }
+/* dock icon colors — updated palette */
+.di-icon.curriculum { background: linear-gradient(145deg,#E85D75,#c04058); }
+.di-icon.flashcards  { background: linear-gradient(145deg,#9F8CE8,#7a64c8); }
+.di-icon.progress    { background: linear-gradient(145deg,#C8E632,#9ab820); }
+.di-icon.schedule    { background: linear-gradient(145deg,#E85D75,#c04058); }
+.di-icon.notes       { background: linear-gradient(145deg,#9F8CE8,#E85D75); }
+.di-icon.dictionary  { background: linear-gradient(145deg,#60a5fa,#3b82f6); }
+.di-icon.settings    { background: linear-gradient(145deg,#1C1C1E,#333); }
+.di-icon.finder      { background: linear-gradient(145deg,#C8E632,#9ab820); }
 
 /* ═══════════════════════════ WINDOWS ═══════════════════════════ */
 .win {
