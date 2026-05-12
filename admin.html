@@ -11,26 +11,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;
-  --bg:#F5F5EA;--card:#fff;
+  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --bg:#F5F0E8;--card:#fff;
   --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#050517;--text2:#3A3A2E;--muted:#A2A28C;
+  --text:#1C1C1E;--text2:#3A3A2E;--muted:#A2A28C;
   --green:#22c55e;--red:#ef4444;--orange:#f97316;--blue:#3b82f6;
-  --dark:#050517;--dark2:#0F0F26;--sidebar-w:240px;
+  --dark:#1C1C1E;--dark2:#2C2C2E;--sidebar-w:240px;
   --card-r:14px;--shadow:0 4px 24px rgba(5,5,23,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Nunito,sans-serif;background:#F5F5EA;color:var(--text);min-height:100vh;display:flex}
+body{font-family:Nunito,sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;display:flex}
 
 /* ── Login screen ───────────────────────────────────────────────────────── */
 #login-screen{
-  position:fixed;inset:0;background:linear-gradient(135deg,#F5F5EA 0%,#f3e8ff 100%);
+  position:fixed;inset:0;background:linear-gradient(135deg,#F5F0E8 0%,#f3e8ff 100%);
   display:flex;align-items:center;justify-content:center;z-index:9999;
   transition:opacity .3s;
 }
 #login-screen.hidden{opacity:0;pointer-events:none}
 .login-box{background:#fff;border-radius:24px;padding:44px 40px;width:360px;
-  box-shadow:0 8px 48px rgba(255,78,0,.18);text-align:center}
+  box-shadow:0 8px 48px rgba(232,93,117,.18);text-align:center}
 .login-logo{font-size:48px;margin-bottom:8px}
 .login-title{font-size:22px;font-weight:900;color:var(--dark);margin-bottom:4px}
 .login-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
@@ -70,7 +70,7 @@ body{font-family:Nunito,sans-serif;background:#F5F5EA;color:var(--text);min-heig
   transition:all .15s;border-left:3px solid transparent;
 }
 .sb-item:hover{color:#fff;background:rgba(255,255,255,.05)}
-.sb-item.active{color:#fff;background:rgba(255,78,0,.15);border-left-color:var(--accent)}
+.sb-item.active{color:#fff;background:rgba(232,93,117,.15);border-left-color:var(--accent)}
 .sb-icon{font-size:18px;width:24px;text-align:center}
 .sb-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
 .sb-user{display:flex;align-items:center;gap:10px}
@@ -80,7 +80,7 @@ body{font-family:Nunito,sans-serif;background:#F5F5EA;color:var(--text);min-heig
 .sb-logout{margin-top:10px;width:100%;padding:8px;background:rgba(255,255,255,.07);
   border:none;border-radius:10px;color:rgba(255,255,255,.5);font-family:Nunito,sans-serif;
   font-size:13px;cursor:pointer;transition:.15s}
-.sb-logout:hover{background:rgba(255,78,0,.2);color:#fff}
+.sb-logout:hover{background:rgba(232,93,117,.2);color:#fff}
 
 /* ── Pages ───────────────────────────────────────────────────────────────── */
 .page{display:none}
@@ -96,7 +96,7 @@ body{font-family:Nunito,sans-serif;background:#F5F5EA;color:var(--text);min-heig
 }
 .stat-icon{font-size:32px;width:52px;height:52px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.stat-icon.pink{background:#F5F5EA}
+.stat-icon.pink{background:#F5F0E8}
 .stat-icon.green{background:#f0fdf4}
 .stat-icon.blue{background:#eff6ff}
 .stat-icon.orange{background:#fff7ed}
@@ -188,7 +188,7 @@ tr:hover td{background:#fafafa}
 /* ── Toast ───────────────────────────────────────────────────────────────── */
 #toast{
   position:fixed;bottom:28px;right:28px;z-index:9999;
-  background:#050517;color:#fff;padding:13px 22px;border-radius:14px;
+  background:#1C1C1E;color:#fff;padding:13px 22px;border-radius:14px;
   font-size:14px;font-weight:700;box-shadow:0 4px 24px rgba(0,0,0,.25);
   transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;
 }
@@ -454,7 +454,7 @@ tr:hover td{background:#fafafa}
       <div class="setting-card">
         <div class="setting-title">🔗 API Endpoint</div>
         <div class="setting-desc">Current backend URL being used by this panel.</div>
-        <div style="font-family:monospace;font-size:13px;padding:12px;background:#F5F5EA;border-radius:10px;word-break:break-all" id="api-url-display"></div>
+        <div style="font-family:monospace;font-size:13px;padding:12px;background:#F5F0E8;border-radius:10px;word-break:break-all" id="api-url-display"></div>
       </div>
 
     </div>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
-<meta name="theme-color" content="#FF4E00">
+<meta name="theme-color" content="#E85D75">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -19,20 +19,20 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --accent: #FF4E00;
-  --accent-2: rgba(255,78,0,.08);
-  --accent-3: rgba(255,78,0,.16);
-  --bg: #F5F5EA;
-  --bg-2: #EAEADA;
+  --accent: #E85D75;
+  --accent-2: rgba(232,93,117,.08);
+  --accent-3: rgba(232,93,117,.16);
+  --bg: #F5F0E8;
+  --bg-2: #EDE8E0;
   --border: rgba(94,94,74,.14);
   --border-2: rgba(94,94,74,.28);
-  --text: #050517;
+  --text: #1C1C1E;
   --text-2: #3A3A2E;
   --text-3: #A2A28C;
   --shadow: 0 4px 24px rgba(5,5,23,.08);
   --radius: 16px;
   --font: 'Nunito', sans-serif;
-  --lime: #D3F26A;
+  --lime: #C8E632;
   --lavender: #9F8CE8;
 }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -40,7 +40,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 /* ── Navbar ── */
 #nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(245,245,234,.92); backdrop-filter: blur(12px);
+  background: rgba(245,240,232,.92); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 12px;
   padding: 0 24px; height: 56px;
@@ -299,20 +299,20 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <!-- BULK IMPORT MODAL -->
     <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
-        <div style="font-size:18px;font-weight:900;color:#050517;letter-spacing:-.03em;margin-bottom:6px;">📥 Bulk Invite Students</div>
+        <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">📥 Bulk Invite Students</div>
         <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
-          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;background:#F5F5EA;color:#050517;"></select>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
         </div>
         <div style="margin-bottom:18px;">
           <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
-          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F5EA;color:#050517;line-height:1.6;"></textarea>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F5EA;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
-          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#FF4E00;color:#fff;font-family:Nunito,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:Nunito,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
         <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
       </div>
@@ -407,7 +407,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title">💳 Subscription Plan</div>
-        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(255,78,0,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(232,93,117,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="font-size:2rem;" id="plan-icon">⭐</div>
           <div>
             <div style="font-size:1rem;font-weight:900;color:var(--text);" id="plan-name-display">Free</div>
@@ -442,7 +442,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
         <!-- IBAN payment details (shown after selecting a plan) -->
         <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
-          <div style="padding:16px;background:linear-gradient(135deg,rgba(211,242,106,.12),rgba(255,78,0,.06));border-radius:12px;border:1.5px solid rgba(211,242,106,.3);">
+          <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(232,93,117,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
             <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">💳 Payment Details</div>
             <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
@@ -559,7 +559,7 @@ async function renderOverview() {
   const planBadge = planBadges[me.plan];
   if (planBadge) {
     const el = document.getElementById('profile-role-badge');
-    el.insertAdjacentHTML('afterend', `<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(255,78,0,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
+    el.insertAdjacentHTML('afterend', `<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(232,93,117,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
   }
 
   if (me.created_at) {
@@ -803,11 +803,11 @@ function createNewBoard() {
   const grid = document.getElementById('tpl-grid');
   grid.innerHTML = BOARD_TEMPLATES.map(t => `
     <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
-      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(255,78,0,.05)':'#F5F5EA'};">
+      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(232,93,117,.05)':'#F5F0E8'};">
       <div style="font-size:22px;margin-bottom:6px;">${t.icon}</div>
-      <div style="font-size:13px;font-weight:800;color:#050517;letter-spacing:-.01em;">${t.name}</div>
+      <div style="font-size:13px;font-weight:800;color:#1C1C1E;letter-spacing:-.01em;">${t.name}</div>
       <div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${t.desc}</div>
-      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#FF4E00;font-family:monospace;">${t.cards.length} cards</div>` : ''}
+      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#E85D75;font-family:monospace;">${t.cards.length} cards</div>` : ''}
     </div>`).join('');
   document.getElementById('tpl-name').value = '';
   const modal = document.getElementById('tpl-modal');
@@ -874,7 +874,7 @@ async function loadSharedBoards() {
     }
     wrap.innerHTML = boards.map(b => `
       <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
-        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F5EA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
@@ -1102,7 +1102,7 @@ function selectPlan(plan) {
   const opt = document.getElementById('plan-opt-' + plan);
   if (opt) {
     opt.style.borderColor = 'var(--accent)';
-    opt.style.background = 'rgba(255,78,0,.05)';
+    opt.style.background = 'rgba(232,93,117,.05)';
   }
   document.getElementById('iban-plan-name').textContent = PLAN_NAMES[plan] || plan;
   document.getElementById('iban-plan-price').textContent = PLAN_PRICES[plan] || '';

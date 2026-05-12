@@ -138,7 +138,7 @@ router.post('/', requireAuth, async (req, res) => {
       const { rows } = await pool.query(
         `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4, group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12
          WHERE id=$13 AND user_id=$14 RETURNING *`,
-        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4E00', recurring !== false, meeting_url || null, is_live || false, specific_date || null, id, req.user.id]
+        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#E85D75', recurring !== false, meeting_url || null, is_live || false, specific_date || null, id, req.user.id]
       );
       if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
       return res.json({ slot: rows[0] });
@@ -146,7 +146,7 @@ router.post('/', requireAuth, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO schedule (user_id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
-      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#FF4E00', recurring !== false, meeting_url || null, is_live || false, specific_date || null]
+      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#E85D75', recurring !== false, meeting_url || null, is_live || false, specific_date || null]
     );
     res.status(201).json({ slot: rows[0] });
   } catch (err) {
@@ -165,7 +165,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
         group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12
        WHERE id=$13 AND user_id=$14 RETURNING *`,
       [day, start_time, end_time, title||'Class', group_name||null, level||null,
-       room||null, color||'#FF4E00', recurring!==false, meeting_url||null, is_live||false,
+       room||null, color||'#E85D75', recurring!==false, meeting_url||null, is_live||false,
        specific_date||null, req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });

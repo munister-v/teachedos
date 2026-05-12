@@ -1,19 +1,19 @@
 /* TeachedOS — dark theme for all non-board pages */
 [data-theme="dark"] {
-  --bg:        #050517;
-  --bg-2:      #0D0D22;
-  --bg-3:      #16162E;
-  --bg-card:   #0F0F26;
-  --card:      #0F0F26;
+  --bg:        #1C1C1E;
+  --bg-2:      #2C2C2E;
+  --bg-3:      #3A3A3C;
+  --bg-card:   #2C2C2E;
+  --card:      #2C2C2E;
   --border:    rgba(202,201,183,0.14);
   --border-2:  rgba(202,201,183,0.24);
-  --text:      #F5F5EA;
+  --text:      #F5F0E8;
   --text-2:    #CAC9B7;
   --text-3:    #5E5E4A;
-  --accent:    #FF4E00;
-  --accent-2:  rgba(255,78,0,0.12);
-  --accent-3:  rgba(255,78,0,0.24);
-  --lime:      #D3F26A;
+  --accent:    #E85D75;
+  --accent-2:  rgba(232,93,117,0.12);
+  --accent-3:  rgba(232,93,117,0.24);
+  --lime:      #C8E632;
   --lavender:  #9F8CE8;
   --sand-dark: #5E5E4A;
   --sand-mid:  #A2A28C;
@@ -43,7 +43,7 @@
 [data-theme="dark"] input,
 [data-theme="dark"] textarea,
 [data-theme="dark"] select {
-  background: #0A0A20 !important;
+  background: #1C1C1E !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
@@ -62,7 +62,7 @@
 }
 
 [data-theme="dark"] tr:nth-child(even) {
-  background: rgba(255,78,0,.04) !important;
+  background: rgba(232,93,117,.04) !important;
 }
 
 /* White backgrounds on generic divs */

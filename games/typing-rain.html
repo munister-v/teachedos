@@ -10,17 +10,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#FF4E00}
+:root{--accent:#E85D75}
 body{font-family:'Nunito',sans-serif;background:#1a0a12;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;color:#fff}
-.back{align-self:flex-start;color:#D3F26A;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
-h1{font-size:1.6rem;font-weight:800;color:#FF4E00;margin-bottom:2px}
+.back{align-self:flex-start;color:#C8E632;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;color:#E85D75;margin-bottom:2px}
 .subtitle{color:#886;font-size:.85rem;margin-bottom:16px}
-.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#D3F26A}
+.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#C8E632}
 .hud span{color:#fff}
 #arena{width:100%;max-width:520px;height:340px;background:#120008;border-radius:18px;position:relative;overflow:hidden;border:2px solid #3a0020}
-.falling{position:absolute;font-weight:800;font-size:1rem;color:#D3F26A;white-space:nowrap;text-shadow:0 0 8px #FF4E0088;transition:color .1s}
-.falling.active{color:#fff;text-shadow:0 0 12px #FF4E00}
-.ground{position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#FF4E00,transparent)}
+.falling{position:absolute;font-weight:800;font-size:1rem;color:#C8E632;white-space:nowrap;text-shadow:0 0 8px #E85D7588;transition:color .1s}
+.falling.active{color:#fff;text-shadow:0 0 12px #E85D75}
+.ground{position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#E85D75,transparent)}
 .lives{font-size:1.2rem;letter-spacing:4px}
 input{margin-top:14px;width:100%;max-width:520px;padding:12px 18px;border:2px solid #3a0020;border-radius:14px;font-size:1.1rem;font-family:'Nunito',sans-serif;font-weight:700;background:#120008;color:#fff;outline:none;text-align:center}
 input:focus{border-color:var(--accent)}
@@ -130,7 +130,7 @@ function endGame(){
   document.getElementById('inp').disabled=true;
   const ov=document.getElementById('overlay');
   ov.style.display='flex';
-  ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#D3F26A">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
+  ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#C8E632">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
 }
 </script>
 </body>
