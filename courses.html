@@ -12,20 +12,20 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#FF4E00;--accent2:#9F8CE8;--lime:#D3F26A;
-  --bg:#F5F5EA;--bg2:#EAEADA;--card:#fff;
+  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
   --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#050517;--text2:#3A3A2E;--text3:#A2A28C;
+  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
   --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
   --shadow:0 4px 24px rgba(5,5,23,.08);
   --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
   --nav-h:52px;
 }
-[data-theme="dark"]{--bg:#050517;--bg2:#0F0F26;--card:#0F0F26;--border:rgba(202,201,183,.12);--border2:rgba(202,201,183,.22);--text:#F5F5EA;--text2:#CAC9B7;--text3:#5E5E4A;}
+[data-theme="dark"]{--bg:#1C1C1E;--bg2:#2C2C2E;--card:#2C2C2E;--border:rgba(202,201,183,.12);--border2:rgba(202,201,183,.22);--text:#F5F0E8;--text2:#CAC9B7;--text3:#5E5E4A;}
 [data-theme="dark"]{
-  --bg:#12090F;--bg2:#1A1020;--card:#1E1228;
+  --bg:#1C1C1E;--bg2:#2C2C2E;--card:#2C2C2E;
   --border:rgba(94,94,74,.18);--border2:rgba(94,94,74,.32);
-  --text:#F5E6EF;--text2:#D4849E;--text3:#8B5270;
+  --text:#F5F0E8;--text2:#CAC9B7;--text3:#5E5E4A;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 a{text-decoration:none;color:inherit;}
@@ -78,7 +78,7 @@ button{font-family:var(--font);cursor:pointer;}
   display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;
   cursor:pointer;transition:.15s;margin-bottom:2px;
 }
-.course-item:hover{background:rgba(255,78,0,.07);}
+.course-item:hover{background:rgba(232,93,117,.07);}
 .course-item.active{background:rgba(94,94,74,.12);}
 .course-item.active .ci-name{color:var(--accent);}
 .ci-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -131,7 +131,7 @@ button{font-family:var(--font);cursor:pointer;}
 }
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
-.btn-ghost{background:rgba(255,78,0,.08);color:var(--accent);border:1.5px solid var(--border2);}
+.btn-ghost{background:rgba(232,93,117,.08);color:var(--accent);border:1.5px solid var(--border2);}
 .btn-ghost:hover{background:rgba(94,94,74,.16);}
 .btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
@@ -154,9 +154,9 @@ button{font-family:var(--font);cursor:pointer;}
 .module-head:hover .module-actions{opacity:1;}
 .mod-btn{
   padding:3px 9px;border:none;border-radius:7px;font-size:11px;font-weight:700;
-  background:rgba(255,78,0,.08);color:var(--accent);transition:.15s;
+  background:rgba(232,93,117,.08);color:var(--accent);transition:.15s;
 }
-.mod-btn:hover{background:rgba(255,78,0,.18);}
+.mod-btn:hover{background:rgba(232,93,117,.18);}
 .mod-btn.red{background:rgba(239,68,68,.08);color:#ef4444;}
 .mod-btn.red:hover{background:rgba(239,68,68,.18);}
 
@@ -223,7 +223,7 @@ button{font-family:var(--font);cursor:pointer;}
 #picker-search:focus{border-color:var(--accent);}
 #picker-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid transparent;transition:.15s;}
-.picker-item:hover{background:rgba(255,78,0,.07);border-color:var(--border);}
+.picker-item:hover{background:rgba(232,93,117,.07);border-color:var(--border);}
 .picker-item.selected{background:rgba(94,94,74,.12);border-color:var(--accent);}
 .pi-name{font-size:13px;font-weight:800;flex:1;color:var(--text);}
 .pi-meta{font-size:11px;color:var(--text3);}
@@ -245,7 +245,7 @@ button{font-family:var(--font);cursor:pointer;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:700;background:#050517;color:#fff;
+  border-radius:12px;font-size:13px;font-weight:700;background:#1C1C1E;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
@@ -361,7 +361,7 @@ const API = 'https://teachedos-api.onrender.com';
 const token = localStorage.getItem('teachedos_token');
 
 const COLORS = [
-  '#FF4E00','#f97316','#eab308','#22c55e','#06b6d4',
+  '#E85D75','#f97316','#eab308','#22c55e','#06b6d4',
   '#6366f1','#8b5cf6','#ec4899','#3b82f6','#10b981',
 ];
 let selectedColor = COLORS[0];
@@ -566,16 +566,16 @@ async function openSharedCourse(id) {
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;display:flex;align-items:center;justify-content:center;';
     const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     modal.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">' +
-      '<div style="font-size:18px;font-weight:900;color:#050517;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
+      '<div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
       '<div style="font-size:13px;color:#A2A28C;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
       (boards.length ? boards.map(b =>
-        '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F5EA;">' +
+        '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F0E8;">' +
         '<span style="font-size:20px;">📌</span>' +
-        '<div><div style="font-size:14px;font-weight:800;color:#050517;">' + esc2(b.name) + '</div>' +
+        '<div><div style="font-size:14px;font-weight:800;color:#1C1C1E;">' + esc2(b.name) + '</div>' +
         '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
-        '<span style="margin-left:auto;color:#FF4E00;font-weight:700;font-size:13px;">Open →</span></a>'
+        '<span style="margin-left:auto;color:#E85D75;font-weight:700;font-size:13px;">Open →</span></a>'
       ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
-      '<button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F5EA;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      '<button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
       '</div>';
     modal.onclick = e => { if(e.target===modal) modal.remove(); };
     document.body.appendChild(modal);
@@ -599,7 +599,7 @@ function openPicker(moduleId) {
   el.innerHTML = available.length
     ? available.map(b => `
         <div class="picker-item" id="pi-${b.id}" onclick="togglePickerItem('${b.id}')">
-          <div style="font-size:20px;width:36px;height:36px;border-radius:10px;background:#F5F5EA;display:flex;align-items:center;justify-content:center;">📌</div>
+          <div style="font-size:20px;width:36px;height:36px;border-radius:10px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;">📌</div>
           <div style="flex:1">
             <div class="pi-name">${esc(b.name)}</div>
             <div class="pi-meta">${b.card_count||0} cards · ${timeSince(b.updated_at)}</div>

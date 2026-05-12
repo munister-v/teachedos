@@ -1,0 +1,196 @@
+<nav class="nav">
+  <a class="nav-back" href="../index.html">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 12L6 8l4-4"/>
+    </svg>
+    TeachedOS
+  </a>
+  <div class="nav-sep"></div>
+  <div class="nav-title"><em>✦</em> Games Hub</div>
+  <div class="nav-count">16 games</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">🎮 Interactive Practice</div>
+  <h1>Learn by <em>Playing</em></h1>
+  <p>Fast, fun, competitive mini-games to sharpen your English skills every day.</p>
+</section>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterCards('all', this)">All</button>
+  <button class="filter-btn" onclick="filterCards('vocab', this)">Vocabulary</button>
+  <button class="filter-btn" onclick="filterCards('grammar', this)">Grammar</button>
+  <button class="filter-btn" onclick="filterCards('spelling', this)">Spelling</button>
+  <button class="filter-btn" onclick="filterCards('speed', this)">Speed</button>
+  <button class="filter-btn" onclick="filterCards('ai', this)">AI-Powered</button>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid" id="games-grid">
+
+    <a class="card" routerLink="/word-scramble" data-tag="vocab">
+      <span class="card-icon">🔀</span>
+      <div class="card-title">Word Scramble</div>
+      <div class="card-desc">Unscramble the letters to form the correct word</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/hangman" data-tag="spelling">
+      <span class="card-icon">🎯</span>
+      <div class="card-title">Hangman</div>
+      <div class="card-desc">Guess the hidden word letter by letter</div>
+      <div class="card-footer">
+        <span class="card-tag spelling">Spelling</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/article-rush" data-tag="grammar">
+      <span class="card-icon">⚡</span>
+      <div class="card-title">Article Rush</div>
+      <div class="card-desc">Pick a / an / the / ∅ as fast as you can</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/memory-match" data-tag="vocab">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Memory Match</div>
+      <div class="card-desc">Flip cards to match words with definitions</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/sentence-builder" data-tag="grammar">
+      <span class="card-icon">🧩</span>
+      <div class="card-title">Sentence Builder</div>
+      <div class="card-desc">Arrange shuffled words into correct sentences</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/typing-rain" data-tag="speed">
+      <span class="card-icon">🌧️</span>
+      <div class="card-title">Typing Rain</div>
+      <div class="card-desc">Type falling words before they hit the ground</div>
+      <div class="card-footer">
+        <span class="card-tag speed">Speed</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/true-false" data-tag="grammar">
+      <span class="card-icon">✅</span>
+      <div class="card-title">True or False</div>
+      <div class="card-desc">Rapid-fire grammar and vocabulary statements</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/phrasal-verbs" data-tag="vocab">
+      <span class="card-icon">🔗</span>
+      <div class="card-title">Phrasal Verbs</div>
+      <div class="card-desc">Complete phrasal verbs with the right particle</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/false-friends" data-tag="vocab">
+      <span class="card-icon">🪤</span>
+      <div class="card-title">False Friends</div>
+      <div class="card-desc">Identify tricky false cognates from RU/UA/PL</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/prepositions" data-tag="grammar">
+      <span class="card-icon">📍</span>
+      <div class="card-title">Prepositions</div>
+      <div class="card-desc">Fill in at / in / on / by in context</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/grammar-fix" data-tag="grammar">
+      <span class="card-icon">🔧</span>
+      <div class="card-title">Grammar Fix</div>
+      <div class="card-desc">Spot and correct the error in each sentence</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/tense-picker" data-tag="grammar">
+      <span class="card-icon">⏱️</span>
+      <div class="card-title">Tense Picker</div>
+      <div class="card-desc">Choose the correct verb tense form</div>
+      <div class="card-footer">
+        <span class="card-tag grammar">Grammar</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/synonym-snap" data-tag="vocab">
+      <span class="card-icon">🔄</span>
+      <div class="card-title">Synonym Snap</div>
+      <div class="card-desc">Match synonym pairs before time runs out</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/spelling-bee" data-tag="spelling">
+      <span class="card-icon">🐝</span>
+      <div class="card-title">Spelling Bee</div>
+      <div class="card-desc">Type the word from its definition clue</div>
+      <div class="card-footer">
+        <span class="card-tag spelling">Spelling</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/word-categories" data-tag="vocab">
+      <span class="card-icon">🗂️</span>
+      <div class="card-title">Word Categories</div>
+      <div class="card-desc">Sort words into the correct topic groups</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" routerLink="/word-definition-match" data-tag="vocab">
+      <span class="card-icon">🎴</span>
+      <div class="card-title">Definition Match</div>
+      <div class="card-desc">Match words to their definitions</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<footer class="page-footer">
+  <a href="../index.html">← Back to TeachedOS</a> &nbsp;·&nbsp; 16 games available
+</footer>

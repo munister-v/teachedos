@@ -1,0 +1,45 @@
+#nav {
+  position: sticky; top: 0; z-index: 200; height: 52px;
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 10px;
+  box-shadow: 0 1px 12px rgba(94,94,74,.06);
+}
+
+.nav-logo {
+  font-size: 17px; font-weight: 900; color: var(--accent);
+  letter-spacing: -.3px; text-decoration: none;
+}
+
+.nav-sep {
+  width: 1px; height: 20px; background: var(--border); margin: 0 4px;
+}
+
+.nav-link {
+  font-size: 12px; font-weight: 700; color: var(--text-2);
+  padding: 4px 10px; border-radius: 8px; transition: .15s;
+  text-decoration: none;
+
+  &:hover, &.active {
+    background: var(--accent-2); color: var(--accent);
+  }
+}
+
+.nav-page-title {
+  font-size: 13px; font-weight: 800; color: var(--text);
+}
+
+.nav-spacer { flex: 1; }
+
+.nav-avatar {
+  font-size: 1.2rem; line-height: 1;
+}
+
+.nav-user {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--text-2);
+  padding: 3px 10px 3px 6px; border-radius: 20px;
+  border: 1px solid var(--border); background: #fff; cursor: pointer;
+}

@@ -1,0 +1,121 @@
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/courses">Courses</a>
+  <a class="nav-link" routerLink="/schedule">Schedule</a>
+  <a class="nav-link active" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" routerLink="/profile" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </a>
+</nav>
+
+<div id="page">
+
+  <!-- Page head -->
+  <div class="page-head">
+    <div>
+      <div class="page-title">📒 Gradebook</div>
+      <div class="page-sub">Track student progress across your course boards</div>
+    </div>
+    <div class="head-spacer"></div>
+    <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn btn-primary" id="btn-invite" onclick="openInviteModal()" style="display:none">➕ Invite Student</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card"><div class="stat-icon si-blue">👥</div><div><div class="stat-val" id="s-students">—</div><div class="stat-lbl">Students</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-pink">📚</div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="s-avg">—</div><div class="stat-lbl">Avg. Completion</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange">🔥</div><div><div class="stat-val" id="s-top">—</div><div class="stat-lbl">Top Student</div></div></div>
+  </div>
+
+  <!-- Board selector -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">📋 Select Board</div></div>
+    <div class="sec-body">
+      <div class="board-pills" id="board-pills">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Members + invite -->
+  <div class="section" id="members-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">👥 Students</div>
+      <span id="member-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body">
+      <div class="invite-form" style="margin-bottom:18px;">
+        <input class="invite-input" type="email" id="invite-email" placeholder="student@email.com — invite by email"/>
+        <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;">
+          <option value="student">Student</option>
+          <option value="editor">Co-teacher</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="inviteStudent()">Invite</button>
+      </div>
+      <div class="member-list" id="member-list">
+        <div class="empty"><div class="empty-icon">👋</div>No students yet. Invite someone above!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gradebook table -->
+  <div class="section" id="gb-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">📊 Progress Table</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportGradebook()">📥 Export CSV</button>
+    </div>
+    <div class="gb-wrap">
+      <table class="gb-table" id="gb-table">
+        <thead><tr><th class="th-name">Student</th></tr></thead>
+        <tbody id="gb-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quiz Results -->
+  <div class="section" id="quiz-results-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">📝 Quiz Results</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportQuizResults()">📥 Export CSV</button>
+    </div>
+    <div id="quiz-results-body" style="padding:16px;">
+      <p style="color:var(--text-3);font-size:13px;">Select a board above to load quiz results.</p>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Student Detail Modal -->
+<div class="modal-bg" id="student-detail-modal" onclick="if(event.target===this)closeStudentDetail()">
+  <div class="modal" style="max-width:560px;width:95%;">
+    <button class="modal-close" onclick="closeStudentDetail()">✕</button>
+    <div id="student-detail-body">Loading…</div>
+  </div>
+</div>
+
+<!-- Invite Modal (fallback) -->
+<div class="modal-bg" id="invite-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeInviteModal()">✕</button>
+    <h3>➕ Invite Student</h3>
+    <div class="field">
+      <label>Student Email</label>
+      <input type="email" id="modal-email" placeholder="student@email.com"/>
+    </div>
+    <div class="field">
+      <label>Role</label>
+      <select id="modal-role">
+        <option value="student">Student (view + mark lessons)</option>
+        <option value="editor">Co-teacher (full edit)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="inviteFromModal()">Send Invite</button>
+  </div>
+</div>
+
+<div id="toast"></div>

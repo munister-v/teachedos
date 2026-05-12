@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C8E64A">
+<meta name="theme-color" content="#E85D75">
 <link rel="icon" type="image/png" href="logo.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,20 +22,20 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
 :root {
-  --bg:        #F5F5EA;
-  --bg-2:      #EAEADA;
+  --bg:        #F5F0E8;
+  --bg-2:      #EDE8E0;
   --bg-3:      #CAC9B7;
   --bg-card:   #FFFFFF;
   --border:    rgba(94,94,74,0.14);
   --border-2:  rgba(94,94,74,0.28);
-  --text:      #050517;
+  --text:      #1C1C1E;
   --text-2:    #3A3A2E;
   --text-3:    #A2A28C;
-  --accent:    #FF4E00;
-  --accent-2:  rgba(255,78,0,0.10);
+  --accent:    #E85D75;
+  --accent-2:  rgba(232,93,117,0.10);
   --accent-3:  rgba(94,94,74,0.22);
   --rose:      #9F8CE8;
-  --deep-rose: #D3F26A;
+  --deep-rose: #C8E632;
   --blush:     #CAC9B7;
   --plum:      #5E5E4A;
   --font-serif: 'Nunito', ui-sans-serif, sans-serif;
@@ -59,11 +59,11 @@ html,body {
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(255,78,0,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(232,93,117,.08) 0%, transparent 60%),
     radial-gradient(ellipse 70% 50% at 85% 75%, rgba(159,140,232,.09) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 10%, rgba(211,242,106,.07) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 10%, rgba(200,230,50,.07) 0%, transparent 50%),
     radial-gradient(ellipse 90% 60% at 60% 90%, rgba(99,102,241,.05) 0%, transparent 60%),
-    linear-gradient(160deg, #F5F5EA 0%, #EAEADA 35%, #F0EFE2 70%, #F5F5EA 100%);
+    linear-gradient(160deg, #F5F0E8 0%, #EDE8E0 35%, #F0EBE3 70%, #F5F0E8 100%);
 }
 @keyframes desktopIn { from{opacity:0} to{opacity:1} }
 
@@ -74,7 +74,7 @@ html,body {
 }
 .blob1 {
   width:500px; height:500px; top:-120px; left:-80px;
-  background:radial-gradient(circle, rgba(255,78,0,.14), transparent 70%);
+  background:radial-gradient(circle, rgba(232,93,117,.14), transparent 70%);
   animation: blobFloat1 18s ease-in-out infinite;
 }
 .blob2 {
@@ -84,7 +84,7 @@ html,body {
 }
 .blob3 {
   width:350px; height:350px; top:35%; left:45%;
-  background:radial-gradient(circle, rgba(211,242,106,.12), transparent 70%);
+  background:radial-gradient(circle, rgba(200,230,50,.12), transparent 70%);
   animation: blobFloat3 20s ease-in-out infinite;
 }
 @keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,30px) scale(1.05)} 66%{transform:translate(-20px,50px) scale(.95)} }
@@ -94,7 +94,7 @@ html,body {
 /* Menubar */
 #menubar {
   position:fixed; top:0; left:0; right:0; height:32px; z-index:1000;
-  background: rgba(240,240,232,0.75);
+  background: rgba(245,240,232,0.75);
   backdrop-filter: blur(40px) saturate(2.2);
   -webkit-backdrop-filter: blur(40px) saturate(2.2);
   border-bottom: 1px solid rgba(94,94,74,0.06);
@@ -245,12 +245,12 @@ html,body {
 }
 .wg-vocab-next {
   margin-top:12px; width:100%;
-  background: linear-gradient(135deg, var(--accent), #e84400); border: none;
+  background: linear-gradient(135deg, var(--accent), #D04A63); border: none;
   border-radius:12px; padding:9px; font-size:12px; font-family: var(--font-ui);
   font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
-  text-align:center; box-shadow: 0 4px 14px rgba(255,78,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-align:center; box-shadow: 0 4px 14px rgba(232,93,117,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
 }
-.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(255,78,0,0.30); }
+.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(232,93,117,0.30); }
 
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
@@ -368,7 +368,7 @@ html,body {
 .win-sidebar {
   width:200px; flex-shrink:0;
   background: rgba(255,240,248,0.70);
-  border-right: 1px solid rgba(255,78,0,0.08);
+  border-right: 1px solid rgba(232,93,117,0.08);
   display:flex; flex-direction:column;
   overflow-y:auto;
 }
@@ -389,9 +389,9 @@ html,body {
   border-radius:12px; margin:2px 6px;
   transition: background .15s, color .15s;
 }
-.sb-item:hover { background: rgba(255,78,0,0.08); color: var(--accent); }
+.sb-item:hover { background: rgba(232,93,117,0.08); color: var(--accent); }
 .sb-item.active {
-  background: rgba(255,78,0,0.13); color: var(--accent);
+  background: rgba(232,93,117,0.13); color: var(--accent);
 }
 .sb-item-ic { font-size:15px; flex-shrink:0; width:20px; text-align:center; }
 .sb-item-badge {
@@ -423,13 +423,13 @@ html,body {
 .curr-search {
   margin:16px 24px 0;
   display:flex; align-items:center; gap:10px;
-  background: rgba(255,78,0,0.04); border: 1px solid rgba(94,94,74,0.10);
+  background: rgba(232,93,117,0.04); border: 1px solid rgba(94,94,74,0.10);
   border-radius:14px; padding:10px 16px;
   transition:border-color .2s, box-shadow .2s;
 }
 .curr-search:focus-within {
-  border-color:rgba(255,78,0,.3);
-  box-shadow:0 0 0 3px rgba(255,78,0,.06);
+  border-color:rgba(232,93,117,.3);
+  box-shadow:0 0 0 3px rgba(232,93,117,.06);
 }
 .curr-search input {
   flex:1; background:none; border:none; outline:none;
@@ -446,7 +446,7 @@ html,body {
   padding:6px 16px; border-radius:20px; cursor:pointer; color: var(--text-3);
   transition: background .15s, color .15s;
 }
-.curr-tab:hover { background: rgba(255,78,0,0.08); color: var(--text-2); }
+.curr-tab:hover { background: rgba(232,93,117,0.08); color: var(--text-2); }
 .curr-tab.active {
   background: var(--accent); color: #fff;
 }
@@ -455,17 +455,17 @@ html,body {
   padding:20px 24px;
 }
 .lesson-card {
-  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(255,78,0,0.08);
+  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(232,93,117,0.08);
   border-radius:18px; padding:20px; cursor:pointer;
   transition: box-shadow .22s, border-color .22s, transform .22s;
   position:relative; overflow:hidden;
-  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(255,78,0,0);
+  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(232,93,117,0);
   backdrop-filter:blur(8px);
 }
 .lesson-card:hover {
-  border-color: rgba(255,78,0,0.25);
+  border-color: rgba(232,93,117,0.25);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(255,78,0,0.06);
+  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(232,93,117,0.06);
 }
 .lesson-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -497,7 +497,7 @@ html,body {
 .lc-level.a2 { background:rgba(96,165,250,.12); color:#60a5fa; }
 .lc-level.b1 { background:rgba(245,158,11,.12); color:#f59e0b; }
 .lc-level.b2 { background:rgba(202,201,183,.18); color:#9F8CE8; }
-.lc-level.c1 { background:rgba(255,78,0,.12); color:#FF4E00; }
+.lc-level.c1 { background:rgba(232,93,117,.12); color:#E85D75; }
 .lc-dur {
   font-size:10px; color: var(--text-3); font-family: var(--font-mono);
 }
@@ -543,12 +543,12 @@ html,body {
 }
 .fc-front {
   background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
-  border: 1.5px solid rgba(255,78,0,0.12);
+  border: 1.5px solid rgba(232,93,117,0.12);
   box-shadow: 0 8px 32px rgba(94,94,74,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
   backdrop-filter:blur(8px);
 }
 .fc-back {
-  background: linear-gradient(145deg, rgba(255,78,0,0.10) 0%, rgba(159,140,232,0.06) 100%);
+  background: linear-gradient(145deg, rgba(232,93,117,0.10) 0%, rgba(159,140,232,0.06) 100%);
   border: 1.5px solid rgba(94,94,74,0.20);
   box-shadow: 0 4px 20px rgba(94,94,74,0.14);
   transform:rotateY(180deg);
@@ -589,11 +589,11 @@ html,body {
 }
 .fc-set {
   font-size:12px; font-family: var(--font-ui); font-weight:700; padding:6px 16px;
-  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(255,78,0,0.16);
+  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(232,93,117,0.16);
   color: var(--text-3); background: #fff;
   transition: background .15s, border-color .15s, color .15s;
 }
-.fc-set:hover { background: rgba(255,78,0,0.06); color: var(--accent); border-color: var(--accent); }
+.fc-set:hover { background: rgba(232,93,117,0.06); color: var(--accent); border-color: var(--accent); }
 .fc-set.active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
@@ -673,7 +673,7 @@ html,body {
 .prog-ach {
   background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
   border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:center;
-  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(255,78,0,0.06);
+  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(232,93,117,0.06);
 }
 .prog-ach-ic { font-size:24px; }
 .prog-ach-name { font-size:12px; color: var(--text-2); font-weight:600; }
@@ -689,7 +689,7 @@ html,body {
 }
 .sch-nav-btn {
   width:30px; height:30px; border-radius:10px;
-  background: rgba(255,78,0,0.07); border: 1.5px solid rgba(94,94,74,0.14);
+  background: rgba(232,93,117,0.07); border: 1.5px solid rgba(94,94,74,0.14);
   color: var(--accent); cursor:pointer; display:flex; align-items:center;
   justify-content:center; font-size:14px; font-weight:700; transition:background .15s;
 }
@@ -724,7 +724,7 @@ html,body {
   position:relative;
 }
 .sch-cell.other-month { opacity:0.35; }
-.sch-cell.today { background: rgba(255,78,0,0.06); }
+.sch-cell.today { background: rgba(232,93,117,0.06); }
 .sch-cell.today .sch-day-num {
   background: var(--accent); color:#fff; border-radius:50%;
   width:22px; height:22px; display:flex; align-items:center; justify-content:center;
@@ -736,7 +736,7 @@ html,body {
   display:flex; align-items:center; justify-content:center;
 }
 .sch-event {
-  background: linear-gradient(135deg, rgba(211,242,106,0.22), rgba(202,201,183,0.20));
+  background: linear-gradient(135deg, rgba(200,230,50,0.22), rgba(202,201,183,0.20));
   border: 1px solid rgba(202,201,183,0.28); border-radius:5px;
   font-size:10px; padding:2px 6px; color: var(--accent); margin-bottom:3px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -757,7 +757,7 @@ html,body {
   padding:10px 10px; border-radius:12px; cursor:pointer; margin:1px 0;
   transition: background .15s;
 }
-.note-item:hover { background: rgba(255,78,0,0.08); }
+.note-item:hover { background: rgba(232,93,117,0.08); }
 .note-item.active { background: rgba(94,94,74,0.14); }
 .note-item-title { font-size:13px; color: var(--text); font-weight:500; margin-bottom:3px; }
 .note-item-preview { font-size:11px; color: var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -772,7 +772,7 @@ html,body {
   justify-content:center; font-size:13px; font-weight:700; color: var(--text-3); cursor:pointer;
   transition:background .15s, color .15s;
 }
-.notes-tb-btn:hover { background: rgba(255,78,0,0.10); color: var(--accent); }
+.notes-tb-btn:hover { background: rgba(232,93,117,0.10); color: var(--accent); }
 .notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
 .notes-editor {
   flex:1; display:flex; flex-direction:column;
@@ -793,7 +793,7 @@ html,body {
   margin:8px; border-radius:12px; cursor:pointer;
   background: var(--accent); color: #fff;
   font-size:12px; font-family: var(--font-ui); font-weight:800;
-  transition:opacity .15s; box-shadow: 0 2px 8px rgba(255,78,0,0.25);
+  transition:opacity .15s; box-shadow: 0 2px 8px rgba(232,93,117,0.25);
 }
 .notes-new-btn:hover { opacity:0.88; }
 
@@ -827,7 +827,7 @@ html,body {
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
 #spotlight-input-wrap {
   display:flex; align-items:center; gap:12px;
-  padding:16px 20px; border-bottom: 1px solid rgba(255,78,0,0.10);
+  padding:16px 20px; border-bottom: 1px solid rgba(232,93,117,0.10);
 }
 #spotlight-input-wrap .sp-ic { font-size:18px; color: var(--accent); flex-shrink:0; }
 #spotlight-input {
@@ -854,7 +854,7 @@ html,body {
   padding:9px 20px; cursor:pointer;
   transition:background .12s;
 }
-.sp-result:hover, .sp-result.selected { background: rgba(255,78,0,0.08); }
+.sp-result:hover, .sp-result.selected { background: rgba(232,93,117,0.08); }
 .sp-result-icon {
   width:36px; height:36px; border-radius:9px;
   display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
@@ -906,7 +906,7 @@ html,body {
 
   /* Desktop → full-screen panels */
   #desktop {
-    background: linear-gradient(160deg,#F5F5EA 0%,#EAEADA 100%);
+    background: linear-gradient(160deg,#F5F0E8 0%,#EDE8E0 100%);
   }
   .win {
     position:fixed !important;
@@ -938,7 +938,7 @@ html,body {
   }
   .mob-sidebar-btn {
     margin-left:auto; width:34px; height:34px; border-radius:10px;
-    background:rgba(255,78,0,0.09); border:1.5px solid var(--border);
+    background:rgba(232,93,117,0.09); border:1.5px solid var(--border);
     color:var(--accent); font-size:16px; font-weight:700;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
@@ -963,7 +963,7 @@ html,body {
     border-left:none; border-right:none; border-bottom:none;
     padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));
     width:100%; justify-content:space-around;
-    box-shadow:0 -1px 0 var(--border), 0 -4px 20px rgba(255,78,0,0.08);
+    box-shadow:0 -1px 0 var(--border), 0 -4px 20px rgba(232,93,117,0.08);
   }
   .di { flex:1; gap:3px; }
   .di:hover { transform:none; }
@@ -1032,10 +1032,10 @@ html,body {
     <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(255,78,0,.25);margin-right:6px;"></a>
+    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(232,93,117,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#FF4E00;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#E85D75;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1044,8 +1044,8 @@ html,body {
 <!-- NOTIFICATIONS PANEL -->
 <div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
-    <span style="font-size:14px;font-weight:800;color:#050517;letter-spacing:-.02em;">Notifications</span>
-    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#FF4E00;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
+    <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
+    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#E85D75;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
   </div>
   <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
 </div>
@@ -1304,7 +1304,7 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#FF4E00);">📋</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#E85D75);">📋</div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
@@ -1492,7 +1492,7 @@ function studentsRender() {
   });
 
   list.innerHTML = filtered.map(s => `
-    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,78,0,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(255,78,0,0.09)'" onmouseleave="this.style.background='rgba(255,78,0,0.04)'">
+    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(232,93,117,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(232,93,117,0.09)'" onmouseleave="this.style.background='rgba(232,93,117,0.04)'">
       <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
@@ -1910,7 +1910,7 @@ toolsRender();
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
 const SP_ITEMS = [
   // Windows
-  { icon:'📋', iconBg:'linear-gradient(145deg,#9F8CE8,#FF4E00)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#9F8CE8,#E85D75)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
   { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#9F8CE8,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
@@ -1927,7 +1927,7 @@ const SP_ITEMS = [
 function rebuildSpotlightStudents() {
   while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length-1].kbd === 'Student') SP_ITEMS.pop();
   STUDENTS.forEach(s => SP_ITEMS.push({
-    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(255,78,0,0.10)',
+    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(232,93,117,0.10)',
     title: s.name, sub: s.email || '',
     kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
   }));
@@ -2168,20 +2168,20 @@ function showAuthOverlay() {
     overlay.id = 'os-auth-overlay';
     overlay.style.cssText = `
       position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(160deg,#F5F5EA 0%,#EAEADA 35%,#F0EFE2 70%,#F5F5EA 100%);
+      background:linear-gradient(160deg,#F5F0E8 0%,#EDE8E0 35%,#F0EBE3 70%,#F5F0E8 100%);
       overflow:hidden;
     `;
     overlay.innerHTML = `
       <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
-        <div style="position:absolute;width:700px;height:700px;top:-250px;left:-200px;background:radial-gradient(circle,rgba(255,78,0,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat1 18s ease-in-out infinite;filter:blur(60px);"></div>
+        <div style="position:absolute;width:700px;height:700px;top:-250px;left:-200px;background:radial-gradient(circle,rgba(232,93,117,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat1 18s ease-in-out infinite;filter:blur(60px);"></div>
         <div style="position:absolute;width:600px;height:600px;bottom:-200px;right:-150px;background:radial-gradient(circle,rgba(159,140,232,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat2 22s ease-in-out infinite;filter:blur(60px);"></div>
-        <div style="position:absolute;width:400px;height:400px;top:30%;left:55%;background:radial-gradient(circle,rgba(211,242,106,.08) 0%,transparent 65%);border-radius:50%;animation:blobFloat3 20s ease-in-out infinite;filter:blur(60px);"></div>
+        <div style="position:absolute;width:400px;height:400px;top:30%;left:55%;background:radial-gradient(circle,rgba(200,230,50,.08) 0%,transparent 65%);border-radius:50%;animation:blobFloat3 20s ease-in-out infinite;filter:blur(60px);"></div>
         <div style="position:absolute;width:500px;height:500px;top:60%;left:10%;background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 60%);border-radius:50%;animation:blobFloat2 25s ease-in-out infinite;filter:blur(70px);"></div>
       </div>
       <div style="background:rgba(255,255,255,0.82);backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-radius:28px;padding:44px 40px 36px;width:100%;max-width:420px;box-shadow:0 40px 100px rgba(5,5,23,.12),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;z-index:1;border:1px solid rgba(255,255,255,.45);">
         <div style="text-align:center;margin-bottom:32px;">
           <div style="line-height:1;margin-bottom:14px;"><img src="logo.png" alt="TeachEd" style="width:72px;height:72px;border-radius:16px;filter:drop-shadow(0 4px 16px rgba(200,230,74,.35));"></div>
-          <div style="font-size:1.6rem;font-weight:900;color:#050517;letter-spacing:-.04em;">Teach<em style="color:#C8E64A;font-style:normal;">Ed</em></div>
+          <div style="font-size:1.6rem;font-weight:900;color:#1C1C1E;letter-spacing:-.04em;">Teach<em style="color:#C8E64A;font-style:normal;">Ed</em></div>
           <div id="os-auth-sub" style="font-size:.85rem;color:#A2A28C;margin-top:8px;font-weight:600;">Sign in to your workspace</div>
         </div>
         <div id="os-auth-err" style="display:none;background:rgba(255,245,245,.9);border:1.5px solid rgba(239,68,68,.2);border-radius:12px;padding:10px 14px;font-size:.85rem;color:#c62828;margin-bottom:14px;font-weight:600;backdrop-filter:blur(8px);"></div>
@@ -2190,12 +2190,12 @@ function showAuthOverlay() {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:16px 8px;border-radius:16px;border:2px solid #C8E64A;background:rgba(200,230,74,.10);cursor:pointer;text-align:center;transition:.2s;backdrop-filter:blur(8px);">
               <div style="font-size:1.8rem;line-height:1;margin-bottom:5px;">🧑‍🏫</div>
-              <div style="font-size:12px;font-weight:800;color:#050517;">Teacher</div>
+              <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
               <div style="font-size:10px;color:#A2A28C;margin-top:2px;">Create &amp; manage</div>
             </div>
-            <div id="role-student" onclick="selectOsRole('student')" style="padding:16px 8px;border-radius:16px;border:2px solid rgba(94,94,74,.14);background:rgba(245,245,234,.6);cursor:pointer;text-align:center;transition:.2s;backdrop-filter:blur(8px);">
+            <div id="role-student" onclick="selectOsRole('student')" style="padding:16px 8px;border-radius:16px;border:2px solid rgba(94,94,74,.14);background:rgba(245,240,232,.6);cursor:pointer;text-align:center;transition:.2s;backdrop-filter:blur(8px);">
               <div style="font-size:1.8rem;line-height:1;margin-bottom:5px;">🎓</div>
-              <div style="font-size:12px;font-weight:800;color:#050517;">Student</div>
+              <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
               <div style="font-size:10px;color:#A2A28C;margin-top:2px;">Learn &amp; progress</div>
             </div>
           </div>
@@ -2221,10 +2221,10 @@ function selectOsRole(role) {
   const t = document.getElementById('role-teacher');
   const s = document.getElementById('role-student');
   if (t && s) {
-    t.style.borderColor = role==='teacher'?'#FF4E00':'rgba(94,94,74,.14)';
-    t.style.background  = role==='teacher'?'rgba(255,78,0,.07)':'#fafafa';
-    s.style.borderColor = role==='student'?'#FF4E00':'rgba(94,94,74,.14)';
-    s.style.background  = role==='student'?'rgba(255,78,0,.07)':'#fafafa';
+    t.style.borderColor = role==='teacher'?'#E85D75':'rgba(94,94,74,.14)';
+    t.style.background  = role==='teacher'?'rgba(232,93,117,.07)':'#fafafa';
+    s.style.borderColor = role==='student'?'#E85D75':'rgba(94,94,74,.14)';
+    s.style.background  = role==='student'?'rgba(232,93,117,.07)':'#fafafa';
   }
 }
 
@@ -2242,10 +2242,10 @@ function renderOsAuthFields() {
   if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
-  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:Nunito,sans-serif;font-size:.95rem;color:#050517;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,245,234,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#FF4E00';this.style.boxShadow='0 0 0 3px rgba(255,78,0,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-    `<input id="os-af-email" type="email" placeholder="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#FF4E00';this.style.boxShadow='0 0 0 3px rgba(255,78,0,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#FF4E00';this.style.boxShadow='0 0 0 3px rgba(255,78,0,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
+    `<input id="os-af-email" type="email" placeholder="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
+     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
@@ -2341,14 +2341,14 @@ function renderNotifList() {
     return;
   }
   list.innerHTML = _notifData.map(n => `
-    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(255,78,0,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(255,78,0,.05)'}'">
+    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(232,93,117,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(232,93,117,.05)'}'">
       <span style="font-size:18px;flex-shrink:0;">${n.type==='live'?'🔴':n.type==='grade'?'📊':n.type==='invite'?'📩':'🔔'}</span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:${n.read?'600':'800'};color:#050517;line-height:1.3;">${esc(n.title)}</div>
+        <div style="font-size:13px;font-weight:${n.read?'600':'800'};color:#1C1C1E;line-height:1.3;">${esc(n.title)}</div>
         ${n.body?`<div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${esc(n.body)}</div>`:''}
         <div style="font-size:10px;color:#A2A28C;margin-top:3px;">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#FF4E00;flex-shrink:0;margin-top:4px;"></span>':''}
+      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#E85D75;flex-shrink:0;margin-top:4px;"></span>':''}
     </div>`).join('');
 }
 
@@ -2564,7 +2564,7 @@ if('serviceWorker'in navigator){
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F5EA;border:1.5px solid rgba(255,78,0,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(232,93,117,.15);">
             <div style="font-size:28px;">📋</div>
             <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
           </div>
@@ -2577,52 +2577,52 @@ if('serviceWorker'in navigator){
             <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #FF4E00;cursor:pointer;transition:.15s;background:#F5F5EA;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #E85D75;cursor:pointer;transition:.15s;background:#F5F0E8;">
             <div style="font-size:20px;margin-bottom:4px;">⬜</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Blank Board</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>
           <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">🗣️</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Speaking</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Speaking</div>
           </div>
           <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">📐</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Grammar</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Grammar</div>
           </div>
           <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">📚</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Reading</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Reading</div>
           </div>
           <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">✍️</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Writing</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Writing</div>
           </div>
           <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">📖</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Vocabulary</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Vocabulary</div>
           </div>
           <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">📝</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Exam Prep</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Exam Prep</div>
           </div>
           <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">💼</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Business</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Business</div>
           </div>
           <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="font-size:20px;margin-bottom:4px;">🧒</div>
-            <div style="font-size:12px;font-weight:800;color:#050517;">Kids (A1)</div>
+            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Kids (A1)</div>
           </div>
         </div>
         <div style="margin-bottom:16px;">
@@ -2631,14 +2631,14 @@ if('serviceWorker'in navigator){
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
         <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#FF4E00;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
@@ -2651,7 +2651,7 @@ if('serviceWorker'in navigator){
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#FF4E00;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
@@ -2682,8 +2682,8 @@ function obSelectTpl(id) {
   _obTpl = id;
   document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
     const tid = el.id.replace('ob-tpl-','');
-    el.style.borderColor = tid === id ? '#FF4E00' : '#e5e7eb';
-    el.style.background   = tid === id ? '#F5F5EA' : '#fafafa';
+    el.style.borderColor = tid === id ? '#E85D75' : '#e5e7eb';
+    el.style.background   = tid === id ? '#F5F0E8' : '#fafafa';
   });
   const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', reading:'Reading Lesson', writing:'Writing Lesson', vocab:'Vocabulary Unit', testprep:'Exam Preparation', business:'Business English', kids:'Kids Lesson', listening:'Listening Lesson', conversation:'Conversation Class', pronunciation:'Pronunciation Lesson', ielts:'IELTS Preparation' };
   const inp = document.getElementById('ob-board-name');

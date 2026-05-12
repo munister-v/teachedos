@@ -1,0 +1,24 @@
+<nav id="nav">
+  <a class="nav-logo" routerLink="/">TeachEd</a>
+  <span class="nav-sep"></span>
+
+  @if (showLinks) {
+    <a class="nav-link" routerLink="/schedule" routerLinkActive="active">Schedule</a>
+    <a class="nav-link" routerLink="/board" routerLinkActive="active">Board</a>
+    <a class="nav-link" routerLink="/courses" routerLinkActive="active">Courses</a>
+    <a class="nav-link" routerLink="/gradebook" routerLinkActive="active">Gradebook</a>
+    <a class="nav-link" routerLink="/journal" routerLinkActive="active">Journal</a>
+    <a class="nav-link" routerLink="/games" routerLinkActive="active">Games</a>
+  }
+
+  @if (pageTitle) {
+    <span class="nav-page-title">{{ pageTitle }}</span>
+  }
+
+  <span class="nav-spacer"></span>
+
+  <a class="nav-link" routerLink="/analytics" routerLinkActive="active">📊</a>
+  <a class="nav-link" routerLink="/profile" routerLinkActive="active">
+    <span class="nav-avatar">👩‍🏫</span>
+  </a>
+</nav>

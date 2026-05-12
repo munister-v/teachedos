@@ -1,0 +1,117 @@
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" routerLink="/index">Home</a>
+  <a class="nav-link" routerLink="/board">Board</a>
+  <a class="nav-link" routerLink="/courses">Courses</a>
+  <a class="nav-link" routerLink="/schedule">Schedule</a>
+  <a class="nav-link" routerLink="/analytics">Analytics</a>
+  <a class="nav-link active" routerLink="/journal">Journal</a>
+  <a class="nav-link" routerLink="/gradebook">Gradebook</a>
+  <a class="nav-link" routerLink="/profile">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" routerLink="/profile" id="nav-user">
+    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+  </a>
+</nav>
+
+<div id="page">
+  <div class="page-head">
+    <div>
+      <div class="page-title">📓 Student Journal</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:3px;">Track lessons, attendance and balance</div>
+    </div>
+    <div class="head-spacer"></div>
+    <button class="btn btn-ghost" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn btn-primary" onclick="openAddModal()">＋ Add Student</button>
+  </div>
+
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Students</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-lessons">—</div><div class="stat-lbl">Total lessons left</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-zero">—</div><div class="stat-lbl">Need top-up</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-today">—</div><div class="stat-lbl">Today's classes</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head">
+      <div></div>
+      <div>Student</div>
+      <div>Level</div>
+      <div class="th-access">Access</div>
+      <div>Attendance</div>
+      <div>Balance</div>
+      <div></div>
+    </div>
+    <div id="journal-body">
+      <div class="empty"><div class="empty-icon">📓</div><div class="empty-title">No students yet</div><div class="empty-sub">Add your first student to start tracking lessons and attendance.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">➕ Add Student</div>
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input class="form-input" id="f-name" placeholder="e.g. Anna Smith">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="f-email" type="email" placeholder="student@email.com">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select class="form-select" id="f-level">
+          <option>A1</option><option>A2</option><option selected>B1</option>
+          <option>B2</option><option>C1</option><option>C2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lessons Left</label>
+        <input class="form-input" id="f-lessons" type="number" min="0" value="0" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input class="form-input" id="f-notes" placeholder="e.g. Focuses on business English">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="modal-overlay" id="attend-modal" onclick="if(event.target===this)closeAttendModal()">
+  <div class="modal">
+    <div class="modal-title">📅 Mark Attendance</div>
+    <div id="attend-student-name" style="font-size:15px;font-weight:700;color:var(--text2);margin-bottom:16px;"></div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="a-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="a-status">
+        <option value="present">✅ Present (deducts 1 lesson)</option>
+        <option value="absent">❌ Absent</option>
+        <option value="late">⏰ Late</option>
+        <option value="cancelled">🚫 Cancelled</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" id="a-note" placeholder="e.g. Great progress today">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAttendModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>

@@ -1,0 +1,69 @@
+<div id="loading">
+  <div style="font-size:2rem">🎓</div>
+  <div class="spinner"></div>
+  <div style="font-size:13px;font-weight:700;color:var(--text-3)">Loading portal…</div>
+</div>
+<div id="toast"></div>
+
+<nav id="nav">
+  <a class="nav-logo" routerLink="/index">Teached<em>OS</em></a>
+  <div class="nav-spacer"></div>
+  <span id="nav-role" style="font-size:11px;font-weight:800;font-family:var(--mono);padding:2px 10px;border-radius:20px;background:rgba(232,93,117,.1);color:var(--accent);text-transform:uppercase;letter-spacing:.06em;"></span>
+  <a class="nav-btn" href="javascript:history.back()">← Back</a>
+</nav>
+
+<main id="main" style="display:none">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-avatar" id="p-avatar">🎓</div>
+    <div>
+      <div class="hero-name" id="p-name">—</div>
+      <div class="hero-email" id="p-email">—</div>
+    </div>
+    <div class="hero-spacer"></div>
+    <div style="text-align:center;background:rgba(232,93,117,.08);border-radius:14px;padding:14px 20px;border:1.5px solid rgba(232,93,117,.18)">
+      <div style="font-size:28px;font-weight:900;color:var(--accent);font-family:var(--mono)" id="p-lessons">—</div>
+      <div style="font-size:10px;font-weight:700;color:#c2410c;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-top:3px">lessons left</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n" id="s-boards">—</div><div class="stat-l">Boards</div></div>
+    <div class="stat"><div class="stat-n" id="s-done">—</div><div class="stat-l">Done</div></div>
+    <div class="stat"><div class="stat-n" id="s-vocab">—</div><div class="stat-l">Vocab</div></div>
+    <div class="stat"><div class="stat-n" id="s-quiz">—</div><div class="stat-l">Quiz avg</div></div>
+  </div>
+
+  <!-- Teacher note (teacher view only) -->
+  <div id="teacher-note-section" style="display:none">
+    <div class="teacher-note">
+      <div class="teacher-note-label">📝 Teacher note</div>
+      <div class="teacher-note-text" id="note-text"></div>
+      <textarea class="note-edit-area" id="note-edit" placeholder="Add a note about this student…"></textarea>
+      <button class="save-btn" onclick="saveNote()">Save note</button>
+    </div>
+  </div>
+
+  <!-- Boards -->
+  <div class="section">
+    <div class="section-title">📋 Enrolled Boards</div>
+    <div class="boards-grid" id="boards-grid">
+      <div class="empty">No boards yet</div>
+    </div>
+  </div>
+
+  <!-- Vocab -->
+  <div class="section" id="vocab-section" style="display:none">
+    <div class="section-title">📖 Vocabulary <span style="font-size:11px;font-weight:600;color:var(--text-3);font-family:var(--mono)" id="vocab-count"></span></div>
+    <div id="vocab-list"></div>
+  </div>
+
+  <!-- Quiz history -->
+  <div class="section" id="quiz-section" style="display:none">
+    <div class="section-title">📝 Quiz History</div>
+    <div id="quiz-list"></div>
+  </div>
+
+</main>
