@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v4';
+const CACHE = 'teachedos-v5';
 const SHELL = [
   '/teachedos/',
   '/teachedos/index.html',
@@ -32,8 +32,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/teachedos/icon-192.png',
-      badge: '/teachedos/icon-192.png',
+      icon: '/teachedos/icons/icon-192.png',
+      badge: '/teachedos/icons/icon-192.png',
       data: { url: data.url },
       vibrate: [200, 100, 200]
     })

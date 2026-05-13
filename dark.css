@@ -128,6 +128,7 @@
   background: var(--border-2);
   position: relative;
   transition: background .2s;
+  margin-left: auto;
   flex-shrink: 0;
 }
 
@@ -140,6 +141,8 @@
   border-radius: 50%;
   background: #fff;
   transition: transform .2s;
+  font-size: 0;
+  line-height: 0;
 }
 
 .dark-toggle-track.on .dark-toggle-thumb { transform: translateX(16px); }

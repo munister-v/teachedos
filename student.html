@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd — Student Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Orbitron:wght@700;800;900&amp;display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -398,7 +398,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   cursor:pointer;align-items:center;justify-content:center;
   flex-shrink:0;
 }
-.mob-toggle span{display:block;width:18px;height:2px;background:var(--text);border-radius:1px;transition:.2s}
+.mob-toggle span{display:block;width:18px;height:2px;background:var(--text);border-radius:1px;transition:.2s;font-size:0;line-height:0}
 .mob-toggle span+span{margin-top:4px}
 
 /* ── RESPONSIVE ── */
@@ -491,8 +491,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     <!-- Top bar -->
     <div class="topbar">
-      <button class="mob-toggle" id="mob-toggle" onclick="toggleSidebar()">
-        <span></span><span></span><span></span>
+      <button class="mob-toggle" id="mob-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <span aria-hidden="true">&nbsp;</span><span aria-hidden="true">&nbsp;</span><span aria-hidden="true">&nbsp;</span>
       </button>
       <a class="tb-guide" href="javascript:void(0)" onclick="showGuide()">💡 How does it work</a>
       <div class="tb-spacer"></div>

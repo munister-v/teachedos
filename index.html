@@ -15,7 +15,7 @@
 <title>TeachEd — Language Learning Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/main.css">
 <style>
@@ -1069,9 +1069,7 @@ html,body {
 <div class="widget" id="wg-today">
   <div class="wg-today-label">Next class</div>
   <div class="wg-today-title">—</div>
-  <div class="wg-today-meta">
-    <span></span>
-  </div>
+  <div class="wg-today-meta"></div>
   <div class="wg-today-badge"></div>
   <div class="wg-today-prog">
     <div class="wg-today-prog-fill" style="width:0%"></div>
@@ -2167,9 +2165,9 @@ function showAuthOverlay() {
     overlay = document.createElement('div');
     overlay.id = 'os-auth-overlay';
     overlay.style.cssText = `
-      position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+      position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;display:flex;align-items:center;justify-content:center;
       background:linear-gradient(160deg,#F5F0E8 0%,#EDE8E0 35%,#F0EBE3 70%,#F5F0E8 100%);
-      overflow:hidden;
+      overflow:auto;padding:16px;
     `;
     overlay.innerHTML = `
       <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
@@ -2178,7 +2176,7 @@ function showAuthOverlay() {
         <div style="position:absolute;width:400px;height:400px;top:30%;left:55%;background:radial-gradient(circle,rgba(200,230,50,.08) 0%,transparent 65%);border-radius:50%;animation:blobFloat3 20s ease-in-out infinite;filter:blur(60px);"></div>
         <div style="position:absolute;width:500px;height:500px;top:60%;left:10%;background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 60%);border-radius:50%;animation:blobFloat2 25s ease-in-out infinite;filter:blur(70px);"></div>
       </div>
-      <div style="background:rgba(255,255,255,0.82);backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-radius:28px;padding:44px 40px 36px;width:100%;max-width:420px;box-shadow:0 40px 100px rgba(5,5,23,.12),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;z-index:1;border:1px solid rgba(255,255,255,.45);">
+      <div style="background:rgba(255,255,255,0.82);backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-radius:28px;padding:clamp(28px,7vw,44px) clamp(20px,6vw,40px) clamp(24px,6vw,36px);width:min(420px,calc(100vw - 32px));max-width:100%;box-shadow:0 40px 100px rgba(5,5,23,.12),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;z-index:1;border:1px solid rgba(255,255,255,.45);">
         <div style="text-align:center;margin-bottom:32px;">
           <div style="line-height:1;margin-bottom:14px;"><img src="logo.png" alt="TeachEd" style="width:72px;height:72px;border-radius:16px;filter:drop-shadow(0 4px 16px rgba(200,230,74,.35));"></div>
           <div style="font-size:1.6rem;font-weight:900;color:#1C1C1E;letter-spacing:-.04em;">Teach<em style="color:#C8E64A;font-style:normal;">Ed</em></div>
@@ -2204,7 +2202,7 @@ function showAuthOverlay() {
         <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#2D2D2D,#1a1a1a);color:#C8E64A;font-family:Nunito,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px;transition:filter .15s,transform .15s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 24px rgba(45,45,45,.30),inset 0 1px 0 rgba(255,255,255,.1);">Sign in</button>
         <div style="text-align:center;margin-top:18px;font-size:.85rem;color:#A2A28C;font-weight:600;">
           <span id="os-toggle-text">Don't have an account?</span>
-          <span onclick="toggleOsAuth()" style="color:#2D2D2D;font-weight:800;cursor:pointer;margin-left:4px;" id="os-toggle-link">Register</span>
+          <button type="button" onclick="toggleOsAuth()" style="color:#2D2D2D;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;" id="os-toggle-link">Register</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -2243,9 +2241,9 @@ function renderOsAuthFields() {
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-    `<input id="os-af-email" type="email" placeholder="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
+    `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
+     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
