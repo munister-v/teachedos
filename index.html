@@ -884,6 +884,7 @@ html,body {
 /* ═══════════════════════════ UTILS ═══════════════════════════ */
 .hidden { display:none !important; }
 .mob-win-header { display:none; } /* shown only inside mobile media query */
+.mob-home-shell { display:none; }
 
 /* ═══════════════════════════ MOBILE RESPONSIVE ═══════════════════════════ */
 @media (max-width: 768px) {
@@ -978,6 +979,152 @@ html,body {
   .curr-header { padding:14px 14px 0; }
   .curr-tabs { padding:10px 14px 0; overflow-x:auto; flex-wrap:nowrap; }
   .curr-grid { padding:14px; }
+  .mob-home-shell { display:block; padding:14px 14px 0; }
+  .mob-home-hero {
+    padding:18px;
+    border-radius:22px;
+    background:
+      radial-gradient(circle at top right, rgba(232,93,117,0.18), transparent 34%),
+      linear-gradient(155deg, rgba(255,255,255,0.96), rgba(247,238,242,0.92));
+    border:1px solid rgba(232,93,117,0.14);
+    box-shadow:0 18px 40px rgba(94,94,74,0.08);
+  }
+  .mob-home-eyebrow {
+    font-size:11px;
+    font-family:var(--font-mono);
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-3);
+    margin-bottom:8px;
+  }
+  .mob-home-title {
+    font-family:var(--font-serif);
+    font-size:28px;
+    line-height:1.05;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:-0.04em;
+  }
+  .mob-home-sub {
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--text-2);
+  }
+  .mob-home-kpis {
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .mob-home-kpi {
+    border-radius:16px;
+    padding:14px 12px;
+    text-align:left;
+    background:rgba(255,255,255,0.86);
+    box-shadow: inset 0 0 0 1px rgba(232,93,117,0.09);
+  }
+  .mob-home-kpi-n {
+    display:block;
+    font-size:21px;
+    font-weight:900;
+    color:var(--text);
+    letter-spacing:-0.04em;
+  }
+  .mob-home-kpi-label {
+    display:block;
+    margin-top:4px;
+    font-size:10px;
+    font-family:var(--font-mono);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-3);
+  }
+  .mob-home-actions {
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .mob-home-action {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:13px 14px;
+    border-radius:16px;
+    text-decoration:none;
+    background:rgba(255,255,255,0.88);
+    border:1px solid rgba(232,93,117,0.12);
+    color:var(--text);
+  }
+  .mob-home-action-ic {
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    flex-shrink:0;
+    background:linear-gradient(145deg, rgba(232,93,117,0.18), rgba(159,140,232,0.18));
+  }
+  .mob-home-action-copy { min-width:0; }
+  .mob-home-action-title {
+    font-size:13px;
+    font-weight:800;
+    line-height:1.2;
+  }
+  .mob-home-action-sub {
+    margin-top:3px;
+    font-size:11px;
+    color:var(--text-3);
+    line-height:1.35;
+  }
+  .mob-home-focus {
+    margin-top:12px;
+    padding:15px 16px;
+    border-radius:18px;
+    background:rgba(159,140,232,0.08);
+    border:1px solid rgba(159,140,232,0.12);
+  }
+  .mob-home-focus-label {
+    font-size:10px;
+    font-family:var(--font-mono);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-3);
+    margin-bottom:6px;
+  }
+  .mob-home-focus-title {
+    font-size:15px;
+    font-weight:800;
+    color:var(--text);
+    line-height:1.35;
+  }
+  .mob-home-focus-sub {
+    margin-top:4px;
+    font-size:12px;
+    color:var(--text-2);
+    line-height:1.5;
+  }
+  .mob-home-linkrow {
+    display:flex;
+    gap:8px;
+    overflow:auto;
+    margin-top:12px;
+    padding-bottom:2px;
+  }
+  .mob-home-pill {
+    flex:0 0 auto;
+    padding:10px 12px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:800;
+    color:var(--accent);
+    background:rgba(232,93,117,0.09);
+    border:1px solid rgba(232,93,117,0.12);
+    text-decoration:none;
+  }
 
   .fc-scene { width:100%; max-width:340px; }
   .fc-card-word { font-size:26px; }
@@ -1115,6 +1262,68 @@ html,body {
         <span style="font-size:22px;">📋</span>
         <div class="mob-win-title">Lesson Plans</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')">☰</div>
+      </div>
+      <div class="mob-home-shell">
+        <div class="mob-home-hero">
+          <div class="mob-home-eyebrow" id="mob-home-eyebrow">Teacher workspace</div>
+          <div class="mob-home-title" id="mob-home-title">Ready for today</div>
+          <div class="mob-home-sub" id="mob-home-sub">Loading your classes, boards, and students...</div>
+          <div class="mob-home-kpis">
+            <div class="mob-home-kpi">
+              <span class="mob-home-kpi-n" id="mob-kpi-classes">-</span>
+              <span class="mob-home-kpi-label">Classes Today</span>
+            </div>
+            <div class="mob-home-kpi">
+              <span class="mob-home-kpi-n" id="mob-kpi-boards">-</span>
+              <span class="mob-home-kpi-label">Boards</span>
+            </div>
+            <div class="mob-home-kpi">
+              <span class="mob-home-kpi-n" id="mob-kpi-students">-</span>
+              <span class="mob-home-kpi-label">Students</span>
+            </div>
+          </div>
+          <div class="mob-home-actions">
+            <a class="mob-home-action" href="board.html">
+              <div class="mob-home-action-ic">📌</div>
+              <div class="mob-home-action-copy">
+                <div class="mob-home-action-title">Open board</div>
+                <div class="mob-home-action-sub">Jump straight into class mode</div>
+              </div>
+            </a>
+            <div class="mob-home-action" onclick="openApp('schedule')" style="cursor:pointer;">
+              <div class="mob-home-action-ic">📅</div>
+              <div class="mob-home-action-copy">
+                <div class="mob-home-action-title">Check schedule</div>
+                <div class="mob-home-action-sub">See what is next today</div>
+              </div>
+            </div>
+            <div class="mob-home-action" onclick="openApp('students')" style="cursor:pointer;">
+              <div class="mob-home-action-ic">👥</div>
+              <div class="mob-home-action-copy">
+                <div class="mob-home-action-title">Students</div>
+                <div class="mob-home-action-sub">Open your roster fast</div>
+              </div>
+            </div>
+            <div class="mob-home-action" onclick="openApp('tools')" style="cursor:pointer;">
+              <div class="mob-home-action-ic">🪄</div>
+              <div class="mob-home-action-copy">
+                <div class="mob-home-action-title">Warm-up tools</div>
+                <div class="mob-home-action-sub">Launch a quick activity</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mob-home-focus">
+          <div class="mob-home-focus-label">Today Focus</div>
+          <div class="mob-home-focus-title" id="mob-focus-title">Loading your teacher snapshot...</div>
+          <div class="mob-home-focus-sub" id="mob-focus-sub">We are pulling schedule and board data for this phone view.</div>
+          <div class="mob-home-linkrow">
+            <a class="mob-home-pill" href="gradebook.html">Gradebook</a>
+            <a class="mob-home-pill" href="analytics.html">Analytics</a>
+            <a class="mob-home-pill" href="courses.html">Courses</a>
+            <a class="mob-home-pill" href="profile.html">Profile</a>
+          </div>
+        </div>
       </div>
       <div class="curr-header">
         <div class="curr-eyebrow">§ Teacher's workspace</div>
@@ -1379,6 +1588,73 @@ updateClock(); setInterval(updateClock, 30000);
 /* ══════════════════════ WINDOW MANAGEMENT ══════════════════════ */
 let topZ = 200;
 const zMap = {};
+
+function getTeacherMobileSnapshot() {
+  const today = new Date().getDay();
+  const toMin = t => {
+    if (!t || !String(t).includes(':')) return 0;
+    const [h, m] = String(t).split(':');
+    return Number(h) * 60 + Number(m);
+  };
+  const todays = (Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW : [])
+    .filter(s => s.day === today)
+    .sort((a, b) => String(a.start_time || '').localeCompare(String(b.start_time || '')));
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const upcoming = todays.filter(s => toMin(s.end_time) > nowMin);
+  return { todays, upcoming, next: upcoming[0] || null };
+}
+
+function updateMobileTeacherOverview() {
+  const eyebrow = document.getElementById('mob-home-eyebrow');
+  const title = document.getElementById('mob-home-title');
+  const sub = document.getElementById('mob-home-sub');
+  const classes = document.getElementById('mob-kpi-classes');
+  const boards = document.getElementById('mob-kpi-boards');
+  const students = document.getElementById('mob-kpi-students');
+  const focusTitle = document.getElementById('mob-focus-title');
+  const focusSub = document.getElementById('mob-focus-sub');
+  if (!eyebrow || !title || !sub || !classes || !boards || !students || !focusTitle || !focusSub) return;
+
+  const user = _currentUser || { name: 'Teacher', avatar: '🧑‍🏫' };
+  const firstName = String(user.name || 'Teacher').split(' ')[0];
+  const { todays, next } = getTeacherMobileSnapshot();
+  const boardCount = Array.isArray(MY_BOARDS) ? MY_BOARDS.length : 0;
+  const studentCount = Array.isArray(STUDENTS) ? STUDENTS.length : 0;
+  const totalCards = (Array.isArray(MY_BOARDS) ? MY_BOARDS : []).reduce((sum, board) => sum + (board.card_count || 0), 0);
+  const freshestBoard = (Array.isArray(MY_BOARDS) ? MY_BOARDS : []).slice().sort((a, b) => {
+    return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
+  })[0];
+
+  eyebrow.textContent = `${user.avatar || '🧑‍🏫'} ${firstName}'s workspace`;
+  classes.textContent = String(todays.length);
+  boards.textContent = String(boardCount);
+  students.textContent = String(studentCount);
+
+  if (next) {
+    title.textContent = `Next up at ${String(next.start_time || '').slice(0, 5)}`;
+    sub.textContent = `${next.group_name || next.title || 'Class'}${next.level ? ' · ' + next.level : ''}`;
+    focusTitle.textContent = `${todays.length} class${todays.length === 1 ? '' : 'es'} on your day plan`;
+    focusSub.textContent = `Keep ${boardCount} boards and ${totalCards} cards ready. ${studentCount ? `${studentCount} students are already in your workspace.` : 'Invite students when you are ready.'}`;
+    return;
+  }
+
+  if (todays.length) {
+    title.textContent = 'All classes wrapped';
+    sub.textContent = 'Your mobile workspace is clear for prep, review, or notes.';
+  } else {
+    title.textContent = 'Light day, strong prep';
+    sub.textContent = 'No classes are scheduled yet, so this is a good time to tune boards and invite students.';
+  }
+
+  if (freshestBoard) {
+    focusTitle.textContent = `Latest board: ${freshestBoard.name || 'Untitled Board'}`;
+    focusSub.textContent = `${freshestBoard.card_count || 0} cards ready${studentCount ? ` · ${studentCount} students connected` : ''}. Open your board or gradebook to keep momentum.`;
+  } else {
+    focusTitle.textContent = 'Your mobile desk is ready for setup';
+    focusSub.textContent = `Create your first board, then connect students and schedule classes. ${boardCount ? `${boardCount} boards already exist.` : 'No boards yet.'}`;
+  }
+}
 
 function openApp(id) {
   const win = document.getElementById('win-' + id);
@@ -2126,6 +2402,7 @@ async function checkAuthAndRoute() {
 }
 
 function applyUserToDesktop(user) {
+  _currentUser = user;
   // Update any user-displaying elements
   const nameEls = document.querySelectorAll('.user-display-name');
   nameEls.forEach(el => el.textContent = user.name.split(' ')[0]);
@@ -2154,6 +2431,7 @@ function applyUserToDesktop(user) {
   planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
   planBadge.style.background = plan === 'free' ? '#f3f4f6' : plan === 'pro' ? '#ede9fe' : '#d1fae5';
   planBadge.style.color = planColors[plan] || '#6b7280';
+  updateMobileTeacherOverview();
   // Load calls + billing data
 
   // Load notifications
@@ -2460,6 +2738,7 @@ setInterval(loadNotifications, 120000);
       if (todayMeta) todayMeta.innerHTML = `<a href="schedule.html" style="color:var(--accent);text-decoration:none;">Open schedule →</a>`;
       if (todayBadge) todayBadge.textContent = '';
     }
+    updateMobileTeacherOverview();
   }).catch(() => {});
 
   // Boards: vocab widget + Lesson Plans grid + students aggregation
@@ -2485,6 +2764,7 @@ setInterval(loadNotifications, 120000);
         if (typeof studentsRender === 'function') studentsRender();
         if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
         if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+        updateMobileTeacherOverview();
       }
     });
     const v = {
@@ -2505,6 +2785,7 @@ setInterval(loadNotifications, 120000);
       v.ex.innerHTML = recent;
     }
     if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
+    updateMobileTeacherOverview();
   }).catch(() => {});
 
   // Shared boards
