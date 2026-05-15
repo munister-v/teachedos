@@ -200,6 +200,46 @@ a{text-decoration:none;color:inherit;}
   opacity:.5;
 }
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.5);}}
+.mobile-schedule-shell{display:none;}
+
+@media (max-width: 820px){
+  #nav{padding:0 14px;gap:8px;overflow-x:auto;}
+  .nav-link{display:none;}
+  #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));}
+  #side{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  #main{min-height:0;}
+  .week-nav{padding:12px;}
+  .side-section{padding:14px 12px 10px;}
+  .stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .mobile-schedule-shell{display:block;padding:14px 12px 0;}
+  .mobile-schedule-hero{
+    padding:18px;border-radius:20px;
+    background:
+      radial-gradient(circle at top right, rgba(232,93,117,.18), transparent 34%),
+      linear-gradient(155deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
+    border:1px solid rgba(232,93,117,.14);
+    box-shadow:0 18px 40px rgba(94,94,74,.08);
+  }
+  .mobile-schedule-eyebrow{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .mobile-schedule-title{font-size:24px;font-weight:900;color:var(--text);line-height:1.05;letter-spacing:-.04em;}
+  .mobile-schedule-copy{margin-top:8px;font-size:13px;color:var(--text2);line-height:1.55;}
+  .mobile-schedule-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .mobile-schedule-action{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;
+    background:rgba(255,255,255,.88);border:1px solid rgba(232,93,117,.12);cursor:pointer;
+  }
+  .mobile-schedule-action-ic{
+    width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg, rgba(232,93,117,.18), rgba(159,140,232,.18));flex-shrink:0;font-size:18px;
+  }
+  .mobile-schedule-action-title{font-size:13px;font-weight:800;line-height:1.2;}
+  .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
+}
+
+@media (max-width: 520px){
+  .mobile-schedule-actions{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+}
 </style>
 <link rel="stylesheet" href="dark.css">
 <script src="theme.js"></script>
@@ -227,6 +267,44 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Sidebar -->
   <div id="side">
+    <div class="mobile-schedule-shell">
+      <div class="mobile-schedule-hero">
+        <div class="mobile-schedule-eyebrow" id="mobile-schedule-eyebrow">Schedule workspace</div>
+        <div class="mobile-schedule-title" id="mobile-schedule-title">Loading your week…</div>
+        <div class="mobile-schedule-copy" id="mobile-schedule-copy">This phone view keeps your classes, live sessions, and week context close at hand.</div>
+        <div class="mobile-schedule-actions">
+          <div class="mobile-schedule-action" onclick="openModal()">
+            <div class="mobile-schedule-action-ic">➕</div>
+            <div>
+              <div class="mobile-schedule-action-title">Add class</div>
+              <div class="mobile-schedule-action-sub">Create a recurring or one-time slot</div>
+            </div>
+          </div>
+          <div class="mobile-schedule-action" onclick="goToday()">
+            <div class="mobile-schedule-action-ic">📍</div>
+            <div>
+              <div class="mobile-schedule-action-title">Jump to today</div>
+              <div class="mobile-schedule-action-sub">Center the current teaching day</div>
+            </div>
+          </div>
+          <div class="mobile-schedule-action" onclick="exportICS()">
+            <div class="mobile-schedule-action-ic">📅</div>
+            <div>
+              <div class="mobile-schedule-action-title">Export calendar</div>
+              <div class="mobile-schedule-action-sub">Save your schedule as `.ics`</div>
+            </div>
+          </div>
+          <a class="mobile-schedule-action" href="board.html">
+            <div class="mobile-schedule-action-ic">📌</div>
+            <div>
+              <div class="mobile-schedule-action-title">Open board</div>
+              <div class="mobile-schedule-action-sub">Jump into the lesson canvas</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Week nav -->
     <div class="week-nav">
       <button class="wn-btn" onclick="shiftWeek(-1)">‹</button>
@@ -374,6 +452,7 @@ a{text-decoration:none;color:inherit;}
 
 <script>
 const API = 'https://teachedos-api.onrender.com';
+const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let schedule = [];
 let editingId = null;
@@ -388,14 +467,67 @@ const COLORS = [
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
 
+function readScheduleCache() {
+  try {
+    return JSON.parse(localStorage.getItem(SCHEDULE_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeScheduleCache(patch) {
+  try {
+    const current = readScheduleCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(SCHEDULE_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function updateMobileScheduleSummary(options = {}) {
+  const eyebrow = document.getElementById('mobile-schedule-eyebrow');
+  const title = document.getElementById('mobile-schedule-title');
+  const copy = document.getElementById('mobile-schedule-copy');
+  if (!eyebrow || !title || !copy) return;
+  const user = readScheduleCache()?.user || {};
+  const firstName = (user.name || 'Teacher').split(' ')[0];
+  const todayDow = (new Date().getDay() + 6) % 7;
+  const todays = schedule.filter(s => s.day === todayDow).sort((a,b) => a.start_time.localeCompare(b.start_time));
+  const next = todays[0];
+  eyebrow.textContent = `${user.avatar || '🧑‍🏫'} ${firstName}'s schedule`;
+  if (options.offline) {
+    title.textContent = 'Offline week snapshot ready';
+    copy.textContent = `Offline mode: showing ${schedule.length} saved class slot${schedule.length === 1 ? '' : 's'} from your last schedule sync.`;
+    return;
+  }
+  if (next) {
+    title.textContent = `${todays.length} class${todays.length === 1 ? '' : 'es'} on today`;
+    copy.textContent = `Next up: ${next.title} at ${next.start_time.slice(0,5)}${next.group_name ? ' · ' + next.group_name : ''}.`;
+  } else if (schedule.length) {
+    title.textContent = 'Your week is mapped';
+    copy.textContent = `${schedule.length} class slot${schedule.length === 1 ? '' : 's'} are in the calendar. Use this view to go live, edit, or export.`;
+  } else {
+    title.textContent = 'Build your teaching week';
+    copy.textContent = 'Add your first recurring class or one-time session to start using the schedule as a real mobile planner.';
+  }
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
+  const cached = readScheduleCache();
   try {
     const r = await apiFetch('/api/auth/me');
     document.getElementById('nav-avatar').textContent = r.user.avatar;
     document.getElementById('nav-name').textContent   = r.user.name;
-  } catch { location.href = 'index.html'; return; }
+    writeScheduleCache({ user: r.user });
+  } catch {
+    if (cached?.user) {
+      document.getElementById('nav-avatar').textContent = cached.user.avatar || '🧑‍🏫';
+      document.getElementById('nav-name').textContent   = cached.user.name || 'Teacher';
+    } else {
+      location.href = 'index.html'; return;
+    }
+  }
   buildColorGrid();
   buildTimeCol();
   updateWeekHeader();
@@ -415,13 +547,27 @@ async function apiFetch(path, opts = {}) {
 
 // ── Schedule data ─────────────────────────────────────────────────────
 async function loadSchedule() {
+  const cached = readScheduleCache();
   try {
     const d = await apiFetch('/api/schedule');
     schedule = d.schedule;
+    writeScheduleCache({ schedule });
     renderGrid();
     renderSideList();
     renderStats();
-  } catch (e) { toast('Failed to load schedule', 'err'); }
+    updateMobileScheduleSummary();
+  } catch (e) {
+    if (cached?.schedule) {
+      schedule = cached.schedule;
+      renderGrid();
+      renderSideList();
+      renderStats();
+      updateMobileScheduleSummary({ offline: true });
+      toast('Offline mode enabled', 'ok');
+      return;
+    }
+    toast('Failed to load schedule', 'err');
+  }
 }
 
 // ── Week navigation ───────────────────────────────────────────────────
@@ -572,6 +718,7 @@ function renderStats() {
   document.getElementById('stat-hours').textContent = hrs.toFixed(1);
   const groups = new Set(schedule.map(s=>s.group_name).filter(Boolean));
   document.getElementById('stat-groups').textContent = groups.size;
+  updateMobileScheduleSummary();
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────
