@@ -5,10 +5,10 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#0A0A0F">
+<meta name="theme-color" content="#F5F0E8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd — Teach English from your pocket</title>
@@ -19,19 +19,21 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#0A0A0F;
-  --bg-2:#13131A;
-  --surface:#1A1A24;
-  --surface-2:#22222E;
-  --border:rgba(255,255,255,0.07);
-  --border-2:rgba(255,255,255,0.14);
-  --text:#FFFFFF;
-  --text-2:rgba(255,255,255,0.72);
-  --text-3:rgba(255,255,255,0.46);
+  --bg:#F5F0E8;
+  --bg-2:#EDE8E0;
+  --bg-3:#FAF7F1;
+  --surface:#FFFFFF;
+  --surface-2:#FAF7F1;
+  --border:rgba(94,94,74,0.14);
+  --border-2:rgba(94,94,74,0.26);
+  --text:#1C1C1E;
+  --text-2:#3A3A2E;
+  --text-3:#7A7A64;
+  --text-4:#A2A28C;
   --accent:#E85D75;
   --accent-2:#9F8CE8;
   --accent-3:#C8E632;
-  --rose-glow:rgba(232,93,117,0.32);
+  --rose-glow:rgba(232,93,117,0.28);
   --font:'Nunito',ui-sans-serif,system-ui,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,monospace;
 }
@@ -49,7 +51,7 @@ img{display:block;max-width:100%;}
 /* ════════════ ATMOSPHERE ════════════ */
 .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
 .aurora::before, .aurora::after{
-  content:'';position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;
+  content:'';position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;
 }
 .aurora::before{
   width:600px;height:600px;top:-200px;left:-150px;
@@ -68,13 +70,13 @@ img{display:block;max-width:100%;}
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:1000;
   padding:env(safe-area-inset-top,0px) 0 0;
-  background:rgba(10,10,15,0.72);
+  background:rgba(245,240,232,0.78);
   backdrop-filter:blur(22px) saturate(1.8);
   -webkit-backdrop-filter:blur(22px) saturate(1.8);
   border-bottom:1px solid var(--border);
 }
 .nav-inner{
-  max-width:1180px;margin:0 auto;padding:14px 20px;
+  max-width:1180px;margin:0 auto;padding:12px 20px;
   display:flex;align-items:center;gap:16px;
 }
 .nav-logo{
@@ -85,7 +87,7 @@ img{display:block;max-width:100%;}
 .nav-logo em{font-style:normal;color:var(--accent);}
 .nav-links{display:none;gap:4px;margin-left:24px;}
 .nav-link{
-  font-size:13px;font-weight:700;color:var(--text-2);
+  font-size:13px;font-weight:700;color:var(--text-3);
   padding:8px 12px;border-radius:10px;transition:.15s;
 }
 .nav-link:hover{color:var(--text);background:var(--surface);}
@@ -107,53 +109,52 @@ img{display:block;max-width:100%;}
 }
 .btn-primary:hover{box-shadow:0 10px 28px var(--rose-glow);}
 .btn-glass{
-  background:rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.65);
   border:1px solid var(--border-2);
   color:var(--text);
   backdrop-filter:blur(12px);
 }
-.btn-glass:hover{background:rgba(255,255,255,0.10);}
-.btn-ghost{color:var(--text-2);padding:12px 14px;}
+.btn-glass:hover{background:rgba(255,255,255,0.85);}
+.btn-ghost{color:var(--text-3);padding:12px 14px;}
 .btn-ghost:hover{color:var(--text);}
 .btn-lg{padding:16px 24px;font-size:15px;border-radius:16px;}
 .btn-xl{padding:18px 28px;font-size:16px;border-radius:18px;}
 
 /* ════════════ SECTIONS ════════════ */
-section{padding:80px 20px;position:relative;}
+section{padding:72px 20px;position:relative;}
 .container{max-width:1180px;margin:0 auto;}
 .section-eyebrow{
   display:inline-flex;align-items:center;gap:8px;
   padding:6px 12px;border-radius:999px;
-  background:rgba(232,93,117,0.10);
+  background:rgba(232,93,117,0.08);
   border:1px solid rgba(232,93,117,0.22);
   color:var(--accent);
   font-family:var(--mono);font-size:11px;font-weight:700;
   letter-spacing:0.06em;text-transform:uppercase;
-  margin-bottom:18px;
+  margin-bottom:16px;
 }
 .section-h{
-  font-size:38px;font-weight:900;letter-spacing:-0.03em;line-height:1.05;
-  margin-bottom:18px;
+  font-size:34px;font-weight:900;letter-spacing:-0.03em;line-height:1.05;
+  margin-bottom:14px;color:var(--text);
 }
 .section-h em{font-style:normal;background:linear-gradient(135deg,#E85D75,#9F8CE8);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 .section-sub{
   font-size:16px;color:var(--text-2);line-height:1.65;max-width:580px;
-  margin-bottom:40px;
+  margin-bottom:36px;
 }
 
 /* ════════════ HERO ════════════ */
 .hero{
-  padding:calc(100px + env(safe-area-inset-top,0px)) 20px 60px;
+  padding:calc(96px + env(safe-area-inset-top,0px)) 20px 40px;
   text-align:center;position:relative;
-  min-height:90vh;display:flex;flex-direction:column;justify-content:center;
 }
 .hero-badge{
-  display:inline-flex;align-items:center;gap:8px;margin:0 auto 24px;
-  padding:8px 14px;border-radius:999px;
-  background:rgba(255,255,255,0.04);
+  display:inline-flex;align-items:center;gap:8px;margin:0 auto 20px;
+  padding:7px 13px;border-radius:999px;
+  background:rgba(255,255,255,0.75);
   border:1px solid var(--border-2);
-  font-size:12px;font-weight:800;color:var(--text-2);
+  font-size:11px;font-weight:800;color:var(--text-2);
   font-family:var(--mono);letter-spacing:0.04em;text-transform:uppercase;
 }
 .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-3);
@@ -161,78 +162,74 @@ section{padding:80px 20px;position:relative;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 .hero-h1{
-  font-size:54px;font-weight:900;letter-spacing:-0.045em;line-height:1.0;
-  margin:0 auto 20px;max-width:880px;
+  font-size:42px;font-weight:900;letter-spacing:-0.045em;line-height:1.0;
+  margin:0 auto 16px;max-width:880px;color:var(--text);
 }
 .hero-h1 em{
   font-style:normal;
-  background:linear-gradient(135deg,#E85D75 0%,#9F8CE8 50%,#C8E632 100%);
+  background:linear-gradient(135deg,#E85D75 0%,#9F8CE8 50%,#FF8A3D 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
 .hero-sub{
-  font-size:17px;color:var(--text-2);line-height:1.6;
-  max-width:560px;margin:0 auto 36px;
+  font-size:16px;color:var(--text-2);line-height:1.6;
+  max-width:520px;margin:0 auto 28px;
 }
 .hero-ctas{
-  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;
 }
 .hero-trust{
-  display:flex;justify-content:center;gap:24px;flex-wrap:wrap;
-  font-size:13px;color:var(--text-3);font-weight:700;
+  display:flex;justify-content:center;gap:18px;flex-wrap:wrap;
+  font-size:12px;color:var(--text-3);font-weight:700;
 }
 .hero-trust span{display:inline-flex;align-items:center;gap:6px;}
-.hero-trust .ico{color:var(--accent-3);}
+.hero-trust .ico{width:6px;height:6px;border-radius:50%;background:var(--accent-3);}
 
 /* Phone mockup */
 .phone-stage{
-  margin:60px auto 0;position:relative;
-  width:min(640px,100%);height:520px;
+  margin:48px auto 0;position:relative;
+  width:min(640px,100%);
   display:flex;justify-content:center;align-items:flex-end;
 }
 .phone{
-  position:relative;width:260px;
+  position:relative;width:248px;
   border-radius:42px;
-  background:linear-gradient(160deg,#1F1F2E 0%,#0F0F18 100%);
+  background:linear-gradient(160deg,#2A2A38 0%,#0F0F18 100%);
   padding:10px;
   box-shadow:
-    0 30px 80px rgba(232,93,117,0.25),
-    0 0 0 1px rgba(255,255,255,0.06),
-    inset 0 0 0 1px rgba(255,255,255,0.04);
-  transform:rotate(-3deg);
+    0 24px 60px rgba(232,93,117,0.18),
+    0 12px 30px rgba(94,94,74,0.12),
+    0 0 0 1px rgba(255,255,255,0.04);
+  transform:rotate(-2deg);
   transition:transform .3s ease;
 }
-.phone:hover{transform:rotate(0) translateY(-8px);}
+.phone:hover{transform:rotate(0) translateY(-4px);}
 .phone-screen{
   border-radius:32px;overflow:hidden;
-  background:#1C1C1E;height:480px;
+  background:#1C1C1E;height:460px;
   display:flex;flex-direction:column;
   position:relative;
 }
 .phone-notch{
   position:absolute;top:8px;left:50%;transform:translateX(-50%);
-  width:90px;height:24px;background:#000;border-radius:14px;z-index:5;
+  width:88px;height:22px;background:#000;border-radius:14px;z-index:5;
 }
 .phone-top{
-  padding:36px 18px 12px;display:flex;justify-content:space-between;align-items:center;
+  padding:36px 18px 10px;display:flex;justify-content:space-between;align-items:center;
   font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;
 }
-.phone-header{
-  padding:8px 18px 14px;
-}
-.phone-h{
-  font-size:18px;font-weight:900;letter-spacing:-0.02em;color:#fff;
-}
+.phone-header{padding:8px 18px 12px;}
+.phone-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;color:#fff;}
 .phone-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;}
-.phone-cards{padding:8px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.phone-cards{padding:6px 14px;display:flex;flex-direction:column;gap:7px;flex:1;}
 .phone-card{
-  padding:11px 12px;border-radius:14px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.06);
-  display:flex;align-items:center;gap:10px;
+  padding:10px 11px;border-radius:14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:9px;
 }
 .phone-card-ic{
-  width:34px;height:34px;border-radius:10px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:16px;
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
 }
 .phone-card-ic.r{background:linear-gradient(135deg,#E85D75,#FF6B8A);}
 .phone-card-ic.l{background:linear-gradient(135deg,#9F8CE8,#7C6AC7);}
@@ -240,30 +237,32 @@ section{padding:80px 20px;position:relative;}
 .phone-card-ic.b{background:linear-gradient(135deg,#60A5FA,#3B82F6);}
 .phone-card-info{flex:1;min-width:0;}
 .phone-card-t{font-size:12px;font-weight:800;color:#fff;line-height:1.2;}
-.phone-card-s{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.phone-card-s{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
 .phone-card-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-3);}
 .phone-tabs{
-  display:flex;padding:8px 12px calc(14px + 4px);border-top:1px solid rgba(255,255,255,0.06);
-  background:rgba(255,255,255,0.02);
+  display:flex;padding:8px 8px 12px;border-top:1px solid rgba(255,255,255,0.06);
+  background:rgba(0,0,0,0.2);
 }
 .phone-tab{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:8px;color:rgba(255,255,255,0.3);font-weight:800;
+  font-size:8px;color:rgba(255,255,255,0.32);font-weight:800;
+  letter-spacing:0.03em;
 }
 .phone-tab.active{color:var(--accent);}
-.phone-tab-ic{font-size:18px;line-height:1;}
+.phone-tab-ic{font-size:16px;line-height:1;}
 
 .phone-decor{
-  position:absolute;width:200px;height:200px;border-radius:50%;
-  filter:blur(60px);opacity:.6;z-index:-1;
+  position:absolute;width:220px;height:220px;border-radius:50%;
+  filter:blur(70px);opacity:.55;z-index:-1;
 }
-.phone-decor.a{top:20%;left:10%;background:rgba(232,93,117,.6);}
-.phone-decor.b{bottom:10%;right:10%;background:rgba(159,140,232,.6);}
+.phone-decor.a{top:10%;left:5%;background:rgba(232,93,117,.7);}
+.phone-decor.b{bottom:5%;right:5%;background:rgba(159,140,232,.6);}
 
 /* ════════════ STATS STRIP ════════════ */
 .stats-strip{
-  padding:36px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  background:rgba(255,255,255,0.02);
+  padding:32px 20px;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.45);
 }
 .stats-grid{
   max-width:1180px;margin:0 auto;
@@ -271,14 +270,14 @@ section{padding:80px 20px;position:relative;}
 }
 .stat-cell{text-align:center;}
 .stat-n{
-  font-family:var(--mono);font-size:28px;font-weight:700;
-  background:linear-gradient(135deg,#FFF,#9F8CE8);
+  font-family:var(--mono);font-size:26px;font-weight:700;
+  background:linear-gradient(135deg,#1C1C1E,#9F8CE8);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   line-height:1;
 }
 .stat-l{
-  font-size:11px;color:var(--text-3);font-weight:800;
-  letter-spacing:0.06em;text-transform:uppercase;margin-top:8px;
+  font-size:10px;color:var(--text-3);font-weight:800;
+  letter-spacing:0.06em;text-transform:uppercase;margin-top:7px;
   font-family:var(--mono);
 }
 
@@ -290,189 +289,186 @@ section{padding:80px 20px;position:relative;}
   gap:14px;
 }
 .bento-card{
-  background:linear-gradient(145deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%);
+  background:var(--surface);
   border:1px solid var(--border);
   border-radius:24px;
-  padding:24px;
+  padding:22px;
   display:flex;flex-direction:column;justify-content:space-between;
   position:relative;overflow:hidden;
-  transition:transform .2s, border-color .2s, background .2s;
+  transition:transform .2s ease, box-shadow .25s ease, border-color .2s;
+  box-shadow:0 1px 3px rgba(5,5,23,0.04);
 }
 .bento-card:hover{
-  transform:translateY(-4px);
+  transform:translateY(-3px);
+  box-shadow:0 12px 32px rgba(5,5,23,0.08);
   border-color:var(--border-2);
-  background:linear-gradient(145deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 100%);
 }
 .bento-card .ic{
   width:48px;height:48px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
 }
-.bento-card .ic.r{background:linear-gradient(135deg,#E85D75,#FF6B8A);border:none;}
-.bento-card .ic.l{background:linear-gradient(135deg,#9F8CE8,#7C6AC7);border:none;}
-.bento-card .ic.g{background:linear-gradient(135deg,#C8E632,#A8C42A);border:none;color:#1C1C1E;}
-.bento-card .ic.b{background:linear-gradient(135deg,#60A5FA,#3B82F6);border:none;}
+.bento-card .ic.r{background:linear-gradient(135deg,#E85D75,#FF6B8A);}
+.bento-card .ic.l{background:linear-gradient(135deg,#9F8CE8,#7C6AC7);}
+.bento-card .ic.g{background:linear-gradient(135deg,#C8E632,#A8C42A);color:#1C1C1E;}
+.bento-card .ic.b{background:linear-gradient(135deg,#60A5FA,#3B82F6);}
 .bento-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;color:var(--text);}
 .bento-p{font-size:13px;color:var(--text-2);line-height:1.55;margin-top:6px;}
 .bento-glow{
   position:absolute;width:240px;height:240px;border-radius:50%;
-  filter:blur(60px);opacity:.5;pointer-events:none;z-index:0;
+  filter:blur(60px);opacity:.35;pointer-events:none;z-index:0;
 }
 .bento-card > *{position:relative;z-index:1;}
 
 .bento .span-3{grid-column:span 3;}
 .bento .span-2{grid-column:span 2;}
 .bento .span-4{grid-column:span 4;}
-.bento .span-6{grid-column:span 6;}
 .bento .row-2{grid-row:span 2;}
 
-.bento-feature{display:flex;flex-direction:column;justify-content:flex-end;gap:14px;}
 .bento-tag{
   display:inline-flex;align-items:center;gap:6px;
   padding:5px 10px;border-radius:999px;
-  background:rgba(200,230,50,0.10);
-  border:1px solid rgba(200,230,50,0.22);
-  font-size:10px;color:var(--accent-3);font-weight:800;letter-spacing:0.04em;
+  background:rgba(200,230,50,0.12);
+  border:1px solid rgba(200,230,50,0.4);
+  font-size:10px;color:#5a7c0a;font-weight:800;letter-spacing:0.04em;
   text-transform:uppercase;font-family:var(--mono);
   align-self:flex-start;
 }
+.bento-tag.purple{background:rgba(159,140,232,0.10);border-color:rgba(159,140,232,0.4);color:#6c52cf;}
 
-/* games count visual */
 .bento-games{
   display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px;
 }
 .bento-game{
   aspect-ratio:1;border-radius:10px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid var(--border);
+  background:var(--bg-2);
   display:flex;align-items:center;justify-content:center;
   font-size:18px;
 }
 
-/* ════════════ HOW IT WORKS ════════════ */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+/* ════════════ STEPS ════════════ */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
 .step{
-  background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
-  border:1px solid var(--border);border-radius:20px;padding:28px 24px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:20px;padding:26px 22px;
   position:relative;
+  box-shadow:0 1px 3px rgba(5,5,23,0.04);
 }
 .step-n{
-  font-family:var(--mono);font-size:13px;font-weight:700;
-  color:var(--accent);margin-bottom:14px;letter-spacing:0.06em;
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  color:var(--accent);margin-bottom:12px;letter-spacing:0.08em;
 }
-.step-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;}
+.step-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;color:var(--text);}
 .step-p{font-size:13px;color:var(--text-2);line-height:1.6;}
 
-/* ════════════ WHY PWA ════════════ */
+/* ════════════ WHY ════════════ */
 .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 .why-card{
   text-align:left;padding:24px;border-radius:18px;
-  background:rgba(255,255,255,0.02);
+  background:var(--surface);
   border:1px solid var(--border);
+  box-shadow:0 1px 3px rgba(5,5,23,0.04);
 }
 .why-ic{
   width:44px;height:44px;border-radius:12px;
-  background:linear-gradient(135deg,rgba(232,93,117,0.18),rgba(159,140,232,0.18));
+  background:linear-gradient(135deg,rgba(232,93,117,0.14),rgba(159,140,232,0.14));
   display:flex;align-items:center;justify-content:center;
   font-size:20px;margin-bottom:14px;
 }
-.why-h{font-size:15px;font-weight:900;margin-bottom:6px;}
+.why-h{font-size:15px;font-weight:900;margin-bottom:6px;color:var(--text);}
 .why-p{font-size:12px;color:var(--text-2);line-height:1.6;}
 
-/* ════════════ SCREENS ════════════ */
-.screens{
-  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px;
-}
-
 /* ════════════ PRICING ════════════ */
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .pricing-card{
-  background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
-  border:1px solid var(--border);border-radius:22px;padding:32px 26px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:22px;padding:30px 24px;
   position:relative;
+  box-shadow:0 1px 3px rgba(5,5,23,0.04);
 }
 .pricing-card.featured{
-  border-color:rgba(232,93,117,0.5);
-  background:linear-gradient(145deg,rgba(232,93,117,0.10),rgba(159,140,232,0.05));
+  border:1.5px solid var(--accent);
+  background:linear-gradient(180deg,#fff 0%,#fef5f7 100%);
+  box-shadow:0 14px 40px rgba(232,93,117,0.14);
+  transform:translateY(-6px);
 }
 .pricing-card.featured::before{
   content:'POPULAR';position:absolute;top:-12px;left:50%;transform:translateX(-50%);
   padding:5px 12px;border-radius:999px;
   background:linear-gradient(135deg,#E85D75,#FF6B8A);
   color:#fff;font-size:10px;font-weight:900;letter-spacing:0.1em;
-  font-family:var(--mono);
+  font-family:var(--mono);box-shadow:0 4px 12px var(--rose-glow);
 }
-.pricing-name{font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:0.04em;
-  text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;}
-.pricing-price{font-size:42px;font-weight:900;letter-spacing:-0.04em;line-height:1;}
+.pricing-name{font-size:12px;font-weight:800;color:var(--text-3);letter-spacing:0.06em;
+  text-transform:uppercase;font-family:var(--mono);margin-bottom:10px;}
+.pricing-price{font-size:42px;font-weight:900;letter-spacing:-0.04em;line-height:1;color:var(--text);}
 .pricing-price .unit{font-size:14px;color:var(--text-3);font-weight:700;}
-.pricing-desc{font-size:13px;color:var(--text-2);margin:14px 0 22px;line-height:1.55;}
-.pricing-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.pricing-desc{font-size:13px;color:var(--text-2);margin:12px 0 20px;line-height:1.55;}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:22px;}
 .pricing-features li{font-size:13px;color:var(--text-2);display:flex;gap:8px;align-items:flex-start;}
 .pricing-features li::before{
-  content:'✓';color:var(--accent-3);font-weight:900;font-size:14px;flex-shrink:0;
+  content:'✓';color:var(--accent);font-weight:900;font-size:14px;flex-shrink:0;
 }
 .pricing-btn{width:100%;justify-content:center;}
 
 /* ════════════ FAQ ════════════ */
-.faq{max-width:780px;margin:0 auto;}
+.faq{max-width:760px;margin:0 auto;}
 .faq-item{
   border-bottom:1px solid var(--border);
 }
 .faq-q{
   display:flex;align-items:center;justify-content:space-between;
-  padding:22px 4px;font-size:16px;font-weight:800;color:var(--text);
+  padding:20px 4px;font-size:16px;font-weight:800;color:var(--text);
   cursor:pointer;gap:16px;
 }
 .faq-arrow{font-size:18px;color:var(--text-3);transition:transform .2s;flex-shrink:0;}
 .faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--accent);}
 .faq-a{
-  display:none;padding:0 4px 22px;
+  display:none;padding:0 4px 20px;
   font-size:14px;color:var(--text-2);line-height:1.7;
 }
 .faq-item.open .faq-a{display:block;}
 
 /* ════════════ FINAL CTA ════════════ */
 .final-cta{
-  text-align:center;padding:80px 20px;
-  background:linear-gradient(135deg,rgba(232,93,117,0.10),rgba(159,140,232,0.06));
+  text-align:center;padding:72px 20px;
+  background:linear-gradient(135deg,#fff5f7 0%,#f6f0fc 100%);
   border-top:1px solid var(--border);border-bottom:1px solid var(--border);
   position:relative;overflow:hidden;
 }
 .final-cta::before{
   content:'';position:absolute;width:600px;height:600px;border-radius:50%;
   top:-300px;left:50%;transform:translateX(-50%);
-  background:radial-gradient(circle,var(--rose-glow),transparent 60%);
+  background:radial-gradient(circle,rgba(232,93,117,0.18),transparent 60%);
   filter:blur(40px);z-index:0;
 }
 .final-cta > *{position:relative;z-index:1;}
-.final-h{font-size:42px;font-weight:900;letter-spacing:-0.04em;line-height:1;margin-bottom:18px;}
+.final-h{font-size:36px;font-weight:900;letter-spacing:-0.04em;line-height:1;margin-bottom:14px;color:var(--text);}
 .final-h em{font-style:normal;color:var(--accent);}
-.final-p{font-size:16px;color:var(--text-2);max-width:520px;margin:0 auto 32px;line-height:1.6;}
+.final-p{font-size:15px;color:var(--text-2);max-width:480px;margin:0 auto 28px;line-height:1.6;}
 .final-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
 
 /* ════════════ FOOTER ════════════ */
-.footer{padding:60px 20px 100px;border-top:1px solid var(--border);}
+.footer{padding:50px 20px 100px;border-top:1px solid var(--border);background:var(--bg-2);}
 .footer-grid{
   max-width:1180px;margin:0 auto;
-  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;
 }
-.footer-brand{font-size:22px;font-weight:900;letter-spacing:-0.02em;}
+.footer-brand{font-size:22px;font-weight:900;letter-spacing:-0.02em;color:var(--text);}
 .footer-brand em{font-style:normal;color:var(--accent);}
-.footer-desc{font-size:13px;color:var(--text-2);line-height:1.7;margin-top:12px;max-width:340px;}
+.footer-desc{font-size:13px;color:var(--text-2);line-height:1.7;margin-top:10px;max-width:340px;}
 .footer-col h4{
   font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;
-  color:var(--text-3);margin-bottom:14px;font-family:var(--mono);
+  color:var(--text-3);margin-bottom:12px;font-family:var(--mono);
 }
 .footer-col a{
-  display:block;font-size:13px;color:var(--text-2);padding:6px 0;
+  display:block;font-size:13px;color:var(--text-2);padding:5px 0;
   font-weight:700;transition:color .15s;
 }
-.footer-col a:hover{color:var(--text);}
+.footer-col a:hover{color:var(--accent);}
 .footer-bottom{
-  max-width:1180px;margin:40px auto 0;padding-top:24px;
+  max-width:1180px;margin:32px auto 0;padding-top:20px;
   border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
   font-size:12px;color:var(--text-3);
 }
 
@@ -482,28 +478,28 @@ section{padding:80px 20px;position:relative;}
   bottom:calc(14px + env(safe-area-inset-bottom,0px));
   z-index:990;
   padding:8px 8px 8px 18px;
-  background:rgba(20,20,28,0.86);
+  background:rgba(255,255,255,0.92);
   backdrop-filter:blur(22px) saturate(1.8);
   -webkit-backdrop-filter:blur(22px) saturate(1.8);
   border:1px solid var(--border-2);
   border-radius:22px;
-  box-shadow:0 16px 40px rgba(0,0,0,0.35);
+  box-shadow:0 12px 36px rgba(94,94,74,0.18);
   align-items:center;justify-content:space-between;gap:12px;
-  animation:slideUp .4s ease-out;
 }
-@keyframes slideUp{from{transform:translateY(120%);opacity:0}to{transform:translateY(0);opacity:1}}
 .sticky-cta-text{
-  font-size:12px;font-weight:800;color:var(--text);line-height:1.2;
+  font-size:13px;font-weight:900;color:var(--text);line-height:1.2;
 }
 .sticky-cta-text small{
   display:block;font-size:10px;color:var(--text-3);font-weight:700;margin-top:2px;
 }
 
-/* ════════════ REVEAL ════════════ */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;}
-.reveal.visible{opacity:1;transform:translateY(0);}
+/* ════════════ REVEAL (safe — content always shows; only enriches on scroll) ════════════ */
+.reveal{transition:transform .6s ease, opacity .6s ease;}
+.js-ready .reveal:not(.visible){opacity:0;transform:translateY(20px);}
+.js-ready .reveal.visible{opacity:1;transform:translateY(0);}
 @media (prefers-reduced-motion: reduce){
-  .reveal{opacity:1;transform:none;}
+  .reveal{transition:none;}
+  .js-ready .reveal:not(.visible){opacity:1;transform:none;}
   .aurora::before, .aurora::after{animation:none;}
 }
 
@@ -511,11 +507,10 @@ section{padding:80px 20px;position:relative;}
 .toast{
   position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
   bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:99999;
-  background:rgba(20,20,28,0.94);color:#fff;
-  padding:13px 22px;border-radius:999px;
+  background:#1C1C1E;color:#fff;
+  padding:12px 22px;border-radius:999px;
   font-size:13px;font-weight:700;
-  border:1px solid var(--border-2);
-  box-shadow:0 14px 40px rgba(0,0,0,0.35);
+  box-shadow:0 14px 36px rgba(0,0,0,0.18);
   opacity:0;transition:opacity .25s ease, transform .25s ease;
   pointer-events:none;
 }
@@ -524,21 +519,21 @@ section{padding:80px 20px;position:relative;}
 /* ════════════ CHECKOUT MODAL ════════════ */
 .checkout-overlay{
   display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(5,5,12,0.78);
-  backdrop-filter:blur(12px);
+  background:rgba(28,10,20,0.55);
+  backdrop-filter:blur(10px);
   align-items:center;justify-content:center;padding:20px;
 }
 .checkout-box{
-  background:#13131A;border:1px solid var(--border-2);border-radius:24px;
+  background:#fff;border-radius:24px;
   padding:32px 28px;max-width:420px;width:100%;text-align:center;
-  position:relative;
+  position:relative;box-shadow:0 24px 60px rgba(0,0,0,0.22);
 }
-.checkout-ic{font-size:42px;margin-bottom:14px;}
-.checkout-t{font-size:22px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;}
-.checkout-s{font-size:13px;color:var(--text-2);margin-bottom:24px;line-height:1.6;}
+.checkout-ic{font-size:42px;margin-bottom:12px;}
+.checkout-t{font-size:22px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;color:var(--text);}
+.checkout-s{font-size:13px;color:var(--text-2);margin-bottom:20px;line-height:1.6;}
 .checkout-close{
   position:absolute;top:14px;right:14px;width:32px;height:32px;
-  border-radius:50%;background:rgba(255,255,255,0.06);
+  border-radius:50%;background:rgba(0,0,0,0.06);
   display:flex;align-items:center;justify-content:center;
   font-size:18px;color:var(--text-3);cursor:pointer;
 }
@@ -546,42 +541,47 @@ section{padding:80px 20px;position:relative;}
 /* ════════════ RESPONSIVE ════════════ */
 @media (min-width: 860px){
   .nav-links{display:flex;}
-  .hero-h1{font-size:84px;}
-  .hero-sub{font-size:19px;}
-  .phone{width:300px;transform:rotate(-4deg);}
+  .hero{padding-top:140px;padding-bottom:64px;}
+  .hero-h1{font-size:78px;}
+  .hero-sub{font-size:19px;margin-bottom:36px;}
+  .phone{width:300px;transform:rotate(-3deg);}
   .phone-screen{height:540px;}
-  .section-h{font-size:52px;}
-  section{padding:120px 32px;}
-  .stats-strip{padding:48px 32px;}
+  .section-h{font-size:48px;}
+  section{padding:100px 32px;}
+  .stats-strip{padding:44px 32px;}
 }
 
 @media (max-width: 860px){
-  .nav-inner{padding:12px 16px;gap:8px;}
+  .nav-inner{padding:10px 14px;gap:8px;}
   .nav-cta .btn-ghost{display:none;}
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:24px;}
-  .bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:auto;}
-  .bento .span-3,.bento .span-2,.bento .span-4,.bento .span-6{grid-column:span 2;}
-  .bento-card{min-height:180px;padding:20px;}
-  .steps{grid-template-columns:1fr;gap:14px;}
+  .bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:auto;gap:12px;}
+  .bento .span-3,.bento .span-2,.bento .span-4{grid-column:span 2;}
+  .bento .row-2{grid-row:auto;}
+  .bento-card{min-height:170px;padding:20px;}
+  .steps{grid-template-columns:1fr;gap:12px;}
   .why-grid{grid-template-columns:repeat(2,1fr);}
-  .pricing-grid{grid-template-columns:1fr;}
-  .footer-grid{grid-template-columns:1fr 1fr;gap:30px;}
+  .pricing-grid{grid-template-columns:1fr;gap:18px;}
+  .pricing-card.featured{transform:none;}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:28px;}
   .sticky-cta{display:flex;}
-  body{padding-bottom:100px;}
+  body{padding-bottom:90px;}
 }
 
 @media (max-width: 480px){
-  .hero{padding-top:calc(80px + env(safe-area-inset-top,0px));min-height:100vh;}
-  .hero-h1{font-size:40px;letter-spacing:-0.04em;}
+  .hero{padding-top:calc(80px + env(safe-area-inset-top,0px));}
+  .hero-h1{font-size:36px;letter-spacing:-0.04em;}
   .hero-sub{font-size:15px;}
+  .hero-ctas{flex-direction:column;width:100%;}
   .hero-ctas .btn{width:100%;}
-  .hero-ctas{flex-direction:column;}
-  .section-h{font-size:30px;}
-  .section-sub{font-size:15px;}
-  section{padding:60px 18px;}
-  .phone{width:240px;}
-  .phone-screen{height:440px;}
-  .final-h{font-size:30px;}
+  .hero-trust{font-size:11px;gap:14px;}
+  .section-h{font-size:28px;}
+  .section-sub{font-size:14px;}
+  section{padding:56px 16px;}
+  .phone{width:230px;}
+  .phone-screen{height:430px;}
+  .final-h{font-size:28px;}
+  .final-ctas{flex-direction:column;width:100%;}
   .final-ctas .btn{width:100%;}
   .why-grid{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr;}
@@ -626,12 +626,11 @@ section{padding:80px 20px;position:relative;}
     <a class="btn btn-glass btn-xl" href="index.html">Open in browser</a>
   </div>
   <div class="hero-trust reveal">
-    <span><span class="ico">●</span> Works offline</span>
-    <span><span class="ico">●</span> No app store</span>
-    <span><span class="ico">●</span> &lt; 3 MB install</span>
+    <span><span class="ico"></span> Works offline</span>
+    <span><span class="ico"></span> No app store</span>
+    <span><span class="ico"></span> &lt; 3 MB install</span>
   </div>
 
-  <!-- Phone mockup -->
   <div class="phone-stage reveal">
     <div class="phone-decor a"></div>
     <div class="phone-decor b"></div>
@@ -692,31 +691,31 @@ section{padding:80px 20px;position:relative;}
 <!-- ════════════ STATS STRIP ════════════ -->
 <div class="stats-strip">
   <div class="stats-grid">
-    <div class="stat-cell reveal"><div class="stat-n">20</div><div class="stat-l">Language games</div></div>
-    <div class="stat-cell reveal"><div class="stat-n">A1 — C2</div><div class="stat-l">All CEFR levels</div></div>
-    <div class="stat-cell reveal"><div class="stat-n">∞</div><div class="stat-l">Boards free tier</div></div>
-    <div class="stat-cell reveal"><div class="stat-n">100%</div><div class="stat-l">Offline-ready</div></div>
+    <div class="stat-cell"><div class="stat-n">20</div><div class="stat-l">Language games</div></div>
+    <div class="stat-cell"><div class="stat-n">A1—C2</div><div class="stat-l">All CEFR levels</div></div>
+    <div class="stat-cell"><div class="stat-n">∞</div><div class="stat-l">Boards free tier</div></div>
+    <div class="stat-cell"><div class="stat-n">100%</div><div class="stat-l">Offline-ready</div></div>
   </div>
 </div>
 
 <!-- ════════════ BENTO ════════════ -->
 <section id="features">
   <div class="container">
-    <div class="section-eyebrow reveal">● Built for mobile</div>
-    <h2 class="section-h reveal">Everything a teacher needs.<br><em>One pocket-sized app.</em></h2>
-    <p class="section-sub reveal">Designed bottom-up for thumbs. Tap to open a board, swipe to mark a lesson, tap-and-hold to share. No keyboard required.</p>
+    <div class="section-eyebrow">● Built for mobile</div>
+    <h2 class="section-h">Everything a teacher needs.<br><em>One pocket-sized app.</em></h2>
+    <p class="section-sub">Designed bottom-up for thumbs. Tap to open a board, swipe to mark a lesson, tap-and-hold to share. No keyboard required.</p>
 
     <div class="bento">
-      <div class="bento-card span-3 row-2 reveal">
-        <div class="bento-glow" style="top:-80px;right:-80px;background:rgba(232,93,117,0.6);"></div>
+      <div class="bento-card span-3 row-2">
+        <div class="bento-glow" style="top:-80px;right:-80px;background:rgba(232,93,117,0.5);"></div>
         <div class="ic r">📋</div>
         <div>
           <div class="bento-h">Visual lesson boards</div>
-          <div class="bento-p">Drag-and-drop cards, link them with arrows, and run the lesson card-by-card. Teach the same board to 10 students or 1 — it scales.</div>
+          <div class="bento-p">Drag-and-drop cards, link them with arrows, and run the lesson card-by-card. Scales from 1 student to 30 without changing the plan.</div>
         </div>
       </div>
 
-      <div class="bento-card span-3 reveal">
+      <div class="bento-card span-3">
         <div class="ic l">📅</div>
         <div>
           <div class="bento-h">Schedule that texts back</div>
@@ -724,7 +723,7 @@ section{padding:80px 20px;position:relative;}
         </div>
       </div>
 
-      <div class="bento-card span-3 reveal">
+      <div class="bento-card span-3">
         <div class="bento-glow" style="bottom:-80px;left:-80px;background:rgba(200,230,50,0.4);"></div>
         <div class="ic g">📊</div>
         <div>
@@ -733,11 +732,11 @@ section{padding:80px 20px;position:relative;}
         </div>
       </div>
 
-      <div class="bento-card span-2 reveal">
+      <div class="bento-card span-2">
         <div class="bento-tag">20 games</div>
         <div>
           <div class="bento-h">Word games library</div>
-          <div class="bento-p">Hangman, Spelling Bee, Typing Rain, Word Scramble, Memory Match…</div>
+          <div class="bento-p">Hangman, Spelling Bee, Typing Rain…</div>
         </div>
         <div class="bento-games">
           <div class="bento-game">💀</div>
@@ -748,19 +747,19 @@ section{padding:80px 20px;position:relative;}
         </div>
       </div>
 
-      <div class="bento-card span-2 reveal">
+      <div class="bento-card span-2">
         <div class="ic b">📡</div>
         <div>
           <div class="bento-h">Offline-first</div>
-          <div class="bento-p">Subway, plane, weak signal — TeachEd keeps working. Changes sync the moment you reconnect.</div>
+          <div class="bento-p">Subway, plane, weak signal — TeachEd keeps working. Sync resumes when you reconnect.</div>
         </div>
       </div>
 
-      <div class="bento-card span-2 reveal">
-        <div class="bento-tag" style="background:rgba(159,140,232,0.10);border-color:rgba(159,140,232,0.3);color:#9F8CE8;">Live</div>
+      <div class="bento-card span-2">
+        <div class="bento-tag purple">Live</div>
         <div>
           <div class="bento-h">Push notifications</div>
-          <div class="bento-p">Students get a tap when class goes live, when homework is due, when a board is shared.</div>
+          <div class="bento-p">Students get a tap when class goes live, when homework is due.</div>
         </div>
       </div>
     </div>
@@ -770,22 +769,22 @@ section{padding:80px 20px;position:relative;}
 <!-- ════════════ HOW ════════════ -->
 <section id="how">
   <div class="container">
-    <div class="section-eyebrow reveal">● Get started</div>
-    <h2 class="section-h reveal">Install in <em>under 10 seconds</em></h2>
-    <p class="section-sub reveal">Skip the app store. Open this page on your phone, tap Install, and TeachEd lives on your home screen — same icon, same speed, no download wait.</p>
+    <div class="section-eyebrow">● Get started</div>
+    <h2 class="section-h">Install in <em>under 10 seconds</em></h2>
+    <p class="section-sub">Skip the app store. Open this page on your phone, tap Install, and TeachEd lives on your home screen — same icon, same speed, no download wait.</p>
 
     <div class="steps">
-      <div class="step reveal">
+      <div class="step">
         <div class="step-n">STEP 01</div>
         <div class="step-h">Tap "Install"</div>
         <div class="step-p">In any modern mobile browser, you'll see an Install prompt. On iPhone — Safari → Share → Add to Home Screen.</div>
       </div>
-      <div class="step reveal">
+      <div class="step">
         <div class="step-n">STEP 02</div>
         <div class="step-h">Find on home screen</div>
         <div class="step-p">TeachEd's icon appears alongside your other apps. Launches full-screen — no browser bar, no distractions.</div>
       </div>
-      <div class="step reveal">
+      <div class="step">
         <div class="step-n">STEP 03</div>
         <div class="step-h">Start teaching</div>
         <div class="step-p">Sign in once. Your boards, schedule, and students sync everywhere — phone, laptop, tablet — instantly.</div>
@@ -797,27 +796,27 @@ section{padding:80px 20px;position:relative;}
 <!-- ════════════ WHY PWA ════════════ -->
 <section id="deep">
   <div class="container">
-    <div class="section-eyebrow reveal">● PWA · Why</div>
-    <h2 class="section-h reveal">A web app that <em>feels native.</em></h2>
-    <p class="section-sub reveal">Progressive Web Apps install like apps, run like apps, but don't bring app-store baggage.</p>
+    <div class="section-eyebrow">● PWA · Why</div>
+    <h2 class="section-h">A web app that <em>feels native.</em></h2>
+    <p class="section-sub">Progressive Web Apps install like apps, run like apps, but don't bring app-store baggage.</p>
 
     <div class="why-grid">
-      <div class="why-card reveal">
+      <div class="why-card">
         <div class="why-ic">⚡</div>
         <div class="why-h">No store, no review</div>
         <div class="why-p">Bug fixes ship instantly. No 24-hour review queue.</div>
       </div>
-      <div class="why-card reveal">
+      <div class="why-card">
         <div class="why-ic">📦</div>
         <div class="why-h">Tiny footprint</div>
         <div class="why-p">Under 3 MB to install. Compare to 200 MB of native bloat.</div>
       </div>
-      <div class="why-card reveal">
+      <div class="why-card">
         <div class="why-ic">🔄</div>
         <div class="why-h">Always up to date</div>
         <div class="why-p">Auto-updates in background. Open the app, get the latest.</div>
       </div>
-      <div class="why-card reveal">
+      <div class="why-card">
         <div class="why-ic">🔓</div>
         <div class="why-h">No platform lock-in</div>
         <div class="why-p">Same TeachEd on iPhone, Android, and laptop.</div>
@@ -829,12 +828,12 @@ section{padding:80px 20px;position:relative;}
 <!-- ════════════ PRICING ════════════ -->
 <section id="pricing">
   <div class="container">
-    <div class="section-eyebrow reveal">● Pricing</div>
-    <h2 class="section-h reveal">Start free. <em>Grow when ready.</em></h2>
-    <p class="section-sub reveal">Free tier is unrestricted for solo teachers. Upgrade when you want team workspaces and analytics.</p>
+    <div class="section-eyebrow">● Pricing</div>
+    <h2 class="section-h">Start free. <em>Grow when ready.</em></h2>
+    <p class="section-sub">Free tier is unrestricted for solo teachers. Upgrade when you want team workspaces and analytics.</p>
 
     <div class="pricing-grid">
-      <div class="pricing-card reveal">
+      <div class="pricing-card">
         <div class="pricing-name">Free</div>
         <div class="pricing-price">$0<span class="unit">/mo</span></div>
         <div class="pricing-desc">For solo teachers and tutors. Everything you need for daily classes.</div>
@@ -848,7 +847,7 @@ section{padding:80px 20px;position:relative;}
         <a class="btn btn-glass pricing-btn" href="index.html">Get started →</a>
       </div>
 
-      <div class="pricing-card featured reveal">
+      <div class="pricing-card featured">
         <div class="pricing-name">Teacher Pro</div>
         <div class="pricing-price">$9<span class="unit">/mo</span></div>
         <div class="pricing-desc">For tutors going pro. Unlock analytics, custom games, and Stripe payouts.</div>
@@ -862,7 +861,7 @@ section{padding:80px 20px;position:relative;}
         <button class="btn btn-primary pricing-btn" onclick="startCheckout('pro')">Upgrade to Pro →</button>
       </div>
 
-      <div class="pricing-card reveal">
+      <div class="pricing-card">
         <div class="pricing-name">School</div>
         <div class="pricing-price">$49<span class="unit">/mo</span></div>
         <div class="pricing-desc">For language schools with multiple teachers. Shared workspace + admin.</div>
@@ -882,35 +881,35 @@ section{padding:80px 20px;position:relative;}
 <!-- ════════════ FAQ ════════════ -->
 <section id="faq">
   <div class="container">
-    <div class="section-eyebrow reveal">● Questions</div>
-    <h2 class="section-h reveal">Things teachers <em>always ask</em></h2>
+    <div class="section-eyebrow">● Questions</div>
+    <h2 class="section-h">Things teachers <em>always ask</em></h2>
 
-    <div class="faq" style="margin-top:40px;">
-      <div class="faq-item reveal">
+    <div class="faq" style="margin-top:32px;">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Does it really work offline?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Yes. The whole app shell, your boards, and student data are cached locally. You can plan a lesson on the subway, run a class with weak Wi-Fi, and sync everything the moment you're back online.</div>
+        <div class="faq-a">Yes. The whole app shell, your boards, and student data are cached locally. Plan a lesson on the subway, run a class with weak Wi-Fi, sync everything the moment you're back online.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Why a PWA instead of an App Store app?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Same install experience for the user, but we ship updates instantly without Apple/Google review. The install is 3 MB instead of 200, and the same codebase serves iPhone, Android, and laptop — so we can spend time building features, not maintaining three apps.</div>
+        <div class="faq-a">Same install experience for the user, but we ship updates instantly without Apple/Google review. Install is 3 MB instead of 200, and one codebase serves iPhone, Android, and laptop.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>How do I install on iPhone?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Open this page in Safari (not Chrome — Apple's restriction). Tap the Share icon at the bottom, then "Add to Home Screen." TeachEd will appear as a regular app, no browser bar.</div>
+        <div class="faq-a">Open this page in Safari (Apple restricts PWA install to Safari only). Tap the Share icon, then "Add to Home Screen." TeachEd will appear as a regular app, no browser bar.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>What languages does it support?</span><span class="faq-arrow">▾</span></div>
         <div class="faq-a">English is the primary supported language with a full game library covering grammar (articles, prepositions, phrasal verbs, conditionals, tenses) and vocabulary from A1 to C2. The interface is English; boards work for any language.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Can students use it too?</span><span class="faq-arrow">▾</span></div>
         <div class="faq-a">Yes. Students get a dedicated portal showing their boards, progress, vocab, and games. They install the same PWA and sign in with the email you invite them with.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Is my data secure?</span><span class="faq-arrow">▾</span></div>
         <div class="faq-a">All traffic is HTTPS. Passwords are bcrypt-hashed. Sessions use signed JWTs with 7-day expiry. Backend runs on Render with PostgreSQL. No student data is ever sold or shared.</div>
       </div>
-      <div class="faq-item reveal">
+      <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Can I cancel anytime?</span><span class="faq-arrow">▾</span></div>
         <div class="faq-a">Yes — one tap in the billing portal, no questions. Your boards and student data stay accessible on the Free tier after downgrade.</div>
       </div>
@@ -963,13 +962,11 @@ section{padding:80px 20px;position:relative;}
   </div>
 </footer>
 
-<!-- Sticky mobile CTA -->
 <button class="sticky-cta" id="cta-install-btn" type="button">
   <span class="sticky-cta-text">Install TeachEd<small>Add to your home screen, free</small></span>
   <span class="btn btn-primary">Install →</span>
 </button>
 
-<!-- Checkout modal -->
 <div class="checkout-overlay" id="checkout-overlay">
   <div class="checkout-box">
     <div class="checkout-ic" id="co-icon">🚀</div>
@@ -985,7 +982,10 @@ section{padding:80px 20px;position:relative;}
 const API = 'https://teachedos-api.onrender.com';
 const token = localStorage.getItem('teachedos_token');
 
-/* ── Update nav CTA based on auth state ── */
+/* Enable reveal animations only after JS confirms it works */
+document.body.classList.add('js-ready');
+
+/* ── Auth-aware nav CTA ── */
 (function() {
   const tok = localStorage.getItem('teachedos_token');
   if (tok) {
@@ -997,7 +997,7 @@ const token = localStorage.getItem('teachedos_token');
   }
 })();
 
-/* ── PWA install handler ── */
+/* ── Toast ── */
 function showToast(msg) {
   let t = document.getElementById('landing-toast');
   if (!t) {
@@ -1012,6 +1012,7 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
+/* ── PWA install ── */
 function handlePwaInstall() {
   const api = window.TeachedosPWA;
   if (!api) {
@@ -1024,7 +1025,7 @@ function handlePwaInstall() {
     return;
   }
   if (!api.canPromptInstall() && !api.isIos) {
-    showToast('No install prompt? Try Chrome on Android or Edge on Windows.');
+    showToast('No prompt? Try Chrome on Android or Edge on Windows.');
   }
 }
 ['hero-install-btn','platform-install-btn','screens-install-btn','cta-install-btn'].forEach(id => {
@@ -1032,7 +1033,6 @@ function handlePwaInstall() {
   if (btn) btn.addEventListener('click', handlePwaInstall);
 });
 
-/* ── Hide sticky CTA if already standalone ── */
 window.addEventListener('load', () => {
   const api = window.TeachedosPWA;
   if (api?.isStandalone) {
@@ -1041,16 +1041,24 @@ window.addEventListener('load', () => {
   }
 });
 
-/* ── Reveal on scroll ── */
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
-    }
+/* ── Reveal on scroll (safe — content visible even if this fails) ── */
+try {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.10, rootMargin: '0px 0px -20px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  /* Immediately mark hero items visible so they show on first paint */
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.hero .reveal').forEach(el => el.classList.add('visible'));
   });
-}, { threshold: 0.10, rootMargin: '0px 0px -40px 0px' });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+} catch (err) {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+}
 
 /* ── FAQ accordion ── */
 function toggleFaq(btn) {
@@ -1092,7 +1100,7 @@ async function startCheckout(plan) {
   }
 }
 
-/* ── Smooth anchor scroll offset for sticky nav ── */
+/* ── Smooth anchor scroll with nav offset ── */
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const id = a.getAttribute('href').slice(1);
