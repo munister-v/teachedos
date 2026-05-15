@@ -128,6 +128,13 @@ body{font-family:Nunito,sans-serif;background:#F5F0E8;color:var(--text);min-heig
 .audit-warning{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff7ed;color:#9a3412;font-size:13px;font-weight:700}
 .audit-warning.medium{background:#fef2f2;color:#991b1b}
 .empty-note{font-size:13px;color:var(--muted);padding:10px 0}
+.audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.command-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.command-btn{display:flex;align-items:flex-start;gap:12px;text-align:left;border:1px solid var(--border);background:#fafafa;border-radius:14px;padding:14px;font-family:Nunito,sans-serif;cursor:pointer;transition:.15s}
+.command-btn:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 24px rgba(5,5,23,.08)}
+.command-ico{font-size:22px;line-height:1}
+.command-title{font-size:13px;font-weight:900;color:var(--text)}
+.command-copy{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
 .table-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
@@ -513,7 +520,27 @@ tr:hover td{background:#fafafa}
         <button class="btn-sm btn-green" style="padding:10px 18px;font-size:14px" onclick="showPage('boards')">View Boards</button>
         <button class="btn-sm btn-orange" style="padding:10px 18px;font-size:14px" onclick="showPage('sessions')">Active Sessions</button>
         <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="showPage('audit')">Open Audit</button>
+        <button class="btn-sm btn-green" style="padding:10px 18px;font-size:14px" onclick="exportAdminData('users')">Export Users CSV</button>
         <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="refreshStats()">🔄 Refresh Stats</button>
+      </div>
+    </div>
+
+    <div class="table-card" style="padding:22px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Command Center</div>
+      <div class="page-sub" style="margin-bottom:0">Common admin moves without hunting through every section</div>
+      <div class="command-grid">
+        <button class="command-btn" type="button" onclick="showPage('settings');setTimeout(()=>document.getElementById('invite-email')?.focus(),50)">
+          <span class="command-ico">📩</span><span><span class="command-title">Invite someone</span><span class="command-copy">Create a one-time onboarding link.</span></span>
+        </button>
+        <button class="command-btn" type="button" onclick="showPage('users');setUsersRoleFilter('admin')">
+          <span class="command-ico">🛡️</span><span><span class="command-title">Review admins</span><span class="command-copy">Filter users down to admin accounts.</span></span>
+        </button>
+        <button class="command-btn" type="button" onclick="exportAdminData('boards')">
+          <span class="command-ico">📋</span><span><span class="command-title">Export boards</span><span class="command-copy">Download a CSV snapshot of all boards.</span></span>
+        </button>
+        <button class="command-btn" type="button" onclick="purgeExpiredSessions()">
+          <span class="command-ico">🧹</span><span><span class="command-title">Clean sessions</span><span class="command-copy">Remove expired auth sessions from DB.</span></span>
+        </button>
       </div>
     </div>
 
@@ -656,6 +683,7 @@ tr:hover td{background:#fafafa}
       <div class="table-header">
         <div class="table-header-title">All Users</div>
         <input class="search-box" id="users-search" placeholder="🔍 Search by name or email…" oninput="debounceUsersSearch()"/>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="exportAdminData('users')">Export CSV</button>
         <button class="btn-sm btn-green" style="padding:8px 16px" onclick="openAddUser()">➕ Add User</button>
       </div>
       <div class="filter-row" id="users-role-filters">
@@ -692,6 +720,7 @@ tr:hover td{background:#fafafa}
       <div class="table-header">
         <div class="table-header-title">All Boards</div>
         <input class="search-box" id="boards-search" placeholder="🔍 Search by name or owner…" oninput="debounceBoardsSearch()"/>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="exportAdminData('boards')">Export CSV</button>
       </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
@@ -745,6 +774,12 @@ tr:hover td{background:#fafafa}
         <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAudit()">🔄 Refresh</button>
       </div>
       <div id="audit-warnings"><div class="empty-note">Loading…</div></div>
+      <div class="audit-actions">
+        <button class="btn-sm btn-edit" onclick="showPage('users');setUsersRoleFilter('admin')">Review Admins</button>
+        <button class="btn-sm btn-green" onclick="showPage('users');setUsersRoleFilter('')">Open Users</button>
+        <button class="btn-sm btn-orange" onclick="showPage('boards')">Open Boards</button>
+        <button class="btn-sm btn-danger" onclick="purgeExpiredSessions()">Purge Expired Sessions</button>
+      </div>
     </div>
 
     <div class="audit-grid">
@@ -889,6 +924,7 @@ tr:hover td{background:#fafafa}
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
               <div class="form-label" style="margin:0">Recent Invites</div>
               <button class="btn-sm btn-edit" type="button" onclick="loadInvites()">🔄 Refresh</button>
+              <button class="btn-sm btn-green" type="button" onclick="exportAdminData('invites')">Export CSV</button>
             </div>
             <div class="invite-list" id="invite-list">
               <div class="invite-item">
@@ -997,6 +1033,7 @@ const pageMeta = {
   users: ['Users', 'Manage all registered users'],
   boards: ['Boards', 'View and manage all user boards'],
   sessions: ['Active Sessions', 'Review live login activity'],
+  audit: ['System Audit', 'Operational signals and hygiene checks'],
   settings: ['Settings', 'System configuration and admin tools'],
 };
 
@@ -1481,7 +1518,9 @@ function setUsersRoleFilter(role, el) {
   usersRoleFilter = role;
   usersOffset = 0;
   document.querySelectorAll('#users-role-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
-  el.classList.add('active');
+  const target = el || [...document.querySelectorAll('#users-role-filters .filter-chip')]
+    .find(chip => chip.getAttribute('onclick')?.includes(`'${role}'`) || (!role && chip.textContent.trim() === 'All'));
+  if (target) target.classList.add('active');
   loadUsers();
 }
 
@@ -1845,6 +1884,42 @@ async function loadInvites() {
   } catch (e) {
     root.innerHTML = `<div class="invite-item"><div class="invite-email">Error</div><div class="invite-meta">${esc(e.message)}</div></div>`;
   }
+}
+
+async function exportAdminData(type) {
+  try {
+    const d = await api('GET', `/api/admin/export/${encodeURIComponent(type)}`);
+    const rows = d.rows || [];
+    if (!rows.length) { toast(`No ${type} data to export`, ''); return; }
+    const csv = toCsv(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `teached-${type}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast(`${type} CSV exported`, 'success');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function toCsv(rows) {
+  const headers = Object.keys(rows[0] || {});
+  const lines = [headers.join(',')];
+  rows.forEach(row => {
+    lines.push(headers.map(key => csvCell(row[key])).join(','));
+  });
+  return lines.join('\n');
+}
+
+function csvCell(value) {
+  if (value === null || value === undefined) return '';
+  const text = String(value).replace(/"/g, '""');
+  return /[",\n\r]/.test(text) ? `"${text}"` : text;
 }
 
 function buildInviteUrl(tokenValue) {

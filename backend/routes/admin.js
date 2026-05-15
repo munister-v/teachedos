@@ -270,6 +270,56 @@ router.get('/invites', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/export/:type ────────────────────────────────────────────
+router.get('/export/:type', async (req, res) => {
+  const type = req.params.type;
+  try {
+    if (type === 'users') {
+      const { rows } = await pool.query(
+        `SELECT u.name, u.email, u.role, u.created_at, COUNT(b.id)::int AS boards_count
+         FROM users u
+         LEFT JOIN boards b ON b.user_id = u.id
+         GROUP BY u.id
+         ORDER BY u.created_at DESC`
+      );
+      return res.json({ type, rows });
+    }
+
+    if (type === 'boards') {
+      const { rows } = await pool.query(
+        `SELECT b.name, u.name AS owner_name, u.email AS owner_email,
+                COALESCE(
+                  CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END,
+                  0
+                )::int AS cards_count,
+                pg_column_size(b.data)::int AS data_bytes,
+                b.updated_at, b.created_at
+         FROM boards b
+         JOIN users u ON u.id = b.user_id
+         ORDER BY b.updated_at DESC`
+      );
+      return res.json({ type, rows });
+    }
+
+    if (type === 'invites') {
+      const { rows } = await pool.query(
+        `SELECT i.email, i.role, i.note, i.expires_at, i.accepted_at, i.revoked_at, i.created_at,
+                creator.email AS created_by_email,
+                accepted.email AS accepted_user_email
+         FROM invites i
+         LEFT JOIN users creator ON creator.id = i.created_by
+         LEFT JOIN users accepted ON accepted.id = i.accepted_user_id
+         ORDER BY i.created_at DESC`
+      );
+      return res.json({ type, rows });
+    }
+
+    res.status(400).json({ error: 'Export type must be users, boards, or invites' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/admin/invites ────────────────────────────────────────────────
 router.post('/invites', async (req, res) => {
   const { email, role = 'teacher', expiresInDays = 7, note = '' } = req.body;
