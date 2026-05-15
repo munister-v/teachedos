@@ -1316,6 +1316,48 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 #reconnect-banner.show{display:flex;}
 .rcn-dot{width:8px;height:8px;border-radius:50%;background:#fbbf24;animation:pulse-dot 1s ease-in-out infinite;}
+#student-quiz-overlay.open{display:flex!important;}
+.quiz-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:20px 20px 0;}
+.quiz-title{font-size:15px;font-weight:800;color:#1C1C1E;}
+.quiz-meta{font-size:11px;color:#3A3A2E;margin-top:3px;}
+.quiz-timer{font-size:15px;font-weight:800;color:#C8E632;background:#E8E8D8;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+.quiz-close-btn{border:none;background:none;font-size:20px;cursor:pointer;color:#999;line-height:1;flex-shrink:0;}
+.quiz-progress-bar{height:4px;background:#f5e6ef;margin:10px 20px 0;}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#E85D75,#C8E632);border-radius:2px;transition:width .3s;}
+.quiz-body{padding:20px;}
+.quiz-question{font-size:14px;font-weight:700;color:#1C1C1E;line-height:1.55;margin-bottom:16px;}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:.15s;}
+.quiz-opt:hover{border-color:#E85D75;background:#FFFFFF;}
+.quiz-opt.selected{border-color:#E85D75;background:#fff0f6;}
+.quiz-opt input{accent-color:#E85D75;}
+.quiz-tf-row{display:flex;gap:12px;}
+.quiz-tf-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);font-size:14px;font-weight:700;cursor:pointer;background:#fff;transition:.15s;}
+.quiz-tf-btn:hover{border-color:#E85D75;}
+.quiz-tf-btn.sel-true{background:#d1fae5;border-color:#10b981;color:#065f46;}
+.quiz-tf-btn.sel-false{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+.quiz-match-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.quiz-match-left{flex:1;font-size:13px;font-weight:700;padding:8px 12px;background:#f9f1f5;border-radius:8px;}
+.quiz-match-input{flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;outline:none;font-family:inherit;}
+.quiz-match-input:focus{border-color:#E85D75;}
+.quiz-text-input{width:100%;min-height:80px;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.quiz-text-input:focus{border-color:#E85D75;}
+.quiz-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 20px;gap:10px;}
+.quiz-dot-row{display:flex;gap:5px;flex-wrap:wrap;}
+.quiz-dot{width:8px;height:8px;border-radius:50%;background:#f0dde8;}
+.quiz-dot.answered{background:#E85D75;}
+.quiz-dot.current{background:#C8E632;transform:scale(1.3);}
+.quiz-btn-primary{padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#E85D75,#C8E632);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary{padding:9px 18px;border-radius:9px;border:1.5px solid rgba(94,94,74,.14);background:#fff;color:#3A3A2E;font-weight:700;font-size:13px;cursor:pointer;}
+.quiz-btn-secondary:disabled{opacity:.4;cursor:default;}
+.quiz-btn-submit{padding:9px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
+.quiz-result-body{padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.quiz-score-circle{position:relative;width:120px;height:120px;margin-bottom:14px;}
+.quiz-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.quiz-score-text strong{font-size:22px;font-weight:900;color:#1C1C1E;}
+.quiz-score-text span{font-size:11px;color:#3A3A2E;}
+.quiz-result-msg{font-size:18px;font-weight:800;margin-bottom:16px;}
+.quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
+.quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
 </style>
 </head>
 <body>
@@ -1324,7 +1366,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <div id="toolbar">
   <!-- Left: back + board name -->
   <a class="tb-back" href="index.html" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
     <span>Home</span>
   </a>
   <div class="tb-sep"></div>
@@ -1385,7 +1427,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div id="auth-chip" style="display:none;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,#fff);cursor:pointer;font-size:12px;font-weight:700;color:var(--text-2);flex-shrink:0;" onclick="showUserMenu()">
     <span id="auth-avatar" style="font-size:16px;line-height:1;">🧑‍🏫</span>
     <span id="auth-name">—</span>
-    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
   </div>
   <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">Sign in</div>
 
@@ -1466,27 +1508,27 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('sticky');quickAddCard('sticky',400,300)">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M10 2v4l-2-1-2 1V2"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M10 2v4l-2-1-2 1V2"/></svg>
   </button>
   <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="setMiroTool('text');quickAddCard('text',400,300)">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>
   </button>
   <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="setMiroTool('select');quickAddCard('lesson',400,300)">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
   </button>
   <button class="mt-btn" id="mt-image" data-tip="Image" onclick="setMiroTool('select');openImageModal()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4"/></svg>
   </button>
   <button class="mt-btn" id="mt-video" data-tip="Video" onclick="setMiroTool('select');openVideoModal()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
   </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
   </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-fit" data-tip="Fit all (F)" onclick="document.getElementById('btn-fit').click()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
   </button>
 </div>
 
@@ -7456,50 +7498,6 @@ function openStudentQuiz(cardId) {
   </div>
 </div>
 
-<style>
-#student-quiz-overlay.open{display:flex!important;}
-.quiz-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:20px 20px 0;}
-.quiz-title{font-size:15px;font-weight:800;color:#1C1C1E;}
-.quiz-meta{font-size:11px;color:#3A3A2E;margin-top:3px;}
-.quiz-timer{font-size:15px;font-weight:800;color:#C8E632;background:#E8E8D8;padding:4px 10px;border-radius:8px;white-space:nowrap;}
-.quiz-close-btn{border:none;background:none;font-size:20px;cursor:pointer;color:#999;line-height:1;flex-shrink:0;}
-.quiz-progress-bar{height:4px;background:#f5e6ef;margin:10px 20px 0;}
-.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#E85D75,#C8E632);border-radius:2px;transition:width .3s;}
-.quiz-body{padding:20px;}
-.quiz-question{font-size:14px;font-weight:700;color:#1C1C1E;line-height:1.55;margin-bottom:16px;}
-.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:.15s;}
-.quiz-opt:hover{border-color:#E85D75;background:#FFFFFF;}
-.quiz-opt.selected{border-color:#E85D75;background:#fff0f6;}
-.quiz-opt input{accent-color:#E85D75;}
-.quiz-tf-row{display:flex;gap:12px;}
-.quiz-tf-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);font-size:14px;font-weight:700;cursor:pointer;background:#fff;transition:.15s;}
-.quiz-tf-btn:hover{border-color:#E85D75;}
-.quiz-tf-btn.sel-true{background:#d1fae5;border-color:#10b981;color:#065f46;}
-.quiz-tf-btn.sel-false{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
-.quiz-match-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.quiz-match-left{flex:1;font-size:13px;font-weight:700;padding:8px 12px;background:#f9f1f5;border-radius:8px;}
-.quiz-match-input{flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;outline:none;font-family:inherit;}
-.quiz-match-input:focus{border-color:#E85D75;}
-.quiz-text-input{width:100%;min-height:80px;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(94,94,74,.14);font-size:13px;font-family:inherit;resize:vertical;outline:none;}
-.quiz-text-input:focus{border-color:#E85D75;}
-.quiz-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 20px;gap:10px;}
-.quiz-dot-row{display:flex;gap:5px;flex-wrap:wrap;}
-.quiz-dot{width:8px;height:8px;border-radius:50%;background:#f0dde8;}
-.quiz-dot.answered{background:#E85D75;}
-.quiz-dot.current{background:#C8E632;transform:scale(1.3);}
-.quiz-btn-primary{padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#E85D75,#C8E632);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
-.quiz-btn-secondary{padding:9px 18px;border-radius:9px;border:1.5px solid rgba(94,94,74,.14);background:#fff;color:#3A3A2E;font-weight:700;font-size:13px;cursor:pointer;}
-.quiz-btn-secondary:disabled{opacity:.4;cursor:default;}
-.quiz-btn-submit{padding:9px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;cursor:pointer;}
-.quiz-result-body{padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;}
-.quiz-score-circle{position:relative;width:120px;height:120px;margin-bottom:14px;}
-.quiz-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.quiz-score-text strong{font-size:22px;font-weight:900;color:#1C1C1E;}
-.quiz-score-text span{font-size:11px;color:#3A3A2E;}
-.quiz-result-msg{font-size:18px;font-weight:800;margin-bottom:16px;}
-.quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
-.quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
-</style>
 <script>
 if('serviceWorker'in navigator){
   navigator.serviceWorker.register('sw.js').then(reg=>{
