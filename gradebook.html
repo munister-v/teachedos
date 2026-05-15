@@ -48,6 +48,7 @@ a{text-decoration:none;color:inherit;}
   padding:4px 12px 4px 8px;border-radius:20px;border:1px solid rgba(94,94,74,.18);
   background:#fff;cursor:pointer;transition:.12s;text-decoration:none;-webkit-tap-highlight-color:transparent;}
 .nav-user:hover{border-color:rgba(94,94,74,.32);}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:#FF4E00;font-size:11px;font-weight:900;}
 
 /* Page */
 #page{max-width:1400px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:22px;}
@@ -267,15 +268,16 @@ a{text-decoration:none;color:inherit;}
 <nav id="nav">
   <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
-  <a class="nav-link" href="courses.html">Courses</a>
-  <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link active" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
+  <a class="nav-link" href="index.html">Головна</a>
+  <a class="nav-link" href="board.html">Дошка</a>
+  <a class="nav-link" href="courses.html">Курси</a>
+  <a class="nav-link" href="schedule.html">Розклад</a>
+  <a class="nav-link" href="analytics.html">Аудит</a>
+  <a class="nav-link active" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html">Профіль</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
-    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+    <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
   </a>
 </nav>
 
@@ -448,18 +450,27 @@ async function init() {
   const cached = readGradebookCache();
   try {
     const { user } = await apiFetch('/api/auth/me');
-    document.getElementById('nav-avatar').textContent = user.avatar;
-    document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
+    setNavUser(user);
     writeGradebookCache({ user });
   } catch {
     if (cached?.user) {
-      document.getElementById('nav-avatar').textContent = cached.user.avatar || '🧑‍🏫';
-      document.getElementById('nav-name').textContent = (cached.user.name || 'Teacher').split(' ')[0];
+      setNavUser(cached.user);
     } else {
       location.href = 'index.html'; return;
     }
   }
   await loadData();
+}
+
+function setNavUser(user) {
+  const name = (user?.name || 'Teacher').trim();
+  const avatar = user?.avatar;
+  document.getElementById('nav-avatar').textContent = avatar && avatar !== '🧑‍🏫' ? avatar : initials(name);
+  document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
+}
+
+function initials(name) {
+  return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
 }
 
 async function loadData() {

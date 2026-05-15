@@ -36,6 +36,7 @@ a{text-decoration:none;color:inherit;}
 .nav-spacer{flex:1;}
 .nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
   padding:4px 12px 4px 8px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:900;}
 
 /* Page */
 #page{max-width:1100px;margin:0 auto;padding:28px 20px;}
@@ -137,17 +138,17 @@ a{text-decoration:none;color:inherit;}
 <nav id="nav">
   <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
-  <a class="nav-link" href="courses.html">Courses</a>
-  <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="analytics.html">Analytics</a>
-  <a class="nav-link active" href="journal.html">Journal</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
+  <a class="nav-link" href="index.html">Головна</a>
+  <a class="nav-link" href="board.html">Дошка</a>
+  <a class="nav-link" href="courses.html">Курси</a>
+  <a class="nav-link" href="schedule.html">Розклад</a>
+  <a class="nav-link" href="analytics.html">Аудит</a>
+  <a class="nav-link active" href="journal.html">Журнал</a>
+  <a class="nav-link" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html">Профіль</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
-    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+    <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
   </a>
 </nav>
 
@@ -267,10 +268,20 @@ async function init() {
     const me = await fetch(API + '/api/auth/me', { headers: auth.headers }).then(r => r.json());
     if (!me.user) { location.href = 'index.html'; return; }
     if (me.user.role === 'student') { location.href = 'student.html'; return; }
-    document.getElementById('nav-avatar').textContent = me.user.avatar || '🧑‍🏫';
-    document.getElementById('nav-name').textContent = me.user.name.split(' ')[0];
+    setNavUser(me.user);
   } catch { location.href = 'index.html'; return; }
   await loadJournal();
+}
+
+function setNavUser(user) {
+  const name = (user?.name || 'Teacher').trim();
+  const avatar = user?.avatar;
+  document.getElementById('nav-avatar').textContent = avatar && avatar !== '🧑‍🏫' ? avatar : initials(name);
+  document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
+}
+
+function initials(name) {
+  return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
 }
 
 async function loadJournal() {

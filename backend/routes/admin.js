@@ -10,17 +10,99 @@ router.use(requireAuth, requireAdmin);
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
 router.get('/stats', async (req, res) => {
   try {
-    const [users, boards, sessions, roles] = await Promise.all([
+    const [users, boards, sessions, roles, courses, cards, newUsers, storage] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM users'),
       pool.query('SELECT COUNT(*) FROM boards'),
       pool.query("SELECT COUNT(*) FROM sessions WHERE expires_at > NOW()"),
       pool.query("SELECT role, COUNT(*) FROM users GROUP BY role ORDER BY COUNT(*) DESC"),
+      pool.query('SELECT COUNT(*) FROM courses'),
+      pool.query(`SELECT COALESCE(SUM(
+        CASE WHEN jsonb_typeof(data->'cards') = 'array' THEN jsonb_array_length(data->'cards') ELSE 0 END
+      ), 0) AS count FROM boards`),
+      pool.query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '7 days'"),
+      pool.query('SELECT COALESCE(SUM(pg_column_size(data)), 0) AS bytes FROM boards'),
     ]);
     res.json({
       users:    parseInt(users.rows[0].count),
       boards:   parseInt(boards.rows[0].count),
       sessions: parseInt(sessions.rows[0].count),
       roles:    roles.rows,
+      courses:  parseInt(courses.rows[0].count),
+      cards:    parseInt(cards.rows[0].count),
+      newUsers7d: parseInt(newUsers.rows[0].count),
+      storageBytes: parseInt(storage.rows[0].bytes),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/audit ───────────────────────────────────────────────────
+router.get('/audit', async (req, res) => {
+  try {
+    const [staleBoards, emptyBoards, usersNoBoards, admins, expiringSessions, recentUsers] = await Promise.all([
+      pool.query(`
+        SELECT b.id, b.name, b.updated_at, u.name AS owner_name, u.email AS owner_email
+        FROM boards b
+        JOIN users u ON u.id = b.user_id
+        WHERE b.updated_at < NOW() - INTERVAL '30 days'
+        ORDER BY b.updated_at ASC
+        LIMIT 10
+      `),
+      pool.query(`
+        SELECT b.id, b.name, b.updated_at, u.name AS owner_name, u.email AS owner_email
+        FROM boards b
+        JOIN users u ON u.id = b.user_id
+        WHERE COALESCE(
+          CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END,
+          0
+        ) = 0
+        ORDER BY b.updated_at DESC
+        LIMIT 10
+      `),
+      pool.query(`
+        SELECT u.id, u.name, u.email, u.role, u.created_at
+        FROM users u
+        LEFT JOIN boards b ON b.user_id = u.id
+        WHERE b.id IS NULL
+        ORDER BY u.created_at DESC
+        LIMIT 10
+      `),
+      pool.query(`
+        SELECT id, name, email, created_at
+        FROM users
+        WHERE role = 'admin'
+        ORDER BY created_at ASC
+      `),
+      pool.query(`
+        SELECT s.id, s.expires_at, u.name AS user_name, u.email AS user_email
+        FROM sessions s
+        JOIN users u ON u.id = s.user_id
+        WHERE s.expires_at > NOW() AND s.expires_at < NOW() + INTERVAL '24 hours'
+        ORDER BY s.expires_at ASC
+        LIMIT 10
+      `),
+      pool.query(`
+        SELECT id, name, email, role, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 8
+      `),
+    ]);
+
+    const warnings = [];
+    if (admins.rows.length > 3) warnings.push({ level: 'medium', text: `${admins.rows.length} admin accounts exist. Review access regularly.` });
+    if (staleBoards.rows.length) warnings.push({ level: 'low', text: `${staleBoards.rows.length} stale boards found in the first audit sample.` });
+    if (usersNoBoards.rows.length) warnings.push({ level: 'low', text: `${usersNoBoards.rows.length} users have no boards yet.` });
+
+    res.json({
+      warnings,
+      staleBoards: staleBoards.rows,
+      emptyBoards: emptyBoards.rows,
+      usersNoBoards: usersNoBoards.rows,
+      admins: admins.rows,
+      expiringSessions: expiringSessions.rows,
+      recentUsers: recentUsers.rows,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -223,22 +305,26 @@ router.post('/invites', async (req, res) => {
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 router.get('/users', async (req, res) => {
   try {
-    const { search = '', limit = 50, offset = 0 } = req.query;
+    const { search = '', role = '', limit = 50, offset = 0 } = req.query;
     const like = `%${search}%`;
+    const roleFilter = role ? role : null;
     const { rows } = await pool.query(
       `SELECT u.id, u.email, u.name, u.role, u.avatar, u.created_at,
               COUNT(b.id) AS boards_count
        FROM users u
        LEFT JOIN boards b ON b.user_id = u.id
-       WHERE u.email ILIKE $1 OR u.name ILIKE $1
+       WHERE (u.email ILIKE $1 OR u.name ILIKE $1)
+         AND ($2::text IS NULL OR u.role = $2)
        GROUP BY u.id
        ORDER BY u.created_at DESC
-       LIMIT $2 OFFSET $3`,
-      [like, parseInt(limit), parseInt(offset)]
+       LIMIT $3 OFFSET $4`,
+      [like, roleFilter, parseInt(limit), parseInt(offset)]
     );
     const { rows: total } = await pool.query(
-      `SELECT COUNT(*) FROM users WHERE email ILIKE $1 OR name ILIKE $1`,
-      [like]
+      `SELECT COUNT(*) FROM users
+       WHERE (email ILIKE $1 OR name ILIKE $1)
+         AND ($2::text IS NULL OR role = $2)`,
+      [like, roleFilter]
     );
     res.json({ users: rows, total: parseInt(total[0].count) });
   } catch (err) {

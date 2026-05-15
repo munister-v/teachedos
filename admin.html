@@ -115,6 +115,19 @@ body{font-family:Nunito,sans-serif;background:#F5F0E8;color:var(--text);min-heig
 .signal-dot.good{background:var(--green)}
 .signal-dot.warn{background:var(--orange)}
 .signal-dot.bad{background:var(--red)}
+.stat-hint{font-size:11px;color:var(--muted);margin-top:2px}
+.audit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+.audit-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);padding:20px}
+.audit-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.audit-card-title{font-size:16px;font-weight:900}
+.audit-count{font-size:12px;font-weight:900;color:var(--accent);background:#fff7ed;border-radius:20px;padding:3px 9px}
+.audit-list{display:flex;flex-direction:column;gap:8px}
+.audit-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fafafa}
+.audit-main{font-size:13px;font-weight:800;color:var(--text)}
+.audit-sub{font-size:12px;color:var(--muted);margin-top:2px;word-break:break-word}
+.audit-warning{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff7ed;color:#9a3412;font-size:13px;font-weight:700}
+.audit-warning.medium{background:#fef2f2;color:#991b1b}
+.empty-note{font-size:13px;color:var(--muted);padding:10px 0}
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
 .table-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
@@ -214,6 +227,9 @@ tr:hover td{background:#fafafa}
 .role-pill{
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;background:var(--accent-bg);color:var(--accent);
 }
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px 16px}
+.filter-chip{border:1px solid var(--border);background:#fff;color:var(--text2);border-radius:20px;padding:6px 12px;font-family:Nunito,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:.15s}
+.filter-chip:hover,.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
 /* ── Sessions ────────────────────────────────────────────────────────────── */
 .device-icon{font-size:18px;margin-right:4px}
@@ -406,6 +422,9 @@ tr:hover td{background:#fafafa}
     <div class="sb-item" onclick="showPage('sessions')">
       <span class="sb-icon">🔑</span>Sessions
     </div>
+    <div class="sb-item" onclick="showPage('audit')">
+      <span class="sb-icon">🧭</span>Audit
+    </div>
     <div class="sb-item" onclick="showPage('settings')">
       <span class="sb-icon">⚙️</span>Settings
     </div>
@@ -449,6 +468,22 @@ tr:hover td{background:#fafafa}
         </div>
       </div>
       <div class="stat-card">
+        <div class="stat-icon pink">🎓</div>
+        <div><div class="stat-num" id="stat-courses">—</div><div class="stat-label">Courses</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🧩</div>
+        <div><div class="stat-num" id="stat-cards">—</div><div class="stat-label">Lesson Cards</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✨</div>
+        <div><div class="stat-num" id="stat-new-users">—</div><div class="stat-label">New Users / 7d</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">💾</div>
+        <div><div class="stat-num" id="stat-storage">—</div><div class="stat-label">Board Storage</div></div>
+      </div>
+      <div class="stat-card">
         <div class="stat-icon orange">📡</div>
         <div>
           <div class="stat-num" id="stat-health">—</div>
@@ -477,6 +512,7 @@ tr:hover td{background:#fafafa}
         <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="showPage('users')">Manage Users</button>
         <button class="btn-sm btn-green" style="padding:10px 18px;font-size:14px" onclick="showPage('boards')">View Boards</button>
         <button class="btn-sm btn-orange" style="padding:10px 18px;font-size:14px" onclick="showPage('sessions')">Active Sessions</button>
+        <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="showPage('audit')">Open Audit</button>
         <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="refreshStats()">🔄 Refresh Stats</button>
       </div>
     </div>
@@ -622,6 +658,12 @@ tr:hover td{background:#fafafa}
         <input class="search-box" id="users-search" placeholder="🔍 Search by name or email…" oninput="debounceUsersSearch()"/>
         <button class="btn-sm btn-green" style="padding:8px 16px" onclick="openAddUser()">➕ Add User</button>
       </div>
+      <div class="filter-row" id="users-role-filters">
+        <button class="filter-chip active" onclick="setUsersRoleFilter('', this)">All</button>
+        <button class="filter-chip" onclick="setUsersRoleFilter('teacher', this)">Teachers</button>
+        <button class="filter-chip" onclick="setUsersRoleFilter('student', this)">Students</button>
+        <button class="filter-chip" onclick="setUsersRoleFilter('admin', this)">Admins</button>
+      </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
           <thead>
@@ -688,6 +730,65 @@ tr:hover td{background:#fafafa}
           </thead>
           <tbody id="sessions-tbody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Audit ──────────────────────────────────────────────────────────── -->
+  <div id="page-audit" class="page">
+    <div class="page-title">System Audit</div>
+    <div class="page-sub">Operational signals for access, content hygiene and recent activity</div>
+
+    <div class="table-card" style="padding:22px">
+      <div class="table-header" style="padding:0 0 16px;border-bottom:none">
+        <div class="table-header-title">Audit Warnings</div>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAudit()">🔄 Refresh</button>
+      </div>
+      <div id="audit-warnings"><div class="empty-note">Loading…</div></div>
+    </div>
+
+    <div class="audit-grid">
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Stale Boards</div>
+          <div class="audit-count" id="audit-stale-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-stale">Loading…</div>
+      </div>
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Empty Boards</div>
+          <div class="audit-count" id="audit-empty-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-empty">Loading…</div>
+      </div>
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Users Without Boards</div>
+          <div class="audit-count" id="audit-noboards-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-noboards">Loading…</div>
+      </div>
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Admin Accounts</div>
+          <div class="audit-count" id="audit-admins-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-admins">Loading…</div>
+      </div>
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Sessions Expiring Soon</div>
+          <div class="audit-count" id="audit-expiring-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-expiring">Loading…</div>
+      </div>
+      <div class="audit-card">
+        <div class="audit-card-head">
+          <div class="audit-card-title">Recent Users</div>
+          <div class="audit-count" id="audit-recent-count">—</div>
+        </div>
+        <div class="audit-list" id="audit-recent">Loading…</div>
       </div>
     </div>
   </div>
@@ -1008,6 +1109,7 @@ function showPage(name) {
   if (name === 'users')     loadUsers();
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
+  if (name === 'audit')     loadAudit();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
 }
 
@@ -1050,6 +1152,10 @@ async function refreshStats() {
     document.getElementById('stat-users').textContent    = stats.users;
     document.getElementById('stat-boards').textContent   = stats.boards;
     document.getElementById('stat-sessions').textContent = stats.sessions;
+    document.getElementById('stat-courses').textContent  = stats.courses ?? '—';
+    document.getElementById('stat-cards').textContent    = stats.cards ?? '—';
+    document.getElementById('stat-new-users').textContent = stats.newUsers7d ?? '—';
+    document.getElementById('stat-storage').textContent  = fmtBytes(stats.storageBytes);
     document.getElementById('stat-health').textContent   = health?.ok ? '✅ OK' : '❌ Down';
     document.getElementById('stat-invites').textContent  = system?.invites?.active ?? 0;
 
@@ -1296,8 +1402,69 @@ function renderSpark(points, barsId, totalId, startId, tone, total) {
   startEl.textContent = shortDay(points[0].day);
 }
 
+// ── Audit ─────────────────────────────────────────────────────────────────
+async function loadAudit() {
+  try {
+    const d = await api('GET', '/api/admin/audit');
+    renderAuditWarnings(d.warnings || []);
+    renderAuditList('audit-stale', 'audit-stale-count', d.staleBoards || [], item => ({
+      title: item.name,
+      sub: `${item.owner_name} · ${item.owner_email} · updated ${fmtDate(item.updated_at)}`,
+    }));
+    renderAuditList('audit-empty', 'audit-empty-count', d.emptyBoards || [], item => ({
+      title: item.name,
+      sub: `${item.owner_name} · ${item.owner_email} · updated ${fmtDate(item.updated_at)}`,
+    }));
+    renderAuditList('audit-noboards', 'audit-noboards-count', d.usersNoBoards || [], item => ({
+      title: item.name,
+      sub: `${item.email} · ${item.role} · joined ${fmtDate(item.created_at)}`,
+    }));
+    renderAuditList('audit-admins', 'audit-admins-count', d.admins || [], item => ({
+      title: item.name,
+      sub: `${item.email} · admin since ${fmtDate(item.created_at)}`,
+    }));
+    renderAuditList('audit-expiring', 'audit-expiring-count', d.expiringSessions || [], item => ({
+      title: item.user_name,
+      sub: `${item.user_email} · expires ${fmtDate(item.expires_at)}`,
+    }));
+    renderAuditList('audit-recent', 'audit-recent-count', d.recentUsers || [], item => ({
+      title: item.name,
+      sub: `${item.email} · ${item.role} · joined ${fmtDate(item.created_at)}`,
+    }));
+  } catch(e) {
+    document.getElementById('audit-warnings').innerHTML = `<div class="audit-warning medium">Audit failed: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderAuditWarnings(warnings) {
+  const el = document.getElementById('audit-warnings');
+  if (!warnings.length) {
+    el.innerHTML = '<div class="audit-warning">No audit warnings right now. System looks clean.</div>';
+    return;
+  }
+  el.innerHTML = warnings.map(w =>
+    `<div class="audit-warning ${w.level === 'medium' ? 'medium' : ''}">⚠️ <span>${esc(w.text)}</span></div>`
+  ).join('');
+}
+
+function renderAuditList(listId, countId, items, mapper) {
+  document.getElementById(countId).textContent = items.length;
+  const el = document.getElementById(listId);
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-note">Nothing to review.</div>';
+    return;
+  }
+  el.innerHTML = items.map(item => {
+    const row = mapper(item);
+    return `<div class="audit-item">
+      <div class="audit-main">${esc(row.title)}</div>
+      <div class="audit-sub">${esc(row.sub)}</div>
+    </div>`;
+  }).join('');
+}
+
 // ── Users ─────────────────────────────────────────────────────────────────
-let usersOffset = 0, usersTotal = 0, usersLimit = 20;
+let usersOffset = 0, usersTotal = 0, usersLimit = 20, usersRoleFilter = '';
 let usersSearchTimer;
 
 function debounceUsersSearch() {
@@ -1310,12 +1477,20 @@ function usersPage(dir) {
   loadUsers();
 }
 
+function setUsersRoleFilter(role, el) {
+  usersRoleFilter = role;
+  usersOffset = 0;
+  document.querySelectorAll('#users-role-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
+  el.classList.add('active');
+  loadUsers();
+}
+
 async function loadUsers() {
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
   tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
   try {
-    const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&limit=${usersLimit}&offset=${usersOffset}`);
+    const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
     document.getElementById('users-page-info').textContent =
       `${usersOffset+1}–${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`;

@@ -51,6 +51,10 @@ button{font-family:var(--font);cursor:pointer;}
   background:var(--card);cursor:pointer;transition:.15s;
 }
 .nav-user:hover{border-color:var(--border2);}
+#nav-avatar{
+  width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:900;
+}
 
 /* ── LAYOUT ── */
 #layout{display:flex;height:calc(100vh - var(--nav-h));overflow:hidden;}
@@ -135,6 +139,24 @@ button{font-family:var(--font);cursor:pointer;}
 .btn-ghost:hover{background:rgba(94,94,74,.16);}
 .btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
+.btn-soft{background:rgba(99,102,241,.1);color:var(--blue);border:1.5px solid rgba(99,102,241,.26);}
+.btn-soft:hover{background:rgba(99,102,241,.18);}
+
+.course-insights{
+  margin:14px 28px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+}
+.insight-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+.insight-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:800;}
+.insight-value{font-size:22px;font-weight:900;color:var(--text);margin-top:6px;}
+.insight-hint{font-size:11px;color:var(--text3);margin-top:2px;}
 
 /* ── MODULES AREA ── */
 #modules-area{padding:24px 28px;flex:1;}
@@ -298,16 +320,17 @@ button{font-family:var(--font);cursor:pointer;}
 <nav id="nav">
   <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
-  <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link active" href="courses.html">Courses</a>
-  <a class="nav-link" href="journal.html">Journal</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
+  <a class="nav-link" href="index.html">Головна</a>
+  <a class="nav-link" href="board.html">Дошка</a>
+  <a class="nav-link" href="schedule.html">Розклад</a>
+  <a class="nav-link active" href="courses.html">Курси</a>
+  <a class="nav-link" href="analytics.html">Аудит</a>
+  <a class="nav-link" href="journal.html">Журнал</a>
+  <a class="nav-link" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html">Профіль</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
-    <span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span>
+    <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
   </a>
 </nav>
 
@@ -334,6 +357,7 @@ button{font-family:var(--font);cursor:pointer;}
     </div>
     <div id="course-view" style="display:none;flex-direction:column;flex:1;">
       <div id="course-header"></div>
+      <div id="course-insights" class="course-insights"></div>
       <div id="modules-area"></div>
       <div id="unassigned-section" style="display:none;">
         <div class="unassigned-head">Unassigned lessons</div>
@@ -404,6 +428,11 @@ let pickerTargetModuleId = null;
 let pickerSelected = new Set();
 let formMode = null; // 'course' | 'module' | 'editCourse'
 let formTargetId = null;
+const COURSE_TEMPLATES = {
+  A1: ['Introductions & Classroom English', 'Daily Routine', 'Shopping & Money'],
+  B1: ['Speaking Routines', 'Opinion Writing', 'Media & Technology'],
+  B2: ['Debates & Critical Reading', 'Academic Writing', 'Project Presentation'],
+};
 
 /* ── API ─────────────────────────────────────────────────────── */
 async function api(path, opts = {}) {
@@ -422,8 +451,7 @@ async function init() {
   if (!token) { location.href = 'index.html'; return; }
   try {
     const { user } = await api('/api/auth/me');
-    document.getElementById('nav-avatar').textContent = user.avatar;
-    document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
+    setNavUser(user);
     // Mobile topbar
     if (window.innerWidth <= 860) {
       const tb = document.getElementById('mp-topbar');
@@ -435,6 +463,17 @@ async function init() {
 
   buildColorRow();
   await loadAll();
+}
+
+function setNavUser(user) {
+  const name = (user?.name || 'Teacher').trim();
+  const avatar = user?.avatar;
+  document.getElementById('nav-avatar').textContent = avatar && avatar !== '🧑‍🏫' ? avatar : initials(name);
+  document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
+}
+
+function initials(name) {
+  return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
 }
 
 async function loadAll() {
@@ -512,9 +551,11 @@ function renderCourseView({ course, modules, unassigned }) {
     </div>
     <div class="ch-actions">
       <button class="btn btn-ghost" onclick="openModuleForm('${course.id}')">+ Module</button>
+      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">⚡ Fill by template</button>
       <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">✏️ Edit</button>
       <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">🗑 Delete</button>
     </div>`;
+  renderCourseInsights(modules, unassigned);
 
   // Modules
   const area = document.getElementById('modules-area');
@@ -579,6 +620,51 @@ function lessonCardHTML(b, courseId, moduleId, idx) {
   </a>`;
 }
 
+function renderCourseInsights(modules, unassigned) {
+  const moduleCount = modules.length;
+  const assigned = modules.reduce((sum, m) => sum + (m.boards?.length || 0), 0);
+  const backlog = unassigned.length;
+  const avg = moduleCount ? (assigned / moduleCount).toFixed(1) : '0.0';
+  document.getElementById('course-insights').innerHTML = `
+    <div class="insight-card">
+      <div class="insight-label">Modules</div>
+      <div class="insight-value">${moduleCount}</div>
+      <div class="insight-hint">Course structure depth</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Assigned Lessons</div>
+      <div class="insight-value">${assigned}</div>
+      <div class="insight-hint">Ready for students</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Unassigned</div>
+      <div class="insight-value">${backlog}</div>
+      <div class="insight-hint">Needs module placement</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Avg Lessons / Module</div>
+      <div class="insight-value">${avg}</div>
+      <div class="insight-hint">Balance across modules</div>
+    </div>`;
+}
+
+async function createTemplateModules(courseId) {
+  if (!activeCourse) return;
+  const levelRaw = (activeCourse.level || '').toUpperCase();
+  const levelKey = levelRaw.startsWith('A1') ? 'A1' : levelRaw.startsWith('B2') ? 'B2' : 'B1';
+  const list = COURSE_TEMPLATES[levelKey];
+  if (!list?.length) { toast('No template for this level yet'); return; }
+  if (!confirm(`Create ${list.length} template modules for ${levelKey}?`)) return;
+  try {
+    await Promise.all(list.map(name => api(`/api/courses/${courseId}/modules`, { method:'POST', body:{ name } })));
+    await openCourse(courseId);
+    await loadAll();
+    toast(`✅ Added ${list.length} template modules`);
+  } catch (e) {
+    toast('Error: ' + e.message);
+  }
+}
+
 function toggleModule(mid) {
   const grid = document.getElementById('lg-' + mid);
   const chev = document.getElementById('chev-' + mid);
@@ -612,7 +698,7 @@ async function openSharedCourse(id) {
         '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
         '<span style="margin-left:auto;color:#E85D75;font-weight:700;font-size:13px;">Open →</span></a>'
       ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
-      '<button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
       '</div>';
     modal.onclick = e => { if(e.target===modal) modal.remove(); };
     document.body.appendChild(modal);
