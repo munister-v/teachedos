@@ -251,6 +251,58 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/timeline ────────────────────────────────────────────────
+router.get('/timeline', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM (
+        SELECT 'user' AS type, u.created_at AS at, u.name AS title,
+               u.email || ' joined as ' || u.role AS detail, u.email AS actor, NULL::uuid AS ref_id
+        FROM users u
+
+        UNION ALL
+
+        SELECT 'board' AS type, b.updated_at AS at, b.name AS title,
+               'Updated by ' || u.name || ' · ' ||
+               COALESCE(
+                 CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END,
+                 0
+               )::text || ' cards' AS detail,
+               u.email AS actor, b.id AS ref_id
+        FROM boards b
+        JOIN users u ON u.id = b.user_id
+
+        UNION ALL
+
+        SELECT 'session' AS type, s.created_at AS at, u.name AS title,
+               'Login session from ' || COALESCE(s.ip, 'unknown IP') AS detail,
+               u.email AS actor, NULL::uuid AS ref_id
+        FROM sessions s
+        JOIN users u ON u.id = s.user_id
+
+        UNION ALL
+
+        SELECT 'invite' AS type, i.created_at AS at, i.email AS title,
+               'Invite created for ' || i.role ||
+               CASE
+                 WHEN i.revoked_at IS NOT NULL THEN ' · revoked'
+                 WHEN i.accepted_at IS NOT NULL THEN ' · accepted'
+                 WHEN i.expires_at <= NOW() THEN ' · expired'
+                 ELSE ' · active'
+               END AS detail,
+               creator.email AS actor, i.id AS ref_id
+        FROM invites i
+        LEFT JOIN users creator ON creator.id = i.created_by
+      ) events
+      ORDER BY at DESC
+      LIMIT 60
+    `);
+    res.json({ events: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/invites ─────────────────────────────────────────────────
 router.get('/invites', async (req, res) => {
   try {
