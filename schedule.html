@@ -203,11 +203,13 @@ a{text-decoration:none;color:inherit;}
 .mobile-schedule-shell{display:none;}
 
 @media (max-width: 860px){
+  body{background:#fff;}
   #nav{padding:0 14px;gap:8px;overflow-x:auto;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
+  .nav-user{border:none;background:transparent;padding:4px 6px;}
   #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));}
-  #side{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  #side{width:100%;border-right:none;border-bottom:1px solid var(--border);background:#fff;}
   #main{min-height:0;}
   .week-nav{padding:12px;}
   .side-section{padding:14px 12px 10px;}

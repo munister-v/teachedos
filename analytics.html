@@ -82,10 +82,17 @@ a{text-decoration:none;color:inherit;}
 /* Grid 2-col */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 @media(max-width:860px){
+  body{background:#fff;}
   #nav{padding:0 14px;gap:6px;overflow-x:auto;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
+  .nav-user{border:none;background:transparent;padding:4px 6px;}
+  #page{padding:16px 16px 16px;gap:14px;}
+  .page-title{font-size:24px;}
+  .section{border-radius:14px;box-shadow:none;border:1px solid var(--border);}
   .grid2{grid-template-columns:1fr;}
+  .lesson-table th,.lesson-table td{padding:8px 10px;}
+  #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 
 /* Lesson table */
