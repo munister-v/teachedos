@@ -88,6 +88,52 @@ nav{
   max-width:560px;margin:0 auto 40px;line-height:1.65;font-weight:600;
 }
 .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px;}
+.hero-platforms{
+  width:min(1040px,100%);
+  margin:0 auto 54px;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:18px;
+}
+.platform-card{
+  text-align:left;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(94,94,74,.12);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 14px 40px rgba(5,5,23,.07);
+  backdrop-filter:blur(18px);
+}
+.platform-card.primary{
+  background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(245,240,232,.9));
+}
+.platform-top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;
+}
+.platform-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+  font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);
+  background:rgba(28,28,30,.06);color:var(--text2);
+}
+.platform-badge.accent{background:rgba(232,93,117,.12);color:var(--accent);}
+.platform-title{font-size:1.55rem;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:var(--text);}
+.platform-copy{font-size:.92rem;color:var(--text2);line-height:1.65;font-weight:700;margin-top:10px;}
+.platform-points{list-style:none;display:flex;flex-direction:column;gap:8px;margin:16px 0 18px;}
+.platform-points li{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;font-weight:800;color:var(--text2);line-height:1.55;}
+.platform-points li::before{content:'•';color:var(--accent);font-weight:900;}
+.platform-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.platform-note{margin-top:12px;font-size:.74rem;color:var(--text3);font-weight:700;line-height:1.5;}
+.install-btn-mobile{display:none;}
+.device-path{
+  background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin-top:16px;
+}
+.device-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.device-chip{
+  padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid rgba(94,94,74,.1);
+}
+.device-chip-label{font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);}
+.device-chip-title{font-size:.95rem;font-weight:900;color:var(--text);margin-top:6px;}
+.device-chip-copy{font-size:.78rem;color:var(--text2);line-height:1.55;font-weight:700;margin-top:6px;}
 .hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;}
 .stat-item{text-align:center;}
 .stat-n{font-size:1.9rem;font-weight:900;color:var(--text);letter-spacing:-.03em;}
@@ -280,6 +326,8 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
+  .hero-platforms{grid-template-columns:1fr;}
+  .device-path-grid{grid-template-columns:1fr;}
   .deep-row{grid-template-columns:1fr;gap:32px;}
   .deep-row.reverse{direction:ltr;}
   .footer-top{grid-template-columns:1fr 1fr;gap:32px;}
@@ -289,6 +337,10 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
 @media(max-width:600px){
   .footer-top{grid-template-columns:1fr;}
   .hero-stats{gap:20px;}
+  .platform-card{padding:18px;}
+  .platform-title{font-size:1.3rem;}
+  .platform-actions{flex-direction:column;}
+  .platform-actions .btn{width:100%;justify-content:center;}
   .mockup-body{grid-template-columns:1fr;}
   nav{padding:0 16px;height:52px;}
 }
@@ -319,18 +371,70 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
   <div class="hero-blob hero-blob2"></div>
   <div class="hero-blob hero-blob3"></div>
 
-  <div class="hero-tag anim"><img src="logo.png" alt="" style="width:16px;height:16px;border-radius:4px;"> Made for language teachers</div>
-  <h1 class="hero-h1 anim anim-delay-1">The <em>OS</em> your classroom deserves.</h1>
-  <p class="hero-sub anim anim-delay-2">Visual lesson boards, real-time collaboration, gradebook, student analytics, live calls — all in one macOS-style workspace. Built by teachers, for teachers.</p>
+  <div class="hero-tag anim"><img src="logo.png" alt="" style="width:16px;height:16px;border-radius:4px;"> Teach on desktop. Open like an app on mobile.</div>
+  <h1 class="hero-h1 anim anim-delay-1">One <em>product</em>, two perfect ways to teach.</h1>
+  <p class="hero-sub anim anim-delay-2">TeachEd gives you a rich web workspace for laptops and a clean installable PWA for phones. Plan on desktop, manage on mobile, keep the same classroom system everywhere.</p>
   <div class="hero-btns anim anim-delay-3">
-    <a class="btn btn-primary btn-lg" href="index.html#register">Start for free →</a>
-    <a class="btn btn-ghost btn-lg" href="#features">See all features</a>
+    <a class="btn btn-primary btn-lg" href="index.html">Open web app for desktop →</a>
+    <button class="btn btn-ghost btn-lg" id="hero-install-btn" type="button">Install mobile app</button>
+  </div>
+  <div class="hero-platforms anim anim-delay-4">
+    <div class="platform-card primary">
+      <div class="platform-top">
+        <span class="platform-badge accent">Desktop Web</span>
+        <span style="font-size:1.5rem;">⌘</span>
+      </div>
+      <div class="platform-title">The full teaching cockpit for PC and laptop.</div>
+      <div class="platform-copy">Open the full web version when you want the board canvas, desktop workspace, admin depth, and large-screen lesson flow.</div>
+      <ul class="platform-points">
+        <li>Best for board building, lesson planning, analytics, and admin work</li>
+        <li>Full macOS-style teacher workspace with multi-panel depth</li>
+        <li>Fast access from any browser on Windows, macOS, or Chromebook</li>
+      </ul>
+      <div class="platform-actions">
+        <a class="btn btn-primary" href="index.html">Launch web version</a>
+        <a class="btn btn-ghost" href="board.html">Preview board editor</a>
+      </div>
+      <div class="platform-note">Recommended for teachers working from a laptop, desktop, or large tablet with keyboard.</div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-top">
+        <span class="platform-badge">Mobile PWA</span>
+        <span style="font-size:1.5rem;">▣</span>
+      </div>
+      <div class="platform-title">A home-screen app feel for phones.</div>
+      <div class="platform-copy">Install TeachEd as a PWA to get a cleaner mobile shell, faster launch, offline-friendly screens, and a better teacher/student phone experience.</div>
+      <ul class="platform-points">
+        <li>Best for schedule, gradebook, profile, student dashboard, and quick check-ins</li>
+        <li>Works from the home screen like an app with offline-aware screens</li>
+        <li>No App Store wait, no duplicate product, same account and same data</li>
+      </ul>
+      <div class="platform-actions">
+        <button class="btn btn-primary" id="platform-install-btn" type="button">Install PWA</button>
+        <a class="btn btn-ghost" href="student.html">Open mobile view</a>
+      </div>
+      <div class="platform-note" id="pwa-note">Android will show an install prompt. On iPhone, use Safari → Share → Add to Home Screen.</div>
+    </div>
+  </div>
+  <div class="device-path anim anim-delay-5">
+    <div class="device-path-grid">
+      <div class="device-chip">
+        <div class="device-chip-label">Use this on desktop</div>
+        <div class="device-chip-title">Web version</div>
+        <div class="device-chip-copy">Sign in at the full teacher workspace and work with boards, admin tools, analytics, and deep planning.</div>
+      </div>
+      <div class="device-chip">
+        <div class="device-chip-label">Use this on phone</div>
+        <div class="device-chip-title">PWA mobile app</div>
+        <div class="device-chip-copy">Install from the browser once, then launch TeachEd from your home screen for quick, app-like mobile teaching flows.</div>
+      </div>
+    </div>
   </div>
   <div class="hero-stats anim anim-delay-4">
-    <div class="stat-item"><div class="stat-n">12+</div><div class="stat-l">Card types</div></div>
-    <div class="stat-item"><div class="stat-n">7</div><div class="stat-l">Themes</div></div>
-    <div class="stat-item"><div class="stat-n">∞</div><div class="stat-l">Boards on Pro</div></div>
-    <div class="stat-item"><div class="stat-n">Real-time</div><div class="stat-l">Collaboration</div></div>
+    <div class="stat-item"><div class="stat-n">Desktop</div><div class="stat-l">Full web cockpit</div></div>
+    <div class="stat-item"><div class="stat-n">Mobile</div><div class="stat-l">Installable PWA</div></div>
+    <div class="stat-item"><div class="stat-n">Offline</div><div class="stat-l">Saved snapshots</div></div>
+    <div class="stat-item"><div class="stat-n">One login</div><div class="stat-l">Same data everywhere</div></div>
   </div>
 
   <div class="hero-mockup anim anim-delay-5">
@@ -751,11 +855,11 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
 
 <!-- ═══════════════════ CTA ═══════════════════ -->
 <section id="cta">
-  <h2>Your classroom is <em>waiting</em>.</h2>
-  <p>Join teachers who've already moved their lesson planning, grading, and student management into one beautiful workspace.</p>
+  <h2>Choose your <em>best screen</em>, keep one system.</h2>
+  <p>Open TeachEd in the browser on desktop for full planning power, or install it on mobile as a PWA for faster daily teaching workflows.</p>
   <div class="cta-btns">
-    <a class="btn btn-primary btn-lg" href="index.html#register">Start free today →</a>
-    <a class="btn btn-lg" href="#pricing" style="border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);background:transparent;">See pricing</a>
+    <a class="btn btn-primary btn-lg" href="index.html">Open web version →</a>
+    <button class="btn btn-lg" id="cta-install-btn" type="button" style="border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);background:transparent;">Install mobile PWA</button>
   </div>
 </section>
 
@@ -826,9 +930,46 @@ const token = localStorage.getItem('teachedos_token');
   const cta = document.querySelector('.nav-cta');
   if (tok && cta) {
     const user = (() => { try { return JSON.parse(localStorage.getItem('teachedos_user')); } catch { return null; } })();
-    cta.innerHTML = `<a class="btn btn-primary" href="index.html">Go to app ${user?.name ? '· ' + user.name.split(' ')[0] : ''} →</a>`;
+    cta.innerHTML = `<a class="btn btn-ghost" href="student.html">Mobile view</a><a class="btn btn-primary" href="index.html">Open web app ${user?.name ? '· ' + user.name.split(' ')[0] : ''} →</a>`;
   }
 })();
+
+function handlePwaInstall() {
+  const api = window.TeachedosPWA;
+  if (!api) {
+    showToast('Open TeachEd on your phone browser to install the mobile app.');
+    return;
+  }
+  api.promptInstall();
+  if (api.isIos && !api.canPromptInstall()) {
+    showToast('On iPhone, tap Share in Safari and choose Add to Home Screen.');
+    return;
+  }
+  if (!api.canPromptInstall() && !api.isIos) {
+    showToast('If no prompt appears, open TeachEd on Android Chrome and use Install from the browser menu.');
+  }
+}
+
+['hero-install-btn','platform-install-btn','cta-install-btn'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', handlePwaInstall);
+});
+
+function syncLandingPlatformCopy() {
+  const api = window.TeachedosPWA;
+  const note = document.getElementById('pwa-note');
+  if (!note || !api) return;
+  if (api.isStandalone) {
+    note.textContent = 'TeachEd is already installed on this device and can be launched from the home screen.';
+    return;
+  }
+  if (api.isIos) {
+    note.textContent = 'Best on iPhone: open in Safari, tap Share, then choose Add to Home Screen.';
+    return;
+  }
+  note.textContent = 'Best on Android: tap Install when prompted to pin TeachEd to the home screen as a PWA.';
+}
+window.addEventListener('load', () => setTimeout(syncLandingPlatformCopy, 120));
 
 /* ── Reveal on scroll ── */
 const observer = new IntersectionObserver(entries => {

@@ -237,6 +237,23 @@
     localStorage.setItem(storageKey, '1');
   });
 
+  window.TeachedosPWA = {
+    isStandalone,
+    isIos,
+    isSafari,
+    canPromptInstall: () => Boolean(installEvent),
+    promptInstall: async () => {
+      if (installEvent) {
+        installEvent.prompt();
+        return installEvent.userChoice.catch(() => null);
+      }
+      showIosHint();
+      return null;
+    },
+    showIosHint,
+    showStatus,
+  };
+
   window.addEventListener('load', () => {
     if (!installEvent) showIosHint();
     wireServiceWorkerStatus();
