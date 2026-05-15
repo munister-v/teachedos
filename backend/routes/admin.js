@@ -30,7 +30,7 @@ router.get('/stats', async (req, res) => {
 // ── GET /api/admin/system ──────────────────────────────────────────────────
 router.get('/system', async (req, res) => {
   try {
-    const [dbNow, expiredSessions, recentUsers, recentBoards] = await Promise.all([
+    const [dbNow, expiredSessions, recentUsers, recentBoards, inviteStats, recentInvites] = await Promise.all([
       pool.query('SELECT NOW() AS now'),
       pool.query('SELECT COUNT(*) FROM sessions WHERE expires_at <= NOW()'),
       pool.query(
@@ -46,6 +46,20 @@ router.get('/system', async (req, res) => {
          ORDER BY b.updated_at DESC
          LIMIT 5`
       ),
+      pool.query(
+        `SELECT
+           COUNT(*) FILTER (WHERE revoked_at IS NULL AND accepted_at IS NULL AND expires_at > NOW())::int AS active,
+           COUNT(*) FILTER (WHERE accepted_at IS NOT NULL)::int AS used,
+           COUNT(*) FILTER (WHERE revoked_at IS NOT NULL)::int AS revoked,
+           COUNT(*) FILTER (WHERE revoked_at IS NULL AND accepted_at IS NULL AND expires_at <= NOW())::int AS expired
+         FROM invites`
+      ),
+      pool.query(
+        `SELECT email, role, note, expires_at, accepted_at, revoked_at, created_at
+         FROM invites
+         ORDER BY created_at DESC
+         LIMIT 5`
+      ),
     ]);
 
     res.json({
@@ -53,8 +67,10 @@ router.get('/system', async (req, res) => {
       uptimeSec: Math.round(process.uptime()),
       nodeVersion: process.version,
       expiredSessions: parseInt(expiredSessions.rows[0].count, 10),
+      invites: inviteStats.rows[0] || { active: 0, used: 0, revoked: 0, expired: 0 },
       recentUsers: recentUsers.rows,
       recentBoards: recentBoards.rows,
+      recentInvites: recentInvites.rows,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
