@@ -60,6 +60,98 @@ router.get('/system', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/analytics ───────────────────────────────────────────────
+router.get('/analytics', async (req, res) => {
+  const requestedDays = parseInt(req.query.days, 10);
+  const days = Number.isFinite(requestedDays) ? Math.min(Math.max(requestedDays, 7), 90) : 14;
+
+  try {
+    const [signups, boardUpdates, sessionStarts, topBoardOwners] = await Promise.all([
+      pool.query(
+        `WITH days AS (
+           SELECT generate_series(
+             date_trunc('day', NOW()) - ($1::int - 1) * INTERVAL '1 day',
+             date_trunc('day', NOW()),
+             INTERVAL '1 day'
+           ) AS day
+         )
+         SELECT to_char(days.day, 'YYYY-MM-DD') AS day,
+                COUNT(u.id)::int AS count
+         FROM days
+         LEFT JOIN users u
+           ON u.created_at >= days.day
+          AND u.created_at < days.day + INTERVAL '1 day'
+         GROUP BY days.day
+         ORDER BY days.day`,
+        [days]
+      ),
+      pool.query(
+        `WITH days AS (
+           SELECT generate_series(
+             date_trunc('day', NOW()) - ($1::int - 1) * INTERVAL '1 day',
+             date_trunc('day', NOW()),
+             INTERVAL '1 day'
+           ) AS day
+         )
+         SELECT to_char(days.day, 'YYYY-MM-DD') AS day,
+                COUNT(b.id)::int AS count
+         FROM days
+         LEFT JOIN boards b
+           ON b.updated_at >= days.day
+          AND b.updated_at < days.day + INTERVAL '1 day'
+         GROUP BY days.day
+         ORDER BY days.day`,
+        [days]
+      ),
+      pool.query(
+        `WITH days AS (
+           SELECT generate_series(
+             date_trunc('day', NOW()) - ($1::int - 1) * INTERVAL '1 day',
+             date_trunc('day', NOW()),
+             INTERVAL '1 day'
+           ) AS day
+         )
+         SELECT to_char(days.day, 'YYYY-MM-DD') AS day,
+                COUNT(s.id)::int AS count
+         FROM days
+         LEFT JOIN sessions s
+           ON s.created_at >= days.day
+          AND s.created_at < days.day + INTERVAL '1 day'
+         GROUP BY days.day
+         ORDER BY days.day`,
+        [days]
+      ),
+      pool.query(
+        `SELECT u.name, u.email, COUNT(b.id)::int AS boards
+         FROM users u
+         JOIN boards b ON b.user_id = u.id
+         WHERE b.updated_at >= NOW() - $1::int * INTERVAL '1 day'
+         GROUP BY u.id, u.name, u.email
+         ORDER BY boards DESC, u.name ASC
+         LIMIT 5`,
+        [days]
+      ),
+    ]);
+
+    const totals = {
+      signups: signups.rows.reduce((sum, row) => sum + row.count, 0),
+      boardUpdates: boardUpdates.rows.reduce((sum, row) => sum + row.count, 0),
+      sessionStarts: sessionStarts.rows.reduce((sum, row) => sum + row.count, 0),
+    };
+
+    res.json({
+      days,
+      totals,
+      signups: signups.rows,
+      boardUpdates: boardUpdates.rows,
+      sessionStarts: sessionStarts.rows,
+      topBoardOwners: topBoardOwners.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 router.get('/users', async (req, res) => {
   try {
