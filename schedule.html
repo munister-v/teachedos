@@ -273,42 +273,44 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Sidebar -->
   <div id="side">
-    <div class="mobile-schedule-shell">
-      <div class="mobile-schedule-hero">
-        <div class="mobile-schedule-eyebrow" id="mobile-schedule-eyebrow">Schedule workspace</div>
-        <div class="mobile-schedule-title" id="mobile-schedule-title">Loading your week…</div>
-        <div class="mobile-schedule-copy" id="mobile-schedule-copy">This phone view keeps your classes, live sessions, and week context close at hand.</div>
-        <div class="mobile-schedule-actions">
-          <div class="mobile-schedule-action" onclick="openModal()">
-            <div class="mobile-schedule-action-ic">➕</div>
-            <div>
-              <div class="mobile-schedule-action-title">Add class</div>
-              <div class="mobile-schedule-action-sub">Create a recurring or one-time slot</div>
+    <div class="mobile-schedule-shell mp-shell">
+      <header class="mp-topbar">
+        <div class="mp-greeting">
+          <div class="mp-greeting-meta" id="mp-sch-month">SCHEDULE</div>
+          <div class="mp-greeting-name">Schedule</div>
+        </div>
+        <div class="mp-topbar-actions">
+          <button class="mp-icon-btn" onclick="exportICS()" aria-label="Export">📅</button>
+          <button class="mp-icon-btn alert" onclick="openModal()" aria-label="Add class">+</button>
+        </div>
+      </header>
+
+      <div class="mp-daypicker" id="mp-daypicker">
+        <!-- Filled by JS — fallback shows 7 days centered on today -->
+      </div>
+
+      <div class="mp-timeline-head">
+        <div class="mp-timeline-h" id="mp-timeline-h">Today</div>
+        <div class="mp-timeline-meta" id="mp-timeline-meta">0 LESSONS</div>
+      </div>
+
+      <div class="mp-timeline" id="mp-timeline">
+        <div class="mp-tl-row">
+          <div class="mp-tl-time">—</div>
+          <div class="mp-tl-card">
+            <div class="mp-tl-info">
+              <div class="mp-tl-t">No lessons yet</div>
+              <div class="mp-tl-s">Tap + to add your first class.</div>
             </div>
+            <button class="mp-btn mp-btn-lime" onclick="openModal()">Add</button>
           </div>
-          <div class="mobile-schedule-action" onclick="goToday()">
-            <div class="mobile-schedule-action-ic">📍</div>
-            <div>
-              <div class="mobile-schedule-action-title">Jump to today</div>
-              <div class="mobile-schedule-action-sub">Center the current teaching day</div>
-            </div>
-          </div>
-          <div class="mobile-schedule-action" onclick="exportICS()">
-            <div class="mobile-schedule-action-ic">📅</div>
-            <div>
-              <div class="mobile-schedule-action-title">Export calendar</div>
-              <div class="mobile-schedule-action-sub">Save your schedule as `.ics`</div>
-            </div>
-          </div>
-          <a class="mobile-schedule-action" href="board.html">
-            <div class="mobile-schedule-action-ic">📌</div>
-            <div>
-              <div class="mobile-schedule-action-title">Open board</div>
-              <div class="mobile-schedule-action-sub">Jump into the lesson canvas</div>
-            </div>
-          </a>
         </div>
       </div>
+
+      <!-- Legacy span IDs preserved for any existing JS -->
+      <span id="mobile-schedule-eyebrow" style="display:none"></span>
+      <span id="mobile-schedule-title" style="display:none"></span>
+      <span id="mobile-schedule-copy" style="display:none"></span>
     </div>
 
     <!-- Week nav -->
@@ -515,6 +517,113 @@ function updateMobileScheduleSummary(options = {}) {
     title.textContent = 'Build your teaching week';
     copy.textContent = 'Add your first recurring class or one-time session to start using the schedule as a real mobile planner.';
   }
+
+  /* ── Render Mobile Pro day-picker + timeline ── */
+  renderMobileProSchedule(todays);
+}
+
+let mpSelectedDow = (new Date().getDay() + 6) % 7;
+
+function renderMobileProSchedule(_unused) {
+  const dp = document.getElementById('mp-daypicker');
+  const tl = document.getElementById('mp-timeline');
+  const head = document.getElementById('mp-timeline-h');
+  const meta = document.getElementById('mp-timeline-meta');
+  const monthEl = document.getElementById('mp-sch-month');
+  if (!dp || !tl) return;
+
+  const dayLabels = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const today = new Date();
+  const todayDow = (today.getDay() + 6) % 7;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - todayDow);
+
+  if (monthEl) monthEl.textContent = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+
+  /* Day picker: Mon..Sun of current week */
+  dp.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mp-day' + (i === mpSelectedDow ? ' active' : '');
+    btn.innerHTML = `<span class="mp-day-w">${dayLabels[i]}</span><span class="mp-day-n">${d.getDate()}</span>`;
+    btn.onclick = () => { mpSelectedDow = i; renderMobileProSchedule(); };
+    dp.appendChild(btn);
+  }
+
+  /* Timeline for selected day */
+  const selectedDate = new Date(monday);
+  selectedDate.setDate(monday.getDate() + mpSelectedDow);
+  const isToday = mpSelectedDow === todayDow;
+  const dayClasses = schedule
+    .filter(s => s.day === mpSelectedDow)
+    .sort((a,b) => a.start_time.localeCompare(b.start_time));
+
+  /* Header */
+  const headLabel = isToday ? 'Today' : `${dayLabels[mpSelectedDow]}, ${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}`;
+  if (head) head.textContent = headLabel;
+  const totalMin = dayClasses.reduce((sum, s) => {
+    const start = toMin(s.start_time);
+    const end = toMin(s.end_time);
+    return sum + Math.max(0, end - start);
+  }, 0);
+  if (meta) {
+    const hours = (totalMin / 60).toFixed(1);
+    meta.textContent = `${dayClasses.length} LESSON${dayClasses.length === 1 ? '' : 'S'} · ${hours} H`;
+  }
+
+  /* Lesson rows */
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  tl.innerHTML = '';
+  if (!dayClasses.length) {
+    tl.innerHTML = `<div class="mp-tl-row">
+      <div class="mp-tl-time">—</div>
+      <div class="mp-tl-card">
+        <div class="mp-tl-info">
+          <div class="mp-tl-t">No lessons</div>
+          <div class="mp-tl-s">${isToday ? 'A light day. Tap + to add one.' : 'Nothing scheduled for this day.'}</div>
+        </div>
+        <button class="mp-btn mp-btn-lime" onclick="openModal()">Add</button>
+      </div>
+    </div>`;
+    return;
+  }
+  dayClasses.forEach(s => {
+    const startM = toMin(s.start_time);
+    const endM = toMin(s.end_time);
+    const isPast = isToday && endM < nowMin;
+    const isNow = isToday && startM <= nowMin && endM > nowMin;
+    const duration = endM - startM;
+    const title = (s.group_name || s.title || 'Class').replace(/</g, '&lt;');
+    const parts = [s.level, `${duration} min`, s.room].filter(Boolean);
+
+    const row = document.createElement('div');
+    row.className = 'mp-tl-row' + (isNow ? ' now' : '');
+    row.innerHTML = `
+      <div class="mp-tl-time">${s.start_time.slice(0,5)}</div>
+      <div class="mp-tl-card" onclick="openSlot('${s.id}')">
+        <div class="mp-tl-info">
+          <div class="mp-tl-t">${title}</div>
+          <div class="mp-tl-s">${parts.join(' · ')}</div>
+        </div>
+        ${isNow ? '<span class="mp-tl-tag">NOW</span>' : (isPast ? '<span class="mp-tl-check done">✓</span>' : '<span class="mp-tl-arrow">→</span>')}
+      </div>`;
+    tl.appendChild(row);
+  });
+}
+
+function toMin(t) {
+  if (!t) return 0;
+  const [h, m] = String(t).split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function openSlot(id) {
+  const s = schedule.find(x => String(x.id) === String(id));
+  if (s && typeof openModal === 'function') openModal(s);
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────
