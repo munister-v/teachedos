@@ -253,26 +253,25 @@ button{font-family:var(--font);cursor:pointer;}
 
 @media(max-width:860px){
   :root{--sb-w:100%;}
-  body{background:#fff;}
-  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);}
-  .nav-link{display:none;}
-  .nav-sep{display:none;}
-  .nav-user{border:none;background:transparent;padding:4px 6px;}
-  #sidebar{width:100%;height:auto;border-right:none;border-bottom:none;background:#fff;}
-  #sb-head{padding:20px 16px 12px;display:flex;align-items:center;}
-  #sb-head-title{font-size:22px;font-weight:900;letter-spacing:-.03em;}
+  body{background:var(--bg);}
+  #nav{display:none !important;}
+  #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);background:var(--bg);}
+  #sb-head{padding:16px 16px 10px;display:flex;align-items:center;}
+  #sb-head-title{font-size:18px;font-weight:900;letter-spacing:-.03em;}
   #sb-shared-head{padding:8px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);}
   #course-list{padding:4px 8px 12px;}
   .course-item{padding:8px 10px;border-radius:10px;}
   #layout{flex-direction:column;height:auto;overflow:visible;}
-  #main{overflow-y:visible;background:#fff;}
+  #main{overflow-y:visible;background:var(--bg);}
   #welcome{padding:40px 16px;min-height:50vh;}
   #welcome .w-title{font-size:18px;}
   #welcome .w-sub{font-size:13px;}
-  #course-header{padding:16px;background:#fff;border-bottom:1px solid rgba(94,94,74,0.08);}
+  #course-header{padding:16px;background:var(--bg2);border-bottom:1px solid var(--border);}
   .ch-icon{width:44px;height:44px;border-radius:14px;font-size:22px;}
-  #modules-area{padding:16px;}
+  .ch-actions{flex-direction:row;flex-wrap:wrap;gap:6px;}
+  #modules-area{padding:12px 16px;}
   .module-card{border-radius:14px;}
+  .lessons-grid{grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
@@ -280,7 +279,21 @@ button{font-family:var(--font);cursor:pointer;}
 <link rel="stylesheet" href="styles/mobile-pro.css">
 <script src="theme.js"></script>
 </head>
-<body>
+<body class="mp-shell">
+
+<!-- Mobile topbar -->
+<div class="mp-topbar" id="mp-topbar" style="display:none;">
+  <div class="mp-topbar-left">
+    <div class="mp-avatar" id="mp-avatar-courses">DT</div>
+    <div class="mp-topbar-titles">
+      <div class="mp-topbar-eyebrow">COURSES</div>
+      <div class="mp-topbar-title">My Courses</div>
+    </div>
+  </div>
+  <div class="mp-topbar-actions">
+    <button class="mp-icon-btn" onclick="openCourseForm()" title="New course">＋</button>
+  </div>
+</div>
 
 <nav id="nav">
   <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
@@ -411,6 +424,13 @@ async function init() {
     const { user } = await api('/api/auth/me');
     document.getElementById('nav-avatar').textContent = user.avatar;
     document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
+    // Mobile topbar
+    if (window.innerWidth <= 860) {
+      const tb = document.getElementById('mp-topbar');
+      if (tb) tb.style.display = '';
+      const av = document.getElementById('mp-avatar-courses');
+      if (av) av.textContent = (user.name || 'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    }
   } catch { location.href = 'index.html'; return; }
 
   buildColorRow();
@@ -555,8 +575,8 @@ function lessonCardHTML(b, courseId, moduleId, idx) {
     <div class="lc-name">${esc(b.name)}</div>
     <div class="lc-meta">${cards} card${cards!==1?'s':''} · ${timeSince(b.updated_at)}</div>
     <button class="lc-remove" title="Remove from course"
-      onclick="event.stopPropagation();removeBoard('${courseId}','${b.id}')">×</button>
-  </div>`;
+      onclick="event.stopPropagation();event.preventDefault();removeBoard('${courseId}','${b.id}')">×</button>
+  </a>`;
 }
 
 function toggleModule(mid) {
@@ -603,15 +623,20 @@ async function openSharedCourse(id) {
 function openPicker(moduleId) {
   pickerTargetModuleId = moduleId;
   pickerSelected.clear();
+
+  // Collect IDs of boards already assigned anywhere in this course
   const courseboardIds = new Set();
-  // Get boards already in this course
   document.querySelectorAll('.lesson-card').forEach(el => {
-    const href = el.getAttribute('onclick') || '';
-    const m = href.match(/board\.html\?id=([^']+)/);
+    const href = el.getAttribute('href') || '';
+    const m = href.match(/board\.html\?id=([^&'"]+)/);
     if (m) courseboardIds.add(m[1]);
   });
 
-  const available = allBoards.filter(b => !b.course_id || b.course_id === activeCourse?.id);
+  // Show boards not yet in this course (and not in any other course)
+  const available = allBoards.filter(b =>
+    !courseboardIds.has(String(b.id)) &&
+    (!b.course_id || b.course_id === activeCourse?.id)
+  );
   const el = document.getElementById('picker-list');
   el.innerHTML = available.length
     ? available.map(b => `
