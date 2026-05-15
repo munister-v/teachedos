@@ -17,7 +17,7 @@ updateClock(); setInterval(updateClock, 30000);
 let topZ = 200;
 const zMap = {};
 const winState = {};
-const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
+const isMobileViewport = () => window.matchMedia('(max-width: 860px)').matches;
 
 function openApp(id) {
   const win = document.getElementById('win-' + id);
@@ -587,7 +587,7 @@ function mobToggleSidebar(winId) {
 }
 
 function mobInit() {
-  if (window.matchMedia('(max-width: 768px)').matches) {
+  if (window.matchMedia('(max-width: 860px)').matches) {
     // Close all windows, then open curriculum as default
     document.querySelectorAll('.win').forEach(w => w.classList.remove('open'));
     document.querySelectorAll('.di').forEach(d => d.classList.remove('open'));
@@ -597,7 +597,7 @@ function mobInit() {
 
 // On mobile, tapping a dock item closes others (single-window mode)
 (function() {
-  const isMob = () => window.matchMedia('(max-width: 768px)').matches;
+  const isMob = () => window.matchMedia('(max-width: 860px)').matches;
   document.querySelectorAll('.di').forEach(di => {
     di.addEventListener('click', () => {
       if (!isMob()) return;

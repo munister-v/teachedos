@@ -216,10 +216,11 @@ a{text-decoration:none;color:inherit;}
 .gb-mobile-lessons{display:flex;flex-wrap:wrap;gap:6px;}
 .gb-mobile-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;}
 
-@media (max-width: 820px){
-  #nav{padding:0 14px;gap:6px;overflow-x:auto;}
+@media (max-width: 860px){
+  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);}
   .nav-link{display:none;}
-  #page{padding:18px 12px calc(92px + env(safe-area-inset-bottom,0px));gap:16px;}
+  .nav-sep{display:none;}
+  #page{padding:18px 12px 16px;gap:16px;}
   .page-head{align-items:stretch;}
   .page-title{font-size:24px;}
   .page-sub{font-size:12px;line-height:1.5;}
