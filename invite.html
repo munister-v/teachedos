@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>TeachEd - Accept Invite</title>
+<link rel="icon" type="image/png" href="logo.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f5f0e8;--card:#ffffff;--text:#1c1c1e;--muted:#7d7d70;--border:rgba(94,94,74,.14);
+  --accent:#e85d75;--accent2:#9f8ce8;--green:#15803d;--red:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  font-family:Nunito,sans-serif;background:
+    radial-gradient(circle at top left,rgba(159,140,232,.18),transparent 34%),
+    radial-gradient(circle at bottom right,rgba(232,93,117,.16),transparent 30%),
+    var(--bg);
+  color:var(--text);
+}
+.shell{
+  width:min(920px,100%);display:grid;grid-template-columns:1.05fr .95fr;overflow:hidden;
+  background:rgba(255,255,255,.64);backdrop-filter:blur(14px);border:1px solid var(--border);
+  border-radius:28px;box-shadow:0 24px 80px rgba(28,28,30,.12);
+}
+.hero{
+  padding:38px 34px;background:linear-gradient(180deg,rgba(232,93,117,.96),rgba(159,140,232,.96));color:#fff;
+  display:flex;flex-direction:column;justify-content:space-between;gap:24px;
+}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:800;width:max-content}
+.hero-title{font-size:38px;line-height:1.05;font-weight:900;max-width:10ch}
+.hero-sub{font-size:15px;line-height:1.65;max-width:38ch;color:rgba(255,255,255,.88)}
+.hero-points{display:grid;gap:12px}
+.hero-point{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.12);font-size:14px;line-height:1.55}
+.panel{padding:34px 30px;background:var(--card)}
+.panel-title{font-size:28px;font-weight:900;line-height:1.08}
+.panel-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6}
+.invite-meta{
+  margin-top:20px;padding:16px;border-radius:16px;background:#faf7f3;border:1px solid var(--border);
+  display:grid;gap:8px;font-size:14px;
+}
+.meta-line strong{font-weight:900}
+.form{margin-top:22px;display:grid;gap:14px}
+.label{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px;display:block}
+.input{
+  width:100%;padding:13px 14px;border-radius:12px;border:2px solid #ece8e0;background:#fff;
+  font:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(232,93,117,.12)}
+.btn{
+  width:100%;padding:14px 16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font:inherit;font-weight:900;cursor:pointer;transition:transform .12s,opacity .12s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:wait;transform:none}
+.status{
+  margin-top:16px;min-height:22px;font-size:13px;font-weight:700;
+}
+.status.error{color:var(--red)}
+.status.success{color:var(--green)}
+.helper{margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6}
+@media (max-width: 840px){
+  .shell{grid-template-columns:1fr}
+  .hero{padding:28px 24px}
+  .panel{padding:28px 22px}
+  .hero-title{font-size:30px}
+}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="hero-badge">TeachEd Invite</div>
+        <h1 class="hero-title">Finish your account in one step</h1>
+        <p class="hero-sub">You were invited into TeachEd with a personal onboarding link. Set your name and password, and we will sign you in automatically.</p>
+      </div>
+      <div class="hero-points">
+        <div class="hero-point">One-time link with expiration. If the invite was revoked or already used, this page will tell you right away.</div>
+        <div class="hero-point">After activation, students go to their dashboard and teachers land in the main workspace with their token already saved.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">Accept Invite</h2>
+      <p class="panel-sub" id="panel-sub">Checking the invite details before we create your account.</p>
+
+      <div class="invite-meta" id="invite-meta">
+        <div class="meta-line"><strong>Email:</strong> Loading...</div>
+        <div class="meta-line"><strong>Role:</strong> Loading...</div>
+        <div class="meta-line"><strong>Expires:</strong> Loading...</div>
+      </div>
+
+      <form class="form" id="accept-form">
+        <div>
+          <label class="label" for="name">Full Name</label>
+          <input class="input" id="name" type="text" placeholder="Your name" autocomplete="name"/>
+        </div>
+        <div>
+          <label class="label" for="password">Create Password</label>
+          <input class="input" id="password" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+        </div>
+        <div>
+          <label class="label" for="password2">Confirm Password</label>
+          <input class="input" id="password2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
+        <button class="btn" id="submit-btn" type="submit">Create Account</button>
+      </form>
+
+      <div class="status" id="status"></div>
+      <div class="helper">Need a fresh link? Ask your administrator to generate a new invite from the admin panel.</div>
+    </section>
+  </div>
+
+<script>
+const API = 'https://teachedos-api.onrender.com';
+const tokenParam = new URLSearchParams(location.search).get('token');
+let inviteData = null;
+
+function setStatus(text, type='') {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className = `status ${type}`.trim();
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) + ' ' +
+         d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+function roleLabel(role) {
+  return role === 'student' ? 'Student' : role === 'admin' ? 'Admin' : 'Teacher';
+}
+
+function redirectForRole(role) {
+  if (role === 'student') return 'student.html';
+  return 'index.html';
+}
+
+async function loadInvite() {
+  if (!tokenParam) {
+    setStatus('Invite token is missing from the URL.', 'error');
+    document.getElementById('accept-form').style.display = 'none';
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/api/auth/invites/${encodeURIComponent(tokenParam)}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Invite not found');
+    inviteData = d.invite;
+    document.getElementById('panel-sub').textContent = 'Your email and role are already reserved by this invite.';
+    document.getElementById('invite-meta').innerHTML = `
+      <div class="meta-line"><strong>Email:</strong> ${inviteData.email}</div>
+      <div class="meta-line"><strong>Role:</strong> ${roleLabel(inviteData.role)}</div>
+      <div class="meta-line"><strong>Expires:</strong> ${formatDate(inviteData.expires_at)}</div>
+      ${inviteData.note ? `<div class="meta-line"><strong>Note:</strong> ${inviteData.note}</div>` : ''}
+    `;
+  } catch (err) {
+    setStatus(err.message, 'error');
+    document.getElementById('accept-form').style.display = 'none';
+    document.getElementById('panel-sub').textContent = 'This invite cannot be used anymore.';
+    document.getElementById('invite-meta').innerHTML = `
+      <div class="meta-line"><strong>Status:</strong> unavailable</div>
+      <div class="meta-line"><strong>Reason:</strong> ${err.message}</div>
+    `;
+  }
+}
+
+document.getElementById('accept-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const password = document.getElementById('password').value;
+  const password2 = document.getElementById('password2').value;
+  if (!inviteData) return;
+  if (!name || !password || !password2) {
+    setStatus('Please complete all fields.', 'error');
+    return;
+  }
+  if (password !== password2) {
+    setStatus('Passwords do not match.', 'error');
+    return;
+  }
+  if (password.length < 8) {
+    setStatus('Password must be at least 8 characters.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  setStatus('Creating your account…');
+  try {
+    const r = await fetch(`${API}/api/auth/invites/${encodeURIComponent(tokenParam)}/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not accept invite');
+    localStorage.setItem('teachedos_token', d.token);
+    localStorage.setItem('teachedos_role', d.user.role);
+    localStorage.setItem('teachedos_user', JSON.stringify(d.user));
+    setStatus('Account created. Redirecting…', 'success');
+    setTimeout(() => { location.href = redirectForRole(d.user.role); }, 900);
+  } catch (err) {
+    setStatus(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+loadInvite();
+</script>
+</body>
+</html>

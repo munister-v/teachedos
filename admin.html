@@ -214,6 +214,17 @@ tr:hover td{background:#fafafa}
 .setting-card{background:#fff;border-radius:var(--card-r);padding:24px;box-shadow:var(--shadow)}
 .setting-title{font-size:16px;font-weight:800;margin-bottom:4px}
 .setting-desc{font-size:13px;color:var(--muted);margin-bottom:16px}
+.invite-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:320px;overflow:auto;padding-right:4px}
+.invite-item{padding:12px 14px;border-radius:12px;background:#fafafa;border:1px solid var(--border)}
+.invite-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.invite-email{font-size:14px;font-weight:800}
+.invite-meta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.invite-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.invite-status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.invite-status.active{background:#ecfdf5;color:#15803d}
+.invite-status.used{background:#eff6ff;color:#1d4ed8}
+.invite-status.revoked{background:#fef2f2;color:#dc2626}
+.invite-status.expired{background:#fff7ed;color:#c2410c}
 .activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:24px}
 .activity-list{display:flex;flex-direction:column;gap:10px}
 .activity-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:#fafafa;border:1px solid var(--border)}
@@ -627,6 +638,53 @@ tr:hover td{background:#fafafa}
         <div style="font-family:monospace;font-size:13px;padding:12px;background:#F5F0E8;border-radius:10px;word-break:break-all" id="api-url-display"></div>
       </div>
 
+      <div class="setting-card" style="grid-column:1/-1">
+        <div class="setting-title">📩 Invite Links</div>
+        <div class="setting-desc">Create one-time onboarding links for teachers, students, or admins without sharing a password.</div>
+        <div class="settings-grid" style="gap:16px">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" id="invite-email" type="email" placeholder="teacher@example.com"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select class="form-select" id="invite-role">
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expires In</label>
+              <select class="form-select" id="invite-expiry">
+                <option value="3">3 days</option>
+                <option value="7" selected>7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Note</label>
+              <input class="form-input" id="invite-note" type="text" maxlength="280" placeholder="Optional internal note"/>
+            </div>
+            <button class="btn-primary" style="margin-top:4px" onclick="createInvite()">Create Invite Link</button>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div class="form-label" style="margin:0">Recent Invites</div>
+              <button class="btn-sm btn-edit" type="button" onclick="loadInvites()">🔄 Refresh</button>
+            </div>
+            <div class="invite-list" id="invite-list">
+              <div class="invite-item">
+                <div class="invite-email">Loading…</div>
+                <div class="invite-meta">Fetching recent invite links</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -836,7 +894,7 @@ function showPage(name) {
   if (name === 'users')     loadUsers();
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
-  if (name === 'settings')  loadSysInfo();
+  if (name === 'settings')  { loadSysInfo(); loadInvites(); }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────
@@ -1348,6 +1406,89 @@ async function loadSysInfo() {
   }
 }
 
+async function createInvite() {
+  const email = document.getElementById('invite-email').value.trim();
+  const role = document.getElementById('invite-role').value;
+  const expiresInDays = Number(document.getElementById('invite-expiry').value || 7);
+  const note = document.getElementById('invite-note').value.trim();
+  if (!email) { toast('Enter invite email', 'error'); return; }
+  try {
+    const d = await api('POST', '/api/admin/invites', { email, role, expiresInDays, note });
+    const inviteUrl = buildInviteUrl(d.invite.token);
+    await navigator.clipboard.writeText(inviteUrl).catch(() => {});
+    toast('Invite created and copied ✅', 'success');
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-note').value = '';
+    document.getElementById('invite-role').value = 'teacher';
+    document.getElementById('invite-expiry').value = '7';
+    loadInvites();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function loadInvites() {
+  const root = document.getElementById('invite-list');
+  if (!root) return;
+  root.innerHTML = `<div class="invite-item"><div class="invite-email">Loading…</div><div class="invite-meta">Fetching recent invite links</div></div>`;
+  try {
+    const d = await api('GET', '/api/admin/invites');
+    if (!d.invites.length) {
+      root.innerHTML = `<div class="invite-item"><div class="invite-email">No invites yet</div><div class="invite-meta">Create your first onboarding link on the left</div></div>`;
+      return;
+    }
+    root.innerHTML = d.invites.map(invite => `
+      <div class="invite-item">
+        <div class="invite-row">
+          <div>
+            <div class="invite-email">${esc(invite.email)}</div>
+            <div class="invite-meta">
+              Role: <strong>${esc(invite.role)}</strong><br>
+              Expires: <strong>${fmtDate(invite.expires_at)}</strong><br>
+              ${invite.note ? `Note: ${esc(invite.note)}<br>` : ''}
+              ${invite.accepted_user_name ? `Accepted by: ${esc(invite.accepted_user_name)}<br>` : ''}
+              Created by: ${esc(invite.created_by_name || currentAdminUser?.name || 'Admin')}
+            </div>
+          </div>
+          <div class="invite-status ${inviteState(invite).tone}">${inviteState(invite).label}</div>
+        </div>
+        <div class="invite-actions">
+          <button class="btn-sm btn-edit" type="button" onclick="copyInviteLink('${invite.token}')">Copy Link</button>
+          ${inviteState(invite).tone === 'active' ? `<button class="btn-sm btn-danger" type="button" onclick="revokeInvite('${invite.id}','${esc(invite.email)}')">Revoke</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    root.innerHTML = `<div class="invite-item"><div class="invite-email">Error</div><div class="invite-meta">${esc(e.message)}</div></div>`;
+  }
+}
+
+function buildInviteUrl(tokenValue) {
+  return new URL(`invite.html?token=${encodeURIComponent(tokenValue)}`, window.location.href).toString();
+}
+
+async function copyInviteLink(tokenValue) {
+  const link = buildInviteUrl(tokenValue);
+  try {
+    await navigator.clipboard.writeText(link);
+    toast('Invite link copied', 'success');
+  } catch {
+    toast(link, '');
+  }
+}
+
+function revokeInvite(id, email) {
+  confirm(`Revoke invite for "${email}"?`, 'The invite link will stop working immediately.', '📩', async () => {
+    try {
+      await api('DELETE', `/api/admin/invites/${id}`);
+      toast('Invite revoked', 'success');
+      loadInvites();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  });
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1371,6 +1512,13 @@ function fmtDuration(sec) {
   const minutes = Math.floor((sec % 3600) / 60);
   if (hours <= 0) return `${minutes}m`;
   return `${hours}h ${minutes}m`;
+}
+
+function inviteState(invite) {
+  if (invite.revoked_at) return { tone: 'revoked', label: 'Revoked' };
+  if (invite.accepted_at) return { tone: 'used', label: 'Used' };
+  if (new Date(invite.expires_at).getTime() <= Date.now()) return { tone: 'expired', label: 'Expired' };
+  return { tone: 'active', label: 'Active' };
 }
 
 function shortDay(day) {

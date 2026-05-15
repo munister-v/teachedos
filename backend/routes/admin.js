@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const crypto = require('crypto');
 const pool   = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
@@ -147,6 +148,57 @@ router.get('/analytics', async (req, res) => {
       sessionStarts: sessionStarts.rows,
       topBoardOwners: topBoardOwners.rows,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/invites ─────────────────────────────────────────────────
+router.get('/invites', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT i.id, i.email, i.role, i.note, i.token, i.expires_at, i.accepted_at, i.revoked_at, i.created_at,
+              creator.name AS created_by_name,
+              accepted.name AS accepted_user_name
+       FROM invites i
+       LEFT JOIN users creator ON creator.id = i.created_by
+       LEFT JOIN users accepted ON accepted.id = i.accepted_user_id
+       ORDER BY i.created_at DESC
+       LIMIT 100`
+    );
+    res.json({ invites: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/admin/invites ────────────────────────────────────────────────
+router.post('/invites', async (req, res) => {
+  const { email, role = 'teacher', expiresInDays = 7, note = '' } = req.body;
+  const safeRole = ['teacher', 'student', 'admin'].includes(role) ? role : 'teacher';
+  const safeDays = Math.min(Math.max(parseInt(expiresInDays, 10) || 7, 1), 30);
+  const safeEmail = String(email || '').toLowerCase().trim();
+  const safeNote = String(note || '').trim().slice(0, 280);
+
+  if (!safeEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(safeEmail)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+
+  try {
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [safeEmail]);
+    if (existing.rows.length) {
+      return res.status(409).json({ error: 'User with this email already exists' });
+    }
+
+    const token = crypto.randomBytes(24).toString('hex');
+    const { rows } = await pool.query(
+      `INSERT INTO invites (email, role, token, note, created_by, expires_at)
+       VALUES ($1, $2, $3, $4, $5, NOW() + ($6::int * INTERVAL '1 day'))
+       RETURNING id, email, role, note, token, expires_at, accepted_at, revoked_at, created_at`,
+      [safeEmail, safeRole, token, safeNote, req.user.id, safeDays]
+    );
+
+    res.status(201).json({ invite: rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -354,6 +406,23 @@ router.delete('/sessions-expired', async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM sessions WHERE expires_at <= NOW()');
     res.json({ ok: true, deleted: rowCount || 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── DELETE /api/admin/invites/:id ──────────────────────────────────────────
+router.delete('/invites/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE invites
+       SET revoked_at = COALESCE(revoked_at, NOW())
+       WHERE id = $1
+       RETURNING id, revoked_at`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Invite not found' });
+    res.json({ ok: true, invite: rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

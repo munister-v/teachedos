@@ -41,6 +41,23 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_token   ON sessions(token);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
+-- ── Invites ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS invites (
+  id               UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  email            VARCHAR(255) NOT NULL,
+  role             VARCHAR(50)  NOT NULL DEFAULT 'teacher',
+  token            TEXT         NOT NULL UNIQUE,
+  note             TEXT         NOT NULL DEFAULT '',
+  created_by       UUID         REFERENCES users(id) ON DELETE SET NULL,
+  accepted_user_id UUID         REFERENCES users(id) ON DELETE SET NULL,
+  expires_at       TIMESTAMPTZ  NOT NULL,
+  accepted_at      TIMESTAMPTZ,
+  revoked_at       TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_invites_token ON invites(token);
+CREATE INDEX IF NOT EXISTS idx_invites_email ON invites(email);
+
 -- ── Board collaborators (future) ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS board_collaborators (
   board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,

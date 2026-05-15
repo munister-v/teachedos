@@ -1,8 +1,44 @@
 const router  = require('express').Router();
 const bcrypt  = require('bcryptjs');
-const { v4: uuid } = require('uuid');
 const pool    = require('../db/pool');
 const { requireAuth, signToken } = require('../middleware/auth');
+
+function defaultAvatarForRole(role) {
+  if (role === 'student') return '🎓';
+  if (role === 'admin') return '🛡️';
+  return '🧑‍🏫';
+}
+
+async function loadActiveInvite(token) {
+  const { rows } = await pool.query(
+    `SELECT id, email, role, note, expires_at, accepted_at, revoked_at
+     FROM invites
+     WHERE token = $1`,
+    [token]
+  );
+  const invite = rows[0];
+  if (!invite) {
+    const err = new Error('Invite not found');
+    err.status = 404;
+    throw err;
+  }
+  if (invite.revoked_at) {
+    const err = new Error('Invite has been revoked');
+    err.status = 410;
+    throw err;
+  }
+  if (invite.accepted_at) {
+    const err = new Error('Invite has already been used');
+    err.status = 410;
+    throw err;
+  }
+  if (new Date(invite.expires_at).getTime() <= Date.now()) {
+    const err = new Error('Invite has expired');
+    err.status = 410;
+    throw err;
+  }
+  return invite;
+}
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -38,6 +74,106 @@ router.post('/register', async (req, res) => {
     }
     console.error('[auth/register]', err.message, err.code);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/invites/:token — fetch invite details
+router.get('/invites/:token', async (req, res) => {
+  try {
+    const invite = await loadActiveInvite(req.params.token);
+    res.json({
+      invite: {
+        email: invite.email,
+        role: invite.role,
+        note: invite.note,
+        expires_at: invite.expires_at,
+      }
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/invites/:token/accept — create account from invite
+router.post('/invites/:token/accept', async (req, res) => {
+  const { name, password, avatar } = req.body;
+  if (!name || !password) {
+    return res.status(400).json({ error: 'name and password are required' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const inviteRows = await client.query(
+      `SELECT id, email, role, note, expires_at, accepted_at, revoked_at
+       FROM invites
+       WHERE token = $1
+       FOR UPDATE`,
+      [req.params.token]
+    );
+    const invite = inviteRows.rows[0];
+    if (!invite) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Invite not found' });
+    }
+    if (invite.revoked_at) {
+      await client.query('ROLLBACK');
+      return res.status(410).json({ error: 'Invite has been revoked' });
+    }
+    if (invite.accepted_at) {
+      await client.query('ROLLBACK');
+      return res.status(410).json({ error: 'Invite has already been used' });
+    }
+    if (new Date(invite.expires_at).getTime() <= Date.now()) {
+      await client.query('ROLLBACK');
+      return res.status(410).json({ error: 'Invite has expired' });
+    }
+
+    const normalizedEmail = invite.email.toLowerCase().trim();
+    const existing = await client.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
+    if (existing.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'This email is already registered' });
+    }
+
+    const safeAvatar = String(avatar || defaultAvatarForRole(invite.role)).trim();
+    const hash = await bcrypt.hash(password, 12);
+    const created = await client.query(
+      `INSERT INTO users (email, password_hash, name, role, avatar)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, email, name, role, avatar, created_at`,
+      [normalizedEmail, hash, name.trim(), invite.role, safeAvatar]
+    );
+    const user = created.rows[0];
+    const token = signToken(user.id);
+
+    await client.query(
+      `INSERT INTO boards (user_id, name) VALUES ($1, $2)`,
+      [user.id, 'My First Board']
+    );
+    await client.query(
+      `INSERT INTO sessions (user_id, token, user_agent, ip, expires_at)
+       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '7 days')`,
+      [user.id, token, req.headers['user-agent'] || '', req.ip]
+    );
+    await client.query(
+      `UPDATE invites
+       SET accepted_at = NOW(), accepted_user_id = $2
+       WHERE id = $1`,
+      [invite.id, user.id]
+    );
+
+    await client.query('COMMIT');
+    res.status(201).json({ token, user });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[auth/invite-accept]', err.message);
+    res.status(err.status || 500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
