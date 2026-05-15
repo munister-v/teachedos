@@ -737,6 +737,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 const API = 'https://teachedos-api.onrender.com';
+const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 let authToken = localStorage.getItem('teachedos_token');
 let currentUser = null;
 let _vocabData = [];
@@ -769,6 +770,55 @@ function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+function readDashboardCache() {
+  try {
+    return JSON.parse(localStorage.getItem(STUDENT_DASHBOARD_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeDashboardCache(patch) {
+  try {
+    const current = readDashboardCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(STUDENT_DASHBOARD_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function renderDashboardFromCache(cache, options = {}) {
+  if (!cache) return false;
+  const boards = Array.isArray(cache.boards) ? cache.boards : [];
+  const schedule = Array.isArray(cache.schedule) ? cache.schedule : [];
+  const stats = cache.stats || { done: 0, streak: 0 };
+  renderSidebarBoards(boards);
+  renderStats(boards, stats);
+  renderSchedule(schedule);
+  if (Array.isArray(cache.vocabData)) {
+    _vocabData = cache.vocabData;
+    renderVocab();
+    document.getElementById('ms-words').textContent = cache.vocabData.length;
+  }
+  if (cache.vocabStats) {
+    document.getElementById('v-learned').textContent = cache.vocabStats.learned ?? '—';
+    document.getElementById('v-tolearn').textContent = cache.vocabStats.toLearn ?? '—';
+  }
+  if (Array.isArray(cache.quizResults) && cache.quizResults.length) {
+    renderQuizHistory(cache.quizResults);
+  }
+  if (cache.portalData) {
+    renderPortalData(cache.portalData);
+  }
+  if (options.offlineNotice) {
+    document.getElementById('ms-copy').textContent = 'Offline mode: showing your last saved dashboard snapshot.';
+    const list = document.getElementById('schedule-list');
+    if (list && schedule.length) {
+      list.insertAdjacentHTML('afterbegin', '<div class="empty-state" style="margin-bottom:10px;background:rgba(159,140,232,.08);border-color:rgba(159,140,232,.18);">Offline mode: upcoming lessons shown from saved data.</div>');
+    }
+  }
+  return true;
 }
 
 // ── Sidebar toggle ──
@@ -815,22 +865,29 @@ function closeVocabModal() { document.getElementById('vocab-modal').style.displa
 // ── Init ──
 async function init() {
   if (!authToken) { location.href='index.html'; return; }
+  const cachedDash = readDashboardCache();
 
   try {
     const me = await apiFetch('/api/auth/me');
-    if (!me.ok) { location.href='index.html'; return; }
-    const { user } = await me.json();
-    currentUser = user;
+    if (me.ok) {
+      const { user } = await me.json();
+      currentUser = user;
+      writeDashboardCache({ user });
+    } else if (cachedDash?.user) {
+      currentUser = cachedDash.user;
+    } else {
+      location.href='index.html'; return;
+    }
 
-    if (user.role === 'teacher' || user.role === 'admin') {
+    if (currentUser.role === 'teacher' || currentUser.role === 'admin') {
       location.href = 'index.html'; return;
     }
 
     // Populate sidebar + topbar
-    const firstName = user.name.split(' ')[0];
-    document.getElementById('sb-name').textContent = user.name;
-    document.getElementById('sb-avatar').textContent = user.avatar || '🎓';
-    document.getElementById('tb-avatar').textContent = user.avatar || '🎓';
+    const firstName = currentUser.name.split(' ')[0];
+    document.getElementById('sb-name').textContent = currentUser.name;
+    document.getElementById('sb-avatar').textContent = currentUser.avatar || '🎓';
+    document.getElementById('tb-avatar').textContent = currentUser.avatar || '🎓';
     document.getElementById('welcome-text').textContent = 'Welcome back, ' + firstName + '!';
     document.getElementById('ms-title').textContent = firstName + ', stay in motion today.';
 
@@ -841,6 +898,9 @@ async function init() {
       renderSidebarBoards(boards);
       renderStats(boards, stats);
       renderSchedule(schedule);
+      writeDashboardCache({ boards, schedule, stats });
+    } else if (!renderDashboardFromCache(cachedDash, { offlineNotice: true })) {
+      location.href = 'index.html'; return;
     }
 
     // Try loading portal data for teacher notes
@@ -854,6 +914,21 @@ async function init() {
 
   } catch(err) {
     console.error(err);
+    if (cachedDash?.user) {
+      currentUser = cachedDash.user;
+      document.getElementById('sb-name').textContent = currentUser.name;
+      document.getElementById('sb-avatar').textContent = currentUser.avatar || '🎓';
+      document.getElementById('tb-avatar').textContent = currentUser.avatar || '🎓';
+      const firstName = currentUser.name.split(' ')[0];
+      document.getElementById('welcome-text').textContent = 'Welcome back, ' + firstName + '!';
+      document.getElementById('ms-title').textContent = firstName + ', stay in motion today.';
+      if (renderDashboardFromCache(cachedDash, { offlineNotice: true })) {
+        document.getElementById('loading-screen').classList.add('hidden');
+        document.getElementById('main-content').style.display = '';
+        showToast('Offline mode enabled');
+        return;
+      }
+    }
     location.href = 'index.html';
   }
 }
@@ -924,7 +999,10 @@ function renderStats(boards, stats) {
 // ── Schedule ──
 function renderSchedule(schedule) {
   const list = document.getElementById('schedule-list');
-  if (!schedule || !schedule.length) return;
+  if (!schedule || !schedule.length) {
+    list.innerHTML = '<div class="empty-state">No upcoming lessons scheduled</div>';
+    return;
+  }
   list.innerHTML = schedule.map(s => {
     const dt = formatDate(s.start_time);
     return `
@@ -981,23 +1059,29 @@ async function loadQuizHistory() {
     if (!r.ok) return;
     const { results } = await r.json();
     if (!results.length) return;
-    document.getElementById('quiz-history-section').style.display = '';
-    const list = document.getElementById('quiz-history-list');
-    list.innerHTML = results.map(q => {
-      const pct = q.pct ?? 0;
-      const bg = pct >= 80 ? 'rgba(34,197,94,.15)' : pct >= 50 ? 'rgba(234,179,8,.15)' : 'rgba(239,68,68,.15)';
-      const col = pct >= 80 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#dc2626';
-      const date = new Date(q.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-      return `<div class="quiz-item">
-        <div class="quiz-score" style="background:${bg};color:${col};">${pct}%</div>
-        <div class="quiz-info">
-          <div class="quiz-board">📋 ${esc(q.board_name || q.board_id)}</div>
-          <div class="quiz-title">Card quiz · ${q.score}/${q.max_score} points</div>
-          <div class="quiz-date">${date}</div>
-        </div>
-      </div>`;
-    }).join('');
+    writeDashboardCache({ quizResults: results });
+    renderQuizHistory(results);
   } catch {}
+}
+
+function renderQuizHistory(results) {
+  if (!results || !results.length) return;
+  document.getElementById('quiz-history-section').style.display = '';
+  const list = document.getElementById('quiz-history-list');
+  list.innerHTML = results.map(q => {
+    const pct = q.pct ?? 0;
+    const bg = pct >= 80 ? 'rgba(34,197,94,.15)' : pct >= 50 ? 'rgba(234,179,8,.15)' : 'rgba(239,68,68,.15)';
+    const col = pct >= 80 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#dc2626';
+    const date = new Date(q.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="quiz-item">
+      <div class="quiz-score" style="background:${bg};color:${col};">${pct}%</div>
+      <div class="quiz-info">
+        <div class="quiz-board">📋 ${esc(q.board_name || q.board_id)}</div>
+        <div class="quiz-title">Card quiz · ${q.score}/${q.max_score} points</div>
+        <div class="quiz-date">${date}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── Portal data (teacher notes) ──
@@ -1007,38 +1091,38 @@ async function loadPortalData() {
     const r = await apiFetch('/api/student/portal/' + currentUser.id);
     if (!r.ok) return;
     const data = await r.json();
-
-    // Teacher notes / feedback
-    if (data.teacherNotes) {
-      const fb = document.getElementById('teacher-feedback');
-      fb.innerHTML = `
-        <div class="teacher-fb">
-          <div class="teacher-fb-content">
-            <div class="teacher-fb-dot"></div>
-            <div>
-              <span class="teacher-fb-name">${esc(data.student?.teacher_name || 'Teacher')}:</span>
-              <span class="teacher-fb-msg">${esc(data.teacherNotes)}</span>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    // Notification banner if there are new assignments
-    if (data.boards && data.boards.some(b => b.total_lessons > b.done_lessons)) {
-      document.getElementById('assignments-notif').innerHTML = `
-        <div class="notif-banner">
-          <span class="notif-icon">🔔</span>
-          <span class="notif-text">Your teacher just added some new tasks for you!</span>
-        </div>`;
-      document.getElementById('notif-dot').style.display = '';
-    }
-
-    // Vocab stats
-    if (data.stats) {
-      document.getElementById('v-pace').textContent = data.stats.vocabPace || '—';
-      document.getElementById('v-record').textContent = data.stats.vocabRecord || '—';
-    }
+    writeDashboardCache({ portalData: data });
+    renderPortalData(data);
   } catch {}
+}
+
+function renderPortalData(data) {
+  if (!data) return;
+  if (data.teacherNotes) {
+    const fb = document.getElementById('teacher-feedback');
+    fb.innerHTML = `
+      <div class="teacher-fb">
+        <div class="teacher-fb-content">
+          <div class="teacher-fb-dot"></div>
+          <div>
+            <span class="teacher-fb-name">${esc(data.student?.teacher_name || 'Teacher')}:</span>
+            <span class="teacher-fb-msg">${esc(data.teacherNotes)}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+  if (data.boards && data.boards.some(b => b.total_lessons > b.done_lessons)) {
+    document.getElementById('assignments-notif').innerHTML = `
+      <div class="notif-banner">
+        <span class="notif-icon">🔔</span>
+        <span class="notif-text">Your teacher just added some new tasks for you!</span>
+      </div>`;
+    document.getElementById('notif-dot').style.display = '';
+  }
+  if (data.stats) {
+    document.getElementById('v-pace').textContent = data.stats.vocabPace || '—';
+    document.getElementById('v-record').textContent = data.stats.vocabRecord || '—';
+  }
 }
 
 // ── Push subscribe ──
@@ -1089,6 +1173,7 @@ async function loadVocab() {
     document.getElementById('v-tolearn').textContent = toLearn;
     document.getElementById('ms-words').textContent = words.length;
     renderVocab();
+    writeDashboardCache({ vocabData: words, vocabStats: { learned, toLearn } });
   } catch {}
 }
 

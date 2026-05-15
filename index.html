@@ -2354,8 +2354,60 @@ mobInit();
    AUTH + ROLE ROUTING
    ════════════════════════════════════════════════════ */
 const API_BASE = 'https://teachedos-api.onrender.com';
+const TEACHER_DASHBOARD_CACHE_KEY = 'teachedos_teacher_dashboard_cache_v1';
 let _authToken = localStorage.getItem('teachedos_token');
 let _currentUser = null;
+
+function readTeacherDashboardCache() {
+  try {
+    return JSON.parse(localStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeTeacherDashboardCache(patch) {
+  try {
+    const current = readTeacherDashboardCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(TEACHER_DASHBOARD_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function applyTeacherDashboardCache(cache, options = {}) {
+  if (!cache) return false;
+  if (cache.user) {
+    _currentUser = cache.user;
+    applyUserToDesktop(cache.user);
+  }
+  if (Array.isArray(cache.schedule)) {
+    SCHEDULE_RAW = cache.schedule;
+    schRender();
+  }
+  if (Array.isArray(cache.boards)) {
+    MY_BOARDS = cache.boards;
+    boardsRender();
+    rebuildSpotlightBoards();
+  }
+  if (Array.isArray(cache.sharedBoards)) {
+    SHARED_BOARDS = cache.sharedBoards;
+    boardsRender();
+  }
+  if (Array.isArray(cache.students)) {
+    STUDENTS = cache.students;
+    studentsRender();
+    updateStudentSidebar();
+    rebuildSpotlightStudents();
+  }
+  if (options.offlineNotice) {
+    const streakSub = document.querySelector('#wg-streak .wg-streak-sub');
+    if (streakSub) streakSub.innerHTML = 'Offline mode · showing last saved teacher snapshot';
+    const focusSub = document.getElementById('mob-focus-sub');
+    if (focusSub) focusSub.textContent = 'Offline mode: showing the last saved teacher dashboard snapshot on this device.';
+  }
+  updateMobileTeacherOverview();
+  return true;
+}
 
 async function checkAuthAndRoute() {
   if (!_authToken) {
@@ -2410,11 +2462,12 @@ function applyUserToDesktop(user) {
   avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
   // Show admin badge if admin
   if (user.role === 'admin') {
-    const badge = document.createElement('div');
+    const badge = document.getElementById('desktop-admin-badge') || document.createElement('div');
+    badge.id = 'desktop-admin-badge';
     badge.style.cssText = 'position:fixed;bottom:12px;right:16px;background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;z-index:9999;cursor:pointer;font-family:monospace;';
     badge.textContent = '⚡ Admin';
     badge.onclick = () => location.href = 'admin.html';
-    document.body.appendChild(badge);
+    if (!badge.parentNode) document.body.appendChild(badge);
   }
   // Show plan badge in menubar
   const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
@@ -2677,6 +2730,7 @@ setInterval(loadNotifications, 120000);
 (function() {
   const API = 'https://teachedos-api.onrender.com';
   const token = localStorage.getItem('teachedos_token');
+  const cachedDash = readTeacherDashboardCache();
   if (!token) return;
   const auth = { headers: { Authorization: 'Bearer ' + token } };
 
@@ -2684,6 +2738,7 @@ setInterval(loadNotifications, 120000);
     if (!d.user) return;
     // Students are handled by checkAuthAndRoute — skip widget wiring for them
     if (d.user.role === 'student') return;
+    writeTeacherDashboardCache({ user: d.user });
     const chip = document.getElementById('desktop-user-chip');
     if (chip) {
       chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
@@ -2691,7 +2746,9 @@ setInterval(loadNotifications, 120000);
     }
     const wgClockLang = document.querySelector('.wg-clock-lang');
     if (wgClockLang) wgClockLang.innerHTML = `${d.user.avatar || '🧑‍🏫'} ${d.user.name.split(' ')[0]}`;
-  }).catch(() => {});
+  }).catch(() => {
+    if (cachedDash?.user) applyTeacherDashboardCache({ user: cachedDash.user }, { offlineNotice: true });
+  });
 
   // Today's classes from schedule
   fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
@@ -2701,6 +2758,7 @@ setInterval(loadNotifications, 120000);
       SCHEDULE_RAW = all;
       if (typeof schRender === 'function') schRender();
     }
+    writeTeacherDashboardCache({ schedule: all });
     const todays = all.filter(s => s.day === today).sort((a,b) => a.start_time.localeCompare(b.start_time));
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -2739,7 +2797,9 @@ setInterval(loadNotifications, 120000);
       if (todayBadge) todayBadge.textContent = '';
     }
     updateMobileTeacherOverview();
-  }).catch(() => {});
+  }).catch(() => {
+    if (cachedDash?.schedule) applyTeacherDashboardCache({ schedule: cachedDash.schedule }, { offlineNotice: true });
+  });
 
   // Boards: vocab widget + Lesson Plans grid + students aggregation
   fetch(API + '/api/boards', auth).then(r => r.json()).then(d => {
@@ -2764,6 +2824,7 @@ setInterval(loadNotifications, 120000);
         if (typeof studentsRender === 'function') studentsRender();
         if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
         if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+        writeTeacherDashboardCache({ students: STUDENTS });
         updateMobileTeacherOverview();
       }
     });
@@ -2785,16 +2846,24 @@ setInterval(loadNotifications, 120000);
       v.ex.innerHTML = recent;
     }
     if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
+    writeTeacherDashboardCache({ boards });
     updateMobileTeacherOverview();
-  }).catch(() => {});
+  }).catch(() => {
+    if (cachedDash?.boards || cachedDash?.students) {
+      applyTeacherDashboardCache({ boards: cachedDash.boards || [], students: cachedDash.students || [] }, { offlineNotice: true });
+    }
+  });
 
   // Shared boards
   fetch(API + '/api/members/my/boards', auth).then(r => r.ok ? r.json() : { boards: [] }).then(d => {
     if (typeof SHARED_BOARDS !== 'undefined') {
       SHARED_BOARDS = d.boards || [];
       if (typeof boardsRender === 'function') boardsRender();
+      writeTeacherDashboardCache({ sharedBoards: SHARED_BOARDS });
     }
-  }).catch(() => {});
+  }).catch(() => {
+    if (cachedDash?.sharedBoards) applyTeacherDashboardCache({ sharedBoards: cachedDash.sharedBoards }, { offlineNotice: true });
+  });
 })();
 </script>
 
