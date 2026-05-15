@@ -26,6 +26,40 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/system ──────────────────────────────────────────────────
+router.get('/system', async (req, res) => {
+  try {
+    const [dbNow, expiredSessions, recentUsers, recentBoards] = await Promise.all([
+      pool.query('SELECT NOW() AS now'),
+      pool.query('SELECT COUNT(*) FROM sessions WHERE expires_at <= NOW()'),
+      pool.query(
+        `SELECT id, name, email, role, created_at
+         FROM users
+         ORDER BY created_at DESC
+         LIMIT 5`
+      ),
+      pool.query(
+        `SELECT b.id, b.name, b.updated_at, u.name AS owner_name
+         FROM boards b
+         JOIN users u ON u.id = b.user_id
+         ORDER BY b.updated_at DESC
+         LIMIT 5`
+      ),
+    ]);
+
+    res.json({
+      serverTime: dbNow.rows[0].now,
+      uptimeSec: Math.round(process.uptime()),
+      nodeVersion: process.version,
+      expiredSessions: parseInt(expiredSessions.rows[0].count, 10),
+      recentUsers: recentUsers.rows,
+      recentBoards: recentBoards.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 router.get('/users', async (req, res) => {
   try {
@@ -52,6 +86,43 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// ── POST /api/admin/users ──────────────────────────────────────────────────
+router.post('/users', async (req, res) => {
+  const { email, password, name, role = 'teacher', avatar } = req.body;
+  const safeRole = ['teacher', 'student', 'admin'].includes(role) ? role : 'teacher';
+  const safeAvatar = (avatar || (safeRole === 'student' ? '🎓' : safeRole === 'admin' ? '🛡️' : '🧑‍🏫')).trim();
+
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'email, password and name are required' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const hash = await bcrypt.hash(password, 12);
+    const { rows } = await pool.query(
+      `INSERT INTO users (email, password_hash, name, role, avatar)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, email, name, role, avatar, created_at`,
+      [email.toLowerCase().trim(), hash, name.trim(), safeRole, safeAvatar]
+    );
+    const user = rows[0];
+
+    await pool.query(
+      `INSERT INTO boards (user_id, name) VALUES ($1, $2)`,
+      [user.id, 'My First Board']
+    );
+
+    res.status(201).json({ user });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── PATCH /api/admin/users/:id ─────────────────────────────────────────────
 router.patch('/users/:id', async (req, res) => {
   const { name, role, avatar, password } = req.body;
@@ -59,10 +130,27 @@ router.patch('/users/:id', async (req, res) => {
     const sets = [];
     const vals = [];
     let i = 1;
-    if (name   !== undefined) { sets.push(`name=$${i++}`);   vals.push(name.trim()); }
-    if (role   !== undefined) { sets.push(`role=$${i++}`);   vals.push(role); }
-    if (avatar !== undefined) { sets.push(`avatar=$${i++}`); vals.push(avatar); }
+    if (name !== undefined) {
+      const safeName = String(name).trim();
+      if (!safeName) return res.status(400).json({ error: 'Name cannot be empty' });
+      sets.push(`name=$${i++}`);
+      vals.push(safeName);
+    }
+    if (role !== undefined) {
+      if (!['teacher', 'student', 'admin'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid role' });
+      }
+      sets.push(`role=$${i++}`);
+      vals.push(role);
+    }
+    if (avatar !== undefined) {
+      sets.push(`avatar=$${i++}`);
+      vals.push(String(avatar).trim());
+    }
     if (password) {
+      if (password.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters' });
+      }
       const hash = await bcrypt.hash(password, 12);
       sets.push(`password_hash=$${i++}`);
       vals.push(hash);
@@ -164,6 +252,16 @@ router.delete('/sessions/user/:userId', async (req, res) => {
   try {
     await pool.query('DELETE FROM sessions WHERE user_id=$1', [req.params.userId]);
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── DELETE /api/admin/sessions-expired ─────────────────────────────────────
+router.delete('/sessions-expired', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM sessions WHERE expires_at <= NOW()');
+    res.json({ ok: true, deleted: rowCount || 0 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

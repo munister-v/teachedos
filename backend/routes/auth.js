@@ -7,6 +7,7 @@ const { requireAuth, signToken } = require('../middleware/auth');
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   const { email, password, name, role = 'teacher', avatar = '🧑‍🏫' } = req.body;
+  const safeRole = role === 'student' ? 'student' : 'teacher';
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password and name are required' });
   }
@@ -19,7 +20,7 @@ router.post('/register', async (req, res) => {
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, email, name, role, avatar, created_at`,
-      [email.toLowerCase().trim(), hash, name.trim(), role, avatar]
+      [email.toLowerCase().trim(), hash, name.trim(), safeRole, avatar]
     );
     const user  = rows[0];
     const token = signToken(user.id);
