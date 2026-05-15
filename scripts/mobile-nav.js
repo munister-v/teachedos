@@ -103,4 +103,16 @@
   });
 
   document.body.appendChild(nav);
+
+  /* Show/hide on resize for responsive switching */
+  var mql = window.matchMedia('(max-width: 860px)');
+  function toggleNav(e) {
+    nav.style.display = e.matches ? 'flex' : 'none';
+    style.disabled = !e.matches;
+  }
+  if (!isMobile && isStandalone) {
+    /* standalone always shown */
+  } else {
+    mql.addEventListener('change', toggleNav);
+  }
 })();

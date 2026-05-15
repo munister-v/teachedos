@@ -253,14 +253,24 @@ button{font-family:var(--font);cursor:pointer;}
 
 @media(max-width:860px){
   :root{--sb-w:100%;}
+  body{background:#fff;}
   #nav{padding:0 14px;gap:6px;overflow-x:auto;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
-  #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);}
-  #layout{flex-direction:column;}
-  #main{overflow-y:auto;}
-  #course-header{padding:16px;}
+  .nav-user{border:none;background:transparent;padding:4px 6px;}
+  #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);background:#fff;}
+  #sb-head{padding:16px 16px 12px;}
+  #sb-head-title{font-size:12px;}
+  #course-list{padding:4px 8px 12px;}
+  .course-item{padding:8px 10px;border-radius:10px;}
+  #layout{flex-direction:column;height:auto;overflow:visible;}
+  #main{overflow-y:visible;background:#fff;}
+  #welcome{padding:24px 16px;}
+  #course-header{padding:16px;background:#fff;border-bottom:1px solid rgba(94,94,74,0.08);}
+  .ch-icon{width:44px;height:44px;border-radius:14px;font-size:22px;}
   #modules-area{padding:16px;}
+  .module-card{border-radius:14px;}
+  #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
 <link rel="stylesheet" href="dark.css">
