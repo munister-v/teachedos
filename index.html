@@ -896,9 +896,12 @@ html,body {
   #menubar {
     height:52px; padding:0 16px;
     background: rgba(255,255,255,0.96);
+    backdrop-filter:blur(24px) saturate(1.8);
+    -webkit-backdrop-filter:blur(24px) saturate(1.8);
     justify-content:space-between;
     border-bottom:1px solid rgba(94,94,74,0.08);
   }
+  .mb-right .nav-user { border:none; background:transparent; padding:4px 6px; }
   .mb-app-name {
     font-size:20px; font-weight:900; color:var(--text);
     letter-spacing:-0.02em;
@@ -910,7 +913,7 @@ html,body {
 
   /* Desktop → full-screen panels */
   #desktop {
-    background: linear-gradient(160deg,#F5F0E8 0%,#EDE8E0 100%);
+    background: #fff;
   }
   .win {
     position:fixed !important;
@@ -921,7 +924,7 @@ html,body {
     border:none !important; box-shadow:none !important;
     display:none; flex-direction:column;
     border-top: 1px solid rgba(94,94,74,0.08) !important;
-    background:var(--bg,#F5F0E8) !important;
+    background:#fff !important;
     z-index:200 !important;
   }
   .win.open { display:flex !important; }

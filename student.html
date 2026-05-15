@@ -447,20 +447,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── RESPONSIVE ── */
 @media(max-width:860px){
+  body{background:#fff;}
   .sidebar{
     position:fixed;left:-320px;top:0;bottom:0;z-index:200;
-    transition:left .25s ease;width:300px;
+    transition:left .25s ease;width:300px;background:#fff;
   }
   .sidebar.open{left:0}
   .sidebar-backdrop{
-    display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:199;
   }
   .sidebar-backdrop.show{display:block}
   .mob-toggle{display:flex}
   .topbar{
     position:sticky;top:0;z-index:140;
     padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
-    background:rgba(28,28,30,.92);backdrop-filter:blur(18px);
+    background:rgba(255,255,255,0.96);backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(94,94,74,0.08);
   }
   .tb-guide{padding:8px 12px;font-size:11px}
   .content{padding:20px 16px calc(72px + env(safe-area-inset-bottom,0px))}
