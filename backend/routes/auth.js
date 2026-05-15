@@ -261,23 +261,6 @@ router.patch('/me', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/auth/bootstrap-admin — one-account recovery bootstrap for first admin access
-router.post('/bootstrap-admin', requireAuth, async (req, res) => {
-  const allowed = new Set(['admin.panel@munister.com.ua']);
-  if (!allowed.has(String(req.user.email || '').toLowerCase())) {
-    return res.status(403).json({ error: 'Bootstrap is not allowed for this account' });
-  }
-  try {
-    const { rows } = await pool.query(
-      `UPDATE users SET role='admin' WHERE id=$1 RETURNING id,email,name,role,avatar,created_at`,
-      [req.user.id]
-    );
-    res.json({ user: rows[0], token: signToken(rows[0].id) });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // POST /api/auth/logout
 router.post('/logout', requireAuth, async (req, res) => {
   const token = req.headers['authorization']?.slice(7);
