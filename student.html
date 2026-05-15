@@ -161,6 +161,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   display:flex;align-items:center;justify-content:center;
   font-size:16px;cursor:pointer;
 }
+.mobile-summary{
+  display:none;margin-bottom:18px;padding:16px 16px 14px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(6,182,212,.14),rgba(159,140,232,.12));
+  border:1px solid var(--accent-border);
+}
+.ms-kicker{
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);font-family:var(--mono);
+}
+.ms-title{font-size:19px;font-weight:900;margin-top:8px;line-height:1.15}
+.ms-copy{font-size:13px;line-height:1.6;color:var(--text-2);margin-top:8px}
+.ms-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.ms-stat{
+  padding:12px 10px;border-radius:14px;background:rgba(28,28,30,.22);
+  border:1px solid rgba(255,255,255,.05);text-align:center;
+}
+.ms-stat-value{font-size:22px;font-weight:900;font-family:var(--mono);line-height:1}
+.ms-stat-label{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
 
 /* Content area */
 .content{padding:28px;flex:1}
@@ -401,6 +419,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .mob-toggle span{display:block;width:18px;height:2px;background:var(--text);border-radius:1px;transition:.2s;font-size:0;line-height:0}
 .mob-toggle span+span{margin-top:4px}
+.mobile-tabs{
+  display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  z-index:1200;padding:8px;background:rgba(36,36,38,.9);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.08);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.28);
+  gap:8px;
+}
+.mtab{
+  flex:1;min-width:0;border:none;border-radius:12px;background:transparent;color:var(--text-3);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:8px 6px;font-family:var(--font);font-size:10px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;cursor:pointer;
+}
+.mtab.active{background:rgba(6,182,212,.14);color:var(--accent)}
+.mtab-ic{font-size:16px;line-height:1}
 
 /* ── RESPONSIVE ── */
 @media(max-width:860px){
@@ -414,20 +446,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   }
   .sidebar-backdrop.show{display:block}
   .mob-toggle{display:flex}
-  .topbar{padding:12px 16px}
-  .content{padding:20px 16px}
+  .topbar{
+    position:sticky;top:0;z-index:140;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
+    background:rgba(28,28,30,.92);backdrop-filter:blur(18px);
+  }
+  .tb-guide{padding:8px 12px;font-size:11px}
+  .content{padding:20px 16px calc(110px + env(safe-area-inset-bottom,0px))}
   .vocab-stats{grid-template-columns:repeat(2,1fr)}
   .welcome-text{font-size:22px}
   .progress-grid{grid-template-columns:1fr}
+  .mobile-summary{display:block}
+  .mobile-tabs{display:flex}
+  .tabs{display:none}
 }
 @media(max-width:480px){
+  .welcome{margin-bottom:18px}
   .vocab-stats{grid-template-columns:1fr 1fr}
   .vs-card{padding:10px 12px}
   .vs-num{font-size:22px}
   .vocab-actions{flex-direction:column}
   .va-btn{justify-content:center}
-  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab{white-space:nowrap;padding:10px 14px;font-size:12px}
+  .ms-stats{grid-template-columns:1fr 1fr 1fr}
+  .sch-item,.quiz-item,.vocab-word-item{padding:12px}
+  .tb-guide span{display:none}
 }
 </style>
 </head>
@@ -521,6 +563,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <!-- Welcome -->
       <div class="welcome">
         <div class="welcome-text" id="welcome-text">Welcome back!</div>
+      </div>
+
+      <div class="mobile-summary">
+        <div class="ms-kicker">Today at a glance</div>
+        <div class="ms-title" id="ms-title">Your next lesson and progress will appear here.</div>
+        <div class="ms-copy" id="ms-copy">Once the dashboard finishes loading, this area will surface the most important student context for phone use.</div>
+        <div class="ms-stats">
+          <div class="ms-stat">
+            <div class="ms-stat-value" id="ms-lessons">—</div>
+            <div class="ms-stat-label">Lessons Left</div>
+          </div>
+          <div class="ms-stat">
+            <div class="ms-stat-value" id="ms-streak">—</div>
+            <div class="ms-stat-label">Streak</div>
+          </div>
+          <div class="ms-stat">
+            <div class="ms-stat-value" id="ms-words">—</div>
+            <div class="ms-stat-label">Words</div>
+          </div>
+        </div>
       </div>
 
       <!-- Vocabulary section -->
@@ -637,6 +699,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 </div>
 
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mtab active" type="button" data-tab="assignments"><span class="mtab-ic">📝</span><span>Tasks</span></button>
+  <button class="mtab" type="button" data-tab="vocabulary"><span class="mtab-ic">📚</span><span>Words</span></button>
+  <button class="mtab" type="button" data-tab="progress"><span class="mtab-ic">📈</span><span>Progress</span></button>
+  <button class="mtab" type="button" data-tab="schedule"><span class="mtab-ic">🗓</span><span>Plan</span></button>
+  <button class="mtab" type="button" data-tab="games"><span class="mtab-ic">🎮</span><span>Games</span></button>
+</div>
+
 <!-- Vocab modal -->
 <div class="modal-overlay" id="vocab-modal">
   <div class="modal-box">
@@ -722,14 +792,19 @@ function showGuide() { document.getElementById('guide-modal').style.display='fle
 function closeGuide() { document.getElementById('guide-modal').style.display='none'; }
 
 // ── Tabs ──
+function activateTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tabName));
+  document.querySelectorAll('.mtab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  closeSidebar();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
-    });
+    tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+  });
+  document.querySelectorAll('.mtab').forEach(tab => {
+    tab.addEventListener('click', () => activateTab(tab.dataset.tab));
   });
 });
 
@@ -757,6 +832,7 @@ async function init() {
     document.getElementById('sb-avatar').textContent = user.avatar || '🎓';
     document.getElementById('tb-avatar').textContent = user.avatar || '🎓';
     document.getElementById('welcome-text').textContent = 'Welcome back, ' + firstName + '!';
+    document.getElementById('ms-title').textContent = firstName + ', stay in motion today.';
 
     // Load dashboard
     const dash = await apiFetch('/api/student/dashboard');
@@ -811,6 +887,7 @@ function renderSidebarBoards(boards) {
   const doneAll = boards.reduce((s,b) => s + b.done_lessons, 0);
   const left = totalAll - doneAll;
   document.getElementById('sb-lessons-left').textContent = left > 0 ? left : '0';
+  document.getElementById('ms-lessons').textContent = left > 0 ? left : '0';
 
   // Milestone — use first board's level or overall progress
   const pct = totalAll ? Math.round(doneAll / totalAll * 100) : 0;
@@ -838,6 +915,10 @@ function renderStats(boards, stats) {
   document.getElementById('pg-pct').textContent = pct + '%';
   document.getElementById('pg-bar').style.width = pct + '%';
   document.getElementById('pg-streak').textContent = stats.streak > 0 ? stats.streak : '—';
+  document.getElementById('ms-streak').textContent = stats.streak > 0 ? stats.streak : '0';
+  document.getElementById('ms-copy').textContent = boards.length
+    ? `You are enrolled in ${boards.length} board${boards.length === 1 ? '' : 's'} and have finished ${stats.done} lesson${stats.done === 1 ? '' : 's'} so far.`
+    : 'Your teacher has not connected any boards yet. As soon as lessons appear, this dashboard will surface them here.';
 }
 
 // ── Schedule ──
@@ -1006,6 +1087,7 @@ async function loadVocab() {
     _vocabData = words;
     document.getElementById('v-learned').textContent = learned;
     document.getElementById('v-tolearn').textContent = toLearn;
+    document.getElementById('ms-words').textContent = words.length;
     renderVocab();
   } catch {}
 }
