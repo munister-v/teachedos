@@ -1,24 +1,26 @@
 {
   "name": "TeachEd",
   "short_name": "TeachEd",
-  "description": "The operating system for modern teachers",
+  "description": "The OS for language teachers",
   "id": "/teachedos/",
-  "start_url": "/teachedos/index.html",
+  "start_url": "/teachedos/index.html?pwa=1",
   "scope": "/teachedos/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
-  "background_color": "#F5F0E8",
+  "background_color": "#1C1C1E",
   "theme_color": "#E85D75",
-  "orientation": "any",
+  "orientation": "portrait",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [],
   "categories": ["education", "productivity"],
   "shortcuts": [
-    { "name": "My Boards", "url": "/teachedos/index.html", "description": "Open board workspace" },
-    { "name": "Schedule",  "url": "/teachedos/schedule.html", "description": "View class schedule" },
-    { "name": "Gradebook", "url": "/teachedos/gradebook.html", "description": "Open gradebook" }
+    { "name": "Schedule",  "url": "/teachedos/schedule.html",  "description": "View class schedule",  "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Gradebook", "url": "/teachedos/gradebook.html", "description": "Open gradebook",      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Journal",   "url": "/teachedos/journal.html",   "description": "Open lesson journal", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

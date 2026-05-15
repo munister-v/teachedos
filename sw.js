@@ -1,37 +1,53 @@
-const CACHE = 'teachedos-v7';
+const CACHE = 'teachedos-v9';
+
 const SHELL = [
   '/teachedos/',
   '/teachedos/index.html',
-  '/teachedos/admin.html',
-  '/teachedos/board.html',
   '/teachedos/schedule.html',
   '/teachedos/gradebook.html',
-  '/teachedos/student.html',
+  '/teachedos/journal.html',
   '/teachedos/profile.html',
-  '/teachedos/landing.html',
+  '/teachedos/student.html',
+  '/teachedos/courses.html',
+  '/teachedos/portal.html',
+  '/teachedos/admin.html',
+  '/teachedos/analytics.html',
+  '/teachedos/board.html',
   '/teachedos/invite.html',
-  '/teachedos/offline.html',
-  '/teachedos/pwa.js',
+  '/teachedos/landing.html',
   '/teachedos/billing-success.html',
+  '/teachedos/offline.html',
   '/teachedos/manifest.json',
+  '/teachedos/styles/tokens.css',
+  '/teachedos/styles/main.css',
+  '/teachedos/styles/games-base.css',
+  '/teachedos/pwa.js',
+  '/teachedos/theme.js',
+  '/teachedos/scripts/mobile-nav.js',
+  '/teachedos/scripts/teachedos-app.js',
+  '/teachedos/icons/icon-192.png',
+  '/teachedos/icons/icon-512.png',
+  '/teachedos/logo.png',
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => c.addAll(SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('push', e => {
-  let data = { title: 'TeachedOS', body: 'You have a new notification', url: '/teachedos/' };
+  let data = { title: 'TeachEd', body: 'You have a new notification', url: '/teachedos/' };
   try { data = { ...data, ...e.data.json() }; } catch {}
   e.waitUntil(
     self.registration.showNotification(data.title, {
@@ -39,7 +55,7 @@ self.addEventListener('push', e => {
       icon: '/teachedos/icons/icon-192.png',
       badge: '/teachedos/icons/icon-192.png',
       data: { url: data.url },
-      vibrate: [200, 100, 200]
+      vibrate: [200, 100, 200],
     })
   );
 });
@@ -50,47 +66,68 @@ self.addEventListener('notificationclick', e => {
   e.waitUntil(clients.openWindow(url));
 });
 
-// Listen for skipWaiting message from pages
 self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  // Network-first for API calls
+
+  // API — network-first
   if (url.hostname.includes('onrender.com') || url.pathname.startsWith('/api/')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
+  // Google Fonts — stale-while-revalidate
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      caches.match(e.request).then(cached => {
+        const fetched = fetch(e.request).then(resp => {
+          if (resp && resp.status === 200) {
+            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || fetched;
+      })
     );
     return;
   }
-  // Network-first for ALL same-origin pages, CSS, and JS (always fresh design)
-  if (e.request.mode === 'navigate'
-    || (e.request.headers.get('accept') || '').includes('text/html')
-    || url.pathname.endsWith('.css')
-    || url.pathname.endsWith('.js')) {
+
+  // HTML, CSS, JS, images — network-first, cache on success, offline fallback
+  if (
+    e.request.mode === 'navigate' ||
+    (e.request.headers.get('accept') || '').includes('text/html') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.ico')
+  ) {
     e.respondWith(
       fetch(e.request).then(resp => {
-        if (resp && resp.status === 200) {
-          const clone = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+        if (resp && resp.status === 200 && e.request.method === 'GET') {
+          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
         }
         return resp;
-      }).catch(() => caches.match(e.request).then(c => c || caches.match('/teachedos/offline.html') || caches.match('/teachedos/index.html')))
+      }).catch(() =>
+        caches.match(e.request).then(c => c || caches.match('/teachedos/offline.html'))
+      )
     );
     return;
   }
-  // Stale-while-revalidate for static assets (fonts, images)
+
+  // Everything else — stale-while-revalidate
   e.respondWith(
     caches.match(e.request).then(cached => {
-      const fetchPromise = fetch(e.request).then(resp => {
+      const fetched = fetch(e.request).then(resp => {
         if (resp && resp.status === 200 && e.request.method === 'GET') {
-          const clone = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
         }
         return resp;
       }).catch(() => cached);
-      return cached || fetchPromise;
+      return cached || fetched;
     })
   );
 });
