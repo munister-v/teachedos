@@ -887,7 +887,7 @@ html,body {
 .mob-home-shell { display:none; }
 
 /* ═══════════════════════════ MOBILE RESPONSIVE ═══════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   /* Hide desktop-only elements */
   .widget, .di-sep, .mb-menu, .mb-apple,
   .mb-icon, .blob1, .blob2, .blob3 { display:none !important; }
@@ -913,7 +913,7 @@ html,body {
   .win {
     position:fixed !important;
     top:52px !important; left:0 !important; right:0 !important;
-    bottom:74px !important;
+    bottom:calc(56px + env(safe-area-inset-bottom,0px)) !important;
     width:100% !important; height:auto !important;
     min-width:0 !important; border-radius:0 !important;
     border:none !important; box-shadow:none !important;
@@ -955,23 +955,8 @@ html,body {
   }
   .win-sidebar.mob-open { display:flex !important; }
 
-  /* Dock → bottom tab bar */
-  #dock-wrap {
-    position:fixed; bottom:0; left:0; right:0;
-    transform:none; z-index:999;
-  }
-  #dock {
-    border-radius:0; gap:0;
-    border-left:none; border-right:none; border-bottom:none;
-    padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));
-    width:100%; justify-content:space-around;
-    box-shadow:0 -1px 0 var(--border), 0 -4px 20px rgba(232,93,117,0.08);
-  }
-  .di { flex:1; gap:3px; }
-  .di:hover { transform:none; }
-  .di-icon { width:44px; height:44px; border-radius:14px; font-size:20px; }
-  .di-label { font-size:9px; }
-  .di-dot { bottom:-4px; }
+  /* Dock — hidden on mobile, replaced by mobile-nav.js */
+  #dock-wrap { display:none !important; }
 
   /* Content tweaks */
   .curr-grid { grid-template-columns:1fr; }
@@ -1150,8 +1135,6 @@ html,body {
   .fc-scene { height:190px; }
   .prog-stats { grid-template-columns:1fr 1fr; }
   .stat-n { font-size:22px; }
-  .di-label { display:none; }
-  .di-icon { width:40px; height:40px; }
 }
 </style>
 <link rel="stylesheet" href="dark.css">
