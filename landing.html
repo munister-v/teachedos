@@ -134,6 +134,23 @@ nav{
 .device-chip-label{font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);}
 .device-chip-title{font-size:.95rem;font-weight:900;color:var(--text);margin-top:6px;}
 .device-chip-copy{font-size:.78rem;color:var(--text2);line-height:1.55;font-weight:700;margin-top:6px;}
+.proof-strip{
+  margin:26px auto 0;
+  max-width:980px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+.proof-pill{
+  background:rgba(255,255,255,.72);
+  border:1.5px solid rgba(94,94,74,.12);
+  border-radius:18px;
+  padding:16px 18px;
+  box-shadow:0 18px 40px rgba(94,94,74,.08);
+}
+.proof-kicker{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-weight:900;margin-bottom:8px;}
+.proof-title{font-size:1rem;font-weight:900;color:var(--text);margin-bottom:4px;}
+.proof-copy{font-size:.86rem;color:var(--text2);line-height:1.6;font-weight:600;}
 .hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;}
 .stat-item{text-align:center;}
 .stat-n{font-size:1.9rem;font-weight:900;color:var(--text);letter-spacing:-.03em;}
@@ -175,6 +192,64 @@ section{padding:88px 24px;}
 
 /* ── FEATURES ── */
 #features{background:#fff;}
+.fit-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:22px;
+  margin-top:50px;
+}
+.fit-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(247,242,235,.98));
+  border:1.5px solid rgba(94,94,74,.14);
+  border-radius:26px;
+  padding:28px;
+  box-shadow:0 26px 60px rgba(94,94,74,.08);
+}
+.fit-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;}
+.fit-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 12px;
+  border-radius:999px;
+  background:rgba(94,94,74,.08);
+  color:var(--text);
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.fit-badge.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.fit-title{font-size:1.55rem;font-weight:900;letter-spacing:-.03em;color:var(--text);margin-bottom:10px;}
+.fit-copy{font-size:.95rem;color:var(--text2);line-height:1.7;font-weight:600;margin-bottom:18px;}
+.fit-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.fit-list li{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  font-size:.92rem;
+  color:var(--text2);
+  line-height:1.6;
+  font-weight:600;
+}
+.fit-list strong{color:var(--text);}
+.fit-actions{display:flex;gap:12px;flex-wrap:wrap;}
+.audience-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin-top:22px;
+}
+.audience-card{
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 18px 44px rgba(94,94,74,.06);
+}
+.audience-tag{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);font-weight:900;margin-bottom:10px;}
+.audience-title{font-size:1.08rem;font-weight:900;color:var(--text);margin-bottom:8px;}
+.audience-copy{font-size:.88rem;color:var(--text2);line-height:1.65;font-weight:600;}
 .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:52px;}
 .feat-card{
   padding:26px;border-radius:16px;
@@ -327,6 +402,9 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .hero-platforms{grid-template-columns:1fr;}
+  .proof-strip{grid-template-columns:1fr;}
+  .fit-grid{grid-template-columns:1fr;}
+  .audience-grid{grid-template-columns:1fr;}
   .device-path-grid{grid-template-columns:1fr;}
   .deep-row{grid-template-columns:1fr;gap:32px;}
   .deep-row.reverse{direction:ltr;}
@@ -341,6 +419,10 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
   .platform-title{font-size:1.3rem;}
   .platform-actions{flex-direction:column;}
   .platform-actions .btn{width:100%;justify-content:center;}
+  .fit-card{padding:20px;}
+  .fit-title{font-size:1.3rem;}
+  .fit-actions{flex-direction:column;}
+  .fit-actions .btn{width:100%;justify-content:center;}
   .mockup-body{grid-template-columns:1fr;}
   nav{padding:0 16px;height:52px;}
 }
@@ -430,6 +512,23 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
       </div>
     </div>
   </div>
+  <div class="proof-strip anim anim-delay-5">
+    <div class="proof-pill">
+      <div class="proof-kicker">Built for</div>
+      <div class="proof-title">Solo tutors and small schools</div>
+      <div class="proof-copy">TeachEd works well when one teacher needs speed, but also scales into admin workflows for a growing team.</div>
+    </div>
+    <div class="proof-pill">
+      <div class="proof-kicker">Works best</div>
+      <div class="proof-title">Desktop for building, phone for running</div>
+      <div class="proof-copy">Plan on a big screen, then check schedule, gradebook, and student progress from your home-screen PWA.</div>
+    </div>
+    <div class="proof-pill">
+      <div class="proof-kicker">Ready now</div>
+      <div class="proof-title">No app store release needed</div>
+      <div class="proof-copy">The mobile version installs directly from the browser, so your team can start using it immediately on Android and iPhone.</div>
+    </div>
+  </div>
   <div class="hero-stats anim anim-delay-4">
     <div class="stat-item"><div class="stat-n">Desktop</div><div class="stat-l">Full web cockpit</div></div>
     <div class="stat-item"><div class="stat-n">Mobile</div><div class="stat-l">Installable PWA</div></div>
@@ -484,6 +583,70 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;
           <div class="mc-meta">12 words · A2 → B1</div>
           <span class="mc-tag" style="background:rgba(245,158,11,.1);color:#d97706;">🔁 Review due</span>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SCREEN FIT ═══════════════════ -->
+<section id="screens">
+  <div class="container">
+    <div class="center reveal">
+      <div class="section-eyebrow">Choose the right screen</div>
+      <h2 class="section-h2">Use <em>desktop</em> for depth, <em>mobile</em> for momentum</h2>
+      <p class="section-sub">TeachEd is strongest when each device does the job it is naturally good at. That makes the product easier to understand and easier to adopt.</p>
+    </div>
+    <div class="fit-grid">
+      <div class="fit-card reveal">
+        <div class="fit-top">
+          <span class="fit-badge primary">Desktop web workspace</span>
+          <span style="font-size:1.45rem;">⌘</span>
+        </div>
+        <div class="fit-title">Best for building and managing the system</div>
+        <div class="fit-copy">Open the full teacher workspace when you want the canvas, admin depth, analytics context, and room to think through lessons at scale.</div>
+        <ul class="fit-list">
+          <li><span>✓</span><span><strong>Build boards visually:</strong> plan lessons, assignments, vocab sets, and milestones on a large canvas.</span></li>
+          <li><span>✓</span><span><strong>Run heavier workflows:</strong> admin tasks, analytics, course planning, and board structure are faster on desktop.</span></li>
+          <li><span>✓</span><span><strong>Teach with context:</strong> keep schedule, board, student data, and classroom tools open in one rich workspace.</span></li>
+        </ul>
+        <div class="fit-actions">
+          <a class="btn btn-primary" href="index.html">Open desktop web</a>
+          <a class="btn btn-ghost" href="admin.html">See admin workspace</a>
+        </div>
+      </div>
+      <div class="fit-card reveal">
+        <div class="fit-top">
+          <span class="fit-badge">Mobile PWA</span>
+          <span style="font-size:1.45rem;">▣</span>
+        </div>
+        <div class="fit-title">Best for teaching on the move and quick daily checks</div>
+        <div class="fit-copy">Install TeachEd to the home screen when you need a cleaner phone experience with faster launch, offline-aware screens, and one-thumb access to essentials.</div>
+        <ul class="fit-list">
+          <li><span>✓</span><span><strong>Check today fast:</strong> schedule, gradebook, profile, and student status are easy to open during the day.</span></li>
+          <li><span>✓</span><span><strong>Keep moving in weak internet:</strong> saved snapshots and offline-aware screens preserve useful context.</span></li>
+          <li><span>✓</span><span><strong>Give students a clearer phone flow:</strong> the mobile dashboard feels lighter, simpler, and more app-like.</span></li>
+        </ul>
+        <div class="fit-actions">
+          <button class="btn btn-primary" id="screens-install-btn" type="button">Install PWA on phone</button>
+          <a class="btn btn-ghost" href="student.html">Open mobile dashboard</a>
+        </div>
+      </div>
+    </div>
+    <div class="audience-grid">
+      <div class="audience-card reveal">
+        <div class="audience-tag">Who wins most</div>
+        <div class="audience-title">Independent tutors</div>
+        <div class="audience-copy">Replace scattered docs, calls, notes, and spreadsheets with one system that is simple enough to start alone and strong enough to grow later.</div>
+      </div>
+      <div class="audience-card reveal">
+        <div class="audience-tag">Who scales fastest</div>
+        <div class="audience-title">Language schools</div>
+        <div class="audience-copy">Use the desktop admin layer for oversight, invite staff into the workflow, and keep day-to-day teaching lighter on mobile.</div>
+      </div>
+      <div class="audience-card reveal">
+        <div class="audience-tag">Who feels it daily</div>
+        <div class="audience-title">Students on phones</div>
+        <div class="audience-copy">Students get a cleaner mobile dashboard for tasks, progress, words, and class access without needing a separate native app.</div>
       </div>
     </div>
   </div>
@@ -950,7 +1113,7 @@ function handlePwaInstall() {
   }
 }
 
-['hero-install-btn','platform-install-btn','cta-install-btn'].forEach(id => {
+['hero-install-btn','platform-install-btn','screens-install-btn','cta-install-btn'].forEach(id => {
   const btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', handlePwaInstall);
 });
