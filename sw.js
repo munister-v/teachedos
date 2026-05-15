@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v6';
+const CACHE = 'teachedos-v7';
 const SHELL = [
   '/teachedos/',
   '/teachedos/index.html',
@@ -10,6 +10,8 @@ const SHELL = [
   '/teachedos/profile.html',
   '/teachedos/landing.html',
   '/teachedos/invite.html',
+  '/teachedos/offline.html',
+  '/teachedos/pwa.js',
   '/teachedos/billing-success.html',
   '/teachedos/manifest.json',
 ];
@@ -74,7 +76,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return resp;
-      }).catch(() => caches.match(e.request).then(c => c || caches.match('/teachedos/index.html')))
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('/teachedos/offline.html') || caches.match('/teachedos/index.html')))
     );
     return;
   }
