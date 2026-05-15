@@ -5,1081 +5,979 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#E85D75">
+<meta name="theme-color" content="#0A0A0F">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
-<title>TeachEd — The OS for Language Teachers</title>
-<meta name="description" content="A full-featured macOS-style workspace for language teachers. Visual lesson boards, real-time collaboration, gradebook, analytics, student management and more.">
+<title>TeachEd — Teach English from your pocket</title>
+<meta name="description" content="The classroom OS for language teachers. Install on your phone in seconds — boards, schedule, gradebook, 20 games, all offline-ready.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
-  --bg:#F5F0E8;--bg2:#EDE8E0;--bg3:#CAC9B7;
-  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
-  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --font:'Nunito',ui-sans-serif,sans-serif;
-  --mono:'JetBrains Mono',monospace;
-  --r:18px;
+  --bg:#0A0A0F;
+  --bg-2:#13131A;
+  --surface:#1A1A24;
+  --surface-2:#22222E;
+  --border:rgba(255,255,255,0.07);
+  --border-2:rgba(255,255,255,0.14);
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,0.72);
+  --text-3:rgba(255,255,255,0.46);
+  --accent:#E85D75;
+  --accent-2:#9F8CE8;
+  --accent-3:#C8E632;
+  --rose-glow:rgba(232,93,117,0.32);
+  --font:'Nunito',ui-sans-serif,system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
 }
-html{scroll-behavior:smooth;}
-body{font-family:var(--font);color:var(--text);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+html{scroll-behavior:smooth;background:var(--bg);}
+body{
+  font-family:var(--font);font-weight:600;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;line-height:1.5;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+a{text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+img{display:block;max-width:100%;}
 
-/* ── NAV ── */
-nav{
+/* ════════════ ATMOSPHERE ════════════ */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
+.aurora::before, .aurora::after{
+  content:'';position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;
+}
+.aurora::before{
+  width:600px;height:600px;top:-200px;left:-150px;
+  background:radial-gradient(circle,#E85D75 0%,transparent 60%);
+  animation:float1 14s ease-in-out infinite;
+}
+.aurora::after{
+  width:500px;height:500px;top:30%;right:-150px;
+  background:radial-gradient(circle,#9F8CE8 0%,transparent 60%);
+  animation:float2 18s ease-in-out infinite;
+}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,60px)}}
+
+/* ════════════ NAV ════════════ */
+.nav{
   position:fixed;top:0;left:0;right:0;z-index:1000;
-  background:rgba(245,240,232,0.88);
-  backdrop-filter:blur(28px) saturate(1.8);
-  -webkit-backdrop-filter:blur(28px) saturate(1.8);
-  border-bottom:1px solid rgba(94,94,74,.10);
-  display:flex;align-items:center;padding:0 32px;height:56px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.6) inset;
+  padding:env(safe-area-inset-top,0px) 0 0;
+  background:rgba(10,10,15,0.72);
+  backdrop-filter:blur(22px) saturate(1.8);
+  -webkit-backdrop-filter:blur(22px) saturate(1.8);
+  border-bottom:1px solid var(--border);
 }
-.nav-logo{font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.03em;margin-right:auto;text-decoration:none;}
-.nav-logo em{color:var(--accent);font-style:normal;}
-.nav-links{display:flex;gap:2px;margin-right:24px;}
-.nav-links a{font-size:.875rem;font-weight:700;color:var(--text2);text-decoration:none;padding:6px 14px;border-radius:8px;transition:.12s;}
-.nav-links a:hover{background:rgba(5,5,23,.06);color:var(--text);}
-.nav-cta{display:flex;gap:8px;}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:11px;font-family:var(--font);font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;transition:.18s;border:none;}
-.btn-ghost{border:1.5px solid var(--border2);color:var(--text2);background:transparent;}
-.btn-ghost:hover{background:var(--bg2);border-color:rgba(94,94,74,.4);}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 18px rgba(232,93,117,.28);}
-.btn-primary:hover{filter:brightness(1.08);box-shadow:0 6px 24px rgba(232,93,117,.38);transform:translateY(-1px);}
-.btn-lg{padding:15px 32px;font-size:1.05rem;border-radius:14px;}
-.btn-white{background:#fff;color:var(--accent);box-shadow:0 4px 20px rgba(0,0,0,.12);}
-.btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.16);}
+.nav-inner{
+  max-width:1180px;margin:0 auto;padding:14px 20px;
+  display:flex;align-items:center;gap:16px;
+}
+.nav-logo{
+  display:flex;align-items:center;gap:8px;font-size:18px;font-weight:900;
+  letter-spacing:-0.02em;color:var(--text);
+}
+.nav-logo img{width:24px;height:24px;border-radius:7px;}
+.nav-logo em{font-style:normal;color:var(--accent);}
+.nav-links{display:none;gap:4px;margin-left:24px;}
+.nav-link{
+  font-size:13px;font-weight:700;color:var(--text-2);
+  padding:8px 12px;border-radius:10px;transition:.15s;
+}
+.nav-link:hover{color:var(--text);background:var(--surface);}
+.nav-spacer{flex:1;}
+.nav-cta{display:flex;gap:8px;align-items:center;}
 
-/* ── HERO ── */
-#hero{
-  min-height:100vh;
-  background:linear-gradient(160deg,#EDE8E0 0%,#F5F0E8 50%,#FFFFFF 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:120px 24px 80px;text-align:center;position:relative;overflow:hidden;
+/* ════════════ BUTTONS ════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 18px;border-radius:14px;
+  font-size:14px;font-weight:800;letter-spacing:-0.01em;
+  transition:transform .12s ease, box-shadow .15s ease, background .15s ease;
+  white-space:nowrap;cursor:pointer;
 }
-.hero-blob{position:absolute;border-radius:50%;pointer-events:none;}
-.hero-blob1{width:700px;height:700px;top:-200px;left:-180px;background:radial-gradient(circle,rgba(232,93,117,.12) 0%,transparent 70%);}
-.hero-blob2{width:500px;height:500px;bottom:-100px;right:-120px;background:radial-gradient(circle,rgba(159,140,232,.12) 0%,transparent 70%);}
-.hero-blob3{width:400px;height:400px;top:30%;left:50%;background:radial-gradient(circle,rgba(200,230,50,.10) 0%,transparent 70%);}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:7px;padding:6px 16px;
-  border-radius:999px;background:rgba(200,230,74,.12);
-  border:1px solid rgba(200,230,74,.30);
-  font-size:.75rem;font-weight:800;color:#2D2D2D;
-  letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px;
+.btn:active{transform:scale(0.97);}
+.btn-primary{
+  background:linear-gradient(135deg,#E85D75 0%,#FF6B8A 100%);
+  color:#fff;box-shadow:0 6px 20px var(--rose-glow);
+}
+.btn-primary:hover{box-shadow:0 10px 28px var(--rose-glow);}
+.btn-glass{
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border-2);
+  color:var(--text);
+  backdrop-filter:blur(12px);
+}
+.btn-glass:hover{background:rgba(255,255,255,0.10);}
+.btn-ghost{color:var(--text-2);padding:12px 14px;}
+.btn-ghost:hover{color:var(--text);}
+.btn-lg{padding:16px 24px;font-size:15px;border-radius:16px;}
+.btn-xl{padding:18px 28px;font-size:16px;border-radius:18px;}
+
+/* ════════════ SECTIONS ════════════ */
+section{padding:80px 20px;position:relative;}
+.container{max-width:1180px;margin:0 auto;}
+.section-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(232,93,117,0.10);
+  border:1px solid rgba(232,93,117,0.22);
+  color:var(--accent);
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:18px;
+}
+.section-h{
+  font-size:38px;font-weight:900;letter-spacing:-0.03em;line-height:1.05;
+  margin-bottom:18px;
+}
+.section-h em{font-style:normal;background:linear-gradient(135deg,#E85D75,#9F8CE8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.section-sub{
+  font-size:16px;color:var(--text-2);line-height:1.65;max-width:580px;
+  margin-bottom:40px;
+}
+
+/* ════════════ HERO ════════════ */
+.hero{
+  padding:calc(100px + env(safe-area-inset-top,0px)) 20px 60px;
+  text-align:center;position:relative;
+  min-height:90vh;display:flex;flex-direction:column;justify-content:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;margin:0 auto 24px;
+  padding:8px 14px;border-radius:999px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border-2);
+  font-size:12px;font-weight:800;color:var(--text-2);
+  font-family:var(--mono);letter-spacing:0.04em;text-transform:uppercase;
+}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-3);
+  box-shadow:0 0 12px var(--accent-3);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.hero-h1{
+  font-size:54px;font-weight:900;letter-spacing:-0.045em;line-height:1.0;
+  margin:0 auto 20px;max-width:880px;
+}
+.hero-h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg,#E85D75 0%,#9F8CE8 50%,#C8E632 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  font-size:17px;color:var(--text-2);line-height:1.6;
+  max-width:560px;margin:0 auto 36px;
+}
+.hero-ctas{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;
+}
+.hero-trust{
+  display:flex;justify-content:center;gap:24px;flex-wrap:wrap;
+  font-size:13px;color:var(--text-3);font-weight:700;
+}
+.hero-trust span{display:inline-flex;align-items:center;gap:6px;}
+.hero-trust .ico{color:var(--accent-3);}
+
+/* Phone mockup */
+.phone-stage{
+  margin:60px auto 0;position:relative;
+  width:min(640px,100%);height:520px;
+  display:flex;justify-content:center;align-items:flex-end;
+}
+.phone{
+  position:relative;width:260px;
+  border-radius:42px;
+  background:linear-gradient(160deg,#1F1F2E 0%,#0F0F18 100%);
+  padding:10px;
+  box-shadow:
+    0 30px 80px rgba(232,93,117,0.25),
+    0 0 0 1px rgba(255,255,255,0.06),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
+  transform:rotate(-3deg);
+  transition:transform .3s ease;
+}
+.phone:hover{transform:rotate(0) translateY(-8px);}
+.phone-screen{
+  border-radius:32px;overflow:hidden;
+  background:#1C1C1E;height:480px;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+.phone-notch{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:90px;height:24px;background:#000;border-radius:14px;z-index:5;
+}
+.phone-top{
+  padding:36px 18px 12px;display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;
+}
+.phone-header{
+  padding:8px 18px 14px;
+}
+.phone-h{
+  font-size:18px;font-weight:900;letter-spacing:-0.02em;color:#fff;
+}
+.phone-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;}
+.phone-cards{padding:8px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.phone-card{
+  padding:11px 12px;border-radius:14px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.06);
+  display:flex;align-items:center;gap:10px;
+}
+.phone-card-ic{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.phone-card-ic.r{background:linear-gradient(135deg,#E85D75,#FF6B8A);}
+.phone-card-ic.l{background:linear-gradient(135deg,#9F8CE8,#7C6AC7);}
+.phone-card-ic.g{background:linear-gradient(135deg,#C8E632,#A8C42A);}
+.phone-card-ic.b{background:linear-gradient(135deg,#60A5FA,#3B82F6);}
+.phone-card-info{flex:1;min-width:0;}
+.phone-card-t{font-size:12px;font-weight:800;color:#fff;line-height:1.2;}
+.phone-card-s{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.phone-card-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-3);}
+.phone-tabs{
+  display:flex;padding:8px 12px calc(14px + 4px);border-top:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.02);
+}
+.phone-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:8px;color:rgba(255,255,255,0.3);font-weight:800;
+}
+.phone-tab.active{color:var(--accent);}
+.phone-tab-ic{font-size:18px;line-height:1;}
+
+.phone-decor{
+  position:absolute;width:200px;height:200px;border-radius:50%;
+  filter:blur(60px);opacity:.6;z-index:-1;
+}
+.phone-decor.a{top:20%;left:10%;background:rgba(232,93,117,.6);}
+.phone-decor.b{bottom:10%;right:10%;background:rgba(159,140,232,.6);}
+
+/* ════════════ STATS STRIP ════════════ */
+.stats-strip{
+  padding:36px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.stats-grid{
+  max-width:1180px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+}
+.stat-cell{text-align:center;}
+.stat-n{
+  font-family:var(--mono);font-size:28px;font-weight:700;
+  background:linear-gradient(135deg,#FFF,#9F8CE8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.stat-l{
+  font-size:11px;color:var(--text-3);font-weight:800;
+  letter-spacing:0.06em;text-transform:uppercase;margin-top:8px;
   font-family:var(--mono);
 }
-.hero-h1{
-  font-size:clamp(2.6rem,6.5vw,4.6rem);font-weight:900;
-  line-height:1.04;letter-spacing:-.05em;
-  max-width:820px;margin:0 auto 22px;color:var(--text);
-}
-.hero-h1 em{font-style:normal;color:var(--accent);}
-.hero-sub{
-  font-size:clamp(1rem,2vw,1.18rem);color:var(--text2);
-  max-width:560px;margin:0 auto 40px;line-height:1.65;font-weight:600;
-}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px;}
-.hero-platforms{
-  width:min(1040px,100%);
-  margin:0 auto 54px;
+
+/* ════════════ BENTO ════════════ */
+.bento{
   display:grid;
-  grid-template-columns:1.15fr .85fr;
-  gap:18px;
-}
-.platform-card{
-  text-align:left;
-  background:rgba(255,255,255,.72);
-  border:1px solid rgba(94,94,74,.12);
-  border-radius:22px;
-  padding:22px;
-  box-shadow:0 14px 40px rgba(5,5,23,.07);
-  backdrop-filter:blur(18px);
-}
-.platform-card.primary{
-  background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(245,240,232,.9));
-}
-.platform-top{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;
-}
-.platform-badge{
-  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
-  font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);
-  background:rgba(28,28,30,.06);color:var(--text2);
-}
-.platform-badge.accent{background:rgba(232,93,117,.12);color:var(--accent);}
-.platform-title{font-size:1.55rem;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:var(--text);}
-.platform-copy{font-size:.92rem;color:var(--text2);line-height:1.65;font-weight:700;margin-top:10px;}
-.platform-points{list-style:none;display:flex;flex-direction:column;gap:8px;margin:16px 0 18px;}
-.platform-points li{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;font-weight:800;color:var(--text2);line-height:1.55;}
-.platform-points li::before{content:'•';color:var(--accent);font-weight:900;}
-.platform-actions{display:flex;gap:10px;flex-wrap:wrap;}
-.platform-note{margin-top:12px;font-size:.74rem;color:var(--text3);font-weight:700;line-height:1.5;}
-.install-btn-mobile{display:none;}
-.device-path{
-  background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin-top:16px;
-}
-.device-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-.device-chip{
-  padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid rgba(94,94,74,.1);
-}
-.device-chip-label{font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);color:var(--text3);}
-.device-chip-title{font-size:.95rem;font-weight:900;color:var(--text);margin-top:6px;}
-.device-chip-copy{font-size:.78rem;color:var(--text2);line-height:1.55;font-weight:700;margin-top:6px;}
-.proof-strip{
-  margin:26px auto 0;
-  max-width:980px;
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(6,1fr);
+  grid-auto-rows:180px;
   gap:14px;
 }
-.proof-pill{
-  background:rgba(255,255,255,.72);
-  border:1.5px solid rgba(94,94,74,.12);
-  border-radius:18px;
-  padding:16px 18px;
-  box-shadow:0 18px 40px rgba(94,94,74,.08);
+.bento-card{
+  background:linear-gradient(145deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;
+  transition:transform .2s, border-color .2s, background .2s;
 }
-.proof-kicker{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-weight:900;margin-bottom:8px;}
-.proof-title{font-size:1rem;font-weight:900;color:var(--text);margin-bottom:4px;}
-.proof-copy{font-size:.86rem;color:var(--text2);line-height:1.6;font-weight:600;}
-.hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;}
-.stat-item{text-align:center;}
-.stat-n{font-size:1.9rem;font-weight:900;color:var(--text);letter-spacing:-.03em;}
-.stat-l{font-size:.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;font-family:var(--mono);}
+.bento-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--border-2);
+  background:linear-gradient(145deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 100%);
+}
+.bento-card .ic{
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+}
+.bento-card .ic.r{background:linear-gradient(135deg,#E85D75,#FF6B8A);border:none;}
+.bento-card .ic.l{background:linear-gradient(135deg,#9F8CE8,#7C6AC7);border:none;}
+.bento-card .ic.g{background:linear-gradient(135deg,#C8E632,#A8C42A);border:none;color:#1C1C1E;}
+.bento-card .ic.b{background:linear-gradient(135deg,#60A5FA,#3B82F6);border:none;}
+.bento-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;color:var(--text);}
+.bento-p{font-size:13px;color:var(--text-2);line-height:1.55;margin-top:6px;}
+.bento-glow{
+  position:absolute;width:240px;height:240px;border-radius:50%;
+  filter:blur(60px);opacity:.5;pointer-events:none;z-index:0;
+}
+.bento-card > *{position:relative;z-index:1;}
 
-/* ── MOCKUP ── */
-.hero-mockup{margin:64px auto 0;max-width:920px;width:100%;position:relative;}
-.hero-mockup::before{
-  content:'';position:absolute;inset:-20px;
-  background:radial-gradient(ellipse at center,rgba(232,93,117,.07) 0%,transparent 70%);
-  pointer-events:none;
-}
-.mockup-frame{
-  background:#fff;border-radius:16px;
-  box-shadow:0 40px 100px rgba(5,5,23,.16),0 0 0 1px rgba(94,94,74,.12);
-  overflow:hidden;
-}
-.mockup-bar{height:38px;background:var(--bg);display:flex;align-items:center;padding:0 14px;gap:7px;border-bottom:1px solid rgba(94,94,74,.10);}
-.mockup-dot{width:12px;height:12px;border-radius:50%;}
-.mockup-dot.r{background:#ff5f57;}.mockup-dot.y{background:#febc2e;}.mockup-dot.g{background:#28c840;}
-.mockup-title{font-size:12px;font-weight:700;color:var(--text3);margin:0 auto;font-family:var(--mono);}
-.mockup-body{padding:20px;background:linear-gradient(135deg,#EDE8E0,#F5F0E8);min-height:340px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.mock-card{background:#fff;border-radius:12px;padding:14px;border:1px solid rgba(94,94,74,.12);box-shadow:0 2px 10px rgba(5,5,23,.05);}
-.mc-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--mono);}
-.mc-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;}
-.mc-meta{font-size:11px;color:var(--text3);margin-top:6px;}
-.mc-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-top:6px;}
-.mc-bar{height:4px;border-radius:2px;background:rgba(94,94,74,.10);margin-top:8px;overflow:hidden;}
-.mc-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--lime),var(--accent));}
+.bento .span-3{grid-column:span 3;}
+.bento .span-2{grid-column:span 2;}
+.bento .span-4{grid-column:span 4;}
+.bento .span-6{grid-column:span 6;}
+.bento .row-2{grid-row:span 2;}
 
-/* ── SECTION COMMON ── */
-section{padding:88px 24px;}
-.section-eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-family:var(--mono);}
-.section-h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:900;letter-spacing:-.03em;line-height:1.12;margin-bottom:16px;}
-.section-h2 em{font-style:normal;color:var(--accent);}
-.section-sub{font-size:1.05rem;color:var(--text2);max-width:560px;line-height:1.65;font-weight:600;}
-.center{text-align:center;display:flex;flex-direction:column;align-items:center;}
-.container{max-width:1080px;margin:0 auto;}
+.bento-feature{display:flex;flex-direction:column;justify-content:flex-end;gap:14px;}
+.bento-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:999px;
+  background:rgba(200,230,50,0.10);
+  border:1px solid rgba(200,230,50,0.22);
+  font-size:10px;color:var(--accent-3);font-weight:800;letter-spacing:0.04em;
+  text-transform:uppercase;font-family:var(--mono);
+  align-self:flex-start;
+}
 
-/* ── FEATURES ── */
-#features{background:#fff;}
-.fit-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:22px;
-  margin-top:50px;
+/* games count visual */
+.bento-games{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px;
 }
-.fit-card{
-  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(247,242,235,.98));
-  border:1.5px solid rgba(94,94,74,.14);
-  border-radius:26px;
-  padding:28px;
-  box-shadow:0 26px 60px rgba(94,94,74,.08);
+.bento-game{
+  aspect-ratio:1;border-radius:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
 }
-.fit-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;}
-.fit-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:9px 12px;
-  border-radius:999px;
-  background:rgba(94,94,74,.08);
-  color:var(--text);
-  font-size:.78rem;
-  font-weight:900;
-  letter-spacing:.04em;
-  text-transform:uppercase;
+
+/* ════════════ HOW IT WORKS ════════════ */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.step{
+  background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
+  border:1px solid var(--border);border-radius:20px;padding:28px 24px;
+  position:relative;
 }
-.fit-badge.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
-.fit-title{font-size:1.55rem;font-weight:900;letter-spacing:-.03em;color:var(--text);margin-bottom:10px;}
-.fit-copy{font-size:.95rem;color:var(--text2);line-height:1.7;font-weight:600;margin-bottom:18px;}
-.fit-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
-.fit-list li{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  font-size:.92rem;
-  color:var(--text2);
-  line-height:1.6;
-  font-weight:600;
+.step-n{
+  font-family:var(--mono);font-size:13px;font-weight:700;
+  color:var(--accent);margin-bottom:14px;letter-spacing:0.06em;
 }
-.fit-list strong{color:var(--text);}
-.fit-actions{display:flex;gap:12px;flex-wrap:wrap;}
-.audience-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:18px;
-  margin-top:22px;
+.step-h{font-size:18px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;}
+.step-p{font-size:13px;color:var(--text-2);line-height:1.6;}
+
+/* ════════════ WHY PWA ════════════ */
+.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.why-card{
+  text-align:left;padding:24px;border-radius:18px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);
 }
-.audience-card{
-  background:#fff;
-  border:1.5px solid var(--border);
-  border-radius:20px;
-  padding:22px;
-  box-shadow:0 18px 44px rgba(94,94,74,.06);
+.why-ic{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(232,93,117,0.18),rgba(159,140,232,0.18));
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:14px;
 }
-.audience-tag{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);font-weight:900;margin-bottom:10px;}
-.audience-title{font-size:1.08rem;font-weight:900;color:var(--text);margin-bottom:8px;}
-.audience-copy{font-size:.88rem;color:var(--text2);line-height:1.65;font-weight:600;}
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:52px;}
-.feat-card{
-  padding:26px;border-radius:16px;
-  border:1.5px solid var(--border);background:#fff;
-  transition:transform .2s cubic-bezier(.34,1.3,.64,1),box-shadow .2s,border-color .2s;
+.why-h{font-size:15px;font-weight:900;margin-bottom:6px;}
+.why-p{font-size:12px;color:var(--text-2);line-height:1.6;}
+
+/* ════════════ SCREENS ════════════ */
+.screens{
+  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px;
+}
+
+/* ════════════ PRICING ════════════ */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.pricing-card{
+  background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
+  border:1px solid var(--border);border-radius:22px;padding:32px 26px;
+  position:relative;
+}
+.pricing-card.featured{
+  border-color:rgba(232,93,117,0.5);
+  background:linear-gradient(145deg,rgba(232,93,117,0.10),rgba(159,140,232,0.05));
+}
+.pricing-card.featured::before{
+  content:'POPULAR';position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  padding:5px 12px;border-radius:999px;
+  background:linear-gradient(135deg,#E85D75,#FF6B8A);
+  color:#fff;font-size:10px;font-weight:900;letter-spacing:0.1em;
+  font-family:var(--mono);
+}
+.pricing-name{font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:0.04em;
+  text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;}
+.pricing-price{font-size:42px;font-weight:900;letter-spacing:-0.04em;line-height:1;}
+.pricing-price .unit{font-size:14px;color:var(--text-3);font-weight:700;}
+.pricing-desc{font-size:13px;color:var(--text-2);margin:14px 0 22px;line-height:1.55;}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.pricing-features li{font-size:13px;color:var(--text-2);display:flex;gap:8px;align-items:flex-start;}
+.pricing-features li::before{
+  content:'✓';color:var(--accent-3);font-weight:900;font-size:14px;flex-shrink:0;
+}
+.pricing-btn{width:100%;justify-content:center;}
+
+/* ════════════ FAQ ════════════ */
+.faq{max-width:780px;margin:0 auto;}
+.faq-item{
+  border-bottom:1px solid var(--border);
+}
+.faq-q{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 4px;font-size:16px;font-weight:800;color:var(--text);
+  cursor:pointer;gap:16px;
+}
+.faq-arrow{font-size:18px;color:var(--text-3);transition:transform .2s;flex-shrink:0;}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--accent);}
+.faq-a{
+  display:none;padding:0 4px 22px;
+  font-size:14px;color:var(--text-2);line-height:1.7;
+}
+.faq-item.open .faq-a{display:block;}
+
+/* ════════════ FINAL CTA ════════════ */
+.final-cta{
+  text-align:center;padding:80px 20px;
+  background:linear-gradient(135deg,rgba(232,93,117,0.10),rgba(159,140,232,0.06));
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
   position:relative;overflow:hidden;
 }
-.feat-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--lime),var(--accent),var(--accent2));
-  opacity:0;transition:opacity .2s;
+.final-cta::before{
+  content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+  top:-300px;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,var(--rose-glow),transparent 60%);
+  filter:blur(40px);z-index:0;
 }
-.feat-card:hover{border-color:rgba(232,93,117,.22);box-shadow:0 12px 36px rgba(5,5,23,.09);transform:translateY(-4px);}
-.feat-card:hover::before{opacity:1;}
-.feat-icon{font-size:2rem;line-height:1;margin-bottom:14px;}
-.feat-title{font-size:1rem;font-weight:900;color:var(--text);margin-bottom:8px;letter-spacing:-.02em;}
-.feat-desc{font-size:.88rem;color:var(--text2);line-height:1.65;font-weight:600;}
-.feat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
-.feat-tag{padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:800;background:rgba(94,94,74,.08);color:var(--text3);border:1px solid var(--border);}
+.final-cta > *{position:relative;z-index:1;}
+.final-h{font-size:42px;font-weight:900;letter-spacing:-0.04em;line-height:1;margin-bottom:18px;}
+.final-h em{font-style:normal;color:var(--accent);}
+.final-p{font-size:16px;color:var(--text-2);max-width:520px;margin:0 auto 32px;line-height:1.6;}
+.final-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
 
-/* ── HOW IT WORKS ── */
-#how{background:linear-gradient(160deg,#EDE8E0 0%,#F5F0E8 100%);}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px;margin-top:52px;position:relative;}
-.steps::before{content:'';position:absolute;top:38px;left:calc(16.7% + 40px);right:calc(16.7% + 40px);height:1px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.22;pointer-events:none;}
-.step{text-align:center;}
-.step-num{width:76px;height:76px;border-radius:50%;background:var(--accent);color:#fff;font-size:1.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 24px rgba(232,93,117,.28);}
-.step-title{font-size:1rem;font-weight:900;color:var(--text);margin-bottom:8px;}
-.step-desc{font-size:.88rem;color:var(--text2);line-height:1.65;font-weight:600;}
-
-/* ── FEATURE DEEP DIVE ── */
-#deep{background:#fff;}
-.deep-row{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:64px;}
-.deep-row.reverse{direction:rtl;}.deep-row.reverse>*{direction:ltr;}
-.deep-visual{border-radius:20px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 16px 48px rgba(0,0,0,.09);}
-.deep-visual-inner{background:linear-gradient(135deg,#EDE8E0,#FFFFFF);padding:24px;min-height:280px;display:flex;flex-direction:column;gap:12px;}
-.deep-text .section-eyebrow{margin-bottom:10px;}
-.deep-text h3{font-size:1.8rem;font-weight:900;letter-spacing:-.03em;line-height:1.15;margin-bottom:14px;}
-.deep-text h3 em{color:var(--accent);font-style:normal;}
-.deep-text p{font-size:.95rem;color:var(--text2);line-height:1.7;font-weight:600;margin-bottom:18px;}
-.feature-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
-.feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--text2);font-weight:700;}
-.feature-list li::before{content:'✓';width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));color:#fff;font-size:.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-
-/* Board preview mini-cards */
-.mini-board{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.mini-card{background:#fff;border-radius:11px;padding:12px;border:1px solid rgba(94,94,74,.14);box-shadow:0 2px 8px rgba(0,0,0,.05);}
-.mini-card-h{font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
-.mini-card-t{font-size:.85rem;font-weight:800;color:var(--text);line-height:1.3;}
-.mini-card-prog{height:4px;border-radius:2px;background:#f3f4f6;margin-top:7px;overflow:hidden;}
-.mini-card-prog div{height:100%;background:var(--accent);border-radius:2px;}
-.mini-badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:.68rem;font-weight:800;margin-top:5px;}
-
-/* Gradebook preview */
-.mini-grade{background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
-.mini-grade-head{display:grid;grid-template-columns:1fr repeat(3,60px);background:var(--bg);padding:8px 12px;font-size:.7rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;gap:4px;}
-.mini-grade-row{display:grid;grid-template-columns:1fr repeat(3,60px);padding:8px 12px;font-size:.8rem;gap:4px;border-top:1px solid var(--border);align-items:center;}
-.mini-grade-name{font-weight:800;color:var(--text);}
-.mini-grade-score{text-align:center;font-weight:800;}
-.score-a{color:#059669;}.score-b{color:#2563eb;}.score-c{color:#d97706;}
-
-/* Schedule preview */
-.mini-sch{display:flex;flex-direction:column;gap:8px;}
-.mini-sch-item{background:#fff;border-radius:10px;padding:10px 12px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.mini-sch-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.mini-sch-t{font-size:.82rem;font-weight:800;color:var(--text);flex:1;}
-.mini-sch-time{font-size:.75rem;color:var(--text3);font-family:var(--mono);}
-.mini-sch-live{padding:2px 7px;border-radius:6px;background:rgba(239,68,68,.1);color:#ef4444;font-size:.68rem;font-weight:800;}
-
-/* ── PRICING ── */
-#pricing{background:linear-gradient(160deg,#EDE8E0 0%,#F5F0E8 100%);}
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:52px;max-width:940px;margin-left:auto;margin-right:auto;}
-.plan-card{background:#fff;border-radius:20px;padding:30px;border:2px solid var(--border);position:relative;transition:.2s;}
-.plan-card:hover{border-color:var(--border2);box-shadow:0 12px 40px rgba(5,5,23,.10);}
-.plan-card.popular{border-color:var(--accent);box-shadow:0 0 0 4px rgba(232,93,117,.08);}
-.plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:.7rem;font-weight:800;padding:4px 14px;border-radius:999px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
-.plan-name{font-size:.8rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:10px;}
-.plan-price{font-size:2.8rem;font-weight:900;color:var(--text);letter-spacing:-.04em;line-height:1;}
-.plan-price span{font-size:1rem;font-weight:700;color:var(--text3);}
-.plan-per{font-size:.8rem;color:var(--text3);font-weight:700;margin-bottom:24px;margin-top:4px;}
-.plan-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:28px;}
-.plan-features li{display:flex;align-items:flex-start;gap:9px;font-size:.88rem;font-weight:700;color:var(--text2);}
-.plan-features li .chk{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.plan-features li .chk.grey{background:rgba(94,94,74,.12);color:var(--text3);}
-.plan-btn{width:100%;padding:13px;border-radius:12px;font-family:var(--font);font-weight:800;font-size:.95rem;cursor:pointer;border:none;transition:.18s;}
-.plan-btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(232,93,117,.24);}
-.plan-btn.primary:hover{filter:brightness(1.08);}
-.plan-btn.ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2);}
-.plan-btn.ghost:hover{background:var(--bg2);}
-
-/* ── TESTIMONIALS ── */
-#testimonials{background:#fff;}
-.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:52px;}
-.testi-card{background:var(--bg);border-radius:var(--r);padding:26px;border:1.5px solid var(--border);}
-.testi-stars{color:#f59e0b;font-size:1rem;margin-bottom:14px;letter-spacing:2px;}
-.testi-text{font-size:.93rem;color:var(--text);line-height:1.7;font-weight:700;margin-bottom:18px;font-style:italic;}
-.testi-author{display:flex;align-items:center;gap:12px;}
-.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--lime));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
-.testi-name{font-size:.88rem;font-weight:900;color:var(--text);}
-.testi-role{font-size:.78rem;color:var(--text3);font-weight:700;}
-
-/* ── FAQ ── */
-#faq{background:linear-gradient(135deg,#EDE8E0 0%,#F5F0E8 100%);}
-.faq-list{max-width:680px;margin:48px auto 0;display:flex;flex-direction:column;gap:10px;}
-.faq-item{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;}
-.faq-q{padding:18px 22px;font-size:.95rem;font-weight:800;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:.15s;}
-.faq-q:hover{background:var(--bg);}
-.faq-arrow{font-size:1.1rem;color:var(--text3);transition:transform .25s;flex-shrink:0;}
-.faq-a{padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;font-size:.9rem;color:var(--text2);line-height:1.7;font-weight:600;}
-.faq-item.open .faq-a{max-height:300px;padding:0 22px 18px;}
-.faq-item.open .faq-arrow{transform:rotate(180deg);}
-
-/* ── CTA BANNER ── */
-#cta{
-  background:var(--text);
-  padding:96px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;
+/* ════════════ FOOTER ════════════ */
+.footer{padding:60px 20px 100px;border-top:1px solid var(--border);}
+.footer-grid{
+  max-width:1180px;margin:0 auto;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;
 }
-#cta::before{content:'';position:absolute;width:700px;height:700px;top:-300px;left:-200px;background:radial-gradient(circle,rgba(232,93,117,.18) 0%,transparent 70%);pointer-events:none;}
-#cta::after{content:'';position:absolute;width:500px;height:500px;bottom:-200px;right:-150px;background:radial-gradient(circle,rgba(200,230,50,.12) 0%,transparent 70%);pointer-events:none;}
-#cta h2{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:900;letter-spacing:-.04em;margin-bottom:16px;position:relative;line-height:1.08;}
-#cta h2 em{color:var(--accent);font-style:normal;}
-#cta p{font-size:1.05rem;opacity:.72;max-width:500px;margin:0 auto 40px;line-height:1.65;font-weight:600;position:relative;}
-.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;}
-
-/* ── FOOTER ── */
-footer{background:var(--text);color:rgba(255,255,255,.6);padding:56px 24px 32px;border-top:1px solid rgba(255,255,255,.06);}
-.footer-inner{max-width:1080px;margin:0 auto;}
-.footer-top{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;margin-bottom:48px;}
-.footer-brand{font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:12px;}
-.footer-brand em{color:var(--accent);font-style:normal;}
-.footer-desc{font-size:.86rem;line-height:1.7;font-weight:600;max-width:260px;}
-.footer-col h4{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:14px;font-family:var(--mono);}
-.footer-col a{display:block;font-size:.86rem;font-weight:700;color:rgba(255,255,255,.6);text-decoration:none;margin-bottom:8px;transition:.12s;}
-.footer-col a:hover{color:#fff;}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.8rem;font-weight:700;}
-.footer-bottom a{color:rgba(255,255,255,.45);text-decoration:none;}
-.footer-bottom a:hover{color:#fff;}
-
-/* ── ANIMATIONS ── */
-@keyframes float-up{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-.anim{opacity:0;animation:float-up .55s cubic-bezier(.4,0,.2,1) forwards;}
-.anim-delay-1{animation-delay:.08s;}
-.anim-delay-2{animation-delay:.16s;}
-.anim-delay-3{animation-delay:.24s;}
-.anim-delay-4{animation-delay:.32s;}
-.anim-delay-5{animation-delay:.44s;}
-
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.4,0,.2,1);}
-.reveal.visible{opacity:1;transform:none;}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .hero-platforms{grid-template-columns:1fr;}
-  .proof-strip{grid-template-columns:1fr;}
-  .fit-grid{grid-template-columns:1fr;}
-  .audience-grid{grid-template-columns:1fr;}
-  .device-path-grid{grid-template-columns:1fr;}
-  .deep-row{grid-template-columns:1fr;gap:32px;}
-  .deep-row.reverse{direction:ltr;}
-  .footer-top{grid-template-columns:1fr 1fr;gap:32px;}
-  .steps::before{display:none;}
-  nav .nav-links{display:none;}
+.footer-brand{font-size:22px;font-weight:900;letter-spacing:-0.02em;}
+.footer-brand em{font-style:normal;color:var(--accent);}
+.footer-desc{font-size:13px;color:var(--text-2);line-height:1.7;margin-top:12px;max-width:340px;}
+.footer-col h4{
+  font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:14px;font-family:var(--mono);
 }
-@media(max-width:600px){
-  .footer-top{grid-template-columns:1fr;}
-  .hero-stats{gap:20px;}
-  .platform-card{padding:18px;}
-  .platform-title{font-size:1.3rem;}
-  .platform-actions{flex-direction:column;}
-  .platform-actions .btn{width:100%;justify-content:center;}
-  .fit-card{padding:20px;}
-  .fit-title{font-size:1.3rem;}
-  .fit-actions{flex-direction:column;}
-  .fit-actions .btn{width:100%;justify-content:center;}
-  .mockup-body{grid-template-columns:1fr;}
-  nav{padding:0 16px;height:52px;}
+.footer-col a{
+  display:block;font-size:13px;color:var(--text-2);padding:6px 0;
+  font-weight:700;transition:color .15s;
+}
+.footer-col a:hover{color:var(--text);}
+.footer-bottom{
+  max-width:1180px;margin:40px auto 0;padding-top:24px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  font-size:12px;color:var(--text-3);
+}
+
+/* ════════════ STICKY MOBILE CTA ════════════ */
+.sticky-cta{
+  display:none;position:fixed;left:14px;right:14px;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  z-index:990;
+  padding:8px 8px 8px 18px;
+  background:rgba(20,20,28,0.86);
+  backdrop-filter:blur(22px) saturate(1.8);
+  -webkit-backdrop-filter:blur(22px) saturate(1.8);
+  border:1px solid var(--border-2);
+  border-radius:22px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.35);
+  align-items:center;justify-content:space-between;gap:12px;
+  animation:slideUp .4s ease-out;
+}
+@keyframes slideUp{from{transform:translateY(120%);opacity:0}to{transform:translateY(0);opacity:1}}
+.sticky-cta-text{
+  font-size:12px;font-weight:800;color:var(--text);line-height:1.2;
+}
+.sticky-cta-text small{
+  display:block;font-size:10px;color:var(--text-3);font-weight:700;margin-top:2px;
+}
+
+/* ════════════ REVEAL ════════════ */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1;transform:none;}
+  .aurora::before, .aurora::after{animation:none;}
+}
+
+/* ════════════ TOAST ════════════ */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+  bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:99999;
+  background:rgba(20,20,28,0.94);color:#fff;
+  padding:13px 22px;border-radius:999px;
+  font-size:13px;font-weight:700;
+  border:1px solid var(--border-2);
+  box-shadow:0 14px 40px rgba(0,0,0,0.35);
+  opacity:0;transition:opacity .25s ease, transform .25s ease;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ════════════ CHECKOUT MODAL ════════════ */
+.checkout-overlay{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(5,5,12,0.78);
+  backdrop-filter:blur(12px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.checkout-box{
+  background:#13131A;border:1px solid var(--border-2);border-radius:24px;
+  padding:32px 28px;max-width:420px;width:100%;text-align:center;
+  position:relative;
+}
+.checkout-ic{font-size:42px;margin-bottom:14px;}
+.checkout-t{font-size:22px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;}
+.checkout-s{font-size:13px;color:var(--text-2);margin-bottom:24px;line-height:1.6;}
+.checkout-close{
+  position:absolute;top:14px;right:14px;width:32px;height:32px;
+  border-radius:50%;background:rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--text-3);cursor:pointer;
+}
+
+/* ════════════ RESPONSIVE ════════════ */
+@media (min-width: 860px){
+  .nav-links{display:flex;}
+  .hero-h1{font-size:84px;}
+  .hero-sub{font-size:19px;}
+  .phone{width:300px;transform:rotate(-4deg);}
+  .phone-screen{height:540px;}
+  .section-h{font-size:52px;}
+  section{padding:120px 32px;}
+  .stats-strip{padding:48px 32px;}
+}
+
+@media (max-width: 860px){
+  .nav-inner{padding:12px 16px;gap:8px;}
+  .nav-cta .btn-ghost{display:none;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:24px;}
+  .bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:auto;}
+  .bento .span-3,.bento .span-2,.bento .span-4,.bento .span-6{grid-column:span 2;}
+  .bento-card{min-height:180px;padding:20px;}
+  .steps{grid-template-columns:1fr;gap:14px;}
+  .why-grid{grid-template-columns:repeat(2,1fr);}
+  .pricing-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:30px;}
+  .sticky-cta{display:flex;}
+  body{padding-bottom:100px;}
+}
+
+@media (max-width: 480px){
+  .hero{padding-top:calc(80px + env(safe-area-inset-top,0px));min-height:100vh;}
+  .hero-h1{font-size:40px;letter-spacing:-0.04em;}
+  .hero-sub{font-size:15px;}
+  .hero-ctas .btn{width:100%;}
+  .hero-ctas{flex-direction:column;}
+  .section-h{font-size:30px;}
+  .section-sub{font-size:15px;}
+  section{padding:60px 18px;}
+  .phone{width:240px;}
+  .phone-screen{height:440px;}
+  .final-h{font-size:30px;}
+  .final-ctas .btn{width:100%;}
+  .why-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
 }
 </style>
-<link rel="stylesheet" href="dark.css">
 <script src="theme.js"></script>
 </head>
 <body>
 
-<!-- ═══════════════════ NAV ═══════════════════ -->
-<nav>
-  <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
-  <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#how">How it works</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#faq">FAQ</a>
-  </div>
-  <div class="nav-cta">
-    <a class="btn btn-ghost" href="index.html">Sign in</a>
-    <a class="btn btn-primary" href="index.html#register">Get started free</a>
+<div class="aurora"></div>
+
+<!-- ════════════ NAV ════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#top">
+      <img src="logo.png" alt="">
+      Teach<em>Ed</em>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#features">Features</a>
+      <a class="nav-link" href="#how">How it works</a>
+      <a class="nav-link" href="#pricing">Pricing</a>
+      <a class="nav-link" href="#faq">FAQ</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="index.html">Sign in</a>
+      <button class="btn btn-primary" id="hero-install-btn" type="button">Install →</button>
+    </div>
   </div>
 </nav>
 
-<!-- ═══════════════════ HERO ═══════════════════ -->
-<section id="hero">
-  <div class="hero-blob hero-blob1"></div>
-  <div class="hero-blob hero-blob2"></div>
-  <div class="hero-blob hero-blob3"></div>
-
-  <div class="hero-tag anim"><img src="logo.png" alt="" style="width:16px;height:16px;border-radius:4px;"> Teach on desktop. Open like an app on mobile.</div>
-  <h1 class="hero-h1 anim anim-delay-1">One <em>product</em>, two perfect ways to teach.</h1>
-  <p class="hero-sub anim anim-delay-2">TeachEd gives you a rich web workspace for laptops and a clean installable PWA for phones. Plan on desktop, manage on mobile, keep the same classroom system everywhere.</p>
-  <div class="hero-btns anim anim-delay-3">
-    <a class="btn btn-primary btn-lg" href="index.html">Open web app for desktop →</a>
-    <button class="btn btn-ghost btn-lg" id="hero-install-btn" type="button">Install mobile app</button>
+<!-- ════════════ HERO ════════════ -->
+<section class="hero" id="top">
+  <div class="hero-badge reveal">
+    <span class="dot"></span> PWA · Web · Installable
   </div>
-  <div class="hero-platforms anim anim-delay-4">
-    <div class="platform-card primary">
-      <div class="platform-top">
-        <span class="platform-badge accent">Desktop Web</span>
-        <span style="font-size:1.5rem;">⌘</span>
-      </div>
-      <div class="platform-title">The full teaching cockpit for PC and laptop.</div>
-      <div class="platform-copy">Open the full web version when you want the board canvas, desktop workspace, admin depth, and large-screen lesson flow.</div>
-      <ul class="platform-points">
-        <li>Best for board building, lesson planning, analytics, and admin work</li>
-        <li>Full macOS-style teacher workspace with multi-panel depth</li>
-        <li>Fast access from any browser on Windows, macOS, or Chromebook</li>
-      </ul>
-      <div class="platform-actions">
-        <a class="btn btn-primary" href="index.html">Launch web version</a>
-        <a class="btn btn-ghost" href="board.html">Preview board editor</a>
-      </div>
-      <div class="platform-note">Recommended for teachers working from a laptop, desktop, or large tablet with keyboard.</div>
-    </div>
-    <div class="platform-card">
-      <div class="platform-top">
-        <span class="platform-badge">Mobile PWA</span>
-        <span style="font-size:1.5rem;">▣</span>
-      </div>
-      <div class="platform-title">A home-screen app feel for phones.</div>
-      <div class="platform-copy">Install TeachEd as a PWA to get a cleaner mobile shell, faster launch, offline-friendly screens, and a better teacher/student phone experience.</div>
-      <ul class="platform-points">
-        <li>Best for schedule, gradebook, profile, student dashboard, and quick check-ins</li>
-        <li>Works from the home screen like an app with offline-aware screens</li>
-        <li>No App Store wait, no duplicate product, same account and same data</li>
-      </ul>
-      <div class="platform-actions">
-        <button class="btn btn-primary" id="platform-install-btn" type="button">Install PWA</button>
-        <a class="btn btn-ghost" href="student.html">Open mobile view</a>
-      </div>
-      <div class="platform-note" id="pwa-note">Android will show an install prompt. On iPhone, use Safari → Share → Add to Home Screen.</div>
-    </div>
+  <h1 class="hero-h1 reveal">Teach English<br>from your <em>pocket.</em></h1>
+  <p class="hero-sub reveal">A whole classroom OS — boards, schedule, gradebook, 20 games — installable as an app on your phone. No app store. No friction.</p>
+  <div class="hero-ctas reveal">
+    <button class="btn btn-primary btn-xl" id="platform-install-btn" type="button">Install free app</button>
+    <a class="btn btn-glass btn-xl" href="index.html">Open in browser</a>
   </div>
-  <div class="device-path anim anim-delay-5">
-    <div class="device-path-grid">
-      <div class="device-chip">
-        <div class="device-chip-label">Use this on desktop</div>
-        <div class="device-chip-title">Web version</div>
-        <div class="device-chip-copy">Sign in at the full teacher workspace and work with boards, admin tools, analytics, and deep planning.</div>
-      </div>
-      <div class="device-chip">
-        <div class="device-chip-label">Use this on phone</div>
-        <div class="device-chip-title">PWA mobile app</div>
-        <div class="device-chip-copy">Install from the browser once, then launch TeachEd from your home screen for quick, app-like mobile teaching flows.</div>
-      </div>
-    </div>
-  </div>
-  <div class="proof-strip anim anim-delay-5">
-    <div class="proof-pill">
-      <div class="proof-kicker">Built for</div>
-      <div class="proof-title">Solo tutors and small schools</div>
-      <div class="proof-copy">TeachEd works well when one teacher needs speed, but also scales into admin workflows for a growing team.</div>
-    </div>
-    <div class="proof-pill">
-      <div class="proof-kicker">Works best</div>
-      <div class="proof-title">Desktop for building, phone for running</div>
-      <div class="proof-copy">Plan on a big screen, then check schedule, gradebook, and student progress from your home-screen PWA.</div>
-    </div>
-    <div class="proof-pill">
-      <div class="proof-kicker">Ready now</div>
-      <div class="proof-title">No app store release needed</div>
-      <div class="proof-copy">The mobile version installs directly from the browser, so your team can start using it immediately on Android and iPhone.</div>
-    </div>
-  </div>
-  <div class="hero-stats anim anim-delay-4">
-    <div class="stat-item"><div class="stat-n">Desktop</div><div class="stat-l">Full web cockpit</div></div>
-    <div class="stat-item"><div class="stat-n">Mobile</div><div class="stat-l">Installable PWA</div></div>
-    <div class="stat-item"><div class="stat-n">Offline</div><div class="stat-l">Saved snapshots</div></div>
-    <div class="stat-item"><div class="stat-n">One login</div><div class="stat-l">Same data everywhere</div></div>
+  <div class="hero-trust reveal">
+    <span><span class="ico">●</span> Works offline</span>
+    <span><span class="ico">●</span> No app store</span>
+    <span><span class="ico">●</span> &lt; 3 MB install</span>
   </div>
 
-  <div class="hero-mockup anim anim-delay-5">
-    <div class="mockup-frame">
-      <div class="mockup-bar">
-        <div class="mockup-dot r"></div>
-        <div class="mockup-dot y"></div>
-        <div class="mockup-dot g"></div>
-        <span class="mockup-title">📋 Lesson Plans — TeachEd</span>
-      </div>
-      <div class="mockup-body">
-        <div class="mock-card">
-          <div class="mc-label">📘 Lesson</div>
-          <div class="mc-title">Articles: a, an, the</div>
-          <div class="mc-meta">👥 Group B · B1 · 60 min</div>
-          <span class="mc-tag" style="background:rgba(34,197,94,.12);color:#16a34a;">✓ Complete</span>
-          <div class="mc-bar"><div class="mc-bar-fill" style="width:100%"></div></div>
+  <!-- Phone mockup -->
+  <div class="phone-stage reveal">
+    <div class="phone-decor a"></div>
+    <div class="phone-decor b"></div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-top">
+          <span>9:41</span>
+          <span>● ● ●</span>
         </div>
-        <div class="mock-card">
-          <div class="mc-label">📝 Assignment</div>
-          <div class="mc-title">Gap-fill: Prepositions of time</div>
-          <div class="mc-meta">⏱ 20 min · 12 questions · 24 pts</div>
-          <span class="mc-tag" style="background:rgba(94,94,74,.1);color:var(--accent);">In progress</span>
-          <div class="mc-bar"><div class="mc-bar-fill" style="width:60%"></div></div>
+        <div class="phone-header">
+          <div class="phone-h">Good morning, Anya</div>
+          <div class="phone-sub">3 classes today · 14 students</div>
         </div>
-        <div class="mock-card">
-          <div class="mc-label">📅 Schedule</div>
-          <div class="mc-title">Group A — Today 14:00</div>
-          <div class="mc-meta">📍 Room 301 · Phrasal Verbs</div>
-          <span class="mc-tag" style="background:rgba(239,68,68,.1);color:#ef4444;">🔴 Live</span>
+        <div class="phone-cards">
+          <div class="phone-card">
+            <div class="phone-card-ic r">📅</div>
+            <div class="phone-card-info">
+              <div class="phone-card-t">B2 Conversation</div>
+              <div class="phone-card-s">10:00 · 5 students</div>
+            </div>
+            <span class="phone-card-dot"></span>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-ic l">📋</div>
+            <div class="phone-card-info">
+              <div class="phone-card-t">Phrasal Verbs Board</div>
+              <div class="phone-card-s">12 cards · ready</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-ic g">📊</div>
+            <div class="phone-card-info">
+              <div class="phone-card-t">Weekly Progress</div>
+              <div class="phone-card-s">+18% completion</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-ic b">🎮</div>
+            <div class="phone-card-info">
+              <div class="phone-card-t">Spelling Bee</div>
+              <div class="phone-card-s">Word warmup</div>
+            </div>
+          </div>
         </div>
-        <div class="mock-card">
-          <div class="mc-label">🏆 Milestone</div>
-          <div class="mc-title">B2 Speaking Test</div>
-          <div class="mc-meta">📅 Due: 15 May · 5 students</div>
-          <div class="mc-bar"><div class="mc-bar-fill" style="width:40%"></div></div>
-        </div>
-        <div class="mock-card">
-          <div class="mc-label">📊 Analytics</div>
-          <div class="mc-title">Group B progress</div>
-          <div class="mc-meta">Avg score: 78% · 6 lessons done</div>
-          <span class="mc-tag" style="background:rgba(99,102,241,.1);color:#6366f1;">↑ +12% this week</span>
-        </div>
-        <div class="mock-card">
-          <div class="mc-label">📚 Vocab</div>
-          <div class="mc-title">Phrasal verbs — unit 4</div>
-          <div class="mc-meta">12 words · A2 → B1</div>
-          <span class="mc-tag" style="background:rgba(245,158,11,.1);color:#d97706;">🔁 Review due</span>
+        <div class="phone-tabs">
+          <div class="phone-tab active"><span class="phone-tab-ic">⊞</span><span>Boards</span></div>
+          <div class="phone-tab"><span class="phone-tab-ic">⊟</span><span>Schedule</span></div>
+          <div class="phone-tab"><span class="phone-tab-ic">⊡</span><span>Grades</span></div>
+          <div class="phone-tab"><span class="phone-tab-ic">⊕</span><span>Journal</span></div>
+          <div class="phone-tab"><span class="phone-tab-ic">⊙</span><span>Me</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ SCREEN FIT ═══════════════════ -->
-<section id="screens">
-  <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">Choose the right screen</div>
-      <h2 class="section-h2">Use <em>desktop</em> for depth, <em>mobile</em> for momentum</h2>
-      <p class="section-sub">TeachEd is strongest when each device does the job it is naturally good at. That makes the product easier to understand and easier to adopt.</p>
-    </div>
-    <div class="fit-grid">
-      <div class="fit-card reveal">
-        <div class="fit-top">
-          <span class="fit-badge primary">Desktop web workspace</span>
-          <span style="font-size:1.45rem;">⌘</span>
-        </div>
-        <div class="fit-title">Best for building and managing the system</div>
-        <div class="fit-copy">Open the full teacher workspace when you want the canvas, admin depth, analytics context, and room to think through lessons at scale.</div>
-        <ul class="fit-list">
-          <li><span>✓</span><span><strong>Build boards visually:</strong> plan lessons, assignments, vocab sets, and milestones on a large canvas.</span></li>
-          <li><span>✓</span><span><strong>Run heavier workflows:</strong> admin tasks, analytics, course planning, and board structure are faster on desktop.</span></li>
-          <li><span>✓</span><span><strong>Teach with context:</strong> keep schedule, board, student data, and classroom tools open in one rich workspace.</span></li>
-        </ul>
-        <div class="fit-actions">
-          <a class="btn btn-primary" href="index.html">Open desktop web</a>
-          <a class="btn btn-ghost" href="admin.html">See admin workspace</a>
-        </div>
-      </div>
-      <div class="fit-card reveal">
-        <div class="fit-top">
-          <span class="fit-badge">Mobile PWA</span>
-          <span style="font-size:1.45rem;">▣</span>
-        </div>
-        <div class="fit-title">Best for teaching on the move and quick daily checks</div>
-        <div class="fit-copy">Install TeachEd to the home screen when you need a cleaner phone experience with faster launch, offline-aware screens, and one-thumb access to essentials.</div>
-        <ul class="fit-list">
-          <li><span>✓</span><span><strong>Check today fast:</strong> schedule, gradebook, profile, and student status are easy to open during the day.</span></li>
-          <li><span>✓</span><span><strong>Keep moving in weak internet:</strong> saved snapshots and offline-aware screens preserve useful context.</span></li>
-          <li><span>✓</span><span><strong>Give students a clearer phone flow:</strong> the mobile dashboard feels lighter, simpler, and more app-like.</span></li>
-        </ul>
-        <div class="fit-actions">
-          <button class="btn btn-primary" id="screens-install-btn" type="button">Install PWA on phone</button>
-          <a class="btn btn-ghost" href="student.html">Open mobile dashboard</a>
-        </div>
-      </div>
-    </div>
-    <div class="audience-grid">
-      <div class="audience-card reveal">
-        <div class="audience-tag">Who wins most</div>
-        <div class="audience-title">Independent tutors</div>
-        <div class="audience-copy">Replace scattered docs, calls, notes, and spreadsheets with one system that is simple enough to start alone and strong enough to grow later.</div>
-      </div>
-      <div class="audience-card reveal">
-        <div class="audience-tag">Who scales fastest</div>
-        <div class="audience-title">Language schools</div>
-        <div class="audience-copy">Use the desktop admin layer for oversight, invite staff into the workflow, and keep day-to-day teaching lighter on mobile.</div>
-      </div>
-      <div class="audience-card reveal">
-        <div class="audience-tag">Who feels it daily</div>
-        <div class="audience-title">Students on phones</div>
-        <div class="audience-copy">Students get a cleaner mobile dashboard for tasks, progress, words, and class access without needing a separate native app.</div>
-      </div>
-    </div>
+<!-- ════════════ STATS STRIP ════════════ -->
+<div class="stats-strip">
+  <div class="stats-grid">
+    <div class="stat-cell reveal"><div class="stat-n">20</div><div class="stat-l">Language games</div></div>
+    <div class="stat-cell reveal"><div class="stat-n">A1 — C2</div><div class="stat-l">All CEFR levels</div></div>
+    <div class="stat-cell reveal"><div class="stat-n">∞</div><div class="stat-l">Boards free tier</div></div>
+    <div class="stat-cell reveal"><div class="stat-n">100%</div><div class="stat-l">Offline-ready</div></div>
   </div>
-</section>
+</div>
 
-<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<!-- ════════════ BENTO ════════════ -->
 <section id="features">
   <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">Everything you need</div>
-      <h2 class="section-h2">One platform, <em>zero chaos</em></h2>
-      <p class="section-sub">Every tool a language teacher needs — designed to work together beautifully.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feat-card reveal">
-        <div class="feat-icon">📌</div>
-        <div class="feat-title">Visual Lesson Boards</div>
-        <div class="feat-desc">A free-form canvas with 12+ card types — lesson plans, assignments, vocab sets, milestones, timers, games, videos, checklists and more. Drag, connect, zoom.</div>
-        <div class="feat-tags"><span class="feat-tag">Sticky notes</span><span class="feat-tag">Lessons</span><span class="feat-tag">Assignments</span><span class="feat-tag">Vocab</span></div>
+    <div class="section-eyebrow reveal">● Built for mobile</div>
+    <h2 class="section-h reveal">Everything a teacher needs.<br><em>One pocket-sized app.</em></h2>
+    <p class="section-sub reveal">Designed bottom-up for thumbs. Tap to open a board, swipe to mark a lesson, tap-and-hold to share. No keyboard required.</p>
+
+    <div class="bento">
+      <div class="bento-card span-3 row-2 reveal">
+        <div class="bento-glow" style="top:-80px;right:-80px;background:rgba(232,93,117,0.6);"></div>
+        <div class="ic r">📋</div>
+        <div>
+          <div class="bento-h">Visual lesson boards</div>
+          <div class="bento-p">Drag-and-drop cards, link them with arrows, and run the lesson card-by-card. Teach the same board to 10 students or 1 — it scales.</div>
+        </div>
       </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">⚡</div>
-        <div class="feat-title">Real-time Collaboration</div>
-        <div class="feat-desc">Students and teachers edit the same board simultaneously over WebSockets. See each other's cursors, get instant updates, and use Follow Me mode for guided walkthroughs.</div>
-        <div class="feat-tags"><span class="feat-tag">Live cursors</span><span class="feat-tag">Follow Me</span><span class="feat-tag">Sync</span></div>
+
+      <div class="bento-card span-3 reveal">
+        <div class="ic l">📅</div>
+        <div>
+          <div class="bento-h">Schedule that texts back</div>
+          <div class="bento-p">Recurring classes, real-time conflict detection, "Go Live" link that shows up on every student phone.</div>
+        </div>
       </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">📒</div>
-        <div class="feat-title">Gradebook & Progress</div>
-        <div class="feat-desc">Track every student's assignment scores, lesson completion, and skill progress in a clean gradebook. Export to CSV or view detailed per-student timelines.</div>
-        <div class="feat-tags"><span class="feat-tag">Scores</span><span class="feat-tag">Progress</span><span class="feat-tag">CSV export</span></div>
+
+      <div class="bento-card span-3 reveal">
+        <div class="bento-glow" style="bottom:-80px;left:-80px;background:rgba(200,230,50,0.4);"></div>
+        <div class="ic g">📊</div>
+        <div>
+          <div class="bento-h">Gradebook on autopilot</div>
+          <div class="bento-p">Quiz scores, lesson completion, and vocab progress sync automatically. Tap a row to see the full lesson history.</div>
+        </div>
       </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">📅</div>
-        <div class="feat-title">Smart Schedule</div>
-        <div class="feat-desc">Weekly calendar with recurring classes. Attach Google Meet or Zoom links to any slot. Hit "Go Live" to broadcast to students — they see a live banner instantly.</div>
-        <div class="feat-tags"><span class="feat-tag">Recurring</span><span class="feat-tag">Go Live</span><span class="feat-tag">Zoom/Meet</span></div>
+
+      <div class="bento-card span-2 reveal">
+        <div class="bento-tag">20 games</div>
+        <div>
+          <div class="bento-h">Word games library</div>
+          <div class="bento-p">Hangman, Spelling Bee, Typing Rain, Word Scramble, Memory Match…</div>
+        </div>
+        <div class="bento-games">
+          <div class="bento-game">💀</div>
+          <div class="bento-game">🐝</div>
+          <div class="bento-game">🌧</div>
+          <div class="bento-game">🧩</div>
+          <div class="bento-game">🃏</div>
+        </div>
       </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">📹</div>
-        <div class="feat-title">Video Call Integration</div>
-        <div class="feat-desc">Start a Google Meet or Zoom session in one click from the Calls window. Save your permanent room URLs. Students see a "🔴 Live Now" banner with a direct join link.</div>
-        <div class="feat-tags"><span class="feat-tag">Google Meet</span><span class="feat-tag">Zoom</span><span class="feat-tag">Live banner</span></div>
+
+      <div class="bento-card span-2 reveal">
+        <div class="ic b">📡</div>
+        <div>
+          <div class="bento-h">Offline-first</div>
+          <div class="bento-p">Subway, plane, weak signal — TeachEd keeps working. Changes sync the moment you reconnect.</div>
+        </div>
       </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">📊</div>
-        <div class="feat-title">Analytics Dashboard</div>
-        <div class="feat-desc">Visualize class performance over time — completion rates, average scores, lesson streaks, and group comparisons. Filter by date range, group, or skill area.</div>
-        <div class="feat-tags"><span class="feat-tag">Charts</span><span class="feat-tag">Groups</span><span class="feat-tag">Trends</span></div>
-      </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">🏗️</div>
-        <div class="feat-title">Assignment Builder</div>
-        <div class="feat-desc">Build gap-fills, MCQs, true/false, and matching exercises with a drag-and-drop editor. Or generate 300+ ready-made ESL tasks by topic, level, and type — no AI API needed.</div>
-        <div class="feat-tags"><span class="feat-tag">300+ tasks</span><span class="feat-tag">A1–C2</span><span class="feat-tag">Offline</span></div>
-      </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">🎨</div>
-        <div class="feat-title">7 Themes & Customization</div>
-        <div class="feat-desc">Switch between 7 full color themes, pick accent colors, adjust card radius and font scale, set board backgrounds and sidebar width — every detail is yours to control.</div>
-        <div class="feat-tags"><span class="feat-tag">Dark mode</span><span class="feat-tag">Custom colors</span><span class="feat-tag">Compact UI</span></div>
-      </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">☁️</div>
-        <div class="feat-title">Dual-layer Autosave</div>
-        <div class="feat-desc">Every change saves to localStorage instantly and syncs to the cloud with retry. Version history with 8 auto-snapshots and 5 pinned versions — restore any past state in one click.</div>
-        <div class="feat-tags"><span class="feat-tag">Offline</span><span class="feat-tag">Versions</span><span class="feat-tag">Restore</span></div>
+
+      <div class="bento-card span-2 reveal">
+        <div class="bento-tag" style="background:rgba(159,140,232,0.10);border-color:rgba(159,140,232,0.3);color:#9F8CE8;">Live</div>
+        <div>
+          <div class="bento-h">Push notifications</div>
+          <div class="bento-p">Students get a tap when class goes live, when homework is due, when a board is shared.</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+<!-- ════════════ HOW ════════════ -->
 <section id="how">
   <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">Get started in minutes</div>
-      <h2 class="section-h2">From signup to <em>first lesson</em></h2>
-      <p class="section-sub">No complicated setup. No training required. TeachEd works the way you think.</p>
-    </div>
+    <div class="section-eyebrow reveal">● Get started</div>
+    <h2 class="section-h reveal">Install in <em>under 10 seconds</em></h2>
+    <p class="section-sub reveal">Skip the app store. Open this page on your phone, tap Install, and TeachEd lives on your home screen — same icon, same speed, no download wait.</p>
+
     <div class="steps">
       <div class="step reveal">
-        <div class="step-num">1</div>
-        <div class="step-title">Create your workspace</div>
-        <div class="step-desc">Register as a teacher, pick your theme, and you're inside your personal macOS-style desktop in under 60 seconds.</div>
+        <div class="step-n">STEP 01</div>
+        <div class="step-h">Tap "Install"</div>
+        <div class="step-p">In any modern mobile browser, you'll see an Install prompt. On iPhone — Safari → Share → Add to Home Screen.</div>
       </div>
       <div class="step reveal">
-        <div class="step-num">2</div>
-        <div class="step-title">Build your first board</div>
-        <div class="step-desc">Open the Board editor, drag cards onto the canvas — lessons, assignments, vocab lists — and arrange them how you think, not how a template tells you.</div>
+        <div class="step-n">STEP 02</div>
+        <div class="step-h">Find on home screen</div>
+        <div class="step-p">TeachEd's icon appears alongside your other apps. Launches full-screen — no browser bar, no distractions.</div>
       </div>
       <div class="step reveal">
-        <div class="step-num">3</div>
-        <div class="step-title">Invite students</div>
-        <div class="step-desc">Share a board link or invite by email. Students join, see their progress, complete assignments, and track scores — all from their own student dashboard.</div>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">4</div>
-        <div class="step-title">Go live & teach</div>
-        <div class="step-desc">Hit Go Live on a schedule slot to broadcast to students. Start a Google Meet or Zoom call from the Calls window. Teach, collaborate, grade — all in one place.</div>
+        <div class="step-n">STEP 03</div>
+        <div class="step-h">Start teaching</div>
+        <div class="step-p">Sign in once. Your boards, schedule, and students sync everywhere — phone, laptop, tablet — instantly.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ DEEP DIVE ═══════════════════ -->
+<!-- ════════════ WHY PWA ════════════ -->
 <section id="deep">
   <div class="container">
+    <div class="section-eyebrow reveal">● PWA · Why</div>
+    <h2 class="section-h reveal">A web app that <em>feels native.</em></h2>
+    <p class="section-sub reveal">Progressive Web Apps install like apps, run like apps, but don't bring app-store baggage.</p>
 
-    <!-- Board -->
-    <div class="deep-row reveal">
-      <div class="deep-visual">
-        <div class="deep-visual-inner">
-          <div class="mini-board">
-            <div class="mini-card">
-              <div class="mini-card-h">📘 Lesson</div>
-              <div class="mini-card-t">Present Perfect — have/has + V3</div>
-              <span class="mini-badge" style="background:rgba(34,197,94,.12);color:#16a34a;">✓ Done</span>
-              <div class="mini-card-prog"><div style="width:100%;background:var(--accent);height:100%;border-radius:2px;"></div></div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-h">📝 Assignment</div>
-              <div class="mini-card-t">Gap-fill: Articles a/an/the</div>
-              <span class="mini-badge" style="background:rgba(94,94,74,.1);color:var(--accent);">In progress</span>
-              <div class="mini-card-prog"><div style="width:65%;background:var(--accent);height:100%;border-radius:2px;"></div></div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-h">📚 Vocab set</div>
-              <div class="mini-card-t">Phrasal verbs: come, go, take</div>
-              <span class="mini-badge" style="background:rgba(245,158,11,.1);color:#d97706;">Review due</span>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-h">🏆 Milestone</div>
-              <div class="mini-card-t">Speaking test — Unit 3</div>
-              <span class="mini-badge" style="background:rgba(99,102,241,.1);color:#6366f1;">Upcoming</span>
-            </div>
-          </div>
-        </div>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-ic">⚡</div>
+        <div class="why-h">No store, no review</div>
+        <div class="why-p">Bug fixes ship instantly. No 24-hour review queue.</div>
       </div>
-      <div class="deep-text">
-        <div class="section-eyebrow">Visual boards</div>
-        <h3>Think in <em>space,</em><br>not in rows.</h3>
-        <p>Traditional lesson planners force your thinking into rigid tables. TeachEd gives you an infinite canvas — place cards where they make sense, connect lessons to assignments with arrows, group by topic or timeline.</p>
-        <ul class="feature-list">
-          <li>12 card types: sticky, lesson, assignment, vocab, milestone, checklist, timer, game, video, image, and more</li>
-          <li>Arrow connections to show prerequisites and learning paths</li>
-          <li>Pan, zoom, snap-to-grid — works on any screen size</li>
-          <li>Ctrl+Z undo history with 50 steps, plus version snapshots</li>
-        </ul>
+      <div class="why-card reveal">
+        <div class="why-ic">📦</div>
+        <div class="why-h">Tiny footprint</div>
+        <div class="why-p">Under 3 MB to install. Compare to 200 MB of native bloat.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-ic">🔄</div>
+        <div class="why-h">Always up to date</div>
+        <div class="why-p">Auto-updates in background. Open the app, get the latest.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-ic">🔓</div>
+        <div class="why-h">No platform lock-in</div>
+        <div class="why-p">Same TeachEd on iPhone, Android, and laptop.</div>
       </div>
     </div>
-
-    <!-- Gradebook -->
-    <div class="deep-row reverse reveal" style="margin-top:72px;">
-      <div class="deep-visual">
-        <div class="deep-visual-inner">
-          <div class="mini-grade">
-            <div class="mini-grade-head"><span>Student</span><span>Lesson</span><span>Quiz</span><span>Avg</span></div>
-            <div class="mini-grade-row"><span class="mini-grade-name">Ana S.</span><span class="mini-grade-score score-a">100%</span><span class="mini-grade-score score-a">92%</span><span class="mini-grade-score score-a">96%</span></div>
-            <div class="mini-grade-row"><span class="mini-grade-name">Marco B.</span><span class="mini-grade-score score-b">88%</span><span class="mini-grade-score score-b">85%</span><span class="mini-grade-score score-b">86%</span></div>
-            <div class="mini-grade-row"><span class="mini-grade-name">Lena K.</span><span class="mini-grade-score score-c">74%</span><span class="mini-grade-score score-c">68%</span><span class="mini-grade-score score-c">71%</span></div>
-            <div class="mini-grade-row"><span class="mini-grade-name">Ivan P.</span><span class="mini-grade-score score-a">95%</span><span class="mini-grade-score score-b">82%</span><span class="mini-grade-score score-a">88%</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="deep-text">
-        <div class="section-eyebrow">Gradebook & Analytics</div>
-        <h3>Know exactly <em>who's</em><br>falling behind.</h3>
-        <p>Every lesson completion and assignment score is tracked automatically. The gradebook gives you instant clarity on who needs extra attention — no manual entry, no spreadsheets.</p>
-        <ul class="feature-list">
-          <li>Per-student score tracking across all boards and assignments</li>
-          <li>Group averages and class-wide completion rates</li>
-          <li>Skill-based progress (Grammar, Speaking, Writing, Reading)</li>
-          <li>CSV export for school reports</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Schedule + Calls -->
-    <div class="deep-row reveal" style="margin-top:72px;">
-      <div class="deep-visual">
-        <div class="deep-visual-inner">
-          <div class="mini-sch">
-            <div class="mini-sch-item">
-              <div class="mini-sch-dot" style="background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.5);"></div>
-              <span class="mini-sch-t">Group A — Phrasal Verbs</span>
-              <span class="mini-sch-time">09:00</span>
-              <span class="mini-sch-live">🔴 Live</span>
-            </div>
-            <div class="mini-sch-item">
-              <div class="mini-sch-dot" style="background:var(--accent);"></div>
-              <span class="mini-sch-t">Group B — Present Perfect</span>
-              <span class="mini-sch-time">11:30</span>
-            </div>
-            <div class="mini-sch-item">
-              <div class="mini-sch-dot" style="background:#6366f1;"></div>
-              <span class="mini-sch-t">Group C — Speaking Practice</span>
-              <span class="mini-sch-time">14:00</span>
-            </div>
-            <div style="background:linear-gradient(135deg,rgba(52,168,83,.12),rgba(24,128,56,.06));border-radius:10px;padding:10px 12px;border:1px solid rgba(52,168,83,.2);display:flex;align-items:center;gap:10px;margin-top:4px;">
-              <span style="font-size:1.3rem;">📹</span>
-              <div>
-                <div style="font-size:.78rem;font-weight:800;color:#059669;">Google Meet</div>
-                <div style="font-size:.72rem;color:#6b7280;">meet.google.com/abc-defg-hij</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="deep-text">
-        <div class="section-eyebrow">Schedule & Live calls</div>
-        <h3>Schedule, then <em>go live</em><br>in one click.</h3>
-        <p>Your weekly timetable lives alongside your boards. Attach a Zoom or Google Meet link to any class slot. When you're ready, hit "Go Live" — every student in that class sees a live banner with a join button, instantly.</p>
-        <ul class="feature-list">
-          <li>Recurring weekly slots with color coding</li>
-          <li>Per-slot meeting URL (or use your permanent room)</li>
-          <li>One-click "Go Live" broadcasts to all students in the class</li>
-          <li>Students see real-time "🔴 Live Now" banner on their dashboard</li>
-        </ul>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<!-- ═══════════════════ PRICING ═══════════════════ -->
+<!-- ════════════ PRICING ════════════ -->
 <section id="pricing">
   <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">Simple, honest pricing</div>
-      <h2 class="section-h2">Start free, <em>grow freely</em></h2>
-      <p class="section-sub">No hidden fees, no per-student charges. Pick the plan that fits your classroom.</p>
-    </div>
+    <div class="section-eyebrow reveal">● Pricing</div>
+    <h2 class="section-h reveal">Start free. <em>Grow when ready.</em></h2>
+    <p class="section-sub reveal">Free tier is unrestricted for solo teachers. Upgrade when you want team workspaces and analytics.</p>
+
     <div class="pricing-grid">
-
-      <!-- Free -->
-      <div class="plan-card reveal">
-        <div class="plan-name">Free</div>
-        <div class="plan-price">$0</div>
-        <div class="plan-per">forever</div>
-        <ul class="plan-features">
-          <li><span class="chk">✓</span>3 lesson boards</li>
-          <li><span class="chk">✓</span>5 students per board</li>
-          <li><span class="chk">✓</span>Basic card types</li>
-          <li><span class="chk">✓</span>Local autosave</li>
-          <li><span class="chk">✓</span>Google Meet / Zoom quick-start</li>
-          <li><span class="chk grey">✓</span><span style="color:var(--text3);">Analytics export</span></li>
-          <li><span class="chk grey">✓</span><span style="color:var(--text3);">Version history</span></li>
+      <div class="pricing-card reveal">
+        <div class="pricing-name">Free</div>
+        <div class="pricing-price">$0<span class="unit">/mo</span></div>
+        <div class="pricing-desc">For solo teachers and tutors. Everything you need for daily classes.</div>
+        <ul class="pricing-features">
+          <li>Unlimited boards & students</li>
+          <li>All 20 games</li>
+          <li>Schedule & gradebook</li>
+          <li>Mobile PWA install</li>
+          <li>Offline-first sync</li>
         </ul>
-        <button class="plan-btn ghost" onclick="location.href='index.html#register'">Get started free</button>
+        <a class="btn btn-glass pricing-btn" href="index.html">Get started →</a>
       </div>
 
-      <!-- Pro -->
-      <div class="plan-card popular reveal">
-        <div class="plan-badge">Most popular</div>
-        <div class="plan-name">Teacher Pro</div>
-        <div class="plan-price">$9<span>.90</span></div>
-        <div class="plan-per">per month, billed monthly</div>
-        <ul class="plan-features">
-          <li><span class="chk">✓</span>Unlimited boards</li>
-          <li><span class="chk">✓</span>30 students per board</li>
-          <li><span class="chk">✓</span>All card types including assignments & games</li>
-          <li><span class="chk">✓</span>Analytics export & gradebook</li>
-          <li><span class="chk">✓</span>Real-time collaboration (WebSockets)</li>
-          <li><span class="chk">✓</span>Live session broadcasting</li>
-          <li><span class="chk">✓</span>Version history (8 auto + 5 pinned)</li>
-          <li><span class="chk">✓</span>Priority support</li>
+      <div class="pricing-card featured reveal">
+        <div class="pricing-name">Teacher Pro</div>
+        <div class="pricing-price">$9<span class="unit">/mo</span></div>
+        <div class="pricing-desc">For tutors going pro. Unlock analytics, custom games, and Stripe payouts.</div>
+        <ul class="pricing-features">
+          <li>Everything in Free</li>
+          <li>Advanced analytics</li>
+          <li>Custom game library</li>
+          <li>Student progress emails</li>
+          <li>Priority support</li>
         </ul>
-        <button class="plan-btn primary" onclick="startCheckout('pro')">Get Teacher Pro →</button>
+        <button class="btn btn-primary pricing-btn" onclick="startCheckout('pro')">Upgrade to Pro →</button>
       </div>
 
-      <!-- School -->
-      <div class="plan-card reveal">
-        <div class="plan-name">School</div>
-        <div class="plan-price">$29</div>
-        <div class="plan-per">per month, billed monthly</div>
-        <ul class="plan-features">
-          <li><span class="chk">✓</span>Everything in Pro</li>
-          <li><span class="chk">✓</span>Unlimited students per board</li>
-          <li><span class="chk">✓</span>Admin panel with school-wide analytics</li>
-          <li><span class="chk">✓</span>Custom branding & colors</li>
-          <li><span class="chk">✓</span>Bulk student import (CSV)</li>
-          <li><span class="chk">✓</span>Course builder with modules</li>
-          <li><span class="chk">✓</span>Dedicated support channel</li>
+      <div class="pricing-card reveal">
+        <div class="pricing-name">School</div>
+        <div class="pricing-price">$49<span class="unit">/mo</span></div>
+        <div class="pricing-desc">For language schools with multiple teachers. Shared workspace + admin.</div>
+        <ul class="pricing-features">
+          <li>Everything in Pro</li>
+          <li>Up to 25 teachers</li>
+          <li>Admin dashboard</li>
+          <li>Shared board library</li>
+          <li>SSO & roles</li>
         </ul>
-        <button class="plan-btn primary" onclick="startCheckout('school')">Get School plan →</button>
-      </div>
-
-    </div>
-    <p style="text-align:center;font-size:.85rem;color:var(--text3);font-weight:700;margin-top:28px;">All plans include SSL, automatic backups, and GDPR-compliant data handling. Cancel anytime.</p>
-  </div>
-</section>
-
-<!-- ═══════════════════ TESTIMONIALS ═══════════════════ -->
-<section id="testimonials">
-  <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">From the community</div>
-      <h2 class="section-h2">Teachers <em>love it</em></h2>
-    </div>
-    <div class="testi-grid">
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-text">"I replaced three separate apps with TeachEd. My lesson boards, gradebook, and student communication are all in one place. The visual canvas is unlike anything else out there."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">🧑‍🏫</div>
-          <div><div class="testi-name">Sarah M.</div><div class="testi-role">ESL Teacher, Madrid</div></div>
-        </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-text">"The Go Live feature changed how I run online classes. I click one button and all my students immediately see the meeting link. The student dashboard is gorgeous too."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">👩‍🏫</div>
-          <div><div class="testi-name">Katja B.</div><div class="testi-role">English Tutor, Berlin</div></div>
-        </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-text">"The assignment builder with 300+ built-in tasks saved me hours every week. I just pick a topic and level, generate a set, and it's ready. My students love the interactive format."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">🧑‍💻</div>
-          <div><div class="testi-name">Ivan K.</div><div class="testi-role">Online Language Coach, Kyiv</div></div>
-        </div>
+        <button class="btn btn-glass pricing-btn" onclick="startCheckout('school')">Get School →</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ FAQ ═══════════════════ -->
+<!-- ════════════ FAQ ════════════ -->
 <section id="faq">
   <div class="container">
-    <div class="center reveal">
-      <div class="section-eyebrow">FAQ</div>
-      <h2 class="section-h2">Common <em>questions</em></h2>
-    </div>
-    <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I really use it for free forever?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Yes. The Free plan never expires. You get 3 boards and 5 students per board — enough for individual tutors starting out. Upgrade when you need more.</div>
+    <div class="section-eyebrow reveal">● Questions</div>
+    <h2 class="section-h reveal">Things teachers <em>always ask</em></h2>
+
+    <div class="faq" style="margin-top:40px;">
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Does it really work offline?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes. The whole app shell, your boards, and student data are cached locally. You can plan a lesson on the subway, run a class with weak Wi-Fi, and sync everything the moment you're back online.</div>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Does TeachEd work offline?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Yes. Every change saves to your browser's localStorage immediately. If you lose internet, you keep working. When you're back online, changes sync to the cloud automatically.</div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Why a PWA instead of an App Store app?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Same install experience for the user, but we ship updates instantly without Apple/Google review. The install is 3 MB instead of 200, and the same codebase serves iPhone, Android, and laptop — so we can spend time building features, not maintaining three apps.</div>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>How does the Zoom / Google Meet integration work?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">You save your permanent room URLs in the Calls window. When you click "Go Live" on a schedule slot, all students enrolled in that class see a real-time "🔴 Live Now" banner with a direct join link. No plugins required.</div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How do I install on iPhone?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Open this page in Safari (not Chrome — Apple's restriction). Tap the Share icon at the bottom, then "Add to Home Screen." TeachEd will appear as a regular app, no browser bar.</div>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>What languages and levels does the assignment builder support?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">The built-in task library covers English grammar topics (articles, prepositions, phrasal verbs, conditionals, tenses, and more) from A1 to C2. Gap-fill, MCQ, true/false, and matching question types are all included — no internet or AI API needed.</div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What languages does it support?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">English is the primary supported language with a full game library covering grammar (articles, prepositions, phrasal verbs, conditionals, tenses) and vocabulary from A1 to C2. The interface is English; boards work for any language.</div>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Can students use TeachEd on mobile?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Yes. The student dashboard is fully mobile-responsive. The board editor works on tablets and larger phones. The macOS desktop interface (teacher view) is optimized for laptop/desktop screens.</div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can students use it too?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes. Students get a dedicated portal showing their boards, progress, vocab, and games. They install the same PWA and sign in with the email you invite them with.</div>
       </div>
-      <div class="faq-item">
+      <div class="faq-item reveal">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Is my data secure?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">All data is transmitted over HTTPS. Passwords are hashed with bcrypt. Sessions use signed JWTs with 7-day expiry. The backend runs on Render with PostgreSQL — no student data is ever sold or shared.</div>
+        <div class="faq-a">All traffic is HTTPS. Passwords are bcrypt-hashed. Sessions use signed JWTs with 7-day expiry. Backend runs on Render with PostgreSQL. No student data is ever sold or shared.</div>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I cancel my subscription anytime?</span><span class="faq-arrow">▾</span></div>
-        <div class="faq-a">Yes, cancel anytime from the billing portal — no questions asked. Your boards and student data remain accessible on the Free plan after downgrade.</div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I cancel anytime?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes — one tap in the billing portal, no questions. Your boards and student data stay accessible on the Free tier after downgrade.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ CTA ═══════════════════ -->
-<section id="cta">
-  <h2>Choose your <em>best screen</em>, keep one system.</h2>
-  <p>Open TeachEd in the browser on desktop for full planning power, or install it on mobile as a PWA for faster daily teaching workflows.</p>
-  <div class="cta-btns">
-    <a class="btn btn-primary btn-lg" href="index.html">Open web version →</a>
-    <button class="btn btn-lg" id="cta-install-btn" type="button" style="border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);background:transparent;">Install mobile PWA</button>
+<!-- ════════════ FINAL CTA ════════════ -->
+<section class="final-cta">
+  <h2 class="final-h">Your classroom,<br><em>installed.</em></h2>
+  <p class="final-p">10 seconds to install. A week of saved planning time. Forever.</p>
+  <div class="final-ctas">
+    <button class="btn btn-primary btn-xl" id="screens-install-btn" type="button">Install on this device</button>
+    <a class="btn btn-glass btn-xl" href="index.html">Open in browser</a>
   </div>
 </section>
 
-<!-- ═══════════════════ FOOTER ═══════════════════ -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div>
-        <div class="footer-brand">Teached<em>OS</em></div>
-        <div class="footer-desc">The macOS-style workspace for language teachers. Visual boards, real-time collaboration, gradebook, analytics, and live calls.</div>
-      </div>
-      <div class="footer-col">
-        <h4>Product</h4>
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="board.html">Board editor</a>
-        <a href="index.html">Teacher desktop</a>
-        <a href="student.html">Student dashboard</a>
-      </div>
-      <div class="footer-col">
-        <h4>Tools</h4>
-        <a href="courses.html">Courses</a>
-        <a href="gradebook.html">Gradebook</a>
-        <a href="analytics.html">Analytics</a>
-        <a href="schedule.html">Schedule</a>
-        <a href="profile.html">Profile</a>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
-        <a href="#faq">FAQ</a>
-        <a href="admin.html">Admin</a>
-        <a href="#" onclick="return false;">Privacy Policy</a>
-        <a href="#" onclick="return false;">Terms of Service</a>
-      </div>
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">Teach<em>Ed</em></div>
+      <div class="footer-desc">The classroom OS for language teachers. Visual boards, real-time schedule, gradebook, 20 games — installable as an app.</div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 TeachEd. All rights reserved.</span>
-      <div style="display:flex;gap:18px;">
-        <a href="#" onclick="return false;">Privacy</a>
-        <a href="#" onclick="return false;">Terms</a>
-        <a href="index.html">Sign in</a>
-      </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="index.html">Web version</a>
+      <a href="student.html">Student dashboard</a>
     </div>
+    <div class="footer-col">
+      <h4>Tools</h4>
+      <a href="board.html">Board editor</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="gradebook.html">Gradebook</a>
+      <a href="games/index.html">Games hub</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#faq">FAQ</a>
+      <a href="#" onclick="return false;">Privacy</a>
+      <a href="#" onclick="return false;">Terms</a>
+      <a href="index.html">Sign in</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 TeachEd. All rights reserved.</span>
+    <span>Made for language teachers worldwide.</span>
   </div>
 </footer>
 
-<!-- ── Checkout modal overlay ── -->
-<div id="checkout-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.6);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:22px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.2);text-align:center;position:relative;">
-    <div style="font-size:2.4rem;margin-bottom:12px;" id="co-icon">🚀</div>
-    <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-bottom:8px;letter-spacing:-.02em;" id="co-title">Upgrade to Teacher Pro</div>
-    <div style="font-size:.88rem;color:var(--text2);margin-bottom:24px;font-weight:600;line-height:1.6;" id="co-sub">You need an account to subscribe. Sign in or register, then come back to upgrade.</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <a class="btn btn-primary" id="co-signin-btn" href="index.html" style="justify-content:center;">Sign in to continue →</a>
-      <button class="btn btn-ghost" onclick="closeCheckout()" style="justify-content:center;">Maybe later</button>
-    </div>
-    <div onclick="closeCheckout()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text3);">×</div>
+<!-- Sticky mobile CTA -->
+<button class="sticky-cta" id="cta-install-btn" type="button">
+  <span class="sticky-cta-text">Install TeachEd<small>Add to your home screen, free</small></span>
+  <span class="btn btn-primary">Install →</span>
+</button>
+
+<!-- Checkout modal -->
+<div class="checkout-overlay" id="checkout-overlay">
+  <div class="checkout-box">
+    <div class="checkout-ic" id="co-icon">🚀</div>
+    <div class="checkout-t" id="co-title">Upgrade to Teacher Pro</div>
+    <div class="checkout-s" id="co-sub">You need a teacher account to subscribe. Sign in or create one, then upgrade from the billing window.</div>
+    <a class="btn btn-primary" id="co-signin-btn" href="index.html" style="width:100%;justify-content:center;margin-bottom:10px;">Sign in to continue →</a>
+    <button class="btn btn-glass" onclick="closeCheckout()" style="width:100%;justify-content:center;">Maybe later</button>
+    <div class="checkout-close" onclick="closeCheckout()">×</div>
   </div>
 </div>
 
@@ -1090,144 +988,121 @@ const token = localStorage.getItem('teachedos_token');
 /* ── Update nav CTA based on auth state ── */
 (function() {
   const tok = localStorage.getItem('teachedos_token');
-  const cta = document.querySelector('.nav-cta');
-  if (tok && cta) {
+  if (tok) {
+    const ctaWrap = document.querySelector('.nav-cta');
     const user = (() => { try { return JSON.parse(localStorage.getItem('teachedos_user')); } catch { return null; } })();
-    cta.innerHTML = `<a class="btn btn-ghost" href="student.html">Mobile view</a><a class="btn btn-primary" href="index.html">Open web app ${user?.name ? '· ' + user.name.split(' ')[0] : ''} →</a>`;
+    if (ctaWrap) {
+      ctaWrap.innerHTML = `<a class="btn btn-ghost" href="student.html">Student</a><a class="btn btn-primary" href="index.html">Open app${user?.name ? ' · ' + user.name.split(' ')[0] : ''} →</a>`;
+    }
   }
 })();
 
-function handlePwaInstall() {
-  const api = window.TeachedosPWA;
-  if (!api) {
-    showToast('Open TeachEd on your phone browser to install the mobile app.');
-    return;
-  }
-  api.promptInstall();
-  if (api.isIos && !api.canPromptInstall()) {
-    showToast('On iPhone, tap Share in Safari and choose Add to Home Screen.');
-    return;
-  }
-  if (!api.canPromptInstall() && !api.isIos) {
-    showToast('If no prompt appears, open TeachEd on Android Chrome and use Install from the browser menu.');
-  }
-}
-
-['hero-install-btn','platform-install-btn','screens-install-btn','cta-install-btn'].forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', handlePwaInstall);
-});
-
-function syncLandingPlatformCopy() {
-  const api = window.TeachedosPWA;
-  const note = document.getElementById('pwa-note');
-  if (!note || !api) return;
-  if (api.isStandalone) {
-    note.textContent = 'TeachEd is already installed on this device and can be launched from the home screen.';
-    return;
-  }
-  if (api.isIos) {
-    note.textContent = 'Best on iPhone: open in Safari, tap Share, then choose Add to Home Screen.';
-    return;
-  }
-  note.textContent = 'Best on Android: tap Install when prompted to pin TeachEd to the home screen as a PWA.';
-}
-window.addEventListener('load', () => setTimeout(syncLandingPlatformCopy, 120));
-
-/* ── Reveal on scroll ── */
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-/* ── FAQ accordion ── */
-function toggleFaq(btn) {
-  const item = btn.closest('.faq-item');
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
-}
-
-/* ── Checkout flow ── */
-async function startCheckout(plan) {
-  // If not logged in — show sign-in prompt
-  if (!token) {
-    const icons = { pro:'🚀', school:'🏫' };
-    const names = { pro:'Teacher Pro', school:'School' };
-    document.getElementById('co-icon').textContent = icons[plan];
-    document.getElementById('co-title').textContent = `Upgrade to ${names[plan]}`;
-    document.getElementById('co-sub').textContent = `You need a teacher account to subscribe. Sign in or create one, then open the Billing window to upgrade.`;
-    document.getElementById('co-signin-btn').href = 'index.html';
-    const ov = document.getElementById('checkout-overlay');
-    ov.style.display = 'flex';
-    return;
-  }
-  // Logged in — call checkout API
-  const btn = event?.target;
-  if (btn) { btn.textContent = '⟳ Redirecting…'; btn.disabled = true; }
-  try {
-    const r = await fetch(API + '/api/billing/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ plan }),
-    });
-    const d = await r.json();
-    if (d.url) {
-      location.href = d.url; // Stripe Checkout
-    } else if (d.dev_mode) {
-      // No Stripe configured — plan upgraded directly
-      showToast('Plan upgraded to ' + plan + ' ✓ (dev mode)');
-      setTimeout(() => location.href = 'index.html', 1200);
-    } else {
-      throw new Error(d.error || 'Checkout failed');
-    }
-  } catch (err) {
-    showToast('Error: ' + err.message);
-    if (btn) { btn.textContent = btn.textContent.replace('⟳ Redirecting…', 'Get ' + plan + ' →'); btn.disabled = false; }
-  }
-}
-
-function closeCheckout() {
-  document.getElementById('checkout-overlay').style.display = 'none';
-}
-
-/* ── Menubar clock ── */
-function updateNavClock() {
-  const now = new Date();
-  const h = now.getHours().toString().padStart(2,'0');
-  const m = now.getMinutes().toString().padStart(2,'0');
-  // Could inject clock but not needed for landing
-}
-
-/* ── Toast ── */
+/* ── PWA install handler ── */
 function showToast(msg) {
   let t = document.getElementById('landing-toast');
   if (!t) {
     t = document.createElement('div');
     t.id = 'landing-toast';
-    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.9);color:#fff;padding:12px 24px;border-radius:22px;font-size:14px;font-weight:700;z-index:99999;font-family:Nunito,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .3s;';
+    t.className = 'toast';
     document.body.appendChild(t);
   }
   t.textContent = msg;
-  t.style.opacity = '1';
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.style.opacity = '0', 2800);
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-/* ── Smooth nav active link ── */
-window.addEventListener('scroll', () => {
-  const sections = ['features','how','deep','pricing','faq'];
-  const scrollY = window.scrollY + 100;
-  sections.forEach(id => {
+function handlePwaInstall() {
+  const api = window.TeachedosPWA;
+  if (!api) {
+    showToast('Open this page on your phone to install.');
+    return;
+  }
+  api.promptInstall();
+  if (api.isIos && !api.canPromptInstall()) {
+    showToast('iPhone: Safari → Share → Add to Home Screen.');
+    return;
+  }
+  if (!api.canPromptInstall() && !api.isIos) {
+    showToast('No install prompt? Try Chrome on Android or Edge on Windows.');
+  }
+}
+['hero-install-btn','platform-install-btn','screens-install-btn','cta-install-btn'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', handlePwaInstall);
+});
+
+/* ── Hide sticky CTA if already standalone ── */
+window.addEventListener('load', () => {
+  const api = window.TeachedosPWA;
+  if (api?.isStandalone) {
+    const s = document.getElementById('cta-install-btn');
+    if (s) s.style.display = 'none';
+  }
+});
+
+/* ── Reveal on scroll ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.10, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ── FAQ accordion ── */
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const open = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!open) item.classList.add('open');
+}
+
+/* ── Checkout ── */
+function closeCheckout() {
+  document.getElementById('checkout-overlay').style.display = 'none';
+}
+async function startCheckout(plan) {
+  if (!token) {
+    const icons = { pro:'🚀', school:'🏫' };
+    const names = { pro:'Teacher Pro', school:'School' };
+    document.getElementById('co-icon').textContent = icons[plan] || '⭐';
+    document.getElementById('co-title').textContent = `Upgrade to ${names[plan] || plan}`;
+    document.getElementById('co-sub').textContent = `Sign in or create a teacher account first, then come back to upgrade from billing.`;
+    document.getElementById('checkout-overlay').style.display = 'flex';
+    return;
+  }
+  const btn = event?.target;
+  if (btn) { btn.textContent = '⟳ Redirecting…'; btn.disabled = true; }
+  try {
+    const r = await fetch(API + '/api/billing/checkout', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+      body:JSON.stringify({ plan }),
+    });
+    const d = await r.json();
+    if (d.url) location.href = d.url;
+    else if (d.dev_mode) { showToast('Plan upgraded to ' + plan + ' ✓'); setTimeout(()=>location.href='index.html', 1200); }
+    else throw new Error(d.error || 'Checkout failed');
+  } catch (err) {
+    showToast('Error: ' + err.message);
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* ── Smooth anchor scroll offset for sticky nav ── */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
     const el = document.getElementById(id);
     if (!el) return;
-    const link = document.querySelector(`.nav-links a[href="#${id}"]`);
-    if (!link) return;
-    const inView = scrollY >= el.offsetTop && scrollY < el.offsetTop + el.offsetHeight;
-    link.style.background = inView ? 'rgba(94,94,74,.1)' : '';
-    link.style.color = inView ? 'var(--accent)' : '';
+    e.preventDefault();
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 70;
+    window.scrollTo({ top: y, behavior: 'smooth' });
   });
-}, { passive: true });
+});
 </script>
 <script>
 if('serviceWorker'in navigator){
