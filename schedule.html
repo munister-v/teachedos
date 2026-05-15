@@ -234,6 +234,8 @@ a{text-decoration:none;color:inherit;}
   }
   .mobile-schedule-action-title{font-size:13px;font-weight:800;line-height:1.2;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
+  /* Hide duplicate desktop action buttons on mobile — already in mobile-schedule-actions */
+  .side-section-actions{display:none !important;}
 }
 
 @media (max-width: 520px){
@@ -313,7 +315,7 @@ a{text-decoration:none;color:inherit;}
       <button class="wn-today" onclick="goToday()">Today</button>
     </div>
 
-    <div class="side-section" style="display:flex;flex-direction:column;gap:8px;">
+    <div class="side-section side-section-actions" style="display:flex;flex-direction:column;gap:8px;">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
       <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;padding:7px;">📅 Export .ics</button>
       <button class="btn-add" onclick="location.href='board.html'" style="background:transparent;color:var(--text2);border:1.5px solid var(--border);font-size:11px;padding:7px;">📌 Open Board</button>

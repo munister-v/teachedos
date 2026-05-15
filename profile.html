@@ -201,9 +201,34 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   #nav { padding: 0 14px; gap: 8px; overflow-x: auto; }
   .nav-link { display: none; }
   #layout { flex-direction: column; padding: 16px 12px calc(90px + env(safe-area-inset-bottom,0px)); gap: 16px; }
-  #sidebar-tabs { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
-  .st-item { justify-content: center; font-size: 12px; padding: 10px 8px; margin-bottom: 0; min-height: 44px; }
-  .st-icon { display: none; }
+  #sidebar-tabs {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  #sidebar-tabs::-webkit-scrollbar { display: none; }
+  .st-item {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    min-height: 0;
+    margin-bottom: 0;
+    color: var(--text-2);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .st-item.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .st-item[data-tab="logout"] { margin-top: 0 !important; margin-left: 4px; color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+  .st-icon { display: inline; font-size: 14px; margin-right: 4px; }
   .card { padding: 18px; margin-bottom: 16px; }
   .mobile-profile-shell { display: block; }
   .mobile-profile-hero {
@@ -271,7 +296,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 }
 
 @media (max-width: 420px) {
-  #sidebar-tabs { grid-template-columns: 1fr 1fr; }
   .stats-grid { grid-template-columns: 1fr; }
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
