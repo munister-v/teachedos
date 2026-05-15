@@ -114,6 +114,28 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 #btn-follow-me:hover{background:var(--accent-2);border-color:var(--accent);color:var(--accent);}
 #btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+#mobile-quickbar{
+  display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  z-index:1200;padding:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);
+  border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 50px rgba(5,5,23,.16);
+  gap:8px;align-items:center;justify-content:space-between;
+}
+.mq-btn{
+  flex:1;min-width:0;height:42px;border:none;border-radius:12px;background:#fff;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-family:var(--font);font-size:12px;font-weight:800;color:var(--text);cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--border);-webkit-tap-highlight-color:transparent;
+}
+.mq-btn svg{flex-shrink:0}
+.mq-btn.primary{background:var(--accent);color:#fff;box-shadow:none}
+.mq-btn.ghost{background:transparent}
+.mq-btn:active{transform:scale(.98)}
+.mq-status{
+  position:absolute;top:-9px;right:10px;padding:3px 7px;border-radius:999px;background:#fff;
+  border:1px solid var(--border);font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text-3);
+}
+.mq-status.good{color:#15803d}
+.mq-status.warn{color:#f97316}
 
 /* ── SIDEBAR ── */
 #sidebar{
@@ -1242,15 +1264,26 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .exp-item:hover{background:rgba(94,94,74,.06);}
 /* Mobile responsive */
 @media(max-width:768px){
-  :root{--tb-h:50px;}
-  #toolbar{padding:0 6px;gap:3px;overflow-x:auto;flex-wrap:nowrap;}
-  .tb-title{display:none;}
+  :root{--tb-h:54px;}
+  #toolbar{padding:0 10px;gap:6px;overflow:hidden;flex-wrap:nowrap;}
+  .tb-title{
+    display:block;min-width:0;max-width:42vw!important;font-size:13px;padding:4px 6px!important;
+    background:rgba(255,255,255,.65);backdrop-filter:blur(12px);
+  }
   .tb-back span{display:none;}
-  #save-status{display:none;}
+  #save-status{display:inline;}
   .tb-zoom-display{display:none;}
   #export-btn{display:none;}
+  #course-breadcrumb,.tb-sep,#btn-connect,#btn-fit,#btn-call,#presence-bar,#btn-follow-me,#auth-name,#auth-login-btn{display:none!important;}
+  #save-chip{padding:3px 8px!important;font-size:10px!important;}
+  #session-chip{display:none!important;}
+  #auth-chip{padding:4px 7px!important;gap:0!important;}
+  #auth-chip svg{display:none;}
+  #btn-more{width:34px;height:34px;flex-shrink:0;}
+  #btn-share{display:none!important;}
   #sidebar{display:none;}
   #board-wrap{left:0!important;}
+  #mobile-quickbar{display:flex;}
   .board-card{min-width:160px!important;}
   #card-editor{right:0!important;left:0!important;width:100%!important;top:auto!important;bottom:0!important;border-radius:18px 18px 0 0!important;max-height:80vh!important;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
@@ -1259,7 +1292,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   #zoom-controls{display:none;}
 }
 @media(max-width:480px){
-  .tb-btn{min-width:26px;height:26px;font-size:12px;}
+  .tb-btn{min-width:28px;height:28px;font-size:12px;}
+  .tb-title{max-width:36vw!important;font-size:12px;}
+  .mq-btn{height:40px;font-size:11px}
 }
 /* Print styles */
 @media print {
@@ -1463,6 +1498,26 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
     <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="clearAll();toggleMoreMenu()">🗑 Clear board</div>
   </div>
+</div>
+
+<div id="mobile-quickbar">
+  <div class="mq-status good" id="mobile-save-status">Saved</div>
+  <button class="mq-btn ghost" type="button" onclick="document.getElementById('btn-fit').click()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+    <span>Fit</span>
+  </button>
+  <button class="mq-btn" type="button" onclick="document.getElementById('btn-connect').click()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+    <span>Connect</span>
+  </button>
+  <button class="mq-btn primary" type="button" onclick="openSharePanel()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
+    <span>Share</span>
+  </button>
+  <button class="mq-btn ghost" type="button" onclick="toggleMoreMenu()">
+    <span style="font-size:18px;line-height:1">⋯</span>
+    <span>More</span>
+  </button>
 </div>
 
 <!-- Hidden zoom buttons for JS compatibility -->
@@ -4765,29 +4820,37 @@ function boardHash() {
 function setSaveUI(state, detail) {
   const dot    = document.getElementById('save-dot');
   const status = document.getElementById('save-status');
+  const mobile = document.getElementById('mobile-save-status');
   if (!dot || !status) return;
   dot.className = '';
+  if (mobile) mobile.className = 'mq-status';
   if (state === 'saving') {
     dot.style.background = '#f59e0b'; dot.classList.add('save-dot-saving');
     status.textContent = 'saving…';
+    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Saving'; }
   } else if (state === 'saved') {
     dot.style.background = '#22c55e';
     status.textContent = detail || '✓ saved';
     lastSavedAt = new Date();
+    if (mobile) { mobile.classList.add('good'); mobile.textContent = 'Saved'; }
   } else if (state === 'cloud') {
     dot.style.background = '#6366f1';
     const now = new Date();
     status.textContent = `☁ synced ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
     lastSavedAt = now;
+    if (mobile) { mobile.classList.add('good'); mobile.textContent = 'Synced'; }
   } else if (state === 'offline') {
     dot.style.background = '#f97316';
     status.textContent = '📡 offline';
+    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Offline'; }
   } else if (state === 'error') {
     dot.style.background = '#ef4444';
     status.textContent = '⚠ error';
+    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Error'; }
   } else if (state === 'conflict') {
     dot.style.background = '#ef4444';
     status.textContent = '⚡ conflict';
+    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Conflict'; }
   }
 }
 
@@ -4801,7 +4864,11 @@ setInterval(() => {
   else chip.title = `Last saved ${diff} min ago · click for version history`;
   // Warn if not saved in 5+ min
   const status = document.getElementById('save-status');
-  if (diff >= 5 && status && !pendingCloudSave) status.textContent = `⚠ ${diff}m unsaved`;
+  const mobile = document.getElementById('mobile-save-status');
+  if (diff >= 5 && status && !pendingCloudSave) {
+    status.textContent = `⚠ ${diff}m unsaved`;
+    if (mobile) { mobile.className = 'mq-status warn'; mobile.textContent = `${diff}m`; }
+  }
 }, 30000);
 
 /* ── Periodic forced cloud save every 30s if there are unsaved changes ── */
