@@ -303,6 +303,69 @@ router.get('/timeline', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/brief ───────────────────────────────────────────────────
+router.get('/brief', async (req, res) => {
+  try {
+    const [users, boards, activeSessions, expiredSessions, activeInvites, expiredInvites, staleBoards, emptyBoards, admins] = await Promise.all([
+      pool.query('SELECT COUNT(*)::int AS count FROM users'),
+      pool.query('SELECT COUNT(*)::int AS count FROM boards'),
+      pool.query('SELECT COUNT(*)::int AS count FROM sessions WHERE expires_at > NOW()'),
+      pool.query('SELECT COUNT(*)::int AS count FROM sessions WHERE expires_at <= NOW()'),
+      pool.query("SELECT COUNT(*)::int AS count FROM invites WHERE revoked_at IS NULL AND accepted_at IS NULL AND expires_at > NOW()"),
+      pool.query("SELECT COUNT(*)::int AS count FROM invites WHERE revoked_at IS NULL AND accepted_at IS NULL AND expires_at <= NOW()"),
+      pool.query("SELECT COUNT(*)::int AS count FROM boards WHERE updated_at < NOW() - INTERVAL '30 days'"),
+      pool.query(`
+        SELECT COUNT(*)::int AS count
+        FROM boards
+        WHERE COALESCE(
+          CASE WHEN jsonb_typeof(data->'cards') = 'array' THEN jsonb_array_length(data->'cards') ELSE 0 END,
+          0
+        ) = 0
+      `),
+      pool.query("SELECT COUNT(*)::int AS count FROM users WHERE role = 'admin'"),
+    ]);
+
+    const metrics = {
+      users: users.rows[0].count,
+      boards: boards.rows[0].count,
+      activeSessions: activeSessions.rows[0].count,
+      expiredSessions: expiredSessions.rows[0].count,
+      activeInvites: activeInvites.rows[0].count,
+      expiredInvites: expiredInvites.rows[0].count,
+      staleBoards: staleBoards.rows[0].count,
+      emptyBoards: emptyBoards.rows[0].count,
+      admins: admins.rows[0].count,
+    };
+
+    let score = 100;
+    score -= Math.min(metrics.expiredSessions * 2, 20);
+    score -= Math.min(metrics.expiredInvites * 4, 20);
+    score -= Math.min(metrics.staleBoards, 18);
+    score -= Math.min(metrics.emptyBoards, 12);
+    if (metrics.admins > 3) score -= Math.min((metrics.admins - 3) * 5, 15);
+    score = Math.max(0, Math.min(100, score));
+
+    const tone = score >= 82 ? 'good' : score >= 60 ? 'watch' : 'risk';
+    const highlights = [
+      `${metrics.users} users, ${metrics.boards} boards, ${metrics.activeSessions} active sessions.`,
+      `${metrics.activeInvites} active invite links and ${metrics.expiredInvites} expired invite links.`,
+      `${metrics.staleBoards} stale boards and ${metrics.emptyBoards} empty boards need content review.`,
+    ];
+
+    const actions = [];
+    if (metrics.expiredSessions) actions.push({ tone: 'watch', label: 'Purge expired sessions', action: 'purgeExpiredSessions()' });
+    if (!metrics.activeInvites) actions.push({ tone: 'good', label: 'Create invite pipeline', action: "showPage('settings')" });
+    if (metrics.expiredInvites) actions.push({ tone: 'watch', label: 'Review invite links', action: "showPage('settings')" });
+    if (metrics.admins > 3) actions.push({ tone: 'risk', label: 'Review admin accounts', action: "showPage('users');setUsersRoleFilter('admin')" });
+    if (metrics.staleBoards || metrics.emptyBoards) actions.push({ tone: 'watch', label: 'Open audit board review', action: "showPage('audit')" });
+    if (!actions.length) actions.push({ tone: 'good', label: 'Open timeline', action: "document.getElementById('timeline-list')?.scrollIntoView({behavior:'smooth',block:'start'})" });
+
+    res.json({ score, tone, metrics, highlights, actions: actions.slice(0, 4) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/invites ─────────────────────────────────────────────────
 router.get('/invites', async (req, res) => {
   try {
