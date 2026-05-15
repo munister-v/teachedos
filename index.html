@@ -1164,6 +1164,7 @@ html,body {
 }
 </style>
 <link rel="stylesheet" href="dark.css">
+<link rel="stylesheet" href="styles/mobile-pro.css">
 <script src="theme.js"></script>
 </head>
 <body>
@@ -1272,67 +1273,131 @@ html,body {
         <div class="mob-win-title">Lesson Plans</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')">☰</div>
       </div>
-      <div class="mob-home-shell">
-        <div class="mob-home-hero">
-          <div class="mob-home-eyebrow" id="mob-home-eyebrow">Teacher workspace</div>
-          <div class="mob-home-title" id="mob-home-title">Ready for today</div>
-          <div class="mob-home-sub" id="mob-home-sub">Loading your classes, boards, and students...</div>
-          <div class="mob-home-kpis">
-            <div class="mob-home-kpi">
-              <span class="mob-home-kpi-n" id="mob-kpi-classes">-</span>
-              <span class="mob-home-kpi-label">Classes Today</span>
-            </div>
-            <div class="mob-home-kpi">
-              <span class="mob-home-kpi-n" id="mob-kpi-boards">-</span>
-              <span class="mob-home-kpi-label">Boards</span>
-            </div>
-            <div class="mob-home-kpi">
-              <span class="mob-home-kpi-n" id="mob-kpi-students">-</span>
-              <span class="mob-home-kpi-label">Students</span>
-            </div>
+      <div class="mob-home-shell mp-shell">
+        <!-- Top bar: avatar + greeting + actions -->
+        <header class="mp-topbar">
+          <div class="mp-avatar" id="mp-avatar">EB</div>
+          <div class="mp-greeting">
+            <div class="mp-greeting-meta" id="mp-greeting-meta">TODAY</div>
+            <div class="mp-greeting-name" id="mp-greeting-name">Hi there</div>
           </div>
-          <div class="mob-home-actions">
-            <a class="mob-home-action" href="board.html">
-              <div class="mob-home-action-ic">📌</div>
-              <div class="mob-home-action-copy">
-                <div class="mob-home-action-title">Open board</div>
-                <div class="mob-home-action-sub">Jump straight into class mode</div>
-              </div>
-            </a>
-            <div class="mob-home-action" onclick="openApp('schedule')" style="cursor:pointer;">
-              <div class="mob-home-action-ic">📅</div>
-              <div class="mob-home-action-copy">
-                <div class="mob-home-action-title">Check schedule</div>
-                <div class="mob-home-action-sub">See what is next today</div>
-              </div>
-            </div>
-            <div class="mob-home-action" onclick="openApp('students')" style="cursor:pointer;">
-              <div class="mob-home-action-ic">👥</div>
-              <div class="mob-home-action-copy">
-                <div class="mob-home-action-title">Students</div>
-                <div class="mob-home-action-sub">Open your roster fast</div>
-              </div>
-            </div>
-            <div class="mob-home-action" onclick="openApp('tools')" style="cursor:pointer;">
-              <div class="mob-home-action-ic">🪄</div>
-              <div class="mob-home-action-copy">
-                <div class="mob-home-action-title">Warm-up tools</div>
-                <div class="mob-home-action-sub">Launch a quick activity</div>
-              </div>
-            </div>
+          <div class="mp-topbar-actions">
+            <a class="mp-icon-btn" href="#" onclick="document.getElementById('plans-search-input')?.focus();return false;" aria-label="Search">🔍</a>
+            <a class="mp-icon-btn alert" href="courses.html" aria-label="Notifications">🔔<span class="mp-badge" id="mp-notif-badge" style="display:none;">1</span></a>
+          </div>
+        </header>
+
+        <!-- Premium featured: next lesson -->
+        <div class="mp-featured" id="mp-next-lesson">
+          <div class="mp-featured-head">
+            <div class="mp-eyebrow-dark" id="mp-next-eyebrow">Next lesson</div>
+            <span class="mp-pulse"></span>
+          </div>
+          <div class="mp-featured-title" id="mp-next-title">No upcoming class</div>
+          <div class="mp-featured-meta" id="mp-next-meta">Add a class in Schedule to see it here.</div>
+          <div class="mp-featured-cta">
+            <a class="mp-btn mp-btn-lime" href="board.html">Open board</a>
+            <a class="mp-btn mp-btn-ghost-dark" href="schedule.html">Reschedule</a>
           </div>
         </div>
-        <div class="mob-home-focus">
-          <div class="mob-home-focus-label">Today Focus</div>
-          <div class="mob-home-focus-title" id="mob-focus-title">Loading your teacher snapshot...</div>
-          <div class="mob-home-focus-sub" id="mob-focus-sub">We are pulling schedule and board data for this phone view.</div>
-          <div class="mob-home-linkrow">
-            <a class="mob-home-pill" href="gradebook.html">Gradebook</a>
-            <a class="mob-home-pill" href="analytics.html">Analytics</a>
-            <a class="mob-home-pill" href="courses.html">Courses</a>
-            <a class="mob-home-pill" href="profile.html">Profile</a>
+
+        <!-- Stat tiles -->
+        <div class="mp-stats">
+          <div class="mp-stat">
+            <div class="mp-stat-label">THIS WEEK</div>
+            <div class="mp-stat-n" id="mp-stat-lessons">0</div>
+            <div class="mp-stat-sub">lessons</div>
+          </div>
+          <div class="mp-stat">
+            <div class="mp-stat-label">STUDENTS</div>
+            <div class="mp-stat-n" id="mp-stat-students">0</div>
+            <div class="mp-stat-sub">active</div>
+          </div>
+          <div class="mp-stat">
+            <div class="mp-stat-label">BOARDS</div>
+            <div class="mp-stat-n" id="mp-stat-boards">0</div>
+            <div class="mp-stat-sub">in library</div>
           </div>
         </div>
+
+        <!-- My Boards horizontal scroll -->
+        <div class="mp-section-head">
+          <div class="mp-section-h">My Boards</div>
+          <a class="mp-see-all" href="#" onclick="document.querySelector('.curr-header')?.scrollIntoView({behavior:'smooth'});return false;">See all</a>
+        </div>
+        <div class="mp-hscroll" id="mp-boards-scroll">
+          <a class="mp-board-card" href="board.html">
+            <div class="mp-board-eyebrow">B1 · GRAMMAR</div>
+            <div class="mp-board-title">Past Perfect vs. Past Simple</div>
+            <div class="mp-board-foot">
+              <span class="mp-board-meta">45 MIN</span>
+              <span class="mp-board-status">Active</span>
+            </div>
+          </a>
+          <a class="mp-board-card lime" href="courses.html">
+            <div class="mp-board-eyebrow">A2 · VOCAB</div>
+            <div class="mp-board-title">False Friends · RU/UA/PL</div>
+            <div class="mp-board-foot">
+              <span class="mp-board-meta">30 MIN</span>
+              <span class="mp-board-status">Ready</span>
+            </div>
+          </a>
+          <a class="mp-board-card dark" href="courses.html">
+            <div class="mp-board-eyebrow">C1 · SPEAKING</div>
+            <div class="mp-board-title">Future Tech Debate</div>
+            <div class="mp-board-foot">
+              <span class="mp-board-meta">60 MIN</span>
+              <span class="mp-board-status">→</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Quick start -->
+        <div class="mp-section-head"><div class="mp-section-h">Quick start</div></div>
+        <div class="mp-quick-list">
+          <a class="mp-quick" href="board.html">
+            <div class="mp-quick-ic">+</div>
+            <div class="mp-quick-info">
+              <div class="mp-quick-t">New board</div>
+              <div class="mp-quick-s">Start from blank or template</div>
+            </div>
+            <span class="mp-quick-arrow">→</span>
+          </a>
+          <a class="mp-quick" href="gradebook.html">
+            <div class="mp-quick-ic">👥</div>
+            <div class="mp-quick-info">
+              <div class="mp-quick-t">Invite a student</div>
+              <div class="mp-quick-s">Send an invite link by email</div>
+            </div>
+            <span class="mp-quick-arrow">→</span>
+          </a>
+          <a class="mp-quick" href="courses.html">
+            <div class="mp-quick-ic">📚</div>
+            <div class="mp-quick-info">
+              <div class="mp-quick-t">Lesson library</div>
+              <div class="mp-quick-s">50+ ready packs, A1 to C1</div>
+            </div>
+            <span class="mp-quick-arrow">→</span>
+          </a>
+          <a class="mp-quick" href="analytics.html">
+            <div class="mp-quick-ic">📊</div>
+            <div class="mp-quick-info">
+              <div class="mp-quick-t">Analytics</div>
+              <div class="mp-quick-s">Weekly recap & student progress</div>
+            </div>
+            <span class="mp-quick-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Legacy IDs kept for any existing JS that updates them -->
+        <span id="mob-home-eyebrow" style="display:none"></span>
+        <span id="mob-home-title" style="display:none"></span>
+        <span id="mob-home-sub" style="display:none"></span>
+        <span id="mob-kpi-classes" style="display:none"></span>
+        <span id="mob-kpi-boards" style="display:none"></span>
+        <span id="mob-kpi-students" style="display:none"></span>
+        <span id="mob-focus-title" style="display:none"></span>
+        <span id="mob-focus-sub" style="display:none"></span>
       </div>
       <div class="curr-header">
         <div class="curr-eyebrow">§ Teacher's workspace</div>
@@ -1663,6 +1728,68 @@ function updateMobileTeacherOverview() {
     focusTitle.textContent = 'Your mobile desk is ready for setup';
     focusSub.textContent = `Create your first board, then connect students and schedule classes. ${boardCount ? `${boardCount} boards already exist.` : 'No boards yet.'}`;
   }
+
+  /* ── Populate Mobile Pro design elements ── */
+  try {
+    const initials = (firstName.match(/[A-ZА-ЯҐЄІЇ]/gi) || ['T'])[0].toUpperCase();
+    const last = String(user.name || '').split(' ').slice(1).join(' ');
+    const lastInitial = last ? (last[0] || '').toUpperCase() : '';
+    const dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const today = new Date();
+    const dayStr = `${dayNames[today.getDay()]} · ${monthNames[today.getMonth()]} ${today.getDate()}`;
+
+    const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    setText('mp-avatar', (initials + lastInitial) || 'T');
+    setText('mp-greeting-meta', dayStr);
+    setText('mp-greeting-name', `Hi, ${firstName}`);
+    setText('mp-stat-lessons', String(todays.length || 0));
+    setText('mp-stat-students', String(studentCount));
+    setText('mp-stat-boards', String(boardCount));
+
+    /* Next lesson featured card */
+    if (next) {
+      const startStr = String(next.start_time || '').slice(0, 5);
+      const nowM = nowMin;
+      const nextM = toMin(next.start_time);
+      const minsUntil = Math.max(0, nextM - nowM);
+      const inLabel = minsUntil === 0 ? 'LIVE NOW' : `IN ${minsUntil} MIN`;
+      setText('mp-next-eyebrow', `NEXT LESSON · ${inLabel}`);
+      setText('mp-next-title', next.group_name || next.title || 'Upcoming class');
+      const parts = [startStr, next.level, next.room].filter(Boolean);
+      setText('mp-next-meta', parts.join(' · ') || 'Upcoming class today');
+      const pulse = document.querySelector('#mp-next-lesson .mp-pulse');
+      if (pulse) pulse.classList.toggle('pink', minsUntil <= 5);
+    } else if (freshestBoard) {
+      setText('mp-next-eyebrow', 'NO CLASS TODAY');
+      setText('mp-next-title', freshestBoard.name || 'My First Board');
+      setText('mp-next-meta', `${freshestBoard.card_count || 0} cards · open to keep momentum`);
+    } else {
+      setText('mp-next-eyebrow', 'GETTING STARTED');
+      setText('mp-next-title', 'Build your first board');
+      setText('mp-next-meta', 'Tap "New board" below or browse the lesson library.');
+    }
+
+    /* Populate boards horizontal scroll from real data when available */
+    const scrollEl = document.getElementById('mp-boards-scroll');
+    if (scrollEl && Array.isArray(MY_BOARDS) && MY_BOARDS.length) {
+      const variants = ['', 'lime', 'dark'];
+      const top = MY_BOARDS.slice().sort((a,b) => new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0, 6);
+      scrollEl.innerHTML = top.map((b, i) => {
+        const level = b.level || b.cefr || (b.tags && b.tags[0]) || 'BOARD';
+        const cards = b.card_count || 0;
+        const isActive = i === 0;
+        return `<a class="mp-board-card ${variants[i % 3]}" href="board.html?id=${encodeURIComponent(b.id||'')}">
+          <div class="mp-board-eyebrow">${String(level).toUpperCase()}</div>
+          <div class="mp-board-title">${(b.name || 'Untitled board').replace(/</g,'&lt;')}</div>
+          <div class="mp-board-foot">
+            <span class="mp-board-meta">${cards} CARDS</span>
+            <span class="mp-board-status">${isActive ? 'Active' : 'Ready'}</span>
+          </div>
+        </a>`;
+      }).join('');
+    }
+  } catch (err) { console.warn('mp-fill error', err); }
 }
 
 function openApp(id) {

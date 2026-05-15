@@ -69,7 +69,7 @@
     '  position:relative;',
     '}',
     '.mob-nav-tab:active{opacity:0.6;}',
-    '.mob-nav-tab.active{color:#E85D75;}',
+    '.mob-nav-tab.active{color:#1C1C1E;}',
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-label{',
     '  font-size:10px;font-weight:700;letter-spacing:0.02em;',

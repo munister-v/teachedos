@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v9';
+const CACHE = 'teachedos-v10';
 
 const SHELL = [
   '/teachedos/',
@@ -21,6 +21,7 @@ const SHELL = [
   '/teachedos/styles/tokens.css',
   '/teachedos/styles/main.css',
   '/teachedos/styles/games-base.css',
+  '/teachedos/styles/mobile-pro.css',
   '/teachedos/pwa.js',
   '/teachedos/theme.js',
   '/teachedos/scripts/mobile-nav.js',
