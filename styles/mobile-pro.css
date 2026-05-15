@@ -35,13 +35,51 @@
   --mp-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* Desktop: hide mobile-only blocks */
+.mp-mobile-only { display: none; }
+
 @media (max-width: 860px) {
+
+  /* ── Hide legacy/clutter top bars on mobile (mp-topbar replaces them) ── */
+  #menubar { display: none !important; }
+  .mob-win-header { display: none !important; }
+
+  /* Index.html: collapse the win-sidebar so it doesn't add a top section */
+  .win.open .win-sidebar:not(.mob-open) { display: none !important; }
+
+  /* Schedule.html / Gradebook.html / Profile.html: hide legacy top navs on mobile when mp-shell present */
+  body:has(.mp-shell) #nav { display: none !important; }
+  body:has(.mp-shell) #page { padding-top: 0 !important; }
+
+  /* Show mp-mobile-only blocks on mobile, hide non-mobile clutter */
+  .mp-mobile-only { display: flex; }
+  .page-head { display: none !important; }
+  .gradebook-section.first { margin-top: 0; }
 
   /* ── Reset cream bg for mobile pages that use mp-* containers ── */
   .mp-shell {
     background: var(--mp-bg);
     min-height: 100vh;
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Tappable stat tile */
+  a.mp-stat, button.mp-stat {
+    display: block;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--mp-border);
+    background: var(--mp-surface);
+    transition: transform 0.12s, box-shadow 0.15s, border-color 0.15s;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: var(--mp-font);
+  }
+  a.mp-stat:active, button.mp-stat:active { transform: scale(0.97); }
+  a.mp-stat:hover, button.mp-stat:hover {
+    border-color: var(--mp-border-2);
+    box-shadow: var(--mp-shadow-md);
   }
 
   /* ═══════════════ TOP BAR ═══════════════ */

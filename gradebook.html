@@ -279,7 +279,19 @@ a{text-decoration:none;color:inherit;}
   </a>
 </nav>
 
-<div id="page">
+<div id="page" class="mp-shell">
+
+  <!-- Mobile pro topbar -->
+  <header class="mp-topbar mp-mobile-only">
+    <div class="mp-greeting">
+      <div class="mp-greeting-meta">CLASS PROGRESS</div>
+      <div class="mp-greeting-name">Students</div>
+    </div>
+    <div class="mp-topbar-actions">
+      <button class="mp-icon-btn" onclick="loadData()" aria-label="Refresh">↻</button>
+      <button class="mp-icon-btn alert" onclick="openInviteModal()" aria-label="Invite">+</button>
+    </div>
+  </header>
 
   <!-- Page head -->
   <div class="page-head">
