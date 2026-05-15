@@ -194,13 +194,86 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 #page-loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
 .spinner { width: 36px; height: 36px; border: 3px solid var(--accent-3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.mobile-profile-shell { display: none; }
 
 /* ── Responsive ── */
 @media (max-width: 700px) {
-  #layout { flex-direction: column; padding: 16px 12px; }
-  #sidebar-tabs { width: 100%; display: flex; gap: 6px; }
-  .st-item { flex: 1; justify-content: center; font-size: 12px; padding: 8px 10px; }
+  #nav { padding: 0 14px; gap: 8px; overflow-x: auto; }
+  .nav-link { display: none; }
+  #layout { flex-direction: column; padding: 16px 12px calc(90px + env(safe-area-inset-bottom,0px)); gap: 16px; }
+  #sidebar-tabs { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+  .st-item { justify-content: center; font-size: 12px; padding: 10px 8px; margin-bottom: 0; min-height: 44px; }
   .st-icon { display: none; }
+  .card { padding: 18px; margin-bottom: 16px; }
+  .mobile-profile-shell { display: block; }
+  .mobile-profile-hero {
+    padding: 18px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top right, rgba(232,93,117,.18), transparent 34%),
+      linear-gradient(150deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
+    border: 1px solid rgba(232,93,117,.14);
+    box-shadow: 0 18px 40px rgba(94,94,74,.08);
+    margin-bottom: 16px;
+  }
+  .mobile-profile-eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+  .mobile-profile-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.05;
+    letter-spacing: -.04em;
+  }
+  .mobile-profile-copy {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+  .mobile-profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .mobile-profile-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(232,93,117,.12);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .mobile-profile-action-ic {
+    width: 36px; height: 36px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, rgba(232,93,117,.18), rgba(159,140,232,.18));
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .mobile-profile-action-title { font-size: 13px; font-weight: 800; line-height: 1.2; }
+  .mobile-profile-action-sub { margin-top: 3px; font-size: 11px; color: var(--text-3); line-height: 1.35; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .boards-grid { grid-template-columns: 1fr; }
+  #recent-boards-list .recent-board-item { padding: 12px; }
+  .emoji-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 420px) {
+  #sidebar-tabs { grid-template-columns: 1fr 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
 <link rel="stylesheet" href="dark.css">
@@ -254,6 +327,43 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
   <!-- Main Content -->
   <div id="main-content">
+    <div class="mobile-profile-shell">
+      <div class="mobile-profile-hero">
+        <div class="mobile-profile-eyebrow" id="mobile-profile-eyebrow">Profile workspace</div>
+        <div class="mobile-profile-title" id="mobile-profile-title">Loading your profile…</div>
+        <div class="mobile-profile-copy" id="mobile-profile-copy">This phone view keeps your account, boards, and settings close at hand.</div>
+        <div class="mobile-profile-actions">
+          <div class="mobile-profile-action" onclick="switchTab('boards')">
+            <div class="mobile-profile-action-ic">📋</div>
+            <div>
+              <div class="mobile-profile-action-title">My Boards</div>
+              <div class="mobile-profile-action-sub">Open and manage lesson boards</div>
+            </div>
+          </div>
+          <div class="mobile-profile-action" onclick="switchTab('settings')">
+            <div class="mobile-profile-action-ic">⚙️</div>
+            <div>
+              <div class="mobile-profile-action-title">Settings</div>
+              <div class="mobile-profile-action-sub">Update account and rooms</div>
+            </div>
+          </div>
+          <a class="mobile-profile-action" href="gradebook.html">
+            <div class="mobile-profile-action-ic">📒</div>
+            <div>
+              <div class="mobile-profile-action-title">Gradebook</div>
+              <div class="mobile-profile-action-sub">Check roster and progress</div>
+            </div>
+          </a>
+          <div class="mobile-profile-action" onclick="switchTab('shared')">
+            <div class="mobile-profile-action-ic">🎓</div>
+            <div>
+              <div class="mobile-profile-action-title">Shared Boards</div>
+              <div class="mobile-profile-action-sub">See boards shared with you</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- OVERVIEW TAB -->
     <div id="tab-overview" class="tab-panel active">
@@ -484,6 +594,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <script>
 const API = 'https://teachedos-api.onrender.com';
+const PROFILE_CACHE_KEY = 'teachedos_profile_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let me = null;
 let selectedAvatar = null;
@@ -499,6 +610,39 @@ function toast(msg, dur = 2500) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function readProfileCache() {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeProfileCache(patch) {
+  try {
+    const current = readProfileCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function updateMobileProfileSummary(options = {}) {
+  const eyebrow = document.getElementById('mobile-profile-eyebrow');
+  const title = document.getElementById('mobile-profile-title');
+  const copy = document.getElementById('mobile-profile-copy');
+  if (!eyebrow || !title || !copy) return;
+  const firstName = me?.name ? me.name.split(' ')[0] : 'Teacher';
+  eyebrow.textContent = `${me?.avatar || '🧑‍🏫'} ${firstName}'s profile`;
+  title.textContent = options.offline
+    ? 'Offline profile snapshot ready'
+    : `${firstName}, your workspace settings are ready`;
+  const boardCount = Array.isArray(boardsCache) ? boardsCache.length : 0;
+  const sharedCount = Array.isArray(sharedBoardsCache) ? sharedBoardsCache.length : 0;
+  copy.textContent = options.offline
+    ? `Offline mode: showing your last saved account view with ${boardCount} boards and ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}.`
+    : `Manage ${boardCount} board${boardCount === 1 ? '' : 's'}, review ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}, and keep your account details current from this phone view.`;
 }
 
 function apiFetch(path, opts = {}) {
@@ -530,11 +674,17 @@ async function init() {
     window.location.href = 'index.html';
     return;
   }
+  const cached = readProfileCache();
   try {
     const r = await apiFetch('/api/auth/me');
-    if (!r.ok) { window.location.href = 'index.html'; return; }
-    const { user } = await r.json();
-    me = user;
+    if (!r.ok && !cached?.me) { window.location.href = 'index.html'; return; }
+    if (r.ok) {
+      const { user } = await r.json();
+      me = user;
+      writeProfileCache({ me });
+    } else {
+      me = cached.me;
+    }
     selectedAvatar = me.avatar;
     renderOverview();
     // Preload boards & shared lists so tabs don't sit on "Loading..."
@@ -544,12 +694,26 @@ async function init() {
     if (me.role === 'admin') document.getElementById('nb-admin-link').style.display = '';
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
     document.getElementById('nb-user-info').style.display = '';
+    updateMobileProfileSummary({ offline: !r.ok });
   } catch (e) {
+    if (cached?.me) {
+      me = cached.me;
+      selectedAvatar = me.avatar;
+      renderOverview(true);
+      loadBoards(true).catch(() => {});
+      loadSharedBoards(true).catch(() => {});
+      document.getElementById('page-loading').style.display = 'none';
+      document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+      document.getElementById('nb-user-info').style.display = '';
+      updateMobileProfileSummary({ offline: true });
+      toast('Offline mode enabled');
+      return;
+    }
     window.location.href = 'index.html';
   }
 }
 
-async function renderOverview() {
+async function renderOverview(forceOffline = false) {
   document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
@@ -574,6 +738,7 @@ async function renderOverview() {
   try {
     const r = await apiFetch('/api/boards');
     const { boards } = await r.json();
+    writeProfileCache({ boards });
     document.getElementById('stat-boards').textContent = boards.length;
     const totalCards = boards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
     document.getElementById('stat-cards').textContent = totalCards;
@@ -593,7 +758,25 @@ async function renderOverview() {
           </div>
         </a>`).join('');
     }
-  } catch {}
+  } catch {
+    const cached = readProfileCache();
+    const cachedBoards = cached?.boards || [];
+    document.getElementById('stat-boards').textContent = cachedBoards.length;
+    document.getElementById('stat-cards').textContent = cachedBoards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
+    const rbl = document.getElementById('recent-boards-list');
+    if (!cachedBoards.length) {
+      rbl.innerHTML = `<div style="color:var(--text-3);font-size:14px;">${forceOffline ? 'Offline mode: no saved boards yet.' : 'No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a>'}</div>`;
+    } else {
+      rbl.innerHTML = cachedBoards.slice(0, 5).map(b => `
+        <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
+          <div class="rbi-icon">📌</div>
+          <div>
+            <div class="rbi-name">${esc(b.name)}</div>
+            <div class="rbi-meta">${b.card_count || 0} cards · Saved snapshot</div>
+          </div>
+        </a>`).join('');
+    }
+  }
 
   // Sessions count
   try {
@@ -607,21 +790,29 @@ async function renderOverview() {
   } catch {
     document.getElementById('stat-sessions').textContent = '1';
   }
+  updateMobileProfileSummary({ offline: forceOffline });
 }
 
 // ── My Boards ─────────────────────────────────────────────────
 let boardsCache = [];
-async function loadBoards() {
+let sharedBoardsCache = [];
+async function loadBoards(forceOffline = false) {
   const grid = document.getElementById('boards-grid');
   grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>';
   try {
+    if (forceOffline) throw new Error('offline');
     const r = await apiFetch('/api/boards');
     const { boards } = await r.json();
     boardsCache = boards;
+    writeProfileCache({ boards });
     renderBoardsGrid(boards);
   } catch {
-    grid.innerHTML = '<div style="color:#e55;grid-column:1/-1;">Failed to load boards</div>';
+    const cachedBoards = readProfileCache()?.boards || [];
+    boardsCache = cachedBoards;
+    if (cachedBoards.length) renderBoardsGrid(cachedBoards);
+    else grid.innerHTML = '<div style="color:#e55;grid-column:1/-1;">Failed to load boards</div>';
   }
+  updateMobileProfileSummary({ offline: forceOffline });
 }
 
 function renderBoardsGrid(boards) {
@@ -862,12 +1053,15 @@ async function confirmNewBoard() {
 }
 
 // ── Shared Boards ─────────────────────────────────────────────
-async function loadSharedBoards() {
+async function loadSharedBoards(forceOffline = false) {
   const wrap = document.getElementById('shared-boards-list');
   wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>';
   try {
+    if (forceOffline) throw new Error('offline');
     const r = await apiFetch('/api/members/my/boards');
     const { boards } = await r.json();
+    sharedBoardsCache = boards;
+    writeProfileCache({ sharedBoards: boards });
     if (!boards.length) {
       wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">No shared boards yet.<br>Ask your teacher to invite you to a board.</div>';
       return;
@@ -882,8 +1076,23 @@ async function loadSharedBoards() {
         <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
       </a>`).join('');
   } catch {
-    wrap.innerHTML = '<div style="color:#e55;text-align:center;padding:20px;">Failed to load shared boards</div>';
+    const cachedBoards = readProfileCache()?.sharedBoards || [];
+    sharedBoardsCache = cachedBoards;
+    if (!cachedBoards.length) {
+      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#e55'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
+      return;
+    }
+    wrap.innerHTML = cachedBoards.map(b => `
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar || '👩‍🏫'} ${esc(b.owner_name || 'Teacher')} · Saved snapshot</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role || 'viewer'}</span>
+      </a>`).join('');
   }
+  updateMobileProfileSummary({ offline: forceOffline });
 }
 
 // ── Settings ──────────────────────────────────────────────────
