@@ -222,6 +222,15 @@ tr:hover td{background:#fafafa}
 .activity-meta{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap}
 .table-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .analytics-grid{display:grid;grid-template-columns:1.4fr .9fr;gap:20px;margin-top:24px}
+.analytics-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.analytics-range{display:flex;gap:8px;flex-wrap:wrap}
+.range-btn{
+  padding:8px 12px;border:none;border-radius:999px;background:#fff;color:var(--text2);
+  font-family:Nunito,sans-serif;font-size:12px;font-weight:800;cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--border2);transition:.15s;
+}
+.range-btn:hover{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.range-btn.active{background:var(--accent);color:#fff;box-shadow:none}
 .chart-stack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .chart-card{padding:18px;border-radius:14px;background:#fafafa;border:1px solid var(--border)}
 .chart-title{font-size:13px;font-weight:800;color:var(--text)}
@@ -422,8 +431,18 @@ tr:hover td{background:#fafafa}
 
     <div class="analytics-grid">
       <div class="table-card" style="padding:22px">
-        <div style="font-size:16px;font-weight:800;margin-bottom:4px">📈 14-Day Analytics</div>
-        <div class="page-sub" style="margin-bottom:18px">Daily momentum across growth, board edits, and session starts</div>
+        <div class="analytics-head" style="margin-bottom:18px">
+          <div>
+            <div style="font-size:16px;font-weight:800;margin-bottom:4px" id="analytics-title">📈 14-Day Analytics</div>
+            <div class="page-sub" style="margin-bottom:0">Daily momentum across growth, board edits, and session starts</div>
+          </div>
+          <div class="analytics-range" role="tablist" aria-label="Analytics range">
+            <button class="range-btn" type="button" data-days="7" onclick="setAnalyticsRange(7)">7D</button>
+            <button class="range-btn active" type="button" data-days="14" onclick="setAnalyticsRange(14)">14D</button>
+            <button class="range-btn" type="button" data-days="30" onclick="setAnalyticsRange(30)">30D</button>
+            <button class="range-btn" type="button" data-days="90" onclick="setAnalyticsRange(90)">90D</button>
+          </div>
+        </div>
         <div class="chart-stack">
           <div class="chart-card">
             <div class="chart-title">New Users</div>
@@ -699,6 +718,7 @@ tr:hover td{background:#fafafa}
 const API = 'https://teachedos-api.onrender.com';
 let token = localStorage.getItem('teachedos_admin_token') || null;
 let currentAdminUser = null;
+let analyticsDays = 14;
 const pageMeta = {
   dashboard: ['Dashboard', 'System overview and key metrics'],
   users: ['Users', 'Manage all registered users'],
@@ -852,7 +872,7 @@ async function refreshStats() {
     const [stats, system, analytics, health] = await Promise.all([
       api('GET', '/api/admin/stats'),
       api('GET', '/api/admin/system'),
-      api('GET', '/api/admin/analytics?days=14'),
+      api('GET', `/api/admin/analytics?days=${analyticsDays}`),
       fetch(`${API}/health`).then(r => r.json()).catch(() => null),
     ]);
     document.getElementById('stat-users').textContent    = stats.users;
@@ -871,6 +891,44 @@ async function refreshStats() {
   } catch(e) {
     toast('Failed to load stats: ' + e.message, 'error');
   }
+}
+
+function setAnalyticsRange(days) {
+  if (analyticsDays === days) return;
+  analyticsDays = days;
+  syncAnalyticsRangeUi();
+  document.getElementById('analytics-title').textContent = `📈 ${days}-Day Analytics`;
+  renderAnalyticsLoading();
+  refreshStats();
+}
+
+function syncAnalyticsRangeUi() {
+  document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.days) === analyticsDays);
+  });
+}
+
+function renderAnalyticsLoading() {
+  ['chart-signups-bars', 'chart-boards-bars', 'chart-sessions-bars'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+  ['chart-signups-total', 'chart-boards-total', 'chart-sessions-total'].forEach(id => {
+    document.getElementById(id).textContent = '…';
+  });
+  ['chart-signups-start', 'chart-boards-start', 'chart-sessions-start'].forEach(id => {
+    document.getElementById(id).textContent = 'Loading';
+  });
+  document.getElementById('leaderboard-list').innerHTML = `
+    <div class="leader-item">
+      <div class="leader-copy">
+        <div class="leader-rank">…</div>
+        <div>
+          <div class="leader-name">Loading…</div>
+          <div class="leader-email">Refreshing analytics for the selected period</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderRecentUsers(users) {
@@ -1331,6 +1389,7 @@ function uaIcon(ua='') {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (async () => {
+  syncAnalyticsRangeUi();
   if (await verifyToken()) {
     enterPanel();
   }
