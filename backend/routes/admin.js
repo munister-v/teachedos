@@ -270,6 +270,57 @@ router.get('/invites', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/search ──────────────────────────────────────────────────
+router.get('/search', async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (q.length < 2) return res.json({ query: q, users: [], boards: [], invites: [] });
+  const like = `%${q}%`;
+
+  try {
+    const [users, boards, invites] = await Promise.all([
+      pool.query(
+        `SELECT u.id, u.name, u.email, u.role, u.avatar, u.created_at,
+                COUNT(b.id)::int AS boards_count
+         FROM users u
+         LEFT JOIN boards b ON b.user_id = u.id
+         WHERE u.name ILIKE $1 OR u.email ILIKE $1 OR u.role ILIKE $1
+         GROUP BY u.id
+         ORDER BY u.created_at DESC
+         LIMIT 8`,
+        [like]
+      ),
+      pool.query(
+        `SELECT b.id, b.name, b.updated_at,
+                COALESCE(
+                  CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END,
+                  0
+                )::int AS cards_count,
+                u.name AS owner_name, u.email AS owner_email
+         FROM boards b
+         JOIN users u ON u.id = b.user_id
+         WHERE b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1
+         ORDER BY b.updated_at DESC
+         LIMIT 8`,
+        [like]
+      ),
+      pool.query(
+        `SELECT i.id, i.email, i.role, i.note, i.token, i.expires_at, i.accepted_at, i.revoked_at, i.created_at,
+                creator.name AS created_by_name
+         FROM invites i
+         LEFT JOIN users creator ON creator.id = i.created_by
+         WHERE i.email ILIKE $1 OR i.role ILIKE $1 OR i.note ILIKE $1
+         ORDER BY i.created_at DESC
+         LIMIT 8`,
+        [like]
+      ),
+    ]);
+
+    res.json({ query: q, users: users.rows, boards: boards.rows, invites: invites.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/export/:type ────────────────────────────────────────────
 router.get('/export/:type', async (req, res) => {
   const type = req.params.type;

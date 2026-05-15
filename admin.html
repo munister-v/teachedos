@@ -135,6 +135,23 @@ body{font-family:Nunito,sans-serif;background:#F5F0E8;color:var(--text);min-heig
 .command-ico{font-size:22px;line-height:1}
 .command-title{font-size:13px;font-weight:900;color:var(--text)}
 .command-copy{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
+.spotlight-card{background:#1C1C1E;color:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 48px rgba(28,28,30,.18);margin-bottom:24px;overflow:hidden;position:relative}
+.spotlight-card::after{content:"";position:absolute;right:-80px;bottom:-120px;width:260px;height:260px;background:radial-gradient(circle,rgba(232,93,117,.35),transparent 64%);pointer-events:none}
+.spotlight-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;z-index:1;margin-bottom:16px}
+.spotlight-title{font-size:18px;font-weight:900}
+.spotlight-sub{font-size:13px;color:rgba(255,255,255,.62);margin-top:4px}
+.spotlight-kbd{font-size:11px;font-weight:900;color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:4px 8px;background:rgba(255,255,255,.06)}
+.spotlight-input-wrap{position:relative;z-index:1}
+.spotlight-input{width:100%;padding:14px 16px;border:none;border-radius:14px;background:#fff;color:var(--text);font-family:Nunito,sans-serif;font-size:15px;font-weight:800;outline:none}
+.spotlight-results{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.spotlight-group{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;min-height:112px}
+.spotlight-group-title{font-size:11px;font-weight:900;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.spotlight-result{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-radius:10px;padding:9px;background:rgba(255,255,255,.07);margin-bottom:8px}
+.spotlight-result:last-child{margin-bottom:0}
+.spotlight-main{font-size:13px;font-weight:900;color:#fff;word-break:break-word}
+.spotlight-meta{font-size:11px;color:rgba(255,255,255,.58);margin-top:2px;line-height:1.35}
+.spotlight-action{border:none;border-radius:8px;padding:5px 8px;background:#fff;color:var(--text);font-family:Nunito,sans-serif;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap}
+.spotlight-empty{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;padding:8px 0}
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
 .table-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
@@ -336,7 +353,7 @@ tr:hover td{background:#fafafa}
   #main{margin-left:0;padding:20px 16px 28px}
   .page-title{font-size:24px}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .activity-grid,.analytics-grid,.ops-grid,.settings-grid{grid-template-columns:1fr}
+  .activity-grid,.analytics-grid,.ops-grid,.settings-grid,.spotlight-results{grid-template-columns:1fr}
   .chart-stack{grid-template-columns:1fr}
   .table-header{padding:16px;align-items:flex-start}
   .table-tools,.search-box{width:100%}
@@ -511,6 +528,33 @@ tr:hover td{background:#fafafa}
     <div class="table-card" style="padding:22px">
       <div style="font-size:16px;font-weight:800;margin-bottom:14px">👤 Users by Role</div>
       <div class="roles-list" id="roles-list">Loading…</div>
+    </div>
+
+    <div class="spotlight-card">
+      <div class="spotlight-head">
+        <div>
+          <div class="spotlight-title">Admin Spotlight</div>
+          <div class="spotlight-sub">Search users, boards, and invite links from one place.</div>
+        </div>
+        <div class="spotlight-kbd">Press /</div>
+      </div>
+      <div class="spotlight-input-wrap">
+        <input class="spotlight-input" id="admin-spotlight-input" placeholder="Search by name, email, board, role, or invite note..." oninput="debounceAdminSearch()"/>
+      </div>
+      <div class="spotlight-results" id="admin-spotlight-results">
+        <div class="spotlight-group">
+          <div class="spotlight-group-title">Users</div>
+          <div class="spotlight-empty">Type at least 2 characters.</div>
+        </div>
+        <div class="spotlight-group">
+          <div class="spotlight-group-title">Boards</div>
+          <div class="spotlight-empty">Matching boards appear here.</div>
+        </div>
+        <div class="spotlight-group">
+          <div class="spotlight-group-title">Invites</div>
+          <div class="spotlight-empty">Invite links and notes appear here.</div>
+        </div>
+      </div>
     </div>
 
     <div class="table-card" style="padding:22px">
@@ -1028,6 +1072,7 @@ const API = 'https://teachedos-api.onrender.com';
 let token = localStorage.getItem('teachedos_admin_token') || null;
 let currentAdminUser = null;
 let analyticsDays = 14;
+let adminSearchTimer;
 const pageMeta = {
   dashboard: ['Dashboard', 'System overview and key metrics'],
   users: ['Users', 'Manage all registered users'],
@@ -1067,6 +1112,15 @@ async function doLogin() {
 
 document.getElementById('l-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  e.preventDefault();
+  showPage('dashboard');
+  setTimeout(() => document.getElementById('admin-spotlight-input')?.focus(), 40);
 });
 
 async function verifyToken() {
@@ -1437,6 +1491,83 @@ function renderSpark(points, barsId, totalId, startId, tone, total) {
     return `<div class="sparkbar ${tone}" style="height:${height}px" title="${esc(point.day)}: ${point.count}"></div>`;
   }).join('');
   startEl.textContent = shortDay(points[0].day);
+}
+
+// ── Admin Spotlight ───────────────────────────────────────────────────────
+function debounceAdminSearch() {
+  clearTimeout(adminSearchTimer);
+  adminSearchTimer = setTimeout(loadAdminSearch, 260);
+}
+
+async function loadAdminSearch() {
+  const input = document.getElementById('admin-spotlight-input');
+  const root = document.getElementById('admin-spotlight-results');
+  const q = input?.value.trim() || '';
+  if (q.length < 2) {
+    root.innerHTML = spotlightPlaceholder();
+    return;
+  }
+  root.innerHTML = spotlightLoading(q);
+  try {
+    const d = await api('GET', `/api/admin/search?q=${encodeURIComponent(q)}`);
+    root.innerHTML = [
+      renderSpotlightGroup('Users', d.users || [], item => ({
+        title: `${item.avatar || ''} ${item.name}`,
+        meta: `${item.email} · ${item.role} · ${item.boards_count || 0} board(s)`,
+        action: `<button class="spotlight-action" onclick="spotlightOpenUser('${escAttr(item.email)}','${escAttr(item.role)}')">Open</button>`,
+      })),
+      renderSpotlightGroup('Boards', d.boards || [], item => ({
+        title: item.name,
+        meta: `${item.owner_name} · ${item.cards_count || 0} card(s) · ${fmtDate(item.updated_at)}`,
+        action: `<button class="spotlight-action" onclick="openBoard('${escAttr(item.id)}')">Open</button>`,
+      })),
+      renderSpotlightGroup('Invites', d.invites || [], item => ({
+        title: item.email,
+        meta: `${item.role} · ${inviteState(item).label} · ${fmtDate(item.expires_at)}`,
+        action: `<button class="spotlight-action" onclick="copyInviteLink('${escAttr(item.token || '')}')">Copy</button>`,
+      })),
+    ].join('');
+  } catch (e) {
+    root.innerHTML = `<div class="spotlight-group"><div class="spotlight-group-title">Search</div><div class="spotlight-empty">Search failed: ${esc(e.message)}</div></div>`;
+  }
+}
+
+function spotlightPlaceholder() {
+  return ['Users', 'Boards', 'Invites'].map((title, idx) => `
+    <div class="spotlight-group">
+      <div class="spotlight-group-title">${title}</div>
+      <div class="spotlight-empty">${idx === 0 ? 'Type at least 2 characters.' : 'Results appear here.'}</div>
+    </div>
+  `).join('');
+}
+
+function spotlightLoading(q) {
+  return ['Users', 'Boards', 'Invites'].map(title => `
+    <div class="spotlight-group">
+      <div class="spotlight-group-title">${title}</div>
+      <div class="spotlight-empty">Searching for "${esc(q)}"…</div>
+    </div>
+  `).join('');
+}
+
+function renderSpotlightGroup(title, items, mapper) {
+  const body = items.length ? items.map(item => {
+    const row = mapper(item);
+    return `<div class="spotlight-result">
+      <div>
+        <div class="spotlight-main">${esc(row.title)}</div>
+        <div class="spotlight-meta">${esc(row.meta)}</div>
+      </div>
+      ${row.action || ''}
+    </div>`;
+  }).join('') : '<div class="spotlight-empty">No matches.</div>';
+  return `<div class="spotlight-group"><div class="spotlight-group-title">${title}</div>${body}</div>`;
+}
+
+function spotlightOpenUser(email, role) {
+  showPage('users');
+  document.getElementById('users-search').value = email;
+  setUsersRoleFilter(role || '');
 }
 
 // ── Audit ─────────────────────────────────────────────────────────────────
@@ -1950,6 +2081,7 @@ function revokeInvite(id, email) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s){ return esc(s).replace(/'/g,'&#39;'); }
 
 function fmtDate(iso) {
   if (!iso) return '—';
