@@ -1029,41 +1029,59 @@ html,body {
     display:grid;
     grid-template-columns:repeat(2, minmax(0,1fr));
     gap:10px;
-    margin-top:14px;
+    margin-top:16px;
   }
   .mob-home-action {
     display:flex;
-    align-items:center;
+    flex-direction:column;
+    align-items:flex-start;
     gap:10px;
-    padding:13px 14px;
-    border-radius:16px;
+    padding:16px 14px;
+    border-radius:18px;
     text-decoration:none;
-    background:rgba(255,255,255,0.88);
-    border:1px solid rgba(232,93,117,0.12);
+    background:#fff;
+    border:1px solid rgba(232,93,117,0.10);
     color:var(--text);
+    box-shadow:0 2px 8px rgba(94,94,74,0.04);
+    transition:transform .12s ease, box-shadow .18s ease, border-color .15s;
+    -webkit-tap-highlight-color:transparent;
+    min-height:114px;
+    position:relative;
+    overflow:hidden;
+  }
+  .mob-home-action:active { transform:scale(0.97); }
+  .mob-home-action:hover {
+    border-color:rgba(232,93,117,0.28);
+    box-shadow:0 6px 18px rgba(232,93,117,0.10);
   }
   .mob-home-action-ic {
-    width:38px;
-    height:38px;
-    border-radius:12px;
+    width:42px;
+    height:42px;
+    border-radius:13px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:18px;
+    font-size:20px;
     flex-shrink:0;
-    background:linear-gradient(145deg, rgba(232,93,117,0.18), rgba(159,140,232,0.18));
+    background:linear-gradient(135deg, rgba(232,93,117,0.16), rgba(159,140,232,0.16));
+    border:1px solid rgba(232,93,117,0.10);
   }
-  .mob-home-action-copy { min-width:0; }
+  .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(159,140,232,0.20), rgba(96,165,250,0.16)); border-color:rgba(159,140,232,0.16); }
+  .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(200,230,50,0.14)); border-color:rgba(96,165,250,0.16); }
+  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(232,93,117,0.14)); border-color:rgba(245,158,11,0.16); }
+  .mob-home-action-copy { min-width:0; width:100%; }
   .mob-home-action-title {
-    font-size:13px;
-    font-weight:800;
-    line-height:1.2;
+    font-size:14px;
+    font-weight:900;
+    line-height:1.15;
+    letter-spacing:-0.01em;
   }
   .mob-home-action-sub {
-    margin-top:3px;
+    margin-top:4px;
     font-size:11px;
     color:var(--text-3);
-    line-height:1.35;
+    line-height:1.4;
+    font-weight:700;
   }
   .mob-home-focus {
     margin-top:12px;
