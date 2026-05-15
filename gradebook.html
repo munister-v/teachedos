@@ -191,6 +191,60 @@ a{text-decoration:none;color:inherit;}
 .qr-table td{padding:7px 12px;border-bottom:1px solid #fdf0f5;vertical-align:middle;}
 .qr-table tr:last-child td{border-bottom:none;}
 .qr-score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-weight:700;font-size:11px;background:linear-gradient(90deg,rgba(94,94,74,.12),rgba(232,53,122,.08));color:#C8E632;}
+.gb-mobile-list{display:none;}
+.gb-mobile-card{
+  border-top:1px solid var(--border);
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.gb-mobile-head{display:flex;align-items:center;gap:10px;}
+.gb-mobile-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.gb-mobile-progress{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.gb-mobile-box{
+  background:rgba(245,240,232,.9);
+  border-radius:12px;
+  padding:10px 12px;
+}
+.gb-mobile-box-n{font-size:16px;font-weight:900;color:var(--text);line-height:1;}
+.gb-mobile-box-l{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.gb-mobile-lessons{display:flex;flex-wrap:wrap;gap:6px;}
+.gb-mobile-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+
+@media (max-width: 820px){
+  #nav{padding:0 14px;gap:6px;overflow-x:auto;}
+  .nav-link{display:none;}
+  #page{padding:18px 12px calc(92px + env(safe-area-inset-bottom,0px));gap:16px;}
+  .page-head{align-items:stretch;}
+  .page-title{font-size:24px;}
+  .page-sub{font-size:12px;line-height:1.5;}
+  .head-spacer{display:none;}
+  .page-head .btn{flex:1;}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .stat-card{padding:14px;border-radius:14px;}
+  .stat-val{font-size:22px;}
+  .sec-head,.sec-body{padding-left:14px;padding-right:14px;}
+  .invite-form{flex-direction:column;align-items:stretch;}
+  .invite-input{min-width:0;}
+  .member-row{align-items:flex-start;flex-wrap:wrap;gap:10px;}
+  .m-prog{max-width:none;width:100%;}
+  .m-spacer{display:none;}
+  .gb-wrap{display:none;}
+  .gb-mobile-list{display:block;}
+  .qr-table{font-size:11px;}
+  .qr-table th,.qr-table td{padding:7px 8px;}
+  .modal{padding:20px;}
+}
+
+@media (max-width: 420px){
+  .stats-grid{grid-template-columns:1fr;}
+  .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
+}
 </style>
 <link rel="stylesheet" href="dark.css">
 <script src="theme.js"></script>
@@ -238,6 +292,7 @@ a{text-decoration:none;color:inherit;}
     <div class="sec-head"><div class="sec-title">📋 Select Board</div></div>
     <div class="sec-body">
       <div class="board-pills" id="board-pills">Loading…</div>
+      <div id="board-status-copy" style="margin-top:10px;font-size:12px;color:var(--text-3);line-height:1.5;">Pick a board to see attendance, progress, and quiz performance.</div>
     </div>
   </div>
 
@@ -268,6 +323,7 @@ a{text-decoration:none;color:inherit;}
       <div class="sec-title">📊 Progress Table</div>
       <button class="btn btn-ghost btn-sm" onclick="exportGradebook()">📥 Export CSV</button>
     </div>
+    <div class="gb-mobile-list" id="gb-mobile-list"></div>
     <div class="gb-wrap">
       <table class="gb-table" id="gb-table">
         <thead><tr><th class="th-name">Student</th></tr></thead>
@@ -321,10 +377,36 @@ a{text-decoration:none;color:inherit;}
 
 <script>
 const API = 'https://teachedos-api.onrender.com';
+const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let boards = [];
 let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
 let members = [], lessonCols = [];
+
+function readGradebookCache() {
+  try {
+    return JSON.parse(localStorage.getItem(GRADEBOOK_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeGradebookCache(patch) {
+  try {
+    const current = readGradebookCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(GRADEBOOK_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function cacheBoardSnapshot(id, patch) {
+  try {
+    const cache = readGradebookCache() || {};
+    const boardSnapshots = { ...(cache.boardSnapshots || {}) };
+    boardSnapshots[id] = { ...(boardSnapshots[id] || {}), ...patch, cachedAt: new Date().toISOString() };
+    writeGradebookCache({ boardSnapshots });
+  } catch {}
+}
 
 async function apiFetch(path, opts = {}) {
   const r = await fetch(API + path, {
@@ -338,39 +420,69 @@ async function apiFetch(path, opts = {}) {
 
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
+  const cached = readGradebookCache();
   try {
     const { user } = await apiFetch('/api/auth/me');
     document.getElementById('nav-avatar').textContent = user.avatar;
     document.getElementById('nav-name').textContent   = user.name.split(' ')[0];
-  } catch { location.href = 'index.html'; return; }
+    writeGradebookCache({ user });
+  } catch {
+    if (cached?.user) {
+      document.getElementById('nav-avatar').textContent = cached.user.avatar || '🧑‍🏫';
+      document.getElementById('nav-name').textContent = (cached.user.name || 'Teacher').split(' ')[0];
+    } else {
+      location.href = 'index.html'; return;
+    }
+  }
   await loadData();
 }
 
 async function loadData() {
+  const cached = readGradebookCache();
   try {
     const d = await apiFetch('/api/boards');
     boards = d.boards;
+    writeGradebookCache({ boards });
     renderBoardPills();
     if (activeBoardId && boards.find(b => b.id === activeBoardId)) {
       await loadBoard(activeBoardId);
+    } else if (boards[0]) {
+      selectBoard(boards[0].id);
     }
-  } catch (e) { toast('Error: ' + e.message); }
+  } catch (e) {
+    if (cached?.boards?.length) {
+      boards = cached.boards;
+      activeBoardId = cached.activeBoardId || activeBoardId || boards[0]?.id || null;
+      renderBoardPills();
+      if (activeBoardId && cached?.boardSnapshots?.[activeBoardId]) {
+        applyBoardSnapshot(activeBoardId, cached.boardSnapshots[activeBoardId], { offlineNotice: true });
+      }
+      toast('Offline mode enabled');
+      return;
+    }
+    toast('Error: ' + e.message);
+  }
 }
 
 function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
+  const status = document.getElementById('board-status-copy');
   if (!boards.length) {
     wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>';
+    if (status) status.textContent = 'Create a board first, then your gradebook will appear here.';
     return;
   }
   wrap.innerHTML = boards.map(b =>
     `<div class="board-pill${b.id === activeBoardId ? ' active' : ''}" onclick="selectBoard('${b.id}')">${esc(b.name)}</div>`
   ).join('');
+  const active = boards.find(b => b.id === activeBoardId) || boards[0];
+  if (status && active) status.textContent = `Selected board: ${active.name || 'Untitled'}${active.card_count ? ` · ${active.card_count} card${active.card_count === 1 ? '' : 's'}` : ''}`;
 }
 
 function selectBoard(id) {
   activeBoardId = id;
   localStorage.setItem('teachedos_board_id', id);
+  writeGradebookCache({ activeBoardId: id });
   renderBoardPills();
   loadBoard(id);
 }
@@ -382,11 +494,37 @@ async function loadBoard(id) {
     const d = await apiFetch(`/api/members/${id}/progress`);
     members   = d.members;
     lessonCols = d.lessons;
+    cacheBoardSnapshot(id, { members, lessonCols });
     renderMemberList();
     renderGradebook();
     updateStats();
     loadQuizResults(id);
-  } catch (e) { toast('Error: ' + e.message); }
+  } catch (e) {
+    const cached = readGradebookCache();
+    const snapshot = cached?.boardSnapshots?.[id];
+    if (snapshot) {
+      applyBoardSnapshot(id, snapshot, { offlineNotice: true });
+      toast('Offline mode enabled');
+      return;
+    }
+    toast('Error: ' + e.message);
+  }
+}
+
+function applyBoardSnapshot(id, snapshot, options = {}) {
+  activeBoardId = id;
+  members = snapshot.members || [];
+  lessonCols = snapshot.lessonCols || [];
+  quizResultsData = snapshot.quizResultsData || [];
+  renderBoardPills();
+  renderMemberList();
+  renderGradebook();
+  updateStats();
+  renderQuizResultsFromData(quizResultsData, options.offlineNotice);
+  if (options.offlineNotice) {
+    const status = document.getElementById('board-status-copy');
+    if (status) status.textContent = 'Offline mode: showing the last saved gradebook snapshot for this board.';
+  }
 }
 
 function renderMemberList() {
@@ -421,6 +559,7 @@ function renderMemberList() {
 
 function renderGradebook() {
   const sec = document.getElementById('gb-section');
+  const mobileList = document.getElementById('gb-mobile-list');
   if (!members.length || !lessonCols.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
 
@@ -466,6 +605,49 @@ function renderGradebook() {
       <td>—</td>
       <td style="font-weight:900;color:var(--accent);">${classAvgPct()}%</td>
     </tr>`;
+
+  if (mobileList) {
+    mobileList.innerHTML = members.map(m => {
+      const done = m.lessons.filter(l => l.status === 'done').length;
+      const total = m.lessons.length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      const quizzes = quizResultsData.filter(r => r.user_id === m.user_id || r.student_email === m.email);
+      const avgQuiz = quizzes.length ? Math.round(quizzes.reduce((s, r) => s + (r.pct || 0), 0) / quizzes.length) : null;
+      const lessonPills = m.lessons.slice(0, 8).map(l => {
+        const cls = CLS[l.status] || 'sc-locked';
+        const ico = ICON[l.status] || '🔒';
+        return `<div class="sc ${cls}" title="${l.status}">${ico}</div>`;
+      }).join('');
+      return `<div class="gb-mobile-card">
+        <div class="gb-mobile-head">
+          <div class="m-avatar">${m.avatar}</div>
+          <div style="min-width:0;">
+            <div class="m-name">${esc(m.name)}</div>
+            <div class="m-email">${esc(m.email)}</div>
+          </div>
+        </div>
+        <div class="gb-mobile-meta">
+          <span class="m-role role-${m.role}">${m.role}</span>
+          <span style="font-size:11px;font-weight:800;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}% complete</span>
+          ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;color:var(--accent);">Quiz ${avgQuiz}%</span>` : ''}
+        </div>
+        <div class="gb-mobile-progress">
+          <div class="gb-mobile-box"><div class="gb-mobile-box-n">${done}/${total}</div><div class="gb-mobile-box-l">Lessons</div></div>
+          <div class="gb-mobile-box"><div class="gb-mobile-box-n">${pct}%</div><div class="gb-mobile-box-l">Completion</div></div>
+          <div class="gb-mobile-box"><div class="gb-mobile-box-n">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div><div class="gb-mobile-box-l">Quiz Avg</div></div>
+        </div>
+        <div class="gb-mobile-lessons">${lessonPills}</div>
+        <div class="gb-mobile-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openStudentDetail('${m.user_id}')">View Detail</button>
+          <button class="btn btn-danger btn-sm" onclick="removeMember('${m.user_id}')">Remove</button>
+        </div>
+      </div>`;
+    }).join('') + `<div class="gb-mobile-card" style="background:#F5F0E8;">
+      <div style="font-size:12px;font-weight:900;color:var(--text2);">📊 Class average</div>
+      <div style="font-size:22px;font-weight:900;color:var(--accent);">${classAvgPct()}%</div>
+      <div style="font-size:11px;color:var(--text-3);">Across ${members.length} student${members.length === 1 ? '' : 's'} and ${lessonCols.length} lesson${lessonCols.length === 1 ? '' : 's'}.</div>
+    </div>`;
+  }
 }
 
 function classAvgPct() {
@@ -588,46 +770,57 @@ function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&
 
 let quizResultsData = [];
 async function loadQuizResults(boardId) {
-  const sec = document.getElementById('quiz-results-section');
-  const body = document.getElementById('quiz-results-body');
   try {
     const d = await apiFetch(`/api/boards/${boardId}/quiz-results`);
     quizResultsData = d.results || [];
-    sec.style.display = '';
-    if (!quizResultsData.length) {
-      body.innerHTML = '<p style="color:var(--text-3);font-size:13px;padding:8px 0">No quiz submissions yet.</p>';
+    cacheBoardSnapshot(boardId, { quizResultsData });
+    renderQuizResultsFromData(quizResultsData);
+  } catch {
+    const cached = readGradebookCache();
+    const snapshot = cached?.boardSnapshots?.[boardId];
+    if (snapshot?.quizResultsData) {
+      quizResultsData = snapshot.quizResultsData;
+      renderQuizResultsFromData(quizResultsData, true);
       return;
     }
-    // Group by card_id
-    const byCard = {};
-    quizResultsData.forEach(r => {
-      if (!byCard[r.card_id]) byCard[r.card_id] = [];
-      byCard[r.card_id].push(r);
-    });
-    body.innerHTML = Object.entries(byCard).map(([cardId, rows]) => {
-      const avg = Math.round(rows.reduce((s, r) => s + (r.pct || 0), 0) / rows.length);
-      const tableRows = rows.map(r => `
-        <tr>
-          <td style="font-weight:700">${esc(r.student_name || 'Unknown')}</td>
-          <td style="color:var(--text-3);font-size:11px">${esc(r.student_email || '')}</td>
-          <td><div class="qr-score-pill" style="--pct:${r.pct}">${r.score}/${r.max_score} <span style="opacity:.6">(${r.pct}%)</span></div></td>
-          <td style="font-size:11px;color:var(--text-3)">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
-        </tr>`).join('');
-      return `
-        <div class="qr-card">
-          <div class="qr-card-head">
-            <span>📝 Card: <code>${cardId.slice(-8)}</code></span>
-            <span class="qr-avg">Avg: ${avg}% · ${rows.length} submission${rows.length>1?'s':''}</span>
-          </div>
-          <table class="qr-table">
-            <thead><tr><th>Student</th><th>Email</th><th>Score</th><th>Submitted</th></tr></thead>
-            <tbody>${tableRows}</tbody>
-          </table>
-        </div>`;
-    }).join('');
-  } catch {
-    sec.style.display = 'none';
+    document.getElementById('quiz-results-section').style.display = 'none';
   }
+}
+
+function renderQuizResultsFromData(results, offlineNotice = false) {
+  const sec = document.getElementById('quiz-results-section');
+  const body = document.getElementById('quiz-results-body');
+  sec.style.display = '';
+  if (!results.length) {
+    body.innerHTML = `<p style="color:var(--text-3);font-size:13px;padding:8px 0">${offlineNotice ? 'Offline mode: no saved quiz submissions for this board yet.' : 'No quiz submissions yet.'}</p>`;
+    return;
+  }
+  const byCard = {};
+  results.forEach(r => {
+    if (!byCard[r.card_id]) byCard[r.card_id] = [];
+    byCard[r.card_id].push(r);
+  });
+  body.innerHTML = (offlineNotice ? '<p style="color:var(--text-3);font-size:12px;padding:0 0 10px;">Offline mode: quiz results shown from your last saved board snapshot.</p>' : '') + Object.entries(byCard).map(([cardId, rows]) => {
+    const avg = Math.round(rows.reduce((s, r) => s + (r.pct || 0), 0) / rows.length);
+    const tableRows = rows.map(r => `
+      <tr>
+        <td style="font-weight:700">${esc(r.student_name || 'Unknown')}</td>
+        <td style="color:var(--text-3);font-size:11px">${esc(r.student_email || '')}</td>
+        <td><div class="qr-score-pill" style="--pct:${r.pct}">${r.score}/${r.max_score} <span style="opacity:.6">(${r.pct}%)</span></div></td>
+        <td style="font-size:11px;color:var(--text-3)">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+      </tr>`).join('');
+    return `
+      <div class="qr-card">
+        <div class="qr-card-head">
+          <span>📝 Card: <code>${cardId.slice(-8)}</code></span>
+          <span class="qr-avg">Avg: ${avg}% · ${rows.length} submission${rows.length>1?'s':''}</span>
+        </div>
+        <table class="qr-table">
+          <thead><tr><th>Student</th><th>Email</th><th>Score</th><th>Submitted</th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
 }
 
 function openStudentDetail(userId) {
