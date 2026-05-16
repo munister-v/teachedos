@@ -308,6 +308,39 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .group-outline .group-badge:hover{opacity:1;}
 
+/* Drawing layer (pencil / highlighter) — sits above cards when active */
+#draw-svg{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:6;overflow:visible;
+}
+#board-wrap.drawing #draw-svg{pointer-events:auto;cursor:crosshair;}
+#board-wrap.drawing .board-card{pointer-events:none;}
+#draw-svg path{fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Frame card */
+.card-frame{background:transparent;border:none;box-shadow:none!important;}
+.card-frame .frame-body{
+  position:absolute;inset:0;border-radius:12px;
+  background:var(--frame-bg,rgba(232,93,117,.08));
+  border:2px solid var(--frame-border,rgba(232,93,117,.5));
+  display:flex;align-items:flex-start;justify-content:flex-start;
+  pointer-events:auto;
+}
+.card-frame .frame-title{
+  position:absolute;top:-22px;left:0;font-size:11px;font-weight:800;
+  color:var(--text-2);background:var(--card-bg,#fff);padding:2px 8px;
+  border-radius:6px;border:1px solid var(--border);font-family:var(--font);
+  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+}
+.card-frame .card-header{position:absolute;top:-22px;left:0;background:transparent;border:none;height:22px;}
+
+/* Sticker / emoji card */
+.card-sticker{background:transparent;border:none;box-shadow:none!important;display:flex;align-items:center;justify-content:center;}
+.card-sticker .sticker-glyph{
+  font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;user-select:none;
+}
+
 /* SVG arrows layer — covers board-wrap, pointer-events on paths */
 #arrows-svg{
   position:absolute;inset:0;width:100%;height:100%;
@@ -1492,6 +1525,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
+    <div class="user-menu-item" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
     <div class="user-menu-item" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
     <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
@@ -1577,6 +1611,22 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </button>
   <button class="mt-btn" id="mt-video" data-tip="Video" onclick="setMiroTool('select');openVideoModal()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji" onclick="setMiroTool('select');openStickerModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><circle cx="6" cy="7" r=".7" fill="currentColor"/><circle cx="10" cy="7" r=".7" fill="currentColor"/><path d="M5.5 10c.7.9 1.6 1.4 2.5 1.4S9.8 10.9 10.5 10"/></svg>
+  </button>
+  <div class="mt-sep"></div>
+  <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="setMiroTool('frame');quickAddFrame()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M5 3v10"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-pen" data-tip="Pencil (P)" onclick="toggleDrawTool('pen')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-marker" data-tip="Highlighter (H)" onclick="toggleDrawTool('marker')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 1l6 6-7 7H4l-2-2v-3l7-8z"/><path d="M5 14l-2-2"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-eraser" data-tip="Erase drawing" onclick="eraseDrawing()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14l4-4 5 5h-7l-2-1zM7 10l5-5 3 3-5 5"/></svg>
   </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
@@ -2135,17 +2185,76 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </div>
 </div>
 
-<!-- IMAGE URL MODAL -->
+<!-- IMAGE MODAL (URL / file / drag-drop / paste) -->
 <div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
     <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🖼 Add Image</div>
-    <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Paste an image URL (https://…)</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Drag &amp; drop, paste (Ctrl/⌘+V), choose a file, or use a URL.</div>
+
+    <div id="image-drop-zone"
+         ondragover="event.preventDefault();this.style.borderColor='#E85D75';this.style.background='rgba(232,93,117,.05)'"
+         ondragleave="this.style.borderColor='rgba(94,94,74,.28)';this.style.background='var(--bg)'"
+         ondrop="handleImageFileDrop(event)"
+         onclick="document.getElementById('image-file-input').click()"
+         style="border:2px dashed rgba(94,94,74,.28);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:14px;transition:.15s;">
+      <div style="font-size:24px;margin-bottom:4px;">📁</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text-2);">Drop image, paste, or click to choose</div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px;">PNG · JPG · GIF · WebP · max 8 MB</div>
+    </div>
+    <input id="image-file-input" type="file" accept="image/*" style="display:none;" onchange="handleImageFileSelect(this)">
+    <div id="image-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(232,93,117,.10);border-radius:8px;margin-bottom:14px;"></div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Or use a URL</div>
     <input id="image-url-input" class="cfg-input" type="url" placeholder="https://example.com/image.png" style="margin-bottom:14px;">
+
     <div style="display:flex;gap:8px;">
       <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
       <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Image</button>
     </div>
     <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- STICKER / EMOJI / GIF PICKER -->
+<div id="sticker-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeStickerModal()">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:20px 22px;width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.22);position:relative;border:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">😀 Stickers &amp; Emoji</div>
+      <div onclick="closeStickerModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    </div>
+    <input id="sticker-search" class="cfg-input" type="text" placeholder="Search emoji…" oninput="filterStickers(this.value)" style="margin-bottom:10px;">
+    <div id="sticker-tabs" style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;"></div>
+    <div id="sticker-grid" style="overflow-y:auto;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;padding:4px;"></div>
+    <div style="font-size:10px;color:var(--text-3);margin-top:8px;text-align:center;">Click to add · drag onto the board</div>
+  </div>
+</div>
+
+<!-- BOARD BACKGROUND MODAL -->
+<div id="bg-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeBgModal()">
+  <div style="background:var(--card-bg,white);border-radius:18px;padding:22px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.22);position:relative;border:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">🎨 Board Background</div>
+      <div onclick="closeBgModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Preset colors</div>
+    <div id="bg-color-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:16px;"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Custom color</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+      <input id="bg-custom-color" type="color" value="#F5F0E8" oninput="applyBgColor(this.value)" style="width:42px;height:36px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      <input id="bg-custom-hex" type="text" value="#F5F0E8" oninput="applyBgColor(this.value)" placeholder="#F5F0E8" class="cfg-input" style="flex:1;font-family:var(--mono);font-size:12px;">
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Background image</div>
+    <input id="bg-image-url" type="url" placeholder="Image URL (https://…)" class="cfg-input" style="margin-bottom:8px;" onchange="applyBgImage(this.value)">
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('bg-image-file').click()" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);font-size:12px;">📁 Choose file…</button>
+      <button onclick="clearBgImage()" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);font-size:12px;">Remove image</button>
+    </div>
+    <input id="bg-image-file" type="file" accept="image/*" style="display:none;" onchange="handleBgImageFile(this)">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">
+      <label style="font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input id="bg-show-dots" type="checkbox" checked onchange="toggleBgDots(this.checked)"> Show grid dots
+      </label>
+    </div>
   </div>
 </div>
 
@@ -2420,6 +2529,7 @@ function getDefaults(type) {
             lesson:{w:260,h:210}, assignment:{w:240,h:200}, milestone:{w:210,h:220},
             vocab:{w:220,h:200},  checklist:{w:220,h:200},  timer:{w:180,h:140},
             video:{w:320,h:220},
+            frame:{w:500,h:340},  sticker:{w:96,h:96},
           })[type] || { w:220,h:160 };
 }
 
@@ -2460,6 +2570,8 @@ function renderCard(card) {
   else if (card.type === 'vocab')      renderVocab(el, card);
   else if (card.type === 'checklist')  renderChecklist(el, card);
   else if (card.type === 'timer')      renderTimer(el, card);
+  else if (card.type === 'frame')      renderFrame(el, card);
+  else if (card.type === 'sticker')    renderSticker(el, card);
 
   // Apply stored accent color
   if (card.data._accent) el.classList.add(card.data._accent);
@@ -2690,6 +2802,72 @@ function renderImage(el, card) {
     body.innerHTML = `<div style="padding:16px;font-size:11px;color:var(--text-3);text-align:center;flex:1;display:flex;align-items:center;justify-content:center;">No image URL set</div>`;
   }
   el.appendChild(body);
+}
+
+function renderFrame(el, card) {
+  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(232,93,117,.08)');
+  el.style.setProperty('--frame-border', card.data.border || 'rgba(232,93,117,.5)');
+  const title = document.createElement('div');
+  title.className = 'frame-title';
+  title.textContent = card.data.title || 'Frame';
+  title.title = 'Double-click to rename';
+  title.addEventListener('dblclick', e => {
+    e.stopPropagation();
+    const name = prompt('Frame name:', card.data.title || 'Frame');
+    if (name !== null) { card.data.title = name; title.textContent = name; snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  });
+  el.appendChild(title);
+  const body = document.createElement('div');
+  body.className = 'frame-body';
+  body.title = 'Frame · drag the corner to resize';
+  // Right-click to change color
+  body.addEventListener('contextmenu', e => {
+    e.preventDefault(); e.stopPropagation();
+    const color = prompt('Frame color (hex or rgba):', card.data.bg || 'rgba(232,93,117,.08)');
+    if (color) {
+      card.data.bg = color;
+      el.style.setProperty('--frame-bg', color);
+      snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
+  });
+  el.appendChild(body);
+  // Header for drag/close (positioned above by CSS)
+  const hdr = makeHeader('▦', '', card.id);
+  hdr.style.background = 'transparent';
+  hdr.style.border = 'none';
+  el.appendChild(hdr);
+}
+
+function renderSticker(el, card) {
+  const glyph = document.createElement('div');
+  glyph.className = 'sticker-glyph';
+  glyph.textContent = card.data.glyph || '⭐';
+  el.appendChild(glyph);
+  // Auto-scale glyph to fit
+  const updateSize = () => {
+    const s = Math.min(el.clientWidth, el.clientHeight) * 0.8;
+    glyph.style.fontSize = Math.max(24, s) + 'px';
+  };
+  updateSize();
+  setTimeout(updateSize, 0);
+  // Close button on hover
+  const close = document.createElement('button');
+  close.className = 'card-close';
+  close.textContent = '×';
+  close.style.cssText = 'position:absolute;top:4px;right:4px;opacity:0;transition:.15s;';
+  close.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+  el.addEventListener('mouseenter', () => close.style.opacity = '1');
+  el.addEventListener('mouseleave', () => close.style.opacity = '0');
+  el.appendChild(close);
+}
+
+function quickAddFrame() {
+  const r = boardWrap.getBoundingClientRect();
+  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 100, y: 100 };
+  const def = getDefaults('frame');
+  addCard('frame', pos.x - def.w/2, pos.y - def.h/2, { title: 'Frame', bg: 'rgba(232,93,117,.08)', border: 'rgba(232,93,117,.5)' });
+  setMiroTool('select');
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
 function renderGame(el, card) {
@@ -6745,11 +6923,111 @@ function openVideoModal() {
 function closeVideoModal() { document.getElementById('video-url-overlay').style.display = 'none'; }
 function openImageModal() {
   document.getElementById('image-url-input').value = '';
+  document.getElementById('image-file-input').value = '';
+  document.getElementById('image-file-info').style.display = 'none';
+  _pendingImageDataUrl = null;
   const ov = document.getElementById('image-url-overlay');
   ov.style.display = 'flex';
   setTimeout(() => document.getElementById('image-url-input').focus(), 50);
 }
-function closeImageModal() { document.getElementById('image-url-overlay').style.display = 'none'; }
+function closeImageModal() {
+  document.getElementById('image-url-overlay').style.display = 'none';
+  _pendingImageDataUrl = null;
+}
+
+let _pendingImageDataUrl = null;
+
+function handleImageFileDrop(e) {
+  e.preventDefault();
+  const zone = document.getElementById('image-drop-zone');
+  if (zone) { zone.style.borderColor = 'rgba(94,94,74,.28)'; zone.style.background = 'var(--bg)'; }
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) loadImageFile(file);
+}
+function handleImageFileSelect(input) {
+  if (input.files && input.files[0]) loadImageFile(input.files[0]);
+}
+function loadImageFile(file) {
+  if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
+  const MAX = 8 * 1024 * 1024;
+  if (file.size > MAX) { alert('Image is too large. Max 8 MB.'); return; }
+  const info = document.getElementById('image-file-info');
+  if (info) {
+    info.textContent = `🖼 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    info.style.display = 'block';
+  }
+  const reader = new FileReader();
+  reader.onload = ev => { _pendingImageDataUrl = ev.target.result; };
+  reader.readAsDataURL(file);
+}
+
+/* Global paste handler — add image directly to the board on Ctrl/⌘+V */
+document.addEventListener('paste', e => {
+  // Don't hijack pasting inside inputs / editable fields
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type && item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (!file) continue;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const pos = pendingImagePos || screenToBoard(window.innerWidth/2, window.innerHeight/2) || { x: 200, y: 100 };
+        addCard('image', pos.x, pos.y, { title: 'Pasted image', src: ev.target.result }, 320, 240);
+        pendingImagePos = null;
+        scheduleSave && scheduleSave();
+        saveLocal && saveLocal();
+        toast && toast('🖼 Image pasted');
+      };
+      reader.readAsDataURL(file);
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
+function screenToBoard(sx, sy) {
+  if (!boardWrap) return null;
+  const r = boardWrap.getBoundingClientRect();
+  const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
+  const ox = (typeof state !== 'undefined' && state.offsetX) ? state.offsetX : 0;
+  const oy = (typeof state !== 'undefined' && state.offsetY) ? state.offsetY : 0;
+  return { x: (sx - r.left - ox) / sc, y: (sy - r.top - oy) / sc };
+}
+
+/* Global drag-drop onto the board itself */
+['dragover','drop'].forEach(ev => {
+  document.addEventListener(ev, e => {
+    if (!boardWrap) return;
+    // Only react if the drop landed inside the board area and clipboard has files
+    if (!boardWrap.contains(e.target)) return;
+    if (ev === 'dragover') {
+      if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      }
+      return;
+    }
+    if (ev === 'drop') {
+      const files = e.dataTransfer && e.dataTransfer.files;
+      if (!files || !files.length) return;
+      e.preventDefault();
+      const file = files[0];
+      if (!file.type.startsWith('image/')) { toast && toast('Only image files are supported'); return; }
+      const reader = new FileReader();
+      reader.onload = ev2 => {
+        const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 100 };
+        addCard('image', pos.x, pos.y, { title: file.name || 'Image', src: ev2.target.result }, 320, 240);
+        scheduleSave && scheduleSave();
+        saveLocal && saveLocal();
+        toast && toast('🖼 Image added');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
 
 function parseVideoEmbed(url) {
   if (!url) return null;
@@ -6777,16 +7055,314 @@ function confirmVideoEmbed() {
 
 function confirmImageEmbed() {
   const url = document.getElementById('image-url-input').value.trim();
-  if (!url || !url.startsWith('http')) { alert('Please enter a valid image URL.'); return; }
+  const src = _pendingImageDataUrl || url;
+  if (!src) { alert('Drop a file, paste an image, or enter a valid URL.'); return; }
+  if (!_pendingImageDataUrl && !url.startsWith('http') && !url.startsWith('data:')) {
+    alert('Please enter a valid image URL.'); return;
+  }
   closeImageModal();
   const pos = pendingImagePos || { x: 200, y: 100 };
-  addCard('image', pos.x, pos.y, { title: 'Image', src: url }, 280, 220);
+  addCard('image', pos.x, pos.y, { title: _pendingImageDataUrl ? 'Uploaded image' : 'Image', src }, 320, 240);
   pendingImagePos = null;
+  _pendingImageDataUrl = null;
+  scheduleSave && scheduleSave();
+  saveLocal && saveLocal();
 }
 
 // Close modals on Enter
 document.getElementById('video-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmVideoEmbed(); });
 document.getElementById('image-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmImageEmbed(); });
+
+/* ════════════════════════ STICKER / EMOJI PICKER ════════════════════════ */
+const STICKER_CATEGORIES = {
+  'Smileys':['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','🤔','🙃','😴','😇','🥳','🥺','😢','😭','😡','🤯','😱','🤓','🤠','😈','👻','💀','☠️','🤡','👽','👾','🤖','💩'],
+  'Hands':['👍','👎','👏','🙌','👐','🤝','🤲','🙏','✊','👊','🤘','🤙','👌','✌️','🤞','🤟','🖖','👋','🤚','✋','🖐️','👆','👇','👈','👉','☝️'],
+  'Hearts':['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💖','💗','💓','💞','💕','💘','💝','💟','♥️','💔','❣️'],
+  'School':['✏️','📝','📚','📖','📓','📒','📕','📗','📘','📙','🎓','🏫','📐','📏','🖊️','🖋️','✒️','🖌️','🖍️','📌','📍','📎','🖇️','🗂️','📁','📂','🗒️','🗓️','📅','📆','⏰','⏱️','⌛','💡','🔍','🔎','🧮','🎒','🍎'],
+  'Stars':['⭐','🌟','✨','💫','🌈','🔥','💥','💯','✅','❌','⚠️','❗','❓','💬','💭','💤','🎉','🎊','🎁','🎈','🎯','🏆','🥇','🥈','🥉','🏅','👑','🌹','🌸','🌼','🌺','🌻','🌷','🍀'],
+  'Animals':['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐍','🦖','🐙','🦑','🦀','🐠','🐟','🐬','🐳','🦓'],
+  'Food':['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🍆','🥔','🥕','🌽','🌶️','🥒','🥬','🥦','🍞','🥐','🥖','🧀','🥚','🍳','🥞','🧇','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🥗','🍝','🍜','🍣','🍱','🥟','🍤','🍦','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍯','☕','🍵','🥤','🍺','🍷','🥂'],
+};
+let _stickerActiveTab = 'Smileys';
+
+function openStickerModal() {
+  const ov = document.getElementById('sticker-overlay');
+  if (!ov) return;
+  buildStickerTabs();
+  renderStickerGrid(_stickerActiveTab);
+  ov.style.display = 'flex';
+  setTimeout(() => { const s = document.getElementById('sticker-search'); if (s) s.focus(); }, 50);
+}
+function closeStickerModal() {
+  const ov = document.getElementById('sticker-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function buildStickerTabs() {
+  const tabs = document.getElementById('sticker-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = Object.keys(STICKER_CATEGORIES).map(cat => `
+    <button onclick="switchStickerTab('${cat}')"
+      style="padding:5px 11px;border:1px solid var(--border);border-radius:8px;background:${cat===_stickerActiveTab?'var(--accent)':'var(--bg)'};color:${cat===_stickerActiveTab?'#fff':'var(--text-2)'};font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;transition:.15s;">${cat}</button>
+  `).join('');
+}
+function switchStickerTab(cat) {
+  _stickerActiveTab = cat;
+  const s = document.getElementById('sticker-search');
+  if (s) s.value = '';
+  buildStickerTabs();
+  renderStickerGrid(cat);
+}
+function renderStickerGrid(cat, filter) {
+  const grid = document.getElementById('sticker-grid');
+  if (!grid) return;
+  let list = STICKER_CATEGORIES[cat] || [];
+  if (filter && filter.trim()) {
+    // Search across all categories
+    const f = filter.trim();
+    list = [];
+    Object.values(STICKER_CATEGORIES).forEach(arr => arr.forEach(g => { if (g.includes(f)) list.push(g); }));
+    if (!list.length) {
+      // Fall back to showing the category
+      list = STICKER_CATEGORIES[cat] || [];
+    }
+  }
+  grid.innerHTML = list.map(g => `
+    <div class="sticker-item" draggable="true" data-glyph="${g}"
+      onclick="addStickerCard('${g}')"
+      style="font-size:28px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9px;cursor:grab;transition:background .12s;user-select:none;"
+      onmouseover="this.style.background='var(--accent-2)'" onmouseout="this.style.background=''">${g}</div>
+  `).join('');
+  // Drag support
+  grid.querySelectorAll('.sticker-item').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/sticker-glyph', el.dataset.glyph);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+  });
+}
+function filterStickers(q) { renderStickerGrid(_stickerActiveTab, q); }
+function addStickerCard(glyph) {
+  const r = boardWrap.getBoundingClientRect();
+  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
+  addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
+  closeStickerModal();
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+// Drop handler for stickers
+document.addEventListener('drop', e => {
+  if (!boardWrap || !boardWrap.contains(e.target)) return;
+  const glyph = e.dataTransfer && e.dataTransfer.getData('text/sticker-glyph');
+  if (!glyph) return;
+  e.preventDefault();
+  const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 200 };
+  addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+});
+
+/* ════════════════════════ BACKGROUND CUSTOMIZATION ════════════════════════ */
+const BG_PRESETS = ['#F5F0E8','#FFFFFF','#FAFAF7','#FFF9E6','#FFF0F0','#F0F7FF','#F0FFF4','#F9F0FF','#FFE4E1','#E0F2FE','#DCFCE7','#FEF3C7','#FCE7F3','#E5E7EB','#1C1C1E','#0F172A'];
+const BG_KEY = 'teachedos_board_bg';
+
+function openBgModal() {
+  const ov = document.getElementById('bg-overlay');
+  if (!ov) return;
+  buildBgGrid();
+  const saved = getBgState();
+  if (saved.color) {
+    document.getElementById('bg-custom-color').value = saved.color;
+    document.getElementById('bg-custom-hex').value = saved.color;
+  }
+  if (saved.image) document.getElementById('bg-image-url').value = saved.image.startsWith('data:') ? '' : saved.image;
+  document.getElementById('bg-show-dots').checked = saved.showDots !== false;
+  ov.style.display = 'flex';
+}
+function closeBgModal() {
+  const ov = document.getElementById('bg-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function buildBgGrid() {
+  const grid = document.getElementById('bg-color-grid');
+  if (!grid) return;
+  grid.innerHTML = BG_PRESETS.map(c => `
+    <div onclick="applyBgColor('${c}')"
+      style="width:100%;aspect-ratio:1;border-radius:8px;background:${c};cursor:pointer;border:2px solid ${c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.2)':'transparent'};transition:.15s;"
+      onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform=''"></div>
+  `).join('');
+}
+function getBgState() {
+  try { return JSON.parse(localStorage.getItem(BG_KEY)) || {}; } catch { return {}; }
+}
+function saveBgState(s) { try { localStorage.setItem(BG_KEY, JSON.stringify(s)); } catch {} }
+function applyBgColor(color) {
+  if (!color) return;
+  const c = color.trim();
+  if (!/^#[0-9a-fA-F]{3,8}$|^rgb/.test(c)) return;
+  if (boardWrap) boardWrap.style.backgroundColor = c;
+  const cur = getBgState();
+  cur.color = c;
+  saveBgState(cur);
+  const hex = document.getElementById('bg-custom-hex'); if (hex) hex.value = c;
+  const col = document.getElementById('bg-custom-color'); if (col && /^#[0-9a-fA-F]{6}$/.test(c)) col.value = c;
+}
+function applyBgImage(url) {
+  if (!url) { clearBgImage(); return; }
+  if (boardWrap) boardWrap.style.backgroundImage = `url("${url}")`;
+  if (boardWrap) boardWrap.style.backgroundSize = 'cover';
+  const cur = getBgState(); cur.image = url; saveBgState(cur);
+}
+function clearBgImage() {
+  if (boardWrap) {
+    boardWrap.style.backgroundImage = '';
+    boardWrap.style.backgroundSize = '';
+  }
+  const cur = getBgState(); delete cur.image; saveBgState(cur);
+  const inp = document.getElementById('bg-image-url'); if (inp) inp.value = '';
+  // Restore dots if enabled
+  toggleBgDots(getBgState().showDots !== false);
+}
+function handleBgImageFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) { alert('Background image too large (max 4 MB)'); return; }
+  const r = new FileReader();
+  r.onload = e => applyBgImage(e.target.result);
+  r.readAsDataURL(file);
+}
+function toggleBgDots(show) {
+  if (!boardWrap) return;
+  if (show) {
+    boardWrap.style.backgroundImage = '';
+    // Restore the default dotted pattern by re-applying via stylesheet rule via CSS variables
+    boardWrap.style.removeProperty('background-image');
+    boardWrap.style.removeProperty('background-size');
+    // If a custom image is set, keep it
+    const st = getBgState();
+    if (st.image) applyBgImage(st.image);
+  } else {
+    // Hide dots
+    boardWrap.style.backgroundImage = 'none';
+  }
+  const cur = getBgState(); cur.showDots = !!show; saveBgState(cur);
+}
+// Apply saved background on load
+(function restoreBg() {
+  const st = getBgState();
+  if (!boardWrap) {
+    // Wait for boardWrap reference
+    setTimeout(restoreBg, 200);
+    return;
+  }
+  if (st.color) boardWrap.style.backgroundColor = st.color;
+  if (st.image) applyBgImage(st.image);
+  if (st.showDots === false) toggleBgDots(false);
+})();
+
+/* ════════════════════════ DRAWING TOOLS (pencil + highlighter) ════════════════════════ */
+let _drawTool = null;        // 'pen' | 'marker' | null
+let _drawSvg = null;         // SVG element for strokes
+let _drawing = false;
+let _drawPoints = [];
+let _drawPath = null;
+
+function ensureDrawLayer() {
+  if (_drawSvg) return _drawSvg;
+  const board = document.getElementById('board');
+  if (!board) return null;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.id = 'draw-svg';
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  // Position the SVG inside the board so it transforms with pan/zoom
+  svg.style.cssText = 'position:absolute;top:0;left:0;width:6000px;height:6000px;pointer-events:none;overflow:visible;';
+  board.appendChild(svg);
+  _drawSvg = svg;
+  // Restore saved strokes
+  try {
+    const saved = localStorage.getItem('teachedos_board_strokes');
+    if (saved) svg.innerHTML = saved;
+  } catch {}
+  return svg;
+}
+function saveStrokes() {
+  if (!_drawSvg) return;
+  try { localStorage.setItem('teachedos_board_strokes', _drawSvg.innerHTML); } catch {}
+}
+function toggleDrawTool(tool) {
+  if (_drawTool === tool) {
+    // Toggle off
+    _drawTool = null;
+    boardWrap.classList.remove('drawing');
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+    const sel = document.getElementById('mt-select'); if (sel) sel.classList.add('active');
+    return;
+  }
+  _drawTool = tool;
+  ensureDrawLayer();
+  boardWrap.classList.add('drawing');
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mt-' + (tool === 'pen' ? 'pen' : 'marker'));
+  if (btn) btn.classList.add('active');
+}
+function eraseDrawing() {
+  if (!confirm('Erase all drawing strokes on this board?')) return;
+  if (_drawSvg) _drawSvg.innerHTML = '';
+  try { localStorage.removeItem('teachedos_board_strokes'); } catch {}
+}
+
+function _drawPointFromEvent(e) {
+  // Convert page coords → board coords (in board's transformed space)
+  const r = boardWrap.getBoundingClientRect();
+  const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
+  const ox = (typeof state !== 'undefined' && state.offsetX) ? state.offsetX : 0;
+  const oy = (typeof state !== 'undefined' && state.offsetY) ? state.offsetY : 0;
+  return { x: (e.clientX - r.left - ox) / sc, y: (e.clientY - r.top - oy) / sc };
+}
+
+document.addEventListener('mousedown', e => {
+  if (!_drawTool || !_drawSvg) return;
+  if (e.button !== 0) return;
+  if (!boardWrap.contains(e.target)) return;
+  _drawing = true;
+  _drawPoints = [_drawPointFromEvent(e)];
+  _drawPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  if (_drawTool === 'pen') {
+    _drawPath.setAttribute('stroke', '#1C1C1E');
+    _drawPath.setAttribute('stroke-width', '2.5');
+    _drawPath.setAttribute('opacity', '1');
+  } else {
+    _drawPath.setAttribute('stroke', '#FACC15');
+    _drawPath.setAttribute('stroke-width', '14');
+    _drawPath.setAttribute('opacity', '0.45');
+  }
+  _drawPath.setAttribute('d', `M ${_drawPoints[0].x} ${_drawPoints[0].y}`);
+  _drawSvg.appendChild(_drawPath);
+  e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if (!_drawing || !_drawPath) return;
+  const p = _drawPointFromEvent(e);
+  _drawPoints.push(p);
+  const d = _drawPoints.map((pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
+  _drawPath.setAttribute('d', d);
+});
+document.addEventListener('mouseup', () => {
+  if (!_drawing) return;
+  _drawing = false;
+  _drawPath = null;
+  _drawPoints = [];
+  saveStrokes();
+});
+
+// Keyboard shortcuts: P (pencil), H (highlighter), F (frame)
+document.addEventListener('keydown', e => {
+  // Skip if typing in an input
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
+  else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
+  else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
+});
 
 /* ════════════ SETTINGS ════════════ */
 const SETTINGS_KEY = 'teachedos_board_settings';
