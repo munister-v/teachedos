@@ -4,9 +4,8 @@
 <link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
+<link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
+<link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <title>Courses · TeachEd</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -158,6 +157,37 @@ button{font-family:var(--font);cursor:pointer;}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
 .btn-soft{background:rgba(99,102,241,.1);color:var(--blue);border:1.5px solid rgba(99,102,241,.26);}
 .btn-soft:hover{background:rgba(99,102,241,.18);}
+
+.ready-library{
+  margin:14px 28px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:10px;
+}
+.ready-card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--card);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.ready-top{display:flex;align-items:center;gap:10px;}
+.ready-icon{
+  width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  background:rgba(200,230,50,.16);font-size:17px;flex-shrink:0;
+}
+.ready-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.25;}
+.ready-meta{font-size:11px;color:var(--text3);font-weight:800;font-family:var(--mono);}
+.ready-copy{font-size:12px;color:var(--text2);line-height:1.45;}
+.ready-lessons{display:flex;flex-wrap:wrap;gap:5px;}
+.ready-chip{
+  font-size:10px;font-weight:800;color:var(--text2);
+  background:rgba(94,94,74,.08);border:1px solid var(--border);border-radius:999px;
+  padding:3px 7px;
+}
+.ready-actions{display:flex;gap:8px;margin-top:auto;}
 
 .course-insights{
   margin:14px 28px 0;
@@ -374,10 +404,12 @@ button{font-family:var(--font);cursor:pointer;}
       <div class="w-title">Organize your lessons into courses</div>
       <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module — no more chaos.</div>
       <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
+      <div class="ready-library" id="welcome-ready-library" style="width:min(920px,100%);margin-top:18px;"></div>
     </div>
     <div id="course-view" style="display:none;flex-direction:column;flex:1;">
       <div id="course-header"></div>
       <div id="course-insights" class="course-insights"></div>
+      <div id="course-ready-library" class="ready-library"></div>
       <div id="modules-area"></div>
       <div id="unassigned-section" style="display:none;">
         <div class="unassigned-head">Unassigned lessons</div>
@@ -430,9 +462,10 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
+<script src="scripts/app-core.js"></script>
 <script>
-const API = 'https://teachedos-api.onrender.com';
 const token = localStorage.getItem('teachedos_token');
+const apiClient = window.TeachEdApp.createApiClient(() => token);
 
 const COLORS = [
   '#C8E632','#f97316','#eab308','#22c55e','#06b6d4',
@@ -443,24 +476,102 @@ let selectedColor = COLORS[0];
 let courses = [];
 let sharedCourses = [];
 let activeCourse = null;
+let activeModules = [];
 let allBoards = [];
 let pickerTargetModuleId = null;
 let pickerSelected = new Set();
 let formMode = null; // 'course' | 'module' | 'editCourse'
 let formTargetId = null;
 const COURSE_TEMPLATES = {
-  A1: ['Introductions & Classroom English', 'Daily Routine', 'Shopping & Money'],
-  B1: ['Speaking Routines', 'Opinion Writing', 'Media & Technology'],
-  B2: ['Debates & Critical Reading', 'Academic Writing', 'Project Presentation'],
+  A1: {
+    level: 'A1',
+    title: 'Starter English Sprint',
+    copy: 'Survival classroom English, personal info, routines and simple shopping tasks.',
+    modules: [
+      { name: 'Module 1 · First Contact', lessons: [
+        lesson('Classroom English & Greetings', 'Speaking', 'A1', '45 min', ['say hello and goodbye', 'ask for repetition', 'use classroom commands'], ['teacher mime commands', 'students build mini-dialogues', 'exit ticket: 3 useful phrases'], 'Create a 6-line greeting dialogue.'),
+        lesson('Names, Countries & Be', 'Grammar', 'A1', '45 min', ['use am/is/are', 'introduce name and country', 'ask simple identity questions'], ['identity card drill', 'country flag guessing', 'pair interview'], 'Record 5 sentences about yourself.'),
+        lesson('Numbers, Time & Dates', 'Vocabulary', 'A1', '40 min', ['say numbers 1-100', 'tell simple time', 'ask about birthdays'], ['number bingo', 'clock race', 'calendar mini-survey'], 'Write 8 important dates in English.')
+      ]},
+      { name: 'Module 2 · Daily Life', lessons: [
+        lesson('Daily Routine', 'Speaking', 'A1', '50 min', ['describe a simple day', 'use present simple I/you', 'ask about habits'], ['routine picture ordering', 'find someone who', 'my perfect morning'], 'Make a 7-step routine list.'),
+        lesson('Food, Likes & Dislikes', 'Vocabulary', 'A1', '45 min', ['name common food', 'use like/love/hate', 'order politely'], ['menu matching', 'restaurant role-play', 'taste ranking'], 'Prepare a cafe order dialogue.'),
+        lesson('Shopping & Money', 'Functional', 'A1', '45 min', ['ask prices', 'use this/that/these/those', 'buy simple items'], ['price tag race', 'shop assistant role-play', 'receipt check'], 'Write 5 shopping questions.')
+      ]}
+    ]
+  },
+  A2: {
+    level: 'A2',
+    title: 'Practical Grammar Builder',
+    copy: 'Core A2 grammar with controlled practice, speaking transfer and homework prompts.',
+    modules: [
+      { name: 'Module 1 · Present Tenses', lessons: [
+        lesson('Present Simple vs Continuous', 'Grammar', 'A2', '50 min', ['choose between habits and now', 'use signal words', 'describe photos and routines'], ['timeline contrast', 'photo description', 'habit vs now cards'], 'Write 8 sentences: 4 habits, 4 happening now.'),
+        lesson('Adverbs of Frequency', 'Grammar', 'A2', '40 min', ['place always/often/sometimes correctly', 'talk about routines', 'ask how often questions'], ['frequency ladder', 'class survey', 'routine correction'], 'Make 6 true sentences about your week.'),
+        lesson('Prepositions of Time', 'Grammar', 'A2', '40 min', ['use at/in/on for time', 'talk about schedules', 'correct common errors'], ['calendar sorting', 'schedule interview', 'quick correction race'], 'Complete a weekly schedule in English.')
+      ]},
+      { name: 'Module 2 · Real-Life Tasks', lessons: [
+        lesson('Travel English: Hotel Check-in', 'Speaking', 'A2', '45 min', ['check in at a hotel', 'ask about facilities', 'solve simple problems'], ['hotel form warm-up', 'reception role-play', 'problem cards'], 'Write a hotel email asking 3 questions.'),
+        lesson('Past Simple Stories', 'Grammar', 'A2', '50 min', ['use regular and irregular past verbs', 'tell a short story', 'ask follow-up questions'], ['verb auction', 'story dice', 'yesterday interview'], 'Write a 90-word story about last weekend.'),
+        lesson('Comparatives & Superlatives', 'Grammar', 'A2', '45 min', ['compare places and products', 'use -er/more/the most', 'justify choices'], ['product comparison', 'city debate', 'best/worst ranking'], 'Compare two cities or products.')
+      ]}
+    ]
+  },
+  B1: {
+    level: 'B1',
+    title: 'Confident Communicator',
+    copy: 'Balanced B1 course: tense control, opinions, media topics and structured speaking.',
+    modules: [
+      { name: 'Module 1 · Tense Control', lessons: [
+        lesson('Present Perfect vs Past Simple', 'Grammar', 'B1', '55 min', ['separate finished time from life experience', 'use ever/never/yet/already', 'ask natural experience questions'], ['timeline diagnosis', 'have you ever mingle', 'news headline rewrite'], 'Write 6 questions with ever/yet/already.'),
+        lesson('Used to & Would', 'Grammar', 'B1', '45 min', ['talk about past habits', 'contrast past and now', 'avoid would with states'], ['childhood memory board', 'then vs now table', 'pair storytelling'], 'Record a 1-minute childhood story.'),
+        lesson('Narrative Tenses', 'Grammar', 'B1', '55 min', ['sequence past events', 'use past continuous background', 'retell a story clearly'], ['story reconstruction', 'picture sequence', 'interrupting event drill'], 'Retell a short story in 120 words.')
+      ]},
+      { name: 'Module 2 · Opinions & Media', lessons: [
+        lesson('Agreeing and Disagreeing Politely', 'Speaking', 'B1', '50 min', ['give opinions with reasons', 'agree/disagree softly', 'ask for clarification'], ['opinion corners', 'softening phrase bank', 'mini debate'], 'Write 5 opinion sentences with reasons.'),
+        lesson('Media & Technology Vocabulary', 'Vocabulary', 'B1', '45 min', ['discuss apps and online habits', 'use collocations', 'explain digital problems'], ['collocation matching', 'app pitch', 'problem-solving role-play'], 'Describe your most useful app.'),
+        lesson('Email: Request and Follow-up', 'Writing', 'B1', '50 min', ['write polite requests', 'structure follow-up emails', 'use formal openings/closings'], ['bad email repair', 'tone upgrade', 'live email draft'], 'Send a polished request email draft.')
+      ]}
+    ]
+  },
+  B2: {
+    level: 'B2',
+    title: 'Upper-Intermediate Studio',
+    copy: 'Debates, advanced grammar, academic style and project presentations for strong learners.',
+    modules: [
+      { name: 'Module 1 · Debate & Critical Thinking', lessons: [
+        lesson('Hedging Opinions', 'Speaking', 'B2', '55 min', ['soften strong claims', 'use hedging adverbs', 'respond diplomatically'], ['claim softening', 'evidence ladder', 'panel discussion'], 'Rewrite 8 strong claims with hedging.'),
+        lesson('Argument Structure', 'Writing', 'B2', '60 min', ['build claim-evidence-impact paragraphs', 'use linking phrases', 'challenge weak arguments'], ['argument surgery', 'evidence ranking', 'paragraph sprint'], 'Write one PEEL paragraph.'),
+        lesson('Ethics of AI Debate', 'Speaking', 'B2', '60 min', ['discuss risks and benefits', 'use concession phrases', 'moderate a debate'], ['stakeholder cards', 'for/against prep', 'moderated debate'], 'Prepare 3 arguments and 2 concessions.')
+      ]},
+      { name: 'Module 2 · Advanced Accuracy', lessons: [
+        lesson('Conditionals & Alternatives', 'Grammar', 'B2', '55 min', ['use 2nd/3rd conditionals', 'make regrets and hypotheses', 'recognise mixed conditionals'], ['conditional ladder', 'regret cards', 'what-if scenarios'], 'Write 6 conditional sentences about decisions.'),
+        lesson('Passive Voice in Reports', 'Grammar', 'B2', '50 min', ['use passive for processes', 'sound formal in reports', 'omit unnecessary agents'], ['process rewrite', 'news headline expansion', 'mini report'], 'Describe a process using 8 passive forms.'),
+        lesson('Presentation Skills', 'Speaking', 'B2', '60 min', ['open and close clearly', 'signpost ideas', 'handle questions'], ['signpost sorting', '60-second talk', 'Q&A practice'], 'Prepare a 2-minute presentation outline.')
+      ]}
+    ]
+  },
+  C1: {
+    level: 'C1',
+    title: 'Advanced Fluency Lab',
+    copy: 'Nuance, register, persuasive writing and high-level discussion for advanced students.',
+    modules: [
+      { name: 'Module 1 · Nuance & Register', lessons: [
+        lesson('Diplomatic Language', 'Speaking', 'C1', '60 min', ['disagree without sounding blunt', 'use tactful reformulations', 'control register'], ['blunt-to-diplomatic rewrite', 'meeting role-play', 'feedback ladder'], 'Rewrite 10 blunt phrases diplomatically.'),
+        lesson('Collocation Precision', 'Vocabulary', 'C1', '55 min', ['choose natural collocations', 'avoid translation-heavy phrasing', 'upgrade lexical range'], ['collocation audit', 'sentence upgrade', 'mini corpus noticing'], 'Upgrade a paragraph with 12 collocations.'),
+        lesson('Persuasive Executive Summary', 'Writing', 'C1', '60 min', ['summarise complex ideas', 'lead with recommendations', 'write concise business prose'], ['summary compression', 'recommendation pyramid', 'peer edit'], 'Write a 150-word executive summary.')
+      ]}
+    ]
+  }
 };
+
+function lesson(title, skill, level, duration, objectives, activities, homework) {
+  return { title, skill, level, duration, objectives, activities, homework };
+}
 
 /* ── API ─────────────────────────────────────────────────────── */
 async function api(path, opts = {}) {
-  const r = await fetch(API + path, {
-    ...opts,
-    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token, ...(opts.headers||{}) },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
+  const r = await apiClient(path, opts);
   const d = await r.json();
   if (!r.ok) throw new Error(d.error || 'Error');
   return d;
@@ -482,6 +593,7 @@ async function init() {
   } catch { location.href = 'index.html'; return; }
 
   buildColorRow();
+  renderReadyLibrary();
   await loadAll();
 }
 
@@ -553,6 +665,7 @@ async function openCourse(id) {
 }
 
 function renderCourseView({ course, modules, unassigned }) {
+  activeModules = modules || [];
   document.getElementById('welcome').style.display = 'none';
   const view = document.getElementById('course-view');
   view.style.display = 'flex';
@@ -571,11 +684,12 @@ function renderCourseView({ course, modules, unassigned }) {
     </div>
     <div class="ch-actions">
       <button class="btn btn-ghost" onclick="openModuleForm('${course.id}')">+ Module</button>
-      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">⚡ Fill by template</button>
+      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">⚡ Import ready lessons</button>
       <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">✏️ Edit</button>
       <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">🗑 Delete</button>
     </div>`;
   renderCourseInsights(modules, unassigned);
+  renderReadyLibrary(course.level);
 
   // Modules
   const area = document.getElementById('modules-area');
@@ -670,19 +784,147 @@ function renderCourseInsights(modules, unassigned) {
 
 async function createTemplateModules(courseId) {
   if (!activeCourse) return;
-  const levelRaw = (activeCourse.level || '').toUpperCase();
-  const levelKey = levelRaw.startsWith('A1') ? 'A1' : levelRaw.startsWith('B2') ? 'B2' : 'B1';
-  const list = COURSE_TEMPLATES[levelKey];
-  if (!list?.length) { toast('No template for this level yet'); return; }
-  if (!confirm(`Create ${list.length} template modules for ${levelKey}?`)) return;
+  const template = resolveTemplate(activeCourse.level);
+  const moduleCount = template.modules.length;
+  const lessonCount = template.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+  if (!confirm(`Import ${moduleCount} modules and ${lessonCount} ready lesson boards for ${template.level}?`)) return;
   try {
-    await Promise.all(list.map(name => api(`/api/courses/${courseId}/modules`, { method:'POST', body:{ name } })));
+    let createdLessons = 0;
+    for (const moduleTemplate of template.modules) {
+      const existing = activeModules.find(m => m.name === moduleTemplate.name);
+      const module = existing || (await api(`/api/courses/${courseId}/modules`, {
+        method:'POST',
+        body:{ name: moduleTemplate.name }
+      })).module;
+      for (let i = 0; i < moduleTemplate.lessons.length; i += 1) {
+        const lessonTemplate = moduleTemplate.lessons[i];
+        const boardName = `${template.level} · ${lessonTemplate.title}`;
+        const { board } = await api('/api/boards', { method:'POST', body:{ name: boardName } });
+        await api('/api/boards/' + board.id, {
+          method:'PATCH',
+          body:{ data: buildReadyLessonBoard(template, moduleTemplate, lessonTemplate), name: boardName }
+        });
+        await api(`/api/courses/${courseId}/boards/${board.id}`, {
+          method:'PATCH',
+          body:{ module_id: module.id, board_order: i }
+        });
+        createdLessons += 1;
+      }
+    }
     await openCourse(courseId);
     await loadAll();
-    toast(`✅ Added ${list.length} template modules`);
+    toast(`✅ Imported ${createdLessons} ready lessons`);
   } catch (e) {
-    toast('Error: ' + e.message);
+    toast(e.message.includes('limit') ? 'Board limit reached. Upgrade or remove old boards.' : 'Error: ' + e.message);
   }
+}
+
+function resolveTemplate(level) {
+  const raw = (level || '').toUpperCase();
+  if (raw.startsWith('A1')) return COURSE_TEMPLATES.A1;
+  if (raw.startsWith('A2')) return COURSE_TEMPLATES.A2;
+  if (raw.startsWith('B2')) return COURSE_TEMPLATES.B2;
+  if (raw.startsWith('C1') || raw.startsWith('C2')) return COURSE_TEMPLATES.C1;
+  return COURSE_TEMPLATES.B1;
+}
+
+function renderReadyLibrary(level) {
+  const keys = level ? [resolveTemplate(level).level] : ['A1','A2','B1','B2','C1'];
+  const html = keys.map(key => readyTemplateCard(COURSE_TEMPLATES[key])).join('');
+  const welcome = document.getElementById('welcome-ready-library');
+  const course = document.getElementById('course-ready-library');
+  if (welcome && !level) welcome.innerHTML = html;
+  if (course) course.innerHTML = level ? html : '';
+}
+
+function readyTemplateCard(t) {
+  const lessons = t.modules.flatMap(m => m.lessons);
+  return `<div class="ready-card">
+    <div class="ready-top">
+      <div class="ready-icon">${esc(t.level)}</div>
+      <div>
+        <div class="ready-title">${esc(t.title)}</div>
+        <div class="ready-meta">${t.modules.length} modules · ${lessons.length} lessons</div>
+      </div>
+    </div>
+    <div class="ready-copy">${esc(t.copy)}</div>
+    <div class="ready-lessons">${lessons.slice(0, 5).map(l => `<span class="ready-chip">${esc(l.skill)}</span>`).join('')}</div>
+  </div>`;
+}
+
+function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
+  let nextCardId = 1;
+  const makeCard = (type, x, y, w, h, data) => ({
+    id:'c' + (nextCardId++),
+    type, x, y, w, h, data,
+    color: data.color || null
+  });
+  const cards = [
+    makeCard('plan', 80, 60, 330, 220, {
+      title: lessonTemplate.title,
+      level: lessonTemplate.level,
+      type: lessonTemplate.skill,
+      dur: lessonTemplate.duration,
+      status: 'active',
+      desc: `${moduleTemplate.name}. Ready teacher plan with objectives, lesson flow and homework.`
+    }),
+    makeCard('lesson', 460, 60, 300, 230, {
+      title: lessonTemplate.title,
+      status: 'available',
+      level: lessonTemplate.level,
+      skill: lessonTemplate.skill,
+      duration: lessonTemplate.duration,
+      desc: lessonTemplate.objectives.join('\n'),
+      objectives: lessonTemplate.objectives,
+      attachments: [],
+      notes: 'Ready-made lesson board generated from TeachEd curriculum library.'
+    }),
+    makeCard('checklist', 80, 330, 300, 210, {
+      title: 'Lesson Flow',
+      items: lessonTemplate.activities.map(text => ({ text, done: false }))
+    }),
+    makeCard('note', 420, 330, 340, 230, {
+      title: 'Teacher Notes',
+      preview: lessonTemplate.homework,
+      body: [
+        `${template.title} / ${moduleTemplate.name}`,
+        '',
+        'OBJECTIVES',
+        ...lessonTemplate.objectives.map(item => `- ${item}`),
+        '',
+        'ACTIVITIES',
+        ...lessonTemplate.activities.map(item => `- ${item}`),
+        '',
+        'HOMEWORK',
+        lessonTemplate.homework
+      ].join('\n')
+    }),
+    makeCard('assignment', 800, 330, 280, 210, {
+      title: 'Homework',
+      type: 'Practice',
+      maxScore: 100,
+      deadline: '',
+      desc: lessonTemplate.homework,
+      submitted: 0,
+      total: 0
+    }),
+    makeCard('sticky', 800, 60, 280, 200, {
+      text: `Warm-up prompt:\nWhat do you already know about "${lessonTemplate.title}"?\n\nEnd with one student example + one correction.`,
+      color: '#FFF9C4'
+    })
+  ];
+  return {
+    cards,
+    arrows: [
+      { id:'a7', fromCard:'c1', fromAnchor:'right', toCard:'c2', toAnchor:'left' },
+      { id:'a8', fromCard:'c2', fromAnchor:'bottom', toCard:'c3', toAnchor:'top' },
+      { id:'a9', fromCard:'c3', fromAnchor:'right', toCard:'c4', toAnchor:'left' },
+      { id:'a10', fromCard:'c4', fromAnchor:'right', toCard:'c5', toAnchor:'left' }
+    ],
+    pan:{ x:100, y:60 },
+    scale:1,
+    nextId:11
+  };
 }
 
 function toggleModule(mid) {
