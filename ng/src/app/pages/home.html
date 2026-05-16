@@ -19,10 +19,10 @@
     <a class="mb-item" routerLink="/profile">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" routerLink="/profile" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(232,93,117,.25);margin-right:6px;"></a>
+    <a id="desktop-user-chip" routerLink="/profile" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#E85D75;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#C8E632;color:#1C1C1E;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -32,7 +32,7 @@
 <div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
     <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
-    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#E85D75;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
+    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#C8E632;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
   </div>
   <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
 </div>
@@ -291,7 +291,7 @@
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#E85D75);">📋</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#1C1C1E,#C8E632);">📋</div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
@@ -366,7 +366,7 @@
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(232,93,117,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(200,230,50,.15);">
             <div style="font-size:28px;">📋</div>
             <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
           </div>
@@ -379,18 +379,18 @@
             <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #E85D75;cursor:pointer;transition:.15s;background:#F5F0E8;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #C8E632;cursor:pointer;transition:.15s;background:#F5F0E8;">
             <div style="font-size:20px;margin-bottom:4px;">⬜</div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>
@@ -433,14 +433,14 @@
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
         <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
@@ -453,7 +453,7 @@
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>

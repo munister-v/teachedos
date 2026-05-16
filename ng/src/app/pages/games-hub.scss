@@ -51,15 +51,15 @@ body {
   position: absolute; inset: 0;
   background:
     radial-gradient(circle at 20% 50%, rgba(200,230,50,0.18) 0%, transparent 50%),
-    radial-gradient(circle at 80% 30%, rgba(159,140,232,0.14) 0%, transparent 50%);
+    radial-gradient(circle at 80% 30%, rgba(28,28,30,0.14) 0%, transparent 50%);
   pointer-events: none;
 }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11px; font-family: var(--mono); font-weight: 600;
   letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--accent); background: rgba(232,93,117,0.08);
-  border: 1px solid rgba(232,93,117,0.20); border-radius: 999px;
+  color: var(--accent); background: rgba(200,230,50,0.08);
+  border: 1px solid rgba(200,230,50,0.20); border-radius: 999px;
   padding: 4px 12px; margin-bottom: 16px;
 }
 .hero h1 {
@@ -84,7 +84,7 @@ body {
   border: 1.5px solid var(--border-2); color: var(--text-3);
   background: var(--surface); transition: all .15s;
 }
-.filter-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,93,117,0.05); }
+.filter-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,230,50,0.05); }
 .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ── GRID ── */
@@ -116,8 +116,8 @@ body {
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(232,93,117,0.28);
-  box-shadow: 0 12px 32px rgba(5,5,23,0.10), 0 2px 8px rgba(232,93,117,0.08);
+  border-color: rgba(200,230,50,0.28);
+  box-shadow: 0 12px 32px rgba(5,5,23,0.10), 0 2px 8px rgba(200,230,50,0.08);
 }
 .card:hover::before { opacity: 1; }
 
@@ -144,15 +144,15 @@ body {
   background: var(--bg-2, #EDE8E0); color: var(--text-3);
   border: 1px solid var(--border);
 }
-.card-tag.vocab    { background: rgba(159,140,232,0.10); color: #9F8CE8; border-color: rgba(159,140,232,0.20); }
-.card-tag.grammar  { background: rgba(232,93,117,0.08);    color: #E85D75; border-color: rgba(232,93,117,0.18); }
+.card-tag.vocab    { background: rgba(28,28,30,0.10); color: #1C1C1E; border-color: rgba(28,28,30,0.20); }
+.card-tag.grammar  { background: rgba(200,230,50,0.08);    color: #C8E632; border-color: rgba(200,230,50,0.18); }
 .card-tag.spelling { background: rgba(200,230,50,0.18); color: #5E6E1A; border-color: rgba(200,230,50,0.40); }
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
 .card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
 
 .card-arrow {
   width: 28px; height: 28px; border-radius: 8px;
-  background: rgba(232,93,117,0.08); color: var(--accent);
+  background: rgba(200,230,50,0.08); color: var(--accent);
   display: flex; align-items: center; justify-content: center;
   transition: background .15s, transform .15s;
   flex-shrink: 0;

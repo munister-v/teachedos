@@ -9,22 +9,22 @@
 <title>Sentence Builder</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#E85D75}
+:root{--accent:#1C1C1E}
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
-.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #E85D7518;width:100%;max-width:500px}
+.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:500px}
 .top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
 .top span{color:var(--accent)}
 .translation{font-size:.9rem;color:#bbb;margin-bottom:14px;text-align:center;font-style:italic}
 .drop-zone{min-height:56px;border:2.5px dashed #eee;border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;transition:.2s;align-items:center}
 .drop-zone.active{border-color:var(--accent);background:#F5F0E8}
 .words{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;min-height:40px}
-.word-chip{padding:8px 14px;background:#F5F0E8;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.95rem;color:#E85D75;cursor:pointer;transition:.15s;user-select:none}
+.word-chip{padding:8px 14px;background:#F5F0E8;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.95rem;color:#C8E632;cursor:pointer;transition:.15s;user-select:none}
 .word-chip:hover{background:#ffe0ec;transform:translateY(-2px)}
 .word-chip.placed{opacity:.35;cursor:default;transform:none}
-.placed-chip{padding:8px 14px;background:#E85D75;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
+.placed-chip{padding:8px 14px;background:#C8E632;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
 .placed-chip:hover{background:#e03570}
 .btn-row{display:flex;gap:10px}
 button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}

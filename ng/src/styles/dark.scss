@@ -10,11 +10,11 @@
   --text:      #F5F0E8;
   --text-2:    #CAC9B7;
   --text-3:    #5E5E4A;
-  --accent:    #E85D75;
-  --accent-2:  rgba(232,93,117,0.12);
-  --accent-3:  rgba(232,93,117,0.24);
+  --accent:    #C8E632;
+  --accent-2:  rgba(200,230,50,0.12);
+  --accent-3:  rgba(200,230,50,0.24);
   --lime:      #C8E632;
-  --lavender:  #9F8CE8;
+  --lavender:  #1C1C1E;
   --sand-dark: #5E5E4A;
   --sand-mid:  #A2A28C;
   color-scheme: dark;
@@ -62,7 +62,7 @@
 }
 
 [data-theme="dark"] tr:nth-child(even) {
-  background: rgba(232,93,117,.04) !important;
+  background: rgba(200,230,50,.04) !important;
 }
 
 /* White backgrounds on generic divs */

@@ -48,7 +48,7 @@
     .teachedos-status.show{transform:translateY(0);opacity:1;pointer-events:auto}
     .teachedos-status.offline{background:rgba(28,28,30,.94);color:#fff}
     .teachedos-status.online{background:rgba(22,163,74,.94);color:#fff}
-    .teachedos-status.update{background:rgba(232,93,117,.96);color:#fff}
+    .teachedos-status.update{background:rgba(200,230,50,.96);color:#fff}
     .teachedos-status-copy{flex:1;min-width:0}
     .teachedos-status-title{font-size:13px;font-weight:900;line-height:1.25}
     .teachedos-status-sub{font-size:11px;line-height:1.5;opacity:.84;margin-top:3px}

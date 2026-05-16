@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E85D75"/>
+<meta name="theme-color" content="#C8E632"/>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
@@ -17,7 +17,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
   --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
   --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
   --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
@@ -56,19 +56,19 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#E85D75;}
+.nav-link.active{font-weight:800;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
   display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
-  border:1px solid rgba(232,93,117,.22);
+  border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
-.nav-user:hover{border-color:#E85D75;background:rgba(232,93,117,.09);}
+.nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(232,93,117,.15);color:#E85D75;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
   overflow:hidden;flex-shrink:0;
 }
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:900;}
@@ -244,9 +244,9 @@ a{text-decoration:none;color:inherit;}
   .mobile-schedule-hero{
     padding:18px;border-radius:20px;
     background:
-      radial-gradient(circle at top right, rgba(232,93,117,.18), transparent 34%),
+      radial-gradient(circle at top right, rgba(200,230,50,.18), transparent 34%),
       linear-gradient(155deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
-    border:1px solid rgba(232,93,117,.14);
+    border:1px solid rgba(200,230,50,.14);
     box-shadow:0 18px 40px rgba(94,94,74,.08);
   }
   .mobile-schedule-eyebrow{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
@@ -255,11 +255,11 @@ a{text-decoration:none;color:inherit;}
   .mobile-schedule-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
   .mobile-schedule-action{
     display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;
-    background:rgba(255,255,255,.88);border:1px solid rgba(232,93,117,.12);cursor:pointer;
+    background:rgba(255,255,255,.88);border:1px solid rgba(200,230,50,.12);cursor:pointer;
   }
   .mobile-schedule-action-ic{
     width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(145deg, rgba(232,93,117,.18), rgba(159,140,232,.18));flex-shrink:0;font-size:18px;
+    background:linear-gradient(145deg, rgba(200,230,50,.18), rgba(28,28,30,.18));flex-shrink:0;font-size:18px;
   }
   .mobile-schedule-action-title{font-size:13px;font-weight:800;line-height:1.2;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
@@ -494,10 +494,10 @@ let token = localStorage.getItem('teachedos_token');
 let schedule = [];
 let editingId = null;
 let weekOffset = 0; // weeks from current
-let selectedColor = '#E85D75';
+let selectedColor = '#C8E632';
 
 const COLORS = [
-  '#E85D75','#f97316','#eab308','#22c55e','#06b6d4',
+  '#C8E632','#f97316','#eab308','#22c55e','#06b6d4',
   '#6366f1','#8b5cf6','#ec4899','#14b8a6','#ef4444',
   '#84cc16','#0ea5e9','#a855f7','#f43f5e','#10b981',
 ];
@@ -823,7 +823,7 @@ function buildBlock(slot) {
 
   const el = document.createElement('div');
   el.className = 'cls-block';
-  el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#E85D75'};`;
+  el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#C8E632'};`;
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #ef4444, 0 4px 14px rgba(239,68,68,.3)';
   el.innerHTML = `
     ${slot.is_live ? '<div style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;"></div>' : ''}
@@ -856,7 +856,7 @@ function renderSideList() {
     el.innerHTML = `
       <div class="cls-dot" style="background:${slot.color};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
       <div class="cls-info">
-        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#ef4444;font-weight:800;">🔴 LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(232,93,117,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">Once</span>':''}</div>
+        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#ef4444;font-weight:800;">🔴 LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(200,230,50,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">Once</span>':''}</div>
         <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · 📹':''}</div>
       </div>
       <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
@@ -935,7 +935,7 @@ function openModal(slot = null) {
   document.getElementById('f-specific-date').value = specificDate || new Date().toISOString().slice(0, 10);
   document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
 
-  const color = slot?.color || '#E85D75';
+  const color = slot?.color || '#C8E632';
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
   document.getElementById('modal').classList.add('open');

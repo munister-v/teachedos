@@ -5,9 +5,9 @@
 
 :root {
   /* ── Color: Brand ── */
-  --color-rose:      #E85D75;
+  --color-rose:      #C8E632;
   --color-lime:      #C8E632;
-  --color-lavender:  #9F8CE8;
+  --color-lavender:  #1C1C1E;
   --color-black:     #1C1C1E;
   --color-white:     #FFFFFF;
 
@@ -41,9 +41,9 @@
   --color-border-3:    rgba(94,94,74,0.08);
 
   --color-primary:     var(--color-rose);
-  --color-primary-bg:  rgba(232,93,117,0.08);
-  --color-primary-bg2: rgba(232,93,117,0.16);
-  --color-primary-border: rgba(232,93,117,0.24);
+  --color-primary-bg:  rgba(200,230,50,0.08);
+  --color-primary-bg2: rgba(200,230,50,0.16);
+  --color-primary-border: rgba(200,230,50,0.24);
 
   --color-accent-2:    var(--color-lavender);
   --color-accent-3:    var(--color-lime);
@@ -131,8 +131,8 @@
   --shadow-lg:  0 8px 32px rgba(5,5,23,0.11);
   --shadow-xl:  0 16px 56px rgba(5,5,23,0.13);
   --shadow-2xl: 0 32px 80px rgba(5,5,23,0.16);
-  --shadow-rose-sm:   0 4px 16px rgba(232,93,117,0.22);
-  --shadow-rose-md:   0 8px 28px rgba(232,93,117,0.28);
+  --shadow-rose-sm:   0 4px 16px rgba(200,230,50,0.22);
+  --shadow-rose-md:   0 8px 28px rgba(200,230,50,0.28);
 
   /* ── Transitions ── */
   --ease-default:  cubic-bezier(0.4, 0, 0.2, 1);

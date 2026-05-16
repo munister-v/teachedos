@@ -57,7 +57,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-class:hover{border-color:var(--accent-border);background:var(--bg-card-2)}
 .sb-class-thumb{
   width:72px;height:50px;border-radius:8px;overflow:hidden;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(159,140,232,.1));
+  background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(28,28,30,.1));
   display:flex;align-items:center;justify-content:center;
 }
 .sb-class-thumb img{width:100%;height:100%;object-fit:cover}
@@ -69,7 +69,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;
   background:rgba(6,182,212,.12);color:var(--accent);font-family:var(--mono);
 }
-.sb-class-badge.type{background:rgba(159,140,232,.12);color:var(--lavender)}
+.sb-class-badge.type{background:rgba(200,230,50,.12);color:var(--accent)}
 .sb-class-teacher{font-size:10px;color:var(--text-3);display:flex;align-items:center;gap:3px;margin-top:3px}
 .sb-class-teacher-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 
@@ -204,7 +204,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Notification banner */
 .notif-banner{
   display:flex;align-items:center;gap:10px;padding:14px 18px;
-  background:linear-gradient(135deg,rgba(6,182,212,.06),rgba(159,140,232,.04));
+  background:linear-gradient(135deg,rgba(6,182,212,.06),rgba(28,28,30,.04));
   border:1px solid var(--accent-border);border-radius:14px;margin-bottom:16px;
 }
 .notif-icon{font-size:18px;flex-shrink:0}
@@ -213,8 +213,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Teacher feedback */
 .teacher-fb{
   padding:14px 18px;
-  border:1.5px solid rgba(159,140,232,.3);border-radius:14px;
-  background:rgba(159,140,232,.05);margin-top:12px;
+  border:1.5px solid rgba(28,28,30,.3);border-radius:14px;
+  background:rgba(28,28,30,.05);margin-top:12px;
 }
 .teacher-fb-content{display:flex;align-items:flex-start;gap:10px}
 .teacher-fb-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}

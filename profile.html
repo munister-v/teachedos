@@ -5,7 +5,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#E85D75">
+<meta name="theme-color" content="#C8E632">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,9 +17,9 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --accent: #E85D75;
-  --accent-2: rgba(232,93,117,.08);
-  --accent-3: rgba(232,93,117,.16);
+  --accent: #1C1C1E;
+  --accent-2: rgba(200,230,50,.08);
+  --accent-3: rgba(200,230,50,.16);
   --bg: #F5F0E8;
   --bg-2: #EDE8E0;
   --border: rgba(94,94,74,.14);
@@ -31,7 +31,7 @@
   --radius: 16px;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --lime: #C8E632;
-  --lavender: #9F8CE8;
+  --lavender: #C8E632;
 }
 body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line-height: 1.55; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
 
@@ -56,18 +56,18 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#E85D75;}
+.nav-link.active{font-weight:800;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
   display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
-  border:1px solid rgba(232,93,117,.22);background:rgba(94,94,74,.07);
+  border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
-.nav-user:hover{border-color:#E85D75;background:rgba(232,93,117,.09);}
+.nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(232,93,117,.15);color:#E85D75;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
   overflow:hidden;flex-shrink:0;
 }
 .nb-spacer{flex:1;}
@@ -258,9 +258,9 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding: 18px;
     border-radius: 20px;
     background:
-      radial-gradient(circle at top right, rgba(232,93,117,.18), transparent 34%),
+      radial-gradient(circle at top right, rgba(200,230,50,.18), transparent 34%),
       linear-gradient(150deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
-    border: 1px solid rgba(232,93,117,.14);
+    border: 1px solid rgba(200,230,50,.14);
     box-shadow: 0 18px 40px rgba(94,94,74,.08);
     margin-bottom: 16px;
   }
@@ -298,7 +298,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding: 12px 14px;
     border-radius: 14px;
     background: rgba(255,255,255,.88);
-    border: 1px solid rgba(232,93,117,.12);
+    border: 1px solid rgba(200,230,50,.12);
     color: var(--text);
     text-decoration: none;
     cursor: pointer;
@@ -306,7 +306,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-action-ic {
     width: 36px; height: 36px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(145deg, rgba(232,93,117,.18), rgba(159,140,232,.18));
+    background: linear-gradient(145deg, rgba(200,230,50,.18), rgba(28,28,30,.18));
     flex-shrink: 0;
     font-size: 18px;
   }
@@ -485,7 +485,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
           <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
-          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
         <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
       </div>
@@ -579,7 +579,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title">💳 Subscription Plan</div>
-        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(232,93,117,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="font-size:2rem;" id="plan-icon">⭐</div>
           <div>
             <div style="font-size:1rem;font-weight:900;color:var(--text);" id="plan-name-display">Free</div>
@@ -614,7 +614,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
         <!-- IBAN payment details (shown after selecting a plan) -->
         <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
-          <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(232,93,117,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
+          <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(200,230,50,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
             <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">💳 Payment Details</div>
             <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
@@ -785,7 +785,7 @@ async function renderOverview(forceOffline = false) {
   const planBadge = planBadges[me.plan];
   if (planBadge) {
     const el = document.getElementById('profile-role-badge');
-    el.insertAdjacentHTML('afterend', `<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(232,93,117,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
+    el.insertAdjacentHTML('afterend', `<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(200,230,50,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
   }
 
   if (me.created_at) {
@@ -1056,11 +1056,11 @@ function createNewBoard() {
   const grid = document.getElementById('tpl-grid');
   grid.innerHTML = BOARD_TEMPLATES.map(t => `
     <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
-      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(232,93,117,.05)':'#F5F0E8'};">
+      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(200,230,50,.05)':'#F5F0E8'};">
       <div style="font-size:22px;margin-bottom:6px;">${t.icon}</div>
       <div style="font-size:13px;font-weight:800;color:#1C1C1E;letter-spacing:-.01em;">${t.name}</div>
       <div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${t.desc}</div>
-      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#E85D75;font-family:monospace;">${t.cards.length} cards</div>` : ''}
+      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#C8E632;font-family:monospace;">${t.cards.length} cards</div>` : ''}
     </div>`).join('');
   document.getElementById('tpl-name').value = '';
   const modal = document.getElementById('tpl-modal');
@@ -1373,7 +1373,7 @@ function selectPlan(plan) {
   const opt = document.getElementById('plan-opt-' + plan);
   if (opt) {
     opt.style.borderColor = 'var(--accent)';
-    opt.style.background = 'rgba(232,93,117,.05)';
+    opt.style.background = 'rgba(200,230,50,.05)';
   }
   document.getElementById('iban-plan-name').textContent = PLAN_NAMES[plan] || plan;
   document.getElementById('iban-plan-price').textContent = PLAN_PRICES[plan] || '';

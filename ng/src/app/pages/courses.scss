@@ -59,7 +59,7 @@ button{font-family:var(--font);cursor:pointer;}
   display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;
   cursor:pointer;transition:.15s;margin-bottom:2px;
 }
-.course-item:hover{background:rgba(232,93,117,.07);}
+.course-item:hover{background:rgba(200,230,50,.07);}
 .course-item.active{background:rgba(94,94,74,.12);}
 .course-item.active .ci-name{color:var(--accent);}
 .ci-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -112,7 +112,7 @@ button{font-family:var(--font);cursor:pointer;}
 }
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
-.btn-ghost{background:rgba(232,93,117,.08);color:var(--accent);border:1.5px solid var(--border2);}
+.btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1.5px solid var(--border2);}
 .btn-ghost:hover{background:rgba(94,94,74,.16);}
 .btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
@@ -135,9 +135,9 @@ button{font-family:var(--font);cursor:pointer;}
 .module-head:hover .module-actions{opacity:1;}
 .mod-btn{
   padding:3px 9px;border:none;border-radius:7px;font-size:11px;font-weight:700;
-  background:rgba(232,93,117,.08);color:var(--accent);transition:.15s;
+  background:rgba(200,230,50,.08);color:var(--accent);transition:.15s;
 }
-.mod-btn:hover{background:rgba(232,93,117,.18);}
+.mod-btn:hover{background:rgba(200,230,50,.18);}
 .mod-btn.red{background:rgba(239,68,68,.08);color:#ef4444;}
 .mod-btn.red:hover{background:rgba(239,68,68,.18);}
 
@@ -204,7 +204,7 @@ button{font-family:var(--font);cursor:pointer;}
 #picker-search:focus{border-color:var(--accent);}
 #picker-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid transparent;transition:.15s;}
-.picker-item:hover{background:rgba(232,93,117,.07);border-color:var(--border);}
+.picker-item:hover{background:rgba(200,230,50,.07);border-color:var(--border);}
 .picker-item.selected{background:rgba(94,94,74,.12);border-color:var(--accent);}
 .pi-name{font-size:13px;font-weight:800;flex:1;color:var(--text);}
 .pi-meta{font-size:11px;color:var(--text3);}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E85D75"/>
+<meta name="theme-color" content="#C8E632"/>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
@@ -16,7 +16,7 @@
 <title>TeachEd — Admin</title>
 <style>
 :root{
-  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
   --bg:#F5F0E8;--card:#fff;
   --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
   --text:#1C1C1E;--text2:#3A3A2E;--muted:#A2A28C;
@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 }
 #login-screen.hidden{opacity:0;pointer-events:none}
 .login-box{background:#fff;border-radius:24px;padding:44px 40px;width:360px;
-  box-shadow:0 8px 48px rgba(232,93,117,.18);text-align:center}
+  box-shadow:0 8px 48px rgba(200,230,50,.18);text-align:center}
 .login-logo{font-size:48px;margin-bottom:8px}
 .login-title{font-size:22px;font-weight:900;color:var(--dark);margin-bottom:4px}
 .login-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
@@ -77,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
   transition:all .15s;border-left:3px solid transparent;
 }
 .sb-item:hover{color:#fff;background:rgba(255,255,255,.05)}
-.sb-item.active{color:#fff;background:rgba(232,93,117,.15);border-left-color:var(--accent)}
+.sb-item.active{color:#fff;background:rgba(200,230,50,.15);border-left-color:var(--accent)}
 .sb-icon{font-size:18px;width:24px;text-align:center}
 .sb-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
 .sb-user{display:flex;align-items:center;gap:10px}
@@ -87,7 +87,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .sb-logout{margin-top:10px;width:100%;padding:8px;background:rgba(255,255,255,.07);
   border:none;border-radius:10px;color:rgba(255,255,255,.5);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   font-size:13px;cursor:pointer;transition:.15s}
-.sb-logout:hover{background:rgba(232,93,117,.2);color:#fff}
+.sb-logout:hover{background:rgba(200,230,50,.2);color:#fff}
 
 /* ── Pages ───────────────────────────────────────────────────────────────── */
 .page{display:none}
@@ -135,7 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .command-title{font-size:13px;font-weight:900;color:var(--text)}
 .command-copy{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
 .spotlight-card{background:#1C1C1E;color:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 48px rgba(28,28,30,.18);margin-bottom:24px;overflow:hidden;position:relative}
-.spotlight-card::after{content:"";position:absolute;right:-80px;bottom:-120px;width:260px;height:260px;background:radial-gradient(circle,rgba(232,93,117,.35),transparent 64%);pointer-events:none}
+.spotlight-card::after{content:"";position:absolute;right:-80px;bottom:-120px;width:260px;height:260px;background:radial-gradient(circle,rgba(200,230,50,.35),transparent 64%);pointer-events:none}
 .spotlight-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;z-index:1;margin-bottom:16px}
 .spotlight-title{font-size:18px;font-weight:900}
 .spotlight-sub{font-size:13px;color:rgba(255,255,255,.62);margin-top:4px}

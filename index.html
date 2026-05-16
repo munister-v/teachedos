@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E85D75">
+<meta name="theme-color" content="#C8E632">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -38,10 +38,10 @@
   --text:      #1C1C1E;
   --text-2:    #3A3A2E;
   --text-3:    #A2A28C;
-  --accent:    #E85D75;
-  --accent-2:  rgba(232,93,117,0.10);
+  --accent:    #1C1C1E;
+  --accent-2:  rgba(200,230,50,0.10);
   --accent-3:  rgba(94,94,74,0.22);
-  --rose:      #9F8CE8;
+  --rose:      #C8E632;
   --deep-rose: #C8E632;
   --blush:     #CAC9B7;
   --plum:      #5E5E4A;
@@ -66,8 +66,8 @@ html,body {
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(232,93,117,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 85% 75%, rgba(159,140,232,.09) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(200,230,50,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 75%, rgba(28,28,30,.09) 0%, transparent 55%),
     radial-gradient(ellipse 50% 40% at 50% 10%, rgba(200,230,50,.07) 0%, transparent 50%),
     radial-gradient(ellipse 90% 60% at 60% 90%, rgba(99,102,241,.05) 0%, transparent 60%),
     linear-gradient(160deg, #F5F0E8 0%, #EDE8E0 35%, #F0EBE3 70%, #F5F0E8 100%);
@@ -81,12 +81,12 @@ html,body {
 }
 .blob1 {
   width:500px; height:500px; top:-120px; left:-80px;
-  background:radial-gradient(circle, rgba(232,93,117,.14), transparent 70%);
+  background:radial-gradient(circle, rgba(200,230,50,.14), transparent 70%);
   animation: blobFloat1 18s ease-in-out infinite;
 }
 .blob2 {
   width:400px; height:400px; bottom:-100px; right:-60px;
-  background:radial-gradient(circle, rgba(159,140,232,.14), transparent 70%);
+  background:radial-gradient(circle, rgba(28,28,30,.14), transparent 70%);
   animation: blobFloat2 22s ease-in-out infinite;
 }
 .blob3 {
@@ -252,12 +252,12 @@ html,body {
 }
 .wg-vocab-next {
   margin-top:12px; width:100%;
-  background: linear-gradient(135deg, var(--accent), #D04A63); border: none;
+  background: linear-gradient(135deg, var(--accent), #99B329); border: none;
   border-radius:12px; padding:9px; font-size:12px; font-family: var(--font-ui);
   font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
-  text-align:center; box-shadow: 0 4px 14px rgba(232,93,117,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-align:center; box-shadow: 0 4px 14px rgba(200,230,50,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
 }
-.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(232,93,117,0.30); }
+.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,230,50,0.30); }
 
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
@@ -307,7 +307,7 @@ html,body {
 .di-icon.flashcards  { background: linear-gradient(145deg,#8b6bb1,#5b3a8f); }
 .di-icon.progress    { background: linear-gradient(145deg,#e87898,#5E5E4A); }
 .di-icon.schedule    { background: linear-gradient(145deg,#d4749a,#a84d70); }
-.di-icon.notes       { background: linear-gradient(145deg,#9F8CE8,#e87898); }
+.di-icon.notes       { background: linear-gradient(145deg,#1C1C1E,#e87898); }
 .di-icon.dictionary  { background: linear-gradient(145deg,#7ca8d4,#4a72a0); }
 .di-icon.settings    { background: linear-gradient(145deg,#5a4550,#3a2d35); }
 .di-icon.finder      { background: linear-gradient(145deg,#4ab0c8,#2a7d96); }
@@ -375,7 +375,7 @@ html,body {
 .win-sidebar {
   width:200px; flex-shrink:0;
   background: rgba(255,240,248,0.70);
-  border-right: 1px solid rgba(232,93,117,0.08);
+  border-right: 1px solid rgba(200,230,50,0.08);
   display:flex; flex-direction:column;
   overflow-y:auto;
 }
@@ -396,9 +396,9 @@ html,body {
   border-radius:12px; margin:2px 6px;
   transition: background .15s, color .15s;
 }
-.sb-item:hover { background: rgba(232,93,117,0.08); color: var(--accent); }
+.sb-item:hover { background: rgba(200,230,50,0.08); color: var(--accent); }
 .sb-item.active {
-  background: rgba(232,93,117,0.13); color: var(--accent);
+  background: rgba(200,230,50,0.13); color: var(--accent);
 }
 .sb-item-ic { font-size:15px; flex-shrink:0; width:20px; text-align:center; }
 .sb-item-badge {
@@ -430,13 +430,13 @@ html,body {
 .curr-search {
   margin:16px 24px 0;
   display:flex; align-items:center; gap:10px;
-  background: rgba(232,93,117,0.04); border: 1px solid rgba(94,94,74,0.10);
+  background: rgba(200,230,50,0.04); border: 1px solid rgba(94,94,74,0.10);
   border-radius:14px; padding:10px 16px;
   transition:border-color .2s, box-shadow .2s;
 }
 .curr-search:focus-within {
-  border-color:rgba(232,93,117,.3);
-  box-shadow:0 0 0 3px rgba(232,93,117,.06);
+  border-color:rgba(200,230,50,.3);
+  box-shadow:0 0 0 3px rgba(200,230,50,.06);
 }
 .curr-search input {
   flex:1; background:none; border:none; outline:none;
@@ -453,7 +453,7 @@ html,body {
   padding:6px 16px; border-radius:20px; cursor:pointer; color: var(--text-3);
   transition: background .15s, color .15s;
 }
-.curr-tab:hover { background: rgba(232,93,117,0.08); color: var(--text-2); }
+.curr-tab:hover { background: rgba(200,230,50,0.08); color: var(--text-2); }
 .curr-tab.active {
   background: var(--accent); color: #fff;
 }
@@ -462,17 +462,17 @@ html,body {
   padding:20px 24px;
 }
 .lesson-card {
-  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(232,93,117,0.08);
+  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(200,230,50,0.08);
   border-radius:18px; padding:20px; cursor:pointer;
   transition: box-shadow .22s, border-color .22s, transform .22s;
   position:relative; overflow:hidden;
-  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(232,93,117,0);
+  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(200,230,50,0);
   backdrop-filter:blur(8px);
 }
 .lesson-card:hover {
-  border-color: rgba(232,93,117,0.25);
+  border-color: rgba(200,230,50,0.25);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(232,93,117,0.06);
+  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(200,230,50,0.06);
 }
 .lesson-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -503,8 +503,8 @@ html,body {
 .lc-level.a1 { background:rgba(110,201,138,.12); color:#6ec98a; }
 .lc-level.a2 { background:rgba(96,165,250,.12); color:#60a5fa; }
 .lc-level.b1 { background:rgba(245,158,11,.12); color:#f59e0b; }
-.lc-level.b2 { background:rgba(202,201,183,.18); color:#9F8CE8; }
-.lc-level.c1 { background:rgba(232,93,117,.12); color:#E85D75; }
+.lc-level.b2 { background:rgba(202,201,183,.18); color:#1C1C1E; }
+.lc-level.c1 { background:rgba(200,230,50,.12); color:#C8E632; }
 .lc-dur {
   font-size:10px; color: var(--text-3); font-family: var(--font-mono);
 }
@@ -550,12 +550,12 @@ html,body {
 }
 .fc-front {
   background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
-  border: 1.5px solid rgba(232,93,117,0.12);
+  border: 1.5px solid rgba(200,230,50,0.12);
   box-shadow: 0 8px 32px rgba(94,94,74,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
   backdrop-filter:blur(8px);
 }
 .fc-back {
-  background: linear-gradient(145deg, rgba(232,93,117,0.10) 0%, rgba(159,140,232,0.06) 100%);
+  background: linear-gradient(145deg, rgba(200,230,50,0.10) 0%, rgba(28,28,30,0.06) 100%);
   border: 1.5px solid rgba(94,94,74,0.20);
   box-shadow: 0 4px 20px rgba(94,94,74,0.14);
   transform:rotateY(180deg);
@@ -589,18 +589,18 @@ html,body {
 .fc-btn.again { background:rgba(248,113,113,.12); color:#f87171; }
 .fc-btn.hard  { background:rgba(245,158,11,.12); color:#f59e0b; }
 .fc-btn.good  { background:rgba(110,201,138,.12); color:#6ec98a; }
-.fc-btn.easy  { background:rgba(202,201,183,.18); color:#9F8CE8; }
+.fc-btn.easy  { background:rgba(202,201,183,.18); color:#1C1C1E; }
 .fc-set-picker {
   display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
   max-width:400px;
 }
 .fc-set {
   font-size:12px; font-family: var(--font-ui); font-weight:700; padding:6px 16px;
-  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(232,93,117,0.16);
+  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(200,230,50,0.16);
   color: var(--text-3); background: #fff;
   transition: background .15s, border-color .15s, color .15s;
 }
-.fc-set:hover { background: rgba(232,93,117,0.06); color: var(--accent); border-color: var(--accent); }
+.fc-set:hover { background: rgba(200,230,50,0.06); color: var(--accent); border-color: var(--accent); }
 .fc-set.active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
@@ -680,7 +680,7 @@ html,body {
 .prog-ach {
   background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
   border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:center;
-  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(232,93,117,0.06);
+  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(200,230,50,0.06);
 }
 .prog-ach-ic { font-size:24px; }
 .prog-ach-name { font-size:12px; color: var(--text-2); font-weight:600; }
@@ -696,7 +696,7 @@ html,body {
 }
 .sch-nav-btn {
   width:30px; height:30px; border-radius:10px;
-  background: rgba(232,93,117,0.07); border: 1.5px solid rgba(94,94,74,0.14);
+  background: rgba(200,230,50,0.07); border: 1.5px solid rgba(94,94,74,0.14);
   color: var(--accent); cursor:pointer; display:flex; align-items:center;
   justify-content:center; font-size:14px; font-weight:700; transition:background .15s;
 }
@@ -731,7 +731,7 @@ html,body {
   position:relative;
 }
 .sch-cell.other-month { opacity:0.35; }
-.sch-cell.today { background: rgba(232,93,117,0.06); }
+.sch-cell.today { background: rgba(200,230,50,0.06); }
 .sch-cell.today .sch-day-num {
   background: var(--accent); color:#fff; border-radius:50%;
   width:22px; height:22px; display:flex; align-items:center; justify-content:center;
@@ -764,7 +764,7 @@ html,body {
   padding:10px 10px; border-radius:12px; cursor:pointer; margin:1px 0;
   transition: background .15s;
 }
-.note-item:hover { background: rgba(232,93,117,0.08); }
+.note-item:hover { background: rgba(200,230,50,0.08); }
 .note-item.active { background: rgba(94,94,74,0.14); }
 .note-item-title { font-size:13px; color: var(--text); font-weight:500; margin-bottom:3px; }
 .note-item-preview { font-size:11px; color: var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -779,7 +779,7 @@ html,body {
   justify-content:center; font-size:13px; font-weight:700; color: var(--text-3); cursor:pointer;
   transition:background .15s, color .15s;
 }
-.notes-tb-btn:hover { background: rgba(232,93,117,0.10); color: var(--accent); }
+.notes-tb-btn:hover { background: rgba(200,230,50,0.10); color: var(--accent); }
 .notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
 .notes-editor {
   flex:1; display:flex; flex-direction:column;
@@ -800,7 +800,7 @@ html,body {
   margin:8px; border-radius:12px; cursor:pointer;
   background: var(--accent); color: #fff;
   font-size:12px; font-family: var(--font-ui); font-weight:800;
-  transition:opacity .15s; box-shadow: 0 2px 8px rgba(232,93,117,0.25);
+  transition:opacity .15s; box-shadow: 0 2px 8px rgba(200,230,50,0.25);
 }
 .notes-new-btn:hover { opacity:0.88; }
 
@@ -834,7 +834,7 @@ html,body {
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
 #spotlight-input-wrap {
   display:flex; align-items:center; gap:12px;
-  padding:16px 20px; border-bottom: 1px solid rgba(232,93,117,0.10);
+  padding:16px 20px; border-bottom: 1px solid rgba(200,230,50,0.10);
 }
 #spotlight-input-wrap .sp-ic { font-size:18px; color: var(--accent); flex-shrink:0; }
 #spotlight-input {
@@ -861,7 +861,7 @@ html,body {
   padding:9px 20px; cursor:pointer;
   transition:background .12s;
 }
-.sp-result:hover, .sp-result.selected { background: rgba(232,93,117,0.08); }
+.sp-result:hover, .sp-result.selected { background: rgba(200,230,50,0.08); }
 .sp-result-icon {
   width:36px; height:36px; border-radius:9px;
   display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
@@ -954,7 +954,7 @@ html,body {
   }
   .mob-sidebar-btn {
     margin-left:auto; width:34px; height:34px; border-radius:10px;
-    background:rgba(232,93,117,0.09); border:1.5px solid var(--border);
+    background:rgba(200,230,50,0.09); border:1.5px solid var(--border);
     color:var(--accent); font-size:16px; font-weight:700;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
@@ -987,9 +987,9 @@ html,body {
     padding:18px;
     border-radius:22px;
     background:
-      radial-gradient(circle at top right, rgba(232,93,117,0.18), transparent 34%),
+      radial-gradient(circle at top right, rgba(200,230,50,0.18), transparent 34%),
       linear-gradient(155deg, rgba(255,255,255,0.96), rgba(247,238,242,0.92));
-    border:1px solid rgba(232,93,117,0.14);
+    border:1px solid rgba(200,230,50,0.14);
     box-shadow:0 18px 40px rgba(94,94,74,0.08);
   }
   .mob-home-eyebrow {
@@ -1025,7 +1025,7 @@ html,body {
     padding:14px 12px;
     text-align:left;
     background:rgba(255,255,255,0.86);
-    box-shadow: inset 0 0 0 1px rgba(232,93,117,0.09);
+    box-shadow: inset 0 0 0 1px rgba(200,230,50,0.09);
   }
   .mob-home-kpi-n {
     display:block;
@@ -1058,7 +1058,7 @@ html,body {
     border-radius:18px;
     text-decoration:none;
     background:#fff;
-    border:1px solid rgba(232,93,117,0.10);
+    border:1px solid rgba(200,230,50,0.10);
     color:var(--text);
     box-shadow:0 2px 8px rgba(94,94,74,0.04);
     transition:transform .12s ease, box-shadow .18s ease, border-color .15s;
@@ -1069,8 +1069,8 @@ html,body {
   }
   .mob-home-action:active { transform:scale(0.97); }
   .mob-home-action:hover {
-    border-color:rgba(232,93,117,0.28);
-    box-shadow:0 6px 18px rgba(232,93,117,0.10);
+    border-color:rgba(200,230,50,0.28);
+    box-shadow:0 6px 18px rgba(200,230,50,0.10);
   }
   .mob-home-action-ic {
     width:42px;
@@ -1081,12 +1081,12 @@ html,body {
     justify-content:center;
     font-size:20px;
     flex-shrink:0;
-    background:linear-gradient(135deg, rgba(232,93,117,0.16), rgba(159,140,232,0.16));
-    border:1px solid rgba(232,93,117,0.10);
+    background:linear-gradient(135deg, rgba(200,230,50,0.16), rgba(28,28,30,0.16));
+    border:1px solid rgba(200,230,50,0.10);
   }
-  .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(159,140,232,0.20), rgba(96,165,250,0.16)); border-color:rgba(159,140,232,0.16); }
+  .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(28,28,30,0.20), rgba(96,165,250,0.16)); border-color:rgba(28,28,30,0.16); }
   .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(200,230,50,0.14)); border-color:rgba(96,165,250,0.16); }
-  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(232,93,117,0.14)); border-color:rgba(245,158,11,0.16); }
+  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(200,230,50,0.14)); border-color:rgba(245,158,11,0.16); }
   .mob-home-action-copy { min-width:0; width:100%; }
   .mob-home-action-title {
     font-size:14px;
@@ -1105,8 +1105,8 @@ html,body {
     margin-top:12px;
     padding:15px 16px;
     border-radius:18px;
-    background:rgba(159,140,232,0.08);
-    border:1px solid rgba(159,140,232,0.12);
+    background:rgba(28,28,30,0.08);
+    border:1px solid rgba(28,28,30,0.12);
   }
   .mob-home-focus-label {
     font-size:10px;
@@ -1142,8 +1142,8 @@ html,body {
     font-size:11px;
     font-weight:800;
     color:var(--accent);
-    background:rgba(232,93,117,0.09);
-    border:1px solid rgba(232,93,117,0.12);
+    background:rgba(200,230,50,0.09);
+    border:1px solid rgba(200,230,50,0.12);
     text-decoration:none;
   }
 
@@ -1203,10 +1203,10 @@ html,body {
     <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(232,93,117,.25);margin-right:6px;"></a>
+    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#E85D75;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#C8E632;color:#1C1C1E;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1216,7 +1216,7 @@ html,body {
 <div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
     <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
-    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#E85D75;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
+    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#C8E632;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
   </div>
   <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
 </div>
@@ -1607,7 +1607,7 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#9F8CE8,#E85D75);">📋</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#1C1C1E,#C8E632);">📋</div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
@@ -1924,7 +1924,7 @@ function studentsRender() {
   });
 
   list.innerHTML = filtered.map(s => `
-    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(232,93,117,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(232,93,117,0.09)'" onmouseleave="this.style.background='rgba(232,93,117,0.04)'">
+    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(200,230,50,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(200,230,50,0.09)'" onmouseleave="this.style.background='rgba(200,230,50,0.04)'">
       <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
@@ -2263,11 +2263,11 @@ const TAG_COLORS = {
   Writing:    { bg:'rgba(110,201,138,.12)',   color:'#6ec98a' },
   Listening:  { bg:'rgba(245,158,11,.12)',    color:'#f59e0b' },
   Speaking:   { bg:'rgba(167,139,250,.12)',   color:'#a78bfa' },
-  Vocabulary: { bg:'rgba(202,201,183,.18)',   color:'#9F8CE8' },
+  Vocabulary: { bg:'rgba(202,201,183,.18)',   color:'#1C1C1E' },
   Grammar:    { bg:'rgba(248,113,113,.12)',   color:'#f87171' },
   Utility:    { bg:'rgba(156,163,175,.12)',   color:'#9ca3af' },
   New:        { bg:'rgba(110,201,138,.18)',   color:'#6ec98a' },
-  Pro:        { bg:'rgba(202,201,183,.22)',   color:'#9F8CE8' },
+  Pro:        { bg:'rgba(202,201,183,.22)',   color:'#1C1C1E' },
 };
 
 let activeToolGroup = 'all';
@@ -2342,10 +2342,10 @@ toolsRender();
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
 const SP_ITEMS = [
   // Windows
-  { icon:'📋', iconBg:'linear-gradient(145deg,#9F8CE8,#E85D75)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#1C1C1E,#C8E632)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
   { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
-  { icon:'✍️', iconBg:'linear-gradient(145deg,#9F8CE8,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
+  { icon:'✍️', iconBg:'linear-gradient(145deg,#1C1C1E,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
   { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open tools library', kbd:'Tools', action:()=>openApp('tools') },
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
@@ -2359,7 +2359,7 @@ const SP_ITEMS = [
 function rebuildSpotlightStudents() {
   while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length-1].kbd === 'Student') SP_ITEMS.pop();
   STUDENTS.forEach(s => SP_ITEMS.push({
-    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(232,93,117,0.10)',
+    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(200,230,50,0.10)',
     title: s.name, sub: s.email || '',
     kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
   }));
@@ -2660,8 +2660,8 @@ function showAuthOverlay() {
     `;
     overlay.innerHTML = `
       <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
-        <div style="position:absolute;width:700px;height:700px;top:-250px;left:-200px;background:radial-gradient(circle,rgba(232,93,117,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat1 18s ease-in-out infinite;filter:blur(60px);"></div>
-        <div style="position:absolute;width:600px;height:600px;bottom:-200px;right:-150px;background:radial-gradient(circle,rgba(159,140,232,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat2 22s ease-in-out infinite;filter:blur(60px);"></div>
+        <div style="position:absolute;width:700px;height:700px;top:-250px;left:-200px;background:radial-gradient(circle,rgba(200,230,50,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat1 18s ease-in-out infinite;filter:blur(60px);"></div>
+        <div style="position:absolute;width:600px;height:600px;bottom:-200px;right:-150px;background:radial-gradient(circle,rgba(28,28,30,.10) 0%,transparent 65%);border-radius:50%;animation:blobFloat2 22s ease-in-out infinite;filter:blur(60px);"></div>
         <div style="position:absolute;width:400px;height:400px;top:30%;left:55%;background:radial-gradient(circle,rgba(200,230,50,.08) 0%,transparent 65%);border-radius:50%;animation:blobFloat3 20s ease-in-out infinite;filter:blur(60px);"></div>
         <div style="position:absolute;width:500px;height:500px;top:60%;left:10%;background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 60%);border-radius:50%;animation:blobFloat2 25s ease-in-out infinite;filter:blur(70px);"></div>
       </div>
@@ -2708,10 +2708,10 @@ function selectOsRole(role) {
   const t = document.getElementById('role-teacher');
   const s = document.getElementById('role-student');
   if (t && s) {
-    t.style.borderColor = role==='teacher'?'#E85D75':'rgba(94,94,74,.14)';
-    t.style.background  = role==='teacher'?'rgba(232,93,117,.07)':'#fafafa';
-    s.style.borderColor = role==='student'?'#E85D75':'rgba(94,94,74,.14)';
-    s.style.background  = role==='student'?'rgba(232,93,117,.07)':'#fafafa';
+    t.style.borderColor = role==='teacher'?'#C8E632':'rgba(94,94,74,.14)';
+    t.style.background  = role==='teacher'?'rgba(200,230,50,.07)':'#fafafa';
+    s.style.borderColor = role==='student'?'#C8E632':'rgba(94,94,74,.14)';
+    s.style.background  = role==='student'?'rgba(200,230,50,.07)':'#fafafa';
   }
 }
 
@@ -2730,9 +2730,9 @@ function renderOsAuthFields() {
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-    `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
+    `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
+     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
@@ -2828,14 +2828,14 @@ function renderNotifList() {
     return;
   }
   list.innerHTML = _notifData.map(n => `
-    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(232,93,117,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(232,93,117,.05)'}'">
+    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(200,230,50,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(200,230,50,.05)'}'">
       <span style="font-size:18px;flex-shrink:0;">${n.type==='live'?'🔴':n.type==='grade'?'📊':n.type==='invite'?'📩':'🔔'}</span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:${n.read?'600':'800'};color:#1C1C1E;line-height:1.3;">${esc(n.title)}</div>
         ${n.body?`<div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${esc(n.body)}</div>`:''}
         <div style="font-size:10px;color:#A2A28C;margin-top:3px;">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#E85D75;flex-shrink:0;margin-top:4px;"></span>':''}
+      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#C8E632;flex-shrink:0;margin-top:4px;"></span>':''}
     </div>`).join('');
 }
 
@@ -3070,7 +3070,7 @@ if('serviceWorker'in navigator){
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(232,93,117,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(200,230,50,.15);">
             <div style="font-size:28px;">📋</div>
             <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
           </div>
@@ -3083,18 +3083,18 @@ if('serviceWorker'in navigator){
             <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #E85D75;cursor:pointer;transition:.15s;background:#F5F0E8;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #C8E632;cursor:pointer;transition:.15s;background:#F5F0E8;">
             <div style="font-size:20px;margin-bottom:4px;">⬜</div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>
@@ -3137,14 +3137,14 @@ if('serviceWorker'in navigator){
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
         <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#E85D75;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
@@ -3157,7 +3157,7 @@ if('serviceWorker'in navigator){
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#E85D75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
@@ -3188,7 +3188,7 @@ function obSelectTpl(id) {
   _obTpl = id;
   document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
     const tid = el.id.replace('ob-tpl-','');
-    el.style.borderColor = tid === id ? '#E85D75' : '#e5e7eb';
+    el.style.borderColor = tid === id ? '#C8E632' : '#e5e7eb';
     el.style.background   = tid === id ? '#F5F0E8' : '#fafafa';
   });
   const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', reading:'Reading Lesson', writing:'Writing Lesson', vocab:'Vocabulary Unit', testprep:'Exam Preparation', business:'Business English', kids:'Kids Lesson', listening:'Listening Lesson', conversation:'Conversation Class', pronunciation:'Pronunciation Lesson', ielts:'IELTS Preparation' };
