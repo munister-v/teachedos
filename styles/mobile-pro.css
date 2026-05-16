@@ -61,6 +61,8 @@
     background: var(--mp-bg);
     min-height: 100vh;
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    /* prevent overscroll rubber-band jank */
+    overscroll-behavior: none;
   }
 
   /* Tappable stat tile */
@@ -71,16 +73,15 @@
     color: inherit;
     border: 1px solid var(--mp-border);
     background: var(--mp-surface);
-    transition: transform 0.12s, box-shadow 0.15s, border-color 0.15s;
+    transition: transform 0.12s;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     font-family: var(--mp-font);
+    /* GPU layer: only transform transitions, no box-shadow on active */
+    will-change: transform;
   }
   a.mp-stat:active, button.mp-stat:active { transform: scale(0.97); }
-  a.mp-stat:hover, button.mp-stat:hover {
-    border-color: var(--mp-border-2);
-    box-shadow: var(--mp-shadow-md);
-  }
+  a.mp-stat:hover, button.mp-stat:hover { border-color: var(--mp-border-2); }
 
   /* ═══════════════ TOP BAR ═══════════════ */
   .mp-topbar {
@@ -258,16 +259,16 @@
     height: 10px;
     border-radius: 50%;
     background: var(--mp-lime);
-    box-shadow: 0 0 10px var(--mp-lime);
-    animation: mp-pulse 1.6s ease-in-out infinite;
+    /* no box-shadow — shadow + animated transform forces raster every frame */
+    will-change: opacity;
+    transform: translateZ(0);
+    animation: mp-pulse 1.8s ease-in-out infinite;
   }
-  .mp-pulse.pink {
-    background: var(--mp-pink);
-    box-shadow: 0 0 10px var(--mp-pink);
-  }
+  .mp-pulse.pink { background: var(--mp-pink); }
   @keyframes mp-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.55; transform: scale(1.25); }
+    /* opacity-only: stays on compositor layer, zero paint cost */
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
   }
   .mp-featured-title {
     font-size: 24px;
@@ -337,13 +338,15 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     padding: 0 18px 18px;
+    contain: layout;
   }
   .mp-stat {
     padding: 14px 12px;
     background: var(--mp-surface);
     border-radius: var(--mp-radius-md);
     border: 1px solid var(--mp-border);
-    box-shadow: var(--mp-shadow-sm);
+    /* no box-shadow on static tiles — saves paint */
+    touch-action: manipulation;
   }
   .mp-stat-label {
     font-family: var(--mp-mono);
@@ -417,9 +420,11 @@
     gap: 10px;
     min-height: 130px;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.18s, border-color 0.15s;
+    transition: transform 0.15s;
     text-decoration: none;
     color: inherit;
+    will-change: transform;
+    contain: layout paint;
   }
   .mp-board-card:active { transform: scale(0.97); }
   .mp-board-card.lime { background: var(--mp-lime); border-color: var(--mp-lime); }
@@ -832,8 +837,10 @@
     color: #fff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 16px 40px rgba(14,14,16,0.25);
+    /* reduced shadow — large soft shadows are expensive to paint */
+    box-shadow: 0 8px 24px rgba(14,14,16,0.20);
     margin-bottom: 18px;
+    contain: layout paint;
   }
   .mp-next-card::after {
     content: '✏️';
@@ -862,8 +869,10 @@
     width: 9px; height: 9px;
     border-radius: 50%;
     background: #CDF24F;
-    box-shadow: 0 0 10px #CDF24F;
-    animation: mp-pulse 1.6s ease-in-out infinite;
+    /* no box-shadow on animated element — forces raster */
+    will-change: opacity;
+    transform: translateZ(0);
+    animation: mp-pulse 1.8s ease-in-out infinite;
   }
   .mp-next-title {
     font-family: 'Fraunces', serif;
@@ -907,10 +916,13 @@
     overflow: hidden;
     min-height: 120px;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.18s;
+    transition: transform 0.15s;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 2px 10px rgba(14,14,16,0.06);
+    /* lighter shadow — soft shadows are expensive to paint */
+    box-shadow: 0 1px 6px rgba(14,14,16,0.08);
+    will-change: transform;
+    contain: layout paint;
   }
   .mp-board-card2:active { transform: scale(0.97); }
   .mp-bc2-accent {

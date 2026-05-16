@@ -52,12 +52,13 @@
     '  position:fixed;bottom:0;left:0;right:0;z-index:9990;',
     '  height:calc(60px + env(safe-area-inset-bottom,0px));',
     '  padding-bottom:env(safe-area-inset-bottom,0px);',
-    '  background:rgba(255,255,255,0.96);',
-    '  backdrop-filter:blur(24px) saturate(1.8);',
-    '  -webkit-backdrop-filter:blur(24px) saturate(1.8);',
-    '  border-top:1px solid rgba(94,94,74,0.10);',
+    /* solid bg: no backdrop-filter — saves GPU on every scroll frame */
+    '  background:#FAFAF8;',
+    '  border-top:1px solid rgba(14,14,16,0.08);',
     '  display:flex;align-items:stretch;',
-    '  box-shadow:0 -2px 16px rgba(94,94,74,0.06);',
+    /* GPU-promote to own layer so scrolling content never triggers nav repaint */
+    '  transform:translateZ(0);',
+    '  will-change:transform;',
     '}',
     '.mob-nav-tab{',
     '  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;',

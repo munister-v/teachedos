@@ -903,11 +903,11 @@ html,body {
   /* Menubar → compact mobile header */
   #menubar {
     height:52px; padding:0 16px;
-    background: rgba(255,255,255,0.96);
-    backdrop-filter:blur(24px) saturate(1.8);
-    -webkit-backdrop-filter:blur(24px) saturate(1.8);
+    /* solid bg — no backdrop-filter on mobile (saves GPU on every scroll) */
+    background: #FAFAF8;
     justify-content:space-between;
-    border-bottom:1px solid rgba(94,94,74,0.08);
+    border-bottom:1px solid rgba(14,14,16,0.08);
+    transform:translateZ(0);
   }
   .mb-right .nav-user { border:none; background:transparent; padding:4px 6px; }
   .mb-app-name {
@@ -1316,17 +1316,17 @@ html,body {
 
         <!-- Stat tiles (tappable shortcuts) -->
         <div class="mp-stats">
-          <a class="mp-stat" href="schedule.html">
+          <a class="mp-stat mp-stat-lavender" href="schedule.html">
             <div class="mp-stat-label">THIS WEEK</div>
             <div class="mp-stat-n" id="mp-stat-lessons">0</div>
             <div class="mp-stat-sub">lessons</div>
           </a>
-          <a class="mp-stat" href="gradebook.html">
+          <a class="mp-stat mp-stat-peach" href="gradebook.html">
             <div class="mp-stat-label">STUDENTS</div>
             <div class="mp-stat-n" id="mp-stat-students">0</div>
             <div class="mp-stat-sub">active</div>
           </a>
-          <a class="mp-stat" href="courses.html">
+          <a class="mp-stat mp-stat-cyan" href="courses.html">
             <div class="mp-stat-label">BOARDS</div>
             <div class="mp-stat-n" id="mp-stat-boards">0</div>
             <div class="mp-stat-sub">in library</div>

@@ -1,160 +1,306 @@
 /* ═══════════════════════════════════════════════════════════════
-   TeachedOS — Cross-page Harmony Layer
-   Brings the mobile lime accent into desktop pages for cohesion.
+   TeachEd — Harmony Layer v2
+   Manrope + Fraunces design system. Lime × Pink × Cream.
 ═══════════════════════════════════════════════════════════════ */
 
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* ── Global token overrides ── */
 :root {
-  --lime:        #C8E632;
-  --lime-2:      #A8C42A;
-  --lime-soft:   rgba(200,230,50,0.18);
-  --lime-border: rgba(200,230,50,0.48);
-  --lime-text:   #1C1C1E;
-  --premium:     #1C1C1E;
+  --ink:        #0E0E10;
+  --ink2:       #3A3A40;
+  --ink3:       #86868F;
+  --cream:      #F7F3EA;
+  --card:       #FFFFFF;
+  --line:       rgba(14,14,16,0.08);
+  --line2:      rgba(14,14,16,0.16);
+
+  --pink:       #EC2D8C;
+  --pink-soft:  #FCE3EF;
+  --lime:       #CDF24F;
+  --lime-dark:  #A8D02B;
+  --lime-text:  #0E0E10;
+
+  --lavender:   #D8C5FB;
+  --peach:      #FFB5AE;
+  --cyan:       #8FE6E6;
+  --yellow:     #FFC94A;
+
+  --accent:        var(--pink);
+  --accent2:       #9F8CE8;
+  --bg:            var(--cream);
+  --bg2:           #EDE8E0;
+  --text:          var(--ink);
+  --text-2:        var(--ink2);
+  --text-3:        var(--ink3);
+  --border:        var(--line);
+  --border2:       var(--line2);
+
+  --font:          'Manrope', -apple-system, system-ui, sans-serif;
+  --font-serif:    'Fraunces', 'Times New Roman', serif;
+  --font-sans:     var(--font);
+  --font-mono:     'JetBrains Mono', ui-monospace, monospace;
+
+  /* compat aliases (remote harmony used these) */
+  --lime-2:      var(--lime-dark);
+  --lime-soft:   rgba(205,242,79,0.18);
+  --lime-border: rgba(205,242,79,0.48);
+  --premium:     var(--ink);
   --premium-2:   #2A2A2E;
 }
 
-/* ── Nav: breathing room between links so they don't crammed ──── */
+[data-theme="dark"] {
+  --cream: #1C1C1E; --bg: #1C1C1E; --bg2: #2A2A2E;
+  --ink: #F5F0E8; --ink2: #C8C8B4; --ink3: #6A6A5A;
+  --line: rgba(255,255,255,0.08); --line2: rgba(255,255,255,0.15);
+  --card: #2A2A2E; --text: #F5F0E8; --text-2: #C8C8B4; --text-3: #6A6A5A;
+  --border: rgba(255,255,255,0.08);
+}
+
+/* ── Apply Manrope globally ── */
+body { font-family: var(--font) !important; }
+
+/* ── Nav: macOS glass bar ── */
 #nav { gap: 2px !important; padding: 0 18px !important; }
 #nav .nav-link {
   padding: 0 14px !important;
   margin: 0 1px;
   letter-spacing: -.005em;
+  font-family: var(--font) !important;
+  font-weight: 600;
 }
 #nav .nav-link.active {
-  background: rgba(200,230,50,0.10) !important;
-  color: #C8E632 !important;
+  /* lime active — user's design intent */
+  background: rgba(205,242,79,0.12) !important;
+  color: #7A9A00 !important;
+  font-weight: 800 !important;
 }
+#nav .nav-link:hover { background: rgba(14,14,16,0.06) !important; }
 #nav .nav-sep { margin: 0 8px !important; }
 #nav .nav-logo { margin-right: 10px !important; }
+.nav-logo-name { font-family: var(--font) !important; font-weight: 800; }
 
-/* ── Nav user chip: lime avatar like the mobile dashboard ───────── */
+/* ── Nav user chip: lime avatar ── */
 #nav-avatar {
-  background: linear-gradient(135deg, #C8E632, #A8C42A) !important;
-  color: #1C1C1E !important;
-  box-shadow: 0 1px 3px rgba(200,230,50,0.35);
+  background: linear-gradient(135deg, var(--lime), var(--lime-dark)) !important;
+  color: var(--lime-text) !important;
+  box-shadow: 0 1px 3px rgba(205,242,79,0.35);
+}
+[data-theme="dark"] #nav-avatar {
+  background: linear-gradient(135deg, var(--lime), var(--lime-dark)) !important;
+  color: var(--lime-text) !important;
 }
 
-/* ── Lime CTA button — secondary primary, used for "Open"/"Start" ─ */
-.btn-lime,
-.btn.btn-lime {
+/* ── Fraunces display headings ── */
+.h-display, .page-title, .win-title-serif,
+.curr-title, .mp-greeting-name, .hero-title {
+  font-family: var(--font-serif) !important;
+  letter-spacing: -0.02em;
+}
+.h-display em, .page-title em, .curr-title em { color: var(--pink); font-style: italic; }
+
+/* ── Mono eyebrows ── */
+.eyebrow, .page-eyebrow, .curr-eyebrow,
+.mp-topbar-eyebrow, .mp-greeting-meta, .lc-lang, .pc-eyebrow {
+  font-family: var(--font-mono) !important;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+/* ── Pink primary button ── */
+.btn-primary, .btn.btn-primary {
+  background: var(--pink) !important;
+  color: #fff !important;
+  border: none;
+  font-family: var(--font);
+  font-weight: 700;
+  border-radius: 14px;
+  transition: transform .12s, background .15s;
+  box-shadow: 0 6px 18px rgba(236,45,140,0.25);
+}
+.btn-primary:hover, .btn.btn-primary:hover {
+  background: #d4267f !important;
+  transform: translateY(-1px);
+}
+
+/* ── Lime button ── */
+.btn-lime, .btn.btn-lime {
   background: var(--lime) !important;
   color: var(--lime-text) !important;
   border: none;
+  font-family: var(--font);
   font-weight: 800;
-  transition: transform .12s, box-shadow .15s, background .15s;
-  box-shadow: 0 4px 14px rgba(200,230,50,0.28);
+  border-radius: 14px;
+  transition: transform .12s, background .15s;
+  box-shadow: 0 4px 14px rgba(205,242,79,0.28);
 }
-.btn-lime:hover,
-.btn.btn-lime:hover {
-  background: var(--lime-2) !important;
-  box-shadow: 0 6px 18px rgba(200,230,50,0.36);
-  transform: translateY(-1px);
-}
-.btn-lime:active,
-.btn.btn-lime:active { transform: translateY(0); }
+.btn-lime:hover, .btn.btn-lime:hover { background: var(--lime-dark) !important; transform: translateY(-1px); }
 
-/* ── Lime status pill — "Active", "In progress", "Live" ─────────── */
-.pill-lime,
-.status-lime,
-.lc-status.in-progress,
-.lc-status.available,
-.module-pill.active,
-.course-item.active .ci-dot {
+/* ── Ink button ── */
+.btn-ink {
+  background: var(--ink) !important;
+  color: #fff !important;
+  border: none; font-family: var(--font); font-weight: 700;
+  border-radius: 14px; transition: transform .12s, opacity .15s;
+}
+.btn-ink:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* ── Colored status pills ── */
+.pill-lime, .status-lime, .lc-status.in-progress, .lc-status.available,
+.module-pill.active, .course-item.active .ci-dot {
   background: var(--lime) !important;
   color: var(--lime-text) !important;
-  border-color: var(--lime-border) !important;
+  border-color: rgba(205,242,79,0.48) !important;
 }
+.course-item.active .ci-dot { box-shadow: 0 0 8px rgba(205,242,79,0.6); }
 
-/* Course sidebar dot when item is active — lime instead of grey */
-.course-item.active .ci-dot { box-shadow: 0 0 8px rgba(200,230,50,0.6); }
-
-/* ── Lime accent for "live now" / new-feature badges ────────────── */
-.badge-new,
-.badge-live {
-  background: var(--lime);
-  color: var(--lime-text);
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10px;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+/* ── Live badge ── */
+.badge-new, .badge-live {
+  background: var(--lime); color: var(--lime-text);
+  font-family: var(--font-mono); font-weight: 700;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
 }
+.badge-pink { background: var(--pink-soft); color: var(--pink); }
+.badge-ink  { background: var(--ink); color: #fff; }
 
-/* ── Insight tiles: "active" highlight in lime ──────────────────── */
-.insight-card.active,
-.stat-card.active,
-.mp-stat-card.active {
-  border-color: var(--lime-border) !important;
-  background: linear-gradient(135deg, var(--lime-soft), transparent 80%) !important;
-}
-.insight-card.active .insight-value,
-.stat-card.active .stat-n { color: var(--lime-2) !important; }
-
-/* ── Lime "Open board" / "Quick start" deep-rose card on home ─── */
-.curr-card.lime,
-.lesson-card.lime {
-  background: var(--lime) !important;
-  border-color: var(--lime-border) !important;
-  color: var(--lime-text);
-}
-.curr-card.lime *,
-.lesson-card.lime * { color: var(--lime-text) !important; }
-
-/* ── Premium dark card — pairs nicely with lime accent ──────────── */
-.curr-card.dark,
-.lesson-card.dark,
-.hero-card.dark {
-  background: var(--premium) !important;
-  color: #F5F0E8;
-  border-color: var(--premium) !important;
-}
-.curr-card.dark *,
-.lesson-card.dark * { color: #F5F0E8 !important; }
-
-/* ── Lesson card "Active" stripe ────────────────────────────────── */
-.lesson-card[data-status="active"]::before,
-.lesson-card[data-status="in-progress"]::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--lime);
-  border-radius: 12px 12px 0 0;
-}
-.lesson-card { position: relative; }
-
-/* ── Module/section "Live" dot ──────────────────────────────────── */
+/* ── Live dot — opacity only (GPU-composited, no paint cost) ── */
 .dot-live {
-  display: inline-block;
-  width: 8px; height: 8px;
-  border-radius: 50%;
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
   background: var(--lime);
-  box-shadow: 0 0 6px rgba(200,230,50,0.65);
   margin-right: 6px;
+  will-change: opacity;
+  transform: translateZ(0);
   animation: dot-pulse 1.8s ease-in-out infinite;
 }
 @keyframes dot-pulse {
   0%, 100% { opacity: 1; }
-  50%      { opacity: 0.45; }
+  50%       { opacity: 0.35; }
 }
 
-/* ── Schedule "today" highlight in lime ────────────────────────── */
-.cal-cell.today .cal-day,
-.day-pill.today {
+/* ── Cards ── */
+.lesson-card, .pack-card, .tool-card, .mp-board-card, .stat-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+.insight-card.active, .stat-card.active, .mp-stat-card.active {
+  border-color: rgba(205,242,79,0.48) !important;
+  background: linear-gradient(135deg, rgba(205,242,79,0.12), transparent 80%) !important;
+}
+.curr-card.lime, .lesson-card.lime, .mp-board-card.lime {
   background: var(--lime) !important;
-  color: var(--lime-text) !important;
-  box-shadow: 0 4px 14px rgba(200,230,50,0.32);
+  border-color: rgba(205,242,79,0.48) !important;
+  color: var(--lime-text);
+}
+.curr-card.lime *, .lesson-card.lime *, .mp-board-card.lime * { color: var(--lime-text) !important; }
+.curr-card.dark, .lesson-card.dark, .hero-card.dark, .mp-board-card.dark {
+  background: var(--ink) !important;
+  color: #F5F0E8;
+  border-color: var(--ink) !important;
+}
+.curr-card.dark *, .lesson-card.dark * { color: #F5F0E8 !important; }
+
+/* ── Lesson active stripe ── */
+.lesson-card[data-status="active"]::before,
+.lesson-card[data-status="in-progress"]::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; background: var(--pink); border-radius: 12px 12px 0 0;
+}
+.lesson-card { position: relative; }
+
+/* ── Schedule today/now ── */
+.cal-cell.today .cal-day, .day-pill.today {
+  background: var(--ink) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(14,14,16,0.25);
+}
+.cal-cell.now .cal-day, .day-pill.now {
+  background: var(--pink) !important;
+  color: #fff !important;
 }
 
-/* ── Subtle lime accent on hover for "play/start" actions ───────── */
-.btn-ghost.lime-hover:hover,
-.mod-btn.lime-hover:hover { background: var(--lime-soft) !important; color: var(--lime-2) !important; }
+/* ── Chip filter ── */
+.chip {
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--line2); background: var(--card); color: var(--ink2);
+  cursor: pointer; transition: border-color .12s, color .12s; white-space: nowrap;
+}
+.chip:hover { border-color: var(--pink); color: var(--pink); }
+.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chip.active-lime { background: var(--lime); color: var(--lime-text); border-color: var(--lime); }
 
-/* ── Dark theme override ────────────────────────────────────────── */
-[data-theme="dark"] .pill-lime,
-[data-theme="dark"] .status-lime { background: var(--lime); color: var(--lime-text); }
-[data-theme="dark"] #nav-avatar {
-  background: linear-gradient(135deg, #C8E632, #A8C42A) !important;
-  color: #1C1C1E !important;
+/* ── Page title: Fraunces on all pages ── */
+.page-title { font-family: var(--font-serif) !important; font-weight: 700 !important; letter-spacing: -0.025em !important; }
+.page-eyebrow { font-family: var(--font-mono) !important; font-size: 10px !important; letter-spacing: 0.12em !important; text-transform: uppercase !important; color: var(--ink3) !important; margin-bottom: 4px !important; }
+
+/* ── Colored stat tiles ── */
+.stats-grid .stat-card, .stats-row .stat-card {
+  border: none !important; box-shadow: none !important; border-radius: 18px !important;
+}
+.stats-grid .stat-card:nth-child(1), .stats-row .stat-card:nth-child(1) { background: var(--lavender) !important; }
+.stats-grid .stat-card:nth-child(2), .stats-row .stat-card:nth-child(2) { background: var(--peach) !important; }
+.stats-grid .stat-card:nth-child(3), .stats-row .stat-card:nth-child(3) { background: var(--cyan) !important; }
+.stats-grid .stat-card:nth-child(4), .stats-row .stat-card:nth-child(4) { background: var(--lime) !important; }
+.stats-grid .stat-card:nth-child(5), .stats-row .stat-card:nth-child(5) { background: var(--yellow) !important; }
+.stats-grid .stat-card .stat-icon, .stats-row .stat-card .stat-icon { background: rgba(14,14,16,0.10) !important; border-radius: 12px !important; }
+.stats-grid .stat-card .stat-val, .stats-row .stat-card .stat-val { color: var(--ink) !important; font-weight: 900 !important; }
+.stats-grid .stat-card .stat-lbl, .stats-row .stat-card .stat-lbl { color: var(--ink2) !important; font-weight: 700 !important; }
+
+/* ── Schedule stat pills ── */
+.stat-row .stat-pill:nth-child(1) { background: var(--lavender) !important; border: none !important; }
+.stat-row .stat-pill:nth-child(2) { background: var(--peach) !important; border: none !important; }
+.stat-row .stat-pill:nth-child(3) { background: var(--cyan) !important; border: none !important; }
+.stat-row .stat-pill .stat-num { color: var(--ink) !important; }
+.stat-row .stat-pill .stat-lbl { color: var(--ink2) !important; }
+
+/* ── Desktop widgets: Fraunces titles ── */
+.wg-today-title { font-family: var(--font-serif) !important; font-size: 20px !important; font-weight: 700 !important; letter-spacing: -0.02em !important; line-height: 1.1 !important; }
+.wg-clock-time { font-family: var(--font-serif) !important; letter-spacing: -0.04em !important; }
+.wg-vocab-word { font-family: var(--font-serif) !important; letter-spacing: -0.02em !important; }
+.wg-vocab-next { background: var(--lime) !important; color: var(--lime-text) !important; box-shadow: 0 4px 14px rgba(205,242,79,0.3) !important; }
+.wg-vocab-next:hover { background: var(--lime-dark) !important; }
+
+/* ── Board sidebar: lime active badge ── */
+.badge.active-s, .badge.active {
+  background: rgba(205,242,79,0.20) !important;
+  color: #5A7A00 !important;
+  border: 1px solid rgba(205,242,79,0.5) !important;
+}
+.snippet:hover { border-color: rgba(236,45,140,0.20) !important; }
+.sn-title { font-family: var(--font) !important; font-weight: 700 !important; }
+.sn-label { font-family: var(--font-mono) !important; color: var(--ink3) !important; }
+
+/* ── Profile title ── */
+.mobile-profile-title { font-family: var(--font-serif) !important; letter-spacing: -0.02em !important; }
+.win-title { font-family: var(--font-serif) !important; letter-spacing: -0.02em !important; }
+
+/* ── Section headers ── */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.section-h { font-family: var(--font); font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+.section-action { font-family: var(--font-mono); font-size: 10px; color: var(--pink); letter-spacing: 0.08em; cursor: pointer; }
+
+/* ── Palette tiles ── */
+.tile-lavender { background: var(--lavender) !important; }
+.tile-peach    { background: var(--peach) !important; }
+.tile-cyan     { background: var(--cyan) !important; }
+.tile-yellow   { background: var(--yellow) !important; }
+.tile-lime     { background: var(--lime) !important; }
+.tile-pink     { background: var(--pink) !important; }
+.tile-ink      { background: var(--ink) !important; color: #fff !important; }
+
+/* ── Ghost lime hover ── */
+.btn-ghost.lime-hover:hover, .mod-btn.lime-hover:hover { background: rgba(205,242,79,0.15) !important; color: var(--lime-dark) !important; }
+
+/* ── Mobile helpers ── */
+.mp-mobile-only { display: none; }
+@media (max-width: 860px) {
+  .mp-mobile-only { display: flex; }
+  .mp-desktop-only { display: none !important; }
+  /* no backdrop-filter on mobile navs — kills scroll perf */
+  #nav { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: #FAFAF8 !important; }
 }
