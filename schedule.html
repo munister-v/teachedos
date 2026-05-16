@@ -495,10 +495,16 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast"></div>
 
+<script src="scripts/app-core.js"></script>
 <script>
-const API = 'https://teachedos-api.onrender.com';
+const API = window.TeachEdApp.API_BASE;
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
-const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
+const {
+  DEFAULT_TIME_ZONE,
+  browserTimeZone,
+  safeTimeZone,
+  formatZoneNow
+} = window.TeachEdApp;
 let token = localStorage.getItem('teachedos_token');
 let schedule = [];
 let currentUser = null;
@@ -513,20 +519,6 @@ const COLORS = [
 ];
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
-
-function browserTimeZone() {
-  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
-  catch { return DEFAULT_TIME_ZONE; }
-}
-
-function safeTimeZone(zone) {
-  try {
-    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
-    return zone || DEFAULT_TIME_ZONE;
-  } catch {
-    return DEFAULT_TIME_ZONE;
-  }
-}
 
 function effectiveScheduleZone() {
   return safeTimeZone(currentUser?.timezone || browserTimeZone());
@@ -553,12 +545,7 @@ function renderScheduleTimeZoneCard() {
   if (!zoneEl || !nowEl || !noteEl) return;
   const zone = effectiveScheduleZone();
   zoneEl.textContent = zone;
-  nowEl.textContent = `Current local time: ${new Date().toLocaleString([], {
-    timeZone: zone,
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  })}`;
+  nowEl.textContent = `Current local time: ${formatZoneNow(zone)}`;
   noteEl.textContent = currentUser?.timezone_mode === 'manual'
     ? 'Manual mode is on. This schedule stays pinned to your teaching timezone.'
     : 'Auto mode is on. TeachEd follows the timezone from this device.';

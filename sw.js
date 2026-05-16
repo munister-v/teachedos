@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v17';
+const CACHE = 'teachedos-v18';
 
 const SHELL = [
   '/teachedos/',
@@ -28,6 +28,7 @@ const SHELL = [
   '/teachedos/styles/harmony.css',
   '/teachedos/pwa.js',
   '/teachedos/theme.js',
+  '/teachedos/scripts/app-core.js',
   '/teachedos/scripts/mobile-nav.js',
   '/teachedos/scripts/teachedos-app.js',
   '/teachedos/icons/icon-192.png',

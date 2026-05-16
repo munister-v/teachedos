@@ -147,57 +147,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 </main>
 
+<script src="scripts/app-core.js"></script>
 <script>
-const API = 'https://teachedos-api.onrender.com';
+const API = window.TeachEdApp.API_BASE;
 const token = localStorage.getItem('teachedos_token');
 let isTeacherView = false;
+const {
+  DEFAULT_TIME_ZONE,
+  safeTimeZone,
+  formatZoneNow,
+  describeTimeZoneDifference
+} = window.TeachEdApp;
 
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 
 let toastT;
-const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2500);
-}
-
-function safeTimeZone(zone) {
-  try {
-    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
-    return zone || DEFAULT_TIME_ZONE;
-  } catch {
-    return DEFAULT_TIME_ZONE;
-  }
-}
-
-function formatZoneNow(zone) {
-  return new Date().toLocaleString([], {
-    timeZone: safeTimeZone(zone),
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function timeZoneOffsetMinutes(date, zone) {
-  const label = new Intl.DateTimeFormat('en-US', {
-    timeZone: safeTimeZone(zone),
-    timeZoneName: 'shortOffset',
-    hour: '2-digit'
-  }).formatToParts(date).find(part => part.type === 'timeZoneName')?.value || 'GMT';
-  const match = label.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
-  if (!match) return 0;
-  const sign = match[1] === '-' ? -1 : 1;
-  return sign * ((Number(match[2]) || 0) * 60 + (Number(match[3]) || 0));
-}
-
-function describeTimeZoneDifference(baseZone, otherZone, date = new Date()) {
-  const diff = timeZoneOffsetMinutes(date, otherZone) - timeZoneOffsetMinutes(date, baseZone);
-  if (!diff) return 'You are in the same local time';
-  const hours = Math.abs(diff) / 60;
-  const pretty = Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
-  return diff > 0 ? `${pretty} ahead` : `${pretty} behind`;
 }
 
 function apiFetch(path, opts={}){
@@ -239,7 +207,9 @@ function render(d, studentId){
   const { student, boards, vocab, quizHistory, stats, teacherNotes, viewerTimezone } = d;
   const studentZone = safeTimeZone(student.timezone || DEFAULT_TIME_ZONE);
   const viewerZone = safeTimeZone(viewerTimezone || studentZone);
-  const diffLabel = describeTimeZoneDifference(studentZone, viewerZone);
+  const diffLabel = describeTimeZoneDifference(studentZone, viewerZone, new Date(), {
+    sameLabel: 'You are in the same local time'
+  });
 
   document.getElementById('p-avatar').textContent = student.avatar||'🎓';
   document.getElementById('p-name').textContent = student.name;

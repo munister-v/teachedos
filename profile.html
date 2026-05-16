@@ -679,13 +679,18 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
+<script src="scripts/app-core.js"></script>
 <script>
-const API = 'https://teachedos-api.onrender.com';
+const API = window.TeachEdApp.API_BASE;
 const PROFILE_CACHE_KEY = 'teachedos_profile_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let me = null;
 let selectedAvatar = null;
-const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
+const {
+  DEFAULT_TIME_ZONE,
+  browserTimeZone,
+  isValidTimeZone
+} = window.TeachEdApp;
 const TIME_ZONE_OPTIONS = [
   'Europe/Kyiv','Europe/Warsaw','Europe/Berlin','Europe/Madrid','Europe/Paris','Europe/London',
   'Europe/Rome','Europe/Prague','Europe/Vilnius','Europe/Helsinki','Europe/Istanbul',
@@ -738,20 +743,6 @@ function updateMobileProfileSummary(options = {}) {
   copy.textContent = options.offline
     ? `Offline mode: showing your last saved account view with ${boardCount} boards and ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}.`
     : `Manage ${boardCount} board${boardCount === 1 ? '' : 's'}, review ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}, and keep your account details current from this phone view.`;
-}
-
-function browserTimeZone() {
-  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
-  catch { return DEFAULT_TIME_ZONE; }
-}
-
-function isValidTimeZone(timeZone) {
-  try {
-    Intl.DateTimeFormat('en-GB', { timeZone }).format(new Date());
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function effectiveTimeZoneLabel() {

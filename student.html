@@ -750,10 +750,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<script src="scripts/app-core.js"></script>
 <script>
-const API = 'https://teachedos-api.onrender.com';
+const API = window.TeachEdApp.API_BASE;
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
-const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
+const {
+  DEFAULT_TIME_ZONE,
+  browserTimeZone,
+  safeTimeZone,
+  describeTimeZoneDifference
+} = window.TeachEdApp;
 let authToken = localStorage.getItem('teachedos_token');
 let currentUser = null;
 let _vocabData = [];
@@ -779,40 +785,6 @@ function formatDate(iso) {
   const d = new Date(iso);
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return { day: d.getDate(), mon: months[d.getMonth()], time: d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
-}
-
-function browserTimeZone() {
-  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
-  catch { return DEFAULT_TIME_ZONE; }
-}
-
-function safeTimeZone(zone) {
-  try {
-    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
-    return zone || DEFAULT_TIME_ZONE;
-  } catch {
-    return DEFAULT_TIME_ZONE;
-  }
-}
-
-function timeZoneOffsetMinutes(date, zone) {
-  const label = new Intl.DateTimeFormat('en-US', {
-    timeZone: safeTimeZone(zone),
-    timeZoneName: 'shortOffset',
-    hour: '2-digit'
-  }).formatToParts(date).find(part => part.type === 'timeZoneName')?.value || 'GMT';
-  const match = label.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
-  if (!match) return 0;
-  const sign = match[1] === '-' ? -1 : 1;
-  return sign * ((Number(match[2]) || 0) * 60 + (Number(match[3]) || 0));
-}
-
-function describeTimeZoneDifference(baseZone, otherZone, date = new Date()) {
-  const diff = timeZoneOffsetMinutes(date, otherZone) - timeZoneOffsetMinutes(date, baseZone);
-  if (!diff) return 'Same local time as your teacher';
-  const hours = Math.abs(diff) / 60;
-  const pretty = Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
-  return diff > 0 ? `You are ${pretty} ahead of your teacher` : `You are ${pretty} behind your teacher`;
 }
 
 function formatInZone(iso, zone, options) {
@@ -1090,7 +1062,11 @@ function renderSchedule(schedule) {
     const teacherTime = startIso
       ? formatInZone(startIso, teacherZone, { weekday: 'short', hour: '2-digit', minute: '2-digit' })
       : null;
-    const diffLabel = startIso ? describeTimeZoneDifference(teacherZone, viewerZone, new Date(startIso)) : '';
+    const diffLabel = startIso ? describeTimeZoneDifference(teacherZone, viewerZone, new Date(startIso), {
+      sameLabel: 'Same local time as your teacher',
+      aheadSuffix: 'ahead of your teacher',
+      behindSuffix: 'behind your teacher'
+    }) : '';
     return `
       <div class="sch-item">
         <div class="sch-date-box">
