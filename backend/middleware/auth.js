@@ -27,6 +27,19 @@ async function requireAuth(req, res, next) {
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found' });
     req.user = rows[0];
+    if (
+      req.user.plan &&
+      req.user.plan !== 'free' &&
+      req.user.plan_expires_at &&
+      new Date(req.user.plan_expires_at).getTime() <= Date.now()
+    ) {
+      await pool.query(
+        "UPDATE users SET plan='free', plan_expires_at=NULL WHERE id=$1",
+        [req.user.id]
+      ).catch(() => {});
+      req.user.plan = 'free';
+      req.user.plan_expires_at = null;
+    }
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });

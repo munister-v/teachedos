@@ -117,6 +117,7 @@ router.get('/usage', requireAuth, async (req, res) => {
 
     res.json({
       plan,
+      plan_expires_at: req.user.plan_expires_at || null,
       boards_count:    parseInt(boardRes.rows[0].count, 10),
       students_total:  parseInt(studentRes.rows[0].count, 10),
       limits: {

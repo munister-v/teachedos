@@ -943,6 +943,34 @@ tr:hover td{background:#fafafa}
     <div class="page-title">Billing</div>
     <div class="page-sub">Manual invoice requests and bank-transfer confirmations</div>
 
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon orange">⏳</div>
+        <div><div class="stat-num" id="bill-pending">—</div><div class="stat-label">Pending Review</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">💵</div>
+        <div><div class="stat-num" id="bill-approved-30d">—</div><div class="stat-label">Approved / 30d</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🚀</div>
+        <div><div class="stat-num" id="bill-pro-users">—</div><div class="stat-label">Pro Users</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon pink">🏫</div>
+        <div><div class="stat-num" id="bill-school-users">—</div><div class="stat-label">School Users</div></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="padding:22px;margin-bottom:24px">
+      <div class="table-header" style="padding:0 0 14px;border-bottom:none">
+        <div class="table-header-title">Expiring Soon</div>
+      </div>
+      <div class="activity-list" id="billing-expiring-list">
+        <div class="activity-item"><div><div class="activity-title">Loading…</div><div class="activity-sub">Checking paid plans expiring within 7 days</div></div></div>
+      </div>
+    </div>
+
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">Payment Requests</div>
@@ -1312,7 +1340,7 @@ function showPage(name) {
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
   if (name === 'audit')     loadAudit();
-  if (name === 'billing')   loadBillingPayments();
+  if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); }
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
 }
 
@@ -1963,6 +1991,34 @@ function kickUser(userId, name) {
 }
 
 // ── Billing ──────────────────────────────────────────────────────────────
+async function loadBillingSummary() {
+  try {
+    const d = await api('GET', '/api/admin/billing/summary');
+    document.getElementById('bill-pending').textContent = d.statuses?.pending ?? 0;
+    document.getElementById('bill-approved-30d').textContent = `$${Number(d.approved30d || 0).toFixed(2)}`;
+    document.getElementById('bill-pro-users').textContent = d.plans?.pro ?? 0;
+    document.getElementById('bill-school-users').textContent = d.plans?.school ?? 0;
+    const root = document.getElementById('billing-expiring-list');
+    const rows = d.expiringSoon || [];
+    if (!rows.length) {
+      root.innerHTML = `<div class="activity-item"><div><div class="activity-title">No paid plans expiring soon</div><div class="activity-sub">The next 7 days look clear.</div></div></div>`;
+      return;
+    }
+    root.innerHTML = rows.map(user => `
+      <div class="activity-item">
+        <div>
+          <div class="activity-title">${esc(user.name)} <span class="badge badge-${user.plan === 'school' ? 'admin' : 'teacher'}">${esc(user.plan)}</span></div>
+          <div class="activity-sub">${esc(user.email)}</div>
+        </div>
+        <div class="activity-meta">${fmtDate(user.plan_expires_at)}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('billing-expiring-list').innerHTML =
+      `<div class="activity-item"><div><div class="activity-title">Billing summary unavailable</div><div class="activity-sub">${esc(e.message)}</div></div></div>`;
+  }
+}
+
 async function loadBillingPayments() {
   const tbody = document.getElementById('billing-tbody');
   if (!tbody) return;
@@ -2009,6 +2065,7 @@ function approvePayment(id, name, plan) {
     try {
       await api('POST', `/api/admin/billing/payments/${id}/approve`, { months, note: note || '' });
       toast('Payment approved and plan activated', 'success');
+      loadBillingSummary();
       loadBillingPayments();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
@@ -2022,6 +2079,7 @@ function rejectPayment(id, name) {
     try {
       await api('POST', `/api/admin/billing/payments/${id}/reject`, { note });
       toast('Payment rejected', 'success');
+      loadBillingSummary();
       loadBillingPayments();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }

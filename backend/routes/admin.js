@@ -94,6 +94,57 @@ router.get('/billing/payments', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/billing/summary ────────────────────────────────────────
+router.get('/billing/summary', async (req, res) => {
+  try {
+    await ensureIbanPaymentsTable();
+    const [statusRows, planRows, revenueRows, expiringRows] = await Promise.all([
+      pool.query(
+        `SELECT status, COUNT(*)::int AS count
+         FROM iban_payments
+         GROUP BY status`
+      ),
+      pool.query(
+        `SELECT plan, COUNT(*)::int AS count
+         FROM users
+         GROUP BY plan`
+      ),
+      pool.query(
+        `SELECT COALESCE(SUM(amount), 0)::float AS total
+         FROM iban_payments
+         WHERE status='approved' AND created_at >= NOW() - INTERVAL '30 days'`
+      ),
+      pool.query(
+        `SELECT id, name, email, plan, plan_expires_at
+         FROM users
+         WHERE plan <> 'free'
+           AND plan_expires_at IS NOT NULL
+           AND plan_expires_at <= NOW() + INTERVAL '7 days'
+         ORDER BY plan_expires_at ASC
+         LIMIT 8`
+      ),
+    ]);
+    const statuses = Object.fromEntries(statusRows.rows.map(row => [row.status, row.count]));
+    const plans = Object.fromEntries(planRows.rows.map(row => [row.plan || 'free', row.count]));
+    res.json({
+      statuses: {
+        pending: statuses.pending || 0,
+        approved: statuses.approved || 0,
+        rejected: statuses.rejected || 0,
+      },
+      plans: {
+        free: plans.free || 0,
+        pro: plans.pro || 0,
+        school: plans.school || 0,
+      },
+      approved30d: revenueRows.rows[0]?.total || 0,
+      expiringSoon: expiringRows.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/admin/billing/payments/:id/approve ─────────────────────────
 router.post('/billing/payments/:id/approve', async (req, res) => {
   const { note = '', months = 1 } = req.body || {};
