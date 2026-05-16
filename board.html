@@ -1619,14 +1619,17 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="setMiroTool('frame');quickAddFrame()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M5 3v10"/></svg>
   </button>
-  <button class="mt-btn" id="mt-pen" data-tip="Pencil (P)" onclick="toggleDrawTool('pen')">
+  <button class="mt-btn" id="mt-pen" data-tip="Pencil (P) · click again for colors" onclick="toggleDrawTool('pen', event)">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>
   </button>
-  <button class="mt-btn" id="mt-marker" data-tip="Highlighter (H)" onclick="toggleDrawTool('marker')">
+  <button class="mt-btn" id="mt-marker" data-tip="Highlighter (H) · click again for colors" onclick="toggleDrawTool('marker', event)">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 1l6 6-7 7H4l-2-2v-3l7-8z"/><path d="M5 14l-2-2"/></svg>
   </button>
-  <button class="mt-btn" id="mt-eraser" data-tip="Erase drawing" onclick="eraseDrawing()">
+  <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E) — erase strokes" onclick="toggleDrawTool('eraser', event)">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14l4-4 5 5h-7l-2-1zM7 10l5-5 3 3-5 5"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-eraser-all" data-tip="Clear all strokes" onclick="eraseDrawing()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h10M5 4V2h6v2M6 4v9h4V4M4 4l1 11h6l1-11"/></svg>
   </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-connect" data-tip="Connect (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
@@ -2212,6 +2215,22 @@ body.board-dragging .board-card{will-change:transform,left,top;}
       <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Image</button>
     </div>
     <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+  </div>
+</div>
+
+<!-- DRAWING TOOL PALETTE (color + thickness) -->
+<div id="draw-palette" style="display:none;position:fixed;z-index:1000;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:0 8px 28px rgba(5,5,23,.16);min-width:200px;">
+  <div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;" id="draw-palette-title">Pencil</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <span style="font-size:11px;font-weight:700;color:var(--text-2);min-width:48px;">Size</span>
+    <input id="draw-size" type="range" min="1" max="40" value="3" oninput="setDrawSize(this.value)" style="flex:1;">
+    <span id="draw-size-val" style="font-family:var(--mono);font-size:11px;color:var(--text-2);min-width:24px;text-align:right;">3</span>
+  </div>
+  <div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Color</div>
+  <div id="draw-color-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;"></div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <input id="draw-color-custom" type="color" value="#1C1C1E" oninput="setDrawColor(this.value)" style="width:30px;height:26px;border:none;border-radius:6px;cursor:pointer;background:transparent;">
+    <button onclick="closeDrawPalette()" style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;color:var(--text-2);">Done</button>
   </div>
 </div>
 
@@ -6545,6 +6564,12 @@ function renderTimer(el, card) {
   const pauseBtn = document.createElement('button'); pauseBtn.className='timer-btn timer-pause'; pauseBtn.textContent='⏸ Pause'; pauseBtn.style.display='none';
   const resetBtn = document.createElement('button'); resetBtn.className='timer-btn timer-reset'; resetBtn.textContent='↺ Reset';
 
+  // Prevent the card-drag handler from swallowing button clicks
+  [startBtn, pauseBtn, resetBtn].forEach(b => {
+    b.addEventListener('mousedown', ev => ev.stopPropagation());
+    b.addEventListener('touchstart', ev => ev.stopPropagation(), { passive: true });
+  });
+
   function stopTimer() {
     if (_timerIntervals.has(card.id)) { clearInterval(_timerIntervals.get(card.id)); _timerIntervals.delete(card.id); }
   }
@@ -7258,12 +7283,28 @@ function toggleBgDots(show) {
   if (st.showDots === false) toggleBgDots(false);
 })();
 
-/* ════════════════════════ DRAWING TOOLS (pencil + highlighter) ════════════════════════ */
-let _drawTool = null;        // 'pen' | 'marker' | null
-let _drawSvg = null;         // SVG element for strokes
+/* ════════════════════════ DRAWING TOOLS (pencil + highlighter + eraser) ════════════════════════ */
+let _drawTool = null;        // 'pen' | 'marker' | 'eraser' | null
+let _drawSvg = null;
 let _drawing = false;
 let _drawPoints = [];
 let _drawPath = null;
+
+// Per-tool state (color + size), persisted
+const DRAW_STATE_KEY = 'teachedos_draw_state_v1';
+const _drawDefaults = {
+  pen:    { color: '#1C1C1E', size: 3 },
+  marker: { color: '#FACC15', size: 14 },
+  eraser: { size: 18 },
+};
+let _drawState = (() => {
+  try { return Object.assign({}, _drawDefaults, JSON.parse(localStorage.getItem(DRAW_STATE_KEY)||'{}')); }
+  catch { return Object.assign({}, _drawDefaults); }
+})();
+function _saveDrawState() { try { localStorage.setItem(DRAW_STATE_KEY, JSON.stringify(_drawState)); } catch {} }
+
+const PEN_COLORS    = ['#1C1C1E','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#E85D75','#A2A28C','#FFFFFF','#0EA5E9','#10B981'];
+const MARKER_COLORS = ['#FACC15','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#C4B5FD','#F0ABFC','#FBCFE8','#FFFFFF','#FDE68A','#A7F3D0','#BFDBFE'];
 
 function ensureDrawLayer() {
   if (_drawSvg) return _drawSvg;
@@ -7272,11 +7313,9 @@ function ensureDrawLayer() {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.id = 'draw-svg';
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  // Position the SVG inside the board so it transforms with pan/zoom
   svg.style.cssText = 'position:absolute;top:0;left:0;width:6000px;height:6000px;pointer-events:none;overflow:visible;';
   board.appendChild(svg);
   _drawSvg = svg;
-  // Restore saved strokes
   try {
     const saved = localStorage.getItem('teachedos_board_strokes');
     if (saved) svg.innerHTML = saved;
@@ -7287,30 +7326,110 @@ function saveStrokes() {
   if (!_drawSvg) return;
   try { localStorage.setItem('teachedos_board_strokes', _drawSvg.innerHTML); } catch {}
 }
-function toggleDrawTool(tool) {
+
+function toggleDrawTool(tool, ev) {
   if (_drawTool === tool) {
-    // Toggle off
+    // Second click on the same tool → open palette (pen / marker only)
+    if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {
+      openDrawPalette(ev && ev.currentTarget ? ev.currentTarget : null, tool);
+      return;
+    }
     _drawTool = null;
     boardWrap.classList.remove('drawing');
     document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
     const sel = document.getElementById('mt-select'); if (sel) sel.classList.add('active');
+    closeDrawPalette();
     return;
   }
   _drawTool = tool;
   ensureDrawLayer();
   boardWrap.classList.add('drawing');
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mt-' + (tool === 'pen' ? 'pen' : 'marker'));
+  const btn = document.getElementById('mt-' + tool);
   if (btn) btn.classList.add('active');
+  closeDrawPalette();
 }
 function eraseDrawing() {
-  if (!confirm('Erase all drawing strokes on this board?')) return;
+  if (!confirm('Erase ALL drawing strokes on this board?')) return;
   if (_drawSvg) _drawSvg.innerHTML = '';
   try { localStorage.removeItem('teachedos_board_strokes'); } catch {}
 }
 
+/* ── Palette popup ── */
+function openDrawPalette(anchorBtn, tool) {
+  const pal = document.getElementById('draw-palette');
+  if (!pal) return;
+  // Title
+  const title = document.getElementById('draw-palette-title');
+  if (title) title.textContent = tool === 'pen' ? 'Pencil' : tool === 'marker' ? 'Highlighter' : 'Eraser';
+  // Build color grid (skip for eraser)
+  const grid = document.getElementById('draw-color-grid');
+  const colorRow = grid && grid.parentElement;
+  if (tool === 'eraser') {
+    if (grid) grid.style.display = 'none';
+    const customRow = document.getElementById('draw-color-custom');
+    if (customRow && customRow.parentElement) customRow.parentElement.style.display = 'none';
+  } else {
+    if (grid) {
+      grid.style.display = '';
+      const palette = tool === 'pen' ? PEN_COLORS : MARKER_COLORS;
+      const cur = _drawState[tool].color;
+      grid.innerHTML = palette.map(c => `
+        <div onclick="setDrawColor('${c}')" title="${c}"
+          style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c.toLowerCase()===cur.toLowerCase()?'var(--accent)':(c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.25)':'transparent')};transition:.12s;"
+          onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform=''"></div>
+      `).join('');
+    }
+    const customColor = document.getElementById('draw-color-custom');
+    if (customColor) {
+      customColor.parentElement.style.display = '';
+      if (/^#[0-9a-fA-F]{6}$/.test(_drawState[tool].color)) customColor.value = _drawState[tool].color;
+    }
+  }
+  // Size slider
+  const sizeInput = document.getElementById('draw-size');
+  const sizeVal   = document.getElementById('draw-size-val');
+  if (sizeInput) {
+    sizeInput.value = _drawState[tool].size;
+    if (sizeVal) sizeVal.textContent = _drawState[tool].size;
+    sizeInput.max = tool === 'marker' ? 40 : tool === 'eraser' ? 60 : 20;
+  }
+  // Position near the anchor button
+  if (anchorBtn) {
+    const r = anchorBtn.getBoundingClientRect();
+    pal.style.left = (r.right + 12) + 'px';
+    pal.style.top  = Math.max(8, r.top) + 'px';
+  }
+  pal.style.display = 'block';
+}
+function closeDrawPalette() {
+  const pal = document.getElementById('draw-palette');
+  if (pal) pal.style.display = 'none';
+}
+function setDrawColor(c) {
+  if (!_drawTool || _drawTool === 'eraser') return;
+  _drawState[_drawTool].color = c;
+  _saveDrawState();
+  // Re-render swatches for selected highlight
+  openDrawPalette(document.getElementById('mt-' + _drawTool), _drawTool);
+}
+function setDrawSize(v) {
+  if (!_drawTool) return;
+  _drawState[_drawTool].size = parseInt(v, 10) || 1;
+  _saveDrawState();
+  const sv = document.getElementById('draw-size-val');
+  if (sv) sv.textContent = _drawState[_drawTool].size;
+}
+// Click-outside closes palette
+document.addEventListener('mousedown', e => {
+  const pal = document.getElementById('draw-palette');
+  if (!pal || pal.style.display === 'none') return;
+  if (pal.contains(e.target)) return;
+  if (e.target.closest('#miro-toolbar')) return;
+  closeDrawPalette();
+}, true);
+
 function _drawPointFromEvent(e) {
-  // Convert page coords → board coords (in board's transformed space)
   const r = boardWrap.getBoundingClientRect();
   const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
   const ox = (typeof state !== 'undefined' && state.offsetX) ? state.offsetX : 0;
@@ -7318,28 +7437,63 @@ function _drawPointFromEvent(e) {
   return { x: (e.clientX - r.left - ox) / sc, y: (e.clientY - r.top - oy) / sc };
 }
 
+function _eraseAt(e) {
+  if (!_drawSvg) return;
+  const p = _drawPointFromEvent(e);
+  const r = _drawState.eraser.size / 2;
+  // Hit-test all path bounding boxes (cheap)
+  const paths = Array.from(_drawSvg.querySelectorAll('path'));
+  for (const path of paths) {
+    try {
+      const bb = path.getBBox();
+      if (p.x >= bb.x - r && p.x <= bb.x + bb.width + r &&
+          p.y >= bb.y - r && p.y <= bb.y + bb.height + r) {
+        // Fine-grained: check if any point along the path is within radius
+        const len = path.getTotalLength();
+        const step = Math.max(2, len / 60);
+        for (let s = 0; s <= len; s += step) {
+          const pt = path.getPointAtLength(s);
+          if (Math.hypot(pt.x - p.x, pt.y - p.y) <= r) {
+            path.remove();
+            break;
+          }
+        }
+      }
+    } catch {}
+  }
+}
+
 document.addEventListener('mousedown', e => {
   if (!_drawTool || !_drawSvg) return;
   if (e.button !== 0) return;
   if (!boardWrap.contains(e.target)) return;
+  if (e.target.closest('#miro-toolbar') || e.target.closest('.tb-btn')) return;
   _drawing = true;
+  if (_drawTool === 'eraser') {
+    _eraseAt(e);
+    e.preventDefault();
+    return;
+  }
   _drawPoints = [_drawPointFromEvent(e)];
   _drawPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const conf = _drawState[_drawTool];
   if (_drawTool === 'pen') {
-    _drawPath.setAttribute('stroke', '#1C1C1E');
-    _drawPath.setAttribute('stroke-width', '2.5');
+    _drawPath.setAttribute('stroke', conf.color);
+    _drawPath.setAttribute('stroke-width', conf.size);
     _drawPath.setAttribute('opacity', '1');
   } else {
-    _drawPath.setAttribute('stroke', '#FACC15');
-    _drawPath.setAttribute('stroke-width', '14');
-    _drawPath.setAttribute('opacity', '0.45');
+    _drawPath.setAttribute('stroke', conf.color);
+    _drawPath.setAttribute('stroke-width', conf.size);
+    _drawPath.setAttribute('opacity', '0.40');
   }
   _drawPath.setAttribute('d', `M ${_drawPoints[0].x} ${_drawPoints[0].y}`);
   _drawSvg.appendChild(_drawPath);
   e.preventDefault();
 });
 document.addEventListener('mousemove', e => {
-  if (!_drawing || !_drawPath) return;
+  if (!_drawing) return;
+  if (_drawTool === 'eraser') { _eraseAt(e); return; }
+  if (!_drawPath) return;
   const p = _drawPointFromEvent(e);
   _drawPoints.push(p);
   const d = _drawPoints.map((pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
@@ -7361,6 +7515,7 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
+  else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
   else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
 });
 
