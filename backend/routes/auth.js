@@ -197,7 +197,7 @@ router.post('/login', async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar, timezone, timezone_mode, created_at FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, avatar, plan, plan_expires_at, timezone, timezone_mode, created_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
@@ -218,7 +218,18 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, timezone: user.timezone, timezone_mode: user.timezone_mode, created_at: user.created_at }
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        plan: user.plan || 'free',
+        plan_expires_at: user.plan_expires_at,
+        timezone: user.timezone,
+        timezone_mode: user.timezone_mode,
+        created_at: user.created_at
+      }
     });
   } catch (err) {
     console.error('[auth/login]', err.message, err.code);
@@ -274,7 +285,7 @@ router.patch('/me', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
-       RETURNING id, email, name, role, avatar, plan, meeting_url, zoom_url, timezone, timezone_mode`,
+       RETURNING id, email, name, role, avatar, plan, plan_expires_at, meeting_url, zoom_url, timezone, timezone_mode`,
       params
     );
     res.json({ user: rows[0] });

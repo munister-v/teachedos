@@ -807,10 +807,10 @@ tr:hover td{background:#fafafa}
           <thead>
             <tr>
               <th>Avatar</th><th>Name</th><th>Email</th><th>Role</th>
-              <th>Boards</th><th>Joined</th><th>Actions</th>
+              <th>Plan</th><th>Boards</th><th>Joined</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="users-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="8">Loading…</td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -1100,6 +1100,18 @@ tr:hover td{background:#fafafa}
         <option value="student">Student</option>
         <option value="admin">Admin</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Plan</label>
+      <select class="form-select" id="mu-plan">
+        <option value="free">Free</option>
+        <option value="pro">Teacher Pro</option>
+        <option value="school">School</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Plan Expires <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <input class="form-input" id="mu-plan-expires" type="date"/>
     </div>
     <div class="form-group">
       <label class="form-label">Avatar (emoji)</label>
@@ -1838,7 +1850,7 @@ function setUsersRoleFilter(role, el) {
 async function loadUsers() {
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Loading…</td></tr>';
   try {
     const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
@@ -1848,7 +1860,7 @@ async function loadUsers() {
     document.getElementById('users-next').disabled = usersOffset + usersLimit >= usersTotal;
 
     if (!d.users.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No users found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No users found</td></tr>';
       return;
     }
     tbody.innerHTML = d.users.map(u => `
@@ -1857,6 +1869,7 @@ async function loadUsers() {
         <td data-label="Name"><strong>${esc(u.name)}</strong></td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td data-label="Plan"><span class="badge badge-${u.plan === 'school' ? 'admin' : u.plan === 'pro' ? 'teacher' : 'student'}">${u.plan || 'free'}</span>${u.plan_expires_at ? `<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>` : ''}</td>
         <td data-label="Boards" style="text-align:center">${u.boards_count}</td>
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
@@ -1869,7 +1882,7 @@ async function loadUsers() {
       </tr>
     `).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Error: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -1880,6 +1893,8 @@ function openEditUser(u) {
   document.getElementById('mu-name').value   = u.name;
   document.getElementById('mu-email').value  = u.email;
   document.getElementById('mu-role').value   = u.role;
+  document.getElementById('mu-plan').value   = u.plan || 'free';
+  document.getElementById('mu-plan-expires').value = u.plan_expires_at ? new Date(u.plan_expires_at).toISOString().slice(0, 10) : '';
   document.getElementById('mu-avatar').value = u.avatar;
   document.getElementById('mu-pass').value   = '';
   document.getElementById('modal-user').classList.add('open');
@@ -1893,6 +1908,8 @@ async function saveUser() {
   const body = {
     name:   document.getElementById('mu-name').value.trim(),
     role:   document.getElementById('mu-role').value,
+    plan:   document.getElementById('mu-plan').value,
+    plan_expires_at: document.getElementById('mu-plan-expires').value || null,
     avatar: document.getElementById('mu-avatar').value.trim(),
   };
   const pass = document.getElementById('mu-pass').value;

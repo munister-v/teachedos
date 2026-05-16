@@ -648,7 +648,7 @@ router.get('/users', async (req, res) => {
     const like = `%${search}%`;
     const roleFilter = role ? role : null;
     const { rows } = await pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.created_at,
+      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_expires_at, u.created_at,
               COUNT(b.id) AS boards_count
        FROM users u
        LEFT JOIN boards b ON b.user_id = u.id
@@ -710,7 +710,7 @@ router.post('/users', async (req, res) => {
 
 // ── PATCH /api/admin/users/:id ─────────────────────────────────────────────
 router.patch('/users/:id', async (req, res) => {
-  const { name, role, avatar, password } = req.body;
+  const { name, role, avatar, password, plan, plan_expires_at } = req.body;
   try {
     const sets = [];
     const vals = [];
@@ -731,6 +731,17 @@ router.patch('/users/:id', async (req, res) => {
     if (avatar !== undefined) {
       sets.push(`avatar=$${i++}`);
       vals.push(String(avatar).trim());
+    }
+    if (plan !== undefined) {
+      if (!['free', 'pro', 'school'].includes(plan)) {
+        return res.status(400).json({ error: 'Invalid plan' });
+      }
+      sets.push(`plan=$${i++}`);
+      vals.push(plan);
+    }
+    if (plan_expires_at !== undefined) {
+      sets.push(`plan_expires_at=$${i++}`);
+      vals.push(plan_expires_at || null);
     }
     if (password) {
       if (password.length < 8) {

@@ -245,6 +245,26 @@ router.post('/iban-activate', requireAuth, async (req, res) => {
   }
 });
 
+// ── GET /api/billing/payments ─────────────────────────────────────────────
+router.get('/payments', requireAuth, async (req, res) => {
+  try {
+    await ensureIbanPaymentsTable();
+    const { rows } = await pool.query(
+      `SELECT id, plan, payer_name, tx_date, tx_note, status, amount, currency,
+              invoice_no, admin_note, reviewed_at, created_at
+       FROM iban_payments
+       WHERE user_id=$1
+       ORDER BY created_at DESC
+       LIMIT 20`,
+      [req.user.id]
+    );
+    res.json({ payments: rows });
+  } catch (err) {
+    console.error('[billing] payments:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── POST /api/billing/webhook (raw body — registered in server.js) ────────
 async function handleWebhook(req, res) {
   if (!stripe) return res.status(400).json({ error: 'Stripe not configured' });
