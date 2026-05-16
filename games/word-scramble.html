@@ -38,7 +38,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:'Nunito',s
 </style>
 </head>
 <body>
-<a class="back" href="index.html">← Games</a>
+<a class="back" id="back-link" href="../index.html">← Games</a>
 <h1>🔀 Word Scramble</h1>
 <p class="subtitle">Unscramble the letters</p>
 <div class="card">
@@ -161,6 +161,8 @@ function endGame(){
 
 document.getElementById('ans').addEventListener('input',check);
 start();
+// Hide back-link when embedded in an iframe (board card or homework runner)
+if (window.top !== window) document.getElementById('back-link').style.display = 'none';
 </script>
 </body>
 </html>

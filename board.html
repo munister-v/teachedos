@@ -253,7 +253,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #zoom-controls {
   position:fixed;
   right:16px;
-  bottom:20px;
+  bottom:calc(16px + 110px + 10px);
   z-index:950;
   display:flex;
   flex-direction:column;
@@ -7566,9 +7566,11 @@ function filterGames(q) { renderGamesGrid(q); }
 function addGameCard(src, title, w, h) {
   const r = boardWrap.getBoundingClientRect();
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
-  // Render card at a sensible default size (scaled to fit the iframe)
-  const cardW = Math.min(420, w);
-  const cardH = Math.min(420, h);
+  // Cap to 80% of the visible board area so the card fits without scrolling
+  const maxW = Math.floor(r.width  * 0.72);
+  const maxH = Math.floor(r.height * 0.82);
+  const cardW = Math.min(maxW, w);
+  const cardH = Math.min(maxH, h);
   addCard('game', pos.x - cardW/2, pos.y - cardH/2,
     { title, src, naturalW: w, naturalH: h }, cardW, cardH);
   closeGamesModal();
@@ -7585,7 +7587,9 @@ document.addEventListener('drop', e => {
   const w = parseInt(e.dataTransfer.getData('text/game-w'), 10) || 460;
   const h = parseInt(e.dataTransfer.getData('text/game-h'), 10) || 520;
   const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 200 };
-  const cardW = Math.min(420, w), cardH = Math.min(420, h);
+  const r2 = boardWrap.getBoundingClientRect();
+  const cardW = Math.min(Math.floor(r2.width*0.72), w);
+  const cardH = Math.min(Math.floor(r2.height*0.82), h);
   addCard('game', pos.x - cardW/2, pos.y - cardH/2,
     { title, src, naturalW: w, naturalH: h }, cardW, cardH);
   closeGamesModal();
