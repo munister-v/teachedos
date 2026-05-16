@@ -13,16 +13,35 @@ if (process.env.STRIPE_SECRET_KEY) {
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ`).catch(() => {});
-pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
-  plan TEXT NOT NULL,
-  payer_name TEXT NOT NULL,
-  tx_date DATE NOT NULL,
-  tx_note TEXT,
-  status TEXT DEFAULT 'pending',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-)`).catch(() => {});
+async function ensureIbanPaymentsTable() {
+  const existing = await pool.query(
+    `SELECT data_type FROM information_schema.columns
+     WHERE table_name='iban_payments' AND column_name='user_id'
+     LIMIT 1`
+  );
+  if (existing.rows.length && existing.rows[0].data_type !== 'uuid') {
+    await pool.query(`ALTER TABLE iban_payments RENAME TO iban_payments_legacy_${Date.now()}`);
+  }
+  await pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    plan TEXT NOT NULL,
+    payer_name TEXT NOT NULL,
+    tx_date DATE NOT NULL,
+    tx_note TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'usd'`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS invoice_no TEXT`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS admin_note TEXT`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id)`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_iban_payments_invoice_no ON iban_payments(invoice_no) WHERE invoice_no IS NOT NULL`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC)`);
+}
+ensureIbanPaymentsTable().catch(err => console.error('[billing] iban table:', err.message));
 
 // ── Plan definitions ─────────────────────────────────────────────────────
 const PLANS = {
@@ -200,8 +219,7 @@ router.post('/upgrade', requireAuth, async (req, res) => {
 });
 
 // ── POST /api/billing/iban-activate ───────────────────────────────────────
-// Activate subscription via IBAN bank transfer.
-// Stores payment info and upgrades the plan immediately.
+// Creates a manual bank-transfer invoice/request. Admin approves it later.
 router.post('/iban-activate', requireAuth, async (req, res) => {
   const { plan, payer_name, tx_date, tx_note } = req.body;
   if (!['pro', 'school'].includes(plan)) {
@@ -211,16 +229,16 @@ router.post('/iban-activate', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Payer name and payment date are required' });
   }
   try {
-    // Log the IBAN payment for audit
-    await pool.query(
-      `INSERT INTO iban_payments (user_id, plan, payer_name, tx_date, tx_note, status, created_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending', NOW())
-       ON CONFLICT DO NOTHING`,
-      [req.user.id, plan, payer_name, tx_date, tx_note || null]
-    ).catch(() => {});
-    // Activate the plan immediately (trust-based for IBAN)
-    await pool.query('UPDATE users SET plan=$1 WHERE id=$2', [plan, req.user.id]);
-    res.json({ ok: true, plan });
+    await ensureIbanPaymentsTable();
+    const planDef = PLANS[plan];
+    const invoiceNo = `TD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const { rows } = await pool.query(
+      `INSERT INTO iban_payments (user_id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8, NOW())
+       RETURNING id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no, created_at`,
+      [req.user.id, plan, payer_name.trim().slice(0, 255), tx_date, tx_note || null, planDef.price, planDef.currency, invoiceNo]
+    );
+    res.status(202).json({ ok: true, payment: rows[0] });
   } catch (err) {
     console.error('[billing] iban-activate:', err.message);
     res.status(500).json({ error: 'Server error' });

@@ -472,6 +472,9 @@ tr:hover td{background:#fafafa}
     <div class="sb-item" onclick="showPage('audit')">
       <span class="sb-icon">🧭</span>Audit
     </div>
+    <div class="sb-item" onclick="showPage('billing')">
+      <span class="sb-icon">💳</span>Billing
+    </div>
     <div class="sb-item" onclick="showPage('settings')">
       <span class="sb-icon">⚙️</span>Settings
     </div>
@@ -544,6 +547,14 @@ tr:hover td{background:#fafafa}
           <div class="stat-num" id="stat-invites">—</div>
           <div class="stat-label">Active Invites</div>
           <div class="signal"><span class="signal-dot" id="signal-invites"></span><span id="signal-invites-text">Tracking onboarding flow</span></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">💳</div>
+        <div>
+          <div class="stat-num" id="stat-payments">—</div>
+          <div class="stat-label">Pending Payments</div>
+          <div class="signal"><span class="signal-dot" id="signal-payments"></span><span id="signal-payments-text">Checking billing queue</span></div>
         </div>
       </div>
     </div>
@@ -927,6 +938,36 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
+  <!-- ── Billing ────────────────────────────────────────────────────────── -->
+  <div id="page-billing" class="page">
+    <div class="page-title">Billing</div>
+    <div class="page-sub">Manual invoice requests and bank-transfer confirmations</div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-header-title">Payment Requests</div>
+        <select class="search-box" id="billing-status-filter" style="max-width:180px" onchange="loadBillingPayments()">
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadBillingPayments()">Refresh</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="responsive-mobile">
+          <thead>
+            <tr>
+              <th>Invoice</th><th>User</th><th>Plan</th><th>Amount</th>
+              <th>Payment Date</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="billing-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Settings ───────────────────────────────────────────────────────── -->
   <div id="page-settings" class="page">
     <div class="page-title">Settings</div>
@@ -1136,6 +1177,7 @@ const pageMeta = {
   boards: ['Boards', 'View and manage all user boards'],
   sessions: ['Active Sessions', 'Review live login activity'],
   audit: ['System Audit', 'Operational signals and hygiene checks'],
+  billing: ['Billing', 'Manual payments and tariff approvals'],
   settings: ['Settings', 'System configuration and admin tools'],
 };
 
@@ -1258,6 +1300,7 @@ function showPage(name) {
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
   if (name === 'audit')     loadAudit();
+  if (name === 'billing')   loadBillingPayments();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
 }
 
@@ -1306,6 +1349,7 @@ async function refreshStats() {
     document.getElementById('stat-storage').textContent  = fmtBytes(stats.storageBytes);
     document.getElementById('stat-health').textContent   = health?.ok ? '✅ OK' : '❌ Down';
     document.getElementById('stat-invites').textContent  = system?.invites?.active ?? 0;
+    document.getElementById('stat-payments').textContent = stats.pendingPayments ?? 0;
 
     const rl = document.getElementById('roles-list');
     rl.innerHTML = stats.roles.map(r =>
@@ -1317,6 +1361,11 @@ async function refreshStats() {
     renderRecentUsers(system.recentUsers || []);
     renderRecentBoards(system.recentBoards || []);
     renderAnalytics(analytics);
+    setSignal(
+      'payments',
+      Number(stats.pendingPayments || 0) ? 'warn' : 'good',
+      Number(stats.pendingPayments || 0) ? `${stats.pendingPayments} payment request(s) need review` : 'No manual payments waiting'
+    );
     loadAdminBrief();
     loadTimeline();
   } catch(e) {
@@ -1892,6 +1941,72 @@ function kickUser(userId, name) {
     try {
       await api('DELETE', `/api/admin/sessions/user/${userId}`);
       toast('Sessions revoked ✅', 'success');
+    } catch(e) { toast(e.message, 'error'); }
+  });
+}
+
+// ── Billing ──────────────────────────────────────────────────────────────
+async function loadBillingPayments() {
+  const tbody = document.getElementById('billing-tbody');
+  if (!tbody) return;
+  const status = document.getElementById('billing-status-filter')?.value || '';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
+  try {
+    const d = await api('GET', `/api/admin/billing/payments?status=${encodeURIComponent(status)}`);
+    if (!d.payments.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No payment requests found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.payments.map(p => {
+      const pending = p.status === 'pending';
+      const amount = `${Number(p.amount || 0).toFixed(2)} ${(p.currency || 'usd').toUpperCase()}`;
+      const note = p.tx_note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(p.tx_note)}</div>` : '';
+      const adminNote = p.admin_note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">Admin: ${esc(p.admin_note)}</div>` : '';
+      return `
+        <tr>
+          <td data-label="Invoice"><strong>${esc(p.invoice_no || '#' + p.id)}</strong><div class="time-text">${fmtDate(p.created_at)}</div></td>
+          <td data-label="User"><strong>${esc(p.user_name || 'Unknown')}</strong><div style="font-size:12px;color:var(--muted)">${esc(p.user_email || '')}</div></td>
+          <td data-label="Plan"><span class="badge badge-${p.plan === 'school' ? 'admin' : 'teacher'}">${esc(p.plan)}</span><div class="time-text">Current: ${esc(p.current_plan || 'free')}</div></td>
+          <td data-label="Amount"><strong>${amount}</strong><div class="time-text">${esc(p.payer_name || '')}</div></td>
+          <td data-label="Payment Date">${fmtDate(p.tx_date)}${note}${adminNote}</td>
+          <td data-label="Status"><span class="badge badge-${p.status === 'approved' ? 'admin' : p.status === 'rejected' ? 'student' : 'teacher'}">${esc(p.status)}</span></td>
+          <td data-label="Actions">
+            ${pending ? `<div class="action-group">
+              <button class="btn-sm btn-green" onclick="approvePayment(${p.id}, '${escAttr(p.user_name || 'user')}', '${escAttr(p.plan)}')">Approve</button>
+              <button class="btn-sm btn-danger" onclick="rejectPayment(${p.id}, '${escAttr(p.user_name || 'user')}')">Reject</button>
+            </div>` : `<span class="time-text">${p.reviewed_by_name ? 'By ' + esc(p.reviewed_by_name) : 'Reviewed'}</span>`}
+          </td>
+        </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function approvePayment(id, name, plan) {
+  const monthsRaw = prompt(`Approve ${plan} for ${name}. Months to activate:`, '1');
+  if (monthsRaw === null) return;
+  const months = Math.max(1, Math.min(24, parseInt(monthsRaw, 10) || 1));
+  const note = prompt('Admin note (optional):', 'Bank transfer confirmed');
+  confirm(`Approve payment #${id}?`, `This will activate ${plan} for ${months} month(s).`, '💳', async () => {
+    try {
+      await api('POST', `/api/admin/billing/payments/${id}/approve`, { months, note: note || '' });
+      toast('Payment approved and plan activated', 'success');
+      loadBillingPayments();
+      refreshStats();
+    } catch(e) { toast(e.message, 'error'); }
+  });
+}
+
+function rejectPayment(id, name) {
+  const note = prompt(`Why reject payment request for ${name}?`, 'Payment not found');
+  if (note === null) return;
+  confirm(`Reject payment #${id}?`, 'The user plan will not be changed.', '⚠️', async () => {
+    try {
+      await api('POST', `/api/admin/billing/payments/${id}/reject`, { note });
+      toast('Payment rejected', 'success');
+      loadBillingPayments();
+      refreshStats();
     } catch(e) { toast(e.message, 'error'); }
   });
 }

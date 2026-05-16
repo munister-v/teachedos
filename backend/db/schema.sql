@@ -161,6 +161,26 @@ CREATE TRIGGER trg_homework_updated
   BEFORE UPDATE ON homework
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- ── Manual Billing / Bank Transfer Requests ────────────────────────────────
+CREATE TABLE IF NOT EXISTS iban_payments (
+  id           SERIAL       PRIMARY KEY,
+  user_id      UUID         REFERENCES users(id) ON DELETE SET NULL,
+  plan         TEXT         NOT NULL,
+  payer_name   TEXT         NOT NULL,
+  tx_date      DATE         NOT NULL,
+  tx_note      TEXT,
+  amount       NUMERIC(10,2),
+  currency     TEXT         NOT NULL DEFAULT 'usd',
+  invoice_no   TEXT,
+  status       TEXT         NOT NULL DEFAULT 'pending',
+  admin_note   TEXT,
+  reviewed_by  UUID         REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_at  TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_iban_payments_invoice_no ON iban_payments(invoice_no) WHERE invoice_no IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC);
+
 -- ── Homework assignment (one row per student per homework) ──────────────────
 CREATE TABLE IF NOT EXISTS homework_assignment (
   id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),

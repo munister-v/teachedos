@@ -7,10 +7,39 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 // All admin routes require auth + admin role
 router.use(requireAuth, requireAdmin);
 
+async function ensureIbanPaymentsTable() {
+  const existing = await pool.query(
+    `SELECT data_type FROM information_schema.columns
+     WHERE table_name='iban_payments' AND column_name='user_id'
+     LIMIT 1`
+  );
+  if (existing.rows.length && existing.rows[0].data_type !== 'uuid') {
+    await pool.query(`ALTER TABLE iban_payments RENAME TO iban_payments_legacy_${Date.now()}`);
+  }
+  await pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    plan TEXT NOT NULL,
+    payer_name TEXT NOT NULL,
+    tx_date DATE NOT NULL,
+    tx_note TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'usd'`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS invoice_no TEXT`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS admin_note TEXT`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id)`);
+  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC)`);
+}
+
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
 router.get('/stats', async (req, res) => {
   try {
-    const [users, boards, sessions, roles, courses, cards, newUsers, storage] = await Promise.all([
+    await ensureIbanPaymentsTable().catch(() => {});
+    const [users, boards, sessions, roles, courses, cards, newUsers, storage, pendingPayments] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM users'),
       pool.query('SELECT COUNT(*) FROM boards'),
       pool.query("SELECT COUNT(*) FROM sessions WHERE expires_at > NOW()"),
@@ -21,6 +50,7 @@ router.get('/stats', async (req, res) => {
       ), 0) AS count FROM boards`),
       pool.query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '7 days'"),
       pool.query('SELECT COALESCE(SUM(pg_column_size(data)), 0) AS bytes FROM boards'),
+      pool.query("SELECT COUNT(*) FROM iban_payments WHERE status = 'pending'").catch(() => ({ rows: [{ count: 0 }] })),
     ]);
     res.json({
       users:    parseInt(users.rows[0].count),
@@ -31,7 +61,100 @@ router.get('/stats', async (req, res) => {
       cards:    parseInt(cards.rows[0].count),
       newUsers7d: parseInt(newUsers.rows[0].count),
       storageBytes: parseInt(storage.rows[0].bytes),
+      pendingPayments: parseInt(pendingPayments.rows[0].count, 10),
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/billing/payments ───────────────────────────────────────
+router.get('/billing/payments', async (req, res) => {
+  const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : '';
+  try {
+    await ensureIbanPaymentsTable();
+    const { rows } = await pool.query(
+      `SELECT p.id, p.user_id, p.plan, p.payer_name, p.tx_date, p.tx_note, p.status,
+              p.amount, p.currency, p.invoice_no, p.admin_note, p.created_at, p.reviewed_at,
+              u.name AS user_name, u.email AS user_email, u.plan AS current_plan,
+              reviewer.name AS reviewed_by_name
+       FROM iban_payments p
+       JOIN users u ON u.id = p.user_id
+       LEFT JOIN users reviewer ON reviewer.id = p.reviewed_by
+       WHERE ($1::text = '' OR p.status = $1)
+       ORDER BY
+         CASE WHEN p.status = 'pending' THEN 0 ELSE 1 END,
+         p.created_at DESC
+       LIMIT 150`,
+      [status]
+    );
+    res.json({ payments: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/admin/billing/payments/:id/approve ─────────────────────────
+router.post('/billing/payments/:id/approve', async (req, res) => {
+  const { note = '', months = 1 } = req.body || {};
+  const safeMonths = Math.min(Math.max(parseInt(months, 10) || 1, 1), 24);
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid payment id' });
+  const client = await pool.connect();
+  try {
+    await ensureIbanPaymentsTable();
+    await client.query('BEGIN');
+    const paymentRes = await client.query(
+      `SELECT id, user_id, plan, status FROM iban_payments WHERE id=$1 FOR UPDATE`,
+      [id]
+    );
+    if (!paymentRes.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Payment request not found' });
+    }
+    const payment = paymentRes.rows[0];
+    if (payment.status !== 'pending') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Payment is already ${payment.status}` });
+    }
+    await client.query(
+      `UPDATE iban_payments
+       SET status='approved', admin_note=$2, reviewed_by=$3, reviewed_at=NOW()
+       WHERE id=$1`,
+      [id, String(note || '').trim().slice(0, 1000), req.user.id]
+    );
+    await client.query(
+      `UPDATE users
+       SET plan=$1, plan_expires_at=NOW() + ($2::int * INTERVAL '1 month')
+       WHERE id=$3`,
+      [payment.plan, safeMonths, payment.user_id]
+    );
+    await client.query('COMMIT');
+    res.json({ ok: true, plan: payment.plan, months: safeMonths });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// ── POST /api/admin/billing/payments/:id/reject ──────────────────────────
+router.post('/billing/payments/:id/reject', async (req, res) => {
+  const { note = '' } = req.body || {};
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid payment id' });
+  try {
+    await ensureIbanPaymentsTable();
+    const { rows } = await pool.query(
+      `UPDATE iban_payments
+       SET status='rejected', admin_note=$2, reviewed_by=$3, reviewed_at=NOW()
+       WHERE id=$1 AND status='pending'
+       RETURNING id`,
+      [id, String(note || '').trim().slice(0, 1000), req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Pending payment request not found' });
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -614,7 +614,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
         <!-- Upgrade options -->
         <div id="plan-upgrade-section" style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Upgrade via bank transfer</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Choose a tariff and request an invoice</div>
           <div style="display:grid;gap:10px;">
             <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
@@ -623,7 +623,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
                 <div style="font-size:14px;font-weight:800;">Teacher Pro</div>
                 <div style="font-size:11px;color:var(--text-3);">Unlimited boards · 30 students · Analytics</div>
               </div>
-              <div style="font-size:14px;font-weight:900;color:var(--accent);">$9/mo</div>
+              <div style="font-size:14px;font-weight:900;color:var(--accent);">$9.90/mo</div>
             </div>
             <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
@@ -649,14 +649,14 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
               <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
             </div>
             <div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.6;">
-              After payment, enter your transaction details below to activate your subscription.
+              After payment, enter your transaction details below. Admin will confirm the transfer and activate the tariff.
             </div>
             <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
               <input class="setting-input" id="iban-payer-name" type="text" placeholder="Full name (as in bank statement)">
               <input class="setting-input" id="iban-tx-date" type="date" placeholder="Payment date">
               <textarea class="setting-input" id="iban-tx-note" rows="2" placeholder="Transaction reference / comment (optional)" style="resize:vertical;font-family:var(--font);"></textarea>
             </div>
-            <button class="setting-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Activate Subscription →</button>
+            <button class="setting-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Send for Admin Review →</button>
           </div>
         </div>
 
@@ -1487,7 +1487,7 @@ function updateDarkToggleUI(theme) {
 
 // ── Subscription / IBAN payment ──────────────────────────────
 let _selectedPlan = null;
-const PLAN_PRICES = { pro: '$9/mo', school: '$29/mo' };
+const PLAN_PRICES = { pro: '$9.90/mo', school: '$29/mo' };
 const PLAN_NAMES  = { pro: 'Teacher Pro', school: 'School' };
 
 function selectPlan(plan) {
@@ -1529,17 +1529,15 @@ async function submitIBANPayment() {
     });
     if (r.ok) {
       const d = await r.json();
-      me.plan = _selectedPlan;
-      try { localStorage.setItem('teachedos_user', JSON.stringify(me)); } catch {}
-      initPlanCard();
-      toast('Subscription activated! Welcome to ' + (PLAN_NAMES[_selectedPlan] || _selectedPlan) + '!');
+      const invoiceNo = d.payment?.invoice_no ? ` Invoice ${d.payment.invoice_no}.` : '';
+      toast('Payment request sent for admin review.' + invoiceNo);
       document.getElementById('iban-payment-section').style.display = 'none';
     } else {
       const d = await r.json().catch(() => ({}));
-      toast(d.error || 'Payment activation sent. We will verify and activate within 24 hours.');
+      toast(d.error || 'Payment request sent. We will verify and activate soon.');
     }
   } catch {
-    toast('Request sent! Subscription will be activated after payment verification.');
+    toast('Could not send request. Please try again.');
   }
 }
 
