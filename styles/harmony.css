@@ -1,0 +1,146 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachedOS — Cross-page Harmony Layer
+   Brings the mobile lime accent into desktop pages for cohesion.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --lime:        #C8E632;
+  --lime-2:      #A8C42A;
+  --lime-soft:   rgba(200,230,50,0.18);
+  --lime-border: rgba(200,230,50,0.48);
+  --lime-text:   #1C1C1E;
+  --premium:     #1C1C1E;
+  --premium-2:   #2A2A2E;
+}
+
+/* ── Nav user chip: lime avatar like the mobile dashboard ───────── */
+#nav-avatar {
+  background: linear-gradient(135deg, #C8E632, #A8C42A) !important;
+  color: #1C1C1E !important;
+  box-shadow: 0 1px 3px rgba(200,230,50,0.35);
+}
+
+/* ── Lime CTA button — secondary primary, used for "Open"/"Start" ─ */
+.btn-lime,
+.btn.btn-lime {
+  background: var(--lime) !important;
+  color: var(--lime-text) !important;
+  border: none;
+  font-weight: 800;
+  transition: transform .12s, box-shadow .15s, background .15s;
+  box-shadow: 0 4px 14px rgba(200,230,50,0.28);
+}
+.btn-lime:hover,
+.btn.btn-lime:hover {
+  background: var(--lime-2) !important;
+  box-shadow: 0 6px 18px rgba(200,230,50,0.36);
+  transform: translateY(-1px);
+}
+.btn-lime:active,
+.btn.btn-lime:active { transform: translateY(0); }
+
+/* ── Lime status pill — "Active", "In progress", "Live" ─────────── */
+.pill-lime,
+.status-lime,
+.lc-status.in-progress,
+.lc-status.available,
+.module-pill.active,
+.course-item.active .ci-dot {
+  background: var(--lime) !important;
+  color: var(--lime-text) !important;
+  border-color: var(--lime-border) !important;
+}
+
+/* Course sidebar dot when item is active — lime instead of grey */
+.course-item.active .ci-dot { box-shadow: 0 0 8px rgba(200,230,50,0.6); }
+
+/* ── Lime accent for "live now" / new-feature badges ────────────── */
+.badge-new,
+.badge-live {
+  background: var(--lime);
+  color: var(--lime-text);
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── Insight tiles: "active" highlight in lime ──────────────────── */
+.insight-card.active,
+.stat-card.active,
+.mp-stat-card.active {
+  border-color: var(--lime-border) !important;
+  background: linear-gradient(135deg, var(--lime-soft), transparent 80%) !important;
+}
+.insight-card.active .insight-value,
+.stat-card.active .stat-n { color: var(--lime-2) !important; }
+
+/* ── Lime "Open board" / "Quick start" deep-rose card on home ─── */
+.curr-card.lime,
+.lesson-card.lime {
+  background: var(--lime) !important;
+  border-color: var(--lime-border) !important;
+  color: var(--lime-text);
+}
+.curr-card.lime *,
+.lesson-card.lime * { color: var(--lime-text) !important; }
+
+/* ── Premium dark card — pairs nicely with lime accent ──────────── */
+.curr-card.dark,
+.lesson-card.dark,
+.hero-card.dark {
+  background: var(--premium) !important;
+  color: #F5F0E8;
+  border-color: var(--premium) !important;
+}
+.curr-card.dark *,
+.lesson-card.dark * { color: #F5F0E8 !important; }
+
+/* ── Lesson card "Active" stripe ────────────────────────────────── */
+.lesson-card[data-status="active"]::before,
+.lesson-card[data-status="in-progress"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--lime);
+  border-radius: 12px 12px 0 0;
+}
+.lesson-card { position: relative; }
+
+/* ── Module/section "Live" dot ──────────────────────────────────── */
+.dot-live {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 6px rgba(200,230,50,0.65);
+  margin-right: 6px;
+  animation: dot-pulse 1.8s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* ── Schedule "today" highlight in lime ────────────────────────── */
+.cal-cell.today .cal-day,
+.day-pill.today {
+  background: var(--lime) !important;
+  color: var(--lime-text) !important;
+  box-shadow: 0 4px 14px rgba(200,230,50,0.32);
+}
+
+/* ── Subtle lime accent on hover for "play/start" actions ───────── */
+.btn-ghost.lime-hover:hover,
+.mod-btn.lime-hover:hover { background: var(--lime-soft) !important; color: var(--lime-2) !important; }
+
+/* ── Dark theme override ────────────────────────────────────────── */
+[data-theme="dark"] .pill-lime,
+[data-theme="dark"] .status-lime { background: var(--lime); color: var(--lime-text); }
+[data-theme="dark"] #nav-avatar {
+  background: linear-gradient(135deg, #C8E632, #A8C42A) !important;
+  color: #1C1C1E !important;
+}
