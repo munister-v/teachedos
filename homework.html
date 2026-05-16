@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="logo.png">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>Homework · TeachEd</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
+  --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
+  --nav-h:52px;
+}
+[data-theme="dark"]{--bg:#1C1C1E;--bg2:#2C2C2E;--card:#2C2C2E;--border:rgba(202,201,183,.12);--border2:rgba(202,201,183,.22);--text:#F5F0E8;--text2:#CAC9B7;--text3:#5E5E4A;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+button{font-family:var(--font);cursor:pointer;}
+
+#nav{position:sticky;top:0;z-index:200;height:var(--nav-h);
+  background:color-mix(in srgb,var(--bg2) 92%,transparent);
+  backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:8px;}
+.nav-logo{font-size:16px;font-weight:900;color:var(--accent);letter-spacing:-.02em;}
+.nav-sep{width:1px;height:20px;background:var(--border);margin:0 2px;}
+.nav-link{font-size:12px;font-weight:700;color:var(--text2);padding:4px 10px;border-radius:8px;transition:.15s;}
+.nav-link:hover,.nav-link.active{background:rgba(94,94,74,.1);color:var(--accent);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
+  padding:4px 12px 4px 8px;border-radius:20px;border:1px solid var(--border);background:var(--card);}
+
+#page{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+.page-eyebrow{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+.page-title{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.02em;line-height:1.05;}
+.page-sub{font-size:14px;color:var(--text3);margin-top:4px;}
+.btn{padding:9px 16px;border:none;border-radius:11px;font-size:13px;font-weight:800;transition:.15s;cursor:pointer;font-family:var(--font);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:rgba(232,93,117,.08);color:var(--accent);border:1.5px solid var(--border2);}
+.btn-ghost:hover{background:rgba(94,94,74,.16);}
+.btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:rgba(239,68,68,.15);}
+
+/* List */
+#hw-list{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
+.hw-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px 18px;cursor:pointer;transition:.18s;display:flex;flex-direction:column;gap:8px;
+}
+.hw-card:hover{border-color:var(--accent);box-shadow:0 6px 24px rgba(94,94,74,.10);transform:translateY(-1px);}
+.hw-card .hw-title{font-size:15px;font-weight:900;color:var(--text);line-height:1.25;}
+.hw-card .hw-sub{font-size:11px;color:var(--text3);}
+.hw-stats{display:flex;gap:10px;margin-top:auto;font-size:11px;color:var(--text-2);}
+.hw-stat{display:flex;align-items:center;gap:5px;font-weight:700;background:var(--bg);padding:4px 9px;border-radius:8px;border:1px solid var(--border);}
+
+.empty{padding:60px 20px;text-align:center;color:var(--text3);}
+.empty-icon{font-size:48px;margin-bottom:10px;}
+.empty-title{font-size:18px;font-weight:800;color:var(--text2);margin-bottom:6px;}
+.empty-sub{font-size:13px;max-width:380px;margin:0 auto;line-height:1.6;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:5000;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 70px rgba(0,0,0,.22);border:1px solid var(--border);position:relative;}
+.modal-title{font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.02em;margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--text3);margin-bottom:18px;}
+.form-field{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:var(--font);font-size:13px;outline:none;background:var(--bg);color:var(--text);
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
+.form-textarea{resize:vertical;min-height:60px;}
+.card-pick-list{
+  display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;
+  padding:8px;background:var(--bg);border-radius:10px;border:1.5px solid var(--border);
+}
+.card-pick-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;
+  border:1.5px solid transparent;background:var(--card);transition:.12s;
+}
+.card-pick-item:hover{border-color:var(--accent);}
+.card-pick-item.selected{border-color:var(--accent);background:rgba(232,93,117,.06);}
+.cpi-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;}
+.card-pick-item.selected .cpi-check{background:var(--accent);border-color:var(--accent);}
+.cpi-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.cpi-body{flex:1;min-width:0;}
+.cpi-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cpi-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.student-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:6px;background:var(--bg);border-radius:10px;border:1.5px solid var(--border);}
+.student-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;background:var(--card);}
+.student-item:hover{border-color:var(--accent);}
+.student-item.selected{border-color:var(--accent);background:rgba(232,93,117,.06);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+
+/* Detail view (right-side panel for one homework) */
+#hw-detail{display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;margin-top:18px;}
+#hw-detail.open{display:block;}
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
+.detail-title{font-size:20px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+.detail-meta{font-size:12px;color:var(--text3);margin-top:4px;}
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row .det-label{color:var(--text3);font-weight:700;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.pill.assigned{background:rgba(99,102,241,.12);color:var(--blue);}
+.pill.in_progress{background:rgba(245,158,11,.14);color:#b45309;}
+.pill.submitted{background:rgba(34,197,94,.14);color:#15803d;}
+.pill.graded{background:rgba(139,92,246,.14);color:var(--purple);}
+
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;
+  background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+@media (max-width:860px){
+  body{background:#fff;}
+  #nav{display:none !important;}
+  #page{padding:16px;}
+  .page-head{flex-direction:column;align-items:flex-start;gap:10px;}
+  .page-title{font-size:22px;}
+  .mp-topbar{display:flex !important;}
+  #hw-list{grid-template-columns:1fr;}
+  #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
+}
+</style>
+<link rel="stylesheet" href="dark.css">
+<link rel="stylesheet" href="styles/mobile-pro.css">
+<script src="theme.js"></script>
+</head>
+<body class="mp-shell">
+
+<div class="mp-topbar" id="mp-topbar" style="display:none;">
+  <div class="mp-topbar-left">
+    <div class="mp-avatar" id="mp-avatar">DT</div>
+    <div class="mp-topbar-titles">
+      <div class="mp-topbar-eyebrow">CLASS WORK</div>
+      <div class="mp-topbar-title">Homework</div>
+    </div>
+  </div>
+  <div class="mp-topbar-actions">
+    <button class="mp-icon-btn" onclick="openCreateModal()" title="New homework">＋</button>
+  </div>
+</div>
+
+<nav id="nav">
+  <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <a class="nav-link" href="courses.html">Courses</a>
+  <a class="nav-link active" href="homework.html">Homework</a>
+  <a class="nav-link" href="gradebook.html">Gradebook</a>
+  <a class="nav-link" href="profile.html">Profile</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" href="profile.html"><span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span></a>
+</nav>
+
+<div id="page">
+  <div class="page-head">
+    <div>
+      <div class="page-eyebrow">§ Class Work</div>
+      <div class="page-title">Homework</div>
+      <div class="page-sub">Send a board with selected cards as a graded task. Game results are auto-recorded.</div>
+    </div>
+    <button class="btn btn-primary" onclick="openCreateModal()">＋ New homework</button>
+  </div>
+
+  <div id="hw-list"></div>
+  <div id="hw-detail"></div>
+</div>
+
+<!-- Create / edit modal -->
+<div class="modal-overlay" id="create-overlay" onclick="if(event.target===this)closeCreateModal()">
+  <div class="modal-box">
+    <div class="modal-title">New homework</div>
+    <div class="modal-sub">Pick a board, then choose which cards the student must complete.</div>
+
+    <div class="form-field">
+      <div class="form-label">Title</div>
+      <input class="form-input" id="f-title" placeholder="e.g. Unit 3 — Tenses">
+    </div>
+    <div class="form-field">
+      <div class="form-label">Instructions (shown to student)</div>
+      <textarea class="form-textarea" id="f-instructions" placeholder="Optional: explain what they need to do…"></textarea>
+    </div>
+    <div class="form-field">
+      <div class="form-label">Board</div>
+      <select class="form-select" id="f-board" onchange="onBoardChange()"></select>
+    </div>
+    <div class="form-field">
+      <div class="form-label">Required cards <span style="color:var(--text-3);font-weight:600;font-size:10px;" id="f-cards-count"></span></div>
+      <div class="card-pick-list" id="f-cards">
+        <div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>
+      </div>
+    </div>
+    <div class="form-field">
+      <div class="form-label">Assign to students</div>
+      <div class="student-list" id="f-students">
+        <div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Loading students…</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="form-field" style="flex:1;">
+        <div class="form-label">Due date (optional)</div>
+        <input class="form-input" id="f-due" type="datetime-local">
+      </div>
+      <div class="form-field" style="width:130px;">
+        <div class="form-label">Pass %</div>
+        <input class="form-input" id="f-pass" type="number" min="0" max="100" value="60">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
+      <button class="btn btn-primary" id="f-submit" onclick="submitHomework()">Create &amp; assign</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8080' : 'https://teachedos-api.onrender.com';
+const token = localStorage.getItem('teachedos_token');
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token, ...(opts.headers||{}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Error');
+  return d;
+}
+
+let homeworkList = [];
+let boards = [];
+let students = [];
+let currentBoardCards = [];
+let selectedCardIds = new Set();
+let selectedStudentIds = new Set();
+let editingId = null;
+
+/* ── init ── */
+async function init() {
+  if (!token) { location.href = 'index.html'; return; }
+  try {
+    const { user } = await api('/api/auth/me');
+    document.getElementById('nav-avatar').textContent = user.avatar;
+    document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+    const av = document.getElementById('mp-avatar');
+    if (av) av.textContent = (user.name||'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    if (window.innerWidth <= 860) {
+      const tb = document.getElementById('mp-topbar'); if (tb) tb.style.display = '';
+    }
+  } catch { location.href = 'index.html'; return; }
+  await loadAll();
+}
+
+async function loadAll() {
+  const [hw, br] = await Promise.all([
+    api('/api/homework').catch(() => ({ homework: [] })),
+    api('/api/boards').catch(() => ({ boards: [] })),
+  ]);
+  homeworkList = hw.homework || [];
+  boards = br.boards || [];
+  renderList();
+}
+
+/* ── list ── */
+function renderList() {
+  const el = document.getElementById('hw-list');
+  if (!homeworkList.length) {
+    el.innerHTML = '';
+    el.insertAdjacentHTML('beforeend', `
+      <div class="empty" style="grid-column:1/-1;">
+        <div class="empty-icon">📝</div>
+        <div class="empty-title">No homework yet</div>
+        <div class="empty-sub">Click <strong>+ New homework</strong> to send your first task. Pick a board, choose which cards the student must complete, and the platform auto-grades game results.</div>
+      </div>
+    `);
+    return;
+  }
+  el.innerHTML = homeworkList.map(h => {
+    const required = Array.isArray(h.required_cards) ? h.required_cards.length : 0;
+    const due = h.due_at ? new Date(h.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
+    return `
+      <div class="hw-card" onclick='openDetail(${JSON.stringify(h.id)})'>
+        <div class="hw-title">${esc(h.title)}</div>
+        <div class="hw-sub">${esc(h.board_name || '—')}${h.course_name ? ' · ' + esc(h.course_name) : ''}</div>
+        ${due ? `<div class="hw-sub">📅 Due: ${esc(due)}</div>` : ''}
+        <div class="hw-stats">
+          <div class="hw-stat">👥 ${h.assigned_count || 0}</div>
+          <div class="hw-stat">✅ ${h.submitted_count || 0}</div>
+          <div class="hw-stat">🎯 ${required} card${required!==1?'s':''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ── detail ── */
+async function openDetail(id) {
+  try {
+    const d = await api('/api/homework/' + id);
+    const hw = d.homework;
+    const assignments = d.assignments || [];
+    const attempts = d.attempts || [];
+    // Group attempts by assignment_id
+    const byAsgn = {};
+    attempts.forEach(t => { (byAsgn[t.assignment_id] = byAsgn[t.assignment_id] || []).push(t); });
+
+    const required = Array.isArray(hw.required_cards) ? hw.required_cards : [];
+    const det = document.getElementById('hw-detail');
+    det.classList.add('open');
+    det.innerHTML = `
+      <div class="detail-head">
+        <div>
+          <div class="detail-title">${esc(hw.title)}</div>
+          <div class="detail-meta">${required.length} required card${required.length!==1?'s':''} · Pass threshold ${hw.pass_threshold}%</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick='openBoard("${esc(hw.board_id)}")'>Open board ↗</button>
+          <button class="btn btn-danger" onclick='deleteHomework("${esc(hw.id)}")'>🗑 Delete</button>
+        </div>
+      </div>
+      ${hw.instructions ? `<div style="font-size:13px;color:var(--text-2);background:var(--bg);padding:10px 14px;border-radius:10px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">${esc(hw.instructions)}</div>` : ''}
+      <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students (${assignments.length})</div>
+      ${assignments.length ? assignments.map(a => {
+        const att = byAsgn[a.id] || [];
+        const completed = att.filter(t => t.status === 'done').length;
+        const pct = required.length ? Math.round((completed/required.length) * 100) : 0;
+        return `
+          <div class="detail-row" style="align-items:center;gap:12px;">
+            <div style="flex:1;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">${esc(a.student_avatar || '👤')}</span>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:var(--text);">${esc(a.student_name)}</div>
+                <div style="font-size:11px;color:var(--text3);">${esc(a.student_email)}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:11px;color:var(--text-2);font-family:var(--mono);">${completed}/${required.length} · ${pct}%</div>
+              <span class="pill ${a.status}">${a.status.replace('_',' ')}</span>
+              ${typeof a.final_score === 'number' ? `<span style="font-weight:900;font-size:13px;color:${a.final_score>=hw.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>'}
+    `;
+    det.scrollIntoView({behavior:'smooth', block:'start'});
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+async function deleteHomework(id) {
+  if (!confirm('Delete this homework? Student attempts will also be removed.')) return;
+  try {
+    await api('/api/homework/' + id, { method:'DELETE' });
+    document.getElementById('hw-detail').classList.remove('open');
+    await loadAll();
+    toast('Deleted');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+function openBoard(boardId) {
+  location.href = 'board.html?id=' + boardId;
+}
+
+/* ── create modal ── */
+async function openCreateModal() {
+  editingId = null;
+  selectedCardIds.clear(); selectedStudentIds.clear();
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-instructions').value = '';
+  document.getElementById('f-pass').value = 60;
+  document.getElementById('f-due').value = '';
+  // Board picker
+  const boardSel = document.getElementById('f-board');
+  boardSel.innerHTML = '<option value="">— Choose a board —</option>' +
+    boards.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+  document.getElementById('f-cards').innerHTML =
+    '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
+  document.getElementById('f-cards-count').textContent = '';
+  // Students — we approximate by listing collaborators on the teacher's boards
+  await loadStudents();
+  document.getElementById('create-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 50);
+}
+function closeCreateModal() { document.getElementById('create-overlay').classList.remove('open'); }
+
+async function loadStudents() {
+  try {
+    // Union of all collaborators across the teacher's boards
+    const seen = new Map();
+    for (const b of boards) {
+      try {
+        const r = await api('/api/members/' + b.id);
+        (r.members || []).forEach(m => {
+          if (!seen.has(m.user_id || m.id)) seen.set(m.user_id || m.id, m);
+        });
+      } catch {}
+    }
+    students = Array.from(seen.values());
+    renderStudentList();
+  } catch (e) {
+    document.getElementById('f-students').innerHTML =
+      '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">Could not load students</div>';
+  }
+}
+function renderStudentList() {
+  const el = document.getElementById('f-students');
+  if (!students.length) {
+    el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">No students yet — share a board with a student first.</div>';
+    return;
+  }
+  el.innerHTML = students.map(s => {
+    const id = s.user_id || s.id;
+    return `
+      <div class="student-item ${selectedStudentIds.has(id) ? 'selected':''}" onclick='toggleStudent("${esc(id)}")'>
+        <div class="cpi-check">${selectedStudentIds.has(id) ? '✓' : ''}</div>
+        <span style="font-size:16px;">${esc(s.avatar || '👤')}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="cpi-name">${esc(s.name || '—')}</div>
+          <div class="cpi-meta">${esc(s.email || '')}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+function toggleStudent(id) {
+  if (selectedStudentIds.has(id)) selectedStudentIds.delete(id); else selectedStudentIds.add(id);
+  renderStudentList();
+}
+
+async function onBoardChange() {
+  selectedCardIds.clear();
+  const id = document.getElementById('f-board').value;
+  const el = document.getElementById('f-cards');
+  if (!id) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
+    document.getElementById('f-cards-count').textContent = '';
+    return;
+  }
+  el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Loading cards…</div>';
+  try {
+    const d = await api('/api/boards/' + id);
+    const cards = (d.board && d.board.data && d.board.data.cards) || [];
+    // Only "completable" types — games, quizzes, checklists, assignments
+    const ALLOWED = new Set(['game','assignment','checklist','lesson','voting','timer']);
+    currentBoardCards = cards.filter(c => ALLOWED.has(c.type));
+    if (!currentBoardCards.length) {
+      el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">This board has no graded cards (games, lessons, assignments, checklists, polls).</div>';
+      return;
+    }
+    renderCardList();
+  } catch (e) {
+    el.innerHTML = `<div style="text-align:center;padding:16px;font-size:12px;color:var(--red);">${esc(e.message)}</div>`;
+  }
+}
+function renderCardList() {
+  const el = document.getElementById('f-cards');
+  const ICONS = { game:'🎮', lesson:'📚', assignment:'📝', checklist:'✅', voting:'🗳', timer:'⏱' };
+  el.innerHTML = currentBoardCards.map(c => {
+    const name = c.data?.title || c.data?.question || c.data?.name || (c.type[0].toUpperCase()+c.type.slice(1));
+    const sel = selectedCardIds.has(c.id);
+    return `
+      <div class="card-pick-item ${sel?'selected':''}" onclick='toggleCard("${esc(c.id)}")'>
+        <div class="cpi-check">${sel ? '✓' : ''}</div>
+        <span class="cpi-icon">${ICONS[c.type] || '🔖'}</span>
+        <div class="cpi-body">
+          <div class="cpi-name">${esc(name)}</div>
+          <div class="cpi-meta">${c.type} · ${c.id}</div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('f-cards-count').textContent =
+    selectedCardIds.size ? `(${selectedCardIds.size} selected)` : '';
+}
+function toggleCard(id) {
+  if (selectedCardIds.has(id)) selectedCardIds.delete(id); else selectedCardIds.add(id);
+  renderCardList();
+}
+
+async function submitHomework() {
+  const title = document.getElementById('f-title').value.trim();
+  const board_id = document.getElementById('f-board').value;
+  const instructions = document.getElementById('f-instructions').value.trim();
+  const pass_threshold = parseInt(document.getElementById('f-pass').value, 10) || 60;
+  const due = document.getElementById('f-due').value;
+  const required_cards = Array.from(selectedCardIds);
+  const student_ids = Array.from(selectedStudentIds);
+
+  if (!title) { toast('Title is required'); return; }
+  if (!board_id) { toast('Pick a board'); return; }
+  if (!required_cards.length) { toast('Pick at least one card'); return; }
+
+  try {
+    document.getElementById('f-submit').disabled = true;
+    document.getElementById('f-submit').textContent = 'Saving…';
+    await api('/api/homework', {
+      method: 'POST',
+      body: { title, instructions, board_id, required_cards,
+              pass_threshold, due_at: due || null, student_ids },
+    });
+    closeCreateModal();
+    await loadAll();
+    toast('✅ Homework created' + (student_ids.length ? ` and sent to ${student_ids.length} student${student_ids.length!==1?'s':''}` : ''));
+  } catch (e) {
+    toast('Error: ' + e.message);
+  } finally {
+    document.getElementById('f-submit').disabled = false;
+    document.getElementById('f-submit').textContent = 'Create & assign';
+  }
+}
+
+/* ── utils ── */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show';
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800);
+}
+
+init();
+</script>
+<script>
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>reg.update());
+}
+</script>
+<script src="scripts/mobile-nav.js"></script>
+</body>
+</html>

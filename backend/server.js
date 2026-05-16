@@ -55,6 +55,7 @@ app.use('/api/billing', require('./routes/billing'));
 app.use('/api/notes',   require('./routes/notes'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/journal', require('./routes/journal'));
+app.use('/api/homework', require('./routes/homework'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

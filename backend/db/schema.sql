@@ -137,3 +137,65 @@ ALTER TABLE boards ADD COLUMN IF NOT EXISTS course_id    UUID    REFERENCES cour
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS module_id    UUID    REFERENCES course_modules(id) ON DELETE SET NULL;
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS board_order  INTEGER NOT NULL DEFAULT 0;
 CREATE INDEX IF NOT EXISTS idx_boards_course ON boards(course_id);
+
+-- ── Homework ─────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS homework (
+  id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,        -- teacher (owner)
+  board_id        UUID         NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  course_id       UUID                  REFERENCES courses(id) ON DELETE SET NULL,
+  title           VARCHAR(255) NOT NULL DEFAULT 'New homework',
+  instructions    TEXT         NOT NULL DEFAULT '',
+  required_cards  JSONB        NOT NULL DEFAULT '[]',                                  -- array of card IDs (strings) the student must complete
+  pass_threshold  INTEGER      NOT NULL DEFAULT 60,                                    -- % score required to auto-grade as "passed"
+  due_at          TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_homework_user   ON homework(user_id);
+CREATE INDEX IF NOT EXISTS idx_homework_board  ON homework(board_id);
+CREATE INDEX IF NOT EXISTS idx_homework_course ON homework(course_id);
+
+DROP TRIGGER IF EXISTS trg_homework_updated ON homework;
+CREATE TRIGGER trg_homework_updated
+  BEFORE UPDATE ON homework
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ── Homework assignment (one row per student per homework) ──────────────────
+CREATE TABLE IF NOT EXISTS homework_assignment (
+  id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  homework_id  UUID         NOT NULL REFERENCES homework(id) ON DELETE CASCADE,
+  student_id   UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assigned_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  -- status: assigned | in_progress | submitted | graded
+  status       VARCHAR(20)  NOT NULL DEFAULT 'assigned',
+  submitted_at TIMESTAMPTZ,
+  graded_at    TIMESTAMPTZ,
+  final_score  INTEGER,                  -- 0..100 (% over required_cards average)
+  teacher_note TEXT         NOT NULL DEFAULT '',
+  UNIQUE(homework_id, student_id)
+);
+CREATE INDEX IF NOT EXISTS idx_hwa_homework ON homework_assignment(homework_id);
+CREATE INDEX IF NOT EXISTS idx_hwa_student  ON homework_assignment(student_id);
+
+-- ── Homework attempt (one row per student per card per homework) ────────────
+CREATE TABLE IF NOT EXISTS homework_attempt (
+  id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id  UUID         NOT NULL REFERENCES homework_assignment(id) ON DELETE CASCADE,
+  card_id        VARCHAR(40)  NOT NULL,
+  score          INTEGER,
+  max_score      INTEGER,
+  time_seconds   INTEGER,
+  mistakes       INTEGER,
+  -- status: pending | in_progress | done
+  status         VARCHAR(20)  NOT NULL DEFAULT 'pending',
+  data           JSONB        NOT NULL DEFAULT '{}',
+  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  UNIQUE(assignment_id, card_id)
+);
+CREATE INDEX IF NOT EXISTS idx_hwt_assignment ON homework_attempt(assignment_id);
+
+DROP TRIGGER IF EXISTS trg_hwt_updated ON homework_attempt;
+CREATE TRIGGER trg_hwt_updated
+  BEFORE UPDATE ON homework_attempt
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();

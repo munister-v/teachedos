@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="logo.png">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>My homework · TeachEd</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#E85D75;--accent2:#9F8CE8;--lime:#C8E632;
+  --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
+  --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+button{font-family:var(--font);cursor:pointer;}
+a{text-decoration:none;color:inherit;}
+
+/* ── Inbox layout ── */
+#inbox{max-width:760px;margin:0 auto;padding:28px 20px 80px;}
+.head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+.head-title{font-size:26px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+.head-sub{font-size:13px;color:var(--text3);margin-top:4px;}
+.back-link{font-size:12px;color:var(--text3);font-weight:700;}
+.back-link:hover{color:var(--accent);}
+
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab{padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--card);font-size:12px;font-weight:800;color:var(--text-2);cursor:pointer;transition:.15s;}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+#list{display:flex;flex-direction:column;gap:10px;}
+.hw-item{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:.15s;
+}
+.hw-item:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 22px rgba(94,94,74,.08);}
+.hw-icon{width:40px;height:40px;border-radius:12px;background:rgba(232,93,117,.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.hw-body{flex:1;min-width:0;}
+.hw-name{font-size:14px;font-weight:900;color:var(--text);}
+.hw-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.hw-right{display:flex;align-items:center;gap:10px;}
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.pill.assigned{background:rgba(99,102,241,.12);color:var(--blue);}
+.pill.in_progress{background:rgba(245,158,11,.14);color:#b45309;}
+.pill.submitted{background:rgba(34,197,94,.14);color:#15803d;}
+.pill.graded{background:rgba(139,92,246,.14);color:var(--purple);}
+.score-chip{font-weight:900;font-size:14px;font-family:var(--mono);}
+
+.empty{padding:60px 20px;text-align:center;color:var(--text3);}
+.empty-icon{font-size:48px;margin-bottom:10px;}
+
+/* ── Runner ── */
+#runner{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;}
+#runner.open{display:flex;flex-direction:column;}
+#runner-top{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  background:color-mix(in srgb,var(--card) 96%,transparent);backdrop-filter:blur(14px);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+#runner-title{font-size:15px;font-weight:900;color:var(--text);}
+#runner-step{font-size:11px;color:var(--text-3);font-family:var(--mono);font-weight:700;}
+#runner-progress{flex:1;min-width:120px;max-width:340px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;}
+#runner-progress > div{height:100%;background:var(--accent);transition:width .25s;}
+.runner-btn{padding:8px 14px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;}
+.runner-btn.primary{background:var(--accent);color:#fff;}
+.runner-btn.ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border);}
+.runner-btn.primary:hover{background:var(--accent2);}
+.runner-btn[disabled]{opacity:.45;cursor:not-allowed;}
+
+#runner-main{flex:1;display:flex;overflow:hidden;}
+#runner-cardwrap{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;
+}
+#runner-card-host{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  width:min(560px,92vw);height:min(640px,calc(100vh - 200px));overflow:hidden;
+  box-shadow:0 24px 60px rgba(5,5,23,.10);position:relative;
+}
+#runner-iframe{width:100%;height:100%;border:none;display:block;}
+.card-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:14px;text-align:center;padding:24px;}
+
+#runner-side{
+  width:280px;flex-shrink:0;border-left:1px solid var(--border);background:var(--card);
+  padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+}
+.side-h{font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+.side-card{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;font-size:12px;color:var(--text-2);font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.side-card.active{border-color:var(--accent);color:var(--accent);background:rgba(232,93,117,.06);}
+.side-card.done{background:rgba(34,197,94,.08);color:#15803d;border-color:rgba(34,197,94,.3);}
+.side-card .done-tag{font-family:var(--mono);font-size:10px;font-weight:800;}
+.side-instructions{font-size:12px;color:var(--text-2);background:var(--bg);padding:10px;border-radius:10px;line-height:1.5;white-space:pre-wrap;}
+
+@media (max-width:760px){
+  #runner-side{width:100%;border-left:none;border-top:1px solid var(--border);max-height:40vh;}
+  #runner-main{flex-direction:column;}
+}
+
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;
+  background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+</style>
+<link rel="stylesheet" href="dark.css">
+<script src="theme.js"></script>
+</head>
+<body>
+
+<!-- INBOX -->
+<div id="inbox">
+  <div style="margin-bottom:18px;">
+    <a class="back-link" href="index.html">← Back to home</a>
+  </div>
+  <div class="head">
+    <div>
+      <div class="head-title">📥 My homework</div>
+      <div class="head-sub">Tasks your teacher has sent you. Click to start.</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-status="all"        onclick="switchTab('all')">All</button>
+    <button class="tab"        data-status="todo"       onclick="switchTab('todo')">To do</button>
+    <button class="tab"        data-status="submitted"  onclick="switchTab('submitted')">Submitted</button>
+    <button class="tab"        data-status="graded"     onclick="switchTab('graded')">Graded</button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<!-- RUNNER -->
+<div id="runner">
+  <div id="runner-top">
+    <button class="runner-btn ghost" onclick="closeRunner()">← Exit</button>
+    <div style="flex:1;min-width:0;">
+      <div id="runner-title">Homework</div>
+      <div id="runner-step">Card 1 of 1</div>
+    </div>
+    <div id="runner-progress"><div style="width:0"></div></div>
+    <button class="runner-btn ghost" id="btn-prev" onclick="step(-1)">← Prev</button>
+    <button class="runner-btn primary" id="btn-next" onclick="step(1)">Next →</button>
+    <button class="runner-btn primary" id="btn-submit" onclick="submitAssignment()" style="display:none;">Submit homework</button>
+  </div>
+  <div id="runner-main">
+    <div id="runner-cardwrap">
+      <div id="runner-card-host">
+        <div class="card-empty">Loading…</div>
+      </div>
+    </div>
+    <aside id="runner-side"></aside>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8080' : 'https://teachedos-api.onrender.com';
+const token = localStorage.getItem('teachedos_token');
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token, ...(opts.headers||{}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Error');
+  return d;
+}
+
+let inbox = [];
+let activeTab = 'all';
+let current = null;     // { assignment, board, attempts }
+let stepIdx = 0;
+let requiredCards = [];
+
+/* ── init ── */
+(async function init() {
+  if (!token) { location.href = 'index.html'; return; }
+  try {
+    const r = await api('/api/homework/my/inbox');
+    inbox = r.assignments || [];
+  } catch (e) { toast('Could not load homework: ' + e.message); inbox = []; }
+  render();
+})();
+
+function switchTab(t) {
+  activeTab = t;
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.status === t));
+  render();
+}
+
+function render() {
+  const list = document.getElementById('list');
+  let filtered = inbox;
+  if (activeTab === 'todo')      filtered = inbox.filter(a => a.status === 'assigned' || a.status === 'in_progress');
+  else if (activeTab === 'submitted') filtered = inbox.filter(a => a.status === 'submitted');
+  else if (activeTab === 'graded')    filtered = inbox.filter(a => a.status === 'graded');
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text-2);margin-bottom:4px;">Nothing here yet</div>
+        <div style="font-size:13px;">When your teacher sends a homework, it shows up here.</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(a => {
+    const req = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
+    const due = a.due_at ? new Date(a.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
+    return `
+      <div class="hw-item" onclick='openRunner(${JSON.stringify(a.assignment_id)})'>
+        <div class="hw-icon">${esc(a.teacher_avatar||'🧑‍🏫')}</div>
+        <div class="hw-body">
+          <div class="hw-name">${esc(a.title)}</div>
+          <div class="hw-meta">From ${esc(a.teacher_name)}${a.course_name ? ' · ' + esc(a.course_name) : ''}${due ? ' · Due ' + esc(due) : ''} · ${req} card${req!==1?'s':''}</div>
+        </div>
+        <div class="hw-right">
+          ${typeof a.final_score === 'number' ? `<span class="score-chip" style="color:${a.final_score>=a.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
+          <span class="pill ${a.status}">${a.status.replace('_',' ')}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── runner ── */
+async function openRunner(assignmentId) {
+  try {
+    const r = await api('/api/homework/my/' + assignmentId);
+    current = r;
+    requiredCards = Array.isArray(r.assignment.required_cards) ? r.assignment.required_cards : [];
+    stepIdx = 0;
+    document.getElementById('runner').classList.add('open');
+    document.getElementById('runner-title').textContent = r.assignment.title;
+    renderSide();
+    showCurrent();
+  } catch (e) { toast('Error: ' + e.message); }
+}
+function closeRunner() {
+  document.getElementById('runner').classList.remove('open');
+  current = null;
+  // Reload the inbox so the status pill updates
+  (async () => {
+    try { const r = await api('/api/homework/my/inbox'); inbox = r.assignments || []; render(); } catch {}
+  })();
+}
+
+function renderSide() {
+  const side = document.getElementById('runner-side');
+  const cards = current.board.data.cards || [];
+  const byId = {}; cards.forEach(c => byId[c.id] = c);
+  side.innerHTML = '';
+
+  if (current.assignment.instructions) {
+    const ins = document.createElement('div');
+    ins.className = 'side-instructions';
+    ins.textContent = current.assignment.instructions;
+    side.appendChild(ins);
+  }
+
+  const head = document.createElement('div');
+  head.className = 'side-h';
+  head.textContent = `Tasks (${requiredCards.length})`;
+  side.appendChild(head);
+
+  requiredCards.forEach((cid, i) => {
+    const c = byId[cid];
+    const att = current.attempts.find(t => t.card_id === cid);
+    const div = document.createElement('div');
+    div.className = 'side-card' + (i === stepIdx ? ' active' : '') + (att && att.status === 'done' ? ' done' : '');
+    const name = c ? (c.data?.title || c.data?.question || c.type) : '(missing card)';
+    const meta = att && att.score != null ? ` · ${att.score}${att.max_score?'/'+att.max_score:''}` : '';
+    div.innerHTML = `<span>${i+1}. ${esc(name)}${meta}</span><span class="done-tag">${att && att.status === 'done' ? '✓' : ''}</span>`;
+    div.onclick = () => { stepIdx = i; showCurrent(); renderSide(); };
+    side.appendChild(div);
+  });
+}
+
+function showCurrent() {
+  const host = document.getElementById('runner-card-host');
+  document.getElementById('runner-step').textContent =
+    `Card ${stepIdx+1} of ${requiredCards.length}`;
+  const progress = document.querySelector('#runner-progress > div');
+  if (progress) progress.style.width = (((stepIdx+1)/requiredCards.length)*100) + '%';
+  document.getElementById('btn-prev').disabled = stepIdx === 0;
+  const isLast = stepIdx === requiredCards.length - 1;
+  document.getElementById('btn-next').style.display = isLast ? 'none' : '';
+  document.getElementById('btn-submit').style.display = isLast ? '' : 'none';
+
+  const cid = requiredCards[stepIdx];
+  const card = (current.board.data.cards || []).find(c => c.id === cid);
+  if (!card) {
+    host.innerHTML = `<div class="card-empty">This card no longer exists on the board.</div>`;
+    return;
+  }
+  renderCardForStudent(host, card);
+  renderSide();
+}
+
+function renderCardForStudent(host, card) {
+  host.innerHTML = '';
+  if (card.type === 'game') {
+    const iframe = document.createElement('iframe');
+    iframe.src = card.data.src;
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    iframe.dataset.cardId = card.id;
+    host.appendChild(iframe);
+  } else if (card.type === 'checklist') {
+    const items = card.data.items || [];
+    const att = current.attempts.find(t => t.card_id === card.id);
+    const state = (att && att.data && att.data.items) || items.map(it => ({text:it.text, done:!!it.done}));
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:24px;height:100%;overflow:auto;';
+    wrap.innerHTML = `<h2 style="font-size:20px;font-weight:900;margin-bottom:14px;">${esc(card.data.title||'Checklist')}</h2>`;
+    state.forEach((it, i) => {
+      const row = document.createElement('label');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;';
+      row.innerHTML = `<input type="checkbox" ${it.done?'checked':''} style="width:18px;height:18px;cursor:pointer;"> <span>${esc(it.text||'')}</span>`;
+      row.querySelector('input').addEventListener('change', e => {
+        state[i].done = e.target.checked;
+        const doneN = state.filter(s => s.done).length;
+        recordAttempt(card.id, { score:doneN, max_score:state.length, status: doneN===state.length?'done':'in_progress', data:{items:state} });
+      });
+      wrap.appendChild(row);
+    });
+    host.appendChild(wrap);
+  } else if (card.type === 'voting') {
+    const opts = card.data.options || [];
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:24px;height:100%;overflow:auto;';
+    wrap.innerHTML = `<h2 style="font-size:20px;font-weight:900;margin-bottom:14px;">${esc(card.data.question||'Question')}</h2>`;
+    opts.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.className = 'runner-btn ghost';
+      b.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:8px;font-size:14px;padding:12px;';
+      b.textContent = o;
+      b.addEventListener('click', () => {
+        recordAttempt(card.id, { score:1, max_score:1, status:'done', data:{choice:i} });
+        toast('Vote recorded');
+        document.getElementById('btn-next').disabled = false;
+      });
+      wrap.appendChild(b);
+    });
+    host.appendChild(wrap);
+  } else if (card.type === 'lesson' || card.type === 'assignment') {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:24px;height:100%;overflow:auto;';
+    const d = card.data || {};
+    wrap.innerHTML = `
+      <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;">${esc(d.title||card.type)}</h2>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">${esc(d.level||'')} · ${esc(d.skill||'')} · ${esc(d.duration||'')}</div>
+      <div style="font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--text-2);">${esc(d.desc||d.notes||'No description.')}</div>
+      <button class="runner-btn primary" style="margin-top:18px;" onclick="markCardDone('${esc(card.id)}')">Mark as done</button>
+    `;
+    host.appendChild(wrap);
+  } else if (card.type === 'timer') {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:24px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+    const mins = card.data.minutes || 5, secs = card.data.seconds || 0;
+    let remaining = mins*60 + secs;
+    let timerId = null;
+    const disp = document.createElement('div');
+    disp.style.cssText = 'font-size:64px;font-weight:900;font-family:var(--mono);color:var(--accent);margin-bottom:18px;';
+    const fmt = s => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    disp.textContent = fmt(remaining);
+    const btn = document.createElement('button');
+    btn.className = 'runner-btn primary';
+    btn.textContent = '▶ Start';
+    btn.addEventListener('click', () => {
+      if (timerId) return;
+      timerId = setInterval(() => {
+        if (remaining <= 0) { clearInterval(timerId); disp.textContent='00:00';
+          recordAttempt(card.id, { score:1, max_score:1, status:'done' }); toast('⏱ Time! Marked as done.');
+          return;
+        }
+        remaining--; disp.textContent = fmt(remaining);
+      }, 1000);
+      btn.disabled = true;
+    });
+    wrap.appendChild(disp); wrap.appendChild(btn);
+    host.appendChild(wrap);
+  } else {
+    host.innerHTML = `<div class="card-empty">This card type (${esc(card.type)}) isn't directly playable yet.<br>Mark as done when finished.<br><br><button class="runner-btn primary" onclick="markCardDone('${esc(card.id)}')">Mark as done</button></div>`;
+  }
+}
+
+function markCardDone(cardId) {
+  recordAttempt(cardId, { score:1, max_score:1, status:'done' });
+  toast('Marked as done');
+  setTimeout(() => { if (stepIdx < requiredCards.length-1) step(1); }, 250);
+}
+
+async function recordAttempt(cardId, payload) {
+  try {
+    const r = await api('/api/homework/my/' + current.assignment.id + '/attempt', {
+      method: 'POST',
+      body: { card_id: cardId, ...payload },
+    });
+    // Update local cache
+    const exist = current.attempts.findIndex(t => t.card_id === cardId);
+    if (exist >= 0) current.attempts[exist] = r.attempt;
+    else current.attempts.push(r.attempt);
+    renderSide();
+  } catch (e) {
+    console.warn('attempt save failed', e.message);
+  }
+}
+
+function step(delta) {
+  const next = stepIdx + delta;
+  if (next < 0 || next >= requiredCards.length) return;
+  stepIdx = next;
+  showCurrent();
+}
+
+async function submitAssignment() {
+  if (!confirm('Submit this homework? Your teacher will receive your results.')) return;
+  try {
+    const r = await api('/api/homework/my/' + current.assignment.id + '/submit', { method: 'POST' });
+    toast(`✅ Submitted${typeof r.final_score === 'number' ? ' — score: ' + r.final_score : ''}`);
+    setTimeout(closeRunner, 1000);
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+/* ── game iframe → record attempt ── */
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type !== 'teachedos-score' && d.type !== 'game-progress' && d.type !== 'game-finished' && d.type !== 'game-result') return;
+  // Find which card iframe sent this
+  const iframes = document.querySelectorAll('iframe[data-card-id]');
+  let cardId = null;
+  for (const f of iframes) if (f.contentWindow === e.source) { cardId = f.dataset.cardId; break; }
+  if (!cardId || !current) return;
+  recordAttempt(cardId, {
+    card_id: cardId,
+    score: d.score,
+    max_score: d.max,
+    time_seconds: d.time,
+    mistakes: d.mistakes,
+    status: (d.type === 'game-finished' || d.status === 'done') ? 'done' : 'in_progress',
+  });
+});
+
+/* ── utils ── */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+let toastT;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show';
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800);
+}
+</script>
+<script>
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>reg.update());
+}
+</script>
+</body>
+</html>

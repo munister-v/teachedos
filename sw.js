@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v11';
+const CACHE = 'teachedos-v12';
 
 const SHELL = [
   '/teachedos/',
@@ -9,6 +9,8 @@ const SHELL = [
   '/teachedos/profile.html',
   '/teachedos/student.html',
   '/teachedos/courses.html',
+  '/teachedos/homework.html',
+  '/teachedos/homework-do.html',
   '/teachedos/portal.html',
   '/teachedos/admin.html',
   '/teachedos/analytics.html',
