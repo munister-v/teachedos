@@ -685,6 +685,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
       <!-- Tab: Schedule -->
       <div class="tab-pane" id="pane-schedule">
+        <div id="schedule-timezone-summary" class="empty-state" style="display:none;margin-bottom:10px;background:rgba(200,230,50,.08);border-color:rgba(200,230,50,.2);color:var(--text-2);"></div>
         <div id="schedule-list">
           <div class="empty-state">No upcoming lessons scheduled</div>
         </div>
@@ -751,6 +752,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 const API = 'https://teachedos-api.onrender.com';
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
+const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
 let authToken = localStorage.getItem('teachedos_token');
 let currentUser = null;
 let _vocabData = [];
@@ -776,6 +778,57 @@ function formatDate(iso) {
   const d = new Date(iso);
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return { day: d.getDate(), mon: months[d.getMonth()], time: d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
+}
+
+function browserTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
+  catch { return DEFAULT_TIME_ZONE; }
+}
+
+function safeTimeZone(zone) {
+  try {
+    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
+    return zone || DEFAULT_TIME_ZONE;
+  } catch {
+    return DEFAULT_TIME_ZONE;
+  }
+}
+
+function timeZoneOffsetMinutes(date, zone) {
+  const label = new Intl.DateTimeFormat('en-US', {
+    timeZone: safeTimeZone(zone),
+    timeZoneName: 'shortOffset',
+    hour: '2-digit'
+  }).formatToParts(date).find(part => part.type === 'timeZoneName')?.value || 'GMT';
+  const match = label.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
+  if (!match) return 0;
+  const sign = match[1] === '-' ? -1 : 1;
+  return sign * ((Number(match[2]) || 0) * 60 + (Number(match[3]) || 0));
+}
+
+function describeTimeZoneDifference(baseZone, otherZone, date = new Date()) {
+  const diff = timeZoneOffsetMinutes(date, otherZone) - timeZoneOffsetMinutes(date, baseZone);
+  if (!diff) return 'Same local time as your teacher';
+  const hours = Math.abs(diff) / 60;
+  const pretty = Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
+  return diff > 0 ? `You are ${pretty} ahead of your teacher` : `You are ${pretty} behind your teacher`;
+}
+
+function formatInZone(iso, zone, options) {
+  return new Date(iso).toLocaleString([], { timeZone: safeTimeZone(zone), ...options });
+}
+
+async function syncAutoTimeZone() {
+  if (!currentUser || currentUser.timezone_mode === 'manual') return;
+  const detected = browserTimeZone();
+  if (!detected || currentUser.timezone === detected) return;
+  try {
+    const r = await apiFetch('/api/auth/me', { method: 'PATCH', body: { timezone: detected, timezone_mode: 'auto' } });
+    if (!r.ok) return;
+    const { user } = await r.json();
+    currentUser = { ...currentUser, ...user };
+    writeDashboardCache({ user: currentUser });
+  } catch {}
 }
 
 let toastT;
@@ -885,7 +938,8 @@ async function init() {
     if (me.ok) {
       const { user } = await me.json();
       currentUser = user;
-      writeDashboardCache({ user });
+      await syncAutoTimeZone();
+      writeDashboardCache({ user: currentUser });
     } else if (cachedDash?.user) {
       currentUser = cachedDash.user;
     } else {
@@ -1012,12 +1066,30 @@ function renderStats(boards, stats) {
 // ── Schedule ──
 function renderSchedule(schedule) {
   const list = document.getElementById('schedule-list');
+  const summary = document.getElementById('schedule-timezone-summary');
+  const viewerZone = safeTimeZone(currentUser?.timezone || browserTimeZone());
+  if (summary) {
+    summary.style.display = '';
+    summary.textContent = `Your current time zone: ${viewerZone}. Lesson times below are shown in your local time.`;
+  }
   if (!schedule || !schedule.length) {
     list.innerHTML = '<div class="empty-state">No upcoming lessons scheduled</div>';
     return;
   }
   list.innerHTML = schedule.map(s => {
-    const dt = formatDate(s.start_time);
+    const startIso = s.start_at || s.start_time;
+    const teacherZone = safeTimeZone(s.teacher_timezone || DEFAULT_TIME_ZONE);
+    const dt = startIso
+      ? {
+          day: formatInZone(startIso, viewerZone, { day: '2-digit' }),
+          mon: formatInZone(startIso, viewerZone, { month: 'short' }),
+          time: formatInZone(startIso, viewerZone, { hour: '2-digit', minute: '2-digit' }),
+        }
+      : formatDate(s.start_time);
+    const teacherTime = startIso
+      ? formatInZone(startIso, teacherZone, { weekday: 'short', hour: '2-digit', minute: '2-digit' })
+      : null;
+    const diffLabel = startIso ? describeTimeZoneDifference(teacherZone, viewerZone, new Date(startIso)) : '';
     return `
       <div class="sch-item">
         <div class="sch-date-box">
@@ -1027,6 +1099,8 @@ function renderSchedule(schedule) {
         <div class="sch-info">
           <div class="sch-title">${esc(s.title || s.topic || 'Lesson')}</div>
           <div class="sch-meta">${dt.time}${s.group_name ? ' · ' + esc(s.group_name) : ''}${s.level ? ' · ' + esc(s.level) : ''}</div>
+          ${teacherTime ? `<div class="sch-meta">Teacher time: ${teacherTime} · ${esc(teacherZone)}</div>` : ''}
+          ${diffLabel ? `<div class="sch-meta">${diffLabel}</div>` : ''}
         </div>
         ${s.level ? `<span class="sch-level">${esc(s.level)}</span>` : ''}
       </div>`;

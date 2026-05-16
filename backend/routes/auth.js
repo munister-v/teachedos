@@ -3,10 +3,22 @@ const bcrypt  = require('bcryptjs');
 const pool    = require('../db/pool');
 const { requireAuth, signToken } = require('../middleware/auth');
 
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
+
 function defaultAvatarForRole(role) {
   if (role === 'student') return '🎓';
   if (role === 'admin') return '🛡️';
   return '🧑‍🏫';
+}
+
+function isValidTimeZone(timeZone) {
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function loadActiveInvite(token) {
@@ -55,7 +67,7 @@ router.post('/register', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, role, avatar, created_at`,
+       RETURNING id, email, name, role, avatar, timezone, timezone_mode, created_at`,
       [email.toLowerCase().trim(), hash, name.trim(), safeRole, avatar]
     );
     const user  = rows[0];
@@ -67,7 +79,7 @@ router.post('/register', async (req, res) => {
       [user.id, 'My First Board']
     );
 
-    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, created_at: user.created_at } });
+    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, timezone: user.timezone, timezone_mode: user.timezone_mode, created_at: user.created_at } });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
@@ -185,7 +197,7 @@ router.post('/login', async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar, created_at FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, avatar, timezone, timezone_mode, created_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
@@ -206,7 +218,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, created_at: user.created_at }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, timezone: user.timezone, timezone_mode: user.timezone_mode, created_at: user.created_at }
     });
   } catch (err) {
     console.error('[auth/login]', err.message, err.code);
@@ -221,7 +233,7 @@ router.get('/me', requireAuth, (req, res) => {
 
 // PATCH /api/auth/me — update profile fields
 router.patch('/me', requireAuth, async (req, res) => {
-  const { name, avatar, meeting_url, zoom_url } = req.body;
+  const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode } = req.body;
   const updates = [];
   const params  = [];
 
@@ -244,6 +256,17 @@ router.patch('/me', requireAuth, async (req, res) => {
     }
     updates.push(`zoom_url = $${params.length + 1}`); params.push(zoom_url || null);
   }
+  if (timezone !== undefined) {
+    const nextTz = String(timezone || '').trim();
+    if (!nextTz || !isValidTimeZone(nextTz)) {
+      return res.status(400).json({ error: 'timezone must be a valid IANA zone like Europe/Kyiv' });
+    }
+    updates.push(`timezone = $${params.length + 1}`); params.push(nextTz);
+  }
+  if (timezone_mode !== undefined) {
+    const nextMode = timezone_mode === 'manual' ? 'manual' : 'auto';
+    updates.push(`timezone_mode = $${params.length + 1}`); params.push(nextMode);
+  }
 
   if (!updates.length) return res.status(400).json({ error: 'No fields to update' });
   params.push(req.user.id);
@@ -251,7 +274,7 @@ router.patch('/me', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
-       RETURNING id, email, name, role, avatar, plan, meeting_url, zoom_url`,
+       RETURNING id, email, name, role, avatar, plan, meeting_url, zoom_url, timezone, timezone_mode`,
       params
     );
     res.json({ user: rows[0] });

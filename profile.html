@@ -436,6 +436,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
         <div style="flex:1;min-width:180px;">
           <div id="profile-name-big">—</div>
           <div id="profile-email-big">—</div>
+          <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">—</div>
           <div class="role-badge" id="profile-role-badge">🎓 Teacher</div>
         </div>
       </div>
@@ -576,6 +577,31 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
         <button class="setting-btn" onclick="saveMeetingRooms()">Save Meeting Rooms</button>
       </div>
 
+      <div class="card">
+        <div class="card-title">🌍 Time Zone</div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Choose whether TeachEd should use your computer time automatically or keep a fixed teaching timezone. We use this to show lesson times correctly for students in other countries.</p>
+        <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(200,230,50,.05);">
+          <div>
+            <div class="setting-label" style="margin-bottom:4px;">Use computer time automatically</div>
+            <div style="font-size:12px;color:var(--text-3);">Detected zone: <span id="tz-detected-label">—</span></div>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-2);cursor:pointer;">
+            <input id="set-tz-auto" type="checkbox" onchange="toggleTimeZoneMode(this.checked)">
+            Auto
+          </label>
+        </div>
+        <div class="setting-group">
+          <div class="setting-label">Manual time zone</div>
+          <input class="setting-input" id="set-timezone" type="text" list="timezone-options" placeholder="Europe/Kyiv" oninput="updateTimeZonePreview()">
+          <datalist id="timezone-options"></datalist>
+        </div>
+        <div style="font-size:12px;color:var(--text-3);line-height:1.7;">
+          <div>Saved zone: <span id="tz-current-label">—</span></div>
+          <div>Current local time there: <span id="tz-preview-time">—</span></div>
+        </div>
+        <button class="setting-btn" onclick="saveTimeZoneSettings()" style="margin-top:14px;">Save Time Zone</button>
+      </div>
+
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title">💳 Subscription Plan</div>
@@ -660,6 +686,14 @@ const PROFILE_CACHE_KEY = 'teachedos_profile_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let me = null;
 let selectedAvatar = null;
+const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
+const TIME_ZONE_OPTIONS = [
+  'Europe/Kyiv','Europe/Warsaw','Europe/Berlin','Europe/Madrid','Europe/Paris','Europe/London',
+  'Europe/Rome','Europe/Prague','Europe/Vilnius','Europe/Helsinki','Europe/Istanbul',
+  'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Toronto',
+  'America/Sao_Paulo','Asia/Dubai','Asia/Tbilisi','Asia/Almaty','Asia/Bangkok','Asia/Tokyo',
+  'Asia/Seoul','Asia/Singapore','Australia/Sydney'
+];
 
 const AVATARS = ['🧑‍🏫','👩‍🏫','👨‍🏫','🦸','🦸‍♀️','🎓','📚','✏️','🌟','💡','🎨','🎭','🌸','🦊','🐧','🦉','🐸','🐱','🐶','🦄'];
 
@@ -707,6 +741,92 @@ function updateMobileProfileSummary(options = {}) {
     : `Manage ${boardCount} board${boardCount === 1 ? '' : 's'}, review ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}, and keep your account details current from this phone view.`;
 }
 
+function browserTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
+  catch { return DEFAULT_TIME_ZONE; }
+}
+
+function isValidTimeZone(timeZone) {
+  try {
+    Intl.DateTimeFormat('en-GB', { timeZone }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function effectiveTimeZoneLabel() {
+  if (!me) return DEFAULT_TIME_ZONE;
+  if (me.timezone_mode === 'manual') return me.timezone || DEFAULT_TIME_ZONE;
+  return me.timezone || browserTimeZone() || DEFAULT_TIME_ZONE;
+}
+
+function describeTimeZone(timeZone) {
+  const zone = timeZone || DEFAULT_TIME_ZONE;
+  const local = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: zone });
+  return `${zone} · ${local}`;
+}
+
+function renderTimeZoneOptions() {
+  const list = document.getElementById('timezone-options');
+  if (!list) return;
+  list.innerHTML = TIME_ZONE_OPTIONS.map(zone => `<option value="${zone}"></option>`).join('');
+}
+
+function updateTimeZonePreview() {
+  const isAuto = document.getElementById('set-tz-auto')?.checked;
+  const input = document.getElementById('set-timezone');
+  const rawZone = (isAuto ? browserTimeZone() : input?.value || '').trim();
+  const zone = isValidTimeZone(rawZone) ? rawZone : DEFAULT_TIME_ZONE;
+  const current = document.getElementById('tz-current-label');
+  const preview = document.getElementById('tz-preview-time');
+  const detected = document.getElementById('tz-detected-label');
+  if (detected) detected.textContent = browserTimeZone();
+  if (current) current.textContent = zone;
+  if (preview) {
+    preview.textContent = new Date().toLocaleString([], {
+      timeZone: zone,
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+}
+
+function toggleTimeZoneMode(isAuto) {
+  const input = document.getElementById('set-timezone');
+  if (!input) return;
+  input.disabled = !!isAuto;
+  if (isAuto) input.value = browserTimeZone();
+  updateTimeZonePreview();
+}
+
+function initTimeZoneSettings() {
+  renderTimeZoneOptions();
+  const autoToggle = document.getElementById('set-tz-auto');
+  const input = document.getElementById('set-timezone');
+  if (!autoToggle || !input || !me) return;
+  const isAuto = me.timezone_mode !== 'manual';
+  autoToggle.checked = isAuto;
+  input.value = isAuto ? browserTimeZone() : (me.timezone || browserTimeZone() || DEFAULT_TIME_ZONE);
+  toggleTimeZoneMode(isAuto);
+}
+
+async function syncAutoTimeZone(options = {}) {
+  if (!me || me.timezone_mode === 'manual') return;
+  const detected = browserTimeZone();
+  if (!detected || me.timezone === detected) return;
+  try {
+    const r = await apiFetch('/api/auth/me', { method: 'PATCH', body: { timezone: detected, timezone_mode: 'auto' } });
+    if (!r.ok) return;
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    writeProfileCache({ me });
+    renderOverview();
+    if (!options.silent) toast('Time zone updated from this device');
+  } catch {}
+}
+
 function apiFetch(path, opts = {}) {
   return fetch(API + path, {
     ...opts,
@@ -743,6 +863,7 @@ async function init() {
     if (r.ok) {
       const { user } = await r.json();
       me = user;
+      await syncAutoTimeZone({ silent: true });
       writeProfileCache({ me });
     } else {
       me = cached.me;
@@ -779,6 +900,7 @@ async function renderOverview(forceOffline = false) {
   document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
+  document.getElementById('profile-timezone-big').textContent = `🕒 ${describeTimeZone(effectiveTimeZoneLabel())}`;
   document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
 
   const planBadges = { free:'', pro:'🚀 Pro', school:'🏫 School' };
@@ -1162,6 +1284,7 @@ function initSettings() {
   document.getElementById('set-name').value = me.name;
   document.getElementById('set-email').value = me.email || '';
   renderEmojiGrid();
+  initTimeZoneSettings();
   initMeetingRooms();
   initPlanCard();
   updateDarkToggleUI(window.__themeGet ? window.__themeGet() : 'light');
@@ -1201,6 +1324,30 @@ async function saveMeetingRooms() {
     try { localStorage.setItem('teachedos_user', JSON.stringify(me)); } catch {}
     toast('Meeting rooms saved ✓');
   } catch { toast('Failed to save'); }
+}
+
+async function saveTimeZoneSettings() {
+  const isAuto = document.getElementById('set-tz-auto')?.checked;
+  const candidate = (isAuto ? browserTimeZone() : document.getElementById('set-timezone')?.value || '').trim();
+  if (!isValidTimeZone(candidate)) {
+    toast('Use a valid IANA time zone, for example Europe/Kyiv');
+    return;
+  }
+  try {
+    const r = await apiFetch('/api/auth/me', {
+      method: 'PATCH',
+      body: { timezone: candidate, timezone_mode: isAuto ? 'auto' : 'manual' }
+    });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    writeProfileCache({ me });
+    renderOverview();
+    initTimeZoneSettings();
+    toast(isAuto ? 'Automatic time zone saved' : 'Time zone saved');
+  } catch {
+    toast('Failed to save time zone');
+  }
 }
 
 async function openBillingPortal() {

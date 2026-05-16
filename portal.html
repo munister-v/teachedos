@@ -54,6 +54,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .vocab-badge{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:rgba(110,201,138,.12);color:#6ec98a}
 .vocab-badge.new{background:rgba(200,230,50,.1);color:var(--accent)}
 .teacher-note{background:rgba(200,230,50,.05);border:1.5px solid rgba(200,230,50,.15);border-radius:14px;padding:16px 18px;margin-bottom:24px}
+.timezone-note{background:rgba(28,28,30,.04);border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:24px}
+.timezone-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.timezone-pill{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2)}
 .teacher-note-label{font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 .teacher-note-text{font-size:14px;color:var(--text-2);line-height:1.65;white-space:pre-wrap}
 .note-edit-area{width:100%;padding:10px 12px;border:1.5px solid rgba(200,230,50,.2);border-radius:10px;font-family:var(--font);font-size:13px;outline:none;resize:vertical;background:#fff;color:var(--text);min-height:80px;margin-top:8px}
@@ -150,10 +153,49 @@ let isTeacherView = false;
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 
 let toastT;
+const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function safeTimeZone(zone) {
+  try {
+    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
+    return zone || DEFAULT_TIME_ZONE;
+  } catch {
+    return DEFAULT_TIME_ZONE;
+  }
+}
+
+function formatZoneNow(zone) {
+  return new Date().toLocaleString([], {
+    timeZone: safeTimeZone(zone),
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function timeZoneOffsetMinutes(date, zone) {
+  const label = new Intl.DateTimeFormat('en-US', {
+    timeZone: safeTimeZone(zone),
+    timeZoneName: 'shortOffset',
+    hour: '2-digit'
+  }).formatToParts(date).find(part => part.type === 'timeZoneName')?.value || 'GMT';
+  const match = label.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
+  if (!match) return 0;
+  const sign = match[1] === '-' ? -1 : 1;
+  return sign * ((Number(match[2]) || 0) * 60 + (Number(match[3]) || 0));
+}
+
+function describeTimeZoneDifference(baseZone, otherZone, date = new Date()) {
+  const diff = timeZoneOffsetMinutes(date, otherZone) - timeZoneOffsetMinutes(date, baseZone);
+  if (!diff) return 'You are in the same local time';
+  const hours = Math.abs(diff) / 60;
+  const pretty = Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
+  return diff > 0 ? `${pretty} ahead` : `${pretty} behind`;
 }
 
 function apiFetch(path, opts={}){
@@ -192,11 +234,16 @@ async function init(){
 }
 
 function render(d, studentId){
-  const { student, boards, vocab, quizHistory, stats, teacherNotes } = d;
+  const { student, boards, vocab, quizHistory, stats, teacherNotes, viewerTimezone } = d;
+  const studentZone = safeTimeZone(student.timezone || DEFAULT_TIME_ZONE);
+  const viewerZone = safeTimeZone(viewerTimezone || studentZone);
+  const diffLabel = describeTimeZoneDifference(studentZone, viewerZone);
 
   document.getElementById('p-avatar').textContent = student.avatar||'🎓';
   document.getElementById('p-name').textContent = student.name;
-  document.getElementById('p-email').textContent = student.email;
+  document.getElementById('p-email').textContent = isTeacherView
+    ? `${student.email} · ${studentZone}`
+    : `${student.email} · ${formatZoneNow(studentZone)}`;
   document.getElementById('p-lessons').textContent = stats.lessonsLeft||'—';
   document.getElementById('s-boards').textContent = stats.boards;
   document.getElementById('s-done').textContent = stats.done;
@@ -212,6 +259,17 @@ function render(d, studentId){
       document.getElementById('note-text').textContent = teacherNotes;
       document.getElementById('note-edit').value = teacherNotes;
     }
+    ns.insertAdjacentHTML('beforebegin', `
+      <div class="timezone-note">
+        <div class="teacher-note-label">🌍 Time zones</div>
+        <div class="teacher-note-text">You and this student are working across different clocks. TeachEd will use the saved zones below when showing class times.</div>
+        <div class="timezone-row">
+          <div class="timezone-pill">Student: ${esc(studentZone)} · ${formatZoneNow(studentZone)}</div>
+          <div class="timezone-pill">You: ${esc(viewerZone)} · ${formatZoneNow(viewerZone)}</div>
+          <div class="timezone-pill">Difference: ${diffLabel}</div>
+        </div>
+      </div>
+    `);
   }
 
   // Boards
