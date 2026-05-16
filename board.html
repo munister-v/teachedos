@@ -334,6 +334,42 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .card-frame .card-header{position:absolute;top:-22px;left:0;background:transparent;border:none;height:22px;}
 
+/* Private mode */
+.card-private-mine{
+  outline:2px dashed rgba(159,140,232,.55);
+  outline-offset:2px;
+  position:relative;
+}
+.card-private-mine::before{
+  content:"🔒 Private";
+  position:absolute;top:-12px;left:8px;z-index:3;
+  background:#9F8CE8;color:#fff;
+  font-size:9px;font-weight:800;letter-spacing:.04em;
+  padding:1px 7px;border-radius:5px;
+  pointer-events:none;font-family:var(--font);
+}
+
+/* Voting card */
+.card-voting .card-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.vote-question{font-size:14px;font-weight:800;color:var(--text);line-height:1.25;}
+.vote-options{display:flex;flex-direction:column;gap:6px;margin-top:4px;overflow-y:auto;flex:1;}
+.vote-opt{
+  position:relative;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:700;
+  color:var(--text);cursor:pointer;border:1.5px solid var(--border);
+  background:var(--bg);transition:.12s;user-select:none;
+  display:flex;align-items:center;gap:8px;overflow:hidden;
+}
+.vote-opt:hover{border-color:var(--accent);}
+.vote-opt .vo-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(232,93,117,.16);transition:width .25s;border-radius:9px;z-index:0;}
+.vote-opt .vo-text{position:relative;z-index:1;flex:1;}
+.vote-opt .vo-count{position:relative;z-index:1;font-family:var(--mono);font-size:11px;color:var(--text-3);}
+.vote-opt.selected{border-color:var(--accent);background:rgba(232,93,117,.06);}
+.vote-opt.selected .vo-count{color:var(--accent);font-weight:800;}
+.vote-meta{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-3);margin-top:2px;}
+.vote-actions{display:flex;gap:6px;}
+.vote-actions button{padding:4px 9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);font-family:var(--font);font-size:10px;font-weight:700;cursor:pointer;color:var(--text-2);}
+.vote-actions button:hover{border-color:var(--accent);color:var(--accent);}
+
 /* Sticker / emoji card */
 .card-sticker{background:transparent;border:none;box-shadow:none!important;display:flex;align-items:center;justify-content:center;}
 .card-sticker .sticker-glyph{
@@ -584,6 +620,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 /* ── NOTE ── */
 .card-note .card-header{background:rgba(245,158,11,.04);}
 .note-body{padding:10px 12px;overflow-y:auto;height:100%;}
+.note-body [contenteditable]:focus{background:rgba(232,93,117,.04);border-radius:6px;}
+.note-body [contenteditable].is-empty::before{content:attr(data-placeholder);color:var(--text-3);pointer-events:none;}
 .note-body pre{font-family:var(--font);font-size:11px;color:var(--text-2);white-space:pre-wrap;line-height:1.6;}
 
 /* ── EVENT ── */
@@ -1615,6 +1653,12 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji" onclick="setMiroTool('select');openStickerModal()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><circle cx="6" cy="7" r=".7" fill="currentColor"/><circle cx="10" cy="7" r=".7" fill="currentColor"/><path d="M5.5 10c.7.9 1.6 1.4 2.5 1.4S9.8 10.9 10.5 10"/></svg>
   </button>
+  <button class="mt-btn" id="mt-games" data-tip="Games Hub (G)" onclick="setMiroTool('select');openGamesModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="14" height="9" rx="2.5"/><circle cx="4.5" cy="8.5" r=".8" fill="currentColor"/><circle cx="11.5" cy="8.5" r=".8" fill="currentColor"/><path d="M6 6.5h2M7 5.5v2"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-voting" data-tip="Poll / Voting" onclick="setMiroTool('select');quickAddVoting()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 6h6M5 9h4M5 11h3"/></svg>
+  </button>
   <div class="mt-sep"></div>
   <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="setMiroTool('frame');quickAddFrame()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M5 3v10"/></svg>
@@ -2234,6 +2278,21 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </div>
 </div>
 
+<!-- GAMES HUB PICKER -->
+<div id="games-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGamesModal()">
+  <div style="background:var(--card-bg,white);border-radius:20px;padding:24px;width:100%;max-width:760px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.24);position:relative;border:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:1.25rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">🎮 Games Hub</div>
+      <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Click to drop on the board · drag the tile to position it exactly</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="games-tabs"></div>
+    <input id="games-search" class="cfg-input" type="text" placeholder="Search games…" oninput="filterGames(this.value)" style="margin-bottom:12px;">
+    <div id="games-grid" style="overflow-y:auto;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:2px;"></div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:10px;text-align:center;">Tip: each game embeds inside its card and reports score back to the board.</div>
+  </div>
+</div>
+
 <!-- STICKER / EMOJI / GIF PICKER -->
 <div id="sticker-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeStickerModal()">
   <div style="background:var(--card-bg,white);border-radius:18px;padding:20px 22px;width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.22);position:relative;border:1px solid var(--border);">
@@ -2549,6 +2608,7 @@ function getDefaults(type) {
             vocab:{w:220,h:200},  checklist:{w:220,h:200},  timer:{w:180,h:140},
             video:{w:320,h:220},
             frame:{w:500,h:340},  sticker:{w:96,h:96},
+            voting:{w:300,h:260},
           })[type] || { w:220,h:160 };
 }
 
@@ -2570,6 +2630,17 @@ function addCard(type, x, y, data={}, w, h) {
 function renderCard(card) {
   const el = document.createElement('div');
   el.className = 'board-card card-' + card.type;
+  if (card.data && card.data.private) {
+    // If the card is private to someone else, render an empty placeholder so layout
+    // is preserved but content stays hidden. The owner sees normal content + outline.
+    if (card.data.private === _currentUserId()) {
+      el.classList.add('card-private-mine');
+    } else {
+      el.dataset.id = card.id;
+      el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;display:none;`;
+      return el;
+    }
+  }
   el.dataset.id = card.id;
   el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;`;
 
@@ -2591,6 +2662,7 @@ function renderCard(card) {
   else if (card.type === 'timer')      renderTimer(el, card);
   else if (card.type === 'frame')      renderFrame(el, card);
   else if (card.type === 'sticker')    renderSticker(el, card);
+  else if (card.type === 'voting')     renderVoting(el, card);
 
   // Apply stored accent color
   if (card.data._accent) el.classList.add(card.data._accent);
@@ -2661,11 +2733,62 @@ function makeHeader(icon, title, cardId) {
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
   hdr.innerHTML = `<span class="card-drag-ic">${icon}</span><span class="card-title-text">${esc(title)}</span>`;
+  // Private toggle (shown for owner only — i.e. always shown locally; server enforces auth)
+  const privBtn = document.createElement('button');
+  privBtn.className = 'card-close';
+  privBtn.style.marginRight = '2px';
+  privBtn.style.fontSize = '12px';
+  privBtn.title = 'Toggle private — hide this card from other users';
+  const card = state.cards.find(c => c.id === cardId);
+  privBtn.textContent = card && card.data && card.data.private ? '🔒' : '🔓';
+  privBtn.style.opacity = card && card.data && card.data.private ? '1' : '.45';
+  privBtn.addEventListener('mousedown', e => e.stopPropagation());
+  privBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleCardPrivate(cardId);
+  });
+  hdr.appendChild(privBtn);
   const btn = document.createElement('button');
   btn.className = 'card-close'; btn.textContent = '×';
   btn.addEventListener('click', e => { e.stopPropagation(); removeCard(cardId); });
   hdr.appendChild(btn);
   return hdr;
+}
+
+/* ── Private mode ── */
+function toggleCardPrivate(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  snapshot();
+  if (card.data.private) {
+    delete card.data.private;
+    toast && toast('🔓 Card is now public');
+  } else {
+    card.data.private = _currentUserId();
+    toast && toast('🔒 Card is now private — others won\'t see it');
+  }
+  // Re-render to update header icon + outline
+  const el = getCardEl(cardId);
+  if (el) {
+    el.classList.toggle('card-private-mine', !!card.data.private);
+    // Re-render header buttons by replacing the header
+    const oldHdr = el.querySelector(':scope > .card-header');
+    if (oldHdr) {
+      const newHdr = makeHeader(
+        oldHdr.querySelector('.card-drag-ic')?.textContent || '📄',
+        oldHdr.querySelector('.card-title-text')?.textContent || '',
+        cardId
+      );
+      el.replaceChild(newHdr, oldHdr);
+    }
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* Filter helper used during render: should this card be visible to me? */
+function _cardVisible(card) {
+  if (!card.data || !card.data.private) return true;
+  return card.data.private === _currentUserId();
 }
 
 function renderSticky(el, card) {
@@ -2765,10 +2888,53 @@ function renderStudent(el, card) {
 
 function renderNote(el, card) {
   const d = card.data;
-  el.appendChild(makeHeader('✍️', d.title||'Note', card.id));
+  if (!d.title) d.title = 'Note';
+  if (d.body === undefined && d.text !== undefined) { d.body = d.text; delete d.text; }
+  if (!d.body) d.body = '';
+  const hdr = makeHeader('✍️', d.title, card.id);
+  // Make the title editable inline
+  const titleSpan = hdr.querySelector('.card-title-text');
+  if (titleSpan) {
+    titleSpan.contentEditable = 'plaintext-only';
+    titleSpan.spellcheck = false;
+    titleSpan.style.outline = 'none';
+    titleSpan.style.cursor = 'text';
+    titleSpan.addEventListener('mousedown', e => e.stopPropagation());
+    titleSpan.addEventListener('focus', () => titleSpan.style.background = 'rgba(232,93,117,.06)');
+    titleSpan.addEventListener('blur', () => {
+      titleSpan.style.background = '';
+      const v = titleSpan.textContent.trim() || 'Note';
+      if (v !== d.title) { snapshot(); d.title = v; scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+    });
+    titleSpan.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
+    });
+  }
+  el.appendChild(hdr);
+
   const body = document.createElement('div');
   body.className = 'card-body note-body';
-  body.innerHTML = `<pre>${esc(d.body||d.text||'')}</pre>`;
+  body.style.cssText = 'padding:10px 12px;overflow:auto;flex:1;';
+
+  const editor = document.createElement('div');
+  editor.contentEditable = 'plaintext-only';
+  editor.spellcheck = true;
+  editor.style.cssText = 'min-height:100%;outline:none;white-space:pre-wrap;font-family:var(--font);font-size:13px;line-height:1.5;color:var(--text);cursor:text;';
+  editor.dataset.placeholder = 'Write a note…';
+  editor.textContent = d.body;
+  // Empty-state placeholder
+  function paintPlaceholder() {
+    if (!editor.textContent) editor.classList.add('is-empty'); else editor.classList.remove('is-empty');
+  }
+  paintPlaceholder();
+  editor.addEventListener('mousedown', e => e.stopPropagation());
+  editor.addEventListener('input', () => paintPlaceholder());
+  editor.addEventListener('blur', () => {
+    const v = editor.textContent;
+    if (v !== d.body) { snapshot(); d.body = v; scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  });
+
+  body.appendChild(editor);
   el.appendChild(body);
 }
 
@@ -2886,6 +3052,149 @@ function quickAddFrame() {
   const def = getDefaults('frame');
   addCard('frame', pos.x - def.w/2, pos.y - def.h/2, { title: 'Frame', bg: 'rgba(232,93,117,.08)', border: 'rgba(232,93,117,.5)' });
   setMiroTool('select');
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* ── Voting card ── */
+function _currentUserId() {
+  try { return (window._teachedos_user && window._teachedos_user.id) || localStorage.getItem('teachedos_user_id') || 'anon'; }
+  catch { return 'anon'; }
+}
+
+function renderVoting(el, card) {
+  const d = card.data;
+  if (!Array.isArray(d.options)) d.options = ['Option A', 'Option B'];
+  if (!d.votes || typeof d.votes !== 'object') d.votes = {};
+  if (typeof d.revealed !== 'boolean') d.revealed = true;
+  if (!d.question) d.question = 'Question?';
+
+  const hdr = makeHeader('🗳', 'Poll', card.id);
+  el.appendChild(hdr);
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const question = document.createElement('div');
+  question.className = 'vote-question';
+  question.textContent = d.question;
+  question.title = 'Double-click to edit question';
+  question.addEventListener('mousedown', ev => ev.stopPropagation());
+  question.addEventListener('dblclick', ev => {
+    ev.stopPropagation();
+    const q = prompt('Poll question:', d.question);
+    if (q !== null && q.trim()) { snapshot(); d.question = q.trim(); question.textContent = d.question; scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  });
+
+  const opts = document.createElement('div');
+  opts.className = 'vote-options';
+
+  const userId = _currentUserId();
+  const myChoice = d.votes[userId];
+  const counts = d.options.map((_, i) => Object.values(d.votes).filter(v => v === i).length);
+  const total = counts.reduce((a,b) => a+b, 0);
+
+  d.options.forEach((opt, idx) => {
+    const row = document.createElement('div');
+    row.className = 'vote-opt' + (myChoice === idx ? ' selected' : '');
+    const pct = total ? Math.round((counts[idx] / total) * 100) : 0;
+    const showResults = d.revealed || myChoice !== undefined;
+    row.innerHTML = `
+      <div class="vo-fill" style="width:${showResults ? pct : 0}%;"></div>
+      <span class="vo-text">${esc(opt)}</span>
+      <span class="vo-count">${showResults ? `${counts[idx]} · ${pct}%` : ''}</span>
+    `;
+    row.addEventListener('mousedown', ev => ev.stopPropagation());
+    row.addEventListener('click', ev => {
+      ev.stopPropagation();
+      snapshot();
+      // Toggle/switch vote
+      if (d.votes[userId] === idx) delete d.votes[userId];
+      else d.votes[userId] = idx;
+      // Re-render this card
+      el.innerHTML = '';
+      renderVoting(el, card);
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    });
+    row.addEventListener('dblclick', ev => {
+      ev.stopPropagation();
+      const txt = prompt('Edit option:', opt);
+      if (txt !== null) {
+        snapshot();
+        if (txt.trim()) d.options[idx] = txt.trim();
+        else { d.options.splice(idx, 1); /* also drop votes pointing here, shift higher ones */
+          for (const u in d.votes) {
+            if (d.votes[u] === idx) delete d.votes[u];
+            else if (d.votes[u] > idx) d.votes[u]--;
+          }
+        }
+        el.innerHTML = '';
+        renderVoting(el, card);
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      }
+    });
+    opts.appendChild(row);
+  });
+
+  const meta = document.createElement('div');
+  meta.className = 'vote-meta';
+  meta.innerHTML = `<span>${total} vote${total !== 1 ? 's' : ''}</span>`;
+  const actions = document.createElement('div');
+  actions.className = 'vote-actions';
+  const addBtn = document.createElement('button');
+  addBtn.textContent = '+ Option';
+  addBtn.addEventListener('mousedown', ev => ev.stopPropagation());
+  addBtn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const txt = prompt('New option:');
+    if (txt && txt.trim()) {
+      snapshot();
+      d.options.push(txt.trim());
+      el.innerHTML = '';
+      renderVoting(el, card);
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
+  });
+  const revealBtn = document.createElement('button');
+  revealBtn.textContent = d.revealed ? '🙈 Hide' : '👀 Reveal';
+  revealBtn.title = 'Reveal results to non-voters';
+  revealBtn.addEventListener('mousedown', ev => ev.stopPropagation());
+  revealBtn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    snapshot();
+    d.revealed = !d.revealed;
+    el.innerHTML = '';
+    renderVoting(el, card);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  });
+  const resetBtn = document.createElement('button');
+  resetBtn.textContent = '↺';
+  resetBtn.title = 'Reset votes';
+  resetBtn.addEventListener('mousedown', ev => ev.stopPropagation());
+  resetBtn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    if (!confirm('Reset all votes?')) return;
+    snapshot();
+    d.votes = {};
+    el.innerHTML = '';
+    renderVoting(el, card);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  });
+  actions.appendChild(addBtn);
+  actions.appendChild(revealBtn);
+  actions.appendChild(resetBtn);
+  meta.appendChild(actions);
+
+  body.appendChild(question);
+  body.appendChild(opts);
+  body.appendChild(meta);
+  el.appendChild(body);
+}
+
+function quickAddVoting() {
+  const r = boardWrap.getBoundingClientRect();
+  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
+  const def = getDefaults('voting');
+  addCard('voting', pos.x - def.w/2, pos.y - def.h/2,
+    { question: 'New poll?', options: ['Option A', 'Option B', 'Option C'], votes: {}, revealed: true });
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
@@ -4836,21 +5145,22 @@ function renderNotesTab(sec) {
 }
 
 const GAMES = [
-  { icon:'🔀', title:'Word Scramble',    tag:'Vocabulary', src:'games/word-scramble.html',    w:460, h:520 },
-  { icon:'🎯', title:'Hangman',           tag:'Spelling',   src:'games/hangman.html',           w:460, h:560 },
-  { icon:'⚡', title:'Article Rush',      tag:'Grammar',    src:'games/article-rush.html',      w:460, h:520 },
-  { icon:'🧠', title:'Memory Match',      tag:'Vocabulary', src:'games/memory-match.html',      w:520, h:600 },
-  { icon:'🧩', title:'Sentence Builder',  tag:'Grammar',    src:'games/sentence-builder.html',  w:520, h:560 },
-  { icon:'🌧️', title:'Typing Rain',       tag:'Speed',      src:'games/typing-rain.html',       w:560, h:560 },
-  { icon:'✅', title:'True or False',     tag:'Grammar',    src:'games/true-false.html',        w:460, h:520 },
-  { icon:'🔗', title:'Phrasal Verbs',     tag:'Vocabulary', src:'games/phrasal-verbs.html',     w:460, h:520 },
-  { icon:'🪤', title:'False Friends',     tag:'Vocabulary', src:'games/false-friends.html',     w:460, h:580 },
-  { icon:'📍', title:'Prepositions',      tag:'Grammar',    src:'games/prepositions.html',      w:460, h:520 },
-  { icon:'🔧', title:'Grammar Fix',       tag:'Grammar',    src:'games/grammar-fix.html',       w:500, h:560 },
-  { icon:'⏱️', title:'Tense Picker',      tag:'Grammar',    src:'games/tense-picker.html',      w:480, h:580 },
-  { icon:'🔄', title:'Synonym Snap',      tag:'Vocabulary', src:'games/synonym-snap.html',      w:520, h:560 },
-  { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   src:'games/spelling-bee.html',      w:460, h:560 },
-  { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', src:'games/word-categories.html',   w:560, h:640 },
+  { icon:'🔀', title:'Word Scramble',    tag:'Vocabulary', desc:'Unscramble the letters to form the correct word',         src:'games/word-scramble.html',         w:460, h:520 },
+  { icon:'🎯', title:'Hangman',           tag:'Spelling',   desc:'Guess the hidden word letter by letter',                  src:'games/hangman.html',               w:460, h:560 },
+  { icon:'⚡', title:'Article Rush',      tag:'Grammar',    desc:'Pick a / an / the / ∅ as fast as you can',                src:'games/article-rush.html',          w:460, h:520 },
+  { icon:'🧠', title:'Memory Match',      tag:'Vocabulary', desc:'Flip cards to match words with their definitions',       src:'games/memory-match.html',          w:520, h:600 },
+  { icon:'🧩', title:'Sentence Builder',  tag:'Grammar',    desc:'Arrange shuffled words into correct sentences',           src:'games/sentence-builder.html',      w:520, h:560 },
+  { icon:'🌧️', title:'Typing Rain',       tag:'Speed',      desc:'Type falling words before they hit the ground',           src:'games/typing-rain.html',           w:560, h:560 },
+  { icon:'✅', title:'True or False',     tag:'Grammar',    desc:'Rapid-fire grammar and vocabulary statements',            src:'games/true-false.html',            w:460, h:520 },
+  { icon:'🔗', title:'Phrasal Verbs',     tag:'Vocabulary', desc:'Complete phrasal verbs with the right particle',          src:'games/phrasal-verbs.html',         w:460, h:520 },
+  { icon:'🪤', title:'False Friends',     tag:'Vocabulary', desc:'Identify tricky false cognates from RU/UA/PL',            src:'games/false-friends.html',         w:460, h:580 },
+  { icon:'📍', title:'Prepositions',      tag:'Grammar',    desc:'Fill in at / in / on / by in context',                    src:'games/prepositions.html',          w:460, h:520 },
+  { icon:'🔧', title:'Grammar Fix',       tag:'Grammar',    desc:'Spot and correct the error in each sentence',             src:'games/grammar-fix.html',           w:500, h:560 },
+  { icon:'⏱️', title:'Tense Picker',      tag:'Grammar',    desc:'Choose the correct verb tense form',                      src:'games/tense-picker.html',          w:480, h:580 },
+  { icon:'🔄', title:'Synonym Snap',      tag:'Vocabulary', desc:'Match synonym pairs before time runs out',                src:'games/synonym-snap.html',          w:520, h:560 },
+  { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   desc:'Type the word from its definition clue',                  src:'games/spelling-bee.html',          w:460, h:560 },
+  { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', desc:'Sort words into the correct topic groups',                src:'games/word-categories.html',       w:560, h:640 },
+  { icon:'🃏', title:'Definition Match',  tag:'Vocabulary', desc:'Match words to their definitions',                        src:'games/word-definition-match.html', w:520, h:580 },
 ];
 
 function renderGamesTab(sec) {
@@ -7183,6 +7493,159 @@ document.addEventListener('drop', e => {
   const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 200 };
   addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+});
+
+/* ════════════════════════ GAMES HUB MODAL ════════════════════════ */
+let _gamesActiveTag = 'All';
+const GAME_TAGS = ['All','Vocabulary','Grammar','Spelling','Speed'];
+
+function openGamesModal() {
+  const ov = document.getElementById('games-overlay');
+  if (!ov) return;
+  buildGamesTabs();
+  renderGamesGrid();
+  ov.style.display = 'flex';
+  setTimeout(() => { const s = document.getElementById('games-search'); if (s) s.focus(); }, 50);
+}
+function closeGamesModal() {
+  const ov = document.getElementById('games-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function buildGamesTabs() {
+  const tabs = document.getElementById('games-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = GAME_TAGS.map(tag => `
+    <button onclick="switchGamesTab('${tag}')"
+      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'var(--accent)':'var(--bg)'};color:${tag===_gamesActiveTag?'#fff':'var(--text-2)'};font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">${tag}</button>
+  `).join('');
+}
+function switchGamesTab(tag) {
+  _gamesActiveTag = tag;
+  const s = document.getElementById('games-search'); if (s) s.value = '';
+  buildGamesTabs();
+  renderGamesGrid();
+}
+function renderGamesGrid(filter) {
+  const grid = document.getElementById('games-grid');
+  if (!grid) return;
+  const q = (filter || '').trim().toLowerCase();
+  const list = GAMES.filter(g =>
+    (_gamesActiveTag === 'All' || g.tag === _gamesActiveTag) &&
+    (!q || g.title.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q) || g.tag.toLowerCase().includes(q))
+  );
+  grid.innerHTML = list.length ? list.map(g => `
+    <div class="game-tile" draggable="true" data-game-src="${g.src}" data-game-title="${esc(g.title)}" data-game-w="${g.w}" data-game-h="${g.h}"
+      onclick='addGameCard(${JSON.stringify(g.src)},${JSON.stringify(g.title)},${g.w},${g.h})'
+      style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
+      <div style="font-size:30px;line-height:1;">${g.icon}</div>
+      <div style="font-size:14px;font-weight:900;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
+      <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.desc)}</div>
+      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
+        <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(232,93,117,.10);">${esc(g.tag)}</span>
+      </div>
+    </div>
+  `).join('') : `<div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:var(--text-3);font-size:13px;">No games match your search.</div>`;
+  // Hover effect via JS (cleaner than inline ::hover)
+  grid.querySelectorAll('.game-tile').forEach(el => {
+    el.addEventListener('mouseenter', () => { el.style.borderColor = 'var(--accent)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(232,93,117,.12)'; });
+    el.addEventListener('mouseleave', () => { el.style.borderColor = 'var(--border)'; el.style.transform = ''; el.style.boxShadow = ''; });
+    el.addEventListener('dragstart', ev => {
+      ev.dataTransfer.setData('text/game-src', el.dataset.gameSrc);
+      ev.dataTransfer.setData('text/game-title', el.dataset.gameTitle);
+      ev.dataTransfer.setData('text/game-w', el.dataset.gameW);
+      ev.dataTransfer.setData('text/game-h', el.dataset.gameH);
+      ev.dataTransfer.effectAllowed = 'copy';
+      el.style.opacity = '.5';
+    });
+    el.addEventListener('dragend', () => { el.style.opacity = ''; });
+  });
+}
+function filterGames(q) { renderGamesGrid(q); }
+
+function addGameCard(src, title, w, h) {
+  const r = boardWrap.getBoundingClientRect();
+  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
+  // Render card at a sensible default size (scaled to fit the iframe)
+  const cardW = Math.min(420, w);
+  const cardH = Math.min(420, h);
+  addCard('game', pos.x - cardW/2, pos.y - cardH/2,
+    { title, src, naturalW: w, naturalH: h }, cardW, cardH);
+  closeGamesModal();
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+// Drop a dragged game onto the board at the drop point
+document.addEventListener('drop', e => {
+  if (!boardWrap || !boardWrap.contains(e.target)) return;
+  const src = e.dataTransfer && e.dataTransfer.getData('text/game-src');
+  if (!src) return;
+  e.preventDefault();
+  const title = e.dataTransfer.getData('text/game-title') || 'Game';
+  const w = parseInt(e.dataTransfer.getData('text/game-w'), 10) || 460;
+  const h = parseInt(e.dataTransfer.getData('text/game-h'), 10) || 520;
+  const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 200 };
+  const cardW = Math.min(420, w), cardH = Math.min(420, h);
+  addCard('game', pos.x - cardW/2, pos.y - cardH/2,
+    { title, src, naturalW: w, naturalH: h }, cardW, cardH);
+  closeGamesModal();
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+});
+
+/* ════════════ POSTMESSAGE BRIDGE: games → board card ════════════ */
+window.addEventListener('message', e => {
+  const data = e.data;
+  if (!data || typeof data !== 'object') return;
+  // Accepted schemas:
+  //   Legacy: { type:'teachedos-score', score }
+  //   New:    { type:'game-progress' | 'game-result' | 'game-finished', score?, max?, time?, mistakes?, status? }
+  const isLegacy = data.type === 'teachedos-score';
+  const isNew = data.type === 'game-result' || data.type === 'game-finished' || data.type === 'game-progress';
+  if (!isLegacy && !isNew) return;
+  if (isLegacy) data.status = 'in-progress';
+  // Find the iframe that sent this, then the card it belongs to
+  const iframes = document.querySelectorAll('iframe[data-card-id]');
+  let cardId = null;
+  for (const f of iframes) {
+    if (f.contentWindow === e.source) { cardId = f.dataset.cardId; break; }
+  }
+  if (!cardId) return;
+  const card = (state && state.cards) ? state.cards.find(c => c.id === cardId) : null;
+  if (!card) return;
+  // Update card data with the latest result
+  card.data.result = {
+    score: data.score,
+    max: data.max,
+    time: data.time,
+    mistakes: data.mistakes,
+    status: data.status || (data.type === 'game-finished' ? 'done' : 'in-progress'),
+    at: Date.now(),
+  };
+  // Update the score badge UI on the card
+  const badge = document.querySelector(`.game-score-badge[data-card-id="${cardId}"]`);
+  if (badge) {
+    let txt = '';
+    if (typeof data.score === 'number') {
+      txt = data.max ? `${data.score}/${data.max}` : `${data.score} pts`;
+    } else if (data.status === 'done') txt = '✅';
+    else txt = '…';
+    badge.textContent = txt;
+    badge.style.background = data.status === 'done' ? '#10b981' : '';
+    badge.style.color = data.status === 'done' ? '#fff' : '';
+  }
+  // Persist + broadcast to collaborators via existing channel
+  scheduleSave && scheduleSave();
+  saveLocal && saveLocal();
+  if (data.type === 'game-finished') {
+    toast && toast(`🎮 ${card.data.title || 'Game'} finished${typeof data.score === 'number' ? `: ${data.score}` : ''}`);
+  }
+});
+
+// G shortcut to open Games Hub
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+  if (e.key === 'g' || e.key === 'G') { e.preventDefault(); openGamesModal(); }
 });
 
 /* ════════════════════════ BACKGROUND CUSTOMIZATION ════════════════════════ */
