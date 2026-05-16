@@ -23,17 +23,48 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 a{text-decoration:none;color:inherit;}
 button{font-family:var(--font);cursor:pointer;}
 
-#nav{position:sticky;top:0;z-index:200;height:var(--nav-h);
-  background:color-mix(in srgb,var(--bg2) 92%,transparent);
-  backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 20px;gap:8px;}
-.nav-logo{font-size:16px;font-weight:900;color:var(--accent);letter-spacing:-.02em;}
-.nav-sep{width:1px;height:20px;background:var(--border);margin:0 2px;}
-.nav-link{font-size:12px;font-weight:700;color:var(--text2);padding:4px 10px;border-radius:8px;transition:.15s;}
-.nav-link:hover,.nav-link.active{background:rgba(94,94,74,.1);color:var(--accent);}
+/* ── NAV (macOS-style menubar) ── */
+#nav{
+  position:sticky;top:0;z-index:200;height:36px;
+  background:rgba(245,240,232,0.82);
+  backdrop-filter:blur(32px) saturate(2);
+  -webkit-backdrop-filter:blur(32px) saturate(2);
+  border-bottom:1px solid rgba(94,94,74,.08);
+  display:flex;align-items:center;padding:0 14px;gap:0;
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
+}
+[data-theme="dark"] #nav{
+  background:rgba(28,28,30,0.85);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 1px 10px rgba(0,0,0,.2);
+}
+.nav-logo{
+  display:flex;align-items:center;margin-right:6px;flex-shrink:0;
+  text-decoration:none;
+}
+.nav-logo img{width:22px;height:22px;border-radius:6px;}
+.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
+.nav-link{
+  font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
+  display:flex;align-items:center;border-radius:8px;transition:.12s;white-space:nowrap;
+  text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
+.nav-link.active{font-weight:800;color:#E85D75;}
 .nav-spacer{flex:1;}
-.nav-user{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text2);
-  padding:4px 12px 4px 8px;border-radius:20px;border:1px solid var(--border);background:var(--card);}
+.nav-user{
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  padding:3px 10px 3px 7px;border-radius:20px;
+  border:1px solid rgba(232,93,117,.22);
+  background:rgba(94,94,74,.07);
+  cursor:pointer;transition:.15s;text-decoration:none;
+}
+.nav-user:hover{border-color:#E85D75;background:rgba(232,93,117,.09);}
+#nav-avatar{
+  width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(232,93,117,.15);color:#E85D75;font-size:10px;font-weight:900;
+  overflow:hidden;flex-shrink:0;
+}
 
 #page{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
@@ -152,17 +183,21 @@ button{font-family:var(--font);cursor:pointer;}
 </div>
 
 <nav id="nav">
-  <a class="nav-logo" href="index.html">Teached<em>OS</em></a>
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
-  <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="courses.html">Courses</a>
-  <a class="nav-link active" href="homework.html">Homework</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
+  <a class="nav-link" href="index.html">Головна</a>
+  <a class="nav-link" href="board.html">Дошка</a>
+  <a class="nav-link" href="courses.html">Курси</a>
+  <a class="nav-link active" href="homework.html">Домашні</a>
+  <a class="nav-link" href="schedule.html">Розклад</a>
+  <a class="nav-link" href="analytics.html">Аудит</a>
+  <a class="nav-link" href="journal.html">Журнал</a>
+  <a class="nav-link" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html">Профіль</a>
   <div class="nav-spacer"></div>
-  <a class="nav-user" href="profile.html"><span id="nav-avatar">🧑‍🏫</span><span id="nav-name">…</span></a>
+  <a class="nav-user" href="profile.html" id="nav-user">
+    <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
+  </a>
 </nav>
 
 <div id="page">
