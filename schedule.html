@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
+<link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <meta name="theme-color" content="#C8E632"/>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -10,9 +12,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <title>Schedule · TeachEd</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -365,6 +364,15 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
+    <div class="side-section">
+      <div class="side-label">Time Zone</div>
+      <div class="stat-pill" style="text-align:left;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:800;color:var(--text);" id="tz-schedule-zone">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tz-schedule-now">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.45;" id="tz-schedule-note">Students in other countries will see lesson times in their local timezone.</div>
+      </div>
+    </div>
+
     <div class="side-section" style="flex:1">
       <div class="side-label">All Classes</div>
       <div id="cls-list"></div>
@@ -490,8 +498,10 @@ a{text-decoration:none;color:inherit;}
 <script>
 const API = 'https://teachedos-api.onrender.com';
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
+const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
 let token = localStorage.getItem('teachedos_token');
 let schedule = [];
+let currentUser = null;
 let editingId = null;
 let weekOffset = 0; // weeks from current
 let selectedColor = '#C8E632';
@@ -503,6 +513,56 @@ const COLORS = [
 ];
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
+
+function browserTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE; }
+  catch { return DEFAULT_TIME_ZONE; }
+}
+
+function safeTimeZone(zone) {
+  try {
+    Intl.DateTimeFormat('en-GB', { timeZone: zone || DEFAULT_TIME_ZONE }).format(new Date());
+    return zone || DEFAULT_TIME_ZONE;
+  } catch {
+    return DEFAULT_TIME_ZONE;
+  }
+}
+
+function effectiveScheduleZone() {
+  return safeTimeZone(currentUser?.timezone || browserTimeZone());
+}
+
+async function syncAutoTimeZone() {
+  if (!currentUser || currentUser.timezone_mode === 'manual') return;
+  const detected = browserTimeZone();
+  if (!detected || currentUser.timezone === detected) return;
+  try {
+    const next = await apiFetch('/api/auth/me', {
+      method: 'PATCH',
+      body: { timezone: detected, timezone_mode: 'auto' }
+    });
+    currentUser = { ...currentUser, ...next.user };
+    writeScheduleCache({ user: currentUser });
+  } catch {}
+}
+
+function renderScheduleTimeZoneCard() {
+  const zoneEl = document.getElementById('tz-schedule-zone');
+  const nowEl = document.getElementById('tz-schedule-now');
+  const noteEl = document.getElementById('tz-schedule-note');
+  if (!zoneEl || !nowEl || !noteEl) return;
+  const zone = effectiveScheduleZone();
+  zoneEl.textContent = zone;
+  nowEl.textContent = `Current local time: ${new Date().toLocaleString([], {
+    timeZone: zone,
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`;
+  noteEl.textContent = currentUser?.timezone_mode === 'manual'
+    ? 'Manual mode is on. This schedule stays pinned to your teaching timezone.'
+    : 'Auto mode is on. TeachEd follows the timezone from this device.';
+}
 
 function readScheduleCache() {
   try {
@@ -538,10 +598,10 @@ function updateMobileScheduleSummary(options = {}) {
   }
   if (next) {
     title.textContent = `${todays.length} class${todays.length === 1 ? '' : 'es'} on today`;
-    copy.textContent = `Next up: ${next.title} at ${next.start_time.slice(0,5)}${next.group_name ? ' · ' + next.group_name : ''}.`;
+    copy.textContent = `Next up: ${next.title} at ${next.start_time.slice(0,5)} in ${effectiveScheduleZone()}${next.group_name ? ' · ' + next.group_name : ''}.`;
   } else if (schedule.length) {
     title.textContent = 'Your week is mapped';
-    copy.textContent = `${schedule.length} class slot${schedule.length === 1 ? '' : 's'} are in the calendar. Use this view to go live, edit, or export.`;
+    copy.textContent = `${schedule.length} class slot${schedule.length === 1 ? '' : 's'} are in the calendar. Students will see these in their own local timezone.`;
   } else {
     title.textContent = 'Build your teaching week';
     copy.textContent = 'Add your first recurring class or one-time session to start using the schedule as a real mobile planner.';
@@ -661,10 +721,13 @@ async function init() {
   const cached = readScheduleCache();
   try {
     const r = await apiFetch('/api/auth/me');
-    setNavUser(r.user);
-    writeScheduleCache({ user: r.user });
+    currentUser = r.user;
+    await syncAutoTimeZone();
+    setNavUser(currentUser);
+    writeScheduleCache({ user: currentUser });
   } catch {
     if (cached?.user) {
+      currentUser = cached.user;
       setNavUser(cached.user);
     } else {
       location.href = 'index.html'; return;
@@ -672,6 +735,7 @@ async function init() {
   }
   buildColorGrid();
   buildTimeCol();
+  renderScheduleTimeZoneCard();
   updateWeekHeader();
   await loadSchedule();
 }
@@ -708,6 +772,7 @@ async function loadSchedule() {
     renderGrid();
     renderSideList();
     renderStats();
+    renderScheduleTimeZoneCard();
     updateMobileScheduleSummary();
   } catch (e) {
     if (cached?.schedule) {
@@ -715,6 +780,7 @@ async function loadSchedule() {
       renderGrid();
       renderSideList();
       renderStats();
+      renderScheduleTimeZoneCard();
       updateMobileScheduleSummary({ offline: true });
       toast('Offline mode enabled', 'ok');
       return;
