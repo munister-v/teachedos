@@ -73,7 +73,7 @@
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-label{',
     '  font-size:10px;font-weight:700;letter-spacing:0.02em;',
-    '  font-family:Nunito,ui-sans-serif,sans-serif;line-height:1;',
+    '  font-family:inherit;line-height:1;',
     '}',
     /* body padding so content isn't hidden behind nav */
     'body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important;}',

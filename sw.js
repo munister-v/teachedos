@@ -83,22 +83,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Google Fonts — stale-while-revalidate
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    e.respondWith(
-      caches.match(e.request).then(cached => {
-        const fetched = fetch(e.request).then(resp => {
-          if (resp && resp.status === 200) {
-            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-          }
-          return resp;
-        }).catch(() => cached);
-        return cached || fetched;
-      })
-    );
-    return;
-  }
-
   // HTML, CSS, JS, images — network-first, cache on success, offline fallback
   if (
     e.request.mode === 'navigate' ||

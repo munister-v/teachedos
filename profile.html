@@ -14,9 +14,6 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Profile · TeachEd</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -32,11 +29,11 @@
   --text-3: #A2A28C;
   --shadow: 0 4px 24px rgba(5,5,23,.08);
   --radius: 16px;
-  --font: 'Nunito', sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --lime: #C8E632;
   --lavender: #9F8CE8;
 }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line-height: 1.55; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
 
 /* ── NAV (macOS-style menubar) ── */
 #nav{
@@ -102,12 +99,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   border: 1px solid var(--border); box-shadow: var(--shadow);
   padding: 24px; margin-bottom: 20px;
 }
-.card-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card-title { font-size: 16px; font-weight: 750; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
 /* ── Avatar area ── */
 #profile-avatar-big { font-size: 72px; line-height: 1; margin-bottom: 12px; cursor: pointer; transition: .15s; display: inline-block; }
 #profile-avatar-big:hover { transform: scale(1.08); }
-#profile-name-big { font-size: 26px; font-weight: 900; }
+#profile-name-big { font-size: 26px; font-weight: 800; letter-spacing: -.04em; line-height: 1.02; }
 #profile-email-big { font-size: 14px; color: var(--text-3); margin-top: 2px; }
 .role-badge {
   display: inline-flex; align-items: center; gap: 5px;
@@ -122,7 +119,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
   padding: 16px; text-align: center;
 }
-.stat-n { font-size: 32px; font-weight: 900; color: var(--accent); line-height: 1; }
+.stat-n { font-size: 32px; font-weight: 800; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
 .stat-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-top: 4px; }
 
 /* ── Recent boards ── */
@@ -479,16 +476,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
-          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
         </div>
         <div style="margin-bottom:18px;">
           <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
-          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
-          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:Nunito,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#E85D75;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
         <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
       </div>

@@ -13,9 +13,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd — Teach English from your pocket</title>
 <meta name="description" content="The classroom OS for language teachers. Install on your phone in seconds — boards, schedule, gradebook, 20 games, all offline-ready.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -34,15 +31,17 @@
   --accent-2:#9F8CE8;
   --accent-3:#C8E632;
   --rose-glow:rgba(232,93,117,0.28);
-  --font:'Nunito',ui-sans-serif,system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
 }
 html{scroll-behavior:smooth;background:var(--bg);}
 body{
-  font-family:var(--font);font-weight:600;color:var(--text);background:var(--bg);
+  font-family:var(--font);font-weight:500;color:var(--text);background:var(--bg);
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  -moz-osx-font-smoothing:grayscale;
   overflow-x:hidden;line-height:1.5;
   padding-bottom:env(safe-area-inset-bottom,0px);
+  letter-spacing:-0.011em;
 }
 a{text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;}
 button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
@@ -134,7 +133,7 @@ section{padding:72px 20px;position:relative;}
   margin-bottom:16px;
 }
 .section-h{
-  font-size:34px;font-weight:900;letter-spacing:-0.03em;line-height:1.05;
+  font-size:34px;font-weight:800;letter-spacing:-0.04em;line-height:1.04;
   margin-bottom:14px;color:var(--text);
 }
 .section-h em{font-style:normal;background:linear-gradient(135deg,#E85D75,#9F8CE8);
@@ -162,7 +161,7 @@ section{padding:72px 20px;position:relative;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 .hero-h1{
-  font-size:42px;font-weight:900;letter-spacing:-0.045em;line-height:1.0;
+  font-size:42px;font-weight:800;letter-spacing:-0.05em;line-height:0.98;
   margin:0 auto 16px;max-width:880px;color:var(--text);
 }
 .hero-h1 em{
@@ -171,7 +170,7 @@ section{padding:72px 20px;position:relative;}
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
 .hero-sub{
-  font-size:16px;color:var(--text-2);line-height:1.6;
+  font-size:16px;color:var(--text-2);line-height:1.62;font-weight:500;
   max-width:520px;margin:0 auto 28px;
 }
 .hero-ctas{

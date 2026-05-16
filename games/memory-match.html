@@ -7,11 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>Memory Match</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#E85D75}
-body{font-family:'Nunito',sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
@@ -21,7 +20,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .tile{aspect-ratio:1;border-radius:14px;cursor:pointer;perspective:600px;position:relative}
 .tile-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .35s}
 .tile.flipped .tile-inner,.tile.matched .tile-inner{transform:rotateY(180deg)}
-.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700;font-size:.78rem;text-align:center;padding:6px;line-height:1.3}
+.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.78rem;text-align:center;padding:6px;line-height:1.3}
 .back-face{background:linear-gradient(135deg,#E85D75,#C8E632);color:#fff;font-size:1.4rem}
 .front-face{background:#fff;border:2.5px solid #eee;color:#333;transform:rotateY(180deg)}
 .tile.matched .front-face{border-color:#4caf50;background:#f0fff4;color:#2e7d32}

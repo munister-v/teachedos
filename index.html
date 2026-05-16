@@ -22,9 +22,6 @@
 <meta property="og:url" content="https://munister.com.ua/teachedos/"/>
 <meta property="og:image" content="https://munister.com.ua/teachedos/icons/icon-512.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/main.css">
 <style>
@@ -48,9 +45,9 @@
   --deep-rose: #C8E632;
   --blush:     #CAC9B7;
   --plum:      #5E5E4A;
-  --font-serif: 'Nunito', ui-sans-serif, sans-serif;
-  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
-  --font-ui:    'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:  'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --font-ui:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --radius-win: 18px;
 }
 
@@ -2691,7 +2688,7 @@ function showAuthOverlay() {
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#2D2D2D,#1a1a1a);color:#C8E64A;font-family:Nunito,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px;transition:filter .15s,transform .15s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 24px rgba(45,45,45,.30),inset 0 1px 0 rgba(255,255,255,.1);">Sign in</button>
+        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#2D2D2D,#1a1a1a);color:#C8E64A;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px;transition:filter .15s,transform .15s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 24px rgba(45,45,45,.30),inset 0 1px 0 rgba(255,255,255,.1);">Sign in</button>
         <div style="text-align:center;margin-top:18px;font-size:.85rem;color:#A2A28C;font-weight:600;">
           <span id="os-toggle-text">Don't have an account?</span>
           <button type="button" onclick="toggleOsAuth()" style="color:#2D2D2D;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;" id="os-toggle-link">Register</button>
@@ -2732,7 +2729,7 @@ function renderOsAuthFields() {
   if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
-  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:Nunito,sans-serif;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
+  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
   f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
     `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
      <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#E85D75';this.style.boxShadow='0 0 0 3px rgba(232,93,117,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
@@ -3036,7 +3033,7 @@ function showOsToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'os-toast';
-    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:Nunito,sans-serif;';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:inherit;';
     document.body.appendChild(t);
   }
   t.textContent = msg;

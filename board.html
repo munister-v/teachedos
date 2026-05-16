@@ -14,7 +14,6 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -22,8 +21,8 @@
   --text:#1C1C1E;--text-2:#3A3A2E;--text-3:#A2A28C;
   --border:rgba(94,94,74,.14);--border-2:rgba(94,94,74,.28);
   --sb-w:248px;--tb-h:48px;
-  --font:Nunito,ui-sans-serif,sans-serif;
-  --mono:'JetBrains Mono',monospace;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --mono:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --card-bg:#ffffff;--card-radius:14px;--board-dot1:rgba(94,94,74,.055);--board-dot2:rgba(94,94,74,.035);
 }
 /* ── Theme overrides ── */
@@ -4788,7 +4787,7 @@ function renderAllArrows() {
       fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
         background:rgba(255,255,255,.92);border:1px solid rgba(94,94,74,.2);border-radius:6px;
         padding:2px 7px;font-size:10px;font-weight:700;color:#3A3A2E;
-        font-family:JetBrains Mono,monospace;text-align:center;white-space:nowrap;
+        font-family:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;text-align:center;white-space:nowrap;
         overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
       g.appendChild(fo);
     }
@@ -6437,7 +6436,7 @@ function updateRemoteCursor(userId, bx, by, name, avatar) {
     const col = peerColor(userId);
     dot.style.cssText = `width:14px;height:14px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);`;
     const label = document.createElement('div');
-    label.style.cssText = `background:${col};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;font-family:Nunito,sans-serif;`;
+    label.style.cssText = `background:${col};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;`;
     label.textContent = (avatar||'') + ' ' + (name||'…');
     el.appendChild(dot); el.appendChild(label);
     board.appendChild(el);

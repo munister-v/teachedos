@@ -8,7 +8,6 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>Courses · TeachEd</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -18,7 +17,7 @@
   --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
   --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
   --shadow:0 4px 24px rgba(5,5,23,.08);
-  --font:Nunito,ui-sans-serif,sans-serif;--mono:'JetBrains Mono',monospace;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;--mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
   --nav-h:36px;
 }
 [data-theme="dark"]{--bg:#1C1C1E;--bg2:#2C2C2E;--card:#2C2C2E;--border:rgba(202,201,183,.12);--border2:rgba(202,201,183,.22);--text:#F5F0E8;--text2:#CAC9B7;--text3:#5E5E4A;}
@@ -719,7 +718,7 @@ async function openSharedCourse(id) {
         '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
         '<span style="margin-left:auto;color:#E85D75;font-weight:700;font-size:13px;">Open →</span></a>'
       ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
-      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:inherit;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
       '</div>';
     modal.onclick = e => { if(e.target===modal) modal.remove(); };
     document.body.appendChild(modal);

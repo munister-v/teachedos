@@ -1,7 +1,6 @@
 @use 'styles/tokens.scss';
 @use 'styles/dark.scss';
 
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -21,23 +20,40 @@
   --lime:      #C8E632;
   --lavender:  #9F8CE8;
   --sand-dark: #5E5E4A;
-  --font-ui:   'Nunito', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-ui:   -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --radius:    16px;
   --shadow:    0 4px 24px rgba(5,5,23,0.08);
+  --tracking-tightest: -0.05em;
+  --tracking-tight: -0.022em;
+  --tracking-normal: -0.011em;
+  --leading-copy: 1.55;
 }
 
 html, body {
   width: 100%;
   min-height: 100vh;
   font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: var(--tracking-normal);
+  line-height: var(--leading-copy);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 a { text-decoration: none; color: inherit; }
+button, input, textarea, select { font: inherit; letter-spacing: inherit; }
 button { font-family: var(--font-ui); cursor: pointer; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.08;
+}
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

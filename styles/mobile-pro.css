@@ -31,8 +31,8 @@
   --mp-radius-md: 18px;
   --mp-radius-lg: 24px;
   --mp-radius-full: 999px;
-  --mp-font: 'Nunito', ui-sans-serif, system-ui, sans-serif;
-  --mp-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --mp-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --mp-mono: 'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
 }
 
 /* Desktop: hide mobile-only blocks */

@@ -19,7 +19,7 @@
       background:rgba(28,28,30,.94);color:#fff;border-radius:18px;padding:14px 16px;
       box-shadow:0 16px 48px rgba(0,0,0,.24);display:flex;gap:12px;align-items:flex-start;
       transform:translateY(130%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease;
-      font-family:Nunito,ui-sans-serif,sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
     }
     .teachedos-install.show{transform:translateY(0);opacity:1;pointer-events:auto}
     .teachedos-install-copy{flex:1;min-width:0}
@@ -41,7 +41,7 @@
     .teachedos-status{
       position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top,0px));z-index:9997;
       display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-radius:16px;
-      box-shadow:0 14px 36px rgba(0,0,0,.16);font-family:Nunito,ui-sans-serif,sans-serif;
+      box-shadow:0 14px 36px rgba(0,0,0,.16);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
       transform:translateY(-140%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease;
       backdrop-filter:blur(18px) saturate(1.6);
     }
