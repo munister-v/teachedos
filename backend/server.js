@@ -33,8 +33,8 @@ app.post('/api/billing/webhook',
   require('./routes/billing').handleWebhook
 );
 
-app.use(express.json({ limit: '4mb' }));   // boards can be large
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '25mb' }));   // boards can include optimized image cards
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // ── Trust proxy (Render sits behind a load-balancer) ───────────────────────
 app.set('trust proxy', 1);
@@ -63,6 +63,11 @@ app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 // ── Error handler ──────────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
   console.error('[error]', err.message);
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      error: 'Board payload is too large. Compress or remove a few images and try again.',
+    });
+  }
   res.status(500).json({ error: err.message || 'Server error' });
 });
 

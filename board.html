@@ -5317,6 +5317,8 @@ let isOffline       = !navigator.onLine;
 let sessionStart    = Date.now();
 let sessionEdits    = 0;
 let autoSnapTimer   = null;
+let localSaveQuotaWarned = false;
+let cloudSaveSizeWarned  = false;
 
 /* ── Lightweight hash to detect actual changes ── */
 function boardHash() {
@@ -5408,14 +5410,23 @@ function serializeBoard() {
 
 /* ════ LOCAL SAVE ════ */
 function saveLocal() {
+  const payload = JSON.stringify(serializeBoard());
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(serializeBoard()));
+    localStorage.setItem(SAVE_KEY, payload);
     lastSavedHash = boardHash();
+    localSaveQuotaWarned = false;
     return true;
   } catch(e) {
     // localStorage full — prune old versions and retry
     pruneVersions(3);
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(serializeBoard())); return true; } catch { return false; }
+    try {
+      localStorage.setItem(SAVE_KEY, payload);
+      lastSavedHash = boardHash();
+      localSaveQuotaWarned = false;
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -5438,12 +5449,28 @@ async function saveToCloud(retryCount = 0) {
       startReconnectLoop();
       return;
     }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) {
+      let message = 'HTTP ' + r.status;
+      try {
+        const payload = await r.clone().json();
+        if (payload && payload.error) message = payload.error;
+      } catch {}
+      if (r.status === 413) {
+        message = 'Board is too large for cloud save. Compress or remove a few images.';
+      }
+      throw new Error(message);
+    }
     saveRetries = 0;
     pendingCloudSave = false;
+    cloudSaveSizeWarned = false;
     setSaveUI('cloud');
     autoSnapshot('auto');
   } catch (err) {
+    console.warn('[board] cloud save failed:', err.message);
+    if (/large|413/i.test(err.message || '') && !cloudSaveSizeWarned) {
+      cloudSaveSizeWarned = true;
+      toast('Images are still too large. Try smaller files or remove a few.');
+    }
     saveRetries = retryCount + 1;
     if (saveRetries <= 4) {
       const delay = Math.min(Math.pow(2, saveRetries) * 1000, 30000);
@@ -5488,7 +5515,15 @@ function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     const ok = saveLocal();
-    if (!ok) { setSaveUI('error'); return; }
+    const canCloudSave = currentUser && currentBoardId && !isOffline;
+    if (!ok && !canCloudSave) {
+      setSaveUI('error');
+      return;
+    }
+    if (!ok && canCloudSave && !localSaveQuotaWarned) {
+      localSaveQuotaWarned = true;
+      toast('Local cache is full; saving this board to cloud.');
+    }
     setSaveUI(currentUser ? 'saving' : 'saved');
     if (currentUser && currentBoardId) {
       clearTimeout(cloudSaveTimer);
@@ -5504,9 +5539,19 @@ function scheduleSave() {
 function forceSave() {
   clearTimeout(saveTimer); clearTimeout(cloudSaveTimer);
   const ok = saveLocal();
-  setSaveUI(ok ? 'saved' : 'error');
-  if (currentUser && currentBoardId) saveToCloud();
-  toast('Saved ✓');
+  const canCloudSave = currentUser && currentBoardId && !isOffline;
+  if (!ok && !canCloudSave) {
+    setSaveUI('error');
+    toast('Local cache is full. Reconnect or remove a few images before leaving.');
+    return;
+  }
+  setSaveUI(ok ? 'saved' : 'saving');
+  if (currentUser && currentBoardId) {
+    saveToCloud();
+    toast(ok ? 'Saved ✓' : 'Saving to cloud...');
+  } else {
+    toast('Saved ✓');
+  }
 }
 
 /* ════ LOAD LOCAL ════ */
@@ -5551,13 +5596,20 @@ function getVersions() {
   try { return JSON.parse(localStorage.getItem(VER_KEY)) || []; } catch { return []; }
 }
 function saveVersions(v) {
-  try { localStorage.setItem(VER_KEY, JSON.stringify(v)); } catch { pruneVersions(3); }
+  try {
+    localStorage.setItem(VER_KEY, JSON.stringify(v));
+    return true;
+  } catch {
+    return false;
+  }
 }
 function pruneVersions(keepN) {
   const v = getVersions();
   const pinned  = v.filter(x => x.pinned);
   const autos   = v.filter(x => !x.pinned).slice(-keepN);
-  saveVersions([...pinned, ...autos]);
+  if (!saveVersions([...pinned, ...autos])) {
+    try { localStorage.removeItem(VER_KEY); } catch {}
+  }
 }
 
 function autoSnapshot(type = 'auto') {
@@ -7273,6 +7325,103 @@ function closeImageModal() {
 
 let _pendingImageDataUrl = null;
 
+const BOARD_IMAGE_MAX_INPUT_BYTES  = 12 * 1024 * 1024;
+const BOARD_IMAGE_MAX_STORED_BYTES = Math.round(1.4 * 1024 * 1024);
+const BOARD_IMAGE_MAX_DIMENSION    = 1600;
+const BOARD_IMAGE_JPEG_QUALITY     = 0.82;
+
+function formatImageBytes(bytes) {
+  if (!bytes || bytes < 1024) return `${bytes || 0} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function getDataUrlByteSize(dataUrl) {
+  const comma = dataUrl.indexOf(',');
+  const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+  return Math.ceil(base64.length * 3 / 4);
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = ev => resolve(ev.target.result);
+    reader.onerror = () => reject(new Error('Could not read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not prepare this image. Try another file.'));
+    };
+    img.src = url;
+  });
+}
+
+async function prepareBoardImageFile(file) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    throw new Error('Please choose an image file.');
+  }
+  if (file.size > BOARD_IMAGE_MAX_INPUT_BYTES) {
+    throw new Error(`Image is too large. Max ${formatImageBytes(BOARD_IMAGE_MAX_INPUT_BYTES)}.`);
+  }
+
+  const shouldPreserveOriginal =
+    file.size <= 256 * 1024 ||
+    (file.type === 'image/gif' && file.size <= BOARD_IMAGE_MAX_STORED_BYTES) ||
+    (file.type === 'image/svg+xml' && file.size <= BOARD_IMAGE_MAX_STORED_BYTES);
+
+  if (shouldPreserveOriginal) {
+    const dataUrl = await readFileAsDataUrl(file);
+    return {
+      dataUrl,
+      bytes: getDataUrlByteSize(dataUrl),
+      width: null,
+      height: null,
+      optimized: false,
+    };
+  }
+
+  const img = await loadImageElement(file);
+  const sourceW = img.naturalWidth || img.width || BOARD_IMAGE_MAX_DIMENSION;
+  const sourceH = img.naturalHeight || img.height || BOARD_IMAGE_MAX_DIMENSION;
+  let maxDim = BOARD_IMAGE_MAX_DIMENSION;
+  let quality = BOARD_IMAGE_JPEG_QUALITY;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const scale = Math.min(1, maxDim / Math.max(sourceW, sourceH));
+    const width = Math.max(1, Math.round(sourceW * scale));
+    const height = Math.max(1, Math.round(sourceH * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    const bytes = getDataUrlByteSize(dataUrl);
+    if (bytes <= BOARD_IMAGE_MAX_STORED_BYTES) {
+      return { dataUrl, bytes, width, height, optimized: true };
+    }
+
+    maxDim = Math.max(900, Math.round(maxDim * 0.78));
+    quality = Math.max(0.62, quality - 0.08);
+  }
+
+  throw new Error(`Could not optimize image under ${formatImageBytes(BOARD_IMAGE_MAX_STORED_BYTES)}. Try a smaller image.`);
+}
+
 function handleImageFileDrop(e) {
   e.preventDefault();
   const zone = document.getElementById('image-drop-zone');
@@ -7283,18 +7432,26 @@ function handleImageFileDrop(e) {
 function handleImageFileSelect(input) {
   if (input.files && input.files[0]) loadImageFile(input.files[0]);
 }
-function loadImageFile(file) {
+async function loadImageFile(file) {
   if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
-  const MAX = 8 * 1024 * 1024;
-  if (file.size > MAX) { alert('Image is too large. Max 8 MB.'); return; }
   const info = document.getElementById('image-file-info');
   if (info) {
-    info.textContent = `🖼 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    info.textContent = `Optimizing ${file.name || 'image'}...`;
     info.style.display = 'block';
   }
-  const reader = new FileReader();
-  reader.onload = ev => { _pendingImageDataUrl = ev.target.result; };
-  reader.readAsDataURL(file);
+  try {
+    const prepared = await prepareBoardImageFile(file);
+    _pendingImageDataUrl = prepared.dataUrl;
+    if (info) {
+      const dims = prepared.width && prepared.height ? ` · ${prepared.width}x${prepared.height}` : '';
+      const note = prepared.optimized ? 'optimized' : 'ready';
+      info.textContent = `🖼 ${file.name || 'Image'} · ${formatImageBytes(prepared.bytes)}${dims} · ${note}`;
+    }
+  } catch (err) {
+    _pendingImageDataUrl = null;
+    if (info) info.textContent = err.message;
+    alert(err.message);
+  }
 }
 
 /* Global paste handler — add image directly to the board on Ctrl/⌘+V */
@@ -7308,17 +7465,26 @@ document.addEventListener('paste', e => {
     if (item.type && item.type.startsWith('image/')) {
       const file = item.getAsFile();
       if (!file) continue;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const pos = pendingImagePos || screenToBoard(window.innerWidth/2, window.innerHeight/2) || { x: 200, y: 100 };
-        addCard('image', pos.x, pos.y, { title: 'Pasted image', src: ev.target.result }, 320, 240);
-        pendingImagePos = null;
-        scheduleSave && scheduleSave();
-        saveLocal && saveLocal();
-        toast && toast('🖼 Image pasted');
-      };
-      reader.readAsDataURL(file);
       e.preventDefault();
+      (async () => {
+        try {
+          const prepared = await prepareBoardImageFile(file);
+          const pos = pendingImagePos || screenToBoard(window.innerWidth/2, window.innerHeight/2) || { x: 200, y: 100 };
+          addCard('image', pos.x, pos.y, {
+            title: 'Pasted image',
+            src: prepared.dataUrl,
+            imageSize: prepared.bytes,
+            imageOptimized: prepared.optimized,
+          }, 320, 240);
+          pendingImagePos = null;
+          scheduleSave && scheduleSave();
+          saveLocal && saveLocal();
+          toast && toast('🖼 Image pasted');
+        } catch (err) {
+          toast && toast(err.message);
+          alert(err.message);
+        }
+      })();
       return;
     }
   }
@@ -7352,15 +7518,24 @@ function screenToBoard(sx, sy) {
       e.preventDefault();
       const file = files[0];
       if (!file.type.startsWith('image/')) { toast && toast('Only image files are supported'); return; }
-      const reader = new FileReader();
-      reader.onload = ev2 => {
-        const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 100 };
-        addCard('image', pos.x, pos.y, { title: file.name || 'Image', src: ev2.target.result }, 320, 240);
-        scheduleSave && scheduleSave();
-        saveLocal && saveLocal();
-        toast && toast('🖼 Image added');
-      };
-      reader.readAsDataURL(file);
+      (async () => {
+        try {
+          const prepared = await prepareBoardImageFile(file);
+          const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 100 };
+          addCard('image', pos.x, pos.y, {
+            title: file.name || 'Image',
+            src: prepared.dataUrl,
+            imageSize: prepared.bytes,
+            imageOptimized: prepared.optimized,
+          }, 320, 240);
+          scheduleSave && scheduleSave();
+          saveLocal && saveLocal();
+          toast && toast('🖼 Image added');
+        } catch (err) {
+          toast && toast(err.message);
+          alert(err.message);
+        }
+      })();
     }
   });
 });
@@ -7398,7 +7573,12 @@ function confirmImageEmbed() {
   }
   closeImageModal();
   const pos = pendingImagePos || { x: 200, y: 100 };
-  addCard('image', pos.x, pos.y, { title: _pendingImageDataUrl ? 'Uploaded image' : 'Image', src }, 320, 240);
+  addCard('image', pos.x, pos.y, {
+    title: _pendingImageDataUrl ? 'Uploaded image' : 'Image',
+    src,
+    imageOptimized: !!_pendingImageDataUrl,
+    imageSize: _pendingImageDataUrl ? getDataUrlByteSize(_pendingImageDataUrl) : undefined,
+  }, 320, 240);
   pendingImagePos = null;
   _pendingImageDataUrl = null;
   scheduleSave && scheduleSave();
