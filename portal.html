@@ -149,15 +149,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script src="scripts/app-core.js"></script>
 <script>
-const API = window.TeachEdApp.API_BASE;
 const token = localStorage.getItem('teachedos_token');
 let isTeacherView = false;
 const {
+  createApiClient,
   DEFAULT_TIME_ZONE,
   safeTimeZone,
   formatZoneNow,
   describeTimeZoneDifference
 } = window.TeachEdApp;
+const apiFetch = createApiClient(() => token);
 
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 
@@ -166,14 +167,6 @@ function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2500);
-}
-
-function apiFetch(path, opts={}){
-  return fetch(API+path,{
-    ...opts,
-    headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(opts.headers||{})},
-    body:opts.body?JSON.stringify(opts.body):undefined
-  });
 }
 
 async function init(){

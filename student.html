@@ -752,9 +752,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script src="scripts/app-core.js"></script>
 <script>
-const API = window.TeachEdApp.API_BASE;
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
+  createApiClient,
   DEFAULT_TIME_ZONE,
   browserTimeZone,
   safeTimeZone,
@@ -763,16 +763,9 @@ const {
 let authToken = localStorage.getItem('teachedos_token');
 let currentUser = null;
 let _vocabData = [];
+const apiFetch = createApiClient(() => authToken);
 
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
-
-function apiFetch(path, opts={}) {
-  return fetch(API + path, {
-    ...opts,
-    headers:{ 'Content-Type':'application/json', ...(authToken?{Authorization:'Bearer '+authToken}:{}), ...(opts.headers||{}) },
-    body: opts.body ? (typeof opts.body==='string'?opts.body:JSON.stringify(opts.body)) : undefined,
-  });
-}
 
 function logout() {
   apiFetch('/api/auth/logout',{method:'POST'}).catch(()=>{});

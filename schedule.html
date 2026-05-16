@@ -497,9 +497,9 @@ a{text-decoration:none;color:inherit;}
 
 <script src="scripts/app-core.js"></script>
 <script>
-const API = window.TeachEdApp.API_BASE;
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
+  createApiClient,
   DEFAULT_TIME_ZONE,
   browserTimeZone,
   safeTimeZone,
@@ -511,6 +511,7 @@ let currentUser = null;
 let editingId = null;
 let weekOffset = 0; // weeks from current
 let selectedColor = '#C8E632';
+const apiClient = createApiClient(() => token);
 
 const COLORS = [
   '#C8E632','#f97316','#eab308','#22c55e','#06b6d4',
@@ -740,10 +741,7 @@ function initials(name) {
 
 // ── API ───────────────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
-  const r = await fetch(API + path, {
-    ...opts,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...opts.headers },
-  });
+  const r = await apiClient(path, opts);
   const d = await r.json();
   if (!r.ok) throw new Error(d.error || 'Request failed');
   return d;

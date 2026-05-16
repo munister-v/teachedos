@@ -55,8 +55,29 @@
     return diff > 0 ? `${pretty} ${ahead}` : `${pretty} ${behind}`;
   }
 
+  function createApiClient(getToken) {
+    return function apiFetch(path, opts) {
+      const options = opts || {};
+      const headers = { ...(options.headers || {}) };
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+      const token = typeof getToken === 'function' ? getToken() : getToken;
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const body = options.body == null
+        ? undefined
+        : (typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
+      return fetch(API_BASE + path, {
+        ...options,
+        headers,
+        body
+      });
+    };
+  }
+
   window.TeachEdApp = {
     API_BASE,
+    createApiClient,
     DEFAULT_TIME_ZONE,
     browserTimeZone,
     isValidTimeZone,
