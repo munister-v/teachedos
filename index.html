@@ -981,6 +981,10 @@ html,body {
   .curr-header { padding:14px 14px 0; }
   .curr-tabs { padding:10px 14px 0; overflow-x:auto; flex-wrap:nowrap; }
   .curr-grid { padding:14px; }
+  /* Hide desktop curr-* inside #win-plans on mobile — mob-home-shell already shows boards */
+  #win-plans .curr-header,
+  #win-plans .curr-search,
+  #win-plans .curr-grid { display:none !important; }
   .mob-home-shell { display:block; padding:14px 14px 0; }
   .mob-home-hero {
     padding:18px;

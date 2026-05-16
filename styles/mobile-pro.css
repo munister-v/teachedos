@@ -90,6 +90,40 @@
     padding: 16px 18px 8px;
     padding-top: calc(16px + env(safe-area-inset-top, 0px));
   }
+  .mp-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+  .mp-topbar-titles {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .mp-topbar-eyebrow {
+    font-family: var(--mp-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--mp-text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    line-height: 1;
+  }
+  .mp-topbar-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--mp-text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .mp-avatar {
     width: 42px;
     height: 42px;

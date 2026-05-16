@@ -296,7 +296,8 @@ button{font-family:var(--font);cursor:pointer;}
   body{background:var(--bg);}
   #nav{display:none !important;}
   #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);background:var(--bg);}
-  #sb-head{padding:16px 16px 10px;display:flex;align-items:center;}
+  /* mp-topbar already shows title + New button — hide duplicate sidebar header */
+  #sb-head{display:none !important;}
   #sb-head-title{font-size:18px;font-weight:900;letter-spacing:-.03em;}
   #sb-shared-head{padding:8px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);}
   #course-list{padding:4px 8px 12px;}
