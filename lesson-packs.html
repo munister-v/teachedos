@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E85D75"/>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta charset="UTF-8"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Lesson Packs · TeachEd</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#E85D75;--lime:#C8E632;--lime-text:#1C1C1E;
+  --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
+  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --shadow:0 4px 24px rgba(5,5,23,.08);
+  --font:Manrope, -apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+  --nav-h:36px;
+}
+[data-theme="dark"]{
+  --bg:#1C1C1E;--bg2:#2A2A2E;--card:#2A2A2E;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
+  --text:#F5F0E8;--text2:#C8C8B4;--text3:#6A6A5A;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+a{text-decoration:none;color:inherit;}
+
+/* ── NAV ── */
+#nav{
+  position:sticky;top:0;z-index:200;height:36px;
+  background:rgba(245,240,232,0.82);
+  backdrop-filter:blur(32px) saturate(2);
+  -webkit-backdrop-filter:blur(32px) saturate(2);
+  border-bottom:1px solid rgba(94,94,74,.08);
+  display:flex;align-items:center;padding:0 14px;gap:0;
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
+}
+[data-theme="dark"] #nav{background:rgba(28,28,30,0.85);}
+.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0;}
+.nav-logo img{width:22px;height:22px;border-radius:6px;}
+.nav-logo-name{font-size:13px;font-weight:800;color:var(--text);margin-left:7px;letter-spacing:-.01em;}
+.nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
+.nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;transition:.12s;white-space:nowrap;}
+.nav-link:hover{background:rgba(5,5,23,.06);color:var(--text);}
+.nav-link.active{font-weight:800;color:var(--accent);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(232,93,117,.22);background:rgba(94,94,74,.07);cursor:pointer;transition:.15s;}
+.nav-user:hover{border-color:var(--accent);background:rgba(232,93,117,.09);}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:900;}
+
+/* ── LAYOUT ── */
+#page{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--nav-h));}
+#sidebar{width:200px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px 8px;}
+#main{flex:1;overflow-y:auto;padding:24px 28px;}
+
+.sb-label{font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin:12px 0 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:.12s;user-select:none;}
+.sb-item:hover{background:rgba(232,93,117,.08);color:var(--accent);}
+.sb-item.active{background:rgba(232,93,117,.12);color:var(--accent);font-weight:700;}
+.sb-badge{margin-left:auto;font-size:10px;background:rgba(94,94,74,.15);color:var(--text3);padding:1px 6px;border-radius:99px;font-family:var(--mono);}
+
+/* ── HEADER ── */
+.page-eyebrow{font-size:10px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.page-title{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.02em;margin-bottom:4px;}
+.page-title em{color:var(--accent);font-style:italic;}
+.page-sub{font-size:13px;color:var(--text3);margin-bottom:24px;}
+
+/* ── SEARCH ── */
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:0 12px;margin-bottom:20px;}
+.search-wrap input{flex:1;border:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);padding:10px 0;outline:none;}
+.search-wrap input::placeholder{color:var(--text3);}
+
+/* ── LEVEL TABS ── */
+.level-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.ltab{font-size:11px;font-weight:700;font-family:var(--mono);padding:4px 12px;border-radius:99px;border:1px solid var(--border2);color:var(--text3);cursor:pointer;transition:.12s;}
+.ltab:hover{border-color:var(--accent);color:var(--accent);}
+.ltab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ── PACK GRID ── */
+#packs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+
+.pack-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;cursor:pointer;transition:.18s;position:relative;overflow:hidden;
+}
+.pack-card:hover{border-color:rgba(232,93,117,.35);transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,93,117,.08);}
+.pack-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-accent,var(--accent));border-radius:14px 14px 0 0;}
+
+.pc-eyebrow{font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.pc-title{font-size:15px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:6px;}
+.pc-desc{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:14px;}
+.pc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pc-level{font-size:10px;font-weight:800;font-family:var(--mono);padding:2px 8px;border-radius:99px;}
+.pc-level.a1{background:rgba(34,197,94,.15);color:#16a34a;}
+.pc-level.a2{background:rgba(34,197,94,.18);color:#15803d;}
+.pc-level.b1{background:rgba(59,130,246,.15);color:#2563eb;}
+.pc-level.b2{background:rgba(99,102,241,.15);color:#4f46e5;}
+.pc-level.c1{background:rgba(139,92,246,.15);color:#7c3aed;}
+.pc-level.c2{background:rgba(168,85,247,.15);color:#9333ea;}
+.pc-dur{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.pc-open{margin-left:auto;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--accent);}
+
+/* ── MODAL ── */
+#modal-overlay{
+  display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+#modal-overlay.open{display:flex;}
+#modal{
+  background:var(--bg);border-radius:18px;
+  width:min(760px,95vw);max-height:90vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,.25);
+}
+#modal-header{
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:12px;
+}
+#modal-icon{font-size:32px;flex-shrink:0;line-height:1;}
+#modal-meta{flex:1;}
+#modal-eyebrow{font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+#modal-title{font-size:20px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+#modal-close{
+  width:28px;height:28px;border-radius:50%;background:var(--bg2);border:none;
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text3);flex-shrink:0;transition:.12s;
+}
+#modal-close:hover{background:rgba(232,93,117,.12);color:var(--accent);}
+#modal-actions{
+  padding:12px 24px;border-bottom:1px solid var(--border);
+  display:flex;gap:8px;
+}
+.btn{font-size:12px;font-weight:700;font-family:var(--font);padding:7px 16px;border-radius:8px;border:none;cursor:pointer;transition:.15s;}
+.btn-lime{background:var(--lime);color:var(--lime-text);}
+.btn-lime:hover{background:#A8C42A;}
+.btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+#modal-body{overflow-y:auto;padding:24px;flex:1;}
+#modal-content{font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-wrap;font-family:var(--mono);}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-ic{font-size:40px;margin-bottom:12px;}
+.empty-t{font-size:15px;font-weight:700;color:var(--text2);}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  #sidebar{display:none;}
+  #main{padding:16px;}
+  #packs-grid{grid-template-columns:1fr;}
+  #modal{width:100vw;max-height:95vh;border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;}
+  #modal-overlay.open{align-items:flex-end;}
+}
+</style>
+<link rel="stylesheet" href="dark.css">
+<link rel="stylesheet" href="styles/mobile-pro.css">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles/harmony.css">
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Головна</a>
+  <a class="nav-link" href="board.html">Дошка</a>
+  <a class="nav-link" href="courses.html">Курси</a>
+  <a class="nav-link active" href="lesson-packs.html">Пакети</a>
+  <a class="nav-link" href="homework.html">Домашні</a>
+  <a class="nav-link" href="schedule.html">Розклад</a>
+  <a class="nav-link" href="analytics.html">Аудит</a>
+  <a class="nav-link" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html">Профіль</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" href="profile.html" id="nav-user">
+    <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
+  </a>
+</nav>
+
+<div id="page">
+
+  <div id="sidebar">
+    <div class="sb-label">Навичка</div>
+    <div class="sb-item active" onclick="filterSkill('all',this)">✦ Всі пакети <span class="sb-badge" id="badge-all">25</span></div>
+    <div class="sb-item" onclick="filterSkill('grammar',this)">🔤 Граматика</div>
+    <div class="sb-item" onclick="filterSkill('vocabulary',this)">📝 Лексика</div>
+    <div class="sb-item" onclick="filterSkill('speaking',this)">💬 Розмова</div>
+    <div class="sb-item" onclick="filterSkill('writing',this)">✏️ Письмо</div>
+    <div class="sb-item" onclick="filterSkill('reading',this)">📖 Читання</div>
+    <div class="sb-item" onclick="filterSkill('pronunciation',this)">🎙️ Вимова</div>
+    <div class="sb-label" style="margin-top:16px;">Мова студента</div>
+    <div class="sb-item active2" onclick="filterLang('all',this)">🌍 Всі мови</div>
+    <div class="sb-item" onclick="filterLang('ua',this)">🇺🇦 Українська</div>
+    <div class="sb-item" onclick="filterLang('ru',this)">🇷🇺 Російська</div>
+    <div class="sb-item" onclick="filterLang('pl',this)">🇵🇱 Польська</div>
+  </div>
+
+  <div id="main">
+    <div class="page-eyebrow">§ TeachEd · Ready-to-use</div>
+    <div class="page-title">Lesson <em>Packs</em></div>
+    <div class="page-sub">Готові уроки з матеріалами, прикладами та вправами — відкрий, скопіюй і використовуй.</div>
+
+    <div class="search-wrap">
+      <span style="color:var(--text3);font-size:16px;">🔍</span>
+      <input id="search-input" type="text" placeholder="Пошук пакету…" oninput="renderPacks()">
+    </div>
+
+    <div class="level-tabs" id="level-tabs">
+      <div class="ltab active" onclick="filterLevel('all',this)">Всі рівні</div>
+      <div class="ltab" onclick="filterLevel('A1',this)">A1</div>
+      <div class="ltab" onclick="filterLevel('A2',this)">A2</div>
+      <div class="ltab" onclick="filterLevel('B1',this)">B1</div>
+      <div class="ltab" onclick="filterLevel('B2',this)">B2</div>
+      <div class="ltab" onclick="filterLevel('C1',this)">C1</div>
+      <div class="ltab" onclick="filterLevel('C2',this)">C2</div>
+    </div>
+
+    <div id="packs-grid"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div id="modal-header">
+      <div id="modal-icon">📦</div>
+      <div id="modal-meta">
+        <div id="modal-eyebrow"></div>
+        <div id="modal-title"></div>
+      </div>
+      <button id="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-actions">
+      <button class="btn btn-lime" onclick="copyContent()">📋 Копіювати контент</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Закрити</button>
+    </div>
+    <div id="modal-body">
+      <div id="modal-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ DATA ═══ */
+const PACKS = [
+
+/* ──── GRAMMAR ──── */
+{
+  id:'gr-articles',
+  skill:'grammar',
+  icon:'📌',
+  accent:'#E85D75',
+  title:'Articles: a / an / the / Ø',
+  eyebrow:'Grammar · A2 · 30 min',
+  level:'A2',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Артиклі — головна пастка для слов\'янців. Вся система в одному уроці.',
+  content:`═══════════════════════════════════════
+ ARTICLES: a / an / the / Ø (zero)
+ Level: A2  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Understand when to use a, an, the, or nothing
+  ▸ Recognise the 3 main article rules
+  ▸ Practise with 12 targeted exercises
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A / AN  — indefinite (general / first mention)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  A  → before consonant SOUND
+       a book   a user   a university   a one-way street
+
+  AN → before vowel SOUND
+       an apple   an hour   an honest man   an MP
+
+  Use for:
+  • First mention:   I saw a dog.
+  • Jobs/roles:      She's a teacher.
+  • General:         A cat has four legs.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE — definite (specific, known to both)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Use when:
+  • Mentioned before:  I saw a dog. The dog barked.
+  • Only one exists:   the sun / the president / the Internet
+  • Superlatives:      the best, the most expensive
+  • Geography (rivers, oceans, mountain ranges):
+    the Amazon, the Pacific, the Alps
+  • Plural countries/groups:
+    the USA, the Netherlands, the Beatles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ø  — ZERO article (no article needed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Languages:       I speak English. (NOT the English)
+  • Sports:          play football / tennis / chess
+  • Meals:           have breakfast / lunch / dinner
+  • Abstract nouns:  Love is beautiful. Time flies.
+  • Proper names:    London, Ukraine, John
+  • Plural generics: Dogs are loyal animals.
+
+📝 EXAMPLES — complete the gap
+  1. She's ___ teacher at ___ local school.
+     → a teacher / the local school
+
+  2. Can you pass me ___ salt?
+     → the salt (we both know which)
+
+  3. I had ___ egg and ___ toast for breakfast.
+     → an egg / Ø toast (uncountable)
+
+  4. ___ Amazon is ___ longest river in ___ South America.
+     → The Amazon / the longest / Ø South America
+
+  5. He plays ___ guitar in ___ band.
+     → Ø guitar / a band  (first mention)
+
+✅ QUICK EXERCISES
+  Fill in: a / an / the / —
+
+  1. He's ___ honest politician. (rare!)
+  2. I'd love ___ cup of tea.
+  3. ___ life is short. Enjoy it.
+  4. She won ___ Oscar last year.
+  5. Can you close ___ window, please?
+  6. I love ___ music.
+  7. He's ___ MP in the government.
+  8. We stayed at ___ hotel near ___ river.
+
+  KEY: an / a / Ø / an / the / Ø / an / a…the
+
+💬 DISCUSSION STARTERS
+  • Do articles exist in your language? What feels strange?
+  • Make 3 sentences about yourself — use a, an, and the.
+  • Why do you think "the Internet" but "on Facebook"?
+
+📌 TEACHER NOTES
+  ▸ Slavic speakers often omit articles completely at A1–A2
+  ▸ Focus on a/the distinction first; zero article last
+  ▸ "A university" vs "an hour" — test the SOUND rule
+  ▸ Good drilling game: Article Rush (Tools → Grammar)
+`
+},
+
+{
+  id:'gr-present-perfect',
+  skill:'grammar',
+  icon:'⏱️',
+  accent:'#E85D75',
+  title:'Present Perfect vs Past Simple',
+  eyebrow:'Grammar · B1 · 45 min',
+  level:'B1',
+  duration:'45 min',
+  langs:['ru','ua','pl'],
+  desc:'Найбільша плутанина для слов\'янців. Чіткий алгоритм вибору між часами.',
+  content:`═══════════════════════════════════════
+ PRESENT PERFECT vs PAST SIMPLE
+ Level: B1  |  Duration: 45 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Know when to use Present Perfect vs Past Simple
+  ▸ Identify key time signals for each tense
+  ▸ Avoid the #1 error for Slavic speakers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE RULE IN ONE LINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Present Perfect = past action with PRESENT relevance
+  Past Simple     = completed action in a FINISHED time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRESENT PERFECT  (have/has + past participle)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Use for:
+  ✓ Experience (ever/never):    Have you ever been to Japan?
+  ✓ Recent news:                The president has resigned.
+  ✓ Unfinished period (this week/today/this year):
+                                I've sent 10 emails today.
+  ✓ Result matters now:         I've lost my keys! (= I can't find them)
+  ✓ With: already, yet, just, ever, never, so far, recently
+
+  Time signals: today, this week, this year, ever, never,
+                already, yet, just, recently, so far, since, for
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAST SIMPLE  (verb + -ed / irregular)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Use for:
+  ✓ Specific finished time:     She left at 9 o'clock.
+  ✓ Sequence of past events:    He arrived, sat down, and opened the file.
+  ✓ Stories and narratives:     I lived in London for 3 years. (no longer)
+
+  Time signals: yesterday, last week/month/year, in 2019,
+                ago, when I was a child, at 5 pm, then
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPARISON TABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PP: I've been to Paris.         → I know it, connection to now
+  PS: I went to Paris in 2019.    → specific finished trip
+
+  PP: She's broken her leg.       → she can't walk NOW
+  PS: She broke her leg in March. → past event, stated when
+
+  PP: Have you eaten yet?         → today, result matters
+  PS: Did you eat this morning?   → asking about specific time
+
+📝 EXERCISES
+  Choose PP or PS:
+
+  1. I (lose/never) ___ my passport.           [have never lost]
+  2. He (call) ___ at 3 pm yesterday.           [called]
+  3. We (not finish) ___ the project yet.       [haven't finished]
+  4. When (you/arrive) ___ ?                    [did you arrive]
+  5. The company (launch) ___ a new app today.  [has launched]
+  6. I (study) ___ English for five years.      [have studied / studied — discuss difference!]
+
+⚠️ COMMON SLAVIC ERRORS
+  ✗ "I have seen this film yesterday."
+  ✓  I saw this film yesterday.  (finished time = PS)
+
+  ✗ "Did you ever try sushi?"
+  ✓  Have you ever tried sushi? (experience = PP)
+
+💬 DISCUSSION
+  • Tell me 3 things you've done this week.
+  • What's the most interesting place you've ever visited?
+  • Share a recent news headline using Present Perfect.
+
+📌 TEACHER NOTES
+  ▸ SINCE vs FOR confusion is common — dedicate 5 min
+  ▸ "For 3 years" can go with BOTH tenses — great discussion starter
+  ▸ Game: Tense Picker (Tools → Grammar) works great here
+`
+},
+
+{
+  id:'gr-conditionals',
+  skill:'grammar',
+  icon:'🔀',
+  accent:'#E85D75',
+  title:'Conditionals: 0 / 1st / 2nd / 3rd',
+  eyebrow:'Grammar · B1–B2 · 50 min',
+  level:'B2',
+  duration:'50 min',
+  langs:['ru','ua','pl'],
+  desc:'Всі 4 типи умовних речень з прикладами, порівнянням та вправами.',
+  content:`═══════════════════════════════════════
+ CONDITIONALS: 0 / 1st / 2nd / 3rd
+ Level: B1–B2  |  Duration: 50 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Use all 4 conditional types correctly
+  ▸ Understand the "real vs unreal" distinction
+  ▸ Mix types in natural speech
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TYPE 0 — General truth / scientific fact
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  IF + present simple → present simple
+  If you heat water to 100°C, it boils.
+  If I don't eat, I get angry.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TYPE 1 — Real / likely future situation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  IF + present simple → will + base verb
+  If it rains, I'll take an umbrella.
+  If you study hard, you'll pass the exam.
+
+  Variations: can / may / might / should instead of will
+  If you have time, you can help me.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TYPE 2 — Unreal / hypothetical present or future
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  IF + past simple → would + base verb
+  If I had a million dollars, I would travel the world.
+  If she spoke Spanish, she could get the job.
+
+  Note: "If I WERE" (not "was") — formal/subjunctive
+  If I were you, I would apologise.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TYPE 3 — Unreal past / regret / criticism
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  IF + past perfect → would have + past participle
+  If you had studied, you would have passed.
+  If she had called me, I would have come.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPARISON CHART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Type 0  Real / always true      If + PS → PS
+  Type 1  Real / possible future  If + PS → will
+  Type 2  Unreal now/future       If + PS(past) → would
+  Type 3  Unreal past             If + PP → would have
+
+📝 EXERCISES
+  Complete the sentence:
+
+  1. If I (have) ___ more time, I (read) ___ more.   [had / would read]
+  2. Water (freeze) ___ if you (cool) ___ it below 0°C.  [freezes / cool]
+  3. If she (study) ___ harder, she (pass) ___ the test.  [studies / will pass]
+  4. If he (tell) ___ me the truth, I (not be) ___ angry.  [had told / wouldn't have been]
+  5. If you (be) ___ a superhero, what power (you/choose) ___? [were / would you choose]
+
+💬 DISCUSSION STARTERS
+  • If you could live in any country, where would you go?
+  • If you had studied something different, what would it be?
+  • If you hadn't chosen your current job, what would you have done?
+
+📌 TEACHER NOTES
+  ▸ Start with Types 0 and 1 before introducing 2 and 3
+  ▸ "Would of" is a common written error — address it
+  ▸ Mixed conditionals (Type 2/3) are C1 territory — mention briefly
+  ▸ Pair work: finish each other's conditional sentences
+`
+},
+
+{
+  id:'gr-passive',
+  skill:'grammar',
+  icon:'🔄',
+  accent:'#E85D75',
+  title:'Passive Voice',
+  eyebrow:'Grammar · B1 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'Коли і як вживати пасивний стан. Формула + трансформаційні вправи.',
+  content:`═══════════════════════════════════════
+ PASSIVE VOICE
+ Level: B1  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Form passive correctly in key tenses
+  ▸ Know when passive is preferred over active
+  ▸ Transform active ↔ passive sentences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORMULA: be (conjugated) + past participle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Tense           Active                  Passive
+  ─────────────   ───────────────────    ─────────────────────────
+  Present simple  She makes coffee.       Coffee is made (by her).
+  Past simple     They built the house.   The house was built.
+  Present perf.   He has written a book.  A book has been written.
+  Future          They will launch it.    It will be launched.
+  Modal           You should report it.   It should be reported.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHEN TO USE PASSIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ Agent unknown:       My phone was stolen.
+  ✓ Agent obvious/irrelevant:
+                         English is spoken here.
+  ✓ Formal/academic writing:
+                         The experiment was conducted in 2023.
+  ✓ News headlines:      Three arrested after protest.
+  ✓ Processes:           First, the mixture is heated, then it is cooled.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BY + AGENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Only include "by + agent" when the agent is important:
+  ✓ Romeo and Juliet was written by Shakespeare.
+  ✗ The door was opened by someone. (unnecessary)
+
+📝 TRANSFORM — active → passive:
+  1. Scientists discovered a new planet.
+     → A new planet was discovered (by scientists).
+
+  2. They will announce the results tomorrow.
+     → The results will be announced tomorrow.
+
+  3. Someone has hacked the database.
+     → The database has been hacked.
+
+📝 TRANSFORM — passive → active:
+  4. The report was submitted by the team.
+     → The team submitted the report.
+
+  5. English is taught at every school here.
+     → They teach English at every school here.
+
+✅ CHOOSE: active or passive?
+  1. The package (deliver) ___ yesterday.        [was delivered]
+  2. She (finish) ___ the project on time.        [finished]
+  3. The bridge (build) ___ in 1920.              [was built]
+  4. He (promote) ___ last month.                 [was promoted]
+  5. They (not announce) ___ the winner yet.      [haven't announced]
+
+💬 DISCUSSION
+  • Describe how a product you use is made (passive process).
+  • Find 3 news headlines using passive voice today.
+
+📌 TEACHER NOTES
+  ▸ Slavic speakers understand the concept quickly — focus on form
+  ▸ Common error: "is wrote" instead of "is written"
+  ▸ Highlight: the agent (by + noun) is often omitted
+  ▸ Grammar Fix game is perfect for passive error correction drills
+`
+},
+
+{
+  id:'gr-modals',
+  skill:'grammar',
+  icon:'🧩',
+  accent:'#E85D75',
+  title:'Modal Verbs: Full Guide',
+  eyebrow:'Grammar · B1 · 40 min',
+  level:'B1',
+  duration:'40 min',
+  langs:['ru','ua','pl'],
+  desc:'Can, could, may, might, must, should, would — значення, правила, вправи.',
+  content:`═══════════════════════════════════════
+ MODAL VERBS: Full Guide
+ Level: B1  |  Duration: 40 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Use all core modals with correct meaning
+  ▸ Distinguish between ability / permission / obligation / deduction
+  ▸ Use past forms of modals (should have, could have…)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODAL MEANING GRID
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CAN       ability (present):   She can swim very fast.
+            permission (informal): Can I leave early?
+
+  COULD     ability (past):       He could run a marathon.
+            polite request:       Could you help me?
+            possibility:          It could rain later.
+
+  MAY       permission (formal):  May I come in?
+            possibility (50%):    She may be late.
+
+  MIGHT     possibility (30%):    It might snow tomorrow.
+            past possibility:     She might have forgotten.
+
+  MUST      strong obligation:    You must wear a seatbelt.
+            deduction (certain):  She must be tired — she's yawning.
+
+  MUSTN'T   prohibition:          You mustn't park here.
+
+  SHOULD    advice/recommendation: You should see a doctor.
+            expectation:          He should arrive by 6.
+
+  SHOULDN'T advice against:       You shouldn't eat so much sugar.
+
+  WOULD     hypothetical:         I would help if I could.
+            polite request:       Would you mind opening the window?
+            past habit:           We would visit grandma every Sunday.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAST MODALS (modal + have + past participle)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  should have + PP  →  regret or criticism
+    You should have called me! (but you didn't)
+
+  could have + PP   →  missed opportunity
+    I could have been a doctor. (but chose otherwise)
+
+  must have + PP    →  past deduction
+    She must have left early — her coat is gone.
+
+  might have + PP   →  past possibility
+    He might have taken the wrong bus.
+
+📝 EXERCISES — choose the right modal:
+  1. You ___ (not/park) here — it's a fire lane.   [mustn't]
+  2. ___ I use your pen for a moment?               [May/Can/Could]
+  3. He ___ (know) the answer — he studied all week.[must]
+  4. I ___ (call) you earlier. Sorry!               [should have called]
+  5. She ___ (be) at home — her car is in the drive.[must be]
+  6. You ___ (try) sushi if you ever visit Japan.   [should]
+
+💬 DISCUSSION
+  • What should the government do about climate change?
+  • If you could have any job, what would it be?
+  • What's something you should have done differently this year?
+
+📌 TEACHER NOTES
+  ▸ Must vs Have to: must = internal obligation; have to = external rule
+  ▸ Needn't vs Don't have to: both = not necessary (not prohibited)
+  ▸ Common error: "should to go" — modals never take "to"
+  ▸ Past modals are B2 territory; introduce if class is ready
+`
+},
+
+/* ──── VOCABULARY ──── */
+{
+  id:'voc-business-meetings',
+  skill:'vocabulary',
+  icon:'💼',
+  accent:'#6366f1',
+  title:'Business English: Meetings',
+  eyebrow:'Vocabulary · B1–B2 · 40 min',
+  level:'B2',
+  duration:'40 min',
+  langs:['ru','ua','pl'],
+  desc:'20 ключових фраз для зустрічей, презентацій та нарад англійською.',
+  content:`═══════════════════════════════════════
+ BUSINESS ENGLISH: Meetings & Discussions
+ Level: B1–B2  |  Duration: 40 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Open and close a meeting professionally
+  ▸ Give opinions, agree, disagree diplomatically
+  ▸ Interrupt, clarify, and summarise
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPENING A MEETING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • "Right, shall we get started?"
+  • "Let's begin. The agenda for today is…"
+  • "I'd like to welcome everyone. We have three points to cover."
+  • "As you can see from the agenda…"
+
+GIVING YOUR OPINION
+  • "In my view / From my perspective…"
+  • "I think we should consider…"
+  • "As far as I'm concerned…"
+  • "I strongly believe that…"
+
+AGREEING
+  • "Absolutely. I couldn't agree more."
+  • "That's a good point."
+  • "Exactly — that's what I was thinking."
+  • "I'd go along with that."
+
+DISAGREEING DIPLOMATICALLY
+  • "I see your point, but…"
+  • "I'm not sure I agree entirely. I think…"
+  • "That's an interesting view, but have you considered…?"
+  • "With respect, I'd like to suggest an alternative…"
+
+INTERRUPTING POLITELY
+  • "Sorry to interrupt, but…"
+  • "Can I come in here?"
+  • "If I could just add something…"
+
+ASKING FOR CLARIFICATION
+  • "Could you elaborate on that?"
+  • "What exactly do you mean by…?"
+  • "Just to clarify — are you saying…?"
+
+SUMMARISING / CLOSING
+  • "So to summarise the main points…"
+  • "We've agreed that… and our next steps are…"
+  • "Let's wrap up there."
+  • "The action points from today are…"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KEY VOCABULARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  agenda         — список питань зустрічі
+  minutes        — протокол зустрічі
+  action point   — завдання після зустрічі
+  follow up      — зробити після зустрічі
+  AOB            — Any Other Business (різне)
+  take the floor — взяти слово
+  defer          — відкласти питання
+  tabled         — відкладено (UK) / поставлено на порядок денний (US!)
+
+📝 ROLE-PLAY TASK
+  Сценарій: командна нарада щодо нового продукту.
+  Ролі: Project Manager, Marketing, Finance, Developer
+  Завдання: погодити бюджет та дату запуску.
+  Використайте мінімум 6 фраз із уроку.
+
+💬 DISCUSSION
+  • How are meetings different in your culture vs UK/US?
+  • What's the most common meeting problem in your workplace?
+  • Describe a bad meeting you've had. What went wrong?
+
+📌 TEACHER NOTES
+  ▸ Role-play is the best practice format for this pack
+  ▸ Record students and let them self-evaluate
+  ▸ Contrast formal (May I…) vs informal (Can I…) registers
+`
+},
+
+{
+  id:'voc-travel',
+  skill:'vocabulary',
+  icon:'✈️',
+  accent:'#06b6d4',
+  title:'Travel & Airport English',
+  eyebrow:'Vocabulary · A2–B1 · 30 min',
+  level:'A2',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Вся лексика для аеропорту, готелю та подорожей — з діалогами.',
+  content:`═══════════════════════════════════════
+ TRAVEL & AIRPORT ENGLISH
+ Level: A2–B1  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Handle check-in, security, and boarding
+  ▸ Book and check into a hotel
+  ▸ Ask for help and directions confidently
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AT THE AIRPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  check-in desk       — стійка реєстрації
+  boarding pass       — посадковий талон
+  passport control    — паспортний контроль
+  departure gate      — вихід на посадку (гейт)
+  hand luggage        — ручна поклажа
+  overhead locker     — верхня полиця
+  delayed / on time   — із запізненням / вчасно
+  window / aisle seat — місце біля вікна / в проході
+
+  USEFUL PHRASES:
+  "I'd like to check in, please."
+  "Is this the gate for flight BA207?"
+  "My bag is overweight — what should I do?"
+  "I've missed my connection. Can you help?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AT THE HOTEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  reservation         — бронювання
+  single / double     — одномісний / двомісний номер
+  ensuite             — номер з ванною
+  room service        — обслуговування в номері
+  check out           — виселитися
+  housekeeping        — прибирання
+
+  USEFUL PHRASES:
+  "I have a reservation under the name…"
+  "Could I get a wake-up call at 7 am?"
+  "The air conditioning isn't working."
+  "I'd like to extend my stay by one night."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ASKING FOR DIRECTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "Excuse me, how do I get to…?"
+  "Is it within walking distance?"
+  "Take the first right / second left."
+  "It's about 10 minutes from here."
+  "You can't miss it."
+
+📝 DIALOGUE — Airport check-in (practise in pairs):
+  A: Good morning. Can I see your passport, please?
+  B: Of course. Here you are.
+  A: Are you checking any bags in today?
+  B: Yes, one suitcase.
+  A: Would you prefer a window or aisle seat?
+  B: Aisle, please — I have a long flight.
+  A: Your gate is B14. Boarding starts at 10:40.
+
+💬 DISCUSSION
+  • Describe your worst or best travel experience.
+  • What do you always do at an airport?
+  • What's in your perfect travel bag?
+
+📌 TEACHER NOTES
+  ▸ Vocabulary Match game works great for this topic
+  ▸ Bring real boarding passes or hotel receipts as realia
+  ▸ Great topic for A2–B1 — high frequency, motivating
+`
+},
+
+{
+  id:'voc-technology',
+  skill:'vocabulary',
+  icon:'💻',
+  accent:'#8b5cf6',
+  title:'Technology & Social Media',
+  eyebrow:'Vocabulary · B1 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'Сучасна лексика про технології, соціальні мережі та цифрове життя.',
+  content:`═══════════════════════════════════════
+ TECHNOLOGY & SOCIAL MEDIA
+ Level: B1  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Discuss technology in everyday English
+  ▸ Use correct verbs with tech vocabulary
+  ▸ Express opinions about digital life
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CORE VOCABULARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DEVICES & TECH
+  smartphone      laptop      tablet      smartwatch
+  wireless        Bluetooth   cloud       bandwidth
+  app             software    update      reboot / restart
+  charge          cable       wireless charging
+
+  INTERNET & SOCIAL MEDIA
+  scroll          post (v/n)  share       tag (v/n)
+  go viral        trending    algorithm   feed
+  DM (direct msg) story       reel        thread
+  unsubscribe     mute        block       unfollow
+  stream          upload      download    buffer
+
+  TECH VERBS (collocations)
+  browse the web          log in / log out
+  crash (the app crashed) back up (your files)
+  hack into               swipe left/right
+  ping someone            drop a message
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USEFUL PHRASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "My phone is running out of battery."
+  "The internet connection is really slow."
+  "I'll send it to you on WhatsApp."
+  "That video went viral overnight."
+  "I need to update my software."
+  "My account was hacked — I lost everything."
+
+📝 EXERCISES
+  Fill in the correct word:
+  1. I can't open the file — my laptop keeps ___ing.  [crashing]
+  2. Don't forget to ___ your files before the trip.   [back up]
+  3. She posted a photo and it ___ viral in 2 hours.   [went]
+  4. Just ___ me the link — I'll look at it later.     [send/drop]
+  5. The app asks you to ___ in with your email.       [log]
+
+💬 DISCUSSION QUESTIONS
+  • How many hours a day do you spend on your phone?
+  • What's the best app you've ever used? Why?
+  • Do you think social media does more harm or good?
+  • Would you be able to live without internet for a week?
+  • What technology has changed your life the most?
+
+📌 TEACHER NOTES
+  ▸ High-engagement topic for younger adults
+  ▸ Ask students to show their screen time stats
+  ▸ Debate works well: "Social media is destroying society"
+  ▸ Link to Writing: opinion essay on tech and privacy
+`
+},
+
+{
+  id:'voc-health',
+  skill:'vocabulary',
+  icon:'🏥',
+  accent:'#22c55e',
+  title:'Health & Wellbeing',
+  eyebrow:'Vocabulary · B1 · 30 min',
+  level:'B1',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Лексика для опису симптомів, здоров\'я та медичних ситуацій.',
+  content:`═══════════════════════════════════════
+ HEALTH & WELLBEING
+ Level: B1  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Describe symptoms and health problems
+  ▸ Talk to a doctor or pharmacist
+  ▸ Discuss healthy habits and wellbeing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYMPTOMS & CONDITIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  headache        stomachache     sore throat
+  fever / temperature             runny nose
+  cough           rash            swollen (ankle/eye)
+  dizzy / nauseous                exhausted / drained
+  sprain (v)      bruise (v/n)    allergy
+
+  I have a headache.        My throat is sore.
+  I feel nauseous.          My ankle is swollen.
+  I'm coming down with something. (getting ill)
+  I'm under the weather.   (feeling unwell — idiom)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AT THE DOCTOR / PHARMACIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  prescription    painkillers     antibiotic
+  dose            side effect     ointment
+  blood test      scan / X-ray    referral
+
+  USEFUL PHRASES:
+  "I've had this pain for three days."
+  "It hurts when I breathe deeply."
+  "Do I need a prescription for this?"
+  "Are there any side effects?"
+  "Should I make a follow-up appointment?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HEALTHY HABITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  stay hydrated   cut down on (sugar)
+  work out        get enough sleep
+  meditate        maintain a balanced diet
+  reduce stress   take a break
+
+  "I try to work out three times a week."
+  "I've been cutting down on caffeine."
+  "I need to get more sleep — I'm exhausted."
+
+📝 ROLE-PLAY: Doctor & Patient
+  Patient has: bad headache for 2 days, mild fever,
+               no appetite, works long hours.
+  Doctor: ask questions, suggest advice.
+
+💬 DISCUSSION
+  • What do you do to stay healthy?
+  • Have you ever had a medical experience in another language?
+  • What's more important: physical or mental health?
+
+📌 TEACHER NOTES
+  ▸ Role-play works very well — real-world scenario
+  ▸ Vocabulary matching game: symptoms ↔ treatments
+  ▸ Extension: NHS leaflet reading for B2+
+`
+},
+
+{
+  id:'voc-false-friends',
+  skill:'vocabulary',
+  icon:'🤝',
+  accent:'#f97316',
+  title:'False Friends: RU/UA/PL → EN',
+  eyebrow:'Vocabulary · A2–B1 · 25 min',
+  level:'A2',
+  duration:'25 min',
+  langs:['ru','ua','pl'],
+  desc:'Слова-пастки, які схожі, але означають різне. Топ-20 помилок.',
+  content:`═══════════════════════════════════════
+ FALSE FRIENDS: Slavic → English
+ Level: A2–B1  |  Duration: 25 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Recognise the 20 most dangerous false friends
+  ▸ Avoid translation errors in speaking and writing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOP FALSE FRIENDS (RU/UA → EN)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  магазин    ≠  magazine    (журнал, а не магазин → shop/store)
+  симпатичний ≠ sympathetic (жалісливий → pretty/attractive)
+  конкурент  ≠  concert     (концерт → competitor)
+  аудиторія  ≠  auditorium  (= зал; аудиторія слухачів → audience)
+  декларація ≠  declaration (теж означає декларацію — BUT declaration of love ≠ кохання)
+  реалізація ≠  realisation (усвідомлення; продаж → sale/implementation)
+  претендент ≠  pretender   (удавача → candidate/applicant)
+  акуратний  ≠  accurate    (точний → neat/tidy)
+  фабрика    ≠  fabric       (тканина → factory/plant)
+  лекція     ≠  lecture      (правильно: лекція — але "читати лекцію" = give a lecture, not read)
+  агент      ≠  agent        (often correct, but "estate agent" ≠ агент нерухомості in US)
+  бібліотека ≠  bibliography (список літератури → library)
+  гімназія   ≠  gymnasium    (спортзал → grammar school in UK)
+  аспірант   ≠  aspirant     (той хто прагне → postgraduate student)
+  комплекція ≠  complexion   (тон шкіри → build/physique)
+  дата       =  date         (TRUE FRIEND — works in EN!)
+  лист       ≠  list         (список → leaf/letter in UA; листопад ≠ November)
+  пластир    ≠  plaster      (стрічка → plaster/bandage — actually correct! But "plaster" also = стіна)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POLISH FALSE FRIENDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ordynator  ≠  ordinary    (звичайний → senior doctor/ward head)
+  aktualny   ≠  actual      (реальний → current/up-to-date)
+  ewentualny ≠  eventual    (кінцевий → possible/potential)
+  sympathyczny ≠ sympathetic (lovely/nice, not sorry-for-you)
+
+📝 EXERCISES
+  Choose the correct word:
+  1. I buy food at the ___ (magazine/shop).
+  2. She's a very ___ person (sympathetic/kind).
+  3. The ___ (fabric/factory) produces 1,000 units daily.
+  4. He's a ___ (pretender/candidate) for the position.
+  5. The book is available at the ___ (bibliography/library).
+
+💬 GAME: True or False Friend?
+  Say a Slavic-looking English word. Students guess:
+  True Friend = means what it looks like
+  False Friend = trap!
+
+📌 TEACHER NOTES
+  ▸ Use the False Friends game in Tools for drilling
+  ▸ Collect student errors from writing homework and add here
+  ▸ Great warm-up activity for mixed nationality groups
+`
+},
+
+/* ──── SPEAKING ──── */
+{
+  id:'sp-ielts-part2',
+  skill:'speaking',
+  icon:'🎤',
+  accent:'#a78bfa',
+  title:'IELTS Speaking Part 2: Describe a Person',
+  eyebrow:'Speaking · B2 · 45 min',
+  level:'B2',
+  duration:'45 min',
+  langs:['ru','ua','pl'],
+  desc:'Структура, лексика та зразкова відповідь для IELTS Part 2.',
+  content:`═══════════════════════════════════════
+ IELTS SPEAKING PART 2: Describe a Person
+ Level: B2  |  Duration: 45 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Structure a 2-minute monologue clearly
+  ▸ Use advanced descriptive vocabulary
+  ▸ Respond naturally to follow-up questions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TASK CARD (typical format)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "Describe a person who has had a big influence on your life.
+   You should say:
+   • who this person is
+   • how you met or know them
+   • what qualities they have
+   • and explain why they have been so influential."
+
+  (1 min to prepare → 2 min to speak)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRUCTURE (use this every time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. INTRO — who it is (1–2 sentences)
+     "I'd like to talk about my university professor, Dr. Kovač."
+
+  2. BACKGROUND — how you know them (2–3 sentences)
+     "I first met her in my second year when I took her linguistics course…"
+
+  3. QUALITIES — describe personality/skills (3–4 sentences)
+     "She is incredibly passionate about her subject…"
+
+  4. INFLUENCE — why important (3–4 sentences)
+     "She completely changed the way I think about…"
+
+  5. CONCLUSION — wrap up (1 sentence)
+     "Without a doubt, she's the person who influenced me the most."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESCRIPTIVE VOCABULARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PERSONALITY:
+  dedicated / committed / passionate
+  inspiring / motivating / encouraging
+  down-to-earth / humble / approachable
+  determined / resilient / driven
+
+  INFLUENCE PHRASES:
+  "She opened my eyes to…"
+  "He taught me the importance of…"
+  "Thanks to her, I developed a passion for…"
+  "I wouldn't be where I am today without…"
+  "She completely transformed my perspective on…"
+
+  LINKING WORDS (for fluency):
+  What's more… / Furthermore… / In addition to this…
+  As a result… / Consequently… / Because of this…
+  Looking back… / On reflection…
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SAMPLE ANSWER (Band 7+)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "I'd like to describe my school English teacher, Ms. Bondarenko,
+   who was one of the most influential people in my life.
+
+   I first met her when I was fourteen, and at that point I found
+   English incredibly difficult. What struck me immediately was
+   how patient and encouraging she was with every student.
+
+   She was the kind of teacher who made you feel that any question
+   was a good question. She was also extremely dedicated — she often
+   stayed after class just to help students who were struggling.
+
+   What made her so influential was that she didn't just teach us
+   English — she genuinely inspired us to love learning. Because
+   of her encouragement, I went on to study linguistics at university.
+   Looking back, I truly believe she changed the direction of my life."
+
+📝 PRACTICE TASKS
+  Describe:
+  1. A teacher who inspired you
+  2. A family member you admire
+  3. Someone you've never met but admire
+  4. A childhood friend you remember
+
+📌 TEACHER NOTES
+  ▸ Time strictly: 1 min prep, 2 min speak
+  ▸ Record students — self-evaluation is very effective
+  ▸ Follow-up questions: "Why do you think…? Would you say…?"
+  ▸ Band 7 markers: range of vocabulary, complex sentences, fluency
+`
+},
+
+{
+  id:'sp-job-interview',
+  skill:'speaking',
+  icon:'👔',
+  accent:'#a78bfa',
+  title:'Job Interview English',
+  eyebrow:'Speaking · B2 · 45 min',
+  level:'B2',
+  duration:'45 min',
+  langs:['ru','ua','pl'],
+  desc:'10 найпоширеніших питань на співбесіді з модельними відповідями.',
+  content:`═══════════════════════════════════════
+ JOB INTERVIEW ENGLISH
+ Level: B2  |  Duration: 45 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Answer the 10 most common interview questions
+  ▸ Use the STAR method for behavioural questions
+  ▸ Ask good questions at the end of an interview
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE STAR METHOD (for behavioural questions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  S — Situation  (set the scene)
+  T — Task       (what was your responsibility?)
+  A — Action     (what did YOU do?)
+  R — Result     (what happened?)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOP 10 QUESTIONS & MODEL ANSWERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. "Tell me about yourself."
+   MODEL: "I have a background in [field] with [X] years of experience.
+   I've worked at [company] where I [key achievement]. I'm now looking
+   for an opportunity to [next step]."
+
+2. "Why do you want this job?"
+   MODEL: "I've followed [company] for a while and I'm particularly
+   impressed by [specific thing]. My skills in [X] would allow me
+   to contribute to [goal]."
+
+3. "What are your strengths?"
+   MODEL: "One of my key strengths is [skill]. For example, in my
+   previous role I [specific example] which resulted in [outcome]."
+
+4. "What's your biggest weakness?"
+   MODEL: "I used to struggle with [X], but I've been working on it by
+   [specific action], and I've seen real improvement."
+   (Be honest but show self-awareness + action taken)
+
+5. "Tell me about a challenge you faced."
+   (Use STAR method)
+   MODEL: "In my previous job, our team faced a deadline crisis when
+   [Situation]. I was responsible for [Task]. I decided to [Action],
+   and as a result [Result]."
+
+6. "Where do you see yourself in 5 years?"
+   MODEL: "I'd like to develop my expertise in [area] and take on
+   more responsibility. Ideally, I'd like to be in a [role type]
+   within this industry."
+
+7. "Why did you leave your last job?"
+   MODEL: Always stay positive. Focus on growth, not problems.
+   "I'm looking for a new challenge and greater opportunities to…"
+
+8. "What do you know about our company?"
+   Do your research! Mention: product/service, recent news, values.
+
+9. "Can you work under pressure?"
+   MODEL: "Yes. For example, [STAR story with a deadline or crisis]."
+
+10. "Do you have any questions for us?"
+   Good questions to ask:
+   "What does success look like in this role?"
+   "What are the team's biggest challenges right now?"
+   "What's the company culture like?"
+   "What are the next steps in the process?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USEFUL PHRASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "That's a great question. I would say…"
+  "Could you give me a moment to think about that?"
+  "To give you a specific example…"
+  "I'd like to add that…"
+
+📌 TEACHER NOTES
+  ▸ Mock interview role-play: student + interviewer
+  ▸ Record and analyse: eye contact, filler words, pacing
+  ▸ LinkedIn profiles as warm-up: "describe yourself in 3 words"
+`
+},
+
+{
+  id:'sp-discussions',
+  skill:'speaking',
+  icon:'💬',
+  accent:'#a78bfa',
+  title:'Discussion & Debate Language',
+  eyebrow:'Speaking · B2–C1 · 40 min',
+  level:'B2',
+  duration:'40 min',
+  langs:['ru','ua','pl'],
+  desc:'Мовні засоби для дискусій, дебатів та обміну думками.',
+  content:`═══════════════════════════════════════
+ DISCUSSION & DEBATE LANGUAGE
+ Level: B2–C1  |  Duration: 40 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Express and defend opinions clearly
+  ▸ Agree, disagree, and partially agree
+  ▸ Handle counter-arguments diplomatically
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STATING YOUR OPINION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Neutral:      "I think / I believe / I feel that…"
+  Strong:       "I'm convinced that… / I strongly believe…"
+  Tentative:    "It seems to me that… / I tend to think…"
+  Impersonal:   "It could be argued that… / One might say…"
+
+AGREEING
+  Full:         "Absolutely. / Exactly. / Precisely."
+  Partial:      "You make a fair point, and I'd add that…"
+  Enthusiastic: "I couldn't agree more. That's exactly right."
+
+DISAGREEING
+  Direct:       "I'm afraid I disagree. In my view…"
+  Polite:       "I see your point, but I'm not entirely convinced…"
+  Diplomatic:   "That's an interesting perspective, though I'd argue…"
+  Challenging:  "But isn't it the case that…?"
+
+CONCEDING A POINT
+  "Fair enough. / You have a point there."
+  "I take your point, but I still think…"
+  "That's true to some extent, however…"
+
+GIVING EXAMPLES
+  "For instance… / For example… / Take… as a case in point."
+  "A good illustration of this is…"
+  "This is evident in the case of…"
+
+HEDGING (softening claims)
+  "It tends to be the case that…"
+  "In most cases… / Generally speaking…"
+  "There's a possibility that…"
+  "To some degree / extent…"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DEBATE TOPICS (choose one)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • "Social media does more harm than good."
+  • "Working from home is better for productivity."
+  • "University education should be free for everyone."
+  • "Artificial intelligence will replace most jobs in 20 years."
+  • "Fast fashion should be banned."
+
+  FORMAT: 2 teams → 3 min opening → 5 min rebuttal → 2 min closing
+
+📌 TEACHER NOTES
+  ▸ Assign positions randomly — great for pushing beyond comfort zone
+  ▸ Give a language feedback sheet: note phrases students missed
+  ▸ Four Opinions Generator tool works perfectly as a warm-up
+`
+},
+
+/* ──── WRITING ──── */
+{
+  id:'wr-formal-email',
+  skill:'writing',
+  icon:'📧',
+  accent:'#6ec98a',
+  title:'Formal Email Writing',
+  eyebrow:'Writing · B1–B2 · 40 min',
+  level:'B1',
+  duration:'40 min',
+  langs:['ru','ua','pl'],
+  desc:'Структура, фрази та зразок ділового листа. Готово до практики.',
+  content:`═══════════════════════════════════════
+ FORMAL EMAIL WRITING
+ Level: B1–B2  |  Duration: 40 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Structure a formal email correctly
+  ▸ Use appropriate salutations and closings
+  ▸ Write clearly and concisely in a professional register
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMAIL STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Subject line → Salutation → Opening → Body → Closing → Sign-off
+
+SUBJECT LINE
+  Be specific and informative:
+  ✓ "Request for Meeting: Thursday 20 March"
+  ✓ "Follow-up: Interview for Marketing Manager Role"
+  ✗ "Hello" / "Important!!!"
+
+SALUTATION
+  Know the name:    Dear Mr Smith, / Dear Dr Kovač,
+  Don't know name:  Dear Sir or Madam,
+  Team:             Dear all, / Dear team,
+  Informal formal:  Hi Sarah, (acceptable in many offices)
+
+OPENING SENTENCES
+  Introducing yourself:  "My name is [X] and I am writing with regard to…"
+  Referring to contact:  "Further to our conversation on Monday…"
+  Following up:          "I am writing to follow up on my previous email…"
+  Requesting:            "I am writing to enquire about…"
+
+BODY — keep it clear:
+  One idea per paragraph. Use topic sentences.
+  "Regarding the first point…"
+  "I would like to draw your attention to…"
+  "Please find attached…"
+  "I would be grateful if you could…"
+
+CLOSING
+  Requesting action:  "I look forward to hearing from you."
+  Offering help:      "Please do not hesitate to contact me if you need further information."
+  Thanking:           "Thank you for your time and consideration."
+
+SIGN-OFF
+  Formal:   Yours sincerely, (if you know the name)
+            Yours faithfully, (if you don't know the name)
+  Semi-formal: Kind regards, / Best regards,
+  Informal formal: Best, / Many thanks,
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SAMPLE EMAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Subject: Application for English Teacher Position
+
+  Dear Ms Thompson,
+
+  I am writing to apply for the English Teacher position advertised
+  on your school's website on 10 May. I believe my qualifications
+  and experience make me a strong candidate for this role.
+
+  I hold a CELTA qualification and have four years of experience
+  teaching English to adult learners at B1–C1 level. In my current
+  role at Language School Kyiv, I have developed a range of
+  communicative lesson materials and achieved a 95% student
+  satisfaction rate.
+
+  Please find my CV attached. I would welcome the opportunity
+  to discuss my application further at your convenience.
+
+  I look forward to hearing from you.
+
+  Yours sincerely,
+  Olena Marchenko
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMMON ERRORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✗ "I am writing to you because I need to ask you…"  (too wordy)
+  ✓  "I am writing to enquire about…"
+
+  ✗ "With regards to your email…"
+  ✓  "With regard to your email…" (no -s)
+
+  ✗ "Waiting for your answer"
+  ✓  "I look forward to your reply."
+
+📝 WRITING TASK
+  Write a formal email (120–150 words):
+  You are applying for a course at a language school abroad.
+  Ask about: start dates, fees, accommodation options.
+
+📌 TEACHER NOTES
+  ▸ Compare formal vs informal emails side by side
+  ▸ Error correction activity: find 8 mistakes in a flawed email
+  ▸ Link to IELTS General Writing Task 1 if relevant
+`
+},
+
+{
+  id:'wr-opinion-essay',
+  skill:'writing',
+  icon:'✍️',
+  accent:'#6ec98a',
+  title:'Opinion Essay: Structure & Language',
+  eyebrow:'Writing · B2 · 50 min',
+  level:'B2',
+  duration:'50 min',
+  langs:['ru','ua','pl'],
+  desc:'Покрокова структура есе + банк лінкерів і зразковий абзац.',
+  content:`═══════════════════════════════════════
+ OPINION ESSAY: Structure & Language
+ Level: B2  |  Duration: 50 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Write a well-structured 4-paragraph opinion essay
+  ▸ Use a range of linking expressions
+  ▸ Express, support and conclude an argument
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESSAY STRUCTURE (250–280 words)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Para 1: INTRODUCTION (30–40 words)
+    • Hook / general statement about the topic
+    • State your opinion clearly
+    "Nowadays, [topic] has become increasingly [adj].
+     In my opinion / I firmly believe that [your position]."
+
+  Para 2: MAIN ARGUMENT + SUPPORT (70–90 words)
+    • Topic sentence (your first reason)
+    • Explanation + example / evidence
+    "The main reason why I hold this view is that…
+     For instance… / This is evident in…"
+
+  Para 3: SECOND ARGUMENT + CONCESSION (70–90 words)
+    • Topic sentence (second reason)
+    • Address the other side briefly
+    "Furthermore… / Another key point is…
+     Admittedly, some people argue that [opposite view].
+     However, I would contend that…"
+
+  Para 4: CONCLUSION (30–40 words)
+    • Restate opinion (different words)
+    • Summarise main points
+    • Optional: call to action or broader implication
+    "In conclusion, I believe that… because…
+     It is therefore essential that…"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LINKING WORD BANK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Adding:      Furthermore / Moreover / In addition / What is more
+  Contrast:    However / Nevertheless / On the other hand / Although
+  Concession:  Admittedly / It is true that / While it may be argued
+  Cause:       Because / Since / As / Due to / Owing to
+  Result:      Therefore / As a result / Consequently / Thus
+  Example:     For instance / For example / Such as / Take… as an example
+  Conclusion:  In conclusion / To conclude / In summary / Ultimately
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SAMPLE PARAGRAPH (Body Para 1)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "The primary reason why I believe remote work is beneficial is
+   that it significantly improves employees' work-life balance.
+   When people have the flexibility to work from home, they save
+   considerable time on commuting and can dedicate more time to
+   their families and personal wellbeing. For instance, a recent
+   study found that remote workers reported 22% higher job
+   satisfaction. This suggests that flexible working arrangements
+   can have a profoundly positive impact on productivity."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOPICS TO PRACTISE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • "The internet has done more harm than good."
+  • "Cities are better places to live than villages."
+  • "School uniforms should be compulsory."
+  • "Climate change is the greatest challenge of our generation."
+
+📌 TEACHER NOTES
+  ▸ Give students the structure card — let them fill it in first
+  ▸ Peer review: swap essays, check structure + linkers used
+  ▸ For IELTS: teach Task Achievement criteria explicitly
+  ▸ Writing Prompts tool generates more topics on demand
+`
+},
+
+/* ──── READING ──── */
+{
+  id:'rd-reading-strategies',
+  skill:'reading',
+  icon:'📖',
+  accent:'#60a5fa',
+  title:'Reading Strategies: Skim, Scan & Infer',
+  eyebrow:'Reading · B1–B2 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'Три ключові стратегії читання з вправами та порадами для екзаменів.',
+  content:`═══════════════════════════════════════
+ READING STRATEGIES: Skim, Scan & Infer
+ Level: B1–B2  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Use skimming to get the gist quickly
+  ▸ Use scanning to find specific information
+  ▸ Make inferences from implied meaning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRATEGY 1: SKIMMING (reading for gist)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WHAT: Read quickly to understand the overall topic and tone.
+  HOW:  Read title, subheadings, first/last sentences of each para.
+  WHEN: Before reading in detail; choosing which article to read.
+
+  Tips:
+  • Don't stop at unknown words.
+  • Ask: "What is this text mainly about?"
+  • Takes: 30–60 seconds for a B1 text.
+
+  TASK: Skim this text in 45 seconds. What is it about?
+  (Insert any short article/text here)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRATEGY 2: SCANNING (finding specific info)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WHAT: Move eyes quickly to find a particular fact, name, or number.
+  HOW:  Look for key words, dates, names, numbers — not every word.
+  WHEN: Answering specific questions; looking at a timetable/form.
+
+  Tips:
+  • Know WHAT you're looking for before scanning.
+  • Use your finger or a pen to guide your eye.
+  • The answer will be near the keyword — not far.
+
+  TASK: Find the answers in 30 seconds (from a sample text):
+  1. When was the company founded?
+  2. How many employees does it have?
+  3. Who is the current CEO?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRATEGY 3: INFERRING MEANING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WHAT: Work out the meaning of unknown words or implied ideas.
+  HOW:
+    • Context: what does the sentence suggest?
+    • Word parts: prefix/suffix/root
+    • Grammar: noun/verb/adjective? What can go here?
+    • Tone: positive/negative? formal/informal?
+
+  EXAMPLE:
+  "Despite the relentless rain, the hikers persevered."
+  → relentless = stops? no. continues without stopping = constant
+  → persevered = gave up? no. kept going = continued with determination
+
+  PRACTICE:
+  Guess the meaning of these words from context:
+  1. "She was visibly shaken after the incident." [shaken = upset/disturbed]
+  2. "The CEO was tight-lipped about the merger." [tight-lipped = silent/secretive]
+  3. "His credentials were impeccable." [impeccable = perfect/flawless]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXAM QUESTION TYPES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Multiple choice     → skim first, then scan for answer area
+  True / False        → scan for keyword, check precisely
+  Matching headings   → skim each paragraph for main idea
+  Gap fill            → grammar + context clue together
+
+📌 TEACHER NOTES
+  ▸ Use real articles: BBC, The Guardian, National Geographic
+  ▸ Time students on skimming/scanning tasks
+  ▸ True/False game (Tools) is great for practising inference
+`
+},
+
+/* ──── PRONUNCIATION ──── */
+{
+  id:'pr-word-stress',
+  skill:'pronunciation',
+  icon:'🔊',
+  accent:'#f59e0b',
+  title:'Word Stress: Rules & Patterns',
+  eyebrow:'Pronunciation · B1 · 30 min',
+  level:'B1',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Основні правила наголосу в англійських словах з прикладами та вправами.',
+  content:`═══════════════════════════════════════
+ WORD STRESS: Rules & Patterns
+ Level: B1  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Understand how stress changes meaning
+  ▸ Know the main word stress patterns
+  ▸ Stress noun/verb pairs correctly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY STRESS MATTERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "DESERT" (noun) vs "deSERT" (verb) — completely different!
+  Wrong stress = miscommunication, even with perfect grammar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NOUN-VERB STRESS PAIRS (2-syllable)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Rule: Noun = stress 1st syllable / Verb = stress 2nd syllable
+
+  REcord (n) / reCORD (v)      "Play the REcord." / "reCORD the lesson."
+  PROgress (n) / proGRESS (v)  "Good PROgress!" / "She's proGRESSing well."
+  PROtest (n) / proTEST (v)    "A PROtest march." / "They proTESTed loudly."
+  OBject (n) / obJECT (v)      "What is this OBject?" / "I obJECT to that."
+  PERmit (n) / perMIT (v)      "A PERmit is needed." / "They won't perMIT it."
+  PREsent (n/adj) / preSENT (v) "A PREsent for you." / "She'll preSENT the data."
+  REfund (n) / reFUND (v)
+  CONduct (n) / conDUCT (v)
+  INcrease (n) / inCREASE (v)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KEY PATTERNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  -TION / -SION words → stress on syllable BEFORE suffix
+  inforMAtion   commuNIcation   preSENtation
+  teleVIsion    disCUSsion      exCEPtion
+
+  -IC words → stress on syllable BEFORE -ic
+  eLECtric   acaDEmic   sciENtific   phiLOsophic
+
+  -ITY words → stress on syllable BEFORE -ity
+  posSIbility   uniVERsity   acTIvity   opporTUnity
+
+  Compound nouns → stress on FIRST word
+  BLACKbird   GREENhouse   INput   OUTput   TEAspoon
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRACTICE EXERCISES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Mark the stress: (capital letters = stressed)
+  1. photograph / photography / photographic
+     [PHOtograph / phoTOgraphy / photoGRAPHic]
+
+  2. economy / economic / economics
+     [eCONomy / ecoNOMic / ecoNOMics]
+
+  3. "She will PROtest against the new PROtest law."
+     → noun or verb? [verb proTEST / noun PROtest]
+
+  MINIMAL PAIRS — say them:
+  IMport / imPORT      DEcrease / deCREASE
+  OVerflow / overFLOW  INsult / inSULT
+
+💬 ACTIVITY
+  Students work in pairs: read sentences using noun/verb pairs.
+  Partner listens and identifies: "Is that a noun or a verb?"
+
+📌 TEACHER NOTES
+  ▸ Use dictionaries to show stress marks (ˈ before stressed syllable)
+  ▸ Drilling with backchaining works well for long words
+  ▸ Spelling Bee game helps reinforce phonetic awareness
+`
+},
+
+/* ──── MISTAKES ──── */
+{
+  id:'mk-common-errors',
+  skill:'grammar',
+  icon:'🔧',
+  accent:'#ef4444',
+  title:'Top 15 Slavic Learner Errors',
+  eyebrow:'Errors · A2–B2 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'15 найчастіших помилок слов\'янських студентів з поясненнями та виправленнями.',
+  content:`═══════════════════════════════════════
+ TOP 15 SLAVIC LEARNER ERRORS
+ Level: A2–B2  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Identify the most common Slavic-English errors
+  ▸ Understand WHY each error happens
+  ▸ Drill correct forms until they feel natural
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE 15 ERRORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ARTICLES (most frequent!)
+   ✗ "I have headache."         ✓ "I have A headache."
+   ✗ "She is doctor."           ✓ "She is A doctor."
+   ✗ "I love the music."        ✓ "I love Ø music."
+
+2. DOUBLE NEGATIVE
+   ✗ "I don't know nothing."    ✓ "I don't know ANYTHING."
+   ✗ "Nobody never helps me."   ✓ "Nobody EVER helps me."
+
+3. MAKE vs DO
+   ✗ "Make homework."           ✓ "Do homework."
+   ✗ "Do a decision."           ✓ "Make a decision."
+   Rule: make = create/produce; do = perform a task/activity
+
+4. PREPOSITIONS WITH TIME
+   ✗ "on Monday morning"        ✓ "on Monday morning" ✓ (correct!)
+   ✗ "in the morning of Monday" ✓ "on Monday morning"
+   ✗ "at the evening"           ✓ "in the evening"
+
+5. SAY vs TELL
+   ✗ "He told that he was busy." ✓ "He SAID that he was busy."
+   ✗ "She said me the truth."    ✓ "She TOLD me the truth."
+   Rule: tell = always needs an object (tell SOMEONE); say = no object needed
+
+6. FOR vs SINCE
+   ✗ "I live here since 2019."   ✓ "I have lived here since 2019."
+   ✗ "I've waited since 3 hours." ✓ "I've waited FOR 3 hours."
+   for + duration; since + point in time
+
+7. LIE vs LAY
+   ✗ "Lay down and relax."       ✓ "LIE down and relax."
+   lie (intransitive): I lie down, I lay down (past), I have lain
+   lay (transitive):   I lay the book down, I laid it (past)
+
+8. ADJECTIVE ORDER
+   ✗ "a red big car"             ✓ "a big red car"
+   Order: Size > Age > Shape > Colour > Origin > Material
+
+9. -ED vs -ING ADJECTIVES
+   ✗ "The film was boring me."   ✓ "The film was boring."
+   ✗ "I was very interesting."   ✓ "I was very interested."
+   -ing describes the thing; -ed describes your feeling
+
+10. GERUND AFTER PREPOSITION
+    ✗ "I'm interested in learn."  ✓ "I'm interested in LEARNING."
+    After prepositions → always gerund (-ing)
+
+11. HOME vs HOUSE vs FLAT
+    ✗ "I go to my house."         ✓ "I go HOME." (no article/preposition)
+    ✗ "I live in home."           ✓ "I live at HOME."
+    house = building; home = where you live (often no article)
+
+12. REMEMBER vs REMIND
+    ✗ "Remember me to call you."  ✓ "REMIND me to call you."
+    remind = cause someone else to remember
+    remember = recall yourself
+
+13. LISTEN vs HEAR
+    ✗ "I heard his speech and enjoyed it."  ✓ (could be correct)
+    listen = active (with attention); hear = passive (just receives sound)
+    "I was LISTENING to music when I HEARD a knock."
+
+14. ASK vs QUESTION
+    ✗ "She questioned me the price." ✓ "She ASKED me the price."
+    question (v) = challenge/interrogate; ask = enquire
+
+15. DURING vs WHILE vs FOR
+    ✗ "During I was sleeping…"    ✓ "WHILE I was sleeping…"
+    during + noun; while + clause; for + duration
+
+📝 ERROR CORRECTION DRILL
+  Fix each sentence:
+  1. I don't have no money.
+  2. She told that she was late.
+  3. I'm interesting in art.
+  4. During I studied, she called.
+  5. We live here since five years.
+
+📌 TEACHER NOTES
+  ▸ Collect real student errors from their writing — personalise this list
+  ▸ Grammar Fix game in Tools is perfect for this lesson
+  ▸ Error Correction tool can generate 10 new sentences on demand
+`
+},
+
+{
+  id:'voc-everyday-phrases',
+  skill:'vocabulary',
+  icon:'🗣️',
+  accent:'#f97316',
+  title:'Everyday Phrases & Idioms',
+  eyebrow:'Vocabulary · B1–B2 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'Топ-25 розмовних фраз та ідіом для природної англійської.',
+  content:`═══════════════════════════════════════
+ EVERYDAY PHRASES & IDIOMS
+ Level: B1–B2  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Use 25 high-frequency idioms naturally
+  ▸ Understand idioms from context
+  ▸ Recognise informal vs formal usage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TIME IDIOMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  in the nick of time     — exactly when needed, almost too late
+  around the clock        — 24 hours a day, non-stop
+  hit the ground running  — start something energetically
+  the eleventh hour       — the last possible moment
+  call it a day           — stop working/doing something for today
+  buy time                — delay to get more time
+
+WORK & EFFORT
+  bite the bullet         — endure a painful situation
+  on the ball             — alert, competent, quick-thinking
+  cut corners             — do something poorly to save time/money
+  go the extra mile       — do more than expected
+  pull one's weight       — do your fair share
+  burn the midnight oil   — work very late
+
+MONEY & SUCCESS
+  break even              — earn what you spent (no profit/loss)
+  hit the jackpot         — win big, have great success
+  penny-pinching          — being very careful/mean with money
+  cost a fortune          — be very expensive
+
+PEOPLE & RELATIONSHIPS
+  get along (with)        — have a good relationship
+  give someone the cold shoulder — ignore someone deliberately
+  see eye to eye          — agree with someone
+  rub someone the wrong way — irritate someone
+
+GENERAL
+  the tip of the iceberg  — only a small visible part of a big problem
+  under the weather       — feeling unwell
+  a blessing in disguise  — something bad that turns out to be good
+  kill two birds with one stone — achieve two things with one action
+  it's not rocket science — it's not complicated
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MATCH THE IDIOM TO THE SITUATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. "I'll stop working now — ___."             [call it a day]
+  2. "She finished just before midnight — ___." [in the nick of time]
+  3. "He ignores me at parties — ___."          [gives me the cold shoulder]
+  4. "The project costs are just the start — _."[tip of the iceberg]
+  5. "Losing that job led to a better one — _." [blessing in disguise]
+
+💬 DISCUSSION
+  • Have you ever had to bite the bullet? What happened?
+  • Tell me about a time you went the extra mile at work or school.
+  • What's something that looked bad but turned out to be a blessing in disguise?
+
+📌 TEACHER NOTES
+  ▸ Teach idioms in context — never in isolation lists alone
+  ▸ Memory Match game: idiom ↔ meaning works perfectly here
+  ▸ Ask students to find 3 idioms in articles — makes reading active
+`
+},
+
+{
+  id:'gr-reported-speech',
+  skill:'grammar',
+  icon:'💬',
+  accent:'#E85D75',
+  title:'Reported Speech',
+  eyebrow:'Grammar · B1–B2 · 35 min',
+  level:'B1',
+  duration:'35 min',
+  langs:['ru','ua','pl'],
+  desc:'Пряма та непряма мова: правила зміни часів, займенників і обставин.',
+  content:`═══════════════════════════════════════
+ REPORTED SPEECH
+ Level: B1–B2  |  Duration: 35 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Transform direct speech into reported speech
+  ▸ Apply backshift rules correctly
+  ▸ Change time and place references
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TENSE BACKSHIFT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Direct              →  Reported
+  present simple      →  past simple
+  present continuous  →  past continuous
+  past simple         →  past perfect
+  will                →  would
+  can                 →  could
+  may                 →  might
+  must                →  had to / must
+
+  "I work in London."  →  She said (that) she worked in London.
+  "We are leaving."    →  He said they were leaving.
+  "I saw him."         →  She said she had seen him.
+  "I will help."       →  He said he would help.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TIME & PLACE CHANGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  now          →  then
+  today        →  that day
+  yesterday    →  the day before / the previous day
+  tomorrow     →  the next day / the following day
+  this week    →  that week
+  here         →  there
+  this         →  that
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPORTING VERBS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  say / tell           (neutral)
+  admit / deny         (confession)
+  promise / refuse     (commitment)
+  warn / advise        (guidance)
+  suggest / recommend  (proposal)
+  ask / wonder         (questions)
+
+  "I'll be there." → He PROMISED to be there.
+  "Don't touch it." → She WARNED me not to touch it.
+  "Why don't you try again?" → She SUGGESTED trying again.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPORTED QUESTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Yes/No: "Do you like coffee?" → He asked if I liked coffee.
+  Wh-:    "Where do you live?"  → She asked where I lived.
+  (Note: word order changes — no inversion after reporting verb!)
+
+📝 EXERCISES
+  Transform:
+  1. "I'm really tired," she said.         [she said she was really tired]
+  2. "Have you finished the report?"       [he asked if I had finished]
+  3. "Don't be late tomorrow," he warned.  [he warned me not to be late]
+  4. "I will call you today," she promised.[she promised she would call that day]
+  5. "Where did you go?" he asked.         [he asked where I had gone]
+
+📌 TEACHER NOTES
+  ▸ Backshift is optional when reporting recent speech — mention this
+  ▸ Reporting verbs add nuance — expand the list at B2+
+  ▸ Good for practising news: "The president said that…"
+`
+},
+
+{
+  id:'voc-collocations',
+  skill:'vocabulary',
+  icon:'🔗',
+  accent:'#6366f1',
+  title:'Collocations: Make, Do, Have, Take',
+  eyebrow:'Vocabulary · B1 · 30 min',
+  level:'B1',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Найважливіші словосполучення з make, do, have, take для природної мови.',
+  content:`═══════════════════════════════════════
+ COLLOCATIONS: Make / Do / Have / Take
+ Level: B1  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Use make, do, have, take with correct nouns
+  ▸ Stop translating from native language
+  ▸ Build natural-sounding English phrases
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MAKE — create, produce, cause
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  make a decision        make a mistake
+  make progress          make an effort
+  make a difference      make a reservation
+  make a complaint       make a suggestion
+  make money             make a phone call
+  make an appointment    make a noise
+  make friends           make an excuse
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DO — perform a task, activity, duty
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  do homework            do the washing up
+  do research            do an exercise
+  do business            do someone a favour
+  do well / badly        do damage
+  do the right thing     do a deal
+  do sport               do someone's hair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HAVE — experience, possess, eat/drink
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  have a meeting         have a break
+  have breakfast/lunch   have an argument
+  have a good time       have fun
+  have a problem         have an effect
+  have a rest            have a shower
+  have a look            have a conversation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TAKE — accept, move, need
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  take a break           take a photo
+  take an exam           take an opportunity
+  take responsibility    take notes
+  take part (in)         take a risk
+  take turns             take advice
+  take time              take a taxi/bus
+
+📝 EXERCISES — fill in make, do, have, take:
+  1. Can we ___ a break? I'm exhausted.          [have]
+  2. She ___ an excellent suggestion at the meeting. [made]
+  3. I need to ___ some research before deciding.  [do]
+  4. He ___ a lot of mistakes in his first essay.  [made]
+  5. Could you ___ notes during the presentation?  [take]
+  6. Did you ___ fun at the party?                 [have]
+  7. They ___ a deal after two hours of negotiation. [made/did]
+
+💬 DISCUSSION
+  • What decisions have you made recently?
+  • When did you last make a difference to someone's day?
+  • What are you doing research on right now?
+
+📌 TEACHER NOTES
+  ▸ Collocation errors are a B1–B2 plateau issue — drill often
+  ▸ Phrasal verbs card game works well here
+  ▸ Make students test each other with gapped sentences
+`
+},
+
+{
+  id:'sp-small-talk',
+  skill:'speaking',
+  icon:'☕',
+  accent:'#a78bfa',
+  title:'Small Talk & Social English',
+  eyebrow:'Speaking · A2–B1 · 30 min',
+  level:'A2',
+  duration:'30 min',
+  langs:['ru','ua','pl'],
+  desc:'Мистецтво легкої розмови: тематики, фрази та культурний контекст.',
+  content:`═══════════════════════════════════════
+ SMALL TALK & SOCIAL ENGLISH
+ Level: A2–B1  |  Duration: 30 min
+═══════════════════════════════════════
+
+🎯 OBJECTIVES
+  ▸ Start and maintain casual conversations
+  ▸ Use topic-appropriate language
+  ▸ Know what to talk about (and what to avoid!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SAFE SMALL TALK TOPICS (UK/US)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ Weather ("Beautiful day, isn't it?")
+  ✓ Weekend plans ("Any plans for the weekend?")
+  ✓ Work/studies (briefly — "How's work going?")
+  ✓ Travel ("Have you been anywhere nice lately?")
+  ✓ Food/restaurants ("Have you tried that new place on…?")
+  ✓ Hobbies ("I've just got into hiking — do you…?")
+  ✓ Sport (UK: football; US: baseball/American football)
+
+  AVOID in small talk:
+  ✗ Politics, religion, money, age, weight
+  ✗ Very personal questions ("How much do you earn?")
+  ✗ Controversial opinions with strangers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STARTING A CONVERSATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "Lovely weather today, isn't it?"
+  "Is this your first time at one of these events?"
+  "I really like your [jacket/bag] — where's it from?"
+  "How do you know [host's name]?"
+  "Have you tried the food? It's amazing."
+
+KEEPING IT GOING
+  "Oh really? Tell me more about that."
+  "That's interesting — I've always wondered…"
+  "What do you think about…?"
+  "Same here! Actually, I…"
+
+ENDING GRACEFULLY
+  "It was really nice meeting you."
+  "I'll let you mingle — enjoy the evening!"
+  "I should go say hi to [name], but great talking to you."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USEFUL RESPONSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Showing interest:   "Oh wow!" / "No way!" / "Really?"
+  Sympathising:       "Oh, that's a shame." / "I'm sorry to hear that."
+  Agreeing:           "Absolutely!" / "Couldn't agree more."
+  Hedging:            "I suppose so." / "Maybe, yes."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CULTURAL NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🇬🇧 British: start with weather; "sorry" for everything;
+               very indirect criticism ("Not bad" = quite good!)
+  🇺🇸 American: more direct, enthusiastic, ask personal questions
+               earlier ("What do you do?" is very common)
+
+📝 ROLE-PLAY
+  Students are at a work conference / house party.
+  They don't know each other.
+  Task: introduce yourself and find 3 things in common.
+
+📌 TEACHER NOTES
+  ▸ Hugely practical for professional and travel contexts
+  ▸ Video clip: British vs American small talk on YouTube
+  ▸ Debrief cultural differences — Slavic learners often find British
+    indirectness confusing ("Not bad" = British compliment!)
+`
+},
+
+];
+
+/* ═══ STATE ═══ */
+let activeSkill = 'all';
+let activeLang  = 'all';
+let activeLevel = 'all';
+
+function filterSkill(skill, el) {
+  document.querySelectorAll('#sidebar .sb-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  activeSkill = skill;
+  renderPacks();
+}
+function filterLang(lang, el) {
+  document.querySelectorAll('#sidebar .sb-item').forEach(i => {
+    if (i.getAttribute('onclick')?.includes('filterLang')) i.classList.remove('active');
+  });
+  el.classList.add('active');
+  activeLang = lang;
+  renderPacks();
+}
+function filterLevel(level, el) {
+  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeLevel = level;
+  renderPacks();
+}
+
+function renderPacks() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const filtered = PACKS.filter(p => {
+    if (activeSkill !== 'all' && p.skill !== activeSkill) return false;
+    if (activeLevel !== 'all' && p.level !== activeLevel) return false;
+    if (activeLang !== 'all' && p.langs && !p.langs.includes(activeLang)) return false;
+    if (q && !p.title.toLowerCase().includes(q) && !p.desc.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('badge-all').textContent = filtered.length;
+
+  const grid = document.getElementById('packs-grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">Нічого не знайдено</div></div>';
+    return;
+  }
+
+  const lvlClass = l => l.toLowerCase().replace(/[^a-z]/g,'');
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="pack-card" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
+      <div class="pc-eyebrow">${p.eyebrow}</div>
+      <div class="pc-title">${p.icon} ${p.title}</div>
+      <div class="pc-desc">${p.desc}</div>
+      <div class="pc-meta">
+        <span class="pc-level ${lvlClass(p.level)}">${p.level}</span>
+        <span class="pc-dur">${p.duration}</span>
+        <span class="pc-open">Відкрити →</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══ MODAL ═══ */
+let activePack = null;
+
+function openPack(id) {
+  const p = PACKS.find(x => x.id === id);
+  if (!p) return;
+  activePack = p;
+  document.getElementById('modal-icon').textContent = p.icon;
+  document.getElementById('modal-eyebrow').textContent = p.eyebrow;
+  document.getElementById('modal-title').textContent = p.title;
+  document.getElementById('modal-content').textContent = p.content;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  activePack = null;
+}
+
+function copyContent() {
+  if (!activePack) return;
+  navigator.clipboard.writeText(activePack.content).then(() => {
+    const btn = document.querySelector('#modal-actions .btn-lime');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Скопійовано!';
+    btn.style.background = '#22c55e';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
+  });
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ═══ INIT ═══ */
+renderPacks();
+
+/* ─ nav user chip ─ */
+try {
+  const u = JSON.parse(localStorage.getItem('teachedos_user') || '{}');
+  if (u.name) {
+    document.getElementById('nav-name').textContent = u.name.split(' ')[0];
+    const initials = u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('nav-avatar').textContent = initials;
+  }
+} catch(e) {}
+</script>
+<script src="pwa.js"></script>
+</body>
+</html>
