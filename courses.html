@@ -188,6 +188,10 @@ button{font-family:var(--font);cursor:pointer;}
   padding:3px 7px;
 }
 .ready-actions{display:flex;gap:8px;margin-top:auto;}
+.ready-empty-head{
+  margin-top:20px;font-size:12px;font-weight:900;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.06em;
+}
 
 .course-insights{
   margin:14px 28px 0;
@@ -377,6 +381,7 @@ button{font-family:var(--font);cursor:pointer;}
   <a class="nav-link" href="analytics.html">Аудит</a>
   <a class="nav-link" href="journal.html">Журнал</a>
   <a class="nav-link" href="gradebook.html">Оцінки</a>
+  <a class="nav-link" href="profile.html#plans">Тарифы</a>
   <a class="nav-link" href="profile.html">Профіль</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
@@ -404,6 +409,7 @@ button{font-family:var(--font);cursor:pointer;}
       <div class="w-title">Organize your lessons into courses</div>
       <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module — no more chaos.</div>
       <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
+      <div class="ready-empty-head">Готовые курсы и уроки</div>
       <div class="ready-library" id="welcome-ready-library" style="width:min(920px,100%);margin-top:18px;"></div>
     </div>
     <div id="course-view" style="display:none;flex-direction:column;flex:1;">
@@ -849,7 +855,32 @@ function readyTemplateCard(t) {
     </div>
     <div class="ready-copy">${esc(t.copy)}</div>
     <div class="ready-lessons">${lessons.slice(0, 5).map(l => `<span class="ready-chip">${esc(l.skill)}</span>`).join('')}</div>
+    <div class="ready-actions">
+      <button class="btn btn-primary" onclick="createReadyCourse('${escAttr(t.level)}')">Создать курс</button>
+      <button class="btn btn-soft" onclick="previewReadyTemplate('${escAttr(t.level)}')">Состав</button>
+    </div>
   </div>`;
+}
+
+async function createReadyCourse(level) {
+  const template = COURSE_TEMPLATES[level] || COURSE_TEMPLATES.B1;
+  try {
+    const { course } = await api('/api/courses', {
+      method:'POST',
+      body:{ name: template.title, description: template.copy, level: template.level, color: selectedColor }
+    });
+    await loadAll();
+    await openCourse(course.id);
+    await createTemplateModules(course.id);
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+function previewReadyTemplate(level) {
+  const template = COURSE_TEMPLATES[level] || COURSE_TEMPLATES.B1;
+  const lines = template.modules.map(m => `${m.name}: ${m.lessons.map(l => l.title).join(', ')}`).join('\n');
+  alert(`${template.title}\n\n${lines}`);
 }
 
 function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
@@ -1180,6 +1211,7 @@ function timeSince(ts) {
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function escAttr(s) { return esc(s).replace(/'/g, '&#39;'); }
 let toastT;
 function toast(msg) {
   const t = document.getElementById('toast');
