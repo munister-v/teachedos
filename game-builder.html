@@ -133,6 +133,14 @@ textarea{min-height:60px;resize:vertical}
 .dict-preview{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1}
 .dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
 .dict-actions{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1;margin-top:auto}
+.dict-actions .btn{flex:1;min-width:92px}
+.dict-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;font:800 10px var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.dict-hot{background:rgba(236,45,140,.10);color:var(--pink);padding:4px 8px;border-radius:999px}
+.dict-mini-stats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.dict-mini{padding:7px 11px;border-radius:999px;background:#fff;border:1px solid var(--border);font:900 11px var(--font);color:var(--text2)}
+.builder-tools{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px;padding:12px;background:rgba(59,130,246,.06);border:1.5px solid rgba(59,130,246,.14);border-radius:14px}
+.tool-btn{border:1.5px solid var(--border);background:#fff;color:var(--text2);border-radius:999px;padding:7px 11px;font:800 11px var(--font);cursor:pointer;transition:.15s}
+.tool-btn:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
 .search-box{position:relative;margin-bottom:14px}
 .search-box input{padding-left:14px}
 #toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
@@ -182,6 +190,7 @@ textarea{min-height:60px;resize:vertical}
       <div class="hero-stats">
         <div class="hero-stat"><span class="stat-num">9</span> game types</div>
         <div class="hero-stat"><span class="stat-num" id="tpl-count">50</span> ready templates</div>
+        <div class="hero-stat"><span class="stat-num" id="dict-count">0</span> dictionaries</div>
         <div class="hero-stat"><span class="stat-num" id="my-count">0</span> my games</div>
       </div>
     </div>
@@ -227,8 +236,19 @@ textarea{min-height:60px;resize:vertical}
       <option value="Exam">Exam</option>
       <option value="Academic">Academic</option>
       <option value="Speaking">Speaking</option>
+      <option value="Kids">Kids</option>
+      <option value="Culture">Culture</option>
+      <option value="Tech">Tech</option>
+      <option value="Grammar">Grammar</option>
+    </select>
+    <select id="dict-sort" onchange="renderDictionaryLibrary()">
+      <option value="level">Sort by level</option>
+      <option value="topic">Sort by topic</option>
+      <option value="size">Largest first</option>
+      <option value="az">A-Z</option>
     </select>
   </div>
+  <div class="dict-mini-stats" id="dict-mini-stats"></div>
   <div class="dict-grid" id="dict-grid"></div>
 
   <div class="builder" id="builder">
@@ -262,6 +282,13 @@ textarea{min-height:60px;resize:vertical}
       <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
     </div>
     <div id="item-counter" class="item-counter" style="display:none;"></div>
+    <div class="builder-tools" id="builder-tools">
+      <button class="tool-btn" type="button" onclick="smartCleanContent()">Clean duplicates</button>
+      <button class="tool-btn" type="button" onclick="sortContent()">Sort A-Z</button>
+      <button class="tool-btn" type="button" onclick="shuffleContent()">Shuffle</button>
+      <button class="tool-btn" type="button" onclick="copyCurrentContent()">Copy content</button>
+      <button class="tool-btn" type="button" onclick="clearContent()">Clear</button>
+    </div>
     <div id="content-area"></div>
     <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
       <button class="btn lime" onclick="saveGame()" id="save-btn">Save Game to Library</button>
@@ -567,6 +594,78 @@ const THEME_DICTIONARIES = [
     ['overwhelmed','перегруженный'],['relieved','испытавший облегчение'],['resentful','обиженный'],['apprehensive','тревожный'],
     ['thrilled','в восторге'],['devastated','опустошенный'],['indifferent','равнодушный'],['bewildered','сбитый с толку'],
     ['content','довольный'],['uneasy','не по себе'],['nostalgic','ностальгирующий'],['self-conscious','смущенный/скованный']
+  ]},
+  {id:'numbers-time-a1',icon:'🔢',name:'Numbers & Time',level:'A1',topic:'Daily Life',tags:['numbers','time','beginner'],pairs:[
+    ['one hundred','сто'],['quarter past','пятнадцать минут после'],['half past','половина после'],['quarter to','без пятнадцати'],['midnight','полночь'],['noon','полдень'],['early','рано'],['late','поздно'],['weekday','будний день'],['weekend','выходные'],['calendar','календарь'],['schedule','расписание']
+  ]},
+  {id:'toys-kids-a1',icon:'🧸',name:'Toys & Kids',level:'A1',topic:'Kids',tags:['kids','toys','young learners'],pairs:[
+    ['teddy bear','плюшевый мишка'],['doll','кукла'],['blocks','кубики'],['ball','мяч'],['kite','воздушный змей'],['puzzle','пазл'],['robot','робот'],['train set','железная дорога'],['crayons','мелки'],['stickers','наклейки'],['jump rope','скакалка'],['board game','настольная игра']
+  ]},
+  {id:'animals-advanced-b1',icon:'🦊',name:'Wild Animals',level:'B1',topic:'Daily Life',tags:['animals','nature','description'],pairs:[
+    ['fox','лиса'],['deer','олень'],['wolf','волк'],['squirrel','белка'],['eagle','орел'],['owl','сова'],['whale','кит'],['shark','акула'],['turtle','черепаха'],['lizard','ящерица'],['beetle','жук'],['butterfly','бабочка']
+  ]},
+  {id:'shopping-a2',icon:'🛍️',name:'Shopping & Money',level:'A2',topic:'Daily Life',tags:['shopping','money','speaking'],pairs:[
+    ['receipt','чек'],['discount','скидка'],['refund','возврат денег'],['cashier','кассир'],['fitting room','примерочная'],['size','размер'],['bargain','выгодная покупка'],['price tag','ценник'],['cash','наличные'],['card payment','оплата картой'],['out of stock','нет в наличии'],['exchange','обменять']
+  ]},
+  {id:'directions-a2',icon:'🧭',name:'Directions & Transport',level:'A2',topic:'Travel',tags:['directions','transport','city'],pairs:[
+    ['turn left','поверните налево'],['turn right','поверните направо'],['go straight','идите прямо'],['opposite','напротив'],['next to','рядом с'],['behind','за'],['platform','платформа'],['fare','стоимость проезда'],['single ticket','билет в одну сторону'],['return ticket','билет туда-обратно'],['traffic jam','пробка'],['timetable','расписание']
+  ]},
+  {id:'hotel-travel-b1',icon:'🏨',name:'Hotel Problems',level:'B1',topic:'Travel',tags:['hotel','complaints','roleplay'],pairs:[
+    ['room key','ключ от номера'],['reception','ресепшен'],['check out','выселиться'],['noisy neighbours','шумные соседи'],['air conditioning','кондиционер'],['towels','полотенца'],['housekeeping','уборка номера'],['deposit','залог'],['double room','двухместный номер'],['sea view','вид на море'],['complaint','жалоба'],['upgrade','повышение класса номера']
+  ]},
+  {id:'airport-b1',icon:'🛫',name:'Airport & Flights',level:'B1',topic:'Travel',tags:['airport','travel','speaking'],pairs:[
+    ['departure gate','выход на посадку'],['boarding pass','посадочный талон'],['carry-on luggage','ручная кладь'],['checked baggage','зарегистрированный багаж'],['security check','контроль безопасности'],['customs','таможня'],['delayed flight','задержанный рейс'],['cancelled flight','отмененный рейс'],['baggage claim','выдача багажа'],['overbooked','сверх брони'],['aisle seat','место у прохода'],['window seat','место у окна']
+  ]},
+  {id:'home-chores-a2',icon:'🧹',name:'Home & Chores',level:'A2',topic:'Daily Life',tags:['home','chores','verbs'],pairs:[
+    ['do the laundry','стирать'],['wash the dishes','мыть посуду'],['vacuum','пылесосить'],['mop the floor','мыть пол'],['take out the rubbish','выносить мусор'],['make the bed','заправлять кровать'],['dust the shelves','вытирать пыль'],['iron clothes','гладить одежду'],['feed the pet','кормить питомца'],['water the plants','поливать растения'],['tidy up','убираться'],['fix a leak','чинить протечку']
+  ]},
+  {id:'relationships-b1',icon:'🫶',name:'Relationships',level:'B1',topic:'Speaking',tags:['relationships','people','speaking'],pairs:[
+    ['get on well','хорошо ладить'],['fall out','поссориться'],['make up','помириться'],['trust','доверять'],['supportive','поддерживающий'],['reliable','надежный'],['jealous','ревнивый'],['honest','честный'],['keep in touch','поддерживать связь'],['lose touch','потерять связь'],['close friend','близкий друг'],['mutual respect','взаимное уважение']
+  ]},
+  {id:'workplace-b1',icon:'🏢',name:'Workplace Basics',level:'B1',topic:'Business',tags:['work','office','career'],pairs:[
+    ['colleague','коллега'],['manager','менеджер'],['salary','зарплата'],['shift','смена'],['overtime','сверхурочные'],['sick leave','больничный'],['promotion','повышение'],['resign','уволиться'],['apply for a job','подать заявку на работу'],['job interview','собеседование'],['remote work','удаленная работа'],['teamwork','командная работа']
+  ]},
+  {id:'customer-service-b2',icon:'🎧',name:'Customer Service',level:'B2',topic:'Business',tags:['support','service','business'],pairs:[
+    ['resolve an issue','решить проблему'],['escalate a ticket','передать заявку выше'],['refund request','запрос на возврат'],['customer satisfaction','удовлетворенность клиента'],['response time','время ответа'],['service outage','сбой сервиса'],['workaround','обходное решение'],['follow up','связаться повторно'],['apologise for inconvenience','извиниться за неудобства'],['terms and conditions','условия использования'],['loyal customer','постоянный клиент'],['complaint handling','обработка жалоб']
+  ]},
+  {id:'startup-b2',icon:'🚀',name:'Startup Vocabulary',level:'B2',topic:'Business',tags:['startup','product','business'],pairs:[
+    ['founder','основатель'],['funding round','раунд финансирования'],['pitch deck','презентация для инвесторов'],['market fit','соответствие рынку'],['early adopter','ранний пользователь'],['runway','запас времени до конца денег'],['burn rate','скорость сжигания денег'],['scale up','масштабироваться'],['pivot','изменить направление'],['traction','первые результаты/рост'],['equity','доля в компании'],['valuation','оценка стоимости']
+  ]},
+  {id:'it-support-b1',icon:'🖥️',name:'IT Support',level:'B1',topic:'Tech',tags:['tech','support','problems'],pairs:[
+    ['restart','перезагрузить'],['update','обновление'],['password reset','сброс пароля'],['login issue','проблема со входом'],['screen freezes','экран зависает'],['backup','резервная копия'],['settings','настройки'],['device','устройство'],['connection','соединение'],['install','установить'],['uninstall','удалить программу'],['error message','сообщение об ошибке']
+  ]},
+  {id:'ai-tech-c1',icon:'🤖',name:'AI & Digital Society',level:'C1',topic:'Tech',tags:['ai','technology','discussion'],pairs:[
+    ['automation','автоматизация'],['bias','предвзятость'],['data privacy','конфиденциальность данных'],['surveillance','наблюдение'],['machine learning','машинное обучение'],['prompt engineering','инжиниринг запросов'],['hallucination','галлюцинация ИИ'],['synthetic media','синтетические медиа'],['digital literacy','цифровая грамотность'],['regulation','регулирование'],['ethical concern','этическая проблема'],['human oversight','человеческий контроль']
+  ]},
+  {id:'cybersecurity-c1',icon:'🔐',name:'Cybersecurity',level:'C1',topic:'Tech',tags:['security','tech','business'],pairs:[
+    ['data breach','утечка данных'],['two-factor authentication','двухфакторная аутентификация'],['malware','вредоносное ПО'],['ransomware','программа-вымогатель'],['vulnerability','уязвимость'],['patch','исправление/патч'],['credentials','учетные данные'],['phishing attempt','попытка фишинга'],['secure connection','безопасное соединение'],['access rights','права доступа'],['incident response','реакция на инцидент'],['audit trail','журнал действий']
+  ]},
+  {id:'movies-culture-b1',icon:'🎬',name:'Movies & Series',level:'B1',topic:'Culture',tags:['movies','culture','opinions'],pairs:[
+    ['plot','сюжет'],['cast','актерский состав'],['scene','сцена'],['soundtrack','саундтрек'],['subtitle','субтитры'],['season finale','финал сезона'],['cliffhanger','открытый напряженный финал'],['review','рецензия'],['genre','жанр'],['character development','развитие персонажа'],['twist ending','неожиданная концовка'],['binge-watch','смотреть запоем']
+  ]},
+  {id:'music-culture-b1',icon:'🎧',name:'Music & Festivals',level:'B1',topic:'Culture',tags:['music','culture','speaking'],pairs:[
+    ['lyrics','текст песни'],['beat','ритм'],['chorus','припев'],['verse','куплет'],['live performance','живое выступление'],['venue','площадка'],['headline act','главный артист'],['support act','разогрев'],['playlist','плейлист'],['album release','релиз альбома'],['crowd','толпа'],['encore','выход на бис']
+  ]},
+  {id:'news-media-b2',icon:'📰',name:'News & Media',level:'B2',topic:'Culture',tags:['media','news','critical thinking'],pairs:[
+    ['headline','заголовок'],['source','источник'],['coverage','освещение'],['breaking news','срочные новости'],['misleading','вводящий в заблуждение'],['fact-check','проверка фактов'],['bias','предвзятость'],['editorial','редакционная статья'],['public opinion','общественное мнение'],['viral story','вирусная история'],['reliable outlet','надежное издание'],['media literacy','медиаграмотность']
+  ]},
+  {id:'ielts-health-b2',icon:'🏥',name:'IELTS Health',level:'B2',topic:'Exam',tags:['ielts','health','essay'],pairs:[
+    ['public healthcare','государственное здравоохранение'],['preventive medicine','профилактическая медицина'],['sedentary lifestyle','малоподвижный образ жизни'],['balanced diet','сбалансированное питание'],['life expectancy','ожидаемая продолжительность жизни'],['mental wellbeing','психическое благополучие'],['health insurance','медицинская страховка'],['chronic disease','хроническое заболевание'],['medical treatment','лечение'],['obesity rate','уровень ожирения'],['health awareness','осведомленность о здоровье'],['patient care','уход за пациентом']
+  ]},
+  {id:'ielts-crime-b2',icon:'⚖️',name:'IELTS Crime & Law',level:'B2',topic:'Exam',tags:['ielts','crime','law'],pairs:[
+    ['law-abiding citizen','законопослушный гражданин'],['commit a crime','совершить преступление'],['deterrent','сдерживающий фактор'],['rehabilitation','реабилитация'],['reoffend','совершить преступление повторно'],['community service','общественные работы'],['prison sentence','тюремный срок'],['juvenile crime','подростковая преступность'],['law enforcement','правоохранительные органы'],['victim','жертва'],['evidence','доказательство'],['trial','судебный процесс']
+  ]},
+  {id:'ielts-technology-b2',icon:'📱',name:'IELTS Technology',level:'B2',topic:'Exam',tags:['ielts','technology','essay'],pairs:[
+    ['screen time','время перед экраном'],['digital divide','цифровое неравенство'],['online privacy','приватность онлайн'],['remote learning','дистанционное обучение'],['social isolation','социальная изоляция'],['technological progress','технологический прогресс'],['user-friendly','удобный для пользователя'],['replace human labour','заменять человеческий труд'],['artificial intelligence','искусственный интеллект'],['data protection','защита данных'],['online addiction','зависимость от интернета'],['digital skills','цифровые навыки']
+  ]},
+  {id:'cambridge-b2-phrasals',icon:'🧩',name:'B2 Phrasal Verb Set',level:'B2',topic:'Grammar',tags:['phrasal verbs','cambridge','b2'],pairs:[
+    ['bring up','поднять тему/воспитать'],['come up with','придумать'],['carry out','проводить/выполнять'],['look into','расследовать'],['put off','отложить'],['take over','взять контроль'],['turn down','отклонить'],['work out','разобраться/получиться'],['set up','создать/настроить'],['run into','случайно встретить/столкнуться'],['get away with','избежать наказания'],['come across as','производить впечатление']
+  ]},
+  {id:'c1-discourse-markers',icon:'🔗',name:'C1 Discourse Markers',level:'C1',topic:'Academic',tags:['speaking','writing','cohesion'],pairs:[
+    ['having said that','тем не менее'],['as far as I am concerned','насколько я считаю'],['to put it another way','иначе говоря'],['what is more','более того'],['in the long run','в долгосрочной перспективе'],['on balance','взвесив все'],['needless to say','само собой разумеется'],['for the most part','по большей части'],['broadly speaking','в целом'],['in practical terms','на практике'],['that being said','при этом'],['if anything','если уж на то пошло']
+  ]},
+  {id:'c2-precision-vocab',icon:'💎',name:'C2 Precision Vocabulary',level:'C2',topic:'Academic',tags:['advanced','precision','writing'],pairs:[
+    ['meticulous','скрупулезный'],['tenuous','слабый/неубедительный'],['ubiquitous','повсеместный'],['convoluted','запутанный'],['plausible','правдоподобный'],['discrepancy','несоответствие'],['detrimental','вредный'],['subtle','тонкий/едва заметный'],['robust','надежный'],['redundant','избыточный'],['ambiguous','двусмысленный'],['comprehensive','всеобъемлющий']
   ]}
 ];
 
@@ -653,6 +752,7 @@ function init() {
   renderTplLevelTabs();
   renderTemplates();
   renderDictionaryLibrary();
+  document.getElementById('dict-count').textContent = THEME_DICTIONARIES.length;
   document.getElementById('my-count').textContent = readGames().length;
 }
 
@@ -749,7 +849,8 @@ function renderDictionaryLibrary() {
   const search = (document.getElementById('dict-search')?.value || '').toLowerCase();
   const level = document.getElementById('dict-level')?.value || 'All';
   const topic = document.getElementById('dict-topic')?.value || 'All';
-  let dictionaries = THEME_DICTIONARIES;
+  const sort = document.getElementById('dict-sort')?.value || 'level';
+  let dictionaries = [...THEME_DICTIONARIES];
   if (level !== 'All') dictionaries = dictionaries.filter(d => d.level === level);
   if (topic !== 'All') dictionaries = dictionaries.filter(d => d.topic === topic);
   if (search) {
@@ -757,6 +858,13 @@ function renderDictionaryLibrary() {
       d.name + ' ' + d.level + ' ' + d.topic + ' ' + d.tags.join(' ') + ' ' + d.pairs.flat().join(' ')
     ).toLowerCase().includes(search));
   }
+  dictionaries.sort((a,b) => {
+    if (sort === 'size') return b.pairs.length - a.pairs.length || a.name.localeCompare(b.name);
+    if (sort === 'az') return a.name.localeCompare(b.name);
+    if (sort === 'topic') return a.topic.localeCompare(b.topic) || a.level.localeCompare(b.level) || a.name.localeCompare(b.name);
+    return a.level.localeCompare(b.level) || a.topic.localeCompare(b.topic) || a.name.localeCompare(b.name);
+  });
+  renderDictionaryStats(dictionaries);
   if (!dictionaries.length) {
     grid.innerHTML = '<div class="empty">No dictionaries match your filters.</div>';
     return;
@@ -774,13 +882,29 @@ function renderDictionaryLibrary() {
         </div>
         <div class="dict-preview">${preview}</div>
         <div class="game-tags">${d.tags.slice(0,3).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}</div>
+        <div class="dict-foot"><span>${esc(d.topic)}</span><span class="dict-hot">${d.pairs.length} cards</span></div>
         <div class="dict-actions">
-          <button class="btn sm lime" onclick="useDictionary('${esc(d.id)}','pairs',false)">Flashcards / Memory</button>
-          <button class="btn sm ghost" onclick="useDictionary('${esc(d.id)}','words',false)">Word games</button>
+          <button class="btn sm lime" onclick="useDictionary('${esc(d.id)}','pairs',false)">Cards</button>
+          <button class="btn sm ghost" onclick="useDictionary('${esc(d.id)}','words',false)">Words</button>
+          <button class="btn sm ghost" onclick="buildDictionaryCategoryGame('${esc(d.id)}')">Sort</button>
+          <button class="btn sm blue" onclick="buildDictionaryQuiz('${esc(d.id)}')">Quiz</button>
+          <button class="btn sm ghost" onclick="copyDictionaryWords('${esc(d.id)}')">Copy</button>
           <button class="btn sm blue" onclick="useDictionary('${esc(d.id)}','append',true)">Append</button>
         </div>
       </div>`;
   }).join('');
+}
+
+function renderDictionaryStats(rows) {
+  const el = document.getElementById('dict-mini-stats');
+  if (!el) return;
+  const words = rows.reduce((sum, d) => sum + d.pairs.length, 0);
+  const topics = new Set(rows.map(d => d.topic)).size;
+  el.innerHTML = [
+    `<span class="dict-mini">${rows.length} dictionaries shown</span>`,
+    `<span class="dict-mini">${words} ready cards</span>`,
+    `<span class="dict-mini">${topics} topic groups</span>`,
+  ].join('');
 }
 
 function dictionaryById(id) {
@@ -793,6 +917,22 @@ function dictionaryPairs(dict) {
 
 function dictionaryWords(dict) {
   return dict.pairs.map(pair => pair[0]);
+}
+
+function dictionaryDefinitions(dict) {
+  return dict.pairs.map(pair => pair[1]);
+}
+
+async function copyDictionaryWords(id) {
+  const dict = dictionaryById(id);
+  if (!dict) return;
+  const text = dict.pairs.map(pair => pair.join('\t')).join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(dict.name + ' copied as spreadsheet pairs');
+  } catch {
+    toast('Copy failed. Open dictionary and select words manually.');
+  }
 }
 
 function ensureBuilderForFields(fields, fallbackTypeId) {
@@ -826,6 +966,48 @@ function useDictionary(id, mode, append) {
   updateItemCounter();
   document.getElementById('builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
   toast(`${dict.name} loaded into builder`);
+}
+
+function buildDictionaryCategoryGame(id) {
+  const dict = dictionaryById(id);
+  if (!dict) return;
+  selectedType = GAME_TYPES.find(t => t.id === 'word-categories');
+  editingId = null;
+  renderTypeGrid();
+  openBuilder();
+  document.getElementById('game-title').value = dict.level + ' ' + dict.name + ' Category Sort';
+  document.getElementById('game-level').value = dict.level;
+  document.getElementById('game-tags').value = ['vocabulary', dict.topic.toLowerCase(), ...dict.tags, 'sorting'].join(', ');
+  const half = Math.ceil(dict.pairs.length / 2);
+  populateContent({ content: { categories: [
+    { name: dict.name + ' 1', words: dictionaryWords(dict).slice(0, half) },
+    { name: dict.name + ' 2', words: dictionaryWords(dict).slice(half) },
+  ] } });
+  updateItemCounter();
+  document.getElementById('builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Category game created from ' + dict.name);
+}
+
+function buildDictionaryQuiz(id) {
+  const dict = dictionaryById(id);
+  if (!dict) return;
+  selectedType = GAME_TYPES.find(t => t.id === 'speed-quiz');
+  editingId = null;
+  renderTypeGrid();
+  openBuilder();
+  document.getElementById('game-title').value = dict.level + ' ' + dict.name + ' Definition Quiz';
+  document.getElementById('game-level').value = dict.level;
+  document.getElementById('game-tags').value = ['vocabulary', dict.topic.toLowerCase(), ...dict.tags, 'definition quiz'].join(', ');
+  const defs = dictionaryDefinitions(dict);
+  const questions = dict.pairs.slice(0, 10).map(pair => {
+    const distractors = defs.filter(def => def !== pair[1]).sort(() => Math.random() - .5).slice(0, 3);
+    const opts = [pair[1], ...distractors].sort(() => Math.random() - .5);
+    return { q: 'What does "' + pair[0] + '" mean?', opts, correct: opts.indexOf(pair[1]) };
+  });
+  populateContent({ content: { questions } });
+  updateItemCounter();
+  document.getElementById('builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Quiz created from ' + dict.name);
 }
 
 function applyDictionaryToBuilder(dict, fields, append) {
@@ -1196,6 +1378,92 @@ function collectContent(lenient) {
     }
   }
   return null;
+}
+
+
+function smartCleanContent() {
+  if (!selectedType) { toast('Open a game first'); return; }
+  const content = collectContent(true);
+  if (!content) return;
+  if (content.pairs) content.pairs = uniqueBy(content.pairs.filter(p => p.a && p.b), p => p.a.toLowerCase() + '|' + p.b.toLowerCase());
+  if (content.words) content.words = uniqueBy(content.words.filter(Boolean), w => w.toLowerCase());
+  if (content.sentences) content.sentences = uniqueBy(content.sentences.filter(Boolean), sentence => sentence.toLowerCase());
+  if (content.statements) content.statements = uniqueBy(content.statements.filter(st => st.text), st => st.text.toLowerCase());
+  if (content.questions) content.questions = uniqueBy(content.questions.filter(q => q.q), q => q.q.toLowerCase());
+  if (content.categories) content.categories = content.categories.map(cat => ({ ...cat, words: uniqueBy(cat.words || [], w => w.toLowerCase()) })).filter(cat => cat.name && cat.words.length);
+  renderContentFields();
+  populateContent({ content });
+  updateItemCounter();
+  toast('Cleaned duplicates and empty rows');
+}
+
+function sortContent() {
+  transformCurrentContent(content => {
+    if (content.pairs) content.pairs.sort((a,b) => a.a.localeCompare(b.a));
+    if (content.words) content.words.sort((a,b) => a.localeCompare(b));
+    if (content.sentences) content.sentences.sort((a,b) => a.localeCompare(b));
+    if (content.statements) content.statements.sort((a,b) => a.text.localeCompare(b.text));
+    if (content.questions) content.questions.sort((a,b) => a.q.localeCompare(b.q));
+    if (content.categories) content.categories.forEach(cat => cat.words.sort((a,b) => a.localeCompare(b)));
+    return content;
+  }, 'Sorted A-Z');
+}
+
+function shuffleContent() {
+  transformCurrentContent(content => {
+    if (content.pairs) content.pairs = shuffleArray(content.pairs);
+    if (content.words) content.words = shuffleArray(content.words);
+    if (content.sentences) content.sentences = shuffleArray(content.sentences);
+    if (content.statements) content.statements = shuffleArray(content.statements);
+    if (content.questions) content.questions = shuffleArray(content.questions);
+    if (content.categories) content.categories.forEach(cat => cat.words = shuffleArray(cat.words));
+    return content;
+  }, 'Content shuffled');
+}
+
+function clearContent() {
+  if (!selectedType) return;
+  if (!confirm('Clear current builder content?')) return;
+  renderContentFields();
+  updateItemCounter();
+  toast('Builder cleared');
+}
+
+async function copyCurrentContent() {
+  const content = collectContent(true);
+  if (!content) { toast('Nothing to copy'); return; }
+  let text = '';
+  if (content.pairs) text = content.pairs.map(p => p.a + '\t' + p.b).join('\n');
+  else if (content.words) text = content.words.join('\n');
+  else if (content.sentences) text = content.sentences.join('\n');
+  else text = JSON.stringify(content, null, 2);
+  try { await navigator.clipboard.writeText(text); toast('Current content copied'); }
+  catch { toast('Copy failed'); }
+}
+
+function transformCurrentContent(mutator, message) {
+  if (!selectedType) { toast('Open a game first'); return; }
+  const content = collectContent(true);
+  if (!content) return;
+  const next = mutator(content);
+  renderContentFields();
+  populateContent({ content: next });
+  updateItemCounter();
+  toast(message);
+}
+
+function uniqueBy(items, keyFn) {
+  const seen = new Set();
+  return items.filter(item => {
+    const key = keyFn(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function shuffleArray(items) {
+  return [...items].sort(() => Math.random() - .5);
 }
 
 /* ---- SAVE / LOAD ---- */
