@@ -990,7 +990,7 @@ tr:hover td{background:#fafafa}
           <thead>
             <tr>
               <th>Invoice</th><th>User</th><th>Plan</th><th>Amount</th>
-              <th>Payment Date</th><th>Status</th><th>Actions</th>
+              <th>Billing</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="billing-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
@@ -1138,6 +1138,26 @@ tr:hover td{background:#fafafa}
         <option value="free">Free</option>
         <option value="pro">Teacher Pro</option>
         <option value="school">School</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Plan Status</label>
+      <select class="form-select" id="mu-plan-status">
+        <option value="free">Free</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="grace">Grace</option>
+        <option value="expired">Expired</option>
+        <option value="canceled">Canceled</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Billing Cycle</label>
+      <select class="form-select" id="mu-billing-cycle">
+        <option value="monthly">Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="yearly">Yearly</option>
       </select>
     </div>
     <div class="form-group">
@@ -1900,7 +1920,11 @@ async function loadUsers() {
         <td data-label="Name"><strong>${esc(u.name)}</strong></td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
-        <td data-label="Plan"><span class="badge badge-${u.plan === 'school' ? 'admin' : u.plan === 'pro' ? 'teacher' : 'student'}">${u.plan || 'free'}</span>${u.plan_expires_at ? `<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>` : ''}</td>
+        <td data-label="Plan">
+          <span class="badge badge-${u.plan === 'school' ? 'admin' : u.plan === 'pro' ? 'teacher' : 'student'}">${u.plan || 'free'}</span>
+          <div class="time-text">${esc(u.plan_status || 'free')} · ${esc(u.billing_cycle || 'monthly')}</div>
+          ${u.plan_expires_at ? `<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>` : ''}
+        </td>
         <td data-label="Boards" style="text-align:center">${u.boards_count}</td>
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
@@ -1925,6 +1949,8 @@ function openEditUser(u) {
   document.getElementById('mu-email').value  = u.email;
   document.getElementById('mu-role').value   = u.role;
   document.getElementById('mu-plan').value   = u.plan || 'free';
+  document.getElementById('mu-plan-status').value = u.plan_status || (u.plan === 'free' ? 'free' : 'active');
+  document.getElementById('mu-billing-cycle').value = u.billing_cycle || 'monthly';
   document.getElementById('mu-plan-expires').value = u.plan_expires_at ? new Date(u.plan_expires_at).toISOString().slice(0, 10) : '';
   document.getElementById('mu-avatar').value = u.avatar;
   document.getElementById('mu-pass').value   = '';
@@ -1940,6 +1966,8 @@ async function saveUser() {
     name:   document.getElementById('mu-name').value.trim(),
     role:   document.getElementById('mu-role').value,
     plan:   document.getElementById('mu-plan').value,
+    plan_status: document.getElementById('mu-plan-status').value,
+    billing_cycle: document.getElementById('mu-billing-cycle').value,
     plan_expires_at: document.getElementById('mu-plan-expires').value || null,
     avatar: document.getElementById('mu-avatar').value.trim(),
   };
@@ -2011,7 +2039,7 @@ async function loadBillingSummary() {
       <div class="activity-item">
         <div>
           <div class="activity-title">${esc(user.name)} <span class="badge badge-${user.plan === 'school' ? 'admin' : 'teacher'}">${esc(user.plan)}</span></div>
-          <div class="activity-sub">${esc(user.email)}</div>
+          <div class="activity-sub">${esc(user.email)} · ${esc(user.plan_status || 'active')} · ${esc(user.billing_cycle || 'monthly')}</div>
         </div>
         <div class="activity-meta">${fmtDate(user.plan_expires_at)}</div>
       </div>
@@ -2038,17 +2066,18 @@ async function loadBillingPayments() {
       const amount = `${Number(p.amount || 0).toFixed(2)} ${(p.currency || 'usd').toUpperCase()}`;
       const note = p.tx_note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(p.tx_note)}</div>` : '';
       const adminNote = p.admin_note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">Admin: ${esc(p.admin_note)}</div>` : '';
+      const currentState = `${esc(p.current_plan || 'free')} · ${esc(p.current_plan_status || 'free')} · ${esc(p.current_billing_cycle || 'monthly')}`;
       return `
         <tr>
           <td data-label="Invoice"><strong>${esc(p.invoice_no || '#' + p.id)}</strong><div class="time-text">${fmtDate(p.created_at)}</div></td>
-          <td data-label="User"><strong>${esc(p.user_name || 'Unknown')}</strong><div style="font-size:12px;color:var(--muted)">${esc(p.user_email || '')}</div></td>
-          <td data-label="Plan"><span class="badge badge-${p.plan === 'school' ? 'admin' : 'teacher'}">${esc(p.plan)}</span><div class="time-text">Current: ${esc(p.current_plan || 'free')}</div></td>
-          <td data-label="Amount"><strong>${amount}</strong><div class="time-text">${esc(p.payer_name || '')}</div></td>
-          <td data-label="Payment Date">${fmtDate(p.tx_date)}${note}${adminNote}</td>
+          <td data-label="User"><strong>${esc(p.user_name || 'Unknown')}</strong><div style="font-size:12px;color:var(--muted)">${esc(p.user_email || '')}</div>${p.contact_email ? `<div class="time-text">Billing: ${esc(p.contact_email)}</div>` : ''}</td>
+          <td data-label="Plan"><span class="badge badge-${p.plan === 'school' ? 'admin' : 'teacher'}">${esc(p.plan)}</span><div class="time-text">Current: ${currentState}</div>${p.current_plan_expires_at ? `<div class="time-text">Expires: ${fmtDate(p.current_plan_expires_at)}</div>` : ''}</td>
+          <td data-label="Amount"><strong>${amount}</strong><div class="time-text">${esc(p.payer_name || '')}</div><div class="time-text">${Number(p.months || 1)} month(s)</div></td>
+          <td data-label="Billing">${billingCycleLabel(p.billing_cycle || 'monthly')} · ${fmtDate(p.tx_date)}${p.company_name ? `<div class="time-text">${esc(p.company_name)}</div>` : ''}${note}${adminNote}</td>
           <td data-label="Status"><span class="badge badge-${p.status === 'approved' ? 'admin' : p.status === 'rejected' ? 'student' : 'teacher'}">${esc(p.status)}</span></td>
           <td data-label="Actions">
             ${pending ? `<div class="action-group">
-              <button class="btn-sm btn-green" onclick="approvePayment(${p.id}, '${escAttr(p.user_name || 'user')}', '${escAttr(p.plan)}')">Approve</button>
+              <button class="btn-sm btn-green" onclick="approvePayment(${p.id}, '${escAttr(p.user_name || 'user')}', '${escAttr(p.plan)}', ${Number(p.months || 1)}, '${escAttr(p.billing_cycle || 'monthly')}', '${escAttr(p.invoice_no || '')}')">Approve</button>
               <button class="btn-sm btn-danger" onclick="rejectPayment(${p.id}, '${escAttr(p.user_name || 'user')}')">Reject</button>
             </div>` : `<span class="time-text">${p.reviewed_by_name ? 'By ' + esc(p.reviewed_by_name) : 'Reviewed'}</span>`}
           </td>
@@ -2059,12 +2088,13 @@ async function loadBillingPayments() {
   }
 }
 
-function approvePayment(id, name, plan) {
-  const monthsRaw = prompt(`Approve ${plan} for ${name}. Months to activate:`, '1');
+function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', invoiceNo = '') {
+  const monthsRaw = prompt(`Approve ${plan} for ${name}. Months to activate:`, String(defaultMonths || 1));
   if (monthsRaw === null) return;
   const months = Math.max(1, Math.min(24, parseInt(monthsRaw, 10) || 1));
   const note = prompt('Admin note (optional):', 'Bank transfer confirmed');
-  confirm(`Approve payment #${id}?`, `This will activate ${plan} for ${months} month(s).`, '💳', async () => {
+  const invoiceLabel = invoiceNo ? `Invoice ${invoiceNo}` : `Payment #${id}`;
+  confirm(`Approve ${invoiceLabel}?`, `This will activate ${plan} on ${cycle} billing for ${months} month(s).`, '💳', async () => {
     try {
       await api('POST', `/api/admin/billing/payments/${id}/approve`, { months, note: note || '' });
       toast('Payment approved and plan activated', 'success');
@@ -2412,6 +2442,10 @@ function fmtDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
          d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function billingCycleLabel(cycle) {
+  return ({ monthly: 'Monthly', quarterly: 'Quarterly', yearly: 'Yearly' }[cycle] || 'Monthly');
 }
 
 function fmtBytes(n) {

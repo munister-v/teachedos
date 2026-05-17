@@ -1,17 +1,17 @@
 const jwt  = require('jsonwebtoken');
 const pool = require('../db/pool');
+const { ensureBillingSchema } = require('../lib/billing');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
 
 // Add new columns if they don't exist yet
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free'`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS zoom_url TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ`).catch(() => {});
+ensureBillingSchema(pool).catch(() => {});
 
-// Verify JWT, attach req.user = { id, email, name, role, plan, plan_expires_at, meeting_url, zoom_url, timezone, timezone_mode, created_at }
+// Verify JWT, attach req.user with billing, room, and timezone fields.
 async function requireAuth(req, res, next) {
   const header = req.headers['authorization'];
   if (!header || !header.startsWith('Bearer ')) {
@@ -22,7 +22,7 @@ async function requireAuth(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET);
     // Light DB check: make sure user still exists
     const { rows } = await pool.query(
-      'SELECT id, email, name, role, avatar, plan, plan_expires_at, meeting_url, zoom_url, timezone, timezone_mode, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode, created_at FROM users WHERE id = $1',
       [payload.sub]
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found' });
@@ -34,11 +34,15 @@ async function requireAuth(req, res, next) {
       new Date(req.user.plan_expires_at).getTime() <= Date.now()
     ) {
       await pool.query(
-        "UPDATE users SET plan='free', plan_expires_at=NULL WHERE id=$1",
+        "UPDATE users SET plan='free', plan_status='free', billing_cycle='monthly', plan_started_at=NULL, plan_expires_at=NULL, plan_source='system' WHERE id=$1",
         [req.user.id]
       ).catch(() => {});
       req.user.plan = 'free';
+      req.user.plan_status = 'free';
+      req.user.billing_cycle = 'monthly';
+      req.user.plan_started_at = null;
       req.user.plan_expires_at = null;
+      req.user.plan_source = 'system';
     }
     next();
   } catch (err) {

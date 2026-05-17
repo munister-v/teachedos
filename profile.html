@@ -617,10 +617,21 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
             <div style="font-size:12px;color:var(--text-3);font-weight:700;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
           </div>
         </div>
+        <div id="plan-status-banner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(28,28,30,.03);font-size:12px;line-height:1.6;"></div>
+        <div id="plan-usage-summary" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+        <div id="plan-features-list" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:16px;"></div>
 
         <!-- Upgrade options -->
         <div id="plan-upgrade-section" style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Choose a tariff and request an invoice</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Choose a package and billing cycle</div>
+          <div class="setting-group" style="margin-bottom:12px;">
+            <div class="setting-label">Billing cycle</div>
+            <select class="setting-input" id="billing-cycle-select" onchange="updateSelectedPlanPrice()">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
           <div style="display:grid;gap:10px;">
             <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
@@ -629,7 +640,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
                 <div style="font-size:14px;font-weight:800;">Teacher Pro</div>
                 <div style="font-size:11px;color:var(--text-3);">Unlimited boards · 30 students · Analytics</div>
               </div>
-              <div style="font-size:14px;font-weight:900;color:var(--accent);">$9.90/mo</div>
+              <div id="plan-price-pro" style="font-size:14px;font-weight:900;color:var(--accent);">$9.90/mo</div>
             </div>
             <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
@@ -638,7 +649,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
                 <div style="font-size:14px;font-weight:800;">School</div>
                 <div style="font-size:11px;color:var(--text-3);">Unlimited everything · Admin panel</div>
               </div>
-              <div style="font-size:14px;font-weight:900;color:var(--accent);">$29/mo</div>
+              <div id="plan-price-school" style="font-size:14px;font-weight:900;color:var(--accent);">$29/mo</div>
             </div>
           </div>
         </div>
@@ -653,16 +664,19 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
               </div>
               <div><strong>Plan:</strong> <span id="iban-plan-name">—</span></div>
               <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
+              <div><strong>Cycle:</strong> <span id="iban-plan-cycle">—</span></div>
             </div>
             <div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.6;">
               After payment, enter your transaction details below. Admin will confirm the transfer and activate the tariff.
             </div>
             <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <input class="setting-input" id="iban-contact-email" type="email" placeholder="Contact email for billing notices">
+              <input class="setting-input" id="iban-company-name" type="text" placeholder="Company / school name (optional)">
               <input class="setting-input" id="iban-payer-name" type="text" placeholder="Full name (as in bank statement)">
               <input class="setting-input" id="iban-tx-date" type="date" placeholder="Payment date">
               <textarea class="setting-input" id="iban-tx-note" rows="2" placeholder="Transaction reference / comment (optional)" style="resize:vertical;font-family:var(--font);"></textarea>
             </div>
-            <button class="setting-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Send for Admin Review →</button>
+            <button class="setting-btn" id="iban-submit-btn" onclick="submitIBANPayment()" style="margin-top:12px;width:100%;">Send for Admin Review →</button>
           </div>
         </div>
 
@@ -711,6 +725,8 @@ const PROFILE_CACHE_KEY = 'teachedos_profile_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let me = null;
 let selectedAvatar = null;
+let billingOverview = null;
+let billingPlans = null;
 const {
   createApiClient,
   DEFAULT_TIME_ZONE,
@@ -1298,7 +1314,7 @@ function initSettings() {
   renderEmojiGrid();
   initTimeZoneSettings();
   initMeetingRooms();
-  initPlanCard();
+  initPlanCard().catch(() => {});
   updateDarkToggleUI(window.__themeGet ? window.__themeGet() : 'light');
 }
 
@@ -1308,30 +1324,221 @@ function initMeetingRooms() {
   if (me.zoom_url) document.getElementById('set-zoom-url').value = me.zoom_url;
 }
 
-function initPlanCard() {
-  const planIcons = { free:'⭐', pro:'🚀', school:'🏫' };
-  const planDescs = {
-    free: '3 boards · 5 students per board',
-    pro:  'Unlimited boards · 30 students · Analytics',
-    school: 'Unlimited everything · Admin panel'
-  };
-  const planNames = { free:'Free', pro:'Teacher Pro', school:'School' };
-  const plan = me.plan || 'free';
+function billingToneStyle(tone) {
+  if (tone === 'good') return { color: '#166534', border: 'rgba(34,197,94,.2)', bg: 'rgba(34,197,94,.08)' };
+  if (tone === 'warn') return { color: '#b45309', border: 'rgba(249,115,22,.22)', bg: 'rgba(249,115,22,.08)' };
+  if (tone === 'bad') return { color: '#b91c1c', border: 'rgba(239,68,68,.22)', bg: 'rgba(239,68,68,.08)' };
+  return { color: 'var(--text-2)', border: 'var(--border)', bg: 'rgba(28,28,30,.03)' };
+}
+
+function billingCycleLabel(cycle) {
+  return ({ monthly: 'Monthly', quarterly: 'Quarterly', yearly: 'Yearly' }[cycle] || 'Monthly');
+}
+
+function formatMoney(amount, currency = 'usd') {
+  const value = Number(amount || 0);
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: String(currency || 'USD').toUpperCase(),
+      minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  } catch {
+    return `${value.toFixed(2)} ${String(currency || 'usd').toUpperCase()}`;
+  }
+}
+
+function formatBillingDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderBillingUsage(usage) {
+  const root = document.getElementById('plan-usage-summary');
+  if (!root) return;
+  const items = [
+    {
+      label: 'Boards',
+      entry: usage?.boards,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? `${entry.used} active` : `${entry.remaining} left`
+    },
+    {
+      label: 'Students / board',
+      entry: usage?.students_per_board,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? 'No cap' : `${entry.remaining} left`
+    },
+    {
+      label: 'Courses',
+      entry: usage?.courses,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? 'No cap' : `${entry.remaining} left`
+    },
+    {
+      label: 'Storage',
+      entry: usage?.storage_mb,
+      formatter: entry => entry.unlimited ? `${entry.used} MB` : `${entry.used} / ${entry.limit} MB`,
+      detail: entry => entry.unlimited ? 'Tracked locally' : `${entry.remaining} MB left`
+    }
+  ];
+  root.innerHTML = `
+    <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;">Usage & limits</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+      ${items.map(item => {
+        const entry = item.entry || { used: 0, limit: 0, remaining: 0, unlimited: false };
+        return `
+          <div style="padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);">
+            <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">${item.label}</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text);margin-top:4px;">${item.formatter(entry)}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${item.detail(entry)}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderBillingFeatures(features = [], flags = {}) {
+  const root = document.getElementById('plan-features-list');
+  if (!root) return;
+  const flagFeatures = [
+    flags.analytics ? 'Analytics enabled' : null,
+    flags.realtime ? 'Realtime collaboration' : null,
+    flags.exports ? 'Exports included' : null,
+    flags.adminPanel ? 'Admin controls' : null,
+    flags.customBranding ? 'Custom branding' : null
+  ].filter(Boolean);
+  const chips = [...features, ...flagFeatures].slice(0, 8);
+  root.innerHTML = chips.map(feature => `
+    <div style="padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);font-size:12px;font-weight:700;color:var(--text-2);">
+      ✓ ${esc(feature)}
+    </div>
+  `).join('');
+}
+
+function renderPlanStatusBanner(current, pendingPayment) {
+  const root = document.getElementById('plan-status-banner');
+  if (!root) return;
+  const tone = billingToneStyle(current?.status_meta?.tone);
+  let message = '';
+  if (pendingPayment) {
+    message = `Invoice ${esc(pendingPayment.invoice_no || '#' + pendingPayment.id)} is waiting for admin review. Package: ${esc(PLAN_NAMES[pendingPayment.plan] || pendingPayment.plan)} · ${billingCycleLabel(pendingPayment.billing_cycle)} · ${formatMoney(pendingPayment.amount, pendingPayment.currency)}.`;
+  } else if ((current?.status || 'free') === 'free') {
+    message = 'You are on the free tier. Upgrade to unlock more boards, more students, analytics, and stronger admin controls.';
+  } else {
+    const expires = current?.plan_expires_at ? ` Access runs until ${formatBillingDate(current.plan_expires_at)}.` : '';
+    const source = current?.plan_source ? ` Source: ${esc(current.plan_source)}.` : '';
+    message = `${esc(current?.status_meta?.label || 'Plan active')} on ${esc(PLAN_NAMES[current.plan] || current.plan)} with ${billingCycleLabel(current.cycle)} billing.${expires}${source}`;
+  }
+  root.style.display = 'block';
+  root.style.color = tone.color;
+  root.style.borderColor = tone.border;
+  root.style.background = tone.bg;
+  root.innerHTML = `<strong style="font-size:12px;">${esc(current?.status_meta?.label || 'Billing')}</strong><div style="margin-top:4px;">${message}</div>`;
+}
+
+function updatePlanOptionPrices() {
+  ['pro', 'school'].forEach(plan => {
+    const priceEl = document.getElementById(`plan-price-${plan}`);
+    if (!priceEl) return;
+    const cycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
+    const quote = billingPlans?.[plan]?.cycles?.find(item => item.key === cycle);
+    if (!quote) {
+      priceEl.textContent = PLAN_PRICES[plan] || '';
+      return;
+    }
+    const monthlyEquivalent = quote.monthly_equivalent ? `${formatMoney(quote.monthly_equivalent, quote.currency)}/mo` : '';
+    const savings = quote.savings > 0 ? ` · save ${formatMoney(quote.savings, quote.currency)}` : '';
+    priceEl.textContent = cycle === 'monthly'
+      ? monthlyEquivalent
+      : `${formatMoney(quote.total, quote.currency)}${savings}`;
+  });
+}
+
+function renderPlanCardFromOverview(overview) {
+  const current = overview?.current || {};
+  const plan = current.plan || me?.plan || 'free';
+  const planIcons = { free: '⭐', pro: '🚀', school: '🏫' };
+  const planName = current.name || PLAN_NAMES[plan] || 'Free';
+  const badge = current.badge ? ` · ${current.badge}` : '';
+  const expiry = current.plan_expires_at ? ` · active until ${formatBillingDate(current.plan_expires_at)}` : '';
   document.getElementById('plan-icon').textContent = planIcons[plan] || '⭐';
-  document.getElementById('plan-name-display').textContent = planNames[plan] || plan;
-  const expires = me.plan_expires_at ? ` · active until ${new Date(me.plan_expires_at).toLocaleDateString()}` : '';
-  document.getElementById('plan-desc-display').textContent = (planDescs[plan] || '') + expires;
-  // Hide upgrade section if already on a paid plan
-  const upgradeSection = document.getElementById('plan-upgrade-section');
-  if (upgradeSection) upgradeSection.style.display = (plan === 'free') ? 'block' : 'none';
+  document.getElementById('plan-name-display').textContent = planName;
+  document.getElementById('plan-desc-display').textContent = `${billingCycleLabel(current.cycle || 'monthly')} billing${badge}${expiry}`;
+  renderPlanStatusBanner(current, overview?.pending_payment || null);
+  renderBillingUsage(overview?.usage || {});
+  renderBillingFeatures(current.features || [], current.flags || {});
+  updatePlanOptionPrices();
+
+  const submitBtn = document.getElementById('iban-submit-btn');
+  if (submitBtn) {
+    const locked = !!overview?.pending_payment;
+    submitBtn.disabled = locked;
+    submitBtn.style.opacity = locked ? '.65' : '1';
+    submitBtn.style.cursor = locked ? 'not-allowed' : 'pointer';
+    submitBtn.textContent = locked ? 'Pending review in progress' : 'Send for Admin Review →';
+  }
+
+  const emailInput = document.getElementById('iban-contact-email');
+  if (emailInput && !emailInput.value) emailInput.value = me?.email || '';
+}
+
+async function initPlanCard() {
+  const fallbackOverview = {
+    current: {
+      plan: me?.plan || 'free',
+      cycle: me?.billing_cycle || 'monthly',
+      status: me?.plan_status || (me?.plan === 'free' ? 'free' : 'active'),
+      status_meta: { label: me?.plan_status || 'free', tone: me?.plan === 'free' ? 'muted' : 'good' },
+      plan_expires_at: me?.plan_expires_at || null,
+      plan_source: me?.plan_source || null,
+      name: PLAN_NAMES[me?.plan || 'free'] || 'Free',
+      badge: me?.plan === 'school' ? 'Team' : me?.plan === 'pro' ? 'Most popular' : 'Starter',
+      features: [],
+      flags: {}
+    },
+    usage: {},
+    pending_payment: null
+  };
+  renderPlanCardFromOverview(fallbackOverview);
+  try {
+    const response = await apiFetch('/api/billing/overview');
+    if (!response.ok) throw new Error('billing-overview-failed');
+    billingOverview = await response.json();
+    billingPlans = billingOverview.plans || {};
+    me = {
+      ...me,
+      plan: billingOverview.current?.plan || me.plan,
+      plan_status: billingOverview.current?.status || me.plan_status,
+      billing_cycle: billingOverview.current?.cycle || me.billing_cycle,
+      plan_started_at: billingOverview.current?.plan_started_at || me.plan_started_at,
+      plan_expires_at: billingOverview.current?.plan_expires_at || me.plan_expires_at,
+      plan_source: billingOverview.current?.plan_source || me.plan_source
+    };
+    writeProfileCache({ me, billingOverview });
+    renderPlanCardFromOverview(billingOverview);
+  } catch {
+    const cachedOverview = readProfileCache()?.billingOverview || null;
+    if (cachedOverview) {
+      billingOverview = cachedOverview;
+      billingPlans = cachedOverview.plans || {};
+      renderPlanCardFromOverview(cachedOverview);
+    }
+  }
 }
 
 async function loadBillingRequests() {
   const root = document.getElementById('billing-requests');
   if (!root) return;
-  const r = await apiFetch('/api/billing/payments');
-  if (!r.ok) return;
-  const { payments } = await r.json();
+  let payments = billingOverview?.payments || null;
+  if (!payments) {
+    const r = await apiFetch('/api/billing/payments');
+    if (!r.ok) return;
+    const payload = await r.json();
+    payments = payload.payments || [];
+  }
   if (!payments?.length) {
     root.innerHTML = '<div style="font-size:12px;color:var(--text-3);">No manual payment requests yet.</div>';
     return;
@@ -1339,15 +1546,17 @@ async function loadBillingRequests() {
   root.innerHTML = `
     <div style="font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Payment Requests</div>
     <div style="display:grid;gap:8px;">
-      ${payments.slice(0, 5).map(p => {
-        const amount = `${Number(p.amount || 0).toFixed(2)} ${(p.currency || 'usd').toUpperCase()}`;
-        const tone = p.status === 'approved' ? '#22c55e' : p.status === 'rejected' ? '#ef4444' : '#f97316';
+      ${payments.slice(0, 8).map(p => {
+        const amount = formatMoney(p.amount, p.currency);
+        const tone = billingToneStyle(p.status_meta?.tone);
         return `<div style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);">
           <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
             <strong style="font-size:12px;color:var(--text);">${p.invoice_no || '#' + p.id}</strong>
-            <span style="font-size:11px;font-weight:900;color:${tone};text-transform:uppercase;">${p.status}</span>
+            <span style="font-size:11px;font-weight:900;color:${tone.color};text-transform:uppercase;">${esc(p.status_meta?.label || p.status)}</span>
           </div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">${PLAN_NAMES[p.plan] || p.plan} · ${amount} · ${new Date(p.created_at).toLocaleDateString()}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">${PLAN_NAMES[p.plan] || p.plan} · ${billingCycleLabel(p.billing_cycle)} · ${amount}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Created ${formatBillingDate(p.created_at)} · ${p.months || 1} month(s)</div>
+          ${p.company_name ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px;">Company: ${esc(p.company_name)}</div>` : ''}
           ${p.admin_note ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px;">Admin note: ${esc(p.admin_note)}</div>` : ''}
         </div>`;
       }).join('')}
@@ -1397,12 +1606,15 @@ function toggleManagePanel() {
   panel.style.display = open ? 'block' : 'none';
   if (!open) return;
 
-  // Plan summary rows
-  const plan = me?.plan || 'free';
-  const planNames = { free:'Free', pro:'Teacher Pro', school:'School' };
-  const planPrices = { free:'$0', pro:'$9.90/mo', school:'$29/mo' };
-  const expires = me?.plan_expires_at ? new Date(me.plan_expires_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null;
-  const daysLeft = expires && me?.plan_expires_at ? Math.ceil((new Date(me.plan_expires_at) - Date.now()) / 86400000) : null;
+  const current = billingOverview?.current || {
+    plan: me?.plan || 'free',
+    status: me?.plan_status || (me?.plan === 'free' ? 'free' : 'active'),
+    cycle: me?.billing_cycle || 'monthly',
+    plan_expires_at: me?.plan_expires_at || null
+  };
+  const quote = billingPlans?.[current.plan]?.cycles?.find(item => item.key === (current.cycle || 'monthly'));
+  const expires = current.plan_expires_at ? new Date(current.plan_expires_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null;
+  const daysLeft = expires && current.plan_expires_at ? Math.ceil((new Date(current.plan_expires_at) - Date.now()) / 86400000) : null;
   const expiryColor = daysLeft != null && daysLeft < 14 ? '#ef4444' : 'var(--text-2)';
 
   const row = (label, value, color='var(--text)') =>
@@ -1412,10 +1624,12 @@ function toggleManagePanel() {
      </div>`;
 
   document.getElementById('manage-plan-summary').innerHTML = [
-    row('Plan', planNames[plan] || plan),
-    row('Price', planPrices[plan] || '—'),
+    row('Plan', PLAN_NAMES[current.plan] || current.plan),
+    row('Status', current.status_meta?.label || current.status || 'Free tier', billingToneStyle(current.status_meta?.tone).color),
+    row('Cycle', billingCycleLabel(current.cycle || 'monthly')),
+    row('Price', quote ? formatMoney(quote.total, quote.currency) : (current.plan === 'free' ? '$0' : '—')),
     expires ? row('Active until', expires + (daysLeft != null ? ` (${daysLeft}d left)` : ''), expiryColor) : '',
-    row('Status', plan === 'free' ? 'Free tier' : '✓ Active', plan === 'free' ? 'var(--text-3)' : '#22c55e'),
+    billingOverview?.pending_payment ? row('Pending invoice', billingOverview.pending_payment.invoice_no || `#${billingOverview.pending_payment.id}`, '#b45309') : '',
   ].join('');
 
   loadBillingRequests().catch(() => {});
@@ -1573,7 +1787,19 @@ function updateDarkToggleUI(theme) {
 // ── Subscription / IBAN payment ──────────────────────────────
 let _selectedPlan = null;
 const PLAN_PRICES = { pro: '$9.90/mo', school: '$29/mo' };
-const PLAN_NAMES  = { pro: 'Teacher Pro', school: 'School' };
+const PLAN_NAMES  = { free: 'Free', pro: 'Teacher Pro', school: 'School' };
+
+function updateSelectedPlanPrice() {
+  updatePlanOptionPrices();
+  if (!_selectedPlan) return;
+  const cycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
+  const quote = billingPlans?.[_selectedPlan]?.cycles?.find(item => item.key === cycle);
+  document.getElementById('iban-plan-name').textContent = PLAN_NAMES[_selectedPlan] || _selectedPlan;
+  document.getElementById('iban-plan-price').textContent = quote ? formatMoney(quote.total, quote.currency) : (PLAN_PRICES[_selectedPlan] || '');
+  document.getElementById('iban-plan-cycle').textContent = quote
+    ? `${billingCycleLabel(quote.cycle)} · ${quote.months} month(s)${quote.savings > 0 ? ` · save ${formatMoney(quote.savings, quote.currency)}` : ''}`
+    : billingCycleLabel(cycle);
+}
 
 function selectPlan(plan) {
   _selectedPlan = plan;
@@ -1586,9 +1812,8 @@ function selectPlan(plan) {
     opt.style.borderColor = 'var(--accent)';
     opt.style.background = 'rgba(200,230,50,.05)';
   }
-  document.getElementById('iban-plan-name').textContent = PLAN_NAMES[plan] || plan;
-  document.getElementById('iban-plan-price').textContent = PLAN_PRICES[plan] || '';
   document.getElementById('iban-payment-section').style.display = 'block';
+  updateSelectedPlanPrice();
 }
 
 function copyIBAN() {
@@ -1605,18 +1830,35 @@ async function submitIBANPayment() {
   const payerName = document.getElementById('iban-payer-name').value.trim();
   const txDate = document.getElementById('iban-tx-date').value;
   const txNote = document.getElementById('iban-tx-note').value.trim();
+  const contactEmail = document.getElementById('iban-contact-email').value.trim();
+  const companyName = document.getElementById('iban-company-name').value.trim();
+  const billingCycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
   if (!payerName) { toast('Enter your full name'); return; }
   if (!txDate) { toast('Enter payment date'); return; }
+  if (billingOverview?.pending_payment) { toast('Wait until the current invoice is reviewed'); return; }
   try {
     const r = await apiFetch('/api/billing/iban-activate', {
       method: 'POST',
-      body: { plan: _selectedPlan, payer_name: payerName, tx_date: txDate, tx_note: txNote }
+      body: {
+        plan: _selectedPlan,
+        billing_cycle: billingCycle,
+        payer_name: payerName,
+        tx_date: txDate,
+        tx_note: txNote,
+        contact_email: contactEmail || null,
+        company_name: companyName || null
+      }
     });
     if (r.ok) {
       const d = await r.json();
       const invoiceNo = d.payment?.invoice_no ? ` Invoice ${d.payment.invoice_no}.` : '';
       toast('Payment request sent for admin review.' + invoiceNo);
       document.getElementById('iban-payment-section').style.display = 'none';
+      ['iban-company-name', 'iban-payer-name', 'iban-tx-date', 'iban-tx-note'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+      });
+      await initPlanCard();
       loadBillingRequests().catch(() => {});
     } else {
       const d = await r.json().catch(() => ({}));

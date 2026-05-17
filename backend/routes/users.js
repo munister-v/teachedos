@@ -28,7 +28,8 @@ router.patch('/me', async (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
 
   const { rows } = await pool.query(
-    `UPDATE users SET ${sets.join(', ')} WHERE id = $1 RETURNING id, email, name, role, avatar, timezone, timezone_mode, plan, plan_expires_at, meeting_url, zoom_url`,
+    `UPDATE users SET ${sets.join(', ')} WHERE id = $1
+     RETURNING id, email, name, role, avatar, timezone, timezone_mode, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url`,
     params
   );
   res.json({ user: rows[0] });

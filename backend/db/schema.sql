@@ -13,6 +13,15 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) NOT NULL DEFAULT 'free';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_status VARCHAR(24) NOT NULL DEFAULT 'free';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_cycle VARCHAR(24) NOT NULL DEFAULT 'monthly';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_started_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_source VARCHAR(24) NOT NULL DEFAULT 'free';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+
 -- ── Boards ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS boards (
   id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -176,10 +185,16 @@ CREATE TABLE IF NOT EXISTS iban_payments (
   admin_note   TEXT,
   reviewed_by  UUID         REFERENCES users(id) ON DELETE SET NULL,
   reviewed_at  TIMESTAMPTZ,
+  billing_cycle TEXT        NOT NULL DEFAULT 'monthly',
+  months       INTEGER      NOT NULL DEFAULT 1,
+  company_name TEXT,
+  contact_email TEXT,
+  package_snapshot JSONB    NOT NULL DEFAULT '{}'::jsonb,
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_iban_payments_invoice_no ON iban_payments(invoice_no) WHERE invoice_no IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_iban_payments_user_status ON iban_payments(user_id, status, created_at DESC);
 
 -- ── Homework assignment (one row per student per homework) ──────────────────
 CREATE TABLE IF NOT EXISTS homework_assignment (

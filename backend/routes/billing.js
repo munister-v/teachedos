@@ -1,131 +1,155 @@
 const express = require('express');
-const router  = express.Router();
-const pool    = require('../db/pool');
+const router = express.Router();
+const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const {
+  PLAN_CATALOG,
+  normalizePlanKey,
+  normalizeCycleKey,
+  computePlanQuote,
+  buildPublicPlans,
+  derivePlanState,
+  usageSnapshot,
+  paymentStatusMeta,
+  ensureBillingSchema,
+} = require('../lib/billing');
 
-// ── Stripe (optional — only active if STRIPE_SECRET_KEY is set) ──────────
 let stripe = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
 
-// Add Stripe columns to users if not present
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ`).catch(() => {});
-async function ensureIbanPaymentsTable() {
-  const existing = await pool.query(
-    `SELECT data_type FROM information_schema.columns
-     WHERE table_name='iban_payments' AND column_name='user_id'
-     LIMIT 1`
-  );
-  if (existing.rows.length && existing.rows[0].data_type !== 'uuid') {
-    await pool.query(`ALTER TABLE iban_payments RENAME TO iban_payments_legacy_${Date.now()}`);
-  }
-  await pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
-    id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    plan TEXT NOT NULL,
-    payer_name TEXT NOT NULL,
-    tx_date DATE NOT NULL,
-    tx_note TEXT,
-    status TEXT DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'usd'`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS invoice_no TEXT`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS admin_note TEXT`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id)`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ`);
-  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_iban_payments_invoice_no ON iban_payments(invoice_no) WHERE invoice_no IS NOT NULL`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC)`);
-}
-ensureIbanPaymentsTable().catch(err => console.error('[billing] iban table:', err.message));
+ensureBillingSchema(pool).catch(err => console.error('[billing] schema:', err.message));
 
-// ── Plan definitions ─────────────────────────────────────────────────────
-const PLANS = {
-  free: {
-    name: 'Free', price: 0, currency: 'usd',
-    boards: 3, students_per_board: 5,
-    analytics: false, admin: false, calls: false,
-    stripe_price_id: null,
-    features: [
-      '3 lesson boards',
-      '5 students per board',
-      'Basic card types (sticky, lesson, vocab)',
-      'Local autosave',
-      'Google Meet / Zoom quick-start',
-    ],
-  },
-  pro: {
-    name: 'Teacher Pro', price: 9.90, currency: 'usd',
-    boards: -1, students_per_board: 30,
-    analytics: true, admin: false, calls: true,
-    stripe_price_id: process.env.STRIPE_PRO_PRICE_ID || null,
-    features: [
-      'Unlimited boards',
-      '30 students per board',
-      'All card types incl. assignments & games',
-      'Analytics export & gradebook',
-      'Real-time collaboration (WebSockets)',
-      'Live session broadcasting to students',
-      'Version history (8 auto + 5 pinned)',
-      'Priority support',
-    ],
-  },
-  school: {
-    name: 'School', price: 29, currency: 'usd',
-    boards: -1, students_per_board: -1,
-    analytics: true, admin: true, calls: true,
-    stripe_price_id: process.env.STRIPE_SCHOOL_PRICE_ID || null,
-    features: [
-      'Everything in Pro',
-      'Unlimited students per board',
-      'Admin panel with school-wide analytics',
-      'Custom branding & colors',
-      'Bulk student import (CSV)',
-      'Course builder with modules',
-      'Dedicated support',
-    ],
-  },
+const STRIPE_PRICE_IDS = {
+  pro: process.env.STRIPE_PRO_PRICE_ID || null,
+  school: process.env.STRIPE_SCHOOL_PRICE_ID || null,
 };
 
-// ── GET /api/billing/plans ───────────────────────────────────────────────
-router.get('/plans', (req, res) => {
-  // Strip internal stripe_price_id from public response
-  const pub = {};
-  Object.entries(PLANS).forEach(([k, v]) => { pub[k] = { ...v, stripe_price_id: undefined }; });
-  res.json({ plans: pub });
+function planFromStripePrice(priceId) {
+  if (priceId && priceId === STRIPE_PRICE_IDS.pro) return 'pro';
+  if (priceId && priceId === STRIPE_PRICE_IDS.school) return 'school';
+  return 'free';
+}
+
+async function loadUsageCounts(userId) {
+  const [boardRes, studentRes, coursesRes, storageRes] = await Promise.all([
+    pool.query('SELECT COUNT(*)::int AS count FROM boards WHERE user_id=$1', [userId]),
+    pool.query(
+      `SELECT COALESCE(MAX(student_count), 0)::int AS max_count,
+              COALESCE(SUM(student_count), 0)::int AS total_count
+       FROM (
+         SELECT b.id, COUNT(DISTINCT bc.user_id)::int AS student_count
+         FROM boards b
+         LEFT JOIN board_collaborators bc ON bc.board_id = b.id
+         WHERE b.user_id = $1
+         GROUP BY b.id
+       ) t`,
+      [userId]
+    ),
+    pool.query('SELECT COUNT(*)::int AS count FROM courses WHERE user_id=$1', [userId]).catch(() => ({ rows: [{ count: 0 }] })),
+    pool.query('SELECT COALESCE(SUM(pg_column_size(data)), 0)::bigint AS bytes FROM boards WHERE user_id=$1', [userId]),
+  ]);
+
+  return {
+    boards_count: Number(boardRes.rows[0]?.count || 0),
+    students_total: Number(studentRes.rows[0]?.total_count || 0),
+    max_students_on_board: Number(studentRes.rows[0]?.max_count || 0),
+    courses_count: Number(coursesRes.rows[0]?.count || 0),
+    storage_bytes: Number(storageRes.rows[0]?.bytes || 0),
+  };
+}
+
+async function loadLatestPendingPayment(userId) {
+  const { rows } = await pool.query(
+    `SELECT id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no,
+            billing_cycle, months, company_name, contact_email, package_snapshot, created_at
+     FROM iban_payments
+     WHERE user_id=$1 AND status='pending'
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [userId]
+  );
+  return rows[0] || null;
+}
+
+async function loadRecentPayments(userId, limit = 8) {
+  const { rows } = await pool.query(
+    `SELECT id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no,
+            admin_note, reviewed_at, billing_cycle, months, company_name, contact_email,
+            package_snapshot, created_at
+     FROM iban_payments
+     WHERE user_id=$1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [userId, limit]
+  );
+  return rows.map(row => ({
+    ...row,
+    status_meta: paymentStatusMeta(row.status),
+  }));
+}
+
+async function activatePlanForUser({
+  userId,
+  plan,
+  cycle,
+  months,
+  source,
+  client = pool,
+  startsAt = null,
+}) {
+  const safePlan = normalizePlanKey(plan);
+  const safeCycle = normalizeCycleKey(cycle);
+  const safeMonths = Math.max(1, parseInt(months, 10) || 1);
+  const startExpr = startsAt ? 'GREATEST(COALESCE(plan_expires_at, $5::timestamptz), $5::timestamptz)' : 'GREATEST(COALESCE(plan_expires_at, NOW()), NOW())';
+  const params = startsAt
+    ? [safePlan, safeCycle, safeMonths, source || 'manual', startsAt, userId]
+    : [safePlan, safeCycle, safeMonths, source || 'manual', userId];
+  const userIdPlaceholder = startsAt ? '$6' : '$5';
+
+  await client.query(
+    `UPDATE users
+     SET plan=$1,
+         plan_status='active',
+         billing_cycle=$2,
+         plan_started_at=COALESCE(plan_started_at, NOW()),
+         plan_expires_at=${startExpr} + ($3::int * INTERVAL '1 month'),
+         plan_source=$4
+     WHERE id=${userIdPlaceholder}`,
+    params
+  );
+}
+
+router.get('/plans', (_req, res) => {
+  res.json({
+    plans: buildPublicPlans(),
+    stripe_active: !!stripe,
+    stripe_supported_cycles: ['monthly'],
+  });
 });
 
-// ── GET /api/billing/usage ───────────────────────────────────────────────
 router.get('/usage', requireAuth, async (req, res) => {
   try {
-    const plan = req.user.plan || 'free';
-    const limits = PLANS[plan] || PLANS.free;
-
-    const [boardRes, studentRes] = await Promise.all([
-      pool.query('SELECT COUNT(*) AS count FROM boards WHERE user_id=$1', [req.user.id]),
-      pool.query(
-        `SELECT COUNT(DISTINCT bc.user_id) AS count
-         FROM board_collaborators bc
-         JOIN boards b ON b.id=bc.board_id WHERE b.user_id=$1`,
-        [req.user.id]
-      ),
-    ]);
-
+    const state = derivePlanState(req.user);
+    const counts = await loadUsageCounts(req.user.id);
+    const usage = usageSnapshot(state.plan, counts);
+    const planDef = PLAN_CATALOG[state.plan];
     res.json({
-      plan,
-      plan_expires_at: req.user.plan_expires_at || null,
-      boards_count:    parseInt(boardRes.rows[0].count, 10),
-      students_total:  parseInt(studentRes.rows[0].count, 10),
+      current: state,
+      counts,
+      usage,
       limits: {
-        boards:             limits.boards,
-        students_per_board: limits.students_per_board,
-        analytics:          limits.analytics,
-        admin:              limits.admin,
-        calls:              limits.calls,
+        boards: planDef.limits.boards,
+        students_per_board: planDef.limits.studentsPerBoard,
+        courses: planDef.limits.courses,
+        storage_mb: planDef.limits.storageMb,
+        history_snapshots: planDef.limits.historySnapshots,
+        analytics: planDef.flags.analytics,
+        admin: planDef.flags.adminPanel,
+        realtime: planDef.flags.realtime,
+        exports: planDef.flags.exports,
+        custom_branding: planDef.flags.customBranding,
       },
       stripe_active: !!stripe,
     });
@@ -135,30 +159,75 @@ router.get('/usage', requireAuth, async (req, res) => {
   }
 });
 
-// ── POST /api/billing/checkout ───────────────────────────────────────────
-// Creates a Stripe Checkout session and returns the URL.
-// Falls back to direct plan update if Stripe is not configured (dev mode).
+router.get('/overview', requireAuth, async (req, res) => {
+  try {
+    await ensureBillingSchema(pool);
+    const state = derivePlanState(req.user);
+    const [counts, pendingPayment, payments] = await Promise.all([
+      loadUsageCounts(req.user.id),
+      loadLatestPendingPayment(req.user.id),
+      loadRecentPayments(req.user.id, 8),
+    ]);
+    const usage = usageSnapshot(state.plan, counts);
+    const planDef = PLAN_CATALOG[state.plan];
+    res.json({
+      current: {
+        ...state,
+        name: planDef.name,
+        badge: planDef.badge,
+        features: planDef.features,
+        flags: planDef.flags,
+        limits: planDef.limits,
+      },
+      usage,
+      counts,
+      pending_payment: pendingPayment ? {
+        ...pendingPayment,
+        status_meta: paymentStatusMeta(pendingPayment.status),
+      } : null,
+      payments,
+      plans: buildPublicPlans(),
+      can_request_manual_payment: !pendingPayment,
+      stripe_active: !!stripe,
+    });
+  } catch (err) {
+    console.error('[billing] overview:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/checkout', requireAuth, async (req, res) => {
-  const { plan } = req.body;
+  const plan = normalizePlanKey(req.body?.plan);
+  const cycle = normalizeCycleKey(req.body?.cycle);
   if (!['pro', 'school'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
+  if (cycle !== 'monthly') {
+    return res.status(400).json({ error: 'Stripe checkout currently supports monthly billing only. Use invoice request for quarterly or yearly billing.' });
+  }
 
-  const planDef = PLANS[plan];
-
-  // Dev mode — no Stripe configured
-  if (!stripe || !planDef.stripe_price_id) {
-    await pool.query('UPDATE users SET plan=$1 WHERE id=$2', [plan, req.user.id]);
-    return res.json({ ok: true, plan, dev_mode: true });
+  if (!stripe || !STRIPE_PRICE_IDS[plan]) {
+    try {
+      await pool.query(
+        `UPDATE users
+         SET plan=$1, plan_status='active', billing_cycle='monthly', plan_started_at=NOW(),
+             plan_expires_at=NOW() + INTERVAL '1 month', plan_source='dev'
+         WHERE id=$2`,
+        [plan, req.user.id]
+      );
+      return res.json({ ok: true, plan, cycle, dev_mode: true });
+    } catch (err) {
+      console.error('[billing] checkout-dev:', err.message);
+      return res.status(500).json({ error: 'Server error' });
+    }
   }
 
   try {
-    // Get or create Stripe customer
     let customerId = req.user.stripe_customer_id;
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: req.user.email,
-        name:  req.user.name,
+        name: req.user.name,
         metadata: { userId: req.user.id },
       });
       customerId = customer.id;
@@ -166,15 +235,14 @@ router.post('/checkout', requireAuth, async (req, res) => {
     }
 
     const origin = process.env.FRONTEND_URL || 'https://munister.com.ua/teachedos';
-
     const session = await stripe.checkout.sessions.create({
-      customer:   customerId,
-      mode:       'subscription',
-      line_items: [{ price: planDef.stripe_price_id, quantity: 1 }],
+      customer: customerId,
+      mode: 'subscription',
+      line_items: [{ price: STRIPE_PRICE_IDS[plan], quantity: 1 }],
       success_url: `${origin}/billing-success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/index.html`,
-      metadata: { userId: req.user.id, plan },
-      subscription_data: { metadata: { userId: req.user.id, plan } },
+      cancel_url: `${origin}/profile.html#plans`,
+      metadata: { userId: req.user.id, plan, cycle },
+      subscription_data: { metadata: { userId: req.user.id, plan, cycle } },
     });
 
     res.json({ url: session.url });
@@ -184,8 +252,6 @@ router.post('/checkout', requireAuth, async (req, res) => {
   }
 });
 
-// ── POST /api/billing/portal ─────────────────────────────────────────────
-// Opens Stripe customer portal for managing subscription.
 router.post('/portal', requireAuth, async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'Stripe not configured' });
   const customerId = req.user.stripe_customer_id;
@@ -193,8 +259,8 @@ router.post('/portal', requireAuth, async (req, res) => {
   try {
     const origin = process.env.FRONTEND_URL || 'https://munister.com.ua/teachedos';
     const session = await stripe.billingPortal.sessions.create({
-      customer:   customerId,
-      return_url: `${origin}/index.html`,
+      customer: customerId,
+      return_url: `${origin}/profile.html#plans`,
     });
     res.json({ url: session.url });
   } catch (err) {
@@ -203,42 +269,102 @@ router.post('/portal', requireAuth, async (req, res) => {
   }
 });
 
-// ── POST /api/billing/upgrade ─────────────────────────────────────────────
-// Direct upgrade (dev/admin only — no payment). Kept for admin use.
 router.post('/upgrade', requireAuth, async (req, res) => {
-  const { plan } = req.body;
+  const plan = normalizePlanKey(req.body?.plan);
+  const cycle = normalizeCycleKey(req.body?.cycle);
   if (!['free', 'pro', 'school'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
   try {
-    await pool.query('UPDATE users SET plan=$1 WHERE id=$2', [plan, req.user.id]);
-    res.json({ ok: true, plan });
+    if (plan === 'free') {
+      await pool.query(
+        `UPDATE users
+         SET plan='free', plan_status='free', billing_cycle='monthly',
+             plan_started_at=NULL, plan_expires_at=NULL, plan_source='admin'
+         WHERE id=$1`,
+        [req.user.id]
+      );
+    } else {
+      await activatePlanForUser({
+        userId: req.user.id,
+        plan,
+        cycle,
+        months: computePlanQuote(plan, cycle).months,
+        source: 'admin',
+      });
+    }
+    res.json({ ok: true, plan, cycle });
   } catch (err) {
     console.error('[billing] upgrade:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// ── POST /api/billing/iban-activate ───────────────────────────────────────
-// Creates a manual bank-transfer invoice/request. Admin approves it later.
 router.post('/iban-activate', requireAuth, async (req, res) => {
-  const { plan, payer_name, tx_date, tx_note } = req.body;
+  const plan = normalizePlanKey(req.body?.plan);
+  const billingCycle = normalizeCycleKey(req.body?.billing_cycle);
+  const payerName = String(req.body?.payer_name || '').trim();
+  const txDate = req.body?.tx_date;
+  const txNote = String(req.body?.tx_note || '').trim();
+  const companyName = String(req.body?.company_name || '').trim();
+  const contactEmail = String(req.body?.contact_email || req.user.email || '').trim().toLowerCase();
+
   if (!['pro', 'school'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
-  if (!payer_name || !tx_date) {
+  if (!payerName || !txDate) {
     return res.status(400).json({ error: 'Payer name and payment date are required' });
   }
+  if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+    return res.status(400).json({ error: 'Contact email is invalid' });
+  }
+
   try {
-    await ensureIbanPaymentsTable();
-    const planDef = PLANS[plan];
+    await ensureBillingSchema(pool);
+    const pending = await loadLatestPendingPayment(req.user.id);
+    if (pending) {
+      return res.status(409).json({
+        error: 'You already have a pending payment request. Please wait for admin review before sending a new one.',
+        payment: pending,
+      });
+    }
+
+    const quote = computePlanQuote(plan, billingCycle);
     const invoiceNo = `TD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const packageSnapshot = {
+      plan,
+      plan_name: PLAN_CATALOG[plan].name,
+      cycle: billingCycle,
+      quote,
+      limits: PLAN_CATALOG[plan].limits,
+      flags: PLAN_CATALOG[plan].flags,
+    };
+
     const { rows } = await pool.query(
-      `INSERT INTO iban_payments (user_id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no, created_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8, NOW())
-       RETURNING id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no, created_at`,
-      [req.user.id, plan, payer_name.trim().slice(0, 255), tx_date, tx_note || null, planDef.price, planDef.currency, invoiceNo]
+      `INSERT INTO iban_payments (
+         user_id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no,
+         billing_cycle, months, company_name, contact_email, package_snapshot, created_at
+       )
+       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8, $9, $10, $11, $12, $13::jsonb, NOW())
+       RETURNING id, plan, payer_name, tx_date, tx_note, status, amount, currency, invoice_no,
+                 billing_cycle, months, company_name, contact_email, package_snapshot, created_at`,
+      [
+        req.user.id,
+        plan,
+        payerName.slice(0, 255),
+        txDate,
+        txNote || null,
+        quote.total,
+        quote.currency,
+        invoiceNo,
+        billingCycle,
+        quote.months,
+        companyName || null,
+        contactEmail || null,
+        JSON.stringify(packageSnapshot),
+      ]
     );
+
     res.status(202).json({ ok: true, payment: rows[0] });
   } catch (err) {
     console.error('[billing] iban-activate:', err.message);
@@ -246,27 +372,17 @@ router.post('/iban-activate', requireAuth, async (req, res) => {
   }
 });
 
-// ── GET /api/billing/payments ─────────────────────────────────────────────
 router.get('/payments', requireAuth, async (req, res) => {
   try {
-    await ensureIbanPaymentsTable();
-    const { rows } = await pool.query(
-      `SELECT id, plan, payer_name, tx_date, tx_note, status, amount, currency,
-              invoice_no, admin_note, reviewed_at, created_at
-       FROM iban_payments
-       WHERE user_id=$1
-       ORDER BY created_at DESC
-       LIMIT 20`,
-      [req.user.id]
-    );
-    res.json({ payments: rows });
+    await ensureBillingSchema(pool);
+    const payments = await loadRecentPayments(req.user.id, 20);
+    res.json({ payments });
   } catch (err) {
     console.error('[billing] payments:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// ── POST /api/billing/webhook (raw body — registered in server.js) ────────
 async function handleWebhook(req, res) {
   if (!stripe) return res.status(400).json({ error: 'Stripe not configured' });
   const sig = req.headers['stripe-signature'];
@@ -282,28 +398,50 @@ async function handleWebhook(req, res) {
 
   if (event.type === 'checkout.session.completed') {
     const userId = obj.metadata?.userId;
-    const plan   = obj.metadata?.plan;
-    if (userId && plan) {
+    const plan = normalizePlanKey(obj.metadata?.plan);
+    const cycle = normalizeCycleKey(obj.metadata?.cycle);
+    if (userId && plan !== 'free') {
       await pool.query(
-        'UPDATE users SET plan=$1, stripe_subscription_id=$2 WHERE id=$3',
-        [plan, obj.subscription, userId]
-      ).catch(e => console.error('[webhook] DB update:', e.message));
+        `UPDATE users
+         SET plan=$1, plan_status='active', billing_cycle=$2, plan_started_at=COALESCE(plan_started_at, NOW()),
+             plan_source='stripe', stripe_subscription_id=$3
+         WHERE id=$4`,
+        [plan, cycle, obj.subscription || null, userId]
+      ).catch(e => console.error('[webhook] checkout update:', e.message));
     }
   }
 
   if (event.type === 'customer.subscription.updated') {
     const userId = obj.metadata?.userId;
-    if (!userId) return res.json({ received: true });
-    const status = obj.status; // active, past_due, canceled, etc.
-    if (status === 'active') {
-      // Map Stripe price to plan
-      const priceId = obj.items?.data[0]?.price?.id;
-      let plan = 'free';
-      if (priceId === process.env.STRIPE_PRO_PRICE_ID) plan = 'pro';
-      else if (priceId === process.env.STRIPE_SCHOOL_PRICE_ID) plan = 'school';
-      await pool.query('UPDATE users SET plan=$1 WHERE id=$2', [plan, userId]).catch(() => {});
-    } else if (['canceled', 'unpaid', 'past_due'].includes(status)) {
-      await pool.query("UPDATE users SET plan='free' WHERE id=$1", [userId]).catch(() => {});
+    if (userId) {
+      const status = obj.status;
+      const priceId = obj.items?.data?.[0]?.price?.id;
+      const plan = planFromStripePrice(priceId);
+      const expiresAt = obj.current_period_end ? new Date(obj.current_period_end * 1000).toISOString() : null;
+      if (status === 'active' || status === 'trialing') {
+        await pool.query(
+          `UPDATE users
+           SET plan=$1, plan_status='active', billing_cycle='monthly', plan_source='stripe',
+               stripe_subscription_id=$2, plan_started_at=COALESCE(plan_started_at, NOW()), plan_expires_at=$3
+           WHERE id=$4`,
+          [plan, obj.id || null, expiresAt, userId]
+        ).catch(() => {});
+      } else if (status === 'past_due') {
+        await pool.query(
+          `UPDATE users
+           SET plan_status='grace', billing_cycle='monthly', plan_source='stripe', plan_expires_at=$1
+           WHERE id=$2`,
+          [expiresAt, userId]
+        ).catch(() => {});
+      } else if (['canceled', 'unpaid', 'incomplete_expired'].includes(status)) {
+        await pool.query(
+          `UPDATE users
+           SET plan='free', plan_status='free', billing_cycle='monthly',
+               plan_started_at=NULL, plan_expires_at=NULL, plan_source='stripe', stripe_subscription_id=NULL
+           WHERE id=$1`,
+          [userId]
+        ).catch(() => {});
+      }
     }
   }
 
@@ -311,7 +449,10 @@ async function handleWebhook(req, res) {
     const userId = obj.metadata?.userId;
     if (userId) {
       await pool.query(
-        "UPDATE users SET plan='free', stripe_subscription_id=NULL WHERE id=$1",
+        `UPDATE users
+         SET plan='free', plan_status='free', billing_cycle='monthly',
+             plan_started_at=NULL, plan_expires_at=NULL, plan_source='stripe', stripe_subscription_id=NULL
+         WHERE id=$1`,
         [userId]
       ).catch(() => {});
     }

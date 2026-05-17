@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { PLAN_CATALOG, normalizePlanKey } = require('../lib/billing');
 
 // All board routes require auth
 router.use(requireAuth);
@@ -20,17 +21,22 @@ router.get('/', async (req, res) => {
 // POST /api/boards — create new board
 router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Board' } = req.body;
-  const plan = req.user.plan || 'free';
+  const plan = normalizePlanKey(req.user.plan);
+  const boardLimit = PLAN_CATALOG[plan]?.limits?.boards ?? PLAN_CATALOG.free.limits.boards;
 
-  // Enforce free plan board limit (3 boards)
-  if (plan === 'free') {
+  if (boardLimit !== -1) {
     try {
       const { rows: cnt } = await pool.query(
         'SELECT COUNT(*) AS count FROM boards WHERE user_id = $1',
         [req.user.id]
       );
-      if (parseInt(cnt[0].count, 10) >= 3) {
-        return res.status(402).json({ error: 'Board limit reached', plan: 'free', limit: 3, upgrade_url: '/billing' });
+      if (parseInt(cnt[0].count, 10) >= boardLimit) {
+        return res.status(402).json({
+          error: 'Board limit reached',
+          plan,
+          limit: boardLimit,
+          upgrade_url: '/billing',
+        });
       }
     } catch (err) {
       console.error('[boards] limit check error:', err.message);

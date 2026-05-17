@@ -3,36 +3,17 @@ const crypto = require('crypto');
 const pool   = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
+const {
+  ensureBillingSchema,
+  normalizePlanKey,
+  normalizeCycleKey,
+} = require('../lib/billing');
 
 // All admin routes require auth + admin role
 router.use(requireAuth, requireAdmin);
 
 async function ensureIbanPaymentsTable() {
-  const existing = await pool.query(
-    `SELECT data_type FROM information_schema.columns
-     WHERE table_name='iban_payments' AND column_name='user_id'
-     LIMIT 1`
-  );
-  if (existing.rows.length && existing.rows[0].data_type !== 'uuid') {
-    await pool.query(`ALTER TABLE iban_payments RENAME TO iban_payments_legacy_${Date.now()}`);
-  }
-  await pool.query(`CREATE TABLE IF NOT EXISTS iban_payments (
-    id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    plan TEXT NOT NULL,
-    payer_name TEXT NOT NULL,
-    tx_date DATE NOT NULL,
-    tx_note TEXT,
-    status TEXT DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'usd'`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS invoice_no TEXT`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS admin_note TEXT`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id)`);
-  await pool.query(`ALTER TABLE iban_payments ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_iban_payments_status ON iban_payments(status, created_at DESC)`);
+  await ensureBillingSchema(pool);
 }
 
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
@@ -76,7 +57,9 @@ router.get('/billing/payments', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT p.id, p.user_id, p.plan, p.payer_name, p.tx_date, p.tx_note, p.status,
               p.amount, p.currency, p.invoice_no, p.admin_note, p.created_at, p.reviewed_at,
-              u.name AS user_name, u.email AS user_email, u.plan AS current_plan,
+              p.billing_cycle, p.months, p.company_name, p.contact_email, p.package_snapshot,
+              u.name AS user_name, u.email AS user_email, u.plan AS current_plan, u.plan_status AS current_plan_status,
+              u.billing_cycle AS current_billing_cycle, u.plan_expires_at AS current_plan_expires_at,
               reviewer.name AS reviewed_by_name
        FROM iban_payments p
        JOIN users u ON u.id = p.user_id
@@ -115,9 +98,10 @@ router.get('/billing/summary', async (req, res) => {
          WHERE status='approved' AND created_at >= NOW() - INTERVAL '30 days'`
       ),
       pool.query(
-        `SELECT id, name, email, plan, plan_expires_at
+        `SELECT id, name, email, plan, plan_status, billing_cycle, plan_expires_at
          FROM users
          WHERE plan <> 'free'
+           AND plan_status IN ('active', 'grace')
            AND plan_expires_at IS NOT NULL
            AND plan_expires_at <= NOW() + INTERVAL '7 days'
          ORDER BY plan_expires_at ASC
@@ -156,7 +140,8 @@ router.post('/billing/payments/:id/approve', async (req, res) => {
     await ensureIbanPaymentsTable();
     await client.query('BEGIN');
     const paymentRes = await client.query(
-      `SELECT id, user_id, plan, status FROM iban_payments WHERE id=$1 FOR UPDATE`,
+      `SELECT id, user_id, plan, status, billing_cycle, months
+       FROM iban_payments WHERE id=$1 FOR UPDATE`,
       [id]
     );
     if (!paymentRes.rows.length) {
@@ -174,14 +159,20 @@ router.post('/billing/payments/:id/approve', async (req, res) => {
        WHERE id=$1`,
       [id, String(note || '').trim().slice(0, 1000), req.user.id]
     );
+    const appliedMonths = safeMonths || Math.max(1, parseInt(payment.months, 10) || 1);
     await client.query(
       `UPDATE users
-       SET plan=$1, plan_expires_at=NOW() + ($2::int * INTERVAL '1 month')
-       WHERE id=$3`,
-      [payment.plan, safeMonths, payment.user_id]
+       SET plan=$1,
+           plan_status='active',
+           billing_cycle=$2,
+           plan_started_at=COALESCE(plan_started_at, NOW()),
+           plan_expires_at=GREATEST(COALESCE(plan_expires_at, NOW()), NOW()) + ($3::int * INTERVAL '1 month'),
+           plan_source='manual'
+       WHERE id=$4`,
+      [normalizePlanKey(payment.plan), normalizeCycleKey(payment.billing_cycle), appliedMonths, payment.user_id]
     );
     await client.query('COMMIT');
-    res.json({ ok: true, plan: payment.plan, months: safeMonths });
+    res.json({ ok: true, plan: payment.plan, months: appliedMonths });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     res.status(500).json({ error: err.message });
@@ -699,7 +690,7 @@ router.get('/users', async (req, res) => {
     const like = `%${search}%`;
     const roleFilter = role ? role : null;
     const { rows } = await pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_expires_at, u.created_at,
+      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at, u.plan_source, u.created_at,
               COUNT(b.id) AS boards_count
        FROM users u
        LEFT JOIN boards b ON b.user_id = u.id
@@ -761,7 +752,7 @@ router.post('/users', async (req, res) => {
 
 // ── PATCH /api/admin/users/:id ─────────────────────────────────────────────
 router.patch('/users/:id', async (req, res) => {
-  const { name, role, avatar, password, plan, plan_expires_at } = req.body;
+  const { name, role, avatar, password, plan, plan_status, billing_cycle, plan_expires_at } = req.body;
   try {
     const sets = [];
     const vals = [];
@@ -788,7 +779,18 @@ router.patch('/users/:id', async (req, res) => {
         return res.status(400).json({ error: 'Invalid plan' });
       }
       sets.push(`plan=$${i++}`);
-      vals.push(plan);
+      vals.push(normalizePlanKey(plan));
+    }
+    if (plan_status !== undefined) {
+      if (!['free', 'active', 'pending', 'grace', 'expired', 'canceled', 'rejected'].includes(plan_status)) {
+        return res.status(400).json({ error: 'Invalid plan status' });
+      }
+      sets.push(`plan_status=$${i++}`);
+      vals.push(plan_status);
+    }
+    if (billing_cycle !== undefined) {
+      sets.push(`billing_cycle=$${i++}`);
+      vals.push(normalizeCycleKey(billing_cycle));
     }
     if (plan_expires_at !== undefined) {
       sets.push(`plan_expires_at=$${i++}`);
@@ -805,7 +807,8 @@ router.patch('/users/:id', async (req, res) => {
     if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
     vals.push(req.params.id);
     const { rows } = await pool.query(
-      `UPDATE users SET ${sets.join(',')} WHERE id=$${i} RETURNING id,email,name,role,avatar`,
+      `UPDATE users SET ${sets.join(',')} WHERE id=$${i}
+       RETURNING id,email,name,role,avatar,plan,plan_status,billing_cycle,plan_started_at,plan_expires_at,plan_source`,
       vals
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });

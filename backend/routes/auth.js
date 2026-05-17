@@ -2,9 +2,11 @@ const router  = require('express').Router();
 const bcrypt  = require('bcryptjs');
 const pool    = require('../db/pool');
 const { requireAuth, signToken } = require('../middleware/auth');
+const { ensureBillingSchema } = require('../lib/billing');
 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
+ensureBillingSchema(pool).catch(() => {});
 
 function defaultAvatarForRole(role) {
   if (role === 'student') return '🎓';
@@ -67,7 +69,7 @@ router.post('/register', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, role, avatar, timezone, timezone_mode, created_at`,
+       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
       [email.toLowerCase().trim(), hash, name.trim(), safeRole, avatar]
     );
     const user  = rows[0];
@@ -79,7 +81,22 @@ router.post('/register', async (req, res) => {
       [user.id, 'My First Board']
     );
 
-    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar, timezone: user.timezone, timezone_mode: user.timezone_mode, created_at: user.created_at } });
+    res.status(201).json({ token, user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatar: user.avatar,
+      plan: user.plan || 'free',
+      plan_status: user.plan_status || 'free',
+      billing_cycle: user.billing_cycle || 'monthly',
+      plan_started_at: user.plan_started_at,
+      plan_expires_at: user.plan_expires_at,
+      plan_source: user.plan_source || 'free',
+      timezone: user.timezone,
+      timezone_mode: user.timezone_mode,
+      created_at: user.created_at
+    } });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
@@ -156,7 +173,7 @@ router.post('/invites/:token/accept', async (req, res) => {
     const created = await client.query(
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, role, avatar, created_at`,
+       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, created_at`,
       [normalizedEmail, hash, name.trim(), invite.role, safeAvatar]
     );
     const user = created.rows[0];
@@ -197,7 +214,7 @@ router.post('/login', async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar, plan, plan_expires_at, timezone, timezone_mode, created_at FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
@@ -225,7 +242,11 @@ router.post('/login', async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         plan: user.plan || 'free',
+        plan_status: user.plan_status || (user.plan === 'free' ? 'free' : 'active'),
+        billing_cycle: user.billing_cycle || 'monthly',
+        plan_started_at: user.plan_started_at,
         plan_expires_at: user.plan_expires_at,
+        plan_source: user.plan_source || 'free',
         timezone: user.timezone,
         timezone_mode: user.timezone_mode,
         created_at: user.created_at
@@ -285,7 +306,7 @@ router.patch('/me', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
-       RETURNING id, email, name, role, avatar, plan, plan_expires_at, meeting_url, zoom_url, timezone, timezone_mode`,
+       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode`,
       params
     );
     res.json({ user: rows[0] });
