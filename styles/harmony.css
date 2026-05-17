@@ -434,15 +434,6 @@ body { font-family: var(--font) !important; }
    ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 861px) {
 
-  /* ── Wallpaper decorations: show on desktop ── */
-  #wallpaper-deco {
-    display: block !important;
-    position: absolute; inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.7;
-  }
-
   /* ── Menubar: Manrope + harmony palette ── */
   #menubar {
     font-family: var(--font) !important;
@@ -1055,42 +1046,6 @@ body { font-family: var(--font) !important; }
   .blob2 { animation-duration: 24s !important; animation-timing-function: ease-in-out !important; }
   .blob3 { animation-duration: 28s !important; animation-timing-function: ease-in-out !important; }
   .blob4 { animation-duration: 22s !important; animation-timing-function: ease-in-out !important; }
-
-  /* Wallpaper card silhouettes: softer float */
-  @keyframes wpFloat1 {
-    0%, 100% { transform: translateY(0px) translateZ(0); }
-    50%      { transform: translateY(-8px) translateZ(0); }
-  }
-  @keyframes wpFloat2 {
-    0%, 100% { transform: translateY(0px) rotate(0deg) translateZ(0); }
-    50%      { transform: translateY(-6px) rotate(.3deg) translateZ(0); }
-  }
-  .wp-card {
-    will-change: transform;
-    transform: translateZ(0);
-    backdrop-filter: blur(16px) saturate(1.4) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
-    background: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
-  }
-  .wp-card-white {
-    background: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-  }
-  .wp-card-lime {
-    background: rgba(205,242,79,0.15) !important;
-    border: 1px solid rgba(205,242,79,0.25) !important;
-    box-shadow: 0 8px 28px rgba(205,242,79,0.10) !important;
-  }
-  .wp-card-pink {
-    background: rgba(236,45,140,0.18) !important;
-    border: 1px solid rgba(236,45,140,0.28) !important;
-    box-shadow: 0 8px 24px rgba(236,45,140,0.12) !important;
-  }
-  .wp-bar { background: rgba(205,242,79,0.50) !important; }
-  .wp-line { background: rgba(255,255,255,0.08) !important; }
-  .wp-icon { opacity: .50 !important; }
 
   /* ═══════════════════════════════════════════════════════════════
      Smoother Global Interactions
