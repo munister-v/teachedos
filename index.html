@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C8E632">
+<meta name="theme-color" content="#EC2D8C">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -44,8 +44,8 @@
   --accent:    #1C1C1E;
   --accent-2:  rgba(200,230,50,0.10);
   --accent-3:  rgba(94,94,74,0.22);
-  --rose:      #C8E632;
-  --deep-rose: #C8E632;
+  --rose:      #CDF24F;
+  --deep-rose: #EC2D8C;
   --blush:     #CAC9B7;
   --plum:      #5E5E4A;
   --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -359,15 +359,15 @@ html,body {
   width:1px; height:44px; background: rgba(202,201,183,0.22);
   margin:0 3px; align-self:center;
 }
-/* dock icon colors */
-.di-icon.curriculum { background: linear-gradient(145deg,#c45472,#8b2d50); }
-.di-icon.flashcards  { background: linear-gradient(145deg,#8b6bb1,#5b3a8f); }
-.di-icon.progress    { background: linear-gradient(145deg,#e87898,#5E5E4A); }
-.di-icon.schedule    { background: linear-gradient(145deg,#d4749a,#a84d70); }
-.di-icon.notes       { background: linear-gradient(145deg,#1C1C1E,#e87898); }
-.di-icon.dictionary  { background: linear-gradient(145deg,#7ca8d4,#4a72a0); }
-.di-icon.settings    { background: linear-gradient(145deg,#5a4550,#3a2d35); }
-.di-icon.finder      { background: linear-gradient(145deg,#4ab0c8,#2a7d96); }
+/* dock icon colors — harmony palette */
+.di-icon.curriculum { background: linear-gradient(145deg,#EC2D8C,#d4267f); }
+.di-icon.flashcards  { background: linear-gradient(145deg,#D8C5FB,#9F8CE8); }
+.di-icon.progress    { background: linear-gradient(145deg,#FFB5AE,#EC2D8C); }
+.di-icon.schedule    { background: linear-gradient(145deg,#EC2D8C,#d4267f); }
+.di-icon.notes       { background: linear-gradient(145deg,#0E0E10,#EC2D8C); }
+.di-icon.dictionary  { background: linear-gradient(145deg,#8FE6E6,#4a72a0); }
+.di-icon.settings    { background: linear-gradient(145deg,#3A3A40,#0E0E10); }
+.di-icon.finder      { background: linear-gradient(145deg,#8FE6E6,#059669); }
 
 /* ═══════════════════════════ WINDOWS ═══════════════════════════ */
 .win {
@@ -628,7 +628,7 @@ html,body {
 .lc-level.a2 { background:rgba(96,165,250,.12); color:#60a5fa; }
 .lc-level.b1 { background:rgba(245,158,11,.12); color:#f59e0b; }
 .lc-level.b2 { background:rgba(202,201,183,.18); color:#1C1C1E; }
-.lc-level.c1 { background:rgba(200,230,50,.12); color:#C8E632; }
+.lc-level.c1 { background:rgba(205,242,79,.12); color:#CDF24F; }
 .lc-dur {
   font-size:10px; color: var(--text-3); font-family: var(--font-mono);
 }
@@ -1384,7 +1384,7 @@ html,body {
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#C8E632;color:#1C1C1E;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1394,7 +1394,7 @@ html,body {
 <div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
     <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
-    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#C8E632;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
+    <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#EC2D8C;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
   </div>
   <div id="notif-list" style="overflow-y:auto;max-height:340px;padding:8px;"></div>
 </div>
@@ -1795,7 +1795,7 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#1C1C1E,#C8E632);">📋</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#0E0E10,#CDF24F);">📋</div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
@@ -1815,28 +1815,28 @@ html,body {
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
-      <div class="di-icon" style="background:linear-gradient(145deg,#b87ac4,#7a4a9c);">🪄</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#9F8CE8);">🪄</div>
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-board" href="board.html" style="text-decoration:none;" title="Board">
-      <div class="di-icon" style="background:linear-gradient(145deg,#f59e0b,#d97706);">📌</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#FFC94A,#F59E0B);">📌</div>
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
-      <div class="di-icon" style="background:linear-gradient(145deg,#a78bfa,#7c3aed);">📚</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#7c3aed);">📚</div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
-      <div class="di-icon" style="background:linear-gradient(145deg,#C8E632,#1C1C1E);">🌍</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#CDF24F,#0E0E10);">🌍</div>
       <div class="di-label">Community</div>
       <div class="di-dot"></div>
     </a>
     <div class="di-sep"></div>
     <a class="di" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
-      <div class="di-icon" style="background:linear-gradient(145deg,#34d399,#059669);position:relative;">📊</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#8FE6E6,#059669);position:relative;">📊</div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
@@ -1847,7 +1847,7 @@ html,body {
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
-      <div class="di-icon" style="background:linear-gradient(145deg,#f472b6,#db2777);">👤</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#EC2D8C,#d4267f);">👤</div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
     </a>
@@ -2800,7 +2800,7 @@ toolsRender();
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
 const SP_ITEMS = [
   // Windows
-  { icon:'📋', iconBg:'linear-gradient(145deg,#1C1C1E,#C8E632)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#0E0E10,#CDF24F)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
   { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#1C1C1E,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
@@ -2808,7 +2808,7 @@ const SP_ITEMS = [
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
   { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
-  { icon:'🌍', iconBg:'linear-gradient(145deg,#C8E632,#1C1C1E)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
+  { icon:'🌍', iconBg:'linear-gradient(145deg,#CDF24F,#0E0E10)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
   { icon:'📊', iconBg:'linear-gradient(145deg,#34d399,#059669)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
   { icon:'📒', iconBg:'linear-gradient(145deg,#60a5fa,#2563eb)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
   { icon:'👤', iconBg:'linear-gradient(145deg,#f472b6,#db2777)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
@@ -3167,10 +3167,10 @@ function selectOsRole(role) {
   const t = document.getElementById('role-teacher');
   const s = document.getElementById('role-student');
   if (t && s) {
-    t.style.borderColor = role==='teacher'?'#C8E632':'rgba(94,94,74,.14)';
-    t.style.background  = role==='teacher'?'rgba(200,230,50,.07)':'#fafafa';
-    s.style.borderColor = role==='student'?'#C8E632':'rgba(94,94,74,.14)';
-    s.style.background  = role==='student'?'rgba(200,230,50,.07)':'#fafafa';
+        t.style.borderColor = role==='teacher'?'#EC2D8C':'rgba(94,94,74,.14)';
+        t.style.background  = role==='teacher'?'rgba(236,45,140,.07)':'#fafafa';
+        s.style.borderColor = role==='student'?'#EC2D8C':'rgba(94,94,74,.14)';
+        s.style.background  = role==='student'?'rgba(236,45,140,.07)':'#fafafa';
   }
 }
 
@@ -3189,9 +3189,9 @@ function renderOsAuthFields() {
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-    `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-     <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#C8E632';this.style.boxShadow='0 0 0 3px rgba(200,230,50,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}"   onfocus="this.style.borderColor='#EC2D8C';this.style.boxShadow='0 0 0 3px rgba(236,45,140,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
+      `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#EC2D8C';this.style.boxShadow='0 0 0 3px rgba(236,45,140,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
+       <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#EC2D8C';this.style.boxShadow='0 0 0 3px rgba(236,45,140,.1)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
@@ -3294,7 +3294,7 @@ function renderNotifList() {
         ${n.body?`<div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${esc(n.body)}</div>`:''}
         <div style="font-size:10px;color:#A2A28C;margin-top:3px;">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#C8E632;flex-shrink:0;margin-top:4px;"></span>':''}
+      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#EC2D8C;flex-shrink:0;margin-top:4px;"></span>':''}
     </div>`).join('');
 }
 
@@ -3542,18 +3542,18 @@ if('serviceWorker'in navigator){
             <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #C8E632;cursor:pointer;transition:.15s;background:#F5F0E8;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #EC2D8C;cursor:pointer;transition:.15s;background:#F5F0E8;">
             <div style="font-size:20px;margin-bottom:4px;">⬜</div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>
@@ -3596,14 +3596,14 @@ if('serviceWorker'in navigator){
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
         <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#C8E632;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
@@ -3616,7 +3616,7 @@ if('serviceWorker'in navigator){
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#C8E632;color:#1C1C1E;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
@@ -3647,7 +3647,7 @@ function obSelectTpl(id) {
   _obTpl = id;
   document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
     const tid = el.id.replace('ob-tpl-','');
-    el.style.borderColor = tid === id ? '#C8E632' : '#e5e7eb';
+    el.style.borderColor = tid === id ? '#EC2D8C' : '#e5e7eb';
     el.style.background   = tid === id ? '#F5F0E8' : '#fafafa';
   });
   const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', reading:'Reading Lesson', writing:'Writing Lesson', vocab:'Vocabulary Unit', testprep:'Exam Preparation', business:'Business English', kids:'Kids Lesson', listening:'Listening Lesson', conversation:'Conversation Class', pronunciation:'Pronunciation Lesson', ielts:'IELTS Preparation' };
