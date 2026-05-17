@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#C8E632">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Game Builder · TeachEd</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#1C1C1E;--lime:#C8E632;--lime-dark:#A8D02B;--bg:#F5F0E8;--card:#fff;
+  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);--text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
+  --pink:#EC2D8C;--pink-soft:#FCE3EF;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+
+/* Nav */
+#nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(245,240,232,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(94,94,74,.08);display:flex;align-items:center;padding:0 14px}
+.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:800;margin-left:7px}
+.nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
+.nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;white-space:nowrap;transition:background .12s,color .12s}
+.nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:900;color:var(--lime)}
+.nav-spacer{flex:1}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:900}
+
+/* Layout */
+.wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
+.hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(94,94,74,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(237,232,224,.82))}
+.eyebrow{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:12px}
+h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-width:720px}
+.hero-copy{margin-top:12px;color:var(--text2);font-size:15px;line-height:1.6;max-width:640px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+/* Buttons */
+.btn{border:none;border-radius:14px;padding:11px 16px;font:900 13px var(--font);cursor:pointer;background:var(--accent);color:#fff;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .15s,box-shadow .2s}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(.97)}
+.btn.lime{background:var(--lime);color:var(--accent);box-shadow:0 4px 14px rgba(205,242,79,.28)}.btn.lime:hover{background:#b8d62e}
+.btn.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}.btn.ghost:hover{border-color:rgba(205,242,79,.5);background:rgba(205,242,79,.06)}
+.btn.pink{background:var(--pink);color:#fff}.btn.pink:hover{background:#d4267f}
+.btn.danger{background:#fff;color:#ef4444;border:1px solid rgba(239,68,68,.3)}.btn.danger:hover{background:rgba(239,68,68,.06)}
+.btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.tab{padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font:800 12px var(--font);color:var(--text2);cursor:pointer;background:var(--card);transition:.15s}
+.tab:hover{border-color:var(--lime);color:var(--accent)}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Section */
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px}
+.section-title{font-size:22px;font-weight:950;letter-spacing:-.04em}
+.section-sub{font-size:13px;color:var(--text3);margin-top:3px}
+
+/* Game type selector grid */
+.type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:22px}
+.type-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:8px}
+.type-card:hover{border-color:var(--lime);transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,230,50,.12)}
+.type-card.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
+.type-icon{font-size:28px;line-height:1}
+.type-name{font-size:14px;font-weight:900;color:var(--text)}
+.type-desc{font-size:11px;color:var(--text3);line-height:1.4}
+
+/* Builder form */
+.builder{display:none;background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:24px;margin-bottom:22px}
+.builder.show{display:block}
+.builder-title{font-size:18px;font-weight:900;margin-bottom:4px}
+.builder-sub{font-size:12px;color:var(--text3);margin-bottom:18px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.label{font:800 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;font:600 13px var(--font);outline:none;background:#fff;color:var(--text);transition:border-color .18s,box-shadow .18s}
+input:focus,textarea:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,242,79,.15)}
+textarea{min-height:60px;resize:vertical}
+
+/* Pair rows */
+.pair-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.pair-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+.pair-row input{margin:0}
+.pair-remove{width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.04);color:#ef4444;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.pair-remove:hover{background:rgba(239,68,68,.12)}
+
+/* My games grid */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
+.game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
+.game-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),var(--accent))}
+.game-top{display:flex;gap:10px;align-items:center}
+.game-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
+.game-name{font-size:15px;font-weight:900;line-height:1.2}
+.game-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.game-desc{font-size:12px;color:var(--text2);line-height:1.5;flex:1}
+.game-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
+.tag.lime{background:rgba(200,230,50,.18);color:var(--accent)}
+.game-actions{display:flex;gap:8px;margin-top:4px}
+.empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);background:#fff;border:1px dashed var(--border);border-radius:22px;font-size:14px}
+
+/* Toast */
+#toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* Preview overlay */
+.preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center}
+.preview-overlay.show{display:flex}
+.preview-box{background:var(--card);border-radius:22px;padding:24px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.24);border:1px solid var(--border);position:relative}
+.preview-close{position:absolute;top:14px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:18px;cursor:pointer;color:var(--text3);border:none}
+
+@media(max-width:900px){
+  .type-grid{grid-template-columns:1fr 1fr}
+  .games-grid{grid-template-columns:1fr}
+  .pair-row{grid-template-columns:1fr;gap:4px}
+  .pair-row .pair-remove{justify-self:end}
+  .wrap{padding:18px 14px 80px}
+  #nav{display:none}
+}
+</style>
+<link rel="stylesheet" href="styles/harmony.css">
+<link rel="stylesheet" href="styles/mobile-guard.css">
+</head>
+<body>
+<nav id="nav">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="courses.html">Courses</a>
+  <a class="nav-link" href="community.html">Community</a>
+  <a class="nav-link active" href="game-builder.html">Game Builder</a>
+  <a class="nav-link" href="homework.html">Homework</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-user" href="profile.html"><span id="nav-avatar">T</span><span id="nav-name">Teacher</span></a>
+</nav>
+
+<main class="wrap">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-card">
+      <div class="eyebrow">Game Builder</div>
+      <h1>Create interactive games for your lessons</h1>
+      <p class="hero-copy">Build custom vocabulary, grammar, and speaking games. Save them to your library and drag them onto any board. Inspired by <strong>Twee</strong> and <strong>Wordwall</strong>.</p>
+      <div class="hero-actions">
+        <button class="btn lime" onclick="scrollToBuilder()">+ Create New Game</button>
+        <a class="btn ghost" href="board.html">Open Board</a>
+        <a class="btn ghost" href="community.html">Community Games</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Step 1: Choose game type -->
+  <div class="section-head">
+    <div>
+      <div class="section-title" id="builder-heading">1. Choose game type</div>
+      <div class="section-sub">Select a template to customise with your own content</div>
+    </div>
+  </div>
+
+  <div class="type-grid" id="type-grid"></div>
+
+  <!-- Step 2: Builder form -->
+  <div class="builder" id="builder">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div class="builder-title" id="builder-title">Configure your game</div>
+        <div class="builder-sub" id="builder-sub">Fill in the content below</div>
+      </div>
+      <button class="btn sm ghost" onclick="closeBuilder()">Cancel</button>
+    </div>
+
+    <div class="field">
+      <div class="label">Game Title</div>
+      <input id="game-title" placeholder="e.g. B1 Phrasal Verbs Quiz">
+    </div>
+    <div class="field">
+      <div class="label">Level</div>
+      <select id="game-level">
+        <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="label">Topic / Tags</div>
+      <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
+    </div>
+
+    <!-- Dynamic content area -->
+    <div id="content-area"></div>
+
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn lime" onclick="saveGame()" id="save-btn">Save Game to Library</button>
+      <button class="btn ghost" onclick="previewGame()">Preview</button>
+    </div>
+  </div>
+
+  <!-- My Games library -->
+  <div class="section-head">
+    <div>
+      <div class="section-title">My Games Library</div>
+      <div class="section-sub">Your custom-built games. Drag them onto any board.</div>
+    </div>
+  </div>
+
+  <div class="tabs" id="filter-tabs"></div>
+  <div class="games-grid" id="my-games"></div>
+</main>
+
+<div id="toast"></div>
+
+<!-- Preview overlay -->
+<div class="preview-overlay" id="preview-overlay">
+  <div class="preview-box">
+    <button class="preview-close" onclick="closePreview()">x</button>
+    <div id="preview-content"></div>
+  </div>
+</div>
+
+<script src="scripts/app-core.js"></script>
+<script>
+/* ════════════════════════ GAME TYPES ════════════════════════ */
+const GAME_TYPES = [
+  {
+    id: 'flashcards',
+    icon: '🗂',
+    name: 'Flashcards',
+    desc: 'Word + translation/definition flip cards with Got it / Again tracking',
+    tag: 'Vocabulary',
+    fields: 'pairs',
+    pairLabels: ['Word', 'Translation / Definition'],
+    gameSrc: 'games/flashcards.html',
+    w: 460, h: 560,
+  },
+  {
+    id: 'memory-match',
+    icon: '🧠',
+    name: 'Memory Match',
+    desc: 'Flip cards to match word-definition pairs from memory',
+    tag: 'Vocabulary',
+    fields: 'pairs',
+    pairLabels: ['Term', 'Definition'],
+    gameSrc: 'games/memory-match.html',
+    w: 520, h: 600,
+  },
+  {
+    id: 'word-scramble',
+    icon: '🔀',
+    name: 'Word Scramble',
+    desc: 'Unscramble letters to form the correct word',
+    tag: 'Vocabulary',
+    fields: 'words',
+    gameSrc: 'games/word-scramble.html',
+    w: 460, h: 520,
+  },
+  {
+    id: 'fill-blank',
+    icon: '✍',
+    name: 'Fill in the Blank',
+    desc: 'Type the missing word to complete each sentence',
+    tag: 'Grammar',
+    fields: 'sentences',
+    gameSrc: 'games/fill-blank.html',
+    w: 460, h: 560,
+  },
+  {
+    id: 'true-false',
+    icon: '✅',
+    name: 'True or False',
+    desc: 'Rapid-fire statements — decide if each is true or false',
+    tag: 'Grammar',
+    fields: 'statements',
+    gameSrc: 'games/true-false.html',
+    w: 460, h: 520,
+  },
+  {
+    id: 'speed-quiz',
+    icon: '⚡',
+    name: 'Speed Quiz',
+    desc: '4-option MCQ with countdown timer',
+    tag: 'Speed',
+    fields: 'mcq',
+    gameSrc: 'games/speed-quiz.html',
+    w: 480, h: 560,
+  },
+  {
+    id: 'word-categories',
+    icon: '🗂',
+    name: 'Word Categories',
+    desc: 'Sort words into the correct topic groups',
+    tag: 'Vocabulary',
+    fields: 'categories',
+    gameSrc: 'games/word-categories.html',
+    w: 560, h: 640,
+  },
+  {
+    id: 'spin-wheel',
+    icon: '🎡',
+    name: 'Spin the Wheel',
+    desc: 'Editable word wheel — great for hot-seat vocabulary drills',
+    tag: 'Speaking',
+    fields: 'words',
+    gameSrc: 'games/spin-wheel.html',
+    w: 460, h: 560,
+  },
+  {
+    id: 'hangman',
+    icon: '🎯',
+    name: 'Hangman',
+    desc: 'Guess the hidden word letter by letter',
+    tag: 'Spelling',
+    fields: 'words',
+    gameSrc: 'games/hangman.html',
+    w: 460, h: 560,
+  },
+];
+
+const STORAGE_KEY = 'teachedos_custom_games';
+let selectedType = null;
+let editingId = null;
+let activeFilter = 'All';
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ════════════════════════ INIT ════════════════════════ */
+function init() {
+  setNavUser();
+  renderTypeGrid();
+  renderFilterTabs();
+  renderMyGames();
+}
+
+function setNavUser() {
+  try {
+    const user = JSON.parse(localStorage.getItem('teachedos_user') || 'null') || {};
+    const name = user.name || 'Teacher';
+    document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
+    document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '\u{1F9D1}\u{200D}\u{1F3EB}') ? user.avatar : (name[0]||'T').toUpperCase();
+  } catch {}
+}
+
+/* ════════════════════════ TYPE GRID ════════════════════════ */
+function renderTypeGrid() {
+  const grid = document.getElementById('type-grid');
+  grid.innerHTML = GAME_TYPES.map(t => `
+    <div class="type-card${selectedType && selectedType.id === t.id ? ' selected' : ''}" onclick="selectType('${t.id}')">
+      <div class="type-icon">${t.icon}</div>
+      <div class="type-name">${esc(t.name)}</div>
+      <div class="type-desc">${esc(t.desc)}</div>
+      <div class="tag lime">${esc(t.tag)}</div>
+    </div>
+  `).join('');
+}
+
+function selectType(id) {
+  selectedType = GAME_TYPES.find(t => t.id === id);
+  editingId = null;
+  renderTypeGrid();
+  openBuilder();
+}
+
+/* ════════════════════════ BUILDER ════════════════════════ */
+function scrollToBuilder() {
+  document.getElementById('type-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function openBuilder() {
+  if (!selectedType) return;
+  const b = document.getElementById('builder');
+  b.classList.add('show');
+  document.getElementById('builder-title').textContent = selectedType.icon + ' ' + selectedType.name;
+  document.getElementById('builder-sub').textContent = selectedType.desc;
+  document.getElementById('game-title').value = '';
+  document.getElementById('game-level').value = 'B1';
+  document.getElementById('game-tags').value = selectedType.tag;
+  document.getElementById('save-btn').textContent = 'Save Game to Library';
+  renderContentFields();
+  b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeBuilder() {
+  document.getElementById('builder').classList.remove('show');
+  selectedType = null;
+  editingId = null;
+  renderTypeGrid();
+}
+
+function renderContentFields() {
+  const area = document.getElementById('content-area');
+  if (!selectedType) { area.innerHTML = ''; return; }
+
+  switch (selectedType.fields) {
+    case 'pairs':
+      area.innerHTML = `
+        <div class="label" style="margin-bottom:8px;">${esc(selectedType.pairLabels[0])} — ${esc(selectedType.pairLabels[1])} pairs</div>
+        <div class="pair-list" id="pair-list"></div>
+        <button class="btn sm ghost" onclick="addPair()">+ Add pair</button>`;
+      for (let i = 0; i < 5; i++) addPair();
+      break;
+
+    case 'words':
+      area.innerHTML = `
+        <div class="field">
+          <div class="label">Words (one per line)</div>
+          <textarea id="words-input" rows="8" placeholder="comfortable\nsustainable\nnegotiate\nperspective\ncoincidence"></textarea>
+        </div>`;
+      break;
+
+    case 'sentences':
+      area.innerHTML = `
+        <div class="field">
+          <div class="label">Sentences (use ___ for the blank, one per line)</div>
+          <textarea id="sentences-input" rows="8" placeholder="She ___ (go) to school every day.\nThey have ___ (live) here since 2010.\nHe ___ (not/like) spicy food."></textarea>
+        </div>`;
+      break;
+
+    case 'statements':
+      area.innerHTML = `
+        <div class="label" style="margin-bottom:8px;">Statements — mark each as True or False</div>
+        <div class="pair-list" id="pair-list"></div>
+        <button class="btn sm ghost" onclick="addStatement()">+ Add statement</button>`;
+      for (let i = 0; i < 5; i++) addStatement();
+      break;
+
+    case 'mcq':
+      area.innerHTML = `
+        <div class="label" style="margin-bottom:8px;">Questions — 4 options each, mark the correct one</div>
+        <div id="mcq-list"></div>
+        <button class="btn sm ghost" onclick="addMCQ()">+ Add question</button>`;
+      for (let i = 0; i < 3; i++) addMCQ();
+      break;
+
+    case 'categories':
+      area.innerHTML = `
+        <div class="label" style="margin-bottom:8px;">Categories — name each group and list its words</div>
+        <div id="cat-list"></div>
+        <button class="btn sm ghost" onclick="addCategory()">+ Add category</button>`;
+      for (let i = 0; i < 3; i++) addCategory();
+      break;
+  }
+}
+
+/* ── Dynamic content helpers ── */
+function addPair() {
+  const list = document.getElementById('pair-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'pair-row';
+  row.innerHTML = `
+    <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}">
+    <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}">
+    <button class="pair-remove" onclick="this.parentElement.remove()">x</button>`;
+  list.appendChild(row);
+}
+
+function addStatement() {
+  const list = document.getElementById('pair-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'pair-row';
+  row.innerHTML = `
+    <input class="pair-a" placeholder="Statement text" style="grid-column:1/3">
+    <select class="pair-b" style="width:80px"><option value="true">True</option><option value="false">False</option></select>
+    <button class="pair-remove" onclick="this.parentElement.remove()">x</button>`;
+  list.appendChild(row);
+}
+
+function addMCQ() {
+  const list = document.getElementById('mcq-list');
+  if (!list) return;
+  const idx = list.children.length + 1;
+  const block = document.createElement('div');
+  block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
+  block.innerHTML = `
+    <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:8px;">Question ${idx}</div>
+    <input class="mcq-question" placeholder="Question text" style="margin-bottom:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <input class="mcq-opt" placeholder="Option A">
+      <input class="mcq-opt" placeholder="Option B">
+      <input class="mcq-opt" placeholder="Option C">
+      <input class="mcq-opt" placeholder="Option D">
+    </div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:11px;color:var(--text3);">Correct:</span>
+      <select class="mcq-correct"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+      <button class="pair-remove" onclick="this.closest('[style]').remove()" style="margin-left:auto;">x</button>
+    </div>`;
+  list.appendChild(block);
+}
+
+function addCategory() {
+  const list = document.getElementById('cat-list');
+  if (!list) return;
+  const idx = list.children.length + 1;
+  const block = document.createElement('div');
+  block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
+  block.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="cat-name" placeholder="Category name (e.g. Animals)" style="flex:1;">
+      <button class="pair-remove" onclick="this.closest('[style]').remove()">x</button>
+    </div>
+    <textarea class="cat-words" rows="3" placeholder="word1, word2, word3, ..."></textarea>`;
+  list.appendChild(block);
+}
+
+/* ════════════════════════ COLLECT CONTENT ════════════════════════ */
+function collectContent() {
+  if (!selectedType) return null;
+  switch (selectedType.fields) {
+    case 'pairs': {
+      const rows = document.querySelectorAll('#pair-list .pair-row');
+      const pairs = [];
+      rows.forEach(r => {
+        const a = r.querySelector('.pair-a').value.trim();
+        const b = r.querySelector('.pair-b').value.trim();
+        if (a && b) pairs.push({ a, b });
+      });
+      return pairs.length >= 2 ? { pairs } : null;
+    }
+    case 'words': {
+      const words = document.getElementById('words-input').value
+        .split('\n').map(w => w.trim()).filter(Boolean);
+      return words.length >= 3 ? { words } : null;
+    }
+    case 'sentences': {
+      const sentences = document.getElementById('sentences-input').value
+        .split('\n').map(s => s.trim()).filter(Boolean);
+      return sentences.length >= 2 ? { sentences } : null;
+    }
+    case 'statements': {
+      const rows = document.querySelectorAll('#pair-list .pair-row');
+      const statements = [];
+      rows.forEach(r => {
+        const text = r.querySelector('.pair-a').value.trim();
+        const val = r.querySelector('.pair-b').value;
+        if (text) statements.push({ text, answer: val === 'true' });
+      });
+      return statements.length >= 3 ? { statements } : null;
+    }
+    case 'mcq': {
+      const blocks = document.querySelectorAll('#mcq-list > div');
+      const questions = [];
+      blocks.forEach(b => {
+        const q = b.querySelector('.mcq-question').value.trim();
+        const opts = Array.from(b.querySelectorAll('.mcq-opt')).map(o => o.value.trim());
+        const correct = parseInt(b.querySelector('.mcq-correct').value, 10);
+        if (q && opts.filter(Boolean).length === 4) questions.push({ q, opts, correct });
+      });
+      return questions.length >= 2 ? { questions } : null;
+    }
+    case 'categories': {
+      const blocks = document.querySelectorAll('#cat-list > div');
+      const categories = [];
+      blocks.forEach(b => {
+        const name = b.querySelector('.cat-name').value.trim();
+        const words = b.querySelector('.cat-words').value.split(',').map(w => w.trim()).filter(Boolean);
+        if (name && words.length >= 2) categories.push({ name, words });
+      });
+      return categories.length >= 2 ? { categories } : null;
+    }
+  }
+  return null;
+}
+
+/* ════════════════════════ SAVE / LOAD ════════════════════════ */
+function readGames() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function writeGames(games) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+}
+
+function saveGame() {
+  if (!selectedType) return;
+  const title = document.getElementById('game-title').value.trim();
+  if (!title) { toast('Please enter a game title'); return; }
+  const content = collectContent();
+  if (!content) { toast('Not enough content. Add more items.'); return; }
+  const level = document.getElementById('game-level').value;
+  const tags = document.getElementById('game-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+  const game = {
+    id: editingId || 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    typeId: selectedType.id,
+    icon: selectedType.icon,
+    typeName: selectedType.name,
+    gameSrc: selectedType.gameSrc,
+    w: selectedType.w,
+    h: selectedType.h,
+    title,
+    level,
+    tags,
+    content,
+    createdAt: new Date().toISOString(),
+  };
+
+  const games = readGames();
+  if (editingId) {
+    const idx = games.findIndex(g => g.id === editingId);
+    if (idx >= 0) games[idx] = game; else games.unshift(game);
+  } else {
+    games.unshift(game);
+  }
+  writeGames(games);
+  closeBuilder();
+  renderMyGames();
+  toast(editingId ? 'Game updated!' : 'Game saved to your library!');
+}
+
+function deleteGame(id) {
+  if (!confirm('Delete this game from your library?')) return;
+  const games = readGames().filter(g => g.id !== id);
+  writeGames(games);
+  renderMyGames();
+  toast('Game deleted');
+}
+
+function editGame(id) {
+  const games = readGames();
+  const game = games.find(g => g.id === id);
+  if (!game) return;
+  selectedType = GAME_TYPES.find(t => t.id === game.typeId);
+  if (!selectedType) return;
+  editingId = id;
+  renderTypeGrid();
+  const b = document.getElementById('builder');
+  b.classList.add('show');
+  document.getElementById('builder-title').textContent = selectedType.icon + ' Edit: ' + game.title;
+  document.getElementById('builder-sub').textContent = selectedType.desc;
+  document.getElementById('game-title').value = game.title;
+  document.getElementById('game-level').value = game.level || 'B1';
+  document.getElementById('game-tags').value = (game.tags || []).join(', ');
+  document.getElementById('save-btn').textContent = 'Update Game';
+  renderContentFields();
+  populateContent(game);
+  b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function duplicateGame(id) {
+  const games = readGames();
+  const game = games.find(g => g.id === id);
+  if (!game) return;
+  const copy = JSON.parse(JSON.stringify(game));
+  copy.id = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+  copy.title = game.title + ' (copy)';
+  copy.createdAt = new Date().toISOString();
+  games.unshift(copy);
+  writeGames(games);
+  renderMyGames();
+  toast('Game duplicated');
+}
+
+function populateContent(game) {
+  const c = game.content;
+  if (!c) return;
+  switch (selectedType.fields) {
+    case 'pairs': {
+      const list = document.getElementById('pair-list');
+      list.innerHTML = '';
+      (c.pairs || []).forEach(p => {
+        addPair();
+        const rows = list.querySelectorAll('.pair-row');
+        const last = rows[rows.length - 1];
+        last.querySelector('.pair-a').value = p.a;
+        last.querySelector('.pair-b').value = p.b;
+      });
+      break;
+    }
+    case 'words': {
+      document.getElementById('words-input').value = (c.words || []).join('\n');
+      break;
+    }
+    case 'sentences': {
+      document.getElementById('sentences-input').value = (c.sentences || []).join('\n');
+      break;
+    }
+    case 'statements': {
+      const list = document.getElementById('pair-list');
+      list.innerHTML = '';
+      (c.statements || []).forEach(s => {
+        addStatement();
+        const rows = list.querySelectorAll('.pair-row');
+        const last = rows[rows.length - 1];
+        last.querySelector('.pair-a').value = s.text;
+        last.querySelector('.pair-b').value = s.answer ? 'true' : 'false';
+      });
+      break;
+    }
+    case 'mcq': {
+      const list = document.getElementById('mcq-list');
+      list.innerHTML = '';
+      (c.questions || []).forEach(q => {
+        addMCQ();
+        const blocks = list.querySelectorAll(':scope > div');
+        const last = blocks[blocks.length - 1];
+        last.querySelector('.mcq-question').value = q.q;
+        const opts = last.querySelectorAll('.mcq-opt');
+        q.opts.forEach((o, i) => { if (opts[i]) opts[i].value = o; });
+        last.querySelector('.mcq-correct').value = q.correct;
+      });
+      break;
+    }
+    case 'categories': {
+      const list = document.getElementById('cat-list');
+      list.innerHTML = '';
+      (c.categories || []).forEach(cat => {
+        addCategory();
+        const blocks = list.querySelectorAll(':scope > div');
+        const last = blocks[blocks.length - 1];
+        last.querySelector('.cat-name').value = cat.name;
+        last.querySelector('.cat-words').value = cat.words.join(', ');
+      });
+      break;
+    }
+  }
+}
+
+/* ════════════════════════ RENDER MY GAMES ════════════════════════ */
+function renderFilterTabs() {
+  const allTags = ['All', 'Vocabulary', 'Grammar', 'Spelling', 'Speed', 'Speaking'];
+  const tabs = document.getElementById('filter-tabs');
+  tabs.innerHTML = allTags.map(t =>
+    `<div class="tab${t === activeFilter ? ' active' : ''}" onclick="filterGames('${t}')">${t}</div>`
+  ).join('');
+}
+
+function filterGames(tag) {
+  activeFilter = tag;
+  renderFilterTabs();
+  renderMyGames();
+}
+
+function renderMyGames() {
+  const grid = document.getElementById('my-games');
+  let games = readGames();
+  if (activeFilter !== 'All') {
+    games = games.filter(g => {
+      const type = GAME_TYPES.find(t => t.id === g.typeId);
+      return (type && type.tag === activeFilter) || (g.tags || []).some(t => t.toLowerCase() === activeFilter.toLowerCase());
+    });
+  }
+
+  if (!games.length) {
+    grid.innerHTML = `<div class="empty">
+      ${activeFilter !== 'All' ? 'No games in this category yet.' : 'No custom games yet. Create your first one above!'}
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = games.map(g => {
+    const type = GAME_TYPES.find(t => t.id === g.typeId);
+    const itemCount = getItemCount(g);
+    return `
+    <div class="game-card">
+      <div class="game-top">
+        <div class="game-ic">${esc(g.icon || '🎮')}</div>
+        <div>
+          <div class="game-name">${esc(g.title)}</div>
+          <div class="game-meta">${esc(type ? type.name : g.typeName)} · ${esc(g.level || 'Mixed')} · ${itemCount} items</div>
+        </div>
+      </div>
+      <div class="game-tags">
+        ${(g.tags || []).slice(0, 4).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
+      </div>
+      <div class="game-actions">
+        <button class="btn sm lime" onclick="addToBoard('${esc(g.id)}')">Add to Board</button>
+        <button class="btn sm ghost" onclick="editGame('${esc(g.id)}')">Edit</button>
+        <button class="btn sm ghost" onclick="duplicateGame('${esc(g.id)}')">Copy</button>
+        <button class="btn sm danger" onclick="deleteGame('${esc(g.id)}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getItemCount(game) {
+  const c = game.content;
+  if (!c) return 0;
+  if (c.pairs) return c.pairs.length;
+  if (c.words) return c.words.length;
+  if (c.sentences) return c.sentences.length;
+  if (c.statements) return c.statements.length;
+  if (c.questions) return c.questions.length;
+  if (c.categories) return c.categories.reduce((s, cat) => s + cat.words.length, 0);
+  return 0;
+}
+
+/* ════════════════════════ ADD TO BOARD ════════════════════════ */
+function addToBoard(id) {
+  const games = readGames();
+  const game = games.find(g => g.id === id);
+  if (!game) { toast('Game not found'); return; }
+  const type = GAME_TYPES.find(t => t.id === game.typeId);
+  if (!type) { toast('Game type not found'); return; }
+
+  // Store the custom game data so the board can pick it up
+  const customData = {
+    customGameId: game.id,
+    title: game.title,
+    src: type.gameSrc,
+    customContent: game.content,
+    level: game.level,
+  };
+  sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify(customData));
+  window.location.href = 'board.html?addCustomGame=1';
+}
+
+/* ════════════════════════ PREVIEW ════════════════════════ */
+function previewGame() {
+  const content = collectContent();
+  if (!content) { toast('Not enough content to preview. Add more items.'); return; }
+  const title = document.getElementById('game-title').value.trim() || 'Preview';
+
+  const pv = document.getElementById('preview-content');
+  let html = `<div style="font-size:18px;font-weight:900;margin-bottom:6px;">${selectedType.icon} ${esc(title)}</div>`;
+  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:16px;">${esc(selectedType.name)} · ${getPreviewItemCount(content)} items</div>`;
+
+  if (content.pairs) {
+    html += `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:var(--bg);font-weight:800;"><td style="padding:8px 12px;border-radius:8px 0 0 0;">${esc(selectedType.pairLabels[0])}</td><td style="padding:8px 12px;border-radius:0 8px 0 0;">${esc(selectedType.pairLabels[1])}</td></tr>
+      ${content.pairs.map(p => `<tr><td style="padding:6px 12px;border-bottom:1px solid var(--border);">${esc(p.a)}</td><td style="padding:6px 12px;border-bottom:1px solid var(--border);">${esc(p.b)}</td></tr>`).join('')}
+    </table>`;
+  } else if (content.words) {
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">${content.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div>`;
+  } else if (content.sentences) {
+    html += content.sentences.map((s,i) => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">${i+1}. ${esc(s)}</div>`).join('');
+  } else if (content.statements) {
+    html += content.statements.map(s => `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span class="tag ${s.answer?'lime':''}">${s.answer?'TRUE':'FALSE'}</span><span>${esc(s.text)}</span></div>`).join('');
+  } else if (content.questions) {
+    html += content.questions.map((q,i) => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-weight:800;font-size:13px;margin-bottom:4px;">${i+1}. ${esc(q.q)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">${q.opts.map((o,j) => `<div style="padding:4px 8px;border-radius:6px;background:${j===q.correct?'rgba(200,230,50,.2)':'var(--bg)'};${j===q.correct?'font-weight:700;':''}}">${'ABCD'[j]}. ${esc(o)}</div>`).join('')}</div></div>`).join('');
+  } else if (content.categories) {
+    html += content.categories.map(c => `<div style="margin-bottom:12px;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">${esc(c.name)}</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${c.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div></div>`).join('');
+  }
+
+  pv.innerHTML = html;
+  document.getElementById('preview-overlay').classList.add('show');
+}
+
+function getPreviewItemCount(content) {
+  if (content.pairs) return content.pairs.length;
+  if (content.words) return content.words.length;
+  if (content.sentences) return content.sentences.length;
+  if (content.statements) return content.statements.length;
+  if (content.questions) return content.questions.length;
+  if (content.categories) return content.categories.reduce((s, c) => s + c.words.length, 0);
+  return 0;
+}
+
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('show');
+}
+
+/* ════════════════════════ TOAST ════════════════════════ */
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show';
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.className = '', 2800);
+}
+
+init();
+</script>
+<script src="scripts/mobile-perf.js" defer></script>
+<script src="scripts/mobile-nav.js"></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>
