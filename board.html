@@ -1689,19 +1689,19 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1l12 6-5 1.5L7 14 2 1z"/></svg>
   </button>
   <div class="mt-sep"></div>
-  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('sticky');quickAddCard('sticky',400,300)">
+  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="toolbarQuickAdd('sticky')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M10 2v4l-2-1-2 1V2"/></svg>
   </button>
-  <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="setMiroTool('text');quickAddCard('text',400,300)">
+  <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="toolbarQuickAdd('text')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>
   </button>
-  <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="setMiroTool('select');quickAddCard('lesson',400,300)">
+  <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="toolbarQuickAdd('lesson')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
   </button>
-  <button class="mt-btn" id="mt-image" data-tip="Image" onclick="setMiroTool('select');openImageModal()">
+  <button class="mt-btn" id="mt-image" data-tip="Image" onclick="toolbarOpenModal('image')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="2"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4"/></svg>
   </button>
-  <button class="mt-btn" id="mt-video" data-tip="Video" onclick="setMiroTool('select');openVideoModal()">
+  <button class="mt-btn" id="mt-video" data-tip="Video" onclick="toolbarOpenModal('video')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="10" height="10" rx="2"/><path d="M11 6l4-2v8l-4-2V6z"/></svg>
   </button>
   <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji" onclick="setMiroTool('select');openStickerModal()">
@@ -2528,6 +2528,18 @@ function screenToBoard(sx, sy) {
   const r = boardWrap.getBoundingClientRect();
   return { x: (sx - r.left - state.pan.x) / state.scale,
            y: (sy - r.top  - state.pan.y) / state.scale };
+}
+function getBoardViewportCenterScreen() {
+  const r = boardWrap.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+function getBoardViewportCenter() {
+  const center = getBoardViewportCenterScreen();
+  return screenToBoard(center.x, center.y) || { x: 200, y: 120 };
+}
+function resolveBoardPlacement(pos) {
+  if (pos && Number.isFinite(pos.x) && Number.isFinite(pos.y)) return pos;
+  return getBoardViewportCenter();
 }
 function boardToScreen(bx, by) {
   const r = boardWrap.getBoundingClientRect();
@@ -7168,9 +7180,31 @@ function updateMiroToolbarPos() {
 
 // (Miro-tool dblclick integrated into primary quick-add handler above)
 
+function toolbarQuickAdd(type) {
+  const placement = getBoardViewportCenter();
+  if (type === 'sticky' || type === 'text') setMiroTool(type);
+  else setMiroTool('select');
+  quickAddCard(type, placement.x, placement.y);
+}
+
+function toolbarOpenModal(type) {
+  const placement = getBoardViewportCenter();
+  setMiroTool('select');
+  if (type === 'image') {
+    pendingImagePos = placement;
+    openImageModal();
+    return;
+  }
+  if (type === 'video') {
+    pendingVideoPos = placement;
+    openVideoModal();
+  }
+}
+
 function quickAddCard(type, bx, by) {
+  const pos = resolveBoardPlacement({ x: bx, y: by });
   const def = getDefaults(type);
-  const x = bx - def.w/2, y = by - def.h/2;
+  const x = pos.x - def.w/2, y = pos.y - def.h/2;
   let card;
   if (type === 'sticky')     card = addCard('sticky',   x, y, { text:'', color:STICKY_COLORS[0] });
   else if (type === 'text')  card = addCard('text',     x, y, defaultTextData({ text:'Label' }));
@@ -7185,11 +7219,11 @@ function quickAddCard(type, bx, by) {
   else if (type === 'checklist') card = addCard('checklist', x, y, { title:'Checklist', items:[{text:'Item 1',done:false},{text:'Item 2',done:false}] });
   else if (type === 'timer')     card = addCard('timer',     x, y, { title:'Timer', minutes:5, seconds:0 });
   else if (type === 'video') {
-    pendingVideoPos = {x, y};
+    pendingVideoPos = pos;
     openVideoModal();
     return;
   } else if (type === 'image') {
-    pendingImagePos = {x, y};
+    pendingImagePos = pos;
     openImageModal();
     return;
   }
@@ -7677,7 +7711,7 @@ function loadAudioFile(file) {
 
 /* ── Audio modal ── */
 function openAudioModal(pos) {
-  _pendingAudioPos = pos || { x: 200, y: 100 };
+  _pendingAudioPos = resolveBoardPlacement(pos);
   _pendingAudioDataUrl = null;
   document.getElementById('audio-file-info').style.display = 'none';
   document.getElementById('audio-file-input').value = '';
@@ -7685,12 +7719,15 @@ function openAudioModal(pos) {
   const ov = document.getElementById('audio-url-overlay');
   ov.style.display = 'flex';
 }
-function closeAudioModal() { document.getElementById('audio-url-overlay').style.display = 'none'; }
+function closeAudioModal() {
+  document.getElementById('audio-url-overlay').style.display = 'none';
+  _pendingAudioPos = null;
+}
 function confirmAudioEmbed() {
   if (!_pendingAudioDataUrl) { alert('Please select an audio file first.'); return; }
   const title = document.getElementById('audio-title-input').value.trim() || 'Audio';
+  const pos = resolveBoardPlacement(_pendingAudioPos);
   closeAudioModal();
-  const pos = _pendingAudioPos || { x: 200, y: 100 };
   addCard('audio', pos.x, pos.y, { title, src: _pendingAudioDataUrl });
   _pendingAudioDataUrl = null;
   scheduleSave(); saveLocal();
@@ -7702,7 +7739,10 @@ function openVideoModal() {
   ov.style.display = 'flex';
   setTimeout(() => document.getElementById('video-url-input').focus(), 50);
 }
-function closeVideoModal() { document.getElementById('video-url-overlay').style.display = 'none'; }
+function closeVideoModal() {
+  document.getElementById('video-url-overlay').style.display = 'none';
+  pendingVideoPos = null;
+}
 function openImageModal() {
   document.getElementById('image-url-input').value = '';
   document.getElementById('image-file-input').value = '';
@@ -7715,6 +7755,7 @@ function openImageModal() {
 function closeImageModal() {
   document.getElementById('image-url-overlay').style.display = 'none';
   _pendingImageDataUrl = null;
+  pendingImagePos = null;
 }
 
 let _pendingImageDataUrl = null;
@@ -7863,7 +7904,7 @@ document.addEventListener('paste', e => {
       (async () => {
         try {
           const prepared = await prepareBoardImageFile(file);
-          const pos = pendingImagePos || screenToBoard(window.innerWidth/2, window.innerHeight/2) || { x: 200, y: 100 };
+          const pos = resolveBoardPlacement(pendingImagePos);
           addCard('image', pos.x, pos.y, {
             title: 'Pasted image',
             src: prepared.dataUrl,
@@ -7883,15 +7924,6 @@ document.addEventListener('paste', e => {
     }
   }
 });
-
-function screenToBoard(sx, sy) {
-  if (!boardWrap) return null;
-  const r = boardWrap.getBoundingClientRect();
-  const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
-  const panX = (typeof state !== 'undefined' && state.pan) ? state.pan.x : 0;
-  const panY = (typeof state !== 'undefined' && state.pan) ? state.pan.y : 0;
-  return { x: (sx - r.left - panX) / sc, y: (sy - r.top - panY) / sc };
-}
 
 /* Global drag-drop onto the board itself */
 ['dragover','drop'].forEach(ev => {
@@ -7951,8 +7983,8 @@ function confirmVideoEmbed() {
   const url = document.getElementById('video-url-input').value.trim();
   const embedUrl = parseVideoEmbed(url);
   if (!embedUrl) { alert('Please enter a valid YouTube or Vimeo URL.'); return; }
+  const pos = resolveBoardPlacement(pendingVideoPos);
   closeVideoModal();
-  const pos = pendingVideoPos || { x: 200, y: 100 };
   const title = url.includes('youtube') ? 'YouTube Video' : url.includes('vimeo') ? 'Vimeo Video' : 'Video';
   addCard('video', pos.x, pos.y, { title, url, embedUrl }, 320, 220);
   pendingVideoPos = null;
@@ -7965,8 +7997,8 @@ function confirmImageEmbed() {
   if (!_pendingImageDataUrl && !url.startsWith('http') && !url.startsWith('data:')) {
     alert('Please enter a valid image URL.'); return;
   }
+  const pos = resolveBoardPlacement(pendingImagePos);
   closeImageModal();
-  const pos = pendingImagePos || { x: 200, y: 100 };
   addCard('image', pos.x, pos.y, {
     title: _pendingImageDataUrl ? 'Uploaded image' : 'Image',
     src,
