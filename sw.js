@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v23';
+const CACHE = 'teachedos-v24';
 
 const SHELL = [
   '/teachedos/',
@@ -30,6 +30,7 @@ const SHELL = [
   '/teachedos/theme.js',
   '/teachedos/scripts/app-core.js',
   '/teachedos/scripts/mobile-nav.js',
+  '/teachedos/scripts/nav-boost.js',
   '/teachedos/scripts/teachedos-app.js',
   '/teachedos/icons/icon-192.png',
   '/teachedos/icons/icon-512.png',
@@ -85,25 +86,43 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // HTML, CSS, JS, images — network-first, cache on success, offline fallback
+  // HTML navigations — stale-while-revalidate (instant from cache, background refresh)
   if (
     e.request.mode === 'navigate' ||
-    (e.request.headers.get('accept') || '').includes('text/html') ||
+    (e.request.headers.get('accept') || '').includes('text/html')
+  ) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(resp => {
+          if (resp && resp.status === 200 && e.request.method === 'GET') {
+            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+          }
+          return resp;
+        }).catch(() => cached || caches.match('/teachedos/offline.html'));
+        return cached || fresh;
+      })
+    );
+    return;
+  }
+
+  // CSS / JS / images — stale-while-revalidate too (fast paint, updates on next visit)
+  if (
     url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.js')  ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.svg') ||
     url.pathname.endsWith('.ico')
   ) {
     e.respondWith(
-      fetch(e.request).then(resp => {
-        if (resp && resp.status === 200 && e.request.method === 'GET') {
-          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-        }
-        return resp;
-      }).catch(() =>
-        caches.match(e.request).then(c => c || caches.match('/teachedos/offline.html'))
-      )
+      caches.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(resp => {
+          if (resp && resp.status === 200 && e.request.method === 'GET') {
+            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
     );
     return;
   }
