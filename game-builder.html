@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Game Builder · TeachEd</title>
+<title>Game Builder &middot; TeachEd</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -18,11 +18,11 @@
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
   --pink:#EC2D8C;--pink-soft:#FCE3EF;
+  --green:#22c55e;--green-soft:#dcfce7;--red:#ef4444;--red-soft:#fef2f2;
+  --blue:#3b82f6;--blue-soft:#dbeafe;--orange:#f59e0b;--orange-soft:#fef3c7;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
-
-/* Nav */
 #nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(245,240,232,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(94,94,74,.08);display:flex;align-items:center;padding:0 14px}
 .nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:800;margin-left:7px}
 .nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
@@ -31,19 +31,16 @@ a{text-decoration:none;color:inherit}
 .nav-spacer{flex:1}
 .nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:900}
-
-/* Layout */
 .wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
-
-/* Hero */
 .hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
 .hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(94,94,74,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(237,232,224,.82))}
 .eyebrow{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:12px}
 h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-width:720px}
 .hero-copy{margin-top:12px;color:var(--text2);font-size:15px;line-height:1.6;max-width:640px}
 .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-
-/* Buttons */
+.hero-stats{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.hero-stat{display:flex;align-items:center;gap:7px;padding:6px 14px;background:rgba(255,255,255,.65);border-radius:999px;font:800 12px var(--font);color:var(--text2);border:1px solid var(--border)}
+.hero-stat .stat-num{font-size:16px;color:var(--accent);font-weight:950}
 .btn{border:none;border-radius:14px;padding:11px 16px;font:900 13px var(--font);cursor:pointer;background:var(--accent);color:#fff;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .15s,box-shadow .2s}
 .btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(.97)}
 .btn.lime{background:var(--lime);color:var(--accent);box-shadow:0 4px 14px rgba(205,242,79,.28)}.btn.lime:hover{background:#b8d62e}
@@ -51,28 +48,22 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 .btn.pink{background:var(--pink);color:#fff}.btn.pink:hover{background:#d4267f}
 .btn.danger{background:#fff;color:#ef4444;border:1px solid rgba(239,68,68,.3)}.btn.danger:hover{background:rgba(239,68,68,.06)}
 .btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
-
-/* Tabs */
+.btn.blue{background:var(--blue);color:#fff}.btn.blue:hover{background:#2563eb}
 .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
 .tab{padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font:800 12px var(--font);color:var(--text2);cursor:pointer;background:var(--card);transition:.15s}
 .tab:hover{border-color:var(--lime);color:var(--accent)}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-
-/* Section */
-.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px;flex-wrap:wrap;gap:10px}
 .section-title{font-size:22px;font-weight:950;letter-spacing:-.04em}
 .section-sub{font-size:13px;color:var(--text3);margin-top:3px}
-
-/* Game type selector grid */
 .type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:22px}
-.type-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:8px}
+.type-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:8px;position:relative}
 .type-card:hover{border-color:var(--lime);transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,230,50,.12)}
 .type-card.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
 .type-icon{font-size:28px;line-height:1}
 .type-name{font-size:14px;font-weight:900;color:var(--text)}
 .type-desc{font-size:11px;color:var(--text3);line-height:1.4}
-
-/* Builder form */
+.type-badge{position:absolute;top:10px;right:10px;font:800 9px var(--mono);padding:3px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
 .builder{display:none;background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:24px;margin-bottom:22px}
 .builder.show{display:block}
 .builder-title{font-size:18px;font-weight:900;margin-bottom:4px}
@@ -82,16 +73,26 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;font:600 13px var(--font);outline:none;background:#fff;color:var(--text);transition:border-color .18s,box-shadow .18s}
 input:focus,textarea:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,242,79,.15)}
 textarea{min-height:60px;resize:vertical}
-
-/* Pair rows */
 .pair-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.pair-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+.pair-row{display:grid;grid-template-columns:24px 1fr 1fr auto;gap:8px;align-items:center}
 .pair-row input{margin:0}
 .pair-remove{width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.04);color:#ef4444;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
 .pair-remove:hover{background:rgba(239,68,68,.12)}
-
-/* My games grid */
-.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.pair-row-num{font:800 10px var(--mono);color:var(--text3);text-align:center}
+.preset-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:rgba(200,230,50,.06);border:1.5px solid rgba(200,230,50,.2);border-radius:14px}
+.preset-bar-label{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3);white-space:nowrap}
+.preset-chip{padding:6px 12px;border:1.5px solid var(--border);border-radius:999px;font:700 12px var(--font);color:var(--text2);cursor:pointer;background:#fff;transition:.15s;white-space:nowrap}
+.preset-chip:hover{border-color:var(--lime);background:rgba(200,230,50,.1);color:var(--accent)}
+.preset-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bulk-toggle{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--font);color:var(--blue);cursor:pointer;padding:4px 0;margin-bottom:8px}
+.bulk-toggle:hover{color:#2563eb}
+.bulk-area{display:none;margin-bottom:14px}.bulk-area.show{display:block}
+.bulk-help{font:600 11px var(--font);color:var(--text3);margin-top:4px;line-height:1.5}
+.item-counter{display:inline-flex;align-items:center;gap:6px;font:800 11px var(--mono);padding:4px 10px;border-radius:999px;margin-bottom:8px}
+.item-counter.ok{background:var(--green-soft);color:#16a34a}
+.item-counter.warn{background:var(--orange-soft);color:#d97706}
+.item-counter.err{background:var(--red-soft);color:#dc2626}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
 .game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
 .game-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),var(--accent))}
@@ -99,31 +100,42 @@ textarea{min-height:60px;resize:vertical}
 .game-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
 .game-name{font-size:15px;font-weight:900;line-height:1.2}
 .game-meta{font-size:11px;color:var(--text3);margin-top:2px}
-.game-desc{font-size:12px;color:var(--text2);line-height:1.5;flex:1}
 .game-tags{display:flex;gap:6px;flex-wrap:wrap}
 .tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
 .tag.lime{background:rgba(200,230,50,.18);color:var(--accent)}
-.game-actions{display:flex;gap:8px;margin-top:4px}
+.tag.pink{background:rgba(236,45,140,.1);color:var(--pink)}
+.tag.blue{background:rgba(59,130,246,.1);color:var(--blue)}
+.game-actions{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
 .empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);background:#fff;border:1px dashed var(--border);border-radius:22px;font-size:14px}
-
-/* Toast */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:28px}
+.tpl-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:.2s;position:relative;overflow:hidden}
+.tpl-card:hover{border-color:var(--lime);transform:translateY(-3px);box-shadow:0 10px 32px rgba(200,230,50,.12)}
+.tpl-card::before{content:'';position:absolute;inset:0 0 auto;height:3px;border-radius:18px 18px 0 0}
+.tpl-card[data-level="A1"]::before{background:linear-gradient(90deg,#22c55e,#86efac)}
+.tpl-card[data-level="A2"]::before{background:linear-gradient(90deg,#3b82f6,#93c5fd)}
+.tpl-card[data-level="B1"]::before{background:linear-gradient(90deg,#f59e0b,#fcd34d)}
+.tpl-card[data-level="B2"]::before{background:linear-gradient(90deg,#ec4899,#f9a8d4)}
+.tpl-card[data-level="C1"]::before{background:linear-gradient(90deg,#8b5cf6,#c4b5fd)}
+.tpl-card[data-level="C2"]::before{background:linear-gradient(90deg,#ef4444,#fca5a5)}
+.tpl-icon{font-size:26px;line-height:1}
+.tpl-title{font-size:14px;font-weight:900}
+.tpl-meta{font-size:11px;color:var(--text3);line-height:1.3}
+.tpl-bottom{display:flex;gap:6px;align-items:center;margin-top:auto}
+.search-box{position:relative;margin-bottom:14px}
+.search-box input{padding-left:14px}
 #toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
 #toast.show{opacity:1;transform:translateY(0)}
-
-/* Preview overlay */
 .preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center}
 .preview-overlay.show{display:flex}
-.preview-box{background:var(--card);border-radius:22px;padding:24px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.24);border:1px solid var(--border);position:relative}
+.preview-box{background:var(--card);border-radius:22px;padding:24px;width:100%;max-width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.24);border:1px solid var(--border);position:relative}
 .preview-close{position:absolute;top:14px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:18px;cursor:pointer;color:var(--text3);border:none}
-
 @media(max-width:900px){
-  .type-grid{grid-template-columns:1fr 1fr}
-  .games-grid{grid-template-columns:1fr}
-  .pair-row{grid-template-columns:1fr;gap:4px}
-  .pair-row .pair-remove{justify-self:end}
-  .wrap{padding:18px 14px 80px}
-  #nav{display:none}
+  .type-grid{grid-template-columns:1fr 1fr}.games-grid{grid-template-columns:1fr}.tpl-grid{grid-template-columns:1fr 1fr}
+  .pair-row{grid-template-columns:24px 1fr;gap:4px}.pair-row .pair-remove{justify-self:end}
+  .wrap{padding:18px 14px 80px}#nav{display:none}.preset-bar{flex-direction:column;align-items:flex-start}
 }
+@media(max-width:500px){.type-grid,.tpl-grid{grid-template-columns:1fr}}
+
 </style>
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -144,79 +156,102 @@ textarea{min-height:60px;resize:vertical}
 </nav>
 
 <main class="wrap">
-  <!-- Hero -->
   <section class="hero">
     <div class="hero-card">
       <div class="eyebrow">Game Builder</div>
       <h1>Create interactive games for your lessons</h1>
-      <p class="hero-copy">Build custom vocabulary, grammar, and speaking games. Save them to your library and drag them onto any board. Inspired by <strong>Twee</strong> and <strong>Wordwall</strong>.</p>
+      <p class="hero-copy">Build custom vocabulary, grammar, and speaking games. Choose from <strong>ready-made templates</strong> or start from scratch. Save to your library and add to any board.</p>
       <div class="hero-actions">
         <button class="btn lime" onclick="scrollToBuilder()">+ Create New Game</button>
+        <button class="btn ghost" onclick="scrollToTemplates()">Browse Templates</button>
         <a class="btn ghost" href="board.html">Open Board</a>
-        <a class="btn ghost" href="community.html">Community Games</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-num">9</span> game types</div>
+        <div class="hero-stat"><span class="stat-num" id="tpl-count">50</span> ready templates</div>
+        <div class="hero-stat"><span class="stat-num" id="my-count">0</span> my games</div>
       </div>
     </div>
   </section>
 
-  <!-- Step 1: Choose game type -->
-  <div class="section-head">
+  <div class="section-head" id="templates-anchor">
+    <div>
+      <div class="section-title">Ready-Made Templates</div>
+      <div class="section-sub">Pre-filled games by topic and level. Use as-is or customise to your needs.</div>
+    </div>
+  </div>
+  <div class="tabs" id="tpl-level-tabs"></div>
+  <div class="search-box">
+    <input id="tpl-search" placeholder="Search templates by topic, level, type..." oninput="renderTemplates()">
+  </div>
+  <div class="tpl-grid" id="tpl-grid"></div>
+
+  <div class="section-head" id="builder-anchor">
     <div>
       <div class="section-title" id="builder-heading">1. Choose game type</div>
       <div class="section-sub">Select a template to customise with your own content</div>
     </div>
   </div>
-
   <div class="type-grid" id="type-grid"></div>
 
-  <!-- Step 2: Builder form -->
   <div class="builder" id="builder">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
       <div>
         <div class="builder-title" id="builder-title">Configure your game</div>
         <div class="builder-sub" id="builder-sub">Fill in the content below</div>
       </div>
-      <button class="btn sm ghost" onclick="closeBuilder()">Cancel</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn sm ghost" onclick="closeBuilder()">Cancel</button>
+      </div>
     </div>
-
-    <div class="field">
-      <div class="label">Game Title</div>
-      <input id="game-title" placeholder="e.g. B1 Phrasal Verbs Quiz">
+    <div class="preset-bar" id="preset-bar" style="display:none;">
+      <div class="preset-bar-label">Quick fill:</div>
+      <div id="preset-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
-    <div class="field">
-      <div class="label">Level</div>
-      <select id="game-level">
-        <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="field">
+        <div class="label">Game Title</div>
+        <input id="game-title" placeholder="e.g. B1 Phrasal Verbs Quiz">
+      </div>
+      <div class="field">
+        <div class="label">Level</div>
+        <select id="game-level">
+          <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
+        </select>
+      </div>
     </div>
     <div class="field">
       <div class="label">Topic / Tags</div>
       <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
     </div>
-
-    <!-- Dynamic content area -->
+    <div id="item-counter" class="item-counter" style="display:none;"></div>
     <div id="content-area"></div>
-
-    <div style="display:flex;gap:10px;margin-top:18px;">
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
       <button class="btn lime" onclick="saveGame()" id="save-btn">Save Game to Library</button>
       <button class="btn ghost" onclick="previewGame()">Preview</button>
+      <button class="btn sm blue" onclick="saveAndAddToBoard()" title="Save and immediately open on board">Save &amp; Add to Board</button>
     </div>
   </div>
 
-  <!-- My Games library -->
   <div class="section-head">
     <div>
       <div class="section-title">My Games Library</div>
-      <div class="section-sub">Your custom-built games. Drag them onto any board.</div>
+      <div class="section-sub">Your custom-built games. Add them to any board.</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn sm ghost" onclick="exportAllGames()" title="Export all games as JSON">Export All</button>
+      <button class="btn sm ghost" onclick="document.getElementById('import-file').click()" title="Import games from JSON">Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importGames(event)">
     </div>
   </div>
-
   <div class="tabs" id="filter-tabs"></div>
+  <div class="search-box">
+    <input id="games-search" placeholder="Search your games..." oninput="renderMyGames()">
+  </div>
   <div class="games-grid" id="my-games"></div>
 </main>
 
 <div id="toast"></div>
-
-<!-- Preview overlay -->
 <div class="preview-overlay" id="preview-overlay">
   <div class="preview-box">
     <button class="preview-close" onclick="closePreview()">x</button>
@@ -226,115 +261,294 @@ textarea{min-height:60px;resize:vertical}
 
 <script src="scripts/app-core.js"></script>
 <script>
-/* ════════════════════════ GAME TYPES ════════════════════════ */
+const PRESETS = {
+  pairs: [
+    {name:'Food & Drinks',level:'A1',tags:['vocabulary','food'],data:[
+      {a:'apple',b:'яблуко'},{a:'bread',b:'хліб'},{a:'milk',b:'молоко'},{a:'cheese',b:'сир'},{a:'water',b:'вода'},
+      {a:'coffee',b:'кава'},{a:'tea',b:'чай'},{a:'juice',b:'сік'},{a:'sugar',b:'цукор'},{a:'butter',b:'масло'}]},
+    {name:'Animals',level:'A1',tags:['vocabulary','animals'],data:[
+      {a:'cat',b:'кіт'},{a:'dog',b:'собака'},{a:'bird',b:'птах'},{a:'fish',b:'риба'},{a:'horse',b:'кінь'},
+      {a:'cow',b:'корова'},{a:'pig',b:'свиня'},{a:'sheep',b:'вівця'},{a:'rabbit',b:'кролик'},{a:'mouse',b:'миша'}]},
+    {name:'Body Parts',level:'A1',tags:['vocabulary','body'],data:[
+      {a:'head',b:'голова'},{a:'hand',b:'рука'},{a:'eye',b:'око'},{a:'ear',b:'вухо'},{a:'nose',b:'ніс'},
+      {a:'mouth',b:'рот'},{a:'leg',b:'нога'},{a:'foot',b:'ступня'},{a:'arm',b:'рука'},{a:'finger',b:'палець'}]},
+    {name:'Clothes',level:'A1',tags:['vocabulary','clothes'],data:[
+      {a:'shirt',b:'сорочка'},{a:'shoes',b:'взуття'},{a:'hat',b:'капелюх'},{a:'dress',b:'сукня'},{a:'jacket',b:'куртка'},
+      {a:'trousers',b:'штани'},{a:'socks',b:'шкарпетки'},{a:'skirt',b:'спідниця'},{a:'coat',b:'пальто'},{a:'gloves',b:'рукавички'}]},
+    {name:'Family',level:'A1',tags:['vocabulary','family'],data:[
+      {a:'mother',b:'мати'},{a:'father',b:'батько'},{a:'sister',b:'сестра'},{a:'brother',b:'брат'},{a:'grandmother',b:'бабуся'},
+      {a:'grandfather',b:'дідусь'},{a:'son',b:'син'},{a:'daughter',b:'дочка'},{a:'uncle',b:'дядько'},{a:'aunt',b:'тітка'}]},
+    {name:'Weather',level:'A2',tags:['vocabulary','weather'],data:[
+      {a:'sunny',b:'сонячно'},{a:'rainy',b:'дощовий'},{a:'cloudy',b:'хмарно'},{a:'windy',b:'вітряно'},{a:'snowy',b:'сніжний'},
+      {a:'foggy',b:'туманний'},{a:'stormy',b:'штормовий'},{a:'hot',b:'спекотний'},{a:'cold',b:'холодний'},{a:'warm',b:'теплий'}]},
+    {name:'Travel',level:'A2',tags:['vocabulary','travel'],data:[
+      {a:'airport',b:'аеропорт'},{a:'hotel',b:'готель'},{a:'ticket',b:'квиток'},{a:'passport',b:'паспорт'},{a:'luggage',b:'багаж'},
+      {a:'map',b:'карта'},{a:'bus',b:'автобус'},{a:'train',b:'потяг'},{a:'flight',b:'рейс'},{a:'reservation',b:'бронювання'}]},
+    {name:'Emotions',level:'A2',tags:['vocabulary','emotions'],data:[
+      {a:'happy',b:'щасливий'},{a:'sad',b:'сумний'},{a:'angry',b:'злий'},{a:'scared',b:'наляканий'},{a:'surprised',b:'здивований'},
+      {a:'tired',b:'втомлений'},{a:'excited',b:'схвильований'},{a:'bored',b:'знуджений'},{a:'nervous',b:'нервовий'},{a:'proud',b:'гордий'}]},
+    {name:'House & Rooms',level:'A2',tags:['vocabulary','house'],data:[
+      {a:'kitchen',b:'кухня'},{a:'bedroom',b:'спальня'},{a:'bathroom',b:'ванна'},{a:'living room',b:'вітальня'},{a:'garden',b:'сад'},
+      {a:'garage',b:'гараж'},{a:'roof',b:'дах'},{a:'door',b:'двері'},{a:'window',b:'вікно'},{a:'stairs',b:'сходи'}]},
+    {name:'Phrasal Verbs',level:'B1',tags:['grammar','phrasal-verbs'],data:[
+      {a:'give up',b:'здаватися'},{a:'look after',b:'доглядати'},{a:'turn off',b:'вимикати'},{a:'put on',b:'одягати'},{a:'take off',b:'знімати'},
+      {a:'get along',b:'ладнати'},{a:'break down',b:'зламатися'},{a:'come across',b:'натрапити'},{a:'figure out',b:'розібратися'},{a:'run out of',b:'вичерпати'}]},
+    {name:'Collocations',level:'B2',tags:['vocabulary','collocations'],data:[
+      {a:'make a decision',b:'прийняти рішення'},{a:'do homework',b:'робити домашку'},{a:'take a break',b:'зробити перерву'},{a:'pay attention',b:'звернути увагу'},{a:'catch a cold',b:'застудитися'},
+      {a:'keep a promise',b:'дотримати обіцянку'},{a:'raise awareness',b:'підвищити обізнаність'},{a:'draw a conclusion',b:'зробити висновок'},{a:'meet a deadline',b:'встигнути в термін'},{a:'set a goal',b:'поставити мету'}]},
+    {name:'Academic Vocabulary',level:'C1',tags:['vocabulary','academic'],data:[
+      {a:'hypothesis',b:'гіпотеза'},{a:'methodology',b:'методологія'},{a:'phenomenon',b:'явище'},{a:'paradigm',b:'парадигма'},{a:'ambiguity',b:'неоднозначність'},
+      {a:'implications',b:'наслідки'},{a:'framework',b:'структура'},{a:'coherent',b:'послідовний'},{a:'substantiate',b:'обґрунтувати'},{a:'scrutinize',b:'ретельно вивчити'}]},
+    {name:'Idioms',level:'C1',tags:['vocabulary','idioms'],data:[
+      {a:'break the ice',b:'розрядити обстановку'},{a:'hit the nail on the head',b:'влучити в точку'},{a:'once in a blue moon',b:'дуже рідко'},{a:'piece of cake',b:'простіше простого'},{a:'spill the beans',b:'розкрити секрет'},
+      {a:'cost an arm and a leg',b:'коштувати дуже дорого'},{a:'bite the bullet',b:'зібратися з духом'},{a:'under the weather',b:'погано себе почувати'},{a:'the ball is in your court',b:'тепер твоя черга діяти'},{a:'burn the midnight oil',b:'працювати допізна'}]},
+  ],
+  words: [
+    {name:'School Subjects',level:'A1',tags:['vocabulary','school'],data:['mathematics','history','biology','geography','physics','chemistry','art','music','literature','english']},
+    {name:'Colors & Shapes',level:'A1',tags:['vocabulary','colors'],data:['red','blue','green','yellow','purple','orange','circle','square','triangle','rectangle']},
+    {name:'Furniture',level:'A1',tags:['vocabulary','furniture'],data:['table','chair','bed','sofa','wardrobe','shelf','desk','lamp','mirror','curtain']},
+    {name:'Days & Months',level:'A1',tags:['vocabulary','time'],data:['Monday','Tuesday','Wednesday','Thursday','Friday','January','February','March','April','December']},
+    {name:'Professions',level:'A2',tags:['vocabulary','jobs'],data:['doctor','teacher','engineer','lawyer','nurse','pilot','chef','architect','journalist','programmer']},
+    {name:'Sports',level:'A2',tags:['vocabulary','sports'],data:['football','basketball','tennis','swimming','volleyball','running','cycling','boxing','skiing','gymnastics']},
+    {name:'Musical Instruments',level:'A2',tags:['vocabulary','music'],data:['piano','guitar','violin','drums','flute','trumpet','saxophone','cello','harmonica','accordion']},
+    {name:'Environment',level:'B1',tags:['vocabulary','environment'],data:['pollution','recycling','deforestation','endangered','sustainable','ecosystem','biodiversity','conservation','emissions','renewable']},
+    {name:'Technology',level:'B1',tags:['vocabulary','technology'],data:['algorithm','database','encryption','bandwidth','interface','firmware','prototype','debugging','repository','middleware']},
+    {name:'Business English',level:'B2',tags:['vocabulary','business'],data:['stakeholder','acquisition','revenue','benchmark','outsourcing','leverage','synergy','compliance','turnover','franchise']},
+    {name:'Psychology Terms',level:'C1',tags:['vocabulary','psychology'],data:['cognition','perception','reinforcement','conditioning','subliminal','introspection','extraversion','resilience','neurotransmitter','psychosomatic']},
+    {name:'Literature Terms',level:'C1',tags:['vocabulary','literature'],data:['metaphor','allegory','protagonist','narrative','symbolism','irony','foreshadowing','juxtaposition','soliloquy','denouement']},
+  ],
+  sentences: [
+    {name:'Present Simple',level:'A1',tags:['grammar','present-simple'],data:[
+      'She ___ (go) to school every day.','They ___ (play) football on Saturdays.',
+      'He ___ (not/like) spicy food.','___ you ___ (speak) English?',
+      'The sun ___ (rise) in the east.','My mother ___ (work) in a hospital.',
+      'We ___ (not/have) a car.','___ she ___ (live) in London?']},
+    {name:'Past Simple',level:'A2',tags:['grammar','past-simple'],data:[
+      'I ___ (visit) Paris last summer.','She ___ (not/go) to the party yesterday.',
+      '___ you ___ (see) that movie?','They ___ (buy) a new house in 2020.',
+      'He ___ (break) his leg last week.','We ___ (meet) at university.',
+      'The train ___ (arrive) late.','She ___ (write) a letter to her friend.']},
+    {name:'Present Perfect',level:'B1',tags:['grammar','present-perfect'],data:[
+      'I ___ (never/be) to Japan.','She ___ (already/finish) her homework.',
+      'They ___ (live) here since 2010.','___ you ___ (ever/try) sushi?',
+      'He ___ (just/arrive) home.','We ___ (not/see) that film yet.',
+      'She ___ (work) here for five years.','The price ___ (go) up recently.']},
+    {name:'Conditionals',level:'B1',tags:['grammar','conditionals'],data:[
+      'If it ___ (rain), we will stay home.','If I ___ (be) you, I would study harder.',
+      'If she ___ (have) more time, she would travel.','If they ___ (not/hurry), they will miss the bus.',
+      'If I ___ (know) the answer, I would tell you.','If we ___ (win) the lottery, we would buy a house.',
+      'If he ___ (study) harder, he will pass.','If it ___ (be) sunny, we will go to the beach.']},
+    {name:'Passive Voice',level:'B2',tags:['grammar','passive'],data:[
+      'The cake ___ (make) by my grandmother.','English ___ (speak) in many countries.',
+      'The letter ___ (write) yesterday.','The new bridge ___ (build) next year.',
+      'The homework ___ (not/finish) yet.','The meeting ___ (cancel) due to weather.',
+      'The song ___ (perform) by a famous artist.','The results ___ (announce) tomorrow.']},
+    {name:'Reported Speech',level:'B2',tags:['grammar','reported-speech'],data:[
+      'She said she ___ (be) tired.','He told me he ___ (can/not) come.',
+      'They said they ___ (go) to the cinema.','She asked if I ___ (want) some coffee.',
+      'He said he ___ (finish) the project.','She told me she ___ (be) leaving.',
+      'They asked where I ___ (live).','He mentioned that he ___ (see) the film.']},
+    {name:'Subjunctive & Inversion',level:'C1',tags:['grammar','advanced'],data:[
+      'It is essential that she ___ (be) present.','Had I ___ (know), I would have helped.',
+      'Not only ___ (do) he sing, but he also dances.','Rarely ___ (have) I seen such talent.',
+      'Were she ___ (arrive) earlier, we could have met.','It is vital that he ___ (submit) the form.',
+      'Seldom ___ (do) we encounter such problems.','Should you ___ (need) help, call me.']},
+    {name:'Articles',level:'B1',tags:['grammar','articles'],data:[
+      'She plays ___ piano very well.','I saw ___ interesting film yesterday.',
+      '___ sun is shining brightly today.','He is ___ best student in the class.',
+      'I need ___ umbrella, it is raining.','She works as ___ engineer.',
+      'We visited ___ United Kingdom last year.','Life is ___ gift.']},
+  ],
+  statements: [
+    {name:'Grammar Rules',level:'A2',tags:['grammar','rules'],data:[
+      {text:'We use "a" before words starting with a consonant sound.',answer:true},
+      {text:'The past simple of "go" is "goed".',answer:false},
+      {text:'Adverbs usually modify verbs, adjectives, or other adverbs.',answer:true},
+      {text:'You can use "much" with countable nouns.',answer:false},
+      {text:'The present perfect is formed with have/has + past participle.',answer:true},
+      {text:'"Fewer" is used with uncountable nouns.',answer:false},
+      {text:'Modal verbs do not change form for third person singular.',answer:true},
+      {text:'A gerund always functions as a verb.',answer:false}]},
+    {name:'UK Culture Facts',level:'B1',tags:['culture','uk'],data:[
+      {text:'London is the capital of England.',answer:true},
+      {text:'The UK has a written constitution.',answer:false},
+      {text:'Tea is the most popular hot drink in the UK.',answer:true},
+      {text:'The UK drives on the right side of the road.',answer:false},
+      {text:'The British pound is the official currency.',answer:true},
+      {text:'Scotland is not part of the UK.',answer:false},
+      {text:'Big Ben is actually the name of the bell, not the tower.',answer:true},
+      {text:'The UK monarch has unlimited political power.',answer:false}]},
+    {name:'Science Facts',level:'B1',tags:['science','facts'],data:[
+      {text:'Water boils at 100 degrees Celsius at sea level.',answer:true},
+      {text:'Sound travels faster than light.',answer:false},
+      {text:'The Earth revolves around the Sun.',answer:true},
+      {text:'Diamonds are made of iron.',answer:false},
+      {text:'Human body is approximately 60% water.',answer:true},
+      {text:'There are 5 oceans on Earth.',answer:true},
+      {text:'Lightning never strikes the same place twice.',answer:false},
+      {text:'Antibiotics can treat viral infections.',answer:false}]},
+    {name:'US Culture Facts',level:'B1',tags:['culture','usa'],data:[
+      {text:'Washington D.C. is the capital of the USA.',answer:true},
+      {text:'The USA has 52 states.',answer:false},
+      {text:'The Statue of Liberty was a gift from France.',answer:true},
+      {text:'The American flag has 13 stripes.',answer:true},
+      {text:'Thanksgiving is celebrated in September.',answer:false},
+      {text:'The bald eagle is the national bird.',answer:true},
+      {text:'The US president serves 6-year terms.',answer:false},
+      {text:'The first man on the moon was American.',answer:true}]},
+    {name:'Environment Facts',level:'B2',tags:['environment','facts'],data:[
+      {text:'The Amazon rainforest produces 20% of the world oxygen.',answer:false},
+      {text:'Plastic takes hundreds of years to decompose.',answer:true},
+      {text:'Solar energy is a renewable resource.',answer:true},
+      {text:'Deforestation has no effect on climate change.',answer:false},
+      {text:'The ozone layer protects us from UV radiation.',answer:true},
+      {text:'Coral reefs are not affected by ocean warming.',answer:false},
+      {text:'Electric cars produce zero direct emissions.',answer:true},
+      {text:'Recycling aluminum saves 95% of the energy.',answer:true}]},
+  ],
+  mcq: [
+    {name:'Verb Tenses',level:'A2',tags:['grammar','tenses'],data:[
+      {q:'She ___ to school every day.',opts:['go','goes','going','gone'],correct:1},
+      {q:'They ___ football yesterday.',opts:['play','plays','played','playing'],correct:2},
+      {q:'I ___ already eaten lunch.',opts:['has','have','had','having'],correct:1},
+      {q:'He ___ TV when I called.',opts:['watches','watched','was watching','has watched'],correct:2},
+      {q:'We ___ to Paris next summer.',opts:['go','went','will go','have gone'],correct:2}]},
+    {name:'Prepositions',level:'A2',tags:['grammar','prepositions'],data:[
+      {q:'She arrived ___ Monday.',opts:['in','on','at','by'],correct:1},
+      {q:'The book is ___ the table.',opts:['in','at','on','by'],correct:2},
+      {q:'I am interested ___ music.',opts:['on','in','at','for'],correct:1},
+      {q:'He lives ___ London.',opts:['on','at','in','to'],correct:2},
+      {q:'We are waiting ___ the bus.',opts:['to','on','at','for'],correct:3}]},
+    {name:'Confusing Words',level:'B1',tags:['vocabulary','confusing'],data:[
+      {q:'I need your ___ on this matter.',opts:['advice','advise','adviced','advising'],correct:0},
+      {q:'The weather had a big ___ on the game.',opts:['affect','effect','affection','effective'],correct:1},
+      {q:'She ___ her keys on the table.',opts:['lay','laid','lied','lain'],correct:1},
+      {q:'There are ___ students than last year.',opts:['less','fewer','lesser','least'],correct:1},
+      {q:'The company will ___ new employees.',opts:['hire','higher','hier','hyre'],correct:0}]},
+    {name:'Word Formation',level:'B2',tags:['vocabulary','word-formation'],data:[
+      {q:'The ___ of the project was impressive. (achieve)',opts:['achievement','achievable','achiever','achieving'],correct:0},
+      {q:'She spoke with great ___ . (confident)',opts:['confidently','confidence','confiding','confidential'],correct:1},
+      {q:'The film was very ___ . (entertain)',opts:['entertainment','entertained','entertaining','entertainer'],correct:2},
+      {q:'We need to ___ the process. (simple)',opts:['simply','simplify','simplicity','simplistic'],correct:1},
+      {q:'It was an ___ experience. (forget)',opts:['unforgettable','forgetful','forgettable','forgotten'],correct:0}]},
+    {name:'Modals',level:'B1',tags:['grammar','modals'],data:[
+      {q:'You ___ wear a seatbelt. It is the law.',opts:['should','must','can','might'],correct:1},
+      {q:'___ I use your phone, please?',opts:['Must','Should','May','Will'],correct:2},
+      {q:'She ___ be at home. Her car is there.',opts:['can','must','should','would'],correct:1},
+      {q:'You ___ eat so much sugar. It is bad.',opts:['should not','must not','cannot','will not'],correct:0},
+      {q:'He ___ swim when he was five.',opts:['can','could','may','must'],correct:1}]},
+  ],
+  categories: [
+    {name:'Parts of Speech',level:'A2',tags:['grammar','parts-of-speech'],data:[
+      {name:'Nouns',words:['table','happiness','dog','city','freedom']},
+      {name:'Verbs',words:['run','think','create','become','understand']},
+      {name:'Adjectives',words:['beautiful','quick','enormous','clever','ancient']},
+      {name:'Adverbs',words:['quickly','never','very','always','carefully']}]},
+    {name:'Food Groups',level:'A1',tags:['vocabulary','food'],data:[
+      {name:'Fruits',words:['apple','banana','orange','grape','strawberry']},
+      {name:'Vegetables',words:['carrot','potato','tomato','onion','broccoli']},
+      {name:'Dairy',words:['milk','cheese','yogurt','butter','cream']},
+      {name:'Grains',words:['bread','rice','pasta','oats','cereal']}]},
+    {name:'Word Families',level:'B1',tags:['vocabulary','word-families'],data:[
+      {name:'-tion words',words:['education','information','celebration','creation','motivation']},
+      {name:'-ness words',words:['happiness','darkness','kindness','weakness','sadness']},
+      {name:'-ful words',words:['beautiful','wonderful','powerful','grateful','cheerful']},
+      {name:'-less words',words:['hopeless','careless','useless','endless','fearless']}]},
+    {name:'Formal vs Informal',level:'B2',tags:['vocabulary','register'],data:[
+      {name:'Formal',words:['commence','purchase','enquire','residence','sufficient']},
+      {name:'Informal',words:['start','buy','ask','home','enough']},
+      {name:'Slang',words:['cool','awesome','gonna','wanna','chill']},
+      {name:'Academic',words:['analyze','hypothesis','methodology','paradigm','synthesize']}]},
+    {name:'British vs American',level:'B2',tags:['vocabulary','varieties'],data:[
+      {name:'British',words:['flat','lorry','biscuit','lift','petrol']},
+      {name:'American',words:['apartment','truck','cookie','elevator','gasoline']},
+      {name:'Both use',words:['computer','telephone','internet','music','book']}]},
+  ],
+};
+
+const TEMPLATES = [
+  {id:'t1',icon:'\ud83c\udf4e',title:'A1 Food & Drinks Flashcards',type:'flashcards',level:'A1',topic:'Vocabulary',desc:'10 basic food words with Ukrainian translations.',tags:['vocabulary','food','beginner'],presetKey:'pairs',presetIdx:0},
+  {id:'t2',icon:'\ud83d\udc3e',title:'A1 Animals Memory Match',type:'memory-match',level:'A1',topic:'Vocabulary',desc:'Match 10 animal names with translations.',tags:['vocabulary','animals'],presetKey:'pairs',presetIdx:1},
+  {id:'t3',icon:'\ud83e\uddd1',title:'A1 Body Parts Flashcards',type:'flashcards',level:'A1',topic:'Vocabulary',desc:'Learn body parts with flip cards.',tags:['vocabulary','body'],presetKey:'pairs',presetIdx:2},
+  {id:'t4',icon:'\ud83d\udc57',title:'A1 Clothes Memory Match',type:'memory-match',level:'A1',topic:'Vocabulary',desc:'Match clothing items with translations.',tags:['vocabulary','clothes'],presetKey:'pairs',presetIdx:3},
+  {id:'t5',icon:'\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66',title:'A1 Family Flashcards',type:'flashcards',level:'A1',topic:'Vocabulary',desc:'Family members vocabulary cards.',tags:['vocabulary','family'],presetKey:'pairs',presetIdx:4},
+  {id:'t6',icon:'\ud83d\udcda',title:'A1 School Subjects Scramble',type:'word-scramble',level:'A1',topic:'Vocabulary',desc:'Unscramble school subject names.',tags:['vocabulary','school'],presetKey:'words',presetIdx:0},
+  {id:'t7',icon:'\ud83c\udfa8',title:'A1 Colors & Shapes Hangman',type:'hangman',level:'A1',topic:'Vocabulary',desc:'Guess color and shape words.',tags:['vocabulary','colors'],presetKey:'words',presetIdx:1},
+  {id:'t8',icon:'\ud83e\ude91',title:'A1 Furniture Word Scramble',type:'word-scramble',level:'A1',topic:'Vocabulary',desc:'Unscramble furniture vocabulary.',tags:['vocabulary','furniture'],presetKey:'words',presetIdx:2},
+  {id:'t9',icon:'\ud83d\udcc5',title:'A1 Days & Months Spin Wheel',type:'spin-wheel',level:'A1',topic:'Vocabulary',desc:'Spin to practice days and months.',tags:['vocabulary','time'],presetKey:'words',presetIdx:3},
+  {id:'t10',icon:'\u2600\ufe0f',title:'A1 Present Simple Fill-in',type:'fill-blank',level:'A1',topic:'Grammar',desc:'Complete sentences in Present Simple.',tags:['grammar','present-simple'],presetKey:'sentences',presetIdx:0},
+  {id:'t11',icon:'\ud83c\udf26\ufe0f',title:'A2 Weather Flashcards',type:'flashcards',level:'A2',topic:'Vocabulary',desc:'Weather vocabulary with translations.',tags:['vocabulary','weather'],presetKey:'pairs',presetIdx:5},
+  {id:'t12',icon:'\u2708\ufe0f',title:'A2 Travel Memory Match',type:'memory-match',level:'A2',topic:'Vocabulary',desc:'Match travel words and translations.',tags:['vocabulary','travel'],presetKey:'pairs',presetIdx:6},
+  {id:'t13',icon:'\ud83d\ude0a',title:'A2 Emotions Flashcards',type:'flashcards',level:'A2',topic:'Vocabulary',desc:'Learn emotion vocabulary.',tags:['vocabulary','emotions'],presetKey:'pairs',presetIdx:7},
+  {id:'t14',icon:'\ud83c\udfe0',title:'A2 House & Rooms Memory',type:'memory-match',level:'A2',topic:'Vocabulary',desc:'Match rooms and household items.',tags:['vocabulary','house'],presetKey:'pairs',presetIdx:8},
+  {id:'t15',icon:'\ud83d\udc77',title:'A2 Professions Scramble',type:'word-scramble',level:'A2',topic:'Vocabulary',desc:'Unscramble profession names.',tags:['vocabulary','jobs'],presetKey:'words',presetIdx:4},
+  {id:'t16',icon:'\u26bd',title:'A2 Sports Hangman',type:'hangman',level:'A2',topic:'Vocabulary',desc:'Guess the sport.',tags:['vocabulary','sports'],presetKey:'words',presetIdx:5},
+  {id:'t17',icon:'\ud83c\udfb5',title:'A2 Musical Instruments Wheel',type:'spin-wheel',level:'A2',topic:'Vocabulary',desc:'Spin and name the instrument.',tags:['vocabulary','music'],presetKey:'words',presetIdx:6},
+  {id:'t18',icon:'\ud83d\udcdd',title:'A2 Past Simple Fill-in',type:'fill-blank',level:'A2',topic:'Grammar',desc:'Past Simple gap-fill exercises.',tags:['grammar','past-simple'],presetKey:'sentences',presetIdx:1},
+  {id:'t19',icon:'\u26a1',title:'A2 Verb Tenses Speed Quiz',type:'speed-quiz',level:'A2',topic:'Grammar',desc:'Quick-fire verb tense questions.',tags:['grammar','tenses'],presetKey:'mcq',presetIdx:0},
+  {id:'t20',icon:'\ud83d\udccd',title:'A2 Prepositions Speed Quiz',type:'speed-quiz',level:'A2',topic:'Grammar',desc:'Test preposition knowledge.',tags:['grammar','prepositions'],presetKey:'mcq',presetIdx:1},
+  {id:'t21',icon:'\u2705',title:'A2 Grammar Rules True/False',type:'true-false',level:'A2',topic:'Grammar',desc:'Test basic grammar knowledge.',tags:['grammar','rules'],presetKey:'statements',presetIdx:0},
+  {id:'t22',icon:'\ud83d\udcda',title:'A2 Parts of Speech Sort',type:'word-categories',level:'A2',topic:'Grammar',desc:'Sort words into parts of speech.',tags:['grammar','parts-of-speech'],presetKey:'categories',presetIdx:0},
+  {id:'t23',icon:'\ud83c\udf4e',title:'A1 Food Groups Sort',type:'word-categories',level:'A1',topic:'Vocabulary',desc:'Sort foods into groups.',tags:['vocabulary','food'],presetKey:'categories',presetIdx:1},
+  {id:'t24',icon:'\ud83d\udcd6',title:'B1 Present Perfect Fill-in',type:'fill-blank',level:'B1',topic:'Grammar',desc:'Present Perfect practice sentences.',tags:['grammar','present-perfect'],presetKey:'sentences',presetIdx:2},
+  {id:'t25',icon:'\ud83e\udd14',title:'B1 Conditionals Fill-in',type:'fill-blank',level:'B1',topic:'Grammar',desc:'If-clauses gap-fill practice.',tags:['grammar','conditionals'],presetKey:'sentences',presetIdx:3},
+  {id:'t26',icon:'\ud83d\udca1',title:'B1 Phrasal Verbs Flashcards',type:'flashcards',level:'B1',topic:'Vocabulary',desc:'Essential phrasal verbs with translations.',tags:['vocabulary','phrasal-verbs'],presetKey:'pairs',presetIdx:9},
+  {id:'t27',icon:'\ud83c\udf0d',title:'B1 Environment Scramble',type:'word-scramble',level:'B1',topic:'Vocabulary',desc:'Unscramble environment terms.',tags:['vocabulary','environment'],presetKey:'words',presetIdx:7},
+  {id:'t28',icon:'\ud83d\udcbb',title:'B1 Technology Hangman',type:'hangman',level:'B1',topic:'Vocabulary',desc:'Guess technology vocabulary.',tags:['vocabulary','technology'],presetKey:'words',presetIdx:8},
+  {id:'t29',icon:'\u2753',title:'B1 Confusing Words Quiz',type:'speed-quiz',level:'B1',topic:'Vocabulary',desc:'Choose the right confusing word.',tags:['vocabulary','confusing'],presetKey:'mcq',presetIdx:2},
+  {id:'t30',icon:'\ud83c\udde6\ud83c\uddf7',title:'B1 Modals Speed Quiz',type:'speed-quiz',level:'B1',topic:'Grammar',desc:'Test your modal verbs.',tags:['grammar','modals'],presetKey:'mcq',presetIdx:4},
+  {id:'t31',icon:'\ud83c\uddec\ud83c\udde7',title:'B1 UK Culture True/False',type:'true-false',level:'B1',topic:'Culture',desc:'Facts about British culture.',tags:['culture','uk'],presetKey:'statements',presetIdx:1},
+  {id:'t32',icon:'\ud83e\uddea',title:'B1 Science Facts True/False',type:'true-false',level:'B1',topic:'Science',desc:'Test your science knowledge.',tags:['science','facts'],presetKey:'statements',presetIdx:2},
+  {id:'t33',icon:'\ud83c\uddfa\ud83c\uddf8',title:'B1 US Culture True/False',type:'true-false',level:'B1',topic:'Culture',desc:'Facts about American culture.',tags:['culture','usa'],presetKey:'statements',presetIdx:3},
+  {id:'t34',icon:'\ud83d\udcdd',title:'B1 Articles Fill-in',type:'fill-blank',level:'B1',topic:'Grammar',desc:'Practice a/an/the usage.',tags:['grammar','articles'],presetKey:'sentences',presetIdx:7},
+  {id:'t35',icon:'\ud83d\udcc1',title:'B1 Word Families Sort',type:'word-categories',level:'B1',topic:'Vocabulary',desc:'Sort words by suffix families.',tags:['vocabulary','word-families'],presetKey:'categories',presetIdx:2},
+  {id:'t36',icon:'\ud83d\udd04',title:'B2 Passive Voice Fill-in',type:'fill-blank',level:'B2',topic:'Grammar',desc:'Passive voice gap-fill.',tags:['grammar','passive'],presetKey:'sentences',presetIdx:4},
+  {id:'t37',icon:'\ud83d\udde3\ufe0f',title:'B2 Reported Speech Fill-in',type:'fill-blank',level:'B2',topic:'Grammar',desc:'Reported speech practice.',tags:['grammar','reported-speech'],presetKey:'sentences',presetIdx:5},
+  {id:'t38',icon:'\ud83e\udd1d',title:'B2 Collocations Flashcards',type:'flashcards',level:'B2',topic:'Vocabulary',desc:'Common English collocations.',tags:['vocabulary','collocations'],presetKey:'pairs',presetIdx:10},
+  {id:'t39',icon:'\ud83d\udcbc',title:'B2 Business English Scramble',type:'word-scramble',level:'B2',topic:'Vocabulary',desc:'Unscramble business terms.',tags:['vocabulary','business'],presetKey:'words',presetIdx:9},
+  {id:'t40',icon:'\ud83d\udcca',title:'B2 Word Formation Quiz',type:'speed-quiz',level:'B2',topic:'Vocabulary',desc:'Choose correct word forms.',tags:['vocabulary','word-formation'],presetKey:'mcq',presetIdx:3},
+  {id:'t41',icon:'\ud83c\udf0d',title:'B2 Environment True/False',type:'true-false',level:'B2',topic:'Environment',desc:'Environment facts quiz.',tags:['environment','facts'],presetKey:'statements',presetIdx:4},
+  {id:'t42',icon:'\ud83d\udd00',title:'B2 Formal vs Informal Sort',type:'word-categories',level:'B2',topic:'Vocabulary',desc:'Sort words by register.',tags:['vocabulary','register'],presetKey:'categories',presetIdx:3},
+  {id:'t43',icon:'\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf8',title:'B2 British vs American Sort',type:'word-categories',level:'B2',topic:'Vocabulary',desc:'British or American English?',tags:['vocabulary','varieties'],presetKey:'categories',presetIdx:4},
+  {id:'t44',icon:'\ud83c\udf93',title:'C1 Academic Vocabulary Flash',type:'flashcards',level:'C1',topic:'Vocabulary',desc:'Advanced academic words.',tags:['vocabulary','academic'],presetKey:'pairs',presetIdx:11},
+  {id:'t45',icon:'\ud83d\udca1',title:'C1 Idioms Flashcards',type:'flashcards',level:'C1',topic:'Vocabulary',desc:'English idioms with meanings.',tags:['vocabulary','idioms'],presetKey:'pairs',presetIdx:12},
+  {id:'t46',icon:'\ud83e\udde0',title:'C1 Psychology Scramble',type:'word-scramble',level:'C1',topic:'Vocabulary',desc:'Unscramble psychology terms.',tags:['vocabulary','psychology'],presetKey:'words',presetIdx:10},
+  {id:'t47',icon:'\ud83d\udcd6',title:'C1 Literature Terms Hangman',type:'hangman',level:'C1',topic:'Vocabulary',desc:'Guess literary terminology.',tags:['vocabulary','literature'],presetKey:'words',presetIdx:11},
+  {id:'t48',icon:'\ud83d\udd00',title:'C1 Subjunctive Fill-in',type:'fill-blank',level:'C1',topic:'Grammar',desc:'Advanced grammar structures.',tags:['grammar','advanced'],presetKey:'sentences',presetIdx:6},
+  {id:'t49',icon:'\ud83c\udfb0',title:'C1 Idioms Spin Wheel',type:'spin-wheel',level:'C1',topic:'Vocabulary',desc:'Spin and explain the idiom.',tags:['vocabulary','idioms'],customWords:['break the ice','hit the nail on the head','once in a blue moon','piece of cake','spill the beans','cost an arm and a leg','bite the bullet','under the weather','the ball is in your court','burn the midnight oil']},
+  {id:'t50',icon:'\ud83c\udf93',title:'C1 Academic Vocabulary Wheel',type:'spin-wheel',level:'C1',topic:'Vocabulary',desc:'Spin and define the academic term.',tags:['vocabulary','academic'],customWords:['hypothesis','methodology','phenomenon','paradigm','ambiguity','implications','framework','coherent','substantiate','scrutinize']},
+];
+
 const GAME_TYPES = [
-  {
-    id: 'flashcards',
-    icon: '🗂',
-    name: 'Flashcards',
-    desc: 'Word + translation/definition flip cards with Got it / Again tracking',
-    tag: 'Vocabulary',
-    fields: 'pairs',
-    pairLabels: ['Word', 'Translation / Definition'],
-    gameSrc: 'games/flashcards.html',
-    w: 460, h: 560,
-  },
-  {
-    id: 'memory-match',
-    icon: '🧠',
-    name: 'Memory Match',
-    desc: 'Flip cards to match word-definition pairs from memory',
-    tag: 'Vocabulary',
-    fields: 'pairs',
-    pairLabels: ['Term', 'Definition'],
-    gameSrc: 'games/memory-match.html',
-    w: 520, h: 600,
-  },
-  {
-    id: 'word-scramble',
-    icon: '🔀',
-    name: 'Word Scramble',
-    desc: 'Unscramble letters to form the correct word',
-    tag: 'Vocabulary',
-    fields: 'words',
-    gameSrc: 'games/word-scramble.html',
-    w: 460, h: 520,
-  },
-  {
-    id: 'fill-blank',
-    icon: '✍',
-    name: 'Fill in the Blank',
-    desc: 'Type the missing word to complete each sentence',
-    tag: 'Grammar',
-    fields: 'sentences',
-    gameSrc: 'games/fill-blank.html',
-    w: 460, h: 560,
-  },
-  {
-    id: 'true-false',
-    icon: '✅',
-    name: 'True or False',
-    desc: 'Rapid-fire statements — decide if each is true or false',
-    tag: 'Grammar',
-    fields: 'statements',
-    gameSrc: 'games/true-false.html',
-    w: 460, h: 520,
-  },
-  {
-    id: 'speed-quiz',
-    icon: '⚡',
-    name: 'Speed Quiz',
-    desc: '4-option MCQ with countdown timer',
-    tag: 'Speed',
-    fields: 'mcq',
-    gameSrc: 'games/speed-quiz.html',
-    w: 480, h: 560,
-  },
-  {
-    id: 'word-categories',
-    icon: '🗂',
-    name: 'Word Categories',
-    desc: 'Sort words into the correct topic groups',
-    tag: 'Vocabulary',
-    fields: 'categories',
-    gameSrc: 'games/word-categories.html',
-    w: 560, h: 640,
-  },
-  {
-    id: 'spin-wheel',
-    icon: '🎡',
-    name: 'Spin the Wheel',
-    desc: 'Editable word wheel — great for hot-seat vocabulary drills',
-    tag: 'Speaking',
-    fields: 'words',
-    gameSrc: 'games/spin-wheel.html',
-    w: 460, h: 560,
-  },
-  {
-    id: 'hangman',
-    icon: '🎯',
-    name: 'Hangman',
-    desc: 'Guess the hidden word letter by letter',
-    tag: 'Spelling',
-    fields: 'words',
-    gameSrc: 'games/hangman.html',
-    w: 460, h: 560,
-  },
+  {id:'flashcards',icon:'\ud83d\uddc2',name:'Flashcards',desc:'Word + translation/definition flip cards with Got it / Again tracking',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Translation / Definition'],gameSrc:'games/flashcards.html',w:460,h:560},
+  {id:'memory-match',icon:'\ud83e\udde0',name:'Memory Match',desc:'Flip cards to match word-definition pairs from memory',tag:'Vocabulary',fields:'pairs',pairLabels:['Term','Definition'],gameSrc:'games/memory-match.html',w:520,h:600},
+  {id:'word-scramble',icon:'\ud83d\udd00',name:'Word Scramble',desc:'Unscramble letters to form the correct word',tag:'Vocabulary',fields:'words',gameSrc:'games/word-scramble.html',w:460,h:520},
+  {id:'fill-blank',icon:'\u270d',name:'Fill in the Blank',desc:'Type the missing word to complete each sentence',tag:'Grammar',fields:'sentences',gameSrc:'games/fill-blank.html',w:460,h:560},
+  {id:'true-false',icon:'\u2705',name:'True or False',desc:'Rapid-fire statements \u2014 decide if each is true or false',tag:'Grammar',fields:'statements',gameSrc:'games/true-false.html',w:460,h:520},
+  {id:'speed-quiz',icon:'\u26a1',name:'Speed Quiz',desc:'4-option MCQ with countdown timer',tag:'Speed',fields:'mcq',gameSrc:'games/speed-quiz.html',w:480,h:560},
+  {id:'word-categories',icon:'\ud83d\uddc2',name:'Word Categories',desc:'Sort words into the correct topic groups',tag:'Vocabulary',fields:'categories',gameSrc:'games/word-categories.html',w:560,h:640},
+  {id:'spin-wheel',icon:'\ud83c\udfa1',name:'Spin the Wheel',desc:'Editable word wheel \u2014 great for hot-seat vocabulary drills',tag:'Speaking',fields:'words',gameSrc:'games/spin-wheel.html',w:460,h:560},
+  {id:'hangman',icon:'\ud83c\udfaf',name:'Hangman',desc:'Guess the hidden word letter by letter',tag:'Spelling',fields:'words',gameSrc:'games/hangman.html',w:460,h:560},
 ];
 
 const STORAGE_KEY = 'teachedos_custom_games';
 let selectedType = null;
 let editingId = null;
 let activeFilter = 'All';
+let activeTplLevel = 'All';
+let bulkMode = false;
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ════════════════════════ INIT ════════════════════════ */
+/* ---- INIT ---- */
 function init() {
   setNavUser();
   renderTypeGrid();
   renderFilterTabs();
   renderMyGames();
+  renderTplLevelTabs();
+  renderTemplates();
+  document.getElementById('my-count').textContent = readGames().length;
 }
 
 function setNavUser() {
@@ -342,11 +556,88 @@ function setNavUser() {
     const user = JSON.parse(localStorage.getItem('teachedos_user') || 'null') || {};
     const name = user.name || 'Teacher';
     document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
-    document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '\u{1F9D1}\u{200D}\u{1F3EB}') ? user.avatar : (name[0]||'T').toUpperCase();
+    document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '\ud83e\uddd1\u200d\ud83c\udfeb') ? user.avatar : (name[0]||'T').toUpperCase();
   } catch {}
 }
 
-/* ════════════════════════ TYPE GRID ════════════════════════ */
+/* ---- TEMPLATE GALLERY ---- */
+function renderTplLevelTabs() {
+  const levels = ['All','A1','A2','B1','B2','C1','C2'];
+  document.getElementById('tpl-level-tabs').innerHTML = levels.map(l =>
+    `<div class="tab${l===activeTplLevel?' active':''}" onclick="filterTplLevel('${l}')">${l}</div>`
+  ).join('');
+}
+
+function filterTplLevel(level) {
+  activeTplLevel = level;
+  renderTplLevelTabs();
+  renderTemplates();
+}
+
+function renderTemplates() {
+  const search = (document.getElementById('tpl-search').value || '').toLowerCase();
+  let tpls = TEMPLATES;
+  if (activeTplLevel !== 'All') tpls = tpls.filter(t => t.level === activeTplLevel);
+  if (search) tpls = tpls.filter(t => (t.title+' '+t.topic+' '+t.desc+' '+t.tags.join(' ')+' '+t.type+' '+t.level).toLowerCase().includes(search));
+  const grid = document.getElementById('tpl-grid');
+  if (!tpls.length) { grid.innerHTML = '<div class="empty">No templates match your search.</div>'; return; }
+  grid.innerHTML = tpls.map(t => `
+    <div class="tpl-card" data-level="${esc(t.level)}" onclick="useTemplate('${t.id}')">
+      <div class="tpl-icon">${t.icon}</div>
+      <div class="tpl-title">${esc(t.title)}</div>
+      <div class="tpl-meta">${esc(t.type)} &middot; ${esc(t.level)} &middot; ${esc(t.topic)}</div>
+      <div class="tpl-meta">${esc(t.desc)}</div>
+      <div class="tpl-bottom">
+        ${t.tags.slice(0,3).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function getTemplateContent(tpl) {
+  if (tpl.customWords) return { words: tpl.customWords };
+  const preset = PRESETS[tpl.presetKey][tpl.presetIdx];
+  if (!preset) return null;
+  const type = GAME_TYPES.find(t => t.id === tpl.type);
+  if (!type) return null;
+  switch (type.fields) {
+    case 'pairs': return { pairs: preset.data.map(d => ({a:d.a,b:d.b})) };
+    case 'words': return { words: [...preset.data] };
+    case 'sentences': return { sentences: [...preset.data] };
+    case 'statements': return { statements: preset.data.map(d => ({text:d.text,answer:d.answer})) };
+    case 'mcq': return { questions: preset.data.map(d => ({q:d.q,opts:[...d.opts],correct:d.correct})) };
+    case 'categories': return { categories: preset.data.map(d => ({name:d.name,words:[...d.words]})) };
+  }
+  return null;
+}
+
+function useTemplate(tplId) {
+  const tpl = TEMPLATES.find(t => t.id === tplId);
+  if (!tpl) return;
+  selectedType = GAME_TYPES.find(t => t.id === tpl.type);
+  if (!selectedType) return;
+  editingId = null;
+  renderTypeGrid();
+  const b = document.getElementById('builder');
+  b.classList.add('show');
+  document.getElementById('builder-title').textContent = selectedType.icon + ' ' + selectedType.name;
+  document.getElementById('builder-sub').textContent = selectedType.desc;
+  document.getElementById('game-title').value = tpl.title;
+  document.getElementById('game-level').value = tpl.level;
+  document.getElementById('game-tags').value = tpl.tags.join(', ');
+  document.getElementById('save-btn').textContent = 'Save Game to Library';
+  renderPresetBar();
+  renderContentFields();
+  const content = getTemplateContent(tpl);
+  if (content) populateContent({ content });
+  updateItemCounter();
+  b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function scrollToTemplates() {
+  document.getElementById('templates-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---- TYPE GRID ---- */
 function renderTypeGrid() {
   const grid = document.getElementById('type-grid');
   grid.innerHTML = GAME_TYPES.map(t => `
@@ -366,9 +657,9 @@ function selectType(id) {
   openBuilder();
 }
 
-/* ════════════════════════ BUILDER ════════════════════════ */
+/* ---- BUILDER ---- */
 function scrollToBuilder() {
-  document.getElementById('type-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('builder-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function openBuilder() {
@@ -381,7 +672,10 @@ function openBuilder() {
   document.getElementById('game-level').value = 'B1';
   document.getElementById('game-tags').value = selectedType.tag;
   document.getElementById('save-btn').textContent = 'Save Game to Library';
+  bulkMode = false;
+  renderPresetBar();
   renderContentFields();
+  updateItemCounter();
   b.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -389,75 +683,192 @@ function closeBuilder() {
   document.getElementById('builder').classList.remove('show');
   selectedType = null;
   editingId = null;
+  bulkMode = false;
   renderTypeGrid();
 }
 
+/* ---- PRESET BAR ---- */
+function renderPresetBar() {
+  const bar = document.getElementById('preset-bar');
+  const chips = document.getElementById('preset-chips');
+  if (!selectedType) { bar.style.display = 'none'; return; }
+  const fieldType = selectedType.fields;
+  const presetList = PRESETS[fieldType];
+  if (!presetList || !presetList.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  chips.innerHTML = presetList.map((p, i) =>
+    `<div class="preset-chip" onclick="applyPreset(${i})">${esc(p.name)} <span style="opacity:.5;font-size:10px">${esc(p.level)}</span></div>`
+  ).join('');
+}
+
+function applyPreset(idx) {
+  if (!selectedType) return;
+  const fieldType = selectedType.fields;
+  const presetList = PRESETS[fieldType];
+  if (!presetList || !presetList[idx]) return;
+  const preset = presetList[idx];
+  const chips = document.querySelectorAll('#preset-chips .preset-chip');
+  chips.forEach((c, i) => c.classList.toggle('active', i === idx));
+  document.getElementById('game-level').value = preset.level || 'B1';
+  document.getElementById('game-tags').value = preset.tags ? preset.tags.join(', ') : '';
+  if (!document.getElementById('game-title').value) {
+    document.getElementById('game-title').value = preset.name + ' ' + selectedType.name;
+  }
+  let content;
+  switch (fieldType) {
+    case 'pairs': content = { pairs: preset.data.map(d => ({a:d.a,b:d.b})) }; break;
+    case 'words': content = { words: [...preset.data] }; break;
+    case 'sentences': content = { sentences: [...preset.data] }; break;
+    case 'statements': content = { statements: preset.data.map(d => ({text:d.text,answer:d.answer})) }; break;
+    case 'mcq': content = { questions: preset.data.map(d => ({q:d.q,opts:[...d.opts],correct:d.correct})) }; break;
+    case 'categories': content = { categories: preset.data.map(d => ({name:d.name,words:[...d.words]})) }; break;
+  }
+  if (content) {
+    renderContentFields();
+    populateContent({ content });
+    updateItemCounter();
+  }
+  toast('Preset "' + preset.name + '" applied!');
+}
+
+/* ---- ITEM COUNTER ---- */
+function updateItemCounter() {
+  const el = document.getElementById('item-counter');
+  if (!selectedType) { el.style.display = 'none'; return; }
+  const content = collectContent(true);
+  let count = 0, min = 2;
+  if (!content) { count = 0; }
+  else if (content.pairs) { count = content.pairs.length; min = 2; }
+  else if (content.words) { count = content.words.length; min = 3; }
+  else if (content.sentences) { count = content.sentences.length; min = 2; }
+  else if (content.statements) { count = content.statements.length; min = 3; }
+  else if (content.questions) { count = content.questions.length; min = 2; }
+  else if (content.categories) { count = content.categories.length; min = 2; }
+  el.style.display = 'inline-flex';
+  if (count >= min) {
+    el.className = 'item-counter ok';
+    el.textContent = count + ' items (ready!)';
+  } else if (count > 0) {
+    el.className = 'item-counter warn';
+    el.textContent = count + '/' + min + ' items (need at least ' + min + ')';
+  } else {
+    el.className = 'item-counter err';
+    el.textContent = '0 items \u2014 add content below';
+  }
+}
+
+/* ---- CONTENT FIELDS ---- */
 function renderContentFields() {
   const area = document.getElementById('content-area');
   if (!selectedType) { area.innerHTML = ''; return; }
-
   switch (selectedType.fields) {
     case 'pairs':
       area.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">${esc(selectedType.pairLabels[0])} — ${esc(selectedType.pairLabels[1])} pairs</div>
+        <div class="label" style="margin-bottom:8px;">${esc(selectedType.pairLabels[0])} \u2014 ${esc(selectedType.pairLabels[1])} pairs</div>
+        <div class="bulk-toggle" onclick="toggleBulk()"><span id="bulk-icon">\u2b07</span> <span id="bulk-label">Paste from spreadsheet</span></div>
+        <div class="bulk-area" id="bulk-area">
+          <textarea id="bulk-input" rows="6" placeholder="word1&#9;translation1&#10;word2&#9;translation2&#10;word3&#9;translation3" oninput="updateItemCounter()"></textarea>
+          <div class="bulk-help">Paste tab-separated data from Excel/Google Sheets. One pair per line: word[TAB]translation</div>
+          <button class="btn sm lime" onclick="parseBulk()" style="margin-top:8px;">Apply Bulk Data</button>
+        </div>
         <div class="pair-list" id="pair-list"></div>
-        <button class="btn sm ghost" onclick="addPair()">+ Add pair</button>`;
+        <button class="btn sm ghost" onclick="addPair();updateItemCounter()">+ Add pair</button>`;
       for (let i = 0; i < 5; i++) addPair();
       break;
-
     case 'words':
       area.innerHTML = `
         <div class="field">
           <div class="label">Words (one per line)</div>
-          <textarea id="words-input" rows="8" placeholder="comfortable\nsustainable\nnegotiate\nperspective\ncoincidence"></textarea>
+          <textarea id="words-input" rows="8" placeholder="comfortable\nsustainable\nnegotiate\nperspective\ncoincidence" oninput="updateItemCounter()"></textarea>
         </div>`;
       break;
-
     case 'sentences':
       area.innerHTML = `
         <div class="field">
           <div class="label">Sentences (use ___ for the blank, one per line)</div>
-          <textarea id="sentences-input" rows="8" placeholder="She ___ (go) to school every day.\nThey have ___ (live) here since 2010.\nHe ___ (not/like) spicy food."></textarea>
+          <textarea id="sentences-input" rows="8" placeholder="She ___ (go) to school every day.\nThey have ___ (live) here since 2010.\nHe ___ (not/like) spicy food." oninput="updateItemCounter()"></textarea>
         </div>`;
       break;
-
     case 'statements':
       area.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">Statements — mark each as True or False</div>
+        <div class="label" style="margin-bottom:8px;">Statements \u2014 mark each as True or False</div>
         <div class="pair-list" id="pair-list"></div>
-        <button class="btn sm ghost" onclick="addStatement()">+ Add statement</button>`;
+        <button class="btn sm ghost" onclick="addStatement();updateItemCounter()">+ Add statement</button>`;
       for (let i = 0; i < 5; i++) addStatement();
       break;
-
     case 'mcq':
       area.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">Questions — 4 options each, mark the correct one</div>
+        <div class="label" style="margin-bottom:8px;">Questions \u2014 4 options each, mark the correct one</div>
         <div id="mcq-list"></div>
-        <button class="btn sm ghost" onclick="addMCQ()">+ Add question</button>`;
+        <button class="btn sm ghost" onclick="addMCQ();updateItemCounter()">+ Add question</button>`;
       for (let i = 0; i < 3; i++) addMCQ();
       break;
-
     case 'categories':
       area.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">Categories — name each group and list its words</div>
+        <div class="label" style="margin-bottom:8px;">Categories \u2014 name each group and list its words</div>
         <div id="cat-list"></div>
-        <button class="btn sm ghost" onclick="addCategory()">+ Add category</button>`;
+        <button class="btn sm ghost" onclick="addCategory();updateItemCounter()">+ Add category</button>`;
       for (let i = 0; i < 3; i++) addCategory();
       break;
   }
 }
 
-/* ── Dynamic content helpers ── */
+/* ---- BULK PASTE ---- */
+function toggleBulk() {
+  bulkMode = !bulkMode;
+  const area = document.getElementById('bulk-area');
+  area.classList.toggle('show', bulkMode);
+  document.getElementById('bulk-label').textContent = bulkMode ? 'Hide bulk paste' : 'Paste from spreadsheet';
+  document.getElementById('bulk-icon').textContent = bulkMode ? '\u2b06' : '\u2b07';
+}
+
+function parseBulk() {
+  const text = document.getElementById('bulk-input').value.trim();
+  if (!text) { toast('Paste some data first'); return; }
+  const lines = text.split('\n').filter(l => l.trim());
+  const list = document.getElementById('pair-list');
+  list.innerHTML = '';
+  let count = 0;
+  lines.forEach(line => {
+    const parts = line.split('\t');
+    if (parts.length >= 2) {
+      addPair();
+      const rows = list.querySelectorAll('.pair-row');
+      const last = rows[rows.length - 1];
+      last.querySelector('.pair-a').value = parts[0].trim();
+      last.querySelector('.pair-b').value = parts[1].trim();
+      count++;
+    }
+  });
+  updateItemCounter();
+  toast(count + ' pairs imported from clipboard!');
+  bulkMode = false;
+  document.getElementById('bulk-area').classList.remove('show');
+  document.getElementById('bulk-label').textContent = 'Paste from spreadsheet';
+  document.getElementById('bulk-icon').textContent = '\u2b07';
+}
+
+/* ---- DYNAMIC CONTENT HELPERS ---- */
 function addPair() {
   const list = document.getElementById('pair-list');
   if (!list) return;
   const row = document.createElement('div');
   row.className = 'pair-row';
+  const num = list.querySelectorAll('.pair-row').length + 1;
   row.innerHTML = `
-    <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}">
-    <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}">
-    <button class="pair-remove" onclick="this.parentElement.remove()">x</button>`;
+    <div class="pair-row-num">${num}</div>
+    <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}" oninput="updateItemCounter()">
+    <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}" oninput="updateItemCounter()">
+    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">x</button>`;
   list.appendChild(row);
+}
+
+function renumberRows() {
+  const rows = document.querySelectorAll('#pair-list .pair-row');
+  rows.forEach((r, i) => {
+    const num = r.querySelector('.pair-row-num');
+    if (num) num.textContent = i + 1;
+  });
 }
 
 function addStatement() {
@@ -465,10 +876,12 @@ function addStatement() {
   if (!list) return;
   const row = document.createElement('div');
   row.className = 'pair-row';
+  const num = list.querySelectorAll('.pair-row').length + 1;
   row.innerHTML = `
-    <input class="pair-a" placeholder="Statement text" style="grid-column:1/3">
+    <div class="pair-row-num">${num}</div>
+    <input class="pair-a" placeholder="Statement text" oninput="updateItemCounter()">
     <select class="pair-b" style="width:80px"><option value="true">True</option><option value="false">False</option></select>
-    <button class="pair-remove" onclick="this.parentElement.remove()">x</button>`;
+    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">x</button>`;
   list.appendChild(row);
 }
 
@@ -480,7 +893,7 @@ function addMCQ() {
   block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
   block.innerHTML = `
     <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:8px;">Question ${idx}</div>
-    <input class="mcq-question" placeholder="Question text" style="margin-bottom:8px;">
+    <input class="mcq-question" placeholder="Question text" style="margin-bottom:8px;" oninput="updateItemCounter()">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
       <input class="mcq-opt" placeholder="Option A">
       <input class="mcq-opt" placeholder="Option B">
@@ -490,7 +903,7 @@ function addMCQ() {
     <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
       <span style="font-size:11px;color:var(--text3);">Correct:</span>
       <select class="mcq-correct"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
-      <button class="pair-remove" onclick="this.closest('[style]').remove()" style="margin-left:auto;">x</button>
+      <button class="pair-remove" onclick="this.closest('[style]').remove();updateItemCounter()" style="margin-left:auto;">x</button>
     </div>`;
   list.appendChild(block);
 }
@@ -503,15 +916,15 @@ function addCategory() {
   block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
   block.innerHTML = `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <input class="cat-name" placeholder="Category name (e.g. Animals)" style="flex:1;">
-      <button class="pair-remove" onclick="this.closest('[style]').remove()">x</button>
+      <input class="cat-name" placeholder="Category name (e.g. Animals)" style="flex:1;" oninput="updateItemCounter()">
+      <button class="pair-remove" onclick="this.closest('[style]').remove();updateItemCounter()">x</button>
     </div>
-    <textarea class="cat-words" rows="3" placeholder="word1, word2, word3, ..."></textarea>`;
+    <textarea class="cat-words" rows="3" placeholder="word1, word2, word3, ..." oninput="updateItemCounter()"></textarea>`;
   list.appendChild(block);
 }
 
-/* ════════════════════════ COLLECT CONTENT ════════════════════════ */
-function collectContent() {
+/* ---- COLLECT CONTENT ---- */
+function collectContent(lenient) {
   if (!selectedType) return null;
   switch (selectedType.fields) {
     case 'pairs': {
@@ -521,18 +934,17 @@ function collectContent() {
         const a = r.querySelector('.pair-a').value.trim();
         const b = r.querySelector('.pair-b').value.trim();
         if (a && b) pairs.push({ a, b });
+        else if (lenient && (a || b)) pairs.push({ a: a||'', b: b||'' });
       });
-      return pairs.length >= 2 ? { pairs } : null;
+      return (lenient || pairs.length >= 2) ? { pairs } : null;
     }
     case 'words': {
-      const words = document.getElementById('words-input').value
-        .split('\n').map(w => w.trim()).filter(Boolean);
-      return words.length >= 3 ? { words } : null;
+      const words = document.getElementById('words-input').value.split('\n').map(w => w.trim()).filter(Boolean);
+      return (lenient || words.length >= 3) ? { words } : null;
     }
     case 'sentences': {
-      const sentences = document.getElementById('sentences-input').value
-        .split('\n').map(s => s.trim()).filter(Boolean);
-      return sentences.length >= 2 ? { sentences } : null;
+      const sentences = document.getElementById('sentences-input').value.split('\n').map(s => s.trim()).filter(Boolean);
+      return (lenient || sentences.length >= 2) ? { sentences } : null;
     }
     case 'statements': {
       const rows = document.querySelectorAll('#pair-list .pair-row');
@@ -542,7 +954,7 @@ function collectContent() {
         const val = r.querySelector('.pair-b').value;
         if (text) statements.push({ text, answer: val === 'true' });
       });
-      return statements.length >= 3 ? { statements } : null;
+      return (lenient || statements.length >= 3) ? { statements } : null;
     }
     case 'mcq': {
       const blocks = document.querySelectorAll('#mcq-list > div');
@@ -552,8 +964,9 @@ function collectContent() {
         const opts = Array.from(b.querySelectorAll('.mcq-opt')).map(o => o.value.trim());
         const correct = parseInt(b.querySelector('.mcq-correct').value, 10);
         if (q && opts.filter(Boolean).length === 4) questions.push({ q, opts, correct });
+        else if (lenient && q) questions.push({ q, opts, correct });
       });
-      return questions.length >= 2 ? { questions } : null;
+      return (lenient || questions.length >= 2) ? { questions } : null;
     }
     case 'categories': {
       const blocks = document.querySelectorAll('#cat-list > div');
@@ -562,19 +975,21 @@ function collectContent() {
         const name = b.querySelector('.cat-name').value.trim();
         const words = b.querySelector('.cat-words').value.split(',').map(w => w.trim()).filter(Boolean);
         if (name && words.length >= 2) categories.push({ name, words });
+        else if (lenient && name) categories.push({ name, words });
       });
-      return categories.length >= 2 ? { categories } : null;
+      return (lenient || categories.length >= 2) ? { categories } : null;
     }
   }
   return null;
 }
 
-/* ════════════════════════ SAVE / LOAD ════════════════════════ */
+/* ---- SAVE / LOAD ---- */
 function readGames() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
 }
 function writeGames(games) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+  document.getElementById('my-count').textContent = games.length;
 }
 
 function saveGame() {
@@ -585,33 +1000,44 @@ function saveGame() {
   if (!content) { toast('Not enough content. Add more items.'); return; }
   const level = document.getElementById('game-level').value;
   const tags = document.getElementById('game-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-
   const game = {
     id: editingId || 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
-    typeId: selectedType.id,
-    icon: selectedType.icon,
-    typeName: selectedType.name,
-    gameSrc: selectedType.gameSrc,
-    w: selectedType.w,
-    h: selectedType.h,
-    title,
-    level,
-    tags,
-    content,
-    createdAt: new Date().toISOString(),
+    typeId: selectedType.id, icon: selectedType.icon, typeName: selectedType.name,
+    gameSrc: selectedType.gameSrc, w: selectedType.w, h: selectedType.h,
+    title, level, tags, content, createdAt: new Date().toISOString(),
   };
-
   const games = readGames();
   if (editingId) {
     const idx = games.findIndex(g => g.id === editingId);
     if (idx >= 0) games[idx] = game; else games.unshift(game);
-  } else {
-    games.unshift(game);
-  }
+  } else { games.unshift(game); }
   writeGames(games);
   closeBuilder();
   renderMyGames();
   toast(editingId ? 'Game updated!' : 'Game saved to your library!');
+}
+
+function saveAndAddToBoard() {
+  if (!selectedType) return;
+  const title = document.getElementById('game-title').value.trim();
+  if (!title) { toast('Please enter a game title'); return; }
+  const content = collectContent();
+  if (!content) { toast('Not enough content. Add more items.'); return; }
+  const level = document.getElementById('game-level').value;
+  const tags = document.getElementById('game-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const game = {
+    id: editingId || 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    typeId: selectedType.id, icon: selectedType.icon, typeName: selectedType.name,
+    gameSrc: selectedType.gameSrc, w: selectedType.w, h: selectedType.h,
+    title, level, tags, content, createdAt: new Date().toISOString(),
+  };
+  const games = readGames();
+  if (editingId) {
+    const idx = games.findIndex(g => g.id === editingId);
+    if (idx >= 0) games[idx] = game; else games.unshift(game);
+  } else { games.unshift(game); }
+  writeGames(games);
+  addToBoard(game.id);
 }
 
 function deleteGame(id) {
@@ -638,8 +1064,10 @@ function editGame(id) {
   document.getElementById('game-level').value = game.level || 'B1';
   document.getElementById('game-tags').value = (game.tags || []).join(', ');
   document.getElementById('save-btn').textContent = 'Update Game';
+  renderPresetBar();
   renderContentFields();
   populateContent(game);
+  updateItemCounter();
   b.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -673,14 +1101,8 @@ function populateContent(game) {
       });
       break;
     }
-    case 'words': {
-      document.getElementById('words-input').value = (c.words || []).join('\n');
-      break;
-    }
-    case 'sentences': {
-      document.getElementById('sentences-input').value = (c.sentences || []).join('\n');
-      break;
-    }
+    case 'words': document.getElementById('words-input').value = (c.words || []).join('\n'); break;
+    case 'sentences': document.getElementById('sentences-input').value = (c.sentences || []).join('\n'); break;
     case 'statements': {
       const list = document.getElementById('pair-list');
       list.innerHTML = '';
@@ -722,11 +1144,10 @@ function populateContent(game) {
   }
 }
 
-/* ════════════════════════ RENDER MY GAMES ════════════════════════ */
+/* ---- RENDER MY GAMES ---- */
 function renderFilterTabs() {
-  const allTags = ['All', 'Vocabulary', 'Grammar', 'Spelling', 'Speed', 'Speaking'];
-  const tabs = document.getElementById('filter-tabs');
-  tabs.innerHTML = allTags.map(t =>
+  const allTags = ['All','Vocabulary','Grammar','Spelling','Speed','Speaking'];
+  document.getElementById('filter-tabs').innerHTML = allTags.map(t =>
     `<div class="tab${t === activeFilter ? ' active' : ''}" onclick="filterGames('${t}')">${t}</div>`
   ).join('');
 }
@@ -740,34 +1161,34 @@ function filterGames(tag) {
 function renderMyGames() {
   const grid = document.getElementById('my-games');
   let games = readGames();
+  const search = (document.getElementById('games-search').value || '').toLowerCase();
   if (activeFilter !== 'All') {
     games = games.filter(g => {
       const type = GAME_TYPES.find(t => t.id === g.typeId);
       return (type && type.tag === activeFilter) || (g.tags || []).some(t => t.toLowerCase() === activeFilter.toLowerCase());
     });
   }
-
+  if (search) {
+    games = games.filter(g => (g.title + ' ' + (g.tags||[]).join(' ') + ' ' + g.level).toLowerCase().includes(search));
+  }
   if (!games.length) {
-    grid.innerHTML = `<div class="empty">
-      ${activeFilter !== 'All' ? 'No games in this category yet.' : 'No custom games yet. Create your first one above!'}
-    </div>`;
+    grid.innerHTML = `<div class="empty">${activeFilter !== 'All' || search ? 'No games match.' : 'No custom games yet. Create your first one above!'}</div>`;
     return;
   }
-
   grid.innerHTML = games.map(g => {
     const type = GAME_TYPES.find(t => t.id === g.typeId);
     const itemCount = getItemCount(g);
     return `
     <div class="game-card">
       <div class="game-top">
-        <div class="game-ic">${esc(g.icon || '🎮')}</div>
+        <div class="game-ic">${esc(g.icon || '\ud83c\udfae')}</div>
         <div>
           <div class="game-name">${esc(g.title)}</div>
-          <div class="game-meta">${esc(type ? type.name : g.typeName)} · ${esc(g.level || 'Mixed')} · ${itemCount} items</div>
+          <div class="game-meta">${esc(type ? type.name : g.typeName)} \u00b7 ${esc(g.level || 'Mixed')} \u00b7 ${itemCount} items</div>
         </div>
       </div>
       <div class="game-tags">
-        ${(g.tags || []).slice(0, 4).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
+        ${(g.tags || []).slice(0,4).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
       </div>
       <div class="game-actions">
         <button class="btn sm lime" onclick="addToBoard('${esc(g.id)}')">Add to Board</button>
@@ -791,36 +1212,68 @@ function getItemCount(game) {
   return 0;
 }
 
-/* ════════════════════════ ADD TO BOARD ════════════════════════ */
+/* ---- ADD TO BOARD ---- */
 function addToBoard(id) {
   const games = readGames();
   const game = games.find(g => g.id === id);
   if (!game) { toast('Game not found'); return; }
   const type = GAME_TYPES.find(t => t.id === game.typeId);
   if (!type) { toast('Game type not found'); return; }
-
-  // Store the custom game data so the board can pick it up
   const customData = {
-    customGameId: game.id,
-    title: game.title,
-    src: type.gameSrc,
-    customContent: game.content,
-    level: game.level,
+    customGameId: game.id, title: game.title, src: type.gameSrc,
+    customContent: game.content, level: game.level,
   };
   sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify(customData));
   window.location.href = 'board.html?addCustomGame=1';
 }
 
-/* ════════════════════════ PREVIEW ════════════════════════ */
+/* ---- EXPORT / IMPORT ---- */
+function exportAllGames() {
+  const games = readGames();
+  if (!games.length) { toast('No games to export'); return; }
+  const blob = new Blob([JSON.stringify(games, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'teachedos-games-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(games.length + ' games exported!');
+}
+
+function importGames(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) { toast('Invalid file format'); return; }
+      const games = readGames();
+      let added = 0;
+      imported.forEach(g => {
+        if (g.id && g.typeId && g.title && g.content) {
+          g.id = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+          games.unshift(g);
+          added++;
+        }
+      });
+      writeGames(games);
+      renderMyGames();
+      toast(added + ' games imported!');
+    } catch { toast('Failed to parse file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ---- PREVIEW ---- */
 function previewGame() {
   const content = collectContent();
   if (!content) { toast('Not enough content to preview. Add more items.'); return; }
   const title = document.getElementById('game-title').value.trim() || 'Preview';
-
   const pv = document.getElementById('preview-content');
   let html = `<div style="font-size:18px;font-weight:900;margin-bottom:6px;">${selectedType.icon} ${esc(title)}</div>`;
-  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:16px;">${esc(selectedType.name)} · ${getPreviewItemCount(content)} items</div>`;
-
+  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:16px;">${esc(selectedType.name)} \u00b7 ${getPreviewItemCount(content)} items</div>`;
   if (content.pairs) {
     html += `<table style="width:100%;border-collapse:collapse;font-size:13px;">
       <tr style="background:var(--bg);font-weight:800;"><td style="padding:8px 12px;border-radius:8px 0 0 0;">${esc(selectedType.pairLabels[0])}</td><td style="padding:8px 12px;border-radius:0 8px 0 0;">${esc(selectedType.pairLabels[1])}</td></tr>
@@ -837,7 +1290,6 @@ function previewGame() {
   } else if (content.categories) {
     html += content.categories.map(c => `<div style="margin-bottom:12px;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">${esc(c.name)}</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${c.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div></div>`).join('');
   }
-
   pv.innerHTML = html;
   document.getElementById('preview-overlay').classList.add('show');
 }
@@ -856,7 +1308,7 @@ function closePreview() {
   document.getElementById('preview-overlay').classList.remove('show');
 }
 
-/* ════════════════════════ TOAST ════════════════════════ */
+/* ---- TOAST ---- */
 let toastT;
 function toast(msg) {
   const t = document.getElementById('toast');
@@ -867,6 +1319,7 @@ function toast(msg) {
 }
 
 init();
+
 </script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
