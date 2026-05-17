@@ -325,6 +325,107 @@ body { font-family: var(--font) !important; }
   .mp-desktop-only { display: none !important; }
   /* no backdrop-filter on mobile navs — kills scroll perf */
   #nav { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: #FAFAF8 !important; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     Mobile Performance Guard
+     Strip heavy GPU hints that cause scroll artifacts & jank
+     on resource-constrained mobile GPUs.
+  ═══════════════════════════════════════════════════════════════ */
+
+  /* Remove will-change everywhere — too many layers = OOM & stretching */
+  .widget, .win, .di, #dock, #menubar,
+  .board-card, .snippet, .el-item, .mt-btn,
+  .cls-block, .cls-item, .stat-pill,
+  .card, .stat-card, .bc-btn,
+  .hero-card, .panel, .share-card,
+  .lesson-card, .pack-card, .tool-card,
+  .mp-board-card, .curr-card,
+  .sb-item, .games-nav-item,
+  .chip, .fc-set, .btn-primary, .btn-lime, .btn-ink,
+  #toast, .dot-live, .blob1, .blob2, .blob3, .blob4,
+  .wp-card, .modal {
+    will-change: auto !important;
+  }
+
+  /* Flatten GPU layers — translateZ(0) not needed on mobile */
+  .board-card, .snippet, .el-item,
+  .cls-block, .cls-item, .stat-pill,
+  .card, .stat-card,
+  .hero-card, .panel, .share-card,
+  #toast {
+    transform: none !important;
+  }
+  /* Preserve functional transforms on hover/active but drop translateZ */
+  .board-card:hover, .snippet:hover, .el-item:hover,
+  .cls-block:hover, .cls-item:hover,
+  .card:hover, .stat-card:hover,
+  .hero-card:hover, .share-card:hover {
+    transform: none !important;
+  }
+
+  /* Kill backdrop-filter on everything — very expensive on mobile */
+  .widget, .win, #dock, #menubar,
+  .modal, #toast, .wp-card,
+  .share-card, .hero-card, .panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Simpler, cheaper transitions on mobile */
+  .board-card, .snippet, .el-item, .mt-btn, .tb-btn,
+  .cls-block, .cls-item, .stat-pill,
+  .card, .stat-card, .bc-btn, .st-item,
+  .recent-board-item, .setting-btn, .setting-input,
+  .btn-add, .btn-save, .btn-cancel,
+  .hero-card, .panel, .share-card,
+  .btn, .nav-link, .form-input, .form-select {
+    transition-duration: 0.12s !important;
+    transition-timing-function: ease !important;
+  }
+
+  /* Toast: simple slide, no blur */
+  #toast {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15) !important;
+  }
+  #toast.show {
+    transform: translateY(0) !important;
+  }
+
+  /* Modal: simpler animation, no scale */
+  .modal {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 16px 48px rgba(0,0,0,.2) !important;
+  }
+  .modal-overlay.open .modal {
+    transform: translateY(0) !important;
+  }
+
+  /* Disable hover lifts on touch — they cause sticky states */
+  .board-card:hover, .snippet:hover, .el-item:hover,
+  .cls-block:hover, .cls-item:hover, .stat-pill:hover,
+  .card:hover, .stat-card:hover,
+  .recent-board-item:hover, .setting-btn:hover,
+  .btn-add:hover, .btn-save:hover, .btn-cancel:hover,
+  .hero-card:hover, .share-card:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+  }
+
+  /* Keep active press feedback — lightweight scale only */
+  .board-card:active, .snippet:active, .el-item:active,
+  .cls-item:active, .card:active, .stat-card:active,
+  .btn:active, .btn-add:active, .btn-save:active,
+  .bc-btn:active, .st-item:active, .setting-btn:active,
+  .tb-btn:active, .mt-btn:active {
+    transform: scale(0.97) !important;
+  }
+
+  /* Contain layout to prevent expensive reflows */
+  .mp-shell, .mp-stats, .mp-hscroll {
+    contain: layout style;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
