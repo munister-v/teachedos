@@ -153,6 +153,8 @@ a{text-decoration:none;color:inherit;}
   padding-top:4px;font-size:10px;font-family:var(--mono);color:var(--text3);
 }
 .day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;}
+.day-col.drop-target{background:rgba(200,230,50,.07);}
+.day-col:hover{background:rgba(255,255,255,.28);}
 .hour-line{height:60px;border-bottom:1px solid rgba(94,94,74,.07);}
 .half-line{height:30px;border-bottom:1px dashed rgba(94,94,74,.04);}
 .now-line{
@@ -167,10 +169,21 @@ a{text-decoration:none;color:inherit;}
 /* Class blocks */
 .cls-block{
   position:absolute;left:3px;right:3px;border-radius:10px;
-  padding:6px 8px;cursor:pointer;overflow:hidden;transition:box-shadow .15s,transform .1s;
+  padding:6px 8px;cursor:grab;overflow:hidden;transition:box-shadow .15s,transform .1s;
   border-left:3px solid rgba(255,255,255,.5);
+  user-select:none;touch-action:none;
 }
 .cls-block:hover{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translateY(-1px);z-index:20;}
+.cls-block.dragging{
+  cursor:grabbing;z-index:60!important;opacity:.92;
+  box-shadow:0 18px 44px rgba(0,0,0,.26);transform:scale(1.015);
+}
+.slot-drag-tip{
+  position:fixed;z-index:5000;pointer-events:none;
+  padding:6px 10px;border-radius:999px;background:rgba(28,28,30,.88);color:#fff;
+  font-size:11px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.2);
+  transform:translate(-50%,-150%);display:none;
+}
 .cb-title{font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cb-meta{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.7);margin-top:1px;}
@@ -287,6 +300,7 @@ a{text-decoration:none;color:inherit;}
   <a class="nav-link" href="index.html">Головна</a>
   <a class="nav-link" href="board.html">Дошка</a>
   <a class="nav-link" href="courses.html">Курси</a>
+  <a class="nav-link" href="community.html">Комʼюніті</a>
   <a class="nav-link" href="homework.html">Домашні</a>
   <a class="nav-link active" href="schedule.html">Розклад</a>
   <a class="nav-link" href="analytics.html">Аудит</a>
@@ -496,6 +510,7 @@ a{text-decoration:none;color:inherit;}
 </div>
 
 <div id="toast"></div>
+<div class="slot-drag-tip" id="slot-drag-tip"></div>
 
 <script src="scripts/app-core.js"></script>
 <script>
@@ -725,6 +740,7 @@ async function init() {
   }
   buildColorGrid();
   buildTimeCol();
+  bindGridClicks();
   renderScheduleTimeZoneCard();
   updateWeekHeader();
   await loadSchedule();
@@ -838,6 +854,7 @@ function renderGrid() {
   const weekDates = getWeekDates();
   for (let d = 0; d < 7; d++) {
     const col = document.getElementById(`day-${d}`);
+    col.dataset.day = d;
     // Clear blocks (keep now-line if present)
     Array.from(col.children).forEach(c => { if (!c.id.includes('now-line')) c.remove(); });
     // Hour lines
@@ -868,6 +885,45 @@ function timeToMinutes(t) {
   const [h,m] = t.split(':').map(Number); return h * 60 + m;
 }
 
+function minutesToTime(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+function snapMinutes(mins, step = 15) {
+  return Math.round(mins / step) * step;
+}
+
+function clampSlotStart(mins, duration) {
+  const min = HOUR_START * 60;
+  const max = HOUR_END * 60 - duration;
+  return Math.max(min, Math.min(max, mins));
+}
+
+function gridMinutesFromPointer(clientY, col, grabOffset = 0) {
+  const rect = col.getBoundingClientRect();
+  const y = clientY - rect.top - grabOffset;
+  const mins = HOUR_START * 60 + (y / PX_PER_HOUR * 60);
+  return snapMinutes(mins);
+}
+
+function openPlannerAt(day, startMin) {
+  const duration = 60;
+  const start = clampSlotStart(startMin, duration);
+  const end = start + duration;
+  const weekDate = getWeekDates()[day];
+  openModal(null, {
+    title: '',
+    day,
+    start_time: minutesToTime(start),
+    end_time: minutesToTime(end),
+    specific_date: weekDate ? weekDate.toISOString().slice(0, 10) : '',
+    recurring: true,
+    color: selectedColor || '#C8E632',
+  });
+}
+
 function buildBlock(slot) {
   const startMin = timeToMinutes(slot.start_time) - HOUR_START * 60;
   const endMin   = timeToMinutes(slot.end_time)   - HOUR_START * 60;
@@ -877,6 +933,7 @@ function buildBlock(slot) {
   const el = document.createElement('div');
   el.className = 'cls-block';
   el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#C8E632'};`;
+  el.dataset.slotId = slot.id;
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #ef4444, 0 4px 14px rgba(239,68,68,.3)';
   el.innerHTML = `
     ${slot.is_live ? '<div style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;"></div>' : ''}
@@ -886,9 +943,153 @@ function buildBlock(slot) {
     ${slot.room ? `<div class="cb-meta">📍 ${esc(slot.room)}</div>` : ''}
     <div class="cb-time">${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}</div>
     ${slot.meeting_url||slot.is_live ? `<button onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.6);background:${slot.is_live?'rgba(239,68,68,.25)':'rgba(255,255,255,.2)'};color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">${slot.is_live?'⏹ End live':'🔴 Go Live'}</button>` : ''}`;
-  el.style.position = 'relative';
-  el.addEventListener('click', () => openModal(slot));
+  el.style.position = 'absolute';
+  el.addEventListener('mousedown', e => startSlotDrag(e, slot, el));
+  el.addEventListener('click', () => {
+    if (suppressNextSlotClick) { suppressNextSlotClick = false; return; }
+    openModal(slot);
+  });
   return el;
+}
+
+function bindGridClicks() {
+  document.querySelectorAll('.day-col').forEach(col => {
+    if (col.dataset.boundPlanner) return;
+    col.dataset.boundPlanner = '1';
+    col.addEventListener('click', e => {
+      if (e.target.closest('.cls-block') || dragState.active) return;
+      const day = Number(col.dataset.day);
+      const startMin = clampSlotStart(gridMinutesFromPointer(e.clientY, col), 60);
+      openPlannerAt(day, startMin);
+    });
+  });
+}
+
+let suppressNextSlotClick = false;
+const dragState = {
+  active:false,
+  slot:null,
+  el:null,
+  originDay:0,
+  originStart:0,
+  duration:60,
+  grabOffset:0,
+  startX:0,
+  startY:0,
+  targetDay:0,
+  targetStart:0,
+};
+
+function startSlotDrag(e, slot, el) {
+  if (e.button !== 0 || e.target.closest('button')) return;
+  const rect = el.getBoundingClientRect();
+  const start = timeToMinutes(slot.start_time);
+  const end = timeToMinutes(slot.end_time);
+  Object.assign(dragState, {
+    active:false,
+    slot,
+    el,
+    originDay:Number(slot.day),
+    originStart:start,
+    duration:Math.max(15, end - start),
+    grabOffset:e.clientY - rect.top,
+    startX:e.clientX,
+    startY:e.clientY,
+    targetDay:Number(slot.day),
+    targetStart:start,
+  });
+  document.addEventListener('mousemove', moveSlotDrag);
+  document.addEventListener('mouseup', finishSlotDrag, { once:true });
+}
+
+function moveSlotDrag(e) {
+  if (!dragState.slot || !dragState.el) return;
+  const moved = Math.abs(e.clientX - dragState.startX) > 4 || Math.abs(e.clientY - dragState.startY) > 4;
+  if (!dragState.active && !moved) return;
+  dragState.active = true;
+  suppressNextSlotClick = true;
+  const col = document.elementFromPoint(e.clientX, e.clientY)?.closest('.day-col')
+    || document.getElementById(`day-${dragState.targetDay}`);
+  if (!col) return;
+  document.querySelectorAll('.day-col').forEach(c => c.classList.toggle('drop-target', c === col));
+  const day = Number(col.dataset.day);
+  const start = clampSlotStart(gridMinutesFromPointer(e.clientY, col, dragState.grabOffset), dragState.duration);
+  dragState.targetDay = day;
+  dragState.targetStart = start;
+  if (dragState.el.parentElement !== col) col.appendChild(dragState.el);
+  dragState.el.classList.add('dragging');
+  dragState.el.style.top = ((start - HOUR_START * 60) / 60 * PX_PER_HOUR) + 'px';
+  const tip = document.getElementById('slot-drag-tip');
+  if (tip) {
+    tip.style.display = 'block';
+    tip.style.left = e.clientX + 'px';
+    tip.style.top = e.clientY + 'px';
+    tip.textContent = `${DAY_NAMES[day]} ${minutesToTime(start)}–${minutesToTime(start + dragState.duration)}`;
+  }
+  e.preventDefault();
+}
+
+async function finishSlotDrag() {
+  document.removeEventListener('mousemove', moveSlotDrag);
+  document.querySelectorAll('.day-col').forEach(c => c.classList.remove('drop-target'));
+  const tip = document.getElementById('slot-drag-tip');
+  if (tip) tip.style.display = 'none';
+  const { active, slot, el, targetDay, targetStart, duration, originDay, originStart } = dragState;
+  if (el) el.classList.remove('dragging');
+  dragState.slot = null;
+  dragState.el = null;
+  dragState.active = false;
+  if (!active) return;
+  setTimeout(() => { suppressNextSlotClick = false; }, 0);
+  if (targetDay === originDay && targetStart === originStart) { renderGrid(); return; }
+  await moveScheduleSlot(slot, targetDay, targetStart, duration);
+}
+
+function schedulePayload(slot, patch = {}) {
+  return {
+    title: slot.title || 'Class',
+    day: Number(slot.day) || 0,
+    start_time: (slot.start_time || '09:00').slice(0,5),
+    end_time: (slot.end_time || '10:00').slice(0,5),
+    group_name: slot.group_name || null,
+    level: slot.level || null,
+    room: slot.room || null,
+    meeting_url: slot.meeting_url || null,
+    color: slot.color || '#C8E632',
+    recurring: slot.recurring !== false && !slot.specific_date,
+    specific_date: slot.specific_date ? slot.specific_date.slice(0,10) : null,
+    ...patch,
+  };
+}
+
+async function moveScheduleSlot(slot, day, startMin, duration) {
+  const start = minutesToTime(startMin);
+  const end = minutesToTime(startMin + duration);
+  const weekDate = getWeekDates()[day];
+  const patch = { day, start_time:start, end_time:end };
+  if (slot.specific_date && weekDate) {
+    patch.recurring = false;
+    patch.specific_date = weekDate.toISOString().slice(0, 10);
+  }
+  const idx = schedule.findIndex(s => String(s.id) === String(slot.id));
+  const prev = idx >= 0 ? { ...schedule[idx] } : null;
+  if (idx >= 0) {
+    schedule[idx] = { ...schedule[idx], ...patch };
+    writeScheduleCache({ schedule });
+    renderGrid(); renderSideList(); renderStats();
+  }
+  try {
+    await apiFetch(`/api/schedule/${slot.id}`, {
+      method:'PATCH',
+      body: JSON.stringify(schedulePayload(slot, patch)),
+    });
+    toast(`Moved to ${DAY_NAMES[day]} ${start}`, 'ok');
+    await loadSchedule();
+  } catch (e) {
+    if (prev && idx >= 0) schedule[idx] = prev;
+    renderGrid(); renderSideList(); renderStats();
+    toast(e.message || 'Could not move class', 'err');
+  }
 }
 
 // ── Sidebar list ──────────────────────────────────────────────────────
@@ -967,28 +1168,30 @@ function syncDayFromDate() {
   document.getElementById('f-day').value = dow;
 }
 
-function openModal(slot = null) {
-  editingId = slot ? slot.id : null;
-  document.getElementById('modal-title').textContent = slot ? '✏️ Edit Class' : '➕ Add Class';
-  document.getElementById('modal-save-btn').textContent = slot ? 'Save Changes' : 'Add Class';
-  document.getElementById('f-title').value = slot?.title || '';
-  document.getElementById('f-day').value   = slot?.day ?? ((new Date().getDay() + 6) % 7);
-  document.getElementById('f-start').value = slot?.start_time?.slice(0,5) || '09:00';
-  document.getElementById('f-end').value   = slot?.end_time?.slice(0,5)   || '10:30';
-  document.getElementById('f-group').value = slot?.group_name || '';
-  document.getElementById('f-level').value = slot?.level || '';
-  document.getElementById('f-room').value        = slot?.room  || '';
-  document.getElementById('f-meeting-url').value = slot?.meeting_url || '';
+function openModal(slot = null, preset = null) {
+  const isEdit = !!(slot && slot.id);
+  const data = isEdit ? slot : (preset || {});
+  editingId = isEdit ? slot.id : null;
+  document.getElementById('modal-title').textContent = isEdit ? '✏️ Edit Class' : '➕ Plan Lesson';
+  document.getElementById('modal-save-btn').textContent = isEdit ? 'Save Changes' : 'Add Class';
+  document.getElementById('f-title').value = data.title || '';
+  document.getElementById('f-day').value   = data.day ?? ((new Date().getDay() + 6) % 7);
+  document.getElementById('f-start').value = data.start_time?.slice(0,5) || '09:00';
+  document.getElementById('f-end').value   = data.end_time?.slice(0,5)   || '10:30';
+  document.getElementById('f-group').value = data.group_name || '';
+  document.getElementById('f-level').value = data.level || '';
+  document.getElementById('f-room').value        = data.room  || '';
+  document.getElementById('f-meeting-url').value = data.meeting_url || '';
 
-  const isRecurring = slot ? (slot.recurring !== false && !slot.specific_date) : true;
+  const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : (data.recurring !== false);
   document.getElementById('f-recurring').checked = isRecurring;
 
   // Specific date
-  const specificDate = slot?.specific_date ? slot.specific_date.slice(0, 10) : '';
+  const specificDate = data.specific_date ? data.specific_date.slice(0, 10) : '';
   document.getElementById('f-specific-date').value = specificDate || new Date().toISOString().slice(0, 10);
   document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
 
-  const color = slot?.color || '#C8E632';
+  const color = data.color || '#C8E632';
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
   document.getElementById('modal').classList.add('open');

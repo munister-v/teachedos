@@ -13,6 +13,7 @@
     'index.html': 'home',
     'schedule.html': 'schedule',
     'courses.html': 'courses',
+    'community.html': 'community',
     'student.html': 'students',
     'gradebook.html': 'students',
     'profile.html': 'profile',
@@ -34,6 +35,10 @@
     {
       id: 'courses', href: 'courses.html', label: 'Courses',
       icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>',
+    },
+    {
+      id: 'community', href: 'community.html', label: 'Community',
+      icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>',
     },
     {
       id: 'students', href: 'gradebook.html', label: 'Students',
