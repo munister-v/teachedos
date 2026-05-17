@@ -370,7 +370,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .vote-actions button:hover{border-color:var(--accent);color:var(--accent);}
 
 /* Sticker / emoji card */
-.card-sticker{background:transparent;border:none;box-shadow:none!important;display:flex;align-items:center;justify-content:center;}
+.card-sticker{background:transparent!important;border:none;box-shadow:none!important;display:flex;align-items:center;justify-content:center;}
+.card-sticker.selected{background:transparent!important;}
 .card-sticker .sticker-glyph{
   font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;
   width:100%;height:100%;user-select:none;
@@ -408,9 +409,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .board-card.selected{
   border-color:var(--accent);
   box-shadow:0 0 0 3px rgba(94,94,74,.16),0 4px 20px rgba(0,0,0,.10);
-  z-index:11;
 }
 .board-card:hover:not(.selected){box-shadow:0 4px 20px rgba(0,0,0,.10);}
+.board-card.card-locked{cursor:default;}
+.board-card.card-locked::after{
+  content:"🔒";
+  position:absolute;right:7px;bottom:7px;z-index:32;
+  width:22px;height:22px;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(20,20,22,.76);color:#fff;font-size:11px;
+  box-shadow:0 6px 18px rgba(0,0,0,.16);
+  pointer-events:none;
+}
 
 /* Anchor dots (connect mode) */
 .anchor-dot{
@@ -634,15 +644,55 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 /* ── TEXT ── */
 .card-text{background:transparent;box-shadow:none;border:2px solid transparent;}
 .card-text:hover:not(.selected){border:2px dashed rgba(200,230,50,.3);}
-.card-text.selected{border-color:var(--accent);background:rgba(255,255,255,.6);}
-.card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;}
-.card-text textarea{
-  flex:1;border:none;outline:none;resize:none;background:transparent;
-  font-family:var(--font);font-size:16px;font-weight:800;color:var(--text);
-  line-height:1.35;cursor:text;user-select:text;
+.card-text.selected{border-color:var(--accent);background:transparent;}
+.card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;}
+.text-format-toolbar{
+  display:none;align-items:center;gap:4px;flex-wrap:wrap;
+  padding:4px;border-radius:10px;background:rgba(255,255,255,.94);
+  border:1px solid rgba(20,20,22,.09);box-shadow:0 8px 24px rgba(0,0,0,.10);
+  backdrop-filter:blur(8px);z-index:24;
 }
+.card-text.selected .text-format-toolbar,.card-text:hover .text-format-toolbar{display:flex;}
+.text-format-btn,.text-link-btn,.text-lock-btn,.text-bg-clear{
+  min-width:26px;height:24px;padding:0 7px;border:1px solid rgba(20,20,22,.12);
+  border-radius:7px;background:#fff;color:#1c1c1e;font:800 11px/1 var(--font);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+}
+.text-format-btn:hover,.text-link-btn:hover,.text-lock-btn:hover,.text-bg-clear:hover{border-color:var(--accent);background:rgba(200,230,50,.10);}
+.text-format-btn.active,.text-lock-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.text-format-select{
+  height:24px;max-width:116px;border:1px solid rgba(20,20,22,.12);
+  border-radius:7px;background:#fff;color:#1c1c1e;font:700 11px var(--font);
+  outline:none;padding:0 6px;
+}
+.text-color-control{
+  width:28px;height:24px;padding:2px;border:1px solid rgba(20,20,22,.12);
+  border-radius:7px;background:#fff;cursor:pointer;
+}
+.text-rich-editor{
+  flex:1;min-height:30px;outline:none;resize:none;background:transparent;
+  font-family:var(--font);font-size:16px;font-weight:400;color:#111;
+  line-height:1.35;cursor:text;user-select:text;white-space:pre-wrap;
+  overflow:auto;border-radius:8px;padding:2px 4px;
+}
+.text-rich-editor:empty::before{content:attr(data-placeholder);color:rgba(28,28,30,.35);pointer-events:none;}
+.text-rich-editor a{color:#2563eb;text-decoration:underline;text-underline-offset:2px;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
+
+.layer-popover{
+  position:fixed;display:none;align-items:center;gap:5px;z-index:9500;
+  padding:6px;border-radius:14px;background:rgba(28,28,30,.92);color:#fff;
+  box-shadow:0 14px 40px rgba(0,0,0,.24);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.12);
+}
+.layer-popover.show{display:flex;}
+.layer-btn{
+  height:28px;border:none;border-radius:9px;padding:0 9px;background:rgba(255,255,255,.10);
+  color:#fff;font:800 11px var(--font);cursor:pointer;white-space:nowrap;
+}
+.layer-btn:hover{background:rgba(200,230,50,.22);}
+.layer-btn.active{background:var(--accent);color:#1c1c1e;}
 
 /* ── IMAGE ── */
 .card-image .card-body{padding:0;display:flex;flex-direction:column;overflow:hidden;}
@@ -2461,6 +2511,7 @@ function applyTransform() {
   if (_zcPct) _zcPct.textContent = pct;
   _scheduleArrows();
   _scheduleMinimap();
+  positionLayerPopover();
   if (!_isMomentum) wsSendViewport();
 }
 
@@ -2556,7 +2607,7 @@ function restoreState(json) {
   state.arrows = [];
   state.groups = [];
   clearSelection();
-  s.cards.forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
+  s.cards.forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = s.arrows;
   state.groups = (s.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   state.nextId = s.nextId;
@@ -2607,12 +2658,42 @@ function getDefaults(type) {
           })[type] || { w:220,h:160 };
 }
 
+function getCardZ(card) {
+  const z = Number(card?.z);
+  return Number.isFinite(z) && z > 0 ? z : 1;
+}
+
+function nextCardZ() {
+  return state.cards.reduce((max, c) => Math.max(max, getCardZ(c)), 0) + 1;
+}
+
+function normalizeCardLayer(card, fallbackZ) {
+  if (!Number.isFinite(Number(card.z)) || Number(card.z) <= 0) card.z = fallbackZ || 1;
+  return card;
+}
+
+function applyCardLayer(card) {
+  const el = getCardEl(card.id);
+  if (el) el.style.zIndex = getCardZ(card);
+}
+
+function defaultTextData(data={}) {
+  return {
+    textColor: '#111111',
+    bgColor: 'transparent',
+    fontFamily: 'var(--font)',
+    align: 'left',
+    ...data,
+  };
+}
+
 /* ════════════════════════ ADD CARD ════════════════════════ */
 function addCard(type, x, y, data={}, w, h) {
   snapshot();
   const def = getDefaults(type);
+  const cardData = type === 'text' ? defaultTextData(data) : { ...data };
   const card = { id:'c'+(state.nextId++), type, x, y,
-                 w: w||def.w, h: h||def.h, data: {...data},
+                 w: w||def.w, h: h||def.h, z: nextCardZ(), data: cardData,
                  color: data.color || (type==='sticky' ? STICKY_COLORS[0] : null) };
   state.cards.push(card);
   const el = renderCard(card);
@@ -2623,8 +2704,10 @@ function addCard(type, x, y, data={}, w, h) {
 
 /* ════════════════════════ RENDER CARD ════════════════════════ */
 function renderCard(card) {
+  normalizeCardLayer(card, state.cards.indexOf(card) + 1);
   const el = document.createElement('div');
   el.className = 'board-card card-' + card.type;
+  if (card.data && card.data.locked) el.classList.add('card-locked');
   if (card.data && card.data.private) {
     // If the card is private to someone else, render an empty placeholder so layout
     // is preserved but content stays hidden. The owner sees normal content + outline.
@@ -2632,12 +2715,12 @@ function renderCard(card) {
       el.classList.add('card-private-mine');
     } else {
       el.dataset.id = card.id;
-      el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;display:none;`;
+      el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;z-index:${getCardZ(card)};display:none;`;
       return el;
     }
   }
   el.dataset.id = card.id;
-  el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;`;
+  el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;z-index:${getCardZ(card)};`;
 
   // Dispatch renderers
   if      (card.type === 'sticky')     renderSticky(el, card);
@@ -2678,14 +2761,19 @@ function renderCard(card) {
   // Resize handle
   const rz = document.createElement('div');
   rz.className = 'card-resize';
-  rz.addEventListener('mousedown', e => { e.stopPropagation(); startResize(e, card, el); });
+  rz.addEventListener('mousedown', e => {
+    e.stopPropagation();
+    if (card.data && card.data.locked) { toast('Locked card'); return; }
+    startResize(e, card, el);
+  });
   el.appendChild(rz);
 
   // Mouse events
   el.addEventListener('mousedown', e => {
     if (e.target.classList.contains('anchor-dot')) return;
     if (e.target.classList.contains('card-resize')) return;
-    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.target.closest('[contenteditable="true"],.text-format-toolbar,.layer-popover')) return;
     if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot')) return;
 
     if (state.mode === 'connect') {
@@ -2701,6 +2789,7 @@ function renderCard(card) {
       if (!e.shiftKey) clearSelection();
       selectCard(card.id);
     }
+    if (card.data && card.data.locked) { toast('Locked card'); return; }
     startCardDrag(e, card);
   });
 
@@ -2822,18 +2911,60 @@ function renderSticky(el, card) {
 }
 
 function renderText(el, card) {
+  card.data = defaultTextData(card.data || {});
   const tc = document.createElement('div');
   tc.className = 'card-close text-close'; tc.textContent = '×';
   tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
 
   const body = document.createElement('div');
   body.className = 'card-body';
-  const ta = document.createElement('textarea');
-  ta.value = card.data.text || 'Text';
-  if (card.data.fontSize && card.data.fontSize !== 16) ta.style.fontSize = card.data.fontSize + 'px';
-  ta.addEventListener('input', () => { card.data.text = ta.value; scheduleSave(); });
-  ta.addEventListener('mousedown', e => e.stopPropagation());
-  body.appendChild(ta);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'text-format-toolbar';
+  toolbar.innerHTML = `
+    <select class="text-format-select" data-act="font" title="Font">
+      ${textFontOptions().map(f => `<option value="${esc(f.value)}"${(card.data.fontFamily||'var(--font)')===f.value?' selected':''}>${esc(f.label)}</option>`).join('')}
+    </select>
+    <button class="text-format-btn" data-cmd="bold" title="Bold">B</button>
+    <button class="text-format-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+    <button class="text-format-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="text-format-btn" data-align="left" title="Align left">⇤</button>
+    <button class="text-format-btn" data-align="center" title="Center">↔</button>
+    <button class="text-format-btn" data-align="right" title="Align right">⇥</button>
+    <button class="text-format-btn" data-align="justify" title="Justify">☰</button>
+    <button class="text-link-btn" title="Insert link">🔗</button>
+    <input class="text-color-control" type="color" data-act="text-color" title="Text color" value="${cssColorToHex(card.data.textColor || '#111111')}">
+    <input class="text-color-control" type="color" data-act="bg-color" title="Background color" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
+    <button class="text-bg-clear" title="Transparent background">⊘</button>
+    <button class="text-lock-btn${card.data.locked?' active':''}" title="Lock position">${card.data.locked?'🔒':'📌'}</button>`;
+
+  const editor = document.createElement('div');
+  editor.className = 'text-rich-editor';
+  editor.contentEditable = 'true';
+  editor.spellcheck = true;
+  editor.dataset.placeholder = 'Text';
+  editor.innerHTML = card.data.html || textToHtml(card.data.text || card.data.title || 'Text');
+  applyTextStyles(card, editor);
+
+  editor.addEventListener('input', () => {
+    card.data.html = editor.innerHTML;
+    card.data.text = editor.innerText;
+    scheduleSave();
+  });
+  editor.addEventListener('mousedown', e => {
+    if (!state.selected.has(card.id)) {
+      clearSelection();
+      selectCard(card.id);
+    }
+    e.stopPropagation();
+  });
+  editor.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+  bindTextToolbar(toolbar, editor, card, el);
+  body.appendChild(toolbar);
+  body.appendChild(editor);
   el.appendChild(tc);
   el.appendChild(body);
 }
@@ -3443,6 +3574,102 @@ function refreshAllMilestones() {
 }
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function textToHtml(s){ return esc(s || '').replace(/\n/g,'<br>'); }
+
+function textFontOptions() {
+  return [
+    { label:'System', value:'var(--font)' },
+    { label:'Georgia', value:'Georgia, serif' },
+    { label:'Trebuchet', value:'Trebuchet MS, sans-serif' },
+    { label:'Verdana', value:'Verdana, sans-serif' },
+    { label:'Courier', value:'Courier New, monospace' },
+    { label:'Comic', value:'Comic Sans MS, cursive' },
+  ];
+}
+
+function cssColorToHex(value) {
+  if (!value || value === 'transparent') return '#ffffff';
+  const v = String(value).trim();
+  if (/^#[0-9a-f]{6}$/i.test(v)) return v;
+  if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(ch => ch + ch).join('');
+  return '#111111';
+}
+
+function applyTextStyles(card, editor) {
+  const d = card.data = defaultTextData(card.data || {});
+  editor.style.color = d.textColor || '#111111';
+  editor.style.background = d.bgColor || 'transparent';
+  editor.style.fontFamily = d.fontFamily || 'var(--font)';
+  editor.style.textAlign = d.align || 'left';
+  if (d.fontSize) editor.style.fontSize = d.fontSize + 'px';
+}
+
+function bindTextToolbar(toolbar, editor, card, el) {
+  toolbar.addEventListener('mousedown', e => {
+    if (!e.target.closest('input,select')) e.preventDefault();
+    e.stopPropagation();
+  });
+  toolbar.querySelectorAll('[data-cmd]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      editor.focus();
+      document.execCommand(btn.dataset.cmd, false, null);
+      card.data.html = editor.innerHTML;
+      card.data.text = editor.innerText;
+      scheduleSave();
+    });
+  });
+  toolbar.querySelectorAll('[data-align]').forEach(btn => {
+    btn.classList.toggle('active', (card.data.align || 'left') === btn.dataset.align);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      snapshot();
+      card.data.align = btn.dataset.align;
+      toolbar.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyTextStyles(card, editor);
+      scheduleSave();
+    });
+  });
+  toolbar.querySelector('[data-act="font"]')?.addEventListener('change', e => {
+    snapshot();
+    card.data.fontFamily = e.target.value;
+    applyTextStyles(card, editor);
+    scheduleSave();
+  });
+  toolbar.querySelector('[data-act="text-color"]')?.addEventListener('input', e => {
+    card.data.textColor = e.target.value;
+    applyTextStyles(card, editor);
+    scheduleSave();
+  });
+  toolbar.querySelector('[data-act="bg-color"]')?.addEventListener('input', e => {
+    card.data.bgColor = e.target.value;
+    applyTextStyles(card, editor);
+    scheduleSave();
+  });
+  toolbar.querySelector('.text-bg-clear')?.addEventListener('click', e => {
+    e.stopPropagation();
+    snapshot();
+    card.data.bgColor = 'transparent';
+    applyTextStyles(card, editor);
+    scheduleSave();
+  });
+  toolbar.querySelector('.text-link-btn')?.addEventListener('click', e => {
+    e.stopPropagation();
+    editor.focus();
+    const url = prompt('Link URL:', 'https://');
+    if (!url) return;
+    const safeUrl = /^https?:\/\//i.test(url) ? url : 'https://' + url;
+    document.execCommand('createLink', false, safeUrl);
+    card.data.html = editor.innerHTML;
+    card.data.text = editor.innerText;
+    scheduleSave();
+  });
+  toolbar.querySelector('.text-lock-btn')?.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleCardLocked(card.id);
+  });
+}
 
 /* ══════════════════════ CARD EDITOR ══════════════════════ */
 let editorCardId = null;
@@ -3623,11 +3850,13 @@ function openCardEditor(cardId) {
       <button class="ed-save" onclick="saveCardEditor()">Save Note</button>`;
 
   } else if (card.type === 'text') {
+    const plainBody = [card.data.title || card.data.text || '', card.data.body || card.data.desc || ''].filter(Boolean).join('\n');
     body.innerHTML = `
-      <div><div class="ed-label">Heading</div>
-        <input class="ed-input" id="ed-title" value="${esc(card.data.title||card.data.text||'')}"/></div>
-      <div><div class="ed-label">Body</div>
-        <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:80px;">${esc(card.data.body||card.data.desc||'')}</textarea></div>
+      <div style="background:rgba(200,230,50,.08);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--text-2);line-height:1.45;">
+        Rich text is edited directly on the card: font, bold/italic/underline, links, align, colors and lock.
+      </div>
+      <div><div class="ed-label">Plain text fallback</div>
+        <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:90px;">${esc(plainBody)}</textarea></div>
       <button class="ed-save" onclick="saveCardEditor()">Save Text</button>`;
 
   } else if (card.type === 'event') {
@@ -3838,10 +4067,13 @@ function saveCardEditor() {
     card.data.text = g('ed-sticky-text')?.value || '';
     card.data.content = card.data.text;
   } else if (card.type === 'text') {
-    card.data.title = g('ed-title')?.value.trim() || '';
-    card.data.text  = card.data.title;
-    card.data.body  = g('ed-desc')?.value.trim() || '';
-    card.data.desc  = card.data.body;
+    const txt = g('ed-desc')?.value.trim() || '';
+    card.data = defaultTextData(card.data || {});
+    card.data.text = txt;
+    card.data.title = txt.split('\n')[0] || '';
+    card.data.body = txt;
+    card.data.desc = txt;
+    card.data.html = textToHtml(txt || 'Text');
   } else if (card.type === 'event') {
     card.data.title    = g('ed-title')?.value.trim() || 'Event';
     card.data.date     = g('ed-deadline')?.value || '';
@@ -4101,6 +4333,7 @@ function getCardEl(id) { return board.querySelector(`[data-id="${id}"]`); }
 function updateCardPos(card) {
   const el = getCardEl(card.id);
   if (el) { el.style.left = card.x+'px'; el.style.top = card.y+'px'; }
+  positionLayerPopover();
 }
 
 function selectCard(id, _fromGroup) {
@@ -4111,6 +4344,7 @@ function selectCard(id, _fromGroup) {
     if (g) g.cardIds.forEach(cid => { if (cid !== id) selectCard(cid, true); });
   }
   updateAlignBar();
+  if (!_fromGroup) showLayerPopover(id);
 }
 function clearSelection() {
   state.selected.forEach(id => getCardEl(id)?.classList.remove('selected'));
@@ -4118,6 +4352,7 @@ function clearSelection() {
   state.selectedArrows.clear();
   arrowsSvg.querySelectorAll('.arrow-path').forEach(p => p.classList.remove('selected-arrow'));
   updateAlignBar();
+  hideLayerPopover();
 }
 function deleteSelected() {
   snapshot();
@@ -4143,10 +4378,102 @@ function deleteSelected() {
   updateEmpty();
   scheduleSave();
 }
+
+function ensureLayerPopover() {
+  let pop = document.getElementById('layer-popover');
+  if (pop) return pop;
+  pop = document.createElement('div');
+  pop.id = 'layer-popover';
+  pop.className = 'layer-popover';
+  pop.innerHTML = `
+    <button class="layer-btn" data-layer="front" title="Bring to front">На верх</button>
+    <button class="layer-btn" data-layer="up" title="Move one layer up">Выше</button>
+    <button class="layer-btn" data-layer="down" title="Move one layer down">Ниже</button>
+    <button class="layer-btn" data-layer="back" title="Send to back">Вниз</button>
+    <button class="layer-btn" data-layer="lock" title="Lock movement">📌</button>`;
+  pop.addEventListener('mousedown', e => e.stopPropagation());
+  pop.addEventListener('click', e => {
+    e.stopPropagation();
+    const btn = e.target.closest('[data-layer]');
+    if (!btn || !pop.dataset.cardId) return;
+    if (btn.dataset.layer === 'lock') toggleCardLocked(pop.dataset.cardId);
+    else moveCardLayer(pop.dataset.cardId, btn.dataset.layer);
+  });
+  document.body.appendChild(pop);
+  return pop;
+}
+
+function showLayerPopover(cardId) {
+  if (state.selected.size !== 1) { hideLayerPopover(); return; }
+  const pop = ensureLayerPopover();
+  pop.dataset.cardId = cardId;
+  const card = state.cards.find(c => c.id === cardId);
+  pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
+  pop.querySelector('[data-layer="lock"]').textContent = card?.data?.locked ? '🔒' : '📌';
+  pop.classList.add('show');
+  positionLayerPopover();
+}
+
+function hideLayerPopover() {
+  const pop = document.getElementById('layer-popover');
+  if (pop) pop.classList.remove('show');
+}
+
+function positionLayerPopover() {
+  const pop = document.getElementById('layer-popover');
+  if (!pop || !pop.classList.contains('show')) return;
+  const el = getCardEl(pop.dataset.cardId);
+  if (!el) { hideLayerPopover(); return; }
+  const r = el.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - pop.offsetWidth - 12, Math.max(12, r.left + r.width/2 - pop.offsetWidth/2));
+  const top = Math.max(82, r.top - pop.offsetHeight - 10);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+
+function moveCardLayer(cardId, action) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  snapshot();
+  const ordered = state.cards
+    .map((c, i) => ({ c: normalizeCardLayer(c, i + 1), i }))
+    .sort((a, b) => getCardZ(a.c) - getCardZ(b.c) || a.i - b.i)
+    .map(x => x.c);
+  let idx = ordered.findIndex(c => c.id === cardId);
+  if (idx === -1) return;
+  if (action === 'front') ordered.push(ordered.splice(idx, 1)[0]);
+  else if (action === 'back') ordered.unshift(ordered.splice(idx, 1)[0]);
+  else if (action === 'up' && idx < ordered.length - 1) [ordered[idx], ordered[idx + 1]] = [ordered[idx + 1], ordered[idx]];
+  else if (action === 'down' && idx > 0) [ordered[idx], ordered[idx - 1]] = [ordered[idx - 1], ordered[idx]];
+  ordered.forEach((c, i) => { c.z = i + 1; applyCardLayer(c); });
+  scheduleSave();
+  positionLayerPopover();
+}
+
+function toggleCardLocked(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  snapshot();
+  card.data = card.data || {};
+  card.data.locked = !card.data.locked;
+  const el = getCardEl(cardId);
+  if (el) el.classList.toggle('card-locked', !!card.data.locked);
+  const pop = document.getElementById('layer-popover');
+  if (pop && pop.dataset.cardId === cardId) showLayerPopover(cardId);
+  if (card.type === 'text') {
+    reRenderCard(card);
+    if (state.selected.has(cardId)) getCardEl(cardId)?.classList.add('selected');
+  }
+  showLayerPopover(cardId);
+  toast(card.data.locked ? 'Locked on board' : 'Unlocked');
+  scheduleSave();
+}
 function updateEmpty() {
   if (state.cards.length) emptyState.classList.add('hidden');
   else emptyState.classList.remove('hidden');
 }
+
+window.addEventListener('resize', positionLayerPopover);
 
 /* ════════════════════════ DRAG STATE ════════════════════════ */
 let isPanning      = false, panStart = {};
@@ -4158,12 +4485,14 @@ let spaceDown      = false;
 const _timerIntervals = new Map(); // card.id → intervalId
 
 function startCardDrag(e, card) {
+  if (card.data && card.data.locked) { toast('Locked card'); return; }
   if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
   const bp = screenToBoard(e.clientX, e.clientY);
   dragCards = [...state.selected].map(id => {
     const c = state.cards.find(x => x.id === id);
     return { card: c, ox: bp.x - c.x, oy: bp.y - c.y };
-  });
+  }).filter(({ card }) => card && !(card.data && card.data.locked));
+  if (!dragCards.length) { toast('Locked card'); return; }
   dragStarted = false;
   dragStartPos = { x: e.clientX, y: e.clientY };
   isDraggingCard = true;
@@ -4172,6 +4501,7 @@ function startCardDrag(e, card) {
 }
 
 function startResize(e, card, el) {
+  if (card.data && card.data.locked) { toast('Locked card'); return; }
   isResizing = true;
   document.body.classList.add('board-dragging');
   resizeStart = { card, el, sw: card.w, sh: card.h, mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey };
@@ -4837,7 +5167,7 @@ document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
 document.getElementById('ctx-sticky').addEventListener('click', () =>
   addCard('sticky', ctxPos.x-110, ctxPos.y-90, { text:'', color:STICKY_COLORS[0] }));
 document.getElementById('ctx-text').addEventListener('click', () =>
-  addCard('text', ctxPos.x-100, ctxPos.y-45, { text:'Text' }));
+  addCard('text', ctxPos.x-100, ctxPos.y-45, defaultTextData({ text:'Text' })));
 document.getElementById('ctx-plan').addEventListener('click', () =>
   addCard('plan', ctxPos.x-140, ctxPos.y-100, { title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' }));
 
@@ -5260,7 +5590,7 @@ function renderElementsTab(sec) {
   const grid = document.createElement('div'); grid.className = 'el-grid'; sec.appendChild(grid);
   const items = [
     { icon:'🟡', label:'Sticky Note', type:'sticky', data:{ text:'', color:STICKY_COLORS[0] } },
-    { icon:'🔤', label:'Text',        type:'text',   data:{ text:'Heading' } },
+    { icon:'🔤', label:'Text',        type:'text',   data:defaultTextData({ text:'Heading' }) },
     { icon:'📋', label:'Plan Card',   type:'plan',   data:{ title:'New Lesson Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' } },
     { icon:'👤', label:'Student',     type:'student',data:{ name:'New Student', group:'A', level:'A2', streak:0, lastSeen:'Today', native:'👤', progress:50 } },
     { icon:'📅', label:'Class Event', type:'event',  data:{ title:'Class', time:'10:00', group:'Group A', level:'A2', topic:'Lesson Topic' } },
@@ -5560,7 +5890,7 @@ function loadBoard() {
     state.pan    = data.pan    || { x:100, y:60 };
     state.scale  = data.scale  || 1;
     state.nextId = data.nextId || 1;
-    (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
+    (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
     state.arrows = data.arrows || [];
     state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
     applyTransform();
@@ -6137,7 +6467,7 @@ function loadBoardData(data) {
   state.pan    = data.pan    || { x:100, y:60 };
   state.scale  = data.scale  || 1;
   state.nextId = data.nextId || 1;
-  (data.cards  || []).forEach(c => { state.cards.push(c); board.appendChild(renderCard(c)); });
+  (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = data.arrows || [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
@@ -6776,7 +7106,7 @@ function quickAddCard(type, bx, by) {
   const x = bx - def.w/2, y = by - def.h/2;
   let card;
   if (type === 'sticky')     card = addCard('sticky',   x, y, { text:'', color:STICKY_COLORS[0] });
-  else if (type === 'text')  card = addCard('text',     x, y, { text:'Label' });
+  else if (type === 'text')  card = addCard('text',     x, y, defaultTextData({ text:'Label' }));
   else if (type === 'lesson') {
     card = addCard('lesson', x, y, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'', objectives:[], attachments:[], notes:'' });
     setTimeout(() => openCardEditor(card.id), 80);
