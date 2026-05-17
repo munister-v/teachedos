@@ -287,15 +287,93 @@ body { font-family: var(--font) !important; }
 .wg-vocab-next { background: var(--lime) !important; color: var(--lime-text) !important; box-shadow: 0 4px 14px rgba(205,242,79,0.3) !important; }
 .wg-vocab-next:hover { background: var(--lime-dark) !important; }
 
-/* ── Board sidebar: lime active badge ── */
+/* ── Board sidebar: dark panel (matches admin) ── */
+#sidebar:has(.sb-tabs) {
+  background: #1C1C1E !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+}
+.sb-tabs {
+  border-bottom-color: rgba(255,255,255,.10) !important;
+}
+.sb-tab {
+  color: rgba(255,255,255,.45) !important;
+}
+.sb-tab:hover {
+  color: rgba(255,255,255,.75) !important;
+}
+.sb-tab.active {
+  color: #fff !important;
+  border-bottom-color: var(--lime) !important;
+}
+.sb-tab-lbl {
+  color: inherit !important;
+}
+.sb-search input {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.10) !important;
+  color: #fff !important;
+}
+.sb-search input::placeholder {
+  color: rgba(255,255,255,.30) !important;
+}
+.sb-search input:focus {
+  border-color: rgba(205,242,79,.40) !important;
+  box-shadow: 0 0 0 3px rgba(205,242,79,.10) !important;
+}
+.sb-body {
+  scrollbar-color: rgba(255,255,255,.12) transparent !important;
+}
+.sb-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.12) !important;
+}
+.sb-label {
+  color: rgba(255,255,255,.35) !important;
+}
+.sb-sep {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* Snippet cards on dark */
+.snippet {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+.snippet:hover {
+  border-color: rgba(205,242,79,.30) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+}
+.sn-title { font-family: var(--font) !important; font-weight: 700 !important; color: #fff !important; }
+.sn-label { font-family: var(--font-mono) !important; color: rgba(255,255,255,.40) !important; }
+
+/* Badges: readable on dark */
 .badge.active-s, .badge.active {
   background: rgba(205,242,79,0.20) !important;
-  color: #5A7A00 !important;
-  border: 1px solid rgba(205,242,79,0.5) !important;
+  color: var(--lime) !important;
+  border: 1px solid rgba(205,242,79,0.35) !important;
 }
-.snippet:hover { border-color: rgba(236,45,140,0.20) !important; }
-.sn-title { font-family: var(--font) !important; font-weight: 700 !important; }
-.sn-label { font-family: var(--font-mono) !important; color: var(--ink3) !important; }
+.badge.a2 { background: rgba(96,165,250,.18) !important; color: #93bbfd !important; }
+.badge.b1 { background: rgba(167,139,250,.18) !important; color: #c4b5fd !important; }
+.badge.b2 { background: rgba(110,201,138,.18) !important; color: #86efac !important; }
+.badge.grammar { background: rgba(248,113,113,.15) !important; color: #fca5a5 !important; }
+.badge.vocab { background: rgba(255,255,255,.10) !important; color: rgba(255,255,255,.70) !important; }
+.badge.speaking { background: rgba(167,139,250,.15) !important; color: #c4b5fd !important; }
+.badge.draft { background: rgba(255,255,255,.08) !important; color: rgba(255,255,255,.45) !important; }
+.badge.pink { background: rgba(236,45,140,.15) !important; color: #f472b6 !important; }
+.badge.amber { background: rgba(245,158,11,.15) !important; color: #fbbf24 !important; }
+.badge.a1 { background: rgba(56,189,248,.18) !important; color: #7dd3fc !important; }
+.badge.c1 { background: rgba(251,146,60,.18) !important; color: #fdba74 !important; }
+
+/* Element grid on dark */
+.el-item {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+.el-item:hover {
+  border-color: rgba(205,242,79,.30) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+}
+.el-label { color: rgba(255,255,255,.65) !important; }
+.el-icon { filter: brightness(1.5) !important; }
 
 /* ── Profile title ── */
 .mobile-profile-title { font-family: var(--font-serif) !important; letter-spacing: -0.02em !important; }
@@ -433,15 +511,6 @@ body { font-family: var(--font) !important; }
    Loaded after inline <style> so !important overrides take effect.
    ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 861px) {
-
-  /* ── Wallpaper decorations: show on desktop ── */
-  #wallpaper-deco {
-    display: block !important;
-    position: absolute; inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.7;
-  }
 
   /* ── Menubar: Manrope + harmony palette ── */
   #menubar {
@@ -1055,42 +1124,6 @@ body { font-family: var(--font) !important; }
   .blob2 { animation-duration: 24s !important; animation-timing-function: ease-in-out !important; }
   .blob3 { animation-duration: 28s !important; animation-timing-function: ease-in-out !important; }
   .blob4 { animation-duration: 22s !important; animation-timing-function: ease-in-out !important; }
-
-  /* Wallpaper card silhouettes: softer float */
-  @keyframes wpFloat1 {
-    0%, 100% { transform: translateY(0px) translateZ(0); }
-    50%      { transform: translateY(-8px) translateZ(0); }
-  }
-  @keyframes wpFloat2 {
-    0%, 100% { transform: translateY(0px) rotate(0deg) translateZ(0); }
-    50%      { transform: translateY(-6px) rotate(.3deg) translateZ(0); }
-  }
-  .wp-card {
-    will-change: transform;
-    transform: translateZ(0);
-    backdrop-filter: blur(16px) saturate(1.4) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
-    background: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
-  }
-  .wp-card-white {
-    background: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-  }
-  .wp-card-lime {
-    background: rgba(205,242,79,0.15) !important;
-    border: 1px solid rgba(205,242,79,0.25) !important;
-    box-shadow: 0 8px 28px rgba(205,242,79,0.10) !important;
-  }
-  .wp-card-pink {
-    background: rgba(236,45,140,0.18) !important;
-    border: 1px solid rgba(236,45,140,0.28) !important;
-    box-shadow: 0 8px 24px rgba(236,45,140,0.12) !important;
-  }
-  .wp-bar { background: rgba(205,242,79,0.50) !important; }
-  .wp-line { background: rgba(255,255,255,0.08) !important; }
-  .wp-icon { opacity: .50 !important; }
 
   /* ═══════════════════════════════════════════════════════════════
      Smoother Global Interactions
