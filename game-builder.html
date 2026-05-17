@@ -169,6 +169,7 @@ textarea{min-height:60px;resize:vertical}
   <a class="nav-link" href="board.html">Board</a>
   <a class="nav-link" href="courses.html">Courses</a>
   <a class="nav-link" href="community.html">Community</a>
+  <a class="nav-link" href="teacher-tools.html">Tools</a>
   <a class="nav-link active" href="game-builder.html">Game Builder</a>
   <a class="nav-link" href="homework.html">Homework</a>
   <a class="nav-link" href="schedule.html">Schedule</a>
@@ -754,6 +755,7 @@ function init() {
   renderDictionaryLibrary();
   document.getElementById('dict-count').textContent = THEME_DICTIONARIES.length;
   document.getElementById('my-count').textContent = readGames().length;
+  setTimeout(importTeacherToolPayload, 0);
 }
 
 function setNavUser() {
@@ -763,6 +765,26 @@ function setNavUser() {
     document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
     document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '\ud83e\uddd1\u200d\ud83c\udfeb') ? user.avatar : (name[0]||'T').toUpperCase();
   } catch {}
+}
+
+function importTeacherToolPayload() {
+  const raw = sessionStorage.getItem('teachedos_tools_to_game');
+  if (!raw) return;
+  sessionStorage.removeItem('teachedos_tools_to_game');
+  let payload = null;
+  try { payload = JSON.parse(raw); } catch { return; }
+  if (!payload || !payload.gameType || !payload.content) return;
+  selectedType = GAME_TYPES.find(t => t.id === payload.gameType);
+  if (!selectedType) return;
+  editingId = null;
+  renderTypeGrid();
+  openBuilder();
+  document.getElementById('game-title').value = payload.title || ('Tool import: ' + selectedType.name);
+  document.getElementById('game-level').value = payload.level || 'B1';
+  document.getElementById('game-tags').value = (payload.tags || ['teacher-tools']).join(', ');
+  populateContent({ content: payload.content });
+  updateItemCounter();
+  toast('Imported from Teacher Tools');
 }
 
 /* ---- TEMPLATE GALLERY ---- */

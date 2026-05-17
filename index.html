@@ -1780,9 +1780,10 @@ html,body {
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:20px 20px 0;">
         <div>
-          <div style="font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">§ Twee-inspired</div>
+          <div style="font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">§ Teacher Tool Studio</div>
           <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text);">Teaching <em style="color:var(--accent);font-style:italic;">Tools</em></div>
         </div>
+        <button type="button" onclick="location.href='teacher-tools.html'" style="border:1px solid rgba(202,201,183,.34);background:rgba(202,201,183,.18);color:var(--text);border-radius:999px;padding:8px 13px;font-size:11px;font-family:var(--font-mono);font-weight:700;cursor:pointer;">Open full hub →</button>
         <div style="margin-left:auto;font-size:11px;font-family:var(--font-mono);color:var(--text-3);" id="tools-count">14 tools</div>
       </div>
       <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
@@ -2702,6 +2703,7 @@ studentsRender();
 
 /* ══════════════════════ TOOLS ══════════════════════ */
 const TOOLS_DATA = [
+  { id:'teacher-tools-hub', name:'Teacher Tools Hub', desc:'Full TeachEd studio for worksheets, vocabulary extraction, reading tasks, grammar drills, speaking prompts and Game Builder exports.', tags:['Utility','New'], badge:'New', icon:'✦', group:'utility', url:'teacher-tools.html' },
   // READING
   { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
   // WRITING
@@ -2817,7 +2819,7 @@ const SP_ITEMS = [
   { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#1C1C1E,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
-  { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open tools library', kbd:'Tools', action:()=>openApp('tools') },
+  { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
   { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#C8E632">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teacher Tools Hub &middot; TeachEd</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#181818;--muted:#696a75;--soft:#8e90a0;--line:rgba(24,24,24,.11);--paper:#fff;--wash:#f7f5ed;
+  --lime:#c8e632;--lime2:#ebf9a5;--pink:#ec2d8c;--blue:#5b6cff;--cyan:#73dce2;--orange:#ffb546;--green:#42c878;
+  --shadow:0 18px 50px rgba(22,24,35,.09);--radius:24px;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
+}
+html{scroll-behavior:smooth;background:var(--wash)}
+body{min-height:100dvh;font-family:var(--font);color:var(--ink);background:radial-gradient(circle at 78% 8%,rgba(200,230,50,.36),transparent 30%),radial-gradient(circle at 14% 28%,rgba(115,220,226,.24),transparent 28%),linear-gradient(180deg,#fff 0%,var(--wash) 42%,#f1ecdf 100%);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}button{cursor:pointer}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.nav{position:sticky;top:0;z-index:50;height:48px;display:flex;align-items:center;gap:10px;padding:0 max(14px,env(safe-area-inset-left));border-bottom:1px solid rgba(24,24,24,.08);background:rgba(255,255,255,.82);backdrop-filter:blur(22px) saturate(1.55)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:950;letter-spacing:-.04em}.logo img{width:24px;height:24px;border-radius:7px}.nav-sep{width:1px;height:20px;background:var(--line);margin:0 4px}.nav-link{height:34px;display:flex;align-items:center;padding:0 10px;border-radius:10px;font-size:13px;font-weight:800;color:#3b3b43;white-space:nowrap}.nav-link:hover,.nav-link.active{background:rgba(200,230,50,.2);color:#111}.nav-spacer{flex:1}.nav-pill{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:1px solid rgba(24,24,24,.09);border-radius:999px;background:#fff;font-size:12px;font-weight:900;color:#363740}.nav-menu{display:none;width:40px;height:40px;border:0;background:transparent;border-radius:12px;font-size:22px}.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:calc(100dvh - 48px)}
+.side{position:sticky;top:48px;height:calc(100dvh - 48px);padding:18px 16px;border-right:1px solid rgba(24,24,24,.08);background:rgba(255,255,255,.72);backdrop-filter:blur(18px);overflow:auto}.side-title{font:900 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:14px 12px 8px}.side-btn{width:100%;min-height:44px;border:0;background:transparent;border-radius:14px;display:flex;align-items:center;gap:10px;padding:10px 12px;color:#30313a;font-weight:850;text-align:left;transition:background .16s,transform .16s}.side-btn:hover{background:rgba(24,24,24,.05)}.side-btn.active{background:linear-gradient(135deg,rgba(200,230,50,.36),rgba(255,255,255,.92));box-shadow:inset 0 0 0 1px rgba(200,230,50,.45)}.side-ic{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:#f0eefb;color:var(--blue);font-size:14px}.side-count{margin-left:auto;font:900 10px var(--mono);color:var(--soft)}.unlock{margin-top:22px;padding:16px;border-radius:20px;background:linear-gradient(145deg,#fff,rgba(200,230,50,.24));border:1px solid rgba(24,24,24,.08);box-shadow:0 12px 30px rgba(24,24,24,.06)}.unlock b{display:block;font-size:14px;margin-bottom:5px}.unlock p{font-size:12px;line-height:1.45;color:var(--muted);margin-bottom:12px}.main{min-width:0;padding:26px clamp(16px,3vw,38px) 60px}.hero{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.72);border-radius:34px;padding:30px;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.68)),radial-gradient(circle at 92% 20%,rgba(236,45,140,.16),transparent 28%),radial-gradient(circle at 20% 0%,rgba(91,108,255,.12),transparent 34%);box-shadow:var(--shadow)}.hero::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(24,24,24,.13) 1px,transparent 1px);background-size:20px 20px;mask-image:linear-gradient(90deg,transparent,black 10%,transparent 70%);opacity:.35;pointer-events:none}.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:end}.eyebrow{font:950 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--soft);margin-bottom:10px}.hero h1{font-size:clamp(34px,5vw,68px);line-height:.9;letter-spacing:-.075em;max-width:760px}.mark{position:relative;display:inline-block}.mark::after{content:'';position:absolute;left:-.04em;right:-.04em;bottom:.04em;height:.22em;background:#ffe29a;border-radius:99px;z-index:-1;transform:rotate(-1.5deg)}.hero p{margin-top:16px;max-width:720px;color:var(--muted);font-size:16px;line-height:1.65}.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.hero-card{padding:18px;border-radius:24px;background:#181818;color:#fff;box-shadow:0 18px 44px rgba(24,24,24,.18)}.hero-card .small{font:900 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.58);margin-bottom:10px}.hero-card ul{list-style:none;display:grid;gap:10px}.hero-card li{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.35;color:rgba(255,255,255,.86)}.btn{min-height:44px;border:0;border-radius:15px;padding:0 16px;font-weight:950;background:#181818;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .18s,box-shadow .18s,background .18s}.btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(24,24,24,.12)}.btn:active{transform:scale(.98)}.btn.lime{background:var(--lime);color:#151515}.btn.blue{background:var(--blue);color:#fff}.btn.pink{background:var(--pink);color:#fff}.btn.ghost{background:#fff;color:#181818;border:1px solid var(--line)}.btn.soft{background:rgba(24,24,24,.06);color:#181818}.btn.sm{min-height:36px;border-radius:12px;padding:0 12px;font-size:12px}.bar{display:flex;gap:12px;align-items:center;margin:22px 0 18px;flex-wrap:wrap}.search{position:relative;flex:1;min-width:240px}.search input{width:100%;height:48px;border-radius:17px;border:1px solid rgba(24,24,24,.12);background:rgba(255,255,255,.88);padding:0 44px 0 16px;font-weight:750;color:#1b1c22;outline:none;box-shadow:0 8px 24px rgba(24,24,24,.04)}.search input:focus{border-color:rgba(91,108,255,.55);box-shadow:0 0 0 4px rgba(91,108,255,.1)}.search span{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--soft)}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{min-height:38px;border:1px solid rgba(24,24,24,.1);border-radius:999px;padding:0 13px;background:rgba(255,255,255,.82);color:#454650;font-size:13px;font-weight:900}.chip:hover,.chip.active{background:var(--blue);border-color:var(--blue);color:#fff}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tool{position:relative;min-height:150px;border:1px solid rgba(24,24,24,.09);border-radius:24px;background:rgba(255,255,255,.86);box-shadow:0 12px 26px rgba(24,24,24,.045);padding:16px;display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;text-align:left;transition:transform .18s,border-color .18s,box-shadow .18s;overflow:hidden}.tool:hover{transform:translateY(-3px);border-color:rgba(91,108,255,.38);box-shadow:0 18px 34px rgba(24,24,24,.085)}.tool.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,108,255,.16),0 18px 34px rgba(24,24,24,.085)}.tool-visual{width:72px;height:88px;border-radius:15px;display:grid;place-items:center;font-size:28px;font-weight:950;color:#282934;background:linear-gradient(135deg,#edf1ff,#faf7ff);position:relative;overflow:hidden}.tool-visual::after{content:attr(data-cat);position:absolute;left:0;right:0;bottom:0;padding:4px 2px;text-align:center;font:900 10px var(--mono);color:#fff;background:rgba(91,108,255,.78)}.tool h3{font-size:16px;line-height:1.12;letter-spacing:-.025em;margin:2px 0 7px}.tool p{font-size:13px;line-height:1.42;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.tool-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.tag{display:inline-flex;align-items:center;min-height:21px;border-radius:999px;padding:0 8px;font:900 10px var(--mono);background:rgba(24,24,24,.07);color:#4a4b55}.tag.new{background:#17bf63;color:#fff}.tag.pro{background:var(--blue);color:#fff}.star{position:absolute;right:13px;top:12px;width:32px;height:32px;border:0;border-radius:11px;background:rgba(24,24,24,.04);color:#a7a8b5;font-size:17px}.star.on{color:#ffb000;background:#fff4ce}.workspace{display:none;grid-template-columns:minmax(0,1fr) 420px;gap:16px;margin-top:22px}.workspace.show{display:grid}.panel{border:1px solid rgba(24,24,24,.1);border-radius:28px;background:rgba(255,255,255,.9);box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;align-items:center;gap:14px;padding:18px 20px;border-bottom:1px solid rgba(24,24,24,.08);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(245,242,232,.76))}.panel-icon{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(91,108,255,.14),rgba(200,230,50,.28));font-size:25px}.panel h2{font-size:23px;letter-spacing:-.04em}.panel-sub{color:var(--muted);font-size:13px;line-height:1.4;margin-top:3px}.panel-body{padding:18px 20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:7px;margin-bottom:13px}.field.full{grid-column:1/-1}.label{font:950 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}input,textarea,select{width:100%;border:1px solid rgba(24,24,24,.12);border-radius:15px;background:#fff;padding:12px 13px;color:#1b1c22;outline:none;font-size:15px;font-weight:650;transition:border-color .16s,box-shadow .16s}textarea{min-height:116px;resize:vertical;line-height:1.45}input:focus,textarea:focus,select:focus{border-color:rgba(91,108,255,.58);box-shadow:0 0 0 4px rgba(91,108,255,.1)}.hint{font-size:12px;color:var(--soft);line-height:1.4}.rows{display:grid;gap:10px}.match-row{display:grid;grid-template-columns:42px 1fr 1fr 38px;gap:8px;align-items:center}.img-row{display:grid;grid-template-columns:96px minmax(0,1fr) 38px;gap:10px;align-items:center}.thumb{height:70px;border:1px dashed rgba(24,24,24,.16);border-radius:15px;display:grid;place-items:center;overflow:hidden;background:rgba(24,24,24,.025);font-size:11px;font-weight:900;color:var(--soft);text-align:center}.thumb img{width:100%;height:100%;object-fit:cover}.mini{height:38px;width:38px;border:1px solid rgba(24,24,24,.1);border-radius:12px;background:#fff;font-weight:950}.row-no{width:34px;height:34px;border-radius:12px;background:rgba(91,108,255,.1);color:var(--blue);display:grid;place-items:center;font:950 11px var(--mono)}.result{position:sticky;top:66px;max-height:calc(100dvh - 84px);display:flex;flex-direction:column}.result .panel-body{overflow:auto}.result-empty{display:grid;place-items:center;min-height:280px;text-align:center;color:var(--muted);padding:24px}.result-empty b{display:block;color:#1b1c22;font-size:18px;margin-bottom:6px}.output{white-space:pre-wrap;font:600 13px/1.55 var(--mono);background:#16171d;color:#f7f7fb;border-radius:18px;padding:16px;overflow:auto;max-height:420px}.cards-output{display:grid;gap:10px}.out-card{padding:13px;border-radius:16px;background:#fff;border:1px solid rgba(24,24,24,.09)}.out-card b{display:block;margin-bottom:4px}.library{margin-top:28px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:12px}.section-head h2{font-size:24px;letter-spacing:-.04em}.section-head p{color:var(--muted);font-size:13px;margin-top:4px}.library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.library-item{border:1px solid rgba(24,24,24,.09);border-radius:20px;background:rgba(255,255,255,.78);padding:14px}.library-item h4{font-size:14px;line-height:1.25;margin-bottom:6px}.library-item p{font-size:12px;color:var(--muted);line-height:1.4}.toast{position:fixed;left:50%;bottom:24px;z-index:100;transform:translate(-50%,120px);opacity:0;background:#181818;color:#fff;border-radius:999px;padding:12px 16px;font-weight:900;font-size:13px;box-shadow:0 14px 40px rgba(24,24,24,.24);transition:.28s}.toast.show{transform:translate(-50%,0);opacity:1}
+@media(max-width:1180px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace{grid-template-columns:1fr}.result{position:static;max-height:none}.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-inner{grid-template-columns:1fr}.hero-card{max-width:520px}}
+@media(max-width:820px){.nav{height:54px}.nav-menu{display:grid;place-items:center}.nav-link{display:none}.shell{display:block}.side{position:fixed;z-index:70;left:0;top:54px;bottom:0;width:min(310px,86vw);height:auto;transform:translateX(-105%);transition:transform .22s ease;box-shadow:20px 0 60px rgba(24,24,24,.14)}.side.open{transform:translateX(0)}.main{padding:18px 13px 48px}.hero{border-radius:26px;padding:22px}.hero h1{font-size:42px}.bar{align-items:stretch}.search{min-width:100%;order:-1}.grid,.library-grid{grid-template-columns:1fr}.tool{min-height:132px}.form-grid{grid-template-columns:1fr}.match-row{grid-template-columns:32px 1fr}.match-row .mini{grid-column:2}.img-row{grid-template-columns:76px 1fr}.img-row .mini{grid-column:2}.nav-pill{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <button class="nav-menu" type="button" onclick="toggleSide()" aria-label="Open tools menu">☰</button>
+  <a class="logo" href="index.html"><img src="logo.png" alt="TeachEd"><span>TeachEd</span></a>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="courses.html">Courses</a>
+  <a class="nav-link" href="community.html">Community</a>
+  <a class="nav-link active" href="teacher-tools.html">Tools</a>
+  <a class="nav-link" href="game-builder.html">Game Builder</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <div class="nav-spacer"></div>
+  <div class="nav-pill"><span id="tool-count-pill">0</span> tools ready</div>
+</nav>
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="side-title">Workspace</div>
+    <button class="side-btn active" type="button" onclick="setCategory('all', this)"><span class="side-ic">A</span>All Tools<span class="side-count" data-count="all">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('favorites', this)"><span class="side-ic">★</span>Favorites<span class="side-count" data-count="favorites">0</span></button>
+    <div class="side-title">TeachEd</div>
+    <a class="side-btn" href="courses.html"><span class="side-ic">LB</span>Library / Courses</a>
+    <a class="side-btn" href="schedule.html"><span class="side-ic">CL</span>Classes</a>
+    <a class="side-btn" href="homework.html"><span class="side-ic">AS</span>Assignments</a>
+    <a class="side-btn" href="lesson-packs.html"><span class="side-ic">ESL</span>Lesson Packs</a>
+    <a class="side-btn" href="profile.html#billing"><span class="side-ic">$</span>Pricing</a>
+    <div class="side-title">Skills</div>
+    <button class="side-btn" type="button" onclick="setCategory('reading', this)"><span class="side-ic">R</span>Reading<span class="side-count" data-count="reading">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('vocabulary', this)"><span class="side-ic">V</span>Vocabulary<span class="side-count" data-count="vocabulary">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('writing', this)"><span class="side-ic">W</span>Writing<span class="side-count" data-count="writing">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('speaking', this)"><span class="side-ic">S</span>Speaking<span class="side-count" data-count="speaking">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('grammar', this)"><span class="side-ic">G</span>Grammar<span class="side-count" data-count="grammar">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('listening', this)"><span class="side-ic">L</span>Listening<span class="side-count" data-count="listening">0</span></button>
+    <button class="side-btn" type="button" onclick="setCategory('utility', this)"><span class="side-ic">U</span>Utility<span class="side-count" data-count="utility">0</span></button>
+    <div class="unlock">
+      <b>Teacher production mode</b>
+      <p>Generate worksheets, games, discussion cards and vocabulary packs, then send them into your TeachEd lesson flow.</p>
+      <button class="btn sm lime" type="button" onclick="openFirstTool()">Start creating</button>
+    </div>
+  </aside>
+  <main class="main">
+    <section class="hero">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">Independent TeachEd tool studio</div>
+          <h1>Build lesson materials <span class="mark">fast</span>, then turn them into games.</h1>
+          <p>This hub brings the teacher-tool workflow into TeachEd: reading tasks, vocabulary builders, grammar drills, speaking prompts, listening scaffolds, worksheet blocks, media placeholders and exports to the Game Builder.</p>
+          <div class="hero-actions">
+            <button class="btn lime" type="button" onclick="openFirstTool()">Create an exercise</button>
+            <a class="btn ghost" href="game-builder.html">Open Game Builder</a>
+            <button class="btn soft" type="button" onclick="scrollToLibrary()">My saved materials</button>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="small">What is inside</div>
+          <ul>
+            <li><span>01</span><span>30+ tool templates across vocabulary, reading, writing, speaking, grammar, listening and utility.</span></li>
+            <li><span>02</span><span>Local generators for printable tasks and reusable game content.</span></li>
+            <li><span>03</span><span>Saved teacher library with one-click copy and Game Builder handoff.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <div class="bar">
+      <div class="search"><input id="search" placeholder="Search tools, skills, exercises..." oninput="renderTools()"><span>⌕</span></div>
+      <div class="chips" id="top-chips"></div>
+    </div>
+    <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
+    <section class="workspace" id="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-icon" id="active-icon">T</div>
+          <div>
+            <h2 id="active-title">Select a tool</h2>
+            <div class="panel-sub" id="active-desc">Pick a tool from the library to begin.</div>
+          </div>
+        </div>
+        <div class="panel-body" id="tool-form"></div>
+      </div>
+      <div class="panel result">
+        <div class="panel-head">
+          <div>
+            <h2>Output</h2>
+            <div class="panel-sub">Copy, save, or send structured tasks into the Game Builder.</div>
+          </div>
+        </div>
+        <div class="panel-body" id="result-body">
+          <div class="result-empty"><div><b>No result yet</b><span>Fill the form and click Generate.</span></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="library" id="library-section">
+      <div class="section-head">
+        <div><h2>Saved Tool Library</h2><p>Materials generated here are stored locally in this browser.</p></div>
+        <button class="btn sm ghost" type="button" onclick="clearLibrary()">Clear library</button>
+      </div>
+      <div class="library-grid" id="library-grid"></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const TOOL_STORE = 'teachedos_teacher_tools_library';
+const FAV_STORE = 'teachedos_teacher_tools_favorites';
+const SAMPLE_TEXT = 'Many students want to improve their English, but they often need short daily routines. A good routine includes reading, speaking practice, useful vocabulary, and quick feedback from a teacher.';
+const SAMPLE_VOCAB = 'routine - a regular way of doing things\nfeedback - advice about how well you did\nimprove - to become better\npractice - repeated work to get better\nuseful - helpful in a real situation';
+const TOOLS = [
+  {id:'word-image-match',cat:'vocabulary',badge:'New',icon:'IMG',title:'Word-Image Matching',desc:'Create a visual matching exercise with uploadable images and target words.',mode:'images',game:'memory-match'},
+  {id:'word-definition-match',cat:'vocabulary',icon:'DEF',title:'Word-Definition Matching',desc:'Turn vocabulary into matching pairs for cards, worksheets or memory games.',mode:'pairs',game:'memory-match'},
+  {id:'extract-vocab',cat:'vocabulary',badge:'New',icon:'KEY',title:'Extract Vocabulary From a Text',desc:'Pull useful keywords from a text and create a study list.',mode:'text-vocab',game:'flashcards'},
+  {id:'essential-vocab',cat:'vocabulary',icon:'A-Z',title:'Essential Vocabulary on a Topic',desc:'Generate a practical topic vocabulary set with teacher-friendly definitions.',mode:'topic-vocab',game:'flashcards'},
+  {id:'odd-one-out',cat:'vocabulary',badge:'New',icon:'ODD',title:'Odd One Out',desc:'Create groups where students identify the word that does not belong.',mode:'odd',game:'speed-quiz'},
+  {id:'word-sorting',cat:'vocabulary',badge:'New',icon:'SORT',title:'Words Sorting',desc:'Group vocabulary into categories for drag-and-drop sorting practice.',mode:'sorting',game:'word-categories'},
+  {id:'sentences-vocab',cat:'vocabulary',badge:'Pro',icon:'SNT',title:'Create Sentences with Vocabulary',desc:'Produce example sentences for each target word.',mode:'sentences-vocab',game:'fill-blank'},
+  {id:'text-topic-vocab',cat:'reading',icon:'TXT',title:'Create a Text with Your Vocabulary',desc:'Write a short leveled reading text that uses selected target vocabulary.',mode:'text-with-vocab'},
+  {id:'abcd-text',cat:'reading',icon:'ABCD',title:'Create ABCD Questions for a Text',desc:'Generate multiple-choice comprehension questions from a source text.',mode:'abcd',game:'speed-quiz'},
+  {id:'open-questions',cat:'reading',icon:'Q?',title:'Create Open Questions for a Text',desc:'Generate open-ended questions for comprehension and discussion.',mode:'open-questions'},
+  {id:'true-false',cat:'reading',badge:'Pro',icon:'T/F',title:'Create True/False Statements',desc:'Create true and false statements from a text for quick reading checks.',mode:'true-false',game:'true-false'},
+  {id:'three-titles',cat:'reading',icon:'3T',title:'Create Three Titles for a Text',desc:'Make one correct title and two plausible distractors.',mode:'three-titles',game:'speed-quiz'},
+  {id:'cefr',cat:'utility',badge:'Pro',icon:'CEFR',title:'CEFR Level Checker',desc:'Estimate text difficulty and receive simplification tips.',mode:'cefr'},
+  {id:'link-words',cat:'writing',icon:'LINK',title:'Link Words into Sentences',desc:'Ask students to connect target words into meaningful sentences.',mode:'link-words'},
+  {id:'creative-writing',cat:'writing',icon:'WRITE',title:'Creative Writing with Target Vocabulary',desc:'Generate writing prompts that require using a vocabulary set.',mode:'creative-writing'},
+  {id:'sentence-translation',cat:'writing',badge:'New',icon:'TR',title:'Sentence Translation Exercises',desc:'Create translation prompts around target vocabulary or grammar.',mode:'translation'},
+  {id:'rewrite',cat:'grammar',badge:'Pro',icon:'RE',title:'Rewrite the Sentence',desc:'Rewrite prompts focused on a grammar structure.',mode:'rewrite'},
+  {id:'gap',cat:'grammar',icon:'GAP',title:'Fill in the Gap',desc:'Replace target words with blanks and provide the answer key.',mode:'gap',game:'fill-blank'},
+  {id:'gaps-abcd',cat:'grammar',badge:'Pro',icon:'A/B',title:'Gaps with ABCD',desc:'Create multiple-choice gap-fill grammar tasks.',mode:'gaps-abcd',game:'speed-quiz'},
+  {id:'two-options',cat:'grammar',badge:'Pro',icon:'A/B',title:'Two Options with a Slash',desc:'Create choose-the-correct-option sentence pairs.',mode:'two-options'},
+  {id:'error-correction',cat:'grammar',badge:'Pro',icon:'ERR',title:'Error Correction Exercise',desc:'Create sentences with mistakes for students to correct.',mode:'error-correction'},
+  {id:'grammar-rules',cat:'grammar',badge:'Pro',icon:'RULE',title:'Grammar Rules',desc:'Generate concise rules, examples and practice prompts.',mode:'grammar-rules'},
+  {id:'discussion',cat:'speaking',icon:'CHAT',title:'Find Discussion Questions',desc:'Create warm-up, deeper and follow-up questions for a topic.',mode:'discussion'},
+  {id:'dialogue',cat:'speaking',icon:'DIA',title:'Create a Dialogue on Any Topic',desc:'Build a role-play dialogue with target vocabulary.',mode:'dialogue'},
+  {id:'warmup-listening',cat:'speaking',icon:'WARM',title:'Warm-Up Before Listening',desc:'Prepare prediction questions before an audio or video lesson.',mode:'warmup'},
+  {id:'audio-video-questions',cat:'listening',badge:'Pro',icon:'A/V',title:'Audio & Video Question Creator',desc:'Use a transcript or notes to create listening questions.',mode:'media-questions'},
+  {id:'transcript-helper',cat:'listening',badge:'Pro',icon:'SUB',title:'Convert Audio/Video Notes to Text Task',desc:'Paste or type a transcript, then turn it into classroom tasks.',mode:'transcript'},
+  {id:'add-text',cat:'utility',icon:'TXT+',title:'Add Your Text',desc:'Create a clean text block for a lesson or worksheet.',mode:'add-text'},
+  {id:'add-images',cat:'utility',icon:'IMG+',title:'Add Your Images',desc:'Upload classroom images and attach teaching notes.',mode:'add-images'},
+  {id:'add-video',cat:'utility',icon:'VID',title:'Add Your Video',desc:'Attach a video link and create viewing tasks around it.',mode:'add-video'}
+];
+const CATS = ['all','favorites','reading','vocabulary','writing','speaking','grammar','listening','utility'];
+const CAT_NAMES = {all:'All',favorites:'Favorites',reading:'Reading',vocabulary:'Vocabulary',writing:'Writing',speaking:'Speaking',grammar:'Grammar',listening:'Listening',utility:'Utility'};
+let currentCat = 'all';
+let activeTool = null;
+let lastOutput = null;
+let imageRows = [];
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return fallback;}}
+function writeJson(key,val){localStorage.setItem(key,JSON.stringify(val));}
+function favs(){return readJson(FAV_STORE,[])}
+function isFav(id){return favs().includes(id)}
+function toggleSide(){document.getElementById('side').classList.toggle('open')}
+function setCategory(cat,el){currentCat=cat;document.querySelectorAll('.side-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('side').classList.remove('open');renderChips();renderTools()}
+function toggleFav(id,e){e.stopPropagation();const list=favs();const next=list.includes(id)?list.filter(x=>x!==id):[...list,id];writeJson(FAV_STORE,next);renderCounts();renderTools();toast(next.includes(id)?'Added to favorites':'Removed from favorites')}
+function renderCounts(){const counts={all:TOOLS.length,favorites:favs().length};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
+function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
+function getVisibleTools(){const q=(document.getElementById('search').value||'').toLowerCase().trim();let list=TOOLS;if(currentCat==='favorites')list=list.filter(t=>isFav(t.id));else if(currentCat!=='all')list=list.filter(t=>t.cat===currentCat);if(q)list=list.filter(t=>(t.title+' '+t.desc+' '+t.cat+' '+(t.badge||'')).toLowerCase().includes(q));return list}
+function renderTools(){const grid=document.getElementById('tools-grid');const list=getVisibleTools();if(!list.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:30px;text-align:center;color:var(--muted);">No tools match this filter.</div>';return}grid.innerHTML=list.map(t=>`<div class="tool ${activeTool&&activeTool.id===t.id?'active':''}" role="button" tabindex="0" onclick="selectTool('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' ')selectTool('${t.id}')"><button class="star ${isFav(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}">★</button><div class="tool-visual" data-cat="${esc(CAT_NAMES[t.cat])}">${esc(t.icon)}</div><div><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p><div class="tool-meta"><span class="tag">${esc(CAT_NAMES[t.cat])}</span>${t.badge?`<span class="tag ${t.badge.toLowerCase()}">${esc(t.badge)}</span>`:''}</div></div></div>`).join('')}
+function openFirstTool(){selectTool((getVisibleTools()[0]||TOOLS[0]).id)}
+function selectTool(id){activeTool=TOOLS.find(t=>t.id===id);lastOutput=null;imageRows=[];renderTools();renderForm();document.getElementById('workspace').classList.add('show');document.getElementById('active-icon').textContent=activeTool.icon;document.getElementById('active-title').textContent=activeTool.title;document.getElementById('active-desc').textContent=activeTool.desc;document.getElementById('result-body').innerHTML='<div class="result-empty"><div><b>Ready when you are</b><span>Fill the fields and generate the task.</span></div></div>';document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}
+function baseFields(extra=''){return `<div class="form-grid"><div class="field"><label class="label" for="level">Level</label><select id="level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div><div class="field"><label class="label" for="count">How many items</label><input id="count" type="number" min="3" max="20" value="6"></div><div class="field full"><label class="label" for="topic">Topic / grammar focus</label><input id="topic" placeholder="e.g. travel problems, present perfect, job interview"></div>${extra}</div>`}
+function textArea(id,label,value,help){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}">${esc(value||'')}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
+function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload local images or paste image URLs. Local images are converted to data URLs, so saved materials keep the preview in this browser.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. Add words or word - meaning pairs, one per line.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="media-file">Audio/video file or link</label><input id="media-file" type="file" accept="audio/*,video/*"><div class="hint">Browser-only version does not transcribe files yet. Paste transcript or teacher notes below and TeachEd will build the tasks.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generate()">Generate</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}}
+function get(id){return document.getElementById(id)?.value?.trim()||''}
+function lines(text){return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean)}
+function vocabItems(text){return lines(text).flatMap(line=>line.split(/[,;]/).map(s=>s.trim()).filter(Boolean)).map(raw=>{const parts=raw.split(/\s[-–—:]\s/);return {word:(parts[0]||raw).trim(),def:(parts[1]||'teacher definition / translation').trim()}}).filter(x=>x.word)}
+function wordsOnly(text){return vocabItems(text).map(x=>x.word)}
+function sentenceParts(text){return String(text||'').replace(/\s+/g,' ').split(/(?<=[.!?])\s+/).map(s=>s.trim()).filter(Boolean)}
+function pick(arr,n){return [...arr].sort(()=>Math.random()-.5).slice(0,n)}
+function count(){return Math.max(3,Math.min(20,parseInt(get('count')||'6',10)||6))}
+function topic(){return get('topic')||'Everyday English'}
+function level(){return get('level')||'B1'}
+function makeDefinitions(items){return items.map(x=>({a:x.word,b:x.def||`a useful ${level()} word connected to ${topic()}`}))}
+function extractKeywords(text,n){const stop=new Set('the a an and or but if then with from into about this that these those many often they their your have has had can could would should are was were been being for not you she he it its our his her them student students teacher english good short daily includes includes'.split(' '));const freq={};String(text||'').toLowerCase().match(/[a-z][a-z'-]{3,}/g)?.forEach(w=>{if(!stop.has(w))freq[w]=(freq[w]||0)+1});return Object.entries(freq).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length).slice(0,n).map(([w])=>w)}
+function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=vocabItems(voc);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()]};
+  if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
+  else if(m==='pairs'){const pairs=makeDefinitions(items).slice(0,n);out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n');out.gameContent={pairs};}
+  else if(m==='text-vocab'){const kws=extractKeywords(src,n);const pairs=kws.map(w=>({a:w,b:`useful word from the text about ${topic()}`}));out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n');out.gameContent={pairs};}
+  else if(m==='topic-vocab'){const base=wordsOnly(voc).length?wordsOnly(voc):['booking','delay','destination','luggage','boarding pass','reservation','itinerary','sightseeing','accommodation','departure'];const pairs=base.slice(0,n).map(w=>({a:w,b:`${level()} classroom definition for ${topic()}`}));out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n');out.gameContent={pairs};}
+  else if(m==='odd'){const groups=parseGroups(voc);out.text=groups.slice(0,n).map((g,i)=>`${i+1}. ${pick(g.words,3).join(', ')}, ${g.odd||'different word'}\nAnswer: ${g.odd||'different word'}`).join('\n\n');out.gameType='speed-quiz';out.gameContent={questions:groups.slice(0,n).map(g=>({q:`Which word is the odd one out: ${pick(g.words,3).concat(g.odd||'umbrella').join(', ')}?`,opts:pick(g.words,3).concat(g.odd||'umbrella'),correct:3}))};}
+  else if(m==='sorting'){const groups=parseGroups(voc);out.cards=groups;out.text=groups.map(g=>`${g.name}: ${g.words.join(', ')}`).join('\n');out.gameType='word-categories';out.gameContent={categories:groups.map(g=>({name:g.name,words:g.words}))};}
+  else if(m==='sentences-vocab'){const ws=wordsOnly(voc).slice(0,n);out.text=ws.map((w,i)=>`${i+1}. I try to use "${w}" when I talk about ${topic().toLowerCase()}.`).join('\n');out.gameType='fill-blank';out.gameContent={sentences:ws.map(w=>`I try to use ___ when I talk about ${topic().toLowerCase()}.|${w}`)};}
+  else if(m==='text-with-vocab'){const ws=wordsOnly(voc).slice(0,n).join(', ');out.text=`${level()} reading text: ${topic()}\n\nLast week, my student and I discussed ${topic().toLowerCase()}. We focused on these words: ${ws || 'useful vocabulary'}. The lesson started with a short prediction task, then we read a text, checked meaning from context, and finished with a speaking challenge. By the end, the student could explain the topic more clearly and use the new words in personal examples.\n\nPost-reading task: underline the target words and write one personal sentence with each word.`;}
+  else if(m==='abcd'||m==='gaps-abcd'){const s=sentenceParts(src).slice(0,n);out.text=s.map((x,i)=>`${i+1}. ${m==='gaps-abcd'?x.replace(/\b([a-zA-Z]{5,})\b/,'_____'):x}\nA) correct answer  B) close distractor  C) grammar distractor  D) off-topic option\nAnswer: A`).join('\n\n');out.gameType='speed-quiz';out.gameContent={questions:s.map(x=>({q:m==='gaps-abcd'?x.replace(/\b([a-zA-Z]{5,})\b/,'_____'):x,opts:['Correct answer','Close distractor','Grammar distractor','Off-topic option'],correct:0}))};}
+  else if(m==='open-questions'){out.text=['What is the main idea?','Which detail is most important?','What would you ask the writer?','How does this connect to your life?','What vocabulary is useful here?','What could happen next?'].slice(0,n).map((q,i)=>`${i+1}. ${q}`).join('\n');}
+  else if(m==='true-false'){const s=sentenceParts(src).slice(0,n);out.text=s.map((x,i)=>`${i+1}. ${x} — ${i%2?'False':'True'}`).join('\n');out.gameType='true-false';out.gameContent={statements:s.map((x,i)=>({text:x,answer:i%2===0}))};}
+  else if(m==='three-titles'){out.text=`Choose the best title for the text:\nA) Daily Practice Makes English Easier\nB) The History of Online Banking\nC) How to Repair a Bicycle\n\nAnswer: A` ;out.gameType='speed-quiz';out.gameContent={questions:[{q:'Choose the best title for the text',opts:['Daily Practice Makes English Easier','The History of Online Banking','How to Repair a Bicycle','A Recipe for Soup'],correct:0}]};}
+  else if(m==='cefr'){const words=String(src).match(/\S+/g)||[];const avg=words.reduce((a,w)=>a+w.length,0)/Math.max(1,words.length);const lvl=avg>7.2?'C1':avg>6.2?'B2':avg>5.2?'B1':avg>4.4?'A2':'A1';out.text=`Estimated level: ${lvl}\nWords: ${words.length}\nAverage word length: ${avg.toFixed(1)}\n\nTeacher notes:\n- Shorten long sentences for lower levels.\n- Pre-teach 5-7 key words.\n- Add comprehension questions before production tasks.`;}
+  else if(m==='gap'){const ws=wordsOnly(voc).slice(0,n);out.text=ws.map((w,i)=>`${i+1}. Students need regular _____ to improve.\nAnswer: ${w}`).join('\n\n');out.gameType='fill-blank';out.gameContent={sentences:ws.map(w=>`Students need regular ___ to improve.|${w}`)};}
+  else if(m==='two-options'){const ws=wordsOnly(voc).slice(0,n);out.text=ws.map((w,i)=>`${i+1}. Choose: I need more ${w} / ${w.split('').reverse().join('')} before the test.\nAnswer: ${w}`).join('\n\n');}
+  else if(m==='grammar-rules'){out.text=`Grammar focus: ${topic()} (${level()})\n\nRule 1: Use the structure when the meaning matches the time or function.\nExample: I have already finished my homework.\n\nRule 2: Keep the auxiliary and main verb form consistent.\nExample: She has visited Spain twice.\n\nPractice:\n1. Write three personal examples.\n2. Ask your partner two questions.\n3. Correct one common mistake.`;}
+  else if(m==='error-correction'){out.text=[`She go to school every day. -> She goes to school every day.`,`I have saw this film. -> I have seen this film.`,`There is many people here. -> There are many people here.`,`He don't like coffee. -> He doesn't like coffee.`,`I am agree with you. -> I agree with you.`].slice(0,n).map((x,i)=>`${i+1}. ${x}`).join('\n');}
+  else if(m==='rewrite'){out.text=[`Rewrite using ${topic()}: I started learning English in 2022.`,`Rewrite using ${topic()}: She finished the task before lunch.`,`Rewrite using ${topic()}: They visited Madrid last year.`].slice(0,n).map((x,i)=>`${i+1}. ${x}`).join('\n');}
+  else if(m==='translation'){out.text=wordsOnly(voc).slice(0,n).map((w,i)=>`${i+1}. Translate and use "${w}" in your own sentence.`).join('\n');}
+  else if(m==='creative-writing'){out.text=`Writing task (${level()}): Write a short story about ${topic().toLowerCase()}. You must use these words: ${wordsOnly(voc).slice(0,n).join(', ')}.\n\nChecklist: clear beginning, one problem, one solution, at least two connectors.`;}
+  else if(m==='link-words'){out.text=`Use these words in connected sentences:\n${wordsOnly(voc).slice(0,n).map((w,i)=>`${i+1}. ${w}`).join('\n')}\n\nChallenge: Every sentence should connect logically to the previous one.`;}
+  else if(m==='discussion'){out.text=['What do people usually think about this topic?','What is your personal experience with it?','What is one advantage and one disadvantage?','How could this change in the future?','What advice would you give to someone?','Which vocabulary is most useful here?'].slice(0,n).map((q,i)=>`${i+1}. ${q.replace('this topic',topic().toLowerCase())}`).join('\n');}
+  else if(m==='dialogue'){out.text=`Role-play: ${topic()}\n\nA: I need some advice about ${topic().toLowerCase()}.\nB: Sure. What exactly happened?\nA: I think the main problem is vocabulary and confidence.\nB: Let's make a simple plan and practise it step by step.\n\nFollow-up: Continue the dialogue for six more lines and include ${wordsOnly(voc).slice(0,4).join(', ') || 'four target words'}.`;}
+  else if(m==='warmup'){out.text=['Look at the title. What do you think the audio/video is about?','Which words do you expect to hear?','What do you already know about this topic?','What question do you want the speaker to answer?','Predict three details before listening.'].slice(0,n).map((q,i)=>`${i+1}. ${q}`).join('\n');}
+  else if(m==='media-questions'||m==='transcript'){const s=sentenceParts(src).slice(0,n);out.text=s.map((x,i)=>`${i+1}. Listening check: What does the speaker mean by: "${x.slice(0,90)}"?`).join('\n');}
+  else if(m==='add-video'){out.text=`Video link: ${get('video-link')||'Add link'}\n\nTasks:\n${src}`;}
+  else {out.text=src;}
+  lastOutput=out;renderResult(out);}
+function parseGroups(text){return lines(text).map((line,i)=>{const [name,rest]=line.includes(':')?line.split(/:(.+)/):[`Group ${i+1}`,line];const words=(rest||'').split(',').map(s=>s.trim()).filter(Boolean);return {name:name.trim(),words:words.slice(0,8),odd:['umbrella','banana','airport','winter','keyboard'][i%5]}}).filter(g=>g.words.length)}
+function renderResult(out){const cards=out.cards&&out.cards.length?`<div class="cards-output">${out.cards.slice(0,30).map(c=>`<div class="out-card"><b>${esc(c.a||c.word||c.name||'Item')}</b><span>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</span></div>`).join('')}</div>`:'';document.getElementById('result-body').innerHTML=`<div class="hero-actions" style="margin-top:0;margin-bottom:14px"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm blue" type="button" onclick="sendToGameBuilder()" ${out.gameType?'':'disabled'}>Send to Game Builder</button></div>${cards||`<div class="output">${esc(out.text)}</div>`}`}
+function copyOutput(){if(!lastOutput)return;navigator.clipboard?.writeText(lastOutput.text).then(()=>toast('Copied'))}
+function copyInputs(){const text=[get('topic'),get('source'),get('vocab')].filter(Boolean).join('\n\n');navigator.clipboard?.writeText(text).then(()=>toast('Inputs copied'))}
+function saveOutput(){if(!lastOutput)return;const lib=readJson(TOOL_STORE,[]);lib.unshift({...lastOutput,id:'tool-'+Date.now(),savedAt:new Date().toISOString(),toolId:activeTool.id});writeJson(TOOL_STORE,lib.slice(0,80));renderLibrary();toast('Saved to library')}
+function sendToGameBuilder(){if(!lastOutput||!lastOutput.gameType){toast('This tool creates worksheet content, not a game payload yet');return}sessionStorage.setItem('teachedos_tools_to_game',JSON.stringify({title:lastOutput.title,gameType:lastOutput.gameType,content:lastOutput.gameContent,level:lastOutput.level,tags:lastOutput.tags}));location.href='game-builder.html?from=teacher-tools'}
+function renderLibrary(){const grid=document.getElementById('library-grid');const lib=readJson(TOOL_STORE,[]);if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Generate something and press Save.</div>';return}grid.innerHTML=lib.slice(0,12).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,150))}${(item.text||'').length>150?'...':''}</p><div class="hero-actions" style="margin-top:10px"><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button>${item.gameType?`<button class="btn sm lime" type="button" onclick="sendSaved('${item.id}')">Game Builder</button>`:''}</div></div>`).join('')}
+function copySaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)navigator.clipboard?.writeText(item.text||'').then(()=>toast('Copied'))}
+function sendSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;sessionStorage.setItem('teachedos_tools_to_game',JSON.stringify({title:item.title,gameType:item.gameType,content:item.gameContent,level:item.level,tags:item.tags}));location.href='game-builder.html?from=teacher-tools'}
+function clearLibrary(){if(!confirm('Clear saved tool materials?'))return;writeJson(TOOL_STORE,[]);renderLibrary();toast('Library cleared')}
+function scrollToLibrary(){document.getElementById('library-section').scrollIntoView({behavior:'smooth'})}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove('show'),1800)}
+function addImageRow(){const id='img-'+Date.now()+'-'+Math.random().toString(36).slice(2,5);imageRows.push({id,word:'',image:'',note:''});renderImageRows()}
+function removeImageRow(id){imageRows=imageRows.filter(r=>r.id!==id);renderImageRows()}
+function updateImageRow(id,key,val){const r=imageRows.find(x=>x.id===id);if(r)r[key]=val}
+function handleImageFile(id,input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{updateImageRow(id,'image',reader.result);renderImageRows()};reader.readAsDataURL(file)}
+function renderImageRows(){const wrap=document.getElementById('image-rows');if(!wrap)return;wrap.innerHTML=imageRows.map((r,i)=>`<div class="img-row"><label class="thumb" for="file-${r.id}">${r.image?`<img src="${esc(r.image)}" alt="${esc(r.word||'uploaded image')}">`:'Upload image'}<input class="sr-only" id="file-${r.id}" type="file" accept="image/*" onchange="handleImageFile('${r.id}',this)"></label><div style="display:grid;gap:8px"><input placeholder="Word" value="${esc(r.word)}" oninput="updateImageRow('${r.id}','word',this.value)"><input placeholder="Image URL or note" value="${esc(r.note)}" oninput="updateImageRow('${r.id}','note',this.value)"></div><button class="mini" type="button" onclick="removeImageRow('${r.id}')">×</button></div>`).join('')}
+renderCounts();renderChips();renderTools();renderLibrary();
+</script>
+</body>
+</html>
