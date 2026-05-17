@@ -172,16 +172,16 @@ a{text-decoration:none;color:inherit;}
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Головна</a>
-  <a class="nav-link" href="board.html">Дошка</a>
-  <a class="nav-link" href="courses.html">Курси</a>
-  <a class="nav-link" href="community.html">Комʼюніті</a>
-  <a class="nav-link active" href="lesson-packs.html">Пакети</a>
-  <a class="nav-link" href="homework.html">Домашні</a>
-  <a class="nav-link" href="schedule.html">Розклад</a>
-  <a class="nav-link" href="analytics.html">Аудит</a>
-  <a class="nav-link" href="gradebook.html">Оцінки</a>
-  <a class="nav-link" href="profile.html">Профіль</a>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="courses.html">Courses</a>
+  <a class="nav-link" href="community.html">Community</a>
+  <a class="nav-link active" href="lesson-packs.html">Packs</a>
+  <a class="nav-link" href="homework.html">Homework</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <a class="nav-link" href="analytics.html">Analytics</a>
+  <a class="nav-link" href="gradebook.html">Gradebook</a>
+  <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
     <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
@@ -191,33 +191,33 @@ a{text-decoration:none;color:inherit;}
 <div id="page">
 
   <div id="sidebar">
-    <div class="sb-label">Навичка</div>
-    <div class="sb-item active" onclick="filterSkill('all',this)">✦ Всі пакети <span class="sb-badge" id="badge-all">25</span></div>
-    <div class="sb-item" onclick="filterSkill('grammar',this)">🔤 Граматика</div>
-    <div class="sb-item" onclick="filterSkill('vocabulary',this)">📝 Лексика</div>
-    <div class="sb-item" onclick="filterSkill('speaking',this)">💬 Розмова</div>
-    <div class="sb-item" onclick="filterSkill('writing',this)">✏️ Письмо</div>
-    <div class="sb-item" onclick="filterSkill('reading',this)">📖 Читання</div>
-    <div class="sb-item" onclick="filterSkill('pronunciation',this)">🎙️ Вимова</div>
-    <div class="sb-label" style="margin-top:16px;">Мова студента</div>
-    <div class="sb-item active2" onclick="filterLang('all',this)">🌍 Всі мови</div>
-    <div class="sb-item" onclick="filterLang('ua',this)">🇺🇦 Українська</div>
-    <div class="sb-item" onclick="filterLang('ru',this)">🇷🇺 Російська</div>
-    <div class="sb-item" onclick="filterLang('pl',this)">🇵🇱 Польська</div>
+    <div class="sb-label">Skill</div>
+    <div class="sb-item active" onclick="filterSkill('all',this)">✦ All packs <span class="sb-badge" id="badge-all">25</span></div>
+    <div class="sb-item" onclick="filterSkill('grammar',this)">🔤 Grammar</div>
+    <div class="sb-item" onclick="filterSkill('vocabulary',this)">📝 Vocabulary</div>
+    <div class="sb-item" onclick="filterSkill('speaking',this)">💬 Speaking</div>
+    <div class="sb-item" onclick="filterSkill('writing',this)">✏️ Writing</div>
+    <div class="sb-item" onclick="filterSkill('reading',this)">📖 Reading</div>
+    <div class="sb-item" onclick="filterSkill('pronunciation',this)">🎙️ Pronunciation</div>
+    <div class="sb-label" style="margin-top:16px;">Student language</div>
+    <div class="sb-item active2" onclick="filterLang('all',this)">🌍 All languages</div>
+    <div class="sb-item" onclick="filterLang('ua',this)">🇺🇦 Ukrainian</div>
+    <div class="sb-item" onclick="filterLang('ru',this)">🇷🇺 Russian</div>
+    <div class="sb-item" onclick="filterLang('pl',this)">🇵🇱 Polish</div>
   </div>
 
   <div id="main">
     <div class="page-eyebrow">§ TeachEd · Ready-to-use</div>
     <div class="page-title">Lesson <em>Packs</em></div>
-    <div class="page-sub">Готові уроки з матеріалами, прикладами та вправами — відкрий, скопіюй і використовуй.</div>
+    <div class="page-sub">Ready-made lessons with materials, examples and exercises — open, copy, use.</div>
 
     <div class="search-wrap">
       <span style="color:var(--text3);font-size:16px;">🔍</span>
-      <input id="search-input" type="text" placeholder="Пошук пакету…" oninput="renderPacks()">
+      <input id="search-input" type="text" placeholder="Search packs…" oninput="renderPacks()">
     </div>
 
     <div class="level-tabs" id="level-tabs">
-      <div class="ltab active" onclick="filterLevel('all',this)">Всі рівні</div>
+      <div class="ltab active" onclick="filterLevel('all',this)">All levels</div>
       <div class="ltab" onclick="filterLevel('A1',this)">A1</div>
       <div class="ltab" onclick="filterLevel('A2',this)">A2</div>
       <div class="ltab" onclick="filterLevel('B1',this)">B1</div>
@@ -242,8 +242,8 @@ a{text-decoration:none;color:inherit;}
       <button id="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div id="modal-actions">
-      <button class="btn btn-lime" onclick="copyContent()">📋 Копіювати контент</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Закрити</button>
+      <button class="btn btn-lime" onclick="copyContent()">📋 Copy content</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
     </div>
     <div id="modal-body">
       <div id="modal-content"></div>
@@ -266,7 +266,7 @@ const PACKS = [
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Артиклі — головна пастка для слов\'янців. Вся система в одному уроці.',
+  desc:'Articles — the main trap for Slavic learners. The whole system in one lesson.',
   content:`═══════════════════════════════════════
  ARTICLES: a / an / the / Ø (zero)
  Level: A2  |  Duration: 30 min
@@ -366,7 +366,7 @@ THE — definite (specific, known to both)
   level:'B1',
   duration:'45 min',
   langs:['ru','ua','pl'],
-  desc:'Найбільша плутанина для слов\'янців. Чіткий алгоритм вибору між часами.',
+  desc:'The biggest confusion for Slavic speakers. A clear algorithm for choosing between tenses.',
   content:`═══════════════════════════════════════
  PRESENT PERFECT vs PAST SIMPLE
  Level: B1  |  Duration: 45 min
@@ -459,7 +459,7 @@ COMPARISON TABLE
   level:'B2',
   duration:'50 min',
   langs:['ru','ua','pl'],
-  desc:'Всі 4 типи умовних речень з прикладами, порівнянням та вправами.',
+  desc:'All four types of conditional sentences with examples, comparison and exercises.',
   content:`═══════════════════════════════════════
  CONDITIONALS: 0 / 1st / 2nd / 3rd
  Level: B1–B2  |  Duration: 50 min
@@ -544,7 +544,7 @@ COMPARISON CHART
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'Коли і як вживати пасивний стан. Формула + трансформаційні вправи.',
+  desc:'When and how to use the passive voice. Formula + transformation exercises.',
   content:`═══════════════════════════════════════
  PASSIVE VOICE
  Level: B1  |  Duration: 35 min
@@ -630,7 +630,7 @@ BY + AGENT
   level:'B1',
   duration:'40 min',
   langs:['ru','ua','pl'],
-  desc:'Can, could, may, might, must, should, would — значення, правила, вправи.',
+  desc:'Can, could, may, might, must, should, would — meanings, rules, exercises.',
   content:`═══════════════════════════════════════
  MODAL VERBS: Full Guide
  Level: B1  |  Duration: 40 min
@@ -718,7 +718,7 @@ PAST MODALS (modal + have + past participle)
   level:'B2',
   duration:'40 min',
   langs:['ru','ua','pl'],
-  desc:'20 ключових фраз для зустрічей, презентацій та нарад англійською.',
+  desc:'20 key phrases for meetings, presentations and conferences in English.',
   content:`═══════════════════════════════════════
  BUSINESS ENGLISH: Meetings & Discussions
  Level: B1–B2  |  Duration: 40 min
@@ -811,7 +811,7 @@ KEY VOCABULARY
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Вся лексика для аеропорту, готелю та подорожей — з діалогами.',
+  desc:'All the vocabulary for airports, hotels and travel — with dialogues.',
   content:`═══════════════════════════════════════
  TRAVEL & AIRPORT ENGLISH
  Level: A2–B1  |  Duration: 30 min
@@ -896,7 +896,7 @@ ASKING FOR DIRECTIONS
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'Сучасна лексика про технології, соціальні мережі та цифрове життя.',
+  desc:'Modern vocabulary about technology, social media and digital life.',
   content:`═══════════════════════════════════════
  TECHNOLOGY & SOCIAL MEDIA
  Level: B1  |  Duration: 35 min
@@ -972,7 +972,7 @@ USEFUL PHRASES
   level:'B1',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Лексика для опису симптомів, здоров\'я та медичних ситуацій.',
+  desc:'Vocabulary for describing symptoms, health and medical situations.',
   content:`═══════════════════════════════════════
  HEALTH & WELLBEING
  Level: B1  |  Duration: 30 min
@@ -1050,7 +1050,7 @@ HEALTHY HABITS
   level:'A2',
   duration:'25 min',
   langs:['ru','ua','pl'],
-  desc:'Слова-пастки, які схожі, але означають різне. Топ-20 помилок.',
+  desc:'Look-alike words that mean different things. Top 20 mistakes.',
   content:`═══════════════════════════════════════
  FALSE FRIENDS: Slavic → English
  Level: A2–B1  |  Duration: 25 min
@@ -1121,7 +1121,7 @@ POLISH FALSE FRIENDS
   level:'B2',
   duration:'45 min',
   langs:['ru','ua','pl'],
-  desc:'Структура, лексика та зразкова відповідь для IELTS Part 2.',
+  desc:'Structure, vocabulary and a model answer for IELTS Part 2.',
   content:`═══════════════════════════════════════
  IELTS SPEAKING PART 2: Describe a Person
  Level: B2  |  Duration: 45 min
@@ -1227,7 +1227,7 @@ SAMPLE ANSWER (Band 7+)
   level:'B2',
   duration:'45 min',
   langs:['ru','ua','pl'],
-  desc:'10 найпоширеніших питань на співбесіді з модельними відповідями.',
+  desc:'The 10 most common interview questions with model answers.',
   content:`═══════════════════════════════════════
  JOB INTERVIEW ENGLISH
  Level: B2  |  Duration: 45 min
@@ -1322,7 +1322,7 @@ USEFUL PHRASES
   level:'B2',
   duration:'40 min',
   langs:['ru','ua','pl'],
-  desc:'Мовні засоби для дискусій, дебатів та обміну думками.',
+  desc:'Language tools for discussions, debates and exchanging opinions.',
   content:`═══════════════════════════════════════
  DISCUSSION & DEBATE LANGUAGE
  Level: B2–C1  |  Duration: 40 min
@@ -1397,7 +1397,7 @@ DEBATE TOPICS (choose one)
   level:'B1',
   duration:'40 min',
   langs:['ru','ua','pl'],
-  desc:'Структура, фрази та зразок ділового листа. Готово до практики.',
+  desc:'Structure, phrases and a sample business letter. Ready to practise.',
   content:`═══════════════════════════════════════
  FORMAL EMAIL WRITING
  Level: B1–B2  |  Duration: 40 min
@@ -1508,7 +1508,7 @@ COMMON ERRORS
   level:'B2',
   duration:'50 min',
   langs:['ru','ua','pl'],
-  desc:'Покрокова структура есе + банк лінкерів і зразковий абзац.',
+  desc:'Step-by-step essay structure plus a linker bank and a model paragraph.',
   content:`═══════════════════════════════════════
  OPINION ESSAY: Structure & Language
  Level: B2  |  Duration: 50 min
@@ -1598,7 +1598,7 @@ TOPICS TO PRACTISE
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'Три ключові стратегії читання з вправами та порадами для екзаменів.',
+  desc:'Three key reading strategies with exercises and exam tips.',
   content:`═══════════════════════════════════════
  READING STRATEGIES: Skim, Scan & Infer
  Level: B1–B2  |  Duration: 35 min
@@ -1688,7 +1688,7 @@ EXAM QUESTION TYPES
   level:'B1',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Основні правила наголосу в англійських словах з прикладами та вправами.',
+  desc:'The main stress rules in English words with examples and exercises.',
   content:`═══════════════════════════════════════
  WORD STRESS: Rules & Patterns
  Level: B1  |  Duration: 30 min
@@ -1775,7 +1775,7 @@ PRACTICE EXERCISES
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'15 найчастіших помилок слов\'янських студентів з поясненнями та виправленнями.',
+  desc:'The 15 most common mistakes Slavic students make, with explanations and fixes.',
   content:`═══════════════════════════════════════
  TOP 15 SLAVIC LEARNER ERRORS
  Level: A2–B2  |  Duration: 35 min
@@ -1885,7 +1885,7 @@ THE 15 ERRORS
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'Топ-25 розмовних фраз та ідіом для природної англійської.',
+  desc:'The top 25 colloquial phrases and idioms for natural English.',
   content:`═══════════════════════════════════════
  EVERYDAY PHRASES & IDIOMS
  Level: B1–B2  |  Duration: 35 min
@@ -1964,7 +1964,7 @@ MATCH THE IDIOM TO THE SITUATION
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
-  desc:'Пряма та непряма мова: правила зміни часів, займенників і обставин.',
+  desc:'Direct and reported speech: rules for shifting tenses, pronouns and adverbs.',
   content:`═══════════════════════════════════════
  REPORTED SPEECH
  Level: B1–B2  |  Duration: 35 min
@@ -2049,7 +2049,7 @@ REPORTED QUESTIONS
   level:'B1',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Найважливіші словосполучення з make, do, have, take для природної мови.',
+  desc:'The most important collocations with make, do, have, take for natural language.',
   content:`═══════════════════════════════════════
  COLLOCATIONS: Make / Do / Have / Take
  Level: B1  |  Duration: 30 min
@@ -2132,7 +2132,7 @@ TAKE — accept, move, need
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Мистецтво легкої розмови: тематики, фрази та культурний контекст.',
+  desc:'The art of small talk: topics, phrases and cultural context.',
   content:`═══════════════════════════════════════
  SMALL TALK & SOCIAL ENGLISH
  Level: A2–B1  |  Duration: 30 min
@@ -2250,7 +2250,7 @@ function renderPacks() {
 
   const grid = document.getElementById('packs-grid');
   if (!filtered.length) {
-    grid.innerHTML = '<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">Нічого не знайдено</div></div>';
+    grid.innerHTML = '<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">Nothing found</div></div>';
     return;
   }
 
@@ -2264,7 +2264,7 @@ function renderPacks() {
       <div class="pc-meta">
         <span class="pc-level ${lvlClass(p.level)}">${p.level}</span>
         <span class="pc-dur">${p.duration}</span>
-        <span class="pc-open">Відкрити →</span>
+        <span class="pc-open">Open →</span>
       </div>
     </div>
   `).join('');
@@ -2296,7 +2296,7 @@ function copyContent() {
   navigator.clipboard.writeText(activePack.content).then(() => {
     const btn = document.querySelector('#modal-actions .btn-lime');
     const orig = btn.textContent;
-    btn.textContent = '✓ Скопійовано!';
+    btn.textContent = '✓ Copied!';
     btn.style.background = '#22c55e';
     setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
   });

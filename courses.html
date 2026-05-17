@@ -376,16 +376,16 @@ button{font-family:var(--font);cursor:pointer;}
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
-  <a class="nav-link" href="index.html">Головна</a>
-  <a class="nav-link" href="board.html">Дошка</a>
-  <a class="nav-link" href="schedule.html">Розклад</a>
-  <a class="nav-link active" href="courses.html">Курси</a>
-  <a class="nav-link" href="homework.html">Домашні</a>
-  <a class="nav-link" href="analytics.html">Аудит</a>
-  <a class="nav-link" href="journal.html">Журнал</a>
-  <a class="nav-link" href="gradebook.html">Оцінки</a>
-  <a class="nav-link" href="profile.html#plans">Тарифы</a>
-  <a class="nav-link" href="profile.html">Профіль</a>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="schedule.html">Schedule</a>
+  <a class="nav-link active" href="courses.html">Courses</a>
+  <a class="nav-link" href="homework.html">Homework</a>
+  <a class="nav-link" href="analytics.html">Analytics</a>
+  <a class="nav-link" href="journal.html">Journal</a>
+  <a class="nav-link" href="gradebook.html">Gradebook</a>
+  <a class="nav-link" href="profile.html#plans">Pricing</a>
+  <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
     <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
@@ -412,7 +412,7 @@ button{font-family:var(--font);cursor:pointer;}
       <div class="w-title">Organize your lessons into courses</div>
       <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module — no more chaos.</div>
       <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
-      <div class="ready-empty-head">Готовые курсы и уроки</div>
+      <div class="ready-empty-head">Ready-made courses & lessons</div>
       <div class="ready-library" id="welcome-ready-library" style="width:min(920px,100%);margin-top:18px;"></div>
     </div>
     <div id="course-view" style="display:none;flex-direction:column;flex:1;">
@@ -859,8 +859,8 @@ function readyTemplateCard(t) {
     <div class="ready-copy">${esc(t.copy)}</div>
     <div class="ready-lessons">${lessons.slice(0, 5).map(l => `<span class="ready-chip">${esc(l.skill)}</span>`).join('')}</div>
     <div class="ready-actions">
-      <button class="btn btn-primary" onclick="createReadyCourse('${escAttr(t.level)}')">Создать курс</button>
-      <button class="btn btn-soft" onclick="previewReadyTemplate('${escAttr(t.level)}')">Состав</button>
+      <button class="btn btn-primary" onclick="createReadyCourse('${escAttr(t.level)}')">Create course</button>
+      <button class="btn btn-soft" onclick="previewReadyTemplate('${escAttr(t.level)}')">Contents</button>
     </div>
   </div>`;
 }

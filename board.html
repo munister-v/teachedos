@@ -4387,10 +4387,10 @@ function ensureLayerPopover() {
   pop.id = 'layer-popover';
   pop.className = 'layer-popover';
   pop.innerHTML = `
-    <button class="layer-btn" data-layer="front" title="Bring to front">На верх</button>
-    <button class="layer-btn" data-layer="up" title="Move one layer up">Выше</button>
-    <button class="layer-btn" data-layer="down" title="Move one layer down">Ниже</button>
-    <button class="layer-btn" data-layer="back" title="Send to back">Вниз</button>
+    <button class="layer-btn" data-layer="front" title="Bring to front">Front</button>
+    <button class="layer-btn" data-layer="up" title="Move one layer up">Up</button>
+    <button class="layer-btn" data-layer="down" title="Move one layer down">Down</button>
+    <button class="layer-btn" data-layer="back" title="Send to back">Back</button>
     <button class="layer-btn" data-layer="lock" title="Lock movement">📌</button>`;
   pop.addEventListener('mousedown', e => e.stopPropagation());
   pop.addEventListener('click', e => {
