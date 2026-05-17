@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v25';
+const CACHE = 'teachedos-v26';
 
 const SHELL = [
   '/teachedos/',
@@ -26,6 +26,7 @@ const SHELL = [
   '/teachedos/styles/games-base.css',
   '/teachedos/styles/mobile-pro.css',
   '/teachedos/styles/harmony.css',
+  '/teachedos/styles/mobile-guard.css',
   '/teachedos/pwa.js',
   '/teachedos/theme.js',
   '/teachedos/scripts/app-core.js',
@@ -87,48 +88,39 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // HTML navigations — stale-while-revalidate (instant from cache, background refresh)
+  // HTML navigations — network-first (always fresh when online)
   if (
     e.request.mode === 'navigate' ||
     (e.request.headers.get('accept') || '').includes('text/html')
   ) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
-        const fresh = fetch(e.request).then(resp => {
-          if (resp && resp.status === 200 && e.request.method === 'GET') {
-            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-          }
-          return resp;
-        }).catch(() => cached || caches.match('/teachedos/offline.html'));
-        return cached || fresh;
-      })
+      fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && e.request.method === 'GET') {
+          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+        }
+        return resp;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('/teachedos/offline.html')))
     );
     return;
   }
 
-  // CSS / JS / images — stale-while-revalidate too (fast paint, updates on next visit)
+  // CSS / JS — network-first (always fresh styles & scripts when online)
   if (
     url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js')  ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.ico')
+    url.pathname.endsWith('.js')
   ) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
-        const fresh = fetch(e.request).then(resp => {
-          if (resp && resp.status === 200 && e.request.method === 'GET') {
-            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-          }
-          return resp;
-        }).catch(() => cached);
-        return cached || fresh;
-      })
+      fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && e.request.method === 'GET') {
+          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+        }
+        return resp;
+      }).catch(() => caches.match(e.request))
     );
     return;
   }
 
-  // Everything else — stale-while-revalidate
+  // Images & other assets — stale-while-revalidate (fast paint, acceptable staleness)
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(resp => {
