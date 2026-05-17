@@ -312,9 +312,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:absolute;inset:0;width:100%;height:100%;
   pointer-events:none;z-index:6;overflow:visible;
 }
-#board-wrap.drawing #draw-svg{pointer-events:auto;cursor:crosshair;}
+#board-wrap.drawing #draw-svg{pointer-events:auto;cursor:crosshair;touch-action:none;}
+#board-wrap.drawing.draw-eraser #draw-svg{cursor:none;}
 #board-wrap.drawing .board-card{pointer-events:none;}
 #draw-svg path{fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.draw-cursor-preview{
+  position:fixed;left:0;top:0;z-index:1200;
+  width:18px;height:18px;border:2px solid rgba(28,28,30,.72);
+  border-radius:999px;background:rgba(255,255,255,.16);
+  box-shadow:0 0 0 1px rgba(255,255,255,.65),0 8px 24px rgba(5,5,23,.16);
+  pointer-events:none;display:none;transform:translate(-50%,-50%);
+}
 
 /* Frame card */
 .card-frame{background:transparent;border:none;box-shadow:none!important;}
@@ -7079,6 +7087,7 @@ document.addEventListener('click', e => {
 /* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
 let _miroTool = 'select';
 function setMiroTool(tool) {
+  if (typeof disableDrawTool === 'function') disableDrawTool();
   _miroTool = tool;
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('mt-' + tool);
@@ -7822,9 +7831,9 @@ function screenToBoard(sx, sy) {
   if (!boardWrap) return null;
   const r = boardWrap.getBoundingClientRect();
   const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
-  const ox = (typeof state !== 'undefined' && state.offsetX) ? state.offsetX : 0;
-  const oy = (typeof state !== 'undefined' && state.offsetY) ? state.offsetY : 0;
-  return { x: (sx - r.left - ox) / sc, y: (sy - r.top - oy) / sc };
+  const panX = (typeof state !== 'undefined' && state.pan) ? state.pan.x : 0;
+  const panY = (typeof state !== 'undefined' && state.pan) ? state.pan.y : 0;
+  return { x: (sx - r.left - panX) / sc, y: (sy - r.top - panY) / sc };
 }
 
 /* Global drag-drop onto the board itself */
@@ -8265,6 +8274,8 @@ let _drawSvg = null;
 let _drawing = false;
 let _drawPoints = [];
 let _drawPath = null;
+let _drawPointerId = null;
+let _drawCursorPreview = null;
 
 // Per-tool state (color + size), persisted
 const DRAW_STATE_KEY = 'teachedos_draw_state_v1';
@@ -8303,6 +8314,43 @@ function saveStrokes() {
   try { localStorage.setItem('teachedos_board_strokes', _drawSvg.innerHTML); } catch {}
 }
 
+function _setDrawModeClass(tool) {
+  boardWrap.classList.remove('draw-pen', 'draw-marker', 'draw-eraser');
+  if (tool) boardWrap.classList.add('draw-' + tool);
+}
+
+function _hideDrawCursor() {
+  if (_drawCursorPreview) _drawCursorPreview.style.display = 'none';
+}
+
+function _updateDrawCursor(e) {
+  if (_drawTool !== 'eraser') { _hideDrawCursor(); return; }
+  if (!_drawCursorPreview) {
+    _drawCursorPreview = document.createElement('div');
+    _drawCursorPreview.className = 'draw-cursor-preview';
+    document.body.appendChild(_drawCursorPreview);
+  }
+  const size = Math.max(8, _drawState.eraser.size || 18);
+  _drawCursorPreview.style.width = size + 'px';
+  _drawCursorPreview.style.height = size + 'px';
+  _drawCursorPreview.style.left = e.clientX + 'px';
+  _drawCursorPreview.style.top = e.clientY + 'px';
+  _drawCursorPreview.style.display = 'block';
+}
+
+function disableDrawTool() {
+  if (!_drawTool && !boardWrap.classList.contains('drawing')) return;
+  _drawTool = null;
+  _drawing = false;
+  _drawPointerId = null;
+  _drawPath = null;
+  _drawPoints = [];
+  boardWrap.classList.remove('drawing');
+  _setDrawModeClass(null);
+  closeDrawPalette();
+  _hideDrawCursor();
+}
+
 function toggleDrawTool(tool, ev) {
   if (_drawTool === tool) {
     // Second click on the same tool → open palette (pen / marker only)
@@ -8310,16 +8358,16 @@ function toggleDrawTool(tool, ev) {
       openDrawPalette(ev && ev.currentTarget ? ev.currentTarget : null, tool);
       return;
     }
-    _drawTool = null;
-    boardWrap.classList.remove('drawing');
+    disableDrawTool();
     document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
     const sel = document.getElementById('mt-select'); if (sel) sel.classList.add('active');
-    closeDrawPalette();
     return;
   }
   _drawTool = tool;
+  _miroTool = tool;
   ensureDrawLayer();
   boardWrap.classList.add('drawing');
+  _setDrawModeClass(tool);
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('mt-' + tool);
   if (btn) btn.classList.add('active');
@@ -8406,17 +8454,20 @@ document.addEventListener('mousedown', e => {
 }, true);
 
 function _drawPointFromEvent(e) {
+  if (typeof screenToBoard === 'function') return screenToBoard(e.clientX, e.clientY);
   const r = boardWrap.getBoundingClientRect();
   const sc = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
-  const ox = (typeof state !== 'undefined' && state.offsetX) ? state.offsetX : 0;
-  const oy = (typeof state !== 'undefined' && state.offsetY) ? state.offsetY : 0;
-  return { x: (e.clientX - r.left - ox) / sc, y: (e.clientY - r.top - oy) / sc };
+  const panX = (typeof state !== 'undefined' && state.pan) ? state.pan.x : 0;
+  const panY = (typeof state !== 'undefined' && state.pan) ? state.pan.y : 0;
+  return { x: (e.clientX - r.left - panX) / sc, y: (e.clientY - r.top - panY) / sc };
 }
 
 function _eraseAt(e) {
   if (!_drawSvg) return;
   const p = _drawPointFromEvent(e);
-  const r = _drawState.eraser.size / 2;
+  const scale = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
+  const r = Math.max(3, (_drawState.eraser.size / 2) / scale);
+  let changed = false;
   // Hit-test all path bounding boxes (cheap)
   const paths = Array.from(_drawSvg.querySelectorAll('path'));
   for (const path of paths) {
@@ -8426,28 +8477,39 @@ function _eraseAt(e) {
           p.y >= bb.y - r && p.y <= bb.y + bb.height + r) {
         // Fine-grained: check if any point along the path is within radius
         const len = path.getTotalLength();
-        const step = Math.max(2, len / 60);
+        const step = Math.max(1, Math.min(8, r / 2));
         for (let s = 0; s <= len; s += step) {
           const pt = path.getPointAtLength(s);
           if (Math.hypot(pt.x - p.x, pt.y - p.y) <= r) {
             path.remove();
+            changed = true;
             break;
           }
         }
       }
     } catch {}
   }
+  return changed;
 }
 
-document.addEventListener('mousedown', e => {
+function _canStartDraw(e) {
   if (!_drawTool || !_drawSvg) return;
-  if (e.button !== 0) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (e.button != null && e.button !== 0 && e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
   if (!boardWrap.contains(e.target)) return;
   if (e.target.closest('#miro-toolbar') || e.target.closest('.tb-btn')) return;
+  if (e.target.closest('#draw-palette') || e.target.closest('.modal') || e.target.closest('.panel')) return;
+  return true;
+}
+
+function _beginDraw(e) {
+  if (!_canStartDraw(e)) return;
   _drawing = true;
+  _drawPointerId = e.pointerId ?? null;
+  _updateDrawCursor(e);
   if (_drawTool === 'eraser') {
     _eraseAt(e);
-    e.preventDefault();
+    if (typeof e.preventDefault === 'function') e.preventDefault();
     return;
   }
   _drawPoints = [_drawPointFromEvent(e)];
@@ -8464,24 +8526,50 @@ document.addEventListener('mousedown', e => {
   }
   _drawPath.setAttribute('d', `M ${_drawPoints[0].x} ${_drawPoints[0].y}`);
   _drawSvg.appendChild(_drawPath);
-  e.preventDefault();
-});
-document.addEventListener('mousemove', e => {
+  if (typeof e.preventDefault === 'function') e.preventDefault();
+}
+
+function _moveDraw(e) {
+  if (_drawTool && boardWrap.contains(e.target)) _updateDrawCursor(e);
+  if (_drawPointerId != null && e.pointerId != null && e.pointerId !== _drawPointerId) return;
   if (!_drawing) return;
+  if (typeof e.preventDefault === 'function') e.preventDefault();
   if (_drawTool === 'eraser') { _eraseAt(e); return; }
   if (!_drawPath) return;
   const p = _drawPointFromEvent(e);
   _drawPoints.push(p);
   const d = _drawPoints.map((pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
   _drawPath.setAttribute('d', d);
-});
-document.addEventListener('mouseup', () => {
+}
+
+function _endDraw(e) {
+  if (_drawPointerId != null && e && e.pointerId != null && e.pointerId !== _drawPointerId) return;
   if (!_drawing) return;
   _drawing = false;
+  _drawPointerId = null;
   _drawPath = null;
   _drawPoints = [];
   saveStrokes();
-});
+}
+
+function _leaveDrawArea() {
+  if (!_drawing) _hideDrawCursor();
+}
+
+if (window.PointerEvent) {
+  document.addEventListener('pointerdown', _beginDraw);
+  document.addEventListener('pointermove', _moveDraw, { passive: false });
+  document.addEventListener('pointerup', _endDraw);
+  document.addEventListener('pointercancel', _endDraw);
+  boardWrap.addEventListener('pointerleave', _leaveDrawArea);
+} else {
+  document.addEventListener('mousedown', _beginDraw);
+  document.addEventListener('mousemove', _moveDraw);
+  document.addEventListener('mouseup', _endDraw);
+  document.addEventListener('touchstart', e => { if (e.touches[0]) _beginDraw(e.touches[0]); }, { passive: false });
+  document.addEventListener('touchmove', e => { if (e.touches[0]) { _moveDraw(e.touches[0]); e.preventDefault(); } }, { passive: false });
+  document.addEventListener('touchend', () => _endDraw());
+}
 
 // Keyboard shortcuts: P (pencil), H (highlighter), F (frame)
 document.addEventListener('keydown', e => {
@@ -8489,6 +8577,12 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Escape' && _drawTool) {
+    e.preventDefault();
+    disableDrawTool();
+    setMiroTool('select');
+    return;
+  }
   if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
   else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
