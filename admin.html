@@ -313,6 +313,33 @@ tr{transition:background .15s ease}
 .invite-status.used{background:#eff6ff;color:#1d4ed8}
 .invite-status.revoked{background:#fef2f2;color:#dc2626}
 .invite-status.expired{background:#fff7ed;color:#c2410c}
+.plan-control-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;margin-bottom:24px}
+.plan-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.plan-card{position:relative;overflow:hidden;background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.7)}
+.plan-card::after{content:"";position:absolute;right:-52px;top:-52px;width:140px;height:140px;border-radius:999px;background:rgba(200,230,50,.22);pointer-events:none}
+.plan-card.pro::after{background:rgba(59,130,246,.18)}
+.plan-card.school::after{background:rgba(236,72,153,.16)}
+.plan-kicker{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.plan-name{font-size:22px;font-weight:900;margin-bottom:4px}
+.plan-price{font-size:13px;color:var(--text2);font-weight:800;margin-bottom:14px}
+.plan-limits{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.plan-limit{display:flex;justify-content:space-between;gap:14px;padding:9px 10px;border-radius:10px;background:#fafafa;border:1px solid var(--border);font-size:12px}
+.plan-limit span:first-child{color:var(--muted);font-weight:800}
+.plan-limit span:last-child{font-weight:900;text-align:right}
+.plan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.grant-panel{background:#1C1C1E;color:#fff;border-radius:20px;padding:22px;box-shadow:0 18px 48px rgba(28,28,30,.18)}
+.grant-panel .form-label{color:rgba(255,255,255,.62)}
+.grant-panel .form-input,.grant-panel .form-select{border:none;background:rgba(255,255,255,.95)}
+.grant-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grant-preview{margin-top:14px;padding:13px 14px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.08);font-size:12px;line-height:1.5;color:rgba(255,255,255,.72)}
+.policy-table{display:grid;grid-template-columns:1.1fr repeat(3,.8fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:14px}
+.policy-cell{background:#fff;padding:12px;font-size:12px;color:var(--text2)}
+.policy-head{font-weight:900;color:var(--text);background:#fafafa}
+.queue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.queue-list{display:flex;flex-direction:column;gap:10px}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}
+.preset-btn{border:1px solid var(--border);background:#fafafa;color:var(--text);border-radius:999px;padding:7px 11px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:900;cursor:pointer;transition:.15s}
+.preset-btn:hover{border-color:var(--accent);background:#fff}
 .ops-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;margin-top:24px}
 .ops-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);padding:22px;
   transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease}
@@ -403,7 +430,7 @@ tr{transition:background .15s ease}
   #main{margin-left:0;padding:20px 16px 28px}
   .page-title{font-size:24px}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .activity-grid,.analytics-grid,.ops-grid,.settings-grid,.spotlight-results,.brief-card{grid-template-columns:1fr}
+  .activity-grid,.analytics-grid,.ops-grid,.settings-grid,.spotlight-results,.brief-card,.plan-control-grid,.plan-card-grid,.queue-grid{grid-template-columns:1fr}
   .brief-score{margin:0 auto}
   .chart-stack{grid-template-columns:1fr}
   .table-header{padding:16px;align-items:flex-start}
@@ -514,6 +541,9 @@ html{scroll-behavior:smooth}
     </div>
     <div class="sb-item" onclick="showPage('billing')">
       <span class="sb-icon">💳</span>Billing
+    </div>
+    <div class="sb-item" onclick="showPage('packages')">
+      <span class="sb-icon">📦</span>Packages
     </div>
     <div class="sb-item" onclick="showPage('settings')">
       <span class="sb-icon">⚙️</span>Settings
@@ -1036,6 +1066,154 @@ html{scroll-behavior:smooth}
     </div>
   </div>
 
+  <!-- ── Packages ──────────────────────────────────────────────────────── -->
+  <div id="page-packages" class="page">
+    <div class="page-title">Package Control</div>
+    <div class="page-sub">Plans, limits, manual activations and subscription guardrails</div>
+
+    <div class="plan-card-grid">
+      <div class="plan-card free">
+        <div class="plan-kicker">Starter</div>
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0 · для теста продукта</div>
+        <div class="plan-limits">
+          <div class="plan-limit"><span>Boards</span><span>3</span></div>
+          <div class="plan-limit"><span>Students</span><span>5</span></div>
+          <div class="plan-limit"><span>Storage</span><span>50 MB</span></div>
+          <div class="plan-limit"><span>Exports</span><span>Basic</span></div>
+        </div>
+        <div class="plan-actions">
+          <button class="btn-sm btn-edit" onclick="fillGrantPlan('free','free','monthly',0)">Prepare Free</button>
+        </div>
+      </div>
+      <div class="plan-card pro">
+        <div class="plan-kicker">Teacher</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$19/mo · для активного преподавателя</div>
+        <div class="plan-limits">
+          <div class="plan-limit"><span>Boards</span><span>Unlimited</span></div>
+          <div class="plan-limit"><span>Students</span><span>80</span></div>
+          <div class="plan-limit"><span>Storage</span><span>2 GB</span></div>
+          <div class="plan-limit"><span>Ready lessons</span><span>Included</span></div>
+        </div>
+        <div class="plan-actions">
+          <button class="btn-sm btn-green" onclick="fillGrantPlan('pro','active','monthly',1)">Grant 1 month</button>
+          <button class="btn-sm btn-edit" onclick="fillGrantPlan('pro','active','yearly',12)">Grant year</button>
+        </div>
+      </div>
+      <div class="plan-card school">
+        <div class="plan-kicker">Team</div>
+        <div class="plan-name">School</div>
+        <div class="plan-price">$79/mo · школа или мини-команда</div>
+        <div class="plan-limits">
+          <div class="plan-limit"><span>Teachers</span><span>10</span></div>
+          <div class="plan-limit"><span>Students</span><span>500</span></div>
+          <div class="plan-limit"><span>Storage</span><span>20 GB</span></div>
+          <div class="plan-limit"><span>Admin tools</span><span>Full</span></div>
+        </div>
+        <div class="plan-actions">
+          <button class="btn-sm btn-green" onclick="fillGrantPlan('school','active','quarterly',3)">Grant quarter</button>
+          <button class="btn-sm btn-edit" onclick="fillGrantPlan('school','active','yearly',12)">Grant year</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-control-grid">
+      <div class="grant-panel">
+        <div class="setting-title" style="color:#fff">Manual Subscription Grant</div>
+        <div class="setting-desc" style="color:rgba(255,255,255,.62)">Выдай пакет вручную после оплаты, теста, промокода или договоренности.</div>
+        <div class="form-group">
+          <label class="form-label">User Email</label>
+          <input class="form-input" id="grant-email" type="email" placeholder="teacher@example.com"/>
+        </div>
+        <div class="grant-row">
+          <div class="form-group">
+            <label class="form-label">Plan</label>
+            <select class="form-select" id="grant-plan" onchange="updateGrantPreview()">
+              <option value="free">Free</option>
+              <option value="pro">Teacher Pro</option>
+              <option value="school">School</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="grant-status" onchange="updateGrantPreview()">
+              <option value="free">Free</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="grace">Grace</option>
+              <option value="expired">Expired</option>
+              <option value="canceled">Canceled</option>
+            </select>
+          </div>
+        </div>
+        <div class="grant-row">
+          <div class="form-group">
+            <label class="form-label">Billing Cycle</label>
+            <select class="form-select" id="grant-cycle" onchange="updateGrantPreview()">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Months</label>
+            <input class="form-input" id="grant-months" type="number" min="0" max="24" value="1" oninput="updateGrantPreview()"/>
+          </div>
+        </div>
+        <div class="grant-preview" id="grant-preview">Choose a plan to preview activation details.</div>
+        <div class="plan-actions">
+          <button class="btn-sm btn-green" style="padding:10px 16px" onclick="grantSubscription()">Apply to User</button>
+          <button class="btn-sm btn-edit" style="padding:10px 16px" onclick="copyGrantInvoice()">Copy Invoice Text</button>
+        </div>
+      </div>
+
+      <div class="table-card" style="padding:22px;margin-bottom:0">
+        <div class="table-header" style="padding:0 0 14px;border-bottom:none">
+          <div class="table-header-title">Plan Snapshot</div>
+          <button class="btn-sm btn-edit" onclick="loadPackageControl()">Refresh</button>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:16px">
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon blue">🚀</div><div><div class="stat-num" id="pkg-pro-users">—</div><div class="stat-label">Pro</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon pink">🏫</div><div><div class="stat-num" id="pkg-school-users">—</div><div class="stat-label">School</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon orange">⏳</div><div><div class="stat-num" id="pkg-pending">—</div><div class="stat-label">Pending Payments</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon green">💵</div><div><div class="stat-num" id="pkg-approved">—</div><div class="stat-label">Approved / 30d</div></div></div>
+        </div>
+        <div class="queue-list" id="pkg-expiring-list">
+          <div class="activity-item"><div><div class="activity-title">Loading…</div><div class="activity-sub">Checking subscription expirations</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="queue-grid">
+      <div class="table-card" style="padding:22px">
+        <div class="table-header" style="padding:0 0 14px;border-bottom:none">
+          <div class="table-header-title">Limit Policy</div>
+          <button class="btn-sm btn-green" onclick="copyLimitPolicy()">Copy Policy</button>
+        </div>
+        <div class="policy-table" id="limit-policy-table">
+          <div class="policy-cell policy-head">Limit</div><div class="policy-cell policy-head">Free</div><div class="policy-cell policy-head">Pro</div><div class="policy-cell policy-head">School</div>
+          <div class="policy-cell">Boards</div><div class="policy-cell">3</div><div class="policy-cell">Unlimited</div><div class="policy-cell">Unlimited</div>
+          <div class="policy-cell">Students</div><div class="policy-cell">5</div><div class="policy-cell">80</div><div class="policy-cell">500</div>
+          <div class="policy-cell">Storage</div><div class="policy-cell">50 MB</div><div class="policy-cell">2 GB</div><div class="policy-cell">20 GB</div>
+          <div class="policy-cell">Community boards</div><div class="policy-cell">View only</div><div class="policy-cell">Publish</div><div class="policy-cell">Publish + team</div>
+          <div class="policy-cell">Billing control</div><div class="policy-cell">No</div><div class="policy-cell">Self</div><div class="policy-cell">Admin managed</div>
+        </div>
+      </div>
+
+      <div class="table-card" style="padding:22px">
+        <div class="table-header" style="padding:0 0 14px;border-bottom:none">
+          <div class="table-header-title">Billing Playbook</div>
+        </div>
+        <div class="ops-actions">
+          <div class="ops-action"><div><div class="ops-action-title">1. User chooses plan</div><div class="ops-action-copy">Teacher opens billing, selects Pro/School, gets invoice instructions.</div></div><div class="ops-pill good">Flow</div></div>
+          <div class="ops-action"><div><div class="ops-action-title">2. Admin verifies payment</div><div class="ops-action-copy">Use Billing Requests to approve bank transfer, or Manual Grant for direct confirmation.</div></div><div class="ops-pill warn">Manual</div></div>
+          <div class="ops-action"><div><div class="ops-action-title">3. Limits unlock immediately</div><div class="ops-action-copy">Plan, status, cycle and expiration are stored on the user profile.</div></div><div class="ops-pill good">Ready</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Settings ───────────────────────────────────────────────────────── -->
   <div id="page-settings" class="page">
     <div class="page-title">Settings</div>
@@ -1171,6 +1349,13 @@ html{scroll-behavior:smooth}
     </div>
     <div class="form-group">
       <label class="form-label">Plan</label>
+      <div class="preset-row">
+        <button class="preset-btn" type="button" onclick="applyUserPlanPreset('free',0)">Free</button>
+        <button class="preset-btn" type="button" onclick="applyUserPlanPreset('pro',1)">Pro 1m</button>
+        <button class="preset-btn" type="button" onclick="applyUserPlanPreset('pro',12)">Pro year</button>
+        <button class="preset-btn" type="button" onclick="applyUserPlanPreset('school',3)">School quarter</button>
+        <button class="preset-btn" type="button" onclick="applyUserPlanPreset('trial',0)">Trial 14d</button>
+      </div>
       <select class="form-select" id="mu-plan">
         <option value="free">Free</option>
         <option value="pro">Teacher Pro</option>
@@ -1278,6 +1463,7 @@ const pageMeta = {
   sessions: ['Active Sessions', 'Review live login activity'],
   audit: ['System Audit', 'Operational signals and hygiene checks'],
   billing: ['Billing', 'Manual payments and tariff approvals'],
+  packages: ['Package Control', 'Plans, limits and manual subscription grants'],
   settings: ['Settings', 'System configuration and admin tools'],
 };
 
@@ -1341,6 +1527,7 @@ function enterPanel() {
   document.getElementById('sb-email').textContent  = currentAdminUser.email;
   document.getElementById('api-url-display').textContent = API;
   updateMobileHeader('dashboard');
+  updateGrantPreview();
   refreshStats();
   loadSysInfo();
 }
@@ -1401,6 +1588,7 @@ function showPage(name) {
   if (name === 'sessions')  loadSessions();
   if (name === 'audit')     loadAudit();
   if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); }
+  if (name === 'packages')  loadPackageControl();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
 }
 
@@ -2056,6 +2244,186 @@ function kickUser(userId, name) {
       toast('Sessions revoked ✅', 'success');
     } catch(e) { toast(e.message, 'error'); }
   });
+}
+
+// ── Package Control ──────────────────────────────────────────────────────
+const PLAN_CATALOG = {
+  free: {
+    label: 'Free',
+    price: '$0',
+    defaultStatus: 'free',
+    defaultCycle: 'monthly',
+    limits: ['3 boards', '5 students', '50 MB storage', 'basic exports'],
+  },
+  pro: {
+    label: 'Teacher Pro',
+    price: '$19/mo',
+    defaultStatus: 'active',
+    defaultCycle: 'monthly',
+    limits: ['unlimited boards', '80 students', '2 GB storage', 'ready lessons'],
+  },
+  school: {
+    label: 'School',
+    price: '$79/mo',
+    defaultStatus: 'active',
+    defaultCycle: 'monthly',
+    limits: ['10 teachers', '500 students', '20 GB storage', 'full admin tools'],
+  },
+};
+
+function applyUserPlanPreset(plan, months = 1) {
+  if (plan === 'trial') {
+    document.getElementById('mu-plan').value = 'pro';
+    document.getElementById('mu-plan-status').value = 'grace';
+    document.getElementById('mu-billing-cycle').value = 'monthly';
+    document.getElementById('mu-plan-expires').value = dateInputAfterDays(14);
+    toast('14-day trial preset applied', 'success');
+    return;
+  }
+  const config = PLAN_CATALOG[plan] || PLAN_CATALOG.free;
+  document.getElementById('mu-plan').value = plan;
+  document.getElementById('mu-plan-status').value = config.defaultStatus;
+  document.getElementById('mu-billing-cycle').value = months >= 12 ? 'yearly' : months >= 3 ? 'quarterly' : config.defaultCycle;
+  document.getElementById('mu-plan-expires').value = months > 0 ? dateInputAfterMonths(months) : '';
+  toast(`${config.label} preset applied`, 'success');
+}
+
+function fillGrantPlan(plan, status, cycle, months) {
+  document.getElementById('grant-plan').value = plan;
+  document.getElementById('grant-status').value = status;
+  document.getElementById('grant-cycle').value = cycle;
+  document.getElementById('grant-months').value = months;
+  showPage('packages');
+  updateGrantPreview();
+  setTimeout(() => document.getElementById('grant-email')?.focus(), 80);
+}
+
+function grantPayloadFromForm() {
+  const plan = document.getElementById('grant-plan').value;
+  const status = document.getElementById('grant-status').value;
+  const billing_cycle = document.getElementById('grant-cycle').value;
+  const months = Math.max(0, Math.min(24, Number(document.getElementById('grant-months').value || 0)));
+  const plan_expires_at = months > 0 ? dateInputAfterMonths(months) : null;
+  return { plan, plan_status: status, billing_cycle, plan_expires_at, months };
+}
+
+function updateGrantPreview() {
+  const el = document.getElementById('grant-preview');
+  if (!el) return;
+  const payload = grantPayloadFromForm();
+  const config = PLAN_CATALOG[payload.plan] || PLAN_CATALOG.free;
+  el.innerHTML = `
+    <strong>${config.label}</strong> · ${esc(config.price)} · ${billingCycleLabel(payload.billing_cycle)}<br>
+    Status: <strong>${esc(payload.plan_status)}</strong>${payload.plan_expires_at ? ` · expires <strong>${fmtDate(payload.plan_expires_at)}</strong>` : ' · no expiration date'}<br>
+    Unlocks: ${config.limits.map(esc).join(', ')}
+  `;
+}
+
+async function grantSubscription() {
+  const email = document.getElementById('grant-email').value.trim();
+  if (!email) { toast('Enter user email', 'error'); return; }
+  const payload = grantPayloadFromForm();
+  confirm(
+    `Apply ${PLAN_CATALOG[payload.plan]?.label || payload.plan} to ${email}?`,
+    payload.plan_expires_at ? `Subscription will expire on ${fmtDate(payload.plan_expires_at)}.` : 'This plan will be applied without an expiration date.',
+    '📦',
+    async () => {
+      try {
+        const id = await userIdByEmail(email);
+        await api('PATCH', `/api/admin/users/${id}`, {
+          plan: payload.plan,
+          plan_status: payload.plan_status,
+          billing_cycle: payload.billing_cycle,
+          plan_expires_at: payload.plan_expires_at,
+        });
+        toast('Subscription updated ✅', 'success');
+        loadPackageControl();
+        refreshStats();
+        if (document.getElementById('page-users').classList.contains('active')) loadUsers();
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+  );
+}
+
+async function copyGrantInvoice() {
+  const email = document.getElementById('grant-email').value.trim() || '[client email]';
+  const payload = grantPayloadFromForm();
+  const config = PLAN_CATALOG[payload.plan] || PLAN_CATALOG.free;
+  const invoiceText = [
+    `TeachEd invoice / manual confirmation`,
+    `Client: ${email}`,
+    `Plan: ${config.label}`,
+    `Cycle: ${billingCycleLabel(payload.billing_cycle)}`,
+    `Status after confirmation: ${payload.plan_status}`,
+    `Period: ${payload.months || 'no fixed period'} month(s)`,
+    `Expires: ${payload.plan_expires_at ? fmtDate(payload.plan_expires_at) : 'no expiration'}`,
+    `Limits: ${config.limits.join(', ')}`,
+    `Admin note: activate after bank transfer confirmation.`,
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(invoiceText);
+    toast('Invoice text copied', 'success');
+  } catch {
+    toast(invoiceText, '');
+  }
+}
+
+async function loadPackageControl() {
+  updateGrantPreview();
+  try {
+    const d = await api('GET', '/api/admin/billing/summary');
+    document.getElementById('pkg-pro-users').textContent = d.plans?.pro ?? 0;
+    document.getElementById('pkg-school-users').textContent = d.plans?.school ?? 0;
+    document.getElementById('pkg-pending').textContent = d.statuses?.pending ?? 0;
+    document.getElementById('pkg-approved').textContent = `$${Number(d.approved30d || 0).toFixed(2)}`;
+    const rows = d.expiringSoon || [];
+    const root = document.getElementById('pkg-expiring-list');
+    if (!rows.length) {
+      root.innerHTML = `<div class="activity-item"><div><div class="activity-title">No expirations soon</div><div class="activity-sub">Paid access looks stable for the next 7 days.</div></div></div>`;
+      return;
+    }
+    root.innerHTML = rows.map(user => `
+      <div class="activity-item">
+        <div>
+          <div class="activity-title">${esc(user.name)} <span class="badge badge-${user.plan === 'school' ? 'admin' : 'teacher'}">${esc(user.plan)}</span></div>
+          <div class="activity-sub">${esc(user.email)} · ${esc(user.plan_status || 'active')} · ${esc(user.billing_cycle || 'monthly')}</div>
+        </div>
+        <div class="activity-meta">${fmtDate(user.plan_expires_at)}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('pkg-expiring-list').innerHTML =
+      `<div class="activity-item"><div><div class="activity-title">Package summary unavailable</div><div class="activity-sub">${esc(e.message)}</div></div></div>`;
+  }
+}
+
+async function copyLimitPolicy() {
+  const lines = [
+    'TeachEd package limits',
+    'Free: 3 boards, 5 students, 50 MB storage, basic exports, community view only',
+    'Teacher Pro: unlimited boards, 80 students, 2 GB storage, ready lessons, community publishing',
+    'School: 10 teachers, 500 students, 20 GB storage, full admin tools, team publishing',
+  ];
+  try {
+    await navigator.clipboard.writeText(lines.join('\n'));
+    toast('Limit policy copied', 'success');
+  } catch {
+    toast(lines.join(' · '), '');
+  }
+}
+
+function dateInputAfterMonths(months) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + Number(months || 0));
+  return d.toISOString().slice(0, 10);
+}
+
+function dateInputAfterDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + Number(days || 0));
+  return d.toISOString().slice(0, 10);
 }
 
 // ── Billing ──────────────────────────────────────────────────────────────
