@@ -80,6 +80,21 @@ textarea{min-height:60px;resize:vertical}
 .pair-remove:hover{background:rgba(239,68,68,.12)}
 .pair-row-num{font:800 10px var(--mono);color:var(--text3);text-align:center}
 .preset-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:rgba(200,230,50,.06);border:1.5px solid rgba(200,230,50,.2);border-radius:14px}
+.topic-bar{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;padding:14px 16px;background:#0E0E10;border:1px solid #0E0E10;border-radius:18px;color:#fff;box-shadow:0 6px 22px rgba(14,14,16,.18)}
+.topic-bar-head{display:flex;align-items:center;gap:10px}
+.topic-bar-icon{font-size:18px}
+.topic-bar-label{font:800 14px var(--font);letter-spacing:-.01em}
+.topic-bar-meta{margin-left:auto;font:700 10px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-bar-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.topic-ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.topic-ctl > span{font:700 10px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-ctl select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:9px 12px;font:600 13px var(--font);outline:none;cursor:pointer;transition:border-color .15s,background .15s}
+.topic-ctl select:hover{border-color:rgba(205,242,79,.5);background:rgba(255,255,255,.10)}
+.topic-ctl select:focus{border-color:#CDF24F;background:rgba(205,242,79,.10)}
+.topic-go{background:#CDF24F;color:#0E0E10;border:none;border-radius:10px;padding:10px 18px;font:800 13px var(--font);cursor:pointer;transition:transform .12s cubic-bezier(.34,1.3,.64,1),background .15s,box-shadow .15s;box-shadow:0 4px 14px rgba(205,242,79,.25);align-self:flex-end}
+.topic-go:hover{background:#B8D62A;box-shadow:0 6px 18px rgba(205,242,79,.35)}
+.topic-go:active{transform:scale(.96)}
+@media(max-width:640px){.topic-bar-controls{flex-direction:column;align-items:stretch}.topic-ctl{min-width:0}.topic-go{align-self:stretch}}
 .preset-bar-label{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3);white-space:nowrap}
 .preset-chip{padding:6px 12px;border:1.5px solid var(--border);border-radius:999px;font:700 12px var(--font);color:var(--text2);cursor:pointer;background:#fff;transition:.15s;white-space:nowrap}
 .preset-chip:hover{border-color:var(--lime);background:rgba(200,230,50,.1);color:var(--accent)}
@@ -271,6 +286,41 @@ textarea{min-height:60px;resize:vertical}
         <button class="btn sm ghost" onclick="closeBuilder()">Cancel</button>
       </div>
     </div>
+    <div class="topic-bar" id="topic-bar" style="display:none;">
+      <div class="topic-bar-head">
+        <span class="topic-bar-icon">📚</span>
+        <span class="topic-bar-label">Load from Topic Library</span>
+        <span class="topic-bar-meta" id="topic-bar-meta"></span>
+      </div>
+      <div class="topic-bar-controls">
+        <label class="topic-ctl">
+          <span>Topic</span>
+          <select id="topic-pick"></select>
+        </label>
+        <label class="topic-ctl">
+          <span>Level</span>
+          <select id="topic-level">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1" selected>B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="mix">Mix all</option>
+          </select>
+        </label>
+        <label class="topic-ctl">
+          <span>Items</span>
+          <select id="topic-count">
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="0">All</option>
+          </select>
+        </label>
+        <button type="button" class="topic-go" onclick="applyTopic()">Generate →</button>
+      </div>
+    </div>
     <div class="preset-bar" id="preset-bar" style="display:none;">
       <div class="preset-bar-label">Quick fill:</div>
       <div id="preset-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -342,6 +392,7 @@ textarea{min-height:60px;resize:vertical}
 </div>
 
 <script src="scripts/app-core.js"></script>
+<script src="scripts/vocabulary.js"></script>
 <script>
 const PRESETS = {
   pairs: [
@@ -1113,6 +1164,7 @@ function openBuilder() {
   document.getElementById('game-tags').value = selectedType.tag;
   document.getElementById('save-btn').textContent = 'Save Game to Library';
   bulkMode = false;
+  renderTopicBar();
   renderPresetBar();
   renderContentFields();
   updateItemCounter();
@@ -1169,6 +1221,82 @@ function applyPreset(idx) {
     updateItemCounter();
   }
   toast('Preset "' + preset.name + '" applied!');
+}
+
+/* ---- TOPIC LIBRARY ---- */
+const TOPIC_SUPPORTED = ['pairs','words','sentences','mcq'];
+
+function renderTopicBar() {
+  const bar = document.getElementById('topic-bar');
+  if (!selectedType || !TOPIC_SUPPORTED.includes(selectedType.fields) || !window.TEACHEDOS_VOCAB) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  const pick = document.getElementById('topic-pick');
+  const topics = window.TEACHEDOS_VOCAB.listTopics();
+  pick.innerHTML = topics.map(t =>
+    `<option value="${t.id}">${t.icon} ${t.name}</option>`
+  ).join('');
+  const totalWords = topics.reduce((s, t) => s + Object.values(t.counts).reduce((a, b) => a + b, 0), 0);
+  document.getElementById('topic-bar-meta').textContent = topics.length + ' topics · ' + totalWords + ' words';
+  // Default level to current game-level if it matches
+  const gameLevel = document.getElementById('game-level')?.value;
+  if (['A1','A2','B1','B2','C1'].includes(gameLevel)) {
+    document.getElementById('topic-level').value = gameLevel;
+  }
+}
+
+function applyTopic() {
+  if (!selectedType || !window.TEACHEDOS_VOCAB) return;
+  const topicId = document.getElementById('topic-pick').value;
+  const level   = document.getElementById('topic-level').value;
+  const countV  = parseInt(document.getElementById('topic-count').value, 10);
+  const count   = countV > 0 ? countV : 0;
+  const topic   = window.TEACHEDOS_VOCAB.getTopic(topicId);
+  if (!topic) { toast('Topic not found'); return; }
+  const words = window.TEACHEDOS_VOCAB.pick(topicId, level, count || undefined);
+  if (!words.length) { toast('No words for this level'); return; }
+
+  // Auto-fill metadata
+  if (!document.getElementById('game-title').value) {
+    document.getElementById('game-title').value = topic.icon + ' ' + topic.name +
+      (level === 'mix' ? '' : ' · ' + level);
+  }
+  if (level !== 'mix') document.getElementById('game-level').value = level;
+  if (!document.getElementById('game-tags').value || /^[a-z\s,]+$/i.test(document.getElementById('game-tags').value)) {
+    document.getElementById('game-tags').value = [topicId, level === 'mix' ? '' : level, 'vocabulary']
+      .filter(Boolean).join(', ');
+  }
+
+  // Map vocabulary entries into game-type-specific content shapes
+  let content;
+  switch (selectedType.fields) {
+    case 'pairs':
+      content = { pairs: words.map(w => ({ a: w.en, b: w.uk })) };
+      break;
+    case 'words':
+      content = { words: words.map(w => w.en) };
+      break;
+    case 'sentences':
+      content = { sentences: words.map(w => w.ex) };
+      break;
+    case 'mcq':
+      // Build MCQ: "What is the translation of <en>?" with 4 options
+      content = { questions: words.map((w, i) => {
+        const distractors = words.filter((_, j) => j !== i)
+          .sort(() => Math.random() - 0.5).slice(0, 3).map(d => d.uk);
+        const opts = [w.uk, ...distractors].sort(() => Math.random() - 0.5);
+        return { q: 'What does "' + w.en + '" mean?', opts, correct: opts.indexOf(w.uk) };
+      }) };
+      break;
+  }
+  if (!content) return;
+
+  renderContentFields();
+  populateContent({ content });
+  updateItemCounter();
+  toast('Loaded ' + words.length + ' words from "' + topic.name + '"');
 }
 
 /* ---- ITEM COUNTER ---- */

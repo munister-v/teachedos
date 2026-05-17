@@ -55,8 +55,9 @@ svg.gallows{width:160px;height:140px}
   <div class="msg" id="msg"></div>
 </div>
 
+<script src="../scripts/vocabulary.js"></script>
 <script>
-const WORDS=[
+let WORDS=[
   {w:'apple',h:'a fruit (яблуко)'},
   {w:'bridge',h:'crosses water (міст)'},
   {w:'cloud',h:'in the sky (хмара)'},
@@ -73,6 +74,17 @@ const WORDS=[
   {w:'needle',h:'used for sewing (голка)'},
   {w:'ocean',h:'vast body of water (океан)'},
 ];
+(function loadFromUrl(){
+  const p = new URLSearchParams(location.search);
+  const topicId = p.get('topic'), level = p.get('level') || 'mix';
+  if(!topicId || !window.TEACHEDOS_VOCAB) return;
+  const words = window.TEACHEDOS_VOCAB.getWords(topicId, level)
+    .filter(w => /^[a-zA-Z]+$/.test(w.en)); // single-word entries only
+  if(!words.length) return;
+  WORDS = words.map(w => ({ w: w.en.toLowerCase(), h: w.uk + (w.ru ? ' (' + w.ru + ')' : '') }));
+  const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
+  if(topic) document.title = topic.icon + ' ' + topic.name + ' Hangman · TeachEd';
+})();
 const PARTS=['p0','p1','p2','p3','p4','p5'];
 let queue=[],idx=0,score=0,word='',guessed=new Set(),wrong=0;
 

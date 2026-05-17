@@ -36,8 +36,9 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 <div class="grid" id="grid"></div>
 <div class="msg" id="msg"></div>
 
+<script src="../scripts/vocabulary.js"></script>
 <script>
-const PAIRS=[
+let PAIRS=[
   {w:'curious',d:'eager to know'},
   {w:'ancient',d:'very old'},
   {w:'brave',d:'not afraid'},
@@ -49,6 +50,18 @@ const PAIRS=[
   {w:'eager',d:'very willing'},
   {w:'scarce',d:'hard to find'},
 ];
+(function loadFromUrl(){
+  const p = new URLSearchParams(location.search);
+  const topicId = p.get('topic'), level = p.get('level') || 'mix';
+  if(!topicId || !window.TEACHEDOS_VOCAB) return;
+  const words = window.TEACHEDOS_VOCAB.getWords(topicId, level);
+  if(!words.length) return;
+  PAIRS = words.map(w => ({ w: w.en, d: w.uk }));
+  const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
+  if(topic){
+    document.title = topic.icon + ' ' + topic.name + ' Memory Match · TeachEd';
+  }
+})();
 let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}

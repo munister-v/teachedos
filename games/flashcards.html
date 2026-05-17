@@ -68,8 +68,9 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
   <button class="btn-play" onclick="restart()">Play Again</button>
 </div>
 
+<script src="../scripts/vocabulary.js"></script>
 <script>
-const VOCAB=[
+let VOCAB=[
   {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},
   {word:"sustainable",ph:"/səˈsteɪnəbl/",tr:"sustainable (adj)",ex:"We need more sustainable energy sources."},
   {word:"negotiate",ph:"/nɪˈɡəʊʃieɪt/",tr:"negotiate (v)",ex:"They had to negotiate the terms of the contract."},
@@ -91,6 +92,28 @@ const VOCAB=[
   {word:"overwhelm",ph:"/ˌəʊvəˈwelm/",tr:"overwhelm (v)",ex:"Don't let the workload overwhelm you."},
   {word:"fascinating",ph:"/ˈfæsɪneɪtɪŋ/",tr:"fascinating (adj)",ex:"The documentary was absolutely fascinating."}
 ];
+
+// Override VOCAB from topic library if URL params present
+(function loadFromUrl(){
+  const p = new URLSearchParams(location.search);
+  const topicId = p.get('topic'), level = p.get('level') || 'mix';
+  if(!topicId || !window.TEACHEDOS_VOCAB) return;
+  const words = window.TEACHEDOS_VOCAB.getWords(topicId, level);
+  if(!words.length) return;
+  VOCAB = words.map(w => ({
+    word: w.en,
+    ph: '',
+    tr: w.uk + (w.ru ? ' · ' + w.ru : ''),
+    ex: w.ex
+  }));
+  // Update page title
+  const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
+  if(topic){
+    document.title = topic.icon + ' ' + topic.name + ' Flashcards · TeachEd';
+    const titleEl = document.querySelector('.title, h1, .game-title');
+    if(titleEl) titleEl.textContent = topic.icon + ' ' + topic.name + (level === 'mix' ? '' : ' · ' + level);
+  }
+})();
 
 let deck=[],known=0,total=VOCAB.length,flipped=false;
 

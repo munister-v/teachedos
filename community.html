@@ -140,6 +140,7 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
 <div id="toast"></div>
 
 <script src="scripts/app-core.js"></script>
+<script src="scripts/vocabulary.js"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -416,6 +417,36 @@ const COMMUNITY_GAMES = [
   { id:'cg26', icon:'📚', title:'Literary Devices', type:'quiz', level:'C2', topic:'Reading', desc:'Identify metaphor, metonymy, synecdoche and more.', tags:['reading','literature','devices'], src:'games/quiz-show.html' },
   { id:'cg27', icon:'🗝️', title:'Rare Idioms & Proverbs', type:'flashcards', level:'C2', topic:'Vocabulary', desc:'Obscure but beautiful English idioms for mastery level.', tags:['vocabulary','idioms','proverbs'], src:'games/flashcards.html' },
 ];
+
+// Auto-expand with topic-library game variants (flashcards + memory-match + hangman per topic)
+(function expandWithTopicVariants(){
+  if(!window.TEACHEDOS_VOCAB) return;
+  const topics = window.TEACHEDOS_VOCAB.listTopics();
+  const VARIANTS = [
+    { type:'flashcards',   suffix:'Flashcards',  src:'games/flashcards.html',  emoji:'🃏' },
+    { type:'memory-match', suffix:'Memory Match',src:'games/memory-match.html',emoji:'🧠' },
+    { type:'hangman',      suffix:'Hangman',     src:'games/hangman.html',     emoji:'🎯' },
+  ];
+  const LEVEL_FOR_TOPIC = { A1:'A1', A2:'A2', B1:'B1', B2:'B2', C1:'C1' };
+  topics.forEach(t => {
+    // Pick the level with the most words as the default
+    const bestLevel = Object.entries(t.counts).sort((a,b) => b[1]-a[1])[0][0];
+    VARIANTS.forEach(v => {
+      COMMUNITY_GAMES.push({
+        id: 'tv-' + t.id + '-' + v.type,
+        icon: t.icon,
+        title: t.name + ' · ' + v.suffix,
+        type: v.type,
+        level: bestLevel,
+        topic: 'Vocabulary',
+        desc: v.suffix + ' game generated from the ' + t.name + ' topic library.',
+        tags: [t.id, 'vocabulary', v.type],
+        src: v.src + '?topic=' + t.id + '&level=' + bestLevel,
+        autoTopic: true,
+      });
+    });
+  });
+})();
 
 function filterGames(level) {
   _commGamesLevel = level;

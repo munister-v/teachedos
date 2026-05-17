@@ -116,6 +116,19 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .sidebar{display:none}
   .center{padding:12px}
 }
+.auto-gen{margin:14px;padding:14px;background:#0E0E10;color:#fff;border-radius:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(14,14,16,.12)}
+.auto-gen-head{display:flex;align-items:center;gap:8px;font:800 13px var(--font-sans, system-ui)}
+.auto-gen-meta{margin-left:auto;font:700 9px 'JetBrains Mono',ui-monospace,monospace;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.auto-gen-row{display:flex;flex-direction:column;gap:4px}
+.auto-gen-row.split{flex-direction:row;gap:8px}
+.auto-gen-row .half{flex:1;display:flex;flex-direction:column;gap:4px}
+.auto-gen-row label,.auto-gen-row .half > span{font:700 10px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.auto-gen select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#fff;border-radius:8px;padding:8px 10px;font:600 12px var(--font-sans, system-ui);outline:none;cursor:pointer;transition:border-color .15s}
+.auto-gen select:hover{border-color:rgba(205,242,79,.45)}
+.auto-gen select:focus{border-color:#CDF24F}
+.auto-gen-go{background:#CDF24F;color:#0E0E10;border:none;border-radius:10px;padding:10px;font:800 12px var(--font-sans, system-ui);cursor:pointer;transition:transform .12s cubic-bezier(.34,1.3,.64,1),background .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(205,242,79,.25);margin-top:4px}
+.auto-gen-go:hover{background:#B8D62A;box-shadow:0 6px 16px rgba(205,242,79,.35)}
+.auto-gen-go:active{transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -133,6 +146,43 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 <div class="layout">
   <!-- SIDEBAR -->
   <aside class="sidebar">
+    <div class="auto-gen">
+      <div class="auto-gen-head">
+        <span>📚</span>
+        <span>Auto-Generate</span>
+        <span class="auto-gen-meta" id="autoGenMeta"></span>
+      </div>
+      <div class="auto-gen-row">
+        <label>Topic</label>
+        <select id="autoTopic"></select>
+      </div>
+      <div class="auto-gen-row split">
+        <label class="half">
+          <span>Level</span>
+          <select id="autoLevel">
+            <option>A1</option><option>A2</option><option selected>B1</option>
+            <option>B2</option><option>C1</option><option value="mix">Mix</option>
+          </select>
+        </label>
+        <label class="half">
+          <span>Count</span>
+          <select id="autoCount">
+            <option>5</option><option selected>10</option><option>15</option><option>20</option>
+          </select>
+        </label>
+      </div>
+      <div class="auto-gen-row">
+        <label>Question Type</label>
+        <select id="autoType">
+          <option value="mcq" selected>MCQ — multiple choice</option>
+          <option value="tf">True / False</option>
+          <option value="fib">Fill in Blank</option>
+          <option value="mp">Match Pairs</option>
+          <option value="mixed">Mixed types</option>
+        </select>
+      </div>
+      <button class="auto-gen-go" onclick="generateFromTopic()">Generate Quiz →</button>
+    </div>
     <div class="sidebar-head">
       <h2>Questions</h2>
       <div class="add-btn">
@@ -203,6 +253,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
+<script src="scripts/vocabulary.js"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -475,9 +526,100 @@ function renderAll(){
   renderEditor();
 }
 
+// ── Auto-Generate from Topic ──
+function populateAutoGenOptions(){
+  if(!window.TEACHEDOS_VOCAB) return;
+  const sel = document.getElementById('autoTopic');
+  if(!sel) return;
+  const topics = window.TEACHEDOS_VOCAB.listTopics();
+  sel.innerHTML = topics.map(t => `<option value="${t.id}">${t.icon} ${t.name}</option>`).join('');
+  const total = topics.reduce((s,t) => s + Object.values(t.counts).reduce((a,b)=>a+b,0), 0);
+  document.getElementById('autoGenMeta').textContent = topics.length + ' topics · ' + total + ' words';
+}
+
+function _shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
+
+function _buildMcq(w, all){
+  const distractors = _shuffle(all.filter(x => x.en !== w.en)).slice(0,3).map(d => d.uk);
+  const opts = _shuffle([w.uk, ...distractors]);
+  return { text: 'What does "' + w.en + '" mean?', options: opts, correct: opts.indexOf(w.uk) };
+}
+function _buildTf(w, all){
+  const flip = Math.random() < 0.5;
+  const fakeUk = _shuffle(all.filter(x => x.en !== w.en))[0]?.uk || w.uk;
+  const claim = flip
+    ? '"' + w.en + '" means "' + w.uk + '"'
+    : '"' + w.en + '" means "' + fakeUk + '"';
+  return { text: claim, correct: flip ? 'true' : 'false' };
+}
+function _buildFib(w){
+  // Replace the target word in the example sentence with ___
+  const re = new RegExp('\\b' + w.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+  const sentence = w.ex && re.test(w.ex) ? w.ex.replace(re, '___') : 'A ___ is something you need on a journey.';
+  return { text: sentence, answer: w.en, variants: '' };
+}
+function _buildMp(words){
+  const sample = _shuffle(words).slice(0, 4);
+  return { text: 'Match the words with their translations', pairs: sample.map(w => ({ l: w.en, r: w.uk })) };
+}
+
+function generateFromTopic(){
+  if(!window.TEACHEDOS_VOCAB){ showToast('Vocabulary library not loaded'); return; }
+  const topicId = document.getElementById('autoTopic').value;
+  const level   = document.getElementById('autoLevel').value;
+  const count   = parseInt(document.getElementById('autoCount').value, 10);
+  const type    = document.getElementById('autoType').value;
+  const topic   = window.TEACHEDOS_VOCAB.getTopic(topicId);
+  if(!topic){ showToast('Topic not found'); return; }
+  const pool = window.TEACHEDOS_VOCAB.pick(topicId, level, Math.max(count, 4));
+  if(pool.length < 2){ showToast('Not enough words at this level'); return; }
+
+  // Apply test metadata
+  const titleEl = document.getElementById('testTitle');
+  if(!titleEl.value){
+    titleEl.value = topic.icon + ' ' + topic.name + (level === 'mix' ? '' : ' · ' + level);
+  }
+  if(level !== 'mix') document.getElementById('testLevel').value = level;
+  saveMeta();
+
+  // Clear current questions
+  questions = [];
+  activeId = null;
+
+  // Match Pairs needs 4 words per question; others need 1
+  if(type === 'mp'){
+    const groups = Math.max(1, Math.floor(count / 4));
+    for(let g = 0; g < groups; g++){
+      const slice = pool.slice(g*4, g*4+4);
+      if(slice.length < 4) break;
+      const id = nextId++;
+      const built = _buildMp(slice);
+      questions.push({ id, type:'mp', text: built.text, points:1, pairs: built.pairs });
+    }
+  } else {
+    pool.slice(0, count).forEach(w => {
+      const id = nextId++;
+      let actualType = type;
+      if(type === 'mixed'){
+        actualType = _shuffle(['mcq','tf','fib'])[0];
+      }
+      const q = { id, type: actualType, text:'', points:1 };
+      if(actualType === 'mcq'){ Object.assign(q, _buildMcq(w, pool)); }
+      else if(actualType === 'tf'){ Object.assign(q, _buildTf(w, pool)); }
+      else if(actualType === 'fib'){ Object.assign(q, _buildFib(w)); }
+      questions.push(q);
+    });
+  }
+
+  if(questions.length){ activeId = questions[0].id; }
+  renderAll();
+  showToast('Generated ' + questions.length + ' questions from "' + topic.name + '"');
+}
+
 // ── Bootstrap with sample questions ──
 function bootstrap(){
   loadMeta();
+  populateAutoGenOptions();
   // Seed with 2 example questions
   addQuestion('mcq');
   const q1=questions[0];
