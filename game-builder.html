@@ -121,6 +121,18 @@ textarea{min-height:60px;resize:vertical}
 .tpl-title{font-size:14px;font-weight:900}
 .tpl-meta{font-size:11px;color:var(--text3);line-height:1.3}
 .tpl-bottom{display:flex;gap:6px;align-items:center;margin-top:auto}
+.dict-toolbar{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;margin-bottom:14px}
+.dict-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px}
+.dict-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
+.dict-card:hover{border-color:rgba(200,230,50,.55);transform:translateY(-2px);box-shadow:0 10px 30px rgba(94,94,74,.10)}
+.dict-card::after{content:"";position:absolute;right:-44px;top:-44px;width:112px;height:112px;border-radius:999px;background:rgba(200,230,50,.18);pointer-events:none}
+.dict-head{display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.dict-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
+.dict-title{font-size:15px;font-weight:950;letter-spacing:-.02em;line-height:1.15}
+.dict-meta{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.35}
+.dict-preview{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1}
+.dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
+.dict-actions{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1;margin-top:auto}
 .search-box{position:relative;margin-bottom:14px}
 .search-box input{padding-left:14px}
 #toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
@@ -131,6 +143,7 @@ textarea{min-height:60px;resize:vertical}
 .preview-close{position:absolute;top:14px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:18px;cursor:pointer;color:var(--text3);border:none}
 @media(max-width:900px){
   .type-grid{grid-template-columns:1fr 1fr}.games-grid{grid-template-columns:1fr}.tpl-grid{grid-template-columns:1fr 1fr}
+  .dict-toolbar{grid-template-columns:1fr}.dict-grid{grid-template-columns:1fr}
   .pair-row{grid-template-columns:24px 1fr;gap:4px}.pair-row .pair-remove{justify-self:end}
   .wrap{padding:18px 14px 80px}#nav{display:none}.preset-bar{flex-direction:column;align-items:flex-start}
 }
@@ -193,6 +206,30 @@ textarea{min-height:60px;resize:vertical}
     </div>
   </div>
   <div class="type-grid" id="type-grid"></div>
+
+  <div class="section-head" id="dictionary-anchor">
+    <div>
+      <div class="section-title">Thematic Vocabulary Dictionaries</div>
+      <div class="section-sub">Ready word banks for games: load as flashcards/memory pairs, word scramble, hangman, spin wheel, or append to the game you are editing.</div>
+    </div>
+  </div>
+  <div class="dict-toolbar">
+    <input id="dict-search" placeholder="Search dictionaries: travel, IELTS, emotions..." oninput="renderDictionaryLibrary()">
+    <select id="dict-level" onchange="renderDictionaryLibrary()">
+      <option value="All">All levels</option>
+      <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+    </select>
+    <select id="dict-topic" onchange="renderDictionaryLibrary()">
+      <option value="All">All topics</option>
+      <option value="Daily Life">Daily Life</option>
+      <option value="Travel">Travel</option>
+      <option value="Business">Business</option>
+      <option value="Exam">Exam</option>
+      <option value="Academic">Academic</option>
+      <option value="Speaking">Speaking</option>
+    </select>
+  </div>
+  <div class="dict-grid" id="dict-grid"></div>
 
   <div class="builder" id="builder">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
@@ -466,6 +503,73 @@ const PRESETS = {
   ],
 };
 
+const THEME_DICTIONARIES = [
+  {id:'daily-routine-a1',icon:'🌅',name:'Daily Routine',level:'A1',topic:'Daily Life',tags:['routine','verbs','beginner'],pairs:[
+    ['wake up','просыпаться'],['brush teeth','чистить зубы'],['have breakfast','завтракать'],['go to work','идти на работу'],
+    ['study','учиться'],['have lunch','обедать'],['come home','приходить домой'],['do homework','делать домашку'],
+    ['take a shower','принимать душ'],['go to bed','ложиться спать'],['get dressed','одеваться'],['relax','отдыхать']
+  ]},
+  {id:'classroom-a1',icon:'🎒',name:'Classroom Objects',level:'A1',topic:'Daily Life',tags:['school','objects','kids'],pairs:[
+    ['pen','ручка'],['pencil','карандаш'],['notebook','тетрадь'],['textbook','учебник'],['rubber','ластик'],['ruler','линейка'],
+    ['whiteboard','доска'],['marker','маркер'],['desk','парта'],['chair','стул'],['folder','папка'],['backpack','рюкзак']
+  ]},
+  {id:'city-places-a2',icon:'🏙️',name:'City Places',level:'A2',topic:'Travel',tags:['city','directions','places'],pairs:[
+    ['pharmacy','аптека'],['bakery','пекарня'],['post office','почта'],['train station','вокзал'],['bus stop','остановка'],
+    ['crossroads','перекресток'],['traffic lights','светофор'],['square','площадь'],['museum','музей'],['town hall','мэрия'],
+    ['subway','метро'],['pedestrian crossing','пешеходный переход']
+  ]},
+  {id:'restaurant-a2',icon:'🍽️',name:'Restaurant English',level:'A2',topic:'Travel',tags:['food','restaurant','speaking'],pairs:[
+    ['menu','меню'],['starter','закуска'],['main course','основное блюдо'],['dessert','десерт'],['bill','счет'],['tip','чаевые'],
+    ['waiter','официант'],['reservation','бронь'],['table for two','столик на двоих'],['still water','негазированная вода'],
+    ['takeaway','еда с собой'],['allergy','аллергия']
+  ]},
+  {id:'small-talk-b1',icon:'💬',name:'Small Talk Starters',level:'B1',topic:'Speaking',tags:['speaking','conversation','phrases'],pairs:[
+    ['How is it going?','Как дела?'],['What do you do?','Чем вы занимаетесь?'],['That sounds interesting.','Звучит интересно.'],
+    ['Do you come here often?','Вы часто сюда приходите?'],['How was your weekend?','Как прошли выходные?'],
+    ['I have heard a lot about it.','Я много об этом слышал(а).'],['What are you into?','Чем увлекаешься?'],
+    ['No way!','Не может быть!'],['I totally agree.','Полностью согласен/согласна.'],['It depends.','Зависит от ситуации.'],
+    ['Fair enough.','Справедливо.'],['Tell me more.','Расскажи подробнее.']
+  ]},
+  {id:'health-b1',icon:'🩺',name:'Health & Symptoms',level:'B1',topic:'Daily Life',tags:['health','doctor','symptoms'],pairs:[
+    ['headache','головная боль'],['sore throat','боль в горле'],['cough','кашель'],['fever','температура'],['dizzy','головокружение'],
+    ['appointment','прием'],['prescription','рецепт'],['painkiller','обезболивающее'],['recover','выздоравливать'],
+    ['injury','травма'],['blood pressure','давление'],['swollen','опухший']
+  ]},
+  {id:'business-meetings-b2',icon:'🤝',name:'Business Meetings',level:'B2',topic:'Business',tags:['business','meetings','work'],pairs:[
+    ['agenda','повестка'],['minutes','протокол встречи'],['deadline','дедлайн'],['follow-up','последующее действие'],
+    ['stakeholder','заинтересованная сторона'],['briefing','инструктаж'],['takeaway','ключевой вывод'],['action point','задача после встречи'],
+    ['align','согласовать'],['postpone','отложить'],['wrap up','завершить'],['raise a concern','поднять проблему']
+  ]},
+  {id:'marketing-b2',icon:'📣',name:'Marketing & Sales',level:'B2',topic:'Business',tags:['marketing','sales','business'],pairs:[
+    ['target audience','целевая аудитория'],['brand awareness','узнаваемость бренда'],['lead','потенциальный клиент'],
+    ['conversion rate','коэффициент конверсии'],['campaign','кампания'],['launch','запуск'],['pitch','презентация идеи'],
+    ['retention','удержание'],['upsell','допродажа'],['customer journey','путь клиента'],['value proposition','ценностное предложение'],
+    ['competitor','конкурент']
+  ]},
+  {id:'ielts-education-b2',icon:'🎓',name:'IELTS Education',level:'B2',topic:'Exam',tags:['ielts','education','essay'],pairs:[
+    ['curriculum','учебная программа'],['assessment','оценивание'],['tuition fees','плата за обучение'],['vocational training','профобучение'],
+    ['academic performance','успеваемость'],['discipline','дисциплина'],['lifelong learning','обучение всю жизнь'],
+    ['critical thinking','критическое мышление'],['peer pressure','давление сверстников'],['dropout rate','процент отчисления'],
+    ['scholarship','стипендия'],['compulsory education','обязательное образование']
+  ]},
+  {id:'ielts-environment-b2',icon:'🌍',name:'IELTS Environment',level:'B2',topic:'Exam',tags:['ielts','environment','essay'],pairs:[
+    ['carbon footprint','углеродный след'],['renewable energy','возобновляемая энергия'],['fossil fuels','ископаемое топливо'],
+    ['waste disposal','утилизация отходов'],['single-use plastic','одноразовый пластик'],['climate change','изменение климата'],
+    ['deforestation','вырубка лесов'],['biodiversity','биоразнообразие'],['sustainable lifestyle','устойчивый образ жизни'],
+    ['public transport','общественный транспорт'],['emissions','выбросы'],['conservation','сохранение природы']
+  ]},
+  {id:'academic-linkers-c1',icon:'🧠',name:'Academic Linkers',level:'C1',topic:'Academic',tags:['writing','linkers','academic'],pairs:[
+    ['moreover','более того'],['nevertheless','тем не менее'],['therefore','следовательно'],['whereas','тогда как'],
+    ['provided that','при условии что'],['in contrast','в отличие от'],['consequently','в результате'],['namely','а именно'],
+    ['to some extent','в некоторой степени'],['by contrast','напротив'],['notwithstanding','несмотря на'],['in light of','с учетом']
+  ]},
+  {id:'advanced-feelings-c1',icon:'🎭',name:'Nuanced Feelings',level:'C1',topic:'Speaking',tags:['emotions','advanced','speaking'],pairs:[
+    ['overwhelmed','перегруженный'],['relieved','испытавший облегчение'],['resentful','обиженный'],['apprehensive','тревожный'],
+    ['thrilled','в восторге'],['devastated','опустошенный'],['indifferent','равнодушный'],['bewildered','сбитый с толку'],
+    ['content','довольный'],['uneasy','не по себе'],['nostalgic','ностальгирующий'],['self-conscious','смущенный/скованный']
+  ]}
+];
+
 const TEMPLATES = [
   {id:'t1',icon:'\ud83c\udf4e',title:'A1 Food & Drinks Flashcards',type:'flashcards',level:'A1',topic:'Vocabulary',desc:'10 basic food words with Ukrainian translations.',tags:['vocabulary','food','beginner'],presetKey:'pairs',presetIdx:0},
   {id:'t2',icon:'\ud83d\udc3e',title:'A1 Animals Memory Match',type:'memory-match',level:'A1',topic:'Vocabulary',desc:'Match 10 animal names with translations.',tags:['vocabulary','animals'],presetKey:'pairs',presetIdx:1},
@@ -548,6 +652,7 @@ function init() {
   renderMyGames();
   renderTplLevelTabs();
   renderTemplates();
+  renderDictionaryLibrary();
   document.getElementById('my-count').textContent = readGames().length;
 }
 
@@ -635,6 +740,116 @@ function useTemplate(tplId) {
 
 function scrollToTemplates() {
   document.getElementById('templates-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---- THEMATIC DICTIONARIES ---- */
+function renderDictionaryLibrary() {
+  const grid = document.getElementById('dict-grid');
+  if (!grid) return;
+  const search = (document.getElementById('dict-search')?.value || '').toLowerCase();
+  const level = document.getElementById('dict-level')?.value || 'All';
+  const topic = document.getElementById('dict-topic')?.value || 'All';
+  let dictionaries = THEME_DICTIONARIES;
+  if (level !== 'All') dictionaries = dictionaries.filter(d => d.level === level);
+  if (topic !== 'All') dictionaries = dictionaries.filter(d => d.topic === topic);
+  if (search) {
+    dictionaries = dictionaries.filter(d => (
+      d.name + ' ' + d.level + ' ' + d.topic + ' ' + d.tags.join(' ') + ' ' + d.pairs.flat().join(' ')
+    ).toLowerCase().includes(search));
+  }
+  if (!dictionaries.length) {
+    grid.innerHTML = '<div class="empty">No dictionaries match your filters.</div>';
+    return;
+  }
+  grid.innerHTML = dictionaries.map(d => {
+    const preview = d.pairs.slice(0, 7).map(pair => `<span class="dict-word">${esc(pair[0])}</span>`).join('');
+    return `
+      <div class="dict-card">
+        <div class="dict-head">
+          <div class="dict-icon">${d.icon}</div>
+          <div>
+            <div class="dict-title">${esc(d.name)}</div>
+            <div class="dict-meta">${esc(d.level)} · ${esc(d.topic)} · ${d.pairs.length} words</div>
+          </div>
+        </div>
+        <div class="dict-preview">${preview}</div>
+        <div class="game-tags">${d.tags.slice(0,3).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}</div>
+        <div class="dict-actions">
+          <button class="btn sm lime" onclick="useDictionary('${esc(d.id)}','pairs',false)">Flashcards / Memory</button>
+          <button class="btn sm ghost" onclick="useDictionary('${esc(d.id)}','words',false)">Word games</button>
+          <button class="btn sm blue" onclick="useDictionary('${esc(d.id)}','append',true)">Append</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function dictionaryById(id) {
+  return THEME_DICTIONARIES.find(d => d.id === id);
+}
+
+function dictionaryPairs(dict) {
+  return dict.pairs.map(pair => ({ a: pair[0], b: pair[1] }));
+}
+
+function dictionaryWords(dict) {
+  return dict.pairs.map(pair => pair[0]);
+}
+
+function ensureBuilderForFields(fields, fallbackTypeId) {
+  if (!selectedType || selectedType.fields !== fields) {
+    selectedType = GAME_TYPES.find(t => t.id === fallbackTypeId) || GAME_TYPES.find(t => t.fields === fields);
+    editingId = null;
+    renderTypeGrid();
+    openBuilder();
+  }
+}
+
+function useDictionary(id, mode, append) {
+  const dict = dictionaryById(id);
+  if (!dict) return;
+  if (mode === 'pairs') {
+    ensureBuilderForFields('pairs', 'flashcards');
+    applyDictionaryToBuilder(dict, 'pairs', append);
+  } else if (mode === 'words') {
+    ensureBuilderForFields('words', 'word-scramble');
+    applyDictionaryToBuilder(dict, 'words', append);
+  } else {
+    const targetFields = selectedType?.fields || 'pairs';
+    if (!selectedType) ensureBuilderForFields('pairs', 'flashcards');
+    applyDictionaryToBuilder(dict, targetFields, true);
+  }
+  document.getElementById('game-level').value = dict.level;
+  document.getElementById('game-tags').value = ['vocabulary', dict.topic.toLowerCase(), ...dict.tags].join(', ');
+  if (!append || !document.getElementById('game-title').value) {
+    document.getElementById('game-title').value = `${dict.level} ${dict.name} ${selectedType.name}`;
+  }
+  updateItemCounter();
+  document.getElementById('builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast(`${dict.name} loaded into builder`);
+}
+
+function applyDictionaryToBuilder(dict, fields, append) {
+  const current = append ? (collectContent(true) || {}) : {};
+  if (fields === 'pairs') {
+    renderContentFields();
+    populateContent({ content: { pairs: [...(current.pairs || []), ...dictionaryPairs(dict)] } });
+    return;
+  }
+  if (fields === 'words') {
+    renderContentFields();
+    populateContent({ content: { words: [...(current.words || []), ...dictionaryWords(dict)] } });
+    return;
+  }
+  if (fields === 'categories') {
+    renderContentFields();
+    populateContent({ content: {
+      categories: [...(current.categories || []), { name: `${dict.level} ${dict.name}`, words: dictionaryWords(dict) }],
+    } });
+    return;
+  }
+  ensureBuilderForFields('pairs', 'flashcards');
+  renderContentFields();
+  populateContent({ content: { pairs: dictionaryPairs(dict) } });
 }
 
 /* ---- TYPE GRID ---- */
