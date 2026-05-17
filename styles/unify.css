@@ -1,0 +1,379 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TeachEd — Design Unification Layer
+   "Black + Lime" card system. Loaded LAST so it wins the cascade.
+
+   Rules of the road:
+   • Primary CTAs / default buttons → ink (#0E0E10)
+   • Emphasis CTAs / "next step" buttons → lime (#C8E632)
+   • Featured/hero cards → ink background with lime accents
+   • Regular cards → white with lime edge glow on hover
+   • Active tab/filter/level pill → ink + lime text
+   • Pink (#EC2D8C) reserved for SEMANTIC URGENCY only:
+       live dots, notification dots, "now/today" markers,
+       italic em emphasis. Do NOT use for routine CTAs.
+═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Override the legacy --accent token across all pages.
+     harmony.css doesn't consume var(--accent) directly (uses var(--pink) explicitly),
+     so this only redirects per-page inline styles that referenced --accent for CTAs. */
+  --accent: #0E0E10;
+
+  --u-ink:       #0E0E10;
+  --u-ink-2:     #1C1C1E;
+  --u-ink-hover: #1F1F22;
+  --u-ink-soft:  rgba(14, 14, 16, 0.06);
+  --u-ink-line:  rgba(14, 14, 16, 0.08);
+  --u-ink-line2: rgba(14, 14, 16, 0.14);
+  --u-lime:      #C8E632;
+  --u-lime-pop:  #CDF24F;
+  --u-lime-dark: #A8C42A;
+  --u-lime-soft: rgba(200, 230, 50, 0.16);
+  --u-lime-edge: rgba(205, 242, 79, 0.42);
+  --u-lime-glow: rgba(200, 230, 50, 0.30);
+  --u-card:      #FFFFFF;
+}
+
+[data-theme="dark"] {
+  --u-card:      #2C2C2E;
+  --u-ink-soft:  rgba(255, 255, 255, 0.06);
+  --u-ink-line:  rgba(255, 255, 255, 0.08);
+  --u-ink-line2: rgba(255, 255, 255, 0.14);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   1. PRIMARY ACTION BUTTONS — ink default, lime emphasis
+═══════════════════════════════════════════════════════════════ */
+
+/* Default .btn and .btn-primary → ink (overrides harmony.css pink) */
+.btn-primary,
+.btn.btn-primary,
+button.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):not(.btn-pink-soft):not(.btn-ink),
+a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):not(.btn-pink-soft):not(.btn-ink) {
+  background: var(--u-ink) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(14, 14, 16, 0.18) !important;
+}
+.btn-primary:hover,
+.btn.btn-primary:hover,
+button.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover,
+a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
+  background: var(--u-ink-hover) !important;
+  box-shadow: 0 8px 22px rgba(14, 14, 16, 0.26) !important;
+  transform: translateY(-1px);
+}
+
+/* Lime button — keep but harmonize with lime-glow shadow */
+.btn-lime,
+.btn.btn-lime {
+  background: var(--u-lime) !important;
+  color: var(--u-ink) !important;
+  box-shadow: 0 4px 14px var(--u-lime-glow) !important;
+}
+.btn-lime:hover,
+.btn.btn-lime:hover {
+  background: var(--u-lime-dark) !important;
+  box-shadow: 0 8px 22px rgba(200, 230, 50, 0.40) !important;
+}
+
+/* Community page .mini-btn (was inheriting pink via --accent) */
+.mini-btn:not(.alt):not(.lime):not(.ghost) {
+  background: var(--u-ink) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 10px rgba(14, 14, 16, 0.18) !important;
+}
+.mini-btn:not(.alt):not(.lime):not(.ghost):hover {
+  background: var(--u-ink-hover) !important;
+  box-shadow: 0 6px 18px rgba(14, 14, 16, 0.26) !important;
+}
+.mini-btn.alt {
+  background: var(--u-lime-soft) !important;
+  color: var(--u-ink) !important;
+}
+.mini-btn.alt:hover {
+  background: rgba(200, 230, 50, 0.28) !important;
+}
+.mini-btn.lime {
+  background: var(--u-lime) !important;
+  color: var(--u-ink) !important;
+}
+
+/* Mobile mp-* "primary on ink card" CTA: was pink, now lime */
+.mp-btn-pink-solid {
+  background: var(--u-lime) !important;
+  color: var(--u-ink) !important;
+  box-shadow: 0 6px 18px var(--u-lime-glow) !important;
+}
+.mp-btn-pink-solid:hover {
+  background: var(--u-lime-dark) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. CARD SYSTEM — white default, lime edge on hover, ink for featured
+═══════════════════════════════════════════════════════════════ */
+
+/* Regular content cards: white with subtle ink line */
+.board-card,
+.game-tile-comm,
+.community-card,
+.pack-card:not(.featured):not(.ink),
+.tool-card,
+.lesson-card:not(.featured):not(.ink):not(.lime):not(.dark),
+.mp-board-card:not(.dark):not(.lime),
+.stat-card:not(.active),
+.curr-card:not(.dark):not(.lime),
+.insight-card:not(.active) {
+  background: var(--u-card);
+  border: 1px solid var(--u-ink-line);
+  transition: border-color 0.22s ease,
+              box-shadow 0.22s ease,
+              transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1) !important;
+}
+
+/* Lime edge glow on hover — signature accent */
+.board-card:hover,
+.game-tile-comm:hover,
+.community-card:hover,
+.pack-card:hover,
+.tool-card:hover,
+.lesson-card:not(.featured):not(.ink):not(.lime):not(.dark):hover {
+  border-color: var(--u-lime-edge) !important;
+  box-shadow: 0 12px 32px rgba(14, 14, 16, 0.08),
+              inset 0 0 0 1px var(--u-lime-edge) !important;
+}
+
+/* Card top accent stripe — ink ↔ lime gradient (was pink in some places) */
+.board-card::before,
+.lesson-card::before,
+.pack-card.featured::before,
+.community-card.featured::before {
+  background: linear-gradient(90deg, var(--u-lime), var(--u-ink)) !important;
+}
+
+/* Featured / hero cards — ink with lime CTAs inside */
+.hero-card.ink,
+.featured-card,
+.lesson-card.featured,
+.lesson-card.ink,
+.lesson-card.dark,
+.curr-card.dark,
+.board-card.ink,
+.pack-card.featured,
+.pack-card.ink,
+.mp-featured,
+.mp-next-card {
+  background: var(--u-ink) !important;
+  color: #fff !important;
+  border-color: var(--u-ink) !important;
+}
+.hero-card.ink *,
+.featured-card *,
+.lesson-card.featured *,
+.lesson-card.ink *,
+.pack-card.featured *,
+.pack-card.ink *,
+.mp-next-card *:not(.mp-btn-pink-solid):not(.mp-btn-ghost-white):not(.mp-btn-lime) {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* Lime variant card (highlight) */
+.curr-card.lime,
+.mp-board-card.lime,
+.lesson-card.lime,
+.board-card.lime,
+.pack-card.lime {
+  background: var(--u-lime) !important;
+  color: var(--u-ink) !important;
+  border-color: var(--u-lime-dark) !important;
+}
+
+/* Icon tiles inside cards — lime-tinted backgrounds */
+.board-ic,
+.tool-icon,
+.feature-icon,
+.icon-tile,
+.mp-quick-ic,
+.mp-quick-ic2 {
+  background: var(--u-lime-soft) !important;
+}
+.curr-card.dark .board-ic,
+.lesson-card.dark .tool-icon,
+.featured-card .icon-tile,
+.mp-next-card .icon-tile {
+  background: rgba(205, 242, 79, 0.20) !important;
+  color: var(--u-lime-pop) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. TABS, FILTERS, LEVEL PILLS — ink+lime active
+═══════════════════════════════════════════════════════════════ */
+
+/* Generic chips / filter pills */
+.chip.active,
+.fc-set.active,
+.mp-filter.active,
+.tab.active:not(.community-tab):not(.ltab),
+.level-pill.active,
+.lvl-pill.active,
+.ltab.active,
+.community-tab.active {
+  background: var(--u-ink) !important;
+  color: var(--u-lime-pop) !important;
+  border-color: var(--u-ink) !important;
+}
+
+/* Inactive hover → lime tint */
+.chip:hover:not(.active):not(.active-lime),
+.fc-set:hover:not(.active),
+.mp-filter:hover:not(.active),
+.level-pill:hover:not(.active),
+.ltab:hover:not(.active) {
+  border-color: var(--u-lime-edge) !important;
+  background: var(--u-lime-soft) !important;
+  color: var(--u-ink) !important;
+}
+
+/* "Lime-active" variant — when ink would be visually heavy */
+.chip.active-lime,
+.sub-tab.active,
+.tag-btn.active {
+  background: var(--u-lime) !important;
+  color: var(--u-ink) !important;
+  border-color: var(--u-lime) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. SIDEBAR / NAV — ink+lime active state
+═══════════════════════════════════════════════════════════════ */
+
+.sb-item.active,
+.nav-item.active {
+  background: var(--u-lime-soft) !important;
+  color: var(--u-ink) !important;
+  font-weight: 800 !important;
+  position: relative;
+}
+.sb-item.active::before,
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--u-lime);
+  border-radius: 0 3px 3px 0;
+}
+/* Dark sidebar variant — keep lime accent visible */
+[data-theme="dark"] .sb-item.active,
+.sidebar.dark .sb-item.active {
+  background: rgba(200, 230, 50, 0.12) !important;
+  color: var(--u-lime-pop) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. STATUS BADGES & TAGS — neutralise pink "custom" tags
+═══════════════════════════════════════════════════════════════ */
+
+/* "My game" tag in community.html (inline pink) → neutral ink */
+.tag[style*="236,45,140"],
+.tag[style*="#EC2D8C"],
+.tag[style*="#E85D75"] {
+  background: var(--u-ink-soft) !important;
+  color: var(--u-ink) !important;
+}
+
+/* Level badges baseline */
+.tag.level,
+.badge.level {
+  background: var(--u-ink-soft);
+  color: var(--u-ink);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. LESSON-PACKS — retire #E85D75 pink theme to ink+lime
+═══════════════════════════════════════════════════════════════ */
+
+/* Override accent stripes that used the pack accent variable */
+.pack-card .pack-stripe,
+.pack-card::before,
+.pack-hero .pack-accent {
+  background: linear-gradient(90deg, var(--u-lime), var(--u-ink)) !important;
+}
+
+/* Pack-card level/category badge */
+.pack-card .pack-level,
+.pack-card .pack-cat {
+  background: var(--u-ink) !important;
+  color: var(--u-lime-pop) !important;
+}
+
+/* lesson-packs ltab active was pink */
+.ltab.active {
+  background: var(--u-ink) !important;
+  color: var(--u-lime-pop) !important;
+  border-color: var(--u-ink) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. PROGRESS BARS / FILLS — lime instead of pink-magenta
+═══════════════════════════════════════════════════════════════ */
+
+.lc-prog-fill,
+.fc-progress-fill,
+.prog-lang-fill,
+.progress-fill,
+.sb-milestone-fill {
+  background: linear-gradient(90deg, var(--u-lime), var(--u-lime-dark)) !important;
+}
+
+/* Today widget mixed bar can stay pink→lime (urgency + progress) */
+/* .wg-today-prog-fill is already gradient pink→lime, keep it */
+
+/* ═══════════════════════════════════════════════════════════════
+   8. SEMANTIC PINK — preserved (do not touch these classes)
+   • .dot-live              live status pulse
+   • .di-dot, .tb-dot       notification badges
+   • .mp-pulse.pink         live event pulse
+   • .cal-cell.now          current calendar cell
+   • .mp-day.now            current day
+   • .mp-tl-row.now         current timeline row
+   • .h-display em,
+     .page-title em,
+     .curr-title em         italic emphasis (brand signature)
+   • .badge.live, .badge-live
+═══════════════════════════════════════════════════════════════ */
+
+/* Just make sure "today/now" still feels alive — current hour is pink */
+.mp-tl-row.now .mp-tl-card,
+.cal-cell.now .cal-day,
+.day-pill.now,
+.mp-day.now {
+  /* Inherits from mobile-pro.css / harmony.css — pink stays */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. DARK THEME — card surfaces stay consistent
+═══════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] .board-card,
+[data-theme="dark"] .game-tile-comm,
+[data-theme="dark"] .pack-card,
+[data-theme="dark"] .tool-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .mp-board-card,
+[data-theme="dark"] .lesson-card:not(.featured):not(.ink) {
+  background: #2C2C2E;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .board-card:hover,
+[data-theme="dark"] .game-tile-comm:hover,
+[data-theme="dark"] .pack-card:hover {
+  border-color: var(--u-lime-edge) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35),
+              inset 0 0 0 1px var(--u-lime-edge) !important;
+}
