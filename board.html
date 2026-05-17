@@ -3353,7 +3353,7 @@ function renderGame(el, card) {
   // Body: iframe scaled to fit card
   const body = document.createElement('div');
   body.className = 'card-body';
-  body.style.cssText = 'padding:0;position:relative;overflow:hidden;flex:1;';
+  body.style.cssText = 'padding:0;overflow:hidden;flex:1;display:flex;align-items:center;justify-content:center;background:#F5F0E8;border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);';
 
   const naturalW = card.data.naturalW || 460;
   const naturalH = card.data.naturalH || 560;
@@ -3361,7 +3361,7 @@ function renderGame(el, card) {
   const iframe = document.createElement('iframe');
   iframe.src = card.data.src;
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
-  iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:0 0;`;
+  iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
   body.appendChild(iframe);
 
@@ -3381,8 +3381,10 @@ function applyGameScale(el, card) {
   const naturalW = card.data.naturalW || 460;
   const naturalH = card.data.naturalH || 560;
   const bw = body.clientWidth  || card.w;
-  const bh = body.clientHeight || (card.h - 42); // subtract header height
+  const bh = body.clientHeight || (card.h - 42);
   const scale = Math.min(bw / naturalW, bh / naturalH);
+  iframe.style.width  = naturalW + 'px';
+  iframe.style.height = naturalH + 'px';
   iframe.style.transform = `scale(${scale})`;
 }
 
