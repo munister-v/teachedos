@@ -702,17 +702,26 @@ body { font-family: var(--font) !important; }
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Simpler, cheaper transitions on mobile */
-  .board-card, .snippet, .el-item, .mt-btn, .tb-btn,
+  /* Mobile transition tiers — speed by category, not a blanket kill */
+  /* Tier 1: background/border state changes — visible but not distracting */
+  .board-card, .snippet, .el-item,
   .cls-block, .cls-item, .stat-pill,
-  .card, .stat-card, .bc-btn, .st-item,
-  .recent-board-item, .setting-btn, .setting-input,
-  .btn-add, .btn-save, .btn-cancel,
-  .hero-card, .panel, .share-card,
-  .btn, .nav-link, .form-input, .form-select {
-    transition-duration: 0.12s !important;
-    transition-timing-function: ease !important;
+  .card, .stat-card, .hero-card, .panel, .share-card,
+  .recent-board-item, .setting-btn {
+    transition: background 0.2s ease, border-color 0.18s ease, color 0.18s ease !important;
   }
+  /* Tier 2: interactive buttons — fast color + spring press feedback */
+  .btn, .btn-add, .btn-save, .btn-cancel, .bc-btn,
+  .mt-btn, .tb-btn, .nav-link {
+    transition: background 0.15s ease, color 0.12s ease,
+                transform 0.14s cubic-bezier(0.34, 1.3, 0.64, 1) !important;
+  }
+  /* Tier 3: form fields — border / shadow only */
+  .form-input, .form-select, .setting-input {
+    transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+  }
+  /* Tier 4: list rows */
+  .st-item { transition: background 0.15s ease !important; }
 
   /* Toast: simple slide, no blur */
   #toast {
@@ -757,6 +766,39 @@ body { font-family: var(--font) !important; }
   .mp-shell, .mp-stats, .mp-hscroll {
     contain: layout style;
   }
+
+  /* ── Mobile entrance animations ── */
+  @keyframes mp-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .mp-topbar        { animation: mp-enter 0.38s cubic-bezier(0.34, 1.1, 0.64, 1) both; }
+  .mp-hero-head,
+  .mp-next-card     { animation: mp-enter 0.40s cubic-bezier(0.34, 1.1, 0.64, 1) 0.05s both; }
+  .mp-stats         { animation: mp-enter 0.40s cubic-bezier(0.34, 1.1, 0.64, 1) 0.10s both; }
+  .mp-section-head  { animation: mp-enter 0.40s cubic-bezier(0.34, 1.1, 0.64, 1) 0.14s both; }
+  .mp-hscroll,
+  .mp-quick-list    { animation: mp-enter 0.40s cubic-bezier(0.34, 1.1, 0.64, 1) 0.18s both; }
+  .mp-daypicker     { animation: mp-enter 0.38s cubic-bezier(0.34, 1.1, 0.64, 1) 0.06s both; }
+  .mp-timeline      { animation: mp-enter 0.40s cubic-bezier(0.34, 1.1, 0.64, 1) 0.16s both; }
+
+  /* ── Consistent active-press scale across all interactive mp-* elements ── */
+  .mp-btn:active,
+  .mp-icon-btn:active  { transform: scale(0.95) !important;
+                         transition: transform 0.10s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+  .mp-board-card:active,
+  .mp-board-card2:active,
+  .mp-next-card:active  { transform: scale(0.97) !important;
+                          transition: transform 0.12s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+  .mp-quick:active,
+  .mp-tl-card:active   { transform: scale(0.98) !important;
+                         transition: transform 0.12s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+  .mp-day:active       { transform: scale(0.92) !important;
+                         transition: transform 0.10s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+  .mp-filter:active    { transform: scale(0.95) !important;
+                         transition: transform 0.10s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+  .mp-stat:active      { transform: scale(0.97) !important;
+                         transition: transform 0.12s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
