@@ -63,6 +63,18 @@
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     /* prevent overscroll rubber-band jank */
     overscroll-behavior: none;
+    /* smooth vertical scroll */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Fade-in for content filled by JS — avoids pop-in flash */
+  .mp-daypicker, .mp-timeline {
+    animation: mp-fadein .2s ease-out;
+  }
+  @keyframes mp-fadein {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* Tappable stat tile */

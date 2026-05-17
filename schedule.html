@@ -255,17 +255,16 @@ a{text-decoration:none;color:inherit;}
 .mobile-schedule-shell{display:none;}
 
 @media (max-width: 860px){
-  body{background:#fff;}
+  body{background:#fff;-webkit-overflow-scrolling:touch;}
   #nav{padding:0 14px;gap:8px;overflow-x:auto;background:#FAFAF8;border-bottom:1px solid rgba(94,94,74,0.08);transform:translateZ(0);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
   .nav-user{border:none;background:transparent;padding:4px 6px;}
-  #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));}
-  #side{width:100%;border-right:none;border-bottom:1px solid var(--border);background:#fff;}
+  #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #side{width:100%;border-right:none;border-bottom:none;background:#fff;overflow:visible;}
   #main{display:none !important;}
-  .week-nav{padding:12px;}
-  .side-section{padding:14px 12px 10px;}
-  .stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .week-nav{display:none !important;}
+  .side-section{display:none !important;}
   .mobile-schedule-shell{display:block;padding:0 0 0;}
   .mp-week-nav{display:flex;align-items:center;gap:6px;padding:8px 14px 4px;}
   .mp-week-btn{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:.15s;}
@@ -295,8 +294,12 @@ a{text-decoration:none;color:inherit;}
   }
   .mobile-schedule-action-title{font-size:13px;font-weight:800;line-height:1.2;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
-  /* Hide duplicate desktop action buttons on mobile — already in mobile-schedule-actions */
-  .side-section-actions{display:none !important;}
+}
+
+/* Prevent layout shift: reserve day-picker height before JS fills it */
+@media (max-width: 860px){
+  .mp-daypicker:empty{min-height:62px;}
+  .mp-timeline:empty{min-height:80px;}
 }
 
 @media (max-width: 520px){
@@ -355,9 +358,37 @@ a{text-decoration:none;color:inherit;}
         <button class="mp-week-today" onclick="goToday();renderMobileProSchedule()">Today</button>
       </div>
 
-      <div class="mp-daypicker" id="mp-daypicker">
-        <!-- Filled by JS — fallback shows 7 days centered on today -->
-      </div>
+      <div class="mp-daypicker" id="mp-daypicker"></div>
+      <script>
+      /* Pre-render day picker + week label immediately to avoid flash */
+      (function(){
+        if(window.innerWidth > 860) return;
+        var dayLabels=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+        var now=new Date(), dow=(now.getDay()+6)%7;
+        var mon=new Date(now); mon.setDate(now.getDate()-dow); mon.setHours(0,0,0,0);
+        var dp=document.getElementById('mp-daypicker');
+        if(!dp) return;
+        var html='';
+        for(var i=0;i<7;i++){
+          var d=new Date(mon); d.setDate(mon.getDate()+i);
+          var isToday=i===dow;
+          html+='<button type="button" class="mp-day'+(isToday?' active':'')+
+            '"><span class="mp-day-w">'+dayLabels[i]+'</span><span class="mp-day-n">'+d.getDate()+'</span></button>';
+        }
+        dp.innerHTML=html;
+        var wl=document.getElementById('mp-week-label');
+        if(wl){
+          var fmt=function(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
+          var sun=new Date(mon); sun.setDate(mon.getDate()+6);
+          wl.textContent=fmt(mon)+' – '+fmt(sun);
+        }
+        var monthEl=document.getElementById('mp-sch-month');
+        if(monthEl){
+          var mNames=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+          monthEl.textContent=mNames[mon.getMonth()]+' '+mon.getFullYear();
+        }
+      })();
+      </script>
 
       <div class="mp-timeline-head">
         <div class="mp-timeline-h" id="mp-timeline-h">Today</div>
