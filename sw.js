@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v27';
+const CACHE = 'teachedos-v28';
 
 const SHELL = [
   '/teachedos/',

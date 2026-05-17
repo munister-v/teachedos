@@ -6312,6 +6312,36 @@ renderMinimap();
   } catch {}
 })();
 
+/* ════════════════════════ TEACHER TOOL MATERIAL IMPORT ════════════════════════ */
+(function checkTeacherToolMaterialImport() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('addToolMaterial')) return;
+  try {
+    const raw = sessionStorage.getItem('teachedos_pending_tool_material');
+    if (!raw) return;
+    const material = JSON.parse(raw);
+    sessionStorage.removeItem('teachedos_pending_tool_material');
+    if (!material || !material.text) return;
+    setTimeout(() => {
+      const r = boardWrap.getBoundingClientRect();
+      const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
+      const title = material.title || 'Teacher Tool Material';
+      const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
+      const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
+      addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
+        text,
+        fontFamily: 'var(--font)',
+        textColor: '#111111',
+        bgColor: '#ffffff',
+        align: 'left',
+      }), 520, 420);
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      toast && toast('✦ Teacher tool material added to board');
+      history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]addToolMaterial=[^&]*/, '') || ''));
+    }, 300);
+  } catch {}
+})();
+
 /* ════════════════════════ CUSTOM GAMES IN GAMES HUB ════════════════════════ */
 function getCustomGames() {
   try { return JSON.parse(localStorage.getItem('teachedos_custom_games') || '[]'); } catch { return []; }
