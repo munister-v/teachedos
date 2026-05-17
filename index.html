@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- DNS + TLS pre-negotiation for Google Fonts — saves ~200ms on first load -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#C8E632">
 <link rel="icon" type="image/png" href="logo.png">
@@ -1296,10 +1299,20 @@ html,body {
             <div class="mp-greeting-name" id="mp-greeting-name">Hi there</div>
           </div>
           <div class="mp-topbar-actions">
-            <a class="mp-icon-btn" href="#" onclick="document.getElementById('plans-search-input')?.focus();return false;" aria-label="Search">🔍</a>
-            <a class="mp-icon-btn alert" href="courses.html" aria-label="Notifications">🔔<span class="mp-badge" id="mp-notif-badge" style="display:none;">1</span></a>
+            <button class="mp-icon-btn" onclick="document.getElementById('plans-search-input')?.focus()" aria-label="Search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="mp-icon-btn" onclick="toggleNotifPanel()" aria-label="Notifications" style="position:relative">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="mp-badge" id="mp-notif-badge" style="display:none;">1</span>
+            </button>
           </div>
         </header>
+
+        <!-- Fraunces hero heading -->
+        <div class="mp-hero-head">
+          <div class="mp-hero-serif">Ready to<br>teach something<br><em>great</em>?</div>
+        </div>
 
         <!-- Premium featured: next lesson -->
         <div class="mp-featured" id="mp-next-lesson">
@@ -3273,7 +3286,7 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js"></script>
-<script src="scripts/mobile-nav.js"></script>
+<script src="pwa.js" defer></script>
+<script src="scripts/mobile-nav.js" defer></script>
 </body>
 </html>

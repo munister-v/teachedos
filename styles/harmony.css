@@ -3,9 +3,6 @@
    Manrope + Fraunces design system. Lime × Pink × Cream.
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&display=swap');
-
 /* ── Global token overrides ── */
 :root {
   --ink:        #0E0E10;
