@@ -262,11 +262,17 @@ a{text-decoration:none;color:inherit;}
   .nav-user{border:none;background:transparent;padding:4px 6px;}
   #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));}
   #side{width:100%;border-right:none;border-bottom:1px solid var(--border);background:#fff;}
-  #main{min-height:0;}
+  #main{display:none !important;}
   .week-nav{padding:12px;}
   .side-section{padding:14px 12px 10px;}
   .stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
-  .mobile-schedule-shell{display:block;padding:14px 12px 0;}
+  .mobile-schedule-shell{display:block;padding:0 0 0;}
+  .mp-week-nav{display:flex;align-items:center;gap:6px;padding:8px 14px 4px;}
+  .mp-week-btn{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:.15s;}
+  .mp-week-btn:hover{background:rgba(200,230,50,.1);border-color:var(--border2);}
+  .mp-week-label{flex:1;text-align:center;font-size:13px;font-weight:800;color:var(--text);}
+  .mp-week-today{font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:rgba(200,230,50,.15);color:var(--accent);border:none;cursor:pointer;font-family:var(--font);transition:.15s;}
+  .mp-week-today:hover{background:var(--accent);color:#fff;}
   .mobile-schedule-hero{
     padding:18px;border-radius:20px;
     background:
@@ -341,6 +347,13 @@ a{text-decoration:none;color:inherit;}
           <button class="mp-icon-btn alert" onclick="openModal()" aria-label="Add class">+</button>
         </div>
       </header>
+
+      <div class="mp-week-nav">
+        <button class="mp-week-btn" onclick="shiftWeek(-1);renderMobileProSchedule()">‹</button>
+        <span class="mp-week-label" id="mp-week-label"></span>
+        <button class="mp-week-btn" onclick="shiftWeek(1);renderMobileProSchedule()">›</button>
+        <button class="mp-week-today" onclick="goToday();renderMobileProSchedule()">Today</button>
+      </div>
 
       <div class="mp-daypicker" id="mp-daypicker">
         <!-- Filled by JS — fallback shows 7 days centered on today -->
@@ -731,6 +744,23 @@ function updateMobileScheduleSummary(options = {}) {
 
 let mpSelectedDow = (new Date().getDay() + 6) % 7;
 
+function getMobileWeekDates() {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7;
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - dow + weekOffset * 7);
+  mon.setHours(0,0,0,0);
+  return Array.from({length:7}, (_,i) => { const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+}
+
+function updateMobileWeekLabel() {
+  const el = document.getElementById('mp-week-label');
+  if (!el) return;
+  const dates = getMobileWeekDates();
+  const fmt = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  el.textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+}
+
 function renderMobileProSchedule(_unused) {
   const dp = document.getElementById('mp-daypicker');
   const tl = document.getElementById('mp-timeline');
@@ -742,31 +772,39 @@ function renderMobileProSchedule(_unused) {
   const dayLabels = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
   const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const today = new Date();
+  today.setHours(0,0,0,0);
   const todayDow = (today.getDay() + 6) % 7;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - todayDow);
+  const weekDates = getMobileWeekDates();
+  const monday = weekDates[0];
 
-  if (monthEl) monthEl.textContent = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+  if (monthEl) monthEl.textContent = `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`;
+  updateMobileWeekLabel();
 
-  /* Day picker: Mon..Sun of current week */
+  /* Day picker: Mon..Sun of selected week (respects weekOffset) */
   dp.innerHTML = '';
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    const d = weekDates[i];
+    const isDayToday = d.getTime() === today.getTime();
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'mp-day' + (i === mpSelectedDow ? ' active' : '');
+    btn.className = 'mp-day' + (i === mpSelectedDow ? ' active' : '') + (isDayToday ? ' today' : '');
     btn.innerHTML = `<span class="mp-day-w">${dayLabels[i]}</span><span class="mp-day-n">${d.getDate()}</span>`;
     btn.onclick = () => { mpSelectedDow = i; renderMobileProSchedule(); };
     dp.appendChild(btn);
   }
 
   /* Timeline for selected day */
-  const selectedDate = new Date(monday);
-  selectedDate.setDate(monday.getDate() + mpSelectedDow);
-  const isToday = mpSelectedDow === todayDow;
+  const selectedDate = weekDates[mpSelectedDow];
+  const selectedDateStr = selectedDate.toISOString().slice(0,10);
+  const isToday = selectedDate.getTime() === today.getTime();
+
+  /* Filter classes: show recurring for this DOW + one-time for this exact date */
   const dayClasses = schedule
-    .filter(s => s.day === mpSelectedDow)
+    .filter(s => {
+      if (s.day !== mpSelectedDow) return false;
+      if (s.specific_date) return s.specific_date.slice(0,10) === selectedDateStr;
+      return true;
+    })
     .sort((a,b) => a.start_time.localeCompare(b.start_time));
 
   /* Header */
@@ -954,8 +992,8 @@ function updateNowLine() {
   line.style.display = minutes >= 0 ? 'block' : 'none';
 }
 
-function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); }
-function goToday() { weekOffset = 0; updateWeekHeader(); renderGrid(); }
+function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); }
+function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); }
 
 // ── Grid rendering ────────────────────────────────────────────────────
 function buildTimeCol() {
@@ -1417,8 +1455,8 @@ async function toggleLiveSlot(id, goLive) {
   } catch(e) { toast(e.message, 'err'); }
 }
 
-// Update now-line every minute
-setInterval(updateNowLine, 60000);
+// Update now-line and timezone card every minute
+setInterval(() => { updateNowLine(); renderScheduleTimeZoneCard(); }, 60000);
 
 init();
 

@@ -570,6 +570,8 @@
   }
   .mp-day.active .mp-day-w { color: var(--mp-text-inv-2); }
   .mp-day.active .mp-day-n { color: var(--mp-text-inv); }
+  .mp-day.today:not(.active) { border-color: var(--mp-lime); }
+  .mp-day.today:not(.active) .mp-day-n { color: var(--mp-lime-text); font-weight: 900; }
 
   /* ═══════════════ LESSON TIMELINE ═══════════════ */
   .mp-timeline-head {
