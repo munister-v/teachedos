@@ -94,6 +94,36 @@ pool.query(`
 
 pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read)`).catch(() => {});
 
+// GET /api/schedule/student-zones — distinct timezones of all students connected to this teacher
+router.get('/student-zones', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.timezone, COUNT(DISTINCT u.id)::int AS student_count, u.name AS sample_name
+      FROM board_collaborators bc
+      JOIN boards b ON b.id = bc.board_id
+      JOIN users  u ON u.id = bc.user_id
+      WHERE b.user_id = $1 AND u.timezone IS NOT NULL
+      GROUP BY u.timezone, u.name
+      ORDER BY student_count DESC
+    `, [req.user.id]);
+    // Deduplicate by timezone, aggregate names
+    const zoneMap = new Map();
+    for (const r of rows) {
+      const tz = r.timezone;
+      if (!zoneMap.has(tz)) {
+        zoneMap.set(tz, { timezone: tz, student_count: 0, sample_names: [] });
+      }
+      const entry = zoneMap.get(tz);
+      entry.student_count += r.student_count;
+      if (entry.sample_names.length < 3) entry.sample_names.push(r.sample_name);
+    }
+    res.json({ zones: Array.from(zoneMap.values()) });
+  } catch (err) {
+    console.error('[schedule] GET /student-zones error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/schedule — get user's weekly schedule
 router.get('/', requireAuth, async (req, res) => {
   try {

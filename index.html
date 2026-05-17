@@ -3368,7 +3368,7 @@ setInterval(loadNotifications, 120000);
 
   // Today's classes from schedule
   fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
-    const today = new Date().getDay();
+    const today = (new Date().getDay() + 6) % 7; // 0=Mon … 6=Sun (matches schedule DB)
     const all = d.schedule || [];
     if (typeof SCHEDULE_RAW !== 'undefined') {
       SCHEDULE_RAW = all;
