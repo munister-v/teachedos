@@ -420,7 +420,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   box-shadow:0 0 0 2px rgba(200,230,50,.3);
 }
 .anchor-dot:hover{transform:scale(1.4)!important;opacity:1!important;}
-.board-card.anchors-visible .anchor-dot{opacity:1;}
+.board-card.anchors-visible .anchor-dot,
+.board-card.selected .anchor-dot{opacity:1;}
 .anchor-dot[data-anchor=top]   {top:-6px;   left:50%;   transform:translateX(-50%);}
 .anchor-dot[data-anchor=bottom]{bottom:-6px; left:50%;   transform:translateX(-50%);}
 .anchor-dot[data-anchor=left]  {left:-6px;   top:50%;    transform:translateY(-50%);}
@@ -1478,6 +1479,10 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </a>
   <div class="tb-sep"></div>
   <div id="board-name-display" class="tb-title" style="cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid transparent;padding:4px 8px;border-radius:8px;transition:.15s;" title="Click to rename" onclick="startRenameBoard()">My Board</div>
+  <div id="board-meta" title="Sync status & card count" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-3);cursor:pointer;flex-shrink:0;margin-left:-2px;">
+    <span id="board-meta-dot" style="width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
+    <span id="board-meta-cards">0 cards</span>
+  </div>
   <div id="course-breadcrumb" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-3);margin-left:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:180px;">
     <a id="bc-course" href="courses.html" style="color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></a>
     <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -1492,26 +1497,15 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 7a5 5 0 1 0-.5 4"/><path d="M13 3v4H9"/></svg>
   </div>
-  <div class="tb-sep"></div>
-  <div class="tb-btn text" id="btn-connect" title="Connect cards (C)">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
-    <span>Connect</span>
-  </div>
-  <div class="tb-btn text" id="btn-fit" title="Fit all (F)">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
-    <span>Fit</span>
-  </div>
-  <div class="tb-sep"></div>
-
-  <!-- Save status -->
-  <div id="save-chip" title="Version history" onclick="openVersionHistory()" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-3);transition:.15s;flex-shrink:0;">
-    <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s;"></span>
+  <button id="btn-connect" type="button" style="display:none;" aria-hidden="true"></button>
+  <button id="btn-fit" type="button" style="display:none;" aria-hidden="true"></button>
+  <div id="save-chip" title="Version history" onclick="openVersionHistory()" style="display:none;">
+    <span id="save-dot"></span>
     <span id="save-status">saved</span>
   </div>
-  <div id="session-chip" style="display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg,white);font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;">
+  <div id="session-chip" style="display:none;">
     <span id="session-stats">0 cards</span>
   </div>
-  <div class="tb-sep"></div>
 
   <!-- Right: share + live + user -->
   <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:rgba(52,168,83,.3);display:none;">
@@ -2676,7 +2670,7 @@ function renderCard(card) {
     dot.title = 'Connect from ' + anchor;
     dot.addEventListener('mousedown', e => {
       e.stopPropagation();
-      if (state.mode === 'connect') startConnection(card, anchor);
+      startConnection(card, anchor);
     });
     el.appendChild(dot);
   });
@@ -5341,6 +5335,7 @@ function setSaveUI(state, detail) {
   } else if (state === 'saved') {
     dot.style.background = '#22c55e';
     status.textContent = detail || '✓ saved';
+    const md = document.getElementById('board-meta-dot'); if (md) md.style.background = '#22c55e';
     lastSavedAt = new Date();
     if (mobile) { mobile.classList.add('good'); mobile.textContent = 'Saved'; }
   } else if (state === 'cloud') {
@@ -5398,6 +5393,8 @@ setInterval(() => {
   const mins = Math.round((Date.now()-sessionStart)/60000);
   const cards = state.cards.length;
   el.textContent = `${cards} card${cards!==1?'s':''} · ${mins}m session · ${sessionEdits} edit${sessionEdits!==1?'s':''}`;
+  const meta = document.getElementById('board-meta-cards');
+  if (meta) meta.textContent = `${cards} card${cards!==1?'s':''}`;
 }, 5000);
 
 /* ── Serialize the full board state ── */
