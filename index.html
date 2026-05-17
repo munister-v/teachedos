@@ -63,43 +63,111 @@ html,body {
   user-select: none;
 }
 
-/* Desktop fade-in */
+/* ═══════════════════ DESKTOP WALLPAPER ═══════════════════ */
 #desktop {
   animation: desktopIn .5s ease both;
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(200,230,50,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 85% 75%, rgba(28,28,30,.09) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 10%, rgba(200,230,50,.07) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 60% at 60% 90%, rgba(99,102,241,.05) 0%, transparent 60%),
-    linear-gradient(160deg, #F5F0E8 0%, #EDE8E0 35%, #F0EBE3 70%, #F5F0E8 100%);
+    /* pink blob — bottom right */
+    radial-gradient(ellipse 55% 45% at 92% 88%, rgba(236,45,140,.13) 0%, transparent 65%),
+    /* lime blob — bottom left */
+    radial-gradient(ellipse 60% 50% at 5%  85%, rgba(205,242,79,.22) 0%, transparent 60%),
+    /* warm tint top */
+    radial-gradient(ellipse 70% 40% at 50% 0%,  rgba(247,243,234,.95) 0%, transparent 80%),
+    /* base */
+    linear-gradient(160deg, #F7F3EA 0%, #F2EDE4 50%, #F7F3EA 100%);
+  /* dot grid */
+  background-image:
+    radial-gradient(circle, rgba(94,94,74,.12) 1px, transparent 1px),
+    radial-gradient(ellipse 55% 45% at 92% 88%, rgba(236,45,140,.13) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 5%  85%, rgba(205,242,79,.22) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 40% at 50% 0%,  rgba(247,243,234,.95) 0%, transparent 80%),
+    linear-gradient(160deg, #F7F3EA 0%, #F2EDE4 50%, #F7F3EA 100%);
+  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  overflow:hidden;
 }
 @keyframes desktopIn { from{opacity:0} to{opacity:1} }
 
-/* Animated ambient blobs */
-.blob1,.blob2,.blob3 {
-  position:absolute; border-radius:50%; pointer-events:none;
-  filter:blur(80px); opacity:.6;
+/* ── Ambient blobs (lime + pink, GPU-composited opacity only) ── */
+.blob1,.blob2,.blob3,.blob4 {
+  position:absolute; border-radius:50%; pointer-events:none; will-change:opacity;
+  filter:blur(72px);
 }
 .blob1 {
-  width:500px; height:500px; top:-120px; left:-80px;
-  background:radial-gradient(circle, rgba(200,230,50,.14), transparent 70%);
-  animation: blobFloat1 18s ease-in-out infinite;
+  width:560px; height:420px; bottom:-80px; left:-100px;
+  background:radial-gradient(circle, rgba(205,242,79,.55), transparent 70%);
+  animation: blobPulse1 14s ease-in-out infinite;
 }
 .blob2 {
-  width:400px; height:400px; bottom:-100px; right:-60px;
-  background:radial-gradient(circle, rgba(28,28,30,.14), transparent 70%);
-  animation: blobFloat2 22s ease-in-out infinite;
+  width:440px; height:360px; bottom:-60px; right:-80px;
+  background:radial-gradient(circle, rgba(236,45,140,.30), transparent 70%);
+  animation: blobPulse2 18s ease-in-out infinite;
 }
 .blob3 {
-  width:350px; height:350px; top:35%; left:45%;
-  background:radial-gradient(circle, rgba(200,230,50,.12), transparent 70%);
-  animation: blobFloat3 20s ease-in-out infinite;
+  width:300px; height:260px; top:30%; left:38%;
+  background:radial-gradient(circle, rgba(205,242,79,.15), transparent 70%);
+  animation: blobPulse3 22s ease-in-out infinite;
 }
-@keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,30px) scale(1.05)} 66%{transform:translate(-20px,50px) scale(.95)} }
-@keyframes blobFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-30px,-40px) scale(1.06)} 66%{transform:translate(25px,-20px) scale(.94)} }
-@keyframes blobFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-35px,25px) scale(1.08)} }
+.blob4 {
+  width:200px; height:180px; top:12%; right:12%;
+  background:radial-gradient(circle, rgba(236,45,140,.10), transparent 70%);
+  animation: blobPulse2 16s ease-in-out infinite reverse;
+}
+@keyframes blobPulse1 { 0%,100%{opacity:.7} 50%{opacity:.45} }
+@keyframes blobPulse2 { 0%,100%{opacity:.6} 50%{opacity:.35} }
+@keyframes blobPulse3 { 0%,100%{opacity:.4} 50%{opacity:.25} }
+
+/* ── Wallpaper decoration: floating card silhouettes ── */
+#wallpaper-deco {
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:0;
+}
+.wp-card {
+  position:absolute; border-radius:18px; pointer-events:none;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.wp-card-white {
+  background:rgba(255,255,255,0.55);
+  border:1px solid rgba(255,255,255,0.80);
+  box-shadow:0 8px 32px rgba(94,94,74,.07), 0 2px 8px rgba(94,94,74,.04);
+}
+.wp-card-lime {
+  background:rgba(205,242,79,0.80);
+  border:1px solid rgba(205,242,79,0.60);
+  box-shadow:0 8px 32px rgba(168,208,43,.18);
+}
+.wp-card-pink {
+  background:rgba(236,45,140,0.80);
+  border:1px solid rgba(236,45,140,0.50);
+  box-shadow:0 8px 24px rgba(236,45,140,.22);
+}
+/* individual cards — center zone (between left-panel & right-widgets) */
+.wp-c1 { width:155px; height:200px; left:36%; top:38%; animation:wpFloat1 8s  ease-in-out infinite; }
+.wp-c2 { width:120px; height:150px; left:30%; top:34%; animation:wpFloat1 10s ease-in-out infinite .5s; }
+.wp-c3 { width:118px; height:118px; left:37%; top:52%; animation:wpFloat2 9s  ease-in-out infinite 1s; }  /* lime owl */
+.wp-c4 { width:82px;  height:82px;  left:50%; top:62%; animation:wpFloat1 11s ease-in-out infinite .8s; } /* pink */
+.wp-c5 { width:200px; height:128px; left:52%; top:34%; animation:wpFloat2 12s ease-in-out infinite 1.5s; } /* schedule */
+/* icon inside lime card */
+.wp-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+           font-size:36px; opacity:.70; }
+/* header bar inside white card */
+.wp-bar { position:absolute; left:14px; right:14px; height:6px; border-radius:3px;
+          background:rgba(205,242,79,.80); top:20px; }
+.wp-lines { position:absolute; left:14px; right:14px; top:38px; display:flex; flex-direction:column; gap:8px; }
+.wp-line { height:5px; border-radius:3px; background:rgba(94,94,74,.10); }
+.wp-line:nth-child(2) { width:65%; }
+.wp-line:nth-child(3) { width:80%; }
+/* dots on SVG lines */
+.wp-dot {
+  position:absolute; border-radius:50%;
+  animation:dotPop 2s ease-in-out infinite;
+}
+.wp-dot-lime { background:rgba(205,242,79,.90); width:9px; height:9px; }
+.wp-dot-pink { background:rgba(236,45,140,.80); width:9px; height:9px; }
+.wp-dot-ring { background:transparent; border:2px solid rgba(205,242,79,.60); width:12px; height:12px; }
+@keyframes dotPop { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.3);opacity:.6} }
+@keyframes wpFloat1 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+@keyframes wpFloat2 { 0%,100%{transform:translateY(0px) rotate(0deg)} 50%{transform:translateY(-8px) rotate(.5deg)} }
 
 /* Menubar */
 #menubar {
@@ -968,7 +1036,8 @@ html,body {
 
   /* Hide desktop-only elements */
   .widget, .di-sep, .mb-menu, .mb-apple,
-  .mb-icon, .blob1, .blob2, .blob3 { display:none !important; }
+  .mb-icon, .blob1, .blob2, .blob3, .blob4,
+  #wallpaper-deco { display:none !important; }
 
   /* Menubar → compact mobile header */
   #menubar {
@@ -1257,6 +1326,56 @@ html,body {
 <div class="blob1"></div>
 <div class="blob2"></div>
 <div class="blob3"></div>
+<div class="blob4"></div>
+
+<!-- ── Wallpaper decoration (hidden on mobile) ── -->
+<div id="wallpaper-deco" aria-hidden="true">
+
+  <!-- SVG curves + dots -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+    <!-- pink curve: connects lime card → pink card -->
+    <path d="M 460,430 Q 560,560 640,500" fill="none" stroke="rgba(236,45,140,.30)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- lime curve: pink card → schedule card -->
+    <path d="M 640,500 Q 700,460 665,275" fill="none" stroke="rgba(205,242,79,.38)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- dot on lime curve mid -->
+    <circle cx="238" cy="530" r="4.5" fill="rgba(205,242,79,.90)"/>
+    <!-- dot on pink curve -->
+    <circle cx="608" cy="498" r="4.5" fill="rgba(236,45,140,.80)"/>
+    <!-- dot on lime curve top -->
+    <circle cx="1100" cy="630" r="4.5" fill="rgba(205,242,79,.80)"/>
+    <!-- ring dot -->
+    <circle cx="1098" cy="628" r="9" fill="none" stroke="rgba(205,242,79,.45)" stroke-width="1.5"/>
+  </svg>
+
+  <!-- Card silhouettes — white card tall -->
+  <div class="wp-card wp-card-white wp-c1">
+    <div class="wp-bar"></div>
+    <div class="wp-lines">
+      <div class="wp-line"></div>
+      <div class="wp-line"></div>
+      <div class="wp-line"></div>
+    </div>
+  </div>
+  <!-- Card silhouettes — white card medium -->
+  <div class="wp-card wp-card-white wp-c2"></div>
+  <!-- Lime card with owl icon -->
+  <div class="wp-card wp-card-lime wp-c3">
+    <div class="wp-icon">🦉</div>
+  </div>
+  <!-- Pink bookmark card -->
+  <div class="wp-card wp-card-pink wp-c4">
+    <div class="wp-icon" style="font-size:22px;">🔖</div>
+  </div>
+  <!-- Schedule card -->
+  <div class="wp-card wp-card-white wp-c5">
+    <div class="wp-bar" style="top:16px;height:5px;background:rgba(205,242,79,.85);"></div>
+    <div style="position:absolute;left:14px;top:34px;right:14px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(94,94,74,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(94,94,74,.10);flex:1;"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(94,94,74,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(94,94,74,.10);flex:1;width:70%;"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(94,94,74,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(94,94,74,.10);flex:1;"></div></div>
+    </div>
+  </div>
+</div>
 
 <!-- MENU BAR -->
 <div id="menubar">
