@@ -433,6 +433,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast"></div>
 
+<script src="scripts/app-core.js"></script>
 <script>
 const API = 'https://teachedos-api.onrender.com';
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -440,6 +441,8 @@ let token = localStorage.getItem('teachedos_token');
 let boards = [];
 let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
 let members = [], lessonCols = [];
+let currentUser = null;
+const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
 
 function readGradebookCache() {
   try {
@@ -481,11 +484,15 @@ async function init() {
   const cached = readGradebookCache();
   try {
     const { user } = await apiFetch('/api/auth/me');
+    currentUser = user;
     setNavUser(user);
+    applyPackageGateUI();
     writeGradebookCache({ user });
   } catch {
     if (cached?.user) {
+      currentUser = cached.user;
       setNavUser(cached.user);
+      applyPackageGateUI();
     } else {
       location.href = 'index.html'; return;
     }
@@ -502,6 +509,19 @@ function setNavUser(user) {
 
 function initials(name) {
   return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
+}
+
+function hasExportsAccess() {
+  return planHasFeature(userPlan(currentUser), 'exports');
+}
+
+function applyPackageGateUI() {
+  const enabled = hasExportsAccess();
+  document.querySelectorAll('button[onclick="exportGradebook()"], button[onclick="exportQuizResults()"]').forEach(btn => {
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? '1' : '.55';
+    btn.title = enabled ? 'Export CSV' : upgradeMessage('exports');
+  });
 }
 
 async function loadData() {
@@ -756,7 +776,8 @@ async function inviteStudent() {
       body: JSON.stringify({ email, role })
     });
     if (r.status === 402) {
-      toast('Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
+      const d = await r.json().catch(() => ({}));
+      toast(d.error || 'Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
       return;
     }
     if (!r.ok) { const d = await r.json(); toast('❌ ' + (d.error || 'Error')); return; }
@@ -793,8 +814,9 @@ async function inviteFromModal() {
       body: JSON.stringify({ email, role })
     });
     if (r.status === 402) {
+      const d = await r.json().catch(() => ({}));
       closeInviteModal();
-      toast('Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
+      toast(d.error || 'Student limit reached for your plan. Upgrade at Profile → Plan.', 4000);
       return;
     }
     if (!r.ok) { const d = await r.json(); toast('❌ ' + (d.error || 'Error')); return; }
@@ -806,6 +828,7 @@ async function inviteFromModal() {
 }
 
 function exportGradebook() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   if (!members.length) { toast('No data to export'); return; }
   const headers = ['Student', 'Email', ...lessonCols.map(l => l.data?.title || l.title || 'Lesson'), 'Done', '%'];
   const rows = members.map(m => {
@@ -966,6 +989,7 @@ function closeStudentDetail() {
 }
 
 function exportQuizResults() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   if (!quizResultsData.length) { toast('No quiz data to export'); return; }
   const headers = ['Card ID','Student','Email','Score','Max Score','%','Submitted'];
   const rows = quizResultsData.map(r => [r.card_id, r.student_name, r.student_email, r.score, r.max_score, r.pct+'%', r.submitted_at]);

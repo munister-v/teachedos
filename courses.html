@@ -400,6 +400,7 @@ button{font-family:var(--font);cursor:pointer;}
       <div id="sb-head-title">📚 My Courses</div>
       <button class="btn-new-course" onclick="openCourseForm()">+ New</button>
     </div>
+    <div id="course-plan-note" style="padding:0 16px 10px;font-size:11px;line-height:1.5;color:var(--text3);"></div>
     <div id="course-list"></div>
     <div id="sb-shared-head">Shared with me</div>
     <div id="shared-list" style="padding:4px 8px 12px;"></div>
@@ -475,6 +476,7 @@ button{font-family:var(--font);cursor:pointer;}
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
+const { planLimit, userPlan } = window.TeachEdApp;
 
 const COLORS = [
   '#C8E632','#f97316','#eab308','#22c55e','#06b6d4',
@@ -491,6 +493,7 @@ let pickerTargetModuleId = null;
 let pickerSelected = new Set();
 let formMode = null; // 'course' | 'module' | 'editCourse'
 let formTargetId = null;
+let currentUser = null;
 const COURSE_TEMPLATES = {
   A1: {
     level: 'A1',
@@ -591,6 +594,7 @@ async function init() {
   if (!token) { location.href = 'index.html'; return; }
   try {
     const { user } = await api('/api/auth/me');
+    currentUser = user;
     setNavUser(user);
     // Mobile topbar
     if (window.innerWidth <= 860) {
@@ -613,6 +617,32 @@ function setNavUser(user) {
   document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
 }
 
+function courseLimitMeta() {
+  const plan = userPlan(currentUser);
+  const limit = planLimit(plan, 'courses');
+  return {
+    plan,
+    limit,
+    reached: limit !== -1 && courses.length >= limit,
+  };
+}
+
+function applyCoursePlanUI() {
+  const note = document.getElementById('course-plan-note');
+  const meta = courseLimitMeta();
+  if (note) {
+    note.innerHTML = meta.limit === -1
+      ? `Package: <strong>${meta.plan}</strong> · unlimited course workspaces`
+      : `Package: <strong>${meta.plan}</strong> · ${courses.length}/${meta.limit} course workspace${meta.limit === 1 ? '' : 's'} used`;
+  }
+  document.querySelectorAll('.btn-new-course').forEach(btn => {
+    btn.disabled = meta.reached;
+    btn.style.opacity = meta.reached ? '.55' : '1';
+    btn.style.cursor = meta.reached ? 'not-allowed' : 'pointer';
+    btn.title = meta.reached ? 'Course limit reached for your package' : 'Create a new course';
+  });
+}
+
 function initials(name) {
   return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
 }
@@ -624,6 +654,7 @@ async function loadAll() {
   ]);
   courses   = cd.courses;
   allBoards = bd.boards;
+  applyCoursePlanUI();
   renderSidebar();
   if (activeCourse) await openCourse(activeCourse.id);
 
@@ -1124,6 +1155,11 @@ function selectColor(c) {
 }
 
 function openCourseForm(mode = 'create', courseId = null) {
+  const meta = courseLimitMeta();
+  if (mode === 'create' && meta.reached) {
+    toast('Course limit reached for your package. Upgrade to unlock more course workspaces.');
+    return;
+  }
   formMode = mode === 'edit' ? 'editCourse' : 'course';
   formTargetId = courseId;
   document.getElementById('f-desc-wrap').style.display = '';
@@ -1183,7 +1219,10 @@ async function submitForm() {
       await openCourse(formTargetId);
       toast('✅ Module added!');
     }
-  } catch(e) { toast('Error: ' + e.message); }
+  } catch(e) {
+    if (/course limit/i.test(e.message)) toast('Course limit reached for your package. Upgrade to add more courses.');
+    else toast('Error: ' + e.message);
+  }
 }
 
 document.getElementById('f-name').addEventListener('keydown', e => {

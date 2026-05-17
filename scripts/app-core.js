@@ -1,6 +1,58 @@
 (function () {
   const API_BASE = 'https://teachedos-api.onrender.com';
   const DEFAULT_TIME_ZONE = 'Europe/Kyiv';
+  const PLAN_CATALOG = {
+    free: {
+      key: 'free',
+      name: 'Free',
+      limits: { boards: 3, studentsPerBoard: 5, courses: 1, storageMb: 75, historySnapshots: 2 },
+      flags: { analytics: false, adminPanel: false, realtime: false, exports: false, customBranding: false, bulkInvite: false }
+    },
+    pro: {
+      key: 'pro',
+      name: 'Teacher Pro',
+      limits: { boards: -1, studentsPerBoard: 30, courses: 20, storageMb: 1500, historySnapshots: 13 },
+      flags: { analytics: true, adminPanel: false, realtime: true, exports: true, customBranding: false, bulkInvite: false }
+    },
+    school: {
+      key: 'school',
+      name: 'School',
+      limits: { boards: -1, studentsPerBoard: -1, courses: -1, storageMb: 6000, historySnapshots: 40 },
+      flags: { analytics: true, adminPanel: true, realtime: true, exports: true, customBranding: true, bulkInvite: true }
+    }
+  };
+
+  function normalizePlanKey(plan) {
+    return PLAN_CATALOG[plan] ? plan : 'free';
+  }
+
+  function planDefinition(plan) {
+    return PLAN_CATALOG[normalizePlanKey(plan)];
+  }
+
+  function planLimit(plan, key) {
+    return planDefinition(plan).limits[key];
+  }
+
+  function planHasFeature(plan, key) {
+    return !!planDefinition(plan).flags[key];
+  }
+
+  function userPlan(user) {
+    return normalizePlanKey(user?.plan);
+  }
+
+  function upgradeMessage(featureKey) {
+    const messages = {
+      analytics: 'Analytics are available on Teacher Pro or School.',
+      exports: 'Exports are available on Teacher Pro or School.',
+      realtime: 'Live collaboration is available on Teacher Pro or School.',
+      bulkInvite: 'Bulk invite is available on the School package.',
+      adminPanel: 'Admin-wide controls are available on the School package.',
+      customBranding: 'Custom branding is available on the School package.',
+    };
+    return messages[featureKey] || 'This feature is not available on your current package.';
+  }
 
   function browserTimeZone() {
     try {
@@ -77,6 +129,7 @@
 
   window.TeachEdApp = {
     API_BASE,
+    PLAN_CATALOG,
     createApiClient,
     DEFAULT_TIME_ZONE,
     browserTimeZone,
@@ -85,5 +138,11 @@
     formatZoneNow,
     timeZoneOffsetMinutes,
     describeTimeZoneDifference,
+    normalizePlanKey,
+    planDefinition,
+    planLimit,
+    planHasFeature,
+    userPlan,
+    upgradeMessage,
   };
 })();

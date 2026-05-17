@@ -1618,7 +1618,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
     <div class="user-menu-item" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
-    <div class="user-menu-item" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
+    <div class="user-menu-item" id="more-export-board" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
     <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
@@ -5806,12 +5806,16 @@ async function saveToCloud(retryCount = 0) {
     }
     if (!r.ok) {
       let message = 'HTTP ' + r.status;
+      let payload = null;
       try {
-        const payload = await r.clone().json();
+        payload = await r.clone().json();
         if (payload && payload.error) message = payload.error;
       } catch {}
       if (r.status === 413) {
         message = 'Board is too large for cloud save. Compress or remove a few images.';
+      }
+      if (r.status === 402 && payload?.code === 'STORAGE_LIMIT_REACHED') {
+        message = `Storage limit reached: ${payload.used_mb} MB / ${payload.limit_mb} MB on ${payload.plan}.`;
       }
       throw new Error(message);
     }
@@ -5822,6 +5826,13 @@ async function saveToCloud(retryCount = 0) {
     autoSnapshot('auto');
   } catch (err) {
     console.warn('[board] cloud save failed:', err.message);
+    if (/storage limit reached/i.test(err.message || '')) {
+      setSaveUI('error');
+      pendingCloudSave = true;
+      saveRetries = 0;
+      toast(err.message + ' Upgrade package or remove heavy media.');
+      return;
+    }
     if (/large|413/i.test(err.message || '') && !cloudSaveSizeWarned) {
       cloudSaveSizeWarned = true;
       toast('Images are still too large. Try smaller files or remove a few.');
@@ -6228,6 +6239,24 @@ let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'teacher';
+const BOARD_PACKAGE_FLAGS = {
+  free: { exports: false },
+  pro: { exports: true },
+  school: { exports: true },
+};
+
+function currentPlanKey() {
+  return BOARD_PACKAGE_FLAGS[currentUser?.plan] ? currentUser.plan : 'free';
+}
+
+function boardHasFeature(flag) {
+  return !!BOARD_PACKAGE_FLAGS[currentPlanKey()]?.[flag];
+}
+
+function boardUpgradeMessage(flag) {
+  if (flag === 'exports') return 'Board exports are available on Teacher Pro or School.';
+  return 'This feature is not available on your current package.';
+}
 
 // Parse ?id= from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -6383,8 +6412,15 @@ function applyRoleUI() {
   const ownerOnly = ['btn-members','btn-share','board-name-display'];
   editTools.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = isOwner ? '' : 'none';
+    if (!el) return;
+    if (id === 'btn-export') {
+      el.style.display = (isOwner && boardHasFeature('exports')) ? '' : 'none';
+    } else {
+      el.style.display = isOwner ? '' : 'none';
+    }
   });
+  const moreExport = document.getElementById('more-export-board');
+  if (moreExport) moreExport.style.display = (isOwner && boardHasFeature('exports')) ? '' : 'none';
   // Board name: clickable rename only for owner
   const nameEl = document.getElementById('board-name-display');
   if (nameEl) nameEl.onclick = isOwner ? startRenameBoard : null;
@@ -7060,6 +7096,7 @@ function snapVal(v) { return Math.round(v / SNAP_SIZE) * SNAP_SIZE; }
 
 /* ════════════════════════ EXPORT ════════════════════════ */
 function openExportMenu(e) {
+  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
   const menu = document.getElementById('export-menu');
   const btn  = document.getElementById('btn-export').getBoundingClientRect();
   menu.style.left = btn.left + 'px';
@@ -7070,6 +7107,7 @@ function openExportMenu(e) {
 document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
 
 function exportBoardJSON() {
+  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
   document.getElementById('export-menu').classList.remove('open');
   const data = JSON.stringify({ cards: state.cards, arrows: state.arrows, pan: state.pan, scale: state.scale }, null, 2);
   const a = document.createElement('a');
@@ -7080,6 +7118,7 @@ function exportBoardJSON() {
 }
 
 function exportBoardCSV() {
+  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
   document.getElementById('export-menu').classList.remove('open');
   const lessons = state.cards.filter(c => c.type === 'lesson' || c.type === 'plan' || c.type === 'assignment');
   if (!lessons.length) { toast('No lesson/assignment cards to export'); return; }

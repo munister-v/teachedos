@@ -731,7 +731,10 @@ const {
   createApiClient,
   DEFAULT_TIME_ZONE,
   browserTimeZone,
-  isValidTimeZone
+  isValidTimeZone,
+  planHasFeature,
+  userPlan,
+  upgradeMessage
 } = window.TeachEdApp;
 const apiFetch = createApiClient(() => token);
 const TIME_ZONE_OPTIONS = [
@@ -1691,6 +1694,11 @@ async function saveAvatar() {
 
 /* ── Bulk Import ── */
 function openBulkImport() {
+  if (!planHasFeature(userPlan(me), 'bulkInvite')) {
+    toast(upgradeMessage('bulkInvite'));
+    openPlansSection();
+    return;
+  }
   const sel = document.getElementById('bulk-board-select');
   if (sel && boardsCache.length) {
     sel.innerHTML = boardsCache.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
@@ -1703,6 +1711,11 @@ function closeBulkImport() {
   document.getElementById('bulk-import-modal').style.display = 'none';
 }
 async function submitBulkImport() {
+  if (!planHasFeature(userPlan(me), 'bulkInvite')) {
+    toast(upgradeMessage('bulkInvite'));
+    openPlansSection();
+    return;
+  }
   const boardId = document.getElementById('bulk-board-select').value;
   const raw = document.getElementById('bulk-emails-input').value;
   if (!boardId || !raw.trim()) { toast('Select a board and enter emails'); return; }
@@ -1725,7 +1738,11 @@ async function submitBulkImport() {
     resultEl.style.color = d.added?.length ? '#15803d' : '#92400e';
     resultEl.style.display = 'block';
     resultEl.style.whiteSpace = 'pre-line';
-    if (d.added?.length) toast(`✅ ${d.added.length} student(s) invited!`);
+    if (d.limitReached) {
+      toast(`Student limit reached: ${d.limitReached.limit} on ${d.limitReached.plan}.`);
+    } else if (d.added?.length) {
+      toast(`✅ ${d.added.length} student(s) invited!`);
+    }
   } catch(e) { toast('Error: ' + e.message); }
 }
 

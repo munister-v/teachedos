@@ -105,6 +105,18 @@ function normalizePlanKey(value) {
   return PLAN_CATALOG[value] ? value : 'free';
 }
 
+function getPlanDefinition(planKey) {
+  return PLAN_CATALOG[normalizePlanKey(planKey)];
+}
+
+function getPlanLimit(planKey, limitKey) {
+  return getPlanDefinition(planKey)?.limits?.[limitKey];
+}
+
+function planHasFeature(planKey, flagKey) {
+  return !!getPlanDefinition(planKey)?.flags?.[flagKey];
+}
+
 function normalizeCycleKey(value) {
   return BILLING_CYCLES[value] ? value : 'monthly';
 }
@@ -265,6 +277,9 @@ module.exports = {
   BILLING_CYCLES,
   PLAN_STATUS_META,
   normalizePlanKey,
+  getPlanDefinition,
+  getPlanLimit,
+  planHasFeature,
   normalizeCycleKey,
   monthsForCycle,
   computePlanQuote,

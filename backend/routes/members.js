@@ -2,6 +2,43 @@ const express = require('express');
 const router  = express.Router();
 const pool    = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { normalizePlanKey, getPlanLimit } = require('../lib/billing');
+
+async function loadBoardOwner(boardId, ownerId) {
+  const { rows } = await pool.query(
+    'SELECT id FROM boards WHERE id=$1 AND user_id=$2',
+    [boardId, ownerId]
+  );
+  return rows.length ? rows[0] : null;
+}
+
+async function currentCollaboratorCount(boardId) {
+  const { rows } = await pool.query(
+    'SELECT COUNT(*)::int AS count FROM board_collaborators WHERE board_id = $1',
+    [boardId]
+  );
+  return Number(rows[0]?.count || 0);
+}
+
+async function existingCollaborator(boardId, userId) {
+  const { rows } = await pool.query(
+    'SELECT 1 FROM board_collaborators WHERE board_id=$1 AND user_id=$2 LIMIT 1',
+    [boardId, userId]
+  );
+  return !!rows.length;
+}
+
+async function enforceStudentLimit({ boardId, ownerPlan, inviteeId }) {
+  const limit = getPlanLimit(ownerPlan, 'studentsPerBoard');
+  if (limit === -1) return null;
+  const alreadyMember = await existingCollaborator(boardId, inviteeId);
+  if (alreadyMember) return null;
+  const count = await currentCollaboratorCount(boardId);
+  if (count >= limit) {
+    return { error: 'Student limit reached', code: 'STUDENT_LIMIT_REACHED', plan: ownerPlan, limit };
+  }
+  return null;
+}
 
 /* ──────────────────────────────────────────────────────────────
    GET /api/members/my/boards  — boards shared with current user (as student)
@@ -31,10 +68,8 @@ router.get('/:boardId', requireAuth, async (req, res) => {
   const { boardId } = req.params;
   try {
     // verify ownership
-    const { rows: own } = await pool.query(
-      'SELECT id FROM boards WHERE id=$1 AND user_id=$2', [boardId, req.user.id]
-    );
-    if (!own.length) return res.status(403).json({ error: 'Not your board' });
+    const own = await loadBoardOwner(boardId, req.user.id);
+    if (!own) return res.status(403).json({ error: 'Not your board' });
 
     const { rows } = await pool.query(`
       SELECT bc.user_id, bc.role, bc.added_at,
@@ -78,24 +113,10 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
     // can't invite yourself
     if (invitee.id === req.user.id) return res.status(400).json({ error: 'Cannot invite yourself' });
 
-    // Enforce free plan student limit (5 per board)
-    const plan = req.user.plan || 'free';
-    if (plan === 'free') {
-      const { rows: cnt } = await pool.query(
-        'SELECT COUNT(*) AS count FROM board_collaborators WHERE board_id = $1',
-        [boardId]
-      );
-      if (parseInt(cnt[0].count, 10) >= 5) {
-        return res.status(402).json({ error: 'Student limit reached', plan: 'free', limit: 5 });
-      }
-    } else if (plan === 'pro') {
-      const { rows: cnt } = await pool.query(
-        'SELECT COUNT(*) AS count FROM board_collaborators WHERE board_id = $1',
-        [boardId]
-      );
-      if (parseInt(cnt[0].count, 10) >= 30) {
-        return res.status(402).json({ error: 'Student limit reached', plan: 'pro', limit: 30 });
-      }
+    const plan = normalizePlanKey(req.user.plan);
+    const limitError = await enforceStudentLimit({ boardId, ownerPlan: plan, inviteeId: invitee.id });
+    if (limitError) {
+      return res.status(402).json(limitError);
     }
 
     // upsert
@@ -144,10 +165,17 @@ router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
   if (!Array.isArray(emails) || !emails.length) return res.status(400).json({ error: 'emails array required' });
 
   try {
-    const { rows: own } = await pool.query(
-      'SELECT id FROM boards WHERE id=$1 AND user_id=$2', [boardId, req.user.id]
-    );
-    if (!own.length) return res.status(403).json({ error: 'Not your board' });
+    const own = await loadBoardOwner(boardId, req.user.id);
+    if (!own) return res.status(403).json({ error: 'Not your board' });
+    const plan = normalizePlanKey(req.user.plan);
+    if (plan !== 'school') {
+      return res.status(402).json({
+        error: 'Bulk invite is available on the School package',
+        code: 'BULK_INVITE_REQUIRES_SCHOOL',
+        plan,
+        required_plan: 'school',
+      });
+    }
 
     const results = { added: [], notFound: [], alreadyMember: [] };
 
@@ -161,19 +189,28 @@ router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
       if (!users.length) { results.notFound.push(email); continue; }
       const invitee = users[0];
       if (invitee.id === req.user.id) continue;
+      const limitError = await enforceStudentLimit({ boardId, ownerPlan: plan, inviteeId: invitee.id });
+      if (limitError) {
+        results.limitReached = limitError;
+        break;
+      }
 
       try {
-        await pool.query(`
+        const insert = await pool.query(`
           INSERT INTO board_collaborators (board_id, user_id, role)
           VALUES ($1,$2,$3) ON CONFLICT (board_id, user_id) DO NOTHING`,
           [boardId, invitee.id, role]
         );
-        results.added.push({ email: invitee.email, name: invitee.name });
+        if (insert.rowCount) results.added.push({ email: invitee.email, name: invitee.name });
+        else results.alreadyMember.push(email);
       } catch {
         results.alreadyMember.push(email);
       }
     }
 
+    if (results.limitReached && !results.added.length) {
+      return res.status(402).json(results.limitReached);
+    }
     res.json(results);
   } catch (err) {
     console.error('[members] bulk-invite error:', err.message);

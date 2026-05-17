@@ -1,7 +1,33 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
-const { PLAN_CATALOG, normalizePlanKey } = require('../lib/billing');
+const { PLAN_CATALOG, normalizePlanKey, getPlanLimit } = require('../lib/billing');
+
+async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
+  const storageMbLimit = getPlanLimit(plan, 'storageMb');
+  if (storageMbLimit === -1 || boardData === undefined) return null;
+
+  const serialized = typeof boardData === 'string' ? boardData : JSON.stringify(boardData);
+  const [otherBoards, nextBoard] = await Promise.all([
+    pool.query(
+      'SELECT COALESCE(SUM(pg_column_size(data)), 0)::bigint AS bytes FROM boards WHERE user_id=$1 AND id<>$2',
+      [userId, boardId || null]
+    ),
+    pool.query('SELECT pg_column_size($1::jsonb)::bigint AS bytes', [serialized]),
+  ]);
+  const totalBytes = Number(otherBoards.rows[0]?.bytes || 0) + Number(nextBoard.rows[0]?.bytes || 0);
+  const totalMb = Math.round((totalBytes / 1024 / 1024) * 100) / 100;
+  if (totalMb > storageMbLimit) {
+    return {
+      error: 'Storage limit reached for your package',
+      code: 'STORAGE_LIMIT_REACHED',
+      plan,
+      limit_mb: storageMbLimit,
+      used_mb: totalMb,
+    };
+  }
+  return null;
+}
 
 // All board routes require auth
 router.use(requireAuth);
@@ -73,6 +99,14 @@ router.put('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
   const boardData = data || stateBody;
   if (!boardData) return res.status(400).json({ error: 'data or state is required' });
+  const plan = normalizePlanKey(req.user.plan);
+  const storageError = await enforceBoardStorageLimit({
+    userId: req.user.id,
+    boardId: req.params.id,
+    boardData,
+    plan,
+  });
+  if (storageError) return res.status(402).json(storageError);
 
   const sets    = ['data = $3'];
   const params  = [req.params.id, req.user.id, boardData];
@@ -95,6 +129,17 @@ router.patch('/:id', requireAuth, async (req, res) => {
   const boardData = data || stateBody;
   const sets   = [];
   const params = [req.params.id, req.user.id];
+  const plan = normalizePlanKey(req.user.plan);
+
+  if (boardData !== undefined) {
+    const storageError = await enforceBoardStorageLimit({
+      userId: req.user.id,
+      boardId: req.params.id,
+      boardData,
+      plan,
+    });
+    if (storageError) return res.status(402).json(storageError);
+  }
 
   if (boardData !== undefined)  { params.push(boardData);                      sets.push(`data = $${params.length}`); }
   if (name !== undefined)       { params.push(name.trim().slice(0, 255));      sets.push(`name = $${params.length}`); }

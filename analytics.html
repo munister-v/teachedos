@@ -230,6 +230,7 @@ a{text-decoration:none;color:inherit;}
     <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
     <a class="btn btn-primary" href="board.html" style="text-decoration:none;">📌 Open Board</a>
   </div>
+  <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:700;margin-bottom:18px;"></div>
 
   <!-- Board selector -->
   <div class="section">
@@ -323,11 +324,14 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast"></div>
 
+<script src="scripts/app-core.js"></script>
 <script>
 const API = 'https://teachedos-api.onrender.com';
 let token = localStorage.getItem('teachedos_token');
 let boards = [];
 let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
+let currentUser = null;
+const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
 
 async function apiFetch(path, opts={}) {
   const r = await fetch(API+path, {
@@ -343,8 +347,11 @@ async function init() {
   if (!token) { location.href='index.html'; return; }
   try {
     const { user } = await apiFetch('/api/auth/me');
+    currentUser = user;
     setNavUser(user);
+    applyAnalyticsGateUI();
   } catch { location.href='index.html'; return; }
+  if (!hasAnalyticsAccess()) return;
   await loadData();
 }
 
@@ -357,6 +364,43 @@ function setNavUser(user) {
 
 function initials(name) {
   return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
+}
+
+function hasAnalyticsAccess() {
+  return planHasFeature(userPlan(currentUser), 'analytics');
+}
+
+function hasExportsAccess() {
+  return planHasFeature(userPlan(currentUser), 'exports');
+}
+
+function applyAnalyticsGateUI() {
+  const analyticsOn = hasAnalyticsAccess();
+  const exportsOn = hasExportsAccess();
+  const lock = document.getElementById('analytics-lock');
+  if (lock) {
+    if (analyticsOn) {
+      lock.style.display = 'none';
+    } else {
+      lock.style.display = 'block';
+      lock.innerHTML = `${upgradeMessage('analytics')} <a href="profile.html#plans" style="color:#9a3412;font-weight:900;">Upgrade package →</a>`;
+    }
+  }
+  const exportBtn = document.getElementById('btn-export');
+  if (exportBtn) {
+    exportBtn.disabled = !exportsOn;
+    exportBtn.style.opacity = exportsOn ? '1' : '.55';
+    exportBtn.title = exportsOn ? 'Export CSV' : upgradeMessage('exports');
+  }
+  const exportAllBtn = document.querySelector('button[onclick="exportAllCSV()"]');
+  if (exportAllBtn) {
+    exportAllBtn.disabled = !exportsOn;
+    exportAllBtn.style.opacity = exportsOn ? '1' : '.55';
+    exportAllBtn.title = exportsOn ? 'Export all analytics' : upgradeMessage('exports');
+  }
+  document.querySelectorAll('#stats-row, #progress-section, #pie-section, #students-section, #quiz-analytics-section').forEach(el => {
+    if (el) el.style.display = analyticsOn ? '' : 'none';
+  });
 }
 
 async function loadData() {
@@ -647,6 +691,7 @@ async function loadStudentProgress(boardId) {
 }
 
 function exportCSV() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   const lessons = _lastCards.filter(c=>c.type==='lesson');
   if (!lessons.length) { toast('No lessons to export'); return; }
   const rows = [['Title','Level','Skill','Duration','Status']];
@@ -661,6 +706,7 @@ function exportCSV() {
 }
 
 function exportAllCSV() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   // Export current board's student progress as CSV
   const boardId = activeBoardId;
   if (!boardId) { toast('Select a board first'); return; }

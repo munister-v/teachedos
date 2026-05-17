@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { normalizePlanKey, getPlanLimit } = require('../lib/billing');
 
 router.use(requireAuth);
 
@@ -22,6 +23,22 @@ router.get('/', async (req, res) => {
 /* ── POST /api/courses — create course ───────────────────────────────── */
 router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Course', description = '', level = '', color = '#FF4B8B' } = req.body;
+  const plan = normalizePlanKey(req.user.plan);
+  const courseLimit = getPlanLimit(plan, 'courses');
+  if (courseLimit !== -1) {
+    const { rows: cnt } = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM courses WHERE user_id=$1',
+      [req.user.id]
+    );
+    if (Number(cnt[0]?.count || 0) >= courseLimit) {
+      return res.status(402).json({
+        error: 'Course limit reached for your package',
+        code: 'COURSE_LIMIT_REACHED',
+        plan,
+        limit: courseLimit,
+      });
+    }
+  }
   const { rows } = await pool.query(
     `INSERT INTO courses (user_id, name, description, level, color)
      VALUES ($1,$2,$3,$4,$5) RETURNING *`,

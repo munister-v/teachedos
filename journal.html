@@ -284,6 +284,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast"></div>
 
+<script src="scripts/app-core.js"></script>
 <script>
 const API = 'https://teachedos-api.onrender.com';
 const token = localStorage.getItem('teachedos_token');
@@ -292,6 +293,8 @@ const auth = { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'app
 let students = [];
 let editingId = null;
 let attendingId = null;
+let currentUser = null;
+const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
 
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
@@ -299,7 +302,9 @@ async function init() {
     const me = await fetch(API + '/api/auth/me', { headers: auth.headers }).then(r => r.json());
     if (!me.user) { location.href = 'index.html'; return; }
     if (me.user.role === 'student') { location.href = 'student.html'; return; }
+    currentUser = me.user;
     setNavUser(me.user);
+    applyJournalGateUI();
   } catch { location.href = 'index.html'; return; }
   await loadJournal();
 }
@@ -313,6 +318,19 @@ function setNavUser(user) {
 
 function initials(name) {
   return name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'T';
+}
+
+function hasExportsAccess() {
+  return planHasFeature(userPlan(currentUser), 'exports');
+}
+
+function applyJournalGateUI() {
+  const btn = document.querySelector('button[onclick="exportCSV()"]');
+  if (!btn) return;
+  const enabled = hasExportsAccess();
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '.55';
+  btn.title = enabled ? 'Export CSV' : upgradeMessage('exports');
 }
 
 async function loadJournal() {
@@ -446,6 +464,7 @@ async function saveAttendance() {
 }
 
 function exportCSV() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports'), 'err'); return; }
   if (!students.length) { toast('No data to export', 'err'); return; }
   const rows = [['Name','Email','Level','Lessons Left','Attended','Total Sessions','Notes']];
   students.forEach(s => rows.push([s.name, s.email||'', s.level||'', s.lessons_left||0, s.attended||0, s.total_sessions||0, s.notes||'']));

@@ -521,7 +521,10 @@ const {
   DEFAULT_TIME_ZONE,
   browserTimeZone,
   safeTimeZone,
-  formatZoneNow
+  formatZoneNow,
+  planHasFeature,
+  userPlan,
+  upgradeMessage
 } = window.TeachEdApp;
 let token = localStorage.getItem('teachedos_token');
 let schedule = [];
@@ -568,6 +571,19 @@ function renderScheduleTimeZoneCard() {
   noteEl.textContent = currentUser?.timezone_mode === 'manual'
     ? 'Manual mode is on. This schedule stays pinned to your teaching timezone.'
     : 'Auto mode is on. TeachEd follows the timezone from this device.';
+}
+
+function hasExportsAccess() {
+  return planHasFeature(userPlan(currentUser), 'exports');
+}
+
+function applySchedulePackageGateUI() {
+  const enabled = hasExportsAccess();
+  document.querySelectorAll('button[onclick="exportICS()"]').forEach(btn => {
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? '1' : '.55';
+    btn.title = enabled ? 'Export calendar' : upgradeMessage('exports');
+  });
 }
 
 function readScheduleCache() {
@@ -730,11 +746,13 @@ async function init() {
     currentUser = r.user;
     await syncAutoTimeZone();
     setNavUser(currentUser);
+    applySchedulePackageGateUI();
     writeScheduleCache({ user: currentUser });
   } catch {
     if (cached?.user) {
       currentUser = cached.user;
       setNavUser(cached.user);
+      applySchedulePackageGateUI();
     } else {
       location.href = 'index.html'; return;
     }
@@ -1305,6 +1323,7 @@ setInterval(updateNowLine, 60000);
 init();
 
 function exportICS() {
+  if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   if (!schedule.length) { alert('No classes to export.'); return; }
   const days = ['SU','MO','TU','WE','TH','FR','SA'];
   const pad2 = n => String(n).padStart(2,'0');
