@@ -364,17 +364,84 @@ html,body {
   letter-spacing:-0.01em;
 }
 .win-body { flex:1; overflow:hidden; display:flex; }
-.win-rz {
-  position:absolute;bottom:0;right:0;width:20px;height:20px;
-  cursor:se-resize;z-index:30;
+
+/* ── Resize handles (8 edges) ── */
+.win-rz-n,.win-rz-s,.win-rz-e,.win-rz-w,
+.win-rz-ne,.win-rz-nw,.win-rz-se,.win-rz-sw {
+  position:absolute; z-index:30; user-select:none;
 }
-.win-rz::after {
-  content:'';position:absolute;bottom:4px;right:4px;
-  width:10px;height:10px;
-  border-right:2.5px solid rgba(180,80,120,0.35);
-  border-bottom:2.5px solid rgba(180,80,120,0.35);
-  border-radius:1px;
+.win-rz-n { top:-3px; left:8px; right:8px; height:6px; cursor:ns-resize; }
+.win-rz-s { bottom:-3px; left:8px; right:8px; height:6px; cursor:ns-resize; }
+.win-rz-e { top:8px; bottom:8px; right:-3px; width:6px; cursor:ew-resize; }
+.win-rz-w { top:8px; bottom:8px; left:-3px; width:6px; cursor:ew-resize; }
+.win-rz-ne{ top:-3px; right:-3px; width:14px; height:14px; cursor:nesw-resize; }
+.win-rz-nw{ top:-3px; left:-3px; width:14px; height:14px; cursor:nwse-resize; }
+.win-rz-se{ bottom:-3px; right:-3px; width:14px; height:14px; cursor:nwse-resize; }
+.win-rz-sw{ bottom:-3px; left:-3px; width:14px; height:14px; cursor:nesw-resize; }
+.win-rz-se::after {
+  content:''; position:absolute; bottom:5px; right:5px; width:8px; height:8px;
+  border-right:2px solid rgba(94,94,74,0.30);
+  border-bottom:2px solid rgba(94,94,74,0.30);
+  border-bottom-right-radius:2px; opacity:0; transition:opacity .15s;
 }
+.win:hover .win-rz-se::after { opacity:1; }
+
+/* ── Window states ── */
+.win { transition: opacity .2s, transform .22s cubic-bezier(.4,0,.2,1),
+                   box-shadow .2s, width .22s cubic-bezier(.4,0,.2,1),
+                   height .22s cubic-bezier(.4,0,.2,1),
+                   top .22s cubic-bezier(.4,0,.2,1),
+                   left .22s cubic-bezier(.4,0,.2,1); }
+.win.dragging,.win.resizing {
+  transition:none !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+  will-change:transform, width, height;
+}
+.win.dragging { cursor:grabbing; }
+.win.focused {
+  box-shadow:
+    0 32px 88px rgba(94,94,74,0.18),
+    0 12px 32px rgba(0,0,0,0.10),
+    0 1px 0 rgba(255,255,255,0.9) inset !important;
+}
+.win:not(.focused) { opacity:0.985; }
+.win.maximized {
+  border-radius:0 !important;
+  top:0 !important; left:0 !important;
+}
+.win.maximized .win-rz-n,.win.maximized .win-rz-s,
+.win.maximized .win-rz-e,.win.maximized .win-rz-w,
+.win.maximized .win-rz-ne,.win.maximized .win-rz-nw,
+.win.maximized .win-rz-se,.win.maximized .win-rz-sw {
+  display:none;
+}
+.win.minimizing { animation: winMinimize .22s cubic-bezier(.4,0,.6,1) forwards; }
+@keyframes winMinimize {
+  to { opacity:0; transform:scale(0.85) translateY(40px); }
+}
+
+/* ── Snap preview overlay ── */
+.win-snap-preview {
+  position:fixed; z-index:99; pointer-events:none;
+  background:rgba(200,230,50,0.18);
+  border:2px solid rgba(200,230,50,0.55);
+  border-radius:var(--radius-win);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  opacity:0; transition:opacity .12s, top .14s, left .14s, width .14s, height .14s;
+}
+.win-snap-preview.show { opacity:1; }
+
+/* ── Traffic-light symbols on hover ── */
+.win-controls:hover .tl.close::before { content:'×'; }
+.win-controls:hover .tl.min::before   { content:'−'; }
+.win-controls:hover .tl.max::before   { content:'+'; }
+.win-controls .tl::before {
+  display:block; text-align:center; line-height:13px; font-size:11px;
+  font-weight:900; color:rgba(0,0,0,0.55);
+}
+.tl { display:flex; align-items:center; justify-content:center; }
 .win-sidebar {
   width:200px; flex-shrink:0;
   background: rgba(255,240,248,0.70);
@@ -1268,7 +1335,7 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('plans')"></div>
       <div class="tl min"    onclick="minWin('plans')"></div>
-      <div class="tl max"></div>
+      <div class="tl max"    onclick="maxWin('plans')"></div>
     </div>
     <div class="win-title">📋 Lesson Plans</div>
   </div>
@@ -1455,7 +1522,7 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('students')"></div>
       <div class="tl min"    onclick="minWin('students')"></div>
-      <div class="tl max"></div>
+      <div class="tl max"    onclick="maxWin('students')"></div>
     </div>
     <div class="win-title">👥 Students</div>
   </div>
@@ -1485,7 +1552,7 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('schedule')"></div>
       <div class="tl min"    onclick="minWin('schedule')"></div>
-      <div class="tl max"></div>
+      <div class="tl max"    onclick="maxWin('schedule')"></div>
     </div>
     <div class="win-title">📅 Schedule</div>
   </div>
@@ -1518,7 +1585,7 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('notes')"></div>
       <div class="tl min"    onclick="minWin('notes')"></div>
-      <div class="tl max"></div>
+      <div class="tl max"    onclick="maxWin('notes')"></div>
     </div>
     <div class="win-title">✍️ Notes</div>
   </div>
@@ -1565,7 +1632,7 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('tools')"></div>
       <div class="tl min"    onclick="minWin('tools')"></div>
-      <div class="tl max"></div>
+      <div class="tl max"    onclick="maxWin('tools')"></div>
     </div>
     <div class="win-title">🪄 Teaching Tools</div>
   </div>
@@ -1827,85 +1894,350 @@ function updateMobileTeacherOverview() {
   } catch (err) { console.warn('mp-fill error', err); }
 }
 
-function openApp(id) {
-  const win = document.getElementById('win-' + id);
-  const di  = document.getElementById('di-' + id);
-  if (!win) return;
-  const wasOpen = win.classList.contains('open');
-  win.classList.add('open');
-  if (!wasOpen) win.classList.add('appear');
-  setTimeout(()=>win.classList.remove('appear'), 300);
-  bringToFront(id);
-  if (di) di.classList.add('open');
-}
+/* ════════════════════════════════════════════════════════════════
+   Window Manager v2 — drag, 8-way resize, snap, maximize, minimize,
+   persistent geometry, focus z-stacking, smart cascade.
+   ════════════════════════════════════════════════════════════════ */
+const WM = (function () {
+  const MIN_W = 360, MIN_H = 240;
+  const STORE_KEY = 'teachedos_wm_v2';
+  const TOPBAR_H = 28;   // keep titlebar reachable when clamping y
+  const SNAP_EDGE = 24;  // px from edge to trigger snap
+  let focusedId = null;
+  let cascade = 0;
 
-function closeWin(id) {
-  const win = document.getElementById('win-' + id);
-  const di  = document.getElementById('di-' + id);
-  if (win) win.classList.remove('open');
-  if (di) di.classList.remove('open');
-}
+  const state = loadState();
 
-function minWin(id) { closeWin(id); }
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function persist() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  }
+  function winOf(id) { return document.getElementById('win-' + id); }
+  function idOf(win) { return win.id.replace('win-', ''); }
 
-function bringToFront(id) {
-  topZ++;
-  const win = document.getElementById('win-' + id);
-  if (win) win.style.zIndex = topZ;
-}
+  function clamp(win) {
+    if (win.classList.contains('maximized')) return;
+    const w = win.offsetWidth, h = win.offsetHeight;
+    const maxX = Math.max(0, window.innerWidth - w);
+    const maxY = Math.max(0, window.innerHeight - TOPBAR_H);
+    let x = parseFloat(win.style.left) || 0;
+    let y = parseFloat(win.style.top)  || 0;
+    x = Math.max(0, Math.min(x, maxX));
+    y = Math.max(0, Math.min(y, maxY));
+    win.style.left = x + 'px';
+    win.style.top  = y + 'px';
+  }
 
-/* Draggable + resizable windows */
-(function(){
-  const wins = document.querySelectorAll('.win');
-  let dragWin=null, ox=0, oy=0, wx=0, wy=0;
-  let rzWin=null, rsw=0, rsh=0, rmx=0, rmy=0;
+  function saveGeom(id) {
+    const win = winOf(id);
+    if (!win) return;
+    const s = state[id] = state[id] || {};
+    if (win.classList.contains('maximized')) {
+      s.maximized = true;
+    } else {
+      s.maximized = false;
+      const r = win.getBoundingClientRect();
+      s.x = r.left; s.y = r.top; s.w = r.width; s.h = r.height;
+    }
+    persist();
+  }
 
-  wins.forEach(win => {
+  function applyGeom(id) {
+    const win = winOf(id);
+    const s = state[id];
+    if (!win || !s) return false;
+    if (s.maximized) {
+      maximize(id, /*skipSave*/ true);
+    } else if (s.w && s.h) {
+      win.style.left   = Math.max(0, Math.min(s.x, window.innerWidth  - 80)) + 'px';
+      win.style.top    = Math.max(0, Math.min(s.y, window.innerHeight - TOPBAR_H)) + 'px';
+      win.style.width  = Math.max(MIN_W, s.w) + 'px';
+      win.style.height = Math.max(MIN_H, s.h) + 'px';
+    }
+    return true;
+  }
+
+  function focus(id) {
+    const win = winOf(id);
+    if (!win) return;
+    topZ++;
+    win.style.zIndex = topZ;
+    document.querySelectorAll('.win.focused').forEach(w => {
+      if (w !== win) w.classList.remove('focused');
+    });
+    win.classList.add('focused');
+    focusedId = id;
+  }
+
+  function open(id) {
+    const win = winOf(id);
+    const di  = document.getElementById('di-' + id);
+    if (!win) return;
+    const wasOpen = win.classList.contains('open');
+    win.classList.remove('minimizing');
+    win.classList.add('open');
+    if (!wasOpen) {
+      if (!applyGeom(id)) {
+        // first open ever — cascade from default authored position
+        const r = win.getBoundingClientRect();
+        const off = (cascade++ % 6) * 18;
+        if (!win.style.left) win.style.left = (r.left + off) + 'px';
+        if (!win.style.top)  win.style.top  = (r.top  + off) + 'px';
+      }
+      win.classList.add('appear');
+      setTimeout(() => win.classList.remove('appear'), 300);
+    }
+    requestAnimationFrame(() => clamp(win));
+    focus(id);
+    if (di) di.classList.add('open');
+  }
+
+  function close(id) {
+    const win = winOf(id);
+    const di  = document.getElementById('di-' + id);
+    if (win) {
+      saveGeom(id);
+      win.classList.remove('open', 'focused');
+    }
+    if (di) di.classList.remove('open');
+    if (focusedId === id) focusedId = null;
+  }
+
+  function minimize(id) {
+    const win = winOf(id);
+    if (!win) return;
+    saveGeom(id);
+    win.classList.add('minimizing');
+    setTimeout(() => {
+      win.classList.remove('open', 'minimizing', 'focused');
+      const di = document.getElementById('di-' + id);
+      if (di) di.classList.remove('open');
+    }, 220);
+    if (focusedId === id) focusedId = null;
+  }
+
+  function maximize(id, skipSave) {
+    const win = winOf(id);
+    if (!win) return;
+    if (win.classList.contains('maximized')) {
+      // restore from stored pre-max geom
+      win.classList.remove('maximized');
+      const s = state[id] && state[id]._preMax;
+      if (s) {
+        win.style.left   = s.x + 'px';
+        win.style.top    = s.y + 'px';
+        win.style.width  = s.w + 'px';
+        win.style.height = s.h + 'px';
+      }
+    } else {
+      const r = win.getBoundingClientRect();
+      state[id] = state[id] || {};
+      state[id]._preMax = { x: r.left, y: r.top, w: r.width, h: r.height };
+      win.classList.add('maximized');
+      win.style.left = '0px'; win.style.top = '0px';
+      win.style.width  = window.innerWidth  + 'px';
+      win.style.height = window.innerHeight + 'px';
+    }
+    if (!skipSave) saveGeom(id);
+  }
+
+  // ── Snap preview ─────────────────────────────────────────────
+  let snapEl = null;
+  function ensureSnap() {
+    if (snapEl) return snapEl;
+    snapEl = document.createElement('div');
+    snapEl.className = 'win-snap-preview';
+    document.body.appendChild(snapEl);
+    return snapEl;
+  }
+  function snapRectFor(x, y) {
+    const W = window.innerWidth, H = window.innerHeight;
+    if (y < SNAP_EDGE)        return { x:0, y:0, w:W, h:H, zone:'top' };       // maximize
+    if (x < SNAP_EDGE)        return { x:0, y:0, w:W/2, h:H, zone:'left' };
+    if (x > W - SNAP_EDGE)    return { x:W/2, y:0, w:W/2, h:H, zone:'right' };
+    return null;
+  }
+  function showSnap(rect) {
+    const el = ensureSnap();
+    el.style.left   = rect.x + 'px';
+    el.style.top    = rect.y + 'px';
+    el.style.width  = rect.w + 'px';
+    el.style.height = rect.h + 'px';
+    el.classList.add('show');
+  }
+  function hideSnap() { if (snapEl) snapEl.classList.remove('show'); }
+
+  // ── Drag + Resize handling ───────────────────────────────────
+  let drag = null;   // { win, ox, oy, wx, wy, snapTo }
+  let rez  = null;   // { win, dir, sx, sy, sw, sh, x0, y0 }
+
+  function attachHandles(win) {
+    if (win._wmAttached) return;
+    win._wmAttached = true;
+
     const tb = win.querySelector('.win-titlebar');
     if (tb) {
       tb.addEventListener('mousedown', e => {
         if (e.target.classList.contains('tl')) return;
-        dragWin = win;
-        ox = e.clientX; oy = e.clientY;
+        if (win.classList.contains('maximized')) return; // can't drag maximized
         const r = win.getBoundingClientRect();
-        wx = r.left; wy = r.top;
-        bringToFront(win.id.replace('win-',''));
+        drag = { win, ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, snapTo: null };
+        win.classList.add('dragging');
+        focus(idOf(win));
         e.preventDefault();
       });
+      tb.addEventListener('dblclick', e => {
+        if (e.target.classList.contains('tl')) return;
+        maximize(idOf(win));
+      });
     }
-    win.addEventListener('mousedown', () => bringToFront(win.id.replace('win-','')));
 
-    // Add resize handle
-    const rz = document.createElement('div');
-    rz.className = 'win-rz';
-    rz.addEventListener('mousedown', e => {
-      rzWin = win;
-      const r = win.getBoundingClientRect();
-      rsw = r.width; rsh = r.height; rmx = e.clientX; rmy = e.clientY;
-      e.preventDefault(); e.stopPropagation();
+    // Wire traffic lights (max button now functional)
+    const maxBtn = win.querySelector('.tl.max');
+    if (maxBtn && !maxBtn._wmWired) {
+      maxBtn._wmWired = true;
+      maxBtn.addEventListener('click', () => maximize(idOf(win)));
+    }
+
+    win.addEventListener('mousedown', () => focus(idOf(win)));
+
+    // Remove legacy single-handle if it still exists
+    const legacy = win.querySelector('.win-rz');
+    if (legacy) legacy.remove();
+
+    // 8 resize handles
+    ['n','s','e','w','ne','nw','se','sw'].forEach(dir => {
+      const h = document.createElement('div');
+      h.className = 'win-rz-' + dir;
+      h.addEventListener('mousedown', e => {
+        if (win.classList.contains('maximized')) return;
+        const r = win.getBoundingClientRect();
+        rez = { win, dir, sx: e.clientX, sy: e.clientY,
+                sw: r.width, sh: r.height, x0: r.left, y0: r.top };
+        win.classList.add('resizing');
+        focus(idOf(win));
+        e.preventDefault(); e.stopPropagation();
+      });
+      win.appendChild(h);
     });
-    win.appendChild(rz);
-  });
+  }
 
   document.addEventListener('mousemove', e => {
-    if (dragWin) {
-      let nx = wx + e.clientX - ox;
-      let ny = wy + e.clientY - oy;
-      const TITLEBAR_H = 28;
-      nx = Math.max(0, Math.min(nx, window.innerWidth - dragWin.offsetWidth));
-      ny = Math.max(0, Math.min(ny, window.innerHeight - TITLEBAR_H));
-      dragWin.style.left = nx+'px';
-      dragWin.style.top  = ny+'px';
+    if (drag) {
+      let nx = drag.wx + e.clientX - drag.ox;
+      let ny = drag.wy + e.clientY - drag.oy;
+      const maxX = window.innerWidth  - drag.win.offsetWidth;
+      const maxY = window.innerHeight - TOPBAR_H;
+      nx = Math.max(0, Math.min(nx, Math.max(0, maxX)));
+      ny = Math.max(0, Math.min(ny, maxY));
+      drag.win.style.left = nx + 'px';
+      drag.win.style.top  = ny + 'px';
+
+      // snap preview based on pointer location
+      const snap = snapRectFor(e.clientX, e.clientY);
+      if (snap) { drag.snapTo = snap; showSnap(snap); }
+      else      { drag.snapTo = null; hideSnap(); }
     }
-    if (rzWin) {
-      const nw = Math.max(320, rsw + e.clientX - rmx);
-      const nh = Math.max(220, rsh + e.clientY - rmy);
-      rzWin.style.width  = nw+'px';
-      rzWin.style.height = nh+'px';
+    if (rez) {
+      const dx = e.clientX - rez.sx, dy = e.clientY - rez.sy;
+      let nw = rez.sw, nh = rez.sh, nx = rez.x0, ny = rez.y0;
+      if (rez.dir.includes('e')) nw = rez.sw + dx;
+      if (rez.dir.includes('s')) nh = rez.sh + dy;
+      if (rez.dir.includes('w')) { nw = rez.sw - dx; nx = rez.x0 + dx; }
+      if (rez.dir.includes('n')) { nh = rez.sh - dy; ny = rez.y0 + dy; }
+      // clamp to mins
+      if (nw < MIN_W) { if (rez.dir.includes('w')) nx -= (MIN_W - nw); nw = MIN_W; }
+      if (nh < MIN_H) { if (rez.dir.includes('n')) ny -= (MIN_H - nh); nh = MIN_H; }
+      // clamp to viewport
+      if (nx < 0) { nw += nx; nx = 0; }
+      if (ny < 0) { nh += ny; ny = 0; }
+      if (nx + nw > window.innerWidth)  nw = window.innerWidth  - nx;
+      if (ny + nh > window.innerHeight) nh = window.innerHeight - ny;
+      rez.win.style.left   = nx + 'px';
+      rez.win.style.top    = ny + 'px';
+      rez.win.style.width  = nw + 'px';
+      rez.win.style.height = nh + 'px';
     }
   });
-  document.addEventListener('mouseup', () => { dragWin=null; rzWin=null; });
+
+  document.addEventListener('mouseup', () => {
+    if (drag) {
+      drag.win.classList.remove('dragging');
+      if (drag.snapTo) {
+        const s = drag.snapTo, id = idOf(drag.win);
+        if (s.zone === 'top') {
+          maximize(id);
+        } else {
+          // remember pre-snap for restore via maximize toggle? Just apply size:
+          drag.win.classList.remove('maximized');
+          drag.win.style.left   = s.x + 'px';
+          drag.win.style.top    = s.y + 'px';
+          drag.win.style.width  = s.w + 'px';
+          drag.win.style.height = s.h + 'px';
+          saveGeom(id);
+        }
+      } else {
+        saveGeom(idOf(drag.win));
+      }
+      hideSnap();
+      drag = null;
+    }
+    if (rez) {
+      rez.win.classList.remove('resizing');
+      saveGeom(idOf(rez.win));
+      rez = null;
+    }
+  });
+
+  // Esc closes focused window
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && focusedId) {
+      const win = winOf(focusedId);
+      if (win && win.classList.contains('open')) {
+        const has = document.querySelector('.modal-backdrop, .spotlight-open');
+        if (!has) close(focusedId);
+      }
+    }
+  });
+
+  // Viewport resize → clamp all open windows + resize maximized
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.win.open').forEach(win => {
+      if (win.classList.contains('maximized')) {
+        win.style.width  = window.innerWidth  + 'px';
+        win.style.height = window.innerHeight + 'px';
+      } else {
+        clamp(win);
+      }
+    });
+  });
+
+  // Initialize
+  function init() {
+    document.querySelectorAll('.win').forEach(attachHandles);
+    // Restore previously-saved geometry for any window opened on load
+    document.querySelectorAll('.win.open').forEach(win => {
+      applyGeom(idOf(win));
+      focus(idOf(win));
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  return { open, close, minimize, maximize, focus, attachHandles };
 })();
+
+function openApp(id)   { WM.open(id); }
+function closeWin(id)  { WM.close(id); }
+function minWin(id)    { WM.minimize(id); }
+function maxWin(id)    { WM.maximize(id); }
+function bringToFront(id) { WM.focus(id); }
 
 /* ══════════════════════ STUDENTS ══════════════════════ */
 let STUDENTS = [];
