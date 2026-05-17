@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz Builder — TeachEd</title>
+<style>
+:root{--cream:#F7F3EA;--lime:#CDF24F;--pink:#EC2D8C;--ink:#0E0E10;--card:#fff;--border:#E5DFD3;--text2:#666;--shadow:0 2px 12px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+/* NAV */
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.nav-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:1.05rem}
+.nav-brand .emoji{font-size:1.3rem}
+.nav-title{font-size:1rem;font-weight:700;color:var(--text2)}
+.nav-actions{display:flex;gap:8px}
+.btn{padding:8px 16px;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;border:none;transition:.15s}
+.btn-outline{background:#fff;border:2px solid var(--border);color:var(--ink)}
+.btn-outline:hover{border-color:var(--lime);background:#f9fde8}
+.btn-lime{background:var(--lime);color:var(--ink)}
+.btn-lime:hover{background:#b8e030}
+.btn-pink{background:var(--pink);color:#fff}
+.btn-pink:hover{background:#c0216e}
+.btn-red{background:#fee;color:#c0392b;border:2px solid #fcc}
+.btn-red:hover{background:#fcc}
+.btn-sm{padding:6px 12px;font-size:.82rem}
+/* LAYOUT */
+.layout{display:flex;flex:1;min-height:0;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:260px;min-width:220px;border-right:1px solid var(--border);background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sidebar-head h2{font-size:.95rem;font-weight:800}
+.add-btn{position:relative}
+.add-btn select{appearance:none;-webkit-appearance:none;background:var(--lime);border:none;border-radius:8px;padding:7px 28px 7px 10px;font-weight:700;font-size:.82rem;cursor:pointer;color:var(--ink)}
+.add-btn::after{content:'▼';position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:.6rem}
+.q-list{flex:1;overflow-y:auto;padding:8px}
+.q-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:12px;cursor:pointer;border:2px solid transparent;margin-bottom:4px;transition:.15s;background:#f9f6f1}
+.q-item:hover{background:var(--cream);border-color:var(--lime)}
+.q-item.active{background:#f0fde8;border-color:var(--lime)}
+.q-drag{color:#bbb;font-size:.8rem;cursor:grab;padding:2px}
+.q-num{font-size:.75rem;font-weight:800;color:var(--text2);min-width:22px}
+.q-info{flex:1;min-width:0}
+.q-type-badge{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:2px}
+.badge-mcq{background:#e8f4ff;color:#1e6cb8}
+.badge-tf{background:#e8fff0;color:#2e7d32}
+.badge-fib{background:#fff8e8;color:#b36200}
+.badge-sa{background:#f5e8ff;color:#7b1fa2}
+.badge-mp{background:#ffe8f5;color:#c2185b}
+.q-preview{font-size:.8rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.q-del{color:#ccc;font-size:.9rem;cursor:pointer;flex-shrink:0;padding:2px 4px;border-radius:4px}
+.q-del:hover{background:#fee;color:var(--pink)}
+/* CENTER */
+.center{flex:1;overflow-y:auto;padding:20px;min-width:0}
+.editor-card{background:var(--card);border-radius:16px;padding:24px;box-shadow:var(--shadow);max-width:640px;margin:0 auto}
+.editor-card h2{font-size:1.1rem;font-weight:800;margin-bottom:16px}
+label{font-size:.85rem;font-weight:700;color:var(--text2);display:block;margin-bottom:4px}
+textarea,input[type=text],input[type=number],select.field{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;color:var(--ink);background:#fff}
+textarea{resize:vertical;min-height:70px}
+textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focus{border-color:var(--lime)}
+.field-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.field-row>*{flex:1}
+.opt-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.opt-row input[type=radio]{flex-shrink:0;width:18px;height:18px;accent-color:var(--lime);cursor:pointer}
+.opt-row input[type=text]{flex:1}
+.opt-row .del-opt{background:none;border:none;color:#ccc;cursor:pointer;font-size:1rem;padding:0 4px}
+.opt-row .del-opt:hover{color:var(--pink)}
+.add-opt-btn{background:none;border:2px dashed var(--border);border-radius:8px;width:100%;padding:8px;font-size:.85rem;color:var(--text2);cursor:pointer;margin-bottom:12px}
+.add-opt-btn:hover{border-color:var(--lime);color:var(--ink)}
+.tf-row{display:flex;gap:12px;margin-bottom:14px}
+.tf-btn{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);font-weight:700;cursor:pointer;font-size:.95rem;background:#fff;color:var(--ink);transition:.15s}
+.tf-btn.selected{border-color:var(--lime);background:#f0fde8}
+.pairs-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.pairs-table td{padding:4px 6px}
+.pairs-table td:first-child{width:46%;padding-right:4px}
+.pairs-table td:last-child{width:46%}
+.pair-arrow{width:8%;text-align:center;color:#bbb;font-size:.8rem}
+.pts-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.pts-row label{margin:0;white-space:nowrap}
+.pts-row input{width:70px}
+.empty-state{text-align:center;color:var(--text2);padding:60px 20px}
+.empty-state .big{font-size:3rem;margin-bottom:12px}
+.empty-state p{font-size:1rem;margin-bottom:20px}
+/* RIGHT PANEL */
+.settings{width:220px;min-width:200px;border-left:1px solid var(--border);background:#fff;overflow-y:auto;padding:16px}
+.settings h2{font-size:.95rem;font-weight:800;margin-bottom:14px}
+.s-group{margin-bottom:16px}
+.s-group label{margin-bottom:4px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.toggle-row span{font-size:.85rem;font-weight:600}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:#E0D9CE;border-radius:99px;cursor:pointer;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--lime)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
+/* PREVIEW */
+.preview-wrap{max-width:640px;margin:0 auto}
+.preview-q{background:var(--card);border-radius:16px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow)}
+.preview-q .q-header{display:flex;justify-content:space-between;margin-bottom:10px}
+.preview-q .q-n{font-size:.8rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.preview-q .q-pts{font-size:.8rem;font-weight:700;color:var(--text2)}
+.preview-q .q-text{font-size:1rem;font-weight:700;margin-bottom:12px;line-height:1.5}
+.preview-opt{padding:10px 14px;border:2px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:.9rem;cursor:pointer}
+.preview-opt:hover{border-color:var(--lime);background:#f9fde8}
+.preview-inp{padding:10px 12px;border:2px solid var(--border);border-radius:10px;width:100%;font-size:.9rem;font-family:inherit;outline:none}
+.preview-inp:focus{border-color:var(--lime)}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;font-size:.9rem;transition:transform .3s,opacity .3s;opacity:0;z-index:9999;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+/* RESPONSIVE */
+@media(max-width:780px){
+  .settings{display:none}
+  .sidebar{width:200px;min-width:160px}
+}
+@media(max-width:540px){
+  .sidebar{display:none}
+  .center{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="emoji">🍋</span>TeachEd</a>
+  <span class="nav-title">Quiz Builder</span>
+  <div class="nav-actions">
+    <button class="btn btn-outline" id="previewBtn" onclick="togglePreview()">Preview</button>
+    <button class="btn btn-lime" onclick="saveToHomework()">Save to Homework</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <h2>Questions</h2>
+      <div class="add-btn">
+        <select id="addTypeSelect" onchange="addQuestion(this.value);this.value=''">
+          <option value="">+ Add</option>
+          <option value="mcq">MCQ</option>
+          <option value="tf">True/False</option>
+          <option value="fib">Fill in Blank</option>
+          <option value="sa">Short Answer</option>
+          <option value="mp">Match Pairs</option>
+        </select>
+        <span style="pointer-events:none;font-size:.6rem;position:absolute;right:8px;top:50%;transform:translateY(-50%)"></span>
+      </div>
+    </div>
+    <div class="q-list" id="qList"></div>
+  </aside>
+
+  <!-- CENTER -->
+  <main class="center" id="centerPanel">
+    <div id="editorArea"></div>
+  </main>
+
+  <!-- SETTINGS -->
+  <aside class="settings">
+    <h2>Test Settings</h2>
+    <div class="s-group">
+      <label>Test Title</label>
+      <input type="text" class="field" id="testTitle" placeholder="My Vocabulary Quiz" oninput="saveMeta()">
+    </div>
+    <div class="s-group">
+      <label>Subject</label>
+      <select class="field" id="testSubject" onchange="saveMeta()">
+        <option>English</option><option>Mathematics</option><option>Science</option><option>History</option><option>Geography</option><option>Other</option>
+      </select>
+    </div>
+    <div class="s-group">
+      <label>Level</label>
+      <select class="field" id="testLevel" onchange="saveMeta()">
+        <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option>
+      </select>
+    </div>
+    <div class="s-group">
+      <label>Time Limit</label>
+      <select class="field" id="timeLimit" onchange="saveMeta()">
+        <option value="0">None</option><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option>
+      </select>
+    </div>
+    <div class="s-group">
+      <label>Show Results</label>
+      <select class="field" id="showResults" onchange="saveMeta()">
+        <option>Immediately</option><option>After submission</option><option>Never</option>
+      </select>
+    </div>
+    <div class="s-group">
+      <label>Pass Threshold (%)</label>
+      <input type="number" class="field" id="passThreshold" value="60" min="0" max="100" oninput="saveMeta()">
+    </div>
+    <div class="toggle-row">
+      <span>Shuffle Questions</span>
+      <label class="toggle"><input type="checkbox" id="shuffleQ" onchange="saveMeta()"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <span>Shuffle Options (MCQ)</span>
+      <label class="toggle"><input type="checkbox" id="shuffleO" onchange="saveMeta()"><span class="toggle-slider"></span></label>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let questions = [];
+let activeId = null;
+let previewMode = false;
+let meta = {
+  title: '', subject: 'English', level: 'B1',
+  timeLimit: 0, showResults: 'Immediately',
+  pass: 60, shuffleQ: false, shuffleO: false
+};
+let nextId = 1;
+
+const TYPE_LABELS = {mcq:'MCQ',tf:'True/False',fib:'Fill in Blank',sa:'Short Answer',mp:'Match Pairs'};
+const TYPE_BADGE  = {mcq:'badge-mcq',tf:'badge-tf',fib:'badge-fib',sa:'badge-sa',mp:'badge-mp'};
+
+// ── Add / Delete ──
+function addQuestion(type){
+  if(!type) return;
+  const id = nextId++;
+  const q = {id, type, text:'', points:1};
+  if(type==='mcq')  Object.assign(q,{options:['','','',''],correct:0});
+  if(type==='tf')   Object.assign(q,{correct:'true'});
+  if(type==='fib')  Object.assign(q,{answer:'',variants:''});
+  if(type==='sa')   Object.assign(q,{modelAnswer:'',aiGrade:false});
+  if(type==='mp')   Object.assign(q,{pairs:[{l:'',r:''},{l:'',r:''},{l:'',r:''},{l:'',r:''}]});
+  questions.push(q);
+  activeId = id;
+  renderAll();
+}
+
+function deleteQuestion(id){
+  questions = questions.filter(q=>q.id!==id);
+  if(activeId===id) activeId = questions.length ? questions[questions.length-1].id : null;
+  renderAll();
+}
+
+function setActive(id){ activeId=id; renderAll(); }
+
+// ── Render sidebar ──
+function renderSidebar(){
+  const list = document.getElementById('qList');
+  list.innerHTML = '';
+  if(!questions.length){
+    list.innerHTML='<div style="color:#bbb;font-size:.82rem;padding:16px;text-align:center">No questions yet</div>';
+    return;
+  }
+  questions.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='q-item'+(q.id===activeId?' active':'');
+    d.innerHTML=`
+      <span class="q-drag">⠿</span>
+      <span class="q-num">${i+1}.</span>
+      <div class="q-info">
+        <span class="q-type-badge ${TYPE_BADGE[q.type]}">${TYPE_LABELS[q.type]}</span>
+        <div class="q-preview">${q.text||'(empty)'}</div>
+      </div>
+      <span class="q-del" title="Delete" onclick="event.stopPropagation();deleteQuestion(${q.id})">✕</span>`;
+    d.onclick=()=>setActive(q.id);
+    list.appendChild(d);
+  });
+}
+
+// ── Render editor center ──
+function renderEditor(){
+  const area = document.getElementById('editorArea');
+  if(previewMode){ renderPreview(); return; }
+  if(!activeId || !questions.find(q=>q.id===activeId)){
+    area.innerHTML=`<div class="empty-state"><div class="big">📋</div><p>Select a question to edit, or add one using the sidebar.</p><button class="btn btn-lime" onclick="addQuestion('mcq')">+ Add First Question</button></div>`;
+    return;
+  }
+  const q = questions.find(q=>q.id===activeId);
+  let body = '';
+
+  if(q.type==='mcq'){
+    const opts = q.options.map((o,i)=>`
+      <div class="opt-row">
+        <input type="radio" name="correct_${q.id}" ${q.correct===i?'checked':''} onchange="update(${q.id},'correct',${i})">
+        <input type="text" placeholder="Option ${i+1}" value="${esc(o)}" oninput="updateOpt(${q.id},${i},this.value)">
+        ${q.options.length>2?`<button class="del-opt" onclick="removeOpt(${q.id},${i})">✕</button>`:''}
+      </div>`).join('');
+    body=`${opts}
+      ${q.options.length<6?`<button class="add-opt-btn" onclick="addOpt(${q.id})">+ Add option</button>`:''}
+      <p style="font-size:.8rem;color:var(--text2)">● = correct answer</p>`;
+  }
+  else if(q.type==='tf'){
+    body=`<div class="tf-row">
+      <button class="tf-btn ${q.correct==='true'?'selected':''}" onclick="update(${q.id},'correct','true');renderAll()">✓ True</button>
+      <button class="tf-btn ${q.correct==='false'?'selected':''}" onclick="update(${q.id},'correct','false');renderAll()">✗ False</button>
+    </div>`;
+  }
+  else if(q.type==='fib'){
+    body=`
+      <div style="margin-bottom:14px">
+        <label>Correct Answer</label>
+        <input type="text" value="${esc(q.answer)}" oninput="update(${q.id},'answer',this.value)" placeholder="exact answer">
+      </div>
+      <div>
+        <label>Also Accept (comma-separated variants)</label>
+        <input type="text" value="${esc(q.variants)}" oninput="update(${q.id},'variants',this.value)" placeholder="e.g. color, colour">
+      </div>`;
+  }
+  else if(q.type==='sa'){
+    body=`
+      <div style="margin-bottom:14px">
+        <label>Model Answer</label>
+        <textarea oninput="update(${q.id},'modelAnswer',this.value)">${esc(q.modelAnswer)}</textarea>
+      </div>
+      <div class="toggle-row">
+        <span style="font-size:.85rem;font-weight:600">AI will grade this question</span>
+        <label class="toggle"><input type="checkbox" ${q.aiGrade?'checked':''} onchange="update(${q.id},'aiGrade',this.checked)"><span class="toggle-slider"></span></label>
+      </div>`;
+  }
+  else if(q.type==='mp'){
+    const rows = q.pairs.map((p,i)=>`
+      <tr>
+        <td><input type="text" value="${esc(p.l)}" placeholder="Left ${i+1}" oninput="updatePair(${q.id},${i},'l',this.value)"></td>
+        <td class="pair-arrow">→</td>
+        <td><input type="text" value="${esc(p.r)}" placeholder="Right ${i+1}" oninput="updatePair(${q.id},${i},'r',this.value)"></td>
+      </tr>`).join('');
+    body=`<table class="pairs-table">${rows}</table>
+      ${q.pairs.length<8?`<button class="btn btn-outline btn-sm" onclick="addPair(${q.id})">+ Add pair</button>`:''}`;
+  }
+
+  area.innerHTML=`
+    <div class="editor-card">
+      <h2>Edit Question — ${TYPE_LABELS[q.type]}</h2>
+      <div style="margin-bottom:14px">
+        <label>Question Text</label>
+        <textarea id="qtextarea" oninput="update(${q.id},'text',this.value)" placeholder="${q.type==='fib'?'Write sentence with _____ for blank':'Enter question…'}">${esc(q.text)}</textarea>
+      </div>
+      ${body}
+      <div class="pts-row">
+        <label>Points</label>
+        <input type="number" value="${q.points}" min="0" max="100" style="width:70px" oninput="update(${q.id},'points',parseInt(this.value)||1)">
+        <div style="flex:1"></div>
+        <button class="btn btn-red btn-sm" onclick="deleteQuestion(${q.id})">Delete question</button>
+      </div>
+    </div>`;
+}
+
+function esc(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Update helpers ──
+function update(id,field,val){
+  const q=questions.find(q=>q.id===id);
+  if(q) q[field]=val;
+  renderSidebar();
+}
+function updateOpt(id,i,val){
+  const q=questions.find(q=>q.id===id);
+  if(q) q.options[i]=val;
+  renderSidebar();
+}
+function addOpt(id){
+  const q=questions.find(q=>q.id===id);
+  if(q&&q.options.length<6){q.options.push('');renderAll();}
+}
+function removeOpt(id,i){
+  const q=questions.find(q=>q.id===id);
+  if(!q||q.options.length<=2) return;
+  q.options.splice(i,1);
+  if(q.correct>=q.options.length) q.correct=q.options.length-1;
+  renderAll();
+}
+function updatePair(id,i,side,val){
+  const q=questions.find(q=>q.id===id);
+  if(q) q.pairs[i][side]=val;
+  renderSidebar();
+}
+function addPair(id){
+  const q=questions.find(q=>q.id===id);
+  if(q&&q.pairs.length<8){q.pairs.push({l:'',r:''});renderAll();}
+}
+
+// ── Preview ──
+function togglePreview(){
+  previewMode=!previewMode;
+  document.getElementById('previewBtn').textContent=previewMode?'Edit':'Preview';
+  document.getElementById('previewBtn').className='btn '+(previewMode?'btn-pink':'btn-outline');
+  renderEditor();
+}
+
+function renderPreview(){
+  const area=document.getElementById('editorArea');
+  if(!questions.length){
+    area.innerHTML='<div class="empty-state"><div class="big">👁</div><p>No questions to preview yet.</p></div>';
+    return;
+  }
+  const total=questions.length;
+  let html=`<div class="preview-wrap">`;
+  questions.forEach((q,i)=>{
+    const pts=q.points===1?'1 pt':q.points+' pts';
+    let body='';
+    if(q.type==='mcq'){
+      body=q.options.filter(o=>o).map(o=>`<div class="preview-opt">${esc(o)}</div>`).join('');
+    } else if(q.type==='tf'){
+      body=`<div style="display:flex;gap:10px"><div class="preview-opt" style="flex:1;text-align:center">True</div><div class="preview-opt" style="flex:1;text-align:center">False</div></div>`;
+    } else if(q.type==='fib'){
+      const display=(q.text||'').replace(/_+/,'<span style="display:inline-block;border-bottom:2px solid #0E0E10;min-width:80px;padding:0 4px">_____</span>');
+      body=`<input class="preview-inp" type="text" placeholder="Type your answer…">`;
+      html+=`<div class="preview-q">
+        <div class="q-header"><span class="q-n">Q${i+1} / ${total}</span><span class="q-pts">${pts}</span></div>
+        <div class="q-text">${display}</div>${body}</div>`;
+      return;
+    } else if(q.type==='sa'){
+      body=`<textarea class="preview-inp" style="min-height:80px" placeholder="Write your answer…"></textarea>`;
+    } else if(q.type==='mp'){
+      const left=q.pairs.map(p=>p.l).filter(Boolean);
+      const right=[...q.pairs.map(p=>p.r).filter(Boolean)].sort(()=>Math.random()-.5);
+      body=`<table style="width:100%;border-collapse:collapse">${left.map((l,j)=>`
+        <tr>
+          <td style="padding:5px 8px;border:1px solid #eee;border-radius:4px;font-size:.9rem">${esc(l)}</td>
+          <td style="width:30px;text-align:center;color:#bbb">→</td>
+          <td><select class="field" style="padding:7px"><option value="">match…</option>${right.map(r=>`<option>${esc(r)}</option>`).join('')}</select></td>
+        </tr>`).join('')}</table>`;
+    }
+    html+=`<div class="preview-q">
+      <div class="q-header"><span class="q-n">Q${i+1} / ${total}</span><span class="q-pts">${pts}</span></div>
+      <div class="q-text">${esc(q.text)||'<em style="color:#bbb">No question text</em>'}</div>
+      ${body}
+    </div>`;
+  });
+  html+='</div>';
+  area.innerHTML=html;
+}
+
+// ── Meta ──
+function saveMeta(){
+  meta.title=document.getElementById('testTitle').value;
+  meta.subject=document.getElementById('testSubject').value;
+  meta.level=document.getElementById('testLevel').value;
+  meta.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
+  meta.showResults=document.getElementById('showResults').value;
+  meta.pass=parseInt(document.getElementById('passThreshold').value)||60;
+  meta.shuffleQ=document.getElementById('shuffleQ').checked;
+  meta.shuffleO=document.getElementById('shuffleO').checked;
+}
+
+function loadMeta(){
+  document.getElementById('testTitle').value=meta.title;
+  document.getElementById('testSubject').value=meta.subject;
+  document.getElementById('testLevel').value=meta.level;
+  document.getElementById('timeLimit').value=meta.timeLimit;
+  document.getElementById('showResults').value=meta.showResults;
+  document.getElementById('passThreshold').value=meta.pass;
+  document.getElementById('shuffleQ').checked=meta.shuffleQ;
+  document.getElementById('shuffleO').checked=meta.shuffleO;
+}
+
+// ── Save to Homework ──
+function saveToHomework(){
+  saveMeta();
+  const drafts=JSON.parse(localStorage.getItem('teachedos_quiz_drafts')||'[]');
+  const quiz={id:Date.now(),meta:{...meta},questions:JSON.parse(JSON.stringify(questions)),createdAt:new Date().toISOString()};
+  const idx=drafts.findIndex(d=>d.id===quiz.id);
+  if(idx>=0) drafts[idx]=quiz; else drafts.push(quiz);
+  localStorage.setItem('teachedos_quiz_drafts',JSON.stringify(drafts));
+  showToast('Quiz saved — go to Homework to assign 🎉');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── Main render ──
+function renderAll(){
+  renderSidebar();
+  renderEditor();
+}
+
+// ── Bootstrap with sample questions ──
+function bootstrap(){
+  loadMeta();
+  // Seed with 2 example questions
+  addQuestion('mcq');
+  const q1=questions[0];
+  q1.text="What does 'sustainable' mean?";
+  q1.options=["Able to continue without causing harm","Very expensive","Quickly made","Dangerous"];
+  q1.correct=0;
+
+  addQuestion('tf');
+  const q2=questions[1];
+  q2.text="'Inevitable' means something that can easily be avoided.";
+  q2.correct='false';
+
+  addQuestion('fib');
+  const q3=questions[2];
+  q3.text="The aurora borealis is a stunning natural _____.";
+  q3.answer="phenomenon";
+
+  activeId=questions[0].id;
+  renderAll();
+}
+
+bootstrap();
+</script>
+</body>
+</html>

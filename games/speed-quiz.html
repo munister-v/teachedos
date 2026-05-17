@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Speed Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
+.subtitle{color:#888;font-size:.85rem;margin-bottom:10px}
+.hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin-bottom:6px}
+.hud span{font-size:.85rem;color:#555;font-weight:600}
+.timer-track{width:100%;max-width:440px;height:10px;background:#E0D9CE;border-radius:99px;margin-bottom:14px;overflow:hidden}
+.timer-bar{height:10px;border-radius:99px;background:#CDF24F;transition:width .1s linear,background .1s}
+.timer-bar.warn{background:#ff6b35}
+.card{width:100%;max-width:440px;background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px rgba(0,0,0,.09);margin-bottom:14px}
+.question{font-size:1.1rem;font-weight:700;color:#0E0E10;margin-bottom:20px;line-height:1.5;text-align:center;min-height:60px}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{padding:13px 16px;border:2px solid #E0D9CE;border-radius:12px;background:#fff;font-size:.95rem;font-weight:600;cursor:pointer;text-align:left;transition:.15s;color:#0E0E10}
+.opt:hover:not(:disabled){border-color:#CDF24F;background:#f9fde8}
+.opt.correct{border-color:#7ED321;background:#f0fde8;color:#2e7d32}
+.opt.wrong{border-color:#EC2D8C;background:#fdf0f5;color:#EC2D8C}
+.opt.reveal{border-color:#7ED321;background:#f0fde8;color:#2e7d32}
+.opt:disabled{cursor:default}
+.flash{animation:flashAnim .4s}
+@keyframes flashAnim{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+.final{display:none;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:36px 24px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.final h2{font-size:1.8rem;font-weight:800;margin-bottom:6px}
+.final p{color:#555;margin-bottom:20px}
+.big{font-size:3.5rem;margin-bottom:8px}
+.score-big{font-size:2.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
+.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="back" onclick="window.parent.postMessage({type:'closeGame'},'*')">← Games</button>
+<h1>⚡ Speed Quiz</h1>
+<p class="subtitle">6 seconds per question!</p>
+<div class="hud"><span id="qLabel">Q 1 / 15</span><span id="scoreLabel">Score: 0</span></div>
+<div class="timer-track"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+
+<div class="card" id="qCard">
+  <div class="question" id="qText"></div>
+  <div class="options" id="opts"></div>
+</div>
+
+<div class="final" id="final">
+  <div class="big">⚡</div>
+  <div class="score-big" id="finalScore"></div>
+  <h2 id="finalTitle"></h2>
+  <p id="finalMsg"></p>
+  <button class="btn-play" onclick="restart()">Play Again</button>
+</div>
+
+<script>
+const QUESTIONS=[
+  {q:"What does 'sustainable' mean?",opts:["Able to continue without causing damage","Very expensive","Quickly made","Dangerous"],ans:0},
+  {q:"Choose the correct definition of 'negotiate':",opts:["To ignore problems","To try to reach an agreement by discussion","To make things worse","To write a letter"],ans:1},
+  {q:"'Perspective' means:",opts:["A type of food","A particular way of thinking about something","A kind of sport","A legal document"],ans:1},
+  {q:"A 'coincidence' is when:",opts:["Two events happen at the same time by chance","Something is planned carefully","A mistake is made","Something is very expensive"],ans:0},
+  {q:"'Phenomenon' refers to:",opts:["A kind of weather","An observable fact or event","A musical genre","A cooking method"],ans:1},
+  {q:"If you 'acknowledge' something, you:",opts:["Ignore it completely","Deny it happened","Accept or admit that it is true","Forget about it"],ans:2},
+  {q:"A 'consequence' is:",opts:["A result of an action","A type of question","An introduction","A mistake"],ans:0},
+  {q:"'Deliberate' means:",opts:["Done by accident","Done on purpose","Done quickly","Done quietly"],ans:1},
+  {q:"'Magnificent' describes something that is:",opts:["Very small","Very slow","Impressively beautiful or great","Quite ordinary"],ans:2},
+  {q:"'Prejudice' means:",opts:["A fair judgment","An unreasonable dislike based on group membership","Careful analysis","A legal decision"],ans:1},
+  {q:"'Inevitable' means:",opts:["Easily avoided","Certain to happen","Very surprising","Completely unknown"],ans:1},
+  {q:"'Sophisticated' describes something that is:",opts:["Very simple","Developed to a high level of complexity","Very cheap","Quite boring"],ans:1},
+  {q:"'Abundance' means:",opts:["A shortage","A very large quantity","A small amount","A mistake"],ans:1},
+  {q:"'Vulnerable' means:",opts:["Very strong","Open to attack or harm","Completely safe","Very confident"],ans:1},
+  {q:"'Ambiguous' means:",opts:["Very clear","Open to more than one interpretation","Completely wrong","Easily understood"],ans:1}
+];
+
+const TOTAL_TIME=6000;
+let qi=0,score=0,order=[],timerInt=null,timerStart=null,locked=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function restart(){
+  order=shuffle([...Array(QUESTIONS.length).keys()]);
+  qi=0;score=0;locked=false;
+  document.getElementById('final').style.display='none';
+  document.getElementById('qCard').style.display='block';
+  showQ();
+}
+
+function showQ(){
+  locked=false;
+  clearInterval(timerInt);
+  const q=QUESTIONS[order[qi]];
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('qLabel').textContent='Q '+(qi+1)+' / '+QUESTIONS.length;
+  document.getElementById('scoreLabel').textContent='Score: '+score;
+  const optsEl=document.getElementById('opts');
+  optsEl.innerHTML='';
+  const shuffledOpts=shuffle(q.opts.map((t,i)=>({t,orig:i})));
+  shuffledOpts.forEach(({t,orig})=>{
+    const b=document.createElement('button');
+    b.className='opt';b.textContent=t;
+    b.dataset.orig=orig;
+    b.onclick=()=>pick(b,q,shuffledOpts);
+    optsEl.appendChild(b);
+  });
+  startTimer();
+}
+
+function startTimer(){
+  const bar=document.getElementById('timerBar');
+  bar.style.transition='none';bar.style.width='100%';bar.className='timer-bar';
+  timerStart=Date.now();
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    const elapsed=Date.now()-timerStart;
+    const pct=Math.max(0,100*(1-elapsed/TOTAL_TIME));
+    bar.style.transition='width .1s linear';
+    bar.style.width=pct+'%';
+    if(pct<(2/6*100))bar.className='timer-bar warn';
+    if(elapsed>=TOTAL_TIME&&!locked){timeout();}
+  },100);
+}
+
+function pick(btn,q,shuffledOpts){
+  if(locked)return;locked=true;clearInterval(timerInt);
+  const correct=parseInt(btn.dataset.orig)===q.ans;
+  const allBtns=document.querySelectorAll('.opt');
+  allBtns.forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct');
+    score+=10;
+    document.getElementById('scoreLabel').textContent='Score: '+score;
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b=>{if(parseInt(b.dataset.orig)===q.ans)b.classList.add('reveal');});
+  }
+  setTimeout(()=>advance(),1200);
+}
+
+function timeout(){
+  locked=true;clearInterval(timerInt);
+  const allBtns=document.querySelectorAll('.opt');
+  const q=QUESTIONS[order[qi]];
+  allBtns.forEach(b=>{b.disabled=true;if(parseInt(b.dataset.orig)===q.ans)b.classList.add('reveal');});
+  document.getElementById('timerBar').style.background='#ff9500';
+  setTimeout(()=>advance(),1200);
+}
+
+function advance(){
+  qi++;
+  if(qi>=QUESTIONS.length){endGame();return;}
+  showQ();
+}
+
+function endGame(){
+  clearInterval(timerInt);
+  document.getElementById('qCard').style.display='none';
+  const f=document.getElementById('final');f.style.display='flex';
+  const max=QUESTIONS.length*10;
+  const pct=Math.round(score/max*100);
+  document.getElementById('finalScore').textContent=score+' / '+max;
+  document.getElementById('finalTitle').textContent=pct>=80?'Outstanding! 🏆':pct>=60?'Well done! 👍':'Keep going! 📚';
+  document.getElementById('finalMsg').textContent=pct+'% — '+QUESTIONS.length+' questions answered';
+  window.parent.postMessage({type:'gameScore',score:score,max:max,game:'Speed Quiz'},'*');
+}
+
+restart();
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fill in the Blank</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
+.subtitle{color:#888;font-size:.85rem;margin-bottom:10px}
+.hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin-bottom:6px}
+.hud span{font-size:.85rem;color:#555;font-weight:600}
+.progress-wrap{width:100%;max-width:440px;background:#E0D9CE;border-radius:99px;height:8px;margin-bottom:16px;overflow:hidden}
+.progress-bar{height:8px;background:#CDF24F;border-radius:99px;transition:width .4s}
+.card{width:100%;max-width:440px;background:#fff;border-radius:20px;padding:28px 22px;box-shadow:0 4px 24px rgba(0,0,0,.09);margin-bottom:16px}
+.sentence{font-size:1.15rem;line-height:1.7;color:#0E0E10;margin-bottom:20px;text-align:center}
+.blank{display:inline-block;border-bottom:2.5px solid #0E0E10;min-width:90px;padding:0 4px;font-weight:700}
+.input-row{display:flex;gap:10px;align-items:center}
+input[type=text]{flex:1;padding:12px 14px;border:2px solid #E0D9CE;border-radius:12px;font-size:1rem;font-family:inherit;outline:none;transition:.2s}
+input[type=text]:focus{border-color:#CDF24F}
+input[type=text].correct{border-color:#7ED321;background:#f0fde8;animation:greenPulse .4s}
+input[type=text].wrong{border-color:#EC2D8C;background:#fdf0f5;animation:shake .4s}
+@keyframes greenPulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
+.btn-check{background:#CDF24F;color:#0E0E10;border:none;border-radius:12px;padding:12px 18px;font-size:.95rem;font-weight:700;cursor:pointer}
+.btn-check:hover{background:#b8e030}
+.feedback{min-height:22px;font-size:.9rem;font-weight:600;margin-top:10px;text-align:center;color:#555}
+.feedback.ok{color:#4CAF50}
+.feedback.bad{color:#EC2D8C}
+.final{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:40px 24px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.final h2{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.final p{color:#555;margin-bottom:20px}
+.big{font-size:3rem;margin-bottom:8px}
+.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="back" onclick="window.parent.postMessage({type:'closeGame'},'*')">← Games</button>
+<h1>✏️ Fill in the Blank</h1>
+<p class="subtitle">Type the missing word and press Enter</p>
+<div class="hud">
+  <span id="qLabel">Q 1 / 15</span>
+  <span id="scoreLabel">Score: 0</span>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="prog" style="width:0%"></div></div>
+
+<div class="card" id="mainCard">
+  <div class="sentence" id="sentenceEl"></div>
+  <div class="input-row">
+    <input type="text" id="ansInput" placeholder="type answer…" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')checkAnswer()">
+    <button class="btn-check" onclick="checkAnswer()">Check →</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<div class="final" id="final">
+  <div class="big">📝</div>
+  <h2 id="finalTitle"></h2>
+  <p id="finalMsg"></p>
+  <button class="btn-play" onclick="restart()">Play Again</button>
+</div>
+
+<script>
+const QUESTIONS=[
+  {sentence:"The new sofa is really _____ to sit on.",answer:"comfortable"},
+  {sentence:"We need more _____ energy sources for the planet.",answer:"sustainable"},
+  {sentence:"They had to _____ the terms of the contract carefully.",answer:"negotiate"},
+  {sentence:"Try to see things from her _____ before judging.",answer:"perspective"},
+  {sentence:"What a _____ running into you here!",answer:"coincidence"},
+  {sentence:"The aurora borealis is a stunning natural _____.",answer:"phenomenon"},
+  {sentence:"She _____ her mistake and apologised sincerely.",answer:"acknowledged"},
+  {sentence:"Think about the _____ of your actions before acting.",answer:"consequence"},
+  {sentence:"It was a _____ attempt to mislead the public.",answer:"deliberate"},
+  {sentence:"The view from the mountain top was absolutely _____.",answer:"magnificent"},
+  {sentence:"We must fight against _____ of all kinds in society.",answer:"prejudice"},
+  {sentence:"Under no _____ should you leave the building.",answer:"circumstance"},
+  {sentence:"Change is _____ in any growing organisation.",answer:"inevitable"},
+  {sentence:"The technology has become increasingly _____.",answer:"sophisticated"},
+  {sentence:"She showed _____ courage throughout the ordeal.",answer:"extraordinary"}
+];
+
+let order=[],qi=0,score=0,wrong1=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function restart(){
+  order=shuffle([...Array(QUESTIONS.length).keys()]);
+  qi=0;score=0;wrong1=false;
+  document.getElementById('final').style.display='none';
+  document.getElementById('mainCard').style.display='block';
+  showQ();
+}
+
+function showQ(){
+  const q=QUESTIONS[order[qi]];
+  const display=q.sentence.replace(/_+/,'<span class="blank">_____</span>');
+  document.getElementById('sentenceEl').innerHTML=display;
+  document.getElementById('ansInput').value='';
+  document.getElementById('ansInput').className='';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('qLabel').textContent='Q '+(qi+1)+' / '+QUESTIONS.length;
+  document.getElementById('scoreLabel').textContent='Score: '+score;
+  document.getElementById('prog').style.width=(qi/QUESTIONS.length*100)+'%';
+  wrong1=false;
+  setTimeout(()=>document.getElementById('ansInput').focus(),50);
+}
+
+function checkAnswer(){
+  const q=QUESTIONS[order[qi]];
+  const inp=document.getElementById('ansInput');
+  const val=inp.value.trim().toLowerCase();
+  const correct=q.answer.toLowerCase();
+  const variants=[correct];
+  // accept base forms
+  if(correct.endsWith('ed')) variants.push(correct.slice(0,-1),correct.slice(0,-2));
+  if(correct.endsWith('s')) variants.push(correct.slice(0,-1));
+  const ok=variants.some(v=>val===v)||val===correct;
+  if(ok){
+    inp.classList.add('correct');
+    score++;
+    document.getElementById('feedback').textContent='✓ Correct!';
+    document.getElementById('feedback').className='feedback ok';
+    setTimeout(()=>next(),900);
+  } else {
+    inp.classList.add('wrong');
+    if(wrong1){
+      document.getElementById('feedback').textContent='✗ Answer: '+q.answer;
+      document.getElementById('feedback').className='feedback bad';
+      setTimeout(()=>next(),1400);
+    } else {
+      wrong1=true;
+      document.getElementById('feedback').textContent='✗ Try again!';
+      document.getElementById('feedback').className='feedback bad';
+      setTimeout(()=>{inp.classList.remove('wrong');inp.value='';inp.focus();},600);
+    }
+  }
+}
+
+function next(){
+  qi++;
+  if(qi>=QUESTIONS.length){endGame();return;}
+  showQ();
+}
+
+function endGame(){
+  document.getElementById('mainCard').style.display='none';
+  const f=document.getElementById('final');
+  f.style.display='flex';
+  const pct=Math.round(score/QUESTIONS.length*100);
+  document.getElementById('finalTitle').textContent=pct>=80?'Excellent! 🏆':pct>=60?'Good job! 👍':'Keep practising! 📚';
+  document.getElementById('finalMsg').textContent='You scored '+score+' out of '+QUESTIONS.length+' ('+pct+'%)';
+  window.parent.postMessage({type:'gameScore',score:score,max:QUESTIONS.length,game:'Fill in the Blank'},'*');
+}
+
+restart();
+</script>
+</body>
+</html>

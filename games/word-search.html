@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Word Search</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
+.hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin:8px 0}
+.hud span{font-size:.85rem;color:#555;font-weight:600}
+#timer{font-weight:800;color:#0E0E10}
+.grid-wrap{width:100%;max-width:440px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 4px 18px rgba(0,0,0,.09);margin-bottom:12px;overflow:hidden}
+#grid{display:grid;gap:0;width:100%}
+.cell{display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-weight:700;font-size:1rem;border-radius:4px;cursor:pointer;transition:background .1s;aspect-ratio:1}
+.cell.selecting{background:#CDF24F}
+.cell.found{background:#EC2D8C;color:#fff}
+.cell.selecting.found{background:#EC2D8C;color:#fff}
+.words-grid{display:flex;flex-wrap:wrap;gap:6px 10px;width:100%;max-width:440px}
+.wtag{font-size:.82rem;font-weight:700;color:#0E0E10;text-transform:uppercase;letter-spacing:.5px}
+.wtag.done{text-decoration:line-through;color:#bbb}
+.win-msg{display:none;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.win-msg h2{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.win-msg p{color:#555;margin-bottom:20px}
+.big{font-size:3rem;margin-bottom:8px}
+.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="back" onclick="window.parent.postMessage({type:'closeGame'},'*')">← Games</button>
+<h1>🔍 Word Search</h1>
+<div class="hud"><span id="found">Found: 0 / 8</span><span>⏱ <span id="timer">0:00</span></span></div>
+
+<div class="grid-wrap"><div id="grid"></div></div>
+<div class="words-grid" id="wordList"></div>
+
+<div class="win-msg" id="winMsg">
+  <div class="big">🎊</div>
+  <h2>Solved!</h2>
+  <p id="winTime"></p>
+  <button class="btn-play" onclick="init()">Play Again</button>
+</div>
+
+<script>
+const WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERATE','PHENOMENON','INEVITABLE'];
+const SIZE=12;
+let grid=[],placed=[],foundSet=new Set(),selecting=false,selStart=null,selCells=[];
+let timerSec=0,timerInt=null,done=false;
+
+function init(){
+  foundSet=new Set();done=false;selCells=[];selecting=false;
+  document.getElementById('winMsg').style.display='none';
+  document.getElementById('grid').style.display='grid';
+  document.getElementById('wordList').style.display='flex';
+  buildGrid();
+  renderGrid();
+  renderWords();
+  clearInterval(timerInt);timerSec=0;updateTimer();
+  timerInt=setInterval(()=>{timerSec++;updateTimer();},1000);
+  document.getElementById('found').textContent='Found: 0 / '+WORDS.length;
+}
+
+function updateTimer(){
+  const m=Math.floor(timerSec/60),s=timerSec%60;
+  document.getElementById('timer').textContent=m+':'+(s<10?'0':'')+s;
+}
+
+function buildGrid(){
+  grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));
+  placed=[];
+  const dirs=[[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
+  for(const word of WORDS){
+    let placed_=false;
+    for(let attempts=0;attempts<200&&!placed_;attempts++){
+      const dir=dirs[Math.floor(Math.random()*dirs.length)];
+      const r=Math.floor(Math.random()*SIZE),c=Math.floor(Math.random()*SIZE);
+      const cells=[];
+      let ok=true;
+      for(let i=0;i<word.length;i++){
+        const nr=r+dir[0]*i,nc=c+dir[1]*i;
+        if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){ok=false;break;}
+        if(grid[nr][nc]!==''&&grid[nr][nc]!==word[i]){ok=false;break;}
+        cells.push([nr,nc]);
+      }
+      if(ok){
+        cells.forEach(([nr,nc],i)=>grid[nr][nc]=word[i]);
+        placed.push({word,cells});placed_=true;
+      }
+    }
+  }
+  const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)
+    if(!grid[r][c])grid[r][c]=alpha[Math.floor(Math.random()*alpha.length)];
+}
+
+function cellId(r,c){return r*SIZE+c;}
+
+function renderGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  g.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    const d=document.createElement('div');
+    d.className='cell';d.id='c'+cellId(r,c);
+    d.textContent=grid[r][c];
+    d.dataset.r=r;d.dataset.c=c;
+    d.addEventListener('mousedown',startSel);
+    d.addEventListener('mouseenter',moveSel);
+    d.addEventListener('touchstart',touchStart,{passive:false});
+    d.addEventListener('touchmove',touchMove,{passive:false});
+    g.appendChild(d);
+  }
+  document.addEventListener('mouseup',endSel);
+  document.addEventListener('touchend',endSel);
+}
+
+function getRC(e){return[parseInt(e.dataset.r),parseInt(e.dataset.c)];}
+
+function startSel(e){
+  if(done)return;
+  selecting=true;selStart=getRC(e.currentTarget);selCells=[[...selStart]];
+  highlight();
+}
+
+function moveSel(e){
+  if(!selecting||done)return;
+  const cur=getRC(e.currentTarget);
+  const [r0,c0]=selStart,[r1,c1]=cur;
+  const dr=r1-r0,dc=c1-c0;
+  const steps=Math.max(Math.abs(dr),Math.abs(dc));
+  if(steps===0){selCells=[[r0,c0]];highlight();return;}
+  const dirR=dr===0?0:dr/Math.abs(dr);
+  const dirC=dc===0?0:dc/Math.abs(dc);
+  if(Math.abs(dr)!==Math.abs(dc)&&dr!==0&&dc!==0){highlight();return;}
+  selCells=[];
+  for(let i=0;i<=steps;i++)selCells.push([r0+dirR*i,c0+dirC*i]);
+  highlight();
+}
+
+function touchStart(e){e.preventDefault();const t=e.touches[0];startSel({currentTarget:document.elementFromPoint(t.clientX,t.clientY)});}
+function touchMove(e){e.preventDefault();const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.classList.contains('cell'))moveSel({currentTarget:el});}
+
+function highlight(){
+  document.querySelectorAll('.cell.selecting').forEach(el=>el.classList.remove('selecting'));
+  selCells.forEach(([r,c])=>{
+    const el=document.getElementById('c'+cellId(r,c));
+    if(el&&!el.classList.contains('found'))el.classList.add('selecting');
+  });
+}
+
+function endSel(){
+  if(!selecting)return;selecting=false;
+  const word=selCells.map(([r,c])=>grid[r][c]).join('');
+  const rev=word.split('').reverse().join('');
+  const match=WORDS.find(w=>!foundSet.has(w)&&(w===word||w===rev));
+  if(match){
+    foundSet.add(match);
+    selCells.forEach(([r,c])=>{
+      const el=document.getElementById('c'+cellId(r,c));
+      if(el){el.classList.remove('selecting');el.classList.add('found');}
+    });
+    document.querySelectorAll('.wtag').forEach(el=>{if(el.dataset.word===match)el.classList.add('done');});
+    document.getElementById('found').textContent='Found: '+foundSet.size+' / '+WORDS.length;
+    if(foundSet.size===WORDS.length)win();
+  } else {
+    document.querySelectorAll('.cell.selecting').forEach(el=>el.classList.remove('selecting'));
+  }
+  selCells=[];
+}
+
+function win(){
+  done=true;clearInterval(timerInt);
+  const m=Math.floor(timerSec/60),s=timerSec%60;
+  document.getElementById('winTime').textContent='Solved in '+(m?m+'m ':'')+s+'s! 🏆';
+  document.getElementById('winMsg').style.display='flex';
+  window.parent.postMessage({type:'gameScore',score:WORDS.length,max:WORDS.length,game:'Word Search'},'*');
+}
+
+function renderWords(){
+  const wl=document.getElementById('wordList');
+  wl.innerHTML='';
+  WORDS.forEach(w=>{
+    const d=document.createElement('div');
+    d.className='wtag';d.dataset.word=w;d.textContent=w;
+    wl.appendChild(d);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

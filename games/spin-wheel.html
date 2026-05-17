@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Spin the Wheel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;overflow-x:hidden}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
+.subtitle{color:#888;font-size:.85rem;margin-bottom:14px}
+.wheel-wrap{position:relative;width:300px;height:300px;margin:0 auto 10px}
+.needle{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:24px solid #0E0E10;z-index:10;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+canvas{border-radius:50%;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.result{min-height:40px;text-align:center;font-size:1.4rem;font-weight:800;color:#0E0E10;margin:10px 0}
+.result.show{color:#EC2D8C;font-size:1.6rem}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-bottom:14px}
+.btn-spin{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:800;cursor:pointer;transition:.15s}
+.btn-spin:hover{background:#b8e030}
+.btn-spin:disabled{opacity:.5;cursor:default}
+.btn-edit{background:#fff;color:#0E0E10;border:2px solid #E0D9CE;border-radius:14px;padding:13px 20px;font-size:.9rem;font-weight:700;cursor:pointer}
+.btn-edit:hover{border-color:#CDF24F}
+.editor{display:none;width:100%;max-width:420px;background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(0,0,0,.09);margin-bottom:12px}
+.editor h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.editor textarea{width:100%;height:130px;border:2px solid #E0D9CE;border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;outline:none}
+.editor textarea:focus{border-color:#CDF24F}
+.btn-save{background:#CDF24F;color:#0E0E10;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body>
+<button class="back" onclick="window.parent.postMessage({type:'closeGame'},'*')">← Games</button>
+<h1>🎡 Spin the Wheel</h1>
+<p class="subtitle">Spin to pick a random word!</p>
+
+<div class="wheel-wrap">
+  <div class="needle"></div>
+  <canvas id="wheel" width="300" height="300"></canvas>
+</div>
+
+<div class="result" id="result">Press SPIN to begin!</div>
+
+<div class="btn-row">
+  <button class="btn-spin" id="spinBtn" onclick="spin()">SPIN 🎯</button>
+  <button class="btn-edit" onclick="toggleEditor()">Edit Words</button>
+</div>
+
+<div class="editor" id="editor">
+  <h3>Edit word list (one per line):</h3>
+  <textarea id="wordArea"></textarea>
+  <button class="btn-save" onclick="saveWords()">Save</button>
+</div>
+
+<script>
+const COLORS=['#EC2D8C','#CDF24F','#FF6B35','#4ECDC4','#FFE66D','#A8E6CF','#FF8B94','#B39DDB','#81D4FA','#FFCC80'];
+let words=['comfortable','sustainable','negotiate','perspective','coincidence','phenomenon','acknowledge','consequence','deliberate','magnificent'];
+let spinning=false,currentAngle=0,animFrame=null;
+
+function draw(angle){
+  const canvas=document.getElementById('wheel');
+  const ctx=canvas.getContext('2d');
+  const cx=canvas.width/2,cy=canvas.height/2,r=canvas.width/2-4;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const n=words.length;
+  const slice=(2*Math.PI)/n;
+  for(let i=0;i<n;i++){
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle+i*slice,angle+(i+1)*slice);
+    ctx.closePath();
+    ctx.fillStyle=COLORS[i%COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(angle+(i+0.5)*slice);
+    ctx.textAlign='right';
+    ctx.fillStyle='#0E0E10';
+    ctx.font='bold '+(n>8?'10':'12')+'px -apple-system,sans-serif';
+    const maxLen=10;
+    const label=words[i].length>maxLen?words[i].slice(0,maxLen-1)+'…':words[i];
+    ctx.fillText(label,r-10,4);
+    ctx.restore();
+  }
+  // center circle
+  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);
+  ctx.fillStyle='#0E0E10';ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('GO',cx,cy);
+}
+
+function spin(){
+  if(spinning)return;
+  spinning=true;
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('result').textContent='Spinning…';
+  document.getElementById('result').className='result';
+  const extraSpins=5+Math.floor(Math.random()*5);
+  const randSlice=Math.random()*(2*Math.PI);
+  const target=currentAngle+extraSpins*2*Math.PI+randSlice;
+  const duration=3000+Math.random()*2000;
+  const start=performance.now();
+  const startAngle=currentAngle;
+  function step(now){
+    const t=Math.min(1,(now-start)/duration);
+    const ease=1-Math.pow(1-t,4);
+    currentAngle=startAngle+(target-startAngle)*ease;
+    draw(currentAngle);
+    if(t<1){animFrame=requestAnimationFrame(step);}
+    else{
+      currentAngle=target%(2*Math.PI);
+      draw(currentAngle);
+      spinning=false;
+      document.getElementById('spinBtn').disabled=false;
+      showWinner();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+function showWinner(){
+  // needle points up = -PI/2 from top. Find which sector is at top.
+  const n=words.length;
+  const slice=2*Math.PI/n;
+  // top of wheel = 3*PI/2 in standard coords (or -PI/2)
+  // angle is the starting angle of sector 0. Needle at top = pointing to angle 3PI/2 - currentAngle in local space
+  const normalized=((3*Math.PI/2)-currentAngle%(2*Math.PI)+4*Math.PI)%(2*Math.PI);
+  const idx=Math.floor(normalized/slice)%n;
+  const winner=words[idx];
+  const el=document.getElementById('result');
+  el.textContent='🎯 '+winner.toUpperCase()+'!';
+  el.className='result show';
+  window.parent.postMessage({type:'gameScore',score:1,max:1,game:'Spin the Wheel'},'*');
+}
+
+function toggleEditor(){
+  const ed=document.getElementById('editor');
+  if(ed.style.display==='block'){ed.style.display='none';}
+  else{document.getElementById('wordArea').value=words.join('\n');ed.style.display='block';}
+}
+
+function saveWords(){
+  const raw=document.getElementById('wordArea').value;
+  const parsed=raw.split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+  if(parsed.length<2){alert('Please enter at least 2 words.');return;}
+  words=parsed.slice(0,20);
+  currentAngle=0;
+  draw(currentAngle);
+  document.getElementById('result').textContent='Words updated! Press SPIN.';
+  document.getElementById('result').className='result';
+  document.getElementById('editor').style.display='none';
+}
+
+draw(currentAngle);
+</script>
+</body>
+</html>

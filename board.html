@@ -5497,6 +5497,11 @@ const GAMES = [
   { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   desc:'Type the word from its definition clue',                  src:'games/spelling-bee.html',          w:460, h:560 },
   { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', desc:'Sort words into the correct topic groups',                src:'games/word-categories.html',       w:560, h:640 },
   { icon:'🃏', title:'Definition Match',  tag:'Vocabulary', desc:'Match words to their definitions',                        src:'games/word-definition-match.html', w:520, h:580 },
+  { icon:'🗂️', title:'Flashcards',        tag:'Vocabulary', desc:'Flip cards to test yourself — Got it / Again tracking',    src:'games/flashcards.html',            w:460, h:560 },
+  { icon:'✍️', title:'Fill in the Blank', tag:'Grammar',    desc:'Type the missing word to complete each sentence',          src:'games/fill-blank.html',            w:460, h:560 },
+  { icon:'🔍', title:'Word Search',        tag:'Spelling',   desc:'Find hidden words in a 12×12 letter grid',                src:'games/word-search.html',           w:520, h:620 },
+  { icon:'⚡', title:'Speed Quiz',         tag:'Speed',      desc:'4-option MCQ with 6-second countdown — how fast are you?', src:'games/speed-quiz.html',            w:480, h:560 },
+  { icon:'🎡', title:'Spin the Wheel',     tag:'Speaking',   desc:'Editable word wheel — great for hot-seat vocabulary drills', src:'games/spin-wheel.html',          w:460, h:560 },
 ];
 
 function renderGamesTab(sec) {
@@ -6153,6 +6158,56 @@ if (!loaded) {
 
 updateEmpty();
 renderMinimap();
+
+/* ════════ COMMUNITY IMPORT — ?communityImport=<base64> ════════ */
+(function checkCommunityImport() {
+  const params = new URLSearchParams(location.search);
+  const raw = params.get('communityImport');
+  if (!raw) return;
+  let snapshot;
+  try { snapshot = JSON.parse(decodeURIComponent(escape(atob(raw)))); } catch { return; }
+  if (!snapshot?.cards?.length) return;
+
+  // Show confirmation banner
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
+  banner.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
+      <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${snapshot.cards.length} cards — import to a new board?</div>
+    </div>
+    <button id="comm-import-btn" style="background:#C8E632;color:#1C1C1E;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
+  `;
+  document.body.appendChild(banner);
+
+  document.getElementById('comm-import-btn').addEventListener('click', () => {
+    // Re-assign fresh IDs to avoid collisions
+    const idMap = {};
+    const newCards = (snapshot.cards || []).map(c => {
+      const newId = 'ci' + Math.random().toString(36).slice(2,10);
+      idMap[c.id] = newId;
+      return { ...c, id: newId };
+    });
+    const newArrows = (snapshot.links || snapshot.arrows || []).map(a => ({
+      ...a, id:'ai'+Math.random().toString(36).slice(2,10),
+      fromCard: idMap[a.fromCard||a.from] || (a.fromCard||a.from),
+      toCard:   idMap[a.toCard||a.to]     || (a.toCard||a.to),
+    }));
+
+    // Clear board and load
+    loadBoardData({
+      pan: { x:100, y:60 }, scale:1, nextId: state.nextId + newCards.length + 10,
+      cards: newCards, arrows: newArrows,
+    });
+    if (typeof updateBoardNameDisplay === 'function') updateBoardNameDisplay(snapshot.name || 'Community board');
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    banner.remove();
+    // Clean URL
+    history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]communityImport=[^&]*/,'') || ''));
+    toast && toast('✓ ' + newCards.length + ' cards imported from community board');
+  });
+})();
 
 /* ════════════════════════ API + AUTH ════════════════════════ */
 const API = 'https://teachedos-api.onrender.com';
@@ -8017,7 +8072,7 @@ document.addEventListener('drop', e => {
 
 /* ════════════════════════ GAMES HUB MODAL ════════════════════════ */
 let _gamesActiveTag = 'All';
-const GAME_TAGS = ['All','Vocabulary','Grammar','Spelling','Speed'];
+const GAME_TAGS = ['All','Vocabulary','Grammar','Spelling','Speed','Speaking'];
 
 function openGamesModal() {
   const ov = document.getElementById('games-overlay');

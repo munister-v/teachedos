@@ -102,99 +102,228 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
-const POST_KEY = 'teachedos_community_posts_v1';
+const POST_KEY = 'teachedos_community_posts_v2';
+
+// ── Board snapshot helpers ──────────────────────────────────────
+function makeCard(type, x, y, w, h, data) {
+  return { id:'c'+Math.random().toString(36).slice(2), type, x, y, w, h, data };
+}
 const SAMPLE_POSTS = [
-  { title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd', desc:'Warm-up, presentation cards, controlled practice and speaking prompts for Slavic learners.', tags:['grammar','A2'], url:'board.html' },
-  { title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd', desc:'Timeline board with examples, mini quiz and pair-speaking story cards.', tags:['grammar','speaking'], url:'board.html' },
-  { title:'B2 Debate Club', level:'B2', author:'TeachEd', desc:'Opinion cards, roles, vocabulary bank and feedback checklist for a full speaking lesson.', tags:['speaking','debate'], url:'board.html' },
+  {
+    id:'sample-1', title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd',
+    desc:'Warm-up, presentation cards, controlled practice and speaking prompts for Slavic learners.',
+    tags:['grammar','A2'],
+    snapshot: { name:'A2 Articles: a/an/the', cards:[
+      makeCard('sticky',60,60,260,120,{text:'🎯 Goal: Use a / an / the correctly in sentences.',color:'#fef3c7'}),
+      makeCard('sticky',340,60,260,120,{text:'📌 RULE: Use "a" before consonant sounds.\nUse "an" before vowel sounds.',color:'#d1fae5'}),
+      makeCard('sticky',620,60,260,120,{text:'📌 Use "the" when the listener knows which one you mean.',color:'#dbeafe'}),
+      makeCard('sticky',60,220,260,120,{text:'✏️ Fill in: ___ apple, ___ book, ___ university, ___ hour.',color:'#fce7f3'}),
+      makeCard('sticky',340,220,260,120,{text:'✏️ Fill in: She is ___ teacher. ___ teacher is very kind.',color:'#fce7f3'}),
+      makeCard('sticky',620,220,260,120,{text:'💬 Speaking: "Tell me about a place you love." Use a/an/the.',color:'#ede9fe'}),
+      makeCard('text',60,380,820,40,{text:'Common mistakes for Slavic speakers: no article system in UA/RU/PL → needs drilling!',size:13,bold:false,color:'#888'}),
+    ], links:[] }
+  },
+  {
+    id:'sample-2', title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd',
+    desc:'Timeline board with examples, mini quiz and pair-speaking story cards.',
+    tags:['grammar','speaking'],
+    snapshot: { name:'B1 Present Perfect Stories', cards:[
+      makeCard('sticky',60,60,300,110,{text:'⏰ FORM:\nhas/have + past participle\n"I have visited Paris."',color:'#d1fae5'}),
+      makeCard('sticky',380,60,300,110,{text:'🔑 USE 1: Experience (ever/never)\n"Have you ever eaten sushi?"',color:'#fef3c7'}),
+      makeCard('sticky',700,60,300,110,{text:'🔑 USE 2: Result matters now\n"I\'ve lost my keys." (still lost!)',color:'#dbeafe'}),
+      makeCard('sticky',60,200,300,110,{text:'✏️ QUIZ: Correct or wrong?\n"I have went to school yesterday." ✗',color:'#fce7f3'}),
+      makeCard('sticky',380,200,300,110,{text:'💬 SPEAKING: Share 3 life experiences.\n"I have never… / I have always…"',color:'#ede9fe'}),
+      makeCard('sticky',700,200,300,110,{text:'📝 WRITE: A short story using PP at least 4 times.',color:'#fef3c7'}),
+    ], links:[] }
+  },
+  {
+    id:'sample-3', title:'B2 Debate Club', level:'B2', author:'TeachEd',
+    desc:'Opinion cards, roles, vocabulary bank and feedback checklist for a full speaking lesson.',
+    tags:['speaking','debate'],
+    snapshot: { name:'B2 Debate Club', cards:[
+      makeCard('sticky',60,60,280,110,{text:'📢 Topic: "Social media does more harm than good."\nFor / Against',color:'#fce7f3'}),
+      makeCard('sticky',360,60,280,110,{text:'🎭 Roles:\n• Moderator\n• Team A (For)\n• Team B (Against)\n• Jury',color:'#d1fae5'}),
+      makeCard('sticky',660,60,280,110,{text:'📚 Vocabulary:\npersuasive, counterargument, evidence, concede, rebut',color:'#dbeafe'}),
+      makeCard('sticky',60,200,280,110,{text:'✅ Opening: State your position clearly (30 sec)',color:'#fef3c7'}),
+      makeCard('sticky',360,200,280,110,{text:'✅ Middle: Give 2 arguments + examples (2 min)',color:'#fef3c7'}),
+      makeCard('sticky',660,200,280,110,{text:'✅ Closing: Summarise, rebut opponent (1 min)',color:'#fef3c7'}),
+      makeCard('sticky',60,340,880,100,{text:'🏆 Jury criteria: clarity of arguments · use of vocabulary · confidence · listening & rebuttal',color:'#ede9fe'}),
+    ], links:[] }
+  },
 ];
 
 function readPosts(){ try { return JSON.parse(localStorage.getItem(POST_KEY) || '[]'); } catch { return []; } }
 function writePosts(posts){ localStorage.setItem(POST_KEY, JSON.stringify(posts)); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ── Encode/decode board snapshot for URL sharing ───────────────
+function encodeSnapshot(snapshot) {
+  try { return btoa(unescape(encodeURIComponent(JSON.stringify(snapshot)))); } catch { return ''; }
+}
+function decodeSnapshot(b64) {
+  try { return JSON.parse(decodeURIComponent(escape(atob(b64)))); } catch { return null; }
+}
+
+// ── Load boards list from API ──────────────────────────────────
 async function loadBoards() {
   setNavUser();
   const sel = document.getElementById('share-board');
   if (!token) {
-    sel.innerHTML = '<option value="">Sign in to choose a synced board</option><option value="board.html">Use board.html link</option>';
-    renderCommunity();
-    return;
-  }
-  try {
-    const r = await api('/api/boards');
-    const d = await r.json();
-    const boards = d.boards || [];
-    sel.innerHTML = boards.length
-      ? boards.map(b => `<option value="${esc(b.id)}" data-name="${esc(b.name)}">${esc(b.name)} · ${b.card_count || 0} cards</option>`).join('')
-      : '<option value="">No boards yet</option>';
-  } catch {
-    sel.innerHTML = '<option value="">Could not load boards</option><option value="board.html">Use board.html link</option>';
+    sel.innerHTML = '<option value="">Sign in to share a synced board</option>';
+  } else {
+    try {
+      const r = await api('/api/boards');
+      const d = await r.json();
+      const boards = d.boards || [];
+      sel.innerHTML = boards.length
+        ? boards.map(b => `<option value="${esc(b.id)}" data-name="${esc(b.name)}">${esc(b.name)} · ${b.card_count||0} cards</option>`).join('')
+        : '<option value="">No boards yet — create one first</option>';
+    } catch {
+      sel.innerHTML = '<option value="">Could not load boards</option>';
+    }
   }
   renderCommunity();
+  checkImportParam();
 }
 
 function setNavUser() {
   try {
     const user = JSON.parse(localStorage.getItem('teachedos_user') || 'null') || {};
-    const name = user.name || localStorage.getItem('teachedos_user_name') || 'Teacher';
+    const name = user.name || 'Teacher';
     document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
-    document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '🧑‍🏫') ? user.avatar : (name[0] || 'T').toUpperCase();
+    document.getElementById('nav-avatar').textContent = (user.avatar && user.avatar !== '🧑‍🏫') ? user.avatar : (name[0]||'T').toUpperCase();
   } catch {}
 }
 
-function boardUrl(id) {
-  if (!id || id === 'board.html') return 'board.html';
-  return 'board.html?id=' + encodeURIComponent(id);
-}
-
-function publishBoard() {
+// ── Publish a board to community ──────────────────────────────
+async function publishBoard() {
   const sel = document.getElementById('share-board');
-  const id = sel.value;
+  const boardId = sel.value;
   const selectedName = sel.selectedOptions[0]?.dataset?.name || '';
-  const title = document.getElementById('share-title').value.trim() || selectedName || 'Untitled community board';
-  const desc = document.getElementById('share-desc').value.trim() || 'Ready-to-use lesson board shared from TeachEd.';
+  const title = document.getElementById('share-title').value.trim() || selectedName || 'Untitled';
+  const desc  = document.getElementById('share-desc').value.trim() || 'Ready-to-use board from TeachEd.';
   const level = document.getElementById('share-level').value;
-  const tags = document.getElementById('share-tags').value.split(',').map(x => x.trim()).filter(Boolean);
-  const post = {
-    id:'post-' + Date.now(),
-    title, desc, level, tags,
-    author:document.getElementById('nav-name').textContent || 'Teacher',
-    url:boardUrl(id),
-    createdAt:new Date().toISOString(),
-  };
-  const posts = [post, ...readPosts()];
-  writePosts(posts);
+  const tags  = document.getElementById('share-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const author = document.getElementById('nav-name').textContent || 'Teacher';
+
+  // Try to fetch actual board cards from API
+  let snapshot = null;
+  if (token && boardId) {
+    try {
+      const r = await api('/api/boards/' + encodeURIComponent(boardId));
+      if (r.ok) {
+        const d = await r.json();
+        const board = d.board || {};
+        snapshot = { name: title, cards: board.cards || [], links: board.links || [] };
+      }
+    } catch {}
+  }
+  // Fallback: try localStorage
+  if (!snapshot) {
+    try {
+      const local = JSON.parse(localStorage.getItem('teachedos_board') || 'null');
+      if (local) snapshot = { name: title, cards: local.cards || [], links: local.links || [] };
+    } catch {}
+  }
+
+  const post = { id:'post-'+Date.now(), title, desc, level, tags, author, snapshot, createdAt:new Date().toISOString() };
+  writePosts([post, ...readPosts()]);
   renderCommunity();
-  navigator.clipboard?.writeText(location.origin + location.pathname.replace('community.html', post.url)).catch(()=>{});
-  toast('Published locally + board link copied');
+
+  const link = buildShareLink(post);
+  navigator.clipboard?.writeText(link).catch(()=>{});
+  toast('✓ Published! Share link copied to clipboard');
 }
 
+function buildShareLink(post) {
+  const base = location.origin + location.pathname; // .../community.html
+  if (post.snapshot) {
+    const encoded = encodeSnapshot(post.snapshot);
+    if (encoded) return base + '?import=' + encoded;
+  }
+  return base;
+}
+
+// ── Render community grid ──────────────────────────────────────
 function renderCommunity() {
   const grid = document.getElementById('community-grid');
   const posts = [...readPosts(), ...SAMPLE_POSTS];
   if (!posts.length) {
-    grid.innerHTML = '<div class="empty">No community boards yet. Share the first one.</div>';
+    grid.innerHTML = '<div class="empty">No community boards yet. Share the first one above.</div>';
     return;
   }
-  grid.innerHTML = posts.map(p => `
+  grid.innerHTML = posts.map(p => {
+    const cardCount = p.snapshot?.cards?.length || 0;
+    const meta = cardCount ? ` · ${cardCount} cards` : '';
+    return `
     <article class="board-card">
       <div class="board-top">
         <div class="board-ic">📌</div>
-        <div><div class="board-name">${esc(p.title)}</div><div class="board-meta">${esc(p.author || 'Teacher')} · ${esc(p.level || 'Mixed')}</div></div>
+        <div>
+          <div class="board-name">${esc(p.title)}</div>
+          <div class="board-meta">${esc(p.author||'Teacher')} · ${esc(p.level||'Mixed')}${meta}</div>
+        </div>
       </div>
       <div class="board-desc">${esc(p.desc)}</div>
-      <div class="tags">${(p.tags || []).slice(0,4).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      <div class="tags">${(p.tags||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
       <div class="card-actions">
-        <a class="mini-btn" href="${esc(p.url || 'board.html')}">Open</a>
-        <button class="mini-btn alt" onclick="copyLink('${esc(p.url || 'board.html')}')">Copy link</button>
+        ${p.snapshot
+          ? `<button class="mini-btn" onclick='importBoard(${JSON.stringify(p.id)})'>Import to board →</button>`
+          : `<a class="mini-btn" href="board.html">Open board</a>`
+        }
+        <button class="mini-btn alt" onclick='copyPostLink(${JSON.stringify(p.id)})'>Copy link</button>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
 
-function copyLink(url) {
-  const absolute = location.origin + location.pathname.replace('community.html', url);
-  navigator.clipboard?.writeText(absolute).then(() => toast('Board link copied')).catch(() => toast('Open link: ' + absolute));
+// ── Get post by id ─────────────────────────────────────────────
+function findPost(id) {
+  return [...readPosts(), ...SAMPLE_POSTS].find(p => p.id === id);
+}
+
+// ── Copy shareable link with board snapshot encoded ────────────
+function copyPostLink(postId) {
+  const post = findPost(postId);
+  if (!post) { toast('Post not found'); return; }
+  const link = buildShareLink(post);
+  navigator.clipboard?.writeText(link)
+    .then(() => toast('✓ Share link copied — paste it to any teacher'))
+    .catch(() => { prompt('Copy this link:', link); });
+}
+
+// ── Import board snapshot → open board.html with data ─────────
+function importBoard(postId) {
+  const post = findPost(postId);
+  if (!post?.snapshot) { toast('No board data available'); return; }
+  const encoded = encodeSnapshot(post.snapshot);
+  if (!encoded) { toast('Could not encode board'); return; }
+  window.location.href = 'board.html?communityImport=' + encoded;
+}
+
+// ── Check URL for ?import= param (someone pasted a share link) ─
+function checkImportParam() {
+  const params = new URLSearchParams(location.search);
+  const imp = params.get('import');
+  if (!imp) return;
+  const snapshot = decodeSnapshot(imp);
+  if (!snapshot) return;
+  // Show import banner
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:16px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
+  banner.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Board shared with you</div>
+      <div style="font-size:12px;opacity:.7;">"${esc(snapshot.name||'Community board')}" · ${(snapshot.cards||[]).length} cards</div>
+    </div>
+    <button onclick="doImportFromUrl('${imp}')" style="background:var(--lime);color:#1C1C1E;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+function doImportFromUrl(encoded) {
+  window.location.href = 'board.html?communityImport=' + encoded;
 }
 
 let toastT;
@@ -203,7 +332,7 @@ function toast(msg) {
   t.textContent = msg;
   t.className = 'show';
   clearTimeout(toastT);
-  toastT = setTimeout(() => t.className = '', 2400);
+  toastT = setTimeout(() => t.className = '', 2800);
 }
 
 loadBoards();

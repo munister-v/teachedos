@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Flashcards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
+.subtitle{color:#888;font-size:.85rem;margin-bottom:12px}
+.progress-wrap{width:100%;max-width:440px;background:#E0D9CE;border-radius:99px;height:8px;margin-bottom:8px;overflow:hidden}
+.progress-bar{height:8px;background:#CDF24F;border-radius:99px;transition:width .4s}
+.score-label{font-size:.85rem;color:#555;margin-bottom:14px;align-self:flex-start;width:100%;max-width:440px}
+.scene{width:100%;max-width:440px;height:230px;perspective:900px;cursor:pointer;margin-bottom:20px}
+.card{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.front{background:#fff}
+.back-face{background:#fff;transform:rotateY(180deg)}
+.word{font-size:2rem;font-weight:800;color:#0E0E10;text-align:center;margin-bottom:8px}
+.tap-hint{font-size:.8rem;color:#bbb;margin-top:12px}
+.phonetic{font-size:.9rem;color:#888;margin-bottom:6px}
+.translation{font-size:1.3rem;font-weight:700;color:#EC2D8C;margin-bottom:10px}
+.example{font-size:.85rem;color:#555;text-align:center;line-height:1.5;font-style:italic}
+.btn-row{display:flex;gap:12px;width:100%;max-width:440px}
+.btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:.15s}
+.btn-got{background:#CDF24F;color:#0E0E10}
+.btn-got:hover{background:#b8e030}
+.btn-again{background:#fff;color:#0E0E10;border:2px solid #E0D9CE}
+.btn-again:hover{background:#fdd}
+.btn:disabled{opacity:.4;cursor:default}
+.final{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:40px 24px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.final h2{font-size:2rem;font-weight:800;margin-bottom:8px}
+.final p{color:#555;font-size:1rem;margin-bottom:20px}
+.final .big{font-size:3.5rem;margin-bottom:8px}
+.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="back" onclick="window.parent.postMessage({type:'closeGame'},'*')">← Games</button>
+<h1>🃏 Flashcards</h1>
+<p class="subtitle">Tap card to flip · Got it to move on</p>
+<div class="progress-wrap"><div class="progress-bar" id="prog" style="width:0%"></div></div>
+<div class="score-label" id="scoreLabel">0 / 0 known</div>
+
+<div class="scene" id="scene" onclick="flipCard()">
+  <div class="card" id="card">
+    <div class="face front"><div class="word" id="frontWord"></div><div class="tap-hint">tap to reveal ↓</div></div>
+    <div class="face back-face">
+      <div class="phonetic" id="backPhonetic"></div>
+      <div class="translation" id="backTrans"></div>
+      <div class="example" id="backExample"></div>
+    </div>
+  </div>
+</div>
+
+<div class="btn-row" id="btnRow">
+  <button class="btn btn-again" onclick="again()">Again ✗</button>
+  <button class="btn btn-got" onclick="gotIt()">Got it ✓</button>
+</div>
+
+<div class="final" id="final">
+  <div class="big">🎉</div>
+  <h2>All done!</h2>
+  <p id="finalMsg"></p>
+  <button class="btn-play" onclick="restart()">Play Again</button>
+</div>
+
+<script>
+const VOCAB=[
+  {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},
+  {word:"sustainable",ph:"/səˈsteɪnəbl/",tr:"sustainable (adj)",ex:"We need more sustainable energy sources."},
+  {word:"negotiate",ph:"/nɪˈɡəʊʃieɪt/",tr:"negotiate (v)",ex:"They had to negotiate the terms of the contract."},
+  {word:"perspective",ph:"/pəˈspektɪv/",tr:"perspective (n)",ex:"Try to see things from her perspective."},
+  {word:"coincidence",ph:"/kəʊˈɪnsɪdəns/",tr:"coincidence (n)",ex:"What a coincidence running into you here!"},
+  {word:"phenomenon",ph:"/fɪˈnɒmɪnən/",tr:"phenomenon (n)",ex:"The aurora borealis is a natural phenomenon."},
+  {word:"acknowledge",ph:"/əkˈnɒlɪdʒ/",tr:"acknowledge (v)",ex:"She acknowledged her mistake and apologised."},
+  {word:"consequence",ph:"/ˈkɒnsɪkwəns/",tr:"consequence (n)",ex:"Think about the consequences of your actions."},
+  {word:"deliberate",ph:"/dɪˈlɪbərɪt/",tr:"deliberate (adj)",ex:"It was a deliberate attempt to mislead us."},
+  {word:"magnificent",ph:"/mæɡˈnɪfɪsnt/",tr:"magnificent (adj)",ex:"The view from the top was magnificent."},
+  {word:"prejudice",ph:"/ˈpredʒʊdɪs/",tr:"prejudice (n)",ex:"We must fight against prejudice of all kinds."},
+  {word:"circumstance",ph:"/ˈsɜːkəmstæns/",tr:"circumstance (n)",ex:"Under no circumstance should you leave early."},
+  {word:"inevitable",ph:"/ɪˈnevɪtəbl/",tr:"inevitable (adj)",ex:"Change is inevitable in any growing company."},
+  {word:"sophisticated",ph:"/səˈfɪstɪkeɪtɪd/",tr:"sophisticated (adj)",ex:"The technology has become increasingly sophisticated."},
+  {word:"extraordinary",ph:"/ɪkˈstrɔːdɪnri/",tr:"extraordinary (adj)",ex:"She showed extraordinary courage under pressure."},
+  {word:"abundance",ph:"/əˈbʌndəns/",tr:"abundance (n)",ex:"The garden had an abundance of flowers."},
+  {word:"vulnerable",ph:"/ˈvʌlnərəbl/",tr:"vulnerable (adj)",ex:"Children are especially vulnerable to infection."},
+  {word:"ambiguous",ph:"/æmˈbɪɡjuəs/",tr:"ambiguous (adj)",ex:"His instructions were ambiguous and confusing."},
+  {word:"overwhelm",ph:"/ˌəʊvəˈwelm/",tr:"overwhelm (v)",ex:"Don't let the workload overwhelm you."},
+  {word:"fascinating",ph:"/ˈfæsɪneɪtɪŋ/",tr:"fascinating (adj)",ex:"The documentary was absolutely fascinating."}
+];
+
+let deck=[],known=0,total=VOCAB.length,flipped=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function restart(){
+  deck=shuffle([...VOCAB]);
+  known=0;flipped=false;
+  document.getElementById('final').style.display='none';
+  document.getElementById('scene').style.display='block';
+  document.getElementById('btnRow').style.display='flex';
+  showCard();
+}
+
+function showCard(){
+  if(deck.length===0){endGame();return;}
+  const c=deck[0];
+  document.getElementById('frontWord').textContent=c.word;
+  document.getElementById('backPhonetic').textContent=c.ph;
+  document.getElementById('backTrans').textContent=c.tr;
+  document.getElementById('backExample').textContent='"'+c.ex+'"';
+  const cardEl=document.getElementById('card');
+  cardEl.classList.remove('flipped');
+  flipped=false;
+  updateUI();
+}
+
+function flipCard(){
+  flipped=!flipped;
+  document.getElementById('card').classList.toggle('flipped',flipped);
+}
+
+function gotIt(){
+  known++;deck.shift();showCard();
+}
+
+function again(){
+  const c=deck.shift();
+  const pos=Math.floor(Math.random()*(deck.length-1))+1||1;
+  deck.splice(pos,0,c);
+  showCard();
+}
+
+function updateUI(){
+  const done=total-deck.length;
+  document.getElementById('prog').style.width=(done/total*100)+'%';
+  document.getElementById('scoreLabel').textContent=known+' / '+total+' known';
+}
+
+function endGame(){
+  document.getElementById('scene').style.display='none';
+  document.getElementById('btnRow').style.display='none';
+  const f=document.getElementById('final');
+  f.style.display='flex';
+  document.getElementById('finalMsg').textContent='You knew '+known+' out of '+total+' words. '+
+    (known===total?'Perfect! 🏆':known>=total*0.7?'Great job! 💪':'Keep practising! 📚');
+  window.parent.postMessage({type:'gameScore',score:known,max:total,game:'Flashcards'},'*');
+}
+
+restart();
+</script>
+</body>
+</html>
