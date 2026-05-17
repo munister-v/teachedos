@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -29,6 +29,7 @@ svg.gallows{width:160px;height:140px}
 .key.right{background:#d4f7e0;color:#2e7d32}
 .msg{margin-top:16px;font-size:1.1rem;font-weight:700;min-height:24px;color:var(--accent)}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -154,5 +155,6 @@ document.addEventListener('keydown',e=>{
 
 start();
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

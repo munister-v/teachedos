@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -26,6 +26,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .tile.matched .front-face{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
 .msg{margin-top:18px;font-size:1.1rem;font-weight:700;color:var(--accent);min-height:24px;text-align:center}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -112,5 +113,6 @@ function check(){
 
 start();
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

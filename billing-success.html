@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -31,6 +31,7 @@ h1{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;margin-bottom:10px;}
 .btn-ghost{background:transparent;border:1.5px solid rgba(94,94,74,.28);color:#3A3A2E;box-shadow:none;}
 .btn-ghost:hover{background:rgba(94,94,74,.06);transform:none;}
 </style>
+<link rel="stylesheet" href="styles/mobile-guard.css">
 </head>
 <body>
 <div class="card">
@@ -95,5 +96,6 @@ if('serviceWorker'in navigator){
 </script>
 <script src="pwa.js"></script>
 <script src="scripts/nav-boost.js" defer></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

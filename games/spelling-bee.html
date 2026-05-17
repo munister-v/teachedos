@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -36,6 +36,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .progress{width:100%;height:5px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -143,5 +144,6 @@ function endGame(){
 document.getElementById('ans').addEventListener('input',check);
 start();
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

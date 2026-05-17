@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1517,6 +1517,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
 </style>
 <link rel="stylesheet" href="styles/harmony.css">
+<link rel="stylesheet" href="styles/mobile-guard.css">
 </head>
 <body>
 
@@ -9329,5 +9330,6 @@ if('serviceWorker'in navigator){
 <script src="pwa.js"></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

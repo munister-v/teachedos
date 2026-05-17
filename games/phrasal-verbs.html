@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -27,6 +27,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
 .feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:20px;color:#888}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -96,5 +97,6 @@ function endGame(){
 }
 start();
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

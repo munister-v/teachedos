@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Profile · TeachEd</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -326,6 +326,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 <link rel="stylesheet" href="styles/mobile-pro.css">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="styles/harmony.css">
+<link rel="stylesheet" href="styles/mobile-guard.css">
 </head>
 <body>
 
@@ -1625,5 +1626,6 @@ if('serviceWorker'in navigator){
 <script src="pwa.js"></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

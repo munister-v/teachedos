@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -26,6 +26,7 @@ input:focus{border-color:var(--accent)}
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#120008cc;border-radius:18px;font-size:1.3rem;font-weight:800;gap:16px}
 button.play-btn{padding:12px 28px;border:none;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -132,5 +133,6 @@ function endGame(){
   ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#C8E632">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
 }
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

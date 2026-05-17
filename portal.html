@@ -5,7 +5,7 @@
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Student Portal - TeachEd</title>
 <link rel="stylesheet" href="dark.css">
 <script src="theme.js"></script>
@@ -74,6 +74,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 @media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}#main{padding:16px 14px 40px}}
 </style>
 <link rel="stylesheet" href="styles/harmony.css">
+<link rel="stylesheet" href="styles/mobile-guard.css">
 </head>
 <body>
 
@@ -303,5 +304,6 @@ async function saveNote(){
 init();
 </script>
 <script src="scripts/nav-boost.js" defer></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

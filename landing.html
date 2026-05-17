@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd — Teach English from your pocket</title>
 <meta name="description" content="The classroom OS for language teachers. Install on your phone in seconds — boards, schedule, gradebook, 20 games, all offline-ready.">
@@ -587,6 +587,7 @@ section{padding:72px 20px;position:relative;}
 }
 </style>
 <script src="theme.js"></script>
+<link rel="stylesheet" href="styles/mobile-guard.css">
 </head>
 <body>
 
@@ -1131,5 +1132,6 @@ if('serviceWorker'in navigator){
 </script>
 <script src="pwa.js"></script>
 <script src="scripts/nav-boost.js" defer></script>
+<script src="scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>

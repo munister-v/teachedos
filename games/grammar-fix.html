@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -26,6 +26,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
 .feedback{margin-top:14px;font-size:.88rem;font-weight:700;min-height:20px;color:#888;line-height:1.5}
 </style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -48,7 +49,7 @@ const QS=[
   {wrong:'She is more taller than him.',a:'She is taller than him.',opts:['She is taller than him.','She is most tall than him.','She is the tallest than him.'],exp:'Don\'t double the comparative'},
   {wrong:'I have seen her yesterday.',a:'I saw her yesterday.',opts:['I saw her yesterday.','I had seen her yesterday.','I see her yesterday.'],exp:'"Yesterday" = Past Simple, not Present Perfect'},
   {wrong:'He suggested to go out.',a:'He suggested going out.',opts:['He suggested going out.','He suggested go out.','He suggested that going out.'],exp:'suggest + gerund (-ing)'},
-  {wrong:'Despite of the rain, they played.',a:'Despite the rain, they played.',opts:['Despite the rain, they played.','Despite of rain, they played.','In despite the rain, they played.'],exp:'"Despite" needs no "of"'],
+  {wrong:'Despite of the rain, they played.',a:'Despite the rain, they played.',opts:['Despite the rain, they played.','Despite of rain, they played.','In despite the rain, they played.'],exp:'"Despite" needs no "of"'},
   {wrong:'I look forward to meet you.',a:'I look forward to meeting you.',opts:['I look forward to meeting you.','I look forward to met you.','I look forward meet you.'],exp:'"Look forward to" + gerund'},
   {wrong:'She made me to laugh.',a:'She made me laugh.',opts:['She made me laugh.','She made me laughing.','She made me to laughed.'],exp:'"Make" + bare infinitive (no "to")'},
   {wrong:'There is many people here.',a:'There are many people here.',opts:['There are many people here.','There is much people here.','There being many people here.'],exp:'"People" is plural → "are"'},
@@ -94,5 +95,6 @@ function endGame(){
 }
 start();
 </script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
 </body>
 </html>
