@@ -388,6 +388,7 @@ a{text-decoration:none;color:inherit;}
         <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tz-schedule-now">—</div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.45;" id="tz-schedule-note">Students in other countries will see lesson times in their local timezone.</div>
       </div>
+      <div id="tz-student-zones" style="margin-top:8px;display:none;"></div>
     </div>
 
     <div class="side-section" style="flex:1">
@@ -503,6 +504,12 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
+    <!-- Student timezone preview -->
+    <div id="f-tz-preview" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:10px;background:rgba(200,230,50,.06);border:1px solid rgba(200,230,50,.15);">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">🌍 Student time zones</div>
+      <div id="f-tz-preview-list" style="font-size:12px;color:var(--text2);line-height:1.6;"></div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-save" id="modal-save-btn" onclick="saveClass()">Add Class</button>
@@ -560,6 +567,8 @@ async function syncAutoTimeZone() {
   } catch {}
 }
 
+let studentZones = [];
+
 function renderScheduleTimeZoneCard() {
   const zoneEl = document.getElementById('tz-schedule-zone');
   const nowEl = document.getElementById('tz-schedule-now');
@@ -571,6 +580,81 @@ function renderScheduleTimeZoneCard() {
   noteEl.textContent = currentUser?.timezone_mode === 'manual'
     ? 'Manual mode is on. This schedule stays pinned to your teaching timezone.'
     : 'Auto mode is on. TeachEd follows the timezone from this device.';
+  renderStudentZonesSidebar();
+}
+
+async function loadStudentZones() {
+  try {
+    const d = await apiFetch('/api/schedule/student-zones');
+    studentZones = d.zones || [];
+    renderStudentZonesSidebar();
+  } catch {}
+}
+
+function renderStudentZonesSidebar() {
+  const container = document.getElementById('tz-student-zones');
+  if (!container) return;
+  const teacherZone = effectiveScheduleZone();
+  const otherZones = studentZones.filter(z => z.timezone !== teacherZone);
+  if (!otherZones.length) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  const { describeTimeZoneDifference } = window.TeachEdApp;
+  container.innerHTML = `
+    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">🌍 Student time zones</div>
+    ${otherZones.map(z => {
+      const diff = describeTimeZoneDifference(teacherZone, z.timezone, new Date(), {
+        sameLabel: 'same time',
+        aheadSuffix: 'ahead',
+        behindSuffix: 'behind'
+      });
+      const localNow = formatZoneNow(z.timezone);
+      const names = z.sample_names.slice(0, 2).join(', ') + (z.student_count > 2 ? ` +${z.student_count - 2}` : '');
+      return `<div style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;font-weight:800;color:var(--text);">${z.timezone.split('/').pop().replace(/_/g,' ')}</span>
+          <span style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);">${diff}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${localNow} · ${names}</div>
+      </div>`;
+    }).join('')}`;
+}
+
+function renderModalTzPreview() {
+  const container = document.getElementById('f-tz-preview');
+  const list = document.getElementById('f-tz-preview-list');
+  if (!container || !list) return;
+  const teacherZone = effectiveScheduleZone();
+  const otherZones = studentZones.filter(z => z.timezone !== teacherZone);
+  if (!otherZones.length) { container.style.display = 'none'; return; }
+  const startTime = document.getElementById('f-start').value || '09:00';
+  const endTime = document.getElementById('f-end').value || '10:00';
+  const { timeZoneOffsetMinutes } = window.TeachEdApp;
+  const now = new Date();
+  container.style.display = '';
+  list.innerHTML = otherZones.map(z => {
+    const offsetDiff = timeZoneOffsetMinutes(now, z.timezone) - timeZoneOffsetMinutes(now, teacherZone);
+    const convertTime = (t) => {
+      const [h, m] = t.split(':').map(Number);
+      let totalMin = h * 60 + m + offsetDiff;
+      let dayShift = '';
+      if (totalMin < 0) { totalMin += 1440; dayShift = ' (prev day)'; }
+      else if (totalMin >= 1440) { totalMin -= 1440; dayShift = ' (next day)'; }
+      const ch = Math.floor(totalMin / 60);
+      const cm = totalMin % 60;
+      return String(ch).padStart(2, '0') + ':' + String(cm).padStart(2, '0') + dayShift;
+    };
+    const studentStart = convertTime(startTime);
+    const studentEnd = convertTime(endTime);
+    const names = z.sample_names.slice(0, 2).join(', ') + (z.student_count > 2 ? ` +${z.student_count - 2}` : '');
+    const zoneName = z.timezone.split('/').pop().replace(/_/g, ' ');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">
+      <span>${zoneName} <span style="color:var(--text3);font-size:10px;">(${names})</span></span>
+      <span style="font-weight:800;font-family:var(--mono);font-size:11px;">${studentStart} – ${studentEnd}</span>
+    </div>`;
+  }).join('');
 }
 
 function hasExportsAccess() {
@@ -763,6 +847,9 @@ async function init() {
   renderScheduleTimeZoneCard();
   updateWeekHeader();
   await loadSchedule();
+  loadStudentZones();
+  document.getElementById('f-start').addEventListener('change', renderModalTzPreview);
+  document.getElementById('f-end').addEventListener('change', renderModalTzPreview);
 }
 
 function setNavUser(user) {
@@ -1217,6 +1304,7 @@ function openModal(slot = null, preset = null) {
   setTimeout(() => document.getElementById('f-title').focus(), 50);
   // Sync day when date changes
   document.getElementById('f-specific-date').onchange = syncDayFromDate;
+  renderModalTzPreview();
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
