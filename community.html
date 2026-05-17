@@ -90,11 +90,50 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
     </aside>
   </section>
 
-  <div class="section-head">
-    <div><div class="section-title">Community boards</div><div class="section-sub">Local gallery now, ready for shared public backend later.</div></div>
-    <button class="btn ghost" onclick="loadBoards()">Refresh</button>
+  <!-- ══════ TABS: Boards / Games ══════ -->
+  <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--border);padding-bottom:0;">
+    <button class="comm-tab active" data-tab="boards" onclick="switchCommTab('boards')">📌 Boards</button>
+    <button class="comm-tab" data-tab="games" onclick="switchCommTab('games')">🎮 Games</button>
   </div>
-  <section class="grid" id="community-grid"></section>
+  <style>
+  .comm-tab{background:none;border:none;border-bottom:3px solid transparent;padding:10px 18px;font:900 14px var(--font);color:var(--text3);cursor:pointer;margin-bottom:-2px;transition:color .15s,border-color .15s}
+  .comm-tab:hover{color:var(--text)}
+  .comm-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
+  .level-pill{display:inline-block;padding:4px 10px;border-radius:999px;font:800 11px var(--mono);cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:all .15s}
+  .level-pill:hover,.level-pill.active{background:var(--lime);color:var(--accent);border-color:var(--lime)}
+  .game-tile-comm{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .22s cubic-bezier(.34,1.3,.64,1),box-shadow .22s ease,border-color .18s}
+  .game-tile-comm:hover{transform:translateY(-4px);box-shadow:0 14px 44px rgba(94,94,74,.14);border-color:rgba(200,230,50,.4)}
+  </style>
+
+  <!-- ══════ BOARDS SECTION ══════ -->
+  <div id="tab-boards">
+    <div class="section-head">
+      <div><div class="section-title">Community boards</div><div class="section-sub">Local gallery now, ready for shared public backend later.</div></div>
+      <button class="btn ghost" onclick="loadBoards()">Refresh</button>
+    </div>
+    <section class="grid" id="community-grid"></section>
+  </div>
+
+  <!-- ══════ GAMES SECTION ══════ -->
+  <div id="tab-games" style="display:none;">
+    <div class="section-head">
+      <div><div class="section-title">Ready-made games</div><div class="section-sub">Interactive games by topic and level — just like Wordwall. Add to your board in one click.</div></div>
+      <a class="btn lime" href="game-builder.html">＋ Create game</a>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+      <button class="level-pill active" onclick="filterGames('All')">All</button>
+      <button class="level-pill" onclick="filterGames('A1')">A1</button>
+      <button class="level-pill" onclick="filterGames('A2')">A2</button>
+      <button class="level-pill" onclick="filterGames('B1')">B1</button>
+      <button class="level-pill" onclick="filterGames('B2')">B2</button>
+      <button class="level-pill" onclick="filterGames('C1')">C1</button>
+      <button class="level-pill" onclick="filterGames('C2')">C2</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input id="game-search" placeholder="Search games by title or topic…" style="max-width:360px" oninput="renderCommunityGames()">
+    </div>
+    <section class="grid" id="games-grid-comm"></section>
+  </div>
 </main>
 <div id="toast"></div>
 
@@ -333,6 +372,91 @@ function toast(msg) {
   t.className = 'show';
   clearTimeout(toastT);
   toastT = setTimeout(() => t.className = '', 2800);
+}
+
+/* ══════════════════════ TAB SWITCHING ══════════════════════ */
+function switchCommTab(tab) {
+  document.querySelectorAll('.comm-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tab-boards').style.display = tab === 'boards' ? '' : 'none';
+  document.getElementById('tab-games').style.display  = tab === 'games'  ? '' : 'none';
+  if (tab === 'games') renderCommunityGames();
+}
+
+/* ══════════════════════ COMMUNITY GAMES ══════════════════════ */
+let _commGamesLevel = 'All';
+
+const COMMUNITY_GAMES = [
+  { id:'cg1', icon:'🔤', title:'Everyday Objects', type:'flashcards', level:'A1', topic:'Vocabulary', desc:'Learn 20 everyday object words with picture flashcards.', tags:['vocabulary','objects','beginner'], src:'games/flashcards.html' },
+  { id:'cg2', icon:'🍎', title:'Food & Drinks', type:'memory-match', level:'A1', topic:'Vocabulary', desc:'Match food items with their English names.', tags:['vocabulary','food','matching'], src:'games/memory.html' },
+  { id:'cg3', icon:'👨‍👩‍👧‍👦', title:'Family Members', type:'flashcards', level:'A1', topic:'Vocabulary', desc:'Practice family vocabulary: mother, father, brother, sister…', tags:['vocabulary','family'], src:'games/flashcards.html' },
+  { id:'cg4', icon:'🎨', title:'Colors & Shapes', type:'quiz', level:'A1', topic:'Vocabulary', desc:'Quick quiz on colors, shapes and basic descriptions.', tags:['vocabulary','colors','quiz'], src:'games/quiz-show.html' },
+  { id:'cg5', icon:'🏠', title:'My House', type:'word-scramble', level:'A1', topic:'Vocabulary', desc:'Unscramble furniture and room words.', tags:['vocabulary','house','scramble'], src:'games/word-scramble.html' },
+  { id:'cg6', icon:'📅', title:'Daily Routines', type:'fill-blank', level:'A2', topic:'Grammar', desc:'Fill in Present Simple sentences about daily activities.', tags:['grammar','present-simple','routines'], src:'games/fill-blank.html' },
+  { id:'cg7', icon:'🛒', title:'At the Shop', type:'flashcards', level:'A2', topic:'Speaking', desc:'Practice shopping dialogues and phrases.', tags:['speaking','shopping','dialogue'], src:'games/flashcards.html' },
+  { id:'cg8', icon:'✈️', title:'Travel Vocabulary', type:'memory-match', level:'A2', topic:'Vocabulary', desc:'Match travel-related words: airport, ticket, passport…', tags:['vocabulary','travel'], src:'games/memory.html' },
+  { id:'cg9', icon:'🔧', title:'Irregular Verbs A2', type:'quiz', level:'A2', topic:'Grammar', desc:'Test knowledge of 30 common irregular verbs.', tags:['grammar','verbs','irregular'], src:'games/quiz-show.html' },
+  { id:'cg10', icon:'💬', title:'Making Plans', type:'fill-blank', level:'A2', topic:'Grammar', desc:'Going to / Will — fill in the correct future form.', tags:['grammar','future','plans'], src:'games/fill-blank.html' },
+  { id:'cg11', icon:'📰', title:'News Headlines', type:'word-scramble', level:'B1', topic:'Reading', desc:'Unscramble words from real news headlines.', tags:['reading','news','vocabulary'], src:'games/word-scramble.html' },
+  { id:'cg12', icon:'🗣️', title:'Opinion Phrases', type:'flashcards', level:'B1', topic:'Speaking', desc:'Master 25 opinion and discussion phrases for debates.', tags:['speaking','opinions','debate'], src:'games/flashcards.html' },
+  { id:'cg13', icon:'📝', title:'Conditionals Quiz', type:'quiz', level:'B1', topic:'Grammar', desc:'First and second conditional — choose the right form.', tags:['grammar','conditionals'], src:'games/quiz-show.html' },
+  { id:'cg14', icon:'🎭', title:'Phrasal Verbs: Emotions', type:'memory-match', level:'B1', topic:'Vocabulary', desc:'Match phrasal verbs with their emotion meanings.', tags:['vocabulary','phrasal-verbs'], src:'games/memory.html' },
+  { id:'cg15', icon:'📖', title:'Reported Speech', type:'fill-blank', level:'B1', topic:'Grammar', desc:'Transform direct speech into reported speech.', tags:['grammar','reported-speech'], src:'games/fill-blank.html' },
+  { id:'cg16', icon:'🎬', title:'Film & Media Vocabulary', type:'flashcards', level:'B2', topic:'Vocabulary', desc:'Advanced media vocabulary: plot twist, screenplay, sequel…', tags:['vocabulary','media','film'], src:'games/flashcards.html' },
+  { id:'cg17', icon:'⚖️', title:'Formal vs Informal', type:'quiz', level:'B2', topic:'Writing', desc:'Choose the more formal register for each sentence.', tags:['writing','register','formal'], src:'games/quiz-show.html' },
+  { id:'cg18', icon:'🧩', title:'Collocations B2', type:'memory-match', level:'B2', topic:'Vocabulary', desc:'Match verb-noun collocations: make/do, take/give…', tags:['vocabulary','collocations'], src:'games/memory.html' },
+  { id:'cg19', icon:'📊', title:'Linking Words', type:'fill-blank', level:'B2', topic:'Writing', desc:'Fill paragraphs with correct linking expressions.', tags:['writing','cohesion','linking'], src:'games/fill-blank.html' },
+  { id:'cg20', icon:'🔬', title:'Science Vocabulary', type:'word-scramble', level:'B2', topic:'Vocabulary', desc:'Unscramble advanced science and research terms.', tags:['vocabulary','science','academic'], src:'games/word-scramble.html' },
+  { id:'cg21', icon:'🏛️', title:'Idioms: Politics', type:'flashcards', level:'C1', topic:'Vocabulary', desc:'Political idioms and expressions for advanced learners.', tags:['vocabulary','idioms','politics'], src:'games/flashcards.html' },
+  { id:'cg22', icon:'📑', title:'CAE Use of English', type:'quiz', level:'C1', topic:'Grammar', desc:'Cambridge C1 style multiple-choice cloze practice.', tags:['grammar','CAE','exam-prep'], src:'games/quiz-show.html' },
+  { id:'cg23', icon:'🎤', title:'TED Talk Vocabulary', type:'memory-match', level:'C1', topic:'Listening', desc:'Match advanced vocabulary from popular TED talks.', tags:['vocabulary','TED','listening'], src:'games/memory.html' },
+  { id:'cg24', icon:'✍️', title:'Essay Hedging Language', type:'fill-blank', level:'C1', topic:'Writing', desc:'Practice hedging: tend to, it could be argued, somewhat…', tags:['writing','hedging','academic'], src:'games/fill-blank.html' },
+  { id:'cg25', icon:'🧠', title:'CPE Word Formation', type:'word-scramble', level:'C2', topic:'Grammar', desc:'Form words using prefixes and suffixes at C2 level.', tags:['grammar','word-formation','CPE'], src:'games/word-scramble.html' },
+  { id:'cg26', icon:'📚', title:'Literary Devices', type:'quiz', level:'C2', topic:'Reading', desc:'Identify metaphor, metonymy, synecdoche and more.', tags:['reading','literature','devices'], src:'games/quiz-show.html' },
+  { id:'cg27', icon:'🗝️', title:'Rare Idioms & Proverbs', type:'flashcards', level:'C2', topic:'Vocabulary', desc:'Obscure but beautiful English idioms for mastery level.', tags:['vocabulary','idioms','proverbs'], src:'games/flashcards.html' },
+];
+
+function filterGames(level) {
+  _commGamesLevel = level;
+  document.querySelectorAll('.level-pill').forEach(p => p.classList.toggle('active', p.textContent.trim() === level));
+  renderCommunityGames();
+}
+
+function renderCommunityGames() {
+  const grid = document.getElementById('games-grid-comm');
+  const q = (document.getElementById('game-search')?.value || '').trim().toLowerCase();
+  const custom = (function() { try { return JSON.parse(localStorage.getItem('teachedos_custom_games') || '[]'); } catch { return []; } })();
+  const all = [...COMMUNITY_GAMES, ...custom.map(g => ({
+    id: g.id, icon: g.icon || '🎮', title: g.title, type: g.gameType,
+    level: g.level || 'Mixed', topic: g.typeName || 'Custom', desc: g.title,
+    tags: g.tags || ['custom'], src: g.gameSrc || 'games/flashcards.html', isCustom: true
+  }))];
+  const filtered = all.filter(g => {
+    if (_commGamesLevel !== 'All' && g.level !== _commGamesLevel) return false;
+    if (q && !g.title.toLowerCase().includes(q) && !(g.tags||[]).join(' ').toLowerCase().includes(q) && !(g.topic||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No games match your filter. Try a different level or search term.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(g => `
+    <div class="game-tile-comm" onclick="addGameToBoard('${esc(g.src)}','${esc(g.title)}')">
+      <div style="font-size:36px;line-height:1;">${g.icon}</div>
+      <div style="font-size:16px;font-weight:900;letter-spacing:-.02em;">${esc(g.title)}</div>
+      <div style="font-size:12px;color:var(--text3);line-height:1.4;min-height:34px;">${esc(g.desc)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;">
+        <span class="tag" style="background:rgba(200,230,50,.18);color:var(--accent);font-weight:900;">${esc(g.level)}</span>
+        <span class="tag">${esc(g.topic)}</span>
+        ${g.isCustom ? '<span class="tag" style="background:rgba(236,45,140,.1);color:#EC2D8C;">My game</span>' : ''}
+      </div>
+      <button class="mini-btn" style="margin-top:8px;" onclick="event.stopPropagation();addGameToBoard('${esc(g.src)}','${esc(g.title)}')">Add to board →</button>
+    </div>
+  `).join('');
+}
+
+function addGameToBoard(src, title) {
+  sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify({ src, title }));
+  window.location.href = 'board.html?addCustomGame=1';
 }
 
 loadBoards();
