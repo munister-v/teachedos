@@ -465,3 +465,76 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35),
               inset 0 0 0 1px var(--u-lime-edge) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   TARGETED LIGHT OVERRIDES
+   Undo harmony.css desktop dark-glass rules that hit non-index pages.
+   Scoped precisely so index.html OS wallpaper stays untouched.
+═══════════════════════════════════════════════════════════════ */
+
+/* 1. Community hero-card + share-card: force light on cream bg
+      (harmony.css @min-width:861 makes these dark glass — wrong on community) */
+@media (min-width: 861px) {
+  .hero-card:not(.ink):not(.dark) {
+    background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(237,232,224,.84)) !important;
+    border: 1px solid rgba(14,14,16,0.07) !important;
+    color: var(--text) !important;
+    box-shadow: 0 18px 50px rgba(94,94,74,.09) !important;
+  }
+  .hero-card:not(.ink):not(.dark) h1,
+  .hero-card:not(.ink):not(.dark) h2,
+  .hero-card:not(.ink):not(.dark) p,
+  .hero-card:not(.ink):not(.dark) .hero-copy,
+  .hero-card:not(.ink):not(.dark) .eyebrow {
+    color: inherit !important;
+  }
+  .share-card {
+    background: rgba(255,255,255,.92) !important;
+    border: 1px solid rgba(14,14,16,0.07) !important;
+    color: var(--text) !important;
+    box-shadow: 0 18px 50px rgba(94,94,74,.09) !important;
+  }
+  .share-card .share-title,
+  .share-card .label,
+  .share-card .field * {
+    color: var(--text) !important;
+  }
+  .share-card input,
+  .share-card select,
+  .share-card textarea {
+    background: #fff !important;
+    color: var(--text) !important;
+    border-color: rgba(14,14,16,0.12) !important;
+  }
+}
+
+/* 2. Modal inputs (onboarding, settings): light regardless of OS dark mode.
+      Inline-styled inputs have no background — harmony gradient should apply,
+      but OS dark mode can override before color-scheme propagates. Lock it. */
+#onboarding-overlay input,
+#onboarding-overlay textarea,
+#onboarding-overlay select,
+.modal input:not([type="checkbox"]):not([type="radio"]),
+.modal textarea,
+.modal select,
+[id$="-modal"] input:not([type="checkbox"]):not([type="radio"]),
+[id$="-modal"] textarea,
+[id$="-modal"] select,
+[id$="-overlay"] input:not([type="checkbox"]):not([type="radio"]),
+[id$="-overlay"] textarea,
+[id$="-overlay"] select {
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+  border-color: rgba(14,14,16,0.14) !important;
+  color-scheme: light !important;
+}
+
+/* 3. All remaining inputs / selects on non-board pages — lock to light.
+      Prevents any browser auto-dark from sneaking in. */
+body:not(.board-page) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+body:not(.board-page) textarea,
+body:not(.board-page) select {
+  background-color: #ffffff !important;
+  color: #1c1c1e !important;
+  color-scheme: light !important;
+}
