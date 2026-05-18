@@ -47,6 +47,227 @@
   --premium-2:   #2A2A2E;
 }
 
+/* ── Form System v3: readable, colorful, touch-safe controls ───────────── */
+:root {
+  --form-bg: rgba(255, 255, 255, .92);
+  --form-bg-soft: rgba(250, 250, 246, .84);
+  --form-border: rgba(18, 18, 24, .13);
+  --form-border-hover: rgba(236, 45, 140, .32);
+  --form-ring-pink: rgba(236, 45, 140, .14);
+  --form-ring-lime: rgba(205, 242, 79, .25);
+  --form-text: #18181c;
+  --form-muted: rgba(58, 58, 64, .52);
+}
+
+:is(.field, .form-field, .billing-field, .setting-field, .plan-field, .admin-field) {
+  gap: 8px !important;
+}
+
+:is(.label, .form-label, .field label, .form-field label, .billing-field label, .setting-field label, .admin-field label) {
+  color: rgba(24, 24, 28, .66) !important;
+  font-family: var(--font-mono, "Space Mono", monospace) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .16em !important;
+  line-height: 1.25 !important;
+  text-transform: uppercase !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+) {
+  min-height: 46px !important;
+  border: 1.5px solid var(--form-border) !important;
+  border-radius: 17px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98), var(--form-bg-soft)),
+    radial-gradient(circle at 12% 0%, rgba(205,242,79,.18), transparent 34%) !important;
+  color: var(--form-text) !important;
+  font-family: var(--font, "Manrope", sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  line-height: 1.45 !important;
+  outline: none !important;
+  padding: 12px 15px !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.86) inset,
+    0 10px 28px rgba(18,18,24,.045) !important;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    transform .18s ease !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+):hover {
+  border-color: var(--form-border-hover) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 14px 34px rgba(236,45,140,.07) !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+):focus,
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+):focus-visible {
+  border-color: var(--pink, #ec2d8c) !important;
+  background: #fff !important;
+  box-shadow:
+    0 0 0 4px var(--form-ring-pink),
+    0 0 0 8px var(--form-ring-lime),
+    0 18px 46px rgba(236,45,140,.13) !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .sp-link-input,
+  .sp-email-input
+)::placeholder {
+  color: var(--form-muted) !important;
+  font-weight: 650 !important;
+}
+
+textarea {
+  min-height: 108px !important;
+  resize: vertical !important;
+}
+
+select {
+  cursor: pointer !important;
+}
+
+input[type="file"] {
+  width: 100%;
+  border: 1.5px dashed rgba(236,45,140,.26) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(205,242,79,.13)) !important;
+  color: rgba(24,24,28,.74) !important;
+  font-family: var(--font, "Manrope", sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  padding: 12px !important;
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--lime, #cdf24f), #f7ff8d);
+  color: #101014;
+  cursor: pointer;
+  font-weight: 950;
+  padding: 9px 14px;
+}
+
+:is(input, textarea, select):disabled,
+:is(input, textarea, select)[readonly] {
+  cursor: not-allowed !important;
+  opacity: .68 !important;
+  filter: saturate(.8) !important;
+}
+
+:is(.btn, .form-submit, .sp-copy-btn, .sp-invite-btn, .module-button, .price-btn, .plan-action, .billing-action) {
+  border-radius: 999px !important;
+  font-family: var(--font, "Manrope", sans-serif) !important;
+  font-weight: 950 !important;
+  min-height: 42px;
+}
+
+:is(.btn-primary, .form-submit, .sp-invite-btn, .module-button.primary, .price-btn.primary, .plan-action.primary, .billing-action.primary) {
+  background:
+    linear-gradient(135deg, var(--lime, #cdf24f), #f7ff8d 48%, #ff4fa8) !important;
+  border-color: rgba(24,24,28,.1) !important;
+  color: #101014 !important;
+  box-shadow: 0 16px 38px rgba(205,242,79,.24) !important;
+}
+
+[data-theme="dark"] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+) {
+  background: linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.07)) !important;
+  border-color: rgba(255,255,255,.15) !important;
+  color: #fff !important;
+}
+
+#sidebar:has(.sb-tabs) .sb-search input,
+.board-shell #sidebar .sb-search input {
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 860px) {
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+    textarea,
+    select,
+    .form-input,
+    .invite-input,
+    .module-field,
+    .module-select,
+    .sp-link-input,
+    .sp-email-input
+  ) {
+    min-height: 48px !important;
+    border-radius: 16px !important;
+    font-size: 16px !important;
+    padding: 13px 14px !important;
+  }
+
+  textarea {
+    line-height: 1.55 !important;
+  }
+}
+
 [data-theme="dark"] {
   --cream: #1C1C1E; --bg: #1C1C1E; --bg2: #2A2A2E;
   --ink: #F5F0E8; --ink2: #C8C8B4; --ink3: #6A6A5A;
