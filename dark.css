@@ -1,21 +1,22 @@
 /* TeachedOS — dark theme for all non-board pages */
 [data-theme="dark"] {
-  --bg:        #1C1C1E;
-  --bg-2:      #2C2C2E;
-  --bg-3:      #3A3A3C;
-  --bg-card:   #2C2C2E;
-  --card:      #2C2C2E;
-  --border:    rgba(202,201,183,0.14);
-  --border-2:  rgba(202,201,183,0.24);
+  --bg:        #111114;
+  --bg-2:      #1C1C20;
+  --bg-3:      #2A2A30;
+  --bg-card:   #1C1C20;
+  --card:      #1C1C20;
+  --border:    rgba(205,242,79,0.10);
+  --border-2:  rgba(205,242,79,0.18);
   --text:      #F5F0E8;
   --text-2:    #CAC9B7;
-  --text-3:    #5E5E4A;
-  --accent:    #C8E632;
-  --accent-2:  rgba(200,230,50,0.12);
-  --accent-3:  rgba(200,230,50,0.24);
-  --lime:      #C8E632;
-  --lavender:  #1C1C1E;
-  --sand-dark: #5E5E4A;
+  --text-3:    #6A6A5A;
+  --accent:    #CDF24F;
+  --accent-2:  rgba(205,242,79,0.10);
+  --accent-3:  rgba(205,242,79,0.22);
+  --lime:      #CDF24F;
+  --deep-rose: #EC2D8C;
+  --lavender:  #111114;
+  --sand-dark: #6A6A5A;
   --sand-mid:  #A2A28C;
   color-scheme: dark;
 }
@@ -37,6 +38,50 @@
 [data-theme="dark"] .nb {
   background: var(--bg-card) !important;
   border-color: var(--border) !important;
+}
+
+/* Contrasty card accents — lime glow border on hover */
+[data-theme="dark"] .lesson-card,
+[data-theme="dark"] .pack-card,
+[data-theme="dark"] .tool-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .curr-card {
+  background: #1C1C20 !important;
+  border: 1px solid rgba(205,242,79,0.10) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.30) !important;
+}
+[data-theme="dark"] .lesson-card:hover,
+[data-theme="dark"] .pack-card:hover,
+[data-theme="dark"] .tool-card:hover,
+[data-theme="dark"] .stat-card:hover,
+[data-theme="dark"] .curr-card:hover {
+  border-color: rgba(205,242,79,0.28) !important;
+  box-shadow: 0 8px 32px rgba(205,242,79,0.08), 0 4px 16px rgba(0,0,0,0.30) !important;
+}
+
+/* Lesson card top stripe: pink→lime gradient */
+[data-theme="dark"] .lesson-card::before {
+  background: linear-gradient(90deg, #EC2D8C, #CDF24F) !important;
+}
+
+/* Pink accents for tags/badges in dark */
+[data-theme="dark"] .lc-lang {
+  background: rgba(236,45,140,0.15) !important;
+  border-color: rgba(236,45,140,0.30) !important;
+  color: #f472b6 !important;
+}
+
+/* Progress bars: pink→lime */
+[data-theme="dark"] .lc-prog-fill,
+[data-theme="dark"] .prog-lang-fill,
+[data-theme="dark"] .fc-progress-fill {
+  background: linear-gradient(90deg, #EC2D8C, #CDF24F) !important;
+}
+
+/* Nav bar in dark: deep dark with lime accent */
+[data-theme="dark"] .nav-link.active {
+  background: rgba(205,242,79,0.12) !important;
+  color: #CDF24F !important;
 }
 
 /* Inputs */
@@ -75,8 +120,8 @@
 
 /* Navbar specifically */
 [data-theme="dark"] .nb {
-  border-bottom-color: var(--border) !important;
-  background: color-mix(in srgb, var(--bg-card) 92%, transparent) !important;
+  border-bottom-color: rgba(205,242,79,0.06) !important;
+  background: rgba(17,17,20,0.92) !important;
   backdrop-filter: blur(20px);
 }
 
@@ -99,7 +144,41 @@
 [data-theme="dark"] #tpl-modal > div,
 [data-theme="dark"] .modal-inner,
 [data-theme="dark"] [id$="-modal"] > div {
-  background: var(--bg-card) !important;
+  background: #1C1C20 !important;
+  border: 1px solid rgba(205,242,79,0.10) !important;
+  box-shadow: 0 24px 72px rgba(0,0,0,0.50) !important;
+}
+
+/* Stat tiles in dark: deep contrast with colored accents */
+[data-theme="dark"] .mp-stat-lavender { background: rgba(216,197,251,0.12) !important; border-color: rgba(216,197,251,0.20) !important; }
+[data-theme="dark"] .mp-stat-peach { background: rgba(255,181,174,0.12) !important; border-color: rgba(255,181,174,0.20) !important; }
+[data-theme="dark"] .mp-stat-cyan { background: rgba(143,230,230,0.12) !important; border-color: rgba(143,230,230,0.20) !important; }
+[data-theme="dark"] .mp-stat-n { color: #F5F0E8 !important; }
+
+/* Quick start items in dark */
+[data-theme="dark"] .mp-quick {
+  background: #1C1C20 !important;
+  border-color: rgba(205,242,79,0.08) !important;
+}
+[data-theme="dark"] .mp-quick:hover {
+  border-color: rgba(236,45,140,0.25) !important;
+  background: rgba(236,45,140,0.06) !important;
+}
+[data-theme="dark"] .mp-quick-ic {
+  background: rgba(205,242,79,0.12) !important;
+  color: #CDF24F !important;
+}
+[data-theme="dark"] .mp-quick-t { color: #F5F0E8 !important; }
+[data-theme="dark"] .mp-quick-s { color: #6A6A5A !important; }
+[data-theme="dark"] .mp-quick-arrow { color: #EC2D8C !important; }
+
+/* Board cards horizontal scroll in dark */
+[data-theme="dark"] .mp-board-card {
+  background: #1C1C20 !important;
+  border-color: rgba(205,242,79,0.10) !important;
+}
+[data-theme="dark"] .mp-board-card:hover {
+  border-color: rgba(205,242,79,0.30) !important;
 }
 
 /* Dark toggle button */
