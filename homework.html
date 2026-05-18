@@ -80,6 +80,36 @@ button{font-family:var(--font);cursor:pointer;}
 .btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
 
+.homework-hero{
+  position:relative;overflow:hidden;margin:18px 0 16px;border-radius:30px;padding:26px;
+  background:
+    radial-gradient(circle at 88% 10%,rgba(200,230,50,.34),transparent 34%),
+    radial-gradient(circle at 8% 92%,rgba(236,45,140,.14),transparent 36%),
+    linear-gradient(135deg,#101014,#1c1c20 58%,#30203a);
+  color:#fff;border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 70px rgba(14,14,16,.18);
+}
+.homework-hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(90deg,black,transparent 85%);pointer-events:none;}
+.homework-hero-in{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:end;}
+.homework-hero h1{font-size:clamp(32px,5vw,64px);line-height:.92;letter-spacing:-.07em;max-width:760px;}
+.homework-hero h1 em{color:var(--lime);font-style:italic;}
+.homework-hero p{margin-top:12px;max-width:680px;color:rgba(255,255,255,.72);font-size:15px;line-height:1.6;}
+.hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
+.hero-chip{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900;color:rgba(255,255,255,.82);}
+.hero-score{min-width:190px;border-radius:24px;padding:16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);}
+.hero-score b{display:block;font-size:38px;line-height:1;color:var(--lime);}
+.hero-score span{display:block;margin-top:7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);}
+
+.hw-dashboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 16px;}
+.hw-metric{background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:20px;padding:15px;box-shadow:0 14px 36px rgba(94,94,74,.08);}
+.hw-metric b{display:block;font-size:26px;letter-spacing:-.05em;color:var(--text);}
+.hw-metric span{display:block;margin-top:4px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
+.hw-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 4px;}
+.hw-filters{display:flex;gap:8px;flex-wrap:wrap;}
+.filter-btn{border:1px solid var(--border);background:rgba(255,255,255,.86);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:900;color:var(--text2);}
+.filter-btn.active{background:var(--lime);border-color:rgba(168,196,42,.38);color:#0E0E10;}
+.hw-search{min-width:min(360px,100%);display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(255,255,255,.9);border-radius:999px;padding:0 14px;}
+.hw-search input{border:0!important;background:transparent!important;box-shadow:none!important;min-height:42px!important;padding:0!important;font-size:14px!important;}
+
 /* List */
 #hw-list{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
 .hw-card{
@@ -87,8 +117,13 @@ button{font-family:var(--font);cursor:pointer;}
   padding:16px 18px;cursor:pointer;transition:.18s;display:flex;flex-direction:column;gap:8px;
 }
 .hw-card:hover{border-color:var(--accent);box-shadow:0 6px 24px rgba(94,94,74,.10);transform:translateY(-1px);}
+.hw-card.overdue{border-color:rgba(239,68,68,.30);}
+.hw-card.submitted{border-color:rgba(34,197,94,.28);}
+.hw-card.graded{border-color:rgba(139,92,246,.26);}
 .hw-card .hw-title{font-size:15px;font-weight:900;color:var(--text);line-height:1.25;}
 .hw-card .hw-sub{font-size:11px;color:var(--text3);}
+.hw-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.hw-kind{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#7FA000;background:rgba(200,230,50,.18);border:1px solid rgba(200,230,50,.35);border-radius:999px;padding:4px 8px;}
 .hw-stats{display:flex;gap:10px;margin-top:auto;font-size:11px;color:var(--text2);}
 .hw-stat{display:flex;align-items:center;gap:5px;font-weight:700;background:var(--bg);padding:4px 9px;border-radius:8px;border:1px solid var(--border);}
 
@@ -159,6 +194,13 @@ button{font-family:var(--font);cursor:pointer;}
   #page{padding:16px;}
   .page-head{flex-direction:column;align-items:flex-start;gap:10px;}
   .page-title{font-size:22px;}
+  .homework-hero{padding:20px;border-radius:24px;margin-top:10px;}
+  .homework-hero-in{grid-template-columns:1fr;}
+  .homework-hero h1{font-size:40px;}
+  .hero-score{min-width:0;}
+  .hw-dashboard{grid-template-columns:repeat(2,1fr);}
+  .hw-toolbar{align-items:stretch;}
+  .hw-search{width:100%;}
   .mp-topbar{display:flex !important;}
   #hw-list{grid-template-columns:1fr;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
@@ -214,6 +256,43 @@ button{font-family:var(--font);cursor:pointer;}
       <div class="page-sub">Send a board with selected cards as a graded task. Game results are auto-recorded.</div>
     </div>
     <button class="btn btn-primary" onclick="openCreateModal()">＋ New homework</button>
+  </div>
+
+  <section class="homework-hero">
+    <div class="homework-hero-in">
+      <div>
+        <div class="page-eyebrow" style="color:var(--lime);">Assignment command center</div>
+        <h1>Homework that comes back <em>trackable.</em></h1>
+        <p>Create tasks from boards, attach required cards, send to students, monitor submissions, and keep a clean lesson-to-homework loop even while the backend is waking up.</p>
+        <div class="hero-chips">
+          <span class="hero-chip">Board-based tasks</span>
+          <span class="hero-chip">Student progress</span>
+          <span class="hero-chip">Due dates</span>
+          <span class="hero-chip">Local fallback</span>
+        </div>
+      </div>
+      <div class="hero-score">
+        <b id="hero-completion">0%</b>
+        <span>submitted / assigned</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="hw-dashboard">
+    <div class="hw-metric"><b id="m-total">0</b><span>Homework sets</span></div>
+    <div class="hw-metric"><b id="m-assigned">0</b><span>Assigned</span></div>
+    <div class="hw-metric"><b id="m-submitted">0</b><span>Submitted</span></div>
+    <div class="hw-metric"><b id="m-overdue">0</b><span>Overdue</span></div>
+  </section>
+
+  <div class="hw-toolbar">
+    <div class="hw-filters">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+      <button class="filter-btn" data-filter="active" onclick="setFilter('active')">Active</button>
+      <button class="filter-btn" data-filter="submitted" onclick="setFilter('submitted')">Submitted</button>
+      <button class="filter-btn" data-filter="overdue" onclick="setFilter('overdue')">Overdue</button>
+    </div>
+    <label class="hw-search">⌕ <input id="hw-search" placeholder="Search homework, board, student..." oninput="renderList()"></label>
   </div>
 
   <div id="hw-list"></div>
@@ -273,18 +352,10 @@ button{font-family:var(--font);cursor:pointer;}
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:8080' : 'https://teachedos-api.onrender.com';
-const token = localStorage.getItem('teachedos_token');
-
-async function api(path, opts = {}) {
-  const r = await fetch(API + path, {
-    ...opts,
-    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token, ...(opts.headers||{}) },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error || 'Error');
-  return d;
-}
+const token = localStorage.getItem('teachedos_token') || '';
+const LOCAL_KEY = 'teachedos_homework_local_v2';
+const LOCAL_BOARDS_KEY = 'teachedos_homework_boards_v2';
+const LOCAL_STUDENTS_KEY = 'teachedos_homework_students_v2';
 
 let homeworkList = [];
 let boards = [];
@@ -293,258 +364,243 @@ let currentBoardCards = [];
 let selectedCardIds = new Set();
 let selectedStudentIds = new Set();
 let editingId = null;
+let offlineMode = false;
+let activeFilter = 'all';
 
-/* ── init ── */
-async function init() {
-  if (!token) { location.href = 'index.html'; return; }
-  // Show spinner while server wakes up (Render cold start can take ~30s)
-  document.getElementById('hw-list').innerHTML =
-    '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div><div class="empty-sub">Connecting to server, please wait.</div></div>';
-  try {
-    const r = await fetch(API + '/api/auth/me', {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    if (r.status === 401 || r.status === 403) { location.href = 'index.html'; return; }
-    if (!r.ok) throw new Error('Server error ' + r.status);
-    const { user } = await r.json();
-    document.getElementById('nav-avatar').textContent = user.avatar;
-    document.getElementById('nav-name').textContent = user.name.split(' ')[0];
-    const av = document.getElementById('mp-avatar');
-    if (av) av.textContent = (user.name||'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    if (window.innerWidth <= 860) {
-      const tb = document.getElementById('mp-topbar'); if (tb) tb.style.display = '';
-    }
-  } catch (e) {
-    document.getElementById('hw-list').innerHTML =
-      `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><div class="empty-title">Connection error</div><div class="empty-sub">${esc(e.message)}. <a href="" style="color:var(--blue);">Retry</a></div></div>`;
-    return;
-  }
-  await loadAll();
+async function api(path, opts = {}) {
+  if (!token) throw new Error('No token');
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+token, ...(opts.headers||{}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Server error ' + r.status);
+  return d;
 }
 
-async function loadAll() {
-  const [hw, br] = await Promise.all([
-    api('/api/homework').catch(() => ({ homework: [] })),
-    api('/api/boards').catch(() => ({ boards: [] })),
-  ]);
-  homeworkList = hw.homework || [];
-  boards = br.boards || [];
+function seedStudents(){
+  return [
+    { id:'stu-anna', user_id:'stu-anna', name:'Anna Kowalska', email:'anna.student@example.com', avatar:'A' },
+    { id:'stu-igor', user_id:'stu-igor', name:'Igor Novak', email:'igor.student@example.com', avatar:'I' },
+    { id:'stu-maria', user_id:'stu-maria', name:'Maria Garcia', email:'maria.student@example.com', avatar:'M' },
+    { id:'stu-danylo', user_id:'stu-danylo', name:'Danylo Petrenko', email:'danylo.student@example.com', avatar:'D' },
+  ];
+}
+function seedBoards(){
+  return [
+    { id:'board-travel-b1', name:'B1 Travel Problems', cards:[card('trv-1','lesson','Polite request phrases'), card('trv-2','game','Hotel problem role-play'), card('trv-3','assignment','Write a complaint message'), card('trv-4','checklist','Travel vocabulary checklist')]},
+    { id:'board-food-a1', name:'A1 Food Cafe', cards:[card('food-1','lesson','Cafe ordering language'), card('food-2','game','Menu word matching'), card('food-3','assignment','Build a cafe dialogue')]},
+    { id:'board-news-b2', name:'B2 News Article', cards:[card('news-1','lesson','Headline vocabulary'), card('news-2','assignment','Summarise the article'), card('news-3','voting','Opinion poll'), card('news-4','checklist','Bias detection checklist')]}
+  ];
+}
+function card(id,type,title){ return { id, type, data:{ title } }; }
+function seedHomework(){
+  const now = Date.now();
+  return [
+    { id:'hw-demo-1', title:'Travel problems: polite requests', board_id:'board-travel-b1', board_name:'B1 Travel Problems', instructions:'Complete the role-play card and write a short message using at least 4 polite phrases.', required_cards:['trv-1','trv-2','trv-3'], pass_threshold:70, due_at:new Date(now + 86400000).toISOString(), assigned_count:3, submitted_count:1, status:'active', local:true, assignments:[assignment('a1','stu-anna','submitted',82), assignment('a2','stu-igor','in_progress'), assignment('a3','stu-maria','assigned')] },
+    { id:'hw-demo-2', title:'Cafe dialogue practice', board_id:'board-food-a1', board_name:'A1 Food Cafe', instructions:'Match food words, then write a 6-line cafe dialogue.', required_cards:['food-1','food-2','food-3'], pass_threshold:60, due_at:new Date(now - 86400000).toISOString(), assigned_count:2, submitted_count:0, status:'overdue', local:true, assignments:[assignment('a4','stu-igor','in_progress'), assignment('a5','stu-danylo','assigned')] },
+    { id:'hw-demo-3', title:'News article summary', board_id:'board-news-b2', board_name:'B2 News Article', instructions:'Read the article, extract key vocabulary and write a neutral summary.', required_cards:['news-1','news-2','news-4'], pass_threshold:75, due_at:new Date(now + 3*86400000).toISOString(), assigned_count:2, submitted_count:2, status:'submitted', local:true, assignments:[assignment('a6','stu-anna','graded',91), assignment('a7','stu-maria','submitted',78)] }
+  ];
+}
+function assignment(id, studentId, status, score=null){
+  const s = seedStudents().find(x => x.id === studentId) || seedStudents()[0];
+  return { id, student_id:studentId, student_name:s.name, student_email:s.email, student_avatar:s.avatar, status, final_score:score };
+}
+function readLocal(key, fallback){ try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch { return fallback; } }
+function writeLocal(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+function ensureLocalData(){
+  if (!localStorage.getItem(LOCAL_BOARDS_KEY)) writeLocal(LOCAL_BOARDS_KEY, seedBoards());
+  if (!localStorage.getItem(LOCAL_STUDENTS_KEY)) writeLocal(LOCAL_STUDENTS_KEY, seedStudents());
+  if (!localStorage.getItem(LOCAL_KEY)) writeLocal(LOCAL_KEY, seedHomework());
+}
+function loadLocal(){
+  offlineMode = true;
+  ensureLocalData();
+  boards = readLocal(LOCAL_BOARDS_KEY, seedBoards());
+  students = readLocal(LOCAL_STUDENTS_KEY, seedStudents());
+  homeworkList = readLocal(LOCAL_KEY, seedHomework());
+  updateUser({ name:'Vyacheslav Munister', avatar:'V' });
   renderList();
 }
 
-/* ── list ── */
+async function init() {
+  document.getElementById('hw-list').innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⏳</div><div class="empty-title">Loading homework…</div><div class="empty-sub">Preparing assignments, boards and student progress.</div></div>';
+  if (!token) { loadLocal(); return; }
+  try {
+    const r = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) throw new Error('Auth unavailable');
+    const { user } = await r.json();
+    updateUser(user);
+    await loadAll();
+  } catch (e) {
+    loadLocal();
+    toast('Server unavailable — local homework mode is active');
+  }
+}
+function updateUser(user){
+  const first = (user.name || 'Teacher').split(' ')[0];
+  document.getElementById('nav-avatar').textContent = user.avatar || first[0] || 'T';
+  document.getElementById('nav-name').textContent = first;
+  const av = document.getElementById('mp-avatar');
+  if (av) av.textContent = (user.name||'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  if (window.innerWidth <= 860) { const tb = document.getElementById('mp-topbar'); if (tb) tb.style.display = ''; }
+}
+async function loadAll() {
+  try {
+    const [hw, br] = await Promise.all([api('/api/homework'), api('/api/boards')]);
+    offlineMode = false;
+    homeworkList = hw.homework || [];
+    boards = br.boards || [];
+    if (!homeworkList.length && !boards.length) loadLocal(); else renderList();
+  } catch (e) { loadLocal(); }
+}
+
+function setFilter(filter){
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+  renderList();
+}
+function homeworkStatus(h){
+  if (h.status === 'submitted' || h.status === 'graded') return h.status;
+  if (h.due_at && new Date(h.due_at) < new Date() && (h.submitted_count || 0) < (h.assigned_count || 0)) return 'overdue';
+  return 'active';
+}
+function filteredHomework(){
+  const q = (document.getElementById('hw-search')?.value || '').trim().toLowerCase();
+  return homeworkList.filter(h => {
+    const st = homeworkStatus(h);
+    if (activeFilter !== 'all' && activeFilter !== st && !(activeFilter === 'submitted' && st === 'graded')) return false;
+    if (!q) return true;
+    const text = [h.title,h.board_name,h.instructions,(h.assignments||[]).map(a=>a.student_name).join(' ')].join(' ').toLowerCase();
+    return text.includes(q);
+  });
+}
+function updateMetrics(list = homeworkList){
+  const total = list.length;
+  const assigned = list.reduce((n,h)=>n+(h.assigned_count||0),0);
+  const submitted = list.reduce((n,h)=>n+(h.submitted_count||0),0);
+  const overdue = list.filter(h => homeworkStatus(h)==='overdue').length;
+  const pct = assigned ? Math.round((submitted/assigned)*100) : 0;
+  setText('m-total', total); setText('m-assigned', assigned); setText('m-submitted', submitted); setText('m-overdue', overdue); setText('hero-completion', pct + '%');
+}
 function renderList() {
+  updateMetrics(homeworkList);
   const el = document.getElementById('hw-list');
-  if (!homeworkList.length) {
-    el.innerHTML = '';
-    el.insertAdjacentHTML('beforeend', `
-      <div class="empty" style="grid-column:1/-1;">
-        <div class="empty-icon">📝</div>
-        <div class="empty-title">No homework yet</div>
-        <div class="empty-sub">Click <strong>+ New homework</strong> to send your first task. Pick a board, choose which cards the student must complete, and the platform auto-grades game results.</div>
-      </div>
-    `);
+  const list = filteredHomework();
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📝</div><div class="empty-title">No homework in this view</div><div class="empty-sub">Create a task, change the filter, or search by board/student name. This page now works locally too.</div></div>';
     return;
   }
-  el.innerHTML = homeworkList.map(h => {
+  el.innerHTML = list.map(h => {
     const required = Array.isArray(h.required_cards) ? h.required_cards.length : 0;
     const due = h.due_at ? new Date(h.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
-    return `
-      <div class="hw-card" onclick='openDetail(${JSON.stringify(h.id)})'>
-        <div class="hw-title">${esc(h.title)}</div>
-        <div class="hw-sub">${esc(h.board_name || '—')}${h.course_name ? ' · ' + esc(h.course_name) : ''}</div>
-        ${due ? `<div class="hw-sub">📅 Due: ${esc(due)}</div>` : ''}
-        <div class="hw-stats">
-          <div class="hw-stat">👥 ${h.assigned_count || 0}</div>
-          <div class="hw-stat">✅ ${h.submitted_count || 0}</div>
-          <div class="hw-stat">🎯 ${required} card${required!==1?'s':''}</div>
-        </div>
-      </div>
-    `;
+    const status = homeworkStatus(h);
+    return '<div class="hw-card '+status+'" onclick=\'openDetail('+JSON.stringify(JSON.stringify(h.id))+')\'>'+
+      '<div class="hw-topline"><span class="hw-kind">'+(offlineMode || h.local ? 'local' : 'live')+' · '+status+'</span><span class="pill '+(status==='overdue'?'in_progress':status)+'">'+status.replace('_',' ')+'</span></div>'+
+      '<div class="hw-title">'+esc(h.title)+'</div>'+
+      '<div class="hw-sub">'+esc(h.board_name || boardName(h.board_id) || 'Board')+(h.course_name ? ' · ' + esc(h.course_name) : '')+'</div>'+
+      (due ? '<div class="hw-sub">📅 Due: '+esc(due)+'</div>' : '')+
+      '<div class="hw-stats"><div class="hw-stat">👥 '+(h.assigned_count || 0)+'</div><div class="hw-stat">✅ '+(h.submitted_count || 0)+'</div><div class="hw-stat">🎯 '+required+' card'+(required!==1?'s':'')+'</div></div></div>';
   }).join('');
 }
 
-/* ── detail ── */
 async function openDetail(id) {
   try {
-    const d = await api('/api/homework/' + id);
+    const d = offlineMode ? localDetail(id) : await api('/api/homework/' + id).catch(() => localDetail(id));
     const hw = d.homework;
     const assignments = d.assignments || [];
     const attempts = d.attempts || [];
-    // Group attempts by assignment_id
     const byAsgn = {};
     attempts.forEach(t => { (byAsgn[t.assignment_id] = byAsgn[t.assignment_id] || []).push(t); });
-
     const required = Array.isArray(hw.required_cards) ? hw.required_cards : [];
     const det = document.getElementById('hw-detail');
     det.classList.add('open');
-    det.innerHTML = `
-      <div class="detail-head">
-        <div>
-          <div class="detail-title">${esc(hw.title)}</div>
-          <div class="detail-meta">${required.length} required card${required.length!==1?'s':''} · Pass threshold ${hw.pass_threshold}%</div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" onclick='openBoard("${esc(hw.board_id)}")'>Open board ↗</button>
-          <button class="btn btn-danger" onclick='deleteHomework("${esc(hw.id)}")'>🗑 Delete</button>
-        </div>
-      </div>
-      ${hw.instructions ? `<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:10px 14px;border-radius:10px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">${esc(hw.instructions)}</div>` : ''}
-      <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students (${assignments.length})</div>
-      ${assignments.length ? assignments.map(a => {
+    det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+esc(hw.title)+'</div><div class="detail-meta">'+required.length+' required card'+(required.length!==1?'s':'')+' · Pass threshold '+(hw.pass_threshold || 60)+'% · '+(offlineMode || hw.local ? 'local mode' : 'live')+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost" onclick=\'openBoard("'+esc(hw.board_id)+'")\'>Open board ↗</button><button class="btn btn-danger" onclick=\'deleteHomework("'+esc(hw.id)+'")\'>🗑 Delete</button></div></div>'+
+      (hw.instructions ? '<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:12px 14px;border-radius:14px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">'+esc(hw.instructions)+'</div>' : '')+
+      '<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students ('+assignments.length+')</div>'+
+      (assignments.length ? assignments.map(a => {
         const att = byAsgn[a.id] || [];
-        const completed = att.filter(t => t.status === 'done').length;
+        const completed = typeof a.final_score === 'number' || ['submitted','graded'].includes(a.status) ? required.length : att.filter(t => t.status === 'done').length;
         const pct = required.length ? Math.round((completed/required.length) * 100) : 0;
-        return `
-          <div class="detail-row" style="align-items:center;gap:12px;">
-            <div style="flex:1;display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">${esc(a.student_avatar || '👤')}</span>
-              <div>
-                <div style="font-size:13px;font-weight:800;color:var(--text);">${esc(a.student_name)}</div>
-                <div style="font-size:11px;color:var(--text3);">${esc(a.student_email)}</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="font-size:11px;color:var(--text2);font-family:var(--mono);">${completed}/${required.length} · ${pct}%</div>
-              <span class="pill ${a.status}">${a.status.replace('_',' ')}</span>
-              ${typeof a.final_score === 'number' ? `<span style="font-weight:900;font-size:13px;color:${a.final_score>=hw.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>'}
-    `;
+        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(200,230,50,.2);font-weight:900;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:800;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:900;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>';
+      }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>');
     det.scrollIntoView({behavior:'smooth', block:'start'});
   } catch (e) { toast('Error: ' + e.message); }
 }
-
+function localDetail(id){
+  const hw = homeworkList.find(h => String(h.id) === String(id));
+  if (!hw) throw new Error('Homework not found');
+  return { homework:hw, assignments:hw.assignments || [], attempts:[] };
+}
 async function deleteHomework(id) {
-  if (!confirm('Delete this homework? Student attempts will also be removed.')) return;
-  try {
-    await api('/api/homework/' + id, { method:'DELETE' });
+  if (!confirm('Delete this homework?')) return;
+  if (offlineMode || homeworkList.find(h => h.id === id)?.local) {
+    homeworkList = homeworkList.filter(h => h.id !== id);
+    writeLocal(LOCAL_KEY, homeworkList);
     document.getElementById('hw-detail').classList.remove('open');
-    await loadAll();
-    toast('Deleted');
-  } catch (e) { toast('Error: ' + e.message); }
+    renderList(); toast('Deleted locally'); return;
+  }
+  try { await api('/api/homework/' + id, { method:'DELETE' }); document.getElementById('hw-detail').classList.remove('open'); await loadAll(); toast('Deleted'); }
+  catch (e) { toast('Error: ' + e.message); }
 }
+function openBoard(boardId) { location.href = 'board.html?id=' + encodeURIComponent(boardId); }
 
-function openBoard(boardId) {
-  location.href = 'board.html?id=' + boardId;
-}
-
-/* ── create modal ── */
 async function openCreateModal() {
-  editingId = null;
-  selectedCardIds.clear(); selectedStudentIds.clear();
+  editingId = null; selectedCardIds.clear(); selectedStudentIds.clear();
   document.getElementById('f-title').value = '';
   document.getElementById('f-instructions').value = '';
   document.getElementById('f-pass').value = 60;
   document.getElementById('f-due').value = '';
-  // Board picker
+  if (!boards.length) boards = readLocal(LOCAL_BOARDS_KEY, seedBoards());
   const boardSel = document.getElementById('f-board');
-  boardSel.innerHTML = '<option value="">— Choose a board —</option>' +
-    boards.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
-  document.getElementById('f-cards').innerHTML =
-    '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
+  boardSel.innerHTML = '<option value="">— Choose a board —</option>' + boards.map(b => '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join('');
+  document.getElementById('f-cards').innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
   document.getElementById('f-cards-count').textContent = '';
-  // Students — we approximate by listing collaborators on the teacher's boards
   await loadStudents();
   document.getElementById('create-overlay').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 50);
 }
 function closeCreateModal() { document.getElementById('create-overlay').classList.remove('open'); }
-
 async function loadStudents() {
+  if (offlineMode || !token) { students = readLocal(LOCAL_STUDENTS_KEY, seedStudents()); renderStudentList(); return; }
   try {
-    // Union of all collaborators across the teacher's boards
     const seen = new Map();
-    for (const b of boards) {
-      try {
-        const r = await api('/api/members/' + b.id);
-        (r.members || []).forEach(m => {
-          if (!seen.has(m.user_id || m.id)) seen.set(m.user_id || m.id, m);
-        });
-      } catch {}
-    }
+    for (const b of boards) { try { const r = await api('/api/members/' + b.id); (r.members || []).forEach(m => { if (!seen.has(m.user_id || m.id)) seen.set(m.user_id || m.id, m); }); } catch {} }
     students = Array.from(seen.values());
+    if (!students.length) students = readLocal(LOCAL_STUDENTS_KEY, seedStudents());
     renderStudentList();
-  } catch (e) {
-    document.getElementById('f-students').innerHTML =
-      '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">Could not load students</div>';
-  }
+  } catch { students = readLocal(LOCAL_STUDENTS_KEY, seedStudents()); renderStudentList(); }
 }
 function renderStudentList() {
   const el = document.getElementById('f-students');
-  if (!students.length) {
-    el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">No students yet — share a board with a student first.</div>';
-    return;
-  }
-  el.innerHTML = students.map(s => {
-    const id = s.user_id || s.id;
-    return `
-      <div class="student-item ${selectedStudentIds.has(id) ? 'selected':''}" onclick='toggleStudent("${esc(id)}")'>
-        <div class="cpi-check">${selectedStudentIds.has(id) ? '✓' : ''}</div>
-        <span style="font-size:16px;">${esc(s.avatar || '👤')}</span>
-        <div style="flex:1;min-width:0;">
-          <div class="cpi-name">${esc(s.name || '—')}</div>
-          <div class="cpi-meta">${esc(s.email || '')}</div>
-        </div>
-      </div>`;
-  }).join('');
+  if (!students.length) { el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">No students yet.</div>'; return; }
+  el.innerHTML = students.map(s => { const id = s.user_id || s.id; return '<div class="student-item '+(selectedStudentIds.has(id) ? 'selected':'')+'" onclick=\'toggleStudent("'+esc(id)+'")\'><div class="cpi-check">'+(selectedStudentIds.has(id) ? '✓' : '')+'</div><span style="font-size:16px;">'+esc(s.avatar || '👤')+'</span><div style="flex:1;min-width:0;"><div class="cpi-name">'+esc(s.name || '—')+'</div><div class="cpi-meta">'+esc(s.email || '')+'</div></div></div>'; }).join('');
 }
-function toggleStudent(id) {
-  if (selectedStudentIds.has(id)) selectedStudentIds.delete(id); else selectedStudentIds.add(id);
-  renderStudentList();
-}
-
+function toggleStudent(id) { selectedStudentIds.has(id) ? selectedStudentIds.delete(id) : selectedStudentIds.add(id); renderStudentList(); }
 async function onBoardChange() {
   selectedCardIds.clear();
   const id = document.getElementById('f-board').value;
   const el = document.getElementById('f-cards');
-  if (!id) {
-    el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
-    document.getElementById('f-cards-count').textContent = '';
-    return;
-  }
+  if (!id) { el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>'; document.getElementById('f-cards-count').textContent = ''; return; }
   el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Loading cards…</div>';
   try {
+    if (offlineMode || !token) throw new Error('local');
     const d = await api('/api/boards/' + id);
     const cards = (d.board && d.board.data && d.board.data.cards) || [];
-    // Only "completable" types — games, quizzes, checklists, assignments
-    const ALLOWED = new Set(['game','assignment','checklist','lesson','voting','timer']);
-    currentBoardCards = cards.filter(c => ALLOWED.has(c.type));
-    if (!currentBoardCards.length) {
-      el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">This board has no graded cards (games, lessons, assignments, checklists, polls).</div>';
-      return;
-    }
-    renderCardList();
-  } catch (e) {
-    el.innerHTML = `<div style="text-align:center;padding:16px;font-size:12px;color:var(--red);">${esc(e.message)}</div>`;
-  }
+    currentBoardCards = filterCompletable(cards);
+  } catch { currentBoardCards = filterCompletable((boards.find(b => String(b.id) === String(id)) || {}).cards || []); }
+  if (!currentBoardCards.length) { el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">This board has no graded cards yet.</div>'; return; }
+  renderCardList();
 }
+function filterCompletable(cards){ const ALLOWED = new Set(['game','assignment','checklist','lesson','voting','timer']); return cards.filter(c => ALLOWED.has(c.type)); }
 function renderCardList() {
   const el = document.getElementById('f-cards');
   const ICONS = { game:'🎮', lesson:'📚', assignment:'📝', checklist:'✅', voting:'🗳', timer:'⏱' };
-  el.innerHTML = currentBoardCards.map(c => {
-    const name = c.data?.title || c.data?.question || c.data?.name || (c.type[0].toUpperCase()+c.type.slice(1));
-    const sel = selectedCardIds.has(c.id);
-    return `
-      <div class="card-pick-item ${sel?'selected':''}" onclick='toggleCard("${esc(c.id)}")'>
-        <div class="cpi-check">${sel ? '✓' : ''}</div>
-        <span class="cpi-icon">${ICONS[c.type] || '🔖'}</span>
-        <div class="cpi-body">
-          <div class="cpi-name">${esc(name)}</div>
-          <div class="cpi-meta">${c.type} · ${c.id}</div>
-        </div>
-      </div>`;
-  }).join('');
-  document.getElementById('f-cards-count').textContent =
-    selectedCardIds.size ? `(${selectedCardIds.size} selected)` : '';
+  el.innerHTML = currentBoardCards.map(c => { const name = c.data?.title || c.data?.question || c.data?.name || (c.type[0].toUpperCase()+c.type.slice(1)); const sel = selectedCardIds.has(c.id); return '<div class="card-pick-item '+(sel?'selected':'')+'" onclick=\'toggleCard("'+esc(c.id)+'")\'><div class="cpi-check">'+(sel ? '✓' : '')+'</div><span class="cpi-icon">'+(ICONS[c.type] || '🔖')+'</span><div class="cpi-body"><div class="cpi-name">'+esc(name)+'</div><div class="cpi-meta">'+c.type+' · '+c.id+'</div></div></div>'; }).join('');
+  document.getElementById('f-cards-count').textContent = selectedCardIds.size ? '('+selectedCardIds.size+' selected)' : '';
 }
-function toggleCard(id) {
-  if (selectedCardIds.has(id)) selectedCardIds.delete(id); else selectedCardIds.add(id);
-  renderCardList();
-}
-
+function toggleCard(id) { selectedCardIds.has(id) ? selectedCardIds.delete(id) : selectedCardIds.add(id); renderCardList(); }
 async function submitHomework() {
   const title = document.getElementById('f-title').value.trim();
   const board_id = document.getElementById('f-board').value;
@@ -553,43 +609,36 @@ async function submitHomework() {
   const due = document.getElementById('f-due').value;
   const required_cards = Array.from(selectedCardIds);
   const student_ids = Array.from(selectedStudentIds);
-
   if (!title) { toast('Title is required'); return; }
   if (!board_id) { toast('Pick a board'); return; }
   if (!required_cards.length) { toast('Pick at least one card'); return; }
-
+  const submit = document.getElementById('f-submit');
+  submit.disabled = true; submit.textContent = 'Saving…';
   try {
-    document.getElementById('f-submit').disabled = true;
-    document.getElementById('f-submit').textContent = 'Saving…';
-    await api('/api/homework', {
-      method: 'POST',
-      body: { title, instructions, board_id, required_cards,
-              pass_threshold, due_at: due || null, student_ids },
-    });
-    closeCreateModal();
-    await loadAll();
-    toast('✅ Homework created' + (student_ids.length ? ` and sent to ${student_ids.length} student${student_ids.length!==1?'s':''}` : ''));
+    if (!offlineMode && token) {
+      await api('/api/homework', { method: 'POST', body: { title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids } });
+      closeCreateModal(); await loadAll(); toast('✅ Homework created'); return;
+    }
+    createLocalHomework({ title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids });
+    closeCreateModal(); renderList(); toast('✅ Homework created locally');
   } catch (e) {
-    toast('Error: ' + e.message);
-  } finally {
-    document.getElementById('f-submit').disabled = false;
-    document.getElementById('f-submit').textContent = 'Create & assign';
-  }
+    createLocalHomework({ title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids });
+    closeCreateModal(); renderList(); toast('Server unavailable — saved locally');
+  } finally { submit.disabled = false; submit.textContent = 'Create & assign'; }
 }
-
-/* ── utils ── */
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function createLocalHomework(data){
+  offlineMode = true; ensureLocalData();
+  const chosenStudents = (data.student_ids.length ? data.student_ids : students.slice(0,2).map(s => s.id || s.user_id));
+  const assignments = chosenStudents.map((id,i) => assignment('local-a-' + Date.now() + '-' + i, id, 'assigned'));
+  const hw = { id:'local-hw-' + Date.now(), ...data, board_name:boardName(data.board_id), assigned_count:assignments.length, submitted_count:0, status:'active', local:true, assignments };
+  homeworkList = [hw, ...readLocal(LOCAL_KEY, [])];
+  writeLocal(LOCAL_KEY, homeworkList);
 }
+function boardName(id){ return (boards.find(b => String(b.id) === String(id)) || {}).name || ''; }
+function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 let toastT;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'show';
-  clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800);
-}
-
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show'; clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800); }
 init();
 </script>
 <script>
