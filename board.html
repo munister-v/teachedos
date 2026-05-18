@@ -6342,6 +6342,36 @@ renderMinimap();
   } catch {}
 })();
 
+/* ════════════════════════ LESSON BUILDER FLOW IMPORT ════════════════════════ */
+(function checkLessonBuilderFlowImport() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('addLessonFlow')) return;
+  try {
+    const raw = sessionStorage.getItem('teachedos_pending_lesson_flow');
+    if (!raw) return;
+    const lesson = JSON.parse(raw);
+    sessionStorage.removeItem('teachedos_pending_lesson_flow');
+    if (!lesson || !Array.isArray(lesson.stages)) return;
+    setTimeout(() => {
+      const r = boardWrap.getBoundingClientRect();
+      const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 260, y: 220 };
+      const objectives = String(lesson.objectives || '').split(/\n+/).map(text => text.trim()).filter(Boolean).map(text => ({ text, done:false }));
+      addCard('text', pos.x - 560, pos.y - 240, defaultTextData({ text: lesson.title + '\n' + lesson.level + ' / ' + lesson.skill + ' / ' + lesson.duration + ' min\n\n' + (lesson.brief || ''), bgColor:'#ffffff', textColor:'#111111' }), 360, 190);
+      lesson.stages.slice(0, 8).forEach((stage, i) => {
+        const col = i % 3; const row = Math.floor(i / 3);
+        addCard('lesson', pos.x - 170 + col * 290, pos.y - 240 + row * 235, {
+          title: stage.name || ('Stage ' + (i + 1)), status: i ? 'locked' : 'available', level: lesson.level || 'B1', skill: stage.mode || lesson.skill || 'Speaking', duration: (stage.min || 10) + ' min', desc: stage.student || stage.teacher || '', objectives: objectives.slice(0, 3), notes: stage.teacher || '', module: lesson.title || 'Lesson Builder'
+        }, 260, 210);
+      });
+      addCard('assignment', pos.x - 560, pos.y + 5, { title:'Homework: ' + (lesson.title || 'Lesson'), type:'Mixed', maxScore:20, desc: lesson.homework || '', total:0, submitted:0, level: lesson.level || 'B1' }, 300, 180);
+      addCard('checklist', pos.x - 560, pos.y + 215, { title:'Teacher checklist', items:[{text:'Open with context and goal',done:false},{text:'Model target language clearly',done:false},{text:'Run production task',done:false},{text:'Give feedback and homework',done:false}] }, 300, 190);
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      toast && toast('📚 Lesson flow added to board');
+      history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]addLessonFlow=[^&]*/, '') || ''));
+    }, 300);
+  } catch {}
+})();
+
 /* ════════════════════════ CUSTOM GAMES IN GAMES HUB ════════════════════════ */
 function getCustomGames() {
   try { return JSON.parse(localStorage.getItem('teachedos_custom_games') || '[]'); } catch { return []; }
