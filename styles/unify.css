@@ -1109,3 +1109,124 @@ body:not(.board-page) select {
 body {
   animation: teachedPageIn 0.18s ease-out both;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LESSON BUILDER CONTRAST FIX
+   The desktop wallpaper layer darkens generic .btn.ghost/.label rules.
+   Lesson Builder is a light workspace, so lock its controls back to ink.
+═══════════════════════════════════════════════════════════════ */
+body.lesson-builder-page {
+  color: #171719 !important;
+}
+
+body.lesson-builder-page .hero-side {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(200,230,50,0.24), transparent 36%),
+    radial-gradient(circle at 0% 100%, rgba(236,45,140,0.16), transparent 38%),
+    linear-gradient(135deg, #0E0E10, #18191D 58%, #241426) !important;
+  border: 1px solid rgba(205,242,79,0.16) !important;
+  color: #F7F3EA !important;
+  box-shadow: 0 22px 56px rgba(14,14,16,0.24) !important;
+}
+
+body.lesson-builder-page .hero-side b {
+  color: var(--u-lime) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+body.lesson-builder-page .hero-side li {
+  color: rgba(247,243,234,0.86) !important;
+  font-weight: 650 !important;
+}
+
+body.lesson-builder-page .hero-side li::before {
+  background: var(--u-lime) !important;
+  box-shadow: 0 0 0 4px rgba(205,242,79,0.10) !important;
+}
+
+body.lesson-builder-page .panel,
+body.lesson-builder-page .lesson-doc,
+body.lesson-builder-page .preset,
+body.lesson-builder-page .activity-btn,
+body.lesson-builder-page .quality-card,
+body.lesson-builder-page .stage,
+body.lesson-builder-page .lib-item {
+  background: rgba(255,255,255,0.94) !important;
+  border-color: rgba(23,23,25,0.11) !important;
+  color: #171719 !important;
+}
+
+body.lesson-builder-page .panel-sub,
+body.lesson-builder-page .preset span,
+body.lesson-builder-page .activity-btn span,
+body.lesson-builder-page .lib-item span,
+body.lesson-builder-page .doc-meta,
+body.lesson-builder-page .doc-section p,
+body.lesson-builder-page .doc-section li {
+  color: #5F615F !important;
+}
+
+body.lesson-builder-page :is(.label, .form-label, .field label, .form-field label) {
+  color: rgba(23,23,25,0.58) !important;
+}
+
+body.lesson-builder-page .btn.ghost {
+  background: rgba(255,255,255,0.94) !important;
+  border: 1px solid rgba(23,23,25,0.13) !important;
+  color: #171719 !important;
+  box-shadow: 0 8px 22px rgba(14,14,16,0.055) !important;
+}
+
+body.lesson-builder-page .btn.ghost:hover {
+  background: rgba(200,230,50,0.18) !important;
+  border-color: rgba(168,196,42,0.42) !important;
+  color: #0E0E10 !important;
+}
+
+body.lesson-builder-page .view-toggle .btn.ghost.active,
+body.lesson-builder-page .btn.ghost.active {
+  background: rgba(200,230,50,0.20) !important;
+  border-color: rgba(168,196,42,0.48) !important;
+  color: #6F8C00 !important;
+}
+
+body.lesson-builder-page .btn.soft {
+  background: #0E0E10 !important;
+  border: 1px solid #0E0E10 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 10px 24px rgba(14,14,16,0.18) !important;
+}
+
+body.lesson-builder-page .btn.soft:hover {
+  background: #232326 !important;
+  color: #FFFFFF !important;
+}
+
+body.lesson-builder-page .btn.lime {
+  background: linear-gradient(135deg, var(--u-lime), var(--u-lime-pop)) !important;
+  color: #0E0E10 !important;
+  border: 1px solid rgba(168,196,42,0.28) !important;
+  box-shadow: 0 12px 28px rgba(200,230,50,0.26) !important;
+}
+
+body.lesson-builder-page .doc-head h2,
+body.lesson-builder-page .doc-section h3,
+body.lesson-builder-page .stage-title,
+body.lesson-builder-page .preset b,
+body.lesson-builder-page .activity-btn {
+  color: #171719 !important;
+}
+
+body.lesson-builder-page .chip {
+  background: rgba(14,14,16,0.06) !important;
+  color: #3A3A2E !important;
+}
+
+body.lesson-builder-page .chip.ok {
+  background: rgba(35,191,114,0.14) !important;
+  color: #168A52 !important;
+}
