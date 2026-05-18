@@ -1230,3 +1230,90 @@ body.lesson-builder-page .chip.ok {
   background: rgba(35,191,114,0.14) !important;
   color: #168A52 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP WIDGETS — LIGHT CARDS ON SPACE WALLPAPER
+   Keep the space wallpaper, but make right-side widgets readable,
+   soft and consistent with the light OS windows.
+═══════════════════════════════════════════════════════════════ */
+body.os-desktop .widget {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(205,242,79,0.24), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(236,45,140,0.10), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(245,240,232,0.88)) !important;
+  border: 1px solid rgba(255,255,255,0.56) !important;
+  color: #0E0E10 !important;
+  backdrop-filter: blur(34px) saturate(1.16) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(1.16) !important;
+  box-shadow:
+    0 18px 48px rgba(0,0,0,0.18),
+    0 1px 0 rgba(255,255,255,0.84) inset,
+    0 0 0 1px rgba(14,14,16,0.045) inset !important;
+}
+
+body.os-desktop .widget:hover {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(205,242,79,0.30), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(236,45,140,0.14), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,0.97), rgba(245,240,232,0.92)) !important;
+  border-color: rgba(205,242,79,0.46) !important;
+  box-shadow:
+    0 24px 58px rgba(0,0,0,0.22),
+    0 1px 0 rgba(255,255,255,0.92) inset,
+    0 0 0 1px rgba(205,242,79,0.24) inset !important;
+}
+
+body.os-desktop .wg-clock-time,
+body.os-desktop .wg-today-title,
+body.os-desktop .wg-vocab-word {
+  color: #0E0E10 !important;
+  text-shadow: none !important;
+}
+
+body.os-desktop .wg-clock-time em,
+body.os-desktop .wg-streak-n,
+body.os-desktop .wg-vocab-trans {
+  color: #A5C900 !important;
+  text-shadow: none !important;
+}
+
+body.os-desktop .wg-clock-date,
+body.os-desktop .wg-streak-label,
+body.os-desktop .wg-today-label,
+body.os-desktop .wg-vocab-label {
+  color: rgba(14,14,16,0.46) !important;
+}
+
+body.os-desktop .wg-streak-sub,
+body.os-desktop .wg-today-meta,
+body.os-desktop .wg-vocab-lang,
+body.os-desktop .wg-vocab-ex {
+  color: rgba(14,14,16,0.64) !important;
+}
+
+body.os-desktop .wg-streak-sub a,
+body.os-desktop .wg-today-meta a {
+  color: #7FA000 !important;
+  font-weight: 900 !important;
+}
+
+body.os-desktop .wg-clock-lang,
+body.os-desktop .wg-today-badge {
+  background: rgba(236,45,140,0.10) !important;
+  border-color: rgba(236,45,140,0.20) !important;
+  color: #B81D69 !important;
+}
+
+body.os-desktop .wg-today-prog {
+  background: rgba(14,14,16,0.10) !important;
+}
+
+body.os-desktop .wg-vocab-next {
+  background: linear-gradient(135deg, var(--u-lime), var(--u-lime-pop)) !important;
+  color: #0E0E10 !important;
+  box-shadow: 0 12px 28px rgba(200,230,50,0.28) !important;
+}
+
+body.os-desktop .wg-vocab-next:hover {
+  box-shadow: 0 16px 34px rgba(200,230,50,0.36) !important;
+}
