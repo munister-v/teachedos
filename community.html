@@ -481,7 +481,7 @@ function renderCommunityGames() {
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;">
         <span class="tag" style="background:rgba(200,230,50,.18);color:var(--accent);font-weight:900;">${esc(g.level)}</span>
         <span class="tag">${esc(g.topic)}</span>
-        ${g.isCustom ? '<span class="tag" style="background:rgba(236,45,140,.1);color:#EC2D8C;">My game</span>' : ''}
+        ${g.isCustom ? '<span class="tag" style="background:rgba(200,230,50,.16);color:#5A7A00;font-weight:900;">My game</span>' : ''}
       </div>
       <button class="mini-btn" style="margin-top:8px;" onclick="event.stopPropagation();addGameToBoard('${esc(g.src)}','${esc(g.title)}')">Add to board →</button>
     </div>

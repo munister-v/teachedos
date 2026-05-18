@@ -695,6 +695,18 @@ body:not(.board-page) select {
   .lesson-card::before {
     background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
   }
+
+  /* ── .lc-lang language badge: harmony forces pink-on-pink — fix to lime ── */
+  .lc-lang {
+    background: rgba(200,230,50,0.16) !important;
+    border-color: rgba(200,230,50,0.28) !important;
+    color: #5A7A00 !important;
+  }
+
+  /* ── .lc-prog-fill: pure lime, remove pink gradient ── */
+  .lc-prog-fill {
+    background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
