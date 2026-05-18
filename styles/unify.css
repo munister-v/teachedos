@@ -638,3 +638,34 @@ body:not(.board-page) select {
   background: rgba(94,94,74,0.14) !important;
   border-color: rgba(94,94,74,0.32) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP FIXES — harmony.css @media(min-width:861px) forces
+   .sb-item-badge → pink. Override to lime. Also fix sch-view.active
+   (schedule "Open full schedule" button) and the board search input.
+═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 861px) {
+  /* Sidebar skill/category count badges: lime, not pink */
+  .sb-item-badge {
+    background: rgba(200,230,50,0.22) !important;
+    color: #1C1C1E !important;
+    border-radius: 10px !important;
+  }
+  .sb-item.active .sb-item-badge {
+    background: #C8E632 !important;
+    color: #1C1C1E !important;
+  }
+}
+
+/* Schedule "Open full schedule →" active tab button: ink, not pink */
+.sch-view.active {
+  background: #0E0E10 !important;
+  color: #F5F0E8 !important;
+}
+
+/* Board search input: keep transparent so the container bg shows through */
+.curr-search input {
+  background: none !important;
+  background-color: transparent !important;
+}
