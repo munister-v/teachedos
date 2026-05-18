@@ -810,7 +810,14 @@ function describeTimeZone(timeZone) {
 function renderTimeZoneOptions() {
   const list = document.getElementById('timezone-options');
   if (!list) return;
-  list.innerHTML = TIME_ZONE_OPTIONS.map(zone => `<option value="${zone}"></option>`).join('');
+  // Use full IANA list from the browser (all modern browsers support this)
+  let zones;
+  try {
+    zones = Intl.supportedValuesOf('timeZone');
+  } catch {
+    zones = TIME_ZONE_OPTIONS;
+  }
+  list.innerHTML = zones.map(zone => `<option value="${zone}"></option>`).join('');
 }
 
 function updateTimeZonePreview() {

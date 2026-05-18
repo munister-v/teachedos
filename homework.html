@@ -89,7 +89,7 @@ button{font-family:var(--font);cursor:pointer;}
 .hw-card:hover{border-color:var(--accent);box-shadow:0 6px 24px rgba(94,94,74,.10);transform:translateY(-1px);}
 .hw-card .hw-title{font-size:15px;font-weight:900;color:var(--text);line-height:1.25;}
 .hw-card .hw-sub{font-size:11px;color:var(--text3);}
-.hw-stats{display:flex;gap:10px;margin-top:auto;font-size:11px;color:var(--text-2);}
+.hw-stats{display:flex;gap:10px;margin-top:auto;font-size:11px;color:var(--text2);}
 .hw-stat{display:flex;align-items:center;gap:5px;font-weight:700;background:var(--bg);padding:4px 9px;border-radius:8px;border:1px solid var(--border);}
 
 .empty{padding:60px 20px;text-align:center;color:var(--text3);}
@@ -297,8 +297,16 @@ let editingId = null;
 /* ── init ── */
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
+  // Show spinner while server wakes up (Render cold start can take ~30s)
+  document.getElementById('hw-list').innerHTML =
+    '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div><div class="empty-sub">Connecting to server, please wait.</div></div>';
   try {
-    const { user } = await api('/api/auth/me');
+    const r = await fetch(API + '/api/auth/me', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (r.status === 401 || r.status === 403) { location.href = 'index.html'; return; }
+    if (!r.ok) throw new Error('Server error ' + r.status);
+    const { user } = await r.json();
     document.getElementById('nav-avatar').textContent = user.avatar;
     document.getElementById('nav-name').textContent = user.name.split(' ')[0];
     const av = document.getElementById('mp-avatar');
@@ -306,7 +314,11 @@ async function init() {
     if (window.innerWidth <= 860) {
       const tb = document.getElementById('mp-topbar'); if (tb) tb.style.display = '';
     }
-  } catch { location.href = 'index.html'; return; }
+  } catch (e) {
+    document.getElementById('hw-list').innerHTML =
+      `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><div class="empty-title">Connection error</div><div class="empty-sub">${esc(e.message)}. <a href="" style="color:var(--blue);">Retry</a></div></div>`;
+    return;
+  }
   await loadAll();
 }
 
@@ -377,7 +389,7 @@ async function openDetail(id) {
           <button class="btn btn-danger" onclick='deleteHomework("${esc(hw.id)}")'>🗑 Delete</button>
         </div>
       </div>
-      ${hw.instructions ? `<div style="font-size:13px;color:var(--text-2);background:var(--bg);padding:10px 14px;border-radius:10px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">${esc(hw.instructions)}</div>` : ''}
+      ${hw.instructions ? `<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:10px 14px;border-radius:10px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">${esc(hw.instructions)}</div>` : ''}
       <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students (${assignments.length})</div>
       ${assignments.length ? assignments.map(a => {
         const att = byAsgn[a.id] || [];
@@ -393,7 +405,7 @@ async function openDetail(id) {
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
-              <div style="font-size:11px;color:var(--text-2);font-family:var(--mono);">${completed}/${required.length} · ${pct}%</div>
+              <div style="font-size:11px;color:var(--text2);font-family:var(--mono);">${completed}/${required.length} · ${pct}%</div>
               <span class="pill ${a.status}">${a.status.replace('_',' ')}</span>
               ${typeof a.final_score === 'number' ? `<span style="font-weight:900;font-size:13px;color:${a.final_score>=hw.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
             </div>

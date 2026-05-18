@@ -771,10 +771,15 @@ body:not(.board-page) select {
   color: #7A7A6A !important;
 }
 
-/* index.html lc-title / lesson-card title in boards panel (win-main context) */
+/* lesson-card text: dark-bg cards (courses.html etc.) → cream text */
 @media (min-width: 861px) {
-  .lc-title { color: #F5F0E8 !important; }
-  .lc-meta, .lc-dur { color: rgba(245,240,232,0.55) !important; }
+  body:not(.os-desktop) .lesson-card .lc-title { color: #F5F0E8 !important; }
+  body:not(.os-desktop) .lesson-card .lc-meta,
+  body:not(.os-desktop) .lesson-card .lc-dur  { color: rgba(245,240,232,0.55) !important; }
+  /* OS window: white-bg cards → dark text */
+  body.os-desktop .lesson-card .lc-title      { color: #171719 !important; }
+  body.os-desktop .lesson-card .lc-meta,
+  body.os-desktop .lesson-card .lc-dur        { color: #7A7A6A !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
