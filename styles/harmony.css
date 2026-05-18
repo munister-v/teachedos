@@ -1112,6 +1112,7 @@ body { font-family: var(--font) !important; }
     font-size: 13px !important;
     font-weight: 600 !important;
     color: rgba(245,240,232,0.70) !important;
+    letter-spacing: 0 !important;
     border-radius: 10px !important;
     padding: 6px 10px !important;
     transition: background .12s, color .12s !important;
@@ -1133,7 +1134,53 @@ body { font-family: var(--font) !important; }
     color: #fff !important;
     font-family: var(--font) !important;
     font-size: 10px !important;
+    font-weight: 700 !important;
     border-radius: 10px !important;
+    letter-spacing: 0 !important;
+  }
+
+  /* ── Global letter-spacing reset for UI text ── */
+  .mb-item,
+  .mp-btn,
+  .mp-btn-lime,
+  .mp-btn-ghost-dark,
+  .studio-chip,
+  .mp-board-title,
+  .mp-quick-t,
+  .mp-quick-s,
+  .mp-stat-n,
+  .mp-stat-sub,
+  .mp-featured-title,
+  .mp-featured-meta,
+  .wg-vocab-next,
+  .wg-vocab-word,
+  .wg-vocab-trans,
+  .wg-streak-sub,
+  .wg-today-title,
+  .di-label {
+    letter-spacing: 0 !important;
+  }
+
+  /* ── Mono labels: consistent positive letter-spacing ── */
+  .mp-board-meta,
+  .mp-board-eyebrow,
+  .wg-today-meta {
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* ── Badge styling ── */
+  .mp-badge {
+    font-family: var(--font) !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+  }
+
+  /* ── h1 font override ── */
+  h1 {
+    font-family: var(--font) !important;
+    letter-spacing: -0.02em !important;
   }
 
   /* ── Spotlight: dark glass ── */
@@ -1214,26 +1261,93 @@ body { font-family: var(--font) !important; }
   .curr-search {
     font-family: var(--font) !important;
     background: rgba(18,18,22,0.80) !important;
-    border: 1px solid rgba(205,242,79,0.10) !important;
-    border-radius: 14px !important;
+    border: 1.5px solid rgba(205,242,79,0.12) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(205,242,79,0.04) !important;
   }
   .curr-search:focus-within {
-    border-color: rgba(205,242,79,0.25) !important;
-    box-shadow: 0 0 0 3px rgba(205,242,79,0.06) !important;
+    border-color: rgba(205,242,79,0.30) !important;
+    box-shadow: 0 0 0 3px rgba(205,242,79,0.08), 0 2px 12px rgba(0,0,0,0.25) !important;
   }
-  .curr-search input {
+  .curr-search input,
+  .curr-search input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]) {
     color: #F5F0E8 !important;
     font-family: var(--font) !important;
     font-size: 13px !important;
     font-weight: 600 !important;
-    background: transparent !important;
+    background: none !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: unset !important;
+    padding: 0 !important;
   }
   .curr-search input::placeholder {
-    color: rgba(245,240,232,0.30) !important;
+    color: rgba(245,240,232,0.28) !important;
     font-weight: 500 !important;
   }
   .curr-search-ic {
-    color: rgba(245,240,232,0.35) !important;
+    color: rgba(245,240,232,0.30) !important;
+  }
+
+  /* ── Labels: dark mode ── */
+  :is(.label, .form-label, .field label, .form-field label) {
+    color: rgba(245,240,232,0.45) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* ── Buttons: dark mode ── */
+  :is(.btn, .form-submit) {
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+  :is(.btn-primary, .form-submit) {
+    background: linear-gradient(135deg, var(--lime), var(--lime-dark)) !important;
+    color: #0E0E10 !important;
+    border-color: var(--lime) !important;
+    box-shadow: 0 4px 14px rgba(205,242,79,0.25) !important;
+  }
+
+  /* ── Global dark form overrides for desktop ── */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select {
+    background: rgba(18,18,22,0.80) !important;
+    border: 1.5px solid rgba(205,242,79,0.10) !important;
+    color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+    font-weight: 600 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.20), inset 0 1px 0 rgba(205,242,79,0.03) !important;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):focus,
+  textarea:focus,
+  select:focus,
+  .form-input:focus {
+    border-color: rgba(205,242,79,0.30) !important;
+    background: rgba(18,18,22,0.90) !important;
+    box-shadow: 0 0 0 3px rgba(205,242,79,0.08), 0 2px 8px rgba(0,0,0,0.20) !important;
+    outline: none !important;
+  }
+  input::placeholder,
+  textarea::placeholder,
+  .form-input::placeholder {
+    color: rgba(245,240,232,0.28) !important;
+    font-weight: 500 !important;
+  }
+  input:hover:not(:focus),
+  textarea:hover:not(:focus),
+  select:hover:not(:focus) {
+    border-color: rgba(205,242,79,0.18) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(205,242,79,0.04) !important;
   }
 
   /* Lesson cards: dark contrasty on desktop */
@@ -1251,20 +1365,36 @@ body { font-family: var(--font) !important; }
   }
   .lc-title {
     color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
   }
   .lc-desc {
     color: rgba(245,240,232,0.55) !important;
+    font-family: var(--font) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
   }
   .lc-lang {
     background: rgba(236,45,140,0.15) !important;
     border-color: rgba(236,45,140,0.30) !important;
     color: #f472b6 !important;
+    font-family: var(--font-mono) !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
   }
   .lc-meta {
     color: rgba(245,240,232,0.45) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
   }
   .lc-dur {
     color: rgba(245,240,232,0.40) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
   }
   .lc-prog {
     background: rgba(245,240,232,0.08) !important;
@@ -1280,20 +1410,35 @@ body { font-family: var(--font) !important; }
   }
   .studio-eyebrow {
     color: var(--lime) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
   }
   .studio-title {
     color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
   }
   .studio-title em {
     color: var(--lime) !important;
   }
   .studio-copy {
-    color: rgba(245,240,232,0.60) !important;
+    color: rgba(245,240,232,0.55) !important;
+    font-family: var(--font) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
   }
   .studio-chip {
     background: rgba(245,240,232,0.08) !important;
     color: rgba(245,240,232,0.80) !important;
     border: 1px solid rgba(245,240,232,0.12) !important;
+    font-family: var(--font) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
   }
   .studio-chip:hover {
     background: rgba(205,242,79,0.12) !important;
@@ -1301,12 +1446,15 @@ body { font-family: var(--font) !important; }
     color: var(--lime) !important;
   }
   .studio-chip.primary {
-    background: var(--lime) !important;
+    background: linear-gradient(135deg, var(--lime), var(--lime-dark)) !important;
     color: #0E0E10 !important;
     border-color: var(--lime) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(205,242,79,0.25) !important;
   }
   .studio-chip.primary:hover {
     background: var(--lime-dark) !important;
+    box-shadow: 0 6px 20px rgba(205,242,79,0.35) !important;
   }
 
   /* Mobile-pro components inside desktop windows */
@@ -1821,6 +1969,144 @@ body { font-family: var(--font) !important; }
   .di-sep { background: rgba(245,240,232,0.10) !important; }
   .di-icon {
     box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18) !important;
+  }
+
+  /* ── Community page: dark overrides ── */
+  .hero-card {
+    background: rgba(18,18,22,0.85) !important;
+    border: 1px solid rgba(205,242,79,0.10) !important;
+    color: #F5F0E8 !important;
+  }
+  .hero-card h2, .hero-card h1 {
+    color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+  }
+  .hero-copy {
+    color: rgba(245,240,232,0.55) !important;
+    font-family: var(--font) !important;
+  }
+  .share-card {
+    background: rgba(18,18,22,0.90) !important;
+    border: 1px solid rgba(205,242,79,0.10) !important;
+    color: #F5F0E8 !important;
+  }
+  .share-title {
+    color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+  }
+  .board-card {
+    background: rgba(28,28,32,0.95) !important;
+    border: 1.5px solid rgba(205,242,79,0.10) !important;
+    color: #F5F0E8 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.30) !important;
+  }
+  .board-card:hover {
+    border-color: rgba(205,242,79,0.25) !important;
+    box-shadow: 0 8px 32px rgba(205,242,79,0.08), 0 4px 16px rgba(0,0,0,0.30) !important;
+  }
+  .board-name {
+    color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+    font-weight: 700 !important;
+  }
+  .board-meta {
+    color: rgba(245,240,232,0.45) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+  }
+  .board-desc {
+    color: rgba(245,240,232,0.55) !important;
+    font-family: var(--font) !important;
+  }
+  .board-ic {
+    background: rgba(205,242,79,0.12) !important;
+  }
+  .tag {
+    background: rgba(245,240,232,0.08) !important;
+    color: rgba(245,240,232,0.65) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+    border: 1px solid rgba(245,240,232,0.10) !important;
+  }
+  .mini-btn {
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0 !important;
+    border-radius: 999px !important;
+  }
+  .mini-btn.alt {
+    background: rgba(205,242,79,0.12) !important;
+    color: var(--lime) !important;
+    border: 1px solid rgba(205,242,79,0.20) !important;
+  }
+  .btn.ghost {
+    background: rgba(245,240,232,0.08) !important;
+    color: rgba(245,240,232,0.80) !important;
+    border: 1px solid rgba(245,240,232,0.12) !important;
+    font-family: var(--font) !important;
+    font-weight: 700 !important;
+  }
+  .btn.ghost:hover {
+    background: rgba(205,242,79,0.12) !important;
+    border-color: rgba(205,242,79,0.25) !important;
+    color: var(--lime) !important;
+  }
+  .btn.lime {
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+  .comm-tab {
+    font-family: var(--font) !important;
+    font-weight: 700 !important;
+  }
+  .comm-tab.active {
+    color: var(--lime) !important;
+    border-bottom-color: var(--lime) !important;
+  }
+  .section-title {
+    color: #F5F0E8 !important;
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+  .label {
+    color: rgba(245,240,232,0.40) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+  }
+  .wrap {
+    color: #F5F0E8 !important;
+  }
+
+  /* ── Page-level dark background for all screens ── */
+  body {
+    background-color: #0E0E10 !important;
+    color: #F5F0E8 !important;
+  }
+  main.wrap {
+    background: transparent !important;
+  }
+  .grid {
+    color: #F5F0E8 !important;
+  }
+
+  /* ── Select dropdowns: force dark on desktop ── */
+  select {
+    background-color: rgba(18,18,22,0.80) !important;
+    color: #F5F0E8 !important;
+    border: 1.5px solid rgba(205,242,79,0.10) !important;
+    font-family: var(--font) !important;
+  }
+  select option {
+    background: #1C1C20 !important;
+    color: #F5F0E8 !important;
+  }
+  textarea {
+    background: rgba(18,18,22,0.80) !important;
+    color: #F5F0E8 !important;
   }
 
   /* ═══════════════════════════════════════════════════════════════
