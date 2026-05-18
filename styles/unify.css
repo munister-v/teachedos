@@ -830,4 +830,192 @@ body:not(.board-page) select {
   body:not(.os-desktop) h3 {
     color: inherit !important;
   }
+
+  /* ── section-title: harmony forces cream, restore to ink ── */
+  body:not(.os-desktop) .section-title {
+    color: #0E0E10 !important;
+  }
+
+  /* ── Schedule nav buttons: replace pink with neutral ink ── */
+  body:not(.os-desktop) .sch-nav-btn {
+    background: rgba(23,23,25,0.06) !important;
+    border-color: rgba(23,23,25,0.14) !important;
+    color: #171719 !important;
+  }
+  body:not(.os-desktop) .sch-nav-btn:hover {
+    background: rgba(23,23,25,0.11) !important;
+    color: #0E0E10 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ISSUE 1 — WIN WINDOWS: LIGHT CREAM THEME
+   harmony.css forces dark glass on .win, .win-sidebar, .win-main
+   and all inner board cards. The user wants the OS windows to be
+   light cream (matching the rest of the design language).
+═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 861px) {
+  /* Window chrome */
+  body.os-desktop .win {
+    background: rgba(245,240,232,0.97) !important;
+    border: 1px solid rgba(23,23,25,0.10) !important;
+    box-shadow:
+      0 24px 72px rgba(0,0,0,0.14),
+      0 8px 24px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.70) !important;
+  }
+  body.os-desktop .win-titlebar {
+    background: rgba(234,228,216,0.98) !important;
+    border-bottom: 1px solid rgba(23,23,25,0.08) !important;
+  }
+  body.os-desktop .win-title {
+    color: #171719 !important;
+  }
+  body.os-desktop .win-sidebar {
+    background: rgba(228,222,210,0.92) !important;
+    border-right: 1px solid rgba(23,23,25,0.08) !important;
+  }
+  body.os-desktop .win-main {
+    background: rgba(250,248,243,0.98) !important;
+    color: #171719 !important;
+  }
+
+  /* Sidebar nav items */
+  body.os-desktop .sb-section-label {
+    color: rgba(23,23,25,0.40) !important;
+  }
+  body.os-desktop .sb-item {
+    color: rgba(23,23,25,0.72) !important;
+  }
+  body.os-desktop .sb-item:hover {
+    background: rgba(200,230,50,0.18) !important;
+    color: #0E0E10 !important;
+  }
+  body.os-desktop .sb-item.active {
+    background: rgba(200,230,50,0.22) !important;
+    color: #0E0E10 !important;
+  }
+
+  /* Curriculum hero text inside win */
+  body.os-desktop .curr-title {
+    color: #0E0E10 !important;
+  }
+  body.os-desktop .curr-title em {
+    color: #6A8A0A !important;
+  }
+  body.os-desktop .curr-eyebrow {
+    color: #6A8A0A !important;
+  }
+  body.os-desktop .curr-copy {
+    color: #5A5A4A !important;
+  }
+  body.os-desktop .curr-tabs {
+    border-bottom-color: rgba(23,23,25,0.10) !important;
+  }
+  body.os-desktop .curr-tab {
+    color: rgba(23,23,25,0.50) !important;
+  }
+  body.os-desktop .curr-tab:hover {
+    background: rgba(200,230,50,0.14) !important;
+    color: #0E0E10 !important;
+  }
+  body.os-desktop .curr-search {
+    background: rgba(255,255,255,0.80) !important;
+    border-color: rgba(23,23,25,0.12) !important;
+    box-shadow: none !important;
+  }
+  body.os-desktop .curr-search input,
+  body.os-desktop .curr-search input:not([type="checkbox"]) {
+    color: #171719 !important;
+    background: none !important;
+  }
+  body.os-desktop .curr-search input::placeholder {
+    color: rgba(23,23,25,0.35) !important;
+  }
+  body.os-desktop .curr-search-ic {
+    color: rgba(23,23,25,0.35) !important;
+  }
+
+  /* Board cards inside win */
+  body.os-desktop .mp-board-card {
+    background: rgba(255,255,255,0.85) !important;
+    border-color: rgba(23,23,25,0.09) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  }
+  body.os-desktop .mp-board-card:hover {
+    border-color: rgba(200,230,50,0.50) !important;
+    box-shadow: 0 4px 16px rgba(200,230,50,0.14) !important;
+  }
+  body.os-desktop .mp-board-title {
+    color: #171719 !important;
+  }
+  body.os-desktop .mp-board-meta {
+    color: rgba(23,23,25,0.50) !important;
+  }
+  body.os-desktop .mp-board-eyebrow {
+    color: rgba(23,23,25,0.38) !important;
+  }
+  body.os-desktop .mp-board-status {
+    color: #6A8A0A !important;
+  }
+  body.os-desktop .mp-board-status::before {
+    background: #6A8A0A !important;
+  }
+
+  /* Quick-start cards inside win */
+  body.os-desktop .mp-quick {
+    background: rgba(255,255,255,0.80) !important;
+    border-color: rgba(23,23,25,0.09) !important;
+  }
+  body.os-desktop .mp-quick:hover {
+    background: rgba(200,230,50,0.12) !important;
+    border-color: rgba(200,230,50,0.35) !important;
+  }
+  body.os-desktop .mp-quick-t {
+    color: #171719 !important;
+  }
+  body.os-desktop .mp-quick-s {
+    color: rgba(23,23,25,0.52) !important;
+  }
+  body.os-desktop .mp-quick-arrow {
+    color: #6A8A0A !important;
+  }
+  body.os-desktop .mp-quick-ic {
+    background: rgba(200,230,50,0.20) !important;
+  }
+
+  /* Win forms (inputs inside win windows) */
+  body.os-desktop .win input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  body.os-desktop .win textarea,
+  body.os-desktop .win select {
+    background: rgba(255,255,255,0.90) !important;
+    color: #171719 !important;
+    border-color: rgba(23,23,25,0.14) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ISSUE 3 — CONTENT JUMP PREVENTION
+   A) Mobile: pre-declare body padding-bottom so mobile-nav.js
+      injection doesn't cause a layout shift (jitter).
+   B) All pages: subtle fade-in on load to soften the flash
+      when navigating between pages.
+═══════════════════════════════════════════════════════════════ */
+
+/* A — Mobile nav padding pre-declare (kills jitter on all pages) */
+@media (max-width: 860px) {
+  body {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* B — Page fade-in: 180 ms softens the hard cut between pages */
+@keyframes teachedPageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+body {
+  animation: teachedPageIn 0.18s ease-out both;
 }
