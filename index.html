@@ -932,6 +932,24 @@ html,body {
 
 
 
+
+/* ═══════════════════════════ STUDIO HERO HEADER ═══════════════════════════ */
+.studio-hero{position:relative;overflow:hidden;margin:18px 20px 14px;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;box-shadow:0 20px 70px rgba(16,16,20,.18);flex-shrink:0;}
+.studio-hero::after{content:'';position:absolute;right:-78px;top:-92px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(205,242,79,.38),transparent 68%);pointer-events:none;}
+.studio-hero.pink::after{background:radial-gradient(circle,rgba(236,45,140,.34),transparent 68%);}
+.studio-hero.blue::after{background:radial-gradient(circle,rgba(96,165,250,.36),transparent 68%);}
+.studio-hero.mix::after{background:radial-gradient(circle at 40% 40%,rgba(205,242,79,.36),transparent 46%),radial-gradient(circle at 72% 62%,rgba(236,45,140,.3),transparent 60%);}
+.studio-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#CDF24F;margin-bottom:8px;}
+.studio-title{position:relative;z-index:1;font-size:31px;line-height:.98;font-weight:950;letter-spacing:-.058em;max-width:620px;}
+.studio-title em{font-style:italic;color:#CDF24F;}
+.studio-copy{position:relative;z-index:1;max-width:650px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
+.studio-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
+.studio-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:850;color:rgba(255,255,255,.82);text-decoration:none;}
+.studio-chip.primary{background:#CDF24F;color:#101014;border-color:#CDF24F;}
+.studio-chip.hot{background:#EC2D8C;color:#fff;border-color:#EC2D8C;}
+.studio-main-scroll{overflow:auto;}
+
+
 /* ═══════════════════════════ PRICING WINDOW ═══════════════════════════ */
 .pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(205,242,79,.28),transparent 26%),radial-gradient(circle at 86% 8%,rgba(236,45,140,.14),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(245,240,232,.92));}
 .pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(16,16,20,.18);}
@@ -1355,6 +1373,11 @@ html,body {
     background:rgba(255,255,255,0.97);
   }
 
+
+  .studio-hero{margin:14px;border-radius:24px;padding:20px;}
+  .studio-title{font-size:29px;}
+  #win-plans .studio-hero{display:none;}
+
   .pricing-shell{padding:16px;height:100%;}
   .pricing-hero{border-radius:24px;padding:20px;}
   .pricing-title{font-size:30px;}
@@ -1686,10 +1709,12 @@ html,body {
         <span id="mob-focus-title" style="display:none"></span>
         <span id="mob-focus-sub" style="display:none"></span>
       </div>
-      <div class="curr-header">
-        <div class="curr-eyebrow">§ Teacher's workspace</div>
-        <div class="curr-title">My <em>Boards</em></div>
-      </div>
+      <section class="studio-hero mix">
+        <div class="studio-eyebrow">Teacher workspace</div>
+        <div class="studio-title">Build, find and reuse your <em>lesson boards</em>.</div>
+        <p class="studio-copy">Your saved boards, shared lessons and ready teaching flows live here. Search by class, topic or student and jump back into teaching fast.</p>
+        <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip" href="lesson-builder.html">Lesson builder</a><a class="studio-chip" href="community.html">Community boards</a></div>
+      </section>
       <div class="curr-search">
         <span class="curr-search-ic">🔍</span>
         <input type="text" placeholder="Search your boards by name…" id="plans-search-input" oninput="boardsRender()">
@@ -1716,16 +1741,18 @@ html,body {
       <div class="sb-section-label">Groups</div>
       <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students</div>
     </div>
-    <div class="win-main" style="display:flex;flex-direction:column;">
+    <div class="win-main studio-main-scroll" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
         <span style="font-size:22px;">👥</span>
         <div class="mob-win-title">Students</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')">☰</div>
       </div>
-      <div style="padding:16px 20px 8px;border-bottom:1px solid var(--border);">
-        <div style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--text);">My <em style="color:var(--accent);">Students</em></div>
-        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">Add students via Gradebook</div>
-      </div>
+      <section class="studio-hero blue">
+        <div class="studio-eyebrow">Student command center</div>
+        <div class="studio-title">Keep every learner visible and <em>organized</em>.</div>
+        <p class="studio-copy">Track active students, shared boards and next actions from one clean place. Add or manage students through Gradebook.</p>
+        <div class="studio-actions"><a class="studio-chip primary" href="gradebook.html">Open gradebook →</a><a class="studio-chip" href="profile.html#students">Student settings</a></div>
+      </section>
       <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
   </div>
@@ -1742,11 +1769,17 @@ html,body {
     <div class="win-title">📅 Schedule</div>
   </div>
   <div class="win-body">
-    <div class="win-main" style="flex-direction:column;">
+    <div class="win-main studio-main-scroll" style="flex-direction:column;">
       <div class="mob-win-header">
         <span style="font-size:22px;">📅</span>
         <div class="mob-win-title">Schedule</div>
       </div>
+      <section class="studio-hero pink">
+        <div class="studio-eyebrow">Calendar studio</div>
+        <div class="studio-title">Plan the week without losing the <em>flow</em>.</div>
+        <p class="studio-copy">See classes, jump to the full schedule, and keep teaching time aligned with boards, students and homework.</p>
+        <div class="studio-actions"><a class="studio-chip primary" href="schedule.html">Open full schedule →</a><a class="studio-chip" href="board.html">Open board</a></div>
+      </section>
       <div class="sch-body">
         <div class="sch-nav">
           <button class="sch-nav-btn" onclick="schPrev()">‹</button>
@@ -1781,12 +1814,18 @@ html,body {
       </div>
       <div class="notes-list" id="notes-list"></div>
     </div>
-    <div class="win-main notes-editor" style="display:flex;flex-direction:column;">
+    <div class="win-main notes-editor studio-main-scroll" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
         <span style="font-size:22px;">✍️</span>
         <div class="mob-win-title">Notes</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
       </div>
+      <section class="studio-hero">
+        <div class="studio-eyebrow">Teacher notebook</div>
+        <div class="studio-title">Capture ideas before they <em>disappear</em>.</div>
+        <p class="studio-copy">Draft lesson notes, student feedback, grammar reminders and quick classroom scripts in one focused space.</p>
+        <div class="studio-actions"><button class="studio-chip primary" type="button" onclick="notesNew()">New note →</button><span class="studio-chip">Autosaved locally</span></div>
+      </section>
       <div class="notes-toolbar">
         <button class="notes-tb-btn" onclick="notesTogglePin()" title="Pin note">📌</button>
         <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note">🗑</button>
@@ -1843,14 +1882,12 @@ html,body {
         <div class="mob-win-title">Teaching Tools</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')">☰</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:20px 20px 0;">
-        <div>
-          <div style="font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">§ Teacher Tool Studio</div>
-          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text);">Teaching <em style="color:var(--accent);font-style:italic;">Tools</em></div>
-        </div>
-        <button type="button" onclick="location.href='teacher-tools.html'" style="border:1px solid rgba(202,201,183,.34);background:rgba(202,201,183,.18);color:var(--text);border-radius:999px;padding:8px 13px;font-size:11px;font-family:var(--font-mono);font-weight:700;cursor:pointer;">Open full hub →</button>
-        <div style="margin-left:auto;font-size:11px;font-family:var(--font-mono);color:var(--text-3);" id="tools-count">14 tools</div>
-      </div>
+      <section class="studio-hero mix">
+        <div class="studio-eyebrow">Teacher tool studio</div>
+        <div class="studio-title">Generate classroom materials with <em>less friction</em>.</div>
+        <p class="studio-copy">Open reading, vocabulary, grammar, speaking and utility tools, then send the result straight into a board or lesson flow.</p>
+        <div class="studio-actions"><a class="studio-chip primary" href="teacher-tools.html">Open full hub →</a><span class="studio-chip" id="tools-count">14 tools</span></div>
+      </section>
       <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
     </div>
   </div>
