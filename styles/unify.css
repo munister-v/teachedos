@@ -669,3 +669,98 @@ body:not(.board-page) select {
   background: none !important;
   background-color: transparent !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LESSON CARD TEXT FIX
+   harmony.css @media(min-width:861px) forces .lesson-card to a
+   near-black background BUT only defines .lc-title/.lc-desc for
+   the text — courses.html uses .lc-name/.lc-num which keep their
+   dark ink color (#1C1C1E) → black on black = invisible.
+   Fix: make those text nodes cream/white when inside dark cards.
+═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 861px) {
+  .lesson-card .lc-name,
+  .lesson-card .lc-title {
+    color: #F5F0E8 !important;
+  }
+  .lesson-card .lc-num {
+    color: rgba(245,240,232,0.55) !important;
+  }
+  .lesson-card .lc-meta,
+  .lesson-card .lc-dur {
+    color: rgba(245,240,232,0.50) !important;
+  }
+  /* Top stripe: lime only, no pink */
+  .lesson-card::before {
+    background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALENDAR TODAY CIRCLE & EVENT CHIPS
+   Both index.html and schedule.html use var(--accent) for the
+   today date circle background and event text. When harmony.css
+   wins --accent=pink, these show pink. Override to ink.
+═══════════════════════════════════════════════════════════════ */
+
+/* index.html calendar widget */
+.sch-cell.today .sch-day-num {
+  background: #0E0E10 !important;
+  color: #F5F0E8 !important;
+}
+.sch-event {
+  color: #1C1C1E !important;
+  background: linear-gradient(135deg, rgba(200,230,50,0.18),
+    rgba(202,201,183,0.15)) !important;
+  border-color: rgba(200,230,50,0.22) !important;
+}
+
+/* schedule.html full-page calendar */
+.gh-day.today .gh-day-num {
+  background: #0E0E10 !important;
+  color: #fff !important;
+}
+.gh-day.today {
+  color: #0E0E10 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROFILE PAGE — board card names & recent-boards names are
+   near-invisible (inherit from a faint cascade chain).
+   Pin them to solid ink.
+═══════════════════════════════════════════════════════════════ */
+
+/* Profile board grid: board name */
+.bc-name {
+  color: #0E0E10 !important;
+}
+.bc-meta {
+  color: #7A7A6A !important;
+}
+
+/* Profile board grid: Primary "Open" button — ink, not pink */
+.bc-btn.primary {
+  background: #0E0E10 !important;
+  color: #F5F0E8 !important;
+  border-color: #0E0E10 !important;
+}
+.bc-btn.primary:hover {
+  background: #1C1C1E !important;
+  border-color: #1C1C1E !important;
+  color: #F5F0E8 !important;
+}
+
+/* Profile "Recent Boards" list: board name & meta */
+.rbi-name {
+  color: #0E0E10 !important;
+}
+.rbi-meta {
+  color: #7A7A6A !important;
+}
+
+/* index.html lc-title / lesson-card title in boards panel (win-main context) */
+@media (min-width: 861px) {
+  .lc-title { color: #F5F0E8 !important; }
+  .lc-meta, .lc-dur { color: rgba(245,240,232,0.55) !important; }
+}

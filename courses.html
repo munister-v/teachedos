@@ -328,7 +328,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 @media(max-width:860px){
   :root{--sb-w:100%;}
-  body{background:var(--bg);}
+  body{background:var(--bg);padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important;}
   #nav{display:none !important;}
   #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);background:var(--bg);}
   /* mp-topbar already shows title + New button — hide duplicate sidebar header */
