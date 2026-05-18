@@ -179,5 +179,6 @@ function sendBoardFlow(){const d=collect();sessionStorage.setItem('teachedos_pen
 function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();apply(draft||PRESETS[1]);renderLibrary()}
 init();
 </script>
+<script src="scripts/whatsapp-feedback.js" defer></script>
 </body>
 </html>

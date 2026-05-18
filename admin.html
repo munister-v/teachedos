@@ -550,6 +550,9 @@ html{scroll-behavior:smooth}
     <div class="sb-item" onclick="showPage('settings')">
       <span class="sb-icon">⚙️</span>Settings
     </div>
+    <div class="sb-item" onclick="showPage('api-tester')">
+      <span class="sb-ic">🔌</span> API Tester
+    </div>
   </nav>
   <div class="sb-footer">
     <div class="sb-user">
@@ -1015,6 +1018,22 @@ html{scroll-behavior:smooth}
     <div class="page-title">Billing</div>
     <div class="page-sub">Manual invoice requests and bank-transfer confirmations</div>
 
+    <div class="table-card" style="padding:22px;margin-bottom:20px;background:linear-gradient(135deg,rgba(28,28,30,.97),rgba(40,40,44,.95));color:#F5F0E8;border-color:rgba(200,230,50,.1)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(200,230,50,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Payment card for transfers</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:.18em;font-family:monospace" id="admin-card-number">5375 4141 1234 5678</div>
+        </div>
+        <button onclick="copyAdminCard()" style="padding:9px 16px;background:rgba(200,230,50,.15);color:#C8E64A;border:1.5px solid rgba(200,230,50,.25);border-radius:10px;font-weight:800;font-size:12px;cursor:pointer">📋 Copy number</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cardholder</div><div style="font-weight:800;font-size:14px">TeachEd Ltd</div></div>
+        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bank</div><div style="font-weight:800;font-size:14px">PrivatBank</div></div>
+        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Currency</div><div style="font-weight:800;font-size:14px">UAH / USD</div></div>
+        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Comment field</div><div style="font-weight:800;font-size:14px">Invoice number</div></div>
+      </div>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon orange">⏳</div>
@@ -1327,6 +1346,78 @@ html{scroll-behavior:smooth}
     </div>
   </div>
 
+  <!-- ── API Tester ──────────────────────────────────────────────────────── -->
+  <div id="page-api-tester" class="page">
+    <div class="page-title">API Tester</div>
+    <div class="page-sub">Test API endpoints directly. Token auto-filled from your session.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+      <!-- Left: Request Builder -->
+      <div class="table-card" style="padding:22px">
+        <div class="table-header-title" style="margin-bottom:16px">Request</div>
+
+        <!-- Method + URL -->
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select id="at-method" style="width:110px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;font-weight:700;background:#fff;cursor:pointer">
+            <option>GET</option><option>POST</option><option>PUT</option>
+            <option>PATCH</option><option>DELETE</option>
+          </select>
+          <input id="at-url" type="text" placeholder="/api/auth/me" style="flex:1;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;font-family:monospace;font-size:13px" value="/api/auth/me">
+        </div>
+
+        <!-- Quick endpoints -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Quick endpoints</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="at-quick-btns">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Headers -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Authorization header</div>
+          <textarea id="at-auth-header" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;font-family:monospace;font-size:11px;resize:vertical" placeholder="Bearer <token>"></textarea>
+        </div>
+
+        <!-- Body -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Request body (JSON)</div>
+          <textarea id="at-body" rows="5" style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;font-family:monospace;font-size:12px;resize:vertical" placeholder='{"key": "value"}'></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button onclick="runApiTest()" style="flex:1;padding:12px;background:var(--dark);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer">▶ Send Request</button>
+          <button onclick="clearApiTest()" style="padding:12px 16px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer">Clear</button>
+        </div>
+      </div>
+
+      <!-- Right: Response Viewer -->
+      <div class="table-card" style="padding:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="table-header-title">Response</div>
+          <div id="at-status-badge" style="display:none;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800"></div>
+        </div>
+        <div id="at-timing" style="font-size:11px;color:var(--muted);margin-bottom:10px;display:none">Response time: <strong id="at-time-ms">—</strong></div>
+        <pre id="at-response" style="background:#1C1C1E;color:#C8E64A;padding:16px;border-radius:12px;font-size:12px;overflow:auto;min-height:320px;max-height:520px;white-space:pre-wrap;word-break:break-word">// Hit "Send Request" to see the response here</pre>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button onclick="copyApiResponse()" style="padding:8px 14px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📋 Copy</button>
+          <button onclick="formatApiResponse()" style="padding:8px 14px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">✨ Format</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="table-card" style="padding:22px;margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="table-header-title">Request History</div>
+        <button onclick="clearApiHistory()" style="padding:6px 12px;background:rgba(239,68,68,.08);color:var(--red);border:1.5px solid rgba(239,68,68,.2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Clear History</button>
+      </div>
+      <div id="at-history" style="display:grid;gap:6px;max-height:200px;overflow-y:auto">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No requests yet</div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /main -->
 
 <!-- ══ EDIT USER MODAL ══════════════════════════════════════════════════════ -->
@@ -1467,6 +1558,7 @@ const pageMeta = {
   billing: ['Billing', 'Manual payments and tariff approvals'],
   packages: ['Package Control', 'Plans, limits and manual subscription grants'],
   settings: ['Settings', 'System configuration and admin tools'],
+  'api-tester': ['API Tester', 'Test and debug API endpoints'],
 };
 
 // ── Auth ─────────────────────────────────────────────────────────────────
@@ -1592,6 +1684,7 @@ function showPage(name) {
   if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); }
   if (name === 'packages')  loadPackageControl();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
+  if (name === 'api-tester') initApiTester();
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────
@@ -2512,6 +2605,11 @@ function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', in
   });
 }
 
+function copyAdminCard() {
+  const num = document.getElementById('admin-card-number')?.textContent;
+  navigator.clipboard?.writeText(num?.replace(/\s/g,'')||'').then(() => toast('Card number copied', 'success'));
+}
+
 function rejectPayment(id, name) {
   const note = prompt(`Why reject payment request for ${name}?`, 'Payment not found');
   if (note === null) return;
@@ -2902,6 +3000,157 @@ function uaIcon(ua='') {
   if (/firefox/i.test(ua)) return '🦊';
   if (/safari/i.test(ua)) return '🧭';
   return '💻';
+}
+
+// ── API Tester ─────────────────────────────────────────────────────────────
+const AT_QUICK = [
+  { label: 'GET /me', method: 'GET', path: '/api/auth/me' },
+  { label: 'GET /users', method: 'GET', path: '/api/admin/users' },
+  { label: 'GET /boards', method: 'GET', path: '/api/admin/boards' },
+  { label: 'GET /billing', method: 'GET', path: '/api/admin/billing/summary' },
+  { label: 'GET /payments', method: 'GET', path: '/api/admin/billing/payments' },
+  { label: 'GET /packages', method: 'GET', path: '/api/admin/packages' },
+  { label: 'GET /stats', method: 'GET', path: '/api/admin/stats' },
+  { label: 'GET /sessions', method: 'GET', path: '/api/admin/sessions' },
+  { label: 'GET /audit', method: 'GET', path: '/api/admin/audit?limit=20' },
+  { label: 'POST login', method: 'POST', path: '/api/auth/login', body: '{"email":"test@test.com","password":"password"}' },
+];
+
+let atHistory = [];
+
+function initApiTester() {
+  // Fill auth header
+  const authEl = document.getElementById('at-auth-header');
+  if (authEl && token) authEl.value = `Bearer ${token}`;
+
+  // Render quick buttons
+  const btns = document.getElementById('at-quick-btns');
+  if (btns) {
+    btns.innerHTML = AT_QUICK.map((q, i) =>
+      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(94,94,74,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:700;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
+    ).join('');
+  }
+}
+
+function loadQuickEndpoint(i) {
+  const q = AT_QUICK[i];
+  if (!q) return;
+  document.getElementById('at-method').value = q.method;
+  document.getElementById('at-url').value = q.path;
+  if (q.body) document.getElementById('at-body').value = q.body;
+}
+
+async function runApiTest() {
+  const method = document.getElementById('at-method').value;
+  const path = document.getElementById('at-url').value.trim();
+  const authHeader = document.getElementById('at-auth-header').value.trim();
+  const bodyText = document.getElementById('at-body').value.trim();
+  const respEl = document.getElementById('at-response');
+  const statusBadge = document.getElementById('at-status-badge');
+  const timingEl = document.getElementById('at-timing');
+  const timeMsEl = document.getElementById('at-time-ms');
+
+  if (!path) { respEl.textContent = 'Enter an endpoint path'; return; }
+
+  respEl.textContent = '⏳ Sending request…';
+  statusBadge.style.display = 'none';
+  timingEl.style.display = 'none';
+
+  const url = path.startsWith('http') ? path : (API + path);
+  const headers = { 'Content-Type': 'application/json' };
+  if (authHeader) headers['Authorization'] = authHeader;
+
+  const opts = { method, headers };
+  if (bodyText && !['GET','DELETE'].includes(method)) {
+    try { JSON.parse(bodyText); opts.body = bodyText; }
+    catch { respEl.textContent = '❌ Invalid JSON in body'; return; }
+  }
+
+  const t0 = performance.now();
+  try {
+    const r = await fetch(url, opts);
+    const elapsed = Math.round(performance.now() - t0);
+    let data;
+    const ct = r.headers.get('content-type') || '';
+    if (ct.includes('json')) { data = await r.json(); }
+    else { data = await r.text(); }
+
+    const status = r.status;
+    const ok = r.ok;
+
+    // Status badge
+    statusBadge.style.display = 'inline-block';
+    statusBadge.style.background = ok ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.12)';
+    statusBadge.style.color = ok ? 'var(--green)' : 'var(--red)';
+    statusBadge.textContent = `${status} ${r.statusText}`;
+
+    timingEl.style.display = 'block';
+    timeMsEl.textContent = `${elapsed}ms`;
+
+    const formatted = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    respEl.textContent = formatted;
+
+    // Add to history
+    atHistory.unshift({ method, path, status, elapsed, time: new Date().toLocaleTimeString() });
+    if (atHistory.length > 20) atHistory.pop();
+    renderApiHistory();
+
+  } catch(e) {
+    respEl.textContent = `❌ Network error: ${e.message}`;
+    statusBadge.style.display = 'inline-block';
+    statusBadge.style.background = 'rgba(239,68,68,.12)';
+    statusBadge.style.color = 'var(--red)';
+    statusBadge.textContent = 'Network Error';
+  }
+}
+
+function clearApiTest() {
+  document.getElementById('at-method').value = 'GET';
+  document.getElementById('at-url').value = '';
+  document.getElementById('at-body').value = '';
+  document.getElementById('at-response').textContent = '// Hit "Send Request" to see the response here';
+  document.getElementById('at-status-badge').style.display = 'none';
+  document.getElementById('at-timing').style.display = 'none';
+}
+
+function copyApiResponse() {
+  const text = document.getElementById('at-response').textContent;
+  navigator.clipboard?.writeText(text).then(() => toast('Copied to clipboard', 'success'));
+}
+
+function formatApiResponse() {
+  const el = document.getElementById('at-response');
+  try {
+    const parsed = JSON.parse(el.textContent);
+    el.textContent = JSON.stringify(parsed, null, 2);
+  } catch { /* not JSON */ }
+}
+
+function renderApiHistory() {
+  const el = document.getElementById('at-history');
+  if (!el) return;
+  if (!atHistory.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No requests yet</div>';
+    return;
+  }
+  el.innerHTML = atHistory.map((h, i) => `
+    <div onclick="replayApiHistoryItem(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <span style="font-family:monospace;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:${h.status<300?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)'};color:${h.status<300?'var(--green)':'var(--red)'}">${h.method}</span>
+      <span style="font-family:monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.path)}</span>
+      <span style="font-size:11px;color:var(--muted)">${h.status} · ${h.elapsed}ms · ${h.time}</span>
+    </div>`).join('');
+}
+
+function replayApiHistoryItem(i) {
+  const h = atHistory[i];
+  if (!h) return;
+  document.getElementById('at-method').value = h.method;
+  document.getElementById('at-url').value = h.path;
+}
+
+function clearApiHistory() {
+  atHistory = [];
+  renderApiHistory();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────

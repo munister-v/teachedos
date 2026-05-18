@@ -453,5 +453,6 @@ function handleImageFile(id,input){const file=input.files&&input.files[0];if(!fi
 function renderImageRows(){const wrap=document.getElementById('image-rows');if(!wrap)return;wrap.innerHTML=imageRows.map((r,i)=>`<div class="img-row"><label class="thumb" for="file-${r.id}">${r.image?`<img src="${esc(r.image)}" alt="${esc(r.word||'uploaded image')}">`:'Upload image'}<input class="sr-only" id="file-${r.id}" type="file" accept="image/*" onchange="handleImageFile('${r.id}',this)"></label><div style="display:grid;gap:8px"><input placeholder="Word" value="${esc(r.word)}" oninput="updateImageRow('${r.id}','word',this.value)"><input placeholder="Image URL or note" value="${esc(r.note)}" oninput="updateImageRow('${r.id}','note',this.value)"></div><button class="mini" type="button" onclick="removeImageRow('${r.id}')">×</button></div>`).join('')}
 renderCounts();renderChips();renderPresetPacks();renderTools();renderLibrary();
 </script>
+<script src="scripts/whatsapp-feedback.js" defer></script>
 </body>
 </html>
