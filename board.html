@@ -6343,91 +6343,164 @@ renderMinimap();
 })();
 
 /* ════════════════════════ LESSON BUILDER FLOW IMPORT ════════════════════════ */
-(function checkLessonBuilderFlowImport() {
+window.__pendingLessonFlowImport = null;
+
+(function captureLessonBuilderFlowImport() {
   const params = new URLSearchParams(location.search);
   if (!params.has('addLessonFlow')) return;
   try {
     const raw = sessionStorage.getItem('teachedos_pending_lesson_flow');
     if (!raw) return;
     const lesson = JSON.parse(raw);
-    sessionStorage.removeItem('teachedos_pending_lesson_flow');
     if (!lesson || !Array.isArray(lesson.stages)) return;
-    setTimeout(() => {
-      snapshot && snapshot();
-      const r = boardWrap.getBoundingClientRect();
-      const center = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 700, y: 420 };
-      const stages = lesson.stages.slice(0, 9);
-      const objectives = String(lesson.objectives || '').split(/\n+/).map(text => text.trim()).filter(Boolean).map(text => ({ text, done:false }));
-      const vocabItems = String(lesson.vocab || '').split(/\n+/).map(text => text.trim()).filter(Boolean).slice(0, 8);
-      const baseX = center.x - 520;
-      const baseY = center.y - 360;
-      const created = [];
-      const frameW = Math.max(1180, Math.min(1600, 380 + Math.min(stages.length, 3) * 300));
-      const frameH = 850 + Math.max(0, Math.ceil((stages.length - 6) / 3)) * 230;
-      addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'rgba(200,230,50,.055)', border:'rgba(200,230,50,.42)' }, frameW, frameH);
-      const overview = addCard('text', baseX, baseY, defaultTextData({
-        text: (lesson.title || 'Lesson') + '\n' + [lesson.level, lesson.skill, lesson.format, (lesson.duration || '') + ' min'].filter(Boolean).join(' / ') + '\n\n' + (lesson.brief || ''),
-        bgColor:'#ffffff', textColor:'#111111', align:'left'
-      }), 360, 210);
-      const goals = addCard('checklist', baseX, baseY + 240, {
-        title:'Lesson goals',
-        items:(objectives.length ? objectives : [{text:'Set a clear lesson objective',done:false}]).slice(0,5)
-      }, 320, 210);
-      const vocab = addCard('text', baseX, baseY + 480, defaultTextData({
-        text:'Useful language\n\n' + (vocabItems.length ? vocabItems.join('\n') : 'Add target vocabulary here'),
-        bgColor:'#fffdf2', textColor:'#111111', align:'left'
-      }), 320, 240);
-      stages.forEach((stage, i) => {
-        const col = i % 3;
-        const row = Math.floor(i / 3);
-        const x = baseX + 410 + col * 300;
-        const y = baseY + row * 250;
-        const card = addCard('lesson', x, y, {
-          title: (i + 1) + '. ' + (stage.name || ('Stage ' + (i + 1))),
-          status: i ? 'available' : 'in-progress',
-          level: lesson.level || 'B1',
-          skill: normalizeLessonSkill(stage.mode || lesson.skill || 'Speaking'),
-          duration: (stage.min || 10) + ' min',
-          desc: stage.student || stage.teacher || '',
-          objectives: objectives.slice(0, 3),
-          notes: stage.teacher || '',
-          module: lesson.title || 'Lesson Builder',
-        }, 270, 220);
-        created.push(card);
-      });
-      const belowY = baseY + Math.ceil(Math.max(stages.length, 1) / 3) * 250 + 20;
-      const homework = addCard('assignment', baseX + 410, belowY, {
-        title:'Homework: ' + (lesson.title || 'Lesson'), type:'Mixed', maxScore:20,
-        desc: lesson.homework || 'Add homework instructions.', total:0, submitted:0, level: lesson.level || 'B1', timeLimit:30,
-      }, 300, 185);
-      const rubric = addCard('checklist', baseX + 740, belowY, {
-        title:'Assessment rubric',
-        items:String(lesson.rubric || lesson.assessment || '').split(/\n+/).map(text => text.trim()).filter(Boolean).slice(0,6).map(text => ({ text, done:false }))
-      }, 320, 210);
-      const teacher = addCard('note', baseX + 1080, belowY, {
-        title:'Teacher language & notes',
-        body:[lesson.teacherLanguage, lesson.diff].filter(Boolean).join('\n\n') || 'Add teacher language and differentiation notes.'
-      }, 320, 230);
-      const chain = [overview, goals, vocab, ...created, homework, rubric, teacher].filter(Boolean);
-      chain.forEach((card, i) => {
-        if (!chain[i + 1]) return;
-        state.arrows.push({ id:'a' + (state.nextId++), fromCard:card.id, fromAnchor:'right', toCard:chain[i + 1].id, toAnchor:'left' });
-      });
-      if (created.length) {
-        state.arrows.push({ id:'a' + (state.nextId++), fromCard:created[created.length - 1].id, fromAnchor:'bottom', toCard:homework.id, toAnchor:'top' });
-      }
-      renderAllArrows && renderAllArrows();
-      updateEmpty && updateEmpty();
-      fitAll && fitAll(false);
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
-      toast && toast('📚 Lesson board flow built: ' + chain.length + ' cards');
-      history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]addLessonFlow=[^&]*/, '') || ''));
-    }, 300);
+    window.__pendingLessonFlowImport = lesson;
+    sessionStorage.removeItem('teachedos_pending_lesson_flow');
   } catch (err) {
-    console.warn('Lesson flow import failed', err);
-    toast && toast('Could not build lesson flow');
+    console.warn('Lesson flow capture failed', err);
   }
 })();
+
+function emptyBoardData() {
+  return { pan:{ x:100, y:60 }, scale:1, nextId:1, cards:[], arrows:[], groups:[], savedAt:Date.now() };
+}
+
+function cleanLessonFlowUrl() {
+  if (!new URLSearchParams(location.search).has('addLessonFlow')) return;
+  const params = new URLSearchParams(location.search);
+  params.delete('addLessonFlow');
+  const query = params.toString();
+  history.replaceState({}, '', location.pathname + (query ? '?' + query : ''));
+}
+
+async function ensureFreshBoardForLessonFlow(lesson) {
+  const name = ('Lesson Flow · ' + (lesson.title || 'Untitled lesson')).slice(0, 90);
+  if (currentUser && authToken && !isOffline) {
+    try {
+      const r = await apiFetch('/api/boards', { method:'POST', body:{ name } });
+      const payload = await r.json().catch(() => ({}));
+      if (!r.ok || !payload.board) throw new Error(payload.error || 'Could not create board');
+      const b = payload.board;
+      currentBoardId = b.id;
+      boardOwnerId = b.user_id || currentUser.id;
+      isOwner = true;
+      _realMembers = null;
+      _membersLoaded = false;
+      localStorage.setItem('teachedos_board_id', currentBoardId);
+      loadBoardData(b.data || emptyBoardData());
+      document.title = name + ' · TeachEd';
+      const nameEl = document.getElementById('board-name-display');
+      if (nameEl) nameEl.textContent = name;
+      const tbn = document.getElementById('tb-board-name');
+      if (tbn) tbn.textContent = '📌 ' + name;
+      saveStatus.textContent = '☁ cloud';
+      history.replaceState(null, '', 'board.html?id=' + currentBoardId);
+      updateFollowUI && updateFollowUI();
+      applyRoleUI && applyRoleUI();
+      return true;
+    } catch (err) {
+      console.warn('Cloud board creation failed, building local lesson board', err);
+      isOffline = true;
+    }
+  }
+  currentBoardId = null;
+  loadBoardData(emptyBoardData());
+  document.title = name + ' · TeachEd';
+  const nameEl = document.getElementById('board-name-display');
+  if (nameEl) nameEl.textContent = name;
+  return false;
+}
+
+function buildLessonFlowCards(lesson) {
+  snapshot && snapshot();
+  const r = boardWrap.getBoundingClientRect();
+  const center = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 700, y: 420 };
+  const stages = lesson.stages.slice(0, 9);
+  const objectives = String(lesson.objectives || '').split(/\n+/).map(text => text.trim()).filter(Boolean).map(text => ({ text, done:false }));
+  const vocabItems = String(lesson.vocab || '').split(/\n+/).map(text => text.trim()).filter(Boolean).slice(0, 8);
+  const baseX = center.x - 520;
+  const baseY = center.y - 360;
+  const created = [];
+  const frameW = Math.max(1180, Math.min(1600, 380 + Math.min(stages.length, 3) * 300));
+  const frameH = 850 + Math.max(0, Math.ceil((stages.length - 6) / 3)) * 230;
+  addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'rgba(200,230,50,.055)', border:'rgba(200,230,50,.42)' }, frameW, frameH);
+  const overview = addCard('text', baseX, baseY, defaultTextData({
+    text: (lesson.title || 'Lesson') + '\n' + [lesson.level, lesson.skill, lesson.format, (lesson.duration || '') + ' min'].filter(Boolean).join(' / ') + '\n\n' + (lesson.brief || ''),
+    bgColor:'#ffffff', textColor:'#111111', align:'left'
+  }), 360, 210);
+  const goals = addCard('checklist', baseX, baseY + 240, {
+    title:'Lesson goals',
+    items:(objectives.length ? objectives : [{text:'Set a clear lesson objective',done:false}]).slice(0,5)
+  }, 320, 210);
+  const vocab = addCard('text', baseX, baseY + 480, defaultTextData({
+    text:'Useful language\n\n' + (vocabItems.length ? vocabItems.join('\n') : 'Add target vocabulary here'),
+    bgColor:'#fffdf2', textColor:'#111111', align:'left'
+  }), 320, 240);
+  stages.forEach((stage, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const x = baseX + 410 + col * 300;
+    const y = baseY + row * 250;
+    const card = addCard('lesson', x, y, {
+      title: (i + 1) + '. ' + (stage.name || ('Stage ' + (i + 1))),
+      status: i ? 'available' : 'in-progress',
+      level: lesson.level || 'B1',
+      skill: normalizeLessonSkill(stage.mode || lesson.skill || 'Speaking'),
+      duration: (stage.min || 10) + ' min',
+      desc: stage.student || stage.teacher || '',
+      objectives: objectives.slice(0, 3),
+      notes: stage.teacher || '',
+      module: lesson.title || 'Lesson Builder',
+    }, 270, 220);
+    created.push(card);
+  });
+  const belowY = baseY + Math.ceil(Math.max(stages.length, 1) / 3) * 250 + 20;
+  const homework = addCard('assignment', baseX + 410, belowY, {
+    title:'Homework: ' + (lesson.title || 'Lesson'), type:'Mixed', maxScore:20,
+    desc: lesson.homework || 'Add homework instructions.', total:0, submitted:0, level: lesson.level || 'B1', timeLimit:30,
+  }, 300, 185);
+  const rubric = addCard('checklist', baseX + 740, belowY, {
+    title:'Assessment rubric',
+    items:String(lesson.rubric || lesson.assessment || '').split(/\n+/).map(text => text.trim()).filter(Boolean).slice(0,6).map(text => ({ text, done:false }))
+  }, 320, 210);
+  const teacher = addCard('note', baseX + 1080, belowY, {
+    title:'Teacher language & notes',
+    body:[lesson.teacherLanguage, lesson.diff].filter(Boolean).join('\n\n') || 'Add teacher language and differentiation notes.'
+  }, 320, 230);
+  const chain = [overview, goals, vocab, ...created, homework, rubric, teacher].filter(Boolean);
+  chain.forEach((card, i) => {
+    if (!chain[i + 1]) return;
+    state.arrows.push({ id:'a' + (state.nextId++), fromCard:card.id, fromAnchor:'right', toCard:chain[i + 1].id, toAnchor:'left' });
+  });
+  if (created.length) {
+    state.arrows.push({ id:'a' + (state.nextId++), fromCard:created[created.length - 1].id, fromAnchor:'bottom', toCard:homework.id, toAnchor:'top' });
+  }
+  renderAllArrows && renderAllArrows();
+  updateEmpty && updateEmpty();
+  fitAll && fitAll(false);
+  scheduleSave && scheduleSave();
+  saveLocal && saveLocal();
+  return chain.length;
+}
+
+async function runPendingLessonFlowImport() {
+  const lesson = window.__pendingLessonFlowImport;
+  if (!lesson) return false;
+  window.__pendingLessonFlowImport = null;
+  try {
+    toast && toast('Creating a fresh board for this lesson flow...');
+    await ensureFreshBoardForLessonFlow(lesson);
+    await new Promise(resolve => setTimeout(resolve, 120));
+    const count = buildLessonFlowCards(lesson);
+    cleanLessonFlowUrl();
+    forceSave && forceSave();
+    toast && toast('📚 New lesson board created: ' + count + ' cards');
+    return true;
+  } catch (err) {
+    console.warn('Lesson flow import failed', err);
+    toast && toast('Could not build lesson flow: ' + (err.message || 'error'));
+    return false;
+  }
+}
 
 function normalizeLessonSkill(skill) {
   const s = String(skill || '').toLowerCase();
@@ -6581,7 +6654,12 @@ async function submitAuth() {
       location.href = 'student.html';
       return;
     }
-    await initUserBoard();
+    if (window.__pendingLessonFlowImport) {
+      await runPendingLessonFlowImport();
+      wsConnect && wsConnect();
+    } else {
+      await initUserBoard();
+    }
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';
@@ -6852,18 +6930,25 @@ function loadBoardData(data) {
 // ── Share panel ───────────────────────────────────────────────
 let _sharePanelOpen = false;
 
+function getShareUrl() {
+  if (currentBoardId) return location.origin + location.pathname + '?id=' + currentBoardId;
+  forceSave && forceSave();
+  return location.origin + location.pathname + '?local=1';
+}
+
 function openSharePanel() {
-  if (!currentBoardId) { toast('Load a board first'); return; }
   const panel = document.getElementById('share-panel');
   _sharePanelOpen = true;
   panel.classList.add('open');
-  // Set link
-  const url = `${location.origin}${location.pathname}?id=${currentBoardId}`;
+  const url = getShareUrl();
   document.getElementById('sp-link-input').value = url;
-  // Show invite section only for board owner
-  document.getElementById('sp-invite-section').style.display = isOwner ? '' : 'none';
-  document.getElementById('sp-members-section').style.display = isOwner ? '' : 'none';
-  if (isOwner) spLoadMembers();
+  const canInvite = !!(currentBoardId && isOwner && currentUser);
+  document.getElementById('sp-invite-section').style.display = canInvite ? '' : 'none';
+  document.getElementById('sp-members-section').style.display = canInvite ? '' : 'none';
+  const nativeBtn = document.getElementById('sp-native-share-btn');
+  if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
+  if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
+  if (canInvite) spLoadMembers();
 }
 
 function closeSharePanel() {
@@ -6871,13 +6956,43 @@ function closeSharePanel() {
   document.getElementById('share-panel').classList.remove('open');
 }
 
-function spCopyLink() {
-  const url = document.getElementById('sp-link-input').value;
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = document.querySelector('.sp-copy-btn');
+function copyTextFallback(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch {}
+  ta.remove();
+  return ok;
+}
+
+async function spCopyLink() {
+  const url = document.getElementById('sp-link-input').value || getShareUrl();
+  const btn = document.querySelector('.sp-copy-btn');
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+    else if (!copyTextFallback(url)) throw new Error('copy failed');
     btn.textContent = '✓ Copied!';
+    toast('Share link copied');
+  } catch {
+    const input = document.getElementById('sp-link-input');
+    input.focus();
+    input.select();
+    toast('Select and copy the link manually');
+  } finally {
     setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-  });
+  }
+}
+
+async function spNativeShare() {
+  const url = document.getElementById('sp-link-input').value || getShareUrl();
+  if (!navigator.share) { spCopyLink(); return; }
+  try {
+    await navigator.share({ title: document.getElementById('board-name-display')?.textContent || 'TeachEd Board', text:'TeachEd board', url });
+  } catch {}
 }
 
 async function spInvite() {
@@ -7030,9 +7145,13 @@ async function newBoard() {
     const { board: b } = await r.json();
     currentBoardId = b.id;
     localStorage.setItem('teachedos_board_id', currentBoardId);
-    loadBoardData(b.data);
+    loadBoardData(b.data || emptyBoardData());
     document.title = name + ' · TeachEd';
+    const nameEl = document.getElementById('board-name-display');
+    if (nameEl) nameEl.textContent = name;
     const _tbn4 = document.getElementById('tb-board-name'); if(_tbn4) _tbn4.textContent = '📌 ' + name;
+    history.replaceState(null, '', 'board.html?id=' + currentBoardId);
+    applyRoleUI && applyRoleUI();
     toast('Board created: ' + name);
   } catch (e) { toast('Error: ' + e.message); }
 }
@@ -7877,8 +7996,12 @@ function startReconnectLoop() {
         hideOfflineBanner();
         if (banner) banner.classList.remove('show');
         if (pendingCloudSave) saveToCloud();
+        if (window.__pendingLessonFlowImport) {
+          await runPendingLessonFlowImport();
+        } else if (!currentBoardId) {
+          await initUserBoard();
+        }
         wsConnect();
-        if (!currentBoardId) await initUserBoard();
         toast('✓ Connected');
         return;
       }
@@ -7909,7 +8032,11 @@ function startReconnectLoop() {
         try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
         updateAuthUI();
         wsEnabled = true;
-        await initUserBoard();
+        if (window.__pendingLessonFlowImport) {
+          await runPendingLessonFlowImport();
+        } else {
+          await initUserBoard();
+        }
         wsConnect();
         return;
       }
@@ -7924,6 +8051,7 @@ function startReconnectLoop() {
       if (cached) try { currentUser = JSON.parse(cached); } catch {}
       updateAuthUI();
       loadBoard();
+      if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
       showOfflineBanner();
       toast('⚠️ Server starting up — reconnecting…');
       startReconnectLoop();
@@ -7936,6 +8064,9 @@ function startReconnectLoop() {
     } else {
       openAuthModal('login');
     }
+  }
+  if (!authToken && window.__pendingLessonFlowImport) {
+    toast('Sign in to create a shareable lesson board');
   }
   updateAuthUI();
 })();
@@ -9781,6 +9912,7 @@ if('serviceWorker'in navigator){
       <div class="sp-link-row">
         <input class="sp-link-input" id="sp-link-input" readonly>
         <button class="sp-copy-btn" onclick="spCopyLink()">Copy</button>
+        <button class="sp-copy-btn sp-native-btn" id="sp-native-share-btn" onclick="spNativeShare()" style="display:none;">Share</button>
       </div>
     </div>
     <!-- Invite by email -->
