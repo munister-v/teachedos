@@ -808,6 +808,62 @@ body { font-family: var(--font) !important; }
     border: 1px solid rgba(205,242,79,0.25) !important;
     background: rgba(205,242,79,0.12) !important;
     color: rgba(245,240,232,0.85) !important;
+    font-weight: 800 !important;
+  }
+  #mb-plan-badge {
+    background: rgba(205,242,79,0.14) !important;
+    color: var(--lime) !important;
+    border: 1px solid rgba(205,242,79,0.25) !important;
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+
+  /* ── Nav-user (non-index pages): dark ── */
+  .nav-user {
+    background: rgba(205,242,79,0.10) !important;
+    border: 1px solid rgba(205,242,79,0.22) !important;
+    color: rgba(245,240,232,0.85) !important;
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+  .nav-user:hover {
+    background: rgba(205,242,79,0.18) !important;
+    border-color: var(--lime) !important;
+  }
+  #nav-avatar {
+    background: rgba(205,242,79,0.18) !important;
+    color: var(--lime) !important;
+  }
+  .nav-link {
+    color: rgba(245,240,232,0.60) !important;
+    font-family: var(--font) !important;
+    font-weight: 700 !important;
+  }
+  .nav-link:hover {
+    background: rgba(205,242,79,0.08) !important;
+    color: rgba(245,240,232,0.90) !important;
+  }
+  .nav-link.active {
+    color: var(--lime) !important;
+    font-weight: 900 !important;
+  }
+  .nav-logo-name {
+    color: rgba(245,240,232,0.90) !important;
+    font-family: var(--font) !important;
+    font-weight: 800 !important;
+  }
+  .navbar, .nav-bar, nav[class*="nav"] {
+    background: rgba(14,14,16,0.92) !important;
+    border-bottom: 1px solid rgba(205,242,79,0.08) !important;
+  }
+
+  /* ── Notification panel: dark overrides for inline styles ── */
+  #notif-panel > div:first-child {
+    border-bottom-color: rgba(205,242,79,0.10) !important;
+    color: #F5F0E8 !important;
+  }
+  #notif-panel span {
+    color: #F5F0E8 !important;
   }
 
   /* ── Widgets: dark panels with lime glow ── */
