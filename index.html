@@ -931,6 +931,54 @@ html,body {
 
 
 
+
+/* ═══════════════════════════ PRICING WINDOW ═══════════════════════════ */
+.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(205,242,79,.28),transparent 26%),radial-gradient(circle at 86% 8%,rgba(236,45,140,.14),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(245,240,232,.92));}
+.pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(16,16,20,.18);}
+.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(205,242,79,.42),transparent 68%);pointer-events:none;}
+.pricing-eyebrow{font-family:var(--font-mono);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#CDF24F;margin-bottom:8px;}
+.pricing-title{font-size:32px;line-height:.96;font-weight:900;letter-spacing:-.055em;max-width:560px;}
+.pricing-title em{font-style:italic;color:#CDF24F;}
+.pricing-copy{max-width:640px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
+.pricing-hero-row{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+.price-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:800;color:rgba(255,255,255,.82);}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
+.pricing-card{position:relative;display:flex;flex-direction:column;min-height:360px;border:1px solid rgba(94,94,74,.14);border-radius:24px;background:rgba(255,255,255,.84);box-shadow:0 14px 44px rgba(94,94,74,.08);padding:18px;overflow:hidden;}
+.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#CAC9B7,#CDF24F);}
+.pricing-card.pro{background:#fff;border-color:rgba(236,45,140,.24);box-shadow:0 22px 70px rgba(236,45,140,.13);transform:translateY(-5px);}
+.pricing-card.pro::before{background:linear-gradient(90deg,#EC2D8C,#CDF24F);}
+.pricing-card.school::before{background:linear-gradient(90deg,#0E0E10,#60a5fa,#CDF24F);}
+.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text-2);font-family:var(--font-mono);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
+.pricing-card.pro .plan-tag{background:rgba(236,45,140,.1);color:#b91c68;}
+.price-name{font-size:22px;font-weight:950;letter-spacing:-.045em;color:var(--text);}
+.price-line{display:flex;align-items:flex-end;gap:6px;margin:8px 0 6px;}
+.price-amount{font-size:34px;font-weight:950;letter-spacing:-.07em;color:var(--text);}
+.price-period{font-size:11px;font-weight:800;color:var(--text-3);padding-bottom:6px;}
+.price-desc{font-size:12px;line-height:1.55;color:var(--text-2);min-height:56px;margin-bottom:12px;}
+.price-limits{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.price-limit{border:1px solid rgba(94,94,74,.1);border-radius:13px;background:rgba(245,240,232,.58);padding:8px;}
+.price-limit b{display:block;font-size:14px;color:var(--text);line-height:1;}
+.price-limit span{display:block;margin-top:4px;font-size:9px;font-family:var(--font-mono);font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+.price-features{list-style:none;display:grid;gap:7px;margin:0 0 16px;padding:0;}
+.price-features li{display:flex;gap:8px;font-size:12px;line-height:1.35;color:var(--text-2);}
+.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(205,242,79,.35);color:#1C1C1E;font-weight:950;flex:0 0 auto;font-size:10px;}
+.price-actions{margin-top:auto;display:grid;gap:8px;}
+.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(94,94,74,.16);background:#fff;color:var(--text);font-size:12px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
+.price-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(94,94,74,.1);}
+.price-btn.primary{border-color:#EC2D8C;background:#EC2D8C;color:#fff;}
+.price-btn.dark{border-color:#101014;background:#101014;color:#fff;}
+.pricing-compare{margin-top:14px;border:1px solid rgba(94,94,74,.12);border-radius:22px;background:rgba(255,255,255,.72);overflow:hidden;}
+.compare-head,.compare-row{display:grid;grid-template-columns:1.45fr repeat(3,1fr);gap:0;align-items:center;}
+.compare-head{background:rgba(16,16,20,.92);color:#fff;font-size:10px;font-family:var(--font-mono);font-weight:900;text-transform:uppercase;letter-spacing:.08em;}
+.compare-head div,.compare-row div{padding:10px 12px;border-right:1px solid rgba(94,94,74,.1);}
+.compare-row{font-size:12px;color:var(--text-2);border-top:1px solid rgba(94,94,74,.09);}
+.compare-row div:first-child{font-weight:850;color:var(--text);}
+.compare-yes{color:#15803d;font-weight:950;}
+.compare-no{color:#a3a3a3;font-weight:850;}
+.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(236,45,140,.16);border-radius:18px;background:rgba(236,45,140,.07);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
+.pricing-note b{display:block;color:var(--text);margin-bottom:2px;}
+
+
 /* ═══════════════════════════ SPOTLIGHT ═══════════════════════════ */
 #spotlight-overlay {
   position:fixed; inset:0; z-index:2000;
@@ -1291,6 +1339,13 @@ html,body {
   /* Tools */
   #tools-grid { grid-template-columns:1fr !important; }
 
+
+  #dock-wrap{left:0;right:0;bottom:10px;transform:none;padding:0 10px;overflow-x:auto;scrollbar-width:none;}
+  #dock-wrap::-webkit-scrollbar{display:none;}
+  #dock{width:max-content;min-width:max-content;margin:0 auto;padding:7px 10px 6px;gap:6px;border-radius:20px;}
+  .di-icon{width:42px;height:42px;font-size:19px;}
+  .di-label{font-size:8px;}
+
   /* Spotlight — mobile-friendly tweaks */
   #spotlight-overlay { padding-top:24px; }
   #spotlight-box {
@@ -1299,6 +1354,16 @@ html,body {
     backdrop-filter:none; -webkit-backdrop-filter:none;
     background:rgba(255,255,255,0.97);
   }
+
+  .pricing-shell{padding:16px;height:100%;}
+  .pricing-hero{border-radius:24px;padding:20px;}
+  .pricing-title{font-size:30px;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .pricing-card{min-height:auto;}
+  .pricing-card.pro{transform:none;}
+  .compare-head,.compare-row{grid-template-columns:1.3fr repeat(3,.7fr);font-size:10px;}
+  .compare-head div,.compare-row div{padding:9px 7px;}
+
   #spotlight-input { font-size:17px; }
   #spotlight-results { max-height:60vh; }
   .sp-result { padding:12px 16px; }
@@ -1390,7 +1455,7 @@ html,body {
     <a class="mb-item" href="analytics.html">Analytics</a>
     <a class="mb-item" href="journal.html">Journal</a>
     <a class="mb-item" href="gradebook.html">Gradebook</a>
-    <a class="mb-item" href="profile.html#plans">Tariffs</a>
+    <a class="mb-item" href="#pricing" onclick="openApp('pricing');return false;">Tariffs</a>
     <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
@@ -1791,6 +1856,108 @@ html,body {
   </div>
 </div>
 
+
+<!-- PRICING -->
+<div class="win" id="win-pricing" style="top:72px;left:170px;width:960px;height:650px;">
+  <div class="win-titlebar" id="tb-pricing">
+    <div class="win-controls">
+      <div class="tl close" onclick="closeWin('pricing')"></div>
+      <div class="tl min" onclick="minWin('pricing')"></div>
+      <div class="tl max" onclick="maxWin('pricing')"></div>
+    </div>
+    <div class="win-title">💳 Pricing & Plans</div>
+  </div>
+  <div class="win-body">
+    <div class="win-main" style="padding:0;display:block;">
+      <div class="mob-win-header">
+        <span style="font-size:22px;">💳</span>
+        <div class="mob-win-title">Pricing</div>
+      </div>
+      <div class="pricing-shell">
+        <section class="pricing-hero">
+          <div class="pricing-eyebrow">Transparent packages</div>
+          <div class="pricing-title">Choose the plan that fits your <em>teaching load</em>.</div>
+          <p class="pricing-copy">Free is enough to test TeachEd. Pro unlocks the real teacher workflow: unlimited boards, cloud sync, live sharing, exports and analytics. School adds team/admin controls.</p>
+          <div class="pricing-hero-row">
+            <span class="price-chip">Manual IBAN confirmation</span>
+            <span class="price-chip">Monthly or yearly billing</span>
+            <span class="price-chip">Admin approval queue</span>
+          </div>
+        </section>
+        <section class="pricing-grid" aria-label="TeachEd pricing plans">
+          <article class="pricing-card">
+            <div class="plan-tag">Starter</div>
+            <div class="price-name">Free</div>
+            <div class="price-line"><div class="price-amount">$0</div><div class="price-period">forever</div></div>
+            <p class="price-desc">For first setup, testing boards and trying the student flow before paid classes.</p>
+            <div class="price-limits">
+              <div class="price-limit"><b>3</b><span>boards</span></div>
+              <div class="price-limit"><b>5</b><span>students / board</span></div>
+              <div class="price-limit"><b>1</b><span>course</span></div>
+              <div class="price-limit"><b>75 MB</b><span>storage</span></div>
+            </div>
+            <ul class="price-features">
+              <li>Visual board with notes, cards and basic tools</li>
+              <li>Lesson builder and game builder drafts</li>
+              <li>Local-first saves in this browser</li>
+              <li>Basic student invites for testing</li>
+            </ul>
+            <div class="price-actions"><a class="price-btn" href="board.html">Start free →</a></div>
+          </article>
+          <article class="pricing-card pro">
+            <div class="plan-tag">Most popular</div>
+            <div class="price-name">Teacher Pro</div>
+            <div class="price-line"><div class="price-amount">$9.90</div><div class="price-period">/ month</div></div>
+            <p class="price-desc">For active teachers who run weekly lessons, share boards and need exports.</p>
+            <div class="price-limits">
+              <div class="price-limit"><b>∞</b><span>boards</span></div>
+              <div class="price-limit"><b>30</b><span>students / board</span></div>
+              <div class="price-limit"><b>20</b><span>courses</span></div>
+              <div class="price-limit"><b>1.5 GB</b><span>storage</span></div>
+            </div>
+            <ul class="price-features">
+              <li>Cloud sync and shareable board links</li>
+              <li>Live collaboration and Follow Me mode</li>
+              <li>Analytics, exports and version history</li>
+              <li>Ready lesson packs, tools and game workflows</li>
+            </ul>
+            <div class="price-actions"><a class="price-btn primary" href="profile.html#plans">Choose Pro →</a><a class="price-btn" href="profile.html#billing">Send payment for review</a></div>
+          </article>
+          <article class="pricing-card school">
+            <div class="plan-tag">Team</div>
+            <div class="price-name">School</div>
+            <div class="price-line"><div class="price-amount">$29</div><div class="price-period">/ month</div></div>
+            <p class="price-desc">For schools, small teams and admins who manage teachers, students and payments.</p>
+            <div class="price-limits">
+              <div class="price-limit"><b>∞</b><span>teachers</span></div>
+              <div class="price-limit"><b>∞</b><span>students</span></div>
+              <div class="price-limit"><b>∞</b><span>courses</span></div>
+              <div class="price-limit"><b>6 GB</b><span>storage</span></div>
+            </div>
+            <ul class="price-features">
+              <li>Everything in Teacher Pro</li>
+              <li>Admin dashboard and user plan control</li>
+              <li>Bulk invites and team-level reporting</li>
+              <li>Custom branding and priority setup support</li>
+            </ul>
+            <div class="price-actions"><a class="price-btn dark" href="profile.html#plans">Choose School →</a><a class="price-btn" href="mailto:munister@outlook.com?subject=TeachEd%20School%20plan">Contact admin</a></div>
+          </article>
+        </section>
+        <section class="pricing-compare" aria-label="Plan comparison">
+          <div class="compare-head"><div>Feature</div><div>Free</div><div>Pro</div><div>School</div></div>
+          <div class="compare-row"><div>Cloud sync</div><div class="compare-no">Local</div><div class="compare-yes">Yes</div><div class="compare-yes">Yes</div></div>
+          <div class="compare-row"><div>Live board sharing</div><div class="compare-no">No</div><div class="compare-yes">Yes</div><div class="compare-yes">Yes</div></div>
+          <div class="compare-row"><div>Exports</div><div class="compare-no">Basic</div><div class="compare-yes">Full</div><div class="compare-yes">Full</div></div>
+          <div class="compare-row"><div>Analytics</div><div class="compare-no">No</div><div class="compare-yes">Yes</div><div class="compare-yes">Team</div></div>
+          <div class="compare-row"><div>Admin controls</div><div class="compare-no">No</div><div class="compare-no">No</div><div class="compare-yes">Full</div></div>
+        </section>
+        <div class="pricing-note"><span>⚡</span><div><b>How payment works now</b>Teacher chooses Pro/School in Profile, sends IBAN payment details, then admin confirms it manually in the admin panel. Until approval, the request stays visible as pending.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- SPOTLIGHT OVERLAY -->
 <div id="spotlight-overlay" onclick="closeSpotlight(event)">
   <div id="spotlight-box">
@@ -1860,6 +2027,11 @@ html,body {
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
+    <div class="di" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
+      <div class="di-icon" style="background:linear-gradient(145deg,#101014,#EC2D8C,#CDF24F);">💳</div>
+      <div class="di-label">Pricing</div>
+      <div class="di-dot"></div>
+    </div>
     <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
       <div class="di-icon" style="background:linear-gradient(145deg,#EC2D8C,#d4267f);">👤</div>
       <div class="di-label">Profile</div>
@@ -2360,6 +2532,9 @@ const WM = (function () {
 })();
 
 function openApp(id)   { WM.open(id); }
+function openPricingFromHash() { if (['#pricing','#plans','#billing'].includes(location.hash)) setTimeout(() => openApp('pricing'), 120); }
+window.addEventListener('hashchange', openPricingFromHash);
+openPricingFromHash();
 function closeWin(id)  { WM.close(id); }
 function minWin(id)    { WM.minimize(id); }
 function maxWin(id)    { WM.maximize(id); }
@@ -2822,6 +2997,7 @@ const SP_ITEMS = [
   { icon:'✍️', iconBg:'linear-gradient(145deg,#1C1C1E,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
   { icon:'📋', iconBg:'linear-gradient(145deg,#0E0E10,#CDF24F)', title:'Lesson Builder', sub:'Build a full lesson plan', kbd:'Builder', action:()=>location.href='lesson-builder.html' },
   { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
+  { icon:'💳', iconBg:'linear-gradient(145deg,#101014,#EC2D8C,#CDF24F)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
   { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
