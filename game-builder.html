@@ -92,6 +92,12 @@ textarea{min-height:60px;resize:vertical}
 .item-counter.ok{background:var(--green-soft);color:#16a34a}
 .item-counter.warn{background:var(--orange-soft);color:#d97706}
 .item-counter.err{background:var(--red-soft);color:#dc2626}
+.quality-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.quality-metric{border:1.5px solid var(--border);border-radius:14px;background:#fff;padding:10px}
+.quality-metric b{display:block;font-size:18px;letter-spacing:-.04em}.quality-metric span{display:block;font:850 9px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:2px}
+.quality-metric.good b{color:var(--green)}.quality-metric.warn b{color:var(--orange)}.quality-metric.bad b{color:var(--red)}
+.quality-warnings{grid-column:1/-1;display:grid;gap:6px}.quality-warning{padding:8px 10px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);font-size:12px;color:#a16207;line-height:1.35}
+.smart-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.smart-pill{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:7px 12px;font:850 11px var(--font);cursor:pointer;color:var(--text2)}.smart-pill:hover{border-color:var(--pink);color:var(--pink);transform:translateY(-1px)}
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
 .game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
@@ -284,12 +290,20 @@ textarea{min-height:60px;resize:vertical}
       <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
     </div>
     <div id="item-counter" class="item-counter" style="display:none;"></div>
+    <div class="quality-panel" id="game-quality-panel" style="display:none;"></div>
+    <div class="smart-row" id="smart-row" style="display:none;">
+      <button class="smart-pill" type="button" onclick="autoFillGame()">Smart fill</button>
+      <button class="smart-pill" type="button" onclick="upgradeDifficulty()">Upgrade difficulty</button>
+      <button class="smart-pill" type="button" onclick="makeStudentFriendly()">Student-friendly wording</button>
+      <button class="smart-pill" type="button" onclick="exportCurrentGameDraft()">Export draft</button>
+    </div>
     <div class="builder-tools" id="builder-tools">
       <button class="tool-btn" type="button" onclick="smartCleanContent()">Clean duplicates</button>
       <button class="tool-btn" type="button" onclick="sortContent()">Sort A-Z</button>
       <button class="tool-btn" type="button" onclick="shuffleContent()">Shuffle</button>
       <button class="tool-btn" type="button" onclick="copyCurrentContent()">Copy content</button>
       <button class="tool-btn" type="button" onclick="clearContent()">Clear</button>
+      <button class="tool-btn" type="button" onclick="generateDistractors()">Generate distractors</button>
     </div>
     <div id="content-area"></div>
     <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
@@ -785,6 +799,8 @@ function importTeacherToolPayload() {
   document.getElementById('game-tags').value = (payload.tags || ['teacher-tools']).join(', ');
   populateContent({ content: payload.content });
   updateItemCounter();
+  renderGameQuality();
+  document.getElementById('smart-row').style.display = 'flex';
   toast('Imported from Teacher Tools');
 }
 
@@ -858,6 +874,8 @@ function useTemplate(tplId) {
   const content = getTemplateContent(tpl);
   if (content) populateContent({ content });
   updateItemCounter();
+  renderGameQuality();
+  document.getElementById('smart-row').style.display = 'flex';
   b.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1175,6 +1193,40 @@ function updateItemCounter() {
     el.className = 'item-counter err';
     el.textContent = '0 items \u2014 add content below';
   }
+  renderGameQuality();
+}
+
+function getContentStats(content) {
+  const count = getPreviewItemCount(content || {});
+  const text = JSON.stringify(content || {});
+  const avgLen = count ? Math.round(text.length / count) : 0;
+  const blanks = (text.match(/___/g) || []).length;
+  return { count, avgLen, blanks };
+}
+function gameQuality(content = collectContent(true)) {
+  if (!selectedType || !content) return null;
+  const stats = getContentStats(content);
+  const min = selectedType.fields === 'words' ? 6 : selectedType.fields === 'mcq' ? 4 : selectedType.fields === 'categories' ? 3 : 5;
+  const volume = Math.min(100, Math.round(stats.count / min * 100));
+  const variety = Math.min(100, Math.max(20, 100 - Math.max(0, stats.avgLen - 140)));
+  const playable = collectContent(false) ? 100 : Math.min(70, volume);
+  const clarity = stats.avgLen > 180 ? 62 : stats.avgLen < 8 && stats.count ? 70 : 92;
+  const warnings = [];
+  if (volume < 100) warnings.push('Add more items for a smoother game round.');
+  if (stats.avgLen > 180) warnings.push('Some items are long. Shorten wording for mobile and live board play.');
+  if (selectedType.fields === 'mcq' && content.questions?.some(q => (q.opts || []).filter(Boolean).length < 4)) warnings.push('Some MCQ questions need four options.');
+  if (selectedType.fields === 'sentences' && content.sentences?.some(x => !x.includes('___'))) warnings.push('Fill-in-the-blank works best when each sentence includes ___.');
+  if (selectedType.fields === 'categories' && content.categories?.some(c => (c.words || []).length < 3)) warnings.push('Categories should have at least three words each.');
+  return { volume, variety, playable, clarity, warnings };
+}
+function renderGameQuality() {
+  const panel = document.getElementById('game-quality-panel');
+  if (!panel || !selectedType) return;
+  const q = gameQuality();
+  if (!q) { panel.style.display = 'none'; return; }
+  panel.style.display = 'grid';
+  const metric = (name, value) => `<div class="quality-metric ${value>84?'good':value>64?'warn':'bad'}"><b>${value}%</b><span>${name}</span></div>`;
+  panel.innerHTML = metric('volume', q.volume) + metric('clarity', q.clarity) + metric('variety', q.variety) + metric('playable', q.playable) + (q.warnings.length ? `<div class="quality-warnings">${q.warnings.map(w => `<div class="quality-warning">${esc(w)}</div>`).join('')}</div>` : '');
 }
 
 /* ---- CONTENT FIELDS ---- */
@@ -1489,6 +1541,62 @@ function shuffleArray(items) {
   return [...items].sort(() => Math.random() - .5);
 }
 
+function autoFillGame() {
+  if (!selectedType) { toast('Choose a game type first'); return; }
+  const title = document.getElementById('game-title').value.trim() || selectedType.name;
+  const topic = (document.getElementById('game-tags').value || title).split(',')[0].trim() || 'English practice';
+  const words = ['challenge','solution','feedback','practice','confidence','routine','progress','mistake','example','conversation'];
+  let content = null;
+  if (selectedType.fields === 'pairs') content = { pairs: words.slice(0,8).map(w => ({ a:w, b:`${topic}: useful classroom meaning for ${w}` })) };
+  else if (selectedType.fields === 'words') content = { words: words.slice(0,10) };
+  else if (selectedType.fields === 'sentences') content = { sentences: words.slice(0,6).map(w => `Students need regular ___ to improve their ${topic.toLowerCase()}.|${w}`) };
+  else if (selectedType.fields === 'statements') content = { statements: words.slice(0,6).map((w,i) => ({ text:`${w} is useful when learning ${topic.toLowerCase()}.`, answer:i % 2 === 0 })) };
+  else if (selectedType.fields === 'mcq') content = { questions: words.slice(0,5).map((w,i) => ({ q:`Which word best completes the idea about ${topic.toLowerCase()}?`, opts:[w, words[(i+1)%words.length], words[(i+2)%words.length], words[(i+3)%words.length]], correct:0 })) };
+  else if (selectedType.fields === 'categories') content = { categories:[{name:'Learning',words:['practice','feedback','progress','mistake']},{name:'Communication',words:['conversation','example','confidence','solution']},{name:'Mindset',words:['challenge','routine','focus','goal']}] };
+  if (!content) return;
+  renderContentFields(); populateContent({ content }); updateItemCounter(); toast('Smart content generated');
+}
+function upgradeDifficulty() {
+  transformCurrentContent(content => {
+    if (content.pairs) content.pairs = content.pairs.map(p => ({ a:p.a, b:p.b + ' / Use it in a precise example.' }));
+    if (content.words) content.words = content.words.map(w => w + ' collocation');
+    if (content.sentences) content.sentences = content.sentences.map(s => s + ' Explain your choice.');
+    if (content.statements) content.statements = content.statements.map(s => ({ ...s, text:s.text + ' Give evidence.' }));
+    if (content.questions) content.questions = content.questions.map(q => ({ ...q, q:q.q + ' Choose the most accurate answer.' }));
+    return content;
+  }, 'Difficulty upgraded');
+}
+function makeStudentFriendly() {
+  transformCurrentContent(content => {
+    const clean = s => String(s||'').replace(/utilize/gi,'use').replace(/approximately/gi,'about').replace(/demonstrate/gi,'show').replace(/s+/g,' ').trim();
+    if (content.pairs) content.pairs = content.pairs.map(p => ({ a:clean(p.a), b:clean(p.b) }));
+    if (content.words) content.words = content.words.map(clean);
+    if (content.sentences) content.sentences = content.sentences.map(clean);
+    if (content.statements) content.statements = content.statements.map(s => ({ ...s, text:clean(s.text) }));
+    if (content.questions) content.questions = content.questions.map(q => ({ ...q, q:clean(q.q), opts:q.opts.map(clean) }));
+    return content;
+  }, 'Wording simplified');
+}
+function generateDistractors() {
+  if (!selectedType || selectedType.fields !== 'mcq') { toast('Distractors are for MCQ games'); return; }
+  transformCurrentContent(content => {
+    if (!content.questions) return content;
+    content.questions = content.questions.map(q => {
+      const correct = q.opts[q.correct] || q.opts[0] || 'Correct answer';
+      const base = String(correct).split(/\s+/)[0] || 'answer';
+      return { ...q, opts:[correct, base + ' mistake', 'close but wrong', 'not mentioned'], correct:0 };
+    });
+    return content;
+  }, 'Distractors generated');
+}
+function exportCurrentGameDraft() {
+  if (!selectedType) return;
+  const title = document.getElementById('game-title').value.trim() || selectedType.name;
+  const draft = { title, typeId:selectedType.id, level:document.getElementById('game-level').value, tags:document.getElementById('game-tags').value, content:collectContent(true), exportedAt:new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(draft, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'teachedos-game-draft-' + Date.now() + '.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+
 /* ---- SAVE / LOAD ---- */
 function readGames() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
@@ -1497,21 +1605,26 @@ function writeGames(games) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
   document.getElementById('my-count').textContent = games.length;
 }
-
-function saveGame() {
-  if (!selectedType) return;
+function makeGameObject() {
+  if (!selectedType) return null;
   const title = document.getElementById('game-title').value.trim();
-  if (!title) { toast('Please enter a game title'); return; }
+  if (!title) { toast('Please enter a game title'); return null; }
   const content = collectContent();
-  if (!content) { toast('Not enough content. Add more items.'); return; }
+  if (!content) { toast('Not enough content. Add more items.'); return null; }
   const level = document.getElementById('game-level').value;
   const tags = document.getElementById('game-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const game = {
+  return {
     id: editingId || 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
     typeId: selectedType.id, icon: selectedType.icon, typeName: selectedType.name,
     gameSrc: selectedType.gameSrc, w: selectedType.w, h: selectedType.h,
-    title, level, tags, content, createdAt: new Date().toISOString(),
+    title, level, tags, content, quality: gameQuality(content), createdAt: new Date().toISOString(),
   };
+}
+
+function saveGame() {
+  if (!selectedType) return;
+  const game = makeGameObject();
+  if (!game) return;
   const games = readGames();
   if (editingId) {
     const idx = games.findIndex(g => g.id === editingId);
@@ -1525,18 +1638,8 @@ function saveGame() {
 
 function saveAndAddToBoard() {
   if (!selectedType) return;
-  const title = document.getElementById('game-title').value.trim();
-  if (!title) { toast('Please enter a game title'); return; }
-  const content = collectContent();
-  if (!content) { toast('Not enough content. Add more items.'); return; }
-  const level = document.getElementById('game-level').value;
-  const tags = document.getElementById('game-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const game = {
-    id: editingId || 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
-    typeId: selectedType.id, icon: selectedType.icon, typeName: selectedType.name,
-    gameSrc: selectedType.gameSrc, w: selectedType.w, h: selectedType.h,
-    title, level, tags, content, createdAt: new Date().toISOString(),
-  };
+  const game = makeGameObject();
+  if (!game) return;
   const games = readGames();
   if (editingId) {
     const idx = games.findIndex(g => g.id === editingId);
@@ -1700,10 +1803,18 @@ function renderMyGames() {
         <button class="btn sm lime" onclick="addToBoard('${esc(g.id)}')">Add to Board</button>
         <button class="btn sm ghost" onclick="editGame('${esc(g.id)}')">Edit</button>
         <button class="btn sm ghost" onclick="duplicateGame('${esc(g.id)}')">Copy</button>
+        <button class="btn sm ghost" onclick="exportOneGame('${esc(g.id)}')">JSON</button>
         <button class="btn sm danger" onclick="deleteGame('${esc(g.id)}')">Delete</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function exportOneGame(id) {
+  const game = readGames().find(g => g.id === id);
+  if (!game) return;
+  const blob = new Blob([JSON.stringify(game, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (game.title || 'game').toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.json'; a.click(); URL.revokeObjectURL(a.href);
 }
 
 function getItemCount(game) {
