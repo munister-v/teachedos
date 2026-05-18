@@ -604,3 +604,37 @@ body:not(.board-page) select {
 .board-card::before {
   height: 3px !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE FIX — btn-primary must be lime, not pink.
+   harmony.css sets .btn-primary → var(--pink) which is wrong for
+   action buttons like "Create course". unify.css wins the cascade.
+═══════════════════════════════════════════════════════════════ */
+
+.btn-primary,
+.btn.btn-primary {
+  background: #C8E632 !important;
+  color: #1C1C1E !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(200,230,50,0.28) !important;
+}
+.btn-primary:hover,
+.btn.btn-primary:hover {
+  background: #A8C42A !important;
+  color: #1C1C1E !important;
+  transform: translateY(-1px);
+}
+
+/* ── btn-soft: neutral ink tone, not purple ── */
+.btn-soft,
+.btn.btn-soft {
+  background: rgba(94,94,74,0.08) !important;
+  color: #1C1C1E !important;
+  border: 1.5px solid rgba(94,94,74,0.20) !important;
+  box-shadow: none !important;
+}
+.btn-soft:hover,
+.btn.btn-soft:hover {
+  background: rgba(94,94,74,0.14) !important;
+  border-color: rgba(94,94,74,0.32) !important;
+}
