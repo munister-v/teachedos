@@ -2003,16 +2003,6 @@ body { font-family: var(--font) !important; }
     color: #F5F0E8 !important;
     font-family: var(--font) !important;
   }
-  .board-card {
-    background: rgba(28,28,32,0.95) !important;
-    border: 1.5px solid rgba(205,242,79,0.10) !important;
-    color: #F5F0E8 !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.30) !important;
-  }
-  .board-card:hover {
-    border-color: rgba(205,242,79,0.25) !important;
-    box-shadow: 0 8px 32px rgba(205,242,79,0.08), 0 4px 16px rgba(0,0,0,0.30) !important;
-  }
   .board-name {
     color: #F5F0E8 !important;
     font-family: var(--font) !important;
