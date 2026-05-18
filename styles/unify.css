@@ -764,3 +764,70 @@ body:not(.board-page) select {
   .lc-title { color: #F5F0E8 !important; }
   .lc-meta, .lc-dur { color: rgba(245,240,232,0.55) !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NON-OS-DESKTOP PAGE RESETS (lesson-builder, teacher-tools, etc.)
+   harmony.css @media(min-width:861px) forces dark body bg + cream
+   text + dark glass inputs globally. This is only correct for
+   index.html (which has class="os-desktop"). All other pages get
+   their light cream/white theme restored here.
+═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 861px) {
+  /* ── Body: restore light background & dark text ── */
+  body:not(.os-desktop) {
+    background-color: transparent !important;
+    color: #171719 !important;
+  }
+
+  /* ── .wrap: restore dark ink text ── */
+  body:not(.os-desktop) .wrap {
+    color: #171719 !important;
+  }
+  body:not(.os-desktop) .grid {
+    color: #171719 !important;
+  }
+
+  /* ── Form inputs / textareas / selects: restore light ── */
+  body:not(.os-desktop) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  body:not(.os-desktop) textarea,
+  body:not(.os-desktop) select,
+  body:not(.os-desktop) .form-input {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    color: #171719 !important;
+    border: 1px solid rgba(23,23,25,0.12) !important;
+    box-shadow: none !important;
+  }
+  body:not(.os-desktop) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):focus,
+  body:not(.os-desktop) textarea:focus,
+  body:not(.os-desktop) select:focus {
+    border-color: rgba(88,103,255,0.55) !important;
+    box-shadow: 0 0 0 4px rgba(88,103,255,0.10) !important;
+    background: #ffffff !important;
+  }
+  body:not(.os-desktop) input::placeholder,
+  body:not(.os-desktop) textarea::placeholder {
+    color: rgba(23,23,25,0.38) !important;
+  }
+
+  /* ── Form labels: restore visible dark label ── */
+  body:not(.os-desktop) :is(.label, .form-label, .field label, .form-field label) {
+    color: rgba(23,23,25,0.50) !important;
+  }
+
+  /* ── select options: restore light ── */
+  body:not(.os-desktop) select option {
+    background: #ffffff !important;
+    color: #171719 !important;
+  }
+
+  /* ── Panel titles / headings: restore dark ink ── */
+  body:not(.os-desktop) .panel-title,
+  body:not(.os-desktop) h1,
+  body:not(.os-desktop) h2,
+  body:not(.os-desktop) h3 {
+    color: inherit !important;
+  }
+}
