@@ -175,11 +175,179 @@ const TOOLS = [
   {id:'add-video',cat:'utility',icon:'VID',title:'Add Your Video',desc:'Attach a video link and create viewing tasks around it.',mode:'add-video'}
 ];
 const PRESET_PACKS = [
-  {title:'A2 Travel Lesson',sub:'airport, hotel, directions',tool:'lesson-pack',level:'A2',topic:'Travel problems',vocab:'airport - a place where planes arrive and leave\nhotel - a place to stay when travelling\nticket - proof that you paid for a journey\nluggage - bags you take on a trip\ndirections - instructions for finding a place',source:'A tourist arrives in a new city. The hotel reservation is correct, but the taxi driver does not understand the address. The tourist asks for help and tries to explain the problem politely.'},
-  {title:'B1 Job Interview',sub:'speaking + useful phrases',tool:'dialogue',level:'B1',topic:'Job interview',vocab:'experience - work you have done before\nstrength - something you do well\nresponsibility - something you must do\nachievement - something successful you did\nchallenge - a difficult task'},
-  {title:'B2 Environment',sub:'reading + discussion',tool:'worksheet-builder',level:'B2',topic:'Sustainable cities',vocab:'sustainable - able to continue without damage\nemissions - gases released into the air\npublic transport - buses, trains and trams\nwaste - things people throw away\nrenewable - energy that can be replaced naturally',source:'Many cities are trying to reduce emissions by improving public transport, creating bike lanes, and using renewable energy. However, these changes require money, planning, and public support.'},
-  {title:'Grammar: Present Perfect',sub:'rules + practice',tool:'grammar-rules',level:'B1',topic:'Present perfect for experience',vocab:'already - before now\never - at any time in your life\nnever - not at any time\nyet - until now\njust - a short time ago'}
-];
+  {
+    title: "A2 Travel Lesson",
+    sub: "airport, hotel, directions",
+    tool: "lesson-pack",
+    level: "A2",
+    topic: "Travel problems",
+    vocab: "airport - a place where planes arrive and leave\nhotel - a place to stay when travelling\nticket - proof that you paid for a journey\nluggage - bags you take on a trip\ndirections - instructions for finding a place",
+    source: "A tourist arrives in a new city. The hotel reservation is correct, but the taxi driver does not understand the address. The tourist asks for help and tries to explain the problem politely."
+  },
+  {
+    title: "B1 Job Interview",
+    sub: "speaking + useful phrases",
+    tool: "dialogue",
+    level: "B1",
+    topic: "Job interview",
+    vocab: "experience - work you have done before\nstrength - something you do well\nresponsibility - something you must do\nachievement - something successful you did\nchallenge - a difficult task",
+    source: "A candidate is preparing for a job interview. They need to explain their experience, describe a strength, and give an example of a challenge they solved."
+  },
+  {
+    title: "B2 Environment",
+    sub: "reading + discussion",
+    tool: "worksheet-builder",
+    level: "B2",
+    topic: "Sustainable cities",
+    vocab: "sustainable - able to continue without damage\nemissions - gases released into the air\npublic transport - buses, trains and trams\nwaste - things people throw away\nrenewable - energy that can be replaced naturally",
+    source: "Many cities are trying to reduce emissions by improving public transport, creating bike lanes, and using renewable energy. However, these changes require money, planning, and public support."
+  },
+  {
+    title: "Grammar: Present Perfect",
+    sub: "rules + practice",
+    tool: "grammar-rules",
+    level: "B1",
+    topic: "Present perfect for experience",
+    vocab: "already - before now\never - at any time in your life\nnever - not at any time\nyet - until now\njust - a short time ago",
+    source: "Students often confuse past simple and present perfect when they talk about life experience, recent news, and unfinished time periods."
+  },
+  {
+    title: "A1 Daily Routine",
+    sub: "morning, work, evening",
+    tool: "lesson-pack",
+    level: "A1",
+    topic: "Daily routine",
+    vocab: "wake up - stop sleeping\nhave breakfast - eat in the morning\ngo to work - travel to your job\ncome home - return to your house\ngo to bed - start sleeping",
+    source: "Anna wakes up at seven o clock. She has breakfast, goes to work, comes home in the evening, and goes to bed at ten."
+  },
+  {
+    title: "A1 Food Cafe",
+    sub: "ordering politely",
+    tool: "dialogue",
+    level: "A1",
+    topic: "Ordering food in a cafe",
+    vocab: "menu - a list of food and drinks\ncoffee - a hot drink\nsandwich - bread with food inside\nbill - the money you must pay\nplease - a polite word",
+    source: "A customer wants to order a sandwich and a coffee. The waiter asks a few simple questions and brings the bill."
+  },
+  {
+    title: "A2 Doctor Visit",
+    sub: "symptoms + advice",
+    tool: "worksheet-builder",
+    level: "A2",
+    topic: "At the doctor",
+    vocab: "headache - pain in your head\ncough - air comes from your throat suddenly\nfever - high body temperature\nmedicine - something you take to feel better\nappointment - a planned meeting with a doctor",
+    source: "Marta does not feel well. She has a headache and a fever, so she makes an appointment with a doctor. The doctor asks questions and gives advice."
+  },
+  {
+    title: "A2 Shopping Return",
+    sub: "store phrases",
+    tool: "dialogue",
+    level: "A2",
+    topic: "Returning an item to a shop",
+    vocab: "receipt - paper that shows what you bought\nsize - how big or small clothes are\nrefund - money you get back\nexchange - change one item for another\nfaulty - not working correctly",
+    source: "A customer bought a jacket, but the size is wrong. They go back to the shop with the receipt and ask for an exchange."
+  },
+  {
+    title: "B1 City Life",
+    sub: "pros, cons, opinions",
+    tool: "discussion",
+    level: "B1",
+    topic: "Living in a big city",
+    vocab: "crowded - full of people\nconvenient - easy and useful\ntraffic - cars and buses on roads\nopportunity - a good chance to do something\nnoise - loud or unpleasant sound",
+    source: "Big cities offer jobs, transport, restaurants, and entertainment. At the same time, they can be noisy, crowded, expensive, and stressful."
+  },
+  {
+    title: "B1 Social Media",
+    sub: "reading + debate",
+    tool: "worksheet-builder",
+    level: "B1",
+    topic: "Social media habits",
+    vocab: "scroll - move down a screen\nnotification - a message alert\nprivacy - control over personal information\ncompare - look for similarities and differences\nhabit - something you do regularly",
+    source: "Many teenagers and adults check social media several times a day. It helps people stay connected, but it can also affect sleep, attention, and confidence."
+  },
+  {
+    title: "B1 Past Storytelling",
+    sub: "narrative tenses",
+    tool: "creative-writing",
+    level: "B1",
+    topic: "Telling a story in the past",
+    vocab: "suddenly - quickly and unexpectedly\nwhile - during the time that\nrealise - understand something\ndecide - choose what to do\nfinally - at the end",
+    source: "Students practise telling a short story using past simple, past continuous, and useful sequencing words."
+  },
+  {
+    title: "B2 Remote Work",
+    sub: "business discussion",
+    tool: "discussion",
+    level: "B2",
+    topic: "Remote work and productivity",
+    vocab: "flexibility - ability to change easily\nproductivity - how much useful work is done\ncommute - travel to work\ncollaboration - working together\nboundary - a limit between two things",
+    source: "Remote work gives employees more flexibility and saves commuting time, but some teams find communication, motivation, and boundaries more difficult."
+  },
+  {
+    title: "B2 Customer Complaint",
+    sub: "business role-play",
+    tool: "dialogue",
+    level: "B2",
+    topic: "Handling a customer complaint",
+    vocab: "complaint - a statement that something is wrong\nresolve - find a solution\napologise - say sorry\ncompensation - something given after a problem\npolicy - official rule or plan",
+    source: "A customer contacts a company because a delivery arrived late and one item was damaged. The support agent needs to apologise and offer a solution."
+  },
+  {
+    title: "B2 News Article",
+    sub: "headlines + comprehension",
+    tool: "three-titles",
+    level: "B2",
+    topic: "Understanding a news article",
+    vocab: "headline - title of a news story\nsource - where information comes from\nevidence - facts that support an idea\nclaim - something someone says is true\nbias - unfair preference for one side",
+    source: "A local newspaper reports that public transport use has increased after the city introduced cheaper monthly passes and more reliable evening buses."
+  },
+  {
+    title: "C1 Academic Debate",
+    sub: "argument + nuance",
+    tool: "discussion",
+    level: "C1",
+    topic: "Should universities use AI tools?",
+    vocab: "ethical - connected with right and wrong\naccountability - responsibility for decisions\nplagiarism - using someone else s work as your own\ncritical thinking - careful independent judgement\nimplementation - putting a plan into action",
+    source: "Universities are debating how AI tools should be used in academic work. Some teachers see them as useful assistants, while others worry about plagiarism and shallow thinking."
+  },
+  {
+    title: "C1 Climate Policy",
+    sub: "advanced vocabulary",
+    tool: "essential-vocab",
+    level: "C1",
+    topic: "Climate policy and economics",
+    vocab: "incentive - something that encourages action\nregulation - official rule\ntransition - change from one system to another\nsubsidy - money from government to support something\ntrade-off - balance between two competing things",
+    source: "Climate policy often involves trade-offs between economic growth, energy security, and environmental protection. Governments use regulations, subsidies, and incentives to influence behaviour."
+  },
+  {
+    title: "IELTS Speaking Part 2",
+    sub: "cue card builder",
+    tool: "creative-writing",
+    level: "B2",
+    topic: "Describe a memorable journey",
+    vocab: "memorable - easy to remember\ndestination - place you travel to\nunexpected - not planned\nimpression - feeling or opinion\nrecommend - say something is good",
+    source: "Students prepare a two-minute IELTS-style answer with a clear beginning, details, personal feelings, and a short conclusion."
+  },
+  {
+    title: "TOEFL Campus Listening",
+    sub: "notes + questions",
+    tool: "media-questions",
+    level: "B2",
+    topic: "Campus announcement and student conversation",
+    vocab: "deadline - final time to do something\nregister - officially sign up\nrequirement - something necessary\noption - choice\nconfirm - check that something is true",
+    source: "Student A: Did you hear that the registration deadline changed? Student B: No, what happened? Student A: The department extended it until Friday because the online system was down."
+  },
+  {
+    title: "Kids: Animals",
+    sub: "games + matching",
+    tool: "word-image-match",
+    level: "A1",
+    topic: "Animals and actions",
+    vocab: "cat - small pet animal\ndog - friendly pet animal\nbird - animal that can fly\nfish - animal that lives in water\nrabbit - small animal with long ears",
+    source: "Children learn animal names and simple actions: run, jump, swim, fly, sleep."
+  }
+]
+
 const CATS = ['all','favorites','reading','vocabulary','writing','speaking','grammar','listening','utility'];
 const CAT_NAMES = {all:'All',favorites:'Favorites',reading:'Reading',vocabulary:'Vocabulary',writing:'Writing',speaking:'Speaking',grammar:'Grammar',listening:'Listening',utility:'Utility'};
 let currentCat = 'all';
