@@ -42,6 +42,94 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   0. CANONICAL TYPOGRAPHY + LIGHT THEME LOCK
+   Dark mode retired — force cream+lime everywhere.
+   SF Pro (Apple system) is the single typeface; Fraunces falls
+   back to SF Pro Display so headings stay in the same family.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Override harmony.css's Manrope/Fraunces with the SF Pro stack */
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif !important;
+  --font-sans:  -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif !important;
+  --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif !important;
+  --font-mono:  'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace !important;
+
+  /* Cream-light surface palette — same on every page */
+  --bg:         #F5F0E8 !important;
+  --bg-2:       #EDE8E0 !important;
+  --bg2:        #EDE8E0 !important;
+  --cream:      #F5F0E8 !important;
+  --card:       #FFFFFF !important;
+  --text:       #0E0E10 !important;
+  --text-2:     #3A3A2E !important;
+  --text-3:     #7A7A6A !important;
+  --text2:      #3A3A2E !important;
+  --text3:      #7A7A6A !important;
+  --border:     rgba(14,14,16,0.08) !important;
+  --border-2:   rgba(14,14,16,0.16) !important;
+  --border2:    rgba(14,14,16,0.16) !important;
+  --line:       rgba(14,14,16,0.08) !important;
+  --line2:      rgba(14,14,16,0.16) !important;
+  --ink:        #0E0E10 !important;
+  --ink2:       #1C1C1E !important;
+  --ink3:       #6A6A5A !important;
+}
+
+/* Neuter any stray [data-theme="dark"] still applied at runtime —
+   variables fall back to the cream palette above. */
+html[data-theme="dark"],
+:root[data-theme="dark"] {
+  --bg:         #F5F0E8 !important;
+  --bg-2:       #EDE8E0 !important;
+  --bg2:        #EDE8E0 !important;
+  --cream:      #F5F0E8 !important;
+  --card:       #FFFFFF !important;
+  --text:       #0E0E10 !important;
+  --text-2:     #3A3A2E !important;
+  --text-3:     #7A7A6A !important;
+  --ink:        #0E0E10 !important;
+  --ink2:       #1C1C1E !important;
+  --u-card:     #FFFFFF !important;
+  --u-ink-soft: rgba(14, 14, 16, 0.06) !important;
+  --u-ink-line: rgba(14, 14, 16, 0.08) !important;
+  --u-ink-line2:rgba(14, 14, 16, 0.14) !important;
+}
+
+html, body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: var(--font) !important;
+  font-weight: 500;
+  letter-spacing: -0.011em;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Every text element inherits the same family — kills harmony.css Manrope override */
+body, button, input, select, textarea,
+.nav-link, .nav-logo-name, .nav-user,
+h1, h2, h3, h4, h5, h6,
+.section-h, .page-title, .tb-title, .card-title,
+.stat-val, .stat-lbl, .badge, .chip, .btn, .mini-btn {
+  font-family: var(--font) !important;
+}
+
+/* Headlines previously set to Fraunces serif — now SF Pro Display, kept tight */
+.page-title, .section-title,
+h1, h2, h3,
+[style*="font-family:Fraunces"],
+[style*="font-family: Fraunces"],
+[style*="font-family:'Fraunces'"],
+[style*='font-family:"Fraunces"'] {
+  font-family: var(--font-serif) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    1. PRIMARY ACTION BUTTONS — ink default, lime emphasis
 ═══════════════════════════════════════════════════════════════ */
 

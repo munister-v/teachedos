@@ -1,19 +1,19 @@
-// TeachedOS shared theme manager
-(function() {
-  const stored = localStorage.getItem('teachedos_theme');
-  const theme = stored || 'light';
-  if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+// TeachEd shared theme manager — light cream + lime is the single canonical theme.
+// Dark mode was retired; this script clears any lingering dark preference
+// so that returning users no longer see a half-applied dark UI.
+(function () {
+  try {
+    if (localStorage.getItem('teachedos_theme') === 'dark') {
+      localStorage.removeItem('teachedos_theme');
+    }
+  } catch (e) { /* private mode / storage disabled */ }
 
-  // Expose toggle for profile page
-  window.__themeToggle = function() {
-    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : '');
-    localStorage.setItem('teachedos_theme', next);
-    return next;
-  };
+  // Remove any stale [data-theme="dark"] attribute applied before this script ran.
+  if (document.documentElement.getAttribute('data-theme') === 'dark') {
+    document.documentElement.removeAttribute('data-theme');
+  }
 
-  window.__themeGet = function() {
-    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  };
+  // Stubs for any legacy callers (toggle is now a no-op).
+  window.__themeToggle = function () { return 'light'; };
+  window.__themeGet    = function () { return 'light'; };
 })();
