@@ -472,8 +472,55 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
    Scoped precisely so index.html OS wallpaper stays untouched.
 ═══════════════════════════════════════════════════════════════ */
 
-/* 1. Community hero-card + share-card: force light on cream bg
-      (harmony.css @min-width:861 makes these dark glass — wrong on community) */
+/* 1a. teacher-tools / lesson-builder: hero-card and hero-side are intentionally
+       dark (#181818). Restore dark bg + white text.
+       Uses body:not(.os-desktop) prefix → specificity (0,3,1) beats the
+       community rule below at (0,3,0) so this always wins on non-OS pages. */
+@media (min-width: 861px) {
+  body:not(.os-desktop) .hero-inner .hero-card,
+  body:not(.os-desktop) .hero-in    .hero-side {
+    background: #181818 !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 18px 44px rgba(24,24,24,.22) !important;
+  }
+  body:not(.os-desktop) .hero-inner .hero-card *,
+  body:not(.os-desktop) .hero-in    .hero-side * {
+    color: rgba(255,255,255,0.86) !important;
+  }
+  body:not(.os-desktop) .hero-inner .hero-card .small {
+    color: rgba(255,255,255,0.55) !important;
+  }
+  /* .btn.ghost inside these dark cards → keep cream style */
+  body:not(.os-desktop) .hero-inner .hero-card .btn.ghost,
+  body:not(.os-desktop) .hero-in    .hero-side .btn.ghost,
+  body:not(.os-desktop) .hero-actions .btn.ghost {
+    background: rgba(255,255,255,0.10) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,0.20) !important;
+  }
+}
+
+/* 1a-2. .btn.ghost on light non-OS-desktop pages: restore dark ink text.
+   harmony.css @min-width:861 forces cream text on ALL .btn.ghost globally.
+   On light-background pages this makes ghost buttons invisible. */
+@media (min-width: 861px) {
+  body:not(.os-desktop) .btn.ghost:not(.hero-actions .btn.ghost):not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
+    background: rgba(255,255,255,0.90) !important;
+    color: #1C1C1E !important;
+    border: 1px solid rgba(14,14,16,0.16) !important;
+  }
+  body:not(.os-desktop) .btn.ghost:hover:not(.hero-actions .btn.ghost):not(.hero-inner .btn.ghost) {
+    background: rgba(200,230,50,0.12) !important;
+    border-color: rgba(200,230,50,0.40) !important;
+    color: #1C1C1E !important;
+  }
+}
+
+/* 1b. Community hero-card + share-card: force light on cream bg
+      (harmony.css @min-width:861 makes these dark glass — wrong on community)
+      Note: .hero-inner .hero-card rule above has higher specificity and
+      comes later → it overrides these light rules for teacher-tools pages. */
 @media (min-width: 861px) {
   .hero-card:not(.ink):not(.dark) {
     background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(237,232,224,.84)) !important;

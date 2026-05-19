@@ -557,16 +557,26 @@ async function openCreateModal() {
   boardSel.innerHTML = '<option value="">— Choose a board —</option>' + boards.map(b => '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join('');
   document.getElementById('f-cards').innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
   document.getElementById('f-cards-count').textContent = '';
-  await loadStudents();
+  // Students — load in background, show modal immediately
+  document.getElementById('f-students').innerHTML =
+    '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Loading students…</div>';
   document.getElementById('create-overlay').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 50);
+  loadStudents(); // fire-and-forget
 }
 function closeCreateModal() { document.getElementById('create-overlay').classList.remove('open'); }
 async function loadStudents() {
   if (offlineMode || !token) { students = readLocal(LOCAL_STUDENTS_KEY, seedStudents()); renderStudentList(); return; }
   try {
     const seen = new Map();
-    for (const b of boards) { try { const r = await api('/api/members/' + b.id); (r.members || []).forEach(m => { if (!seen.has(m.user_id || m.id)) seen.set(m.user_id || m.id, m); }); } catch {} }
+    await Promise.all(boards.map(async b => {
+      try {
+        const r = await api('/api/members/' + b.id);
+        (r.members || []).forEach(m => {
+          if (!seen.has(m.user_id || m.id)) seen.set(m.user_id || m.id, m);
+        });
+      } catch {}
+    }));
     students = Array.from(seen.values());
     if (!students.length) students = readLocal(LOCAL_STUDENTS_KEY, seedStudents());
     renderStudentList();
