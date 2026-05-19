@@ -3386,40 +3386,54 @@ function showAuthOverlay() {
     overlay = document.createElement('div');
     overlay.id = 'os-auth-overlay';
     overlay.style.cssText = `
-      position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;display:flex;align-items:flex-start;justify-content:center;
+      position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;
+      display:flex;align-items:center;justify-content:center;
       background:url('desktop-wallpaper-space-cat.png') center center / cover no-repeat;
-      overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(24px,5vh) 16px 32px;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;
     `;
     overlay.innerHTML = `
-      <div style="background:rgba(255,255,255,0.82);backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-radius:28px;padding:clamp(28px,7vw,44px) clamp(20px,6vw,40px) clamp(24px,6vw,36px);width:min(420px,calc(100vw - 32px));max-width:100%;box-shadow:0 40px 100px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.7);position:relative;z-index:1;border:1px solid rgba(255,255,255,.45);">
-        <div style="text-align:center;margin-bottom:32px;">
-          <div style="line-height:1;margin-bottom:14px;"><img src="logo.png" alt="TeachEd" style="width:72px;height:72px;border-radius:16px;filter:drop-shadow(0 4px 16px rgba(200,230,74,.35));"></div>
-          <div style="font-size:2.1rem;font-weight:900;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:2px;">
-            <span style="color:#0E0E10;">Teach</span><span style="background:linear-gradient(135deg,#CDF24F 0%,#A8C42A 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 1px 6px rgba(200,230,50,.35));">Ed</span>
+      <div style="
+        background:rgba(245,243,240,0.90);
+        backdrop-filter:blur(40px) saturate(2);-webkit-backdrop-filter:blur(40px) saturate(2);
+        border-radius:28px;
+        padding:36px 36px 28px;
+        width:min(400px,calc(100vw - 32px));
+        max-width:100%;
+        box-shadow:0 48px 120px rgba(0,0,0,0.40),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);
+        border:1px solid rgba(255,255,255,.6);
+        position:relative;z-index:1;
+        margin:auto;
+      ">
+        <div style="text-align:center;margin-bottom:28px;">
+          <div style="margin-bottom:12px;">
+            <img src="logo.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
           </div>
-          <div id="os-auth-sub" style="font-size:.82rem;color:#8A8A7A;margin-top:10px;font-weight:600;letter-spacing:.01em;">Sign in to your workspace</div>
+          <div style="font-size:2rem;font-weight:900;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:6px;">
+            <span style="color:#0E0E10;">Teach</span><span style="color:#5C8500;font-weight:900;">Ed</span>
+          </div>
+          <div id="os-auth-sub" style="font-size:13px;color:#5A5A4A;margin-top:0;font-weight:600;letter-spacing:.005em;">Sign in to your workspace</div>
         </div>
-        <div id="os-auth-err" style="display:none;background:rgba(255,245,245,.9);border:1.5px solid rgba(239,68,68,.2);border-radius:12px;padding:10px 14px;font-size:.85rem;color:#c62828;margin-bottom:14px;font-weight:600;backdrop-filter:blur(8px);"></div>
+        <div id="os-auth-err" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
-          <div style="font-size:10px;font-weight:700;color:#A2A28C;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="font-size:10px;font-weight:700;color:#7A7A6A;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:16px 8px;border-radius:16px;border:2px solid #C8E64A;background:rgba(200,230,74,.10);cursor:pointer;text-align:center;transition:.2s;backdrop-filter:blur(8px);">
-              <div style="font-size:1.8rem;line-height:1;margin-bottom:5px;">🧑‍🏫</div>
+            <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:14px 8px;border-radius:14px;border:2px solid #8DB800;background:rgba(141,184,0,.10);cursor:pointer;text-align:center;transition:.2s;">
+              <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
               <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
-              <div style="font-size:10px;color:#A2A28C;margin-top:2px;">Create &amp; manage</div>
+              <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create &amp; manage</div>
             </div>
-            <div id="role-student" onclick="selectOsRole('student')" style="padding:16px 8px;border-radius:16px;border:2px solid rgba(94,94,74,.14);background:rgba(245,240,232,.6);cursor:pointer;text-align:center;transition:.2s;backdrop-filter:blur(8px);">
-              <div style="font-size:1.8rem;line-height:1;margin-bottom:5px;">🎓</div>
+            <div id="role-student" onclick="selectOsRole('student')" style="padding:14px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(245,240,232,.7);cursor:pointer;text-align:center;transition:.2s;">
+              <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
               <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
-              <div style="font-size:10px;color:#A2A28C;margin-top:2px;">Learn &amp; progress</div>
+              <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Learn &amp; progress</div>
             </div>
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#2D2D2D,#1a1a1a);color:#C8E64A;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px;transition:filter .15s,transform .15s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 24px rgba(45,45,45,.30),inset 0 1px 0 rgba(255,255,255,.1);">Sign in</button>
-        <div style="text-align:center;margin-top:18px;font-size:.85rem;color:#A2A28C;font-weight:600;">
+        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:#5A5A4A;font-weight:500;">
           <span id="os-toggle-text">Don't have an account?</span>
-          <button type="button" onclick="toggleOsAuth()" style="color:#2D2D2D;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;" id="os-toggle-link">Register</button>
+          <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
