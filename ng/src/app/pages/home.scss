@@ -19,11 +19,9 @@ html,body {
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(200,230,50,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 85% 75%, rgba(28,28,30,.09) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 10%, rgba(200,230,50,.07) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 60% at 60% 90%, rgba(99,102,241,.05) 0%, transparent 60%),
-    linear-gradient(160deg, #F5F0E8 0%, #EDE8E0 35%, #F0EBE3 70%, #F5F0E8 100%);
+    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(255,182,213,.18) 0%, transparent 60%),
+    linear-gradient(160deg, #FFFFFF 0%, #FFF7FB 48%, #FDEBF4 100%);
 }
 @keyframes desktopIn { from{opacity:0} to{opacity:1} }
 
@@ -34,17 +32,17 @@ html,body {
 }
 .blob1 {
   width:500px; height:500px; top:-120px; left:-80px;
-  background:radial-gradient(circle, rgba(200,230,50,.14), transparent 70%);
+  background:radial-gradient(circle, rgba(255,210,229,.36), transparent 70%);
   animation: blobFloat1 18s ease-in-out infinite;
 }
 .blob2 {
   width:400px; height:400px; bottom:-100px; right:-60px;
-  background:radial-gradient(circle, rgba(28,28,30,.14), transparent 70%);
+  background:radial-gradient(circle, rgba(236,45,140,.12), transparent 70%);
   animation: blobFloat2 22s ease-in-out infinite;
 }
 .blob3 {
   width:350px; height:350px; top:35%; left:45%;
-  background:radial-gradient(circle, rgba(200,230,50,.12), transparent 70%);
+  background:radial-gradient(circle, rgba(255,245,249,.50), transparent 70%);
   animation: blobFloat3 20s ease-in-out infinite;
 }
 @keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,30px) scale(1.05)} 66%{transform:translate(-20px,50px) scale(.95)} }
