@@ -336,12 +336,88 @@ function copyPostLink(postId) {
 }
 
 // ── Import board snapshot → open board.html with data ─────────
+let _pendingImport = null; // { type: 'board'|'game', encoded?, src?, title?, name?, cardCount? }
+
+function openImportModal(type, data) {
+  _pendingImport = { type, ...data };
+
+  // Populate board selector from share-board
+  const srcSel = document.getElementById('share-board');
+  const destSel = document.getElementById('import-board-sel');
+  destSel.innerHTML = '<option value="__new__">✦ Create new board</option>';
+  if (srcSel) {
+    Array.from(srcSel.options).forEach(o => {
+      if (o.value && o.value !== '') {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.textContent;
+        destSel.appendChild(opt);
+      }
+    });
+  }
+
+  // Update title/subtitle
+  if (type === 'board') {
+    document.getElementById('import-modal-title').textContent = `Import "${data.name}"`;
+    document.getElementById('import-modal-sub').textContent = `${data.cardCount} card${data.cardCount !== 1 ? 's' : ''} · choose a board to import into`;
+  } else {
+    document.getElementById('import-modal-title').textContent = `Add game to board`;
+    document.getElementById('import-modal-sub').textContent = `"${data.title}" · choose which board`;
+  }
+  updateImportHint();
+
+  const ov = document.getElementById('import-overlay');
+  ov.style.display = 'flex';
+}
+
+function updateImportHint() {
+  const sel = document.getElementById('import-board-sel');
+  const hint = document.getElementById('import-board-hint');
+  const btn = document.getElementById('import-confirm-btn');
+  if (sel.value === '__new__') {
+    hint.textContent = 'Cards will be added to a fresh board';
+    btn.textContent = 'Import to new board →';
+  } else {
+    const name = sel.options[sel.selectedIndex]?.text?.split(' · ')[0] || 'selected board';
+    hint.textContent = `Cards will be added to "${name}"`;
+    btn.textContent = `Import to "${name}" →`;
+  }
+}
+
+function closeImportModal() {
+  document.getElementById('import-overlay').style.display = 'none';
+  _pendingImport = null;
+}
+
+function confirmImport() {
+  if (!_pendingImport) return;
+  const sel = document.getElementById('import-board-sel');
+  const boardId = sel.value;
+
+  if (_pendingImport.type === 'board') {
+    const url = boardId === '__new__'
+      ? 'board.html?communityImport=' + _pendingImport.encoded
+      : 'board.html?boardId=' + encodeURIComponent(boardId) + '&communityImport=' + _pendingImport.encoded;
+    window.location.href = url;
+  } else {
+    sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify({ src: _pendingImport.src, title: _pendingImport.title }));
+    const url = boardId === '__new__'
+      ? 'board.html?addCustomGame=1'
+      : 'board.html?boardId=' + encodeURIComponent(boardId) + '&addCustomGame=1';
+    window.location.href = url;
+  }
+}
+
 function importBoard(postId) {
   const post = findPost(postId);
   if (!post?.snapshot) { toast('No board data available'); return; }
   const encoded = encodeSnapshot(post.snapshot);
   if (!encoded) { toast('Could not encode board'); return; }
-  window.location.href = 'board.html?communityImport=' + encoded;
+  openImportModal('board', {
+    name: post.title || 'Community board',
+    cardCount: post.snapshot?.cards?.length || 0,
+    encoded,
+  });
 }
 
 // ── Check URL for ?import= param (someone pasted a share link) ─
@@ -489,12 +565,30 @@ function renderCommunityGames() {
 }
 
 function addGameToBoard(src, title) {
-  sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify({ src, title }));
-  window.location.href = 'board.html?addCustomGame=1';
+  openImportModal('game', { src, title });
 }
 
 loadBoards();
 </script>
+<!-- IMPORT PICKER MODAL -->
+<div id="import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);z-index:9998;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeImportModal()">
+  <div style="background:#fff;border-radius:24px;padding:28px;width:min(440px,100%);box-shadow:0 32px 80px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.5);">
+    <div style="font-size:18px;font-weight:900;margin-bottom:6px;color:#1C1C1E;" id="import-modal-title">Import board</div>
+    <div style="font-size:13px;color:#7A7A6A;margin-bottom:20px;" id="import-modal-sub">Choose which board to import into</div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#A2A28C;margin-bottom:8px;">Import into</div>
+    <select id="import-board-sel" onchange="updateImportHint()" style="width:100%;border:1.5px solid rgba(94,94,74,.18);border-radius:12px;padding:11px 12px;font-size:13px;font-weight:600;background:#F9F8F6;color:#1C1C1E;margin-bottom:6px;outline:none;">
+      <option value="__new__">✦ Create new board</option>
+    </select>
+    <div style="font-size:12px;color:#A2A28C;margin-bottom:20px;" id="import-board-hint">Cards will be added to a fresh board</div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button onclick="closeImportModal()" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid rgba(94,94,74,.18);background:transparent;font-size:14px;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
+      <button id="import-confirm-btn" onclick="confirmImport()" style="flex:2;padding:13px;border-radius:13px;border:none;background:#1C1C1E;color:#C8E632;font-size:14px;font-weight:900;cursor:pointer;">Import →</button>
+    </div>
+  </div>
+</div>
+
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
 <script src="scripts/mobile-zoom-guard.js"></script>
