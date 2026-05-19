@@ -158,6 +158,7 @@
     color: var(--mp-text);
     letter-spacing: -0.02em;
     line-height: 1.1;
+    transition: opacity 0.2s ease;
   }
   .mp-topbar-actions {
     display: flex;
@@ -368,6 +369,7 @@
     letter-spacing: -0.04em;
     color: var(--mp-text);
     line-height: 1;
+    transition: opacity 0.25s ease;
   }
   .mp-stat-sub {
     font-size: 11px;

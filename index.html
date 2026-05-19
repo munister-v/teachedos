@@ -17,6 +17,19 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>TeachEd — Language Learning Platform</title>
+<!-- Prevent flash of unstyled content before auth check -->
+<style>html { opacity: 0; } html.auth-ready { opacity: 1; transition: opacity 0.22s ease; }</style>
+<script>
+  // Synchronous token check — if no token, we'll show overlay immediately
+  (function() {
+    const t = localStorage.getItem('teachedos_token');
+    if (!t) {
+      // No token: reveal page immediately (overlay will cover it)
+      document.documentElement.classList.add('auth-ready');
+    }
+    // Has token: keep hidden until auth resolves (avoids placeholder flash)
+  })();
+</script>
 <meta name="description" content="TeachEd is a classroom operating system for language teachers: lesson boards, courses, schedule, journal, gradebook, analytics and learning games in one PWA."/>
 <link rel="canonical" href="https://munister.com.ua/teachedos/"/>
 <meta property="og:type" content="website"/>
@@ -2176,7 +2189,17 @@ function updateMobileTeacherOverview() {
     const today = new Date();
     const dayStr = `${dayNames[today.getDay()]} · ${monthNames[today.getMonth()]} ${today.getDate()}`;
 
-    const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    const setText = (id, t) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.textContent === t) return;
+      // Smooth cross-fade for value changes
+      el.style.opacity = '0';
+      requestAnimationFrame(() => {
+        el.textContent = t;
+        el.style.opacity = '1';
+      });
+    };
     setText('mp-avatar', (initials + lastInitial) || 'T');
     setText('mp-greeting-meta', dayStr);
     setText('mp-greeting-name', `Hi, ${firstName}`);
@@ -3286,6 +3309,7 @@ async function checkAuthAndRoute() {
 
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
+    revealPage();
     if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
@@ -3295,8 +3319,21 @@ async function checkAuthAndRoute() {
       location.href = 'student.html';
       return;
     }
-    // Default: show desktop for teacher
+    // Default: show desktop for teacher (offline/network error)
     applyUserToDesktop({ name: 'Teacher', avatar: '🧑‍🏫', role: 'teacher' });
+    revealPage();
+    // Show offline sign-in prompt on mobile
+    const mpActions = document.getElementById('mp-offline-signin');
+    if (!mpActions) {
+      const btn = document.createElement('button');
+      btn.id = 'mp-offline-signin';
+      btn.textContent = '⚡ Sign in';
+      btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#1C1C1E;color:#C8E632;border:none;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(14,14,16,.25);display:none;';
+      btn.onclick = () => { localStorage.removeItem('teachedos_token'); showAuthOverlay(); btn.remove(); };
+      document.body.appendChild(btn);
+      // Show only on mobile
+      if (window.innerWidth < 861) btn.style.display = 'block';
+    }
   }
 }
 
@@ -3338,15 +3375,20 @@ function applyUserToDesktop(user) {
   setTimeout(loadNotifications, 1500);
 }
 
+function revealPage() {
+  document.documentElement.classList.add('auth-ready');
+}
+
 function showAuthOverlay() {
+  revealPage(); // Ensure page is visible (overlay will cover content)
   let overlay = document.getElementById('os-auth-overlay');
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'os-auth-overlay';
     overlay.style.cssText = `
-      position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;display:flex;align-items:center;justify-content:center;
+      position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;display:flex;align-items:flex-start;justify-content:center;
       background:url('desktop-wallpaper-space-cat.png') center center / cover no-repeat;
-      overflow:auto;padding:16px;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(24px,5vh) 16px 32px;
     `;
     overlay.innerHTML = `
       <div style="background:rgba(255,255,255,0.82);backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-radius:28px;padding:clamp(28px,7vw,44px) clamp(20px,6vw,40px) clamp(24px,6vw,36px);width:min(420px,calc(100vw - 32px));max-width:100%;box-shadow:0 40px 100px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.7);position:relative;z-index:1;border:1px solid rgba(255,255,255,.45);">
