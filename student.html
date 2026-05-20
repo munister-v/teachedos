@@ -584,7 +584,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div class="live-title">🔴 Live Now — Your teacher is online!</div>
           <div class="live-sub" id="live-class-name">Class in progress</div>
         </div>
-        <a class="live-join" id="live-join-btn" href="#" target="_blank">Join →</a>
+        <a class="live-join" id="live-join-btn" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1">Join →</a>
       </div>
 
       <!-- Welcome -->
@@ -1106,8 +1106,17 @@ async function checkLiveSessions() {
     if (nameEl) nameEl.textContent = `${session.teacher_name || 'Your teacher'} — ${session.title || 'Class in progress'}`;
     const btn = document.getElementById('live-join-btn');
     if (btn) {
-      if (session.meeting_url) { btn.href = session.meeting_url; btn.style.display = ''; }
-      else btn.style.display = 'none';
+      if (session.meeting_url) {
+        btn.href = session.meeting_url;
+        btn.setAttribute('aria-disabled', 'false');
+        btn.removeAttribute('tabindex');
+        btn.style.display = '';
+      } else {
+        btn.removeAttribute('href');
+        btn.setAttribute('aria-disabled', 'true');
+        btn.setAttribute('tabindex', '-1');
+        btn.style.display = 'none';
+      }
     }
     if (session.id !== _lastLiveId) {
       _lastLiveId = session.id;

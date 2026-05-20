@@ -1806,7 +1806,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:linear-gradient(90deg,#C8E632,#C8E632);color:#1C1C1E;padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:700;box-shadow:0 4px 18px rgba(232,53,122,.35);">
     <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;animation:pulse-dot 1.2s infinite;flex-shrink:0;font-size:0;line-height:0;">&nbsp;</span>
     <span id="board-live-label">Your teacher is live now</span>
-    <a id="board-live-join" href="#" target="_blank" style="margin-left:auto;background:#fff;color:#C8E632;padding:5px 14px;border-radius:8px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
+    <a id="board-live-join" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1" style="margin-left:auto;background:#fff;color:#C8E632;padding:5px 14px;border-radius:8px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
     <button onclick="document.getElementById('board-live-banner').style.display='none'" style="border:none;background:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">×</button>
   </div>
   <!-- Board canvas -->
@@ -6741,8 +6741,17 @@ async function checkBoardLive() {
       _boardOwnerMeetingUrl = s.meeting_url || null;
       if (label) label.textContent = `${s.teacher_name || 'Your teacher'} is live — ${s.title || 'Class in progress'}`;
       if (joinBtn) {
-        if (s.meeting_url) { joinBtn.href = s.meeting_url; joinBtn.style.display = ''; }
-        else joinBtn.style.display = 'none';
+        if (s.meeting_url) {
+          joinBtn.href = s.meeting_url;
+          joinBtn.setAttribute('aria-disabled', 'false');
+          joinBtn.removeAttribute('tabindex');
+          joinBtn.style.display = '';
+        } else {
+          joinBtn.removeAttribute('href');
+          joinBtn.setAttribute('aria-disabled', 'true');
+          joinBtn.setAttribute('tabindex', '-1');
+          joinBtn.style.display = 'none';
+        }
       }
       banner.style.display = 'flex';
       // Update the call button in toolbar too

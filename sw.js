@@ -1,44 +1,54 @@
-const CACHE = 'teachedos-v41';
+const CACHE = 'teachedos-v42';
+const BASE_PATH = new URL(self.registration.scope).pathname;
+const base = path => new URL(path, self.registration.scope).pathname;
 
 const SHELL = [
-  '/teachedos/',
-  '/teachedos/index.html',
-  '/teachedos/schedule.html',
-  '/teachedos/gradebook.html',
-  '/teachedos/journal.html',
-  '/teachedos/profile.html',
-  '/teachedos/student.html',
-  '/teachedos/courses.html',
-  '/teachedos/homework.html',
-  '/teachedos/homework-do.html',
-  '/teachedos/teacher-tools.html',
-  '/teachedos/lesson-builder.html',
-  '/teachedos/portal.html',
-  '/teachedos/admin.html',
-  '/teachedos/analytics.html',
-  '/teachedos/board.html',
-  '/teachedos/invite.html',
-  '/teachedos/lesson-packs.html',
-  '/teachedos/landing.html',
-  '/teachedos/billing-success.html',
-  '/teachedos/offline.html',
-  '/teachedos/manifest.json',
-  '/teachedos/styles/tokens.css',
-  '/teachedos/styles/main.css',
-  '/teachedos/styles/games-base.css',
-  '/teachedos/styles/mobile-pro.css',
-  '/teachedos/styles/harmony.css',
-  '/teachedos/pwa.js',
-  '/teachedos/theme.js',
-  '/teachedos/scripts/app-core.js',
-  '/teachedos/scripts/mobile-nav.js',
-  '/teachedos/scripts/nav-boost.js',
-  '/teachedos/scripts/mobile-perf.js',
-  '/teachedos/scripts/teachedos-app.js',
-  '/teachedos/icons/icon-192.png',
-  '/teachedos/icons/icon-512.png',
-  '/teachedos/logo.png',
-];
+  '',
+  'index.html',
+  'schedule.html',
+  'gradebook.html',
+  'journal.html',
+  'profile.html',
+  'student.html',
+  'courses.html',
+  'homework.html',
+  'homework-do.html',
+  'teacher-tools.html',
+  'lesson-builder.html',
+  'portal.html',
+  'admin.html',
+  'analytics.html',
+  'board.html',
+  'invite.html',
+  'lesson-packs.html',
+  'landing.html',
+  'billing-success.html',
+  'offline.html',
+  'manifest.json',
+  'styles/tokens.css',
+  'styles/main.css',
+  'styles/games-base.css',
+  'styles/mobile-pro.css',
+  'styles/mobile-guard.css',
+  'styles/harmony.css',
+  'styles/unify.css',
+  'pwa.js',
+  'theme.js',
+  'scripts/app-core.js',
+  'scripts/mobile-nav.js',
+  'scripts/nav-boost.js',
+  'scripts/mobile-perf.js',
+  'scripts/mobile-zoom-guard.js',
+  'scripts/teachedos-app.js',
+  'scripts/teachedos-data.js',
+  'scripts/teachedos-curriculum.js',
+  'scripts/vocabulary.js',
+  'scripts/games-data.js',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'logo.png',
+  'desktop-wallpaper-space-cat.png',
+].map(base);
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -57,13 +67,13 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('push', e => {
-  let data = { title: 'TeachEd', body: 'You have a new notification', url: '/teachedos/' };
+  let data = { title: 'TeachEd', body: 'You have a new notification', url: BASE_PATH };
   try { data = { ...data, ...e.data.json() }; } catch {}
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/teachedos/icons/icon-192.png',
-      badge: '/teachedos/icons/icon-192.png',
+      icon: base('icons/icon-192.png'),
+      badge: base('icons/icon-192.png'),
       data: { url: data.url },
       vibrate: [200, 100, 200],
     })
@@ -72,7 +82,7 @@ self.addEventListener('push', e => {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = e.notification.data?.url || '/teachedos/';
+  const url = e.notification.data?.url || BASE_PATH;
   e.waitUntil(clients.openWindow(url));
 });
 
@@ -101,7 +111,7 @@ self.addEventListener('fetch', e => {
             caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
           }
           return resp;
-        }).catch(() => cached || caches.match('/teachedos/offline.html'));
+        }).catch(() => cached || caches.match(base('offline.html')));
         return cached || fresh;
       })
     );
