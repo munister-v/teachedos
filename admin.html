@@ -477,6 +477,101 @@ tr{transition:background .15s ease}
 ::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:#ccc}
 
+/* ── User Drawer ─────────────────────────────────────────────────────── */
+#drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;opacity:0;pointer-events:none;transition:opacity .22s}
+#drawer-overlay.open{opacity:1;pointer-events:all}
+#user-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:400px;max-width:95vw;
+  background:#fff;box-shadow:-8px 0 40px rgba(0,0,0,.14);z-index:801;
+  display:flex;flex-direction:column;transform:translateX(110%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);overflow:hidden;
+}
+#user-drawer.open{transform:translateX(0)}
+.drawer-head{
+  padding:20px 22px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:14px;flex-shrink:0;background:#fafafa;
+}
+.drawer-avatar{font-size:36px;line-height:1;flex-shrink:0}
+.drawer-meta{flex:1;min-width:0}
+.drawer-name{font-size:18px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:2px}
+.drawer-email{font-size:12px;color:var(--muted);font-family:monospace;margin-bottom:8px;overflow-wrap:anywhere}
+.drawer-badges{display:flex;gap:6px;flex-wrap:wrap}
+.drawer-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+.drawer-close:hover{background:rgba(239,68,68,.12);color:var(--red)}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 22px}
+.drawer-section-title{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.drawer-section-title:first-child{margin-top:0}
+.drawer-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.drawer-stat{background:#f8f8f8;border-radius:10px;padding:12px;text-align:center}
+.drawer-stat-num{font-size:22px;font-weight:900;color:var(--text)}
+.drawer-stat-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.drawer-board-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:7px;transition:.15s;gap:8px}
+.drawer-board-item:hover{border-color:var(--lime);background:rgba(200,230,50,.04)}
+.drawer-board-name{font-size:13px;font-weight:700;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-board-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.drawer-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:#fafafa}
+
+/* ── Bulk Action Bar ─────────────────────────────────────────────────── */
+#bulk-bar{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--dark);color:#fff;border-radius:16px;padding:12px 20px;
+  display:flex;align-items:center;gap:12px;z-index:700;
+  box-shadow:0 8px 32px rgba(0,0,0,.28);transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  min-width:360px;justify-content:center;flex-wrap:wrap;
+}
+#bulk-bar.show{transform:translateX(-50%) translateY(0)}
+#bulk-count{font-size:13px;font-weight:800;padding:4px 12px;background:rgba(200,230,50,.2);color:#C8E632;border-radius:20px}
+.bulk-btn{padding:8px 16px;border:none;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit}
+.bulk-btn.red{background:rgba(239,68,68,.2);color:#ef4444}
+.bulk-btn.red:hover{background:rgba(239,68,68,.35)}
+.bulk-btn.orange{background:rgba(249,115,22,.2);color:#f97316}
+.bulk-btn.orange:hover{background:rgba(249,115,22,.35)}
+.bulk-btn.green{background:rgba(34,197,94,.2);color:#22c55e}
+.bulk-btn.green:hover{background:rgba(34,197,94,.35)}
+.bulk-btn.dim{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.bulk-btn.dim:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* ── Auto-refresh indicator ─────────────────────────────────────────── */
+#refresh-indicator{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--muted);font-weight:600;
+  padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;
+  background:#fff;cursor:pointer;transition:.15s;
+}
+#refresh-indicator:hover{border-color:var(--lime);color:var(--text)}
+#refresh-ring{width:16px;height:16px;border-radius:50%;border:2px solid #eee;border-top-color:var(--lime);animation:none;flex-shrink:0}
+#refresh-ring.spinning{animation:rspin .8s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
+
+/* ── Shortcuts modal ─────────────────────────────────────────────────── */
+#shortcuts-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .18s;
+}
+#shortcuts-modal.open{opacity:1;pointer-events:all}
+.shortcuts-box{background:#fff;border-radius:20px;padding:32px;width:560px;max-width:96vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,.18)}
+.shortcuts-title{font-size:20px;font-weight:900;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.shortcuts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shortcut-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:10px;background:#fafafa}
+.shortcut-desc{font-size:13px;font-weight:600;color:var(--text)}
+.shortcut-key{font-family:monospace;font-size:12px;font-weight:800;background:var(--dark);color:#fff;padding:3px 9px;border-radius:6px;letter-spacing:.04em}
+
+/* ── Sidebar notification badges ─────────────────────────────────────── */
+.sb-notif{
+  margin-left:auto;font-size:10px;font-weight:800;
+  background:#ef4444;color:#fff;border-radius:20px;
+  padding:1px 7px;min-width:18px;text-align:center;
+}
+.sb-notif.yellow{background:#f97316}
+
+/* ── Sessions auto-refresh ───────────────────────────────────────────── */
+#sessions-autorefresh{
+  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+  color:var(--muted);cursor:pointer;user-select:none;
+}
+#sessions-autorefresh input[type=checkbox]{accent-color:var(--lime);width:14px;height:14px}
+
 /* ── GPU acceleration & smoothing ─────────────────────────────────────── */
 html{scroll-behavior:smooth}
 .stat-card,.audit-card,.table-card,.setting-card,.ops-card,.brief-card,
@@ -536,13 +631,13 @@ html{scroll-behavior:smooth}
       <span class="sb-icon">📋</span>Boards
     </div>
     <div class="sb-item" onclick="showPage('sessions')">
-      <span class="sb-icon">🔑</span>Sessions
+      <span class="sb-icon">🔑</span>Sessions<span class="sb-notif yellow" id="sb-sessions-badge" style="display:none"></span>
     </div>
     <div class="sb-item" onclick="showPage('audit')">
       <span class="sb-icon">🧭</span>Audit
     </div>
     <div class="sb-item" onclick="showPage('billing')">
-      <span class="sb-icon">💳</span>Billing
+      <span class="sb-icon">💳</span>Billing<span class="sb-notif" id="sb-billing-badge" style="display:none"></span>
     </div>
     <div class="sb-item" onclick="showPage('packages')">
       <span class="sb-icon">📦</span>Packages
@@ -572,8 +667,16 @@ html{scroll-behavior:smooth}
 
   <!-- ── Dashboard ──────────────────────────────────────────────────────── -->
   <div id="page-dashboard" class="page active">
-    <div class="page-title">Dashboard</div>
-    <div class="page-sub">System overview and key metrics</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+      <div>
+        <div class="page-title" style="margin-bottom:4px">Dashboard</div>
+        <div class="page-sub" style="margin-bottom:0">System overview and key metrics</div>
+      </div>
+      <div id="refresh-indicator" onclick="manualRefresh()" title="Click to refresh now">
+        <div id="refresh-ring"></div>
+        <span id="refresh-label">Auto-refresh in 60s</span>
+      </div>
+    </div>
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -881,11 +984,12 @@ html{scroll-behavior:smooth}
         <table class="responsive-mobile">
           <thead>
             <tr>
+              <th style="width:36px"><input type="checkbox" id="bulk-select-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--lime);cursor:pointer"></th>
               <th>Avatar</th><th>Name</th><th>Email</th><th>Role</th>
               <th>Plan</th><th>Boards</th><th>Joined</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="users-tbody"><tr class="empty-row"><td colspan="8">Loading…</td></tr></tbody>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="9">Loading…</td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -934,6 +1038,7 @@ html{scroll-behavior:smooth}
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">Sessions</div>
+        <label id="sessions-autorefresh"><input type="checkbox" id="sessions-ar-check" onchange="toggleSessionsAutoRefresh(this.checked)"> Auto-refresh 30s</label>
         <button class="btn-sm btn-danger" style="padding:8px 16px" onclick="revokeAllSessions()">🗑 Revoke All</button>
         <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadSessions()">🔄 Refresh</button>
       </div>
@@ -1538,6 +1643,69 @@ html{scroll-behavior:smooth}
   </div>
 </div>
 
+<!-- User Detail Drawer -->
+<div id="drawer-overlay" onclick="closeUserDrawer()"></div>
+<div id="user-drawer">
+  <div class="drawer-head">
+    <div class="drawer-avatar" id="drawer-avatar">🧑</div>
+    <div class="drawer-meta">
+      <div class="drawer-name" id="drawer-name">—</div>
+      <div class="drawer-email" id="drawer-email">—</div>
+      <div class="drawer-badges" id="drawer-badges"></div>
+    </div>
+    <button class="drawer-close" onclick="closeUserDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-stat-row">
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-boards-n">—</div><div class="drawer-stat-lbl">Boards</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-plan">—</div><div class="drawer-stat-lbl">Plan</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-joined">—</div><div class="drawer-stat-lbl">Joined</div></div>
+    </div>
+    <div class="drawer-section-title">Plan details</div>
+    <div id="drawer-plan-detail" style="font-size:13px;color:var(--muted);line-height:1.8">Loading…</div>
+    <div class="drawer-section-title">Boards</div>
+    <div id="drawer-boards-list">Loading…</div>
+  </div>
+  <div class="drawer-foot" id="drawer-foot">
+    <button class="btn-sm btn-edit" style="flex:1" onclick="drawerEdit()">✏️ Edit</button>
+    <button class="btn-sm btn-orange" style="flex:1" onclick="drawerKick()">🔑 Kick</button>
+    <button class="btn-sm btn-danger" style="flex:1" onclick="drawerDelete()">🗑 Delete</button>
+  </div>
+</div>
+
+<!-- Bulk Action Bar -->
+<div id="bulk-bar">
+  <span id="bulk-count">0 selected</span>
+  <button class="bulk-btn orange" onclick="bulkKick()">🔑 Kick all</button>
+  <button class="bulk-btn green" onclick="bulkGrantPlan('free',0)">Free plan</button>
+  <button class="bulk-btn green" onclick="bulkGrantPlan('pro',1)">Grant Pro 1m</button>
+  <button class="bulk-btn red" onclick="bulkDelete()">🗑 Delete all</button>
+  <button class="bulk-btn dim" onclick="clearBulk()">Cancel</button>
+</div>
+
+<!-- Shortcuts modal -->
+<div id="shortcuts-modal" onclick="closeShortcuts(event)">
+  <div class="shortcuts-box">
+    <div class="shortcuts-title">Keyboard Shortcuts <button onclick="closeShortcutsBtn()" style="background:rgba(0,0,0,.08);border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;font-weight:700">✕</button></div>
+    <div class="shortcuts-grid">
+      <div class="shortcut-row"><span class="shortcut-desc">Open spotlight</span><span class="shortcut-key">/</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Shortcuts help</span><span class="shortcut-key">?</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Dashboard</span><span class="shortcut-key">g d</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Users</span><span class="shortcut-key">g u</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Boards</span><span class="shortcut-key">g b</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Sessions</span><span class="shortcut-key">g s</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Billing</span><span class="shortcut-key">g i</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Audit</span><span class="shortcut-key">g a</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Settings</span><span class="shortcut-key">g ,</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">API Tester</span><span class="shortcut-key">g t</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Refresh stats</span><span class="shortcut-key">R</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Close / Escape</span><span class="shortcut-key">Esc</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Export users CSV</span><span class="shortcut-key">Ctrl+E</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Add new user</span><span class="shortcut-key">N</span></div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast"></div>
 
@@ -1593,14 +1761,7 @@ document.getElementById('l-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
-document.addEventListener('keydown', e => {
-  if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
-  const tag = document.activeElement?.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-  e.preventDefault();
-  showPage('dashboard');
-  setTimeout(() => document.getElementById('admin-spotlight-input')?.focus(), 40);
-});
+// Spotlight shortcut handled in main keyboard handler below
 
 async function verifyToken() {
   if (!token) return false;
@@ -1751,6 +1912,7 @@ async function refreshStats() {
     );
     loadAdminBrief();
     loadTimeline();
+    updateSidebarBadges(stats);
   } catch(e) {
     toast('Failed to load stats: ' + e.message, 'error');
   }
@@ -2221,7 +2383,7 @@ function setUsersRoleFilter(role, el) {
 async function loadUsers() {
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Loading…</td></tr>';
   try {
     const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
@@ -2229,35 +2391,41 @@ async function loadUsers() {
       `${usersOffset+1}–${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`;
     document.getElementById('users-prev').disabled = usersOffset === 0;
     document.getElementById('users-next').disabled = usersOffset + usersLimit >= usersTotal;
+    const saEl = document.getElementById('bulk-select-all');
+    if (saEl) saEl.checked = false;
 
     if (!d.users.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No users found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No users found</td></tr>';
       return;
     }
-    tbody.innerHTML = d.users.map(u => `
-      <tr>
-        <td class="avatar-cell" data-label="Avatar">${u.avatar}</td>
-        <td data-label="Name"><strong>${esc(u.name)}</strong></td>
+    tbody.innerHTML = d.users.map(u => {
+      const qU = JSON.stringify(u).replace(/"/g,'&quot;');
+      const isSelected = selectedUserIds.has(u.id);
+      return `<tr>
+        <td><input type="checkbox" class="row-check" data-id="${u.id}" onchange="toggleRowCheck(this)" ${isSelected?'checked':''} style="accent-color:var(--lime);cursor:pointer"></td>
+        <td class="avatar-cell" data-label="Avatar" style="cursor:pointer" onclick="openUserDrawer(${qU})">${u.avatar}</td>
+        <td data-label="Name" style="cursor:pointer" onclick="openUserDrawer(${qU})"><strong>${esc(u.name)}</strong></td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
         <td data-label="Plan">
-          <span class="badge badge-${u.plan === 'school' ? 'admin' : u.plan === 'pro' ? 'teacher' : 'student'}">${u.plan || 'free'}</span>
-          <div class="time-text">${esc(u.plan_status || 'free')} · ${esc(u.billing_cycle || 'monthly')}</div>
-          ${u.plan_expires_at ? `<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>` : ''}
+          <span class="badge badge-${u.plan==='school'?'admin':u.plan==='pro'?'teacher':'student'}">${u.plan||'free'}</span>
+          <div class="time-text">${esc(u.plan_status||'free')} · ${esc(u.billing_cycle||'monthly')}</div>
+          ${u.plan_expires_at?`<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>`:''}
         </td>
         <td data-label="Boards" style="text-align:center">${u.boards_count}</td>
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
-            <button class="btn-sm btn-edit" onclick="openEditUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">✏️ Edit</button>
+            <button class="btn-sm btn-edit" onclick="openUserDrawer(${qU})">👤 View</button>
+            <button class="btn-sm btn-edit" onclick="openEditUser(${qU})">✏️ Edit</button>
             <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">🔑 Kick</button>
             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">🗑</button>
           </div>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Error: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -3153,11 +3321,327 @@ function clearApiHistory() {
   renderApiHistory();
 }
 
+// ── User Detail Drawer ────────────────────────────────────────────────────
+let drawerUser = null;
+
+async function openUserDrawer(u) {
+  drawerUser = u;
+  document.getElementById('drawer-avatar').textContent = u.avatar || '🧑';
+  document.getElementById('drawer-name').textContent = u.name;
+  document.getElementById('drawer-email').textContent = u.email;
+  document.getElementById('drawer-boards-n').textContent = u.boards_count ?? '—';
+  document.getElementById('drawer-plan').textContent = u.plan || 'free';
+  const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+  document.getElementById('drawer-joined').textContent = joined;
+  document.getElementById('drawer-badges').innerHTML = `
+    <span class="badge badge-${u.role}">${u.role}</span>
+    <span class="badge badge-${u.plan==='school'?'admin':u.plan==='pro'?'teacher':'student'}">${u.plan||'free'}</span>
+    ${u.plan_status && u.plan_status!=='free' ? `<span class="badge" style="background:rgba(200,230,50,.18);color:#5a6b00">${u.plan_status}</span>` : ''}
+  `;
+  document.getElementById('drawer-plan-detail').innerHTML = `
+    Plan: <strong>${u.plan||'free'}</strong> · Status: <strong>${u.plan_status||'free'}</strong><br>
+    Cycle: <strong>${u.billing_cycle||'monthly'}</strong>${u.plan_expires_at ? ` · Expires: <strong>${fmtDate(u.plan_expires_at)}</strong>` : ' · No expiry'}
+  `;
+  document.getElementById('drawer-boards-list').innerHTML = '<div style="color:var(--muted);font-size:13px">Loading boards…</div>';
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('user-drawer').classList.add('open');
+
+  try {
+    const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(u.email)}&limit=20`);
+    const boards = d.boards || [];
+    document.getElementById('drawer-boards-n').textContent = boards.length || u.boards_count || 0;
+    if (!boards.length) {
+      document.getElementById('drawer-boards-list').innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No boards yet</div>';
+      return;
+    }
+    document.getElementById('drawer-boards-list').innerHTML = boards.map(b => `
+      <div class="drawer-board-item">
+        <div style="flex:1;min-width:0">
+          <div class="drawer-board-name">${esc(b.name)}</div>
+          <div class="drawer-board-meta">${b.cards_count||0} cards · ${fmtBytes(b.data_bytes)} · updated ${fmtRelative(b.updated_at)}</div>
+        </div>
+        <button class="btn-sm btn-edit" onclick="openBoard('${escAttr(b.id)}')" style="flex-shrink:0">Open</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('drawer-boards-list').innerHTML = `<div style="color:var(--red);font-size:13px">Failed to load boards: ${esc(e.message)}</div>`;
+  }
+}
+
+function closeUserDrawer() {
+  document.getElementById('user-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  drawerUser = null;
+}
+
+function drawerEdit() {
+  if (!drawerUser) return;
+  closeUserDrawer();
+  openEditUser(drawerUser);
+}
+
+function drawerKick() {
+  if (!drawerUser) return;
+  kickUser(drawerUser.id, drawerUser.name);
+}
+
+function drawerDelete() {
+  if (!drawerUser) return;
+  closeUserDrawer();
+  deleteUser(drawerUser.id, drawerUser.name);
+}
+
+// ── Bulk Actions ──────────────────────────────────────────────────────────
+let selectedUserIds = new Set();
+let selectedUserObjects = new Map();
+
+function toggleSelectAll(checked) {
+  const checkboxes = document.querySelectorAll('#users-tbody .row-check');
+  checkboxes.forEach(cb => {
+    cb.checked = checked;
+    const id = cb.dataset.id;
+    if (checked) {
+      selectedUserIds.add(id);
+      if (cb.dataset.obj) { try { selectedUserObjects.set(id, JSON.parse(decodeURIComponent(cb.dataset.obj))); } catch {} }
+    } else {
+      selectedUserIds.delete(id);
+      selectedUserObjects.delete(id);
+    }
+  });
+  updateBulkBar();
+}
+
+function toggleRowCheck(cb) {
+  const id = cb.dataset.id;
+  if (cb.checked) {
+    selectedUserIds.add(id);
+    if (cb.dataset.obj) { try { selectedUserObjects.set(id, JSON.parse(decodeURIComponent(cb.dataset.obj))); } catch {} }
+  } else {
+    selectedUserIds.delete(id);
+    selectedUserObjects.delete(id);
+  }
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = selectedUserIds.size;
+  if (count > 0) {
+    bar.classList.add('show');
+    document.getElementById('bulk-count').textContent = `${count} selected`;
+  } else {
+    bar.classList.remove('show');
+    document.getElementById('bulk-select-all').checked = false;
+  }
+}
+
+function clearBulk() {
+  selectedUserIds.clear();
+  selectedUserObjects.clear();
+  document.querySelectorAll('#users-tbody .row-check').forEach(cb => cb.checked = false);
+  document.getElementById('bulk-select-all').checked = false;
+  updateBulkBar();
+}
+
+function bulkDelete() {
+  if (!selectedUserIds.size) return;
+  const ids = [...selectedUserIds];
+  confirm(`Delete ${ids.length} users?`, 'All their boards and sessions will be permanently deleted.', '🗑️', async () => {
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+      try { await api('DELETE', `/api/admin/users/${id}`); ok++; }
+      catch { fail++; }
+    }
+    toast(`Deleted ${ok} user(s)${fail ? `, ${fail} failed` : ''}`, ok ? 'success' : 'error');
+    clearBulk();
+    loadUsers();
+    refreshStats();
+  });
+}
+
+function bulkKick() {
+  if (!selectedUserIds.size) return;
+  const ids = [...selectedUserIds];
+  confirm(`Kick ${ids.length} users?`, 'All their active sessions will be revoked.', '🔑', async () => {
+    let ok = 0;
+    for (const id of ids) {
+      try { await api('DELETE', `/api/admin/sessions/user/${id}`); ok++; } catch {}
+    }
+    toast(`Kicked ${ok} user(s)`, 'success');
+    clearBulk();
+  });
+}
+
+async function bulkGrantPlan(plan, months) {
+  if (!selectedUserIds.size) return;
+  const ids = [...selectedUserIds];
+  const config = PLAN_CATALOG[plan] || PLAN_CATALOG.free;
+  const plan_expires_at = months > 0 ? dateInputAfterMonths(months) : null;
+  confirm(`Apply ${config.label} to ${ids.length} users?`, plan_expires_at ? `Expires ${fmtDate(plan_expires_at)}` : 'No expiry', '📦', async () => {
+    let ok = 0;
+    for (const id of ids) {
+      try {
+        await api('PATCH', `/api/admin/users/${id}`, {
+          plan, plan_status: config.defaultStatus,
+          billing_cycle: months >= 12 ? 'yearly' : config.defaultCycle,
+          plan_expires_at
+        });
+        ok++;
+      } catch {}
+    }
+    toast(`Updated ${ok} user(s)`, 'success');
+    clearBulk();
+    loadUsers();
+  });
+}
+
+
+// ── Auto-refresh countdown ─────────────────────────────────────────────────
+let autoRefreshInterval = null;
+let refreshCountdown = 60;
+
+function startAutoRefresh() {
+  clearInterval(autoRefreshInterval);
+  refreshCountdown = 60;
+  updateRefreshLabel();
+  autoRefreshInterval = setInterval(() => {
+    refreshCountdown--;
+    if (refreshCountdown <= 0) {
+      refreshCountdown = 60;
+      if (document.getElementById('page-dashboard').classList.contains('active')) {
+        manualRefresh();
+      }
+    }
+    updateRefreshLabel();
+  }, 1000);
+}
+
+function updateRefreshLabel() {
+  const label = document.getElementById('refresh-label');
+  if (label) label.textContent = `Auto-refresh in ${refreshCountdown}s`;
+}
+
+function manualRefresh() {
+  const ring = document.getElementById('refresh-ring');
+  if (ring) ring.classList.add('spinning');
+  refreshStats().finally(() => {
+    refreshCountdown = 60;
+    updateRefreshLabel();
+    if (ring) setTimeout(() => ring.classList.remove('spinning'), 600);
+  });
+}
+
+// ── Session auto-refresh ───────────────────────────────────────────────────
+let sessionsArInterval = null;
+
+function toggleSessionsAutoRefresh(on) {
+  clearInterval(sessionsArInterval);
+  if (on) {
+    sessionsArInterval = setInterval(() => {
+      if (document.getElementById('page-sessions').classList.contains('active')) loadSessions();
+    }, 30000);
+    toast('Sessions auto-refresh on (30s)', '');
+  }
+}
+
+// ── Sidebar notification badges ────────────────────────────────────────────
+function updateSidebarBadges(stats) {
+  const pending = Number(stats?.pendingPayments || 0);
+  const sessions = Number(stats?.sessions || 0);
+
+  const billingBadge = document.getElementById('sb-billing-badge');
+  if (billingBadge) {
+    if (pending > 0) { billingBadge.textContent = pending; billingBadge.style.display = ''; }
+    else billingBadge.style.display = 'none';
+  }
+  const sessionsBadge = document.getElementById('sb-sessions-badge');
+  if (sessionsBadge) {
+    if (sessions > 5) { sessionsBadge.textContent = sessions; sessionsBadge.style.display = ''; }
+    else sessionsBadge.style.display = 'none';
+  }
+}
+
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────
+function openShortcuts() {
+  document.getElementById('shortcuts-modal').classList.add('open');
+}
+function closeShortcuts(e) {
+  if (!e || e.target === document.getElementById('shortcuts-modal')) {
+    document.getElementById('shortcuts-modal').classList.remove('open');
+  }
+}
+function closeShortcutsBtn() {
+  document.getElementById('shortcuts-modal').classList.remove('open');
+}
+
+let gKeyPending = false;
+let gKeyTimer = null;
+
+document.addEventListener('keydown', e => {
+  // Don't fire if typing in an input
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); exportAdminData('users'); }
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    closeUserDrawer();
+    closeShortcutsBtn();
+    clearBulk();
+    return;
+  }
+
+  if (e.key === '/') {
+    e.preventDefault();
+    showPage('dashboard');
+    setTimeout(() => document.getElementById('admin-spotlight-input')?.focus(), 40);
+    return;
+  }
+
+  if (e.key === '?') {
+    e.preventDefault();
+    openShortcuts();
+    return;
+  }
+
+  if (e.key === 'R') {
+    e.preventDefault();
+    manualRefresh();
+    return;
+  }
+
+  if (e.key === 'N' && document.getElementById('page-users').classList.contains('active')) {
+    e.preventDefault();
+    openAddUser();
+    return;
+  }
+
+  // g + key combos
+  if (e.key === 'g') {
+    gKeyPending = true;
+    clearTimeout(gKeyTimer);
+    gKeyTimer = setTimeout(() => { gKeyPending = false; }, 1500);
+    return;
+  }
+
+  if (gKeyPending) {
+    gKeyPending = false;
+    clearTimeout(gKeyTimer);
+    const pageMap = { d:'dashboard', u:'users', b:'boards', s:'sessions', a:'audit', i:'billing', p:'packages', ',':'settings', t:'api-tester' };
+    const target = pageMap[e.key];
+    if (target) { e.preventDefault(); showPage(target); }
+  }
+});
+
 // ── Init ──────────────────────────────────────────────────────────────────
 (async () => {
   syncAnalyticsRangeUi();
   if (await verifyToken()) {
     enterPanel();
+    startAutoRefresh(); // auto-refresh every 60s on dashboard
   }
 })();
 </script>
