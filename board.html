@@ -1550,6 +1550,32 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .quiz-result-msg{font-size:18px;font-weight:800;margin-bottom:16px;}
 .quiz-answers-review{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;}
 .quiz-review-item{font-size:12px;padding:6px 10px;background:#faf4f8;border-radius:7px;color:#4a1d35;}
+/* ── SHAPES ── */
+.shape-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;word-break:break-word;pointer-events:none;font-weight:600;line-height:1.3;z-index:1;}
+.board-card.shape-card{background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;}
+.board-card.shape-card .card-resize{bottom:-8px;right:-8px;}
+#shape-panel{position:fixed;z-index:1300;background:var(--card-bg,#fff);border:1px solid var(--border-2);border-radius:14px;box-shadow:0 8px 32px rgba(5,5,23,.18);padding:10px 10px 8px;display:none;min-width:192px;}
+#shape-panel.open{display:block;}
+.sp-title{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:0 2px 8px;display:block;}
+.sp-grid{display:grid;grid-template-columns:repeat(4,40px);gap:5px;}
+.sp-item{width:40px;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,border-color .12s;title-attr:attr(title);}
+.sp-item:hover{background:var(--accent-2);border-color:var(--accent);}
+.sp-item svg{width:26px;height:26px;}
+/* ── MINDMAP ── */
+.board-card.mindmap-card{border-radius:50px!important;border:2.5px solid transparent!important;box-shadow:0 4px 18px rgba(0,0,0,.13)!important;overflow:hidden!important;}
+.mindmap-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px 16px;font-size:14px;font-weight:700;text-align:center;word-break:break-word;line-height:1.3;cursor:text;}
+/* ── ARROW STYLE CONTROLS (in ctx menu) ── */
+.ctx-arrow-style{padding:4px 8px 2px;display:none;}
+.ctx-arrow-style-row{display:flex;gap:4px;align-items:center;padding:2px 0;}
+.ctx-arrow-style-lbl{font-size:10px;font-weight:700;color:var(--text-3);min-width:28px;text-transform:uppercase;}
+.ctx-arrow-style-btn{padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:var(--card-bg,white);font-size:12px;cursor:pointer;color:var(--text-2);font-family:var(--mono);transition:background .1s;}
+.ctx-arrow-style-btn:hover,.ctx-arrow-style-btn.active{background:var(--accent-2);border-color:var(--accent);}
+/* ── TABLE CARD ── */
+.table-card-wrap{width:100%;height:100%;overflow:auto;padding:4px;}
+.board-table{border-collapse:collapse;width:100%;font-size:12px;}
+.board-table td{border:1px solid var(--border-2);padding:4px 8px;min-width:60px;outline:none;color:var(--text);}
+.board-table td:focus{background:var(--accent-2);}
+.table-add-row{margin-top:4px;font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--border);background:var(--accent-2);cursor:pointer;color:var(--text-2);}
 </style>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
@@ -1724,6 +1750,15 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="toolbarQuickAdd('text')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>
   </button>
+  <button class="mt-btn" id="mt-shape" data-tip="Shapes (Q)" onclick="openShapePanel(event)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="5.5" height="5.5" rx="1"/><circle cx="11" cy="4.5" r="2.8"/><polygon points="2,14 6,9 10,14"/><rect x="9" y="9.5" width="5" height="5" rx="1"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-mindmap" data-tip="Mind Map Node (M)" onclick="toolbarQuickAdd('mindmap')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="8" cy="8" rx="5" ry="3"/><line x1="1" y1="5" x2="3" y2="7"/><line x1="1" y1="11" x2="3" y2="9"/><line x1="13" y1="5" x2="15" y2="4"/><line x1="13" y1="11" x2="15" y2="12"/></svg>
+  </button>
+  <button class="mt-btn" id="mt-table" data-tip="Table" onclick="toolbarQuickAdd('table')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="1.5"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/><line x1="6" y1="6" x2="6" y2="14"/><line x1="10" y1="6" x2="10" y2="14"/></svg>
+  </button>
   <button class="mt-btn" id="mt-lesson" data-tip="Lesson Card" onclick="toolbarQuickAdd('lesson')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
   </button>
@@ -1768,6 +1803,29 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </button>
 </div>
 
+<!-- SHAPE PANEL -->
+<div id="shape-panel">
+  <span class="sp-title">Shapes</span>
+  <div class="sp-grid">
+    <div class="sp-item" onclick="quickAddShape('rect')" title="Rectangle"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="22" height="22" rx="0"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('rounded')" title="Rounded Rect"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="22" height="22" rx="6"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('circle')" title="Circle / Ellipse"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="13" cy="13" rx="11" ry="11"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('triangle')" title="Triangle"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,24 2,24"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('diamond')" title="Diamond"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,13 13,24 2,13"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('pentagon')" title="Pentagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,9.5 20,22 6,22 2,9.5"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('hexagon')" title="Hexagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 23,7.5 23,18.5 13,24 3,18.5 3,7.5"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('star')" title="Star"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13,2 15.5,9.5 23.5,9.5 17.5,14.5 19.5,22.5 13,18 6.5,22.5 8.5,14.5 2.5,9.5 10.5,9.5"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('arrow-r')" title="Arrow Right"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="2,9 17,9 17,4 24,13 17,22 17,17 2,17"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('arrow-l')" title="Arrow Left"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="24,9 9,9 9,4 2,13 9,22 9,17 24,17"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('callout')" title="Speech Bubble"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,2 H24 V18 H10 L6,24 L7,18 H2 Z"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('cross')" title="Cross / Plus"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M10,2 H16 V10 H24 V16 H16 V24 H10 V16 H2 V10 H10 Z"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('parallelogram')" title="Parallelogram"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,2 24,2 20,24 2,24"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('cylinder')" title="Cylinder"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="13" cy="6" rx="10" ry="4"/><line x1="3" y1="6" x2="3" y2="20"/><line x1="23" y1="6" x2="23" y2="20"/><ellipse cx="13" cy="20" rx="10" ry="4"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('trapezoid')" title="Trapezoid"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,2 20,2 24,24 2,24"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('octagon')" title="Octagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="9,2 17,2 24,9 24,17 17,24 9,24 2,17 2,9"/></svg></div>
+  </div>
+</div>
+
 <!-- ZOOM CONTROLS (bottom-right) -->
 <div id="zoom-controls">
   <button class="zc-btn" title="Zoom in (+)" onclick="document.getElementById('btn-zoom-in').click()">+</button>
@@ -1799,6 +1857,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
       </marker>
       <marker id="arrowhead-prereq-done" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
         <polygon points="0 0, 9 3, 0 6" fill="#10b981"/>
+      </marker>
+      <marker id="arrowhead-start" markerWidth="9" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
+        <polygon points="0 0, 9 3, 0 6" fill="#C8E632"/>
       </marker>
     </defs>
   </svg>
@@ -1927,6 +1988,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <div id="ctx-menu">
   <div class="ctx-item" id="ctx-sticky">🟡 Sticky Note</div>
   <div class="ctx-item" id="ctx-text">🔤 Text Label</div>
+  <div class="ctx-item" id="ctx-shape">⬡ Shape</div>
+  <div class="ctx-item" id="ctx-mindmap">◉ Mind Map Node</div>
+  <div class="ctx-item" id="ctx-table">⊞ Table</div>
   <div class="ctx-item" id="ctx-plan">📋 Lesson Plan</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-lesson">📚 Lesson</div>
@@ -1943,6 +2007,21 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
   <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
   <div class="ctx-item" id="ctx-label-arrow" style="display:none;">🏷 Label Arrow</div>
+  <div class="ctx-arrow-style" id="ctx-arrow-style-wrap">
+    <div class="ctx-arrow-style-row">
+      <span class="ctx-arrow-style-lbl">Line</span>
+      <button class="ctx-arrow-style-btn" id="cas-solid" onclick="setArrowStyle('solid')">—</button>
+      <button class="ctx-arrow-style-btn" id="cas-dashed" onclick="setArrowStyle('dashed')">- -</button>
+      <button class="ctx-arrow-style-btn" id="cas-dotted" onclick="setArrowStyle('dotted')">···</button>
+    </div>
+    <div class="ctx-arrow-style-row">
+      <span class="ctx-arrow-style-lbl">Dir</span>
+      <button class="ctx-arrow-style-btn" id="cad-forward" onclick="setArrowDir('forward')">→</button>
+      <button class="ctx-arrow-style-btn" id="cad-both" onclick="setArrowDir('both')">↔</button>
+      <button class="ctx-arrow-style-btn" id="cad-backward" onclick="setArrowDir('backward')">←</button>
+      <button class="ctx-arrow-style-btn" id="cad-none" onclick="setArrowDir('none')">—</button>
+    </div>
+  </div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
   <div class="ctx-item danger" id="ctx-clear">🗑 Clear Board</div>
 </div>
@@ -2711,6 +2790,7 @@ function getDefaults(type) {
             video:{w:320,h:220},
             frame:{w:500,h:340},  sticker:{w:96,h:96},
             voting:{w:300,h:260},
+            shape:{w:200,h:160},  mindmap:{w:180,h:64},  table:{w:320,h:200},
           })[type] || { w:220,h:160 };
 }
 
@@ -2797,6 +2877,9 @@ function renderCard(card) {
   else if (card.type === 'frame')      renderFrame(el, card);
   else if (card.type === 'sticker')    renderSticker(el, card);
   else if (card.type === 'voting')     renderVoting(el, card);
+  else if (card.type === 'shape')      renderShape(el, card);
+  else if (card.type === 'mindmap')    renderMindmap(el, card);
+  else if (card.type === 'table')      renderTable(el, card);
 
   // Apply stored accent color
   if (card.data._accent) el.classList.add(card.data._accent);
@@ -3226,6 +3309,175 @@ function renderSticker(el, card) {
   el.addEventListener('mouseenter', () => close.style.opacity = '1');
   el.addEventListener('mouseleave', () => close.style.opacity = '0');
   el.appendChild(close);
+}
+
+/* ════════════════════════ SHAPE CARD ════════════════════════ */
+function _shapePoints(shape) {
+  const sw = 2;
+  switch(shape) {
+    case 'rect':         return { tag:'rect', attrs:{x:sw/2,y:sw/2,width:100-sw,height:100-sw,rx:0} };
+    case 'rounded':      return { tag:'rect', attrs:{x:sw/2,y:sw/2,width:100-sw,height:100-sw,rx:10} };
+    case 'circle':       return { tag:'ellipse', attrs:{cx:50,cy:50,rx:50-sw/2,ry:50-sw/2} };
+    case 'triangle':     return { tag:'polygon', attrs:{points:`50,${sw} ${100-sw},${100-sw} ${sw},${100-sw}`} };
+    case 'diamond':      return { tag:'polygon', attrs:{points:`50,${sw} ${100-sw},50 50,${100-sw} ${sw},50`} };
+    case 'pentagon': {
+      const pts=[]; for(let i=0;i<5;i++){const a=(i*2*Math.PI/5)-Math.PI/2;pts.push(`${50+(50-sw)*Math.cos(a)},${50+(50-sw)*Math.sin(a)}`);}
+      return { tag:'polygon', attrs:{points:pts.join(' ')} };
+    }
+    case 'hexagon': {
+      const pts=[]; for(let i=0;i<6;i++){const a=i*Math.PI/3;pts.push(`${50+(50-sw)*Math.cos(a)},${50+(50-sw)*Math.sin(a)}`);}
+      return { tag:'polygon', attrs:{points:pts.join(' ')} };
+    }
+    case 'octagon': {
+      const pts=[]; for(let i=0;i<8;i++){const a=(i*Math.PI/4)-Math.PI/8;pts.push(`${50+(50-sw)*Math.cos(a)},${50+(50-sw)*Math.sin(a)}`);}
+      return { tag:'polygon', attrs:{points:pts.join(' ')} };
+    }
+    case 'star': {
+      const pts=[]; for(let i=0;i<10;i++){const a=(i*Math.PI/5)-Math.PI/2;const r=i%2===0?(50-sw):(50-sw)*0.4;pts.push(`${50+r*Math.cos(a)},${50+r*Math.sin(a)}`);}
+      return { tag:'polygon', attrs:{points:pts.join(' ')} };
+    }
+    case 'arrow-r':      return { tag:'polygon', attrs:{points:`${sw},28 68,28 68,8 ${100-sw},50 68,92 68,72 ${sw},72`} };
+    case 'arrow-l':      return { tag:'polygon', attrs:{points:`${100-sw},28 32,28 32,8 ${sw},50 32,92 32,72 ${100-sw},72`} };
+    case 'callout':      return { tag:'path', attrs:{d:`M${sw},${sw} H${100-sw} V68 H38 L28,${100-sw} L34,68 H${sw} Z`} };
+    case 'cross':        return { tag:'path', attrs:{d:`M34,${sw} H66 V34 H${100-sw} V66 H66 V${100-sw} H34 V66 H${sw} V34 H34 Z`} };
+    case 'parallelogram':return { tag:'polygon', attrs:{points:`18,${sw} ${100-sw},${sw} ${82},${100-sw} ${sw},${100-sw}`} };
+    case 'trapezoid':    return { tag:'polygon', attrs:{points:`18,${sw} ${82},${sw} ${100-sw},${100-sw} ${sw},${100-sw}`} };
+    case 'cylinder': {
+      return { tag:'path', attrs:{d:`M${sw},20 Q${sw},${sw} 50,${sw} Q${100-sw},${sw} ${100-sw},20 L${100-sw},80 Q${100-sw},${100-sw} 50,${100-sw} Q${sw},${100-sw} ${sw},80 Z M${sw},20 Q${sw},38 50,38 Q${100-sw},38 ${100-sw},20`} };
+    }
+    default:             return { tag:'rect', attrs:{x:sw/2,y:sw/2,width:100-sw,height:100-sw,rx:0} };
+  }
+}
+
+function renderShape(el, card) {
+  const d = card.data;
+  el.classList.add('shape-card');
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;';
+
+  const { tag, attrs } = _shapePoints(d.shape || 'rect');
+  const shEl = document.createElementNS(ns, tag);
+  Object.entries(attrs).forEach(([k,v]) => shEl.setAttribute(k, v));
+  shEl.setAttribute('fill', d.fill || '#ffffff');
+  shEl.setAttribute('stroke', d.stroke || '#1C1C1E');
+  shEl.setAttribute('stroke-width', d.sw || 2);
+  if (d.opacity != null) shEl.setAttribute('fill-opacity', d.opacity);
+  svg.appendChild(shEl);
+  el.appendChild(svg);
+
+  const textDiv = document.createElement('div');
+  textDiv.className = 'shape-text';
+  textDiv.style.color = d.textColor || '#1C1C1E';
+  textDiv.style.fontSize = (d.fontSize || 14) + 'px';
+  textDiv.textContent = d.text || '';
+  el.appendChild(textDiv);
+
+  el.addEventListener('dblclick', e => {
+    if (e.target.closest('.card-header')) return;
+    e.stopPropagation();
+    textDiv.contentEditable = 'true';
+    textDiv.style.pointerEvents = 'auto';
+    textDiv.focus();
+    const r = document.createRange(); r.selectNodeContents(textDiv);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    textDiv.addEventListener('blur', () => {
+      textDiv.contentEditable = 'false'; textDiv.style.pointerEvents = 'none';
+      card.data.text = textDiv.textContent;
+      snapshot(); scheduleSave?.(); saveLocal?.();
+    }, { once: true });
+    textDiv.addEventListener('keydown', ev => { if (ev.key === 'Escape') textDiv.blur(); });
+  });
+
+  const hdr = makeHeader('⬡', d.text ? '' : 'Shape', card.id);
+  hdr.style.cssText = 'position:absolute;top:0;right:0;left:0;background:transparent;border:none;box-shadow:none;opacity:0;transition:opacity .15s;z-index:10;pointer-events:none;';
+  el.addEventListener('mouseenter', () => { hdr.style.opacity='1'; hdr.style.pointerEvents='auto'; });
+  el.addEventListener('mouseleave', () => { hdr.style.opacity='0'; hdr.style.pointerEvents='none'; });
+  el.appendChild(hdr);
+}
+
+/* ════════════════════════ MINDMAP CARD ════════════════════════ */
+const MINDMAP_COLORS = ['#C8E632','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D','#FB923C'];
+
+function renderMindmap(el, card) {
+  const d = card.data;
+  el.classList.add('mindmap-card');
+  el.style.background = d.color || MINDMAP_COLORS[0];
+  el.style.borderColor = 'transparent';
+
+  const textDiv = document.createElement('div');
+  textDiv.className = 'mindmap-text';
+  textDiv.style.color = d.textColor || '#1C1C1E';
+  textDiv.textContent = d.text || 'Topic';
+  el.appendChild(textDiv);
+
+  el.addEventListener('dblclick', e => {
+    if (e.target.closest('.card-header')) return;
+    e.stopPropagation();
+    textDiv.contentEditable = 'true';
+    textDiv.focus();
+    const r = document.createRange(); r.selectNodeContents(textDiv);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    textDiv.addEventListener('blur', () => {
+      textDiv.contentEditable = 'false';
+      card.data.text = textDiv.textContent;
+      snapshot(); scheduleSave?.(); saveLocal?.();
+    }, { once: true });
+    textDiv.addEventListener('keydown', ev => { if (ev.key==='Escape') textDiv.blur(); });
+  });
+
+  const hdr = makeHeader('◉', '', card.id);
+  hdr.style.cssText = 'position:absolute;top:0;right:0;left:0;background:transparent;border:none;box-shadow:none;opacity:0;transition:opacity .15s;z-index:10;pointer-events:none;';
+  el.addEventListener('mouseenter', () => { hdr.style.opacity='1'; hdr.style.pointerEvents='auto'; });
+  el.addEventListener('mouseleave', () => { hdr.style.opacity='0'; hdr.style.pointerEvents='none'; });
+  el.appendChild(hdr);
+}
+
+/* ════════════════════════ TABLE CARD ════════════════════════ */
+function renderTable(el, card) {
+  const d = card.data;
+  if (!d.rows) d.rows = [['','',''],['','',''],['','','']];
+  el.appendChild(makeHeader('⊞', d.title || 'Table', card.id));
+  const wrap = document.createElement('div');
+  wrap.className = 'table-card-wrap';
+  const tbl = document.createElement('table');
+  tbl.className = 'board-table';
+
+  function rebuildTable() {
+    tbl.innerHTML = '';
+    d.rows.forEach((row, ri) => {
+      const tr = tbl.insertRow();
+      row.forEach((cell, ci) => {
+        const td = tr.insertCell();
+        td.contentEditable = 'true';
+        td.textContent = cell;
+        td.addEventListener('blur', () => {
+          d.rows[ri][ci] = td.textContent;
+          snapshot(); scheduleSave?.(); saveLocal?.();
+        });
+        td.addEventListener('keydown', e => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            const allCells = [...tbl.querySelectorAll('td')];
+            const idx = allCells.indexOf(td);
+            if (idx < allCells.length - 1) allCells[idx+1].focus();
+            else { d.rows.push(new Array(d.rows[0].length).fill('')); rebuildTable(); tbl.querySelectorAll('td')[idx+1]?.focus(); }
+          }
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); td.blur(); }
+        });
+      });
+    });
+  }
+  rebuildTable();
+  wrap.appendChild(tbl);
+  const addRowBtn = document.createElement('button');
+  addRowBtn.className = 'table-add-row';
+  addRowBtn.textContent = '+ Row';
+  addRowBtn.onclick = () => { d.rows.push(new Array(d.rows[0].length).fill('')); rebuildTable(); snapshot(); scheduleSave?.(); };
+  wrap.appendChild(addRowBtn);
+  el.appendChild(wrap);
 }
 
 function quickAddFrame() {
@@ -3951,6 +4203,46 @@ function openCardEditor(cardId) {
         <input class="ed-input" id="ed-link" type="url" placeholder="https://youtube.com/…" value="${esc(card.data.url||card.data.src||'')}"/></div>
       <button class="ed-save" onclick="saveCardEditor()">Save Video</button>`;
 
+  } else if (card.type === 'shape') {
+    const SHAPE_OPTS = ['rect','rounded','circle','triangle','diamond','pentagon','hexagon','octagon','star','arrow-r','arrow-l','callout','cross','parallelogram','trapezoid','cylinder'];
+    body.innerHTML = `
+      <div><div class="ed-label">Shape</div>
+        <select class="ed-input" id="ed-shape-type">
+          ${SHAPE_OPTS.map(s=>`<option value="${s}" ${card.data.shape===s?'selected':''}>${s}</option>`).join('')}
+        </select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><div class="ed-label">Fill Color</div>
+          <input type="color" class="ed-input" id="ed-shape-fill" value="${card.data.fill||'#ffffff'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+        <div><div class="ed-label">Stroke Color</div>
+          <input type="color" class="ed-input" id="ed-shape-stroke" value="${card.data.stroke&&card.data.stroke.startsWith('#')?card.data.stroke:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+      </div>
+      <div><div class="ed-label">Stroke Width</div>
+        <input type="range" class="ed-input" id="ed-shape-sw" min="0" max="10" value="${card.data.sw||2}" style="padding:4px 0;"/></div>
+      <div><div class="ed-label">Label Text</div>
+        <input class="ed-input" id="ed-shape-text" value="${esc(card.data.text||'')}"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><div class="ed-label">Text Color</div>
+          <input type="color" class="ed-input" id="ed-shape-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+        <div><div class="ed-label">Font Size</div>
+          <input type="number" class="ed-input" id="ed-shape-fs" value="${card.data.fontSize||14}" min="8" max="72"/></div>
+      </div>
+      <button class="ed-save" onclick="saveCardEditor()">Apply Shape</button>`;
+
+  } else if (card.type === 'mindmap') {
+    const mmColors = ['#C8E632','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D','#FB923C'];
+    body.innerHTML = `
+      <div><div class="ed-label">Node Text</div>
+        <input class="ed-input" id="ed-mm-text" value="${esc(card.data.text||'')}"/></div>
+      <div><div class="ed-label">Color</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+          ${mmColors.map(c=>`<div onclick="document.getElementById('ed-mm-color').value='${c}';this.parentNode.querySelectorAll('[data-mc]').forEach(x=>x.style.outline='none');this.style.outline='2px solid #1C1C1E';" data-mc="1"
+            style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;outline:${card.data.color===c?'2px solid #1C1C1E':'none'};transition:.1s;"></div>`).join('')}
+          <input type="color" class="ed-input" id="ed-mm-color" value="${card.data.color||'#C8E632'}" style="width:28px;height:28px;padding:0;border-radius:50%;cursor:pointer;border:none;"/>
+        </div></div>
+      <div><div class="ed-label">Text Color</div>
+        <input type="color" class="ed-input" id="ed-mm-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+      <button class="ed-save" onclick="saveCardEditor()">Apply Node</button>`;
+
   } else {
     body.innerHTML = `<div style="font-size:13px;color:var(--text-3);padding:8px;">No editor for this card type.</div>`;
   }
@@ -4119,6 +4411,18 @@ function saveCardEditor() {
     card.data.minutes = parseInt(g('ed-minutes')?.value) || 5;
     card.data.seconds = parseInt(g('ed-seconds')?.value) || 0;
     card.data.remaining = card.data.minutes * 60 + card.data.seconds;
+  } else if (card.type === 'shape') {
+    card.data.shape     = g('ed-shape-type')?.value || card.data.shape;
+    card.data.fill      = g('ed-shape-fill')?.value  || card.data.fill;
+    card.data.stroke    = g('ed-shape-stroke')?.value || card.data.stroke;
+    card.data.sw        = Number(g('ed-shape-sw')?.value ?? card.data.sw ?? 2);
+    card.data.text      = g('ed-shape-text')?.value   ?? card.data.text ?? '';
+    card.data.textColor = g('ed-shape-tc')?.value     || card.data.textColor;
+    card.data.fontSize  = Number(g('ed-shape-fs')?.value || card.data.fontSize || 14);
+  } else if (card.type === 'mindmap') {
+    card.data.text      = g('ed-mm-text')?.value  ?? card.data.text;
+    card.data.color     = g('ed-mm-color')?.value || card.data.color;
+    card.data.textColor = g('ed-mm-tc')?.value    || card.data.textColor;
   } else if (card.type === 'checklist') {
     card.data.title = g('ed-title')?.value.trim() || 'Checklist';
   } else if (card.type === 'sticky') {
@@ -5177,6 +5481,14 @@ function renderAllArrows() {
       document.getElementById('ctx-arrow-sep').style.display = '';
       document.getElementById('ctx-toggle-prereq').textContent =
         arrow.type === 'prereq' ? '🔗 Make Regular Arrow' : '🔒 Make Prereq Arrow';
+      // Show style controls for regular arrows
+      const styleWrap = document.getElementById('ctx-arrow-style-wrap');
+      if (styleWrap) {
+        styleWrap.style.display = arrow.type === 'prereq' ? 'none' : '';
+        const cs = arrow.style || 'solid', cd = arrow.direction || 'forward';
+        ['solid','dashed','dotted'].forEach(s => document.getElementById('cas-'+s)?.classList.toggle('active', s===cs));
+        ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===cd));
+      }
       ctxMenu.style.left = e.clientX+'px'; ctxMenu.style.top = e.clientY+'px';
       ctxMenu.style.display = 'block';
     });
@@ -5195,8 +5507,15 @@ function renderAllArrows() {
       else if (isLocked) path.classList.add('locked');
       path.setAttribute('marker-end', isDone ? 'url(#arrowhead-prereq-done)' : 'url(#arrowhead-prereq)');
     } else {
-      path.setAttribute('marker-end','url(#arrowhead)');
+      const dir = arrow.direction || 'forward';
+      if (dir === 'forward' || dir === 'both') path.setAttribute('marker-end','url(#arrowhead)');
+      if (dir === 'backward' || dir === 'both') path.setAttribute('marker-start','url(#arrowhead-start)');
+      if (dir === 'none') { path.removeAttribute('marker-end'); path.removeAttribute('marker-start'); }
     }
+    // Dash style
+    if (arrow.style === 'dashed') path.style.strokeDasharray = '8 4';
+    else if (arrow.style === 'dotted') path.style.strokeDasharray = '2 5';
+    else path.style.strokeDasharray = '';
     if (state.selectedArrows.has(arrow.id)) path.classList.add('selected-arrow');
 
     g.appendChild(hit);
@@ -5232,6 +5551,20 @@ function removeArrowById(id, doSnapshot=true) {
 }
 
 let ctxArrowId = null;
+
+function setArrowStyle(style) {
+  const arrow = state.arrows.find(a => a.id === ctxArrowId);
+  if (!arrow) return;
+  snapshot(); arrow.style = style; renderAllArrows(); scheduleSave?.();
+  ['solid','dashed','dotted'].forEach(s => document.getElementById('cas-'+s)?.classList.toggle('active', s===style));
+}
+function setArrowDir(dir) {
+  const arrow = state.arrows.find(a => a.id === ctxArrowId);
+  if (!arrow) return;
+  snapshot(); arrow.direction = dir; renderAllArrows(); scheduleSave?.();
+  ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===dir));
+}
+
 document.getElementById('ctx-delete-arrow').addEventListener('click', () => {
   if (ctxArrowId) { removeArrowById(ctxArrowId); ctxArrowId = null; }
   document.getElementById('ctx-delete-arrow').style.display = 'none';
@@ -5259,7 +5592,10 @@ boardWrap.addEventListener('contextmenu', e => {
   ctxPos = screenToBoard(e.clientX, e.clientY);
   document.getElementById('ctx-delete-arrow').style.display = 'none';
   document.getElementById('ctx-toggle-prereq').style.display = 'none';
+  document.getElementById('ctx-label-arrow').style.display = 'none';
   document.getElementById('ctx-arrow-sep').style.display = 'none';
+  const sw = document.getElementById('ctx-arrow-style-wrap');
+  if (sw) sw.style.display = 'none';
   ctxMenu.style.left = e.clientX+'px';
   ctxMenu.style.top  = e.clientY+'px';
   ctxMenu.style.display = 'block';
@@ -5270,6 +5606,14 @@ document.getElementById('ctx-sticky').addEventListener('click', () =>
   addCard('sticky', ctxPos.x-110, ctxPos.y-90, { text:'', color:STICKY_COLORS[0] }));
 document.getElementById('ctx-text').addEventListener('click', () =>
   addCard('text', ctxPos.x-100, ctxPos.y-45, defaultTextData({ text:'Text' })));
+document.getElementById('ctx-shape').addEventListener('click', () =>
+  addCard('shape', ctxPos.x-100, ctxPos.y-80, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 }));
+document.getElementById('ctx-mindmap').addEventListener('click', () => {
+  const cols = ['#C8E632','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA'];
+  addCard('mindmap', ctxPos.x-90, ctxPos.y-32, { text:'Topic', color:cols[Math.floor(Math.random()*cols.length)] });
+});
+document.getElementById('ctx-table').addEventListener('click', () =>
+  addCard('table', ctxPos.x-160, ctxPos.y-100, { title:'Table', rows:[['Header 1','Header 2','Header 3'],['','',''],['','','']] }));
 document.getElementById('ctx-plan').addEventListener('click', () =>
   addCard('plan', ctxPos.x-140, ctxPos.y-100, { title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' }));
 
@@ -7623,6 +7967,28 @@ function updateMiroToolbarPos() {
 
 // (Miro-tool dblclick integrated into primary quick-add handler above)
 
+function openShapePanel(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('shape-panel');
+  if (panel.classList.contains('open')) { panel.classList.remove('open'); return; }
+  const btn = document.getElementById('mt-shape');
+  const rect = btn.getBoundingClientRect();
+  panel.style.left = (rect.right + 8) + 'px';
+  panel.style.top  = Math.max(8, rect.top - 4) + 'px';
+  panel.classList.add('open');
+  setMiroTool('shape');
+  setTimeout(() => document.addEventListener('click', closeShapePanel, { once: true }), 0);
+}
+function closeShapePanel() { document.getElementById('shape-panel').classList.remove('open'); }
+
+function quickAddShape(shape) {
+  closeShapePanel();
+  setMiroTool('select');
+  const pos = getBoardViewportCenter();
+  const def = getDefaults('shape');
+  addCard('shape', pos.x - def.w/2, pos.y - def.h/2, { shape, fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+}
+
 function toolbarQuickAdd(type) {
   const placement = getBoardViewportCenter();
   if (type === 'sticky' || type === 'text') setMiroTool(type);
@@ -7669,6 +8035,13 @@ function quickAddCard(type, bx, by) {
     pendingImagePos = pos;
     openImageModal();
     return;
+  } else if (type === 'shape') {
+    card = addCard('shape', x, y, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+  } else if (type === 'mindmap') {
+    const colors = ['#C8E632','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D'];
+    card = addCard('mindmap', x, y, { text:'Topic', color: colors[Math.floor(Math.random()*colors.length)] });
+  } else if (type === 'table') {
+    card = addCard('table', x, y, { title:'Table', rows:[['Header 1','Header 2','Header 3'],['','',''],['','','']] });
   }
 }
 
@@ -9131,6 +9504,24 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
   else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
   else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
+  else if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); const btn=document.getElementById('mt-shape'); if(btn) openShapePanel({stopPropagation:()=>{},target:btn}); }
+  else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); toolbarQuickAdd('mindmap'); }
+  // Tab on selected mindmap node → create child node
+  else if (e.key === 'Tab' && state.selected.size === 1) {
+    const selId = [...state.selected][0];
+    const card = state.cards.find(c => c.id === selId);
+    if (card?.type === 'mindmap') {
+      e.preventDefault();
+      const childX = card.x + card.w + 60;
+      const childY = card.y;
+      const childColors = ['#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D'];
+      const child = addCard('mindmap', childX, childY, { text:'Subtopic', color: childColors[Math.floor(Math.random()*childColors.length)] });
+      snapshot();
+      state.arrows.push({ id:'a'+(state.nextId++), fromCard:card.id, fromAnchor:'right', toCard:child.id, toAnchor:'left' });
+      renderAllArrows(); scheduleSave?.();
+      clearSelection(); selectCard(child.id);
+    }
+  }
 });
 
 /* ════════════ SETTINGS ════════════ */
