@@ -122,23 +122,27 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 #mobile-quickbar{
   display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
-  z-index:1200;padding:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);
-  border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 50px rgba(5,5,23,.16);
-  gap:8px;align-items:center;justify-content:space-between;
+  z-index:1200;padding:6px;background:#fff;
+  border:1px solid rgba(0,0,0,.08);border-radius:12px;
+  box-shadow:0 12px 36px rgba(5,5,23,.16),0 1px 4px rgba(0,0,0,.06);
+  gap:4px;align-items:center;justify-content:space-between;
 }
 .mq-btn{
-  flex:1;min-width:0;height:42px;border:none;border-radius:12px;background:#fff;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-family:var(--font);font-size:12px;font-weight:800;color:var(--text);cursor:pointer;
-  box-shadow:inset 0 0 0 1px var(--border);-webkit-tap-highlight-color:transparent;
+  flex:1;min-width:0;height:40px;border:none;border-radius:8px;background:transparent;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-family:var(--font);font-size:12px;font-weight:500;color:#050038;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .12s;
 }
+.mq-btn:hover{background:rgba(66,98,255,.06);color:#4262FF;}
 .mq-btn svg{flex-shrink:0}
-.mq-btn.primary{background:var(--accent);color:#fff;box-shadow:none}
-.mq-btn.ghost{background:transparent}
-.mq-btn:active{transform:scale(.98)}
+.mq-btn.primary{background:#4262FF;color:#fff;}
+.mq-btn.primary:hover{background:#2D4EE8;color:#fff;}
+.mq-btn.ghost{background:transparent;color:#9999AA;}
+.mq-btn:active{transform:scale(.96)}
 .mq-status{
-  position:absolute;top:-9px;right:10px;padding:3px 7px;border-radius:999px;background:#fff;
-  border:1px solid var(--border);font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text-3);
+  position:absolute;top:-10px;right:12px;padding:3px 8px;border-radius:6px;background:#fff;
+  border:1px solid rgba(0,0,0,.08);font-size:10px;font-family:var(--font);font-weight:600;color:#9999AA;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
 .mq-status.good{color:#15803d}
 .mq-status.warn{color:#f97316}
@@ -903,13 +907,17 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
 
-/* ── Undo tooltip ── */
+/* ── Toast notification (Miro style — dark pill bottom-center) ── */
 #undo-toast{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-  font-size:12px;font-family:var(--mono);color:white;
-  background:rgba(0,0,0,.72);padding:5px 14px;border-radius:20px;
-  pointer-events:none;z-index:9999;opacity:0;transition:opacity .2s;
+  position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(8px);
+  font-size:13px;font-family:var(--font);font-weight:500;color:#fff;
+  background:#050038;padding:10px 18px;border-radius:8px;
+  pointer-events:none;z-index:9999;opacity:0;
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 8px 24px rgba(5,5,23,.24),0 1px 3px rgba(0,0,0,.10);
+  letter-spacing:-.005em;max-width:80vw;text-align:center;
 }
+#undo-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ══════════════ LESSON CARD ══════════════ */
 .card-lesson .card-header{background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.04));}
@@ -1087,7 +1095,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 .tb-head-icon{font-size:1.6rem;line-height:1;}
 .tb-head-titles{flex:1;}
-.tb-head-title{font-size:15px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+.tb-head-title{font-size:15px;font-weight:600;color:#050038;letter-spacing:-.01em;}
 .tb-head-sub{font-size:12px;color:var(--text-3);margin-top:2px;}
 .tb-head-close{
   width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.06);
@@ -2481,9 +2489,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 </div>
 
 <!-- VIDEO URL MODAL -->
-<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg,white);border-radius:20px;padding:28px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(5,5,23,.2);position:relative;border:1px solid var(--border);">
-    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🎬 Add Video</div>
+<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+    <div style="font-size:1.1rem;font-weight:600;color:#050038;margin-bottom:6px;letter-spacing:-.01em;">🎬 Add Video</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">Embed from YouTube/Vimeo or upload from your computer</div>
 
     <!-- Tabs -->
@@ -2521,9 +2529,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 </div>
 
 <!-- AUDIO MODAL -->
-<div id="audio-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg,white);border-radius:20px;padding:28px;width:100%;max-width:440px;box-shadow:0 24px 64px rgba(5,5,23,.2);position:relative;border:1px solid var(--border);">
-    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🎵 Add Audio</div>
+<div id="audio-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+    <div style="font-size:1.1rem;font-weight:600;color:#050038;margin-bottom:6px;letter-spacing:-.01em;">🎵 Add Audio</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Upload an audio file from your computer</div>
 
     <div id="audio-drop-zone" onclick="document.getElementById('audio-file-input').click()"
@@ -2552,9 +2560,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 </div>
 
 <!-- IMAGE MODAL (URL / file / drag-drop / paste) -->
-<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg,white);border-radius:18px;padding:28px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;border:1px solid var(--border);">
-    <div style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;">🖼 Add Image</div>
+<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+    <div style="font-size:1.2rem;font-weight:600;color:#050038;margin-bottom:6px;letter-spacing:-.01em;">🖼 Add Image</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Drag &amp; drop, paste (Ctrl/⌘+V), choose a file, or use a URL.</div>
 
     <div id="image-drop-zone"
@@ -2598,11 +2606,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 </div>
 
 <!-- GAMES HUB PICKER -->
-<div id="games-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGamesModal()">
-  <div style="background:var(--card-bg,white);border-radius:20px;padding:24px;width:100%;max-width:760px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.24);position:relative;border:1px solid var(--border);">
+<div id="games-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGamesModal()">
+  <div style="background:#fff;border-radius:12px;padding:20px;width:100%;max-width:760px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div style="font-size:1.25rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">🎮 Games Hub</div>
-      <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+      <div style="font-size:1.25rem;font-weight:600;color:#050038;letter-spacing:-.01em;">🎮 Games Hub</div>
+      <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#9999AA;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='#050038'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
     </div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Click to drop on the board · drag the tile to position it exactly</div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="games-tabs"></div>
@@ -2616,8 +2624,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <div id="sticker-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeStickerModal()">
   <div style="background:var(--card-bg,white);border-radius:18px;padding:20px 22px;width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.22);position:relative;border:1px solid var(--border);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">😀 Stickers &amp; Emoji</div>
-      <div onclick="closeStickerModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+      <div style="font-size:1.1rem;font-weight:600;color:#050038;letter-spacing:-.01em;">😀 Stickers &amp; Emoji</div>
+      <div onclick="closeStickerModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#9999AA;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='#050038'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
     </div>
     <input id="sticker-search" class="cfg-input" type="text" placeholder="Search emoji…" oninput="filterStickers(this.value)" style="margin-bottom:10px;">
     <div id="sticker-tabs" style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;"></div>
@@ -2630,8 +2638,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <div id="bg-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeBgModal()">
   <div style="background:var(--card-bg,white);border-radius:18px;padding:22px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.22);position:relative;border:1px solid var(--border);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div style="font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.02em;">🎨 Board Background</div>
-      <div onclick="closeBgModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+      <div style="font-size:1.1rem;font-weight:600;color:#050038;letter-spacing:-.01em;">🎨 Board Background</div>
+      <div onclick="closeBgModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#9999AA;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='#050038'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Preset colors</div>
     <div id="bg-color-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:16px;"></div>
@@ -2927,9 +2935,9 @@ function updateUndoButtons() {
 let toastTimer;
 function toast(msg) {
   undoToast.textContent = msg;
-  undoToast.style.opacity = '1';
+  undoToast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { undoToast.style.opacity = '0'; }, 1400);
+  toastTimer = setTimeout(() => { undoToast.classList.remove('show'); }, 1800);
 }
 
 /* ════════════════════════ CARD DEFAULTS ════════════════════════ */
