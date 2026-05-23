@@ -379,11 +379,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   pointer-events:auto;
 }
 .card-frame .frame-title{
-  position:absolute;top:-22px;left:0;font-size:11px;font-weight:800;
-  color:var(--text-2);background:var(--card-bg,#fff);padding:2px 8px;
-  border-radius:6px;border:1px solid var(--border);font-family:var(--font);
+  position:absolute;top:-26px;left:0;font-size:12px;font-weight:600;
+  color:#050038;background:transparent;padding:2px 4px;
+  border-radius:4px;border:none;font-family:var(--font);
   white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  cursor:text;letter-spacing:-.01em;
 }
+.card-frame .frame-title:hover{background:rgba(66,98,255,.06);}
 .card-frame .card-header{position:absolute;top:-22px;left:0;background:transparent;border:none;height:22px;}
 
 /* Private mode */
@@ -466,9 +468,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .board-card.selected{
   border-color:#4262FF;
-  box-shadow:0 0 0 2px rgba(66,98,255,.20),0 4px 16px rgba(0,0,0,.12);
+  box-shadow:0 0 0 1px rgba(66,98,255,.20),0 4px 16px rgba(0,0,0,.12);
 }
 .board-card:hover:not(.selected){box-shadow:0 4px 16px rgba(0,0,0,.12);}
+/* Miro-style 4 corner handles on selected cards */
+.board-card.selected::before,
+.board-card.selected::after{
+  content:'';position:absolute;width:10px;height:10px;border-radius:50%;
+  background:#fff;border:2px solid #4262FF;z-index:25;pointer-events:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);
+}
+.board-card.selected::before{top:-5px;left:-5px;}
+.board-card.selected::after{top:-5px;right:-5px;}
 .board-card.card-locked{cursor:default;}
 .board-card.card-locked::after{
   content:"🔒";
@@ -499,11 +510,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .anchor-dot[data-anchor=right]:hover {transform:translateY(-50%) scale(1.4);}
 
 .card-header{
-  display:flex;align-items:center;gap:6px;padding:8px 10px 6px;
-  cursor:move;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06);
+  display:flex;align-items:center;gap:6px;padding:8px 12px 6px;
+  cursor:move;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.05);
 }
-.card-drag-ic{font-size:12px;opacity:.35;flex-shrink:0;}
-.card-title-text{font-size:11px;font-weight:700;color:var(--text-2);flex:1;line-height:1.2;word-break:break-word;letter-spacing:.01em;}
+.card-drag-ic{font-size:12px;opacity:.30;flex-shrink:0;}
+.card-title-text{font-size:11px;font-weight:600;color:var(--text-2);flex:1;line-height:1.2;word-break:break-word;letter-spacing:0;text-transform:uppercase;}
 .card-close{
   width:18px;height:18px;border-radius:50%;border:none;cursor:pointer;
   background:transparent;color:var(--text-3);font-size:12px;line-height:1;
@@ -527,15 +538,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 body.board-dragging .game-iframe-overlay{display:block;}
 body.board-dragging .board-card{will-change:transform,left,top;}
 
-/* Resize handle */
+/* Resize handle — Miro-style blue corner dot */
 .card-resize{
-  position:absolute;bottom:0;right:0;width:18px;height:18px;cursor:se-resize;z-index:15;
+  position:absolute;bottom:-5px;right:-5px;width:14px;height:14px;cursor:se-resize;z-index:15;
+  opacity:0;transition:opacity .12s;
 }
+.board-card:hover .card-resize,
+.board-card.selected .card-resize{opacity:1;}
 .card-resize::after{
-  content:'';position:absolute;right:3px;bottom:3px;
-  width:8px;height:8px;
-  border-right:2px solid rgba(0,0,0,.20);border-bottom:2px solid rgba(0,0,0,.20);
-  border-radius:1px;
+  content:'';position:absolute;inset:3px;
+  background:#4262FF;border:2px solid #fff;border-radius:50%;
+  box-shadow:0 1px 3px rgba(0,0,0,.20);
 }
 
 /* ══════════════ VIDEO CARD ══════════════ */
@@ -811,20 +824,24 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   box-shadow:0 1px 2px rgba(0,0,0,.07);
 }
 
-/* ── Context menu ── */
+/* ── Context menu (Miro style) ── */
 #ctx-menu{
-  position:fixed;z-index:5000;background:var(--card-bg,#fff);border:1px solid var(--border);
-  border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.12);
-  padding:4px;min-width:170px;display:none;
+  position:fixed;z-index:5000;background:#fff;border:1px solid rgba(0,0,0,.08);
+  border-radius:8px;box-shadow:0 6px 24px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);
+  padding:6px;min-width:200px;display:none;
 }
+[data-theme="dark"] #ctx-menu{background:#252540;border-color:rgba(255,255,255,.10);}
 .ctx-item{
-  padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;
-  color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;
-  transition:background .1s;
+  padding:7px 10px;border-radius:6px;font-size:13px;font-weight:500;
+  color:#050038;cursor:pointer;display:flex;align-items:center;gap:10px;
+  transition:background .08s;letter-spacing:-.005em;
 }
-.ctx-item:hover{background:var(--accent-2);}
-.ctx-item.danger:hover{background:rgba(239,68,68,.08);color:#ef4444;}
-.ctx-sep{height:1px;background:var(--border);margin:4px 0;}
+[data-theme="dark"] .ctx-item{color:var(--text);}
+.ctx-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+.ctx-item.danger{color:#ef4444;}
+.ctx-item.danger:hover{background:rgba(239,68,68,.08);color:#dc2626;}
+.ctx-sep{height:1px;background:rgba(0,0,0,.06);margin:4px 2px;}
+[data-theme="dark"] .ctx-sep{background:rgba(255,255,255,.08);}
 
 /* ── Minimap ── */
 #minimap{
@@ -1369,14 +1386,20 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 #btn-follow-me:hover{background:rgba(200,230,50,.07);border-color:var(--accent);}
 #btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-#presence-bar{display:flex;align-items:center;gap:4px;min-width:0;flex-shrink:0;}
+#presence-bar{display:flex;align-items:center;min-width:0;flex-shrink:0;padding-right:4px;}
 .peer-chip{
-  display:flex;align-items:center;gap:3px;padding:2px 8px 2px 4px;border-radius:20px;
-  font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:.12s;
-  white-space:nowrap;flex-shrink:0;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;
+  font-size:12px;font-weight:700;color:#fff;
+  border:2px solid #fff;cursor:pointer;transition:transform .12s;
+  flex-shrink:0;margin-left:-6px;
+  box-shadow:0 1px 3px rgba(0,0,0,.12);
+  overflow:hidden;
 }
-.peer-chip:hover{filter:brightness(.93);}
-.peer-chip .pc-go{font-size:9px;opacity:.65;margin-left:2px;}
+.peer-chip:first-child{margin-left:0;}
+.peer-chip:hover{transform:translateY(-1px) scale(1.05);z-index:5;}
+.peer-chip .pc-go{display:none;}
+.peer-chip span:not(.pc-go){font-size:11px;letter-spacing:-.02em;}
 /* Student follow banner */
 #follow-banner{
   display:none;position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
@@ -1669,18 +1692,19 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
   <!-- Right: share + live + user -->
   <!-- Miro-style "Editing" mode indicator -->
-  <button class="tb-btn-primary" id="btn-editing-mode" title="Editing mode" onclick="toggleMoreMenu()">
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>
-    Editing
-  </button>
+  <div class="tb-btn text" id="btn-editing-mode" title="Editing mode" onclick="toggleMoreMenu()" style="gap:6px;">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>
+    <span>Editing</span>
+    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.6;"><path d="M4 6l4 4 4-4"/></svg>
+  </div>
   <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:rgba(52,168,83,.3);display:none;">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="10" height="8" rx="2"/><path d="M11 7l4-2v6l-4-2V7z"/></svg>
     <span>Live</span>
   </div>
-  <div class="tb-btn text" id="btn-share" title="Share & invite" onclick="openSharePanel()">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
+  <button class="tb-btn-primary" id="btn-share" title="Share & invite" onclick="openSharePanel()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
     <span>Share</span>
-  </div>
+  </button>
 
   <!-- WS dot + presence -->
   <div id="ws-dot" title="Real-time" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;margin:0 2px;"></div>
@@ -7759,18 +7783,17 @@ function updatePresenceBar() {
   if (!peers.length) { bar.innerHTML = ''; return; }
 
   if (isOwner) {
-    // Teacher: show each student as a clickable chip
-    bar.innerHTML = peers.map(uid => {
+    // Teacher: show each student as a Miro-style circular avatar
+    bar.innerHTML = peers.slice(0,5).map(uid => {
       const info = peerInfo[uid] || {};
       const col  = peerColor(uid);
-      const name = (info.name || '…').split(' ')[0];
-      const av   = info.avatar || '👤';
-      const hasVp = !!peerViewports[uid];
-      return `<div class="peer-chip" style="color:${col};border-color:${col}20;background:${col}10;"
-        onclick="jumpToStudent('${uid}')" title="Jump to ${info.name||'student'}">
-        <span>${av}</span><span>${name}</span>${hasVp ? '<span class="pc-go">→</span>' : ''}
+      const name = (info.name || '?');
+      const initial = name.trim().charAt(0).toUpperCase() || '?';
+      return `<div class="peer-chip" style="background:${col};"
+        onclick="jumpToStudent('${uid}')" title="Jump to ${name}">
+        <span>${initial}</span>
       </div>`;
-    }).join('');
+    }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#9999AA;"><span>+${peers.length-5}</span></div>` : '');
   } else {
     // Student: simple count
     bar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
