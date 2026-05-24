@@ -17,10 +17,11 @@
     'student.html': 'students',
     'gradebook.html': 'students',
     'profile.html': 'profile',
-    'board.html': 'home',
     'analytics.html': 'home',
     'journal.html': 'home',
   };
+  // board.html has its own bottom quickbar — skip the global mob-nav there.
+  if (page === 'board.html') return;
   var activeId = PAGE_MAP[page] || '';
 
   var TABS = [

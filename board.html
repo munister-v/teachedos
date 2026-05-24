@@ -198,31 +198,43 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #btn-follow-me:hover{background:var(--accent-2);border-color:var(--accent);color:var(--accent);}
 #btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 #mobile-quickbar{
-  display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
-  z-index:1200;padding:6px;background:#fff;
-  border:1px solid rgba(0,0,0,.08);border-radius:12px;
+  display:none;position:fixed;left:10px;right:10px;
+  bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  z-index:1200;padding:6px;background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.08);border-radius:16px;
   box-shadow:0 12px 36px rgba(5,5,23,.16),0 1px 4px rgba(0,0,0,.06);
-  gap:4px;align-items:center;justify-content:space-between;
+  gap:4px;align-items:stretch;justify-content:space-between;
 }
+[data-theme="dark"] #mobile-quickbar{background:#1F1F35;border-color:rgba(255,255,255,.10);}
 .mq-btn{
-  flex:1;min-width:0;height:40px;border:none;border-radius:8px;background:transparent;
-  display:flex;align-items:center;justify-content:center;gap:5px;
-  font-family:var(--font);font-size:12px;font-weight:500;color:#050038;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;transition:background .12s;
+  flex:1;min-width:0;height:46px;
+  border:none;border-radius:11px;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  padding:4px 2px;
+  font-family:var(--font);font-size:10.5px;font-weight:600;color:var(--text,#050038);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background .12s,color .12s,transform .08s;
 }
-.mq-btn:hover{background:rgba(66,98,255,.06);color:#4262FF;}
-.mq-btn svg{flex-shrink:0}
-.mq-btn.primary{background:#4262FF;color:#fff;}
-.mq-btn.primary:hover{background:#2D4EE8;color:#fff;}
-.mq-btn.ghost{background:transparent;color:#9999AA;}
-.mq-btn:active{transform:scale(.96)}
+.mq-btn:hover,.mq-btn:active{background:color-mix(in srgb,var(--accent,#4262FF) 8%,transparent);color:var(--accent,#4262FF);}
+.mq-btn svg{flex-shrink:0;}
+.mq-btn.active{background:color-mix(in srgb,var(--accent,#4262FF) 14%,transparent);color:var(--accent,#4262FF);}
+.mq-btn.primary{background:var(--accent,#4262FF);color:#fff;}
+.mq-btn.primary:hover,.mq-btn.primary:active{background:color-mix(in srgb,var(--accent,#4262FF) 85%,#000);color:#fff;}
+.mq-btn.ghost{color:var(--text-3,#9999AA);}
+.mq-btn:active{transform:scale(.97);}
 .mq-status{
-  position:absolute;top:-10px;right:12px;padding:3px 8px;border-radius:6px;background:#fff;
-  border:1px solid rgba(0,0,0,.08);font-size:10px;font-family:var(--font);font-weight:600;color:#9999AA;
-  box-shadow:0 1px 3px rgba(0,0,0,.06);
+  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  padding:3px 10px;border-radius:999px;
+  background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.08);
+  font-size:10px;font-family:var(--font);font-weight:700;color:var(--text-3,#9999AA);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  white-space:nowrap;pointer-events:none;
+  opacity:.92;
 }
-.mq-status.good{color:#15803d}
-.mq-status.warn{color:#f97316}
+[data-theme="dark"] .mq-status{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+.mq-status.good{color:#15803d;}
+.mq-status.warn{color:#f97316;}
 
 /* ── SIDEBAR ── */
 #sidebar{
@@ -1772,7 +1784,21 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 /* Mobile responsive */
 @media(max-width:860px){
   :root{--tb-h:54px;}
-  #toolbar{padding:0 10px;gap:6px;overflow:hidden;flex-wrap:nowrap;background:rgba(255,255,255,0.96);border-bottom:1px solid rgba(94,94,74,0.08);}
+  #toolbar{
+    padding:env(safe-area-inset-top,0px) 10px 0 10px;
+    gap:6px;
+    overflow-x:auto;overflow-y:hidden;
+    flex-wrap:nowrap;
+    background:var(--card-bg,#fff);
+    border-bottom:1px solid rgba(94,94,74,0.08);
+    scrollbar-width:none;
+    height:calc(var(--tb-h) + env(safe-area-inset-top,0px));
+    box-sizing:border-box;
+  }
+  #toolbar::-webkit-scrollbar{display:none;}
+  /* Toolbar grows by safe-area-inset-top; push board content down to match */
+  #board-wrap{top:calc(var(--tb-h) + env(safe-area-inset-top,0px))!important;}
+  [data-theme="dark"] #toolbar{background:#1F1F35;border-bottom-color:rgba(255,255,255,.08);}
   .tb-title{
     display:block;min-width:0;max-width:42vw!important;font-size:13px;padding:4px 6px!important;
     background:rgba(255,255,255,.65);backdrop-filter:blur(12px);
@@ -1789,10 +1815,34 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   #btn-more{width:34px;height:34px;flex-shrink:0;}
   #btn-share{display:none!important;}
   #sidebar{display:none;}
+  #sb-reopen{display:none!important;}
   #board-wrap{left:0!important;}
   #mobile-quickbar{display:flex;}
+  #minimap{display:none!important;}
+  #zoom-hint{display:none!important;}
+  /* Push share/reconnect/follow banners above the quickbar */
+  #share-panel,#reconnect-banner,#offline-banner,#conflict-banner,#follow-banner{
+    bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;
+  }
+  /* Bigger card-close, anchor dots, resize handles for finger taps */
+  .card-close{width:26px!important;height:26px!important;font-size:16px!important;}
+  .anchor-dot{width:14px!important;height:14px!important;}
+  .resize-handle{width:18px!important;height:18px!important;}
+  /* Floating zoom % indicator in top-right is noisy on phone */
+  #zoom-display{display:none!important;}
   .board-card{min-width:160px!important;}
-  #card-editor{right:0!important;left:0!important;width:100%!important;top:auto!important;bottom:0!important;border-radius:18px 18px 0 0!important;max-height:80vh!important;}
+  #card-editor{
+    right:0!important;left:0!important;width:100%!important;
+    top:auto!important;
+    bottom:0!important;
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;
+    border-radius:22px 22px 0 0!important;
+    max-height:85vh!important;overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    box-shadow:0 -8px 36px rgba(0,0,0,.18)!important;
+  }
+  /* Hide the floating quickbar when an editor is open so they don't fight */
+  body.editor-open #mobile-quickbar{display:none!important;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
   .tb-btn span{display:none;}
   #miro-toolbar{display:none;}
@@ -2126,20 +2176,24 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 <div id="mobile-quickbar">
   <div class="mq-status good" id="mobile-save-status">Saved</div>
-  <button class="mq-btn ghost" type="button" onclick="document.getElementById('btn-fit').click()">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+  <button class="mq-btn ghost" type="button" onclick="document.getElementById('btn-fit').click()" aria-label="Fit board to screen">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
     <span>Fit</span>
   </button>
-  <button class="mq-btn" type="button" onclick="document.getElementById('btn-connect').click()">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
+  <button class="mq-btn" type="button" id="mq-pen" onclick="toggleDrawTool&&toggleDrawTool('pen', event)" aria-label="Pen">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 14l3-1 8-8-2-2-8 8z"/><path d="M11 3l2 2"/></svg>
+    <span>Pen</span>
+  </button>
+  <button class="mq-btn" type="button" onclick="document.getElementById('btn-connect').click()" aria-label="Connect cards">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
     <span>Connect</span>
   </button>
-  <button class="mq-btn primary" type="button" onclick="openSharePanel()">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
+  <button class="mq-btn primary" type="button" onclick="openSharePanel()" aria-label="Share board">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
     <span>Share</span>
   </button>
-  <button class="mq-btn ghost" type="button" onclick="toggleMoreMenu()">
-    <span style="font-size:18px;line-height:1">⋯</span>
+  <button class="mq-btn ghost" type="button" onclick="toggleMoreMenu()" aria-label="More actions">
+    <span style="font-size:18px;line-height:1" aria-hidden="true">⋯</span>
     <span>More</span>
   </button>
 </div>
@@ -4903,6 +4957,7 @@ function openCardEditor(cardId) {
   loadCardComments(cardId);
 
   editor.classList.add('open');
+  document.body.classList.add('editor-open');
 }
 
 let _commentsCardId = null;
@@ -5091,6 +5146,7 @@ function saveCardEditor() {
 
 function closeCardEditor() {
   document.getElementById('card-editor').classList.remove('open');
+  document.body.classList.remove('editor-open');
   editorCardId = null;
 }
 
@@ -5972,9 +6028,16 @@ document.addEventListener('mouseup', e => {
   let lastPinchDist = 0;
   let lastPinchScale = 1;
   let _raf = null;
+  let longPressTimer = null;
+  let longPressStart = null;
 
   function midpoint(a, b) { return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2 }; }
   function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
+
+  function cancelLongPress() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    longPressStart = null;
+  }
 
   boardWrap.addEventListener('touchstart', e => {
     // Cancel momentum on new touch
@@ -5984,7 +6047,35 @@ document.addEventListener('mouseup', e => {
       t0 = ts[0]; t1 = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
       pinchOrigin = null;
+      // Long-press on empty board area → open context menu (mobile-only behavior)
+      const onBg = e.target === boardWrap || e.target === board || e.target.id === 'empty-state';
+      if (onBg && window.matchMedia('(max-width:860px)').matches) {
+        const sx = t0.clientX, sy = t0.clientY;
+        longPressStart = { x:sx, y:sy };
+        longPressTimer = setTimeout(() => {
+          longPressTimer = null;
+          if (navigator.vibrate) navigator.vibrate(12);
+          ctxPos = (typeof screenToBoard === 'function') ? screenToBoard(sx, sy) : { x:sx, y:sy };
+          const ctxMenuEl = document.getElementById('ctx-menu');
+          if (ctxMenuEl) {
+            document.getElementById('ctx-delete-arrow').style.display = 'none';
+            document.getElementById('ctx-toggle-prereq').style.display = 'none';
+            document.getElementById('ctx-label-arrow').style.display = 'none';
+            document.getElementById('ctx-arrow-sep').style.display = 'none';
+            const sw = document.getElementById('ctx-arrow-style-wrap');
+            if (sw) sw.style.display = 'none';
+            const r = boardWrap.getBoundingClientRect();
+            // Position so it stays on-screen
+            const mw = 220, mh = 320;
+            ctxMenuEl.style.left = Math.min(sx, r.right - mw - 12) + 'px';
+            ctxMenuEl.style.top  = Math.min(sy, r.bottom - mh - 12) + 'px';
+            ctxMenuEl.style.display = 'block';
+          }
+          panOrigin = null;
+        }, 480);
+      }
     } else if (ts.length === 2) {
+      cancelLongPress();
       t0 = ts[0]; t1 = ts[1];
       lastPinchDist = tdist(t0, t1);
       lastPinchScale = state.scale;
@@ -5997,6 +6088,12 @@ document.addEventListener('mouseup', e => {
   boardWrap.addEventListener('touchmove', e => {
     e.preventDefault();
     const ts = Array.from(e.touches);
+    // Cancel pending long-press if finger moved past a small slop
+    if (longPressStart && ts.length === 1) {
+      const mdx = Math.abs(ts[0].clientX - longPressStart.x);
+      const mdy = Math.abs(ts[0].clientY - longPressStart.y);
+      if (mdx > 8 || mdy > 8) cancelLongPress();
+    }
     if (ts.length === 1 && panOrigin && !isDraggingCard) {
       const dx = ts[0].clientX - panOrigin.mx;
       const dy = ts[0].clientY - panOrigin.my;
@@ -6025,6 +6122,7 @@ document.addEventListener('mouseup', e => {
   }, { passive: false });
 
   boardWrap.addEventListener('touchend', e => {
+    cancelLongPress();
     const ts = Array.from(e.touches);
     if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
     else if (ts.length === 1) {
@@ -6032,6 +6130,7 @@ document.addEventListener('mouseup', e => {
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
     }
   }, { passive: true });
+  boardWrap.addEventListener('touchcancel', cancelLongPress, { passive: true });
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
