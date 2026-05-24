@@ -23,7 +23,7 @@
   --sb-w:240px;--tb-h:52px;--mt-w:48px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
-  --card-bg:#ffffff;--card-radius:6px;--board-dot1:rgba(0,0,0,.10);--board-dot2:rgba(0,0,0,.06);
+  --card-bg:#ffffff;--card-radius:6px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
 }
 /* ── Theme overrides ── */
 [data-theme="dark"]{
@@ -365,19 +365,27 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   height:1px;background:rgba(0,0,0,.10);margin:4px 8px;width:32px;flex-shrink:0;
 }
 [data-theme="dark"] .mt-sep{background:rgba(255,255,255,.08);}
-/* Tooltip */
+/* Tooltip (Miro-style: dark pill with arrow pointing back at icon) */
 .mt-btn::after {
   content:attr(data-tip);
-  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
   background:#050038;color:#fff;
-  font-size:11px;font-weight:600;font-family:var(--font);
-  padding:5px 10px;border-radius:6px;white-space:nowrap;
+  font-size:12px;font-weight:500;font-family:var(--font);letter-spacing:-.005em;
+  padding:6px 10px;border-radius:6px;white-space:nowrap;
   opacity:0;pointer-events:none;
-  transition:opacity .12s;
+  transition:opacity .12s .15s;
   z-index:9999;
-  box-shadow:0 2px 8px rgba(0,0,0,.18);
+  box-shadow:0 4px 12px rgba(5,5,23,.18);
 }
-.mt-btn:hover::after { opacity:1; }
+/* Arrow indicator pointing back to the icon */
+.mt-btn::before{
+  content:'';position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%) rotate(45deg);
+  width:8px;height:8px;background:#050038;
+  opacity:0;pointer-events:none;
+  transition:opacity .12s .15s;z-index:9998;
+}
+.mt-btn:hover::after,
+.mt-btn:hover::before{ opacity:1; }
 
 /* ── ZOOM CONTROLS (bottom-right, Miro horizontal) ── */
 #zoom-controls {
@@ -438,9 +446,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:fixed;top:var(--tb-h);left:calc(var(--mt-w,48px) + var(--sb-w));right:0;bottom:0;
   overflow:hidden;
   background:
-    radial-gradient(circle,var(--board-dot1) 1px,transparent 1px),
-    radial-gradient(circle,var(--board-dot2) 1px,transparent 1px);
-  background-size:20px 20px,10px 10px;
+    radial-gradient(circle,var(--board-dot1) .8px,transparent .8px);
+  background-size:24px 24px;
   background-color:var(--bg);
   cursor:default;
   transition:background-color .3s;
@@ -471,6 +478,26 @@ body.space-down #board-wrap.panning{cursor:grabbing!important;}
 body.alt-duplicating,
 body.alt-duplicating *{cursor:copy!important;}
 /* Cards stay default cursor (move/grab handled inline) */
+
+/* Multi-select bounding box (wraps 2+ selected cards) */
+#multi-sel-box{
+  position:absolute;pointer-events:none;display:none;z-index:6;
+  border:1.5px solid #4262FF;border-radius:4px;
+  background:transparent;
+  box-shadow:0 0 0 1px rgba(66,98,255,.10);
+}
+#multi-sel-box.show{display:block;}
+/* Corner handles on the multi-select box */
+#multi-sel-box::before,#multi-sel-box::after,
+#multi-sel-box .ms-h-sw,#multi-sel-box .ms-h-se{
+  content:'';position:absolute;width:9px;height:9px;
+  background:#fff;border:1.5px solid #4262FF;border-radius:50%;
+  box-shadow:0 1px 2px rgba(0,0,0,.16);
+}
+#multi-sel-box::before{top:-5px;left:-5px;}
+#multi-sel-box::after{top:-5px;right:-5px;}
+#multi-sel-box .ms-h-sw{bottom:-5px;left:-5px;display:block;}
+#multi-sel-box .ms-h-se{bottom:-5px;right:-5px;display:block;}
 
 /* Group outlines (Miro-style — blue dashed) */
 .group-outline{
@@ -592,9 +619,9 @@ body.alt-duplicating *{cursor:copy!important;}
 .board-card{
   position:absolute;border-radius:var(--card-radius,6px);
   background:var(--card-bg,white);
-  box-shadow:0 2px 8px rgba(0,0,0,.10),0 1px 2px rgba(0,0,0,.06);
-  border:2px solid transparent;
-  transition:box-shadow .18s ease,border-color .12s ease;
+  box-shadow:0 1px 2px rgba(5,5,23,.06),0 0 0 1px rgba(0,0,0,.04);
+  border:1.5px solid transparent;
+  transition:box-shadow .15s ease,border-color .1s ease;
   min-width:80px;min-height:60px;
   display:flex;flex-direction:column;overflow:hidden;
   contain:layout style;
@@ -932,10 +959,15 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .event-group{font-size:11px;color:var(--text-3);margin-top:2px;}
 .event-topic{font-size:12px;font-weight:700;color:var(--text);margin-top:6px;}
 
-/* ── TEXT ── */
-.card-text{background:transparent;box-shadow:none;border:2px solid transparent;}
-.card-text:hover:not(.selected){border:2px dashed rgba(200,230,50,.3);}
-.card-text.selected{border-color:var(--accent);background:transparent;}
+/* ── TEXT (Miro-style: invisible default, dashed on hover, blue when editing) ── */
+.card-text{background:transparent;box-shadow:none;border:1.5px solid transparent;}
+.card-text:hover:not(.selected){border:1.5px dashed rgba(66,98,255,.40);}
+.card-text.selected{border-color:#4262FF;background:transparent;}
+.card-text:focus-within{
+  border-color:#4262FF;border-style:dashed;
+  background:rgba(255,255,255,.04);
+  box-shadow:0 0 0 1px rgba(66,98,255,.20),0 4px 12px rgba(66,98,255,.10);
+}
 .card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;}
 .text-format-toolbar{
   display:none;align-items:center;gap:4px;flex-wrap:wrap;
@@ -2293,6 +2325,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </div>
   <!-- Board canvas -->
   <div id="board">
+    <!-- Multi-select bounding box (shown when 2+ cards are selected) -->
+    <div id="multi-sel-box"><span class="ms-h-sw"></span><span class="ms-h-se"></span></div>
     <div id="empty-state">
       <div class="empty-icon">✨</div>
       <div class="empty-text">Start building your lesson</div>
@@ -5171,6 +5205,7 @@ function selectCard(id, _fromGroup) {
   }
   updateAlignBar();
   if (!_fromGroup) showLayerPopover(id);
+  updateMultiSelBox();
 }
 function clearSelection() {
   state.selected.forEach(id => getCardEl(id)?.classList.remove('selected'));
@@ -5179,6 +5214,28 @@ function clearSelection() {
   arrowsSvg.querySelectorAll('.arrow-path').forEach(p => p.classList.remove('selected-arrow'));
   updateAlignBar();
   hideLayerPopover();
+  updateMultiSelBox();
+}
+
+/* Miro-style multi-select bounding box (shown when 2+ cards selected) */
+function updateMultiSelBox() {
+  const box = document.getElementById('multi-sel-box');
+  if (!box) return;
+  if (state.selected.size < 2) { box.classList.remove('show'); return; }
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  state.selected.forEach(id => {
+    const c = state.cards.find(x => x.id === id);
+    if (!c) return;
+    minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+    maxX = Math.max(maxX, c.x + c.w); maxY = Math.max(maxY, c.y + c.h);
+  });
+  if (minX === Infinity) { box.classList.remove('show'); return; }
+  const pad = 6;
+  box.style.left = (minX - pad) + 'px';
+  box.style.top = (minY - pad) + 'px';
+  box.style.width = (maxX - minX + pad*2) + 'px';
+  box.style.height = (maxY - minY + pad*2) + 'px';
+  box.classList.add('show');
 }
 function deleteSelected() {
   snapshot();
@@ -5526,6 +5583,7 @@ document.addEventListener('mousemove', e => {
     _scheduleArrows();
     _scheduleMinimap();
     _scheduleGroupOutlines();
+    updateMultiSelBox();
     return;
   }
 
