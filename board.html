@@ -448,6 +448,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* Miro-style cursors */
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
+/* Connect mode visual feedback: highlight cards on hover, show anchor dots */
+#board-wrap.connecting .board-card{cursor:crosshair;}
+#board-wrap.connecting .board-card:hover{
+  box-shadow:0 0 0 2px #4262FF,0 4px 16px rgba(66,98,255,.25)!important;
+}
+#board-wrap.connecting .board-card .anchor-dot{
+  opacity:1!important;background:#4262FF;
+  box-shadow:0 0 0 3px rgba(66,98,255,.20),0 1px 4px rgba(0,0,0,.20);
+}
+#board-wrap.connecting .board-card:hover .anchor-dot{
+  width:12px;height:12px;
+}
+/* Hide other interactive elements while in connect mode */
+#board-wrap.connecting .resize-handle,
+#board-wrap.connecting .card-close,
+#board-wrap.connecting .card-comment-badge{display:none!important;}
 /* Hold Space for grab cursor (Miro pan-mode preview) */
 body.space-down #board-wrap{cursor:grab;}
 body.space-down #board-wrap.panning{cursor:grabbing!important;}
@@ -5795,14 +5811,36 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === 'g' && e.shiftKey)  { e.preventDefault(); ungroupSelected(); return; }
 
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-  if (e.key === 'Escape') { clearSelection(); cancelConnection(); setMode('select'); closeBoardSearchBar(); closeShortcuts(); }
+  if (e.key === 'Escape') {
+    clearSelection();
+    cancelConnection();
+    setMode('select');
+    closeBoardSearchBar();
+    closeShortcuts();
+    // Close all menus/popovers
+    if (typeof closeBoardMenu === 'function') closeBoardMenu();
+    if (typeof closeSbMoreMenu === 'function') closeSbMoreMenu();
+    if (typeof closeShapePanel === 'function') closeShapePanel();
+    const more = document.getElementById('more-menu');     if (more)  more.style.display  = 'none';
+    const usr  = document.getElementById('user-menu');     if (usr)   usr.style.display   = 'none';
+    const cp   = document.getElementById('comments-panel');if (cp)    cp.remove();
+  }
   if (e.key === 'f' || e.key === 'F') fitAll();
   if (!e.ctrlKey && !e.metaKey && (e.key === 'c' || e.key === 'C')) toggleConnectMode();
   if (e.key === '?') openShortcuts();
-  if (e.key === 'ArrowLeft')  nudgeSelected(-10, 0);
-  if (e.key === 'ArrowRight') nudgeSelected(10, 0);
-  if (e.key === 'ArrowUp')    nudgeSelected(0, -10);
-  if (e.key === 'ArrowDown')  nudgeSelected(0, 10);
+  // Miro-style nudge: default 1px, Shift 10px, Ctrl/Cmd 20px (grid)
+  const step = (e.ctrlKey || e.metaKey) ? 20 : (e.shiftKey ? 10 : 1);
+  if (e.key === 'ArrowLeft')  { if (state.selected.size) { e.preventDefault(); nudgeSelected(-step, 0); } }
+  if (e.key === 'ArrowRight') { if (state.selected.size) { e.preventDefault(); nudgeSelected(step, 0); } }
+  if (e.key === 'ArrowUp')    { if (state.selected.size) { e.preventDefault(); nudgeSelected(0, -step); } }
+  if (e.key === 'ArrowDown')  { if (state.selected.size) { e.preventDefault(); nudgeSelected(0, step); } }
+  // Tab cycles through cards (Miro)
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (typeof cycleSelection === 'function') {
+      e.preventDefault();
+      cycleSelection(e.shiftKey ? -1 : 1);
+    }
+  }
 });
 
 function nudgeSelected(dx, dy) {
@@ -5814,6 +5852,53 @@ function nudgeSelected(dx, dy) {
   });
   renderAllArrows();
   scheduleSave();
+}
+
+// Miro-style: Tab cycles selection through cards (Shift+Tab = backward)
+function cycleSelection(direction) {
+  const cards = state.cards;
+  if (!cards.length) return;
+  // Sort by visual position: top-to-bottom, left-to-right
+  const ordered = [...cards].sort((a, b) => {
+    if (Math.abs(a.y - b.y) > 30) return a.y - b.y;
+    return a.x - b.x;
+  });
+  let idx = -1;
+  if (state.selected.size === 1) {
+    const currentId = [...state.selected][0];
+    idx = ordered.findIndex(c => c.id === currentId);
+  }
+  const nextIdx = direction > 0
+    ? (idx + 1) % ordered.length
+    : (idx <= 0 ? ordered.length - 1 : idx - 1);
+  const next = ordered[nextIdx];
+  if (!next) return;
+  clearSelection();
+  selectCard(next.id);
+  // Scroll into view if off-screen
+  const el = getCardEl(next.id);
+  if (el) {
+    const r = el.getBoundingClientRect();
+    const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
+    if (r.left < 60 || r.right > pw - 60 || r.top < 60 || r.bottom > ph - 60) {
+      // Center the card on screen by adjusting pan
+      const cardCenterX = next.x + next.w / 2;
+      const cardCenterY = next.y + next.h / 2;
+      const targetPanX = pw / 2 - cardCenterX * state.scale;
+      const targetPanY = ph / 2 - cardCenterY * state.scale;
+      const startPanX = state.pan.x, startPanY = state.pan.y;
+      const t0 = performance.now();
+      function tick(now) {
+        const p = Math.min(1, (now - t0) / 220);
+        const ease = 1 - Math.pow(1 - p, 3);
+        state.pan.x = startPanX + (targetPanX - startPanX) * ease;
+        state.pan.y = startPanY + (targetPanY - startPanY) * ease;
+        applyTransform();
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  }
 }
 
 /* ════════════════════════ CLIPBOARD: COPY / PASTE CARDS ════════════════════════ */
