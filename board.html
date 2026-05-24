@@ -527,6 +527,7 @@ body.alt-duplicating *{cursor:copy!important;}
 #board-wrap.drawing.draw-eraser #draw-svg{cursor:none;}
 #board-wrap.drawing .board-card{pointer-events:none;}
 #draw-svg path{fill:none;stroke-linecap:round;stroke-linejoin:round;}
+#draw-svg path.stroke-selected{filter:drop-shadow(0 0 4px #4262FF);}
 .draw-cursor-preview{
   position:fixed;left:0;top:0;z-index:1200;
   width:18px;height:18px;border:2px solid rgba(28,28,30,.72);
@@ -1947,6 +1948,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .ctx-arrow-style-lbl{font-size:10px;font-weight:700;color:var(--text-3);min-width:28px;text-transform:uppercase;}
 .ctx-arrow-style-btn{padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:var(--card-bg,white);font-size:12px;cursor:pointer;color:var(--text-2);font-family:var(--mono);transition:background .1s;}
 .ctx-arrow-style-btn:hover,.ctx-arrow-style-btn.active{background:var(--accent-2);border-color:var(--accent);}
+.cac-swatch{display:inline-block;width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.12s;}
+.cac-swatch:hover{transform:scale(1.15);}
+.cac-swatch.active{border-color:var(--accent);}
 /* ── TABLE CARD ── */
 .table-card-wrap{width:100%;height:100%;overflow:auto;padding:4px;}
 .board-table{border-collapse:collapse;width:100%;font-size:12px;}
@@ -2488,6 +2492,21 @@ body.board-dragging .board-card{will-change:transform,left,top;}
       <button class="ctx-arrow-style-btn" id="cad-both" onclick="setArrowDir('both')">↔</button>
       <button class="ctx-arrow-style-btn" id="cad-backward" onclick="setArrowDir('backward')">←</button>
       <button class="ctx-arrow-style-btn" id="cad-none" onclick="setArrowDir('none')">—</button>
+    </div>
+    <div class="ctx-arrow-style-row">
+      <span class="ctx-arrow-style-lbl">Path</span>
+      <button class="ctx-arrow-style-btn" id="car-curve"  onclick="setArrowRoute('curve')">∿</button>
+      <button class="ctx-arrow-style-btn" id="car-straight" onclick="setArrowRoute('straight')">／</button>
+      <button class="ctx-arrow-style-btn" id="car-elbow"  onclick="setArrowRoute('elbow')">⌐</button>
+    </div>
+    <div class="ctx-arrow-style-row">
+      <span class="ctx-arrow-style-lbl">Color</span>
+      <span class="cac-swatch" data-c="#5E5E4A"  style="background:#5E5E4A;"  onclick="setArrowColor('#5E5E4A')"></span>
+      <span class="cac-swatch" data-c="#4262FF"  style="background:#4262FF;"  onclick="setArrowColor('#4262FF')"></span>
+      <span class="cac-swatch" data-c="#22C55E"  style="background:#22C55E;"  onclick="setArrowColor('#22C55E')"></span>
+      <span class="cac-swatch" data-c="#EF4444"  style="background:#EF4444;"  onclick="setArrowColor('#EF4444')"></span>
+      <span class="cac-swatch" data-c="#F59E0B"  style="background:#F59E0B;"  onclick="setArrowColor('#F59E0B')"></span>
+      <span class="cac-swatch" data-c="#8B5CF6"  style="background:#8B5CF6;"  onclick="setArrowColor('#8B5CF6')"></span>
     </div>
   </div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
@@ -3056,9 +3075,11 @@ const state = {
   pan:   { x:100, y:60 },
   scale: 1,
   cards: [],     // { id, type, x, y, w, h, data, color }
-  arrows:[],     // { id, fromCard, fromAnchor, toCard, toAnchor }
+  arrows:[],     // { id, fromCard|fromPoint, fromAnchor, toCard|toPoint, toAnchor, color?, route?, waypoints?, headFrom?, headTo? }
+  strokes:[],    // { id, tool:'pen'|'marker', color, size, points:[{x,y}] }
   selected: new Set(),
   selectedArrows: new Set(),
+  selectedStrokes: new Set(),
   mode: 'select', // 'select' | 'connect'
   groups: [], // { id, cardIds: Set<string> }
   nextId: 1,
@@ -3230,6 +3251,7 @@ function serialize() {
   return JSON.stringify({
     cards:  state.cards.map(c => ({ ...c, data: { ...c.data } })),
     arrows: state.arrows.map(a => ({ ...a })),
+    strokes: (state.strokes || []).map(s => ({ ...s, points: s.points.map(p => ({ x:p.x, y:p.y })) })),
     groups: state.groups ? state.groups.map(g => ({ ...g, cardIds: [...g.cardIds] })) : [],
     nextId: state.nextId,
   });
@@ -3241,13 +3263,16 @@ function restoreState(json) {
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = [];
   state.arrows = [];
+  state.strokes = [];
   state.groups = [];
   clearSelection();
   s.cards.forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = s.arrows;
+  state.strokes = Array.isArray(s.strokes) ? s.strokes : [];
   state.groups = (s.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   state.nextId = s.nextId;
   renderAllArrows();
+  if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   updateUndoButtons();
   updateGroupOutlines();
@@ -5337,6 +5362,8 @@ function clearSelection() {
   state.selected.clear();
   state.selectedArrows.clear();
   arrowsSvg.querySelectorAll('.arrow-path').forEach(p => p.classList.remove('selected-arrow'));
+  if (state.selectedStrokes) state.selectedStrokes.clear();
+  if (_drawSvg) _drawSvg.querySelectorAll('.stroke-selected').forEach(p => p.classList.remove('stroke-selected'));
   updateAlignBar();
   hideLayerPopover();
   updateMultiSelBox();
@@ -5364,6 +5391,13 @@ function updateMultiSelBox() {
 }
 function deleteSelected() {
   snapshot();
+  if (state.selectedStrokes && state.selectedStrokes.size) {
+    const dead = state.selectedStrokes;
+    state.strokes = (state.strokes || []).filter(s => !dead.has(s.id));
+    state.selectedStrokes.clear();
+    if (typeof renderAllStrokes === 'function') renderAllStrokes();
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+  }
   [...state.selectedArrows].forEach(id => removeArrowById(id, false));
   let deletedFrame = false;
   [...state.selected].forEach(id => {
@@ -5886,6 +5920,33 @@ document.addEventListener('mouseup', e => {
       state.cards.forEach(c => {
         if (c.x < bx2 && c.x+c.w > bx1 && c.y < by2 && c.y+c.h > by1) selectCard(c.id);
       });
+      // Arrows: select when both endpoints lie inside the box
+      state.arrows.forEach(arrow => {
+        const fromCard = state.cards.find(c => c.id === arrow.fromCard);
+        const toCard   = state.cards.find(c => c.id === arrow.toCard);
+        if (!fromCard || !toCard) return;
+        const from = getAnchorBoardPos(fromCard, arrow.fromAnchor);
+        const to   = getAnchorBoardPos(toCard,   arrow.toAnchor);
+        if (!from || !to) return;
+        const inside = (p) => p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2;
+        if (inside(from) && inside(to)) {
+          state.selectedArrows.add(arrow.id);
+          arrowsSvg.querySelector(`[data-arrow-id="${arrow.id}"] .arrow-path`)?.classList.add('selected-arrow');
+        }
+      });
+      // Strokes: select when most points lie inside the box
+      (state.strokes || []).forEach(s => {
+        if (!s.points || !s.points.length) return;
+        let inCount = 0;
+        for (const p of s.points) {
+          if (p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2) inCount++;
+        }
+        if (inCount / s.points.length >= 0.6) {
+          state.selectedStrokes = state.selectedStrokes || new Set();
+          state.selectedStrokes.add(s.id);
+          _drawSvg?.querySelector(`[data-stroke-id="${s.id}"]`)?.classList.add('stroke-selected');
+        }
+      });
     }
   }
 
@@ -6368,6 +6429,28 @@ function makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor) {
   }
   return `M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}`;
 }
+function makeStraight(x1, y1, x2, y2) {
+  return `M${x1},${y1} L${x2},${y2}`;
+}
+function makeElbow(x1, y1, x2, y2, fromAnchor, toAnchor) {
+  const horizFrom = fromAnchor === 'left' || fromAnchor === 'right';
+  const horizTo   = toAnchor === 'left'   || toAnchor === 'right';
+  if (horizFrom && horizTo) {
+    const mid = (x1 + x2) / 2;
+    return `M${x1},${y1} L${mid},${y1} L${mid},${y2} L${x2},${y2}`;
+  }
+  if (!horizFrom && !horizTo) {
+    const mid = (y1 + y2) / 2;
+    return `M${x1},${y1} L${x1},${mid} L${x2},${mid} L${x2},${y2}`;
+  }
+  if (horizFrom) return `M${x1},${y1} L${x2},${y1} L${x2},${y2}`;
+  return `M${x1},${y1} L${x1},${y2} L${x2},${y2}`;
+}
+function makeArrowPath(x1, y1, x2, y2, fromAnchor, toAnchor, route) {
+  if (route === 'straight') return makeStraight(x1, y1, x2, y2);
+  if (route === 'elbow')    return makeElbow(x1, y1, x2, y2, fromAnchor, toAnchor);
+  return makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor);
+}
 
 function renderAllArrows() {
   // Remove existing rendered arrows
@@ -6392,9 +6475,10 @@ function renderAllArrows() {
     g.dataset.arrowId = arrow.id;
     g.style.pointerEvents = 'all';
 
+    const route = arrow.route || 'curve';
     // Hit area (wider invisible path)
     const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
-    hit.setAttribute('d', makeBezier(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor));
+    hit.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route));
     hit.style.cssText = 'fill:none;stroke:transparent;stroke-width:12;cursor:pointer;pointer-events:stroke;';
     hit.addEventListener('click', e => {
       e.stopPropagation();
@@ -6415,8 +6499,12 @@ function renderAllArrows() {
       if (styleWrap) {
         styleWrap.style.display = arrow.type === 'prereq' ? 'none' : '';
         const cs = arrow.style || 'solid', cd = arrow.direction || 'forward';
+        const cr = arrow.route || 'curve';
+        const cc = arrow.color || '#5E5E4A';
         ['solid','dashed','dotted'].forEach(s => document.getElementById('cas-'+s)?.classList.toggle('active', s===cs));
         ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===cd));
+        ['curve','straight','elbow'].forEach(r => document.getElementById('car-'+r)?.classList.toggle('active', r===cr));
+        document.querySelectorAll('.cac-swatch').forEach(sw => sw.classList.toggle('active', sw.dataset.c === cc));
       }
       ctxMenu.style.left = e.clientX+'px'; ctxMenu.style.top = e.clientY+'px';
       ctxMenu.style.display = 'block';
@@ -6424,7 +6512,8 @@ function renderAllArrows() {
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.classList.add('arrow-path');
-    path.setAttribute('d', makeBezier(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor));
+    path.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route));
+    if (arrow.color) path.setAttribute('stroke', arrow.color);
 
     // Style based on arrow type
     if (arrow.type === 'prereq') {
@@ -6452,8 +6541,8 @@ function renderAllArrows() {
 
     // Arrow label
     if (arrow.label) {
-      const d = makeBezier(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor);
-      // midpoint of bezier (t=0.5 approximation)
+      const d = makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route);
+      // midpoint approximation
       const mx = (fw.x + tw.x) / 2, my = (fw.y + tw.y) / 2;
       const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
       fo.setAttribute('x', mx - 40); fo.setAttribute('y', my - 12);
@@ -6492,6 +6581,18 @@ function setArrowDir(dir) {
   if (!arrow) return;
   snapshot(); arrow.direction = dir; renderAllArrows(); scheduleSave?.();
   ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===dir));
+}
+function setArrowRoute(route) {
+  const arrow = state.arrows.find(a => a.id === ctxArrowId);
+  if (!arrow) return;
+  snapshot(); arrow.route = route; renderAllArrows(); scheduleSave?.();
+  ['curve','straight','elbow'].forEach(r => document.getElementById('car-'+r)?.classList.toggle('active', r===route));
+}
+function setArrowColor(color) {
+  const arrow = state.arrows.find(a => a.id === ctxArrowId);
+  if (!arrow) return;
+  snapshot(); arrow.color = color; renderAllArrows(); scheduleSave?.();
+  document.querySelectorAll('.cac-swatch').forEach(s => s.classList.toggle('active', s.dataset.c === color));
 }
 
 document.getElementById('ctx-delete-arrow').addEventListener('click', () => {
@@ -6597,14 +6698,16 @@ document.getElementById('btn-redo').addEventListener('click', redo);
 document.getElementById('btn-clear').addEventListener('click', clearAll);
 
 function clearAll() {
-  if (!state.cards.length && !state.arrows.length) return;
+  if (!state.cards.length && !state.arrows.length && !(state.strokes && state.strokes.length)) return;
   if (!confirm('Clear the entire board?')) return;
   snapshot();
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   state.cards = [];
   state.arrows = [];
+  state.strokes = [];
   state.groups = [];
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
+  if (typeof renderAllStrokes === 'function') renderAllStrokes();
   clearSelection();
   updateGroupOutlines();
   updateEmpty();
@@ -7166,6 +7269,7 @@ let cloudSaveSizeWarned  = false;
 /* ── Lightweight hash to detect actual changes ── */
 function boardHash() {
   return state.cards.length + ':' + state.arrows.length + ':' +
+    ((state.strokes||[]).length) + ':' +
     (state.cards.reduce((s,c)=>s+c.x+c.y,0)|0);
 }
 
@@ -7250,6 +7354,7 @@ setInterval(() => {
 function serializeBoard() {
   return { pan:state.pan, scale:state.scale, nextId:state.nextId,
            cards:state.cards, arrows:state.arrows,
+           strokes: state.strokes || [],
            groups: (state.groups || []).map(g => ({ ...g, cardIds: [...g.cardIds] })),
            savedAt: Date.now() };
 }
@@ -7422,10 +7527,12 @@ function loadBoard() {
     state.nextId = data.nextId || 1;
     (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
     state.arrows = data.arrows || [];
+    state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
     state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
     applyTransform();
     updateEmpty();
     updateGroupOutlines();
+    if (typeof renderAllStrokes === 'function') renderAllStrokes();
     lastSavedAt = data.savedAt ? new Date(data.savedAt) : new Date();
     lastSavedHash = boardHash();
     if (data.savedAt) setSaveUI('saved', `✓ saved ${new Date(data.savedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`);
@@ -8351,6 +8458,7 @@ function loadBoardData(data) {
   arrowsSvg.querySelectorAll('.arrow-path').forEach(e => e.remove());
   state.cards = [];
   state.arrows = [];
+  state.strokes = [];
   state.selected = new Set();
   state.selectedArrows = new Set();
   state.pan    = data.pan    || { x:100, y:60 };
@@ -8358,6 +8466,7 @@ function loadBoardData(data) {
   state.nextId = data.nextId || 1;
   (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = data.arrows || [];
+  state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
   // Bug fix: reset transient overlays on every board load
@@ -8387,6 +8496,7 @@ function loadBoardData(data) {
   if (typeof renumberFrames === 'function') renumberFrames();
   applyTransform();
   renderAllArrows();
+  if (typeof renderAllStrokes === 'function') renderAllStrokes();
   renderMinimap();
   updateEmpty();
   updateSessionChip();
@@ -8692,6 +8802,11 @@ function wsConnect() {
       wsIgnoreNext = true;
       applyRemoteState(msg.state);
       wsIgnoreNext = false;
+    } else if (msg.type === 'strokes_patch' && Array.isArray(msg.strokes)) {
+      wsIgnoreNext = true;
+      state.strokes = msg.strokes;
+      if (typeof renderAllStrokes === 'function') renderAllStrokes();
+      wsIgnoreNext = false;
     } else if (msg.type === 'cursor') {
       peerInfo[msg.userId] = { name: msg.name, avatar: msg.avatar };
       updateRemoteCursor(msg.userId, msg.x, msg.y, msg.name, msg.avatar);
@@ -8750,9 +8865,21 @@ function wsBroadcastState() {
   wsBroadcastTimer = setTimeout(() => {
     if (ws?.readyState === 1) ws.send(JSON.stringify({
       type: 'board_patch',
-      state: { cards: state.cards, arrows: state.arrows, nextId: state.nextId }
+      state: { cards: state.cards, arrows: state.arrows, strokes: state.strokes || [], nextId: state.nextId }
     }));
   }, 400);
+}
+
+let _strokeBroadcastTimer = null;
+function _broadcastStrokesSoon() {
+  if (!ws || ws.readyState !== 1 || wsIgnoreNext) return;
+  clearTimeout(_strokeBroadcastTimer);
+  _strokeBroadcastTimer = setTimeout(() => {
+    if (ws?.readyState === 1) ws.send(JSON.stringify({
+      type: 'strokes_patch',
+      strokes: state.strokes || [],
+    }));
+  }, 250);
 }
 
 let _cursorThrottle = 0;
@@ -8766,17 +8893,17 @@ function wsSendCursor(bx, by) {
 }
 
 function applyRemoteState(remote) {
-  // Only update if remote is meaningfully different (compare nextId as proxy)
-  if (remote.nextId <= state.nextId && remote.cards.length <= state.cards.length) return;
-  // Full replace
+  // Full replace — server is source of truth for collab.
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
-  state.cards  = remote.cards;
-  state.arrows = remote.arrows;
-  state.nextId = Math.max(state.nextId, remote.nextId);
+  state.cards  = remote.cards || [];
+  state.arrows = remote.arrows || [];
+  state.strokes = Array.isArray(remote.strokes) ? remote.strokes : (state.strokes || []);
+  state.nextId = Math.max(state.nextId, remote.nextId || 0);
   clearSelection();
   state.cards.forEach(c => board.appendChild(renderCard(c)));
   renderAllArrows();
+  if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   saveStatus.textContent = '☁ synced';
 }
@@ -10383,15 +10510,100 @@ function ensureDrawLayer() {
   svg.style.cssText = 'position:absolute;top:0;left:0;width:6000px;height:6000px;pointer-events:none;overflow:visible;';
   board.appendChild(svg);
   _drawSvg = svg;
+  // Legacy: pull any old stroke HTML from before strokes were modeled in state, convert if possible
   try {
-    const saved = localStorage.getItem('teachedos_board_strokes');
-    if (saved) svg.innerHTML = saved;
+    const legacy = localStorage.getItem('teachedos_board_strokes');
+    if (legacy && !(state.strokes && state.strokes.length)) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = '<svg>' + legacy + '</svg>';
+      tmp.querySelectorAll('path').forEach(p => {
+        const d = p.getAttribute('d') || '';
+        const pts = [];
+        d.replace(/[ML]\s*(-?[0-9.]+)\s+(-?[0-9.]+)/g, (_, x, y) => { pts.push({ x:+x, y:+y }); });
+        if (!pts.length) return;
+        const op = parseFloat(p.getAttribute('opacity') || '1');
+        state.strokes.push({
+          id: 's' + (state.nextId++),
+          tool: op < 0.7 ? 'marker' : 'pen',
+          color: p.getAttribute('stroke') || '#1C1C1E',
+          size: +(p.getAttribute('stroke-width') || 3),
+          points: pts,
+        });
+      });
+      localStorage.removeItem('teachedos_board_strokes');
+    }
   } catch {}
+  renderAllStrokes();
   return svg;
 }
-function saveStrokes() {
+
+// Catmull-Rom → cubic Bezier path string. Smoother than raw polyline.
+function _strokePath(points) {
+  if (!points || !points.length) return '';
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y} L ${points[0].x+0.01} ${points[0].y+0.01}`;
+  }
+  if (points.length === 2) {
+    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  }
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function _strokeAttrs(stroke) {
+  return {
+    stroke: stroke.color || '#1C1C1E',
+    'stroke-width': stroke.size || 3,
+    fill: 'none',
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    opacity: stroke.tool === 'marker' ? '0.40' : '1',
+    'data-stroke-id': stroke.id,
+  };
+}
+
+function renderAllStrokes() {
   if (!_drawSvg) return;
-  try { localStorage.setItem('teachedos_board_strokes', _drawSvg.innerHTML); } catch {}
+  _drawSvg.innerHTML = '';
+  (state.strokes || []).forEach(s => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const attrs = _strokeAttrs(s);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    el.setAttribute('d', _strokePath(s.points));
+    if (state.selectedStrokes && state.selectedStrokes.has(s.id)) el.classList.add('stroke-selected');
+    // Allow click-to-select only when no drawing tool is active
+    el.addEventListener('mousedown', (ev) => {
+      if (_drawTool) return; // drawing/erasing takes priority
+      if (ev.button !== 0) return;
+      ev.stopPropagation();
+      if (!ev.shiftKey) clearSelection();
+      state.selectedStrokes = state.selectedStrokes || new Set();
+      state.selectedStrokes.add(s.id);
+      el.classList.add('stroke-selected');
+    });
+    _drawSvg.appendChild(el);
+  });
+  // Allow pointer events on stroke paths only when not drawing
+  if (_drawTool) _drawSvg.style.pointerEvents = '';
+  else _drawSvg.style.pointerEvents = 'none';
+  // Per-path pointer events (so individual strokes are clickable when no tool)
+  if (!_drawTool) {
+    _drawSvg.querySelectorAll('path').forEach(p => {
+      p.style.pointerEvents = 'stroke';
+      p.style.cursor = 'pointer';
+    });
+  }
 }
 
 function _setDrawModeClass(tool) {
@@ -10454,9 +10666,13 @@ function toggleDrawTool(tool, ev) {
   closeDrawPalette();
 }
 function eraseDrawing() {
+  if (!(state.strokes && state.strokes.length)) return;
   if (!confirm('Erase ALL drawing strokes on this board?')) return;
-  if (_drawSvg) _drawSvg.innerHTML = '';
-  try { localStorage.removeItem('teachedos_board_strokes'); } catch {}
+  snapshot();
+  state.strokes = [];
+  renderAllStrokes();
+  if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+  scheduleSave();
 }
 
 /* ── Palette popup ── */
@@ -10548,26 +10764,27 @@ function _eraseAt(e) {
   const scale = (typeof state !== 'undefined' && state.scale) ? state.scale : 1;
   const r = Math.max(3, (_drawState.eraser.size / 2) / scale);
   let changed = false;
-  // Hit-test all path bounding boxes (cheap)
-  const paths = Array.from(_drawSvg.querySelectorAll('path'));
-  for (const path of paths) {
-    try {
-      const bb = path.getBBox();
-      if (p.x >= bb.x - r && p.x <= bb.x + bb.width + r &&
-          p.y >= bb.y - r && p.y <= bb.y + bb.height + r) {
-        // Fine-grained: check if any point along the path is within radius
-        const len = path.getTotalLength();
-        const step = Math.max(1, Math.min(8, r / 2));
-        for (let s = 0; s <= len; s += step) {
-          const pt = path.getPointAtLength(s);
-          if (Math.hypot(pt.x - p.x, pt.y - p.y) <= r) {
-            path.remove();
-            changed = true;
-            break;
-          }
-        }
+  const remaining = [];
+  for (const s of (state.strokes || [])) {
+    let hit = false;
+    // Quick bbox skip
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for (const pt of s.points) {
+      if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
+      if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
+    }
+    if (p.x >= minX - r && p.x <= maxX + r && p.y >= minY - r && p.y <= maxY + r) {
+      for (const pt of s.points) {
+        if (Math.hypot(pt.x - p.x, pt.y - p.y) <= r) { hit = true; break; }
       }
-    } catch {}
+    }
+    if (hit) { changed = true; } else { remaining.push(s); }
+  }
+  if (changed) {
+    state.strokes = remaining;
+    renderAllStrokes();
+    _strokeChanged = true;
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
   }
   return changed;
 }
@@ -10582,29 +10799,36 @@ function _canStartDraw(e) {
   return true;
 }
 
+let _currentStroke = null;
+let _strokeChanged = false;
+
 function _beginDraw(e) {
   if (!_canStartDraw(e)) return;
   _drawing = true;
   _drawPointerId = e.pointerId ?? null;
   _updateDrawCursor(e);
   if (_drawTool === 'eraser') {
+    if (typeof snapshot === 'function') snapshot();
     _eraseAt(e);
     if (typeof e.preventDefault === 'function') e.preventDefault();
     return;
   }
-  _drawPoints = [_drawPointFromEvent(e)];
-  _drawPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const p0 = _drawPointFromEvent(e);
   const conf = _drawState[_drawTool];
-  if (_drawTool === 'pen') {
-    _drawPath.setAttribute('stroke', conf.color);
-    _drawPath.setAttribute('stroke-width', conf.size);
-    _drawPath.setAttribute('opacity', '1');
-  } else {
-    _drawPath.setAttribute('stroke', conf.color);
-    _drawPath.setAttribute('stroke-width', conf.size);
-    _drawPath.setAttribute('opacity', '0.40');
-  }
-  _drawPath.setAttribute('d', `M ${_drawPoints[0].x} ${_drawPoints[0].y}`);
+  _currentStroke = {
+    id: 's' + (state.nextId++),
+    tool: _drawTool,
+    color: conf.color,
+    size: conf.size,
+    points: [p0],
+  };
+  state.strokes = state.strokes || [];
+  state.strokes.push(_currentStroke);
+
+  _drawPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const attrs = _strokeAttrs(_currentStroke);
+  for (const k in attrs) _drawPath.setAttribute(k, attrs[k]);
+  _drawPath.setAttribute('d', `M ${p0.x} ${p0.y} L ${p0.x+0.01} ${p0.y+0.01}`);
   _drawSvg.appendChild(_drawPath);
   if (typeof e.preventDefault === 'function') e.preventDefault();
 }
@@ -10615,11 +10839,14 @@ function _moveDraw(e) {
   if (!_drawing) return;
   if (typeof e.preventDefault === 'function') e.preventDefault();
   if (_drawTool === 'eraser') { _eraseAt(e); return; }
-  if (!_drawPath) return;
+  if (!_drawPath || !_currentStroke) return;
   const p = _drawPointFromEvent(e);
-  _drawPoints.push(p);
-  const d = _drawPoints.map((pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
-  _drawPath.setAttribute('d', d);
+  const pts = _currentStroke.points;
+  const last = pts[pts.length - 1];
+  // Skip near-duplicate points to keep stroke compact
+  if (Math.hypot(p.x - last.x, p.y - last.y) < 1.2) return;
+  pts.push(p);
+  _drawPath.setAttribute('d', _strokePath(pts));
 }
 
 function _endDraw(e) {
@@ -10627,9 +10854,29 @@ function _endDraw(e) {
   if (!_drawing) return;
   _drawing = false;
   _drawPointerId = null;
+  const wasErasing = (_drawTool === 'eraser');
+  const finishedStroke = _currentStroke;
   _drawPath = null;
   _drawPoints = [];
-  saveStrokes();
+  _currentStroke = null;
+  if (!wasErasing && finishedStroke) {
+    if (typeof snapshot === 'function') {
+      // Undo entry was not made on begin — we did mutate state.strokes already.
+      // Pop and snapshot pre-state, then push back.
+      const last = state.strokes.pop();
+      snapshot();
+      if (last) state.strokes.push(last);
+    }
+    _strokeChanged = true;
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+  }
+  if (wasErasing && _strokeChanged) {
+    _strokeChanged = false;
+    if (typeof scheduleSave === 'function') scheduleSave();
+  } else if (_strokeChanged) {
+    _strokeChanged = false;
+    if (typeof scheduleSave === 'function') scheduleSave();
+  }
 }
 
 function _leaveDrawArea() {
