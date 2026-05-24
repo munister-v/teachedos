@@ -546,9 +546,24 @@ body.alt-duplicating *{cursor:copy!important;}
   color:#050038;background:transparent;padding:2px 4px;
   border-radius:4px;border:none;font-family:var(--font);
   white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
-  cursor:text;letter-spacing:-.01em;
+  cursor:pointer;letter-spacing:-.01em;
+  display:inline-flex;align-items:center;gap:6px;
 }
 .card-frame .frame-title:hover{background:rgba(66,98,255,.06);}
+.card-frame .frame-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 5px;border-radius:4px;
+  background:#4262FF;color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:0;line-height:1;flex-shrink:0;
+  box-shadow:0 1px 2px rgba(66,98,255,.30);
+}
+/* Frame highlighted as drop target */
+.card-frame.frame-drop-hover .frame-body{
+  background:rgba(66,98,255,.10)!important;
+  border-color:#4262FF!important;
+  border-style:dashed!important;
+  border-width:2px!important;
+}
 .card-frame .card-header{position:absolute;top:-22px;left:0;background:transparent;border:none;height:22px;}
 
 /* Private mode */
@@ -3746,11 +3761,19 @@ function renderImage(el, card) {
 }
 
 function renderFrame(el, card) {
-  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(200,230,50,.08)');
-  el.style.setProperty('--frame-border', card.data.border || 'rgba(200,230,50,.5)');
+  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(66,98,255,.05)');
+  el.style.setProperty('--frame-border', card.data.border || 'rgba(66,98,255,.30)');
+  // Assign a number if missing (legacy frames)
+  if (!card.data.num) {
+    const frames = state.cards.filter(c => c.type === 'frame');
+    card.data.num = frames.indexOf(card) + 1 || frames.length || 1;
+  }
+  if (!card.data.childIds) card.data.childIds = [];
   const title = document.createElement('div');
   title.className = 'frame-title';
-  title.textContent = card.data.title || 'Frame';
+  const niceTitle = card.data.title && !/^Frame \d+$/.test(card.data.title)
+    ? card.data.title : '';
+  title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(niceTitle)}`;
   title.title = 'Click to zoom · Double-click to rename';
   title.addEventListener('click', e => {
     e.stopPropagation();
@@ -3758,8 +3781,13 @@ function renderFrame(el, card) {
   });
   title.addEventListener('dblclick', e => {
     e.stopPropagation();
-    const name = prompt('Frame name:', card.data.title || 'Frame');
-    if (name !== null) { card.data.title = name; title.textContent = name; snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+    const name = prompt('Frame name:', niceTitle || ('Frame ' + card.data.num));
+    if (name !== null) {
+      card.data.title = name || ('Frame ' + card.data.num);
+      const cleanTitle = (card.data.title && !/^Frame \d+$/.test(card.data.title)) ? card.data.title : '';
+      title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(cleanTitle)}`;
+      snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
   });
   el.appendChild(title);
   const body = document.createElement('div');
@@ -3979,9 +4007,91 @@ function quickAddFrame() {
   const r = boardWrap.getBoundingClientRect();
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 100, y: 100 };
   const def = getDefaults('frame');
-  addCard('frame', pos.x - def.w/2, pos.y - def.h/2, { title: 'Frame', bg: 'rgba(200,230,50,.08)', border: 'rgba(200,230,50,.5)' });
+  const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
+  addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
+    title: 'Frame ' + n,
+    num: n,
+    bg: 'rgba(66,98,255,.05)',
+    border: 'rgba(66,98,255,.30)',
+    childIds: []
+  });
   setMiroTool('select');
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* ─── Miro-style frame containment ─── */
+// Test if a card center is inside a frame
+function _cardInFrame(card, frame) {
+  if (!frame || frame.type !== 'frame' || frame.id === card.id) return false;
+  const cx = card.x + card.w/2, cy = card.y + card.h/2;
+  return cx >= frame.x && cx <= frame.x + frame.w
+      && cy >= frame.y && cy <= frame.y + frame.h;
+}
+
+// Find a frame currently under a card (returns null if none)
+function findFrameUnder(card) {
+  // Iterate from topmost to bottommost (last in array = top)
+  for (let i = state.cards.length - 1; i >= 0; i--) {
+    const f = state.cards[i];
+    if (f.type === 'frame' && f.id !== card.id && _cardInFrame(card, f)) return f;
+  }
+  return null;
+}
+
+// Set / clear a card's parent frame
+function setCardParentFrame(card, frame) {
+  // Remove from old parent frame's childIds
+  const oldFrame = card.data.parentFrame
+    ? state.cards.find(c => c.id === card.data.parentFrame)
+    : null;
+  if (oldFrame && oldFrame.data.childIds) {
+    oldFrame.data.childIds = oldFrame.data.childIds.filter(id => id !== card.id);
+  }
+  if (frame) {
+    card.data.parentFrame = frame.id;
+    if (!frame.data.childIds) frame.data.childIds = [];
+    if (!frame.data.childIds.includes(card.id)) frame.data.childIds.push(card.id);
+  } else {
+    delete card.data.parentFrame;
+  }
+}
+
+// During drag of a card: highlight the frame it would be dropped on
+function _highlightFrameDropTarget(draggedCardIds) {
+  document.querySelectorAll('.card-frame.frame-drop-hover').forEach(el => el.classList.remove('frame-drop-hover'));
+  if (draggedCardIds.length === 0) return null;
+  // Don't highlight if user is dragging a frame itself
+  const draggedFrames = draggedCardIds.filter(id => state.cards.find(c => c.id === id && c.type === 'frame'));
+  if (draggedFrames.length) return null;
+  // Use the first dragged card's position to detect the frame
+  const card = state.cards.find(c => c.id === draggedCardIds[0]);
+  if (!card) return null;
+  const frame = findFrameUnder(card);
+  if (frame) {
+    getCardEl(frame.id)?.classList.add('frame-drop-hover');
+  }
+  return frame;
+}
+
+// Re-number all frames in creation order (called after delete to keep numbers tidy)
+function renumberFrames() {
+  let i = 1;
+  state.cards.forEach(c => {
+    if (c.type !== 'frame') return;
+    c.data.num = i;
+    // Update title if it still matches the default "Frame N" pattern
+    if (!c.data.title || /^Frame \d+$/.test(c.data.title)) {
+      c.data.title = 'Frame ' + i;
+      const el = getCardEl(c.id);
+      const t = el?.querySelector('.frame-title');
+      if (t) t.innerHTML = `<span class="frame-num">${i}</span>${esc(c.data.title.replace(/^Frame \d+$/, ''))}`;
+    } else {
+      const el = getCardEl(c.id);
+      const t = el?.querySelector('.frame-title');
+      if (t) t.innerHTML = `<span class="frame-num">${i}</span>${esc(c.data.title)}`;
+    }
+    i++;
+  });
 }
 
 /* ── Voting card ── */
@@ -5419,7 +5529,16 @@ function startCardDrag(e, card) {
     document.body.classList.add('alt-duplicating');
     toast('Duplicating');
   } else {
-    dragCards = [...state.selected].map(id => {
+    const baseSel = [...state.selected];
+    // Miro-style: dragging a frame also moves its children
+    const expanded = new Set(baseSel);
+    baseSel.forEach(id => {
+      const c = state.cards.find(x => x.id === id);
+      if (c && c.type === 'frame' && Array.isArray(c.data.childIds)) {
+        c.data.childIds.forEach(cid => expanded.add(cid));
+      }
+    });
+    dragCards = [...expanded].map(id => {
       const c = state.cards.find(x => x.id === id);
       return { card: c, ox: bp.x - c.x, oy: bp.y - c.y };
     }).filter(({ card }) => card && !(card.data && card.data.locked));
@@ -5584,6 +5703,8 @@ document.addEventListener('mousemove', e => {
     _scheduleMinimap();
     _scheduleGroupOutlines();
     updateMultiSelBox();
+    // Miro-style: highlight the frame the dragged card would land in
+    _highlightFrameDropTarget(dragCards.map(d => d.card.id));
     return;
   }
 
@@ -5687,7 +5808,22 @@ document.addEventListener('mouseup', e => {
     document.body.classList.remove('alt-duplicating');
     _clearSnapGuides();
     dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.remove('dragging'));
-    if (dragStarted) { snapshot(); scheduleSave(); }
+    // Miro-style: finalize frame containment for each dropped non-frame card
+    document.querySelectorAll('.card-frame.frame-drop-hover').forEach(el => el.classList.remove('frame-drop-hover'));
+    if (dragStarted) {
+      dragCards.forEach(({ card }) => {
+        if (card.type === 'frame') return; // frames don't nest in this version
+        const target = findFrameUnder(card);
+        if (target) {
+          if (card.data.parentFrame !== target.id) setCardParentFrame(card, target);
+        } else if (card.data.parentFrame) {
+          // Dropped outside any frame → detach
+          setCardParentFrame(card, null);
+        }
+      });
+      snapshot();
+      scheduleSave();
+    }
     setTimeout(() => { dragStarted = false; }, 0);
   }
 
