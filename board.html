@@ -153,16 +153,38 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:fixed;top:var(--tb-h);left:var(--mt-w,48px);bottom:0;width:var(--sb-w);z-index:900;
   background:#fff;
   border-right:1px solid rgba(0,0,0,.10);
-  display:flex;flex-direction:column;overflow:hidden;
+  display:flex;flex-direction:column;overflow:visible;
+  transition:transform .22s ease,width .22s ease;
 }
+#sidebar.collapsed{transform:translateX(calc(-1 * var(--sb-w)));}
 [data-theme="dark"] #sidebar{background:#1E1E35;border-right-color:rgba(255,255,255,.08);}
-.sb-tabs{display:flex;border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0;padding:0 4px;}
+/* Re-open handle (Miro-style small chevron on board edge when sidebar collapsed) */
+#sb-reopen{
+  display:none;position:fixed;top:50%;left:var(--mt-w,48px);transform:translateY(-50%);
+  width:18px;height:54px;z-index:850;
+  background:#fff;border:1px solid rgba(0,0,0,.10);border-left:none;
+  border-radius:0 8px 8px 0;cursor:pointer;align-items:center;justify-content:center;
+  color:#9999AA;box-shadow:2px 0 8px rgba(5,5,23,.06);transition:color .12s,background .12s;
+}
+#sb-reopen:hover{background:rgba(66,98,255,.06);color:#4262FF;}
+#sidebar.collapsed ~ #sb-reopen{display:flex;}
+[data-theme="dark"] #sb-reopen{background:#252540;border-color:rgba(255,255,255,.10);}
+.sb-tabs{display:flex;border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0;padding:0 4px;align-items:stretch;position:relative;}
 .sb-tab{
   flex:1;padding:10px 2px 9px;text-align:center;font-size:11px;font-weight:500;
   color:#9999AA;cursor:pointer;border-bottom:2px solid transparent;
   transition:color .12s,border-color .12s,background .12s;
   display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:4px 4px 0 0;
 }
+.sb-tab-more.open{color:#4262FF;background:rgba(66,98,255,.06);}
+.sb-collapse{
+  width:30px;display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;cursor:pointer;color:#9999AA;
+  border-radius:6px;margin:5px 2px 5px 2px;flex-shrink:0;transition:.1s;
+  -webkit-tap-highlight-color:transparent;
+}
+.sb-collapse:hover{background:rgba(0,0,0,.06);color:#050038;}
+.sb-more-item{font-size:13px;}
 .sb-tab:hover{color:#4262FF;background:rgba(66,98,255,.04);}
 .sb-tab.active{color:#4262FF;border-bottom-color:#4262FF;font-weight:600;}
 .sb-tab-ic{font-size:14px;line-height:1;}
@@ -1913,18 +1935,28 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="sb-tabs">
-    <div class="sb-tab active" data-tab="plans"><span class="sb-tab-ic">📋</span><span class="sb-tab-lbl">Plans</span></div>
-    <div class="sb-tab" data-tab="students"><span class="sb-tab-ic">👥</span><span class="sb-tab-lbl">Students</span></div>
-    <div class="sb-tab" data-tab="notes"><span class="sb-tab-ic">✍️</span><span class="sb-tab-lbl">Notes</span></div>
-    <div class="sb-tab" data-tab="course"><span class="sb-tab-ic">📚</span><span class="sb-tab-lbl">Course</span></div>
-    <div class="sb-tab" data-tab="games"><span class="sb-tab-ic">🎮</span><span class="sb-tab-lbl">Games</span></div>
-    <div class="sb-tab" data-tab="elements"><span class="sb-tab-ic">＋</span><span class="sb-tab-lbl">Add</span></div>
+    <div class="sb-tab active" data-tab="plans" title="Plans"><span class="sb-tab-ic">📋</span><span class="sb-tab-lbl">Plans</span></div>
+    <div class="sb-tab" data-tab="students" title="Students"><span class="sb-tab-ic">👥</span><span class="sb-tab-lbl">Students</span></div>
+    <div class="sb-tab" data-tab="elements" title="Add"><span class="sb-tab-ic">＋</span><span class="sb-tab-lbl">Add</span></div>
+    <div class="sb-tab sb-tab-more" id="sb-tab-more" onclick="toggleSbMoreMenu(event)" title="More tabs"><span class="sb-tab-ic">⋯</span><span class="sb-tab-lbl">More</span></div>
+    <button class="sb-collapse" id="sb-collapse" onclick="toggleSidebar()" title="Hide sidebar" aria-label="Collapse sidebar">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4L6 8l4 4"/></svg>
+    </button>
+  </div>
+  <!-- More tabs popover -->
+  <div id="sb-more-menu" style="display:none;position:absolute;top:38px;right:6px;background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 6px 20px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:5px;z-index:1500;min-width:170px;">
+    <div class="user-menu-item sb-more-item" data-tab="notes">✍️ Notes</div>
+    <div class="user-menu-item sb-more-item" data-tab="course">📚 Course</div>
+    <div class="user-menu-item sb-more-item" data-tab="games">🎮 Games</div>
   </div>
   <div class="sb-search" id="sb-search-wrap">
     <input type="text" placeholder="Search…" id="sb-search">
   </div>
   <div class="sb-body" id="sb-content"></div>
 </div>
+<button id="sb-reopen" onclick="toggleSidebar()" title="Show sidebar" aria-label="Expand sidebar">
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+</button>
 
 <!-- MIRO-STYLE LEFT TOOLBAR -->
 <div id="miro-toolbar">
@@ -6051,15 +6083,80 @@ let activeTab = 'plans', searchQ = '';
 
 document.querySelectorAll('.sb-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeTab = tab.dataset.tab;
-    searchQ = '';
-    document.getElementById('sb-search').value = '';
-    document.getElementById('sb-search-wrap').style.display = activeTab === 'elements' ? 'none' : '';
-    renderSidebar();
+    if (tab.classList.contains('sb-tab-more')) return; // handled by toggleSbMoreMenu
+    selectSidebarTab(tab.dataset.tab);
   });
 });
+
+// Wire "More" dropdown items
+document.querySelectorAll('.sb-more-item').forEach(item => {
+  item.addEventListener('click', () => {
+    selectSidebarTab(item.dataset.tab);
+    closeSbMoreMenu();
+  });
+});
+
+function selectSidebarTab(name) {
+  if (!name) return;
+  activeTab = name;
+  // Primary tabs in the bar: mark active. Secondary (Notes/Course/Games) fall under the "More" tab indicator.
+  const primaryNames = ['plans','students','elements'];
+  document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
+  if (primaryNames.includes(name)) {
+    const t = document.querySelector(`.sb-tab[data-tab="${name}"]`);
+    t && t.classList.add('active');
+  } else {
+    // Secondary tab → highlight the "More" tab to signal where it came from
+    document.getElementById('sb-tab-more')?.classList.add('active');
+  }
+  searchQ = '';
+  const search = document.getElementById('sb-search');
+  if (search) search.value = '';
+  document.getElementById('sb-search-wrap').style.display = name === 'elements' ? 'none' : '';
+  renderSidebar();
+}
+
+function toggleSbMoreMenu(e) {
+  if (e) { e.stopPropagation(); }
+  const m = document.getElementById('sb-more-menu');
+  const t = document.getElementById('sb-tab-more');
+  if (!m) return;
+  const open = m.style.display !== 'none';
+  if (open) { closeSbMoreMenu(); return; }
+  m.style.display = 'block';
+  t?.classList.add('open');
+  // Highlight current item if active
+  m.querySelectorAll('.sb-more-item').forEach(it => {
+    it.style.background = it.dataset.tab === activeTab ? 'rgba(66,98,255,.08)' : '';
+    it.style.color      = it.dataset.tab === activeTab ? '#4262FF' : '';
+  });
+  setTimeout(() => document.addEventListener('click', _outsideSbMore, { once:true }), 0);
+}
+function _outsideSbMore(ev) {
+  const m = document.getElementById('sb-more-menu');
+  if (m && !m.contains(ev.target) && !document.getElementById('sb-tab-more')?.contains(ev.target)) closeSbMoreMenu();
+}
+function closeSbMoreMenu() {
+  const m = document.getElementById('sb-more-menu');
+  const t = document.getElementById('sb-tab-more');
+  if (m) m.style.display = 'none';
+  t?.classList.remove('open');
+}
+
+// Sidebar collapse / expand
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  const collapsed = sb.classList.toggle('collapsed');
+  try { localStorage.setItem('sb-collapsed', collapsed ? '1' : '0'); } catch {}
+  updateMiroToolbarPos();
+}
+// Restore previous collapsed state
+try {
+  if (localStorage.getItem('sb-collapsed') === '1') {
+    document.getElementById('sidebar')?.classList.add('collapsed');
+  }
+} catch {}
 document.getElementById('sb-search').addEventListener('input', e => {
   searchQ = e.target.value.toLowerCase();
   renderSidebar();
@@ -8299,8 +8396,16 @@ function updateMiroToolbarPos() {
   const bw = document.getElementById('board-wrap');
   if (!bw) return;
   const sbVisible = sb && sb.style.display !== 'none' && getComputedStyle(sb).display !== 'none';
-  bw.style.left = sbVisible ? 'calc(var(--mt-w,48px) + var(--sb-w))' : 'var(--mt-w,48px)';
+  const sbCollapsed = sb?.classList.contains('collapsed');
+  if (!sbVisible || sbCollapsed) {
+    bw.style.left = 'var(--mt-w,48px)';
+  } else {
+    bw.style.left = 'calc(var(--mt-w,48px) + var(--sb-w))';
+  }
 }
+// Apply position on initial load (in case collapsed was restored)
+document.addEventListener('DOMContentLoaded', updateMiroToolbarPos);
+if (document.readyState !== 'loading') updateMiroToolbarPos();
 
 // (Miro-tool dblclick integrated into primary quick-add handler above)
 
