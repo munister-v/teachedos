@@ -582,16 +582,46 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   border-color:#4262FF;
   box-shadow:0 0 0 1px rgba(66,98,255,.20),0 4px 16px rgba(0,0,0,.12);
 }
-.board-card:hover:not(.selected){box-shadow:0 4px 16px rgba(0,0,0,.12);}
-/* Miro-style 4 corner handles on selected cards */
-.board-card.selected::before,
-.board-card.selected::after{
-  content:'';position:absolute;width:10px;height:10px;border-radius:50%;
-  background:#fff;border:2px solid #4262FF;z-index:25;pointer-events:none;
-  box-shadow:0 1px 3px rgba(0,0,0,.18);
+.board-card:hover:not(.selected):not(.dragging){
+  box-shadow:0 0 0 1px rgba(66,98,255,.22),0 2px 10px rgba(0,0,0,.10);
 }
-.board-card.selected::before{top:-5px;left:-5px;}
-.board-card.selected::after{top:-5px;right:-5px;}
+/* Cards being dragged */
+.board-card.dragging{
+  opacity:.92;cursor:grabbing!important;
+  box-shadow:0 0 0 1px rgba(66,98,255,.35),0 14px 32px rgba(5,5,23,.18)!important;
+  transition:none!important;
+}
+/* Miro-style 8 resize handles — corners (round) + edges (rounded bars) */
+.resize-handle{
+  position:absolute;background:#fff;border:1.5px solid #4262FF;
+  z-index:25;display:none;box-shadow:0 1px 3px rgba(0,0,0,.16);
+}
+.board-card.selected .resize-handle{display:block;}
+/* Corner handles — 10px circles */
+.resize-handle.h-nw,.resize-handle.h-ne,
+.resize-handle.h-sw,.resize-handle.h-se{
+  width:10px;height:10px;border-radius:50%;
+}
+.resize-handle.h-nw{top:-5px;left:-5px;cursor:nwse-resize;}
+.resize-handle.h-ne{top:-5px;right:-5px;cursor:nesw-resize;}
+.resize-handle.h-sw{bottom:-5px;left:-5px;cursor:nesw-resize;}
+.resize-handle.h-se{bottom:-5px;right:-5px;cursor:nwse-resize;}
+/* Edge handles — short rounded bars */
+.resize-handle.h-n,.resize-handle.h-s{
+  left:50%;transform:translateX(-50%);
+  width:18px;height:6px;border-radius:3px;
+}
+.resize-handle.h-e,.resize-handle.h-w{
+  top:50%;transform:translateY(-50%);
+  width:6px;height:18px;border-radius:3px;
+}
+.resize-handle.h-n{top:-4px;cursor:ns-resize;}
+.resize-handle.h-s{bottom:-4px;cursor:ns-resize;}
+.resize-handle.h-w{left:-4px;cursor:ew-resize;}
+.resize-handle.h-e{right:-4px;cursor:ew-resize;}
+.resize-handle:hover{background:#4262FF;}
+/* Hide handles when card is locked */
+.board-card.card-locked .resize-handle{display:none!important;}
 .board-card.card-locked{cursor:default;}
 .board-card.card-locked::after{
   content:"🔒";
@@ -672,18 +702,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .card-comment-badge:hover{transform:scale(1.10);box-shadow:0 3px 10px rgba(0,0,0,.22);}
 .card-comment-badge svg{width:11px;height:11px;}
 
-/* Resize handle — Miro-style blue corner dot */
-.card-resize{
-  position:absolute;bottom:-5px;right:-5px;width:14px;height:14px;cursor:se-resize;z-index:15;
-  opacity:0;transition:opacity .12s;
-}
-.board-card:hover .card-resize,
-.board-card.selected .card-resize{opacity:1;}
-.card-resize::after{
-  content:'';position:absolute;inset:3px;
-  background:#4262FF;border:2px solid #fff;border-radius:50%;
-  box-shadow:0 1px 3px rgba(0,0,0,.20);
-}
+/* Legacy single SE resize handle - kept hidden, replaced by 8-handle system */
+.card-resize{display:none;}
 
 /* ══════════════ VIDEO CARD ══════════════ */
 .card-video .card-header{background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(220,38,38,.03));}
@@ -3307,20 +3327,23 @@ function renderCard(card) {
     el.appendChild(dot);
   });
 
-  // Resize handle
-  const rz = document.createElement('div');
-  rz.className = 'card-resize';
-  rz.addEventListener('mousedown', e => {
-    e.stopPropagation();
-    if (card.data && card.data.locked) { toast('Locked card'); return; }
-    startResize(e, card, el);
+  // 8 Miro-style resize handles: 4 corners + 4 edges
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+    const h = document.createElement('div');
+    h.className = 'resize-handle h-' + dir;
+    h.dataset.dir = dir;
+    h.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      if (card.data && card.data.locked) { toast('Locked card'); return; }
+      startResize(e, card, el, dir);
+    });
+    el.appendChild(h);
   });
-  el.appendChild(rz);
 
   // Mouse events
   el.addEventListener('mousedown', e => {
     if (e.target.classList.contains('anchor-dot')) return;
-    if (e.target.classList.contains('card-resize')) return;
+    if (e.target.classList.contains('resize-handle')) return;
     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.target.closest('[contenteditable="true"],.text-format-toolbar,.layer-popover')) return;
     if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot')) return;
@@ -5061,7 +5084,7 @@ function markLessonDoneFromPresent(cardId) {
   openLessonPresent(cardId);
 }
 
-// Helper: add anchor dots + resize handle to a freshly re-rendered card el
+// Helper: add anchor dots + 8 resize handles to a freshly re-rendered card el
 function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
     const dot = document.createElement('div');
@@ -5069,10 +5092,13 @@ function addCardInfrastructure(el, card) {
     dot.addEventListener('mousedown', e => { e.stopPropagation(); if (state.mode==='connect') startConnection(card, anchor); });
     el.appendChild(dot);
   });
-  const rz = document.createElement('div');
-  rz.className = 'card-resize';
-  rz.addEventListener('mousedown', e => { e.stopPropagation(); startResize(e, card, el); });
-  el.appendChild(rz);
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+    const h = document.createElement('div');
+    h.className = 'resize-handle h-' + dir;
+    h.dataset.dir = dir;
+    h.addEventListener('mousedown', e => { e.stopPropagation(); startResize(e, card, el, dir); });
+    el.appendChild(h);
+  });
 }
 
 /* ════════════════════════ CARD OPS ════════════════════════ */
@@ -5301,11 +5327,22 @@ function startCardDrag(e, card) {
   e.preventDefault();
 }
 
-function startResize(e, card, el) {
+function startResize(e, card, el, dir) {
   if (card.data && card.data.locked) { toast('Locked card'); return; }
   isResizing = true;
   document.body.classList.add('board-dragging');
-  resizeStart = { card, el, sw: card.w, sh: card.h, mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey };
+  resizeStart = {
+    card, el, dir: dir || 'se',
+    sw: card.w, sh: card.h, sx: card.x, sy: card.y,
+    mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey
+  };
+  // Lock body cursor to the handle's cursor so it doesn't flicker
+  document.body.style.cursor = (
+    dir === 'n' || dir === 's' ? 'ns-resize' :
+    dir === 'e' || dir === 'w' ? 'ew-resize' :
+    dir === 'ne' || dir === 'sw' ? 'nesw-resize' :
+    'nwse-resize'
+  );
   e.preventDefault();
 }
 
@@ -5372,7 +5409,11 @@ document.addEventListener('mousemove', e => {
 
   if (isDraggingCard) {
     const dx = Math.abs(e.clientX - dragStartPos.x), dy = Math.abs(e.clientY - dragStartPos.y);
-    if (!dragStarted && (dx > 4 || dy > 4)) dragStarted = true;
+    if (!dragStarted && (dx > 4 || dy > 4)) {
+      dragStarted = true;
+      // Add Miro-style dragging class to all dragged cards (subtle ghost + shadow)
+      dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.add('dragging'));
+    }
     if (!dragStarted) return;
     const bp = screenToBoard(e.clientX, e.clientY);
     // Miro-style smart snap: align edges/centers with other cards
@@ -5423,7 +5464,7 @@ document.addEventListener('mousemove', e => {
   }
 
   if (isResizing) {
-    const { card, el, sw, sh, mx, my } = resizeStart;
+    const { card, el, dir, sw, sh, sx, sy, mx, my } = resizeStart;
     const minSizes = {
       sticky:{w:160,h:120}, text:{w:120,h:50}, plan:{w:200,h:140},
       lesson:{w:200,h:160}, assignment:{w:200,h:160}, milestone:{w:160,h:160},
@@ -5431,13 +5472,48 @@ document.addEventListener('mousemove', e => {
       game:{w:200,h:160}, video:{w:240,h:160}, image:{w:160,h:120}, student:{w:180,h:120},
     };
     const min = minSizes[card.type] || {w:140,h:80};
-    const lockAspect = resizeStart.shiftHeld && card.type === 'video';
-    const dw = (e.clientX - mx) / state.scale;
-    const dh = (e.clientY - my) / state.scale;
-    card.w = Math.max(min.w, sw + dw);
-    if (lockAspect) { card.h = card.w * (sh / sw); }
-    else { card.h = Math.max(min.h, sh + dh); }
-    el.style.width = card.w+'px'; el.style.height = card.h+'px';
+    // Shift = preserve aspect ratio (any card type, like Miro)
+    const lockAspect = e.shiftKey || (resizeStart.shiftHeld && card.type === 'video');
+    const dx = (e.clientX - mx) / state.scale;
+    const dy = (e.clientY - my) / state.scale;
+
+    let nw = sw, nh = sh, nx = sx, ny = sy;
+    const hasE = dir.includes('e');
+    const hasW = dir.includes('w');
+    const hasN = dir.includes('n');
+    const hasS = dir.includes('s');
+
+    // Width
+    if (hasE) nw = Math.max(min.w, sw + dx);
+    else if (hasW) {
+      nw = Math.max(min.w, sw - dx);
+      nx = sx + (sw - nw);
+    }
+    // Height
+    if (hasS) nh = Math.max(min.h, sh + dy);
+    else if (hasN) {
+      nh = Math.max(min.h, sh - dy);
+      ny = sy + (sh - nh);
+    }
+    // Aspect-lock with Shift
+    if (lockAspect && sw > 0 && sh > 0) {
+      const ratio = sw / sh;
+      // Pick the dominant change as the source
+      const dwAbs = Math.abs(nw - sw), dhAbs = Math.abs(nh - sh);
+      if (dwAbs >= dhAbs) {
+        const newH = nw / ratio;
+        if (hasN) ny = sy + (sh - newH);
+        nh = newH;
+      } else {
+        const newW = nh * ratio;
+        if (hasW) nx = sx + (sw - newW);
+        nw = newW;
+      }
+    }
+    card.w = nw; card.h = nh; card.x = nx; card.y = ny;
+    el.style.width = nw + 'px';
+    el.style.height = nh + 'px';
+    if (hasN || hasW) updateCardPos(card);
     if (card.type === 'game') applyGameScale(el, card);
     _scheduleArrows(); _scheduleMinimap(); return;
   }
@@ -5485,6 +5561,8 @@ document.addEventListener('mouseup', e => {
     isDraggingCard = false;
     document.body.classList.remove('board-dragging');
     _clearSnapGuides();
+    // Remove dragging class from any cards
+    dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.remove('dragging'));
     if (dragStarted) { snapshot(); scheduleSave(); }
     setTimeout(() => { dragStarted = false; }, 0);
   }
@@ -5492,6 +5570,7 @@ document.addEventListener('mouseup', e => {
   if (isResizing) {
     isResizing = false;
     document.body.classList.remove('board-dragging');
+    document.body.style.cursor = '';
     const { card, el } = resizeStart;
     if (card.type === 'game') applyGameScale(el, card);
     snapshot(); scheduleSave();
