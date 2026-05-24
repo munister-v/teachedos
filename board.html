@@ -5274,6 +5274,21 @@ function removeCard(id) {
   snapshot();
   const idx = state.cards.findIndex(c => c.id === id);
   if (idx === -1) return;
+  const removed = state.cards[idx];
+  // If this is a frame, detach its children (don't delete them)
+  if (removed.type === 'frame' && removed.data && Array.isArray(removed.data.childIds)) {
+    removed.data.childIds.forEach(cid => {
+      const child = state.cards.find(c => c.id === cid);
+      if (child && child.data) delete child.data.parentFrame;
+    });
+  }
+  // If this card was inside a frame, remove it from the frame's childIds
+  if (removed.data && removed.data.parentFrame) {
+    const f = state.cards.find(c => c.id === removed.data.parentFrame);
+    if (f && f.data && Array.isArray(f.data.childIds)) {
+      f.data.childIds = f.data.childIds.filter(cid => cid !== id);
+    }
+  }
   // also remove related arrows
   state.arrows = state.arrows.filter(a => {
     if (a.fromCard === id || a.toCard === id) {
@@ -5287,6 +5302,8 @@ function removeCard(id) {
   state.selected.delete(id);
   renderAllArrows();
   updateEmpty();
+  if (removed.type === 'frame' && typeof renumberFrames === 'function') renumberFrames();
+  if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
   scheduleSave();
 }
 
@@ -5350,7 +5367,27 @@ function updateMultiSelBox() {
 function deleteSelected() {
   snapshot();
   [...state.selectedArrows].forEach(id => removeArrowById(id, false));
+  let deletedFrame = false;
   [...state.selected].forEach(id => {
+    const card = state.cards.find(c => c.id === id);
+    if (!card) return;
+    if (card.type === 'frame') {
+      deletedFrame = true;
+      // Detach children rather than delete them
+      if (card.data && Array.isArray(card.data.childIds)) {
+        card.data.childIds.forEach(cid => {
+          const ch = state.cards.find(c => c.id === cid);
+          if (ch && ch.data) delete ch.data.parentFrame;
+        });
+      }
+    }
+    // Remove from parent frame's childIds, if any
+    if (card.data && card.data.parentFrame) {
+      const f = state.cards.find(c => c.id === card.data.parentFrame);
+      if (f && f.data && Array.isArray(f.data.childIds)) {
+        f.data.childIds = f.data.childIds.filter(cid => cid !== id);
+      }
+    }
     state.arrows = state.arrows.filter(a => {
       if (a.fromCard === id || a.toCard === id) return false;
       return true;
@@ -5367,6 +5404,8 @@ function deleteSelected() {
     state.groups = state.groups.filter(g => g.cardIds.size >= 2);
     updateGroupOutlines();
   }
+  if (deletedFrame && typeof renumberFrames === 'function') renumberFrames();
+  if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
   renderAllArrows();
   updateEmpty();
   scheduleSave();
@@ -8323,6 +8362,31 @@ function loadBoardData(data) {
   state.arrows = data.arrows || [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
+  // Bug fix: reset transient overlays on every board load
+  if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
+  if (typeof _clearSnapGuides === 'function') _clearSnapGuides();
+  document.querySelectorAll('.card-frame.frame-drop-hover').forEach(el => el.classList.remove('frame-drop-hover'));
+  // Bug fix: rebuild frame→child links from data.parentFrame (legacy boards may not have childIds)
+  state.cards.forEach(c => {
+    if (c.type === 'frame') {
+      if (!c.data) c.data = {};
+      c.data.childIds = [];
+    }
+  });
+  state.cards.forEach(c => {
+    if (c.data && c.data.parentFrame) {
+      const f = state.cards.find(x => x.id === c.data.parentFrame);
+      if (f && f.data) {
+        if (!Array.isArray(f.data.childIds)) f.data.childIds = [];
+        if (!f.data.childIds.includes(c.id)) f.data.childIds.push(c.id);
+      } else {
+        // Orphaned parent reference
+        delete c.data.parentFrame;
+      }
+    }
+  });
+  // Bug fix: assign frame numbers if missing (legacy frames)
+  if (typeof renumberFrames === 'function') renumberFrames();
   applyTransform();
   renderAllArrows();
   renderMinimap();
@@ -8562,6 +8626,26 @@ async function newBoard() {
     history.replaceState(null, '', 'board.html?id=' + currentBoardId);
     applyRoleUI && applyRoleUI();
     toast('Board created: ' + name);
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+// Miro-style: duplicate the current board by creating a new one with the same data
+async function duplicateBoard() {
+  const baseName = (document.getElementById('board-name-display')?.textContent || 'Board').trim();
+  const newName = prompt('Duplicate as:', baseName + ' (copy)');
+  if (!newName) return;
+  try {
+    // Serialize current state then create the new board with that payload
+    const payload = JSON.parse(serialize());
+    const r = await apiFetch('/api/boards', { method: 'POST', body: { name: newName, data: payload } });
+    const { board: b } = await r.json();
+    if (b && b.id) {
+      // Open the new board
+      window.open('board.html?id=' + b.id, '_blank');
+      toast('Duplicated: ' + newName);
+    } else {
+      toast('Could not duplicate');
+    }
   } catch (e) { toast('Error: ' + e.message); }
 }
 
