@@ -107,11 +107,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .tb-btn-primary:hover{background:#2D4EE8;}
 .user-menu-item{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 14px;font-size:13px;font-weight:600;color:var(--text-2);
-  cursor:pointer;transition:background .12s;text-decoration:none;
+  display:flex;align-items:center;gap:10px;
+  padding:7px 10px;font-size:13px;font-weight:500;color:#050038;
+  cursor:pointer;transition:background .1s,color .1s;text-decoration:none;
+  border-radius:6px;letter-spacing:-.005em;
 }
-.user-menu-item:hover{background:var(--accent-2);color:var(--text);}
+.user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
 #btn-follow-me{
   padding:4px 10px;border-radius:8px;border:1px solid var(--border);
   background:var(--card-bg,white);font-family:var(--font);font-size:11px;
@@ -531,10 +532,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .card-close:hover{background:rgba(239,68,68,.12);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
-.user-menu-item{padding:9px 16px;cursor:pointer;font-weight:700;color:var(--text);transition:background .12s;}
-.user-menu-item:hover{background:var(--accent-2);}
-.auth-input{width:100%;padding:11px 14px;border:2px solid #eee;border-radius:11px;font-family:var(--font);font-size:.95rem;color:var(--text);outline:none;margin-bottom:11px;transition:border-color .15s;}
-.auth-input:focus{border-color:var(--accent);}
+.user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:#050038;transition:background .1s;border-radius:6px;font-size:13px;}
+.user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+.auth-input{
+  width:100%;padding:10px 14px;border:1px solid rgba(0,0,0,.12);border-radius:8px;
+  font-family:var(--font);font-size:14px;color:#050038;outline:none;margin-bottom:10px;
+  transition:border-color .12s,box-shadow .12s;background:#fff;
+}
+.auth-input:focus{border-color:#4262FF;box-shadow:0 0 0 3px rgba(66,98,255,.10);}
 .board-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;}
 .board-list-item:hover{border-color:var(--accent);background:var(--accent-2);}
 
@@ -920,19 +925,19 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 #undo-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ══════════════ LESSON CARD ══════════════ */
-.card-lesson .card-header{background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.04));}
-.card-lesson.status-done .card-header{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(16,163,127,.04));}
-.card-lesson.status-in-progress .card-header{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(234,88,12,.04));}
+.card-lesson .card-header{background:transparent;border-bottom:1px solid rgba(0,0,0,.05);}
+.card-lesson.status-done .card-header{background:rgba(34,197,94,.04);}
+.card-lesson.status-in-progress .card-header{background:rgba(245,158,11,.05);}
 .card-lesson.status-locked{opacity:.7;filter:grayscale(.3);}
 .card-lesson.status-locked:hover{opacity:.85;filter:grayscale(.1);}
 .lesson-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
 .lesson-status{
-  display:inline-flex;align-items:center;gap:5px;
-  font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;font-family:var(--mono);
-  transition:background .2s,color .2s;
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;font-family:var(--font);
+  letter-spacing:0;transition:background .15s,color .15s;
 }
 .lesson-status.locked    {background:rgba(107,114,128,.12);color:#6b7280;}
-.lesson-status.available {background:rgba(59,130,246,.12); color:#3b82f6;}
+.lesson-status.available {background:rgba(66,98,255,.10); color:#4262FF;}
 .lesson-status.in-progress{background:rgba(245,158,11,.12); color:#d97706;}
 .lesson-status.done      {background:rgba(34,197,94,.14);  color:#16a34a;}
 .lesson-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
@@ -953,17 +958,17 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .lesson-notes-indicator{font-size:9px;color:var(--text-3);display:flex;align-items:center;gap:3px;}
 .lesson-footer{display:flex;gap:6px;align-items:center;border-top:1px solid rgba(0,0,0,.05);padding-top:7px;margin-top:2px;}
 .lesson-edit-btn{
-  padding:4px 10px;border:1px solid rgba(99,102,241,.3);border-radius:7px;
-  font-size:10px;font-weight:700;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);
-  transition:.15s;margin-left:auto;
+  padding:4px 10px;border:1px solid rgba(66,98,255,.20);border-radius:6px;
+  font-size:11px;font-weight:500;cursor:pointer;color:#4262FF;background:transparent;
+  transition:.12s;margin-left:auto;
 }
-.lesson-edit-btn:hover{background:rgba(99,102,241,.14);}
+.lesson-edit-btn:hover{background:rgba(66,98,255,.08);}
 .lesson-present-btn{
-  padding:4px 10px;border:1px solid rgba(34,197,94,.3);border-radius:7px;
-  font-size:10px;font-weight:700;cursor:pointer;color:#16a34a;background:rgba(34,197,94,.06);
-  transition:.15s;
+  padding:4px 10px;border:1px solid rgba(34,197,94,.30);border-radius:6px;
+  font-size:11px;font-weight:500;cursor:pointer;color:#16a34a;background:transparent;
+  transition:.12s;
 }
-.lesson-present-btn:hover{background:rgba(34,197,94,.14);}
+.lesson-present-btn:hover{background:rgba(34,197,94,.10);}
 .lesson-status-btn{
   padding:3px 8px;border:1px solid rgba(99,102,241,.2);border-radius:6px;
   font-size:9px;font-weight:700;cursor:pointer;color:var(--text-3);background:transparent;
@@ -1032,7 +1037,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .badge.lesson-l{background:rgba(236,72,153,.12);color:#db2777;}
 
 /* ══════════════ ASSIGNMENT CARD ══════════════ */
-.card-assignment .card-header{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(234,88,12,.04));}
+.card-assignment .card-header{background:rgba(249,115,22,.05);}
 .assign-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
 .assign-type-pill{
   display:inline-flex;align-items:center;gap:4px;
@@ -1466,11 +1471,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 #follow-banner button:hover{background:rgba(255,255,255,.3);}
 /* ── Auth role picker ── */
 .auth-role-btn{
-  padding:12px 8px;border-radius:12px;border:2px solid var(--border);
-  background:#fafafa;cursor:pointer;text-align:center;transition:.15s;
+  padding:14px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.10);
+  background:#fff;cursor:pointer;text-align:center;transition:.12s;
 }
-.auth-role-btn:hover{border-color:var(--border-2);}
-.auth-role-btn.active{border-color:var(--accent);background:var(--accent-2);}
+.auth-role-btn:hover{border-color:#4262FF;background:rgba(66,98,255,.04);}
+.auth-role-btn.active{border-color:#4262FF;background:rgba(66,98,255,.08);border-width:2px;padding:13px 9px;}
 /* ══════════════ VERSION HISTORY PANEL ══════════════ */
 #vh-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
@@ -1803,7 +1808,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <div class="tb-btn" id="btn-more" title="More options" onclick="toggleMoreMenu()" style="font-size:16px;font-weight:900;letter-spacing:.05em;">⋯</div>
 
   <!-- User dropdown -->
-  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
+  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:220px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
     <a class="user-menu-item" href="index.html">🏠 Home</a>
     <div class="user-menu-item" onclick="showBoardList()">📋 My Boards</div>
@@ -1822,7 +1827,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   </div>
 
   <!-- ⋯ More menu -->
-  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:var(--card-bg,#fff);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 36px rgba(5,5,23,.14);padding:6px 0;z-index:2000;min-width:200px;font-size:13px;">
+  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:240px;font-size:13px;">
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
     <div class="user-menu-item" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
@@ -2193,7 +2198,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
 <div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
-  <div id="auth-modal" style="background:#fff;border-radius:22px;padding:34px 30px 28px;width:100%;max-width:400px;box-shadow:0 24px 70px rgba(0,0,0,.20);position:relative;">
+  <div id="auth-modal" style="background:#fff;border-radius:12px;padding:28px 26px 24px;width:100%;max-width:400px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
     <div style="text-align:center;margin-bottom:22px;">
       <div style="font-size:2.4rem;line-height:1;">📌</div>
       <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-top:8px;letter-spacing:-.02em;">Teached<em style="color:var(--accent);font-style:normal;">Board</em></div>
