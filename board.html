@@ -492,6 +492,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* Miro-style cursors */
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
+#board-wrap.commenting{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='11' r='9' fill='%234262FF' opacity='.9'/%3E%3Cpath d='M8 20l4-4' stroke='%234262FF' stroke-width='2' fill='none'/%3E%3Ctext x='12' y='15' text-anchor='middle' fill='white' font-size='11' font-family='Arial' font-weight='bold'%3E%2B%3C/text%3E%3C/svg%3E") 12 12,crosshair!important;}
 /* Connect mode visual feedback: highlight cards on hover, show anchor dots */
 #board-wrap.connecting .board-card{cursor:crosshair;}
 #board-wrap.connecting .board-card:hover{
@@ -2426,7 +2427,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="5" r="3"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx=".5"/></svg>
   </button>
   <!-- 7. Connect / line -->
-  <button class="mt-btn" id="mt-connect" data-tip="Connection line (C)" onclick="setMiroTool('connect');document.getElementById('btn-connect').click()">
+  <button class="mt-btn" id="mt-connect" data-tip="Connection line (C)" onclick="toggleConnectMode()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="13" r="1.5"/><circle cx="13" cy="3" r="1.5"/><path d="M4 12L12 4"/></svg>
   </button>
   <!-- 8. Pen -->
@@ -2442,7 +2443,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><circle cx="6" cy="7" r=".7" fill="currentColor" stroke="none"/><circle cx="10" cy="7" r=".7" fill="currentColor" stroke="none"/><path d="M5.5 10c.7.9 1.6 1.4 2.5 1.4S9.8 10.9 10.5 10"/></svg>
   </button>
   <!-- 11. Comment -->
-  <button class="mt-btn" id="mt-comment" data-tip="Comment" onclick="setMiroTool('select');toast&&toast('Click a card to comment')">
+  <button class="mt-btn" id="mt-comment" data-tip="Comment (click canvas to add)" onclick="toggleCommentMode()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 3h12v8H6l-3 3V3z"/></svg>
   </button>
   <div class="mt-sep"></div>
@@ -5911,6 +5912,9 @@ boardWrap.addEventListener('mousedown', e => {
   }
   if (spaceDown) return;
 
+  // Comment mode: click anywhere to add comment
+  if (_miroTool === 'comment') { _handleCommentClick(e); return; }
+
   // Only if clicking on background
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
@@ -6405,6 +6409,8 @@ document.addEventListener('keydown', e => {
     clearSelection();
     cancelConnection();
     setMode('select');
+    // Exit comment mode
+    if (typeof disableCommentMode === 'function') disableCommentMode();
     closeBoardSearchBar();
     closeShortcuts();
     // Close all menus/popovers
@@ -6414,6 +6420,10 @@ document.addEventListener('keydown', e => {
     const more = document.getElementById('more-menu');     if (more)  more.style.display  = 'none';
     const usr  = document.getElementById('user-menu');     if (usr)   usr.style.display   = 'none';
     const cp   = document.getElementById('comments-panel');if (cp)    cp.remove();
+    // Sync toolbar to select
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mt-select')?.classList.add('active');
+    _miroTool = 'select';
   }
   if (e.key === 'f' || e.key === 'F') fitAll();
   if (!e.ctrlKey && !e.metaKey && (e.key === 'c' || e.key === 'C')) toggleConnectMode();
@@ -6635,7 +6645,56 @@ function setMode(mode) {
   }
 }
 function toggleConnectMode() {
-  setMode(state.mode === 'connect' ? 'select' : 'connect');
+  if (_drawTool) disableDrawTool();
+  if (typeof _miroTool !== 'undefined' && _miroTool === 'comment') disableCommentMode();
+  const enabling = state.mode !== 'connect';
+  setMode(enabling ? 'connect' : 'select');
+  _miroTool = enabling ? 'connect' : 'select';
+  // Sync toolbar buttons explicitly
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
+}
+
+/* ─── Comment mode ─── */
+function toggleCommentMode() {
+  if (_miroTool === 'comment') {
+    disableCommentMode();
+  } else {
+    if (_drawTool) disableDrawTool();
+    if (state.mode === 'connect') setMode('select');
+    _miroTool = 'comment';
+    boardWrap.classList.add('commenting');
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mt-comment')?.classList.add('active');
+    toast && toast('Click anywhere on the board to add a comment');
+  }
+}
+function disableCommentMode() {
+  _miroTool = 'select';
+  boardWrap.classList.remove('commenting');
+  document.getElementById('mt-comment')?.classList.remove('active');
+  document.getElementById('mt-select')?.classList.add('active');
+}
+// Handle click in comment mode (wired into the main mousedown handler)
+function _handleCommentClick(e) {
+  if (_miroTool !== 'comment') return false;
+  const bp = screenToBoard(e.clientX, e.clientY);
+  if (!bp) return false;
+  const text = prompt('Comment:', '');
+  if (text === null) return true; // cancelled
+  const def = getDefaults('sticky');
+  const c = addCard('sticky', bp.x - def.w/2, bp.y - def.h/2, {
+    text: text || '💬',
+    color: '#FEF3C7',
+    isComment: true
+  });
+  if (c) {
+    const el = getCardEl(c.id);
+    if (el) el.style.border = '2px solid #F59E0B';
+  }
+  disableCommentMode();
+  scheduleSave && scheduleSave();
+  return true;
 }
 document.getElementById('btn-connect').addEventListener('click', toggleConnectMode);
 
@@ -9560,16 +9619,14 @@ document.addEventListener('click', e => {
 let _miroTool = 'select';
 function setMiroTool(tool) {
   if (typeof disableDrawTool === 'function') disableDrawTool();
+  // Exit comment mode if switching away
+  if (tool !== 'comment' && typeof disableCommentMode === 'function') disableCommentMode();
+  // Exit connect mode if switching away
+  if (tool !== 'connect' && state && state.mode === 'connect') setMode('select');
   _miroTool = tool;
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('mt-' + tool);
   if (btn) btn.classList.add('active');
-  // Update cursor
-  if (tool === 'connect') {
-    boardWrap.style.cursor = 'crosshair';
-  } else {
-    boardWrap.style.cursor = '';
-  }
 }
 
 // Update miro toolbar position when sidebar toggles
@@ -10975,6 +11032,12 @@ function disableDrawTool() {
   _setDrawModeClass(null);
   closeDrawPalette();
   _hideDrawCursor();
+  // Restore toolbar: deactivate all draw buttons, activate Select
+  document.querySelectorAll('#mt-pen,#mt-marker,#mt-eraser').forEach(b => b?.classList.remove('active'));
+  if (_miroTool === 'pen' || _miroTool === 'marker' || _miroTool === 'eraser') {
+    _miroTool = 'select';
+    document.getElementById('mt-select')?.classList.add('active');
+  }
 }
 
 function toggleDrawTool(tool, ev) {
