@@ -20,7 +20,7 @@
   --bg:#F5F5F5;--accent:#4262FF;--accent-2:rgba(66,98,255,.10);
   --text:#050038;--text-2:#444466;--text-3:#9999AA;
   --border:rgba(0,0,0,.12);--border-2:rgba(0,0,0,.22);
-  --sb-w:240px;--tb-h:52px;--mt-w:48px;
+  --sb-w:240px;--tb-h:56px;--mt-w:60px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
   --card-bg:#ffffff;--card-radius:6px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
@@ -64,7 +64,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:fixed;top:0;left:0;right:0;height:var(--tb-h);z-index:1000;
   background:#fff;
   border-bottom:1px solid rgba(0,0,0,.08);
-  display:flex;align-items:center;padding:0 10px;gap:4px;
+  display:flex;align-items:center;padding:0 12px;gap:2px;
 }
 [data-theme="dark"] #toolbar{background:#1E1E35;border-bottom-color:rgba(255,255,255,.08);}
 .tb-back{
@@ -101,59 +101,63 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tb-btn:disabled{opacity:.35;cursor:default;}
 /* Miro primary blue Share button */
 .tb-btn-primary{
-  display:flex;align-items:center;gap:5px;
-  height:32px;padding:0 16px;border-radius:6px;border:none;
-  background:#4262FF;cursor:pointer;font-size:13px;font-weight:600;color:#fff;
-  transition:background .12s;flex-shrink:0;letter-spacing:-.005em;
+  display:flex;align-items:center;gap:6px;
+  height:36px;padding:0 18px;border-radius:8px;border:none;
+  background:#4262FF;cursor:pointer;font-size:14px;font-weight:600;color:#fff;
+  transition:background .12s,transform .08s;flex-shrink:0;letter-spacing:-.005em;
+  margin-left:4px;
 }
 .tb-btn-primary:hover{background:#2D4EE8;}
+.tb-btn-primary:active{transform:scale(.97);}
 /* Miro plain icon button (hamburger, +, layout, ⋯) */
 .tb-icon-btn{
-  width:32px;height:32px;border-radius:6px;border:none;background:transparent;
+  width:36px;height:36px;border-radius:8px;border:none;background:transparent;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   color:#050038;transition:background .12s,color .12s;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
 }
 .tb-icon-btn:hover{background:rgba(0,0,0,.06);color:#050038;}
+.tb-icon-btn:active{transform:scale(.94);}
 [data-theme="dark"] .tb-icon-btn{color:var(--text);}
 [data-theme="dark"] .tb-icon-btn:hover{background:rgba(255,255,255,.08);}
 /* TeachEd logo (cat image + wordmark) */
 .tb-logo{
-  display:flex;align-items:center;gap:7px;text-decoration:none;
-  padding:3px 9px 3px 4px;border-radius:6px;transition:background .12s;flex-shrink:0;
+  display:flex;align-items:center;gap:8px;text-decoration:none;
+  padding:4px 10px 4px 6px;border-radius:8px;transition:background .12s;flex-shrink:0;
+  margin-left:2px;
 }
 .tb-logo:hover{background:rgba(0,0,0,.06);}
 .tb-logo-img{
-  width:26px;height:26px;display:block;flex-shrink:0;
-  border-radius:6px;object-fit:cover;
+  width:28px;height:28px;display:block;flex-shrink:0;
+  border-radius:7px;object-fit:cover;
 }
 .tb-logo-mark{
-  font-size:16px;font-weight:700;color:#050038;letter-spacing:-.02em;
+  font-size:17px;font-weight:700;color:#050038;letter-spacing:-.02em;
   line-height:1;font-family:var(--font);
 }
 [data-theme="dark"] .tb-logo-mark{color:var(--text);}
 /* Miro board chip: clock + title + 3-dot menu */
 .tb-board-chip{
-  display:flex;align-items:center;gap:2px;padding:3px 4px 3px 8px;
-  border-radius:6px;background:transparent;transition:background .12s;
-  margin-left:4px;flex-shrink:0;min-width:0;max-width:380px;
+  display:flex;align-items:center;gap:4px;padding:4px 4px 4px 10px;
+  border-radius:8px;background:transparent;transition:background .12s;
+  margin-left:6px;flex-shrink:0;min-width:0;max-width:420px;
 }
 .tb-board-chip:hover{background:rgba(0,0,0,.04);}
 [data-theme="dark"] .tb-board-chip:hover{background:rgba(255,255,255,.05);}
 .tb-board-chip-icon{
   position:relative;display:flex;align-items:center;justify-content:center;
-  color:#22c55e;width:18px;height:18px;flex-shrink:0;
+  color:#F59E0B;width:20px;height:20px;flex-shrink:0;
 }
 .tb-board-chip-title{
-  font-size:14px;font-weight:500;color:#050038;cursor:pointer;
-  padding:4px 6px;border-radius:4px;transition:background .12s;
+  font-size:14px;font-weight:500;color:#050038;cursor:text;
+  padding:5px 8px;border-radius:6px;transition:background .12s;
   letter-spacing:-.005em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
 }
 [data-theme="dark"] .tb-board-chip-title{color:var(--text);}
 .tb-board-chip-title:hover{background:rgba(0,0,0,.06);}
 .tb-board-chip-menu{
-  width:24px;height:24px;border-radius:4px;border:none;background:transparent;
+  width:28px;height:28px;border-radius:6px;border:none;background:transparent;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   color:#9999AA;transition:background .12s,color .12s;flex-shrink:0;
 }
@@ -335,15 +339,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   left:0;
   top:var(--tb-h);
   bottom:0;
-  width:var(--mt-w,48px);
+  width:var(--mt-w,60px);
   z-index:950;
   background:#fff;
-  border-right:1px solid rgba(0,0,0,.10);
+  border-right:1px solid rgba(0,0,0,.08);
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:6px 0;
-  gap:1px;
+  padding:10px 0;
+  gap:3px;
   box-shadow:none;
   border-radius:0;
   backdrop-filter:none;
@@ -355,19 +359,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #miro-toolbar::-webkit-scrollbar{display:none;}
 [data-theme="dark"] #miro-toolbar{background:#1E1E35;border-right-color:rgba(255,255,255,.08);}
 .mt-btn {
-  width:36px;height:36px;border-radius:8px;
+  width:40px;height:40px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
-  color:#1a1a2e;
+  color:#050038;
   transition:background .12s,color .12s;
   position:relative;
   border:none;background:transparent;
   -webkit-tap-highlight-color:transparent;
   flex-shrink:0;
 }
+.mt-btn svg{width:20px;height:20px;}
 [data-theme="dark"] .mt-btn{color:#AAAABB;}
-.mt-btn:hover { background:rgba(66,98,255,.10); color:#4262FF; }
-.mt-btn.active { background:#4262FF; color:#fff; border-radius:8px; }
+.mt-btn:hover { background:rgba(0,0,0,.06); color:#050038; }
+.mt-btn.active { background:#4262FF; color:#fff; }
+.mt-btn.active:hover { background:#4262FF; color:#fff; }
 [data-theme="dark"] .mt-btn.active{background:#4262FF;color:#fff;}
 .mt-btn:active { transform:scale(.92); }
 /* AI sparkle button — purple Miro accent */
@@ -377,7 +383,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .mt-btn.mt-add{color:#fff;background:#4262FF;border-radius:8px;}
 .mt-btn.mt-add:hover{background:#2D4EE8;color:#fff;}
 .mt-sep {
-  height:1px;background:rgba(0,0,0,.10);margin:4px 8px;width:32px;flex-shrink:0;
+  height:1px;background:rgba(0,0,0,.08);margin:6px 12px;width:36px;flex-shrink:0;
 }
 [data-theme="dark"] .mt-sep{background:rgba(255,255,255,.08);}
 /* Tooltip (Miro-style: dark pill with arrow pointing back at icon) */
