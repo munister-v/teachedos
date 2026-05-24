@@ -1830,6 +1830,97 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   .resize-handle{width:18px!important;height:18px!important;}
   /* Floating zoom % indicator in top-right is noisy on phone */
   #zoom-display{display:none!important;}
+
+  /* ── Mobile sheets: convert desktop dropdowns to bottom sheets ── */
+  /* Common backdrop for all mobile sheets */
+  body.mobile-sheet-open::after{
+    content:"";position:fixed;inset:0;background:rgba(15,12,30,.45);
+    z-index:1980;animation:bvf-fade .18s ease both;pointer-events:auto;
+  }
+  @keyframes bvf-fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes bvf-up  {from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+  /* User menu (account) — bottom sheet */
+  #user-menu{
+    top:auto!important;right:0!important;left:0!important;
+    bottom:0!important;
+    width:100%!important;min-width:0!important;max-width:none!important;
+    border-radius:22px 22px 0 0!important;
+    padding:18px 14px max(18px,env(safe-area-inset-bottom,18px))!important;
+    box-shadow:0 -12px 40px rgba(5,5,23,.22)!important;
+    animation:bvf-up .26s cubic-bezier(.34,1.2,.6,1) both;
+    z-index:2100!important;font-size:15px!important;max-height:80vh;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #user-menu::before{
+    content:"";display:block;width:44px;height:4px;
+    background:rgba(0,0,0,.18);border-radius:4px;margin:-6px auto 14px;
+  }
+  [data-theme="dark"] #user-menu::before{background:rgba(255,255,255,.20);}
+
+  /* More menu (board controls) — bottom sheet */
+  #more-menu{
+    top:auto!important;right:0!important;left:0!important;
+    bottom:0!important;
+    width:100%!important;min-width:0!important;max-width:none!important;
+    border-radius:22px 22px 0 0!important;
+    padding:18px 14px max(18px,env(safe-area-inset-bottom,18px))!important;
+    box-shadow:0 -12px 40px rgba(5,5,23,.22)!important;
+    animation:bvf-up .26s cubic-bezier(.34,1.2,.6,1) both;
+    z-index:2100!important;font-size:15px!important;max-height:80vh;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #more-menu::before{
+    content:"";display:block;width:44px;height:4px;
+    background:rgba(0,0,0,.18);border-radius:4px;margin:-6px auto 14px;
+  }
+  [data-theme="dark"] #more-menu::before{background:rgba(255,255,255,.20);}
+
+  /* Items inside menus: bigger tap targets */
+  #user-menu .user-menu-item,
+  #more-menu .user-menu-item{
+    padding:13px 14px!important;font-size:15px!important;border-radius:10px!important;
+    min-height:44px;display:flex!important;align-items:center;
+  }
+
+  /* Context menu (long-press) — bottom sheet */
+  #ctx-menu{
+    left:0!important;right:0!important;top:auto!important;bottom:0!important;
+    width:100%!important;min-width:0!important;
+    border-radius:22px 22px 0 0!important;
+    padding:18px 14px max(18px,env(safe-area-inset-bottom,18px))!important;
+    box-shadow:0 -12px 40px rgba(5,5,23,.22)!important;
+    z-index:5100!important;font-size:15px!important;max-height:80vh;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #ctx-menu::before{
+    content:"";display:block;width:44px;height:4px;
+    background:rgba(0,0,0,.18);border-radius:4px;margin:-6px auto 14px;
+  }
+  [data-theme="dark"] #ctx-menu::before{background:rgba(255,255,255,.20);}
+  #ctx-menu .ctx-item{padding:13px 14px!important;font-size:15px!important;min-height:44px;border-radius:10px;}
+  #ctx-menu .ctx-sep{margin:6px 0!important;}
+
+  /* Share panel — bottom sheet on mobile */
+  #share-panel{
+    top:auto!important;right:0!important;left:0!important;bottom:0!important;
+    width:100%!important;border-radius:22px 22px 0 0!important;
+    max-height:88vh;
+  }
+  #share-panel-body{padding-bottom:max(20px,env(safe-area-inset-bottom,20px))!important;}
+
+  /* Editor inputs: 16px so iOS doesn't zoom on focus */
+  #card-editor .ed-input,
+  #card-editor .ed-textarea,
+  #card-editor input,
+  #card-editor textarea,
+  #card-editor select{
+    font-size:16px!important;
+  }
+  /* Save buttons in editor footer get bigger tap area */
+  #card-editor .ed-save,
+  #card-editor button{min-height:42px;}
+}
   .board-card{min-width:160px!important;}
   #card-editor{
     right:0!important;left:0!important;width:100%!important;
@@ -6070,6 +6161,7 @@ document.addEventListener('mouseup', e => {
             ctxMenuEl.style.left = Math.min(sx, r.right - mw - 12) + 'px';
             ctxMenuEl.style.top  = Math.min(sy, r.bottom - mh - 12) + 'px';
             ctxMenuEl.style.display = 'block';
+            if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
           }
           panOrigin = null;
         }, 480);
@@ -6728,8 +6820,12 @@ boardWrap.addEventListener('contextmenu', e => {
   ctxMenu.style.left = e.clientX+'px';
   ctxMenu.style.top  = e.clientY+'px';
   ctxMenu.style.display = 'block';
+  if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 });
-document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+document.addEventListener('click', () => {
+  ctxMenu.style.display = 'none';
+  if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
+});
 
 document.getElementById('ctx-sticky').addEventListener('click', () =>
   addCard('sticky', ctxPos.x-110, ctxPos.y-90, { text:'', color:STICKY_COLORS[0] }));
@@ -8432,12 +8528,40 @@ function applyRoleUI() {
 
 function showUserMenu() {
   const m = document.getElementById('user-menu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  const open = m.style.display === 'none' || !m.style.display;
+  m.style.display = open ? 'block' : 'none';
+  _syncMobileSheetBackdrop();
 }
 document.addEventListener('click', e => {
-  if (!document.getElementById('auth-chip')?.contains(e.target)) {
+  if (!document.getElementById('auth-chip')?.contains(e.target) &&
+      !e.target.closest('#user-menu')) {
     document.getElementById('user-menu').style.display = 'none';
+    _syncMobileSheetBackdrop();
   }
+});
+
+// Track open mobile sheets so the backdrop appears
+function _syncMobileSheetBackdrop() {
+  const anyOpen = ['user-menu','more-menu','ctx-menu','share-panel'].some(id => {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    if (id === 'share-panel') return el.classList.contains('open');
+    return el.style.display && el.style.display !== 'none';
+  });
+  document.body.classList.toggle('mobile-sheet-open', anyOpen);
+}
+// Tap on backdrop (the body ::after pseudo) closes open sheets
+document.addEventListener('click', e => {
+  if (!document.body.classList.contains('mobile-sheet-open')) return;
+  // If click is inside a sheet, ignore
+  if (e.target.closest('#user-menu, #more-menu, #ctx-menu, #share-panel, #auth-chip, #btn-more')) return;
+  // Outside: close any open sheet
+  ['user-menu','more-menu','ctx-menu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  _moreOpen = false;
+  _syncMobileSheetBackdrop();
 });
 
 async function logout() {
@@ -8629,11 +8753,13 @@ function openSharePanel() {
   if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
   if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
   if (canInvite) spLoadMembers();
+  if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 }
 
 function closeSharePanel() {
   _sharePanelOpen = false;
   document.getElementById('share-panel').classList.remove('open');
+  if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 }
 
 function copyTextFallback(text) {
@@ -9312,11 +9438,13 @@ let _moreOpen = false;
 function toggleMoreMenu() {
   _moreOpen = !_moreOpen;
   document.getElementById('more-menu').style.display = _moreOpen ? 'block' : 'none';
+  if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 }
 document.addEventListener('click', e => {
   if (_moreOpen && !e.target.closest('#more-menu') && !e.target.closest('#btn-more')) {
     _moreOpen = false;
     document.getElementById('more-menu').style.display = 'none';
+    if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
   }
 });
 // Wire clear board from more menu - handled inline in HTML
