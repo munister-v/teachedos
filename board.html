@@ -445,8 +445,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   cursor:default;
   transition:background-color .3s;
 }
+/* Miro-style cursors */
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
+/* Hold Space for grab cursor (Miro pan-mode preview) */
+body.space-down #board-wrap{cursor:grab;}
+body.space-down #board-wrap.panning{cursor:grabbing!important;}
+/* Alt-drag duplicate cursor — Miro shows + copy cursor */
+body.alt-duplicating,
+body.alt-duplicating *{cursor:copy!important;}
+/* Cards stay default cursor (move/grab handled inline) */
 
 /* Group outlines (Miro-style — blue dashed) */
 .group-outline{
@@ -5315,10 +5323,34 @@ function startCardDrag(e, card) {
   if (card.data && card.data.locked) { toast('Locked card'); return; }
   if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
   const bp = screenToBoard(e.clientX, e.clientY);
-  dragCards = [...state.selected].map(id => {
-    const c = state.cards.find(x => x.id === id);
-    return { card: c, ox: bp.x - c.x, oy: bp.y - c.y };
-  }).filter(({ card }) => card && !(card.data && card.data.locked));
+  // Miro-style Alt-drag = duplicate
+  if (e.altKey) {
+    snapshot();
+    const newIds = [];
+    [...state.selected].forEach(id => {
+      const c = state.cards.find(x => x.id === id);
+      if (!c || (c.data && c.data.locked)) return;
+      const nc = { id:'c'+(state.nextId++), type:c.type, x:c.x, y:c.y,
+                   w:c.w, h:c.h, data:JSON.parse(JSON.stringify(c.data||{})), color:c.color };
+      state.cards.push(nc);
+      board.appendChild(renderCard(nc));
+      newIds.push(nc.id);
+    });
+    clearSelection();
+    newIds.forEach(id => selectCard(id));
+    // Now drag the new duplicates
+    dragCards = newIds.map(id => {
+      const c = state.cards.find(x => x.id === id);
+      return { card: c, ox: bp.x - c.x, oy: bp.y - c.y };
+    });
+    document.body.classList.add('alt-duplicating');
+    toast('Duplicating');
+  } else {
+    dragCards = [...state.selected].map(id => {
+      const c = state.cards.find(x => x.id === id);
+      return { card: c, ox: bp.x - c.x, oy: bp.y - c.y };
+    }).filter(({ card }) => card && !(card.data && card.data.locked));
+  }
   if (!dragCards.length) { toast('Locked card'); return; }
   dragStarted = false;
   dragStartPos = { x: e.clientX, y: e.clientY };
@@ -5375,6 +5407,24 @@ boardWrap.addEventListener('mousedown', e => {
   boxSelStart = { sx: e.clientX, sy: e.clientY, wx: e.clientX-r.left, wy: e.clientY-r.top };
   selBox.style.cssText = `display:block;left:${e.clientX}px;top:${e.clientY}px;width:0;height:0;`;
   e.preventDefault();
+});
+
+// Miro-style: double-click empty canvas → spawn a text card at cursor
+boardWrap.addEventListener('dblclick', e => {
+  const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
+  if (!onBg) return;
+  if (state.mode !== 'select' && state.mode !== 'text') return;
+  const bp = screenToBoard(e.clientX, e.clientY);
+  const def = (typeof getDefaults === 'function') ? getDefaults('text') : {w:160,h:50};
+  const card = addCard('text', bp.x - def.w/2, bp.y - def.h/2, defaultTextData({ text:'' }));
+  if (!card) return;
+  clearSelection();
+  selectCard(card.id);
+  setTimeout(() => {
+    const el = getCardEl(card.id);
+    const editable = el?.querySelector('[contenteditable="true"],textarea');
+    if (editable) { editable.focus(); if (editable.select) editable.select(); }
+  }, 30);
 });
 
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
@@ -5560,8 +5610,8 @@ document.addEventListener('mouseup', e => {
   if (isDraggingCard) {
     isDraggingCard = false;
     document.body.classList.remove('board-dragging');
+    document.body.classList.remove('alt-duplicating');
     _clearSnapGuides();
-    // Remove dragging class from any cards
     dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.remove('dragging'));
     if (dragStarted) { snapshot(); scheduleSave(); }
     setTimeout(() => { dragStarted = false; }, 0);
@@ -5711,14 +5761,22 @@ document.getElementById('btn-fit').addEventListener('click', fitAll);
 
 /* ════════════════════════ SPACE PAN ════════════════════════ */
 document.addEventListener('keyup', e => {
-  if (e.code === 'Space') { spaceDown = false; boardWrap.style.cursor = ''; }
+  if (e.code === 'Space') {
+    spaceDown = false;
+    boardWrap.style.cursor = '';
+    document.body.classList.remove('space-down');
+  }
 });
 
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
   // Space = pan
   if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
-    if (!spaceDown) { spaceDown = true; boardWrap.style.cursor = 'grab'; }
+    if (!spaceDown) {
+      spaceDown = true;
+      boardWrap.style.cursor = 'grab';
+      document.body.classList.add('space-down');
+    }
     e.preventDefault(); return;
   }
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
