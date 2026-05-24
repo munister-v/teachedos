@@ -5,7 +5,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#4262FF">
+<meta name="theme-color" content="#CDF24F">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -117,13 +117,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tb-icon-btn:hover{background:rgba(0,0,0,.06);color:#050038;}
 [data-theme="dark"] .tb-icon-btn{color:var(--text);}
 [data-theme="dark"] .tb-icon-btn:hover{background:rgba(255,255,255,.08);}
-/* TeachEd logo (SVG mark + wordmark) */
+/* TeachEd logo (cat image + wordmark) */
 .tb-logo{
-  display:flex;align-items:center;gap:6px;text-decoration:none;
-  padding:3px 8px 3px 5px;border-radius:6px;transition:background .12s;flex-shrink:0;
+  display:flex;align-items:center;gap:7px;text-decoration:none;
+  padding:3px 9px 3px 4px;border-radius:6px;transition:background .12s;flex-shrink:0;
 }
 .tb-logo:hover{background:rgba(0,0,0,.06);}
-.tb-logo-mark-svg{display:flex;align-items:center;line-height:0;flex-shrink:0;}
+.tb-logo-img{
+  width:26px;height:26px;display:block;flex-shrink:0;
+  border-radius:6px;object-fit:cover;
+}
 .tb-logo-mark{
   font-size:16px;font-weight:700;color:#050038;letter-spacing:-.02em;
   line-height:1;font-family:var(--font);
@@ -1965,12 +1968,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
   </button>
   <a class="tb-logo" href="index.html" title="TeachEd Home">
-    <span class="tb-logo-mark-svg" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="3" width="20" height="18" rx="3" fill="#4262FF"/>
-        <path d="M7 9h10M7 12h7M7 15h5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </span>
+    <img class="tb-logo-img" src="logo.png" alt="TeachEd" width="26" height="26">
     <span class="tb-logo-mark">TeachEd</span>
   </a>
   <div class="tb-board-chip" id="tb-board-chip">
