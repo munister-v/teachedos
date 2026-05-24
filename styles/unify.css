@@ -201,8 +201,10 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
    2. CARD SYSTEM — white default, lime edge on hover, ink for featured
 ═══════════════════════════════════════════════════════════════ */
 
-/* Regular content cards: white with subtle ink line */
-.board-card,
+/* Regular content cards: white with subtle ink line
+   NOTE: .board-card excluded on body.board-page — editor canvas cards
+   manage their own background/border (sticky colors, frame, etc.) */
+body:not(.board-page) .board-card,
 .game-tile-comm,
 .community-card,
 .pack-card:not(.featured):not(.ink),
@@ -219,8 +221,8 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
               transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1) !important;
 }
 
-/* Lime edge glow on hover — signature accent */
-.board-card:hover,
+/* Lime edge glow on hover — signature accent (NOT on editor canvas) */
+body:not(.board-page) .board-card:hover,
 .game-tile-comm:hover,
 .community-card:hover,
 .pack-card:hover,
@@ -231,8 +233,9 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
               inset 0 0 0 1px var(--u-lime-edge) !important;
 }
 
-/* Card top accent stripe — ink ↔ lime gradient (was pink in some places) */
-.board-card::before,
+/* Card top accent stripe — NOT on editor canvas (would draw a stripe
+   across every sticky / shape / frame which is wrong) */
+body:not(.board-page) .board-card::before,
 .lesson-card::before,
 .pack-card.featured::before,
 .community-card.featured::before {
@@ -448,7 +451,7 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
    9. DARK THEME — card surfaces stay consistent
 ═══════════════════════════════════════════════════════════════ */
 
-[data-theme="dark"] .board-card,
+body:not(.board-page)[data-theme="dark"] .board-card,
 [data-theme="dark"] .game-tile-comm,
 [data-theme="dark"] .pack-card,
 [data-theme="dark"] .tool-card,
@@ -648,7 +651,7 @@ body:not(.board-page) select {
    The lime→ink gradient stripe is too thick on community cards.
 ═══════════════════════════════════════════════════════════════ */
 
-.board-card::before {
+body:not(.board-page) .board-card::before {
   height: 3px !important;
 }
 
