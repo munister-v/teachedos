@@ -540,93 +540,69 @@ body { font-family: var(--font) !important; }
 .wg-vocab-next { background: var(--lime) !important; color: var(--lime-text) !important; box-shadow: 0 4px 14px rgba(205,242,79,0.3) !important; }
 .wg-vocab-next:hover { background: var(--lime-dark) !important; }
 
-/* ── Board sidebar: dark panel (matches admin) ── */
+/* ── Board sidebar: light Miro-style panel (was dark — kept compatibility, now neutral) ── */
 #sidebar:has(.sb-tabs) {
-  background: #1C1C1E !important;
-  border-right: 1px solid rgba(255,255,255,.08) !important;
+  background: #fff;
+  border-right: 1px solid rgba(0,0,0,.08);
 }
-.sb-tabs {
-  border-bottom-color: rgba(255,255,255,.10) !important;
-}
-.sb-tab {
-  color: rgba(255,255,255,.45) !important;
-}
-.sb-tab:hover {
-  color: rgba(255,255,255,.75) !important;
-}
-.sb-tab.active {
-  color: #fff !important;
-  border-bottom-color: var(--lime) !important;
-}
-.sb-tab-lbl {
-  color: inherit !important;
-}
+.sb-tabs { border-bottom-color: rgba(0,0,0,.06); }
+.sb-tab { color: #9999AA; }
+.sb-tab:hover { color: #4262FF; background: rgba(66,98,255,.04); }
+.sb-tab.active { color: #4262FF; border-bottom-color: #4262FF; }
+.sb-tab-lbl { color: inherit; }
 .sb-search input {
-  background: rgba(255,255,255,.06) !important;
-  border-color: rgba(255,255,255,.10) !important;
-  color: #fff !important;
+  background: #F5F5F7;
+  border-color: rgba(0,0,0,.10);
+  color: #050038;
 }
-.sb-search input::placeholder {
-  color: rgba(255,255,255,.30) !important;
-}
-.sb-search input:focus {
-  border-color: rgba(205,242,79,.40) !important;
-  box-shadow: 0 0 0 3px rgba(205,242,79,.10) !important;
-}
-.sb-body {
-  scrollbar-color: rgba(255,255,255,.12) transparent !important;
-}
-.sb-body::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.12) !important;
-}
-.sb-label {
-  color: rgba(255,255,255,.35) !important;
-}
-.sb-sep {
-  background: rgba(255,255,255,.08) !important;
-}
+.sb-search input::placeholder { color: #9999AA; }
+.sb-search input:focus { border-color: #4262FF; background: #fff; box-shadow: 0 0 0 3px rgba(66,98,255,.10); }
+.sb-body { scrollbar-color: rgba(0,0,0,.12) transparent; }
+.sb-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
+.sb-label { color: #9999AA; }
+.sb-sep { background: rgba(0,0,0,.06); }
 
-/* Snippet cards on dark */
+/* Snippet cards — light Miro */
 .snippet {
-  background: rgba(255,255,255,.06) !important;
-  border-color: rgba(255,255,255,.10) !important;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
 }
 .snippet:hover {
-  border-color: rgba(205,242,79,.30) !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+  border-color: #4262FF;
+  box-shadow: 0 4px 14px rgba(66,98,255,.10);
 }
-.sn-title { font-family: var(--font) !important; font-weight: 700 !important; color: #fff !important; }
-.sn-label { font-family: var(--font-mono) !important; color: rgba(255,255,255,.40) !important; }
+.sn-title { font-family: var(--font); font-weight: 600; color: #050038; }
+.sn-label { font-family: var(--font); color: #9999AA; }
 
-/* Badges: readable on dark */
+/* Badges: readable on light bg */
 .badge.active-s, .badge.active {
-  background: rgba(205,242,79,0.20) !important;
-  color: var(--lime) !important;
-  border: 1px solid rgba(205,242,79,0.35) !important;
+  background: rgba(34,197,94,.12);
+  color: #16a34a;
+  border: 1px solid rgba(34,197,94,.25);
 }
-.badge.a2 { background: rgba(96,165,250,.18) !important; color: #93bbfd !important; }
-.badge.b1 { background: rgba(167,139,250,.18) !important; color: #c4b5fd !important; }
-.badge.b2 { background: rgba(110,201,138,.18) !important; color: #86efac !important; }
-.badge.grammar { background: rgba(248,113,113,.15) !important; color: #fca5a5 !important; }
-.badge.vocab { background: rgba(255,255,255,.10) !important; color: rgba(255,255,255,.70) !important; }
-.badge.speaking { background: rgba(167,139,250,.15) !important; color: #c4b5fd !important; }
-.badge.draft { background: rgba(255,255,255,.08) !important; color: rgba(255,255,255,.45) !important; }
-.badge.pink { background: rgba(236,45,140,.15) !important; color: #f472b6 !important; }
-.badge.amber { background: rgba(245,158,11,.15) !important; color: #fbbf24 !important; }
-.badge.a1 { background: rgba(56,189,248,.18) !important; color: #7dd3fc !important; }
-.badge.c1 { background: rgba(251,146,60,.18) !important; color: #fdba74 !important; }
+.badge.a2 { background: rgba(96,165,250,.12); color: #2563eb; }
+.badge.b1 { background: rgba(167,139,250,.14); color: #7c3aed; }
+.badge.b2 { background: rgba(110,201,138,.14); color: #16a34a; }
+.badge.grammar { background: rgba(248,113,113,.12); color: #dc2626; }
+.badge.vocab { background: rgba(0,0,0,.06); color: #444466; }
+.badge.speaking { background: rgba(167,139,250,.12); color: #7c3aed; }
+.badge.draft { background: rgba(0,0,0,.06); color: #9999AA; }
+.badge.pink { background: rgba(236,45,140,.12); color: #db2777; }
+.badge.amber { background: rgba(245,158,11,.14); color: #d97706; }
+.badge.a1 { background: rgba(56,189,248,.14); color: #0284c7; }
+.badge.c1 { background: rgba(251,146,60,.14); color: #ea580c; }
 
-/* Element grid on dark */
+/* Element grid — light Miro */
 .el-item {
-  background: rgba(255,255,255,.06) !important;
-  border-color: rgba(255,255,255,.10) !important;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
 }
 .el-item:hover {
-  border-color: rgba(205,242,79,.30) !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+  border-color: #4262FF;
+  box-shadow: 0 4px 14px rgba(66,98,255,.10);
 }
-.el-label { color: rgba(255,255,255,.65) !important; }
-.el-icon { filter: brightness(1.5) !important; }
+.el-label { color: #444466; }
+.el-icon { filter: none; }
 
 /* ── Profile title ── */
 .mobile-profile-title { font-family: var(--font-serif) !important; letter-spacing: -0.02em !important; }
