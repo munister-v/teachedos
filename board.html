@@ -570,24 +570,44 @@ body.alt-duplicating *{cursor:copy!important;}
   pointer-events:none;display:none;transform:translate(-50%,-50%);
 }
 
-/* Frame card */
-.card-frame{background:transparent;border:none;box-shadow:none!important;}
+/* Frame card — must come AFTER .board-card rules to properly override */
+/* We use !important because .board-card (later in file) would otherwise win */
+.card-frame{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  /* Allow frame-title to render above the card boundary */
+  overflow:visible!important;
+  /* contain:layout clips children outside the box — disable for frames */
+  contain:none!important;
+}
+[data-theme="dark"] .card-frame{background:transparent!important;}
+.card-frame.selected{border-color:transparent!important;}
 .card-frame .frame-body{
   position:absolute;inset:0;border-radius:12px;
   background:var(--frame-bg,rgba(66,98,255,.05));
   border:2px solid var(--frame-border,rgba(66,98,255,.30));
   display:flex;align-items:flex-start;justify-content:flex-start;
   pointer-events:auto;
+  transition:border-color .15s,background .15s;
+}
+/* Frame selection indicator goes on the frame-body border */
+.card-frame.selected .frame-body{
+  border-color:#4262FF!important;
+  box-shadow:0 0 0 2px rgba(66,98,255,.20);
 }
 .card-frame .frame-title{
-  position:absolute;top:-26px;left:0;font-size:12px;font-weight:600;
-  color:#050038;background:transparent;padding:2px 4px;
+  position:absolute;top:-28px;left:0;font-size:12px;font-weight:600;
+  color:#050038;background:transparent;padding:3px 6px;
   border-radius:4px;border:none;font-family:var(--font);
   white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
   cursor:pointer;letter-spacing:-.01em;
   display:inline-flex;align-items:center;gap:6px;
+  /* Ensure it's above canvas cards */
+  z-index:10;
 }
-.card-frame .frame-title:hover{background:rgba(66,98,255,.06);}
+[data-theme="dark"] .card-frame .frame-title{color:var(--text);}
+.card-frame .frame-title:hover{background:rgba(66,98,255,.09);border-radius:4px;}
 .card-frame .frame-num{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:18px;height:18px;padding:0 5px;border-radius:4px;
@@ -603,6 +623,22 @@ body.alt-duplicating *{cursor:copy!important;}
   border-width:2px!important;
 }
 .card-frame .card-header{position:absolute;top:-22px;left:0;background:transparent;border:none;height:22px;}
+
+/* Frame color palette in layer-popover */
+.frame-color-row{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 2px 2px;
+  border-top:1px solid rgba(0,0,0,.08);
+  margin-top:2px;width:100%;
+}
+[data-theme="dark"] .frame-color-row{border-top-color:rgba(255,255,255,.10);}
+.frame-color-swatch{
+  width:20px;height:20px;border-radius:5px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,box-shadow .1s;border:none;padding:0;
+}
+.frame-color-swatch:hover{transform:scale(1.18);box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.frame-color-swatch.active{box-shadow:0 0 0 2px #4262FF,0 2px 6px rgba(66,98,255,.25)!important;transform:scale(1.1);}
 
 /* Private mode */
 .card-private-mine{
@@ -3987,17 +4023,7 @@ function renderFrame(el, card) {
   el.appendChild(title);
   const body = document.createElement('div');
   body.className = 'frame-body';
-  body.title = 'Frame · drag the corner to resize';
-  // Right-click to change color
-  body.addEventListener('contextmenu', e => {
-    e.preventDefault(); e.stopPropagation();
-    const color = prompt('Frame color (hex or rgba):', card.data.bg || 'rgba(200,230,50,.08)');
-    if (color) {
-      card.data.bg = color;
-      el.style.setProperty('--frame-bg', color);
-      snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    }
-  });
+  body.title = 'Frame · select and use color palette in toolbar';
   el.appendChild(body);
   // Header for drag/close (positioned above by CSS)
   const hdr = makeHeader('▦', '', card.id);
@@ -4203,13 +4229,15 @@ function quickAddFrame() {
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 100, y: 100 };
   const def = getDefaults('frame');
   const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
-  addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
+  const newCard = addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
     title: 'Frame ' + n,
     num: n,
     bg: 'rgba(66,98,255,.05)',
     border: 'rgba(66,98,255,.30)',
     childIds: []
   });
+  // Send frames behind all other cards (Miro behaviour)
+  if (newCard) { newCard.z = 0; applyCardLayer && applyCardLayer(newCard); }
   setMiroTool('select');
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
@@ -5666,6 +5694,19 @@ function ensureLayerPopover() {
   return pop;
 }
 
+// Frame color presets (bg color, border color, label)
+const FRAME_COLORS = [
+  { bg:'rgba(255,255,255,0)',    border:'rgba(0,0,0,.18)',      label:'Clear',  icon:'<svg width="12" height="12" viewBox="0 0 12 12"><pattern id="chk" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#ccc"/><rect x="2" y="2" width="2" height="2" fill="#ccc"/></pattern><rect width="12" height="12" fill="white"/><rect width="12" height="12" fill="url(#chk)" opacity=".5"/></svg>' },
+  { bg:'rgba(255,255,255,1)',    border:'rgba(0,0,0,.18)',      label:'White' },
+  { bg:'rgba(66,98,255,.08)',    border:'rgba(66,98,255,.35)',  label:'Blue' },
+  { bg:'rgba(34,197,94,.09)',    border:'rgba(34,197,94,.40)', label:'Green' },
+  { bg:'rgba(245,158,11,.09)',   border:'rgba(245,158,11,.40)',label:'Yellow' },
+  { bg:'rgba(239,68,68,.08)',    border:'rgba(239,68,68,.38)', label:'Red' },
+  { bg:'rgba(124,58,237,.08)',   border:'rgba(124,58,237,.38)',label:'Purple' },
+  { bg:'rgba(249,115,22,.08)',   border:'rgba(249,115,22,.38)',label:'Orange' },
+  { bg:'rgba(15,23,42,.88)',     border:'rgba(15,23,42,.75)',  label:'Dark' },
+];
+
 function showLayerPopover(cardId) {
   if (state.selected.size !== 1) { hideLayerPopover(); return; }
   const pop = ensureLayerPopover();
@@ -5673,6 +5714,45 @@ function showLayerPopover(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
   pop.querySelector('[data-layer="lock"]').title = card?.data?.locked ? 'Unlock' : 'Lock movement';
+
+  // Add / refresh frame color row
+  let colorRow = pop.querySelector('.frame-color-row');
+  if (card?.type === 'frame') {
+    if (!colorRow) {
+      colorRow = document.createElement('div');
+      colorRow.className = 'frame-color-row';
+      pop.appendChild(colorRow);
+    }
+    colorRow.innerHTML = '';
+    FRAME_COLORS.forEach(p => {
+      const sw = document.createElement('button');
+      sw.className = 'frame-color-swatch';
+      sw.title = p.label;
+      sw.style.cssText = `background:${p.bg};border:1.5px solid ${p.border};`;
+      if (p.icon) sw.innerHTML = p.icon;
+      // Mark active swatch
+      const isCurrent = (card.data.bg || '') === p.bg;
+      if (isCurrent) sw.classList.add('active');
+      sw.addEventListener('click', e => {
+        e.stopPropagation();
+        const el = getCardEl(cardId);
+        card.data.bg = p.bg;
+        card.data.border = p.border;
+        if (el) {
+          el.style.setProperty('--frame-bg', p.bg);
+          el.style.setProperty('--frame-border', p.border);
+        }
+        // Update active state on swatches
+        colorRow.querySelectorAll('.frame-color-swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      });
+      colorRow.appendChild(sw);
+    });
+  } else if (colorRow) {
+    colorRow.remove();
+  }
+
   pop.classList.add('show');
   positionLayerPopover();
 }
