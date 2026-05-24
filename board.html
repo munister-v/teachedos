@@ -493,6 +493,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
 #board-wrap.commenting{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='11' r='9' fill='%234262FF' opacity='.9'/%3E%3Cpath d='M8 20l4-4' stroke='%234262FF' stroke-width='2' fill='none'/%3E%3Ctext x='12' y='15' text-anchor='middle' fill='white' font-size='11' font-family='Arial' font-weight='bold'%3E%2B%3C/text%3E%3C/svg%3E") 12 12,crosshair!important;}
+/* Placement mode — crosshair everywhere */
+#board-wrap.placing,
+#board-wrap.placing *{cursor:crosshair!important;}
+/* Floating placement ghost that follows cursor */
+#place-ghost{
+  position:fixed;pointer-events:none;z-index:9999;
+  display:flex;align-items:center;gap:7px;
+  background:#fff;border:2px solid #4262FF;border-radius:9px;
+  padding:7px 13px;font-size:12px;font-weight:700;
+  color:#4262FF;font-family:var(--font);
+  box-shadow:0 6px 20px rgba(66,98,255,.22),0 1px 4px rgba(0,0,0,.08);
+  white-space:nowrap;
+  transition:opacity .1s;
+}
+[data-theme="dark"] #place-ghost{background:#252540;border-color:#5577ff;color:#8899ff;}
 /* Connect mode visual feedback: highlight cards on hover, show anchor dots */
 #board-wrap.connecting .board-card{cursor:crosshair;}
 #board-wrap.connecting .board-card:hover{
@@ -5912,6 +5927,13 @@ boardWrap.addEventListener('mousedown', e => {
   }
   if (spaceDown) return;
 
+  // Placement mode (Miro-style): left-click places element exactly where clicked
+  if (e.button === 0 && _pendingPlace) {
+    e.preventDefault(); e.stopPropagation();
+    _doPlace(e.clientX, e.clientY);
+    return;
+  }
+
   // Comment mode: click anywhere to add comment
   if (_miroTool === 'comment') { _handleCommentClick(e); return; }
 
@@ -6242,6 +6264,12 @@ document.addEventListener('mouseup', e => {
   }
 
   boardWrap.addEventListener('touchstart', e => {
+    // Placement mode: touch places element exactly where tapped
+    if (_pendingPlace && e.touches.length === 1) {
+      e.preventDefault();
+      _doPlace(e.touches[0].clientX, e.touches[0].clientY);
+      return;
+    }
     // Cancel momentum on new touch
     if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
     const ts = Array.from(e.touches);
@@ -6409,7 +6437,8 @@ document.addEventListener('keydown', e => {
     clearSelection();
     cancelConnection();
     setMode('select');
-    // Exit comment mode
+    // Exit placement / comment modes
+    if (typeof cancelPlaceMode === 'function') cancelPlaceMode();
     if (typeof disableCommentMode === 'function') disableCommentMode();
     closeBoardSearchBar();
     closeShortcuts();
@@ -9617,8 +9646,81 @@ document.addEventListener('click', e => {
 
 /* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
 let _miroTool = 'select';
+
+/* ── Placement mode (Miro-style: click tool → cursor changes → click canvas to place) ── */
+let _pendingPlace = null;   // { type, extraData } or null
+let _placeGhost   = null;   // DOM element following cursor
+
+const _PLACE_INFO = {
+  sticky:    { icon:'🟡', label:'Sticky Note' },
+  text:      { icon:'T',  label:'Text' },
+  shape:     { icon:'◼',  label:'Shape' },
+  mindmap:   { icon:'⬡',  label:'Mind Map' },
+  checklist: { icon:'✅', label:'Checklist' },
+  timer:     { icon:'⏱', label:'Timer' },
+  lesson:    { icon:'📋', label:'Lesson' },
+  image:     { icon:'🖼', label:'Image' },
+  video:     { icon:'▶',  label:'Video' },
+};
+
+function enterPlaceMode(type, extraData) {
+  // Cancel any previous placement
+  cancelPlaceMode();
+  _pendingPlace = { type, extraData };
+  _miroTool = type;
+  boardWrap.classList.add('placing');
+  // Highlight the toolbar button
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  const mtId = { sticky:'mt-sticky', text:'mt-text', shape:'mt-shape',
+                 mindmap:'mt-mindmap', checklist:'mt-checklist' }[type] || ('mt-' + type);
+  document.getElementById(mtId)?.classList.add('active');
+  // Create floating ghost
+  const info = _PLACE_INFO[type] || { icon:'📌', label: type };
+  _placeGhost = document.createElement('div');
+  _placeGhost.id = 'place-ghost';
+  _placeGhost.style.opacity = '0';
+  _placeGhost.innerHTML = `<span style="font-size:15px;line-height:1;">${info.icon}</span><span>${info.label}</span>`;
+  document.body.appendChild(_placeGhost);
+  requestAnimationFrame(() => { if (_placeGhost) _placeGhost.style.opacity = '1'; });
+}
+
+function cancelPlaceMode() {
+  _pendingPlace = null;
+  boardWrap.classList.remove('placing');
+  if (_placeGhost) { _placeGhost.remove(); _placeGhost = null; }
+}
+
+function _doPlace(clientX, clientY) {
+  if (!_pendingPlace) return false;
+  const bp = screenToBoard(clientX, clientY);
+  if (!bp) { cancelPlaceMode(); return true; }
+  const { type, extraData } = _pendingPlace;
+  cancelPlaceMode();
+  setMiroTool('select');
+  if (type === 'shape') {
+    const def = getDefaults('shape');
+    const data = extraData || { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 };
+    const c = addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
+    if (c) { state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover(c.id); }
+  } else {
+    quickAddCard(type, bp.x, bp.y);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  return true;
+}
+
+// Move ghost to follow cursor
+document.addEventListener('mousemove', e => {
+  if (_placeGhost) {
+    _placeGhost.style.left = (e.clientX + 16) + 'px';
+    _placeGhost.style.top  = (e.clientY + 16) + 'px';
+  }
+}, { passive: true });
+
 function setMiroTool(tool) {
   if (typeof disableDrawTool === 'function') disableDrawTool();
+  // Exit placement mode if switching away
+  if (typeof cancelPlaceMode === 'function') cancelPlaceMode();
   // Exit comment mode if switching away
   if (tool !== 'comment' && typeof disableCommentMode === 'function') disableCommentMode();
   // Exit connect mode if switching away
@@ -9664,17 +9766,15 @@ function closeShapePanel() { document.getElementById('shape-panel').classList.re
 
 function quickAddShape(shape) {
   closeShapePanel();
-  setMiroTool('select');
-  const pos = getBoardViewportCenter();
-  const def = getDefaults('shape');
-  addCard('shape', pos.x - def.w/2, pos.y - def.h/2, { shape, fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+  // Enter placement mode: user clicks canvas where they want the shape
+  enterPlaceMode('shape', { shape, fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
 }
 
 function toolbarQuickAdd(type) {
-  const placement = getBoardViewportCenter();
-  if (type === 'sticky' || type === 'text') setMiroTool(type);
-  else setMiroTool('select');
-  quickAddCard(type, placement.x, placement.y);
+  // Image / video need a modal first — open modal, then place on board
+  if (type === 'image' || type === 'video') { toolbarOpenModal(type); return; }
+  // All other types: enter Miro-style placement mode (click canvas to place)
+  enterPlaceMode(type);
 }
 
 function toolbarOpenModal(type) {
