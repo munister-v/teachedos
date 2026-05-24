@@ -499,24 +499,28 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   pointer-events:none;
 }
 
-/* Anchor dots (connect mode) */
+/* Anchor dots (Miro-style — small blue squares with cross arrows on hover) */
 .anchor-dot{
-  position:absolute;width:10px;height:10px;border-radius:50%;
-  background:#4262FF;border:2px solid white;z-index:20;
-  cursor:crosshair;opacity:0;transition:opacity .15s,transform .12s;
-  box-shadow:0 0 0 2px rgba(66,98,255,.30);
+  position:absolute;width:8px;height:8px;border-radius:50%;
+  background:#4262FF;border:1.5px solid #fff;z-index:20;
+  cursor:crosshair;opacity:0;transition:opacity .15s,transform .12s,width .12s,height .12s;
+  box-shadow:0 0 0 1px rgba(66,98,255,.20);
 }
-.anchor-dot:hover{transform:scale(1.5)!important;opacity:1!important;}
+.anchor-dot:hover{
+  width:12px!important;height:12px!important;opacity:1!important;
+  box-shadow:0 0 0 3px rgba(66,98,255,.20),0 1px 4px rgba(66,98,255,.30);
+}
+.board-card:hover .anchor-dot,
 .board-card.anchors-visible .anchor-dot,
 .board-card.selected .anchor-dot{opacity:1;}
-.anchor-dot[data-anchor=top]   {top:-6px;   left:50%;   transform:translateX(-50%);}
-.anchor-dot[data-anchor=bottom]{bottom:-6px; left:50%;   transform:translateX(-50%);}
-.anchor-dot[data-anchor=left]  {left:-6px;   top:50%;    transform:translateY(-50%);}
-.anchor-dot[data-anchor=right] {right:-6px;  top:50%;    transform:translateY(-50%);}
-.anchor-dot[data-anchor=top]:hover   {transform:translateX(-50%) scale(1.4);}
-.anchor-dot[data-anchor=bottom]:hover{transform:translateX(-50%) scale(1.4);}
-.anchor-dot[data-anchor=left]:hover  {transform:translateY(-50%) scale(1.4);}
-.anchor-dot[data-anchor=right]:hover {transform:translateY(-50%) scale(1.4);}
+.anchor-dot[data-anchor=top]   {top:-5px;   left:50%;   transform:translateX(-50%);}
+.anchor-dot[data-anchor=bottom]{bottom:-5px; left:50%;   transform:translateX(-50%);}
+.anchor-dot[data-anchor=left]  {left:-5px;   top:50%;    transform:translateY(-50%);}
+.anchor-dot[data-anchor=right] {right:-5px;  top:50%;    transform:translateY(-50%);}
+.anchor-dot[data-anchor=top]:hover   {transform:translateX(-50%) translateY(-1px);}
+.anchor-dot[data-anchor=bottom]:hover{transform:translateX(-50%) translateY(1px);}
+.anchor-dot[data-anchor=left]:hover  {transform:translateY(-50%) translateX(-1px);}
+.anchor-dot[data-anchor=right]:hover {transform:translateY(-50%) translateX(1px);}
 
 .card-header{
   display:flex;align-items:center;gap:6px;padding:8px 12px 6px;
@@ -843,11 +847,21 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   min-width:140px;max-width:220px;
 }
 
-/* ── Selection box ── */
+/* ── Selection box (Miro-style marquee) ── */
 #sel-box{
   position:fixed;z-index:800;pointer-events:none;display:none;
-  border:1.5px solid var(--accent);
-  background:rgba(94,94,74,.05);border-radius:3px;
+  border:1px solid #4262FF;
+  background:rgba(66,98,255,.08);border-radius:2px;
+}
+
+/* ── Snap alignment guides (Miro-style blue dashed lines) ── */
+#snap-guides{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:7;overflow:visible;
+}
+#snap-guides line{
+  stroke:#4262FF;stroke-width:1;stroke-dasharray:4 3;
+  vector-effect:non-scaling-stroke;
 }
 
 /* ── Empty state ── */
@@ -2004,6 +2018,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 <!-- BOARD WRAP -->
 <div id="board-wrap">
+  <!-- Snap alignment guides (Miro-style) -->
+  <svg id="snap-guides" xmlns="http://www.w3.org/2000/svg"></svg>
   <!-- Arrow SVG layer (screen-space) -->
   <svg id="arrows-svg" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -5126,8 +5142,44 @@ document.addEventListener('mousemove', e => {
     if (!dragStarted && (dx > 4 || dy > 4)) dragStarted = true;
     if (!dragStarted) return;
     const bp = screenToBoard(e.clientX, e.clientY);
+    // Miro-style smart snap: align edges/centers with other cards
+    let snapDx = 0, snapDy = 0;
+    const useSmartSnap = !e.shiftKey && !snapEnabled && dragCards.length === 1;
+    if (useSmartSnap) {
+      const dragId = dragCards[0].card.id;
+      const c = dragCards[0].card;
+      const nx0 = bp.x - dragCards[0].ox, ny0 = bp.y - dragCards[0].oy;
+      const SNAP_THRESHOLD = 6 / state.scale;
+      const myLines = [
+        {x:nx0,y:'L'}, {x:nx0+c.w,y:'R'}, {x:nx0+c.w/2,y:'C'},
+        {y:ny0,x:'T'}, {y:ny0+c.h,x:'B'}, {y:ny0+c.h/2,x:'M'},
+      ];
+      let bestX = null, bestY = null;
+      state.cards.forEach(o => {
+        if (o.id === dragId) return;
+        const oxs = [o.x, o.x+o.w, o.x+o.w/2];
+        const oys = [o.y, o.y+o.h, o.y+o.h/2];
+        myLines.filter(l=>l.x!==undefined && typeof l.x==='number').forEach(l => {
+          oxs.forEach(ox => {
+            const d = ox - l.x;
+            if (Math.abs(d) < SNAP_THRESHOLD && (bestX===null || Math.abs(d)<Math.abs(bestX.d))) bestX = {d, line:ox};
+          });
+        });
+        myLines.filter(l=>l.y!==undefined && typeof l.y==='number').forEach(l => {
+          oys.forEach(oy => {
+            const d = oy - l.y;
+            if (Math.abs(d) < SNAP_THRESHOLD && (bestY===null || Math.abs(d)<Math.abs(bestY.d))) bestY = {d, line:oy};
+          });
+        });
+      });
+      if (bestX) snapDx = bestX.d;
+      if (bestY) snapDy = bestY.d;
+      _drawSnapGuides(bestX, bestY, nx0+snapDx, ny0+snapDy, c.w, c.h);
+    } else {
+      _drawSnapGuides(null,null);
+    }
     dragCards.forEach(({ card, ox, oy }) => {
-      let nx = bp.x - ox, ny = bp.y - oy;
+      let nx = bp.x - ox + snapDx, ny = bp.y - oy + snapDy;
       if (snapEnabled || e.shiftKey) { nx = snapVal(nx); ny = snapVal(ny); }
       card.x = nx; card.y = ny; updateCardPos(card);
     });
@@ -5199,6 +5251,7 @@ document.addEventListener('mouseup', e => {
   if (isDraggingCard) {
     isDraggingCard = false;
     document.body.classList.remove('board-dragging');
+    _clearSnapGuides();
     if (dragStarted) { snapshot(); scheduleSave(); }
     setTimeout(() => { dragStarted = false; }, 0);
   }
@@ -7862,14 +7915,14 @@ function applyRemoteState(remote) {
 function updateRemoteCursor(userId, bx, by, name, avatar) {
   if (!remoteCursors[userId]) {
     const el = document.createElement('div');
-    el.style.cssText = `position:absolute;pointer-events:none;z-index:9000;transition:left .1s,top .1s;display:flex;flex-direction:column;align-items:flex-start;gap:2px;`;
-    const dot = document.createElement('div');
+    el.style.cssText = `position:absolute;pointer-events:none;z-index:9000;transition:left .08s linear,top .08s linear;display:block;`;
     const col = peerColor(userId);
-    dot.style.cssText = `width:14px;height:14px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);`;
-    const label = document.createElement('div');
-    label.style.cssText = `background:${col};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;`;
-    label.textContent = (avatar||'') + ' ' + (name||'…');
-    el.appendChild(dot); el.appendChild(label);
+    // Miro-style arrow cursor (SVG) + tiny name pill below-right
+    el.innerHTML = `
+      <svg width="22" height="22" viewBox="0 0 22 22" style="display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));">
+        <path d="M2 2 L2 16 L6.5 12 L9.5 19 L12 18 L9 11 L15 11 Z" fill="${col}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <div style="position:absolute;left:16px;top:18px;background:${col};color:#fff;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:var(--font);letter-spacing:-.005em;box-shadow:0 1px 3px rgba(0,0,0,.20);">${(name||'…').replace(/</g,'&lt;')}</div>`;
     board.appendChild(el);
     remoteCursors[userId] = { el };
   }
@@ -8030,6 +8083,28 @@ function toggleSnap() {
   document.getElementById('snap-indicator').style.display = snapEnabled ? '' : 'none';
 }
 function snapVal(v) { return Math.round(v / SNAP_SIZE) * SNAP_SIZE; }
+
+/* Miro-style snap guides — draw blue dashed lines while dragging */
+function _drawSnapGuides(bestX, bestY, cx, cy, cw, ch) {
+  const svg = document.getElementById('snap-guides');
+  if (!svg) return;
+  if (!bestX && !bestY) { svg.innerHTML = ''; return; }
+  const ns = 'http://www.w3.org/2000/svg';
+  let html = '';
+  if (bestX != null) {
+    const x = bestX.line * state.scale + state.pan.x;
+    html += `<line x1="${x}" y1="0" x2="${x}" y2="100%"/>`;
+  }
+  if (bestY != null) {
+    const y = bestY.line * state.scale + state.pan.y;
+    html += `<line x1="0" y1="${y}" x2="100%" y2="${y}"/>`;
+  }
+  svg.innerHTML = html;
+}
+function _clearSnapGuides() {
+  const svg = document.getElementById('snap-guides');
+  if (svg) svg.innerHTML = '';
+}
 
 /* ════════════════════════ EXPORT ════════════════════════ */
 function openExportMenu(e) {
