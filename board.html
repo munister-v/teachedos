@@ -84,6 +84,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tb-title:hover{background:rgba(0,0,0,.05);}
 .tb-spacer{flex:1;}
 #save-status{font-size:11px;font-family:var(--mono);color:var(--text-3);flex-shrink:0;}
+#session-chip{display:none!important;}
 .tb-zoom-display{font-size:12px;font-family:var(--mono);color:var(--text-2);min-width:44px;text-align:center;}
 .tb-btn{
   display:flex;align-items:center;justify-content:center;
@@ -103,11 +104,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tb-btn-primary{
   display:flex;align-items:center;gap:6px;
   height:36px;padding:0 18px;border-radius:8px;border:none;
-  background:#4262FF;cursor:pointer;font-size:14px;font-weight:600;color:#fff;
+  background:#CDF24F;cursor:pointer;font-size:14px;font-weight:700;color:#050038;
   transition:background .12s,transform .08s;flex-shrink:0;letter-spacing:-.005em;
   margin-left:4px;
 }
-.tb-btn-primary:hover{background:#2D4EE8;}
+.tb-btn-primary:hover{background:#b8de30;}
 .tb-btn-primary:active{transform:scale(.97);}
 /* Miro plain icon button (hamburger, +, layout, ⋯) */
 .tb-icon-btn{
@@ -210,13 +211,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
 #btn-follow-me{
-  padding:4px 10px;border-radius:8px;border:1px solid var(--border);
-  background:var(--card-bg,white);font-family:var(--font);font-size:11px;
-  font-weight:700;cursor:pointer;color:var(--text-2);transition:.12s;flex-shrink:0;
+  padding:4px 12px;border-radius:8px;border:none;
+  background:#CDF24F;font-family:var(--font);font-size:11px;
+  font-weight:700;cursor:pointer;color:#050038;transition:background .12s;flex-shrink:0;
   display:none;
 }
-#btn-follow-me:hover{background:var(--accent-2);border-color:var(--accent);color:var(--accent);}
-#btn-follow-me.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+#btn-follow-me:hover{background:#b8de30;}
+#btn-follow-me.active{background:#050038;color:#CDF24F;border:none;}
 #mobile-quickbar{
   display:none;position:fixed;left:10px;right:10px;
   bottom:calc(8px + env(safe-area-inset-bottom,0px));
