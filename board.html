@@ -1066,7 +1066,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .event-topic{font-size:12px;font-weight:700;color:var(--text);margin-top:6px;}
 
 /* ── TEXT (Miro-style: invisible default, dashed on hover, blue when editing) ── */
-.card-text{background:transparent;box-shadow:none;border:1.5px solid transparent;}
+.card-text{background:transparent;box-shadow:none;border:1.5px solid transparent;overflow:visible!important;contain:none!important;}
 .card-text:hover:not(.selected){border:1.5px dashed rgba(66,98,255,.40);}
 .card-text.selected{border-color:#4262FF;background:transparent;}
 .card-text:focus-within{
@@ -1074,12 +1074,18 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   background:rgba(255,255,255,.04);
   box-shadow:0 0 0 1px rgba(66,98,255,.20),0 4px 12px rgba(66,98,255,.10);
 }
-.card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;}
+.card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;overflow:visible;}
 .text-format-toolbar{
   display:none;align-items:center;gap:4px;flex-wrap:wrap;
   padding:4px;border-radius:10px;background:rgba(255,255,255,.94);
   border:1px solid rgba(20,20,22,.09);box-shadow:0 8px 24px rgba(0,0,0,.10);
   backdrop-filter:blur(8px);z-index:24;
+}
+/* Float text format toolbar ABOVE the card — Miro style */
+.card-text .text-format-toolbar{
+  position:absolute;bottom:calc(100% + 7px);left:0;
+  width:max-content;max-width:520px;flex-wrap:nowrap;
+  z-index:200;
 }
 .card-text.selected .text-format-toolbar,.card-text:hover .text-format-toolbar{display:flex;}
 .text-format-btn,.text-link-btn,.text-lock-btn,.text-bg-clear{
@@ -2660,19 +2666,24 @@ body.board-dragging .board-card{will-change:transform,left,top;}
       <div class="sp-section">
         <h4>Cards</h4>
         <div class="sp-row"><span>Quick add</span><div class="kbd"><code>dbl-click</code></div></div>
+        <div class="sp-row"><span>Edit selected</span><div class="kbd"><code>Enter</code></div></div>
         <div class="sp-row"><span>Delete</span><div class="kbd"><code>Del</code></div></div>
         <div class="sp-row"><span>Copy</span><div class="kbd"><code>Ctrl</code><code>C</code></div></div>
         <div class="sp-row"><span>Paste</span><div class="kbd"><code>Ctrl</code><code>V</code></div></div>
         <div class="sp-row"><span>Duplicate</span><div class="kbd"><code>Ctrl</code><code>D</code></div></div>
         <div class="sp-row"><span>Snap to grid</span><div class="kbd"><code>Shift</code>+<code>drag</code></div></div>
+        <div class="sp-row"><span>Alt-drag duplicate</span><div class="kbd"><code>Alt</code>+<code>drag</code></div></div>
         <div class="sp-row"><span>Group</span><div class="kbd"><code>Ctrl</code><code>G</code></div></div>
         <div class="sp-row"><span>Ungroup</span><div class="kbd"><code>Ctrl</code><code>Shift</code><code>G</code></div></div>
         <div class="sp-row"><span>Undo</span><div class="kbd"><code>Ctrl</code><code>Z</code></div></div>
         <div class="sp-row"><span>Redo</span><div class="kbd"><code>Ctrl</code><code>Y</code></div></div>
+        <h4>View</h4>
+        <div class="sp-row"><span>Fit all</span><div class="kbd"><code>F</code></div></div>
+        <div class="sp-row"><span>Fit selection</span><div class="kbd"><code>Ctrl</code><code>Shift</code><code>H</code></div></div>
+        <div class="sp-row"><span>Reset zoom</span><div class="kbd"><code>Ctrl</code><code>0</code></div></div>
         <h4>Modes</h4>
         <div class="sp-row"><span>Connect mode</span><div class="kbd"><code>C</code></div></div>
         <div class="sp-row"><span>Search cards</span><div class="kbd"><code>Ctrl</code><code>F</code></div></div>
-        <div class="sp-row"><span>Games hub</span><div class="kbd"><code>G</code></div></div>
         <div class="sp-row"><span>Force save</span><div class="kbd"><code>Ctrl</code><code>S</code></div></div>
         <div class="sp-row"><span>Version history</span><div class="kbd"><code>Ctrl</code><code>H</code></div></div>
         <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
@@ -3463,6 +3474,29 @@ function fitAll(animate) {
   }
 }
 
+/* Fit selected cards into view (Ctrl+Shift+H) */
+function fitSelection() {
+  const sel = state.cards.filter(c => state.selected.has(c.id));
+  if (!sel.length) { fitAll(); return; }
+  if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  sel.forEach(c => { minX=Math.min(minX,c.x); minY=Math.min(minY,c.y); maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h); });
+  const PAD=80, pw=boardWrap.clientWidth, ph=boardWrap.clientHeight;
+  const cw=maxX-minX||1, ch=maxY-minY||1;
+  const sc=Math.min(2, Math.max(0.1, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
+  const px=(pw-cw*sc)/2-minX*sc, py=(ph-ch*sc)/2-minY*sc;
+  const startScale=state.scale, startPanX=state.pan.x, startPanY=state.pan.y, t0=performance.now();
+  function tick(now) {
+    const p=Math.min(1,(now-t0)/300), ease=1-Math.pow(1-p,3);
+    state.scale=startScale+(sc-startScale)*ease;
+    state.pan.x=startPanX+(px-startPanX)*ease;
+    state.pan.y=startPanY+(py-startPanY)*ease;
+    applyTransform();
+    if (p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 /* ════════════════════════ UNDO / REDO ════════════════════════ */
 function snapshot() {
   undoStack.push(serialize());
@@ -3801,6 +3835,13 @@ function renderSticky(el, card) {
   ta.addEventListener('mousedown', e => e.stopPropagation());
   body.appendChild(ta);
   el.appendChild(body);
+  // Miro-style: double-click body → enter edit mode
+  el.addEventListener('dblclick', e => {
+    if (e.target.closest('.sticky-toolbar,.sticky-close')) return;
+    e.stopPropagation();
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
 }
 
 function renderText(el, card) {
@@ -5700,6 +5741,12 @@ function ensureLayerPopover() {
     } else if (btn.dataset.action === 'duplicate') {
       typeof duplicateSelected === 'function' && duplicateSelected();
     } else if (btn.dataset.action === 'delete') {
+      // Ensure cardId is in selection before deleting
+      if (!state.selected.has(cardId)) {
+        state.selected.clear();
+        state.selected.add(cardId);
+      }
+      hideLayerPopover();
       typeof deleteSelected === 'function' && deleteSelected();
     } else if (btn.dataset.layer === 'lock') {
       toggleCardLocked(cardId);
@@ -6057,6 +6104,15 @@ document.addEventListener('mousemove', e => {
     updateMultiSelBox();
     // Miro-style: highlight the frame the dragged card would land in
     _highlightFrameDropTarget(dragCards.map(d => d.card.id));
+    // Miro-style: edge-scroll when dragging near viewport edges
+    const _r = boardWrap.getBoundingClientRect();
+    const _EDGE = 60, _SPD = 8 / state.scale;
+    let _sdx = 0, _sdy = 0;
+    if (e.clientX < _r.left + _EDGE)       _sdx = -_SPD * (1 - (e.clientX - _r.left) / _EDGE);
+    else if (e.clientX > _r.right - _EDGE) _sdx =  _SPD * (1 - (_r.right - e.clientX) / _EDGE);
+    if (e.clientY < _r.top + _EDGE)        _sdy = -_SPD * (1 - (e.clientY - _r.top) / _EDGE);
+    else if (e.clientY > _r.bottom - _EDGE)_sdy =  _SPD * (1 - (_r.bottom - e.clientY) / _EDGE);
+    if (_sdx || _sdy) { state.pan.x -= _sdx * state.scale; state.pan.y -= _sdy * state.scale; applyTransform(); }
     return;
   }
 
@@ -6418,7 +6474,7 @@ document.addEventListener('keydown', e => {
     }
     e.preventDefault(); return;
   }
-  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
 
   if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
   if ((e.ctrlKey||e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
@@ -6429,11 +6485,24 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === 'v' && !e.shiftKey) { e.preventDefault(); pasteCards(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'h') { e.preventDefault(); openVersionHistory(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'h' && !e.shiftKey) { e.preventDefault(); openVersionHistory(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'h' && e.shiftKey) { e.preventDefault(); fitSelection(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'g' && !e.shiftKey) { e.preventDefault(); groupSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'g' && e.shiftKey)  { e.preventDefault(); ungroupSelected(); return; }
 
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+  // Miro-style: Enter → enter edit mode on selected card
+  if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && state.selected.size === 1) {
+    const [selId] = state.selected;
+    const selEl = getCardEl(selId);
+    if (selEl) {
+      e.preventDefault();
+      const ta = selEl.querySelector('textarea');
+      const rich = selEl.querySelector('[contenteditable="true"]');
+      if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+      else if (rich) { rich.focus(); document.execCommand && document.execCommand('selectAll', false, null); }
+    }
+  }
   if (e.key === 'Escape') {
     clearSelection();
     cancelConnection();
@@ -9704,7 +9773,17 @@ function _doPlace(clientX, clientY) {
     const c = addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
     if (c) { state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover(c.id); }
   } else {
-    quickAddCard(type, bp.x, bp.y);
+    const placed = quickAddCard(type, bp.x, bp.y);
+    // Miro-style: auto-focus editor on text/sticky after placement
+    if (placed && (type === 'text' || type === 'sticky')) {
+      setTimeout(() => {
+        const el = getCardEl(placed.id);
+        const ta = el?.querySelector('textarea');
+        const rich = el?.querySelector('[contenteditable="true"]');
+        if (ta) { ta.focus(); ta.select?.(); }
+        else if (rich) { rich.focus(); document.execCommand && document.execCommand('selectAll', false, null); }
+      }, 50);
+    }
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   return true;
@@ -9825,6 +9904,7 @@ function quickAddCard(type, bx, by) {
   } else if (type === 'table') {
     card = addCard('table', x, y, { title:'Table', rows:[['Header 1','Header 2','Header 3'],['','',''],['','','']] });
   }
+  return card;
 }
 
 /* ════════════════════════ VOCABULARY CARD ════════════════════════ */
