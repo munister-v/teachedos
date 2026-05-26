@@ -3702,7 +3702,7 @@ function renderCard(card) {
     dot.title = 'Connect from ' + anchor;
     dot.addEventListener('mousedown', e => {
       e.stopPropagation();
-      startConnection(card, anchor);
+      startConnection({ card, anchor });
     });
     el.appendChild(dot);
   });
@@ -3732,7 +3732,7 @@ function renderCard(card) {
       // In connect mode, clicking the card body uses the nearest anchor
       e.stopPropagation();
       const nearestAnchor = nearestCardAnchor(card, e.clientX, e.clientY);
-      startConnection(card, nearestAnchor);
+      startConnection({ card, anchor: nearestAnchor });
       return;
     }
 
@@ -5565,7 +5565,7 @@ function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
     const dot = document.createElement('div');
     dot.className = 'anchor-dot'; dot.dataset.anchor = anchor;
-    dot.addEventListener('mousedown', e => { e.stopPropagation(); if (state.mode==='connect') startConnection(card, anchor); });
+    dot.addEventListener('mousedown', e => { e.stopPropagation(); if (state.mode==='connect') startConnection({ card, anchor }); });
     el.appendChild(dot);
   });
   ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
@@ -6015,7 +6015,18 @@ boardWrap.addEventListener('mousedown', e => {
   if (!onBg) return;
 
   clearSelection();
-  if (state.mode === 'connect') { cancelConnection(); return; }
+  if (state.mode === 'connect') {
+    const pos = screenToBoard(e.clientX, e.clientY);
+    if (connectPending) {
+      // Second click on empty area → finish as a FREE endpoint.
+      finishConnection({ point: pos });
+    } else {
+      // First click on empty area → start a FREE-origin connection.
+      startConnection({ point: pos });
+    }
+    e.preventDefault();
+    return;
+  }
 
   // Box select start
   isBoxSelecting = true;
@@ -6284,11 +6295,8 @@ document.addEventListener('mouseup', e => {
       });
       // Arrows: select when both endpoints lie inside the box
       state.arrows.forEach(arrow => {
-        const fromCard = state.cards.find(c => c.id === arrow.fromCard);
-        const toCard   = state.cards.find(c => c.id === arrow.toCard);
-        if (!fromCard || !toCard) return;
-        const from = getAnchorBoardPos(fromCard, arrow.fromAnchor);
-        const to   = getAnchorBoardPos(toCard,   arrow.toAnchor);
+        const from = _arrowEndpoint(arrow, 'from');
+        const to   = _arrowEndpoint(arrow, 'to');
         if (!from || !to) return;
         const inside = (p) => p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2;
         if (inside(from) && inside(to)) {
@@ -6849,36 +6857,80 @@ function getAnchorBoardPos(card, anchor) {
   }[anchor];
 }
 
-function startConnection(card, anchor) {
+/* Resolve an arrow endpoint to board coords.
+   The endpoint can be anchored to a card (fromCard/fromAnchor) OR be a
+   free-floating point on the canvas (fromPoint:{x,y}). */
+function _arrowEndpoint(arrow, side) {
+  if (side === 'from') {
+    if (arrow.fromCard) {
+      const c = state.cards.find(c => c.id === arrow.fromCard);
+      return c ? getAnchorBoardPos(c, arrow.fromAnchor) : null;
+    }
+    return arrow.fromPoint ? { x: arrow.fromPoint.x, y: arrow.fromPoint.y } : null;
+  } else {
+    if (arrow.toCard) {
+      const c = state.cards.find(c => c.id === arrow.toCard);
+      return c ? getAnchorBoardPos(c, arrow.toAnchor) : null;
+    }
+    return arrow.toPoint ? { x: arrow.toPoint.x, y: arrow.toPoint.y } : null;
+  }
+}
+// Effective anchor used by the bezier/elbow routers — fall back to 'auto'
+// when an endpoint is free (no card-side anchor).
+function _arrowEffectiveAnchor(arrow, side) {
+  if (side === 'from') return arrow.fromCard ? arrow.fromAnchor : 'auto';
+  return arrow.toCard ? arrow.toAnchor : 'auto';
+}
+
+// from = either {card, anchor} OR {point:{x,y}} (board coords)
+function startConnection(from) {
   cancelConnection();
   const path = document.createElementNS('http://www.w3.org/2000/svg','path');
   path.classList.add('arrow-pending');
   arrowsSvg.appendChild(path);
-  connectPending = { fromCard: card, fromAnchor: anchor, pathEl: path };
-  getCardEl(card.id)?.classList.add('anchors-visible');
+  connectPending = { from, pathEl: path };
+  if (from && from.card) getCardEl(from.card.id)?.classList.add('anchors-visible');
 }
 
 function updatePendingArrow(sx, sy) {
   if (!connectPending) return;
-  const { fromCard, fromAnchor, pathEl } = connectPending;
-  const from = getAnchorBoardPos(fromCard, fromAnchor);
-  const fromW = boardToWrap(from.x, from.y);
+  const { from, pathEl } = connectPending;
+  let fromBoard;
+  if (from.card)  fromBoard = getAnchorBoardPos(from.card, from.anchor);
+  else            fromBoard = from.point;
+  if (!fromBoard) return;
+  const fw = boardToWrap(fromBoard.x, fromBoard.y);
   const r = boardWrap.getBoundingClientRect();
   const toX = sx - r.left, toY = sy - r.top;
-  pathEl.setAttribute('d', makeBezier(fromW.x, fromW.y, toX, toY, fromAnchor, 'auto'));
+  const fromAnchor = from.card ? from.anchor : 'auto';
+  pathEl.setAttribute('d', makeBezier(fw.x, fw.y, toX, toY, fromAnchor, 'auto'));
 }
 
-function finishConnection(toCard, toAnchor) {
+// to = {card, anchor} OR {point:{x,y}}
+function finishConnection(to) {
   if (!connectPending) return;
-  const { fromCard, fromAnchor, pathEl } = connectPending;
-  if (fromCard.id === toCard.id) { cancelConnection(); return; }
-  // Check duplicate
-  const dup = state.arrows.find(a =>
-    a.fromCard===fromCard.id && a.toCard===toCard.id &&
-    a.fromAnchor===fromAnchor && a.toAnchor===toAnchor);
+  const { from, pathEl } = connectPending;
+  // Cancel: same-card no-op, or card→same anchor on itself
+  if (from.card && to.card && from.card.id === to.card.id) { cancelConnection(); return; }
+  // Tiny drag with no real start→end distance: treat as cancel
+  if (!from.card && !to.card) {
+    const dx = to.point.x - from.point.x, dy = to.point.y - from.point.y;
+    if (Math.hypot(dx, dy) < 12) { cancelConnection(); return; }
+  }
+  // Build the new arrow record
+  const a = { id:'a'+(state.nextId++) };
+  if (from.card) { a.fromCard = from.card.id; a.fromAnchor = from.anchor; }
+  else           { a.fromPoint = { x: from.point.x, y: from.point.y }; }
+  if (to.card)   { a.toCard   = to.card.id;   a.toAnchor   = to.anchor; }
+  else           { a.toPoint   = { x: to.point.x,   y: to.point.y }; }
+
+  // Duplicate guard (only for fully card-anchored arrows)
+  const dup = (from.card && to.card) && state.arrows.find(x =>
+    x.fromCard===a.fromCard && x.toCard===a.toCard &&
+    x.fromAnchor===a.fromAnchor && x.toAnchor===a.toAnchor);
   if (!dup) {
     snapshot();
-    state.arrows.push({ id:'a'+(state.nextId++), fromCard:fromCard.id, fromAnchor, toCard:toCard.id, toAnchor });
+    state.arrows.push(a);
     scheduleSave();
   }
   pathEl.remove();
@@ -6940,13 +6992,12 @@ function renderAllArrows() {
   const r = boardWrap.getBoundingClientRect();
 
   state.arrows.forEach(arrow => {
-    const fromCard = state.cards.find(c => c.id === arrow.fromCard);
-    const toCard   = state.cards.find(c => c.id === arrow.toCard);
-    if (!fromCard || !toCard) return;
-
-    const from = getAnchorBoardPos(fromCard, arrow.fromAnchor);
-    const to   = getAnchorBoardPos(toCard,   arrow.toAnchor);
+    const from = _arrowEndpoint(arrow, 'from');
+    const to   = _arrowEndpoint(arrow, 'to');
     if (!from || !to) return;
+
+    const fromAnchor = _arrowEffectiveAnchor(arrow, 'from');
+    const toAnchor   = _arrowEffectiveAnchor(arrow, 'to');
 
     const fw = boardToWrap(from.x, from.y);
     const tw = boardToWrap(to.x,   to.y);
@@ -6959,7 +7010,7 @@ function renderAllArrows() {
     const route = arrow.route || 'curve';
     // Hit area (wider invisible path)
     const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
-    hit.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route));
+    hit.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route));
     hit.style.cssText = 'fill:none;stroke:transparent;stroke-width:12;cursor:pointer;pointer-events:stroke;';
     hit.addEventListener('click', e => {
       e.stopPropagation();
@@ -6993,7 +7044,7 @@ function renderAllArrows() {
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.classList.add('arrow-path');
-    path.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route));
+    path.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route));
     if (arrow.color) path.setAttribute('stroke', arrow.color);
 
     // Style based on arrow type
@@ -7022,7 +7073,7 @@ function renderAllArrows() {
 
     // Arrow label
     if (arrow.label) {
-      const d = makeArrowPath(fw.x,fw.y,tw.x,tw.y,arrow.fromAnchor,arrow.toAnchor,route);
+      const d = makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route);
       // midpoint approximation
       const mx = (fw.x + tw.x) / 2, my = (fw.y + tw.y) / 2;
       const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
@@ -7092,7 +7143,7 @@ document.addEventListener('mousedown', e => {
   const toCard = state.cards.find(c => c.id === cardEl.dataset.id);
   if (!toCard) return;
   e.stopPropagation();
-  finishConnection(toCard, dot.dataset.anchor);
+  finishConnection({ card: toCard, anchor: dot.dataset.anchor });
 }, true);
 
 /* ════════════════════════ CONTEXT MENU ════════════════════════ */
