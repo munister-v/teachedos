@@ -103,12 +103,37 @@ button{font-family:var(--font);cursor:pointer;}
 .hw-metric{background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:20px;padding:15px;box-shadow:0 14px 36px rgba(94,94,74,.08);}
 .hw-metric b{display:block;font-size:26px;letter-spacing:-.05em;color:var(--text);}
 .hw-metric span{display:block;margin-top:4px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
-.hw-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 4px;}
+.hw-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:12px -20px 4px;padding:10px 20px;
+  position:sticky;top:36px;z-index:50;
+  background:var(--bg);
+  transition:box-shadow .15s, background-color .15s;
+}
+.hw-toolbar.is-stuck{
+  background:rgba(245,240,232,0.92);
+  backdrop-filter:blur(18px) saturate(160%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  box-shadow:0 6px 18px rgba(94,94,74,.10),0 1px 0 var(--border);
+}
+[data-theme="dark"] .hw-toolbar{background:var(--bg);}
+[data-theme="dark"] .hw-toolbar.is-stuck{background:rgba(28,28,30,0.86);}
 .hw-filters{display:flex;gap:8px;flex-wrap:wrap;}
-.filter-btn{border:1px solid var(--border);background:rgba(255,255,255,.86);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:900;color:var(--text2);}
+.filter-btn{border:1px solid var(--border);background:rgba(255,255,255,.86);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:900;color:var(--text2);cursor:pointer;transition:background .12s,border-color .12s,color .12s,transform .08s;}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+.filter-btn:active{transform:scale(.96);}
 .filter-btn.active{background:var(--lime);border-color:rgba(168,196,42,.38);color:#0E0E10;}
-.hw-search{min-width:min(360px,100%);display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(255,255,255,.9);border-radius:999px;padding:0 14px;}
+.hw-search{min-width:min(360px,100%);display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(255,255,255,.9);border-radius:999px;padding:0 14px;position:relative;}
 .hw-search input{border:0!important;background:transparent!important;box-shadow:none!important;min-height:42px!important;padding:0!important;font-size:14px!important;}
+.hw-search .hw-search-clear{
+  display:none;width:22px;height:22px;border-radius:50%;
+  background:rgba(94,94,74,.10);border:none;cursor:pointer;
+  font-size:14px;line-height:1;color:var(--text3);
+  align-items:center;justify-content:center;flex-shrink:0;
+  transition:background .12s,color .12s;
+}
+.hw-search .hw-search-clear:hover{background:rgba(94,94,74,.20);color:var(--text);}
+.hw-search.has-value .hw-search-clear{display:flex;}
 
 /* List */
 #hw-list{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
@@ -292,7 +317,9 @@ button{font-family:var(--font);cursor:pointer;}
       <button class="filter-btn" data-filter="submitted" onclick="setFilter('submitted')">Submitted</button>
       <button class="filter-btn" data-filter="overdue" onclick="setFilter('overdue')">Overdue</button>
     </div>
-    <label class="hw-search">⌕ <input id="hw-search" placeholder="Search homework, board, student..." oninput="renderList()"></label>
+    <label class="hw-search" id="hw-search-wrap">⌕ <input id="hw-search" placeholder="Search homework, board, student…" autocomplete="off" oninput="onHwSearchInput(event)">
+      <button class="hw-search-clear" type="button" aria-label="Clear search" onclick="clearHwSearch()">✕</button>
+    </label>
   </div>
 
   <div id="hw-list"></div>
@@ -466,6 +493,53 @@ function setFilter(filter){
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
   renderList();
 }
+
+/* Live-search: instant on each keystroke, no debounce.
+   renderList() is cheap (filters an in-memory array + innerHTML), so
+   we can call it on every input without a perceptible delay. */
+function onHwSearchInput(e) {
+  const wrap = document.getElementById('hw-search-wrap');
+  const val = (e?.target?.value || '').trim();
+  if (wrap) wrap.classList.toggle('has-value', !!val);
+  renderList();
+}
+function clearHwSearch() {
+  const inp = document.getElementById('hw-search');
+  if (!inp) return;
+  inp.value = '';
+  inp.focus();
+  document.getElementById('hw-search-wrap')?.classList.remove('has-value');
+  renderList();
+}
+// '/' focuses the search (when not typing elsewhere). Esc clears + blurs.
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    const inp = document.getElementById('hw-search');
+    if (!inp) return;
+    e.preventDefault(); inp.focus(); inp.select();
+  } else if (e.key === 'Escape') {
+    const inp = document.getElementById('hw-search');
+    if (inp && document.activeElement === inp) { clearHwSearch(); inp.blur(); }
+  }
+});
+// Toggle .is-stuck on the sticky toolbar when it sticks to the top
+(function setupStickyToolbar(){
+  const tb = document.getElementById('hw-toolbar-anchor');
+  function check(){
+    const bar = document.querySelector('.hw-toolbar');
+    if (!bar) return;
+    // The toolbar's top in the viewport: if it's at its sticky-top (36px),
+    // the page has scrolled past where it was originally placed.
+    const r = bar.getBoundingClientRect();
+    bar.classList.toggle('is-stuck', r.top <= 38);
+  }
+  window.addEventListener('scroll', check, { passive: true });
+  window.addEventListener('resize', check);
+  document.addEventListener('DOMContentLoaded', check, { once: true });
+  setTimeout(check, 100);
+})();
 function homeworkStatus(h){
   if (h.status === 'submitted' || h.status === 'graded') return h.status;
   if (h.due_at && new Date(h.due_at) < new Date() && (h.submitted_count || 0) < (h.assigned_count || 0)) return 'overdue';

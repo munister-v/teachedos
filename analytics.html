@@ -170,6 +170,50 @@ a{text-decoration:none;color:inherit;}
 .stu-pct{font-size:15px;font-weight:900;min-width:42px;text-align:right;}
 
 /* Board selector */
+/* Unified board+students dropdown */
+.board-switcher{position:relative;display:inline-block;}
+.board-switcher-trigger{display:inline-flex;align-items:center;gap:8px;}
+.board-switcher-trigger .bs-icon{font-size:14px;line-height:1;}
+.board-switcher-trigger .bs-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;}
+.board-switcher-pop{
+  display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1000;
+  width:320px;max-height:420px;overflow:hidden;
+  background:var(--card);border-radius:14px;border:1px solid var(--border);
+  box-shadow:0 16px 40px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  flex-direction:column;
+  animation:bs-pop .14s cubic-bezier(.34,1.3,.6,1) both;
+}
+@keyframes bs-pop{from{opacity:0;transform:translateY(-4px) scale(.97);}to{opacity:1;transform:none;}}
+.board-switcher.open .board-switcher-pop{display:flex;}
+.bs-tabs{display:flex;border-bottom:1px solid var(--border);padding:4px;gap:4px;flex-shrink:0;}
+.bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
+.bs-tab:hover{background:rgba(94,94,74,.06);color:var(--text2);}
+.bs-tab.active{background:rgba(200,230,50,.14);color:var(--accent);}
+.bs-search{
+  margin:8px 10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;
+  font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);outline:none;
+  flex-shrink:0;
+}
+.bs-search:focus{border-color:var(--accent);}
+.bs-list{overflow-y:auto;flex:1;padding:4px 6px 10px;}
+.bs-list::-webkit-scrollbar{width:6px;}
+.bs-list::-webkit-scrollbar-thumb{background:rgba(94,94,74,.18);border-radius:6px;}
+.bs-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:700;
+  transition:background .1s,color .1s;
+}
+.bs-item:hover{background:rgba(94,94,74,.08);color:var(--text);}
+.bs-item.active{background:rgba(200,230,50,.16);color:var(--accent);}
+.bs-item .bs-item-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bs-item .bs-open-edit{
+  width:26px;height:26px;border-radius:6px;border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;flex-shrink:0;
+  transition:background .12s,color .12s;
+}
+.bs-item:hover .bs-open-edit{color:var(--text2);}
+.bs-item .bs-open-edit:hover{background:rgba(94,94,74,.14);color:var(--accent);}
+.bs-empty{padding:24px 16px;text-align:center;color:var(--text3);font-size:12px;}
 .board-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
 .board-pill{
   padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
@@ -230,7 +274,20 @@ a{text-decoration:none;color:inherit;}
     <div class="head-spacer"></div>
     <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
     <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
-    <a class="btn btn-primary" href="board.html" style="text-decoration:none;">📌 Open Board</a>
+    <div class="board-switcher" id="board-switcher">
+      <button class="btn btn-primary board-switcher-trigger" type="button" onclick="toggleBoardSwitcher(event)">
+        <span class="bs-icon">📋</span><span class="bs-label" id="bs-current">All boards</span>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="board-switcher-pop" id="bs-pop" role="menu" aria-hidden="true">
+        <div class="bs-tabs">
+          <button class="bs-tab active" data-tab="boards" onclick="bsSelectTab('boards')">📋 Boards</button>
+          <button class="bs-tab" data-tab="students" onclick="bsSelectTab('students')">👥 Students</button>
+        </div>
+        <input class="bs-search" id="bs-search" placeholder="Search…" oninput="bsRenderList()">
+        <div class="bs-list" id="bs-list"></div>
+      </div>
+    </div>
   </div>
   <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:700;margin-bottom:18px;"></div>
 
@@ -429,11 +486,87 @@ async function loadData() {
 
 function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
-  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>'; return; }
-  wrap.innerHTML = boards.map(b =>
-    `<div class="board-pill${b.id===activeBoardId?' active':''}" onclick="selectBoard('${b.id}')">${esc(b.name)}</div>`
-  ).join('');
+  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>'; }
+  else {
+    wrap.innerHTML = boards.map(b =>
+      `<div class="board-pill${b.id===activeBoardId?' active':''}" onclick="selectBoard('${b.id}')">${esc(b.name)}</div>`
+    ).join('');
+  }
+  bsUpdateLabel();
+  if (document.getElementById('board-switcher')?.classList.contains('open')) bsRenderList();
 }
+
+/* ── Unified board + students switcher ────────────────────────── */
+let _bsTab = 'boards';
+let _bsStudents = []; // populated when a board loads
+function toggleBoardSwitcher(ev) {
+  ev?.stopPropagation();
+  const sw = document.getElementById('board-switcher');
+  if (!sw) return;
+  const opening = !sw.classList.contains('open');
+  sw.classList.toggle('open', opening);
+  document.getElementById('bs-pop')?.setAttribute('aria-hidden', opening ? 'false' : 'true');
+  if (opening) {
+    bsRenderList();
+    setTimeout(() => document.getElementById('bs-search')?.focus(), 30);
+  }
+}
+function bsSelectTab(tab) {
+  _bsTab = tab;
+  document.querySelectorAll('.bs-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  bsRenderList();
+}
+function bsUpdateLabel() {
+  const cur = boards.find(b => b.id === activeBoardId);
+  const lbl = document.getElementById('bs-current');
+  if (lbl) lbl.textContent = cur ? cur.name : 'All boards';
+}
+function bsRenderList() {
+  const list = document.getElementById('bs-list');
+  if (!list) return;
+  const q = (document.getElementById('bs-search')?.value || '').trim().toLowerCase();
+  if (_bsTab === 'boards') {
+    const items = boards.filter(b => !q || b.name.toLowerCase().includes(q));
+    if (!items.length) { list.innerHTML = '<div class="bs-empty">No boards match</div>'; return; }
+    list.innerHTML = items.map(b => `
+      <div class="bs-item${b.id===activeBoardId?' active':''}" onclick="bsPickBoard('${b.id}')">
+        <span class="bs-item-name">${esc(b.name)}</span>
+        <button class="bs-open-edit" type="button" onclick="event.stopPropagation();bsOpenEditor('${b.id}')" title="Open in editor">↗</button>
+      </div>
+    `).join('');
+  } else {
+    if (!activeBoardId) { list.innerHTML = '<div class="bs-empty">Pick a board first</div>'; return; }
+    const items = _bsStudents.filter(s => !q || (s.name||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q));
+    if (!items.length) { list.innerHTML = '<div class="bs-empty">No students yet for this board</div>'; return; }
+    list.innerHTML = items.map(s => `
+      <div class="bs-item" title="${esc(s.email||'')}">
+        <span class="bs-item-name">${esc(s.name || s.email || 'Student')}</span>
+        <span style="font-size:10px;color:var(--text3);">${esc(s.role || 'student')}</span>
+      </div>
+    `).join('');
+  }
+}
+function bsPickBoard(id) {
+  selectBoard(id);
+  document.getElementById('board-switcher')?.classList.remove('open');
+}
+function bsOpenEditor(id) {
+  location.href = `board.html?id=${encodeURIComponent(id)}`;
+}
+function bsSetStudents(students) {
+  _bsStudents = Array.isArray(students) ? students : [];
+  if (_bsTab === 'students' && document.getElementById('board-switcher')?.classList.contains('open')) bsRenderList();
+}
+// Close on outside click / Esc
+document.addEventListener('mousedown', e => {
+  const sw = document.getElementById('board-switcher');
+  if (!sw || !sw.classList.contains('open')) return;
+  if (sw.contains(e.target)) return;
+  sw.classList.remove('open');
+}, true);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('board-switcher')?.classList.remove('open');
+});
 
 function selectBoard(id) {
   activeBoardId = id;
