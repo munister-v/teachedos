@@ -1342,15 +1342,19 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 /* Miro-style floating contextual toolbar above selected card */
 .layer-popover{
-  position:fixed;display:none;align-items:center;gap:1px;z-index:9500;
-  padding:4px;border-radius:8px;background:#fff;
-  box-shadow:0 6px 20px rgba(5,5,23,.16),0 1px 4px rgba(0,0,0,.06);
-  border:1px solid rgba(0,0,0,.08);
+  position:fixed;display:none;align-items:center;gap:2px;z-index:9500;
+  padding:5px 6px;border-radius:10px;
+  background:var(--card-bg,#fff);
+  box-shadow:0 8px 24px rgba(5,5,40,.16),0 2px 6px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.06);
+  font-family:var(--font);
+  animation:layer-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
-[data-theme="dark"] .layer-popover{background:#252540;border-color:rgba(255,255,255,.10);}
+@keyframes layer-pop{from{opacity:0;transform:translateY(4px) scale(.96);}to{opacity:1;transform:none;}}
+[data-theme="dark"] .layer-popover{background:#1F1F35;border-color:rgba(255,255,255,.10);}
 .layer-popover.show{display:flex;}
 .layer-btn{
-  height:28px;min-width:28px;border:none;border-radius:6px;padding:0 8px;
+  height:30px;min-width:30px;border:none;border-radius:7px;padding:0 8px;
   background:transparent;color:#050038;font:500 12px var(--font);
   cursor:pointer;white-space:nowrap;transition:background .1s,color .1s;
   display:flex;align-items:center;justify-content:center;gap:4px;
@@ -1361,6 +1365,22 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .layer-btn.danger:hover{background:rgba(239,68,68,.10);color:#ef4444;}
 .layer-sep{width:1px;height:18px;background:rgba(0,0,0,.10);margin:0 3px;flex-shrink:0;}
 [data-theme="dark"] .layer-sep{background:rgba(255,255,255,.10);}
+/* Inline color swatch row inside the layer popover (sticky/note) */
+.layer-popover .card-color-row{
+  display:flex;align-items:center;gap:5px;
+  padding:0 6px;margin:0 2px;
+}
+.layer-popover .card-color-swatch{
+  width:18px;height:18px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+  transition:transform .12s,border-color .12s;
+}
+.layer-popover .card-color-swatch:hover{transform:scale(1.12);}
+.layer-popover .card-color-swatch.active{
+  border-color:var(--accent,#4262FF);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#4262FF) 18%,transparent),inset 0 0 0 1px rgba(0,0,0,.08);
+}
 
 /* ── IMAGE ── */
 .card-image .card-body{padding:0;display:flex;flex-direction:column;overflow:hidden;}
@@ -6025,6 +6045,52 @@ function showLayerPopover(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
   pop.querySelector('[data-layer="lock"]').title = card?.data?.locked ? 'Unlock' : 'Lock movement';
+
+  // Card color row — sticky / note cards get a small inline palette
+  let cardColorRow = pop.querySelector('.card-color-row');
+  if (card && (card.type === 'sticky' || card.type === 'note')) {
+    if (!cardColorRow) {
+      cardColorRow = document.createElement('div');
+      cardColorRow.className = 'card-color-row';
+      // Insert right after the Edit/Duplicate buttons (before first sep)
+      const firstSep = pop.querySelector('.layer-sep');
+      pop.insertBefore(cardColorRow, firstSep);
+      // Add a trailing separator if not already there
+      if (cardColorRow.nextSibling && !cardColorRow.nextSibling.classList?.contains('layer-sep')) {
+        const sep = document.createElement('div'); sep.className = 'layer-sep';
+        pop.insertBefore(sep, cardColorRow.nextSibling);
+      }
+    }
+    cardColorRow.innerHTML = '';
+    const palette = STICKY_COLORS.slice(0, 8);
+    palette.forEach(c => {
+      const sw = document.createElement('button');
+      sw.className = 'card-color-swatch';
+      sw.style.background = c;
+      sw.title = c;
+      if ((card.color || '').toLowerCase() === c.toLowerCase()) sw.classList.add('active');
+      sw.addEventListener('click', e => {
+        e.stopPropagation();
+        snapshot();
+        card.color = c;
+        const el = getCardEl(card.id);
+        if (el) el.style.backgroundColor = c;
+        cardColorRow.querySelectorAll('.card-color-swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        scheduleSave && scheduleSave();
+      });
+      cardColorRow.appendChild(sw);
+    });
+  } else if (cardColorRow) {
+    // Clean up trailing separator if present
+    const next = cardColorRow.nextSibling;
+    cardColorRow.remove();
+    if (next && next.classList?.contains('layer-sep')) {
+      // Keep only if not directly after another sep
+      const prev = next.previousSibling;
+      if (!prev || prev.classList?.contains('layer-sep')) next.remove();
+    }
+  }
 
   // Add / refresh frame color row
   let colorRow = pop.querySelector('.frame-color-row');
