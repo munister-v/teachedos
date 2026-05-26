@@ -446,7 +446,11 @@ function updateUser(user){
   if (av) av.textContent = (user.name||'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   if (window.innerWidth <= 860) { const tb = document.getElementById('mp-topbar'); if (tb) tb.style.display = ''; }
 }
+function _setHwLoading(loading){
+  document.querySelectorAll('.hw-metric b, .hero-score b').forEach(el => el.classList.toggle('is-loading', loading));
+}
 async function loadAll() {
+  _setHwLoading(true);
   try {
     const [hw, br] = await Promise.all([api('/api/homework'), api('/api/boards')]);
     offlineMode = false;
@@ -454,6 +458,7 @@ async function loadAll() {
     boards = br.boards || [];
     if (!homeworkList.length && !boards.length) loadLocal(); else renderList();
   } catch (e) { loadLocal(); }
+  finally { _setHwLoading(false); }
 }
 
 function setFilter(filter){

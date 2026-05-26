@@ -405,7 +405,14 @@ function applyAnalyticsGateUI() {
   });
 }
 
+function _setRefreshBusy(busy) {
+  document.querySelectorAll('button.btn-ghost').forEach(b => {
+    if (/refresh|🔄/i.test(b.textContent || '')) b.classList.toggle('btn-refresh-spinning', busy);
+  });
+  document.querySelectorAll('.stat-val').forEach(el => el.classList.toggle('is-loading', busy));
+}
 async function loadData() {
+  _setRefreshBusy(true);
   try {
     const d = await apiFetch('/api/boards');
     boards = d.boards;
@@ -417,6 +424,7 @@ async function loadData() {
     renderBoardPills();
     if (activeBoardId) await loadBoardAnalytics(activeBoardId);
   } catch(e) { toast('Failed: '+e.message); }
+  finally { _setRefreshBusy(false); }
 }
 
 function renderBoardPills() {

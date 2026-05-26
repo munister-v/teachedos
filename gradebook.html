@@ -526,7 +526,14 @@ function applyPackageGateUI() {
   });
 }
 
+function _setRefreshBusy(busy) {
+  document.querySelectorAll('button.btn-ghost').forEach(b => {
+    if (/refresh|🔄/i.test(b.textContent || '')) b.classList.toggle('btn-refresh-spinning', busy);
+  });
+  document.querySelectorAll('.stat-val').forEach(el => el.classList.toggle('is-loading', busy));
+}
 async function loadData() {
+  _setRefreshBusy(true);
   const cached = readGradebookCache();
   try {
     const d = await apiFetch('/api/boards');
@@ -550,6 +557,8 @@ async function loadData() {
       return;
     }
     toast('Error: ' + e.message);
+  } finally {
+    _setRefreshBusy(false);
   }
 }
 
