@@ -949,6 +949,13 @@ body.alt-duplicating *{cursor:copy!important;}
 #arrows-svg .arrow-endpoint-handle:hover{stroke-width:2.5;}
 #arrows-svg .arrow-endpoint-handle.dragging{cursor:grabbing;fill:#4262FF;}
 #arrows-svg .anchor-snap-hint{fill:#4262FF;fill-opacity:.18;stroke:#4262FF;stroke-width:1.5;pointer-events:none;}
+#arrows-svg .arrow-waypoint-handle{
+  fill:#fff;stroke:#4262FF;stroke-width:2;cursor:grab;pointer-events:all;
+  transition:r .12s;
+  filter:drop-shadow(0 1px 2px rgba(5,5,40,.20));
+}
+#arrows-svg .arrow-waypoint-handle:hover{r:6;}
+#arrows-svg .arrow-waypoint-handle.dragging{cursor:grabbing;fill:#4262FF;}
 #arrows-svg .arrow-path.prereq{stroke:#6366f1;stroke-width:1.5;}
 #arrows-svg .arrow-path.prereq.done{stroke:#22c55e;}
 #arrows-svg .arrow-path.prereq.locked{stroke:#9ca3af;stroke-dasharray:5 3;}
@@ -7330,6 +7337,43 @@ function makeArrowPath(x1, y1, x2, y2, fromAnchor, toAnchor, route) {
   if (route === 'elbow')    return makeElbow(x1, y1, x2, y2, fromAnchor, toAnchor);
   return makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor);
 }
+// Route through optional mid-line waypoints (board → wrap coords expected).
+function makeArrowPathThroughWaypoints(fw, tw, waypointsBoard, fromAnchor, toAnchor, route) {
+  if (!waypointsBoard || !waypointsBoard.length) {
+    return makeArrowPath(fw.x, fw.y, tw.x, tw.y, fromAnchor, toAnchor, route);
+  }
+  const wps = waypointsBoard.map(p => boardToWrap(p.x, p.y));
+  const points = [fw, ...wps, tw];
+  if (route === 'straight' || route === 'elbow') {
+    // straight: simple polyline; elbow: 90° between each pair
+    if (route === 'straight') {
+      return points.map((p,i) => (i?'L':'M') + p.x + ',' + p.y).join(' ');
+    }
+    // elbow: alternate horizontal/vertical between waypoints
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i-1], cur = points[i];
+      // simple: go horizontal first then vertical
+      d += ` L${cur.x},${prev.y} L${cur.x},${cur.y}`;
+    }
+    return d;
+  }
+  // Curve: Catmull-Rom through all points (similar to stroke smoothing)
+  if (points.length < 3) return `M${points[0].x},${points[0].y} L${points[1].x},${points[1].y}`;
+  let d = `M${points[0].x},${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
 
 function renderAllArrows() {
   // Remove existing rendered arrows
@@ -7354,9 +7398,11 @@ function renderAllArrows() {
     g.style.pointerEvents = 'all';
 
     const route = arrow.route || 'curve';
+    const wps = Array.isArray(arrow.waypoints) ? arrow.waypoints : [];
+    const dPath = makeArrowPathThroughWaypoints(fw, tw, wps, fromAnchor, toAnchor, route);
     // Hit area (wider invisible path)
     const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
-    hit.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route));
+    hit.setAttribute('d', dPath);
     hit.style.cssText = 'fill:none;stroke:transparent;stroke-width:12;cursor:pointer;pointer-events:stroke;';
     hit.addEventListener('click', e => {
       e.stopPropagation();
@@ -7364,6 +7410,10 @@ function renderAllArrows() {
       path.classList.add('selected-arrow');
       // Re-render so endpoint drag handles appear on this arrow
       renderAllArrows();
+    });
+    hit.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      _addArrowWaypointAt(arrow.id, e.clientX, e.clientY);
     });
     hit.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
@@ -7392,7 +7442,7 @@ function renderAllArrows() {
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.classList.add('arrow-path');
-    path.setAttribute('d', makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route));
+    path.setAttribute('d', dPath);
     if (arrow.color) path.setAttribute('stroke', arrow.color);
 
     // Style based on arrow type
@@ -7433,11 +7483,32 @@ function renderAllArrows() {
         handle.addEventListener('mousedown', e => _beginArrowEndpointDrag(e, arrow.id, side, handle));
         g.appendChild(handle);
       });
+      // Mid-line waypoint handles — drag to bend the arrow, double-click to remove
+      wps.forEach((wp, idx) => {
+        const wpW = boardToWrap(wp.x, wp.y);
+        const wh = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        wh.classList.add('arrow-waypoint-handle');
+        wh.setAttribute('cx', wpW.x);
+        wh.setAttribute('cy', wpW.y);
+        wh.setAttribute('r', 5);
+        wh.dataset.arrowId = arrow.id;
+        wh.dataset.wpIdx = idx;
+        wh.addEventListener('mousedown', e => _beginArrowWaypointDrag(e, arrow.id, idx, wh));
+        wh.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          snapshot();
+          arrow.waypoints.splice(idx, 1);
+          if (!arrow.waypoints.length) delete arrow.waypoints;
+          renderAllArrows();
+          scheduleSave && scheduleSave();
+        });
+        g.appendChild(wh);
+      });
     }
 
     // Arrow label
     if (arrow.label) {
-      const d = makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route);
+      const d = dPath;
       // midpoint approximation
       const mx = (fw.x + tw.x) / 2, my = (fw.y + tw.y) / 2;
       const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
@@ -7511,6 +7582,49 @@ function _endArrowEndpointDrag(e) {
   _arrowDrag = null;
   scheduleSave && scheduleSave();
   if (typeof _broadcastArrowsSoon === 'function') _broadcastArrowsSoon();
+}
+
+/* ── Arrow waypoint drag ── */
+let _arrowWpDrag = null; // { arrow, idx, handle }
+function _beginArrowWaypointDrag(e, arrowId, idx, handle) {
+  e.stopPropagation();
+  e.preventDefault();
+  const arrow = state.arrows.find(a => a.id === arrowId);
+  if (!arrow || !arrow.waypoints) return;
+  snapshot();
+  handle.classList.add('dragging');
+  _arrowWpDrag = { arrow, idx, handle };
+  window.addEventListener('mousemove', _onArrowWaypointDragMove, true);
+  window.addEventListener('mouseup', _endArrowWaypointDrag, true);
+}
+function _onArrowWaypointDragMove(e) {
+  if (!_arrowWpDrag) return;
+  const { arrow, idx } = _arrowWpDrag;
+  const pos = screenToBoard(e.clientX, e.clientY);
+  arrow.waypoints[idx] = { x: pos.x, y: pos.y };
+  renderAllArrows();
+}
+function _endArrowWaypointDrag() {
+  if (!_arrowWpDrag) return;
+  window.removeEventListener('mousemove', _onArrowWaypointDragMove, true);
+  window.removeEventListener('mouseup', _endArrowWaypointDrag, true);
+  _arrowWpDrag.handle.classList.remove('dragging');
+  _arrowWpDrag = null;
+  scheduleSave && scheduleSave();
+}
+
+/* Add waypoint on double-click anywhere along the arrow's hit-path */
+function _addArrowWaypointAt(arrowId, sx, sy) {
+  const arrow = state.arrows.find(a => a.id === arrowId);
+  if (!arrow) return;
+  snapshot();
+  const p = screenToBoard(sx, sy);
+  arrow.waypoints = arrow.waypoints || [];
+  // Insert at end (a simple model — works fine for one or two waypoints)
+  arrow.waypoints.push({ x: p.x, y: p.y });
+  state.selectedArrows.add(arrow.id);
+  renderAllArrows();
+  scheduleSave && scheduleSave();
 }
 
 function removeArrowById(id, doSnapshot=true) {
