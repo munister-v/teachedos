@@ -118,6 +118,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   -webkit-tap-highlight-color:transparent;
 }
 .tb-icon-btn:hover{background:rgba(0,0,0,.06);color:#050038;}
+/* Undo/Redo: dim when stack empty (JS sets opacity in updateUndoButtons) */
+.tb-undo-btn{transition:opacity .12s,background .12s;}
+.tb-undo-btn[disabled],.tb-undo-btn.is-disabled{opacity:.30;cursor:default;pointer-events:none;}
 .tb-icon-btn:active{transform:scale(.94);}
 /* Auth chip — Miro-style user dropdown trigger */
 .tb-auth-chip{
@@ -2158,7 +2161,13 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   #save-status{display:inline;}
   .tb-zoom-display{display:none;}
   #export-btn{display:none;}
-  #course-breadcrumb,.tb-sep,#btn-connect,#btn-fit,#btn-call,#presence-bar,#btn-follow-me,#auth-name,#auth-login-btn{display:none!important;}
+  #course-breadcrumb,.tb-sep,#btn-connect,#btn-fit,#btn-call,#presence-bar,#btn-follow-me,#auth-name,#auth-login-btn,
+  /* On phones the undo/redo buttons crowd the topbar — keep them off and rely on shortcuts / menu */
+  #btn-undo,#btn-redo,
+  /* Comments, notifications, invite, layout already hidden via inline style */
+  #btn-comments,
+  /* Share button takes too much width with the green pill; reachable via mobile-quickbar bottom bar instead */
+  #btn-share{display:none!important;}
   #save-chip{padding:3px 8px!important;font-size:10px!important;}
   #session-chip{display:none!important;}
   #auth-chip{padding:4px 7px!important;gap:0!important;}
@@ -2185,6 +2194,41 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   [data-theme="dark"] #sidebar::before{background:rgba(255,255,255,.20);}
   /* Sheet should overlay; quickbar tucks under it */
   body:has(#sidebar.open) #mobile-quickbar{display:none!important;}
+  /* Mobile Add action sheet */
+  .mq-add-sheet{
+    display:none;position:fixed;left:0;right:0;bottom:0;
+    z-index:1300;
+    background:var(--card-bg,#fff);
+    border-radius:24px 24px 0 0;
+    box-shadow:0 -16px 40px rgba(5,5,40,.22);
+    padding:18px 16px max(20px,env(safe-area-inset-bottom,20px));
+    transform:translateY(100%);
+    transition:transform .26s cubic-bezier(.34,1.2,.6,1);
+  }
+  .mq-add-sheet.open{display:block;transform:translateY(0);}
+  .mq-add-sheet::before{
+    content:"";display:block;width:42px;height:4px;
+    background:rgba(0,0,0,.18);border-radius:4px;margin:0 auto 14px;
+  }
+  [data-theme="dark"] .mq-add-sheet{background:#1F1F35;}
+  [data-theme="dark"] .mq-add-sheet::before{background:rgba(255,255,255,.22);}
+  .mq-add-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .mq-add-tile{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    padding:14px 6px;border-radius:14px;border:1px solid rgba(0,0,0,.06);
+    background:color-mix(in srgb,var(--text-3,#9999AA) 5%,transparent);
+    cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;
+    color:var(--text);min-height:74px;
+    transition:background .12s,transform .08s;
+  }
+  .mq-add-tile:hover,.mq-add-tile:active{background:color-mix(in srgb,var(--accent,#4262FF) 12%,transparent);color:var(--accent,#4262FF);}
+  .mq-add-tile:active{transform:scale(.95);}
+  [data-theme="dark"] .mq-add-tile{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.06);}
+  .mqa-ic{font-size:22px;line-height:1;}
+  body.mq-sheet-open::after{
+    content:"";position:fixed;inset:0;background:rgba(15,12,30,.45);
+    z-index:1250;pointer-events:auto;
+  }
   #sb-reopen{display:none!important;}
   #board-wrap{left:0!important;}
   #mobile-quickbar{display:flex;}
@@ -2503,11 +2547,17 @@ body.board-dragging .board-card{will-change:transform,left,top;}
     <span id="bc-module" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
   </div>
 
+  <!-- Undo / Redo (Miro-style, next to board chip) -->
+  <button class="tb-icon-btn tb-undo-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a5 5 0 1 1 .5 4"/><path d="M3 3v4h4"/></svg>
+  </button>
+  <button class="tb-icon-btn tb-undo-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7a5 5 0 1 0-.5 4"/><path d="M13 3v4H9"/></svg>
+  </button>
+
   <div class="tb-spacer"></div>
 
   <!-- Hidden functional buttons (kept for JS compatibility) -->
-  <div class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" style="display:none;"></div>
-  <div class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" style="display:none;"></div>
   <button id="btn-connect" type="button" style="display:none;" aria-hidden="true"></button>
   <button id="btn-fit" type="button" style="display:none;" aria-hidden="true"></button>
   <div id="save-chip" title="Version history" onclick="openVersionHistory()" style="display:none;">
@@ -2632,26 +2682,40 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 <div id="mobile-quickbar">
   <div class="mq-status good" id="mobile-save-status">Saved</div>
+  <button class="mq-btn ghost" type="button" id="mq-undo" onclick="undo()" aria-label="Undo">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a5 5 0 1 1 .5 4"/><path d="M3 3v4h4"/></svg>
+    <span>Undo</span>
+  </button>
   <button class="mq-btn ghost" type="button" onclick="document.getElementById('btn-fit').click()" aria-label="Fit board to screen">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
     <span>Fit</span>
+  </button>
+  <button class="mq-btn primary" type="button" onclick="openMobileAddSheet()" aria-label="Add a card">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+    <span>Add</span>
   </button>
   <button class="mq-btn" type="button" id="mq-pen" onclick="toggleDrawTool&&toggleDrawTool('pen', event)" aria-label="Pen">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 14l3-1 8-8-2-2-8 8z"/><path d="M11 3l2 2"/></svg>
     <span>Pen</span>
   </button>
-  <button class="mq-btn" type="button" onclick="document.getElementById('btn-connect').click()" aria-label="Connect cards">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="3" cy="8" r="2"/><circle cx="13" cy="8" r="2"/><path d="M5 8h6"/></svg>
-    <span>Connect</span>
-  </button>
-  <button class="mq-btn primary" type="button" onclick="openSharePanel()" aria-label="Share board">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7l4-2M6 9l4 2"/></svg>
-    <span>Share</span>
-  </button>
   <button class="mq-btn ghost" type="button" onclick="toggleMoreMenu()" aria-label="More actions">
     <span style="font-size:18px;line-height:1" aria-hidden="true">⋯</span>
     <span>More</span>
   </button>
+</div>
+
+<!-- Mobile Add action sheet: shown when tapping the primary + button -->
+<div id="mq-add-sheet" class="mq-add-sheet" role="dialog" aria-hidden="true">
+  <div class="mq-add-grid">
+    <button class="mq-add-tile" onclick="_mqAdd('sticky')">  <span class="mqa-ic">📝</span><span>Sticky</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('text')">    <span class="mqa-ic">T</span><span>Text</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('shape')">   <span class="mqa-ic">◯</span><span>Shape</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('frame')">   <span class="mqa-ic">⊟</span><span>Frame</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('connect')"> <span class="mqa-ic">↔</span><span>Arrow</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('sticker')"> <span class="mqa-ic">😊</span><span>Sticker</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('lessons')"> <span class="mqa-ic">📚</span><span>Library</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('comment')"> <span class="mqa-ic">💬</span><span>Comment</span></button>
+  </div>
 </div>
 
 <!-- Hidden zoom buttons for JS compatibility -->
@@ -3846,8 +3910,10 @@ function redo() {
 }
 
 function updateUndoButtons() {
-  document.getElementById('btn-undo').style.opacity = undoStack.length ? '' : '.3';
-  document.getElementById('btn-redo').style.opacity = redoStack.length ? '' : '.3';
+  const undoBtn = document.getElementById('btn-undo');
+  const redoBtn = document.getElementById('btn-redo');
+  if (undoBtn) undoBtn.classList.toggle('is-disabled', !undoStack.length);
+  if (redoBtn) redoBtn.classList.toggle('is-disabled', !redoStack.length);
 }
 
 let toastTimer;
@@ -7102,6 +7168,47 @@ function toggleConnectMode() {
   document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
 }
 
+/* ─── Mobile Add action sheet ─── */
+function openMobileAddSheet() {
+  const sheet = document.getElementById('mq-add-sheet');
+  if (!sheet) return;
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('mq-sheet-open');
+}
+function closeMobileAddSheet() {
+  const sheet = document.getElementById('mq-add-sheet');
+  if (!sheet) return;
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('mq-sheet-open');
+}
+function _mqAdd(action) {
+  closeMobileAddSheet();
+  // Defer slightly so the sheet animates out before the new card lands
+  setTimeout(() => {
+    if (action === 'sticky' || action === 'text' || action === 'shape') {
+      toolbarQuickAdd && toolbarQuickAdd(action);
+    } else if (action === 'frame') {
+      quickAddFrame && quickAddFrame();
+    } else if (action === 'connect') {
+      toggleConnectMode && toggleConnectMode();
+    } else if (action === 'sticker') {
+      openStickerModal && openStickerModal();
+    } else if (action === 'lessons') {
+      toggleSidebar && toggleSidebar();
+    } else if (action === 'comment') {
+      toggleCommentMode && toggleCommentMode();
+    }
+  }, 180);
+}
+// Click on backdrop closes the sheet
+document.addEventListener('click', e => {
+  if (!document.body.classList.contains('mq-sheet-open')) return;
+  if (e.target.closest('#mq-add-sheet, #mobile-quickbar')) return;
+  closeMobileAddSheet();
+});
+
 /* ─── Comments layer toggle (bottom-right zoom cluster) ─── */
 function toggleCommentsLayer() {
   // Toggle visibility of the comments panel; future: also hide pin markers
@@ -8880,6 +8987,11 @@ if (!loaded) {
   state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
   renderAllArrows();
   scheduleSave();
+}
+// On phones, auto-fit all cards into view on first paint so users see content
+// instead of an off-canvas blank corner.
+if (window.matchMedia('(max-width:860px)').matches && state.cards.length) {
+  setTimeout(() => { try { fitAll(false); } catch {} }, 60);
 }
 
 updateEmpty();
