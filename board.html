@@ -1071,6 +1071,10 @@ body.alt-duplicating *{cursor:copy!important;}
   transition:background .12s,color .12s;opacity:0;
 }
 .board-card:hover .card-close,.board-card.selected .card-close{opacity:1;}
+/* Private-toggle button: hidden by default; visible on hover/select. Stays visible when the card is actually private. */
+.card-priv-toggle{opacity:0;}
+.board-card:hover .card-priv-toggle,.board-card.selected .card-priv-toggle{opacity:.6;}
+.card-priv-toggle.is-private{opacity:1!important;}
 .card-close:hover{background:rgba(239,68,68,.12);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
 .user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:#050038;transition:background .1s;border-radius:6px;font-size:13px;}
@@ -4103,15 +4107,18 @@ function makeHeader(icon, title, cardId) {
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
   hdr.innerHTML = `<span class="card-drag-ic">${icon}</span><span class="card-title-text">${esc(title)}</span>`;
-  // Private toggle (shown for owner only — i.e. always shown locally; server enforces auth)
+  // Private toggle — hidden by default; only appears on hover/select.
+  // When the card IS marked private, show the lock at full opacity so it's
+  // discoverable that the card is private.
+  const card = state.cards.find(c => c.id === cardId);
+  const isPrivate = !!(card && card.data && card.data.private);
   const privBtn = document.createElement('button');
-  privBtn.className = 'card-close';
+  privBtn.className = 'card-close card-priv-toggle';
+  if (isPrivate) privBtn.classList.add('is-private');
   privBtn.style.marginRight = '2px';
   privBtn.style.fontSize = '12px';
-  privBtn.title = 'Toggle private — hide this card from other users';
-  const card = state.cards.find(c => c.id === cardId);
-  privBtn.textContent = card && card.data && card.data.private ? '🔒' : '🔓';
-  privBtn.style.opacity = card && card.data && card.data.private ? '1' : '.45';
+  privBtn.title = isPrivate ? 'Card is private — click to make visible to others' : 'Make card private';
+  privBtn.textContent = isPrivate ? '🔒' : '🔓';
   privBtn.addEventListener('mousedown', e => e.stopPropagation());
   privBtn.addEventListener('click', e => {
     e.stopPropagation();
