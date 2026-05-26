@@ -21,7 +21,8 @@
     'journal.html': 'home',
   };
   // board.html has its own bottom quickbar — skip the global mob-nav there.
-  if (page === 'board.html') return;
+  // Accept both /board and /board.html (some hosts strip extension).
+  if (page === 'board.html' || page === 'board') return;
   var activeId = PAGE_MAP[page] || '';
 
   var TABS = [
