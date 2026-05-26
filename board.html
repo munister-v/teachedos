@@ -2771,7 +2771,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 </div>
 
 <!-- BACKGROUND BUTTON (bottom-right, above zoom controls) -->
-<button id="bg-shortcut-btn" onclick="openBgModal()" title="Background color / image">🎨</button>
+<!-- floating 🎨 button removed: background is in the more menu (Miro keeps the canvas chrome-free) -->
+<button id="bg-shortcut-btn" hidden aria-hidden="true" onclick="openBgModal()"></button>
 
 <!-- BOARD WRAP -->
 <div id="board-wrap">
@@ -2987,7 +2988,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 <!-- Minimap -->
 <div id="minimap"><canvas id="minimap-canvas"></canvas><div id="minimap-label">Board</div></div>
 <!-- Zoom hint -->
-<div id="zoom-hint">Scroll · zoom · Space+drag · pan</div>
+<!-- bottom-left zoom hint removed: not present in Miro, just noise -->
+<div id="zoom-hint" hidden aria-hidden="true"></div>
 <!-- Undo toast -->
 <div id="undo-toast"></div>
 
@@ -8555,7 +8557,7 @@ renderSidebar();
 const loaded = loadBoard();
 if (!loaded) {
   // Welcome board
-  addCard('sticky',  80,  40, { text:'👋 Welcome to TeachedBoard!\n\nTap 📚 on the left tray (or press L) to open the lesson & students library.\nRight-click (or long-press) to add sticky notes.\nPress C to connect cards with arrows.\nSpace+drag or middle-mouse to pan.\nCtrl+Z to undo.', color:'#FFF9C4' }, 250, 200);
+  addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
   addCard('plan',   380,  40, { ...PLANS[0] });
   addCard('student',380, 280, { ...STUDENTS[0] });
   addCard('note',   680,  40, { ...NOTES[0] });
