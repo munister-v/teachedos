@@ -696,6 +696,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 [data-theme="dark"] .zc-btn{color:#AAAABB;}
 .zc-btn:hover { background:rgba(66,98,255,.10);color:#4262FF; }
+.zc-btn.active{background:rgba(66,98,255,.14);color:#4262FF;}
+.zc-sep{width:1px;height:18px;background:rgba(0,0,0,.10);margin:0 2px;flex-shrink:0;}
+[data-theme="dark"] .zc-sep{background:rgba(255,255,255,.10);}
 .zc-pct {
   font-size:12px;font-family:var(--mono);font-weight:600;
   color:#444;text-align:center;padding:0 4px;min-width:38px;
@@ -938,6 +941,14 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 #arrows-svg .arrow-path:hover{stroke:#4262FF;stroke-width:2;}
 #arrows-svg .arrow-path.selected-arrow{stroke:#4262FF;stroke-width:2;stroke-dasharray:none;}
+#arrows-svg .arrow-endpoint-handle{
+  fill:#fff;stroke:#4262FF;stroke-width:2;cursor:grab;pointer-events:all;
+  transition:r .12s,transform .08s;
+  filter:drop-shadow(0 1px 3px rgba(5,5,40,.20));
+}
+#arrows-svg .arrow-endpoint-handle:hover{stroke-width:2.5;}
+#arrows-svg .arrow-endpoint-handle.dragging{cursor:grabbing;fill:#4262FF;}
+#arrows-svg .anchor-snap-hint{fill:#4262FF;fill-opacity:.18;stroke:#4262FF;stroke-width:1.5;pointer-events:none;}
 #arrows-svg .arrow-path.prereq{stroke:#6366f1;stroke-width:1.5;}
 #arrows-svg .arrow-path.prereq.done{stroke:#22c55e;}
 #arrows-svg .arrow-path.prereq.locked{stroke:#9ca3af;stroke-dasharray:5 3;}
@@ -2694,6 +2705,10 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   <button class="mt-btn active" id="mt-select" data-tip="Select (V)" onclick="setMiroTool('select')">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.5l11 5-5 1.5-1.5 5z"/></svg>
   </button>
+  <!-- 2b. Hand / Pan (H) -->
+  <button class="mt-btn" id="mt-hand" data-tip="Hand / Pan (H)" onclick="toggleHandTool()">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 11V4.5a1 1 0 0 1 2 0V8M7.5 8V3.5a1 1 0 0 1 2 0V8M9.5 8V4a1 1 0 0 1 2 0v6M11.5 7.5a1 1 0 0 1 2 0V12c0 2.2-1.8 4-4 4H8.2c-1 0-1.9-.4-2.6-1.1L3.4 12.5a1 1 0 0 1 .2-1.5l.4-.2c.4-.2.9-.1 1.2.2L7 12.5"/></svg>
+  </button>
   <!-- 3. Library — popover with lesson plans, students, notes, etc. -->
   <button class="mt-btn" id="mt-templates" data-tip="Library (L)" onclick="toggleSidebar(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v12M3 3h4.5a2 2 0 0 1 2 2v10"/><path d="M15 3v12M15 3h-4.5a2 2 0 0 0-2 2v10"/></svg>
@@ -2777,6 +2792,10 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 <!-- ZOOM CONTROLS (bottom-right, Miro horizontal pill) -->
 <div id="zoom-controls">
+  <button class="zc-btn" id="zc-comments" title="Toggle comments" onclick="toggleCommentsLayer()">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M2 3h12v8H6l-3 3V3z"/></svg>
+  </button>
+  <div class="zc-sep"></div>
   <button class="zc-btn" title="Zoom out (-)" onclick="document.getElementById('btn-zoom-out').click()">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h8"/></svg>
   </button>
@@ -6778,6 +6797,7 @@ document.getElementById('btn-fit').addEventListener('click', fitAll);
 /* ════════════════════════ SPACE PAN ════════════════════════ */
 document.addEventListener('keyup', e => {
   if (e.code === 'Space') {
+    if (_handMode) return; // hand tool keeps pan on
     spaceDown = false;
     boardWrap.style.cursor = '';
     document.body.classList.remove('space-down');
@@ -7075,6 +7095,44 @@ function toggleConnectMode() {
   document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
 }
 
+/* ─── Comments layer toggle (bottom-right zoom cluster) ─── */
+function toggleCommentsLayer() {
+  // Toggle visibility of the comments panel; future: also hide pin markers
+  if (typeof toggleCommentsPanel === 'function') {
+    toggleCommentsPanel();
+  }
+  const btn = document.getElementById('zc-comments');
+  const isOpen = document.getElementById('comments-panel') &&
+                 getComputedStyle(document.getElementById('comments-panel')).display !== 'none';
+  btn?.classList.toggle('active', isOpen);
+}
+
+/* ─── Hand pan tool (always-on pan, no Space required) ─── */
+let _handMode = false;
+function toggleHandTool() {
+  _handMode = !_handMode;
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  if (_handMode) {
+    setMode('select');
+    if (_drawTool) disableDrawTool();
+    if (typeof disableCommentMode === 'function' && _miroTool === 'comment') disableCommentMode();
+    document.getElementById('mt-hand')?.classList.add('active');
+    document.body.classList.add('space-down'); // re-use existing grab cursor styling
+    spaceDown = true; // make the existing pan-on-drag logic fire
+  } else {
+    document.getElementById('mt-select')?.classList.add('active');
+    document.body.classList.remove('space-down');
+    spaceDown = false;
+  }
+}
+// Esc exits hand tool
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && _handMode) toggleHandTool();
+});
+// 'H' shortcut already used by Highlighter; bind only with no modifier and when not typing
+// (Highlighter is 'h' but you said low priority — keep the highlighter as is, document with Shift+H.
+//  Currently we leave H for highlighter; user can click the icon for hand pan.)
+
 /* ─── Comment mode ─── */
 function toggleCommentMode() {
   if (_miroTool === 'comment') {
@@ -7304,6 +7362,8 @@ function renderAllArrows() {
       e.stopPropagation();
       state.selectedArrows.add(arrow.id);
       path.classList.add('selected-arrow');
+      // Re-render so endpoint drag handles appear on this arrow
+      renderAllArrows();
     });
     hit.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
@@ -7359,6 +7419,22 @@ function renderAllArrows() {
     g.appendChild(hit);
     g.appendChild(path);
 
+    // Endpoint drag-handles (only on selected arrows)
+    if (state.selectedArrows.has(arrow.id)) {
+      ['from','to'].forEach(side => {
+        const pt = side === 'from' ? fw : tw;
+        const handle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        handle.classList.add('arrow-endpoint-handle');
+        handle.setAttribute('cx', pt.x);
+        handle.setAttribute('cy', pt.y);
+        handle.setAttribute('r', 6);
+        handle.dataset.arrowId = arrow.id;
+        handle.dataset.side = side;
+        handle.addEventListener('mousedown', e => _beginArrowEndpointDrag(e, arrow.id, side, handle));
+        g.appendChild(handle);
+      });
+    }
+
     // Arrow label
     if (arrow.label) {
       const d = makeArrowPath(fw.x,fw.y,tw.x,tw.y,fromAnchor,toAnchor,route);
@@ -7377,6 +7453,64 @@ function renderAllArrows() {
 
     arrowsSvg.appendChild(g);
   });
+}
+
+/* ── Arrow endpoint drag (Miro-style re-anchor) ── */
+let _arrowDrag = null; // { arrow, side, handle, snapEl }
+
+function _beginArrowEndpointDrag(e, arrowId, side, handle) {
+  e.stopPropagation();
+  e.preventDefault();
+  const arrow = state.arrows.find(a => a.id === arrowId);
+  if (!arrow) return;
+  snapshot(); // capture pre-drag state once
+  handle.classList.add('dragging');
+  _arrowDrag = { arrow, side, handle, snapEl: null };
+  window.addEventListener('mousemove', _onArrowEndpointDragMove, true);
+  window.addEventListener('mouseup', _endArrowEndpointDrag, true);
+}
+
+function _onArrowEndpointDragMove(e) {
+  if (!_arrowDrag) return;
+  const { arrow, side } = _arrowDrag;
+  const pos = screenToBoard(e.clientX, e.clientY);
+  // Is the cursor over a card? If so, snap to nearest anchor.
+  const cardEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.board-card');
+  if (cardEl) {
+    const card = state.cards.find(c => c.id === cardEl.dataset.id);
+    if (card) {
+      const anchor = nearestCardAnchor(card, e.clientX, e.clientY);
+      // Provisional snap to card
+      if (side === 'from') {
+        arrow.fromCard = card.id; arrow.fromAnchor = anchor;
+        delete arrow.fromPoint;
+      } else {
+        arrow.toCard = card.id; arrow.toAnchor = anchor;
+        delete arrow.toPoint;
+      }
+      renderAllArrows();
+      return;
+    }
+  }
+  // Otherwise: free point under cursor
+  if (side === 'from') {
+    arrow.fromPoint = { x: pos.x, y: pos.y };
+    delete arrow.fromCard; delete arrow.fromAnchor;
+  } else {
+    arrow.toPoint = { x: pos.x, y: pos.y };
+    delete arrow.toCard; delete arrow.toAnchor;
+  }
+  renderAllArrows();
+}
+
+function _endArrowEndpointDrag(e) {
+  if (!_arrowDrag) return;
+  window.removeEventListener('mousemove', _onArrowEndpointDragMove, true);
+  window.removeEventListener('mouseup', _endArrowEndpointDrag, true);
+  _arrowDrag.handle.classList.remove('dragging');
+  _arrowDrag = null;
+  scheduleSave && scheduleSave();
+  if (typeof _broadcastArrowsSoon === 'function') _broadcastArrowsSoon();
 }
 
 function removeArrowById(id, doSnapshot=true) {
