@@ -6387,10 +6387,10 @@ boardWrap.addEventListener('mousedown', e => {
   }
   if (spaceDown) return;
 
-  // Placement mode (Miro-style): left-click places element exactly where clicked
+  // Placement mode (Miro-style): click OR click-and-drag to size, then place
   if (e.button === 0 && _pendingPlace) {
     e.preventDefault(); e.stopPropagation();
-    _doPlace(e.clientX, e.clientY);
+    _beginPlaceDrag(e.clientX, e.clientY);
     return;
   }
 
@@ -10524,9 +10524,70 @@ function cancelPlaceMode() {
   if (_placeGhost) { _placeGhost.remove(); _placeGhost = null; }
 }
 
-function _doPlace(clientX, clientY) {
-  if (!_pendingPlace) return false;
+/* Click-and-drag to size on placement (Miro-style).
+   We listen on the document for the rest of the drag so even fast
+   motions don't break out of the "placing" gesture. */
+let _placeDrag = null; // { startX, startY, ghostBox }
+function _beginPlaceDrag(clientX, clientY) {
+  if (!_pendingPlace) return;
+  // Create a sized preview rect (board-coords-relative)
   const bp = screenToBoard(clientX, clientY);
+  if (!bp) return;
+  _placeDrag = { startScreen: { x: clientX, y: clientY }, startBoard: bp, ghostBox: null, dragged: false };
+  // Build a translucent rectangle inside #board (uses same transform as cards)
+  const box = document.createElement('div');
+  box.id = 'place-drag-ghost';
+  box.style.cssText = `position:absolute;left:${bp.x}px;top:${bp.y}px;width:0;height:0;
+    border:1.5px dashed #4262FF;background:rgba(66,98,255,.06);border-radius:6px;
+    pointer-events:none;z-index:9000;`;
+  board.appendChild(box);
+  _placeDrag.ghostBox = box;
+  window.addEventListener('mousemove', _onPlaceDragMove, true);
+  window.addEventListener('mouseup', _endPlaceDrag, true);
+}
+function _onPlaceDragMove(e) {
+  if (!_placeDrag) return;
+  const cur = screenToBoard(e.clientX, e.clientY);
+  if (!cur) return;
+  const { startBoard, ghostBox } = _placeDrag;
+  const x = Math.min(startBoard.x, cur.x);
+  const y = Math.min(startBoard.y, cur.y);
+  const w = Math.abs(cur.x - startBoard.x);
+  const h = Math.abs(cur.y - startBoard.y);
+  ghostBox.style.left = x + 'px';
+  ghostBox.style.top = y + 'px';
+  ghostBox.style.width = w + 'px';
+  ghostBox.style.height = h + 'px';
+  if (Math.hypot(e.clientX - _placeDrag.startScreen.x, e.clientY - _placeDrag.startScreen.y) > 4) {
+    _placeDrag.dragged = true;
+  }
+}
+function _endPlaceDrag(e) {
+  if (!_placeDrag) return;
+  window.removeEventListener('mousemove', _onPlaceDragMove, true);
+  window.removeEventListener('mouseup', _endPlaceDrag, true);
+  const drag = _placeDrag;
+  _placeDrag = null;
+  drag.ghostBox?.remove();
+  // Compute dragged rect in board coords
+  const cur = screenToBoard(e.clientX, e.clientY);
+  const min = drag.startBoard;
+  const w = drag.dragged && cur ? Math.abs(cur.x - min.x) : 0;
+  const h = drag.dragged && cur ? Math.abs(cur.y - min.y) : 0;
+  const x = drag.dragged && cur ? Math.min(min.x, cur.x) : min.x;
+  const y = drag.dragged && cur ? Math.min(min.y, cur.y) : min.y;
+  // Min size — anything smaller than this is treated as a click
+  const MIN = 24;
+  if (drag.dragged && w >= MIN && h >= MIN) {
+    _doPlace(0, 0, { x, y, w, h, draggedRect: true });
+  } else {
+    _doPlace(e.clientX, e.clientY);
+  }
+}
+
+function _doPlace(clientX, clientY, sized) {
+  if (!_pendingPlace) return false;
+  const bp = sized || screenToBoard(clientX, clientY);
   if (!bp) { cancelPlaceMode(); return true; }
   const { type, extraData } = _pendingPlace;
   cancelPlaceMode();
@@ -10534,12 +10595,27 @@ function _doPlace(clientX, clientY) {
   if (type === 'shape') {
     const def = getDefaults('shape');
     const data = extraData || { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 };
-    const c = addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
+    const c = bp.draggedRect
+      ? addCard('shape', bp.x, bp.y, data, bp.w, bp.h)
+      : addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
     if (c) { state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover(c.id); }
   } else {
-    const placed = quickAddCard(type, bp.x, bp.y);
+    // Drag-to-size for sticky/text: use the dragged rect; click = default size.
+    let placed;
+    if (bp.draggedRect && (type === 'sticky' || type === 'text' || type === 'note')) {
+      const def = getDefaults(type) || { w: 200, h: 150 };
+      const data = type === 'sticky' ? { text:'', color:STICKY_COLORS[0] }
+                : type === 'text'   ? defaultTextData({ text:'' })
+                : { title:'', body:'' };
+      placed = addCard(type, bp.x, bp.y, data, Math.max(def.w * 0.6, bp.w), Math.max(def.h * 0.6, bp.h));
+    } else {
+      placed = quickAddCard(type, bp.x, bp.y);
+    }
     // Miro-style: auto-focus editor on text/sticky after placement
     if (placed && (type === 'text' || type === 'sticky')) {
+      state.selected = new Set([placed.id]);
+      getCardEl(placed.id)?.classList.add('selected');
+      showLayerPopover(placed.id);
       setTimeout(() => {
         const el = getCardEl(placed.id);
         const ta = el?.querySelector('textarea');
@@ -12310,9 +12386,28 @@ document.addEventListener('keydown', e => {
     setMiroTool('select');
     return;
   }
+  // Cmd/Ctrl+0 — reset zoom to 100%
+  if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+    e.preventDefault();
+    const r = boardWrap.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // Animate scale toward 1
+    const factor = 1 / state.scale;
+    zoomAt(cx, cy, factor);
+    return;
+  }
+  // Cmd/Ctrl+1 — fit to selection (or all if nothing selected)
+  if ((e.ctrlKey || e.metaKey) && e.key === '1') {
+    e.preventDefault();
+    fitAll && fitAll(true);
+    return;
+  }
   if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
   else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
+  else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); toolbarQuickAdd('sticky'); }
+  else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toolbarQuickAdd('text'); }
+  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); toolbarQuickAdd('sticky'); }
   else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); toggleSidebar(); }
   else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
   else if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); const btn=document.getElementById('mt-shape'); if(btn) openShapePanel({stopPropagation:()=>{},target:btn}); }
