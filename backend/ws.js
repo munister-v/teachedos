@@ -77,9 +77,30 @@ function setup(server) {
         case 'board_patch':
           broadcast(boardId, { ...msg, userId }, ws);
           break;
+        // Drawing strokes — fan out as-is (state.strokes carries the latest set)
+        case 'strokes_patch':
+          if (Array.isArray(msg.strokes)) {
+            broadcast(boardId, { type: 'strokes_patch', strokes: msg.strokes, userId }, ws);
+          }
+          break;
+        // Per-object incremental updates (future-proofing — client may opt in)
+        case 'card_update':
+        case 'card_add':
+        case 'card_delete':
+        case 'arrow_add':
+        case 'arrow_update':
+        case 'arrow_delete':
+        case 'stroke_add':
+        case 'stroke_delete':
+          broadcast(boardId, { ...msg, userId }, ws);
+          break;
         // Cursor / presence
         case 'cursor':
           broadcast(boardId, { type: 'cursor', userId, x: msg.x, y: msg.y, name: msg.name, avatar: msg.avatar }, ws);
+          break;
+        // Selection awareness (who has what selected)
+        case 'selection':
+          broadcast(boardId, { type: 'selection', userId, cardIds: msg.cardIds || [], name: msg.name }, ws);
           break;
         // Teacher toggles Follow Me mode
         case 'follow_mode': {
