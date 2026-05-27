@@ -5262,10 +5262,27 @@ function renderText(el, card) {
   editor.innerHTML = card.data.html || textToHtml(card.data.text || card.data.title || 'Text');
   applyTextStyles(card, editor);
 
+  // Single undo entry per edit session: capture original on focus,
+  // restore-snapshot-reapply on blur if content changed.
+  let _textEditOrigHtml = null, _textEditOrigText = null;
+  editor.addEventListener('focus', () => {
+    _textEditOrigHtml = card.data.html || '';
+    _textEditOrigText = card.data.text || '';
+  });
   editor.addEventListener('input', () => {
     card.data.html = editor.innerHTML;
     card.data.text = editor.innerText;
     scheduleSave();
+  });
+  editor.addEventListener('blur', () => {
+    if (_textEditOrigHtml === null) return;
+    const newHtml = card.data.html, newText = card.data.text;
+    if (_textEditOrigHtml !== newHtml || _textEditOrigText !== newText) {
+      card.data.html = _textEditOrigHtml; card.data.text = _textEditOrigText;
+      snapshot();
+      card.data.html = newHtml; card.data.text = newText;
+    }
+    _textEditOrigHtml = _textEditOrigText = null;
   });
   editor.addEventListener('mousedown', e => {
     if (!state.selected.has(card.id)) {
