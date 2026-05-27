@@ -12325,8 +12325,16 @@ function applyFollowViewport(pan, scale) {
   board.style.transition = 'transform .25s ease';
   state.pan.x = pan.x; state.pan.y = pan.y; state.scale = scale;
   board.style.transform = `translate(${pan.x}px,${pan.y}px) scale(${scale})`;
-  zoomDisp.textContent = Math.round(scale * 100) + '%';
+  const pct = Math.round(scale * 100) + '%';
+  if (zoomDisp) zoomDisp.textContent = pct;
+  // Keep the bottom-right zoom pill in sync too (applyTransform updates both;
+  // we duplicate that here because we deliberately skip applyTransform to
+  // avoid re-broadcasting our own follow viewport back).
+  if (!_zcPct) _zcPct = document.getElementById('zc-pct');
+  if (_zcPct) _zcPct.textContent = pct;
   renderAllArrows();
+  if (typeof _scheduleMinimap === 'function') _scheduleMinimap();
+  if (typeof positionLayerPopover === 'function') positionLayerPopover();
   setTimeout(() => { board.style.transition = ''; }, 260);
 }
 
@@ -13121,7 +13129,8 @@ function renderChecklist(el, card) {
       });
       txt.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
-        if (e.key === 'Backspace' && txt.textContent === '') {
+        else if (e.key === 'Escape') { e.preventDefault(); txt.textContent = item.text; txt.blur(); }
+        else if (e.key === 'Backspace' && txt.textContent === '') {
           e.preventDefault(); e.stopPropagation();
           snapshot();
           d.items.splice(idx, 1); scheduleSave(); rebuildChecklist();
