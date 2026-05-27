@@ -1385,6 +1385,41 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   -webkit-tap-highlight-color:transparent;
 }
 
+/* Image clipboard visual feedback */
+@keyframes card-paste-pop{
+  0%   { transform: scale(.86); opacity: 0; filter: brightness(1.05); }
+  60%  { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.card-paste-in{
+  animation: card-paste-pop .26s cubic-bezier(.34,1.4,.6,1) both;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent,#4262FF) 30%, transparent),
+              0 10px 24px rgba(5,5,40,.18) !important;
+  transition: box-shadow .35s ease;
+}
+@keyframes card-copy-flash{
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, var(--accent,#4262FF) 55%, transparent); }
+  60%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent,#4262FF) 0%,  transparent); }
+  100% { box-shadow: 0 0 0 0   color-mix(in srgb, var(--accent,#4262FF) 0%,  transparent); }
+}
+.card-copy-flash{
+  animation: card-copy-flash .65s ease both;
+  outline: 2.5px solid color-mix(in srgb, var(--accent,#4262FF) 70%, transparent);
+  outline-offset: 2px;
+}
+/* Toast tweaks for image-clipboard messages */
+#toast.toast-clipboard{
+  background:linear-gradient(135deg,#1C1C1E,#2F2F45) !important;
+  color:#fff;border:1px solid rgba(255,255,255,.08);
+  font-weight:700;letter-spacing:-.005em;
+}
+#toast.toast-clipboard::before{
+  content:"";display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:#4ade80;margin-right:8px;vertical-align:1px;
+  animation: tx-toast-pulse 1.2s ease-in-out infinite;
+}
+@keyframes tx-toast-pulse{50%{opacity:.45;}}
+
 /* Comment composer (anchored to click point, Miro-style) */
 #_cm-composer{
   position:fixed;z-index:9700;display:flex;align-items:flex-start;gap:8px;
@@ -7968,8 +8003,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* Reusable helpers — keep the logic in ONE place so Cmd+V, Cmd+C and
    right-click do exactly the same thing. */
+function _placeNewImageCard(boardX, boardY, data, w, h) {
+  // Auto-sized cards land centred at the cursor with a sensible default rect.
+  const cw = w || 320, ch = h || 240;
+  const card = addCard('image', boardX - cw/2, boardY - ch/2, data, cw, ch);
+  if (!card) return null;
+  // Pop-in animation on the freshly added card
+  const el = getCardEl(card.id);
+  if (el) {
+    el.classList.add('card-paste-in');
+    setTimeout(() => el.classList.remove('card-paste-in'), 700);
+  }
+  // Auto-select so the user can immediately move/resize it
+  clearSelection && clearSelection();
+  state.selected = new Set([card.id]);
+  el?.classList.add('selected');
+  showLayerPopover && showLayerPopover(card.id);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  return card;
+}
+function _toastClipboard(msg) {
+  if (!window.toast) return;
+  toast(msg);
+  // Style the active toast with the clipboard variant for 2.5s
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.classList.add('toast-clipboard');
+  setTimeout(() => t.classList.remove('toast-clipboard'), 2600);
+}
+
 async function _pasteImageAt(boardX, boardY) {
-  // 1. Try the real clipboard first (works only on a user gesture in HTTPS)
   try {
     if (navigator.clipboard && navigator.clipboard.read) {
       const items = await navigator.clipboard.read();
@@ -7978,12 +8041,11 @@ async function _pasteImageAt(boardX, boardY) {
         if (type) {
           const blob = await it.getType(type);
           const prepared = await prepareBoardImageFile(new File([blob], 'pasted.png', { type }));
-          addCard('image', boardX - 160, boardY - 120, {
+          _placeNewImageCard(boardX, boardY, {
             title: 'Pasted image', src: prepared.dataUrl,
             imageSize: prepared.bytes, imageOptimized: prepared.optimized,
-          }, 320, 240);
-          scheduleSave && scheduleSave(); saveLocal && saveLocal();
-          toast && toast('🖼 Image pasted');
+          });
+          _toastClipboard('🖼 Image pasted');
           return;
         }
       }
@@ -7992,41 +8054,65 @@ async function _pasteImageAt(boardX, boardY) {
         if (it.types?.includes('text/plain')) {
           const txt = await (await it.getType('text/plain')).text();
           if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(txt) || /^data:image\//i.test(txt)) {
-            addCard('image', boardX - 160, boardY - 120, { title: 'Pasted image', src: txt.trim() }, 320, 240);
-            scheduleSave && scheduleSave(); saveLocal && saveLocal();
-            toast && toast('🖼 Image pasted from URL');
+            _placeNewImageCard(boardX, boardY, { title: 'Pasted image', src: txt.trim() });
+            _toastClipboard('🖼 Image pasted from URL');
             return;
           }
         }
       }
     }
   } catch (e) { /* fall through */ }
-  toast && toast('Clipboard is empty or browser blocked access. Try Cmd+V.');
+  _toastClipboard('Clipboard is empty or browser blocked access. Try Cmd+V.');
+}
+
+/* Re-encode ANY image source (data url, http url, blob) → image/png blob.
+   PNG is the only MIME guaranteed to work on every browser's clipboard. */
+async function _imageSrcToPngBlob(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const cv = document.createElement('canvas');
+      cv.width = img.naturalWidth || img.width;
+      cv.height = img.naturalHeight || img.height;
+      cv.getContext('2d').drawImage(img, 0, 0);
+      cv.toBlob(b => b ? resolve(b) : reject(new Error('Canvas had no blob')), 'image/png');
+    };
+    img.onerror = () => reject(new Error('Image failed to load (cross-origin?)'));
+    img.src = src;
+  });
 }
 
 async function _copyImageToSystemClipboard(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || card.type !== 'image' || !card.data?.src) return;
+  if (!navigator.clipboard || !window.ClipboardItem) {
+    toast && toast('This browser can’t copy images. Long-press the image to save it instead.');
+    return;
+  }
+  // Visual feedback: pulse the source card so the user sees what was copied
+  const el = getCardEl(cardId);
+  if (el) {
+    el.classList.add('card-copy-flash');
+    setTimeout(() => el.classList.remove('card-copy-flash'), 650);
+  }
   try {
-    if (!navigator.clipboard || !window.ClipboardItem) {
-      toast && toast('This browser cannot copy images. Use Save image instead.');
-      return;
-    }
-    const resp = await fetch(card.data.src);
-    let blob = await resp.blob();
-    const supported = ['image/png','image/jpeg','image/webp','image/gif'];
-    if (!supported.includes(blob.type)) {
-      const img = new Image(); img.crossOrigin = 'anonymous'; img.src = card.data.src;
-      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
-      const cv = document.createElement('canvas');
-      cv.width = img.naturalWidth; cv.height = img.naturalHeight;
-      cv.getContext('2d').drawImage(img, 0, 0);
-      blob = await new Promise(r => cv.toBlob(r, 'image/png'));
-    }
-    await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
-    toast && toast('🖼 Image copied to clipboard');
+    // Safari/Chrome both accept the Promise form here, which keeps the
+    // ClipboardItem inside the original user-gesture timing window.
+    const blobPromise = _imageSrcToPngBlob(card.data.src);
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': blobPromise })
+    ]);
+    toast && toast('🖼 Image copied');
   } catch (e) {
-    toast && toast('Couldn\'t copy image: ' + (e.message || e));
+    // Fallback: try awaiting the blob and writing it directly
+    try {
+      const blob = await _imageSrcToPngBlob(card.data.src);
+      await navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ]);
+      toast && toast('🖼 Image copied');
+    } catch (e2) {
+      toast && toast('Couldn’t copy image (browser blocked clipboard access).');
+    }
   }
 }
 document.addEventListener('click', () => {
@@ -11640,19 +11726,17 @@ document.addEventListener('paste', e => {
         try {
           const prepared = await prepareBoardImageFile(file);
           const pos = resolveBoardPlacement(pendingImagePos);
-          addCard('image', pos.x, pos.y, {
+          // pos.x / pos.y is the TOP-LEFT in resolveBoardPlacement; center it.
+          _placeNewImageCard(pos.x + 160, pos.y + 120, {
             title: 'Pasted image',
             src: prepared.dataUrl,
             imageSize: prepared.bytes,
             imageOptimized: prepared.optimized,
-          }, 320, 240);
+          });
           pendingImagePos = null;
-          scheduleSave && scheduleSave();
-          saveLocal && saveLocal();
-          toast && toast('🖼 Image pasted');
+          _toastClipboard('🖼 Image pasted');
         } catch (err) {
-          toast && toast(err.message);
-          alert(err.message);
+          _toastClipboard('Paste failed: ' + (err.message || err));
         }
       })();
       return;
@@ -11664,10 +11748,9 @@ document.addEventListener('paste', e => {
       /^data:image\//i.test(txt)) {
     e.preventDefault();
     const pos = resolveBoardPlacement(pendingImagePos);
-    addCard('image', pos.x, pos.y, { title: 'Pasted image', src: txt.trim() }, 320, 240);
+    _placeNewImageCard(pos.x + 160, pos.y + 120, { title: 'Pasted image', src: txt.trim() });
     pendingImagePos = null;
-    scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    toast && toast('🖼 Image pasted from URL');
+    _toastClipboard('🖼 Image pasted from URL');
     return;
   }
 });
