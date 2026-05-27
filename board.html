@@ -1330,27 +1330,33 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .radius-btn.active{border-color:var(--accent);background:var(--accent-2);color:var(--accent);}
 
 /* ── STICKY ── */
-.card-sticky .card-body{padding:8px 10px 10px;display:flex;flex-direction:column;}
-.card-sticky textarea{
-  flex:1;border:none;outline:none;resize:none;background:transparent;
-  font-family:var(--font);font-size:13px;font-weight:600;color:rgba(0,0,0,.72);
-  line-height:1.55;cursor:text;user-select:text;
-}
+.card-sticky .card-body{padding:0;display:flex;flex-direction:column;}
 /* ── STICKY NOTES — Miro style (no header, pure color block) ── */
 .card-sticky{
+  border:none!important;
   border-radius:4px!important;
   min-width:120px!important;min-height:120px!important;
   cursor:move;
-  box-shadow:0 4px 12px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.08)!important;
+  box-shadow:0 5px 12px rgba(0,0,0,.13)!important;
 }
+.card-sticky.selected{border-color:transparent!important;box-shadow:0 7px 18px rgba(0,0,0,.16)!important;}
+.card-sticky .resize-handle,.card-sticky .anchor-dot{display:none!important;}
 .card-sticky .card-header{display:none!important;}
 .card-sticky .sticky-body{
-  flex:1!important;padding:14px 14px 10px!important;
+  flex:1!important;padding:0!important;
   display:flex!important;flex-direction:column!important;
 }
 .card-sticky .sticky-text{
-  flex:1;font-size:14px;line-height:1.5;font-weight:400;
-  color:#050038;word-break:break-word;
+  flex:1;font-size:15px;line-height:1.42;font-weight:520;
+  color:#050038;word-break:break-word;white-space:pre-wrap;
+  padding:16px;outline:none;cursor:move;user-select:none;
+  border:none;background:transparent;
+}
+.card-sticky .sticky-text.editing{
+  cursor:text;user-select:text;background:rgba(255,255,255,.16);
+}
+.card-sticky .sticky-text:empty::before{
+  content:"Double-click to write";color:rgba(5,0,56,.35);
 }
 /* delete icon on hover only */
 .card-sticky .sticky-close{
@@ -3154,11 +3160,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="14" r="1.6"/><circle cx="14" cy="4" r="1.6"/><path d="M5 13L13 5"/></svg>
   </button>
   <!-- 8. Pen -->
-  <button class="mt-btn" id="mt-pen" data-tip="Pen (P) — click again for colors" onclick="toggleDrawTool('pen', event)">
+  <button class="mt-btn" id="mt-pen" data-tip="Pen / highlighter / eraser" onclick="openUnifiedDrawMenu(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.5l3 3L5.5 15.5h-3v-3z"/><path d="M10.5 4.5l3 3"/></svg>
   </button>
   <!-- 8b. Marker / Highlighter — distinct silhouette: chisel tip + bright accent stripe -->
-  <button class="mt-btn mt-marker" id="mt-marker" data-tip="Highlighter — click again for colors" onclick="toggleDrawTool('marker', event)">
+  <button class="mt-btn mt-marker" id="mt-marker" data-tip="Highlighter" onclick="toggleDrawTool('marker', event)" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <!-- highlighter body -->
       <rect x="9" y="1.5" width="7" height="5" rx="1" transform="rotate(45 12.5 4)"/>
@@ -3169,7 +3175,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     </svg>
   </button>
   <!-- 8c. Eraser -->
-  <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)">
+  <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L9.5 5l4.5 4.5-6.5 6.5h-3v-3z"/><path d="M7 15.5h9"/></svg>
   </button>
   <!-- 9. Frame -->
@@ -4065,17 +4071,20 @@ polite request</textarea>
 </div>
 
 <!-- DRAWING TOOL PALETTE (color + thickness) - Miro style -->
-<div id="draw-palette" style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:12px;box-shadow:0 8px 28px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);min-width:220px;">
-  <div style="font-size:11px;font-weight:600;color:#9999AA;letter-spacing:0;margin-bottom:8px;font-family:var(--font);" id="draw-palette-title">Pencil</div>
+<div id="draw-palette" style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;box-shadow:0 8px 28px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);min-width:252px;">
+  <div style="font-size:11px;font-weight:700;color:#9999AA;letter-spacing:0;margin-bottom:8px;font-family:var(--font);" id="draw-palette-title">Pen tools</div>
+  <div id="draw-tool-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
     <span style="font-size:12px;font-weight:500;color:#050038;min-width:38px;">Size</span>
     <input id="draw-size" type="range" min="1" max="40" value="3" oninput="setDrawSize(this.value)" style="flex:1;accent-color:#4262FF;">
     <span id="draw-size-val" style="font-family:var(--font);font-size:12px;font-weight:600;color:#050038;min-width:24px;text-align:right;">3</span>
   </div>
   <div style="font-size:11px;font-weight:600;color:#9999AA;letter-spacing:0;margin-bottom:6px;font-family:var(--font);">Color</div>
-  <div id="draw-color-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px;"></div>
+  <div id="draw-color-grid" style="display:grid;grid-template-columns:repeat(7,28px);gap:7px;margin-bottom:10px;"></div>
   <div style="display:flex;gap:8px;align-items:center;">
-    <input id="draw-color-custom" type="color" value="#1C1C1E" oninput="setDrawColor(this.value)" style="width:32px;height:28px;border:1px solid rgba(0,0,0,.10);border-radius:6px;cursor:pointer;background:transparent;padding:2px;">
+    <label style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);">
+      <input id="draw-color-custom" type="color" value="#1C1C1E" oninput="setDrawColor(this.value)" style="opacity:0;width:100%;height:100%;cursor:pointer;">
+    </label>
     <button onclick="closeDrawPalette()" style="flex:1;padding:7px;border-radius:6px;border:none;background:#4262FF;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='#2D4EE8'" onmouseout="this.style.background='#4262FF'">Done</button>
   </div>
 </div>
@@ -4770,19 +4779,39 @@ function renderSticky(el, card) {
   tb.appendChild(sc);
   body.appendChild(tb);
 
-  const ta = document.createElement('textarea');
-  ta.value = card.data.text || '';
-  ta.placeholder = 'Write something…';
-  ta.addEventListener('input', () => { card.data.text = ta.value; scheduleSave(); });
-  ta.addEventListener('mousedown', e => e.stopPropagation());
-  body.appendChild(ta);
+  const text = document.createElement('div');
+  text.className = 'sticky-text';
+  text.textContent = card.data.text || '';
+  text.setAttribute('contenteditable', 'false');
+  text.addEventListener('dblclick', e => {
+    e.stopPropagation();
+    text.setAttribute('contenteditable', 'true');
+    text.classList.add('editing');
+    text.focus();
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+  text.addEventListener('mousedown', e => {
+    if (text.getAttribute('contenteditable') === 'true') e.stopPropagation();
+  });
+  text.addEventListener('input', () => { card.data.text = text.textContent || ''; scheduleSave(); });
+  text.addEventListener('blur', () => {
+    text.setAttribute('contenteditable', 'false');
+    text.classList.remove('editing');
+    card.data.text = text.textContent || '';
+    scheduleSave();
+  });
+  body.appendChild(text);
   el.appendChild(body);
   // Miro-style: double-click body → enter edit mode
   el.addEventListener('dblclick', e => {
     if (e.target.closest('.sticky-toolbar,.sticky-close')) return;
     e.stopPropagation();
-    ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
+    text.dispatchEvent(new MouseEvent('dblclick', { bubbles:true, cancelable:true }));
   });
 }
 
@@ -12023,10 +12052,9 @@ function _doPlace(clientX, clientY, sized) {
       placed = quickAddCard(type, bp.x, bp.y);
     }
     // Miro-style: auto-focus editor on text/sticky after placement
-    if (placed && (type === 'text' || type === 'sticky')) {
+    if (placed && type === 'text') {
       state.selected = new Set([placed.id]);
       getCardEl(placed.id)?.classList.add('selected');
-      showLayerPopover(placed.id);
       setTimeout(() => {
         const el = getCardEl(placed.id);
         const ta = el?.querySelector('textarea');
@@ -12034,6 +12062,9 @@ function _doPlace(clientX, clientY, sized) {
         if (ta) { ta.focus(); ta.select?.(); }
         else if (rich) { rich.focus(); document.execCommand && document.execCommand('selectAll', false, null); }
       }, 50);
+    } else if (placed && type === 'sticky') {
+      clearSelection?.();
+      selectCard(placed.id);
     }
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
@@ -14051,6 +14082,31 @@ function disableDrawTool() {
   }
 }
 
+function openUnifiedDrawMenu(ev) {
+  const btn = ev?.currentTarget || document.getElementById('mt-pen');
+  if (!_drawTool) {
+    _drawTool = 'pen';
+    _miroTool = 'pen';
+    ensureDrawLayer();
+    boardWrap.classList.add('drawing');
+    _setDrawModeClass('pen');
+  }
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mt-pen')?.classList.add('active');
+  openDrawPalette(btn, _drawTool || 'pen');
+}
+
+function chooseDrawTool(tool) {
+  _drawTool = tool;
+  _miroTool = tool;
+  ensureDrawLayer();
+  boardWrap.classList.add('drawing');
+  _setDrawModeClass(tool);
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mt-pen')?.classList.add('active');
+  openDrawPalette(document.getElementById('mt-pen'), tool);
+}
+
 function toggleDrawTool(tool, ev) {
   if (_drawTool === tool) {
     // Second click on the same tool → open palette (pen / marker only)
@@ -14069,7 +14125,7 @@ function toggleDrawTool(tool, ev) {
   boardWrap.classList.add('drawing');
   _setDrawModeClass(tool);
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mt-' + tool);
+  const btn = document.getElementById(tool === 'marker' || tool === 'eraser' ? 'mt-pen' : 'mt-' + tool);
   if (btn) btn.classList.add('active');
   closeDrawPalette();
 }
@@ -14089,7 +14145,21 @@ function openDrawPalette(anchorBtn, tool) {
   if (!pal) return;
   // Title
   const title = document.getElementById('draw-palette-title');
-  if (title) title.textContent = tool === 'pen' ? 'Pencil' : tool === 'marker' ? 'Highlighter' : 'Eraser';
+  if (title) title.textContent = 'Pen tools';
+  const row = document.getElementById('draw-tool-row');
+  if (row) {
+    const tools = [
+      ['pen', '✎', 'Pen'],
+      ['marker', '▰', 'Highlighter'],
+      ['eraser', '⌫', 'Eraser'],
+    ];
+    row.innerHTML = tools.map(([id, ic, label]) => `
+      <button type="button" onclick="chooseDrawTool('${id}')"
+        style="height:36px;border-radius:10px;border:1px solid ${tool===id?'#4262FF':'rgba(0,0,0,.10)'};background:${tool===id?'rgba(66,98,255,.10)':'#fff'};color:${tool===id?'#4262FF':'#050038'};font:700 11px var(--font);cursor:pointer;">
+        <span style="font-size:13px;margin-right:3px;">${ic}</span>${label}
+      </button>
+    `).join('');
+  }
   // Build color grid (skip for eraser)
   const grid = document.getElementById('draw-color-grid');
   const colorRow = grid && grid.parentElement;
@@ -14104,7 +14174,7 @@ function openDrawPalette(anchorBtn, tool) {
       const cur = _drawState[tool].color;
       grid.innerHTML = palette.map(c => `
         <div onclick="setDrawColor('${c}')" title="${c}"
-          style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c.toLowerCase()===cur.toLowerCase()?'var(--accent)':(c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.25)':'transparent')};transition:.12s;"
+          style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c.toLowerCase()===cur.toLowerCase()?'#4262FF':(c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.25)':'rgba(255,255,255,.9)')};box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:.12s;"
           onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform=''"></div>
       `).join('');
     }
@@ -14139,7 +14209,7 @@ function setDrawColor(c) {
   _drawState[_drawTool].color = c;
   _saveDrawState();
   // Re-render swatches for selected highlight
-  openDrawPalette(document.getElementById('mt-' + _drawTool), _drawTool);
+  openDrawPalette(document.getElementById('mt-pen'), _drawTool);
 }
 function setDrawSize(v) {
   if (!_drawTool) return;
@@ -15169,7 +15239,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=70').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=71').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
