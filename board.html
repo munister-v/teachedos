@@ -4673,7 +4673,44 @@ function screenToBoard(sx, sy) {
 }
 function getBoardViewportCenterScreen() {
   const r = boardWrap.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  // Compute the *visible* center, excluding any open left/right overlays
+  // (sidebar flyout, left toolbar, AI/editor panels). This is what the
+  // user perceives as "centre of the canvas" when those panels cover part
+  // of boardWrap.
+  let left = r.left, right = r.right;
+  const top = r.top, bottom = r.bottom;
+  const overlap = (el) => {
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return null;
+    const er = el.getBoundingClientRect();
+    if (er.width < 4 || er.height < 4) return null;
+    // Treat as overlapping the board if it visually intersects.
+    if (er.right < r.left + 4 || er.left > r.right - 4) return null;
+    if (er.bottom < r.top + 4 || er.top > r.bottom - 4) return null;
+    return er;
+  };
+  // Left obstructions: vertical toolbar, open sidebar flyout, sticky/sticker palettes anchored left
+  ['#miro-toolbar','#sidebar','#sticky-palette','#sticker-modal'].forEach(sel => {
+    const el = document.querySelector(sel);
+    const er = overlap(el);
+    if (!er) return;
+    // Only treat as left obstruction if it's anchored to the left half
+    if (er.left <= r.left + r.width * 0.5) {
+      left = Math.max(left, er.right);
+    }
+  });
+  // Right obstructions: AI assistant panel, card editor side panel, comments panel
+  ['#ai-assistant-panel','#card-editor','#comments-panel'].forEach(sel => {
+    const el = document.querySelector(sel);
+    const er = overlap(el);
+    if (!er) return;
+    if (er.right >= r.left + r.width * 0.5) {
+      right = Math.min(right, er.left);
+    }
+  });
+  if (right - left < 100) { left = r.left; right = r.right; } // fall back if math gets weird
+  return { x: (left + right) / 2, y: (top + bottom) / 2 };
 }
 function getBoardViewportCenter() {
   const center = getBoardViewportCenterScreen();
@@ -5610,8 +5647,7 @@ function renderTable(el, card) {
 }
 
 function quickAddFrame() {
-  const r = boardWrap.getBoundingClientRect();
-  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 100, y: 100 };
+  const pos = getBoardViewportCenter() || { x: 100, y: 100 };
   const def = getDefaults('frame');
   const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
   const newCard = addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
@@ -5837,8 +5873,7 @@ function renderVoting(el, card) {
 }
 
 function quickAddVoting() {
-  const r = boardWrap.getBoundingClientRect();
-  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
+  const pos = getBoardViewportCenter() || { x: 200, y: 200 };
   const def = getDefaults('voting');
   addCard('voting', pos.x - def.w/2, pos.y - def.h/2,
     { question: 'New poll?', options: ['Option A', 'Option B', 'Option C'], votes: {}, revealed: true });
@@ -8023,8 +8058,7 @@ function pasteCards() {
   cx /= _cardClipboard.length;
   cy /= _cardClipboard.length;
   // Paste at current viewport center with offset
-  const r = boardWrap.getBoundingClientRect();
-  const center = screenToBoard(r.left + r.width / 2, r.top + r.height / 2);
+  const center = getBoardViewportCenter();
   const dx = center.x - cx + 30;
   const dy = center.y - cy + 30;
   const newIds = [];
@@ -9445,8 +9479,8 @@ function makeSnippet(labelText, title, metaHtml, type, data, overW, overH) {
   el.addEventListener('mousedown', startDrag);
   el.addEventListener('click', () => {
     if (isSidebarDrag) return;
-    const r = boardWrap.getBoundingClientRect();
-    const bp = screenToBoard(r.left+r.width/2+(Math.random()-.5)*100, r.top+r.height/2+(Math.random()-.5)*80);
+    const c = getBoardViewportCenterScreen();
+    const bp = screenToBoard(c.x+(Math.random()-.5)*100, c.y+(Math.random()-.5)*80);
     addCard(type, bp.x-w/2, bp.y-h/2, data, w, h);
   });
   return el;
@@ -9768,8 +9802,7 @@ function applyTeacherToolBuilderToBoard() {
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
   snapshot?.();
-  const r = boardWrap.getBoundingClientRect();
-  const center = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 320, y: 260 };
+  const center = getBoardViewportCenter() || { x: 320, y: 260 };
   const frame = addCard('frame', center.x - 430, center.y - 250, {
     title: output.title,
     bg: 'rgba(66,98,255,.045)',
@@ -10063,8 +10096,8 @@ function renderNotesTab(sec) {
     el.addEventListener('mousedown', startDrag);
     el.addEventListener('click', () => {
       if (isSidebarDrag) return;
-      const r = boardWrap.getBoundingClientRect();
-      const bp = screenToBoard(r.left+r.width/2+(Math.random()-.5)*120, r.top+r.height/2+(Math.random()-.5)*80);
+      const ctr = getBoardViewportCenterScreen();
+      const bp = screenToBoard(ctr.x+(Math.random()-.5)*120, ctr.y+(Math.random()-.5)*80);
       addCard('sticky', bp.x-110, bp.y-90, { text:'', color:c });
     });
     sec.appendChild(el);
@@ -10144,8 +10177,8 @@ function renderGamesTab(sec) {
     el.addEventListener('mousedown', startDrag);
     el.addEventListener('click', () => {
       if (isSidebarDrag) return;
-      const r = boardWrap.getBoundingClientRect();
-      const bp = screenToBoard(r.left + r.width/2 + (Math.random()-.5)*60, r.top + r.height/2 + (Math.random()-.5)*60);
+      const ctr = getBoardViewportCenterScreen();
+      const bp = screenToBoard(ctr.x+(Math.random()-.5)*60, ctr.y+(Math.random()-.5)*60);
       addCard('game', bp.x - g.w/2, bp.y - g.h/2, { title:g.title, src:g.src }, g.w, g.h);
     });
     sec.appendChild(el);
@@ -10206,8 +10239,8 @@ function renderCourseTab(sec) {
     });
     el.addEventListener('click', () => {
       if (isSidebarDrag) return;
-      const r = boardWrap.getBoundingClientRect();
-      const bp = screenToBoard(r.left+r.width/2+(Math.random()-.5)*100, r.top+r.height/2+(Math.random()-.5)*100);
+      const ctr = getBoardViewportCenterScreen();
+      const bp = screenToBoard(ctr.x+(Math.random()-.5)*100, ctr.y+(Math.random()-.5)*100);
       const card = addCard(t.type, bp.x-def.w/2, bp.y-def.h/2, {...t.data});
       if (t.type !== 'milestone') setTimeout(() => openCardEditor(card.id), 120);
     });
