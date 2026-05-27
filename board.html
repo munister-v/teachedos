@@ -4954,8 +4954,9 @@ function defaultTextData(data={}) {
 }
 
 /* ════════════════════════ ADD CARD ════════════════════════ */
+let _suppressSnapshot = 0; // > 0 → addCard skips its internal snapshot
 function addCard(type, x, y, data={}, w, h) {
-  snapshot();
+  if (!_suppressSnapshot) snapshot();
   const def = getDefaults(type);
   const cardData = type === 'text' ? defaultTextData(data) : { ...data };
   const card = { id:'c'+(state.nextId++), type, x, y,
@@ -8120,14 +8121,17 @@ function pasteCards() {
   const dy = center.y - cy + 30;
   const newIds = [];
   let hasFrame = false;
-  _cardClipboard.forEach(c => {
-    const data = JSON.parse(JSON.stringify(c.data));
-    if (c.type === 'frame') { data.childIds = []; delete data.num; hasFrame = true; }
-    delete data.parentFrame; // pasted card doesn't belong to old frame
-    const nc = addCard(c.type, c.x + dx, c.y + dy, data, c.w, c.h);
-    if (c.color) nc.color = c.color;
-    newIds.push(nc.id);
-  });
+  _suppressSnapshot++;
+  try {
+    _cardClipboard.forEach(c => {
+      const data = JSON.parse(JSON.stringify(c.data));
+      if (c.type === 'frame') { data.childIds = []; delete data.num; hasFrame = true; }
+      delete data.parentFrame; // pasted card doesn't belong to old frame
+      const nc = addCard(c.type, c.x + dx, c.y + dy, data, c.w, c.h);
+      if (c.color) nc.color = c.color;
+      newIds.push(nc.id);
+    });
+  } finally { _suppressSnapshot--; }
   if (hasFrame && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
@@ -12482,19 +12486,27 @@ function addStickyFromPalette(color, text = '', opts = {}) {
 }
 
 function addStickyStack() {
-  const labels = ['Idea', 'Question', 'Example'];
-  ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i], { skipFocus:true }));
+  snapshot();
+  _suppressSnapshot++;
+  try {
+    const labels = ['Idea', 'Question', 'Example'];
+    ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i], { skipFocus:true }));
+  } finally { _suppressSnapshot--; }
   toast('Sticky stack added');
 }
 
 function addStickyTemplates() {
-  const templates = [
-    ['Goal', '#FFF176'],
-    ['Key vocabulary', '#A9CCFF'],
-    ['Common mistake', '#FF8F8F'],
-    ['Homework idea', '#73DDD0'],
-  ];
-  templates.forEach(([text, color]) => addStickyFromPalette(color, text, { skipFocus:true }));
+  snapshot();
+  _suppressSnapshot++;
+  try {
+    const templates = [
+      ['Goal', '#FFF176'],
+      ['Key vocabulary', '#A9CCFF'],
+      ['Common mistake', '#FF8F8F'],
+      ['Homework idea', '#73DDD0'],
+    ];
+    templates.forEach(([text, color]) => addStickyFromPalette(color, text, { skipFocus:true }));
+  } finally { _suppressSnapshot--; }
   toast('Sticky templates added');
 }
 
@@ -12502,7 +12514,12 @@ function addStickyBulk() {
   const raw = prompt('Bulk sticky notes: one note per line', 'Warm-up question\nUseful phrase\nStudent example\nHomework');
   if (!raw) return;
   const lines = raw.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 24);
-  lines.forEach((line, i) => addStickyFromPalette(STICKY_PALETTE_COLORS[i % STICKY_PALETTE_COLORS.length], line, { skipFocus:true }));
+  if (!lines.length) return;
+  snapshot();
+  _suppressSnapshot++;
+  try {
+    lines.forEach((line, i) => addStickyFromPalette(STICKY_PALETTE_COLORS[i % STICKY_PALETTE_COLORS.length], line, { skipFocus:true }));
+  } finally { _suppressSnapshot--; }
   toast(`${lines.length} sticky notes added`);
 }
 
