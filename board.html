@@ -825,9 +825,9 @@ body.alt-duplicating *{cursor:copy!important;}
 #draw-svg path.stroke-selected{filter:drop-shadow(0 0 4px #4262FF);}
 .draw-cursor-preview{
   position:fixed;left:0;top:0;z-index:1200;
-  width:18px;height:18px;border:2px solid rgba(28,28,30,.72);
-  border-radius:999px;background:rgba(255,255,255,.16);
-  box-shadow:0 0 0 1px rgba(255,255,255,.65),0 8px 24px rgba(5,5,23,.16);
+  width:8px;height:8px;border-radius:999px;
+  background:#1C1C1E;border:1.5px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.22);
   pointer-events:none;display:none;transform:translate(-50%,-50%);
 }
 
@@ -2935,9 +2935,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   <button class="mt-btn" id="mt-pen" data-tip="Pen (P) — click again for colors" onclick="toggleDrawTool('pen', event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.5l3 3L5.5 15.5h-3v-3z"/><path d="M10.5 4.5l3 3"/></svg>
   </button>
-  <!-- 8b. Marker / Highlighter -->
-  <button class="mt-btn" id="mt-marker" data-tip="Highlighter — click again for colors" onclick="toggleDrawTool('marker', event)">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5l4 4L9 12.5l-4-4z" fill="currentColor" fill-opacity=".18"/><path d="M5 8.5L2.5 14l3 1.5L9 12.5"/></svg>
+  <!-- 8b. Marker / Highlighter — distinct silhouette: chisel tip + bright accent stripe -->
+  <button class="mt-btn mt-marker" id="mt-marker" data-tip="Highlighter — click again for colors" onclick="toggleDrawTool('marker', event)">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- highlighter body -->
+      <rect x="9" y="1.5" width="7" height="5" rx="1" transform="rotate(45 12.5 4)"/>
+      <!-- bright tip (the colored bit) -->
+      <path d="M8 7.5l2.5 2.5-3.5 3.5-3-1z" fill="#FACC15" stroke="#FACC15"/>
+      <!-- drip strokes (drawn ink trail) -->
+      <path d="M3 14.5h6" stroke-width="2.4" stroke="#FACC15" opacity=".55"/>
+    </svg>
   </button>
   <!-- 8c. Eraser -->
   <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)">
@@ -2949,7 +2956,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   </button>
   <div class="mt-sep"></div>
   <!-- 10. Sticker / Emoji -->
-  <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji" onclick="setMiroTool('select');openStickerModal()">
+  <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji (Y)" onclick="setMiroTool('select');openStickerModal()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><circle cx="6.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.5" r=".9" fill="currentColor"/><path d="M6 11c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg>
   </button>
   <!-- 11. Comment -->
@@ -9116,12 +9123,14 @@ function scheduleSave() {
       localSaveQuotaWarned = true;
       toast('Local cache is full; saving this board to cloud.');
     }
-    setSaveUI(currentUser ? 'saving' : 'saved');
+    // Show "Saved" immediately after the local write completes.
+    // The cloud sync continues in the background — when it finishes it
+    // upgrades the status to "☁ synced". Keeping the pill on "saving…"
+    // after the local write was the race the user kept seeing.
+    setSaveUI('saved');
     if (currentUser && currentBoardId) {
       clearTimeout(cloudSaveTimer);
       cloudSaveTimer = setTimeout(() => saveToCloud(), 1500);
-    } else {
-      setSaveUI('saved');
     }
     updateSessionChip();
   }, 600);
@@ -9385,8 +9394,11 @@ applyTransform();
 renderSidebar();
 
 const loaded = loadBoard();
-if (!loaded) {
-  // Welcome board
+const WELCOME_KEY = 'teachedos_welcome_shown_v1';
+let _welcomeSeen = false;
+try { _welcomeSeen = localStorage.getItem(WELCOME_KEY) === '1'; } catch {}
+if (!loaded && !_welcomeSeen) {
+  // Welcome board — only on a fresh user, never re-seeded after "Clear board"
   addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
   addCard('plan',   380,  40, { ...PLANS[0] });
   addCard('student',380, 280, { ...STUDENTS[0] });
@@ -9396,6 +9408,7 @@ if (!loaded) {
   state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
   renderAllArrows();
   scheduleSave();
+  try { localStorage.setItem(WELCOME_KEY, '1'); } catch {}
 }
 // On phones, auto-fit all cards into view on first paint so users see content
 // instead of an off-canvas blank corner.
@@ -12500,17 +12513,31 @@ function _hideDrawCursor() {
 }
 
 function _updateDrawCursor(e) {
-  if (_drawTool !== 'eraser') { _hideDrawCursor(); return; }
+  // Show cursor preview for ALL draw tools, not just the eraser.
+  if (!_drawTool) { _hideDrawCursor(); return; }
   if (!_drawCursorPreview) {
     _drawCursorPreview = document.createElement('div');
     _drawCursorPreview.className = 'draw-cursor-preview';
     document.body.appendChild(_drawCursorPreview);
   }
-  const size = Math.max(8, _drawState.eraser.size || 18);
+  const conf = _drawState[_drawTool] || {};
+  const isEraser = _drawTool === 'eraser';
+  // Use the current tool's size; eraser is bigger, pen/marker smaller.
+  const size = Math.max(8, conf.size || (isEraser ? 18 : 4));
   _drawCursorPreview.style.width = size + 'px';
   _drawCursorPreview.style.height = size + 'px';
   _drawCursorPreview.style.left = e.clientX + 'px';
   _drawCursorPreview.style.top = e.clientY + 'px';
+  // Tint the preview with the active color (transparent for eraser, fill for pen/marker)
+  if (isEraser) {
+    _drawCursorPreview.style.background = 'transparent';
+    _drawCursorPreview.style.border = '1.5px solid rgba(94,94,74,.55)';
+    _drawCursorPreview.style.opacity = '.85';
+  } else {
+    _drawCursorPreview.style.background = conf.color || '#1C1C1E';
+    _drawCursorPreview.style.border = '1.5px solid #fff';
+    _drawCursorPreview.style.opacity = _drawTool === 'marker' ? '.55' : '.85';
+  }
   _drawCursorPreview.style.display = 'block';
 }
 
@@ -12812,10 +12839,26 @@ document.addEventListener('keydown', e => {
     fitAll && fitAll(true);
     return;
   }
+  // Cmd/Ctrl+S — force save now + nice toast (don't trigger browser "Save As…")
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 's' || e.key === 'S')) {
+    e.preventDefault();
+    saveLocal && saveLocal();
+    if (currentUser && currentBoardId && typeof saveToCloud === 'function') saveToCloud();
+    toast && toast('✓ Saved');
+    return;
+  }
   // Past this point, single-letter tool shortcuts. Skip if any modifier is held.
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') {
-    // Cancel any in-flight gestures first
+    // Cancel pending arrow FIRST (even if connect mode is still on, the
+    // dangling preview line should drop on the first Esc).
+    if (typeof connectPending !== 'undefined' && connectPending) {
+      e.preventDefault();
+      cancelConnection?.();
+      // Stay in connect mode so the user can start over without clicking the
+      // toolbar again. Second Esc exits connect mode entirely (handled below).
+      return;
+    }
     if (_drawTool) { e.preventDefault(); disableDrawTool(); setMiroTool('select'); return; }
     if (isBoxSelecting) {
       e.preventDefault();
@@ -12832,6 +12875,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); toolbarQuickAdd('sticky'); }
   else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toolbarQuickAdd('text'); }
   else if (e.key === 's' || e.key === 'S') { e.preventDefault(); toolbarQuickAdd('sticky'); }
+  else if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); setMiroTool('select'); openStickerModal && openStickerModal(); }
   else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); toggleSidebar(); }
   else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
   else if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); const btn=document.getElementById('mt-shape'); if(btn) openShapePanel({stopPropagation:()=>{},target:btn}); }
