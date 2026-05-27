@@ -438,6 +438,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   padding:12px 14px 10px;border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0;
 }
 #sticker-panel .sp-head-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;}
+#sticker-panel .sp-head-sub{display:block;margin-top:2px;font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:0;}
 #sticker-panel .sp-close{
   width:28px;height:28px;border-radius:8px;background:transparent;border:none;
   cursor:pointer;color:var(--text-3);font-size:14px;line-height:1;
@@ -460,6 +461,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   padding:8px 14px max(10px,env(safe-area-inset-bottom,10px));border-top:1px solid rgba(0,0,0,.06);flex-shrink:0;
 }
 [data-theme="dark"] #sticker-panel .sp-hint{border-top-color:rgba(255,255,255,.06);}
+.sticker-item{
+  font-size:28px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9px;
+  cursor:grab;transition:background .12s,transform .12s,box-shadow .12s;user-select:none;
+}
+.sticker-item:hover{background:var(--accent-2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(5,5,23,.08);}
+.sticker-item:active{cursor:grabbing;transform:scale(.96);}
+.sticker-tab-btn{
+  padding:5px 11px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text-2);
+  font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;transition:.15s;
+}
+.sticker-tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
 /* On phones: become a bottom-sheet like the other mobile sheets */
 @media(max-width:860px){
@@ -3034,7 +3046,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   </button>
   <div class="mt-sep"></div>
   <!-- 10. Sticker / Emoji -->
-  <button class="mt-btn" id="mt-sticker" data-tip="Sticker / Emoji (Y)" onclick="setMiroTool('select');openStickerModal()">
+  <button class="mt-btn" id="mt-sticker" data-tip="Stickers (Y)" onclick="setMiroTool('select');openStickerModal()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><circle cx="6.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.5" r=".9" fill="currentColor"/><path d="M6 11c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg>
   </button>
   <!-- 11. Comment -->
@@ -3899,13 +3911,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 <!-- Sticker side panel — anchored next to the Sticker icon in the left tray (Miro-style flyout) -->
 <div id="sticker-panel">
   <div class="sp-head">
-    <span class="sp-head-title">😀 Stickers &amp; Emoji</span>
+    <span>
+      <span class="sp-head-title">😀 Stickers</span>
+      <span class="sp-head-sub">Miro-style side menu</span>
+    </span>
     <button class="sp-close" onclick="closeStickerModal()" aria-label="Close">✕</button>
   </div>
   <input id="sticker-search" class="cfg-input sp-search" type="text" placeholder="Search emoji…" oninput="filterStickers(this.value)">
   <div id="sticker-tabs" class="sp-tabs"></div>
   <div id="sticker-grid" class="sp-grid-body"></div>
-  <div class="sp-hint">Click to add · drag onto the board</div>
+  <div class="sp-hint">Click to add many · drag onto the board · Esc closes</div>
 </div>
 <!-- Legacy overlay kept hidden for JS that may still reference it -->
 <div id="sticker-overlay" style="display:none;" aria-hidden="true"></div>
@@ -12632,10 +12647,24 @@ const STICKER_CATEGORIES = {
   'Food':['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🍆','🥔','🥕','🌽','🌶️','🥒','🥬','🥦','🍞','🥐','🥖','🧀','🥚','🍳','🥞','🧇','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🥗','🍝','🍜','🍣','🍱','🥟','🍤','🍦','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍯','☕','🍵','🥤','🍺','🍷','🥂'],
 };
 let _stickerActiveTab = 'Smileys';
+let _stickerAddCount = 0;
+const STICKER_RECENTS_KEY = 'teached.sticker.recents.v1';
+
+function getRecentStickers() {
+  try { return JSON.parse(localStorage.getItem(STICKER_RECENTS_KEY) || '[]').filter(Boolean).slice(0, 28); }
+  catch { return []; }
+}
+
+function rememberSticker(glyph) {
+  const next = [glyph, ...getRecentStickers().filter(g => g !== glyph)].slice(0, 28);
+  localStorage.setItem(STICKER_RECENTS_KEY, JSON.stringify(next));
+}
 
 function openStickerModal() {
   const panel = document.getElementById('sticker-panel');
   if (!panel) return;
+  const recents = getRecentStickers();
+  if (recents.length && !_stickerActiveTab) _stickerActiveTab = 'Recent';
   buildStickerTabs();
   renderStickerGrid(_stickerActiveTab);
   panel.classList.add('open');
@@ -12689,9 +12718,10 @@ window.addEventListener('resize', () => {
 function buildStickerTabs() {
   const tabs = document.getElementById('sticker-tabs');
   if (!tabs) return;
-  tabs.innerHTML = Object.keys(STICKER_CATEGORIES).map(cat => `
-    <button onclick="switchStickerTab('${cat}')"
-      style="padding:5px 11px;border:1px solid var(--border);border-radius:8px;background:${cat===_stickerActiveTab?'var(--accent)':'var(--bg)'};color:${cat===_stickerActiveTab?'#fff':'var(--text-2)'};font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;transition:.15s;">${cat}</button>
+  const cats = getRecentStickers().length ? ['Recent', ...Object.keys(STICKER_CATEGORIES)] : Object.keys(STICKER_CATEGORIES);
+  if (_stickerActiveTab === 'Recent' && !getRecentStickers().length) _stickerActiveTab = 'Smileys';
+  tabs.innerHTML = cats.map(cat => `
+    <button class="sticker-tab-btn${cat===_stickerActiveTab?' active':''}" onclick="switchStickerTab('${cat}')">${cat}</button>
   `).join('');
 }
 function switchStickerTab(cat) {
@@ -12704,7 +12734,7 @@ function switchStickerTab(cat) {
 function renderStickerGrid(cat, filter) {
   const grid = document.getElementById('sticker-grid');
   if (!grid) return;
-  let list = STICKER_CATEGORIES[cat] || [];
+  let list = cat === 'Recent' ? getRecentStickers() : (STICKER_CATEGORIES[cat] || []);
   if (filter && filter.trim()) {
     // Search across all categories
     const f = filter.trim();
@@ -12715,11 +12745,12 @@ function renderStickerGrid(cat, filter) {
       list = STICKER_CATEGORIES[cat] || [];
     }
   }
+  if (!list.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-3);font-size:12px;font-weight:700;">No recent stickers yet. Pick any emoji to start.</div>';
+    return;
+  }
   grid.innerHTML = list.map(g => `
-    <div class="sticker-item" draggable="true" data-glyph="${g}"
-      onclick="addStickerCard('${g}')"
-      style="font-size:28px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9px;cursor:grab;transition:background .12s;user-select:none;"
-      onmouseover="this.style.background='var(--accent-2)'" onmouseout="this.style.background=''">${g}</div>
+    <div class="sticker-item" draggable="true" data-glyph="${g}" onclick="addStickerCard('${g}')">${g}</div>
   `).join('');
   // Drag support
   grid.querySelectorAll('.sticker-item').forEach(el => {
@@ -12730,11 +12761,15 @@ function renderStickerGrid(cat, filter) {
   });
 }
 function filterStickers(q) { renderStickerGrid(_stickerActiveTab, q); }
-function addStickerCard(glyph) {
+function addStickerCard(glyph, opts = {}) {
   const r = boardWrap.getBoundingClientRect();
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
-  addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
-  closeStickerModal();
+  const offset = (_stickerAddCount++ % 8) * 18;
+  const card = addCard('sticker', pos.x - 48 + offset, pos.y - 48 + offset, { glyph });
+  rememberSticker(glyph);
+  buildStickerTabs();
+  if (card?.id) { clearSelection(); selectCard(card.id); }
+  if (opts.close) closeStickerModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
@@ -12745,7 +12780,10 @@ document.addEventListener('drop', e => {
   if (!glyph) return;
   e.preventDefault();
   const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 200 };
-  addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
+  const card = addCard('sticker', pos.x - 48, pos.y - 48, { glyph });
+  rememberSticker(glyph);
+  buildStickerTabs();
+  if (card?.id) { clearSelection(); selectCard(card.id); }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 });
 
@@ -14341,7 +14379,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=65').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=66').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
