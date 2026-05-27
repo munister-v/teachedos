@@ -11892,6 +11892,7 @@ const _PLACE_INFO = {
   lesson:    { icon:'📋', label:'Lesson' },
   image:     { icon:'🖼', label:'Image' },
   video:     { icon:'▶',  label:'Video' },
+  sticker:   { icon:'😊', label:'Sticker' },
 };
 
 function enterPlaceMode(type, extraData) {
@@ -11906,7 +11907,9 @@ function enterPlaceMode(type, extraData) {
                  mindmap:'mt-mindmap', checklist:'mt-checklist' }[type] || ('mt-' + type);
   document.getElementById(mtId)?.classList.add('active');
   // Create floating ghost
-  const info = _PLACE_INFO[type] || { icon:'📌', label: type };
+  const info = type === 'sticker' && extraData?.glyph
+    ? { icon: extraData.glyph, label: 'Sticker' }
+    : (_PLACE_INFO[type] || { icon:'📌', label: type });
   _placeGhost = document.createElement('div');
   _placeGhost.id = 'place-ghost';
   _placeGhost.style.opacity = '0';
@@ -11996,6 +11999,17 @@ function _doPlace(clientX, clientY, sized) {
       ? addCard('shape', bp.x, bp.y, data, bp.w, bp.h)
       : addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
     if (c) { state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover(c.id); }
+  } else if (type === 'sticker') {
+    const glyph = extraData?.glyph || '😊';
+    const def = getDefaults('sticker') || { w: 96, h: 96 };
+    const placed = addCard('sticker', bp.x - def.w / 2, bp.y - def.h / 2, { glyph }, def.w, def.h);
+    rememberSticker?.(glyph);
+    buildStickerTabs?.();
+    if (placed?.id) {
+      clearSelection?.();
+      selectCard(placed.id);
+      showLayerPopover?.(placed.id);
+    }
   } else {
     // Drag-to-size for sticky/text: use the dragged rect; click = default size.
     let placed;
@@ -12101,6 +12115,7 @@ function quickAddCard(type, bx, by) {
   let card;
   if (type === 'sticky')     card = addCard('sticky',   x, y, { text:'', color:STICKY_COLORS[0] });
   else if (type === 'text')  card = addCard('text',     x, y, defaultTextData({ text:'Label' }));
+  else if (type === 'sticker') card = addCard('sticker', x, y, { glyph:'😊' });
   else if (type === 'lesson') {
     card = addCard('lesson', x, y, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'', objectives:[], attachments:[], notes:'' });
     setTimeout(() => openCardEditor(card.id), 80);
@@ -13515,7 +13530,7 @@ function renderStickerGrid(cat, filter) {
     return;
   }
   grid.innerHTML = list.map(g => `
-    <div class="sticker-item" draggable="true" data-glyph="${g}" onclick="addStickerCard('${g}')">${g}</div>
+    <div class="sticker-item" draggable="true" data-glyph="${g}" onclick="selectStickerForPlacement('${g}')">${g}</div>
   `).join('');
   // Drag support
   grid.querySelectorAll('.sticker-item').forEach(el => {
@@ -13526,16 +13541,26 @@ function renderStickerGrid(cat, filter) {
   });
 }
 function filterStickers(q) { renderStickerGrid(_stickerActiveTab, q); }
+function selectStickerForPlacement(glyph) {
+  rememberSticker(glyph);
+  buildStickerTabs();
+  closeStickerModal();
+  enterPlaceMode('sticker', { glyph });
+  toast('Click the board to place ' + glyph);
+}
 function addStickerCard(glyph, opts = {}) {
-  const r = boardWrap.getBoundingClientRect();
-  const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
-  const offset = (_stickerAddCount++ % 8) * 18;
-  const card = addCard('sticker', pos.x - 48 + offset, pos.y - 48 + offset, { glyph });
+  if (!opts.instant) {
+    selectStickerForPlacement(glyph);
+    return null;
+  }
+  const point = opts.point || getBoardViewportCenter?.() || { x: 200, y: 200 };
+  const card = addCard('sticker', point.x - 48, point.y - 48, { glyph });
   rememberSticker(glyph);
   buildStickerTabs();
   if (card?.id) { clearSelection(); selectCard(card.id); }
   if (opts.close) closeStickerModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  return card;
 }
 
 // Drop handler for stickers
@@ -15144,7 +15169,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=69').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=70').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
