@@ -1120,6 +1120,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .card-sticker .sticker-glyph{
   font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;
   width:100%;height:100%;user-select:none;
+  -webkit-user-drag:none;pointer-events:none;
 }
 
 /* SVG arrows layer — covers board-wrap, pointer-events on paths */
@@ -13807,7 +13808,8 @@ document.addEventListener('paste', e => {
     // Only react if the drop landed inside the board area and clipboard has files
     if (!boardWrap.contains(e.target)) return;
     if (ev === 'dragover') {
-      if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+      const types = Array.from(e.dataTransfer?.types || []);
+      if (types.includes('Files') || types.includes('text/sticker-glyph')) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
       }
