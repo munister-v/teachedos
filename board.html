@@ -6906,7 +6906,19 @@ function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
     const dot = document.createElement('div');
     dot.className = 'anchor-dot'; dot.dataset.anchor = anchor;
-    dot.addEventListener('mousedown', e => { e.stopPropagation(); if (state.mode==='connect') startConnection({ card, anchor }); });
+    // Dragging from an anchor dot always starts a connection (Miro parity).
+    // We auto-enter connect mode if needed, so the rest of the connection
+    // pipeline (preview line, drop-target highlight, commit) just works.
+    // The flag tells the connection commit/cancel to drop back to Select.
+    dot.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (state.mode !== 'connect') {
+        setMode('connect');
+        window._autoConnectMode = true;
+      }
+      startConnection({ card, anchor });
+    });
     el.appendChild(dot);
   });
   ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
@@ -8534,6 +8546,13 @@ function finishConnection(to) {
   connectPending = null;
   board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible'));
   renderAllArrows();
+  // If we auto-entered connect mode via an anchor drag, drop back to Select.
+  if (window._autoConnectMode) {
+    window._autoConnectMode = false;
+    setMode('select');
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mt-select')?.classList.add('active');
+  }
 }
 
 function cancelConnection() {
@@ -8541,6 +8560,12 @@ function cancelConnection() {
   connectPending.pathEl?.remove();
   connectPending = null;
   board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible'));
+  if (window._autoConnectMode) {
+    window._autoConnectMode = false;
+    setMode('select');
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mt-select')?.classList.add('active');
+  }
 }
 
 /* ════════════════════════ ARROW RENDERING ════════════════════════ */
