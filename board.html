@@ -2096,6 +2096,81 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   padding:2px 6px;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text-2);}
 .sp-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);}
 
+/* ══════════════ AI ASSISTANT PANEL ══════════════ */
+#ai-assistant-panel{
+  position:fixed;inset:0;background:rgba(15,10,24,.50);backdrop-filter:blur(7px);
+  z-index:4100;display:none;align-items:center;justify-content:center;padding:24px;
+}
+#ai-assistant-panel.open{display:flex;}
+.ai-box{
+  position:relative;width:min(920px,100%);max-height:min(86vh,760px);overflow:auto;
+  border-radius:28px;background:linear-gradient(145deg,#ffffff 0%,#fffaf1 54%,#f4f0ff 100%);
+  border:1px solid rgba(17,24,39,.08);box-shadow:0 28px 90px rgba(10,8,24,.26);
+  padding:26px;color:#171420;
+}
+.ai-close{position:absolute;top:20px;right:22px;border:0;background:rgba(17,24,39,.08);color:#171420;
+  width:34px;height:34px;border-radius:12px;font-size:18px;font-weight:900;cursor:pointer;}
+.ai-hero{border-radius:24px;background:#111018;color:#fff;padding:28px;overflow:hidden;position:relative;}
+.ai-hero::after{content:'';position:absolute;right:-90px;top:-90px;width:250px;height:250px;border-radius:50%;
+  background:radial-gradient(circle,rgba(202,255,50,.55),rgba(236,72,153,.22) 45%,transparent 70%);}
+.ai-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#caff32;font-weight:900;}
+.ai-hero h2{position:relative;margin:10px 0 10px;font-size:clamp(30px,5vw,56px);line-height:.92;letter-spacing:-.05em;max-width:700px;}
+.ai-hero h2 em{font-style:italic;color:#caff32;}
+.ai-hero p{position:relative;margin:0;max-width:660px;color:rgba(255,255,255,.76);font-size:14px;line-height:1.6;font-weight:650;}
+.ai-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;position:relative;}
+.ai-chip{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:999px;
+  padding:8px 11px;font-size:11px;font-weight:900;color:#fff;}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+.ai-card{background:rgba(255,255,255,.78);border:1px solid rgba(17,24,39,.08);border-radius:18px;padding:18px;
+  box-shadow:0 10px 32px rgba(17,24,39,.06);}
+.ai-card h3{margin:0 0 10px;font-size:16px;letter-spacing:-.02em;}
+.ai-card p,.ai-card li{font-size:13px;line-height:1.55;color:var(--text-2);font-weight:650;}
+.ai-card ul{margin:0;padding-left:18px;}
+.ai-action-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+.ai-action{border:0;border-radius:14px;background:#caff32;color:#101010;font-weight:950;padding:11px 15px;cursor:pointer;}
+.ai-action.secondary{background:#111018;color:#fff;}
+.ai-action.ghost{background:rgba(17,24,39,.08);color:#171420;}
+.ai-builder{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr);gap:16px;margin-top:18px;}
+.ai-form{background:rgba(255,255,255,.82);border:1px solid rgba(17,24,39,.08);border-radius:20px;padding:18px;
+  box-shadow:0 12px 36px rgba(17,24,39,.06);}
+.ai-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);
+  font-weight:900;margin:12px 0 6px;}
+.ai-form input,.ai-form select,.ai-form textarea{width:100%;border:1.5px solid rgba(17,24,39,.10);border-radius:13px;
+  background:#fff;color:#171420;padding:11px 12px;font:700 13px/1.35 var(--font);outline:none;}
+.ai-form textarea{min-height:82px;resize:vertical;}
+.ai-form input:focus,.ai-form select:focus,.ai-form textarea:focus{border-color:#caff32;box-shadow:0 0 0 4px rgba(202,255,50,.22);}
+.ai-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ai-memory-note{margin-top:10px;border-radius:14px;background:#111018;color:rgba(255,255,255,.78);padding:11px 12px;font-size:12px;line-height:1.45;font-weight:650;}
+.ai-memory-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.ai-memory-chip{border:1px solid rgba(17,24,39,.10);background:#fff;border-radius:999px;padding:7px 10px;
+  font-size:11px;font-weight:900;color:#171420;cursor:pointer;}
+.ai-memory-chip.active{background:#caff32;border-color:#caff32;}
+.ai-template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
+.ai-template-btn{border:1px solid rgba(17,24,39,.10);background:linear-gradient(145deg,#fff,#fff9ef);border-radius:14px;
+  padding:10px;text-align:left;cursor:pointer;color:#171420;font-weight:900;font-size:12px;line-height:1.25;}
+.ai-template-btn span{display:block;margin-top:3px;color:var(--text-3);font-size:10px;font-weight:800;}
+.ai-template-btn:hover{border-color:#caff32;box-shadow:0 0 0 4px rgba(202,255,50,.18);}
+.ai-preview{background:#111018;color:#fff;border-radius:20px;padding:18px;min-height:320px;box-shadow:0 16px 42px rgba(17,16,24,.18);}
+.ai-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.ai-preview-title{font-size:17px;font-weight:950;letter-spacing:-.02em;}
+.ai-preview-body{display:flex;flex-direction:column;gap:10px;}
+.ai-stage{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);border-radius:16px;padding:12px;}
+.ai-stage-top{display:flex;justify-content:space-between;gap:10px;color:#caff32;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.08em;}
+.ai-stage h4{margin:7px 0 5px;font-size:15px;color:#fff;}
+.ai-stage p{margin:0;color:rgba(255,255,255,.72);font-size:12px;line-height:1.45;}
+.ai-mini-list{margin:10px 0 0;padding-left:18px;color:rgba(255,255,255,.78);font-size:12px;line-height:1.5;}
+.ai-empty{height:260px;display:flex;align-items:center;justify-content:center;text-align:center;color:rgba(255,255,255,.58);font-weight:750;line-height:1.5;}
+.ai-status{font-size:12px;color:var(--text-3);font-weight:750;margin-top:10px;min-height:18px;}
+@media(max-width:760px){
+  #ai-assistant-panel{padding:12px;}
+  .ai-box{padding:16px;border-radius:22px;}
+  .ai-hero{padding:22px;}
+  .ai-grid{grid-template-columns:1fr;}
+  .ai-builder{grid-template-columns:1fr;}
+  .ai-form-row{grid-template-columns:1fr;}
+  .ai-template-grid{grid-template-columns:1fr;}
+}
+
 /* ══════════════ BOARD SEARCH ══════════════ */
 #board-search-bar{
   position:fixed;top:58px;left:50%;transform:translateX(-50%);
@@ -2897,8 +2972,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 <!-- MIRO-STYLE LEFT TOOLBAR (exact Miro order) -->
 <div id="miro-toolbar">
   <!-- 1. AI sparkle — placeholder (AI assistant arrives later) -->
-  <button class="mt-btn mt-ai" id="mt-ai" data-tip="AI assistant (coming soon)" onclick="toast&&toast('AI assistant coming soon ✨')">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l1.8 3.6L14.5 7l-3.6 1.8L9 12.5 7.2 8.8 3.5 7l3.7-1.4z"/><path d="M14.5 12.5l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z"/></svg>
+  <button class="mt-btn mt-ai" id="mt-ai" data-tip="AI Assistant" onclick="openAiAssistantPanel()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.4 3.6L13 6l-3.6 1.4L8 11 6.6 7.4 3 6l3.6-1.4z"/><circle cx="13" cy="12" r="1.2"/><circle cx="3" cy="13" r=".8"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 2. Select (active) -->
@@ -3189,6 +3264,111 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
         <div class="sp-row"><span>Version history</span><div class="kbd"><code>Ctrl</code><code>H</code></div></div>
         <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI assistant panel -->
+<div id="ai-assistant-panel">
+  <div class="ai-box">
+    <button class="ai-close" onclick="closeAiAssistantPanel()" aria-label="Close AI assistant">×</button>
+    <div class="ai-hero">
+      <div class="ai-kicker">AI memory studio</div>
+      <h2>Generate lesson boards from your <em>teaching memory.</em></h2>
+      <p>No keys, no payments, no external calls. The assistant remembers teacher style, class profile, common mistakes and preferred activities directly in this browser.</p>
+      <div class="ai-chip-row">
+        <span class="ai-chip">100% local</span>
+        <span class="ai-chip">Teacher memory</span>
+        <span class="ai-chip">Student profile</span>
+        <span class="ai-chip">Mistake-aware</span>
+        <span class="ai-chip">Apply to board</span>
+      </div>
+    </div>
+    <div class="ai-builder">
+      <div class="ai-form">
+        <div class="ai-form-row">
+          <div>
+            <label for="ai-level">Level</label>
+            <select id="ai-level">
+              <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option>
+            </select>
+          </div>
+          <div>
+            <label for="ai-duration">Duration</label>
+            <select id="ai-duration">
+              <option>30 min</option><option selected>45 min</option><option>60 min</option><option>90 min</option>
+            </select>
+          </div>
+        </div>
+        <div class="ai-form-row">
+          <div>
+            <label for="ai-skill">Skill</label>
+            <select id="ai-skill">
+              <option>Speaking</option><option>Vocabulary</option><option selected>Writing</option><option>Grammar</option><option>Reading</option><option>Listening</option>
+            </select>
+          </div>
+          <div>
+            <label for="ai-audience">Audience</label>
+            <select id="ai-audience">
+              <option>Adults</option><option selected>Teens</option><option>Kids</option><option>Business</option><option>Exam prep</option>
+            </select>
+          </div>
+        </div>
+        <label for="ai-mode">Output mode</label>
+        <select id="ai-mode">
+          <option value="lesson-board" selected>Full lesson board</option>
+          <option value="quick-activities">Quick activities only</option>
+          <option value="homework-pack">Homework pack</option>
+          <option value="mistake-clinic">Mistake clinic</option>
+          <option value="game-pack">Game pack</option>
+        </select>
+        <label>Quick templates</label>
+        <div class="ai-template-grid">
+          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('ielts-writing')">IELTS writing <span>argument, examples, rubric</span></button>
+          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('speaking-club')">Speaking club <span>warm-up, debate, reflection</span></button>
+          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('grammar-clinic')">Grammar clinic <span>notice, drill, repair</span></button>
+          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('vocab-game')">Vocabulary game <span>matching, sorting, challenge</span></button>
+        </div>
+        <label for="ai-topic">Topic / goal</label>
+        <input id="ai-topic" value="Writing lesson: essay structure and strong arguments">
+        <label for="ai-teacher-memory">Teacher memory</label>
+        <textarea id="ai-teacher-memory" placeholder="Your style: strict/fun, correction style, preferred flow, favorite activities..."></textarea>
+        <label for="ai-student-memory">Student / class memory</label>
+        <textarea id="ai-student-memory" placeholder="Student interests, weak spots, goals, age, motivation, timezone/context..."></textarea>
+        <label for="ai-mistakes">Common mistakes to target</label>
+        <textarea id="ai-mistakes" placeholder="e.g. articles, word order, weak arguments, past tenses, pronunciation..."></textarea>
+        <label for="ai-source">Source text / teacher notes</label>
+        <textarea id="ai-source" placeholder="Paste text, vocabulary, student mistakes, exam task, article or lesson idea..."></textarea>
+        <div class="ai-memory-row" id="ai-memory-presets">
+          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'More speaking time, less teacher talk. Add pair work and reflection.')">Speaking-heavy</button>
+          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Student needs gentle correction and confidence-building tasks.')">Gentle correction</button>
+          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Add exam-style timing, rubrics and self-check criteria.')">Exam mode</button>
+          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Use games, movement, visuals and short task cycles.')">Game energy</button>
+        </div>
+        <div class="ai-memory-note" id="ai-memory-note">Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.</div>
+        <div class="ai-action-row">
+          <button class="ai-action" onclick="runAiAssistant()">Generate preview</button>
+          <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>
+          <button class="ai-action ghost" onclick="useSelectedCardsForAi()">Use selected</button>
+          <button class="ai-action ghost" onclick="addAiMemoryFromBoard()">Learn board</button>
+          <button class="ai-action ghost" onclick="saveAiAssistantSettings()">Save memory</button>
+          <button class="ai-action ghost" onclick="clearAiAssistantMemory()">Clear memory</button>
+        </div>
+        <div class="ai-status" id="ai-status"></div>
+      </div>
+      <div class="ai-preview">
+        <div class="ai-preview-head">
+          <div class="ai-preview-title">Lesson preview</div>
+          <button class="ai-action ghost" onclick="copyAiAssistantPreview()">Copy</button>
+        </div>
+        <div class="ai-preview-body" id="ai-preview-body">
+          <div class="ai-empty">Set topic, level and skill, then generate a teacher-ready flow. Local mode already works without API.</div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-grid">
+      <div class="ai-card"><h3>Memory-first approach</h3><p>The assistant becomes better when you save teacher style, class profile, target mistakes and preferred activity rhythm.</p></div>
+      <div class="ai-card"><h3>No-key principle</h3><p>Everything here runs locally. Later we can add server AI, but the product should stay useful even without paid APIs.</p></div>
     </div>
   </div>
 </div>
@@ -11327,6 +11507,444 @@ function closeShortcuts() { document.getElementById('shortcuts-panel').classList
 document.getElementById('shortcuts-panel').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeShortcuts();
 });
+
+/* ════════════════════════ AI ASSISTANT PANEL ════════════════════════ */
+function openAiAssistantPanel() {
+  setMiroTool('select');
+  hideLayerPopover?.();
+  closeBoardSearchBar?.();
+  closeShortcuts?.();
+  loadAiAssistantSettings();
+  updateAiProviderNote();
+  document.getElementById('ai-assistant-panel')?.classList.add('open');
+}
+function closeAiAssistantPanel() {
+  document.getElementById('ai-assistant-panel')?.classList.remove('open');
+}
+document.getElementById('ai-assistant-panel')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAiAssistantPanel();
+});
+
+const AI_ASSISTANT_STORAGE = 'teached.aiAssistant.settings.v1';
+let _lastAiAssistantResult = null;
+
+function loadAiAssistantSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
+    if (saved.teacherMemory) document.getElementById('ai-teacher-memory').value = saved.teacherMemory;
+    if (saved.studentMemory) document.getElementById('ai-student-memory').value = saved.studentMemory;
+    if (saved.mistakes) document.getElementById('ai-mistakes').value = saved.mistakes;
+    if (saved.mode) document.getElementById('ai-mode').value = saved.mode;
+  } catch {}
+}
+
+function saveAiAssistantSettings() {
+  const payload = {
+    teacherMemory: document.getElementById('ai-teacher-memory')?.value || '',
+    studentMemory: document.getElementById('ai-student-memory')?.value || '',
+    mistakes: document.getElementById('ai-mistakes')?.value || '',
+    mode: document.getElementById('ai-mode')?.value || 'lesson-board',
+  };
+  localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify(payload));
+  updateAiProviderNote();
+  toast('AI memory saved');
+}
+
+function updateAiProviderNote() {
+  const note = document.getElementById('ai-memory-note');
+  if (!note) return;
+  const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
+  const count = ['teacherMemory','studentMemory','mistakes'].filter(k => String(saved[k] || '').trim()).length;
+  note.textContent = count
+    ? `Memory active: ${count}/3 blocks saved. Generated boards will adapt to your teaching style.`
+    : 'Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.';
+}
+
+function clearAiAssistantMemory() {
+  localStorage.removeItem(AI_ASSISTANT_STORAGE);
+  ['ai-teacher-memory','ai-student-memory','ai-mistakes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.querySelectorAll('#ai-memory-presets .ai-memory-chip').forEach(btn => btn.classList.remove('active'));
+  updateAiProviderNote();
+  toast('AI memory cleared');
+}
+
+function toggleAiMemoryPreset(btn, text) {
+  btn?.classList.toggle('active');
+  const target = document.getElementById('ai-teacher-memory');
+  if (!target) return;
+  const current = target.value.trim();
+  if (btn?.classList.contains('active')) {
+    target.value = current ? `${current}\n${text}` : text;
+  } else {
+    target.value = current.split('\n').filter(line => line.trim() !== text).join('\n');
+  }
+}
+
+function extractCardPlainText(card) {
+  if (!card || !card.data) return '';
+  const d = card.data;
+  const parts = [
+    d.title, d.text, d.body, d.desc, d.word, d.translation, d.example,
+    Array.isArray(d.objectives) ? d.objectives.join('; ') : '',
+    Array.isArray(d.items) ? d.items.map(i => i.text || i).join('; ') : '',
+    Array.isArray(d.questions) ? d.questions.map(q => q.text || q.prompt || '').join('; ') : '',
+  ];
+  return parts.filter(Boolean).join('\n').replace(/<[^>]+>/g, ' ').replace(/\s+\n/g, '\n').trim();
+}
+
+function getSelectedCardsText(limit = 3500) {
+  return [...state.selected]
+    .map(id => state.cards.find(c => c.id === id))
+    .filter(Boolean)
+    .map(c => `[${c.type}] ${extractCardPlainText(c)}`)
+    .filter(txt => txt.trim().length > 4)
+    .join('\n\n')
+    .slice(0, limit);
+}
+
+function getBoardMemorySummary(limit = 4200) {
+  const relevant = state.cards
+    .filter(c => ['lesson','assignment','vocab','checklist','text','sticky','note'].includes(c.type))
+    .slice(-24)
+    .map(c => `[${c.type}] ${extractCardPlainText(c)}`)
+    .filter(txt => txt.trim().length > 4)
+    .join('\n\n');
+  return relevant.slice(0, limit);
+}
+
+function useSelectedCardsForAi() {
+  const text = getSelectedCardsText();
+  if (!text) { toast('Select cards first'); return; }
+  const source = document.getElementById('ai-source');
+  const topic = document.getElementById('ai-topic');
+  if (source) source.value = text;
+  const firstLine = text.split('\n').find(Boolean);
+  if (topic && firstLine) topic.value = firstLine.replace(/^\[[^\]]+\]\s*/, '').slice(0, 90);
+  toast('Selected cards added to AI context');
+}
+
+function addAiMemoryFromBoard() {
+  const summary = getBoardMemorySummary();
+  if (!summary) { toast('No board content to learn yet'); return; }
+  const target = document.getElementById('ai-student-memory');
+  const current = target?.value.trim() || '';
+  if (target) target.value = current ? `${current}\n\nRecent board context:\n${summary}` : `Recent board context:\n${summary}`;
+  saveAiAssistantSettings();
+  toast('Board context added to memory');
+}
+
+function applyAiTemplate(kind) {
+  const templates = {
+    'ielts-writing': {
+      skill: 'Writing', audience: 'Exam prep', mode: 'lesson-board',
+      topic: 'IELTS Writing Task 2: clear position, strong arguments and examples',
+      teacher: 'Use rubric language, timed stages, model answers and self-check criteria.',
+      mistakes: 'unclear thesis, weak examples, overgeneralisation, linking words misuse',
+    },
+    'speaking-club': {
+      skill: 'Speaking', audience: 'Adults', mode: 'quick-activities',
+      topic: 'Speaking club: opinions, follow-up questions and natural reactions',
+      teacher: 'Keep teacher talk low. Use pair rotation, useful phrases and quick feedback.',
+      mistakes: 'short answers, no follow-up questions, L1 translation, pronunciation stress',
+    },
+    'grammar-clinic': {
+      skill: 'Grammar', audience: 'Teens', mode: 'mistake-clinic',
+      topic: 'Grammar clinic: diagnose, correct and reuse target structures',
+      teacher: 'Use guided discovery, tiny drills, correction ladder and personal examples.',
+      mistakes: 'word order, articles, tense consistency, missing auxiliary verbs',
+    },
+    'vocab-game': {
+      skill: 'Vocabulary', audience: 'Kids', mode: 'game-pack',
+      topic: 'Vocabulary game pack: learn, retrieve and use new words',
+      teacher: 'Use visual prompts, fast rounds, team challenge and student-created examples.',
+      mistakes: 'spelling, word form, collocation, translation-only recall',
+    },
+  };
+  const t = templates[kind];
+  if (!t) return;
+  document.getElementById('ai-skill').value = t.skill;
+  document.getElementById('ai-audience').value = t.audience;
+  document.getElementById('ai-mode').value = t.mode;
+  document.getElementById('ai-topic').value = t.topic;
+  document.getElementById('ai-teacher-memory').value = t.teacher;
+  document.getElementById('ai-mistakes').value = t.mistakes;
+  saveAiAssistantSettings();
+  toast('AI template applied');
+}
+
+function getAiAssistantInput() {
+  return {
+    provider: 'local-memory',
+    mode: document.getElementById('ai-mode')?.value || 'lesson-board',
+    level: document.getElementById('ai-level')?.value || 'B1',
+    duration: document.getElementById('ai-duration')?.value || '45 min',
+    skill: document.getElementById('ai-skill')?.value || 'Writing',
+    audience: document.getElementById('ai-audience')?.value || 'Teens',
+    topic: document.getElementById('ai-topic')?.value.trim() || 'A practical English lesson',
+    teacherMemory: document.getElementById('ai-teacher-memory')?.value.trim() || '',
+    studentMemory: document.getElementById('ai-student-memory')?.value.trim() || '',
+    mistakes: document.getElementById('ai-mistakes')?.value.trim() || '',
+    source: document.getElementById('ai-source')?.value.trim() || '',
+  };
+}
+
+function generateLocalAiLesson(input) {
+  const minutes = parseInt(input.duration, 10) || 45;
+  const warm = Math.max(5, Math.round(minutes * .12));
+  const lead = Math.max(8, Math.round(minutes * .22));
+  const practice = Math.max(12, Math.round(minutes * .30));
+  const output = Math.max(10, Math.round(minutes * .25));
+  const reflect = Math.max(4, minutes - warm - lead - practice - output);
+  const skillRecipes = {
+    Writing: ['model text noticing', 'argument builder', 'guided paragraph', 'peer upgrade'],
+    Speaking: ['opinion line', 'useful phrases', 'role-play ladder', 'fluency reflection'],
+    Vocabulary: ['meaning from context', 'word families', 'retrieval game', 'personalised sentences'],
+    Grammar: ['guided discovery', 'micro-drills', 'error correction', 'communicative task'],
+    Reading: ['prediction', 'gist scan', 'detail challenge', 'discussion transfer'],
+    Listening: ['prediction', 'first listen gist', 'second listen details', 'speaking transfer'],
+  };
+  const recipe = skillRecipes[input.skill] || skillRecipes.Writing;
+  const cleanTopic = input.topic.replace(/\s+/g, ' ').trim();
+  const words = cleanTopic
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 3)
+    .slice(0, 8);
+  const memoryWords = `${input.teacherMemory} ${input.studentMemory} ${input.mistakes} ${input.source}`
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 4)
+    .slice(0, 12);
+  const mistakeItems = input.mistakes
+    .split(/[,;\n]/)
+    .map(x => x.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+  const vocabulary = [...new Set([...(words.length ? words : ['claim','reason','example','contrast','conclusion']), ...memoryWords].slice(0, 10))];
+  const memoryHints = [
+    input.teacherMemory ? `Teacher style: ${input.teacherMemory}` : '',
+    input.studentMemory ? `Class profile: ${input.studentMemory}` : '',
+    mistakeItems.length ? `Target mistakes: ${mistakeItems.join(', ')}` : '',
+  ].filter(Boolean);
+  const modeAddons = {
+    'quick-activities': ['Fast opener', 'One board game', 'Exit ticket', 'Pair swap'],
+    'homework-pack': ['Homework brief', 'Answer criteria', 'Self-check', 'Teacher feedback note'],
+    'mistake-clinic': ['Mistake diagnosis', 'Correction ladder', 'Personal rewrite', 'Before/after comparison'],
+    'game-pack': ['Matching game', 'Sorting game', 'Challenge round', 'Student-created round'],
+    'lesson-board': ['Warm-up', 'Input', 'Practice', 'Production', 'Reflection', 'Homework'],
+  }[input.mode] || [];
+  const warmupPrompts = [
+    `What do you already know about ${cleanTopic}?`,
+    `What is one mistake people often make with this topic?`,
+    `Create one useful question about ${cleanTopic}.`,
+  ];
+  const assessmentCriteria = [
+    input.skill === 'Writing' ? 'Clear position and logical paragraphing' : 'Clear message and active participation',
+    `Accurate use of ${vocabulary.slice(0, 3).join(', ') || 'target language'}`,
+    mistakeItems[0] ? `Avoid: ${mistakeItems[0]}` : 'Self-correct at least one sentence',
+  ];
+  const teacherScript = [
+    `Today we are training ${input.skill.toLowerCase()} through ${cleanTopic}.`,
+    'First we notice the pattern, then we practise safely, then we use it in a real task.',
+    input.studentMemory ? 'I will adapt examples to your interests and previous board work.' : 'Add student memory to personalise examples next time.',
+  ];
+  const challenge = input.mode === 'game-pack'
+    ? 'Students design one extra game round for another pair.'
+    : input.mode === 'mistake-clinic'
+      ? 'Students rewrite one weak answer into a stronger version and explain the fix.'
+      : 'Fast finishers add one advanced phrase and one follow-up question.';
+  const adaptedNote = memoryHints.length
+    ? ` Adapted from memory: ${memoryHints.join(' · ')}.`
+    : ' Add memory notes to make the next board more personalised.';
+  return {
+    provider: input.provider,
+    mode: input.mode,
+    title: `${input.level} ${input.skill}: ${cleanTopic}`,
+    summary: `${input.duration} ${input.mode.replace('-', ' ')} for ${input.audience.toLowerCase()} with reusable cards, homework and teacher control.${adaptedNote}`,
+    stages: [
+      { time: `${warm} min`, title: 'Hook + goal', goal: 'Activate context and make the lesson outcome visible.', activity: `Quick board prompt: what makes "${cleanTopic}" useful or difficult? Students add 2 sticky notes.` },
+      { time: `${lead} min`, title: 'Input + noticing', goal: `Build core ${input.skill.toLowerCase()} language.`, activity: `Teacher presents a model and students identify ${recipe[0]} patterns with color coding.${mistakeItems[0] ? ' Watch for: ' + mistakeItems[0] + '.' : ''}` },
+      { time: `${practice} min`, title: 'Controlled practice', goal: 'Move from recognition to accurate production.', activity: `Students complete a ${recipe[1]} task, then compare answers and correct one common mistake.${mistakeItems[1] ? ' Include contrast with: ' + mistakeItems[1] + '.' : ''}` },
+      { time: `${output} min`, title: input.mode === 'game-pack' ? 'Game challenge' : 'Freer task', goal: 'Use the target language in a realistic classroom product.', activity: `Pairs complete a ${recipe[2]} task and upgrade it using a mini-checklist.${input.studentMemory ? ' Personalise examples from class memory.' : ''}` },
+      { time: `${reflect} min`, title: 'Reflection + homework', goal: 'Lock in progress and set the next step.', activity: `Students choose one phrase to reuse and receive homework: ${recipe[3]} based on today's board.` },
+    ],
+    vocabulary,
+    memoryHints,
+    mistakeItems,
+    modeAddons,
+    warmupPrompts,
+    assessmentCriteria,
+    teacherScript,
+    challenge,
+    teacherTip: input.teacherMemory ? 'Keep the saved teacher style visible while correcting: use it as the lesson tone guardrail.' : 'Save teacher memory to make this assistant feel more personal.',
+    homework: `Write or record a short response using at least 5 target items from "${cleanTopic}".`,
+  };
+}
+
+function renderAiAssistantPreview(result) {
+  _lastAiAssistantResult = result;
+  const body = document.getElementById('ai-preview-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="ai-stage">
+      <div class="ai-stage-top"><span>${esc(result.provider || 'local')}</span><span>${esc(result.vocabulary?.length || 0)} vocab</span></div>
+      <h4>${esc(result.title || 'Lesson plan')}</h4>
+      <p>${esc(result.summary || '')}</p>
+      ${result.vocabulary?.length ? `<ul class="ai-mini-list"><li>${result.vocabulary.map(esc).join('</li><li>')}</li></ul>` : ''}
+      ${result.memoryHints?.length ? `<ul class="ai-mini-list"><li>${result.memoryHints.map(esc).join('</li><li>')}</li></ul>` : ''}
+    </div>
+    ${(result.stages || []).map(stage => `
+      <div class="ai-stage">
+        <div class="ai-stage-top"><span>${esc(stage.time || '')}</span><span>${esc(stage.goal || 'Stage')}</span></div>
+        <h4>${esc(stage.title || 'Activity')}</h4>
+        <p>${esc(stage.activity || '')}</p>
+      </div>`).join('')}
+    ${result.warmupPrompts?.length ? `<div class="ai-stage"><div class="ai-stage-top"><span>Warm-up prompts</span><span>board-ready</span></div><ul class="ai-mini-list"><li>${result.warmupPrompts.map(esc).join('</li><li>')}</li></ul></div>` : ''}
+    ${result.assessmentCriteria?.length ? `<div class="ai-stage"><div class="ai-stage-top"><span>Success criteria</span><span>rubric</span></div><ul class="ai-mini-list"><li>${result.assessmentCriteria.map(esc).join('</li><li>')}</li></ul></div>` : ''}
+    ${result.modeAddons?.length ? `<div class="ai-stage"><div class="ai-stage-top"><span>Smart extras</span><span>${esc(result.mode || 'lesson')}</span></div><ul class="ai-mini-list"><li>${result.modeAddons.map(esc).join('</li><li>')}</li></ul></div>` : ''}
+    ${result.teacherTip ? `<div class="ai-stage"><div class="ai-stage-top"><span>Teacher tip</span><span>memory</span></div><p>${esc(result.teacherTip)}</p></div>` : ''}
+    ${result.homework ? `<div class="ai-stage"><div class="ai-stage-top"><span>Homework</span><span>after class</span></div><p>${esc(result.homework)}</p></div>` : ''}
+  `;
+}
+
+async function runAiAssistant() {
+  const status = document.getElementById('ai-status');
+  const input = getAiAssistantInput();
+  if (status) status.textContent = 'Generating from local memory...';
+  saveAiAssistantSettings();
+  const result = generateLocalAiLesson(input);
+  renderAiAssistantPreview(result);
+  if (status) status.textContent = 'Preview ready. No API key needed.';
+}
+
+function applyAiAssistantToBoard() {
+  if (!_lastAiAssistantResult) runAiAssistant().then(applyAiAssistantToBoard);
+  const result = _lastAiAssistantResult;
+  if (!result) return;
+  snapshot();
+  const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
+  const frame = addCard('frame', center.x - 460, center.y - 260, {
+    title: result.title || 'AI Lesson Flow',
+    bg: 'rgba(202,255,50,.08)',
+    border: 'rgba(236,72,153,.32)',
+  }, 920, 560);
+  const lesson = addCard('lesson', center.x - 430, center.y - 220, {
+    title: result.title || 'AI Lesson',
+    status: 'available',
+    level: document.getElementById('ai-level')?.value || 'B1',
+    skill: document.getElementById('ai-skill')?.value || 'Writing',
+    duration: document.getElementById('ai-duration')?.value || '45 min',
+    desc: result.summary || '',
+    objectives: (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
+    attachments: [],
+    notes: ['Generated by TeachEd AI Assistant local memory mode. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
+  });
+  (result.stages || []).slice(0, 5).forEach((stage, idx) => {
+    const x = center.x - 130 + (idx % 2) * 300;
+    const y = center.y - 220 + Math.floor(idx / 2) * 145;
+    addCard('text', x, y, defaultTextData({
+      text: `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
+      bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
+      textColor: '#15131d',
+      fontFamily: 'var(--font)',
+      align: 'left',
+    }), 260, 112);
+  });
+  if (result.vocabulary?.length) {
+    addCard('checklist', center.x - 430, center.y + 80, {
+      title: 'Target language',
+      items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
+    }, 250, 230);
+  }
+  if (result.mistakeItems?.length || result.memoryHints?.length) {
+    addCard('note', center.x - 130, center.y + 75, {
+      title: 'AI Memory Notes',
+      text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n'),
+    }, 270, 190);
+  }
+  if (result.modeAddons?.length) {
+    addCard('checklist', center.x + 460, center.y - 220, {
+      title: 'Smart extras',
+      items: result.modeAddons.map(text => ({ text, done: false })),
+    }, 220, 170);
+  }
+  if (result.warmupPrompts?.length) {
+    addCard('sticky', center.x + 465, center.y - 20, {
+      text: result.warmupPrompts.join('\n'),
+      color: STICKY_COLORS[1] || '#d9f99d',
+    }, 220, 190);
+  }
+  if (result.assessmentCriteria?.length) {
+    addCard('checklist', center.x + 465, center.y + 195, {
+      title: 'Success criteria',
+      items: result.assessmentCriteria.map(text => ({ text, done: false })),
+    }, 230, 180);
+  }
+  if (result.teacherScript?.length) {
+    addCard('note', center.x - 430, center.y + 330, {
+      title: 'Teacher script',
+      text: result.teacherScript.join('\n'),
+    }, 300, 190);
+  }
+  if (result.challenge) {
+    addCard('sticky', center.x - 90, center.y + 330, {
+      text: 'Challenge:\n' + result.challenge,
+      color: STICKY_COLORS[2] || '#fde68a',
+    }, 240, 160);
+  }
+  if (result.homework) {
+    addCard('assignment', center.x + 170, center.y + 75, {
+      title: 'AI Homework',
+      type: 'Mixed',
+      maxScore: 100,
+      deadline: '',
+      desc: result.homework,
+      submitted: 0,
+      total: 0,
+    }, 260, 190);
+  }
+  if (frame?.id && frame.data) {
+    frame.data.childIds = state.cards
+      .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
+      .map(c => c.id);
+  }
+  clearSelection();
+  if (lesson?.id) selectCard(lesson.id);
+  renderAllArrows?.();
+  scheduleSave(); saveLocal?.();
+  closeAiAssistantPanel();
+  toast('AI lesson flow added to board');
+}
+
+function aiAssistantPreviewText() {
+  const r = _lastAiAssistantResult;
+  if (!r) return '';
+  return [
+    r.title,
+    r.summary,
+    ...(r.stages || []).map(s => `${s.time || ''} ${s.title || ''}: ${s.activity || ''}`),
+    r.vocabulary?.length ? `Vocabulary: ${r.vocabulary.join(', ')}` : '',
+    r.memoryHints?.length ? `Memory: ${r.memoryHints.join(' | ')}` : '',
+    r.mistakeItems?.length ? `Mistakes: ${r.mistakeItems.join(', ')}` : '',
+    r.warmupPrompts?.length ? `Warm-up: ${r.warmupPrompts.join(' | ')}` : '',
+    r.assessmentCriteria?.length ? `Criteria: ${r.assessmentCriteria.join(' | ')}` : '',
+    r.challenge ? `Challenge: ${r.challenge}` : '',
+    r.teacherTip ? `Teacher tip: ${r.teacherTip}` : '',
+    r.homework ? `Homework: ${r.homework}` : '',
+  ].filter(Boolean).join('\n\n');
+}
+
+async function copyAiAssistantPreview() {
+  if (!_lastAiAssistantResult) await runAiAssistant();
+  const text = aiAssistantPreviewText();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('AI preview copied');
+  } catch {
+    toast('Copy blocked by browser');
+  }
+}
 
 /* ════════════════════════ BOARD SEARCH ════════════════════════ */
 let searchMatches = [], searchIdx = 0;
