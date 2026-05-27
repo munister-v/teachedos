@@ -8107,11 +8107,16 @@ function pasteCards() {
   const dx = center.x - cx + 30;
   const dy = center.y - cy + 30;
   const newIds = [];
+  let hasFrame = false;
   _cardClipboard.forEach(c => {
-    const nc = addCard(c.type, c.x + dx, c.y + dy, JSON.parse(JSON.stringify(c.data)), c.w, c.h);
+    const data = JSON.parse(JSON.stringify(c.data));
+    if (c.type === 'frame') { data.childIds = []; delete data.num; hasFrame = true; }
+    delete data.parentFrame; // pasted card doesn't belong to old frame
+    const nc = addCard(c.type, c.x + dx, c.y + dy, data, c.w, c.h);
     if (c.color) nc.color = c.color;
     newIds.push(nc.id);
   });
+  if (hasFrame && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
   updateEmpty();
@@ -8424,6 +8429,8 @@ function _openCommentComposer(sx, sy, boardPt) {
   let left = sx, top = sy;
   if (left + PIN_W + 12 + BUBBLE_W > window.innerWidth - 12) left = window.innerWidth - 12 - PIN_W - 12 - BUBBLE_W;
   if (top + 130 > window.innerHeight - 12) top = window.innerHeight - 12 - 130;
+  left = Math.max(12, left);
+  top  = Math.max(82, top); // below top bar
   wrap.style.left = left + 'px';
   wrap.style.top  = top + 'px';
   const ta = wrap.querySelector('.cm-input');
