@@ -1486,7 +1486,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   box-shadow:0 5px 12px rgba(0,0,0,.13)!important;
 }
 .card-sticky.selected{border-color:transparent!important;box-shadow:0 7px 18px rgba(0,0,0,.16)!important;}
-.card-sticky .resize-handle,.card-sticky .anchor-dot{display:none!important;}
+/* Stickies can be resized & connected like Miro — keep handles/anchors
+   hidden by default and surface them only on hover/selection. */
+.card-sticky .resize-handle{display:none;}
+.card-sticky.selected .resize-handle{display:block;}
+.card-sticky.card-locked .resize-handle{display:none!important;}
 .card-sticky .card-header{display:none!important;}
 .card-sticky .sticky-body{
   flex:1!important;padding:0!important;
@@ -7046,6 +7050,11 @@ function deleteSelected() {
       if (a.fromCard === id || a.toCard === id) return false;
       return true;
     });
+    // Stop any running timer interval on this card to avoid leaks
+    if (_timerIntervals && _timerIntervals.has(id)) {
+      clearInterval(_timerIntervals.get(id));
+      _timerIntervals.delete(id);
+    }
     getCardEl(id)?.remove();
     state.cards = state.cards.filter(c => c.id !== id);
   });
