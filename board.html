@@ -416,6 +416,53 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 
 /* ── STICKER PANEL — Miro-style side flyout next to the Sticker tray icon ── */
+#sticky-palette{
+  position:fixed;
+  top:calc(var(--tb-h) + 12px);
+  left:calc(var(--mt-w,48px) + 8px);
+  width:156px;
+  z-index:920;
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:14px;
+  box-shadow:0 14px 38px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.06);
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  padding:10px;
+  transform:translateX(-12px) scale(.98);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .18s cubic-bezier(.34,1.2,.6,1),opacity .15s ease;
+}
+#sticky-palette.open{display:flex;transform:none;opacity:1;pointer-events:auto;}
+[data-theme="dark"] #sticky-palette{background:#1E1E35;border-color:rgba(255,255,255,.08);}
+.sticky-color-grid{display:grid;grid-template-columns:repeat(2,58px);gap:8px;justify-content:center;}
+.sticky-color-tile{
+  width:58px;height:58px;border-radius:2px;border:1px solid rgba(5,5,23,.16);
+  cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset;
+}
+.sticky-color-tile:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(5,5,23,.16);border-color:rgba(5,5,23,.28);}
+.sticky-color-tile:active{transform:scale(.96);}
+.sticky-palette-action{
+  border:0;background:#f0f1f5;color:#171420;border-radius:8px;padding:12px 10px;
+  font-family:var(--font);font-size:14px;font-weight:800;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+}
+.sticky-palette-action:hover{background:#e8e9ef;}
+.sticky-palette-action.small{background:#fff;padding:8px 10px;font-size:13px;}
+.sticky-palette-action.small:hover{background:#f4f4f7;}
+@media(max-width:860px){
+  #sticky-palette{
+    top:auto!important;left:12px!important;right:12px!important;bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;
+    width:auto!important;max-width:none!important;border-radius:18px!important;
+    transform:translateY(18px) scale(.98)!important;
+  }
+  #sticky-palette.open{transform:none!important;}
+  .sticky-color-grid{grid-template-columns:repeat(4,58px);}
+}
+
 #sticker-panel{
   position:fixed;
   top:calc(var(--tb-h) + 12px);
@@ -3005,7 +3052,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   </button>
   <div class="mt-sep"></div>
   <!-- 4. Sticky -->
-  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="toolbarQuickAdd('sticky')">
+  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('select');openStickyPalette()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h10l3 3v10h-13z"/><path d="M12.5 2.5v3h3"/></svg>
   </button>
   <!-- 5. Text -->
@@ -3908,6 +3955,20 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 </div>
 
 <!-- STICKER / EMOJI / GIF PICKER -->
+<!-- Sticky notes palette — Miro-style colors flyout -->
+<div id="sticky-palette" aria-label="Sticky note colors">
+  <div class="sticky-color-grid" id="sticky-color-grid"></div>
+  <button class="sticky-palette-action" type="button" onclick="addStickyStack()">
+    <span>▣</span><span>Stack</span>
+  </button>
+  <button class="sticky-palette-action" type="button" onclick="addStickyTemplates()">
+    <span>▤</span><span>Templates</span>
+  </button>
+  <button class="sticky-palette-action small" type="button" onclick="addStickyBulk()">
+    <span>☰</span><span>Bulk mode</span>
+  </button>
+</div>
+
 <!-- Sticker side panel — anchored next to the Sticker icon in the left tray (Miro-style flyout) -->
 <div id="sticker-panel">
   <div class="sp-head">
@@ -11115,6 +11176,112 @@ document.addEventListener('click', e => {
 
 /* ════════════════════════ MIRO TOOLBAR ════════════════════════ */
 let _miroTool = 'select';
+let _stickyAddCount = 0;
+
+const STICKY_PALETTE_COLORS = [
+  '#FFF176','#FFE066',
+  '#FFB16C','#FF8F8F',
+  '#FFB3E6','#F27BD3',
+  '#A9CCFF','#A99BFF',
+  '#86E5F2','#75A9F9',
+  '#73DDD0','#5BDA88',
+  '#D0EE95','#A9E84F',
+  '#F3F4F6','#111111',
+];
+
+function openStickyPalette() {
+  const panel = document.getElementById('sticky-palette');
+  if (!panel) return;
+  closeStickerModal?.();
+  buildStickyPalette();
+  panel.classList.add('open');
+  document.getElementById('mt-sticky')?.classList.add('active');
+  positionStickyPalette();
+}
+
+function closeStickyPalette() {
+  const panel = document.getElementById('sticky-palette');
+  if (panel) panel.classList.remove('open');
+  document.getElementById('mt-sticky')?.classList.remove('active');
+}
+
+function positionStickyPalette() {
+  const panel = document.getElementById('sticky-palette');
+  const btn = document.getElementById('mt-sticky');
+  if (!panel || !btn) return;
+  if (window.matchMedia('(max-width:860px)').matches) {
+    panel.style.top = ''; panel.style.left = '';
+    return;
+  }
+  const r = btn.getBoundingClientRect();
+  const minTop = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tb-h')) || 48) + 8;
+  const top = Math.max(minTop, r.top - 8);
+  const maxTop = Math.max(minTop, window.innerHeight - panel.offsetHeight - 12);
+  panel.style.top = Math.min(top, maxTop) + 'px';
+  panel.style.left = (r.right + 8) + 'px';
+}
+
+function buildStickyPalette() {
+  const grid = document.getElementById('sticky-color-grid');
+  if (!grid || grid.dataset.ready === '1') return;
+  grid.innerHTML = STICKY_PALETTE_COLORS.map(color => `
+    <button class="sticky-color-tile" type="button" style="background:${color}" title="${color}" onclick="addStickyFromPalette('${color}')"></button>
+  `).join('');
+  grid.dataset.ready = '1';
+}
+
+function nextStickyPalettePosition() {
+  const r = boardWrap.getBoundingClientRect();
+  const base = screenToBoard(r.left + r.width * .46, r.top + r.height * .42) || { x: 240, y: 180 };
+  const offset = (_stickyAddCount++ % 8) * 18;
+  return { x: base.x + offset, y: base.y + offset };
+}
+
+function addStickyFromPalette(color, text = '') {
+  const pos = nextStickyPalettePosition();
+  const card = addCard('sticky', pos.x - 90, pos.y - 90, { text, color }, 180, 180);
+  if (card?.id) { clearSelection(); selectCard(card.id); }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  return card;
+}
+
+function addStickyStack() {
+  const labels = ['Idea', 'Question', 'Example'];
+  ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i]));
+  toast('Sticky stack added');
+}
+
+function addStickyTemplates() {
+  const templates = [
+    ['Goal', '#FFF176'],
+    ['Key vocabulary', '#A9CCFF'],
+    ['Common mistake', '#FF8F8F'],
+    ['Homework idea', '#73DDD0'],
+  ];
+  templates.forEach(([text, color]) => addStickyFromPalette(color, text));
+  toast('Sticky templates added');
+}
+
+function addStickyBulk() {
+  const raw = prompt('Bulk sticky notes: one note per line', 'Warm-up question\nUseful phrase\nStudent example\nHomework');
+  if (!raw) return;
+  const lines = raw.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 24);
+  lines.forEach((line, i) => addStickyFromPalette(STICKY_PALETTE_COLORS[i % STICKY_PALETTE_COLORS.length], line));
+  toast(`${lines.length} sticky notes added`);
+}
+
+document.addEventListener('mousedown', e => {
+  const panel = document.getElementById('sticky-palette');
+  if (!panel || !panel.classList.contains('open')) return;
+  if (panel.contains(e.target)) return;
+  if (e.target.closest('#mt-sticky')) return;
+  closeStickyPalette();
+}, true);
+
+window.addEventListener('resize', () => {
+  const p = document.getElementById('sticky-palette');
+  if (p && p.classList.contains('open')) positionStickyPalette();
+});
 
 /* ── Placement mode (Miro-style: click tool → cursor changes → click canvas to place) ── */
 let _pendingPlace = null;   // { type, extraData } or null
@@ -12663,6 +12830,7 @@ function rememberSticker(glyph) {
 function openStickerModal() {
   const panel = document.getElementById('sticker-panel');
   if (!panel) return;
+  closeStickyPalette?.();
   const recents = getRecentStickers();
   if (recents.length && !_stickerActiveTab) _stickerActiveTab = 'Recent';
   buildStickerTabs();
@@ -12703,6 +12871,8 @@ document.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
     closeStickerModal();
   }
+  const stickyPanel = document.getElementById('sticky-palette');
+  if (stickyPanel && stickyPanel.classList.contains('open')) closeStickyPalette();
 });
 document.addEventListener('mousedown', e => {
   const panel = document.getElementById('sticker-panel');
@@ -13573,9 +13743,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
   else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
-  else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); toolbarQuickAdd('sticky'); }
+  else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openStickyPalette && openStickyPalette(); }
   else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toolbarQuickAdd('text'); }
-  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); toolbarQuickAdd('sticky'); }
+  else if (e.key === 's' || e.key === 'S') { e.preventDefault(); openStickyPalette && openStickyPalette(); }
   else if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); setMiroTool('select'); openStickerModal && openStickerModal(); }
   else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); toggleSidebar(); }
   else if (e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); quickAddFrame(); }
@@ -14379,7 +14549,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=66').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=67').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
