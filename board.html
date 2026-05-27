@@ -5181,8 +5181,12 @@ function renderSticky(el, card) {
   text.className = 'sticky-text';
   text.textContent = card.data.text || '';
   text.setAttribute('contenteditable', 'false');
+  let _stickyEditOriginal = null;
   text.addEventListener('dblclick', e => {
     e.stopPropagation();
+    // Capture pre-edit text so we can decide on blur whether the edit
+    // session was a real change worth undoing.
+    _stickyEditOriginal = card.data.text || '';
     text.setAttribute('contenteditable', 'true');
     text.classList.add('editing');
     text.focus();
@@ -5200,7 +5204,17 @@ function renderSticky(el, card) {
   text.addEventListener('blur', () => {
     text.setAttribute('contenteditable', 'false');
     text.classList.remove('editing');
-    card.data.text = text.textContent || '';
+    const newText = text.textContent || '';
+    // Push a single undo entry for the whole edit session (only when changed).
+    if (_stickyEditOriginal !== null && _stickyEditOriginal !== newText) {
+      const post = newText;
+      card.data.text = _stickyEditOriginal; // roll back so snapshot captures pre-edit
+      snapshot();
+      card.data.text = post; // re-apply edit
+    } else {
+      card.data.text = newText;
+    }
+    _stickyEditOriginal = null;
     scheduleSave();
   });
   body.appendChild(text);
