@@ -7185,6 +7185,13 @@ function ensureLayerPopover() {
     if (btn.dataset.action === 'edit') {
       typeof openCardEditor === 'function' && openCardEditor(cardId);
     } else if (btn.dataset.action === 'duplicate') {
+      // Make sure the popover's card is part of the selection so duplicate
+      // copies the right thing even if selection state got out of sync.
+      if (!state.selected.has(cardId)) {
+        state.selected.clear();
+        state.selected.add(cardId);
+        getCardEl(cardId)?.classList.add('selected');
+      }
       typeof duplicateSelected === 'function' && duplicateSelected();
     } else if (btn.dataset.action === 'delete') {
       // Ensure cardId is in selection before deleting
@@ -8026,6 +8033,16 @@ document.getElementById('btn-fit').addEventListener('click', fitAll);
 document.addEventListener('keyup', e => {
   if (e.code === 'Space') {
     if (_handMode) return; // hand tool keeps pan on
+    spaceDown = false;
+    boardWrap.style.cursor = '';
+    document.body.classList.remove('space-down');
+  }
+});
+// If the window loses focus while keys/modifiers are held (alt-tab, focus
+// switch, OS shortcut), clear the held-key state so the user isn't stuck
+// with a phantom pan/grab cursor after returning.
+window.addEventListener('blur', () => {
+  if (spaceDown && !_handMode) {
     spaceDown = false;
     boardWrap.style.cursor = '';
     document.body.classList.remove('space-down');
