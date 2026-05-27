@@ -7654,11 +7654,51 @@ document.addEventListener('mousemove', e => {
     return;
   }
 
-  if (connectPending) updatePendingArrow(e.clientX, e.clientY);
+  if (connectPending) {
+    updatePendingArrow(e.clientX, e.clientY);
+    // Track whether the user actually dragged after auto-entering connect.
+    if (window._autoConnectMode) window._anchorDragMoved = true;
+  }
 });
 
 /* ════════════════════════ MOUSE UP ════════════════════════ */
 document.addEventListener('mouseup', e => {
+  // Anchor-drag → finish connection on the release point (Miro parity).
+  // Fires only when we entered connect mode via the auto path AND a real
+  // drag happened (so a simple click on anchor still falls through to the
+  // existing click-click connect-mode flow).
+  if (connectPending && window._autoConnectMode) {
+    // Did we move far enough from start to count as a drag?
+    const moved = window._anchorDragMoved;
+    window._anchorDragMoved = false;
+    if (moved) {
+      // Prefer landing on an anchor dot, else on a card body (use nearest anchor),
+      // else free endpoint at cursor.
+      const dot = e.target.closest('.anchor-dot');
+      const cardEl = e.target.closest('.board-card');
+      if (dot && cardEl) {
+        const toCard = state.cards.find(c => c.id === cardEl.dataset.id);
+        if (toCard) { finishConnection({ card: toCard, anchor: dot.dataset.anchor }); return; }
+      }
+      if (cardEl) {
+        const toCard = state.cards.find(c => c.id === cardEl.dataset.id);
+        if (toCard) {
+          // Pick the anchor closest to the cursor on this card.
+          const r = cardEl.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width/2);
+          const dy = e.clientY - (r.top + r.height/2);
+          const anchor = Math.abs(dx) > Math.abs(dy)
+            ? (dx > 0 ? 'right' : 'left')
+            : (dy > 0 ? 'bottom' : 'top');
+          finishConnection({ card: toCard, anchor });
+          return;
+        }
+      }
+      // Released on empty area → finish as free endpoint at cursor.
+      const pos = screenToBoard(e.clientX, e.clientY);
+      if (pos) { finishConnection({ point: pos }); return; }
+    }
+  }
   if (isPanning) {
     isPanning = false;
     boardWrap.classList.remove('panning');
@@ -8158,12 +8198,12 @@ function groupSelected() {
 
 function ungroupSelected() {
   if (!state.selected.size) return;
-  snapshot();
   const toRemove = new Set();
   state.groups.forEach(g => {
     state.selected.forEach(id => { if (g.cardIds.has(id)) toRemove.add(g.id); });
   });
   if (!toRemove.size) { toast('No groups to ungroup'); return; }
+  snapshot();
   state.groups = state.groups.filter(g => !toRemove.has(g.id));
   updateGroupOutlines();
   scheduleSave();
@@ -11839,9 +11879,10 @@ function startRenameBoard() {
   inp.focus(); inp.select();
   async function save() {
     const newName = inp.value.trim() || oldName;
-    const span = document.createElement('div');
+    // Preserve the original element type/class to keep top-bar styling intact.
+    const span = document.createElement('span');
     span.id = 'board-name-display';
-    span.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;padding:3px 8px;border-radius:7px;transition:.15s;';
+    span.className = 'tb-board-chip-title';
     span.title = 'Click to rename';
     span.onclick = startRenameBoard;
     span.textContent = newName;
