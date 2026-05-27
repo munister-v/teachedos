@@ -2897,20 +2897,46 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-card.shape-card{background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;}
 .board-card.shape-card .card-resize{bottom:-8px;right:-8px;}
 #shape-panel{
-  position:fixed;z-index:1300;background:#fff;
-  border:1px solid rgba(0,0,0,.08);border-radius:10px;
-  box-shadow:0 8px 28px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);
-  padding:10px;display:none;min-width:212px;
+  position:fixed;z-index:1300;background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.06);border-radius:14px;
+  box-shadow:0 18px 44px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  padding:6px;display:none;width:230px;font-family:var(--font);
+  animation:sp-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
-[data-theme="dark"] #shape-panel{background:#252540;border-color:rgba(255,255,255,.10);}
+@keyframes sp-pop{from{opacity:0;transform:translateX(-4px) scale(.97);}to{opacity:1;transform:none;}}
+[data-theme="dark"] #shape-panel{background:#1F1F35;border-color:rgba(255,255,255,.10);}
 #shape-panel.open{display:block;}
-.sp-title{
-  font-size:11px;font-weight:600;color:#9999AA;text-transform:none;
-  letter-spacing:0;padding:0 2px 8px;display:block;font-family:var(--font);
+/* Miro-style list row inside shape panel */
+.sp-row{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;background:transparent;border:none;border-radius:8px;
+  cursor:pointer;color:var(--text,#050038);font-family:var(--font);font-size:13px;font-weight:600;
+  transition:background .12s,color .12s;
 }
-.sp-grid{display:grid;grid-template-columns:repeat(4,42px);gap:4px;}
+.sp-row:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+.sp-row-ic{width:22px;height:22px;flex-shrink:0;color:inherit;}
+.sp-row-ic-emoji{width:22px;font-size:16px;text-align:center;flex-shrink:0;color:var(--text-3);}
+.sp-row-lbl{flex:1;text-align:left;}
+.sp-row-kbd{font-family:var(--mono);font-size:10.5px;color:var(--text-3);background:rgba(94,94,74,.10);padding:2px 6px;border-radius:5px;}
+.sp-row.sp-row-secondary{color:var(--text-2);}
+.sp-row.sp-row-secondary:hover{color:var(--accent,#4262FF);}
+.sp-divider{height:1px;background:rgba(0,0,0,.06);margin:4px 6px;}
+[data-theme="dark"] .sp-divider{background:rgba(255,255,255,.08);}
+[data-theme="dark"] .sp-row{color:#fff;}
+[data-theme="dark"] .sp-row-kbd{background:rgba(255,255,255,.10);}
+/* The legacy 4-col grid stays for the "More shapes" pop-out */
+#shape-panel-more{
+  position:fixed;z-index:1310;background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.06);border-radius:14px;
+  box-shadow:0 18px 44px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  padding:8px;display:none;
+  animation:sp-pop .14s cubic-bezier(.34,1.3,.6,1) both;
+}
+#shape-panel-more.open{display:block;}
+[data-theme="dark"] #shape-panel-more{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+.sp-more-grid{display:grid;grid-template-columns:repeat(4,42px);gap:4px;}
 .sp-item{
-  width:42px;height:42px;border-radius:6px;border:1px solid transparent;
+  width:42px;height:42px;border-radius:8px;border:1px solid transparent;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:background .1s,border-color .1s,color .1s;color:#050038;
 }
@@ -2918,6 +2944,31 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .sp-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
 .sp-item.active{background:rgba(66,98,255,.12);color:#4262FF;border-color:#4262FF;}
 .sp-item svg{width:24px;height:24px;}
+
+/* FRAME PANEL — preset aspect-ratio grid */
+#frame-panel{
+  position:fixed;z-index:1300;background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.06);border-radius:14px;
+  box-shadow:0 18px 44px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  padding:10px;display:none;width:262px;font-family:var(--font);
+  animation:sp-pop .14s cubic-bezier(.34,1.3,.6,1) both;
+}
+#frame-panel.open{display:block;}
+[data-theme="dark"] #frame-panel{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+.fp-title{font-size:11px;font-weight:700;color:var(--text-3,#9999AA);letter-spacing:.04em;text-transform:uppercase;margin:2px 4px 8px;}
+.fp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.fp-tile{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:10px 6px;border:1px solid rgba(0,0,0,.06);border-radius:10px;
+  background:transparent;cursor:pointer;color:var(--text,#050038);
+  font-family:var(--font);font-size:11px;font-weight:700;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.fp-tile:hover{background:rgba(66,98,255,.08);border-color:rgba(66,98,255,.30);color:var(--accent,#4262FF);}
+.fp-ic{display:flex;align-items:center;justify-content:center;color:var(--text-3);}
+.fp-tile:hover .fp-ic{color:var(--accent,#4262FF);}
+.fp-lbl{}
+[data-theme="dark"] .fp-tile{border-color:rgba(255,255,255,.08);color:#fff;}
 /* ── MINDMAP ── */
 .board-card.mindmap-card{border-radius:50px!important;border:2.5px solid transparent!important;box-shadow:0 4px 18px rgba(0,0,0,.13)!important;overflow:hidden!important;}
 .mindmap-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px 16px;font-size:14px;font-weight:700;text-align:center;word-break:break-word;line-height:1.3;cursor:text;}
@@ -3251,7 +3302,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L9.5 5l4.5 4.5-6.5 6.5h-3v-3z"/><path d="M7 15.5h9"/></svg>
   </button>
   <!-- 9. Frame -->
-  <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="setMiroTool('frame');quickAddFrame()">
+  <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="openFramePanel(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="13" height="11" rx="1"/><path d="M2.5 6.5h13M5.5 3.5v11"/></svg>
   </button>
   <div class="mt-sep"></div>
@@ -3292,26 +3343,88 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic">🧹</span><span class="mtm-lbl">Clear drawing</span></button>
 </div>
 
-<!-- SHAPE PANEL -->
+<!-- SHAPE PANEL — Miro-style: list of connectors + shapes with labels + shortcuts -->
 <div id="shape-panel">
-  <span class="sp-title">Shapes</span>
-  <div class="sp-grid">
-    <div class="sp-item" onclick="quickAddShape('rect')" title="Rectangle"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="22" height="22" rx="0"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('rounded')" title="Rounded Rect"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="22" height="22" rx="6"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('circle')" title="Circle / Ellipse"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="13" cy="13" rx="11" ry="11"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('triangle')" title="Triangle"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,24 2,24"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('diamond')" title="Diamond"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,13 13,24 2,13"/></svg></div>
+  <!-- Connectors first (Line / Arrow / Elbow / Block Arrow) -->
+  <button class="sp-row" onclick="_startConnectorFromPanel('straight')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 19L19 3"/></svg>
+    <span class="sp-row-lbl">Line</span><span class="sp-row-kbd">L</span>
+  </button>
+  <button class="sp-row" onclick="_startConnectorFromPanel('curve')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19L19 3"/><path d="M19 3l-4 1.5M19 3l-1.5 4"/></svg>
+    <span class="sp-row-lbl">Arrow</span>
+  </button>
+  <button class="sp-row" onclick="_startConnectorFromPanel('elbow')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19V8h12M15 8l-2-2M15 8l-2 2"/></svg>
+    <span class="sp-row-lbl">Elbow arrow</span>
+  </button>
+  <button class="sp-row" onclick="quickAddShape('arrow-r')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><polygon points="2,8 14,8 14,4 20,11 14,18 14,14 2,14"/></svg>
+    <span class="sp-row-lbl">Block arrow</span>
+  </button>
+  <div class="sp-divider"></div>
+  <!-- Shapes -->
+  <button class="sp-row" onclick="quickAddShape('rect')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="16" height="14" rx="1"/></svg>
+    <span class="sp-row-lbl">Rectangle</span><span class="sp-row-kbd">R</span>
+  </button>
+  <button class="sp-row" onclick="quickAddShape('circle')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="11" cy="11" rx="8" ry="8"/></svg>
+    <span class="sp-row-lbl">Oval</span><span class="sp-row-kbd">O</span>
+  </button>
+  <button class="sp-row" onclick="quickAddShape('diamond')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><polygon points="11,3 19,11 11,19 3,11"/></svg>
+    <span class="sp-row-lbl">Rhombus</span>
+  </button>
+  <button class="sp-row" onclick="quickAddShape('triangle')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><polygon points="11,3 20,19 2,19"/></svg>
+    <span class="sp-row-lbl">Triangle</span>
+  </button>
+  <button class="sp-row" onclick="quickAddShape('divider')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 11h16"/></svg>
+    <span class="sp-row-lbl">Divider</span>
+  </button>
+  <div class="sp-divider"></div>
+  <button class="sp-row sp-row-secondary" onclick="_showMoreShapes(event)">
+    <span class="sp-row-ic-emoji">▦</span>
+    <span class="sp-row-lbl">More shapes</span>
+  </button>
+  <button class="sp-row sp-row-secondary" onclick="closeShapePanel();toolbarQuickAdd('mindmap')">
+    <span class="sp-row-ic-emoji">◉</span>
+    <span class="sp-row-lbl">Diagram</span>
+  </button>
+</div>
+
+<!-- Extended shapes pop-out (More shapes…) -->
+<div id="shape-panel-more">
+  <div class="sp-more-grid">
+    <div class="sp-item" onclick="quickAddShape('rounded')" title="Rounded"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="22" height="22" rx="6"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('pentagon')" title="Pentagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 24,9.5 20,22 6,22 2,9.5"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('hexagon')" title="Hexagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 23,7.5 23,18.5 13,24 3,18.5 3,7.5"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('star')" title="Star"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13,2 15.5,9.5 23.5,9.5 17.5,14.5 19.5,22.5 13,18 6.5,22.5 8.5,14.5 2.5,9.5 10.5,9.5"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('arrow-r')" title="Arrow Right"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="2,9 17,9 17,4 24,13 17,22 17,17 2,17"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('arrow-l')" title="Arrow Left"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="24,9 9,9 9,4 2,13 9,22 9,17 24,17"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('callout')" title="Speech Bubble"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,2 H24 V18 H10 L6,24 L7,18 H2 Z"/></svg></div>
-    <div class="sp-item" onclick="quickAddShape('cross')" title="Cross / Plus"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M10,2 H16 V10 H24 V16 H16 V24 H10 V16 H2 V10 H10 Z"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('callout')" title="Speech"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,2 H24 V18 H10 L6,24 L7,18 H2 Z"/></svg></div>
+    <div class="sp-item" onclick="quickAddShape('cross')" title="Cross"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M10,2 H16 V10 H24 V16 H16 V24 H10 V16 H2 V10 H10 Z"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('parallelogram')" title="Parallelogram"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,2 24,2 20,24 2,24"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('cylinder')" title="Cylinder"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="13" cy="6" rx="10" ry="4"/><line x1="3" y1="6" x2="3" y2="20"/><line x1="23" y1="6" x2="23" y2="20"/><ellipse cx="13" cy="20" rx="10" ry="4"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('trapezoid')" title="Trapezoid"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6,2 20,2 24,24 2,24"/></svg></div>
     <div class="sp-item" onclick="quickAddShape('octagon')" title="Octagon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><polygon points="9,2 17,2 24,9 24,17 17,24 9,24 2,17 2,9"/></svg></div>
+  </div>
+</div>
+
+<!-- FRAME PANEL — preset aspect ratios -->
+<div id="frame-panel">
+  <div class="fp-title">Frame</div>
+  <div class="fp-grid">
+    <button class="fp-tile" onclick="_addFramePreset('custom')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2"><rect x="3" y="3" width="16" height="16"/></svg></span><span class="fp-lbl">Custom</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('a4')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="2" width="12" height="18"/></svg></span><span class="fp-lbl">A4</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('letter')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="12" height="16"/></svg></span><span class="fp-lbl">Letter</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('16:9')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="18" height="10"/></svg></span><span class="fp-lbl">16:9</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('4:3')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="16" height="14"/></svg></span><span class="fp-lbl">4:3</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('1:1')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="14" height="14"/></svg></span><span class="fp-lbl">1:1</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('mobile')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="8" height="18" rx="1.5"/><line x1="10" y1="18" x2="12" y2="18"/></svg></span><span class="fp-lbl">Mobile</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('tablet')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="12" height="16" rx="1.5"/></svg></span><span class="fp-lbl">Tablet</span></button>
+    <button class="fp-tile" onclick="_addFramePreset('desktop')"><span class="fp-ic"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="18" height="12" rx="1"/><line x1="8" y1="20" x2="14" y2="20"/></svg></span><span class="fp-lbl">Desktop</span></button>
   </div>
 </div>
 
@@ -12211,8 +12324,95 @@ function closeShapePanel() { document.getElementById('shape-panel').classList.re
 
 function quickAddShape(shape) {
   closeShapePanel();
+  _closeMoreShapes && _closeMoreShapes();
   // Enter placement mode: user clicks canvas where they want the shape
   enterPlaceMode('shape', { shape, fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+}
+
+/* ── Shape panel: secondary "More shapes" pop-out ─────────────── */
+function _showMoreShapes(e) {
+  e?.stopPropagation();
+  const pop = document.getElementById('shape-panel-more');
+  if (!pop) return;
+  const sp = document.getElementById('shape-panel');
+  const r = sp.getBoundingClientRect();
+  pop.style.left = (r.right + 8) + 'px';
+  pop.style.top  = r.top + 'px';
+  pop.classList.add('open');
+}
+function _closeMoreShapes() {
+  document.getElementById('shape-panel-more')?.classList.remove('open');
+}
+document.addEventListener('mousedown', e => {
+  const pop = document.getElementById('shape-panel-more');
+  if (!pop || !pop.classList.contains('open')) return;
+  if (pop.contains(e.target)) return;
+  if (e.target.closest('.sp-row.sp-row-secondary')) return;
+  _closeMoreShapes();
+}, true);
+
+/* ── Connector starters from the shape panel — drop into connect mode ─ */
+function _startConnectorFromPanel(route) {
+  closeShapePanel();
+  setMode && setMode('connect');
+  // Default the arrow style for the next click-to-create connection
+  window._nextArrowRoute = route;
+  toast && toast('Click two points on the board to draw a ' + route + ' connector');
+}
+
+/* ── Frame panel ─────────────────────────────────────────────── */
+const _FRAME_PRESETS = {
+  custom:  { w: 720,  h: 480,  label: 'Custom'  },
+  a4:      { w: 595,  h: 842,  label: 'A4'      },
+  letter:  { w: 612,  h: 792,  label: 'Letter'  },
+  '16:9':  { w: 960,  h: 540,  label: '16:9'    },
+  '4:3':   { w: 800,  h: 600,  label: '4:3'     },
+  '1:1':   { w: 600,  h: 600,  label: 'Square'  },
+  mobile:  { w: 390,  h: 844,  label: 'Mobile'  },
+  tablet:  { w: 820,  h: 1180, label: 'Tablet'  },
+  desktop: { w: 1280, h: 800,  label: 'Desktop' },
+};
+function openFramePanel(ev) {
+  ev?.stopPropagation();
+  const pop = document.getElementById('frame-panel');
+  if (!pop) return;
+  if (pop.classList.contains('open')) { pop.classList.remove('open'); return; }
+  const btn = document.getElementById('mt-frame');
+  const r = btn.getBoundingClientRect();
+  pop.style.left = (r.right + 8) + 'px';
+  const popH = pop.offsetHeight || 300;
+  let top = r.top + r.height/2 - popH/2;
+  if (top < 8) top = 8;
+  if (top + popH > window.innerHeight - 8) top = window.innerHeight - 8 - popH;
+  pop.style.top = top + 'px';
+  pop.classList.add('open');
+  setTimeout(() => document.addEventListener('mousedown', _closeFramePanelOnce, true), 0);
+}
+function _closeFramePanelOnce(e) {
+  const pop = document.getElementById('frame-panel');
+  if (pop?.contains(e.target)) return;
+  pop?.classList.remove('open');
+  document.removeEventListener('mousedown', _closeFramePanelOnce, true);
+}
+function _addFramePreset(key) {
+  document.getElementById('frame-panel')?.classList.remove('open');
+  const preset = _FRAME_PRESETS[key] || _FRAME_PRESETS.custom;
+  const center = (typeof getBoardViewportCenter === 'function')
+    ? getBoardViewportCenter() : { x: 200, y: 200 };
+  // Add a frame card sized to the preset
+  if (typeof addCard !== 'function') return;
+  const card = addCard('frame',
+    center.x - preset.w/2, center.y - preset.h/2,
+    { title: preset.label, bg: 'rgba(255,255,255,1)', border: 'rgba(0,0,0,.18)' },
+    preset.w, preset.h
+  );
+  if (card) {
+    clearSelection && clearSelection();
+    state.selected = new Set([card.id]);
+    getCardEl(card.id)?.classList.add('selected');
+    showLayerPopover && showLayerPopover(card.id);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  }
 }
 
 function toolbarQuickAdd(type) {
