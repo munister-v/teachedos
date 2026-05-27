@@ -4711,8 +4711,8 @@ function getBoardViewportCenterScreen() {
       left = Math.max(left, er.right);
     }
   });
-  // Right obstructions: AI assistant panel, card editor side panel, comments panel
-  ['#ai-assistant-panel','#card-editor','#comments-panel'].forEach(sel => {
+  // Right obstructions: AI assistant panel, card editor side panel, comments panel, share panel
+  ['#ai-assistant-panel','#card-editor','#comments-panel','#share-panel'].forEach(sel => {
     const el = document.querySelector(sel);
     const er = overlap(el);
     if (!er) return;
@@ -15396,7 +15396,9 @@ function closeSettings() { document.getElementById('settings-overlay').classList
 
 function setTheme(name, save=true) {
   boardSettings.theme = name;
-  ['blue','green','purple','dark','minimal','ocean'].forEach(() => document.documentElement.removeAttribute('data-theme'));
+  // Clear any previous theme attribute, then set the new one (unless it's
+  // the default "pink" theme, which is keyed by the absence of data-theme).
+  document.documentElement.removeAttribute('data-theme');
   if (name !== 'pink') document.documentElement.setAttribute('data-theme', name);
   if (save) { boardSettings.accent = null; updateSettingsUI(); saveSettings(); }
 }
@@ -15428,7 +15430,11 @@ function setBoardBg(type, save=true) {
     bw.style.backgroundImage = 'linear-gradient(var(--border) 1px,transparent 1px)';
     bw.style.backgroundSize = '100% 28px';
   } else {
+    // Blank background: clear the image AND the size left over from the
+    // previous pattern (otherwise switching dots → blank kept the 28x28
+    // sizing which prevents future toggles from re-applying correctly).
     bw.style.backgroundImage = 'none';
+    bw.style.backgroundSize = '';
   }
   if (save) { updateSettingsUI(); saveSettings(); }
 }
