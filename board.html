@@ -1474,6 +1474,78 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
 
+/* ── Miro-style pen palette (vertical column flyout) ── */
+.draw-palette{
+  display:none;position:fixed;z-index:1000;
+  background:var(--card-bg,#fff);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:14px;padding:8px;
+  box-shadow:0 18px 44px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  min-width:240px;max-width:280px;
+  font-family:var(--font);
+  animation: dp-pop .15s cubic-bezier(.34,1.3,.6,1) both;
+}
+.draw-palette.open{display:block;}
+@keyframes dp-pop{from{opacity:0;transform:translateX(-4px) scale(.97);}to{opacity:1;transform:none;}}
+[data-theme="dark"] .draw-palette{background:#1F1F35;border-color:rgba(255,255,255,.08);}
+.dp-tool{
+  width:100%;height:38px;display:flex;align-items:center;gap:10px;
+  padding:0 10px;background:transparent;border:none;cursor:pointer;
+  color:var(--text,#050038);border-radius:9px;
+  transition:background .12s,color .12s;
+  font-family:var(--font);font-size:13px;font-weight:600;
+}
+.dp-tool:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+.dp-tool.active{background:rgba(66,98,255,.14);color:#4262FF;font-weight:700;}
+.dp-tool::after{content:attr(title);font-size:12px;margin-left:auto;color:var(--text-3,#9999AA);font-weight:500;}
+.dp-tool.active::after{color:#4262FF;}
+[data-theme="dark"] .dp-tool{color:#fff;}
+.dp-sep{height:1px;background:rgba(0,0,0,.06);margin:6px 8px;}
+[data-theme="dark"] .dp-sep{background:rgba(255,255,255,.08);}
+.dp-section{padding:6px 10px 4px;}
+.dp-label{font-size:10.5px;font-weight:700;color:var(--text-3,#9999AA);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;font-family:var(--font);}
+.dp-size{display:flex;align-items:center;gap:10px;}
+.dp-size input[type=range]{flex:1;accent-color:#4262FF;}
+.dp-size-val{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text,#050038);min-width:24px;text-align:right;}
+.dp-color-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:8px;}
+.dp-color-grid > div{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;
+  transition:transform .12s,border-color .12s,box-shadow .12s;
+  position:relative;
+}
+.dp-color-grid > div:hover{transform:scale(1.12);}
+.dp-color-grid > div.is-active{
+  border-color:var(--accent,#4262FF);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#4262FF) 16%,transparent);
+}
+.dp-color-picker{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  padding:7px 8px;border-radius:9px;
+  border:1px solid rgba(0,0,0,.08);background:transparent;
+  font-size:12px;font-weight:600;color:var(--text-2,#3A3A2E);
+  transition:background .12s,border-color .12s;position:relative;
+}
+.dp-color-picker:hover{background:rgba(66,98,255,.06);border-color:rgba(66,98,255,.20);color:var(--accent,#4262FF);}
+.dp-color-picker input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;background:transparent;}
+.dp-color-picker-swatch{
+  width:20px;height:20px;border-radius:50%;
+  background:conic-gradient(#FF6B6B,#FACC15,#22C55E,#06B6D4,#4262FF,#8B5CF6,#FF6B6B);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);
+  flex-shrink:0;
+}
+.dp-color-picker-label{flex:1;}
+[data-theme="dark"] .dp-color-picker{border-color:rgba(255,255,255,.10);color:#fff;}
+.dp-actions{padding:8px 10px 0;border-top:1px solid rgba(0,0,0,.06);margin-top:6px;}
+[data-theme="dark"] .dp-actions{border-top-color:rgba(255,255,255,.08);}
+.dp-done{
+  width:100%;padding:8px 12px;border:none;border-radius:9px;
+  background:var(--accent,#4262FF);color:#fff;
+  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;
+  transition:background .12s;
+}
+.dp-done:hover{background:color-mix(in srgb,var(--accent,#4262FF) 85%,#000);}
+
 /* More-tools popover anchored to the + button in the left tray */
 #mt-more-pop{
   display:none;position:fixed;z-index:1100;
@@ -4070,22 +4142,47 @@ polite request</textarea>
   </div>
 </div>
 
-<!-- DRAWING TOOL PALETTE (color + thickness) - Miro style -->
-<div id="draw-palette" style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;box-shadow:0 8px 28px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);min-width:252px;">
-  <div style="font-size:11px;font-weight:700;color:#9999AA;letter-spacing:0;margin-bottom:8px;font-family:var(--font);" id="draw-palette-title">Pen tools</div>
-  <div id="draw-tool-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-    <span style="font-size:12px;font-weight:500;color:#050038;min-width:38px;">Size</span>
-    <input id="draw-size" type="range" min="1" max="40" value="3" oninput="setDrawSize(this.value)" style="flex:1;accent-color:#4262FF;">
-    <span id="draw-size-val" style="font-family:var(--font);font-size:12px;font-weight:600;color:#050038;min-width:24px;text-align:right;">3</span>
+<!-- DRAWING TOOL PALETTE — Miro-style vertical column flyout -->
+<div id="draw-palette" class="draw-palette" role="menu" aria-hidden="true">
+  <!-- Tool icons (vertical column like Miro) -->
+  <button class="dp-tool" data-tool="pen" onclick="chooseDrawTool('pen')" title="Pen (P)">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3l5 5L9 18H4v-5z"/><path d="M12 5l5 5"/>
+    </svg>
+  </button>
+  <button class="dp-tool" data-tool="marker" onclick="chooseDrawTool('marker')" title="Highlighter (H)">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="11" y="2" width="8" height="6" rx="1" transform="rotate(45 15 5)" fill="currentColor" fill-opacity=".22"/>
+      <path d="M6 10l-3 7 4 1 3-7"/>
+    </svg>
+  </button>
+  <button class="dp-tool" data-tool="eraser" onclick="chooseDrawTool('eraser')" title="Eraser (E)">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 14l8-8 6 6-8 8H5z"/><path d="M9 20h11"/>
+    </svg>
+  </button>
+  <div class="dp-sep"></div>
+  <!-- Size dot (visual current-size indicator) -->
+  <div class="dp-section">
+    <div class="dp-label">Size</div>
+    <div class="dp-size">
+      <input id="draw-size" type="range" min="1" max="40" value="3" oninput="setDrawSize(this.value);_updateDpSizeDot()">
+      <span id="draw-size-val" class="dp-size-val">3</span>
+    </div>
   </div>
-  <div style="font-size:11px;font-weight:600;color:#9999AA;letter-spacing:0;margin-bottom:6px;font-family:var(--font);">Color</div>
-  <div id="draw-color-grid" style="display:grid;grid-template-columns:repeat(7,28px);gap:7px;margin-bottom:10px;"></div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <label style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);">
-      <input id="draw-color-custom" type="color" value="#1C1C1E" oninput="setDrawColor(this.value)" style="opacity:0;width:100%;height:100%;cursor:pointer;">
+  <div class="dp-sep"></div>
+  <!-- Color row + native picker -->
+  <div class="dp-section" id="draw-color-section">
+    <div class="dp-label">Color</div>
+    <div id="draw-color-grid" class="dp-color-grid"></div>
+    <label class="dp-color-picker" title="Custom color">
+      <span class="dp-color-picker-swatch" id="dp-color-current"></span>
+      <input id="draw-color-custom" type="color" value="#1C1C1E" oninput="setDrawColor(this.value);_updateDpCurrentDot()">
+      <span class="dp-color-picker-label">Custom…</span>
     </label>
-    <button onclick="closeDrawPalette()" style="flex:1;padding:7px;border-radius:6px;border:none;background:#4262FF;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='#2D4EE8'" onmouseout="this.style.background='#4262FF'">Done</button>
+  </div>
+  <div class="dp-actions">
+    <button class="dp-done" onclick="closeDrawPalette()">Done</button>
   </div>
 </div>
 
@@ -12121,7 +12218,33 @@ function quickAddShape(shape) {
 function toolbarQuickAdd(type) {
   // Image / video need a modal first — open modal, then place on board
   if (type === 'image' || type === 'video') { toolbarOpenModal(type); return; }
-  // All other types: enter Miro-style placement mode (click canvas to place)
+  // Miro behaviour: text and sticky drop straight onto the board at the
+  // current viewport centre on a SINGLE click — no second click needed.
+  if (type === 'text' || type === 'sticky') {
+    const pos = (typeof getBoardViewportCenter === 'function')
+      ? getBoardViewportCenter()
+      : { x: 200, y: 200 };
+    const placed = quickAddCard(type, pos.x, pos.y);
+    if (placed) {
+      clearSelection && clearSelection();
+      state.selected = new Set([placed.id]);
+      getCardEl(placed.id)?.classList.add('selected');
+      showLayerPopover && showLayerPopover(placed.id);
+      setTimeout(() => {
+        const el = getCardEl(placed.id);
+        const ta = el?.querySelector('textarea');
+        const rich = el?.querySelector('[contenteditable="true"],[contenteditable="plaintext-only"]');
+        if (ta) { ta.focus(); ta.select?.(); }
+        else if (rich) {
+          rich.focus();
+          if (rich.classList.contains('sticky-text')) rich.classList.add('editing');
+          document.execCommand && document.execCommand('selectAll', false, null);
+        }
+      }, 40);
+    }
+    return;
+  }
+  // All other types: keep the placement mode (so the user can target a spot)
   enterPlaceMode(type);
 }
 
@@ -14143,46 +14266,28 @@ function eraseDrawing() {
 function openDrawPalette(anchorBtn, tool) {
   const pal = document.getElementById('draw-palette');
   if (!pal) return;
-  // Title
-  const title = document.getElementById('draw-palette-title');
-  if (title) title.textContent = 'Pen tools';
-  const row = document.getElementById('draw-tool-row');
-  if (row) {
-    const tools = [
-      ['pen', '✎', 'Pen'],
-      ['marker', '▰', 'Highlighter'],
-      ['eraser', '⌫', 'Eraser'],
-    ];
-    row.innerHTML = tools.map(([id, ic, label]) => `
-      <button type="button" onclick="chooseDrawTool('${id}')"
-        style="height:36px;border-radius:10px;border:1px solid ${tool===id?'#4262FF':'rgba(0,0,0,.10)'};background:${tool===id?'rgba(66,98,255,.10)':'#fff'};color:${tool===id?'#4262FF':'#050038'};font:700 11px var(--font);cursor:pointer;">
-        <span style="font-size:13px;margin-right:3px;">${ic}</span>${label}
-      </button>
-    `).join('');
-  }
-  // Build color grid (skip for eraser)
+  // Mark the active tool in the vertical icon column
+  pal.querySelectorAll('.dp-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+
+  // Build color grid — eraser hides the color section
   const grid = document.getElementById('draw-color-grid');
-  const colorRow = grid && grid.parentElement;
+  const colorSection = document.getElementById('draw-color-section');
   if (tool === 'eraser') {
-    if (grid) grid.style.display = 'none';
-    const customRow = document.getElementById('draw-color-custom');
-    if (customRow && customRow.parentElement) customRow.parentElement.style.display = 'none';
-  } else {
-    if (grid) {
-      grid.style.display = '';
-      const palette = tool === 'pen' ? PEN_COLORS : MARKER_COLORS;
-      const cur = _drawState[tool].color;
-      grid.innerHTML = palette.map(c => `
-        <div onclick="setDrawColor('${c}')" title="${c}"
-          style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c.toLowerCase()===cur.toLowerCase()?'#4262FF':(c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.25)':'rgba(255,255,255,.9)')};box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:.12s;"
-          onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform=''"></div>
-      `).join('');
-    }
+    if (colorSection) colorSection.style.display = 'none';
+  } else if (grid) {
+    if (colorSection) colorSection.style.display = '';
+    const palette = tool === 'pen' ? PEN_COLORS : MARKER_COLORS;
+    const cur = (_drawState[tool].color || '').toLowerCase();
+    grid.innerHTML = palette.map(c => `
+      <div onclick="setDrawColor('${c}')" title="${c}"
+        class="${c.toLowerCase()===cur?'is-active':''}"
+        style="background:${c};box-shadow:inset 0 0 0 1px ${c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.20)':'rgba(0,0,0,.08)'};"></div>
+    `).join('');
     const customColor = document.getElementById('draw-color-custom');
-    if (customColor) {
-      customColor.parentElement.style.display = '';
-      if (/^#[0-9a-fA-F]{6}$/.test(_drawState[tool].color)) customColor.value = _drawState[tool].color;
+    if (customColor && /^#[0-9a-fA-F]{6}$/.test(_drawState[tool].color)) {
+      customColor.value = _drawState[tool].color;
     }
+    _updateDpCurrentDot();
   }
   // Size slider
   const sizeInput = document.getElementById('draw-size');
@@ -14192,18 +14297,29 @@ function openDrawPalette(anchorBtn, tool) {
     if (sizeVal) sizeVal.textContent = _drawState[tool].size;
     sizeInput.max = tool === 'marker' ? 40 : tool === 'eraser' ? 60 : 20;
   }
-  // Position near the anchor button
+  // Position near the anchor button (clamp to viewport)
   if (anchorBtn) {
     const r = anchorBtn.getBoundingClientRect();
     pal.style.left = (r.right + 12) + 'px';
-    pal.style.top  = Math.max(8, r.top) + 'px';
+    const palH = pal.offsetHeight || 360;
+    let top = r.top + r.height/2 - palH/2;
+    if (top < 8) top = 8;
+    if (top + palH > window.innerHeight - 8) top = window.innerHeight - 8 - palH;
+    pal.style.top = top + 'px';
   }
+  pal.classList.add('open');
   pal.style.display = 'block';
 }
 function closeDrawPalette() {
   const pal = document.getElementById('draw-palette');
-  if (pal) pal.style.display = 'none';
+  if (pal) { pal.classList.remove('open'); pal.style.display = 'none'; }
 }
+function _updateDpCurrentDot() {
+  const cur = document.getElementById('dp-color-current');
+  const conf = _drawTool && _drawState[_drawTool];
+  if (cur && conf && conf.color) cur.style.background = conf.color;
+}
+function _updateDpSizeDot() { /* placeholder kept for future visual */ }
 function setDrawColor(c) {
   if (!_drawTool || _drawTool === 'eraser') return;
   _drawState[_drawTool].color = c;
