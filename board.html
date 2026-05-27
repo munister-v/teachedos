@@ -2131,12 +2131,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ai-action.secondary{background:#111018;color:#fff;}
 .ai-action.ghost{background:rgba(17,24,39,.08);color:#171420;}
 .ai-builder{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr);gap:16px;margin-top:18px;}
-.ai-form{background:rgba(255,255,255,.82);border:1px solid rgba(17,24,39,.08);border-radius:20px;padding:18px;
-  box-shadow:0 12px 36px rgba(17,24,39,.06);}
-.ai-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);
+.ai-form{background:#fffdf8!important;border:1px solid rgba(17,24,39,.08);border-radius:20px;padding:18px;
+  box-shadow:0 12px 36px rgba(17,24,39,.06);color:#171420!important;}
+.ai-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#7b7282!important;
   font-weight:900;margin:12px 0 6px;}
 .ai-form input,.ai-form select,.ai-form textarea{width:100%;border:1.5px solid rgba(17,24,39,.10);border-radius:13px;
-  background:#fff;color:#171420;padding:11px 12px;font:700 13px/1.35 var(--font);outline:none;}
+  background:#fff!important;color:#171420!important;padding:11px 12px;font:700 13px/1.35 var(--font);outline:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 6px 18px rgba(17,24,39,.04)!important;}
+.ai-form input::placeholder,.ai-form textarea::placeholder{color:#8f8797!important;opacity:1!important;}
+.ai-form select option{background:#fff!important;color:#171420!important;}
 .ai-form textarea{min-height:82px;resize:vertical;}
 .ai-form input:focus,.ai-form select:focus,.ai-form textarea:focus{border-color:#caff32;box-shadow:0 0 0 4px rgba(202,255,50,.22);}
 .ai-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -3311,6 +3314,28 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
             <label for="ai-audience">Audience</label>
             <select id="ai-audience">
               <option>Adults</option><option selected>Teens</option><option>Kids</option><option>Business</option><option>Exam prep</option>
+            </select>
+          </div>
+        </div>
+        <div class="ai-form-row">
+          <div>
+            <label for="ai-goal">Lesson goal</label>
+            <select id="ai-goal">
+              <option value="confidence" selected>Build confidence</option>
+              <option value="accuracy">Improve accuracy</option>
+              <option value="fluency">Boost fluency</option>
+              <option value="exam">Exam readiness</option>
+              <option value="revision">Revision & retention</option>
+            </select>
+          </div>
+          <div>
+            <label for="ai-tone">Teaching tone</label>
+            <select id="ai-tone">
+              <option value="supportive" selected>Supportive</option>
+              <option value="playful">Playful</option>
+              <option value="focused">Focused</option>
+              <option value="challenging">Challenging</option>
+              <option value="calm">Calm</option>
             </select>
           </div>
         </div>
@@ -11535,6 +11560,8 @@ function loadAiAssistantSettings() {
     if (saved.studentMemory) document.getElementById('ai-student-memory').value = saved.studentMemory;
     if (saved.mistakes) document.getElementById('ai-mistakes').value = saved.mistakes;
     if (saved.mode) document.getElementById('ai-mode').value = saved.mode;
+    if (saved.goal) document.getElementById('ai-goal').value = saved.goal;
+    if (saved.tone) document.getElementById('ai-tone').value = saved.tone;
   } catch {}
 }
 
@@ -11544,6 +11571,8 @@ function saveAiAssistantSettings() {
     studentMemory: document.getElementById('ai-student-memory')?.value || '',
     mistakes: document.getElementById('ai-mistakes')?.value || '',
     mode: document.getElementById('ai-mode')?.value || 'lesson-board',
+    goal: document.getElementById('ai-goal')?.value || 'confidence',
+    tone: document.getElementById('ai-tone')?.value || 'supportive',
   };
   localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify(payload));
   updateAiProviderNote();
@@ -11676,6 +11705,8 @@ function getAiAssistantInput() {
   return {
     provider: 'local-memory',
     mode: document.getElementById('ai-mode')?.value || 'lesson-board',
+    goal: document.getElementById('ai-goal')?.value || 'confidence',
+    tone: document.getElementById('ai-tone')?.value || 'supportive',
     level: document.getElementById('ai-level')?.value || 'B1',
     duration: document.getElementById('ai-duration')?.value || '45 min',
     skill: document.getElementById('ai-skill')?.value || 'Writing',
@@ -11738,6 +11769,20 @@ function generateLocalAiLesson(input) {
     `What is one mistake people often make with this topic?`,
     `Create one useful question about ${cleanTopic}.`,
   ];
+  const goalText = {
+    confidence: 'low-pressure confidence building',
+    accuracy: 'accuracy, correction and cleaner output',
+    fluency: 'fluency, speed and natural responses',
+    exam: 'exam strategy and measurable criteria',
+    revision: 'retrieval, recycling and long-term retention',
+  }[input.goal] || 'balanced progress';
+  const toneText = {
+    supportive: 'supportive and encouraging',
+    playful: 'playful and energetic',
+    focused: 'focused and efficient',
+    challenging: 'challenging but fair',
+    calm: 'calm and structured',
+  }[input.tone] || 'supportive';
   const assessmentCriteria = [
     input.skill === 'Writing' ? 'Clear position and logical paragraphing' : 'Clear message and active participation',
     `Accurate use of ${vocabulary.slice(0, 3).join(', ') || 'target language'}`,
@@ -11760,9 +11805,9 @@ function generateLocalAiLesson(input) {
     provider: input.provider,
     mode: input.mode,
     title: `${input.level} ${input.skill}: ${cleanTopic}`,
-    summary: `${input.duration} ${input.mode.replace('-', ' ')} for ${input.audience.toLowerCase()} with reusable cards, homework and teacher control.${adaptedNote}`,
+    summary: `${input.duration} ${input.mode.replace('-', ' ')} for ${input.audience.toLowerCase()} with reusable cards, homework and teacher control. Goal: ${goalText}. Tone: ${toneText}.${adaptedNote}`,
     stages: [
-      { time: `${warm} min`, title: 'Hook + goal', goal: 'Activate context and make the lesson outcome visible.', activity: `Quick board prompt: what makes "${cleanTopic}" useful or difficult? Students add 2 sticky notes.` },
+      { time: `${warm} min`, title: 'Hook + goal', goal: `Activate context with a ${toneText} start.`, activity: `Quick board prompt: what makes "${cleanTopic}" useful or difficult? Students add 2 sticky notes. Keep the goal on ${goalText}.` },
       { time: `${lead} min`, title: 'Input + noticing', goal: `Build core ${input.skill.toLowerCase()} language.`, activity: `Teacher presents a model and students identify ${recipe[0]} patterns with color coding.${mistakeItems[0] ? ' Watch for: ' + mistakeItems[0] + '.' : ''}` },
       { time: `${practice} min`, title: 'Controlled practice', goal: 'Move from recognition to accurate production.', activity: `Students complete a ${recipe[1]} task, then compare answers and correct one common mistake.${mistakeItems[1] ? ' Include contrast with: ' + mistakeItems[1] + '.' : ''}` },
       { time: `${output} min`, title: input.mode === 'game-pack' ? 'Game challenge' : 'Freer task', goal: 'Use the target language in a realistic classroom product.', activity: `Pairs complete a ${recipe[2]} task and upgrade it using a mini-checklist.${input.studentMemory ? ' Personalise examples from class memory.' : ''}` },
@@ -14296,7 +14341,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=64').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=65').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
