@@ -1378,6 +1378,35 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
 
+/* More-tools popover anchored to the + button in the left tray */
+#mt-more-pop{
+  display:none;position:fixed;z-index:1100;
+  left:calc(var(--mt-w,48px) + 8px);
+  bottom:8px;
+  min-width:220px;padding:6px;
+  background:var(--card-bg,#fff);border:1px solid rgba(0,0,0,.06);
+  border-radius:12px;
+  box-shadow:0 12px 32px rgba(5,5,40,.18),0 1px 4px rgba(0,0,0,.06);
+  font-family:var(--font);
+  animation: mt-more-pop .14s cubic-bezier(.34,1.3,.6,1) both;
+}
+#mt-more-pop.open{display:block;}
+@keyframes mt-more-pop{from{opacity:0;transform:translateX(-4px) scale(.97);}to{opacity:1;transform:none;}}
+[data-theme="dark"] #mt-more-pop{background:#252540;border-color:rgba(255,255,255,.10);}
+.mt-more-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border:none;border-radius:8px;background:transparent;
+  cursor:pointer;color:var(--text);
+  font-family:var(--font);font-size:13px;font-weight:600;
+  transition:background .1s,color .1s;
+}
+.mt-more-item:hover{background:rgba(66,98,255,.08);color:var(--accent,#4262FF);}
+.mtm-ic{font-size:15px;line-height:1;width:20px;text-align:center;flex-shrink:0;}
+.mtm-lbl{flex:1;text-align:left;}
+.mtm-kbd{font-family:var(--mono);font-size:10px;color:var(--text-3);background:rgba(94,94,74,.10);padding:2px 6px;border-radius:5px;}
+.mtm-sep{height:1px;background:rgba(0,0,0,.06);margin:4px 6px;}
+[data-theme="dark"] .mtm-sep{background:rgba(255,255,255,.06);}
+
 /* Global iOS/Android tap-highlight kill — no grey/orange flash on tap */
 button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-item,
 .cascade-item,.user-menu-item,.filter-btn,.sb-tab,.ctx-item,.card-color-swatch,
@@ -2903,8 +2932,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="14" r="1.6"/><circle cx="14" cy="4" r="1.6"/><path d="M5 13L13 5"/></svg>
   </button>
   <!-- 8. Pen -->
-  <button class="mt-btn" id="mt-pen" data-tip="Pen (P)" onclick="toggleDrawTool('pen', event)">
+  <button class="mt-btn" id="mt-pen" data-tip="Pen (P) — click again for colors" onclick="toggleDrawTool('pen', event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.5l3 3L5.5 15.5h-3v-3z"/><path d="M10.5 4.5l3 3"/></svg>
+  </button>
+  <!-- 8b. Marker / Highlighter -->
+  <button class="mt-btn" id="mt-marker" data-tip="Highlighter — click again for colors" onclick="toggleDrawTool('marker', event)">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5l4 4L9 12.5l-4-4z" fill="currentColor" fill-opacity=".18"/><path d="M5 8.5L2.5 14l3 1.5L9 12.5"/></svg>
+  </button>
+  <!-- 8c. Eraser -->
+  <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L9.5 5l4.5 4.5-6.5 6.5h-3v-3z"/><path d="M7 15.5h9"/></svg>
   </button>
   <!-- 9. Frame -->
   <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="setMiroTool('frame');quickAddFrame()">
@@ -2916,12 +2953,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><circle cx="6.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.5" r=".9" fill="currentColor"/><path d="M6 11c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg>
   </button>
   <!-- 11. Comment -->
-  <button class="mt-btn" id="mt-comment" data-tip="Comment (click canvas to add)" onclick="toggleCommentMode()">
+  <button class="mt-btn" id="mt-comment" data-tip="Comment — click canvas to add" onclick="toggleCommentMode()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h13v9H7l-3.5 3v-12z"/></svg>
   </button>
   <div class="mt-sep"></div>
-  <!-- 12. + Add (more) -->
-  <button class="mt-btn mt-add" id="mt-add" data-tip="More tools" onclick="setSidebarTab('elements')">
+  <!-- 12. + More tools (Mind Map / Table / Image / Video / Games / Voting) -->
+  <button class="mt-btn mt-add" id="mt-add" data-tip="More tools" onclick="toggleMtMore(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3.5v11M3.5 9h11"/></svg>
   </button>
   <!-- Hidden buttons for legacy compatibility -->
@@ -2932,10 +2969,20 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   <button id="mt-video" style="display:none;" onclick="toolbarOpenModal('video')"></button>
   <button id="mt-games" style="display:none;" onclick="openGamesModal()"></button>
   <button id="mt-voting" style="display:none;" onclick="quickAddVoting()"></button>
-  <button id="mt-marker" style="display:none;" onclick="toggleDrawTool('marker',event)"></button>
-  <button id="mt-eraser" style="display:none;" onclick="toggleDrawTool('eraser',event)"></button>
   <button id="mt-eraser-all" style="display:none;" onclick="eraseDrawing()"></button>
   <button id="mt-fit" style="display:none;" onclick="document.getElementById('btn-fit').click()"></button>
+</div>
+
+<!-- More tools popover — anchored to the + button -->
+<div id="mt-more-pop" role="menu" aria-hidden="true">
+  <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic">◉</span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic">⊞</span><span class="mtm-lbl">Table</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('image')"><span class="mtm-ic">🖼</span><span class="mtm-lbl">Image</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('video')"><span class="mtm-ic">▶</span><span class="mtm-lbl">Video</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('voting')"><span class="mtm-ic">📊</span><span class="mtm-lbl">Voting</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('games')"><span class="mtm-ic">🎮</span><span class="mtm-lbl">Games</span></button>
+  <div class="mtm-sep"></div>
+  <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic">🧹</span><span class="mtm-lbl">Clear drawing</span></button>
 </div>
 
 <!-- SHAPE PANEL -->
@@ -7343,6 +7390,59 @@ function toggleCommentsLayer() {
                  getComputedStyle(document.getElementById('comments-panel')).display !== 'none';
   btn?.classList.toggle('active', isOpen);
 }
+
+/* ─── More-tools popover (Mind map / Table / Image / Video / etc) ─── */
+function toggleMtMore(ev) {
+  ev?.stopPropagation();
+  const pop = document.getElementById('mt-more-pop');
+  if (!pop) return;
+  const open = !pop.classList.contains('open');
+  pop.classList.toggle('open', open);
+  pop.setAttribute('aria-hidden', open ? 'false' : 'true');
+  document.getElementById('mt-add')?.classList.toggle('active', open);
+  // Anchor the popover vertically near the + button
+  if (open) {
+    const btn = document.getElementById('mt-add');
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      // Show popover above the button if there's room; otherwise to the right
+      const popH = pop.offsetHeight || 260;
+      const margin = 8;
+      let top = r.top + r.height/2 - popH/2;
+      if (top < margin) top = margin;
+      if (top + popH > window.innerHeight - margin) top = window.innerHeight - margin - popH;
+      pop.style.top = top + 'px';
+      pop.style.bottom = 'auto';
+      pop.style.left = (r.right + margin) + 'px';
+    }
+  }
+}
+function _mtMoreDo(action) {
+  toggleMtMore();
+  switch (action) {
+    case 'mindmap': toolbarQuickAdd && toolbarQuickAdd('mindmap'); break;
+    case 'table':   toolbarQuickAdd && toolbarQuickAdd('table'); break;
+    case 'image':   toolbarOpenModal && toolbarOpenModal('image'); break;
+    case 'video':   toolbarOpenModal && toolbarOpenModal('video'); break;
+    case 'voting':  quickAddVoting && quickAddVoting(); break;
+    case 'games':   openGamesModal && openGamesModal(); break;
+    case 'clear-strokes': eraseDrawing && eraseDrawing(); break;
+  }
+}
+// Close on outside click / Esc
+document.addEventListener('mousedown', e => {
+  const pop = document.getElementById('mt-more-pop');
+  if (!pop || !pop.classList.contains('open')) return;
+  if (pop.contains(e.target)) return;
+  if (e.target.closest('#mt-add')) return;
+  toggleMtMore();
+}, true);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const pop = document.getElementById('mt-more-pop');
+    if (pop?.classList.contains('open')) toggleMtMore();
+  }
+});
 
 /* ─── Hand pan tool (always-on pan, no Space required) ─── */
 let _handMode = false;
