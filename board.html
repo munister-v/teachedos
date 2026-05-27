@@ -7393,6 +7393,8 @@ function startCardDrag(e, card) {
 function startResize(e, card, el, dir) {
   if (card.data && card.data.locked) { toast('Locked card'); return; }
   isResizing = true;
+  // Snapshot BEFORE mutating size so Cmd+Z restores the original dims.
+  snapshot();
   document.body.classList.add('board-dragging');
   resizeStart = {
     card, el, dir: dir || 'se',
@@ -7513,6 +7515,10 @@ document.addEventListener('mousemove', e => {
     const dx = Math.abs(e.clientX - dragStartPos.x), dy = Math.abs(e.clientY - dragStartPos.y);
     if (!dragStarted && (dx > 4 || dy > 4)) {
       dragStarted = true;
+      // Snapshot BEFORE the first pixel of movement so Cmd+Z reverts the
+      // drag to the original position. (Alt-drag duplicate already
+      // snapshotted in startCardDrag — skip the double entry.)
+      if (!document.body.classList.contains('alt-duplicating')) snapshot();
       // Add Miro-style dragging class to all dragged cards (subtle ghost + shadow)
       dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.add('dragging'));
     }
@@ -7690,7 +7696,7 @@ document.addEventListener('mouseup', e => {
           setCardParentFrame(card, null);
         }
       });
-      snapshot();
+      // Snapshot was taken at drag start; just persist final state.
       scheduleSave();
     }
     setTimeout(() => { dragStarted = false; }, 0);
@@ -7702,7 +7708,7 @@ document.addEventListener('mouseup', e => {
     document.body.style.cursor = '';
     const { card, el } = resizeStart;
     if (card.type === 'game') applyGameScale(el, card);
-    snapshot(); scheduleSave();
+    scheduleSave();
   }
 
   if (isBoxSelecting) {
