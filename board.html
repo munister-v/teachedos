@@ -7240,8 +7240,21 @@ function positionLayerPopover() {
   const el = getCardEl(pop.dataset.cardId);
   if (!el) { hideLayerPopover(); return; }
   const r = el.getBoundingClientRect();
-  const left = Math.min(window.innerWidth - pop.offsetWidth - 12, Math.max(12, r.left + r.width/2 - pop.offsetWidth/2));
-  const top = Math.max(82, r.top - pop.offsetHeight - 10);
+  const popH = pop.offsetHeight || 44;
+  const popW = pop.offsetWidth || 200;
+  const MIN_TOP = 82; // below top bar
+  const GAP = 10;
+  // Prefer above the card; if there isn't enough room, flip below.
+  let top;
+  if (r.top - popH - GAP >= MIN_TOP) {
+    top = r.top - popH - GAP;
+  } else if (r.bottom + popH + GAP <= window.innerHeight - 12) {
+    top = r.bottom + GAP;
+  } else {
+    // No room above or below — pin at MIN_TOP and let it overlap slightly.
+    top = MIN_TOP;
+  }
+  const left = Math.min(window.innerWidth - popW - 12, Math.max(12, r.left + r.width/2 - popW/2));
   pop.style.left = left + 'px';
   pop.style.top = top + 'px';
 }
@@ -15095,14 +15108,26 @@ document.addEventListener('keydown', e => {
     const card = state.cards.find(c => c.id === selId);
     if (card?.type === 'mindmap') {
       e.preventDefault();
+      snapshot();
+      // Count existing children (arrows leaving this node to the right) so
+      // siblings stack vertically instead of all landing on top of each other.
+      const existing = state.arrows.filter(a => a.fromCard === card.id).length;
       const childX = card.x + card.w + 60;
-      const childY = card.y;
+      const childY = card.y + existing * (card.h + 24);
       const childColors = ['#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D'];
       const child = addCard('mindmap', childX, childY, { text:'Subtopic', color: childColors[Math.floor(Math.random()*childColors.length)] });
-      snapshot();
       state.arrows.push({ id:'a'+(state.nextId++), fromCard:card.id, fromAnchor:'right', toCard:child.id, toAnchor:'left' });
       renderAllArrows(); scheduleSave?.();
       clearSelection(); selectCard(child.id);
+      // Auto-focus the child's text editor so user can immediately rename
+      setTimeout(() => {
+        const el = getCardEl(child.id);
+        const ed = el?.querySelector('[contenteditable="true"], [contenteditable="plaintext-only"], textarea');
+        if (!ed) return;
+        ed.focus();
+        if (ed.tagName === 'TEXTAREA') ed.select();
+        else { try { document.execCommand('selectAll', false, null); } catch {} }
+      }, 50);
     }
   }
 });
