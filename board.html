@@ -3106,6 +3106,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 <!-- Context menu -->
 <div id="ctx-menu">
+  <!-- Image clipboard actions — pinned at top, only visible when applicable -->
+  <div class="ctx-item" id="ctx-paste-image" style="display:none;">📥 Paste image here</div>
+  <div class="ctx-item" id="ctx-copy-image"  style="display:none;">📋 Copy image</div>
+  <div class="ctx-sep"  id="ctx-image-sep"   style="display:none;"></div>
   <div class="ctx-item" id="ctx-sticky">🟡 Sticky Note</div>
   <div class="ctx-item" id="ctx-text">🔤 Text Label</div>
   <div class="ctx-item" id="ctx-shape">⬡ Shape</div>
@@ -7098,40 +7102,16 @@ function copySelectedCards() {
     if (!c) return null;
     return { type: c.type, x: c.x, y: c.y, w: c.w, h: c.h, data: JSON.parse(JSON.stringify(c.data)), color: c.color };
   }).filter(Boolean);
-  // If exactly one image card is selected, also push the image into the system clipboard
-  // so it can be pasted into any other app (chat, email, etc).
-  (async () => {
-    if (_cardClipboard.length !== 1) return;
-    const c = _cardClipboard[0];
-    if (c.type !== 'image' || !c.data?.src) return;
-    try {
-      if (!navigator.clipboard || !window.ClipboardItem) return;
-      // Fetch the data URL (or http URL) into a blob we can write to the clipboard.
-      const resp = await fetch(c.data.src);
-      const blob = await resp.blob();
-      // The browser only allows certain image MIME types on the clipboard.
-      const supported = ['image/png','image/jpeg','image/webp','image/gif'];
-      let outBlob = blob;
-      if (!supported.includes(blob.type)) {
-        // Re-encode via canvas to PNG so the clipboard accepts it
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = c.data.src;
-        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
-        const cv = document.createElement('canvas');
-        cv.width = img.naturalWidth; cv.height = img.naturalHeight;
-        cv.getContext('2d').drawImage(img, 0, 0);
-        outBlob = await new Promise(r => cv.toBlob(r, 'image/png'));
-      }
-      if (outBlob) {
-        await navigator.clipboard.write([ new ClipboardItem({ [outBlob.type]: outBlob }) ]);
-        toast && toast('🖼 Image copied to clipboard');
-        return;
-      }
-    } catch (e) { /* fall through to text toast */ }
-    toast && toast('Copied ' + _cardClipboard.length + ' card');
-    return;
-  })();
+  // If exactly one image card is selected, ALSO push it to the system clipboard.
+  // Uses the shared helper so the behaviour matches ctx-menu Copy.
+  if (state.selected.size === 1) {
+    const id = [...state.selected][0];
+    const c = state.cards.find(x => x.id === id);
+    if (c && c.type === 'image') {
+      _copyImageToSystemClipboard(id);
+      return;
+    }
+  }
   toast && toast('Copied ' + _cardClipboard.length + ' card' + (_cardClipboard.length > 1 ? 's' : ''));
 }
 
@@ -7951,11 +7931,104 @@ boardWrap.addEventListener('contextmenu', e => {
   document.getElementById('ctx-arrow-sep').style.display = 'none';
   const sw = document.getElementById('ctx-arrow-style-wrap');
   if (sw) sw.style.display = 'none';
+
+  // Image clipboard ctx items: show only when relevant
+  const cardEl = e.target.closest('.board-card');
+  const onImageCard = cardEl && state.cards.find(c => c.id === cardEl.dataset.id)?.type === 'image';
+  const copyItem  = document.getElementById('ctx-copy-image');
+  const pasteItem = document.getElementById('ctx-paste-image');
+  const imgSep    = document.getElementById('ctx-image-sep');
+  copyItem.style.display  = onImageCard ? '' : 'none';
+  pasteItem.style.display = onImageCard ? 'none' : '';
+  imgSep.style.display    = '';
+  // Remember the cursor point for paste; remember the card for copy
+  pasteItem.dataset.boardX = ctxPos.x;
+  pasteItem.dataset.boardY = ctxPos.y;
+  copyItem.dataset.cardId  = onImageCard ? cardEl.dataset.id : '';
+
   ctxMenu.style.left = e.clientX+'px';
   ctxMenu.style.top  = e.clientY+'px';
   ctxMenu.style.display = 'block';
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 });
+
+// Click handlers for the new clipboard ctx items
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ctx-paste-image')?.addEventListener('click', async () => {
+    const x = parseFloat(document.getElementById('ctx-paste-image').dataset.boardX || '0');
+    const y = parseFloat(document.getElementById('ctx-paste-image').dataset.boardY || '0');
+    await _pasteImageAt(x, y);
+  });
+  document.getElementById('ctx-copy-image')?.addEventListener('click', async () => {
+    const id = document.getElementById('ctx-copy-image').dataset.cardId;
+    if (!id) return;
+    await _copyImageToSystemClipboard(id);
+  });
+});
+
+/* Reusable helpers — keep the logic in ONE place so Cmd+V, Cmd+C and
+   right-click do exactly the same thing. */
+async function _pasteImageAt(boardX, boardY) {
+  // 1. Try the real clipboard first (works only on a user gesture in HTTPS)
+  try {
+    if (navigator.clipboard && navigator.clipboard.read) {
+      const items = await navigator.clipboard.read();
+      for (const it of items) {
+        const type = (it.types || []).find(t => t.startsWith('image/'));
+        if (type) {
+          const blob = await it.getType(type);
+          const prepared = await prepareBoardImageFile(new File([blob], 'pasted.png', { type }));
+          addCard('image', boardX - 160, boardY - 120, {
+            title: 'Pasted image', src: prepared.dataUrl,
+            imageSize: prepared.bytes, imageOptimized: prepared.optimized,
+          }, 320, 240);
+          scheduleSave && scheduleSave(); saveLocal && saveLocal();
+          toast && toast('🖼 Image pasted');
+          return;
+        }
+      }
+      // Text URL fallback (e.g. user copied a URL)
+      for (const it of items) {
+        if (it.types?.includes('text/plain')) {
+          const txt = await (await it.getType('text/plain')).text();
+          if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(txt) || /^data:image\//i.test(txt)) {
+            addCard('image', boardX - 160, boardY - 120, { title: 'Pasted image', src: txt.trim() }, 320, 240);
+            scheduleSave && scheduleSave(); saveLocal && saveLocal();
+            toast && toast('🖼 Image pasted from URL');
+            return;
+          }
+        }
+      }
+    }
+  } catch (e) { /* fall through */ }
+  toast && toast('Clipboard is empty or browser blocked access. Try Cmd+V.');
+}
+
+async function _copyImageToSystemClipboard(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || card.type !== 'image' || !card.data?.src) return;
+  try {
+    if (!navigator.clipboard || !window.ClipboardItem) {
+      toast && toast('This browser cannot copy images. Use Save image instead.');
+      return;
+    }
+    const resp = await fetch(card.data.src);
+    let blob = await resp.blob();
+    const supported = ['image/png','image/jpeg','image/webp','image/gif'];
+    if (!supported.includes(blob.type)) {
+      const img = new Image(); img.crossOrigin = 'anonymous'; img.src = card.data.src;
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+      const cv = document.createElement('canvas');
+      cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+      cv.getContext('2d').drawImage(img, 0, 0);
+      blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    }
+    await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
+    toast && toast('🖼 Image copied to clipboard');
+  } catch (e) {
+    toast && toast('Couldn\'t copy image: ' + (e.message || e));
+  }
+}
 document.addEventListener('click', () => {
   ctxMenu.style.display = 'none';
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
