@@ -7352,6 +7352,8 @@ function startCardDrag(e, card) {
       if (!c || (c.data && c.data.locked)) return;
       const nc = { id:'c'+(state.nextId++), type:c.type, x:c.x, y:c.y,
                    w:c.w, h:c.h, data:JSON.parse(JSON.stringify(c.data||{})), color:c.color };
+      if (nc.type === 'frame' && nc.data) { nc.data.childIds = []; delete nc.data.num; }
+      if (nc.data) delete nc.data.parentFrame;
       state.cards.push(nc);
       board.appendChild(renderCard(nc));
       newIds.push(nc.id);
@@ -7936,7 +7938,16 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
   if ((e.ctrlKey||e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 's') { e.preventDefault(); forceSave(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'a') { e.preventDefault(); state.cards.forEach(c => selectCard(c.id)); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'a') {
+    e.preventDefault();
+    clearSelection();
+    // Bulk select without per-card layer popover thrash; show once at the end.
+    state.cards.forEach(c => { state.selected.add(c.id); getCardEl(c.id)?.classList.add('selected'); });
+    updateAlignBar?.(); updateMultiSelBox?.();
+    if (state.cards.length === 1) showLayerPopover?.(state.cards[0].id);
+    else hideLayerPopover?.();
+    return;
+  }
   if ((e.ctrlKey||e.metaKey) && e.key === 'd') { e.preventDefault(); duplicateSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'c' && !e.shiftKey) { e.preventDefault(); copySelectedCards(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'v' && !e.shiftKey) { e.preventDefault(); pasteCards(); return; }
@@ -8182,12 +8193,22 @@ function duplicateSelected() {
   [...state.selected].forEach(id => {
     const c = state.cards.find(x => x.id === id);
     if (!c) return;
+    // Deep clone data so nested arrays/objects (checklist items, mindmap
+    // children refs, frame childIds) don't share references with the source.
     const nc = { id:'c'+(state.nextId++), type:c.type, x:c.x+30, y:c.y+30,
-                 w:c.w, h:c.h, data:{...c.data}, color:c.color };
+                 w:c.w, h:c.h, data:JSON.parse(JSON.stringify(c.data||{})), color:c.color };
+    // Frames: clone keeps a stale childIds list pointing at the *original*
+    // children. That's wrong — drop it so the new frame starts empty.
+    if (nc.type === 'frame' && nc.data) {
+      nc.data.childIds = [];
+      delete nc.data.num; // renumber assigns a fresh number
+    }
+    if (nc.data) delete nc.data.parentFrame; // duplicate isn't inside the source's frame
     state.cards.push(nc);
     board.appendChild(renderCard(nc));
     newIds.push(nc.id);
   });
+  if (state.cards.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
   updateEmpty();
