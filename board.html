@@ -253,7 +253,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .mq-btn.ghost{color:var(--text-3,#9999AA);}
 .mq-btn:active{transform:scale(.97);}
 .mq-status{
-  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  /* Pill floats just above the quickbar; clear of the iOS home indicator
+     because the bar itself already sits inside safe-area-inset-bottom. */
+  position:absolute;
+  bottom:calc(100% + 6px);
+  left:50%;transform:translateX(-50%);
   padding:3px 10px;border-radius:999px;
   background:var(--card-bg,#fff);
   border:1px solid rgba(0,0,0,.08);
@@ -652,6 +656,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .mt-btn:hover::after,
 .mt-btn:hover::before{ opacity:1; }
+/* Tooltip stays hidden during click, after click, on focus loss, and on touch */
+.mt-btn:active::after,.mt-btn:active::before,
+.mt-btn:focus:not(:hover)::after,.mt-btn:focus:not(:hover)::before{
+  opacity:0!important;transition:none;
+}
+/* On touch devices, suppress hover-tooltips entirely (they linger on iOS) */
+@media (hover: none) {
+  .mt-btn::after,.mt-btn::before{display:none!important;}
+}
 
 /* ── ZOOM CONTROLS (bottom-right, Miro horizontal) ── */
 #zoom-controls {
@@ -1365,6 +1378,50 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
 
+/* Global iOS/Android tap-highlight kill — no grey/orange flash on tap */
+button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-item,
+.cascade-item,.user-menu-item,.filter-btn,.sb-tab,.ctx-item,.card-color-swatch,
+.bg-swatch,.cac-swatch,.mq-add-tile{
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Comment composer (anchored to click point, Miro-style) */
+#_cm-composer{
+  position:fixed;z-index:9700;display:flex;align-items:flex-start;gap:8px;
+  pointer-events:auto;font-family:var(--font);
+  animation:cmc-pop .14s cubic-bezier(.34,1.3,.6,1) both;
+}
+@keyframes cmc-pop{from{opacity:0;transform:translateY(-4px) scale(.96);}to{opacity:1;transform:none;}}
+#_cm-composer .cm-pin{
+  width:26px;height:26px;border-radius:50% 50% 50% 4px;
+  background:#F59E0B;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  box-shadow:0 4px 12px rgba(245,158,11,.35);
+  flex-shrink:0;transform:rotate(-90deg);margin-top:2px;
+}
+#_cm-composer .cm-bubble{
+  width:240px;background:var(--card-bg,#fff);border:1px solid rgba(0,0,0,.08);
+  border-radius:12px;padding:10px;
+  box-shadow:0 12px 32px rgba(5,5,40,.18),0 1px 3px rgba(0,0,0,.06);
+}
+[data-theme="dark"] #_cm-composer .cm-bubble{background:#252540;border-color:rgba(255,255,255,.10);}
+#_cm-composer .cm-input{
+  width:100%;border:1px solid rgba(0,0,0,.08);border-radius:8px;
+  padding:8px 10px;font-family:var(--font);font-size:13px;color:var(--text);
+  background:transparent;resize:vertical;min-height:60px;outline:none;
+}
+#_cm-composer .cm-input:focus{border-color:var(--accent,#4262FF);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#4262FF) 14%,transparent);}
+[data-theme="dark"] #_cm-composer .cm-input{border-color:rgba(255,255,255,.10);}
+#_cm-composer .cm-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:8px;}
+#_cm-composer .cm-cancel,#_cm-composer .cm-post{
+  padding:6px 12px;border-radius:8px;border:none;cursor:pointer;
+  font-family:var(--font);font-size:12px;font-weight:700;
+}
+#_cm-composer .cm-cancel{background:transparent;color:var(--text-3);}
+#_cm-composer .cm-cancel:hover{background:rgba(0,0,0,.06);color:var(--text);}
+#_cm-composer .cm-post{background:var(--accent,#4262FF);color:#fff;}
+#_cm-composer .cm-post:hover{background:color-mix(in srgb,var(--accent,#4262FF) 85%,#000);}
+
 /* Miro-style floating contextual toolbar above selected card */
 .layer-popover{
   position:fixed;display:none;align-items:center;gap:2px;z-index:9500;
@@ -1442,9 +1499,13 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 /* ── Empty state ── */
 #empty-state{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  text-align:center;pointer-events:none;color:var(--text-3);transition:opacity .3s;
+  text-align:center;pointer-events:none;color:var(--text-3);
+  transition:opacity .3s;
+  opacity:0;visibility:hidden;
 }
-#empty-state.hidden{opacity:0;}
+#empty-state.is-visible{opacity:1;visibility:visible;}
+/* Legacy .hidden kept as a no-op so older toggles don't break */
+#empty-state.hidden{opacity:0;visibility:hidden;}
 .empty-icon{font-size:52px;line-height:1;margin-bottom:14px;opacity:.7;}
 .empty-text{font-size:15px;font-weight:800;color:var(--text-2);margin-bottom:10px;}
 .empty-sub{display:flex;flex-direction:column;gap:6px;align-items:center;}
@@ -6288,8 +6349,14 @@ function toggleCardLocked(cardId) {
   scheduleSave();
 }
 function updateEmpty() {
-  if (state.cards.length) emptyState.classList.add('hidden');
-  else emptyState.classList.remove('hidden');
+  // Default state is hidden; explicitly show only when truly empty.
+  if (state.cards.length) {
+    emptyState.classList.remove('is-visible');
+    emptyState.classList.add('hidden');
+  } else {
+    emptyState.classList.add('is-visible');
+    emptyState.classList.remove('hidden');
+  }
 }
 
 window.addEventListener('resize', positionLayerPopover);
@@ -7031,6 +7098,40 @@ function copySelectedCards() {
     if (!c) return null;
     return { type: c.type, x: c.x, y: c.y, w: c.w, h: c.h, data: JSON.parse(JSON.stringify(c.data)), color: c.color };
   }).filter(Boolean);
+  // If exactly one image card is selected, also push the image into the system clipboard
+  // so it can be pasted into any other app (chat, email, etc).
+  (async () => {
+    if (_cardClipboard.length !== 1) return;
+    const c = _cardClipboard[0];
+    if (c.type !== 'image' || !c.data?.src) return;
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) return;
+      // Fetch the data URL (or http URL) into a blob we can write to the clipboard.
+      const resp = await fetch(c.data.src);
+      const blob = await resp.blob();
+      // The browser only allows certain image MIME types on the clipboard.
+      const supported = ['image/png','image/jpeg','image/webp','image/gif'];
+      let outBlob = blob;
+      if (!supported.includes(blob.type)) {
+        // Re-encode via canvas to PNG so the clipboard accepts it
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = c.data.src;
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+        const cv = document.createElement('canvas');
+        cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+        cv.getContext('2d').drawImage(img, 0, 0);
+        outBlob = await new Promise(r => cv.toBlob(r, 'image/png'));
+      }
+      if (outBlob) {
+        await navigator.clipboard.write([ new ClipboardItem({ [outBlob.type]: outBlob }) ]);
+        toast && toast('🖼 Image copied to clipboard');
+        return;
+      }
+    } catch (e) { /* fall through to text toast */ }
+    toast && toast('Copied ' + _cardClipboard.length + ' card');
+    return;
+  })();
   toast && toast('Copied ' + _cardClipboard.length + ' card' + (_cardClipboard.length > 1 ? 's' : ''));
 }
 
@@ -7274,26 +7375,68 @@ function disableCommentMode() {
   document.getElementById('mt-comment')?.classList.remove('active');
   document.getElementById('mt-select')?.classList.add('active');
 }
-// Handle click in comment mode (wired into the main mousedown handler)
+// Handle click in comment mode — shows a small inline composer instead of a native prompt.
 function _handleCommentClick(e) {
   if (_miroTool !== 'comment') return false;
   const bp = screenToBoard(e.clientX, e.clientY);
   if (!bp) return false;
-  const text = prompt('Comment:', '');
-  if (text === null) return true; // cancelled
-  const def = getDefaults('sticky');
-  const c = addCard('sticky', bp.x - def.w/2, bp.y - def.h/2, {
-    text: text || '💬',
-    color: '#FEF3C7',
-    isComment: true
-  });
-  if (c) {
-    const el = getCardEl(c.id);
-    if (el) el.style.border = '2px solid #F59E0B';
-  }
-  disableCommentMode();
-  scheduleSave && scheduleSave();
+  // Open a small inline composer anchored at the click point.
+  _openCommentComposer(e.clientX, e.clientY, bp);
   return true;
+}
+
+function _openCommentComposer(sx, sy, boardPt) {
+  _closeCommentComposer();
+  const wrap = document.createElement('div');
+  wrap.id = '_cm-composer';
+  wrap.innerHTML = `
+    <div class="cm-pin">💬</div>
+    <div class="cm-bubble">
+      <textarea class="cm-input" placeholder="Add a comment…" rows="3"></textarea>
+      <div class="cm-actions">
+        <button class="cm-cancel" type="button">Cancel</button>
+        <button class="cm-post"   type="button">Comment</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  // Position: pin at click, bubble to the right (clamped to viewport)
+  const PIN_W = 26, BUBBLE_W = 240;
+  let left = sx, top = sy;
+  if (left + PIN_W + 12 + BUBBLE_W > window.innerWidth - 12) left = window.innerWidth - 12 - PIN_W - 12 - BUBBLE_W;
+  if (top + 130 > window.innerHeight - 12) top = window.innerHeight - 12 - 130;
+  wrap.style.left = left + 'px';
+  wrap.style.top  = top + 'px';
+  const ta = wrap.querySelector('.cm-input');
+  setTimeout(() => ta.focus(), 30);
+  const finish = (text) => {
+    if (text && text.trim()) {
+      const def = getDefaults('sticky');
+      const c = addCard('sticky', boardPt.x - 80, boardPt.y - 50, {
+        text: text.trim(),
+        color: '#FEF3C7',
+        isComment: true,
+      }, 160, 100);
+      if (c) {
+        const el = getCardEl(c.id);
+        if (el) {
+          el.style.border = '1.5px solid #F59E0B';
+          el.style.boxShadow = '0 6px 18px rgba(245,158,11,.22)';
+        }
+      }
+      scheduleSave && scheduleSave();
+    }
+    disableCommentMode();
+    _closeCommentComposer();
+  };
+  wrap.querySelector('.cm-post').addEventListener('click', () => finish(ta.value));
+  wrap.querySelector('.cm-cancel').addEventListener('click', () => { _closeCommentComposer(); disableCommentMode(); });
+  ta.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); finish(ta.value); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); _closeCommentComposer(); disableCommentMode(); }
+  });
+}
+function _closeCommentComposer() {
+  document.getElementById('_cm-composer')?.remove();
 }
 document.getElementById('btn-connect').addEventListener('click', toggleConnectMode);
 
@@ -11405,13 +11548,16 @@ async function loadImageFile(file) {
   }
 }
 
-/* Global paste handler — add image directly to the board on Ctrl/⌘+V */
+/* Global paste handler — add image directly to the board on Ctrl/⌘+V.
+   Accepts: raw image data, image URL pasted as text (data:/http:/https:). */
 document.addEventListener('paste', e => {
   // Don't hijack pasting inside inputs / editable fields
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-  const items = e.clipboardData && e.clipboardData.items;
-  if (!items) return;
+  const cd = e.clipboardData;
+  if (!cd) return;
+  const items = cd.items || [];
+  // 1. Raw image file/blob in clipboard
   for (const item of items) {
     if (item.type && item.type.startsWith('image/')) {
       const file = item.getAsFile();
@@ -11438,6 +11584,18 @@ document.addEventListener('paste', e => {
       })();
       return;
     }
+  }
+  // 2. Plain-text URL pointing at an image (or a data:image URL)
+  const txt = cd.getData?.('text/plain') || '';
+  if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(txt) ||
+      /^data:image\//i.test(txt)) {
+    e.preventDefault();
+    const pos = resolveBoardPlacement(pendingImagePos);
+    addCard('image', pos.x, pos.y, { title: 'Pasted image', src: txt.trim() }, 320, 240);
+    pendingImagePos = null;
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    toast && toast('🖼 Image pasted from URL');
+    return;
   }
 });
 
@@ -12376,31 +12534,41 @@ if (window.PointerEvent) {
 
 // Keyboard shortcuts: P (pencil), H (highlighter), F (frame)
 document.addEventListener('keydown', e => {
-  // Skip if typing in an input
+  // Skip if typing in any editable surface (deeper check: handles nested contenteditable)
   const t = e.target;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === 'Escape' && _drawTool) {
-    e.preventDefault();
-    disableDrawTool();
-    setMiroTool('select');
-    return;
-  }
-  // Cmd/Ctrl+0 — reset zoom to 100%
-  if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+  if (t && (
+    t.tagName === 'INPUT' ||
+    t.tagName === 'TEXTAREA' ||
+    t.tagName === 'SELECT' ||
+    t.isContentEditable ||
+    t.closest?.('[contenteditable=""],[contenteditable=true],[contenteditable=plaintext-only]')
+  )) return;
+  // Modifier combos handled first — DON'T short-circuit before them.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === '0') {
     e.preventDefault();
     const r = boardWrap.getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    // Animate scale toward 1
-    const factor = 1 / state.scale;
-    zoomAt(cx, cy, factor);
+    zoomAt(cx, cy, 1 / state.scale);
     return;
   }
-  // Cmd/Ctrl+1 — fit to selection (or all if nothing selected)
-  if ((e.ctrlKey || e.metaKey) && e.key === '1') {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === '1') {
     e.preventDefault();
     fitAll && fitAll(true);
     return;
+  }
+  // Past this point, single-letter tool shortcuts. Skip if any modifier is held.
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Escape') {
+    // Cancel any in-flight gestures first
+    if (_drawTool) { e.preventDefault(); disableDrawTool(); setMiroTool('select'); return; }
+    if (isBoxSelecting) {
+      e.preventDefault();
+      isBoxSelecting = false;
+      selBox.style.display = 'none';
+      return;
+    }
+    if (_pendingPlace) { e.preventDefault(); cancelPlaceMode(); setMiroTool('select'); return; }
+    if (state.mode === 'connect') { e.preventDefault(); cancelConnection?.(); setMode('select'); return; }
   }
   if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
   else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
