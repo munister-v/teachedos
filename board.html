@@ -15069,8 +15069,17 @@ document.addEventListener('keydown', e => {
     if (_pendingPlace) { e.preventDefault(); cancelPlaceMode(); setMiroTool('select'); return; }
     if (state.mode === 'connect') { e.preventDefault(); cancelConnection?.(); setMode('select'); return; }
   }
-  if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
-  else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleDrawTool('marker'); }
+  if (e.key === 'v' || e.key === 'V') {
+    e.preventDefault();
+    // Reset to Select tool: exit drawing / placement / connect / comment / hand mode
+    if (_drawTool) disableDrawTool();
+    if (_pendingPlace) cancelPlaceMode();
+    if (state.mode === 'connect') setMode('select');
+    if (_handMode) toggleHandTool();
+    setMiroTool('select');
+  }
+  else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); toggleDrawTool('pen'); }
+  else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleHandTool(); }
   else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); toggleDrawTool('eraser'); }
   else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openStickyPalette && openStickyPalette(); }
   else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toolbarQuickAdd('text'); }
