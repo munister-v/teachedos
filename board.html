@@ -597,14 +597,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .sb-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:6px;}
 .sb-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.20);}
 .sb-label{font-size:11px;font-family:var(--font);color:#9999AA;font-weight:600;
-  letter-spacing:.02em;text-transform:none;padding:6px 2px 4px;}
-.sb-sep{height:1px;background:var(--border);margin:4px 0;}
+  letter-spacing:.02em;text-transform:none;padding:6px 2px 4px;flex-shrink:0;}
+.sb-sep{height:1px;background:var(--border);margin:4px 0;flex-shrink:0;}
 
 /* Snippets */
 .snippet{
   padding:9px 11px;border-radius:10px;border:1px solid var(--border);
   background:white;cursor:grab;transition:box-shadow .2s ease,transform .2s cubic-bezier(.34,1.3,.64,1),border-color .15s ease;
-  will-change:transform;
+  will-change:transform;flex-shrink:0;
   transform:translateZ(0);
 }
 .snippet:hover{border-color:var(--border-2);box-shadow:0 4px 14px rgba(94,94,74,.12);transform:translateY(-2px) translateZ(0);}
@@ -753,7 +753,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:relative;display:flex;align-items:flex-start;gap:11px;
   padding:12px 14px 11px 12px;border-radius:14px;
   background:var(--card,#fff);border:1px solid var(--border,rgba(94,94,74,.14));
-  cursor:grab;overflow:visible;
+  cursor:grab;overflow:visible;flex-shrink:0;
   transition:border-color .15s,box-shadow .15s,transform .15s;
   min-height:64px;
 }
@@ -4868,6 +4868,12 @@ function serialize() {
 
 function restoreState(json) {
   const s = JSON.parse(json);
+  // Stop all running intervals (timers, etc.) before wiping cards so the
+  // re-rendered cards start with fresh state.
+  if (typeof _timerIntervals !== 'undefined') {
+    _timerIntervals.forEach(iv => clearInterval(iv));
+    _timerIntervals.clear();
+  }
   state.cards.forEach(c => { const el = getCardEl(c.id); if (el) el.remove(); });
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = [];
@@ -7010,6 +7016,11 @@ function removeCard(id) {
     }
     return true;
   });
+  // Stop any running timer interval to avoid setInterval leaks
+  if (_timerIntervals && _timerIntervals.has(id)) {
+    clearInterval(_timerIntervals.get(id));
+    _timerIntervals.delete(id);
+  }
   state.cards.splice(idx, 1);
   getCardEl(id)?.remove();
   state.selected.delete(id);
