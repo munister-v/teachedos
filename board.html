@@ -8010,14 +8010,20 @@ document.addEventListener('keydown', e => {
   }
 });
 
+let _nudgeSnapTimer = null;
 function nudgeSelected(dx, dy) {
   if (!state.selected.size) return;
-  snapshot();
+  // Coalesce consecutive nudges into one undo entry: snapshot only on
+  // the first keypress of a burst, then debounce until the user pauses.
+  if (_nudgeSnapTimer === null) snapshot();
+  clearTimeout(_nudgeSnapTimer);
+  _nudgeSnapTimer = setTimeout(() => { _nudgeSnapTimer = null; }, 600);
   state.selected.forEach(id => {
     const c = state.cards.find(x => x.id === id);
     if (c) { c.x += dx; c.y += dy; updateCardPos(c); }
   });
   renderAllArrows();
+  updateMultiSelBox?.();
   scheduleSave();
 }
 
@@ -13612,7 +13618,7 @@ function alignCards(dir) {
     const cy = (minY+maxY)/2;
     cards.forEach(c => { c.y = cy - c.h/2; updateCardPos(c); });
   }
-  renderAllArrows(); scheduleSave();
+  renderAllArrows(); updateMultiSelBox?.(); scheduleSave();
 }
 function distributeCards(axis) {
   const cards = getSelectedCards(); if (cards.length < 3) return;
@@ -13632,7 +13638,7 @@ function distributeCards(axis) {
     let cy = minY;
     cards.forEach(c => { c.y = cy; cy += c.h + gap; updateCardPos(c); });
   }
-  renderAllArrows(); scheduleSave();
+  renderAllArrows(); updateMultiSelBox?.(); scheduleSave();
 }
 
 // Show align bar when 2+ cards selected
