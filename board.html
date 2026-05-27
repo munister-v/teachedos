@@ -630,18 +630,105 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   min-height:28px;border-radius:999px;padding:0 8px;font-size:10px;font-weight:800;
 }
 .tool-skill-chip.active{background:#4262FF;color:#fff;border-color:#4262FF;}
-.tool-snippet{position:relative;overflow:hidden;padding:12px 13px 13px;border-radius:14px;background:linear-gradient(145deg,#fff,#fbfbff);}
+.tool-snippet{
+  position:relative;overflow:visible;padding:14px 14px 12px 14px;
+  border-radius:14px;background:var(--card,#fff);
+  border:1px solid var(--border,rgba(94,94,74,.14));
+  display:flex;flex-direction:column;gap:6px;
+  min-height:70px;
+  transition:border-color .15s,box-shadow .15s,transform .15s;
+}
+.tool-snippet:hover{
+  border-color:var(--accent,#C8E632);
+  box-shadow:0 8px 20px rgba(94,94,74,.10);
+  transform:translateY(-1px) translateZ(0);
+}
 .tool-snippet::before{
-  content:"";position:absolute;inset:0 0 auto;height:3px;
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
   background:linear-gradient(90deg,#C8E632,#73DCE2,#EC2D8C);
+  border-radius:14px 14px 0 0;
 }
-.tool-snippet .sn-title{padding-right:30px;font-size:13px;line-height:1.22;margin-top:2px;}
-.tool-snippet .sn-desc{font-size:11px;line-height:1.42;color:var(--text-3);margin:6px 0 8px;}
+.tool-snippet .sn-label{
+  font-size:10px;font-weight:700;
+  color:var(--text-3,#9999AA);
+  letter-spacing:.06em;text-transform:uppercase;
+  font-family:var(--mono);
+  padding-right:30px;
+  margin-bottom:0;
+  display:flex;align-items:center;gap:5px;
+}
+.tool-snippet .sn-title{
+  font-size:13.5px;font-weight:800;color:var(--text);
+  line-height:1.3;letter-spacing:-.005em;padding-right:30px;
+  margin-top:0;
+}
+.tool-snippet .sn-desc{
+  font-size:11.5px;line-height:1.45;color:var(--text-3);
+  margin:0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.tool-snippet .sn-meta{
+  display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;
+}
+.tool-snippet .sn-meta .badge{
+  font-size:9.5px;padding:2.5px 8px;border-radius:999px;
+  font-family:var(--mono);font-weight:700;letter-spacing:.02em;
+}
 .tool-open-dot{
-  position:absolute;right:9px;top:9px;width:22px;height:22px;border-radius:8px;
-  display:grid;place-items:center;background:rgba(66,98,255,.08);color:#4262FF;
-  font-size:12px;font-weight:900;
+  position:absolute;right:10px;top:11px;width:24px;height:24px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(66,98,255,.10);color:#4262FF;
+  font-size:13px;font-weight:900;
+  transition:background .12s,transform .12s;
 }
+.tool-snippet:hover .tool-open-dot{background:#4262FF;color:#fff;transform:rotate(-15deg);}
+
+/* Games snippet — icon-first layout like Miro's apps panel */
+.game-snippet{
+  position:relative;display:flex;align-items:flex-start;gap:11px;
+  padding:12px 14px 11px 12px;border-radius:14px;
+  background:var(--card,#fff);border:1px solid var(--border,rgba(94,94,74,.14));
+  cursor:grab;overflow:visible;
+  transition:border-color .15s,box-shadow .15s,transform .15s;
+  min-height:64px;
+}
+.game-snippet:hover{
+  border-color:var(--accent,#C8E632);
+  box-shadow:0 8px 20px rgba(94,94,74,.10);
+  transform:translateY(-1px) translateZ(0);
+}
+.game-snip-icon{
+  width:42px;height:42px;flex-shrink:0;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(200,230,50,.20),rgba(115,220,226,.18));
+  font-size:22px;line-height:1;
+}
+.game-snip-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.game-snip-title{
+  font-size:13.5px;font-weight:800;color:var(--text);
+  line-height:1.25;letter-spacing:-.005em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:18px;
+}
+.game-snip-desc{
+  font-size:11.5px;line-height:1.4;color:var(--text-3);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.game-snip-meta{margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;}
+.game-snip-meta .badge{
+  font-size:9.5px;padding:2.5px 8px;border-radius:999px;
+  font-family:var(--mono);font-weight:700;letter-spacing:.02em;
+}
+.game-snip-arrow{
+  position:absolute;right:10px;top:11px;
+  width:22px;height:22px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(66,98,255,.10);color:#4262FF;
+  font-size:12px;font-weight:900;opacity:0;
+  transition:opacity .15s,transform .15s,background .15s;
+}
+.game-snippet:hover .game-snip-arrow{opacity:1;background:#4262FF;color:#fff;transform:rotate(-15deg);}
+[data-theme="dark"] .game-snip-icon{background:linear-gradient(135deg,rgba(200,230,50,.18),rgba(66,98,255,.18));}
+[data-theme="dark"] .game-snippet{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);}
 .badge{font-size:9px;padding:2px 7px;border-radius:20px;font-family:var(--mono);font-weight:600;}
 .badge.a2{background:rgba(96,165,250,.15);color:#60a5fa;}
 .badge.b1{background:rgba(167,139,250,.15);color:#a78bfa;}
@@ -9867,12 +9954,42 @@ const GAMES = [
 ];
 
 function renderGamesTab(sec) {
-  sec.appendChild(makeLegend('Drag to board — plays inside the card'));
-  GAMES.forEach(g => {
-    if (searchQ && !g.title.toLowerCase().includes(searchQ)) return;
+  // Tag filter chips, like the tools tab
+  const tags = ['all', ...new Set(GAMES.map(g => g.tag))];
+  if (typeof window._activeGameTag === 'undefined') window._activeGameTag = 'all';
+  const filters = document.createElement('div');
+  filters.className = 'tool-skill-row';
+  filters.innerHTML = tags.map(t => `
+    <button class="tool-skill-chip ${t === window._activeGameTag ? 'active' : ''}" type="button" onclick="setGameTag('${t}', this)">
+      ${t === 'all' ? 'All' : t}
+    </button>`).join('');
+  sec.appendChild(filters);
+  sec.appendChild(makeLegend('Click → drop game on board · drag → place exactly'));
+
+  const list = GAMES.filter(g => {
+    if (window._activeGameTag !== 'all' && g.tag !== window._activeGameTag) return false;
+    if (searchQ && !g.title.toLowerCase().includes(searchQ) && !g.desc.toLowerCase().includes(searchQ)) return false;
+    return true;
+  });
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:16px;text-align:center;font-size:12px;color:var(--text-3);';
+    empty.textContent = 'No games found. Try another filter or search.';
+    sec.appendChild(empty);
+    return;
+  }
+  list.forEach(g => {
     const el = document.createElement('div');
-    el.className = 'snippet';
-    el.innerHTML = `<div class="sn-label">🎮 Mini Game</div><div class="sn-title">${g.icon} ${g.title}</div><div class="sn-meta"><span class="badge pink">${g.tag}</span></div>`;
+    el.className = 'snippet game-snippet';
+    el.innerHTML = `
+      <div class="game-snip-icon">${g.icon}</div>
+      <div class="game-snip-body">
+        <div class="game-snip-title">${esc(g.title)}</div>
+        <div class="game-snip-desc">${esc(g.desc)}</div>
+        <div class="game-snip-meta"><span class="badge pink">${esc(g.tag)}</span></div>
+      </div>
+      <div class="game-snip-arrow" aria-hidden="true">↗</div>
+    `;
     function startDrag(e) {
       isSidebarDrag = true; document.body.classList.add('board-dragging');
       sidebarDragData = { type:'game', data:{ title:g.title, src:g.src }, w:g.w, h:g.h };
@@ -9891,6 +10008,12 @@ function renderGamesTab(sec) {
     });
     sec.appendChild(el);
   });
+}
+function setGameTag(tag, btn) {
+  window._activeGameTag = tag;
+  document.querySelectorAll('.tool-skill-chip').forEach(c => c.classList.remove('active'));
+  btn?.classList.add('active');
+  renderSidebar && renderSidebar();
 }
 
 /* ════════════════════════ COURSE TAB ════════════════════════ */
