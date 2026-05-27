@@ -560,6 +560,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   transition:transform .18s cubic-bezier(.34,1.2,.6,1),opacity .15s ease;
 }
 #sidebar.open{transform:none;opacity:1;pointer-events:auto;}
+#sidebar.tools-mode{width:min(390px, calc(100vw - var(--mt-w,48px) - 18px));}
 [data-theme="dark"] #sidebar{background:#1E1E35;border-color:rgba(255,255,255,.08);}
 /* Old re-open handle: removed permanently */
 #sb-reopen{display:none!important;}
@@ -629,12 +630,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   min-height:28px;border-radius:999px;padding:0 8px;font-size:10px;font-weight:800;
 }
 .tool-skill-chip.active{background:#4262FF;color:#fff;border-color:#4262FF;}
-.tool-snippet{position:relative;overflow:hidden;}
+.tool-snippet{position:relative;overflow:hidden;padding:12px 13px 13px;border-radius:14px;background:linear-gradient(145deg,#fff,#fbfbff);}
 .tool-snippet::before{
   content:"";position:absolute;inset:0 0 auto;height:3px;
   background:linear-gradient(90deg,#C8E632,#73DCE2,#EC2D8C);
 }
-.tool-snippet .sn-title{padding-right:26px;}
+.tool-snippet .sn-title{padding-right:30px;font-size:13px;line-height:1.22;margin-top:2px;}
+.tool-snippet .sn-desc{font-size:11px;line-height:1.42;color:var(--text-3);margin:6px 0 8px;}
 .tool-open-dot{
   position:absolute;right:9px;top:9px;width:22px;height:22px;border-radius:8px;
   display:grid;place-items:center;background:rgba(66,98,255,.08);color:#4262FF;
@@ -2252,6 +2254,52 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ai-mini-list{margin:10px 0 0;padding-left:18px;color:rgba(255,255,255,.78);font-size:12px;line-height:1.5;}
 .ai-empty{height:260px;display:flex;align-items:center;justify-content:center;text-align:center;color:rgba(255,255,255,.58);font-weight:750;line-height:1.5;}
 .ai-status{font-size:12px;color:var(--text-3);font-weight:750;margin-top:10px;min-height:18px;}
+
+/* ══════════════ TEACHER TOOL BUILDER ══════════════ */
+#tool-builder-panel{
+  position:fixed;inset:0;background:rgba(15,10,24,.48);backdrop-filter:blur(7px);
+  z-index:4120;display:none;align-items:center;justify-content:center;padding:22px;
+}
+#tool-builder-panel.open{display:flex;}
+.tbuilder-box{
+  width:min(1040px,100%);max-height:min(88vh,780px);overflow:auto;border-radius:28px;
+  background:linear-gradient(145deg,#ffffff 0%,#fffaf1 48%,#eff7ff 100%);
+  border:1px solid rgba(17,24,39,.08);box-shadow:0 28px 90px rgba(10,8,24,.26);
+  padding:24px;color:#171420;
+}
+.tbuilder-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px;}
+.tbuilder-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4262FF;font-weight:950;}
+.tbuilder-title{font-size:clamp(28px,4vw,46px);line-height:.94;letter-spacing:-.055em;font-weight:950;margin:6px 0;}
+.tbuilder-sub{max-width:640px;color:#5f6070;font-size:13px;line-height:1.55;font-weight:700;}
+.tbuilder-close{border:0;background:rgba(17,24,39,.08);width:36px;height:36px;border-radius:13px;font-size:18px;font-weight:900;color:#171420;}
+.tbuilder-layout{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(360px,1.15fr);gap:16px;}
+.tbuilder-form,.tbuilder-preview{
+  border:1px solid rgba(17,24,39,.08);border-radius:22px;background:rgba(255,255,255,.86);
+  box-shadow:0 12px 38px rgba(17,24,39,.06);padding:18px;
+}
+.tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#7b7282;font-weight:950;margin:12px 0 6px;}
+.tbuilder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tbuilder-form input,.tbuilder-form select,.tbuilder-form textarea{
+  width:100%;border:1.5px solid rgba(17,24,39,.10);border-radius:13px;background:#fff;color:#171420;
+  padding:11px 12px;font:750 13px/1.35 var(--font);outline:none;
+}
+.tbuilder-form textarea{min-height:86px;resize:vertical;}
+.tbuilder-form input:focus,.tbuilder-form select:focus,.tbuilder-form textarea:focus{border-color:#4262FF;box-shadow:0 0 0 4px rgba(66,98,255,.10);}
+.tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
+.tbuilder-btn{border:0;border-radius:14px;background:#111018;color:#fff;font-weight:950;padding:11px 14px;cursor:pointer;}
+.tbuilder-btn.lime{background:#C8E632;color:#101010;}
+.tbuilder-btn.blue{background:#4262FF;color:#fff;}
+.tbuilder-btn.ghost{background:rgba(17,24,39,.07);color:#171420;}
+.tbuilder-preview{background:#111018;color:#fff;min-height:440px;}
+.tbuilder-preview-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px;align-items:center;}
+.tbuilder-preview-title{font-size:17px;font-weight:950;letter-spacing:-.02em;}
+.tbuilder-chip{border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);border-radius:999px;padding:6px 9px;font-size:10px;font-weight:900;color:#C8E632;}
+.tbuilder-output{display:grid;gap:10px;}
+.tbuilder-section{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);border-radius:16px;padding:13px;}
+.tbuilder-section h4{margin:0 0 7px;color:#fff;font-size:14px;}
+.tbuilder-section p,.tbuilder-section li{font-size:12px;line-height:1.52;color:rgba(255,255,255,.76);font-weight:650;}
+.tbuilder-section ul{margin:0;padding-left:18px;}
+.tbuilder-empty{height:320px;display:grid;place-items:center;text-align:center;color:rgba(255,255,255,.58);font-weight:750;line-height:1.5;}
 @media(max-width:760px){
   #ai-assistant-panel{padding:12px;}
   .ai-box{padding:16px;border-radius:22px;}
@@ -2260,6 +2308,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .ai-builder{grid-template-columns:1fr;}
   .ai-form-row{grid-template-columns:1fr;}
   .ai-template-grid{grid-template-columns:1fr;}
+  #tool-builder-panel{padding:10px;align-items:flex-end;}
+  .tbuilder-box{border-radius:24px 24px 0 0;max-height:92dvh;padding:18px;}
+  .tbuilder-layout{grid-template-columns:1fr;}
+  .tbuilder-row{grid-template-columns:1fr;}
 }
 
 /* ══════════════ BOARD SEARCH ══════════════ */
@@ -3358,6 +3410,62 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
         <div class="sp-row"><span>Force save</span><div class="kbd"><code>Ctrl</code><code>S</code></div></div>
         <div class="sp-row"><span>Version history</span><div class="kbd"><code>Ctrl</code><code>H</code></div></div>
         <div class="sp-row"><span>This panel</span><div class="kbd"><code>?</code></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Teacher tool builder panel -->
+<div id="tool-builder-panel">
+  <div class="tbuilder-box">
+    <div class="tbuilder-top">
+      <div>
+        <div class="tbuilder-kicker" id="tbuilder-kicker">Teacher tool constructor</div>
+        <div class="tbuilder-title" id="tbuilder-title">Build a classroom task</div>
+        <div class="tbuilder-sub" id="tbuilder-sub">Choose a tool, add your topic/source/vocabulary, generate a teacher-ready activity, then place it on the board as structured cards.</div>
+      </div>
+      <button class="tbuilder-close" onclick="closeTeacherToolBuilder()" aria-label="Close teacher tool builder">×</button>
+    </div>
+    <div class="tbuilder-layout">
+      <div class="tbuilder-form">
+        <div class="tbuilder-row">
+          <div>
+            <label for="tbuilder-level">Level</label>
+            <select id="tbuilder-level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option></select>
+          </div>
+          <div>
+            <label for="tbuilder-count">Items</label>
+            <select id="tbuilder-count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </div>
+        </div>
+        <label for="tbuilder-topic">Topic / grammar focus</label>
+        <input id="tbuilder-topic" value="Travel problems" placeholder="e.g. job interview, past simple, climate change">
+        <label for="tbuilder-source">Source text / lesson notes</label>
+        <textarea id="tbuilder-source" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
+        <label for="tbuilder-vocab">Target vocabulary</label>
+        <textarea id="tbuilder-vocab" placeholder="One word or phrase per line...">delay
+reservation
+boarding pass
+complaint
+solution
+polite request</textarea>
+        <label for="tbuilder-extra">Student difficulty / teacher instruction</label>
+        <textarea id="tbuilder-extra" placeholder="e.g. weak examples, articles, short answers, needs more confidence..."></textarea>
+        <div class="tbuilder-actions">
+          <button class="tbuilder-btn lime" onclick="generateTeacherToolBuilder()">Generate task</button>
+          <button class="tbuilder-btn blue" onclick="applyTeacherToolBuilderToBoard()">Add to board</button>
+          <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
+          <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>
+        </div>
+      </div>
+      <div class="tbuilder-preview">
+        <div class="tbuilder-preview-head">
+          <div class="tbuilder-preview-title">Preview</div>
+          <div class="tbuilder-chip" id="tbuilder-chip">not generated</div>
+        </div>
+        <div class="tbuilder-output" id="tbuilder-output">
+          <div class="tbuilder-empty">Choose a tool from the left panel.<br>Then generate a real classroom task here.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -8728,6 +8836,7 @@ function selectSidebarTab(name) {
   if (search) search.value = '';
   document.getElementById('sb-search-wrap').style.display = name === 'elements' ? 'none' : '';
   document.getElementById('mt-tools')?.classList.toggle('active', name === 'tools');
+  document.getElementById('sidebar')?.classList.toggle('tools-mode', name === 'tools');
   renderSidebar();
 }
 
@@ -8843,7 +8952,10 @@ function toggleSidebar(ev) {
   const open = sb.classList.toggle('open');
   const libBtn = document.getElementById('mt-templates');
   libBtn?.classList.toggle('active', open);
-  if (!open) document.getElementById('mt-tools')?.classList.remove('active');
+  if (!open) {
+    document.getElementById('mt-tools')?.classList.remove('active');
+    sb.classList.remove('tools-mode');
+  }
   if (open) _positionLibraryPopover();
   try { localStorage.setItem('sb-open', open ? '1' : '0'); } catch {}
 }
@@ -9083,19 +9195,237 @@ function toolMaterialText(tool) {
   return `${focus}\n${tool.kind} / ${BOARD_TOOL_NAMES[tool.cat] || tool.cat}\n\n${tool.desc}\n\nBoard-ready flow:\n${(templates[tool.cat] || templates.utility).join('\n')}\n\nTeacher prompt:\nCreate a ${tool.kind.toLowerCase()} for level B1 on: ____________________\nTarget language: ____________________\nStudent difficulty to target: ____________________`;
 }
 
+let activeTeacherToolBuilder = null;
+let lastTeacherToolBuilderOutput = null;
+
 function addTeacherToolToBoard(toolId) {
+  openTeacherToolBuilder(toolId);
+}
+
+function openTeacherToolBuilder(toolId) {
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);
   if (!tool) return;
+  activeTeacherToolBuilder = tool;
+  lastTeacherToolBuilderOutput = null;
+  document.getElementById('tbuilder-title').textContent = tool.title;
+  document.getElementById('tbuilder-sub').textContent = tool.desc;
+  document.getElementById('tbuilder-kicker').textContent = `${BOARD_TOOL_NAMES[tool.cat] || tool.cat} / ${tool.kind}`;
+  document.getElementById('tbuilder-chip').textContent = 'ready';
+  document.getElementById('tbuilder-output').innerHTML = '<div class="tbuilder-empty">Fill the fields and click Generate task.<br>This will create a real activity, not a placeholder note.</div>';
+  document.getElementById('tool-builder-panel')?.classList.add('open');
+}
+
+function closeTeacherToolBuilder() {
+  document.getElementById('tool-builder-panel')?.classList.remove('open');
+}
+
+document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeTeacherToolBuilder();
+});
+
+function readTeacherToolBuilderInput() {
+  const getVal = id => document.getElementById(id)?.value?.trim() || '';
+  return {
+    tool: activeTeacherToolBuilder,
+    level: getVal('tbuilder-level') || 'B1',
+    count: Math.max(3, Math.min(12, parseInt(getVal('tbuilder-count') || '6', 10) || 6)),
+    topic: getVal('tbuilder-topic') || 'Practical English',
+    source: getVal('tbuilder-source'),
+    vocab: getVal('tbuilder-vocab'),
+    extra: getVal('tbuilder-extra'),
+  };
+}
+
+function teacherToolVocabList(text, fallbackTopic, count = 6) {
+  const raw = String(text || '').split(/[\n,;]+/).map(x => x.trim()).filter(Boolean);
+  const fallback = ['problem','reason','example','solution','opinion','follow-up','evidence','summary'];
+  return (raw.length ? raw : fallback.map(w => `${w} (${fallbackTopic})`)).slice(0, count);
+}
+
+function teacherToolSourceSentences(text, topic, count = 6) {
+  const s = String(text || '')
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+/)
+    .map(x => x.trim())
+    .filter(Boolean);
+  if (s.length) return s.slice(0, count);
+  return [
+    `${topic} can be easy to understand when students see a clear example.`,
+    `Students often need useful language, controlled practice and time to produce their own answer.`,
+    `A good task gives a reason to communicate, not only a gap to complete.`,
+    `Teacher feedback should focus on one strong point and one next improvement.`,
+    `The final activity should help students reuse the target language in a personal way.`,
+    `Homework should recycle the same language with a small new challenge.`
+  ].slice(0, count);
+}
+
+function generateTeacherToolOutput(input) {
+  const tool = input.tool;
+  const vocab = teacherToolVocabList(input.vocab, input.topic, input.count);
+  const sentences = teacherToolSourceSentences(input.source, input.topic, input.count);
+  const title = `${input.level} · ${tool.title}: ${input.topic}`;
+  const focus = input.extra ? `Teacher focus: ${input.extra}` : `Teacher focus: make ${input.topic.toLowerCase()} clear, active and measurable.`;
+  const sections = [];
+
+  if (tool.cat === 'vocabulary') {
+    sections.push({title:'Vocabulary set', items:vocab.map((w,i)=>`${i+1}. ${w} — student-friendly definition + personal example`)});
+    sections.push({title:'Student task', items:[
+      'Match each item with a definition or image.',
+      'Write one personal sentence with three new items.',
+      'Swap sentences and improve one collocation or word form.'
+    ]});
+    sections.push({title:'Game handoff', items:['Use as flashcards, memory match, word sorting, odd-one-out or speed quiz.']});
+  } else if (tool.cat === 'reading') {
+    sections.push({title:'Reading task', items:[
+      `Before reading: predict three ideas about ${input.topic}.`,
+      'Gist: choose the best one-sentence summary.',
+      ...sentences.slice(0, Math.min(4, input.count)).map((s,i)=>`Detail ${i+1}: What does this mean? "${s.slice(0, 120)}"`)
+    ]});
+    sections.push({title:'After reading', items:['Find 5 useful phrases.', 'Ask one open question.', 'Give a personal opinion with evidence from the text.']});
+  } else if (tool.cat === 'grammar') {
+    sections.push({title:'Grammar construction', items:[
+      `Target structure: ${input.topic}.`,
+      'Notice: find the pattern in context.',
+      'Rule: students complete a one-line rule.',
+      ...vocab.slice(0, Math.min(5, input.count)).map((w,i)=>`Practice ${i+1}: Write/correct a sentence using "${w}".`)
+    ]});
+    sections.push({title:'Answer key logic', items:['Check meaning first, then form, then pronunciation or spelling.', 'Students explain why the wrong option is wrong.']});
+  } else if (tool.cat === 'speaking') {
+    sections.push({title:'Speaking constructor', items:[
+      `Warm-up: What is your experience with ${input.topic.toLowerCase()}?`,
+      `Useful phrases: ${vocab.slice(0, 5).join(', ')}.`,
+      'Pair task: Student A asks for details, Student B gives reasons and examples.',
+      'Upgrade: add a follow-up question and a reaction phrase.'
+    ]});
+    sections.push({title:'Feedback', items:['One strong phrase', 'One pronunciation/grammar correction', 'One next-level phrase to reuse']});
+  } else if (tool.cat === 'listening') {
+    sections.push({title:'Listening constructor', items:[
+      `Prediction: What words do you expect in a listening about ${input.topic}?`,
+      'First listen: main idea only.',
+      'Second listen: answer detail questions.',
+      'Transcript mining: collect useful chunks.',
+      'After listening: retell the audio in 45 seconds.'
+    ]});
+    sections.push({title:'Question bank', items:sentences.slice(0, input.count).map((s,i)=>`${i+1}. What does the speaker mean by: "${s.slice(0, 100)}"?`)});
+  } else if (tool.cat === 'writing') {
+    sections.push({title:'Writing constructor', items:[
+      `Plan: create a clear answer about ${input.topic}.`,
+      'Draft: write a short controlled version.',
+      `Must use: ${vocab.slice(0, Math.min(6, input.count)).join(', ')}.`,
+      'Upgrade: improve linking, examples and accuracy.',
+      'Self-check: underline the strongest sentence and rewrite the weakest one.'
+    ]});
+    sections.push({title:'Success criteria', items:['Clear structure', 'Target language used accurately', 'At least one example or reason', 'One self-correction']});
+  } else {
+    sections.push({title:'Task constructor', items:[
+      `Goal: create a ${tool.kind.toLowerCase()} for ${input.topic}.`,
+      `Level: ${input.level}. Items: ${input.count}.`,
+      `Target language: ${vocab.slice(0, 6).join(', ')}.`,
+      'Teacher prepares instructions, answer key and success criteria.',
+      'Student output must be visible on the board.'
+    ]});
+    sections.push({title:'Teacher control', items:['Add examples', 'Set timing', 'Add answer key', 'Send to board or game builder']});
+  }
+
+  sections.push({title:'Teacher note', items:[focus, 'Generated inside TeachEd board tool constructor. Review and adapt before teaching.']});
+  return { title, toolId:tool.id, cat:tool.cat, kind:tool.kind, level:input.level, topic:input.topic, vocab, sections };
+}
+
+function teacherToolOutputText(output) {
+  if (!output) return '';
+  return [
+    output.title,
+    `${BOARD_TOOL_NAMES[output.cat] || output.cat} / ${output.kind}`,
+    '',
+    ...output.sections.flatMap(s => [s.title, ...(s.items || []).map(i => '- ' + i), ''])
+  ].join('\n').trim();
+}
+
+function renderTeacherToolBuilderOutput(output) {
+  const body = document.getElementById('tbuilder-output');
+  if (!body) return;
+  document.getElementById('tbuilder-chip').textContent = `${output.level} / ${BOARD_TOOL_NAMES[output.cat] || output.cat}`;
+  body.innerHTML = `
+    <div class="tbuilder-section">
+      <h4>${esc(output.title)}</h4>
+      <p>${esc(output.kind)} · ${esc(output.topic)}</p>
+    </div>
+    ${output.sections.map(section => `
+      <div class="tbuilder-section">
+        <h4>${esc(section.title)}</h4>
+        <ul>${(section.items || []).map(item => `<li>${esc(item)}</li>`).join('')}</ul>
+      </div>
+    `).join('')}
+  `;
+}
+
+function generateTeacherToolBuilder() {
+  if (!activeTeacherToolBuilder) return;
+  lastTeacherToolBuilderOutput = generateTeacherToolOutput(readTeacherToolBuilderInput());
+  renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
+}
+
+function applyTeacherToolBuilderToBoard() {
+  if (!activeTeacherToolBuilder) return;
+  if (!lastTeacherToolBuilderOutput) generateTeacherToolBuilder();
+  const output = lastTeacherToolBuilderOutput;
+  if (!output) return;
+  snapshot?.();
   const r = boardWrap.getBoundingClientRect();
-  const pos = screenToBoard(r.left + r.width / 2 + (Math.random() - .5) * 80, r.top + r.height / 2 + (Math.random() - .5) * 80) || { x: 240, y: 240 };
-  const note = addCard('note', pos.x - 150, pos.y - 110, {
-    title: '✦ ' + tool.title,
-    text: toolMaterialText(tool),
-  }, 310, 230);
+  const center = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 320, y: 260 };
+  const frame = addCard('frame', center.x - 430, center.y - 250, {
+    title: output.title,
+    bg: 'rgba(66,98,255,.045)',
+    border: 'rgba(66,98,255,.25)'
+  }, 860, 520);
+  addCard('text', center.x - 390, center.y - 210, defaultTextData({
+    text: `${output.title}\n${BOARD_TOOL_NAMES[output.cat] || output.cat} / ${output.kind}`,
+    fontSize: 24,
+    textColor: '#111018',
+    bgColor: 'rgba(202,230,50,.22)',
+    align: 'left',
+  }), 370, 120);
+  const main = output.sections[0];
+  addCard('text', center.x + 10, center.y - 210, defaultTextData({
+    text: `${main.title}\n\n${(main.items || []).map(i => '• ' + i).join('\n')}`,
+    fontSize: 15,
+    textColor: '#111018',
+    bgColor: '#ffffff',
+    align: 'left',
+  }), 370, 250);
+  const criteria = output.sections.find(s => /criteria|teacher|feedback|control|note/i.test(s.title)) || output.sections[1];
+  addCard('checklist', center.x - 390, center.y - 60, {
+    title: criteria?.title || 'Teacher checklist',
+    items: (criteria?.items || ['Review task', 'Adapt examples', 'Teach']).slice(0, 7).map(text => ({ text, done:false })),
+  }, 350, 230);
+  if (output.vocab?.length) {
+    addCard('sticky', center.x - 5, center.y + 80, {
+      text: `Target language:\n${output.vocab.slice(0, 8).join('\n')}`,
+      color: '#FFF176',
+    }, 240, 200);
+  }
+  if (frame?.id && frame.data) {
+    frame.data.childIds = state.cards
+      .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
+      .map(c => c.id);
+  }
   clearSelection?.();
-  if (note?.id) selectCard(note.id);
+  renderAllArrows?.();
   scheduleSave?.(); saveLocal?.();
-  toast('Teacher tool added to board');
+  closeTeacherToolBuilder();
+  toast('Constructed task added to board');
+}
+
+async function copyTeacherToolBuilderOutput() {
+  if (!lastTeacherToolBuilderOutput) generateTeacherToolBuilder();
+  const text = teacherToolOutputText(lastTeacherToolBuilderOutput);
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Task copied');
+  } catch {
+    toast('Copy blocked by browser');
+  }
 }
 
 function makeTeacherToolSnippet(tool) {
@@ -9105,26 +9435,32 @@ function makeTeacherToolSnippet(tool) {
   const el = document.createElement('div');
   el.className = 'snippet tool-snippet';
   el.innerHTML = `
-    <div class="tool-open-dot">＋</div>
+    <div class="tool-open-dot">↗</div>
     <div class="sn-label">✦ ${BOARD_TOOL_NAMES[tool.cat] || tool.cat} tool</div>
     <div class="sn-title">${esc(tool.title)}</div>
+    <div class="sn-desc">${esc(tool.desc)}</div>
     <div class="sn-meta"><span class="badge pink">${esc(tool.kind)}</span><span class="badge">${esc(tool.cat)}</span></div>
   `;
-  const def = getDefaults('note');
-  const data = { title:'✦ ' + tool.title, text:toolMaterialText(tool) };
+  const data = defaultTextData({
+    text: toolMaterialText(tool),
+    textColor: '#111018',
+    bgColor: '#ffffff',
+    align: 'left',
+    fontSize: 15,
+  });
   el.addEventListener('mousedown', e => {
     isSidebarDrag = true; document.body.classList.add('board-dragging');
-    sidebarDragData = { type:'note', data:{...data}, w:310, h:230 };
+    sidebarDragData = { type:'text', data:{...data}, w:420, h:300 };
     ghostEl.innerHTML = `✦ ${tool.title}`;
     ghostEl.style.background = 'white';
     ghostEl.style.display = 'block';
-    ghostEl.style.left = (e.clientX - def.w / 2) + 'px';
+    ghostEl.style.left = (e.clientX - 210) + 'px';
     ghostEl.style.top = (e.clientY - 28) + 'px';
     e.preventDefault();
   });
   el.addEventListener('click', () => {
     if (isSidebarDrag) return;
-    addTeacherToolToBoard(tool.id);
+    openTeacherToolBuilder(tool.id);
   });
   return el;
 }
@@ -9134,7 +9470,7 @@ function renderToolsTab(sec) {
   hero.className = 'tools-mini-hero';
   hero.innerHTML = `
     <b>Teacher Tools Hub</b>
-    <p>Board-ready generators inspired by teacher workflows: reading, vocabulary, grammar, speaking, listening and utility blocks.</p>
+    <p>Click a tool to open a constructor with source text, vocabulary, level, preview and board export.</p>
     <div class="tools-mini-actions">
       <a href="teacher-tools.html">Open full hub →</a>
       <button type="button" onclick="openAiAssistantPanel()">AI lesson flow</button>
@@ -9149,7 +9485,7 @@ function renderToolsTab(sec) {
     </button>`).join('');
   sec.appendChild(filters);
 
-  sec.appendChild(makeLegend('Drag or click → add tool card'));
+  sec.appendChild(makeLegend('Click → open constructor / drag → draft card'));
   const list = BOARD_TEACHER_TOOLS.filter(tool => activeToolSkill === 'all' || tool.cat === activeToolSkill);
   let shown = 0;
   list.forEach(tool => {
@@ -14808,7 +15144,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=68').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=69').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
