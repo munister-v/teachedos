@@ -5213,6 +5213,9 @@ function renderSticky(el, card) {
   text.addEventListener('mousedown', e => {
     if (text.getAttribute('contenteditable') === 'true') e.stopPropagation();
   });
+  text.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); text.blur(); }
+  });
   text.addEventListener('input', () => { card.data.text = text.textContent || ''; scheduleSave(); });
   text.addEventListener('blur', () => {
     text.setAttribute('contenteditable', 'false');
@@ -5304,6 +5307,10 @@ function renderText(el, card) {
     }
     e.stopPropagation();
   });
+  editor.addEventListener('keydown', e => {
+    // Esc exits edit mode without dropping selection (matches sticky/mindmap).
+    if (e.key === 'Escape') { e.preventDefault(); editor.blur(); }
+  });
   editor.addEventListener('paste', e => {
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -5381,6 +5388,11 @@ function renderNote(el, card) {
     });
     titleSpan.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); }
+      else if (e.key === 'Escape') {
+        e.preventDefault();
+        titleSpan.textContent = d.title || 'Note';
+        titleSpan.blur();
+      }
     });
   }
   el.appendChild(hdr);
@@ -5401,6 +5413,9 @@ function renderNote(el, card) {
   }
   paintPlaceholder();
   editor.addEventListener('mousedown', e => e.stopPropagation());
+  editor.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); editor.blur(); }
+  });
   editor.addEventListener('input', () => paintPlaceholder());
   editor.addEventListener('blur', () => {
     const v = editor.textContent;
@@ -5694,6 +5709,7 @@ function renderTable(el, card) {
             else { d.rows.push(new Array(d.rows[0].length).fill('')); rebuildTable(); tbl.querySelectorAll('td')[idx+1]?.focus(); }
           }
           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); td.blur(); }
+          else if (e.key === 'Escape') { e.preventDefault(); td.textContent = d.rows[ri][ci]; td.blur(); }
         });
       });
     });
