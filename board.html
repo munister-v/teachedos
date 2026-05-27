@@ -5441,10 +5441,11 @@ function renderFrame(el, card) {
     e.stopPropagation();
     const name = prompt('Frame name:', niceTitle || ('Frame ' + card.data.num));
     if (name !== null) {
+      snapshot();
       card.data.title = name || ('Frame ' + card.data.num);
       const cleanTitle = (card.data.title && !/^Frame \d+$/.test(card.data.title)) ? card.data.title : '';
       title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(cleanTitle)}`;
-      snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
     }
   });
   el.appendChild(title);
@@ -5555,9 +5556,13 @@ function renderShape(el, card) {
     const r = document.createRange(); r.selectNodeContents(textDiv);
     const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     textDiv.addEventListener('blur', () => {
+      const newText = textDiv.textContent;
       textDiv.contentEditable = 'false'; textDiv.style.pointerEvents = 'none';
-      card.data.text = textDiv.textContent;
-      snapshot(); scheduleSave?.(); saveLocal?.();
+      if (newText !== card.data.text) {
+        snapshot();
+        card.data.text = newText;
+        scheduleSave?.(); saveLocal?.();
+      }
     }, { once: true });
     textDiv.addEventListener('keydown', ev => { if (ev.key === 'Escape') textDiv.blur(); });
   });
@@ -5592,9 +5597,13 @@ function renderMindmap(el, card) {
     const r = document.createRange(); r.selectNodeContents(textDiv);
     const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     textDiv.addEventListener('blur', () => {
+      const newText = textDiv.textContent;
       textDiv.contentEditable = 'false';
-      card.data.text = textDiv.textContent;
-      snapshot(); scheduleSave?.(); saveLocal?.();
+      if (newText !== card.data.text) {
+        snapshot();
+        card.data.text = newText;
+        scheduleSave?.(); saveLocal?.();
+      }
     }, { once: true });
     textDiv.addEventListener('keydown', ev => { if (ev.key==='Escape') textDiv.blur(); });
   });
@@ -5625,8 +5634,12 @@ function renderTable(el, card) {
         td.contentEditable = 'true';
         td.textContent = cell;
         td.addEventListener('blur', () => {
-          d.rows[ri][ci] = td.textContent;
-          snapshot(); scheduleSave?.(); saveLocal?.();
+          const v = td.textContent;
+          if (d.rows[ri][ci] !== v) {
+            snapshot();
+            d.rows[ri][ci] = v;
+            scheduleSave?.(); saveLocal?.();
+          }
         });
         td.addEventListener('keydown', e => {
           if (e.key === 'Tab') {
@@ -5646,7 +5659,7 @@ function renderTable(el, card) {
   const addRowBtn = document.createElement('button');
   addRowBtn.className = 'table-add-row';
   addRowBtn.textContent = '+ Row';
-  addRowBtn.onclick = () => { d.rows.push(new Array(d.rows[0].length).fill('')); rebuildTable(); snapshot(); scheduleSave?.(); };
+  addRowBtn.onclick = () => { snapshot(); d.rows.push(new Array(d.rows[0].length).fill('')); rebuildTable(); scheduleSave?.(); };
   wrap.appendChild(addRowBtn);
   el.appendChild(wrap);
 }
@@ -7229,6 +7242,7 @@ function showLayerPopover(cardId) {
       if (isCurrent) sw.classList.add('active');
       sw.addEventListener('click', e => {
         e.stopPropagation();
+        snapshot();
         const el = getCardEl(cardId);
         card.data.bg = p.bg;
         card.data.border = p.border;
@@ -7239,7 +7253,7 @@ function showLayerPopover(cardId) {
         // Update active state on swatches
         colorRow.querySelectorAll('.frame-color-swatch').forEach(s => s.classList.remove('active'));
         sw.classList.add('active');
-        snapshot(); scheduleSave && scheduleSave(); saveLocal && saveLocal();
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
       });
       colorRow.appendChild(sw);
     });
@@ -13019,11 +13033,15 @@ function renderChecklist(el, card) {
       txt.contentEditable = true; txt.spellcheck = false;
       txt.style.outline = 'none';
       txt.addEventListener('mousedown', e => e.stopPropagation());
-      txt.addEventListener('blur', () => { item.text = txt.textContent.trim() || item.text; scheduleSave(); });
+      txt.addEventListener('blur', () => {
+        const v = txt.textContent.trim() || item.text;
+        if (v !== item.text) { snapshot(); item.text = v; scheduleSave(); }
+      });
       txt.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
         if (e.key === 'Backspace' && txt.textContent === '') {
           e.preventDefault(); e.stopPropagation();
+          snapshot();
           d.items.splice(idx, 1); scheduleSave(); rebuildChecklist();
         }
       });
