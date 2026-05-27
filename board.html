@@ -8184,6 +8184,8 @@ function toggleConnectMode() {
   // Sync toolbar buttons explicitly
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
+  // Quick hint so users know what to do
+  if (enabling) toast && toast('Connect mode: drag from one card\'s anchor to another · Esc to exit');
 }
 
 /* ─── Mobile Add action sheet ─── */
@@ -12363,23 +12365,38 @@ function buildStickyPalette() {
 }
 
 function nextStickyPalettePosition() {
-  const r = boardWrap.getBoundingClientRect();
-  const base = screenToBoard(r.left + r.width * .46, r.top + r.height * .42) || { x: 240, y: 180 };
+  // Use the *visible* board center (accounts for sticky-palette itself,
+  // sidebar, AI panel, etc) so the new sticky lands where the user can see it.
+  const base = getBoardViewportCenter() || { x: 240, y: 180 };
   const offset = (_stickyAddCount++ % 8) * 18;
   return { x: base.x + offset, y: base.y + offset };
 }
 
-function addStickyFromPalette(color, text = '') {
+function addStickyFromPalette(color, text = '', opts = {}) {
   const pos = nextStickyPalettePosition();
   const card = addCard('sticky', pos.x - 90, pos.y - 90, { text, color }, 180, 180);
-  if (card?.id) { clearSelection(); selectCard(card.id); }
+  if (card?.id) {
+    clearSelection();
+    selectCard(card.id);
+    // Auto-focus the textarea so user can immediately type (skip in bulk mode)
+    if (!opts.skipFocus) {
+      setTimeout(() => {
+        const el = getCardEl(card.id);
+        const ta = el?.querySelector('textarea, [contenteditable="true"], [contenteditable="plaintext-only"]');
+        if (!ta) return;
+        ta.focus();
+        if (ta.tagName === 'TEXTAREA') ta.setSelectionRange(ta.value.length, ta.value.length);
+        else { try { document.execCommand('selectAll', false, null); } catch {} }
+      }, 50);
+    }
+  }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   return card;
 }
 
 function addStickyStack() {
   const labels = ['Idea', 'Question', 'Example'];
-  ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i]));
+  ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i], { skipFocus:true }));
   toast('Sticky stack added');
 }
 
@@ -12390,7 +12407,7 @@ function addStickyTemplates() {
     ['Common mistake', '#FF8F8F'],
     ['Homework idea', '#73DDD0'],
   ];
-  templates.forEach(([text, color]) => addStickyFromPalette(color, text));
+  templates.forEach(([text, color]) => addStickyFromPalette(color, text, { skipFocus:true }));
   toast('Sticky templates added');
 }
 
@@ -12398,7 +12415,7 @@ function addStickyBulk() {
   const raw = prompt('Bulk sticky notes: one note per line', 'Warm-up question\nUseful phrase\nStudent example\nHomework');
   if (!raw) return;
   const lines = raw.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 24);
-  lines.forEach((line, i) => addStickyFromPalette(STICKY_PALETTE_COLORS[i % STICKY_PALETTE_COLORS.length], line));
+  lines.forEach((line, i) => addStickyFromPalette(STICKY_PALETTE_COLORS[i % STICKY_PALETTE_COLORS.length], line, { skipFocus:true }));
   toast(`${lines.length} sticky notes added`);
 }
 
