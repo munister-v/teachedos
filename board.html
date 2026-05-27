@@ -4691,7 +4691,7 @@ function getBoardViewportCenterScreen() {
     return er;
   };
   // Left obstructions: vertical toolbar, open sidebar flyout, sticky/sticker palettes anchored left
-  ['#miro-toolbar','#sidebar','#sticky-palette','#sticker-modal'].forEach(sel => {
+  ['#miro-toolbar','#sidebar','#sticky-palette','#sticker-panel'].forEach(sel => {
     const el = document.querySelector(sel);
     const er = overlap(el);
     if (!er) return;
@@ -12437,16 +12437,23 @@ let _pendingPlace = null;   // { type, extraData } or null
 let _placeGhost   = null;   // DOM element following cursor
 
 const _PLACE_INFO = {
-  sticky:    { icon:'🟡', label:'Sticky Note' },
-  text:      { icon:'T',  label:'Text' },
-  shape:     { icon:'◼',  label:'Shape' },
-  mindmap:   { icon:'⬡',  label:'Mind Map' },
-  checklist: { icon:'✅', label:'Checklist' },
-  timer:     { icon:'⏱', label:'Timer' },
-  lesson:    { icon:'📋', label:'Lesson' },
-  image:     { icon:'🖼', label:'Image' },
-  video:     { icon:'▶',  label:'Video' },
-  sticker:   { icon:'😊', label:'Sticker' },
+  sticky:     { icon:'🟡', label:'Sticky Note' },
+  text:       { icon:'T',  label:'Text' },
+  shape:      { icon:'◼',  label:'Shape' },
+  mindmap:    { icon:'⬡',  label:'Mind Map' },
+  table:      { icon:'⊞',  label:'Table' },
+  checklist:  { icon:'✅', label:'Checklist' },
+  timer:      { icon:'⏱', label:'Timer' },
+  lesson:     { icon:'📋', label:'Lesson' },
+  assignment: { icon:'📝', label:'Assignment' },
+  vocab:      { icon:'📖', label:'Vocab' },
+  milestone:  { icon:'🏁', label:'Milestone' },
+  frame:      { icon:'▭',  label:'Frame' },
+  voting:     { icon:'📊', label:'Voting' },
+  image:      { icon:'🖼', label:'Image' },
+  video:      { icon:'▶',  label:'Video' },
+  audio:      { icon:'🎵', label:'Audio' },
+  sticker:    { icon:'😊', label:'Sticker' },
 };
 
 function enterPlaceMode(type, extraData) {
