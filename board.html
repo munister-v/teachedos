@@ -10514,49 +10514,95 @@ function applyTeacherToolBuilderToBoard() {
   if (!lastTeacherToolBuilderOutput) generateTeacherToolBuilder();
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
-  snapshot?.();
+  const tool = activeTeacherToolBuilder;
+  const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
+
+  // Layout grid for the customised template
+  const FRAME_W = 1180;
+  const FRAME_H = 760;
+  const PAD = 26;
   const center = getBoardViewportCenter() || { x: 320, y: 260 };
-  const frame = addCard('frame', center.x - 430, center.y - 250, {
-    title: output.title,
-    bg: 'rgba(66,98,255,.045)',
-    border: 'rgba(66,98,255,.25)'
-  }, 860, 520);
-  addCard('text', center.x - 390, center.y - 210, defaultTextData({
-    text: `${output.title}\n${BOARD_TOOL_NAMES[output.cat] || output.cat} / ${output.kind}`,
-    fontSize: 24,
-    textColor: '#111018',
-    bgColor: 'rgba(202,230,50,.22)',
-    align: 'left',
-  }), 370, 120);
-  const main = output.sections[0];
-  addCard('text', center.x + 10, center.y - 210, defaultTextData({
-    text: `${main.title}\n\n${(main.items || []).map(i => '• ' + i).join('\n')}`,
-    fontSize: 15,
-    textColor: '#111018',
-    bgColor: '#ffffff',
-    align: 'left',
-  }), 370, 250);
-  const criteria = output.sections.find(s => /criteria|teacher|feedback|control|note/i.test(s.title)) || output.sections[1];
-  addCard('checklist', center.x - 390, center.y - 60, {
-    title: criteria?.title || 'Teacher checklist',
-    items: (criteria?.items || ['Review task', 'Adapt examples', 'Teach']).slice(0, 7).map(text => ({ text, done:false })),
-  }, 350, 230);
-  if (output.vocab?.length) {
-    addCard('sticky', center.x - 5, center.y + 80, {
-      text: `Target language:\n${output.vocab.slice(0, 8).join('\n')}`,
-      color: '#FFF176',
-    }, 240, 200);
+  const x0 = Math.round(center.x - FRAME_W / 2);
+  const y0 = Math.round(center.y - FRAME_H / 2);
+
+  snapshot();
+  _suppressSnapshot++;
+  let frame;
+  try {
+    frame = addCard('frame', x0, y0, {
+      title: `${meta.icon}  ${output.title}`,
+      bg: meta.bg,
+      border: meta.color,
+      childIds: []
+    }, FRAME_W, FRAME_H);
+
+    // Header card: title + meta kicker + one-line goal
+    const headerY = y0 + 56;
+    const headerH = 100;
+    const header = addCard('text', x0 + PAD, headerY, defaultTextData({
+      text: `${output.title}\n${(BOARD_TOOL_NAMES[output.cat] || output.cat)} · ${output.kind}\n\nLevel · ${output.level || 'B1'}    Topic · ${output.topic || '—'}`,
+      textColor: meta.color,
+      bgColor: '#ffffff',
+      align: 'left',
+      fontSize: 15,
+    }), FRAME_W - PAD * 2, headerH);
+    if (frame && header) setCardParentFrame?.(header, frame);
+
+    // Main sections — render up to 3 first sections as cards in a row.
+    const sectionsY = headerY + headerH + 16;
+    const sectionsH = 360;
+    const sections = (output.sections || []).slice(0, 3);
+    const colW = Math.floor((FRAME_W - PAD * 2 - 16 * (sections.length - 1)) / Math.max(sections.length, 1));
+    const sectionColors = ['#FFE566', '#AFF4C6', '#CFE2FF'];
+    sections.forEach((s, i) => {
+      const sx = x0 + PAD + i * (colW + 16);
+      const text = `${s.title}\n\n${(s.items || []).map(it => '• ' + it).join('\n')}`;
+      const sticky = addCard('sticky', sx, sectionsY, {
+        text,
+        color: sectionColors[i % sectionColors.length]
+      }, colW, sectionsH);
+      if (frame && sticky) setCardParentFrame?.(sticky, frame);
+    });
+
+    // Bottom row: teacher checklist (left) + target language sticky (right)
+    const bottomY = sectionsY + sectionsH + 18;
+    const bottomH = 200;
+    const halfW = Math.floor((FRAME_W - PAD * 2 - 18) / 2);
+
+    const criteria = (output.sections || []).find(s => /criteria|teacher|feedback|control|note/i.test(s.title))
+      || (output.sections || [])[output.sections?.length - 1];
+    const checklistItems = (criteria?.items || ['Review task', 'Adapt to your group', 'Teach']).slice(0, 8)
+      .map(t => ({ text: t, done: false }));
+    const checklist = addCard('checklist', x0 + PAD, bottomY, {
+      title: criteria?.title || '✅ Teacher checklist',
+      items: checklistItems,
+    }, halfW, bottomH);
+    if (frame && checklist) setCardParentFrame?.(checklist, frame);
+
+    const vocab = output.vocab || [];
+    const langText = vocab.length
+      ? `🗣 Target language\n\n${vocab.slice(0, 10).map((w, i) => `${i + 1}. ${w}`).join('\n')}`
+      : `📋 Teacher prompt\n\nCreate a ${tool.kind.toLowerCase()} for level ${output.level || 'B1'} on:\n${output.topic || '____________'}\n\nFocus: ${output.extra || '____________'}`;
+    const vocabSticky = addCard('sticky', x0 + PAD + halfW + 18, bottomY, {
+      text: langText,
+      color: '#FFD580'
+    }, halfW, bottomH);
+    if (frame && vocabSticky) setCardParentFrame?.(vocabSticky, frame);
+
+    if (typeof renumberFrames === 'function') renumberFrames();
+  } finally {
+    _suppressSnapshot--;
   }
-  if (frame?.id && frame.data) {
-    frame.data.childIds = state.cards
-      .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
-      .map(c => c.id);
+
+  if (frame?.id) {
+    clearSelection?.();
+    selectCard?.(frame.id);
+    setTimeout(() => { try { zoomToCard?.(frame.id, true); } catch {} }, 80);
   }
-  clearSelection?.();
   renderAllArrows?.();
   scheduleSave?.(); saveLocal?.();
   closeTeacherToolBuilder();
-  toast('Constructed task added to board');
+  toast('✨ Lesson task added to board');
 }
 
 async function copyTeacherToolBuilderOutput() {
