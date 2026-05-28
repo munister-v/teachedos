@@ -101,7 +101,22 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
         </div>
       </div>
     </section>
-    <div class="preset-strip" id="preset-strip"></div>
+    <section aria-label="Ready preset lessons" style="margin:18px 0 4px;">
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+        <div>
+          <div class="eyebrow" style="margin-bottom:4px;">Ready presets</div>
+          <h2 style="font-size:20px;letter-spacing:-.03em;">Drop a lesson in one click</h2>
+          <p style="color:var(--muted);font-size:12.5px;margin-top:3px;">Pre-written topic, vocab and source text. Pick a level to narrow down.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="eyebrow">Level</div>
+          <div class="chips" id="preset-level-chips" style="gap:6px;"></div>
+          <div class="eyebrow" style="margin-left:6px;">Total</div>
+          <span id="preset-count" class="tag" style="background:var(--lime);color:#151515;">0</span>
+        </div>
+      </div>
+      <div class="preset-strip" id="preset-strip"></div>
+    </section>
     <div class="bar">
       <div class="search"><input id="search" placeholder="Search tools, skills, exercises..." oninput="renderTools()"><span>⌕</span></div>
       <div class="chips" id="top-chips"></div>
@@ -351,6 +366,472 @@ const PRESET_PACKS = [
     topic: "Animals and actions",
     vocab: "cat - small pet animal\ndog - friendly pet animal\nbird - animal that can fly\nfish - animal that lives in water\nrabbit - small animal with long ears",
     source: "Children learn animal names and simple actions: run, jump, swim, fly, sleep."
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // EXPANDED PRESET LIBRARY — 60+ ready topics across A1-C1 + exams
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ─── A1 BEGINNER ───────────────────────────────────────────────────
+  {
+    title: "A1 Family Members", sub: "describe your family", tool: "essential-vocab", level: "A1",
+    topic: "Family members",
+    vocab: "mother - female parent\nfather - male parent\nbrother - male sibling\nsister - female sibling\ngrandmother - mother of your parent\ngrandfather - father of your parent\nson - male child\ndaughter - female child\naunt - sister of your parent\nuncle - brother of your parent\ncousin - child of your aunt or uncle",
+    source: "Students introduce their family. \"This is my mother. She is a teacher. I have one brother and two sisters. My grandparents live in another city.\""
+  },
+  {
+    title: "A1 Colors & Shapes", sub: "visual basics", tool: "word-image-match", level: "A1",
+    topic: "Colors and basic shapes",
+    vocab: "red - the color of a tomato\nblue - the color of the sea\nyellow - the color of the sun\ngreen - the color of grass\nblack - the darkest color\nwhite - the brightest color\ncircle - a round shape\nsquare - a shape with four equal sides\ntriangle - a shape with three sides\nstar - a shape with five points",
+    source: "Students point at classroom objects and say the color and shape. \"The book is red. The window is a square. The clock is a circle.\""
+  },
+  {
+    title: "A1 Body Parts", sub: "head to toe", tool: "word-image-match", level: "A1",
+    topic: "Parts of the body",
+    vocab: "head - top of the body\nface - front of the head\neye - you see with it\nnose - you smell with it\nmouth - you eat with it\near - you hear with it\nhand - end of your arm\nfoot - end of your leg\nfinger - one of five on a hand\nstomach - inside your belly",
+    source: "Simon says game. \"Simon says: touch your nose. Simon says: clap your hands. Touch your ear. — Wait, Simon didn't say!\""
+  },
+  {
+    title: "A1 House & Rooms", sub: "where things are", tool: "essential-vocab", level: "A1",
+    topic: "Rooms and furniture at home",
+    vocab: "kitchen - where you cook\nbedroom - where you sleep\nbathroom - where you wash\nliving room - where the family relaxes\ngarden - outside, with plants\ntable - flat top, four legs\nchair - you sit on it\nbed - you sleep on it\nsofa - long soft seat\nfridge - cold box for food",
+    source: "A short tour: \"This is the kitchen. The fridge is next to the window. The living room has a big sofa and a TV. My bedroom is upstairs.\""
+  },
+  {
+    title: "A1 Weather Today", sub: "small talk basics", tool: "dialogue", level: "A1",
+    topic: "Talking about the weather",
+    vocab: "sunny - lots of sun\nrainy - water falls from the sky\ncloudy - lots of clouds in the sky\nwindy - the air moves fast\nhot - high temperature\ncold - low temperature\nwarm - a little hot, comfortable\ncool - a little cold, comfortable\nsnow - white frozen rain\nfog - thick white air, hard to see",
+    source: "Two friends meet on the street. \"Hi! How's the weather today?\" \"It's cold and cloudy. I think it will rain later.\" \"Yes, bring an umbrella!\""
+  },
+  {
+    title: "A1 Clothes & Dressing", sub: "what to wear", tool: "essential-vocab", level: "A1",
+    topic: "Clothes for every day and weather",
+    vocab: "t-shirt - light top with short sleeves\njeans - blue trousers, casual\njacket - light coat\nshoes - you wear on your feet\nsocks - between foot and shoe\nhat - on your head\nscarf - around your neck for warmth\ngloves - on your hands for cold weather\ndress - one piece of clothing for women\nuniform - special clothes for work or school",
+    source: "\"It's cold today. I'm wearing jeans, a warm jacket, a scarf and gloves. My friend is wearing a dress and a coat. We forgot our hats!\""
+  },
+  {
+    title: "A1 Numbers & Prices", sub: "shopping basics", tool: "dialogue", level: "A1",
+    topic: "Numbers and prices in a shop",
+    vocab: "one - 1\nfive - 5\nten - 10\ntwenty - 20\nfifty - 50\nhundred - 100\nprice - how much something costs\ncheap - not expensive\nexpensive - costs a lot\ndiscount - lower price",
+    source: "At a shop: \"How much is this apple?\" \"Fifty cents.\" \"And the bread?\" \"Two euros.\" \"OK, I will take three apples and one bread. That is three euros fifty.\""
+  },
+  {
+    title: "A1 Time & Daily Times", sub: "telling the time", tool: "essential-vocab", level: "A1",
+    topic: "Time of day and clock",
+    vocab: "morning - the first part of the day\nafternoon - after lunch\nevening - end of the day, before night\nnight - dark time, time to sleep\no'clock - exact hour\nhalf past - thirty minutes after the hour\nquarter past - fifteen minutes after\nquarter to - fifteen minutes before\nminute - sixty seconds\nhour - sixty minutes",
+    source: "\"What time is it?\" \"It's half past seven in the morning.\" \"And what time is the class?\" \"Quarter past nine.\""
+  },
+  {
+    title: "A1 School Subjects", sub: "what we study", tool: "essential-vocab", level: "A1",
+    topic: "School subjects and timetable",
+    vocab: "maths - numbers and calculations\nEnglish - the language of England and the US\nhistory - what happened in the past\nscience - study of the natural world\nart - drawing and painting\nmusic - songs and sounds\nP.E. - sports at school\nfavorite - the one you like the most\nlesson - one class period\nbreak - time between lessons",
+    source: "\"My favorite subject is art. I have art on Monday and Friday. I don't like maths very much, but I'm good at English. My P.E. lesson is in the afternoon.\""
+  },
+  {
+    title: "A1 Asking Directions", sub: "left, right, straight", tool: "dialogue", level: "A1",
+    topic: "Asking and giving simple directions",
+    vocab: "left - opposite of right\nright - opposite of left\nstraight - not turning\ncorner - where two streets meet\nnext to - very close to, beside\nopposite - on the other side\nbetween - in the middle of two things\nhere - this place\nthere - that place\nmap - a drawing of a place",
+    source: "\"Excuse me, where is the bank?\" \"Go straight, then turn left at the corner. The bank is next to the supermarket, opposite the post office.\" \"Thank you!\""
+  },
+  {
+    title: "A1 Hobbies & Free Time", sub: "what I like to do", tool: "discussion", level: "A1",
+    topic: "Hobbies and free time",
+    vocab: "read books - look at words on pages\nplay football - kick a ball with friends\nwatch TV - look at the television\nlisten to music - hear songs\ngo swimming - move in water\ncook - prepare food\ndance - move to music\nride a bike - travel on two wheels\npaint - make pictures with colors\nplay games - have fun with rules",
+    source: "\"What do you do in your free time?\" \"I like to read books and listen to music. On weekends I play football with my friends. I don't like cooking, but I love dancing.\""
+  },
+
+  // ─── A2 ELEMENTARY ─────────────────────────────────────────────────
+  {
+    title: "A2 Birthday Party", sub: "invitations + gifts", tool: "dialogue", level: "A2",
+    topic: "Planning and attending a birthday party",
+    vocab: "invitation - a written message asking someone to come\nguest - a person who is invited\npresent - a gift you give someone\ncandle - small wax stick with fire\ncake - sweet food for celebrations\ndecoration - things that make a room beautiful\nballoon - thin rubber bag filled with air\nplaylist - list of songs to play\ncelebrate - do something fun on a special day\nblow out - push air to stop a flame",
+    source: "Maya is turning twelve. She is making invitations for ten guests, decorating the room with balloons, and asking her mum to bake a chocolate cake with twelve candles."
+  },
+  {
+    title: "A2 Public Transport", sub: "bus, train, metro", tool: "dialogue", level: "A2",
+    topic: "Using public transport in a city",
+    vocab: "platform - where you wait for a train\nticket - paper to pay for a journey\nschedule - list of times\ndelay - when something is late\ntransfer - change to a different line\nrush hour - the time when many people travel\nfare - cost of a journey\nmetro - underground train\ntram - city train on the road\ndriver - person who drives the bus or train",
+    source: "Lucas is late for school. He missed his usual bus, so he runs to the metro, transfers at Central Station, and finally takes a tram. The fare costs more, but he arrives only ten minutes late."
+  },
+  {
+    title: "A2 At the Post Office", sub: "letters + parcels", tool: "dialogue", level: "A2",
+    topic: "Sending a letter and a package",
+    vocab: "envelope - paper cover for a letter\nstamp - small paper you put on a letter to pay\nparcel - a box you send by post\naddress - where someone lives\npostcode - numbers and letters for the address\nweigh - measure how heavy something is\nfragile - easily broken\ndeliver - bring something to a person\nsign - write your name to confirm\nabroad - in another country",
+    source: "Marie wants to send a small parcel to her grandmother who lives abroad. She fills in the address, the postcode, and writes \"fragile\" because there is a glass inside. The clerk weighs the parcel and tells her the price."
+  },
+  {
+    title: "A2 Phone Call English", sub: "useful expressions", tool: "dialogue", level: "A2",
+    topic: "Making and answering phone calls",
+    vocab: "hold on - wait, please\nspeaking - I am the person you want\nmessage - words to give to someone later\ncall back - phone again later\nwrong number - you reached the wrong person\nleave a message - say something for them to hear later\nappointment - planned meeting\nconfirm - say it is correct\ncancel - say it will not happen\nreschedule - move to another time",
+    source: "\"Hello, can I speak to Mr Brown?\" \"Speaking. Who's calling?\" \"This is Anna from the dentist. I'm calling to confirm your appointment for tomorrow at ten.\" \"Actually, can I reschedule it?\""
+  },
+  {
+    title: "A2 At the Airport", sub: "check-in + security", tool: "lesson-pack", level: "A2",
+    topic: "Travelling through an airport",
+    vocab: "boarding pass - the ticket you show to enter the plane\nsecurity - the people who check you and your bag\ngate - the door where you enter the plane\nluggage - bags and suitcases\nhand luggage - small bag you take on the plane\ncarry on - take with you on the plane\ndeparture - leaving\narrival - reaching a place\ndelay - being late\nimmigration - the place where they check passports",
+    source: "Sam is travelling to London. He checks his big suitcase, keeps his hand luggage, and goes through security. He buys water at the gate. His flight is delayed by 20 minutes, but he relaxes with a book."
+  },
+  {
+    title: "A2 Pets & Animals", sub: "describing pets", tool: "essential-vocab", level: "A2",
+    topic: "Pets, vets and animal care",
+    vocab: "puppy - young dog\nkitten - young cat\nvet - animal doctor\nfeed - give food to\nleash - rope or strap for a dog\nfur - the soft hair on an animal\ntame - friendly with people\nstray - lost, no owner\nadopt - take an animal home as a new owner\nshelter - safe home for stray animals",
+    source: "Ben and his sister visit a shelter to adopt a kitten. The volunteer explains how to feed the kitten, how often to visit the vet, and what toys are safe for young cats."
+  },
+  {
+    title: "A2 Weather Report", sub: "describing the day", tool: "dialogue", level: "A2",
+    topic: "Listening to a weather report",
+    vocab: "forecast - what they say the weather will be\ntemperature - how hot or cold it is\ndegree - unit of temperature\nshower - short rain\nthunderstorm - rain with thunder and lightning\nhumid - the air feels wet\nfreezing - very cold, water becomes ice\nmild - not too hot and not too cold\nbreezy - a light wind\nclear - no clouds",
+    source: "\"Good morning, here is the weather forecast. Today will be mild and breezy with a temperature of fifteen degrees. There will be a few showers in the afternoon, but the evening will be clear.\""
+  },
+  {
+    title: "A2 Hotel Check-In", sub: "reservations + rooms", tool: "dialogue", level: "A2",
+    topic: "Checking into a hotel",
+    vocab: "reservation - a room kept for you\nreceptionist - person at the front desk\nkey card - a card that opens the door\nfloor - level of a building\ncheckout - time you must leave\namenities - extras in the hotel\nWi-Fi - wireless internet\nbreakfast - the first meal of the day\nupgrade - move to a better room\ncomplaint - when something is wrong",
+    source: "\"Good evening, I have a reservation for two nights under Garcia.\" \"Welcome! Here is your key card, room 312, third floor. Breakfast is from seven to ten. Wi-Fi is free.\""
+  },
+  {
+    title: "A2 Sports & Activities", sub: "play, do, go", tool: "essential-vocab", level: "A2",
+    topic: "Sports and active hobbies",
+    vocab: "play tennis - hit a ball with a racket\ngo swimming - move in water\ndo yoga - body and mind exercise\ngo jogging - run slowly for exercise\nplay basketball - throw a ball into a net\ndo gymnastics - move in beautiful shapes\ngo cycling - travel on a bike\nplay volleyball - hit a ball over a net\nteam - group of players\ntrainer - person who teaches you to do sport",
+    source: "\"What sports do you play?\" \"I play basketball on Wednesdays and go cycling at the weekend. My sister does gymnastics — her trainer is very strict but kind.\""
+  },
+
+  // ─── B1 INTERMEDIATE ──────────────────────────────────────────────
+  {
+    title: "B1 Online Shopping", sub: "reviews + returns", tool: "worksheet-builder", level: "B1",
+    topic: "Online shopping, deliveries and returns",
+    vocab: "checkout - the final page where you pay\ncart - your selected items\ntracking - following your delivery\nreview - what other customers say\nrating - score out of five stars\nrefund - money back\nfit - the right size for you\ndefective - broken or not working\nout of stock - not available right now\nestimated delivery - when it should arrive",
+    source: "Online reviews can be very useful, but they can also be misleading. Some shoppers leave five-star ratings for free products, while others write angry one-star reviews after a small delay. Reading several reviews carefully is more reliable than trusting only the average rating."
+  },
+  {
+    title: "B1 Apartment Hunting", sub: "renting in a city", tool: "dialogue", level: "B1",
+    topic: "Looking for a flat to rent",
+    vocab: "rent - monthly payment for a flat\ndeposit - money you pay first as security\nlandlord - the owner of the flat\nfurnished - already has furniture\nutilities - electricity, water, internet\nlease - the rental contract\ntenant - the person who rents\nviewing - going to see the flat\nfacilities - extra features in the building\nneighbourhood - the area around your flat",
+    source: "\"I'm looking for a one-bedroom flat in the city centre. My budget is about 700 euros, utilities included. I'd prefer a furnished place and I can sign a lease for a year. When can I arrange a viewing?\""
+  },
+  {
+    title: "B1 Cooking & Recipes", sub: "step-by-step instructions", tool: "worksheet-builder", level: "B1",
+    topic: "Following and writing a recipe",
+    vocab: "ingredients - the food items you need\ntablespoon - large spoon for measuring\nteaspoon - small spoon for measuring\nchop - cut into small pieces\nstir - mix with a spoon\nboil - heat liquid until it bubbles\nbake - cook in an oven\nseason - add salt, pepper or herbs\nserve - put on the plate ready to eat\ngarnish - decorate the dish",
+    source: "Mushroom risotto recipe. First, chop one onion finely and stir-fry it in olive oil for two minutes. Add 250 grams of rice and stir. Slowly add hot broth, one ladle at a time. After 18 minutes, the rice should be creamy. Season with parmesan, salt and pepper. Serve hot, garnished with parsley."
+  },
+  {
+    title: "B1 Movies & Series", sub: "what to watch", tool: "discussion", level: "B1",
+    topic: "Talking about films and TV series",
+    vocab: "plot - the story\ncharacter - a person in the film\nactor / actress - the performer\ndirector - the person who makes the film\nsoundtrack - music in the film\nspoiler - information that ruins the ending\nbinge-watch - watch many episodes in a row\nepisode - one part of a series\nrecommend - say something is good to try\noverrated - not as good as people say",
+    source: "\"Have you seen anything good lately?\" \"Yes, I binge-watched a Spanish series at the weekend. The plot is clever and the soundtrack is amazing. I really recommend it, but don't read reviews — too many spoilers!\""
+  },
+  {
+    title: "B1 Healthy Lifestyle", sub: "habits, sleep, stress", tool: "discussion", level: "B1",
+    topic: "Building a healthier daily routine",
+    vocab: "habit - something you do regularly\nroutine - your usual order of activities\nbalanced diet - eating different healthy foods\nworkout - exercise session\nhydrated - having enough water\nscreen time - hours looking at a phone or computer\nburnout - feeling exhausted from work or stress\nmindfulness - paying attention to the present moment\nwell-being - feeling good in body and mind\nrecovery - resting and getting better",
+    source: "Small changes can have a big impact. Going for a 20-minute walk in the morning, drinking water with each meal, and reducing screen time before bed are simple habits that improve sleep, mood and energy levels."
+  },
+  {
+    title: "B1 Money & Budgeting", sub: "saving tips", tool: "discussion", level: "B1",
+    topic: "Managing personal finance",
+    vocab: "budget - a plan for your money\nincome - money you earn\nexpenses - money you spend\nsavings - money you keep for later\ninvestment - putting money into something to grow it\ndebt - money you owe\nemergency fund - savings for unexpected costs\nimpulse buy - buying without thinking\nsubscription - regular small payments\nfinancial goal - what you want to achieve with money",
+    source: "Many young adults find it difficult to save. Experts recommend the 50-30-20 rule: 50% of your income for needs, 30% for wants and 20% for savings. Cancelling unused subscriptions and avoiding impulse buys can free up surprising amounts of money each month."
+  },
+  {
+    title: "B1 Customer Service", sub: "handling complaints", tool: "dialogue", level: "B1",
+    topic: "Asking for help and making a complaint",
+    vocab: "issue - a problem\nresolve - find a solution\nescalate - move to a higher level\ncompensation - something offered after a problem\npolicy - official rule\nunder warranty - still covered for free repair\nticket number - reference for your request\non hold - waiting on the phone\npatience - being calm while waiting\napologise - say sorry",
+    source: "\"Hi, I have an issue with my order. The package arrived two weeks late and one item is missing.\" \"I'm really sorry. Let me check your ticket number… Yes, we'll send the missing item by express and offer 15% off your next purchase. Will that resolve the issue for you?\""
+  },
+  {
+    title: "B1 Music & Concerts", sub: "live shows + festivals", tool: "discussion", level: "B1",
+    topic: "Concerts, festivals and music taste",
+    vocab: "gig - a small or informal concert\nfestival - a big multi-band music event\nencore - extra song after the main show\nline-up - the list of artists\nheadliner - the most famous act\nlive - performed in person, not recorded\nvenue - the place where a concert happens\nplaylist - a chosen list of songs\nguilty pleasure - song you love but feel shy about\ngenre - type of music",
+    source: "\"What was the best gig you've ever been to?\" \"I saw my favourite band at a small venue last summer. The atmosphere was unforgettable, the encore lasted thirty minutes, and I made friends with strangers in the front row. Festivals are fun, but small concerts are the magic.\""
+  },
+  {
+    title: "B1 Family Conflict", sub: "polite disagreement", tool: "dialogue", level: "B1",
+    topic: "Disagreeing politely with family",
+    vocab: "see eye to eye - agree completely\ntake offence - feel hurt\noverreact - respond too strongly\ncompromise - both sides give a little\nset boundaries - decide what is okay\nbring up - mention something\nlet go of - stop holding on to\nbottle up - keep feelings inside\nclear the air - solve a small conflict\nfamily dynamic - the way the family behaves together",
+    source: "Even the closest families don't see eye to eye on everything. The healthiest families don't avoid conflict — they handle it. They talk early, listen carefully, and find a compromise without anyone losing face."
+  },
+  {
+    title: "B1 City vs Countryside", sub: "lifestyle comparison", tool: "discussion", level: "B1",
+    topic: "Living in the city vs the countryside",
+    vocab: "pace - the speed of life\ncommute - daily travel to work\nfresh air - clean outdoor air\nopen space - empty land or parks\nentertainment - things to do for fun\nstress - feeling worried or pressured\nopportunity - chance to do something good\nisolation - being far from people\nair quality - how clean the air is\nself-sufficient - able to live without much help",
+    source: "City life offers career opportunities, entertainment and convenience, but at the cost of stress, expensive rent and poor air quality. The countryside is slower, cheaper and healthier, but jobs are limited and isolation is real, especially in winter. The right choice depends on your life stage."
+  },
+  {
+    title: "B1 Past Travel Stories", sub: "narrative tenses", tool: "creative-writing", level: "B1",
+    topic: "Telling a past travel story",
+    vocab: "set off - start a journey\nget lost - not know where you are\nrun into - meet by chance\nfigure out - solve a problem\nturn out - happen in the end\nlook back on - remember\nbreathtaking - very impressive\nexhausted - very tired\nunforgettable - you will always remember it\nworth it - the reward was bigger than the cost",
+    source: "Write a 150-word story about a real or imagined trip. Use the past simple for main events, past continuous for background, and past perfect for things that happened earlier. Try to include at least five chunks from the vocabulary list."
+  },
+  {
+    title: "B1 Job Hunting Online", sub: "CV + LinkedIn", tool: "worksheet-builder", level: "B1",
+    topic: "Looking for jobs on online platforms",
+    vocab: "CV / résumé - one-page work history\ncover letter - letter explaining why you want the job\nposting - the job advertisement\nrecruiter - person who finds candidates\nnetwork - your professional connections\nendorsement - someone recommending you\nremote-friendly - the job allows working from home\nsoft skills - communication, teamwork, problem-solving\nrelevant experience - work that fits the job\napplicant - person applying",
+    source: "Recruiters often spend less than 30 seconds on each CV. The most effective applications include clear job titles, measurable results and relevant skills. A short cover letter that mentions the company by name and explains your real motivation can move you from the maybe pile to the interview list."
+  },
+  {
+    title: "B1 Social Media Habits", sub: "screen time + sleep", tool: "discussion", level: "B1",
+    topic: "Your relationship with social media",
+    vocab: "scroll - move down a screen with your thumb\nnotification - an alert from an app\ndoomscrolling - scrolling through bad news\ncompare yourself - measure yourself against others\ncurated - carefully chosen to look good\ndetox - take a break from\nattention span - how long you can focus\nfeed - the stream of posts you see\nmute - turn off notifications\nunfollow - stop seeing someone's posts",
+    source: "Many people pick up their phone within minutes of waking up. The first hour is spent scrolling, comparing, and reacting. Even short, curated feeds can make us feel behind. Try a one-week detox: keep the phone in another room overnight, mute non-essential notifications, and notice the change."
+  },
+  {
+    title: "B1 Volunteering Story", sub: "giving back", tool: "creative-writing", level: "B1",
+    topic: "Volunteering and giving back",
+    vocab: "volunteer - work without pay to help others\ncause - the issue you support\ncharity - an organization that helps others\nfundraise - collect money for a cause\nimpact - the effect of your actions\nlocal community - the people around you\nrewarding - giving you a good feeling\nteam up - work together\nawareness - making people understand an issue\ngive back - help your community in return",
+    source: "Write 140 words about a time you helped someone or volunteered for a cause. Include: why you chose this cause, what you actually did, one surprising moment, what you learned, and one piece of advice for someone thinking of doing the same."
+  },
+
+  // ─── B2 UPPER INTERMEDIATE ────────────────────────────────────────
+  {
+    title: "B2 AI & Future of Work", sub: "automation debate", tool: "discussion", level: "B2",
+    topic: "How AI will change work",
+    vocab: "automation - machines doing human jobs\ndisplaced - replaced or pushed out\nupskilling - learning new skills\nrepetitive - the same again and again\nproductivity boost - getting more done\noversight - human supervision\nhybrid role - a job that combines human and AI\nhallucinate - when AI invents wrong information\nbias - unfair preference in decisions\nstreamline - make a process simpler",
+    source: "Most economists agree that AI will not eliminate work — it will reshape it. The jobs at greatest risk are not low-skilled but repetitive. Many roles will become hybrid, where humans focus on judgment, creativity and ethics while AI handles routine analysis. Upskilling will matter more than job title."
+  },
+  {
+    title: "B2 Mental Health Talk", sub: "stress + support", tool: "discussion", level: "B2",
+    topic: "Talking openly about mental health",
+    vocab: "burnout - exhaustion from chronic stress\nanxiety - constant worry\nresilience - ability to recover\ncoping strategy - way of dealing with stress\nseek help - look for support\nstigma - shame attached to a topic\ncheck in on - ask how someone is\nset boundaries - protect your time and energy\nself-care - looking after your well-being\nreach out - contact someone for help",
+    source: "Mental health is finally part of the workplace conversation. Companies that talk openly about stress and burnout, train managers to spot warning signs and make it easy to seek help see lower turnover and stronger teams. The biggest barrier is no longer access — it's stigma."
+  },
+  {
+    title: "B2 Climate Action", sub: "personal vs systemic", tool: "discussion", level: "B2",
+    topic: "What individuals and governments can do",
+    vocab: "carbon footprint - your personal CO2 emissions\noffset - balance out emissions by doing something else\nrenewable - energy that doesn't run out\nphase out - gradually stop using\nincentivise - give a reason to act\nlegislation - laws\ngreenwashing - false eco-friendly claims\ntransition - the process of changing\nbottom-up - led by citizens\ntop-down - led by governments",
+    source: "Two camps dominate the climate conversation. One says individuals should change their daily habits — diet, travel, consumption. The other argues that without legislation and corporate accountability, individual change is too slow. The honest answer is both: bottom-up pressure makes top-down policy possible."
+  },
+  {
+    title: "B2 Remote vs Office Work", sub: "hybrid debate", tool: "discussion", level: "B2",
+    topic: "Where should work happen",
+    vocab: "collaboration - working together\nasync - not at the same time\npresenteeism - being seen at the desk to look busy\nhot-desking - sharing desks\nwork-life balance - time for work and life\nflexibility - freedom to choose how and when\ncommute - travel to work\nbelonging - feeling part of a team\nhybrid - a mix of home and office\nproductivity - how much useful work you do",
+    source: "Studies on remote work give mixed results. Productivity often goes up, but innovation and onboarding suffer. Hybrid models try to keep the best of both, but require strong async habits and trust. The future is less about location and more about clear outcomes."
+  },
+  {
+    title: "B2 Generation Gap", sub: "Gen Z vs millennials", tool: "discussion", level: "B2",
+    topic: "Generations at work and at home",
+    vocab: "generational divide - clear differences between age groups\nvalue - what is important to a person\nwork ethic - attitude towards work\nentitled - feeling you deserve special treatment\nside hustle - a small job alongside the main job\nfinancial security - feeling safe about money\nstability - a steady, predictable life\nhustle culture - the belief that you should always work hard\nauthenticity - being yourself, not pretending\nmeaningful work - work that has purpose",
+    source: "Each generation defines work success differently. Millennials grew up valuing stability and salary; Gen Z places equal weight on meaning, mental health and flexibility. Calling either generation \"lazy\" or \"entitled\" misses the point — they're responding to different economic realities."
+  },
+  {
+    title: "B2 Travel & Culture Shock", sub: "abroad adjustments", tool: "creative-writing", level: "B2",
+    topic: "Experiencing culture shock",
+    vocab: "culture shock - feeling lost in a new culture\nadjust - get used to something new\nhomesick - missing your home\noverwhelmed - too much to handle\nblend in - look like a local\nstand out - look different\nexpat - a person living in another country\nunwritten rule - cultural norm not spoken aloud\ndive in - start fully\nopen-minded - ready to accept new ideas",
+    source: "Write a 180-word reflection on a real or imagined experience of culture shock. Cover: the honeymoon phase, the frustration phase, what you adjusted to, what you couldn't, and one thing the new culture taught you about your own."
+  },
+  {
+    title: "B2 Smart Cities", sub: "tech + urban life", tool: "worksheet-builder", level: "B2",
+    topic: "How technology is changing cities",
+    vocab: "infrastructure - the basic systems of a city\nsensor - device that detects something\nreal-time - happening right now\ndata-driven - based on data\ncongestion - too much traffic\nsmart grid - flexible electricity network\nsustainable - able to last without harming the environment\nautonomous - self-driving\ninclusive - fair for everyone\nresilient - able to recover from problems",
+    source: "Smart cities use sensors and real-time data to manage traffic, energy and waste. The promise is huge: less congestion, lower emissions, faster emergency response. The risk is also real: who owns the data, who decides what's optimized, and how do we keep cities inclusive rather than profitable?"
+  },
+  {
+    title: "B2 Privacy Online", sub: "data + tracking", tool: "discussion", level: "B2",
+    topic: "Online privacy and personal data",
+    vocab: "tracking - following your online activity\ndata harvest - collecting personal information\nopt out - choose to stop\nthird party - someone outside the main service\nencrypted - secured so others cannot read\nconsent - permission you give\nfingerprint - unique identification\nbreach - when data is stolen\nanonymous - without your name\ntargeted ad - advertising chosen for you specifically",
+    source: "Every time you click \"Accept all\", you trade comfort for data. Tech companies argue this powers personalised, useful services. Critics point out the asymmetry: users can't fully understand what they consent to, and breaches expose data they never knew was collected. The middle ground is informed consent — but it's still rare."
+  },
+  {
+    title: "B2 Influencer Culture", sub: "fame + ethics", tool: "discussion", level: "B2",
+    topic: "The world of online influencers",
+    vocab: "follower - person who subscribes to a feed\nengagement - likes, comments and shares\nsponsored - paid by a brand\ndisclose - admit publicly\nauthenticity - being genuine\nparasocial - one-sided relationship\nbranding - building a personal image\nclickbait - sensational title to attract clicks\nmonetize - turn something into money\nshelf life - how long fame lasts",
+    source: "Influencers can build careers from nothing, but the system rewards constant content, controversy and curation over depth. Sponsored posts must be disclosed, but laws differ. The most successful influencers treat their audience as readers, not metrics — and protect their off-screen life."
+  },
+  {
+    title: "B2 Tourism Impact", sub: "overtourism debate", tool: "discussion", level: "B2",
+    topic: "Tourism, locals and the environment",
+    vocab: "overtourism - too many tourists in one place\nlocal economy - businesses owned by residents\ncultural erosion - losing original culture\nshort-term rental - apartments rented to tourists\nfootfall - number of visitors\nseasonal - happening in certain months\nresponsible travel - travelling without harm\nauthentic - real, not made for tourists\nrevenue - money earned\ncarrying capacity - how many visitors a place can handle",
+    source: "Popular cities are starting to push back against tourism. Locals lose flats to short-term rentals, businesses adapt to visitors instead of residents, and famous sites are overcrowded. Some cities cap visitor numbers; others charge tourist taxes. The goal isn't fewer travelers — it's better ones."
+  },
+  {
+    title: "B2 Vegan Diet Debate", sub: "ethics + nutrition", tool: "discussion", level: "B2",
+    topic: "Is going vegan the answer",
+    vocab: "plant-based - made from plants\nethics - ideas about right and wrong\nfactory farming - large-scale industrial farming\nnutrient - vitamin or mineral\nsupplement - extra vitamin in pill form\nflexitarian - mostly plants but sometimes meat\nemissions - polluting gases\ndairy - milk products\nlocal produce - food grown nearby\nfood system - how food gets from farm to plate",
+    source: "Plant-based diets cut emissions and animal suffering, but \"vegan\" doesn't automatically mean ethical or healthy. Importing avocados across the world has its own footprint. A flexitarian approach — mostly plants, occasional ethically-sourced meat or dairy — may be more realistic than full veganism for many."
+  },
+
+  // ─── C1 ADVANCED ──────────────────────────────────────────────────
+  {
+    title: "C1 Ethical AI", sub: "bias + accountability", tool: "essential-vocab", level: "C1",
+    topic: "Ethics, bias and AI",
+    vocab: "algorithmic bias - unfair patterns in AI decisions\naccountability - clear responsibility\nopacity - lack of transparency\nblack box - system whose decisions can't be inspected\nfair use - balanced and just\ndata provenance - where data came from\ndue diligence - careful checking\nautomated decision - choice made without humans\nstakeholder - person affected by decisions\nregulatory framework - the system of rules",
+    source: "AI systems trained on biased data inherit and amplify that bias. Even when models are technically accurate, automated decisions can cause real harm in hiring, lending and criminal justice. Calls for regulation are rising, but enforcement is hard when the systems themselves are opaque."
+  },
+  {
+    title: "C1 Cancel Culture", sub: "speech + accountability", tool: "discussion", level: "C1",
+    topic: "Accountability, free speech and online justice",
+    vocab: "cancel - publicly reject a person or brand\ncall out - publicly point out wrong behaviour\nproportionate - matching the seriousness\nmob mentality - acting as part of an angry crowd\nlive in receipts - bring up old evidence\nstatute of limitations - time limit\nplatform - the audience or place where you speak\nde-platform - remove someone's voice\npublic apology - saying sorry publicly\nredemption - earning back trust",
+    source: "Calling out harmful behaviour is not new, but the speed and scale of online accountability are. Critics see a culture that punishes rather than corrects, with little room for proportionate response or genuine redemption. Defenders see a long-overdue rebalance of power. Both sides agree the conversation about consequences is here to stay."
+  },
+  {
+    title: "C1 Universal Basic Income", sub: "economic policy", tool: "discussion", level: "C1",
+    topic: "UBI as a policy tool",
+    vocab: "universal - given to everyone\nmeans-tested - given only to those below a threshold\ndisincentive - reason not to do something\nlabour market - the world of jobs\nfiscal cost - cost to public budgets\ninflation - rising prices\npilot - small test of a policy\nautomation - machines replacing workers\nsafety net - support for people in need\nstipend - regular payment",
+    source: "Universal Basic Income would give every adult a regular stipend regardless of work. Supporters argue it cushions the labour market against automation and reduces poverty. Critics warn of inflation, fiscal cost and disincentives to work. Pilots in Finland, Kenya and the US show that the effects depend more on amount and duration than ideology."
+  },
+  {
+    title: "C1 Misinformation", sub: "media literacy", tool: "essential-vocab", level: "C1",
+    topic: "Misinformation, disinformation and trust",
+    vocab: "misinformation - wrong information shared by mistake\ndisinformation - wrong information shared on purpose\nverify - check that something is true\nfact-check - investigate a claim\nsource - where information came from\ncross-reference - check multiple sources\ndeepfake - realistic fake video or audio\ngaslighting - making someone doubt their reality\nepistemic bubble - only hearing similar views\ncredibility - trustworthiness",
+    source: "Distinguishing misinformation from disinformation matters: one is human error, the other is strategic. Deepfakes and AI-generated text mean we can no longer trust what we see. Media literacy — verifying sources, cross-referencing, and noticing emotional triggers — is becoming as essential as basic reading."
+  },
+  {
+    title: "C1 Soft Power", sub: "diplomacy + culture", tool: "essential-vocab", level: "C1",
+    topic: "Soft power in international relations",
+    vocab: "soft power - influence through culture and values\nhard power - influence through force or money\ndiplomacy - managing relations between countries\nbilateral - between two countries\nmultilateral - among many countries\nsanction - economic punishment\ncultural export - films, music, food\npublic perception - how people see a country\ninfluence - power to affect others\nleverage - advantage you can use",
+    source: "Soft power describes a country's ability to attract rather than coerce. Cultural exports, education systems, foreign aid and diaspora communities all contribute. Soft power can't be bought quickly, but once eroded — by hypocrisy, broken promises or scandal — it's the hardest form of influence to rebuild."
+  },
+  {
+    title: "C1 Cryptocurrency", sub: "value + risk", tool: "discussion", level: "C1",
+    topic: "Cryptocurrency, blockchain and value",
+    vocab: "decentralised - not controlled by one organisation\nblockchain - shared digital ledger\nvolatile - changing price quickly\nspeculation - buying for future profit\nfiat currency - traditional government money\nregulation - government rules\nwallet - place to keep crypto\nmining - validating transactions\ntoken - a unit of crypto\nstore of value - something that keeps its worth",
+    source: "Cryptocurrency promised decentralised money, fast transactions and freedom from central banks. The reality has been more volatile: massive speculation, headline frauds and unclear regulation. Whether crypto becomes everyday infrastructure or a niche store of value depends less on technology and more on trust and law."
+  },
+  {
+    title: "C1 Workplace Equality", sub: "DEI in practice", tool: "discussion", level: "C1",
+    topic: "Diversity, equity and inclusion at work",
+    vocab: "diversity - different backgrounds and identities\nequity - giving each person what they need\ninclusion - making everyone feel they belong\nrepresentation - who you see in roles\nglass ceiling - invisible barrier to promotion\nallyship - support across differences\nmicroaggression - small recurring slight\ntokenism - hiring one person to look diverse\nstructural - built into the system\nmeritocracy - the belief that effort always wins",
+    source: "DEI work shifts from headcount to systems: how decisions are made, who gets feedback, who is mentored. Tokenism — hiring one person and considering the work done — backfires. The most effective programs combine clear data, structural reviews of promotions, and personal accountability from senior leaders."
+  },
+  {
+    title: "C1 Bioethics & Editing", sub: "CRISPR + limits", tool: "essential-vocab", level: "C1",
+    topic: "Bioethics in the age of gene editing",
+    vocab: "germline - genes passed to children\nsomatic - genes only in one body\nconsent - informed agreement\nslippery slope - one change leads to others\nclinical trial - careful medical test\nunintended consequence - unexpected effect\nmoratorium - temporary stop\nenhancement - making someone above average\nheritable - passed to descendants\nprecautionary principle - act carefully when risk is uncertain",
+    source: "Gene editing has gone from theoretical to routine in less than a decade. Treating genetic diseases is broadly welcomed. Editing embryos to enhance traits is not. The line between treatment and enhancement is blurry, the consequences are heritable, and the conversation about who decides has barely begun."
+  },
+
+  // ─── EXAM PREP ────────────────────────────────────────────────────
+  {
+    title: "IELTS Writing Task 1", sub: "chart description", tool: "worksheet-builder", level: "B2",
+    topic: "Describing a bar chart in 150 words",
+    vocab: "overall - in general\ntrend - direction of change\nfluctuate - go up and down\npeak - the highest point\ndip - small decrease\nplateau - period of no change\ngradual - slow and steady\nsharp - sudden and big\nrespectively - in the same order\nin contrast - showing a difference",
+    source: "Describe a bar chart showing the percentage of households with broadband internet in three countries between 2010 and 2024. Cover: overall trend, the country with the highest and lowest figures, one sharp increase, one comparison, and a closing summary sentence."
+  },
+  {
+    title: "IELTS Writing Task 2", sub: "opinion essay", tool: "creative-writing", level: "B2",
+    topic: "Should governments tax sugary drinks",
+    vocab: "argue - say with reason\ndeterrent - something that stops behaviour\ninfringe - limit a right\nproportional - matching the size\ndisproportionate - too large\nincentive - reason to act\nimpose - force a rule\npublic health - the population's health\nmoderation - not too much\noverreach - going too far",
+    source: "Write a 250-word essay. Some governments tax sugary drinks to reduce health problems. To what extent do you agree? Discuss both arguments, include one real-world example, and give a clear final opinion supported by reasons."
+  },
+  {
+    title: "IELTS Speaking Part 3", sub: "follow-up discussion", tool: "discussion", level: "B2",
+    topic: "Education in the future",
+    vocab: "hands-on - involving real practice\nlife-long learning - learning all your life\ncredential - official qualification\nupskill - learn new work skills\nself-paced - at your own speed\ncritical thinking - careful independent judgement\nrelevant - useful for the situation\nadapt - change to fit\ngap year - one year between studies\nschool of thought - way of thinking",
+    source: "Examiner questions: Do you think traditional schools will still exist in 30 years? Should children learn coding from primary school? Is it better to specialise early or stay broad? Practise giving 30-second answers with examples and personal experience."
+  },
+  {
+    title: "TOEFL Integrated", sub: "read + listen + write", tool: "worksheet-builder", level: "B2",
+    topic: "Comparing a reading and a lecture",
+    vocab: "main idea - central point\nsupporting detail - evidence\nrefute - disprove\ndemonstrate - clearly show\nillustrate - give an example of\nperspective - point of view\nfindings - what was discovered\nreliable - trustworthy\nflaw - weakness\nimplication - what something suggests",
+    source: "Reading passage: Researchers in California believe humans can hibernate like bears. Lecture: A biologist argues this misunderstands hibernation entirely — humans can lower body temperature briefly, but not metabolism. The student must summarise how the lecture casts doubt on the reading."
+  },
+  {
+    title: "Cambridge B2 First", sub: "reading + use of english", tool: "abcd-text", level: "B2",
+    topic: "Reading Part 5 — multiple choice",
+    vocab: "imply - hint at without saying directly\ninfer - deduce from clues\nstance - position or attitude\nconvey - communicate a feeling\nstandpoint - point of view\nundermine - weaken\noverstate - exaggerate\nemphasise - make important\nperspective - the writer's viewpoint\ntone - the feeling of the text",
+    source: "A short article (250 words) about the rise of paper books despite the digital era. Students answer six four-option questions covering the writer's tone, an inference, a vocabulary in context, the main idea of paragraph two, the writer's attitude, and a paraphrase."
+  },
+  {
+    title: "Cambridge C1 Advanced", sub: "writing review", tool: "creative-writing", level: "C1",
+    topic: "Writing a 220-280 word review",
+    vocab: "compelling - holds attention strongly\nstand-out - particularly impressive\nnuanced - subtle and complex\nrefreshing - pleasantly new\noverhyped - praised more than it deserves\nuneven - inconsistent\nresonate - feel meaningful\nset apart - make distinct\nfall short of - not reach\nworth a watch / read - deserves your time",
+    source: "Write a 220-280 word review of a recent book or series for a student magazine. Include: a brief description without spoilers, what makes it stand out, a balanced critique with at least one weakness, and a clear recommendation with a target audience."
+  },
+  {
+    title: "TOEFL Independent Writing", sub: "personal opinion", tool: "creative-writing", level: "B2",
+    topic: "Is it better to study alone or in a group",
+    vocab: "concentration - ability to focus\nstimulating - making you think\ndistraction - something that takes attention away\naccountability - being responsible to others\nperspective - different point of view\nautonomy - independence\nshared knowledge - knowledge from a group\nintroverted - prefers being alone\nextroverted - prefers being with people\nhybrid - both styles",
+    source: "Write a 300-word essay. Do you prefer studying alone or in a group? Take a clear position, support it with two examples (one personal, one general), acknowledge the other view briefly, and end with a strong restatement."
+  },
+
+  // ─── BUSINESS ENGLISH ─────────────────────────────────────────────
+  {
+    title: "Biz: Standup Meeting", sub: "daily team updates", tool: "dialogue", level: "B1",
+    topic: "Running a daily standup",
+    vocab: "blocker - something stopping progress\nyesterday - day before\nstandup - short daily meeting\nupdate - news about progress\non track - going as planned\nbehind schedule - later than planned\nbandwidth - capacity to do work\nfollow up - check again later\nloop in - include in a conversation\nsync - meet to align",
+    source: "Standups should last 15 minutes. Each person answers three questions: what I did yesterday, what I'll do today, what blockers I have. Avoid long discussions — log them for after the standup. The goal is alignment, not deep problem-solving."
+  },
+  {
+    title: "Biz: Email Etiquette", sub: "tone + formality", tool: "worksheet-builder", level: "B1",
+    topic: "Writing professional emails",
+    vocab: "subject line - the title of the email\nsalutation - the opening greeting\nbody - the main content\nclosing - the ending\nattach - send a file with the email\nfollow up - send a reminder\nlooping in - adding someone to the conversation\nfor your reference - so you know\nlooking forward to - waiting eagerly\nbest regards - polite closing",
+    source: "A good professional email has a clear subject line, a one-line opening that respects the reader's time, a body of two-three short paragraphs, and a single clear request or next step. Tone should match the relationship — formal with new clients, friendly with regular colleagues."
+  },
+  {
+    title: "Biz: Negotiation", sub: "asking for a deal", tool: "dialogue", level: "B2",
+    topic: "Negotiating a deal politely",
+    vocab: "negotiate - discuss to reach an agreement\nleverage - advantage in a deal\ncompromise - both sides give something\nwalk away - leave the deal\nbottom line - the lowest you accept\nwin-win - both sides happy\nput on the table - propose\nground - position\nconcession - thing you give up\nleeway - flexibility to move",
+    source: "\"We'd like to extend our contract, but the current price is hard to justify this year.\" \"I appreciate the honesty. We can offer a 7% discount on a two-year commitment. Where's your bottom line?\" \"We were hoping for 12%. Could we meet at 10% with flexible payment terms?\""
+  },
+  {
+    title: "Biz: Presentation Skills", sub: "structure + delivery", tool: "worksheet-builder", level: "B2",
+    topic: "Giving a clear business presentation",
+    vocab: "audience - the people listening\nhook - opening that grabs attention\nagenda - the plan of the talk\ntakeaway - main message\nvisual - chart or image\nbullet point - short item\nfiller word - um, like, you know\npacing - speed of speech\nQ&A - questions and answers\nstrong close - powerful ending",
+    source: "Strong presentations open with a hook, name a clear takeaway in the first minute, use a maximum of three points, support each with one visual or example, and end with a strong close. Filler words are the silent killer — replacing them with pauses builds authority."
+  },
+  {
+    title: "Biz: Project Update", sub: "status report", tool: "worksheet-builder", level: "B2",
+    topic: "Sharing a clear project update",
+    vocab: "status - the current state\nmilestone - important point reached\ndeliverable - expected result\nstakeholder - person involved\nrisk - possible problem\nmitigation - plan to reduce risk\nat risk - in danger\non track - going to plan\nscope - what is included\nscope creep - work growing without planning",
+    source: "Effective project updates use four sections: what was completed, what's next, what's at risk, and where help is needed. Avoid burying problems — surfacing risks early gives stakeholders time to react. End with one clear ask, not five vague ones."
+  },
+
+  // ─── PHRASAL VERBS & IDIOMS ──────────────────────────────────────
+  {
+    title: "Phrasal Verbs: Travel", sub: "set off, check in...", tool: "essential-vocab", level: "B1",
+    topic: "Phrasal verbs for travelling",
+    vocab: "set off - start a journey\ncheck in - register at a hotel or airport\ndrop off - leave someone or something\npick up - collect someone\nstop over - break a journey\nget around - travel within a place\nrun late - be later than planned\nput up at - stay at a hotel\ntake off - leave the ground (plane)\nstop by - visit briefly",
+    source: "Write five sentences about a recent trip using at least five phrasal verbs from the list. Try to use them naturally, not in a list. Example: \"We set off at six, checked in at the hotel by ten, and then stopped by my aunt's place before dinner.\""
+  },
+  {
+    title: "Phrasal Verbs: Work", sub: "carry out, follow up...", tool: "essential-vocab", level: "B1",
+    topic: "Phrasal verbs for work and projects",
+    vocab: "carry out - perform a task\nfollow up - check again later\ncatch up - reach the same level\nfall behind - be slower than expected\ntake over - start managing\nput off - postpone\nbring up - mention something\nfigure out - solve\nrun into - meet a problem\nset up - prepare or organise",
+    source: "Pairs interview each other: When did you last carry out a difficult task? Have you ever fallen behind on a project? What helped you catch up? Use at least four phrasal verbs naturally in each answer."
+  },
+  {
+    title: "Idioms: Money", sub: "common expressions", tool: "essential-vocab", level: "B2",
+    topic: "Idioms about money",
+    vocab: "tighten your belt - spend less\nlive paycheck to paycheck - earn just enough\nbreak the bank - cost a lot\ncost a small fortune - very expensive\non a shoestring - on a very small budget\ncut corners - save money in a careless way\nrolling in money - very rich\nin the red - in debt\nin the black - having profit\nbring home the bacon - earn the main income",
+    source: "Useful when discussing personal finance or business. Practice: rephrase the following plain sentences using an idiom. 1) \"They have a lot of debt.\" 2) \"We have to spend less this year.\" 3) \"The trip won't be expensive.\" 4) \"She earns a great salary.\""
+  },
+  {
+    title: "Idioms: Body Parts", sub: "high-frequency", tool: "essential-vocab", level: "B1",
+    topic: "Idioms using parts of the body",
+    vocab: "pull your leg - joke with you\nkeep an eye on - watch carefully\ncost an arm and a leg - very expensive\nrack your brains - think hard\nface the music - accept consequences\nlend a hand - help\ngive someone the cold shoulder - ignore them\nlose your head - panic\nbite your tongue - stop yourself from speaking\nput your foot in it - say the wrong thing",
+    source: "Create a short funny story (80 words) about a difficult day using at least five idioms from the list. Read it to a partner. Partner should identify which idioms you used and what they mean in context."
+  },
+
+  // ─── KIDS / YOUNG LEARNERS ───────────────────────────────────────
+  {
+    title: "Kids: My Family Tree", sub: "family + simple sentences", tool: "essential-vocab", level: "A1",
+    topic: "Drawing a family tree",
+    vocab: "tree - drawing of family connections\nmum - mother\ndad - father\nbrother - boy with same parents\nsister - girl with same parents\ngrandma - mother of mum or dad\ngrandpa - father of mum or dad\nbaby - very young child\nfamily - all the people related to you\nphoto - picture",
+    source: "Kids draw their family tree on paper. They label each person with a name and one adjective: \"My mum is kind. My dad is funny. My little sister is loud. My grandma is wise.\""
+  },
+  {
+    title: "Kids: Toys & Colors", sub: "what's your favourite", tool: "word-image-match", level: "A1",
+    topic: "Toys and favourite colours",
+    vocab: "doll - a toy person\nball - round toy\nteddy bear - soft toy bear\nrobot - mechanical toy\npuzzle - many pieces you join\ncar - small toy vehicle\nbike - two wheels\nkite - toy you fly\nfavourite - the one you love most\nplay with - have fun with a toy",
+    source: "\"What's your favourite toy?\" \"My favourite toy is my red robot.\" \"Mine is a blue bike.\" \"I have a yellow kite and a purple puzzle.\" Class makes a chart of favourites."
+  },
+  {
+    title: "Kids: Can / Can't", sub: "abilities", tool: "essential-vocab", level: "A1",
+    topic: "What I can and can't do",
+    vocab: "swim - move in water\nrun fast - go quickly on legs\nride a bike - travel on two wheels\nclimb a tree - go up a tree\nsing - make music with your voice\ndance - move to music\ncount - say numbers in order\nspell - say letters in a word\ntie shoelaces - join shoe strings\nride a horse - sit on a horse and travel",
+    source: "Mini-survey. Each child asks 5 classmates: \"Can you swim?\" \"Can you climb a tree?\" \"Can you tie your shoelaces?\" Then makes a tiny chart with names and ticks/crosses."
+  },
+  {
+    title: "Teens: Smartphones at School", sub: "for vs against", tool: "discussion", level: "B1",
+    topic: "Should phones be allowed in class",
+    vocab: "ban - not allow\nstrict - serious about rules\nresearch - careful study\nrelevant - useful for the situation\ndistracted - paying attention to something else\nresponsibility - what you should do\ncheat - act unfairly\nlooking up - searching for information\nrule - what you must follow\nenforce - make sure the rule is followed",
+    source: "Some schools ban smartphones completely. Others let students use them for research and notes. Argue for both sides. Use sentence starters: \"On one hand…\", \"On the other hand…\", \"In my opinion…\", \"That's a fair point but…\""
+  },
+  {
+    title: "Teens: Social Media Pressure", sub: "comparison + identity", tool: "creative-writing", level: "B1",
+    topic: "How social media affects teens",
+    vocab: "compare - look at yourself vs others\nfilter - tool to change a photo\nlikes - approval clicks\ninfluence - power to change behaviour\nfake - not real\nidentity - who you are\npressure - feeling pushed\nbody image - how you see your body\ntrend - popular thing right now\nauthentic - true to yourself",
+    source: "Write 120 words about how social media affects how you and your friends feel about yourselves. Cover one positive, one negative, and one tip you would give a younger sibling about using social media."
   }
 ]
 
@@ -370,7 +851,52 @@ function setCategory(cat,el){currentCat=cat;document.querySelectorAll('.side-btn
 function toggleFav(id,e){e.stopPropagation();const list=favs();const next=list.includes(id)?list.filter(x=>x!==id):[...list,id];writeJson(FAV_STORE,next);renderCounts();renderTools();toast(next.includes(id)?'Added to favorites':'Removed from favorites')}
 function renderCounts(){const counts={all:TOOLS.length,favorites:favs().length};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
 function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
-function renderPresetPacks(){const wrap=document.getElementById('preset-strip');if(!wrap)return;wrap.innerHTML=PRESET_PACKS.map((p,i)=>`<button class="preset-card" type="button" onclick="applyPresetPack(${i})"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span></button>`).join('')}
+let activePresetLevel = 'All';
+const PRESET_LEVELS = ['All','A1','A2','B1','B2','C1','Exam','Biz','Kids'];
+function presetMatchesLevel(p,filter){
+  if(filter==='All') return true;
+  if(filter==='Exam') return /^(IELTS|TOEFL|Cambridge)/.test(p.title||'');
+  if(filter==='Biz')  return /^Biz/i.test(p.title||'');
+  if(filter==='Kids') return /^(Kids|Teens)/i.test(p.title||'');
+  return (p.level||'').toUpperCase().startsWith(filter);
+}
+function renderPresetLevelChips(){
+  const el=document.getElementById('preset-level-chips'); if(!el) return;
+  el.innerHTML=PRESET_LEVELS.map(lv=>{
+    const n=lv==='All'?PRESET_PACKS.length:PRESET_PACKS.filter(p=>presetMatchesLevel(p,lv)).length;
+    return `<button class="chip ${lv===activePresetLevel?'active':''}" style="min-height:30px;padding:0 10px;font-size:11.5px;" type="button" onclick="setPresetLevel('${lv}')">${lv}<span style="margin-left:6px;font-size:9px;opacity:.7;font-family:var(--mono);">${n}</span></button>`;
+  }).join('');
+}
+function setPresetLevel(lv){
+  activePresetLevel=lv;
+  renderPresetLevelChips();
+  renderPresetPacks();
+}
+function renderPresetPacks(){
+  const wrap=document.getElementById('preset-strip');
+  if(!wrap) return;
+  const list=PRESET_PACKS.map((p,i)=>({p,i})).filter(({p})=>presetMatchesLevel(p,activePresetLevel));
+  const countEl=document.getElementById('preset-count');
+  if(countEl) countEl.textContent=list.length;
+  if(!list.length){
+    wrap.innerHTML=`<div style="padding:18px;color:var(--muted);font-size:13px;text-align:center;width:100%;border:1px dashed rgba(24,24,24,.12);border-radius:14px;">No presets at this level yet.</div>`;
+    return;
+  }
+  // Sort by level then title for consistent groups
+  const levelOrder={A1:1,A2:2,B1:3,B2:4,C1:5};
+  list.sort((a,b)=>(levelOrder[a.p.level]||9)-(levelOrder[b.p.level]||9) || a.p.title.localeCompare(b.p.title));
+  wrap.innerHTML=list.map(({p,i})=>{
+    const lv=(p.level||'').toUpperCase();
+    const lvColor={A1:'#22c55e',A2:'#0891B2',B1:'#4262FF',B2:'#7C3AED',C1:'#EC2D8C'}[lv]||'#181818';
+    return `<button class="preset-card" type="button" onclick="applyPresetPack(${i})" style="border-left:3px solid ${lvColor};padding:11px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+        <span style="font:900 9px var(--mono);letter-spacing:.06em;background:${lvColor}22;color:${lvColor};padding:2px 7px;border-radius:5px;">${esc(p.level||'')}</span>
+        <b>${esc(p.title)}</b>
+      </div>
+      <span>${esc(p.sub)}</span>
+    </button>`;
+  }).join('');
+}
 function applyPresetPack(i){const p=PRESET_PACKS[i];if(!p)return;selectTool(p.tool);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');const voc=document.getElementById('vocab');const src=document.getElementById('source');if(lvl)lvl.value=p.level;if(top)top.value=p.topic;if(voc)voc.value=p.vocab;if(src)src.value=p.source||src.value;toast('Preset loaded: '+p.title)},40)}
 function getVisibleTools(){const q=(document.getElementById('search').value||'').toLowerCase().trim();let list=TOOLS;if(currentCat==='favorites')list=list.filter(t=>isFav(t.id));else if(currentCat!=='all')list=list.filter(t=>t.cat===currentCat);if(q)list=list.filter(t=>(t.title+' '+t.desc+' '+t.cat+' '+(t.badge||'')).toLowerCase().includes(q));return list}
 function renderTools(){const grid=document.getElementById('tools-grid');const list=getVisibleTools();if(!list.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:30px;text-align:center;color:var(--muted);">No tools match this filter.</div>';return}grid.innerHTML=list.map(t=>`<div class="tool ${activeTool&&activeTool.id===t.id?'active':''}" role="button" tabindex="0" onclick="selectTool('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' ')selectTool('${t.id}')"><button class="star ${isFav(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}">★</button><div class="tool-visual" data-cat="${esc(CAT_NAMES[t.cat])}">${esc(t.icon)}</div><div><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p><div class="tool-meta"><span class="tag">${esc(CAT_NAMES[t.cat])}</span>${t.badge?`<span class="tag ${t.badge.toLowerCase()}">${esc(t.badge)}</span>`:''}</div></div></div>`).join('')}
@@ -453,7 +979,7 @@ function removeImageRow(id){imageRows=imageRows.filter(r=>r.id!==id);renderImage
 function updateImageRow(id,key,val){const r=imageRows.find(x=>x.id===id);if(r)r[key]=val}
 function handleImageFile(id,input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{updateImageRow(id,'image',reader.result);renderImageRows()};reader.readAsDataURL(file)}
 function renderImageRows(){const wrap=document.getElementById('image-rows');if(!wrap)return;wrap.innerHTML=imageRows.map((r,i)=>`<div class="img-row"><label class="thumb" for="file-${r.id}">${r.image?`<img src="${esc(r.image)}" alt="${esc(r.word||'uploaded image')}">`:'Upload image'}<input class="sr-only" id="file-${r.id}" type="file" accept="image/*" onchange="handleImageFile('${r.id}',this)"></label><div style="display:grid;gap:8px"><input placeholder="Word" value="${esc(r.word)}" oninput="updateImageRow('${r.id}','word',this.value)"><input placeholder="Image URL or note" value="${esc(r.note)}" oninput="updateImageRow('${r.id}','note',this.value)"></div><button class="mini" type="button" onclick="removeImageRow('${r.id}')">×</button></div>`).join('')}
-renderCounts();renderChips();renderPresetPacks();renderTools();renderLibrary();
+renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderTools();renderLibrary();
 </script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 </body>
