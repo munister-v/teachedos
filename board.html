@@ -2945,6 +2945,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   #card-editor select{
     font-size:16px!important;
   }
+  /* iOS zoom-on-focus prevention for *all* board inputs/textareas */
+  input[type="text"],input[type="url"],input[type="email"],input[type="search"],
+  input[type="number"],input[type="password"],input[type="tel"],
+  textarea,select{font-size:16px;}
+  /* Modal close (×) buttons sized for fingers */
+  #video-url-overlay > div > div[onclick*="close"],
+  #image-url-overlay > div > div[onclick*="close"]{
+    width:36px!important;height:36px!important;font-size:18px!important;
+  }
+  /* Sticker / sticky palette / sidebar close buttons */
+  .sp-close,.ai-close,#card-editor-close,.cm-cancel{min-width:40px;min-height:40px;}
   /* Save buttons in editor footer get bigger tap area */
   #card-editor .ed-save,
   #card-editor button{min-height:42px;}
