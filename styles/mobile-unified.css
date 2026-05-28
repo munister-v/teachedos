@@ -257,6 +257,70 @@
     transition: transform 0.28s cubic-bezier(0.34, 1.1, 0.64, 1),
                 left      0.28s cubic-bezier(0.34, 1.1, 0.64, 1) !important;
   }
+
+  /* ── Broader touch target floor for generic buttons / links-as-button ──
+     Many older pages use .nav-btn / .save-btn / .tag etc. with 6-8px
+     vertical padding that ends up ~30px tall. Bring those up to 44pt
+     without distorting layout where authors already pinned a height. */
+  .nav-btn,
+  .save-btn,
+  button.tag,
+  a.tag,
+  .btn,
+  button:not([class]),
+  a.button {
+    min-height: 40px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* For inputs sitting next to send-buttons, ensure they line up */
+  .tag,
+  .pill {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ── Site-wide nav bar height + safe-area-top ──
+     A lot of pages use a 48-52px sticky nav. On iPhones with notches
+     the nav butts up against the status bar unless we add safe-area. */
+  #nav, .topnav, header.nav, .nav, nav.topbar {
+    padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  }
+
+  /* ── Tap-to-call/tap-to-mail safe spacing for link clusters ──
+     Anchors inside paragraphs/lists are sometimes too close on mobile;
+     add minimum vertical spacing between consecutive interactive items. */
+  li > a, li > button,
+  .item-list > a, .item-list > button {
+    padding-block: 8px;
+  }
+
+  /* ── Disable hover transforms that look broken on touch ──
+     A common pattern: `:hover { transform: translateY(-2px) }`. On
+     touch devices `:hover` is sticky after tap, so the card stays
+     lifted. Cut the transform on actual touch devices. */
+  @media (hover: none) and (pointer: coarse) {
+    *:hover { transform: none !important; }
+  }
+
+  /* ── Stop double-tap zoom on form labels ── */
+  label, .label { touch-action: manipulation; }
+}
+
+/* ── Outside the mobile media query: things that help touch on every
+   viewport but don't need media gating. ── */
+
+/* Apple HIG: smooth momentum scroll on iOS for all scrollable regions. */
+.scroll-y, .scroll-x, .scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Tap-highlight removal for non-text interactive elements site-wide.
+   Keeps tappable areas visually clean during fast successive taps. */
+button, a, [role="button"], summary {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Skeleton shimmer (works on desktop AND mobile) ── */
