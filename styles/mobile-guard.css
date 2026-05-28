@@ -74,4 +74,36 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
+
+  /* ── Prevent the common "100vh + overflow:hidden parent clips content" trap.
+     Many pages used `body { display:flex; height:100vh; overflow:hidden }`
+     or similar for a desktop two-column layout. On phones the side rails
+     fold but the height cap stays, clipping the document. Guard via a
+     class authors can opt out of (no-mguard-h), but otherwise allow body
+     to grow with content. */
+  body:not(.no-mguard-h) {
+    min-height: 100dvh;
+  }
+  /* Common shell wrappers shouldn't pin to 100vh on phone. */
+  body > #shell:not(.keep-shell-h),
+  body > .shell:not(.keep-shell-h),
+  body > #app:not(.keep-shell-h),
+  body > .app-shell:not(.keep-shell-h) {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+
+  /* PWA standalone safe-area handling.
+     status-bar-style="black-translucent" puts page content under the
+     status bar; pages that don't set padding-top:env(safe-area-inset-top)
+     get text/buttons under the clock. Only apply when in standalone PWA
+     mode (regular browser tabs don't need it). Opt-out via .no-safe-inset
+     for pages that handle the inset themselves (board.html does in its
+     #toolbar). */
+  @media all and (display-mode: standalone) {
+    body:not(.no-safe-inset):not(:has(#board-wrap)) {
+      padding-top: env(safe-area-inset-top, 0);
+    }
+  }
 }
