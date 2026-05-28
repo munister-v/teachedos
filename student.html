@@ -452,7 +452,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* ── RESPONSIVE ── */
 @media(max-width:860px){
   /* Respect dark theme — do NOT override background to white */
-  body{ overflow-y: auto; }
+  body{ overflow-y: auto; overflow-x: hidden; min-height:100dvh; }
+  /* #shell was a 100vh flex container with overflow:hidden for the desktop
+     two-column layout. On mobile the content card grows past 100vh and was
+     getting visually clipped. Restore natural height so body-level scroll
+     can take over. */
+  #shell{ height:auto!important; min-height:100dvh; overflow:visible; }
+  .content{ overflow:visible; }
   .sidebar{
     position:fixed;left:-320px;top:0;bottom:0;z-index:200;
     transition:left .28s cubic-bezier(0.34,1.1,0.64,1);
