@@ -2041,6 +2041,19 @@ function _cardVisible(card) {
 
 function renderSticky(el, card) {
   el.style.backgroundColor = card.color || STICKY_COLORS[0];
+  // Comments are technically saved as stickies with isComment:true.
+  // Add a distinctive comment-pin badge so the user can tell them
+  // apart from regular sticky notes.
+  if (card.data && card.data.isComment) {
+    el.classList.add('card-comment-note');
+    let pin = el.querySelector('.comment-pin-badge');
+    if (!pin) {
+      pin = document.createElement('div');
+      pin.className = 'comment-pin-badge';
+      pin.innerHTML = '<span class="cpb-icon">💬</span><span class="cpb-label">Comment</span>';
+      el.appendChild(pin);
+    }
+  }
   const body = document.createElement('div');
   body.className = 'card-body';
 
@@ -7319,61 +7332,103 @@ function openLessonPackPreview(packId) {
   });
 }
 
+/* Sub-tab inside the Tools tab: 'tools' (constructors) vs 'exercises'
+   (ready lesson packs). Sticks in localStorage so the choice survives
+   reload. The skill filter (activeToolSkill) is shared between them. */
+let activeToolsSubTab = (() => {
+  try { return localStorage.getItem('tools-subtab') || 'tools'; } catch { return 'tools'; }
+})();
+function setToolsSubTab(tab) {
+  activeToolsSubTab = tab;
+  try { localStorage.setItem('tools-subtab', tab); } catch {}
+  renderSidebar();
+}
+
+/* Map LESSON_PACKS to a tool category. Each pack carries a `skill` line
+   like "Speaking + Vocab" — derive the primary skill for filtering. */
+function lessonPackCat(p) {
+  const s = (p.skill || '').toLowerCase();
+  if (s.includes('reading')) return 'reading';
+  if (s.includes('grammar')) return 'grammar';
+  if (s.includes('writing')) return 'writing';
+  if (s.includes('listening')) return 'listening';
+  if (s.includes('vocab')) return 'vocabulary';
+  if (s.includes('speaking') || s.includes('discussion')) return 'speaking';
+  return 'utility';
+}
+
 function renderToolsTab(sec) {
-  // Hero
+  const q = (searchQ || '').trim().toLowerCase();
+
+  // ═══ Top sub-tabs: Tools | Ready-made Exercises ═══
+  const subTabs = document.createElement('div');
+  subTabs.className = 'tools-subtab-row';
+  const toolsCount = BOARD_TEACHER_TOOLS.length;
+  const exCount    = LESSON_PACKS.length;
+  subTabs.innerHTML = `
+    <button class="tools-subtab ${activeToolsSubTab==='tools'?'active':''}" type="button" onclick="setToolsSubTab('tools')">
+      <span class="tst-ic">🧰</span>
+      <span class="tst-l">Tools</span>
+      <span class="tst-n">${toolsCount}</span>
+    </button>
+    <button class="tools-subtab ${activeToolsSubTab==='exercises'?'active':''}" type="button" onclick="setToolsSubTab('exercises')">
+      <span class="tst-ic">📚</span>
+      <span class="tst-l">Ready-made Exercises</span>
+      <span class="tst-n">${exCount}</span>
+    </button>
+  `;
+  sec.appendChild(subTabs);
+
+  // ═══ Compact hero — context-aware to the active sub-tab ═══
   const hero = document.createElement('div');
   hero.className = 'tools-mini-hero';
-  hero.innerHTML = `
-    <b>Teacher Tools Hub</b>
-    <p>${BOARD_TEACHER_TOOLS.length} ready-to-use lesson constructors. Click to open the builder, or drag any tool onto the board as a draft card.</p>
-    <div class="tools-mini-actions">
-      <a href="teacher-tools.html">Open full hub →</a>
-      <button type="button" onclick="openAiAssistantPanel()">✦ AI lesson flow</button>
-      <button type="button" onclick="setBoardToolSkill('utility', document.querySelector('.tool-skill-chip[data-skill=utility]'))">🧰 Utilities</button>
-    </div>`;
+  if (activeToolsSubTab === 'tools') {
+    hero.innerHTML = `
+      <b>Teacher Tools</b>
+      <p>${toolsCount} ready-to-use constructors. Click to open the builder, or drag any tool onto the board as a draft card.</p>
+      <div class="tools-mini-actions">
+        <a href="teacher-tools.html">Open full hub →</a>
+        <button type="button" onclick="openAiAssistantPanel()">✦ AI lesson flow</button>
+      </div>`;
+  } else {
+    hero.innerHTML = `
+      <b>Ready-made Exercises</b>
+      <p>${exCount} fully-written lessons + extra topic packs. Drag a card to drop a complete board, or click to preview.</p>
+      <div class="tools-mini-actions">
+        <a href="teacher-tools.html">More on the hub →</a>
+        <button type="button" onclick="openAiAssistantPanel()">✦ Build with AI</button>
+      </div>`;
+  }
   sec.appendChild(hero);
 
-  // Stats strip
+  // ═══ Skill filter chips — shared between sub-tabs ═══
   const cats = BOARD_TEACHER_TOOLS.reduce((m,t)=>{m[t.cat]=(m[t.cat]||0)+1;return m;},{});
-  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
-  const stats = document.createElement('div');
-  stats.className = 'tools-stat-strip';
-  stats.innerHTML = `
-    <div class="tss-item"><div class="tss-n">${BOARD_TEACHER_TOOLS.length}</div><div class="tss-l">Tools</div></div>
-    <div class="tss-item"><div class="tss-n">${BOARD_TOOL_SKILLS.length-1}</div><div class="tss-l">Skills</div></div>
-    <div class="tss-item"><div class="tss-n">${topCat?BOARD_TOOL_NAMES[topCat[0]]:'—'}</div><div class="tss-l">Top area</div></div>
-  `;
-  sec.appendChild(stats);
-
-  // ═══ READY LESSON PACKS — top-of-tab, only on "All" + no search ═══
-  const q0 = searchQ.trim().toLowerCase();
-  const showLP = activeToolSkill === 'all' && !q0;
-  if (showLP && Array.isArray(LESSON_PACKS) && LESSON_PACKS.length) {
-    const lpHead = document.createElement('div');
-    lpHead.className = 'tool-group-head';
-    lpHead.innerHTML = `<span class="tgh-ico">📚</span><span>Ready lesson packs</span><span class="tgh-count">${LESSON_PACKS.length}</span>`;
-    sec.appendChild(lpHead);
-    const lpHint = document.createElement('div');
-    lpHint.style.cssText = 'font-size:11px;color:var(--text-3);padding:0 6px 6px;line-height:1.45;';
-    lpHint.innerHTML = `Full 45-min lessons with stages pre-written. Drag to drop a complete board, or click to preview.`;
-    sec.appendChild(lpHint);
-    LESSON_PACKS.forEach(p => sec.appendChild(makeLessonPackSnippet(p)));
-  }
-
-  // Filter chips with counts
+  const packCats = LESSON_PACKS.reduce((m,p)=>{ const c=lessonPackCat(p); m[c]=(m[c]||0)+1; return m;},{});
   const filters = document.createElement('div');
   filters.className = 'tool-skill-row';
   filters.innerHTML = BOARD_TOOL_SKILLS.map(skill => {
     const meta = BOARD_TOOL_META[skill] || BOARD_TOOL_META.all;
-    const n = skill === 'all' ? BOARD_TEACHER_TOOLS.length : (cats[skill] || 0);
+    let n;
+    if (activeToolsSubTab === 'tools') {
+      n = skill === 'all' ? toolsCount : (cats[skill] || 0);
+    } else {
+      n = skill === 'all' ? exCount : (packCats[skill] || 0);
+    }
     return `<button class="tool-skill-chip ${skill === activeToolSkill ? 'active' : ''}" data-skill="${skill}" type="button" onclick="setBoardToolSkill('${skill}', this)">
       <span class="tsc-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[skill] || skill}</span><span class="tsc-n">${n}</span>
     </button>`;
   }).join('');
   sec.appendChild(filters);
 
-  const q = searchQ.trim().toLowerCase();
+  // ═══ Body: route to the right renderer ═══
+  if (activeToolsSubTab === 'exercises') {
+    renderToolsTab_Exercises(sec, q);
+  } else {
+    renderToolsTab_Tools(sec, q, cats);
+  }
+}
 
+function renderToolsTab_Tools(sec, q, cats) {
   // Featured row (only when on "All" and no search)
   if (activeToolSkill === 'all' && !q) {
     const featured = BOARD_TOOL_FEATURED
@@ -7388,9 +7443,7 @@ function renderToolsTab(sec) {
     }
   }
 
-  // Main list
   if (activeToolSkill === 'all' && !q) {
-    // Grouped by category
     BOARD_TOOL_SKILLS.filter(s => s !== 'all').forEach(skill => {
       const items = BOARD_TEACHER_TOOLS.filter(t => t.cat === skill);
       if (!items.length) return;
@@ -7402,7 +7455,6 @@ function renderToolsTab(sec) {
       items.forEach(t => { const el = makeTeacherToolSnippet(t); if (el) sec.appendChild(el); });
     });
   } else {
-    // Filtered / searched flat list
     if (activeToolSkill !== 'all') {
       const meta = BOARD_TOOL_META[activeToolSkill];
       const head = document.createElement('div');
@@ -7421,13 +7473,54 @@ function renderToolsTab(sec) {
       const el = makeTeacherToolSnippet(tool);
       if (el) { sec.appendChild(el); shown++; }
     });
-    if (!shown) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'padding:24px 16px;text-align:center;font-size:12px;color:var(--text-3);border:1px dashed var(--border);border-radius:12px;margin:8px 4px;';
-      empty.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🤔</div>No tools match this filter or search.<br><button type="button" onclick="setBoardToolSkill('all', document.querySelector('.tool-skill-chip[data-skill=all]'))" style="margin-top:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:800;cursor:pointer;">Clear filter</button>`;
-      sec.appendChild(empty);
-    }
+    if (!shown) sec.appendChild(_renderEmptyToolsState());
   }
+}
+
+function renderToolsTab_Exercises(sec, q) {
+  // Filter lesson packs by skill + search
+  const filtered = LESSON_PACKS.filter(p => {
+    if (activeToolSkill !== 'all' && lessonPackCat(p) !== activeToolSkill) return false;
+    if (!q) return true;
+    const hay = `${p.title} ${p.skill} ${p.level} ${p.summary}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  if (activeToolSkill === 'all' && !q) {
+    // Group by skill so the user sees Reading/Speaking/etc. sections.
+    BOARD_TOOL_SKILLS.filter(s => s !== 'all').forEach(skill => {
+      const items = LESSON_PACKS.filter(p => lessonPackCat(p) === skill);
+      if (!items.length) return;
+      const meta = BOARD_TOOL_META[skill];
+      const head = document.createElement('div');
+      head.className = 'tool-group-head';
+      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
+      sec.appendChild(head);
+      items.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
+    });
+  } else {
+    if (activeToolSkill !== 'all') {
+      const meta = BOARD_TOOL_META[activeToolSkill];
+      const head = document.createElement('div');
+      head.className = 'tool-group-head';
+      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]} exercises</span><span class="tgh-count">${filtered.length}</span>`;
+      sec.appendChild(head);
+    } else if (q) {
+      const head = document.createElement('div');
+      head.className = 'tool-group-head';
+      head.innerHTML = `<span class="tgh-ico">🔍</span><span>Search results</span>`;
+      sec.appendChild(head);
+    }
+    filtered.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
+    if (!filtered.length) sec.appendChild(_renderEmptyToolsState());
+  }
+}
+
+function _renderEmptyToolsState() {
+  const empty = document.createElement('div');
+  empty.style.cssText = 'padding:24px 16px;text-align:center;font-size:12px;color:var(--text-3);border:1px dashed var(--border);border-radius:12px;margin:8px 4px;';
+  empty.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🤔</div>Nothing matches this filter or search.<br><button type="button" onclick="setBoardToolSkill('all', document.querySelector('.tool-skill-chip[data-skill=all]'))" style="margin-top:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:800;cursor:pointer;">Clear filter</button>`;
+  return empty;
 }
 
 function renderPlansTab(sec) {
