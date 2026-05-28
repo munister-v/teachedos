@@ -3345,6 +3345,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
   <!-- ⋯ More menu -->
   <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:240px;font-size:13px;">
+    <div class="user-menu-item" onclick="openAiAssistantPanel();toggleMoreMenu()">✦ AI Assistant</div>
+    <div class="user-menu-item" onclick="openToolsSidebar();toggleMoreMenu()">🧰 Teacher Tools</div>
+    <div class="user-menu-item" onclick="openSharePanel();toggleMoreMenu()">🔗 Share board</div>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
     <div class="user-menu-item" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
