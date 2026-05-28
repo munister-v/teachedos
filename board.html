@@ -7931,8 +7931,20 @@ document.addEventListener('mouseup', e => {
     const r = boardWrap.getBoundingClientRect();
     if (e.clientX >= r.left) {
       const pos = screenToBoard(e.clientX, e.clientY);
-      const { type, data, w, h } = sidebarDragData;
-      addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
+      // Tool template drop: drop a Frame with header + 5 stickies + prompt + sample
+      if (sidebarDragData.__toolTemplate) {
+        const fid = instantiateToolTemplate(sidebarDragData.tool, pos.x, pos.y);
+        if (fid) {
+          clearSelection?.();
+          selectCard?.(fid);
+          // Smooth-zoom to the new frame so the result is immediately visible
+          setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 80);
+          toast && toast(`✨ ${sidebarDragData.tool.title} template ready — edit the stickies`);
+        }
+      } else {
+        const { type, data, w, h } = sidebarDragData;
+        addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
+      }
     }
     ghostEl.style.display = 'none';
     sidebarDragData = null;
@@ -9846,6 +9858,431 @@ function setBoardToolSkill(skill, btn) {
   renderSidebar();
 }
 
+/* ─── Tool seed content: category-specific sample material the
+   instant-template uses to make the result feel real, not a placeholder.
+   Each entry is keyed by tool.id when we want something specific, and
+   falls back to the category default below. ─── */
+const TOOL_SEED_CONTENT = {
+  // Speaking
+  'discussion': {
+    samples: [
+      'How often do you discuss this with friends and why?',
+      'What changed your opinion about this most recently?',
+      'Is there a country or culture where this looks completely different?',
+      'If you had to convince a sceptic in 30 seconds, what would you say?',
+      'Which question here is the hardest to answer honestly?'
+    ],
+    language: ['I would say… because…', 'It depends on…', 'On the other hand…', 'Personally, I tend to…', 'Have you ever thought about…?']
+  },
+  'dialogue': {
+    samples: [
+      'A: Excuse me, could I ask you something?',
+      'B: Sure, what do you need?',
+      'A: I was wondering if… (state your request).',
+      'B: That sounds… (positive / hesitant / interested).',
+      'A: Right, so… (suggest a next step or compromise).'
+    ],
+    language: ['Could I…?', 'Would you mind…?', 'I was wondering if…', 'That sounds great.', 'Let me think about it.']
+  },
+  'roleplay-cards': {
+    samples: [
+      'Student A — Goal: convince B to choose your plan. Constraint: must use one polite request.',
+      'Student B — Goal: protect your time. Constraint: must give one reason and one compromise.',
+      'Phrases A: "What if we…", "How about…", "I really think…"',
+      'Phrases B: "I see your point, but…", "I would prefer…", "Could we agree on…?"',
+      'Challenge: switch roles after 2 minutes and try again with new phrases.'
+    ],
+    language: ['What if we…', 'I see your point, but…', 'Could we agree on…?', 'I would prefer…', 'How about…?']
+  },
+  'debate-cards': {
+    samples: [
+      'Claim FOR: This is the best option because it solves the main problem.',
+      'Evidence FOR: A real example or statistic that supports the claim.',
+      'Claim AGAINST: This causes more problems than it solves.',
+      'Evidence AGAINST: A different example or downside.',
+      'Rebuttal language: "That may be true, however…", "The evidence actually shows…"'
+    ],
+    language: ['That may be true, however…', 'The evidence shows…', 'I disagree because…', 'A stronger argument is…', 'In contrast…']
+  },
+  'question-ladder': {
+    samples: [
+      'Level 1 (factual): What is it?',
+      'Level 2 (descriptive): What is it like?',
+      'Level 3 (analytical): Why does it work that way?',
+      'Level 4 (evaluative): Is it better or worse than the alternative?',
+      'Level 5 (personal): How does it affect you?'
+    ],
+    language: ['What…?', 'Why…?', 'How…?', 'Is it better or worse than…?', 'How does this affect you?']
+  },
+  // Reading
+  'abcd-text': {
+    samples: [
+      '1. The main idea of the text is…  A) … B) … C) … D) ✓',
+      '2. According to paragraph 2…  A) ✓ B) … C) … D) …',
+      '3. The author probably believes…  A) … B) ✓ C) … D) …',
+      '4. The word X in line 7 means…  A) … B) … C) ✓ D) …',
+      '5. We can infer that…  A) … B) … C) … D) ✓'
+    ],
+    language: ['According to the text…', 'The author implies…', 'It can be inferred…', 'The word X means…', 'The main idea is…']
+  },
+  'true-false': {
+    samples: [
+      '1. The text says X happens every day. (T / F — paragraph 1)',
+      '2. The author personally agrees with Y. (T / F — last paragraph)',
+      '3. Z is the main reason mentioned. (T / F — paragraph 3)',
+      '4. The text gives a clear solution. (T / F — paragraph 4)',
+      '5. The example is from a real study. (T / F — paragraph 2)'
+    ],
+    language: ['according to', 'the text states', 'the author mentions', 'it suggests that', 'we can conclude']
+  },
+  'open-questions': {
+    samples: [
+      'Why do you think the author chose this title?',
+      'Which part surprised you the most and why?',
+      'How would the text change if it was written for children?',
+      'Do you agree with the main idea? Give a personal example.',
+      'What question would you ask the author?'
+    ],
+    language: ['I think the author…', 'The part that surprised me…', 'In my experience…', 'A question I would ask is…']
+  },
+  // Vocabulary
+  'extract-vocab': {
+    samples: ['word — short student-friendly definition + 1 example', 'collocation — common partner words', 'phrasal — verb + particle meaning', 'idiom — figurative meaning + register', 'word family — noun / verb / adj. / adv.'],
+    language: ['means', 'can be replaced by', 'collocates with', 'is used to', 'is the opposite of']
+  },
+  'essential-vocab': {
+    samples: [
+      'core noun — definition + example sentence',
+      'core verb — definition + collocation + example',
+      'core adjective — definition + opposite',
+      'useful phrase — definition + when to use it',
+      'connector — purpose + example'
+    ],
+    language: ['It means…', 'For example…', 'The opposite is…', 'It collocates with…', 'We use this when…']
+  },
+  'word-image-match': {
+    samples: ['Image A ↔ word ____', 'Image B ↔ word ____', 'Image C ↔ word ____', 'Image D ↔ word ____', 'Image E ↔ word ____'],
+    language: ['This shows…', 'It looks like…', 'I think this is…']
+  },
+  'collocations': {
+    samples: ['make a decision / *do a decision', 'take a break / *make a break', 'strong coffee / *powerful coffee', 'heavy traffic / *strong traffic', 'do homework / *make homework'],
+    language: ['Verb + noun', 'Adjective + noun', 'Adverb + adjective']
+  },
+  'flashcards': {
+    samples: ['Front: word    Back: definition + example sentence', 'Front: definition   Back: word', 'Front: phrase   Back: meaning + register', 'Front: image   Back: word + collocations', 'Front: word   Back: synonym / opposite'],
+    language: ['Got it', 'Almost', 'Again', 'Easy', 'Hard']
+  },
+  // Grammar
+  'gap': {
+    samples: [
+      '1. She _____ (live) in Berlin since 2019.',
+      '2. By next month, we _____ (finish) the project.',
+      '3. If I _____ (be) you, I would speak to him.',
+      '4. The report _____ (write) by the new team.',
+      '5. I wish I _____ (know) about this earlier.'
+    ],
+    language: ['present perfect', 'future perfect', 'second conditional', 'passive voice', 'wish + past simple']
+  },
+  'gaps-abcd': {
+    samples: [
+      '1. I _____ here for three years.  A) live  B) am living  C) have lived ✓  D) had lived',
+      '2. By 2030 we _____ to Mars.  A) will travel  B) will have travelled ✓  C) travel  D) are travelling',
+      '3. If she _____ earlier, she would have caught the train.  A) left  B) had left ✓  C) would leave  D) leaves',
+      '4. The window _____ by the storm.  A) broke  B) is broken  C) was broken ✓  D) breaks',
+      '5. I wish I _____ more time.  A) have  B) had ✓  C) had had  D) would have'
+    ],
+    language: ['present perfect', 'future perfect', 'third conditional', 'passive', 'wish']
+  },
+  'rewrite': {
+    samples: [
+      'Original: She built the house.  →  Rewrite (passive): The house ____ ____ ____ her.',
+      'Original: He arrived too late.  →  Rewrite (with "so"): He arrived ____ ____ ____ catch the bus.',
+      'Original: I don\'t have time.  →  Rewrite (wish): I wish I ____ more time.',
+      'Original: She must finish it.  →  Rewrite (have to): She ____ ____ ____ ____.',
+      'Original: They could leave early.  →  Rewrite (be allowed to): They ____ ____ ____ ____ early.'
+    ],
+    language: ['was/were built by', 'so + adjective + that', 'wish + past simple', 'has/have to', 'is/are allowed to']
+  },
+  'error-correction': {
+    samples: [
+      '✗ I am living here since 2019.  ✓ I have lived here since 2019.',
+      '✗ She don\'t like coffee.  ✓ She doesn\'t like coffee.',
+      '✗ He suggested me to go.  ✓ He suggested that I (should) go.',
+      '✗ Despite of the rain…  ✓ Despite the rain…',
+      '✗ I look forward to hear from you.  ✓ I look forward to hearing from you.'
+    ],
+    language: ['since + present perfect', '3rd person -s', 'suggest + that-clause', 'despite + noun', 'look forward to + -ing']
+  },
+  // Writing
+  'creative-writing': {
+    samples: [
+      'Setting: where + when + atmosphere in one sentence.',
+      'Character: name + one specific desire + one specific fear.',
+      'Inciting event: what disrupts the normal life on day 1?',
+      'Turning point: a choice that makes return impossible.',
+      'Ending: one image or line of dialogue, not an explanation.'
+    ],
+    language: ['suddenly', 'for the first time', 'in spite of', 'as soon as', 'by the time']
+  },
+  'essay-outline': {
+    samples: [
+      'Thesis: one sentence stating your position.',
+      'Body 1: claim + evidence + analysis.',
+      'Body 2: counter-argument + your reply.',
+      'Body 3: strongest argument + concrete example.',
+      'Conclusion: restate position + broader implication, no new info.'
+    ],
+    language: ['It can be argued that…', 'Furthermore…', 'However…', 'To illustrate…', 'In conclusion…']
+  },
+  'email-reply': {
+    samples: [
+      'Greeting: match the register of the original.',
+      'Opening: thank / acknowledge in one line.',
+      'Main point: answer the question or make the request clearly.',
+      'Supporting: 1-2 sentences with context, no rambling.',
+      'Close: clear next step + sign-off.'
+    ],
+    language: ['Thanks for your message.', 'Just to confirm…', 'Could you please…?', 'Let me know if…', 'Best regards,']
+  },
+  // Listening
+  'audio-video-questions': {
+    samples: [
+      'Gist: in one sentence, what is the clip about?',
+      'Detail 1: write the exact word / number you hear at 00:00–00:30.',
+      'Detail 2: who says X and why?',
+      'Inference: what does the speaker probably feel? Quote the line that shows it.',
+      'Language: pick one chunk you want to start using.'
+    ],
+    language: ['I (don\'t) think so because…', 'At one point they said…', 'The speaker probably means…', 'A useful chunk is…']
+  },
+  'warmup-listening': {
+    samples: [
+      'Predict: read the title — what 5 words will you hear?',
+      'Vocabulary: pre-teach 3 essential terms with definitions + a check question.',
+      'Visualise: describe the setting in one sentence.',
+      'Personalise: what do you already know about the topic?',
+      'Question to track: write one question you want the clip to answer.'
+    ],
+    language: ['I expect to hear…', 'It probably means…', 'I already know that…', 'My question is…']
+  },
+};
+
+/* Category fallbacks if a tool doesn't have a dedicated seed above. */
+const TOOL_SEED_FALLBACKS = {
+  reading: {
+    samples: [
+      'Gist: choose the best one-sentence summary in under a minute.',
+      'Detail Q1: scan for a date / number / name and quote the line.',
+      'Detail Q2: explain a sentence in your own words.',
+      'Inference: what does the author probably believe? Underline the proof.',
+      'Reaction: would you share this text? With whom?'
+    ],
+    language: ['According to the text…', 'In paragraph X…', 'The author implies…', 'I would (not) share this because…']
+  },
+  vocabulary: {
+    samples: ['word — short definition + 1 collocation', 'word — antonym + register note', 'word — example sentence + your own example', 'phrase — when we use it', 'word family — derived forms'],
+    language: ['means', 'collocates with', 'is the opposite of', 'is more formal than', 'is used to']
+  },
+  writing: {
+    samples: ['Plan: 3-bullet outline before writing.', 'Draft 1: under 80 words, no editing.', 'Upgrade: replace 2 weak verbs and 1 vague noun.', 'Link: add 2 connectors between paragraphs.', 'Final check: one sentence you are proud of, one you would still change.'],
+    language: ['Firstly…', 'Furthermore…', 'However…', 'In contrast…', 'To conclude…']
+  },
+  speaking: {
+    samples: [
+      'Warm-up: 1 personal question students answer in 30 seconds.',
+      'Useful language: 4 phrases for hedging, agreeing, asking back.',
+      'Pair task: A and B have a clear role and a 90-second goal.',
+      'Upgrade: each pair adds 1 follow-up question and 1 reaction phrase.',
+      'Share: each pair reports the best line they heard.'
+    ],
+    language: ['I would say…', 'It depends on…', 'Have you ever…?', 'That reminds me of…', 'On the other hand…']
+  },
+  grammar: {
+    samples: [
+      'Notice: highlight the target structure in 2 example sentences.',
+      'Rule: students complete a one-line rule with you.',
+      'Controlled: 5 gap-fill or transformation items.',
+      'Error repair: 5 typical mistakes — find and correct.',
+      'Free use: 1 personal sentence using the structure correctly.'
+    ],
+    language: ['form', 'meaning', 'use', 'register', 'common mistake']
+  },
+  listening: {
+    samples: [
+      'Before: predict 5 words you expect to hear from the title.',
+      'First listen: gist only — one-sentence summary.',
+      'Second listen: detail / number / name questions.',
+      'Language mine: write 5 useful chunks from the transcript.',
+      'After: 2-minute speaking transfer using the chunks.'
+    ],
+    language: ['I expected to hear…', 'I actually heard…', 'A useful chunk is…', 'I would use this when…']
+  },
+  utility: {
+    samples: [
+      'Goal: one sentence describing what students will do.',
+      'Input: source text / vocabulary / media link.',
+      'Tasks: 3-5 steps from notice → practice → produce.',
+      'Output: visible student product (text, list, recording).',
+      'Check: success criteria you can mark in 60 seconds.'
+    ],
+    language: ['By the end of this task, students can…', 'Input:', 'Output:', 'Success criteria:']
+  },
+};
+
+function getToolSeed(tool) {
+  return TOOL_SEED_CONTENT[tool.id] || TOOL_SEED_FALLBACKS[tool.cat] || TOOL_SEED_FALLBACKS.utility;
+}
+
+/* Build a fully-fledged template on the board: a Frame containing a
+   header text card, 5 step stickies (the board-ready flow), a teacher
+   prompt sticky and a "Sample" sticky pre-filled with category-specific
+   examples. Returns the frame id so the caller can select / zoom. */
+function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
+  if (!tool) return null;
+  const meta = BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
+  const seed = getToolSeed(tool);
+  const flow = (TOOL_FLOW_TEMPLATES[tool.cat] || TOOL_FLOW_TEMPLATES.utility);
+
+  // Frame layout (board coords). 5 columns of stickies + header + two
+  // wide stickies at the bottom for prompt + sample.
+  const FRAME_W = 1080;
+  const FRAME_H = 740;
+  const PAD = 24;
+  const x0 = Math.round(anchorBoardX - FRAME_W / 2);
+  const y0 = Math.round(anchorBoardY - FRAME_H / 2);
+
+  snapshot();
+  _suppressSnapshot++;
+  let frame;
+  try {
+    // The Frame card itself (the header chrome). data.bg gets a soft
+    // category-tinted background so the Frame is visually identifiable.
+    frame = addCard('frame', x0, y0, {
+      title: `${meta.icon}  ${tool.title}`,
+      bg: meta.bg,
+      border: meta.color,
+      childIds: []
+    }, FRAME_W, FRAME_H);
+
+    // 1. Header text card with the lesson goal + meta line
+    const headerY = y0 + 56;
+    const headerH = 110;
+    const header = addCard('text', x0 + PAD, headerY, defaultTextData({
+      text: `${tool.title}\n${BOARD_TOOL_NAMES[tool.cat] || tool.cat} · ${tool.kind}\n\n${tool.desc}`,
+      textColor: meta.color,
+      bgColor: '#ffffff',
+      align: 'left',
+      fontSize: 15,
+    }), FRAME_W - PAD * 2, headerH);
+    if (frame && header) setCardParentFrame?.(header, frame);
+
+    // 2. Five step stickies in a row
+    const stepsY = headerY + headerH + 16;
+    const stepsRowH = 200;
+    const colW = Math.floor((FRAME_W - PAD * 2 - 14 * 4) / 5);
+    const stepColors = ['#FFE566', '#AFF4C6', '#CFE2FF', '#FFB8D9', '#CDB4F6'];
+    flow.forEach((step, i) => {
+      const sx = x0 + PAD + i * (colW + 14);
+      const sy = stepsY;
+      const sticky = addCard('sticky', sx, sy, {
+        text: step,
+        color: stepColors[i % stepColors.length]
+      }, colW, stepsRowH);
+      if (frame && sticky) setCardParentFrame?.(sticky, frame);
+    });
+
+    // 3. Bottom row: Teacher prompt (wide left) + Sample seed (wide right)
+    const bottomY = stepsY + stepsRowH + 18;
+    const bottomH = 220;
+    const halfW = Math.floor((FRAME_W - PAD * 2 - 18) / 2);
+
+    const teacherPromptText =
+      `🎯 Teacher prompt\n\n` +
+      `Create a ${tool.kind.toLowerCase()} for level B1 on:\n` +
+      `__________________________________________\n\n` +
+      `Target language:\n__________________________________________\n\n` +
+      `Difficulty to target (1-2 things):\n__________________________________________`;
+    const teacherSticky = addCard('sticky', x0 + PAD, bottomY, {
+      text: teacherPromptText,
+      color: '#FFD580'
+    }, halfW, bottomH);
+    if (frame && teacherSticky) setCardParentFrame?.(teacherSticky, frame);
+
+    const useful = (seed.language && seed.language.length)
+      ? `\n\n🗣 Useful language\n• ${seed.language.slice(0, 5).join('\n• ')}` : '';
+    const sampleText =
+      `📋 Sample seed (edit me)\n\n` +
+      seed.samples.map((s, i) => `${i + 1}. ${s}`).join('\n') +
+      useful;
+    const sampleSticky = addCard('sticky', x0 + PAD + halfW + 18, bottomY, {
+      text: sampleText,
+      color: '#B8F0FF'
+    }, halfW, bottomH);
+    if (frame && sampleSticky) setCardParentFrame?.(sampleSticky, frame);
+
+    // 4. Re-number frames so this one gets a fresh number
+    if (typeof renumberFrames === 'function') renumberFrames();
+  } finally {
+    _suppressSnapshot--;
+  }
+  scheduleSave?.(); saveLocal?.();
+  return frame ? frame.id : null;
+}
+
+/* Category-keyed 5-step flow used as the sticky-row content. Same wording
+   as the legacy toolMaterialText but split into individual lines. */
+const TOOL_FLOW_TEMPLATES = {
+  reading: [
+    '1️⃣ Lead-in\nPredict the topic from the title or first sentence.',
+    '2️⃣ Gist\nChoose the best summary in 60 seconds.',
+    '3️⃣ Detail\nAnswer 4–6 questions with evidence from the text.',
+    '4️⃣ Language\nCollect useful phrases and build new examples.',
+    '5️⃣ Transfer\nDiscuss or write a personal response.'
+  ],
+  vocabulary: [
+    '1️⃣ Meaning\nMatch word, definition and example.',
+    '2️⃣ Form\nPart of speech, collocation, word family.',
+    '3️⃣ Retrieval\nRecall the word from the definition.',
+    '4️⃣ Use\nWrite one personal sentence.',
+    '5️⃣ Game\nFlashcards, memory match, sorting, odd-one-out.'
+  ],
+  writing: [
+    '1️⃣ Model\nShow an example and highlight structure.',
+    '2️⃣ Plan\nBrainstorm content + useful language.',
+    '3️⃣ Draft\nWrite a controlled first version.',
+    '4️⃣ Upgrade\nFix accuracy, style and linking.',
+    '5️⃣ Reflect\nKeep one strong line, rewrite one.'
+  ],
+  speaking: [
+    '1️⃣ Warm-up\nAnswer a safe personal question (30s each).',
+    '2️⃣ Language bank\nAdd 4 useful phrases to recycle.',
+    '3️⃣ Pair task\nClear role + 90-second goal.',
+    '4️⃣ Upgrade\nFollow-up questions and reactions.',
+    '5️⃣ Feedback\n1 strong phrase + 1 correction.'
+  ],
+  grammar: [
+    '1️⃣ Notice\nFind the target structure in context.',
+    '2️⃣ Rule\nBuild a one-line rule with students.',
+    '3️⃣ Controlled\nComplete or transform sentences.',
+    '4️⃣ Error repair\nSpot and correct common mistakes.',
+    '5️⃣ Free use\nUse the structure in a real task.'
+  ],
+  listening: [
+    '1️⃣ Before\nPredict content + pre-teach key phrases.',
+    '2️⃣ First listen\nGist only, no pausing.',
+    '3️⃣ Second listen\nDetail / note-taking.',
+    '4️⃣ Mine language\nUseful chunks from the transcript.',
+    '5️⃣ After\nSpeaking transfer or short written summary.'
+  ],
+  utility: [
+    '1️⃣ Goal\nWhat will students DO?',
+    '2️⃣ Input\nSource text / vocabulary / media.',
+    '3️⃣ Generate\nProduce teacher-ready instructions.',
+    '4️⃣ Answer key\nCriteria + sample answers.',
+    '5️⃣ Send\nBoard / lesson builder / game builder.'
+  ]
+};
+
 function toolMaterialText(tool) {
   const focus = tool.title.replace(/\s+/g, ' ');
   const templates = {
@@ -10157,21 +10594,18 @@ function makeTeacherToolSnippet(tool) {
       <div class="ts-foot"><span class="ts-hint">Drag to board</span><span style="margin-left:auto;color:var(--ts-color);font-weight:800;">Open ↗</span></div>
     </div>
   `;
-  const data = defaultTextData({
-    text: toolMaterialText(tool),
-    textColor: '#111018',
-    bgColor: '#ffffff',
-    align: 'left',
-    fontSize: 15,
-  });
+  // Tool drag drops a "rich template" — a Frame containing header, 5
+  // step stickies and a teacher-prompt + sample-seed sticky — instead
+  // of a single text card. We flag the drag with __toolTemplate so the
+  // global drop handler routes through instantiateToolTemplate.
   el.addEventListener('mousedown', e => {
     isSidebarDrag = true; document.body.classList.add('board-dragging');
-    sidebarDragData = { type:'text', data:{...data}, w:420, h:300 };
-    ghostEl.innerHTML = `✦ ${tool.title}`;
+    sidebarDragData = { __toolTemplate: true, tool, w: 1080, h: 740 };
+    ghostEl.innerHTML = `${meta.icon} ${tool.title}<br><span style="font-size:10px;opacity:.7;">Drop to drop a ready Frame</span>`;
     ghostEl.style.background = 'white';
     ghostEl.style.display = 'block';
-    ghostEl.style.left = (e.clientX - 210) + 'px';
-    ghostEl.style.top = (e.clientY - 28) + 'px';
+    ghostEl.style.left = (e.clientX - 110) + 'px';
+    ghostEl.style.top  = (e.clientY - 28) + 'px';
     e.preventDefault();
   });
   el.addEventListener('click', () => {
