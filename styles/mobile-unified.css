@@ -306,6 +306,23 @@
 
   /* ── Stop double-tap zoom on form labels ── */
   label, .label { touch-action: manipulation; }
+
+  /* ── Horizontally-scrolling top nav.
+     Many pages stuff 8-12 nav-link anchors into a flex row #nav. On
+     mobile most of them would overflow off-screen and silently
+     disappear (because mobile-guard.css clips body overflow-x). Make
+     the nav itself scroll horizontally so every link stays reachable. */
+  #nav {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  #nav::-webkit-scrollbar { display: none; }
+  #nav > * { flex-shrink: 0; }
+  #nav .nav-spacer { display: none; }   /* spacer collapses on mobile so user content stays visible */
 }
 
 /* ── Outside the mobile media query: things that help touch on every
