@@ -301,8 +301,11 @@ async function submitPayment() {
 }
 
 // Pre-select plan from URL param
-const urlPlan = new URLSearchParams(location.search).get('plan');
+const _q = new URLSearchParams(location.search);
+const urlPlan = _q.get('plan');
 if (urlPlan && PLANS[urlPlan]) selectPlan(urlPlan);
+// Arriving from the in-board paywall → default to Pro and scroll to plans
+else if (_q.get('from') === 'board') selectPlan('pro');
 </script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 </body>

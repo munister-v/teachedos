@@ -89,6 +89,7 @@
   <button class="tb-icon-btn" id="btn-invite-plus" style="display:none;" aria-hidden="true"></button>
   <button class="tb-icon-btn" id="btn-layout" style="display:none;" aria-hidden="true"></button>
   <div class="tb-divider"></div>
+  <button id="btn-upgrade" title="Upgrade to Pro" onclick="showUpgradeModal('default')" style="display:none;">⚡ Upgrade</button>
   <button class="tb-btn-primary" id="btn-share" title="Share board" onclick="openSharePanel()">
     <span>Share</span>
   </button>
@@ -919,6 +920,42 @@ polite request</textarea>
       <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
     </div>
     <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);line-height:1;transition:background .12s;">×</div>
+  </div>
+</div>
+
+<!-- UPGRADE / PAYWALL MODAL -->
+<div id="upgrade-overlay" onclick="if(event.target===this)closeUpgradeModal()">
+  <div id="upgrade-card" role="dialog" aria-modal="true" aria-label="Upgrade to Teacher Pro">
+    <button id="upgrade-close" onclick="closeUpgradeModal()" aria-label="Close">×</button>
+    <div id="upgrade-flag-badge">🔒 Pro feature</div>
+    <div id="upgrade-hero">
+      <div id="upgrade-emoji">🚀</div>
+      <h2 id="upgrade-title">Unlock the full TeachEd Board</h2>
+      <p id="upgrade-sub">You're on the Free plan. Upgrade to keep your lessons moving.</p>
+    </div>
+
+    <div id="upgrade-deal">
+      <div id="upgrade-deal-left">
+        <div id="upgrade-deal-tag">Limited offer · ends soon</div>
+        <div id="upgrade-deal-price"><s>$12</s> <b>$8</b><span>/month</span></div>
+        <div id="upgrade-deal-note">Billed yearly · 7-day money-back guarantee</div>
+      </div>
+      <div id="upgrade-deal-save">SAVE&nbsp;33%</div>
+    </div>
+
+    <ul id="upgrade-feats">
+      <li><span>♾️</span><div><b>Unlimited boards & cards</b><em>Free is capped at 3 boards.</em></div></li>
+      <li><span>📤</span><div><b>Export to PDF, PNG, CSV & JSON</b><em>Share polished lessons with anyone.</em></div></li>
+      <li><span>🤖</span><div><b>AI lesson generator</b><em>Full plans, tasks & games in seconds.</em></div></li>
+      <li><span>👥</span><div><b>Live student follow & co-editing</b><em>Teach the whole class on one board.</em></div></li>
+      <li><span>🎁</span><div><b>200+ ready-made exercises & packs</b><em>Drop a complete lesson onto the board.</em></div></li>
+    </ul>
+
+    <div id="upgrade-proof">⭐️⭐️⭐️⭐️⭐️ Loved by 12,000+ teachers worldwide</div>
+
+    <button id="upgrade-cta" onclick="goToUpgrade()">Upgrade to Pro — get 33% off →</button>
+    <button id="upgrade-later" onclick="closeUpgradeModal()">Maybe later</button>
+    <div id="upgrade-fineprint">Cancel anytime · Secure payment · Instant activation</div>
   </div>
 </div>
 
@@ -8660,9 +8697,9 @@ let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'teacher';
 const BOARD_PACKAGE_FLAGS = {
-  free: { exports: false },
-  pro: { exports: true },
-  school: { exports: true },
+  free:   { exports: false, ai: false, follow: false, maxBoards: 3 },
+  pro:    { exports: true,  ai: true,  follow: true,  maxBoards: Infinity },
+  school: { exports: true,  ai: true,  follow: true,  maxBoards: Infinity },
 };
 
 function currentPlanKey() {
@@ -8677,6 +8714,39 @@ function boardUpgradeMessage(flag) {
   if (flag === 'exports') return 'Board exports are available on Teacher Pro or School.';
   return 'This feature is not available on your current package.';
 }
+
+/* ── Upgrade / paywall modal ── */
+const UPGRADE_COPY = {
+  exports: { emoji:'📤', badge:'🔒 Pro export', title:'Export your board', sub:"Free boards can't be exported. Upgrade to download PDF, PNG, CSV & JSON." },
+  ai:      { emoji:'🤖', badge:'🔒 Pro AI', title:'Generate lessons with AI', sub:'AI plans, tasks and games are part of Teacher Pro.' },
+  boards:  { emoji:'♾️', badge:'🔒 Board limit', title:'You\'ve hit the Free board limit', sub:'Free includes 3 boards. Go Pro for unlimited boards & cards.' },
+  follow:  { emoji:'👥', badge:'🔒 Pro live', title:'Teach the class live', sub:'Live student follow & co-editing are part of Teacher Pro.' },
+  packs:   { emoji:'🎁', badge:'🔒 Pro library', title:'Unlock 200+ ready lessons', sub:'Drop complete, ready-made lessons and packs straight onto your board.' },
+  default: { emoji:'🚀', badge:'🔒 Pro feature', title:'Unlock the full TeachEd Board', sub:"You're on the Free plan. Upgrade to keep your lessons moving." },
+};
+let _upgradeReason = 'default';
+function showUpgradeModal(flag) {
+  _upgradeReason = UPGRADE_COPY[flag] ? flag : 'default';
+  const c = UPGRADE_COPY[_upgradeReason];
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('upgrade-emoji', c.emoji);
+  set('upgrade-flag-badge', c.badge);
+  set('upgrade-title', c.title);
+  set('upgrade-sub', c.sub);
+  const ov = document.getElementById('upgrade-overlay');
+  if (ov) { ov.classList.add('open'); }
+  try { localStorage.setItem('teachedos_upgrade_seen', String(Date.now())); } catch(e) {}
+}
+function closeUpgradeModal() {
+  document.getElementById('upgrade-overlay')?.classList.remove('open');
+}
+function goToUpgrade() {
+  try { localStorage.setItem('teachedos_upgrade_intent', _upgradeReason); } catch(e) {}
+  window.location.href = 'billing.html?from=board&f=' + encodeURIComponent(_upgradeReason);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('upgrade-overlay')?.classList.remove('open');
+});
 
 // Parse ?id= from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -8847,14 +8917,15 @@ function applyRoleUI() {
   editTools.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (id === 'btn-export') {
-      el.style.display = (isOwner && boardHasFeature('exports')) ? '' : 'none';
-    } else {
-      el.style.display = isOwner ? '' : 'none';
-    }
+    // Keep export visible for owners even on Free — clicking it shows the
+    // upgrade modal, which is a key conversion entry point.
+    el.style.display = isOwner ? '' : 'none';
   });
   const moreExport = document.getElementById('more-export-board');
-  if (moreExport) moreExport.style.display = (isOwner && boardHasFeature('exports')) ? '' : 'none';
+  if (moreExport) moreExport.style.display = isOwner ? '' : 'none';
+  // Upgrade pill: show for signed-in free users
+  const upBtn = document.getElementById('btn-upgrade');
+  if (upBtn) upBtn.classList.toggle('show', !!currentUser && currentPlanKey() === 'free');
   // Board name: clickable rename only for owner
   const nameEl = document.getElementById('board-name-display');
   if (nameEl) nameEl.onclick = isOwner ? startRenameBoard : null;
@@ -9562,6 +9633,7 @@ function updateFollowUI() {
 
 function toggleFollowMode() {
   if (!isOwner) return;
+  if (!followMode && !boardHasFeature('follow')) { showUpgradeModal('follow'); return; }
   followMode = !followMode;
   updateFollowUI();
   if (ws?.readyState === 1) ws.send(JSON.stringify({ type: 'follow_mode', enabled: followMode }));
@@ -9717,7 +9789,7 @@ function _clearSnapGuides() {
 
 /* ════════════════════════ EXPORT ════════════════════════ */
 function openExportMenu(e) {
-  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
+  if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
   const menu = document.getElementById('export-menu');
   const btn  = document.getElementById('btn-export').getBoundingClientRect();
   menu.style.left = btn.left + 'px';
@@ -9728,7 +9800,7 @@ function openExportMenu(e) {
 document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
 
 function exportBoardJSON() {
-  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
+  if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
   document.getElementById('export-menu').classList.remove('open');
   const data = JSON.stringify({ cards: state.cards, arrows: state.arrows, pan: state.pan, scale: state.scale }, null, 2);
   const a = document.createElement('a');
@@ -9739,7 +9811,7 @@ function exportBoardJSON() {
 }
 
 function exportBoardCSV() {
-  if (!boardHasFeature('exports')) { toast(boardUpgradeMessage('exports')); return; }
+  if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
   document.getElementById('export-menu').classList.remove('open');
   const lessons = state.cards.filter(c => c.type === 'lesson' || c.type === 'plan' || c.type === 'assignment');
   if (!lessons.length) { toast('No lesson/assignment cards to export'); return; }
@@ -10856,6 +10928,7 @@ async function runAiAssistant() {
 }
 
 function applyAiAssistantToBoard() {
+  if (!boardHasFeature('ai')) { showUpgradeModal('ai'); return; }
   if (!_lastAiAssistantResult) runAiAssistant().then(applyAiAssistantToBoard);
   const result = _lastAiAssistantResult;
   if (!result) return;
