@@ -10443,8 +10443,9 @@ function toolbarOpenModal(type) {
   const placement = getBoardViewportCenter();
   setMiroTool('select');
   if (type === 'image') {
-    pendingImagePos = placement;
-    openImageModal();
+    // Quick upload: open the OS file picker directly. URL / drag-drop options
+    // stay available via right-click → Image.
+    pickImageFile(placement);
     return;
   }
   if (type === 'video') {
@@ -10476,8 +10477,7 @@ function quickAddCard(type, bx, by) {
     openVideoModal();
     return;
   } else if (type === 'image') {
-    pendingImagePos = pos;
-    openImageModal();
+    pickImageFile(pos);
     return;
   } else if (type === 'shape') {
     card = addCard('shape', x, y, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
@@ -11594,36 +11594,66 @@ async function prepareBoardImageFile(file) {
   throw new Error(`Could not optimize image under ${formatImageBytes(BOARD_IMAGE_MAX_STORED_BYTES)}. Try a smaller image.`);
 }
 
+/* Open the native file picker straight away and drop the chosen image onto
+   the board — no modal, no extra "Add Image" click (Miro-style quick upload). */
+function pickImageFile(pos) {
+  pendingImagePos = pos || (typeof getBoardViewportCenter === 'function' ? getBoardViewportCenter() : null);
+  if (typeof setMiroTool === 'function') setMiroTool('select');
+  const inp = document.getElementById('image-file-input');
+  if (inp) { inp.value = ''; inp.click(); }
+}
+
+/* Prepare + place an image file in one shot, centred at `pos` (or the
+   viewport centre), nudged to a free spot so it never lands on top of
+   another card. */
+async function placeImageFile(file, pos) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    toast && toast('Please choose an image file.'); return;
+  }
+  const base = pos
+    || resolveBoardPlacement(pendingImagePos)
+    || (typeof getBoardViewportCenter === 'function' ? getBoardViewportCenter() : null)
+    || { x: 320, y: 240 };
+  toast && toast('Optimizing image…');
+  try {
+    const prepared = await prepareBoardImageFile(file);
+    const cw = 320, ch = 240;
+    const fp = (typeof findFreePlacement === 'function')
+      ? findFreePlacement(base.x, base.y, cw, ch) : base;
+    _placeNewImageCard(fp.x, fp.y, {
+      title: file.name || 'Image',
+      src: prepared.dataUrl,
+      imageSize: prepared.bytes,
+      imageOptimized: prepared.optimized,
+    }, cw, ch);
+    _toastClipboard('🖼 Image added');
+  } catch (err) {
+    toast && toast(err.message || 'Could not add image.');
+  } finally {
+    pendingImagePos = null;
+    _pendingImageDataUrl = null;
+  }
+}
+
 function handleImageFileDrop(e) {
   e.preventDefault();
   const zone = document.getElementById('image-drop-zone');
   if (zone) { zone.style.borderColor = 'rgba(94,94,74,.28)'; zone.style.background = 'var(--bg)'; }
   const file = e.dataTransfer.files && e.dataTransfer.files[0];
-  if (file) loadImageFile(file);
+  if (!file) return;
+  const pos = resolveBoardPlacement(pendingImagePos);
+  closeImageModal();
+  placeImageFile(file, pos);
 }
+/* Choosing a file places it immediately — the modal's "Add Image" button is
+   now only needed for the URL field. */
 function handleImageFileSelect(input) {
-  if (input.files && input.files[0]) loadImageFile(input.files[0]);
-}
-async function loadImageFile(file) {
-  if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
-  const info = document.getElementById('image-file-info');
-  if (info) {
-    info.textContent = `Optimizing ${file.name || 'image'}...`;
-    info.style.display = 'block';
-  }
-  try {
-    const prepared = await prepareBoardImageFile(file);
-    _pendingImageDataUrl = prepared.dataUrl;
-    if (info) {
-      const dims = prepared.width && prepared.height ? ` · ${prepared.width}x${prepared.height}` : '';
-      const note = prepared.optimized ? 'optimized' : 'ready';
-      info.textContent = `🖼 ${file.name || 'Image'} · ${formatImageBytes(prepared.bytes)}${dims} · ${note}`;
-    }
-  } catch (err) {
-    _pendingImageDataUrl = null;
-    if (info) info.textContent = err.message;
-    alert(err.message);
-  }
+  const file = input.files && input.files[0];
+  const pos = resolveBoardPlacement(pendingImagePos);
+  input.value = '';
+  if (!file) return;
+  closeImageModal();
+  placeImageFile(file, pos);
 }
 
 /* Global paste handler — add image directly to the board on Ctrl/⌘+V.
@@ -11747,18 +11777,19 @@ function confirmImageEmbed() {
   if (!_pendingImageDataUrl && !url.startsWith('http') && !url.startsWith('data:')) {
     alert('Please enter a valid image URL.'); return;
   }
-  const pos = resolveBoardPlacement(pendingImagePos);
+  const base = resolveBoardPlacement(pendingImagePos);
+  const cw = 320, ch = 240;
+  const fp = (typeof findFreePlacement === 'function')
+    ? findFreePlacement(base.x, base.y, cw, ch) : base;
   closeImageModal();
-  addCard('image', pos.x, pos.y, {
+  _placeNewImageCard(fp.x, fp.y, {
     title: _pendingImageDataUrl ? 'Uploaded image' : 'Image',
     src,
     imageOptimized: !!_pendingImageDataUrl,
     imageSize: _pendingImageDataUrl ? getDataUrlByteSize(_pendingImageDataUrl) : undefined,
-  }, 320, 240);
+  }, cw, ch);
   pendingImagePos = null;
   _pendingImageDataUrl = null;
-  scheduleSave && scheduleSave();
-  saveLocal && saveLocal();
 }
 
 // Close modals on Enter
@@ -13574,7 +13605,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=80').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=81').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

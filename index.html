@@ -3474,8 +3474,8 @@ function renderOsAuthFields() {
   if (!f) return;
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
   f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}"   onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-      `<input id="os-af-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-       <input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+      `<input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
+       <input id="os-af-pass" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
@@ -3788,7 +3788,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=80').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=81').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
