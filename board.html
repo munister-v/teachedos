@@ -4848,6 +4848,7 @@ document.addEventListener('mouseup', e => {
   let _raf = null;
   let longPressTimer = null;
   let longPressStart = null;
+  let touchDriving = false; // forwarding touch → mouse for handles/dots/card-drag
 
   function midpoint(a, b) { return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2 }; }
   function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
@@ -4863,6 +4864,22 @@ document.addEventListener('mouseup', e => {
       e.preventDefault();
       _doPlace(e.touches[0].clientX, e.touches[0].clientY);
       return;
+    }
+    // Single-finger touch on an interactive object (resize handle, anchor dot,
+    // or a card body) → drive the existing mouse pipeline so resize / connect /
+    // drag all work by touch exactly like by mouse. Board panning is skipped.
+    if (e.touches.length === 1) {
+      const tt = e.target;
+      const editing = tt.closest && tt.closest('[contenteditable="true"],textarea,input,select,.text-format-toolbar,.layer-popover');
+      const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card');
+      if (hit) {
+        touchDriving = true;
+        const t = e.touches[0];
+        tt.dispatchEvent(new MouseEvent('mousedown', {
+          clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0
+        }));
+        return;
+      }
     }
     // Cancel momentum on new touch
     if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
@@ -4901,6 +4918,7 @@ document.addEventListener('mouseup', e => {
       }
     } else if (ts.length === 2) {
       cancelLongPress();
+      touchDriving = false;
       t0 = ts[0]; t1 = ts[1];
       lastPinchDist = tdist(t0, t1);
       lastPinchScale = state.scale;
@@ -4911,6 +4929,14 @@ document.addEventListener('mouseup', e => {
   }, { passive: true });
 
   boardWrap.addEventListener('touchmove', e => {
+    if (touchDriving) {
+      const t = e.touches[0];
+      if (t) document.dispatchEvent(new MouseEvent('mousemove', {
+        clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true
+      }));
+      e.preventDefault();
+      return;
+    }
     e.preventDefault();
     const ts = Array.from(e.touches);
     // Cancel pending long-press if finger moved past a small slop
@@ -4947,6 +4973,16 @@ document.addEventListener('mouseup', e => {
   }, { passive: false });
 
   boardWrap.addEventListener('touchend', e => {
+    if (touchDriving) {
+      const t = e.changedTouches[0];
+      const tgt = (t && document.elementFromPoint(t.clientX, t.clientY)) || document;
+      tgt.dispatchEvent(new MouseEvent('mouseup', {
+        clientX: t ? t.clientX : 0, clientY: t ? t.clientY : 0, bubbles: true, cancelable: true, button: 0
+      }));
+      touchDriving = false;
+      cancelLongPress();
+      return;
+    }
     cancelLongPress();
     const ts = Array.from(e.touches);
     if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
@@ -4955,7 +4991,7 @@ document.addEventListener('mouseup', e => {
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
     }
   }, { passive: true });
-  boardWrap.addEventListener('touchcancel', cancelLongPress, { passive: true });
+  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); }, { passive: true });
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
