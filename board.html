@@ -8857,8 +8857,8 @@ function renderAuthFields() {
   document.getElementById('auth-role-row').style.display = isLogin ? 'none' : 'block';
   const f = document.getElementById('auth-fields');
   f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
-    `<input class="auth-input" id="af-email" type="email" placeholder="Email address" autocomplete="email">
-     <input class="auth-input" id="af-pass"  type="password" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">`;
+    `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
+     <input class="auth-input" id="af-pass"  type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">`;
   document.getElementById('auth-fields').querySelectorAll('.auth-input').forEach(i => {
     i.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
   });
@@ -13574,7 +13574,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=79').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=80').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

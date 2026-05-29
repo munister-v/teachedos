@@ -3095,6 +3095,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
   /* Hide the floating quickbar when an editor is open so they don't fight */
   body.editor-open #mobile-quickbar{display:none!important;}
+  /* Auth window: keep off the screen edges and scrollable when the on-screen
+     keyboard shrinks the viewport (otherwise inputs/submit get clipped). */
+  #auth-overlay{padding:16px;align-items:flex-start!important;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #auth-modal{margin:max(24px,env(safe-area-inset-top,0px)) auto 24px!important;max-height:none!important;}
+  #auth-modal > div[onclick*="closeAuthModal"]{width:40px!important;height:40px!important;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
   .tb-btn span{display:none;}
   #miro-toolbar{display:none;}
