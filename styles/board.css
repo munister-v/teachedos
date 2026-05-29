@@ -1097,7 +1097,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   background-color:var(--bg);
   cursor:default;
   transition:background-color .3s;
+  /* Custom pan / pinch / drag / resize gestures are handled in JS. Without
+     this the browser claims touch gestures for native scroll/zoom and ALL
+     board touch interactions (pan, pinch, card drag, resize, connect, tap)
+     become flaky on mobile. */
+  touch-action:none;
 }
+/* …but real text fields inside cards must keep native touch scrolling/caret. */
+#board-wrap [contenteditable="true"],
+#board-wrap textarea,
+#board-wrap input,
+#board-wrap select{touch-action:auto;}
 /* Miro-style cursors */
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
