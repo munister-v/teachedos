@@ -363,6 +363,7 @@ textarea{min-height:60px;resize:vertical}
       <button class="btn lime" onclick="saveGame()" id="save-btn">Save Game to Library</button>
       <button class="btn ghost" onclick="previewGame()">Preview</button>
       <button class="btn sm blue" onclick="saveAndAddToBoard()" title="Save and immediately open on board">Save &amp; Add to Board</button>
+      <button class="btn ghost" onclick="publishGame()" id="publish-btn" title="Share this game with the community">🌍 Publish to Community</button>
     </div>
   </div>
 
@@ -1759,12 +1760,13 @@ function saveGame() {
   const games = readGames();
   if (editingId) {
     const idx = games.findIndex(g => g.id === editingId);
-    if (idx >= 0) games[idx] = game; else games.unshift(game);
+    if (idx >= 0) { game.cloudId = games[idx].cloudId; games[idx] = game; } else games.unshift(game);
   } else { games.unshift(game); }
   writeGames(games);
   closeBuilder();
   renderMyGames();
   toast(editingId ? 'Game updated!' : 'Game saved to your library!');
+  cloudSyncGame(game).then(a => { if (a && a.id) attachCloudId(game.id, a.id); });
 }
 
 function saveAndAddToBoard() {
@@ -2064,6 +2066,72 @@ function toast(msg) {
   t.className = 'show';
   clearTimeout(toastT);
   toastT = setTimeout(() => t.className = '', 2800);
+}
+
+// ── Cloud library sync ──────────────────────────────────────────────────────
+const LIB_API = 'https://teachedos-api.onrender.com';
+function libToken() { return localStorage.getItem('teachedos_token') || ''; }
+async function libFetch(path, opts = {}) {
+  const tok = libToken();
+  if (!tok) return null;
+  const res = await fetch(LIB_API + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok, ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+function gameToAssignment(game) {
+  return {
+    kind: 'game',
+    title: game.title || 'Untitled game',
+    description: game.typeName || '',
+    level: game.level || '',
+    skill: '',
+    tags: game.tags || [],
+    data: game,
+  };
+}
+async function cloudSyncGame(game) {
+  if (!libToken()) return null;
+  try {
+    const payload = gameToAssignment(game);
+    let out;
+    if (game.cloudId) {
+      out = await libFetch('/api/library/' + game.cloudId, { method: 'PATCH', body: JSON.stringify(payload) });
+    } else {
+      out = await libFetch('/api/library', { method: 'POST', body: JSON.stringify(payload) });
+    }
+    return out && out.assignment ? out.assignment : null;
+  } catch (e) { console.warn('[game] cloud sync failed:', e.message); return null; }
+}
+// Persist the cloudId back onto the saved game in localStorage
+function attachCloudId(localId, cloudId) {
+  if (!cloudId) return;
+  const games = readGames();
+  const idx = games.findIndex(g => g.id === localId);
+  if (idx >= 0) { games[idx].cloudId = cloudId; writeGames(games); }
+}
+async function publishGame() {
+  if (!libToken()) { toast('Sign in to publish to the community'); return; }
+  const game = makeGameObject();
+  if (!game) return;
+  // Make sure it's in the local library first
+  const games = readGames();
+  const idx = games.findIndex(g => g.id === game.id);
+  if (idx >= 0) { game.cloudId = games[idx].cloudId; games[idx] = game; } else { games.unshift(game); }
+  writeGames(games);
+  const btn = document.getElementById('publish-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
+  try {
+    const a = await cloudSyncGame(game);
+    if (a && a.id) { game.cloudId = a.id; attachCloudId(game.id, a.id); await libFetch('/api/library/' + a.id + '/publish', { method: 'POST' }); }
+    toast('🌍 Published to the community!');
+  } catch (e) {
+    toast('Could not publish: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🌍 Publish to Community'; }
+  }
 }
 
 init();

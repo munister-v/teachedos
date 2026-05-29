@@ -141,6 +141,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   <span class="nav-title">Quiz Builder</span>
   <div class="nav-actions">
     <button class="btn btn-outline" id="previewBtn" onclick="togglePreview()">Preview</button>
+    <button class="btn btn-outline" id="publishBtn" onclick="publishQuiz()">🌍 Publish to Community</button>
     <button class="btn btn-lime" onclick="saveToHomework()">Save to Homework</button>
   </div>
 </nav>
@@ -521,6 +522,14 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+// ── Cloud library (My Library + Community) ──
+const LIB_API='https://teachedos-api.onrender.com';
+function libToken(){return localStorage.getItem('teachedos_token')||''}
+function libFetch(path,opts){const o=opts||{};const t=libToken();return fetch(LIB_API+path,{...o,headers:{'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{}),...(o.headers||{})},body:o.body?JSON.stringify(o.body):undefined})}
+let _quizCloudId=null;
+async function cloudSyncQuiz(){if(!libToken())return null;saveMeta();const payload={kind:'quiz',title:meta.title||'Untitled quiz',description:`${meta.subject||'English'} · ${questions.length} questions`,level:meta.level||'',skill:meta.subject||'',tags:['quiz',meta.subject].filter(Boolean),data:{meta:{...meta},questions:JSON.parse(JSON.stringify(questions))}};try{let r;if(_quizCloudId){r=await libFetch('/api/library/'+_quizCloudId,{method:'PATCH',body:payload})}else{r=await libFetch('/api/library',{method:'POST',body:payload})}if(!r.ok)throw 0;const j=await r.json();if(j.assignment&&j.assignment.id)_quizCloudId=j.assignment.id;return j.assignment}catch(e){return null}}
+async function publishQuiz(){if(!libToken()){showToast('Sign in to publish to the Community');return}if(!questions.length){showToast('Add at least one question first');return}const btn=document.getElementById('publishBtn');if(btn){btn.disabled=true;btn.textContent='Publishing…'}try{const a=await cloudSyncQuiz();if(!a||!a.id)throw 0;const r=await libFetch('/api/library/'+a.id+'/publish',{method:'POST'});if(!r.ok)throw 0;showToast('🌍 Published to Community')}catch(e){showToast('Could not publish')}finally{if(btn){btn.disabled=false;btn.textContent='🌍 Publish to Community'}}}
 
 // ── Main render ──
 function renderAll(){
