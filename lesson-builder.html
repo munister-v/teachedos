@@ -203,7 +203,19 @@ function downloadTxt(){download(slug(get('lesson-title'))+'.txt',lessonText())}
 function downloadHtml(){download(slug(get('lesson-title'))+'.html','<!doctype html><html><head><meta charset="utf-8"><title>'+esc(get('lesson-title'))+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;max-width:880px;margin:40px auto;padding:0 22px;line-height:1.6;color:#171719}.lesson-doc{border:1px solid #ddd;border-radius:22px;padding:28px}.doc-head{border-bottom:1px solid #eee;margin-bottom:16px;padding-bottom:12px}.doc-meta{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#777}.doc-stage{border:1px solid #eee;border-radius:14px;padding:10px;margin:8px 0}@media print{body{margin:0}.lesson-doc{border:0}}</style></head><body>'+document.getElementById('preview-doc').innerHTML+'</body></html>','text/html')}
 function sendToBoard(){const d=collect();sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:d.title,text:lessonText(d),level:d.level,tags:['lesson-builder',d.skill],createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
 function sendBoardFlow(){const d=collect();sessionStorage.setItem('teachedos_pending_lesson_flow',JSON.stringify(d));location.href='board.html?addLessonFlow=1'}
-function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();apply(draft||PRESETS[1]);renderLibrary()}
+// One-time: push existing local lessons (saved before cloud sync existed) up to My Library
+async function migrateLocalToCloud(){
+  if(!libToken())return;
+  const FLAG='teachedos_libmig_lesson_v1';
+  if(localStorage.getItem(FLAG))return;
+  const lib=readLib();const pending=lib.filter(x=>!x.cloudId);
+  if(!pending.length){localStorage.setItem(FLAG,'1');return}
+  let synced=0;
+  for(const item of pending){const a=await cloudSyncLesson(item);if(a&&a.id)synced++;}
+  localStorage.setItem(FLAG,'1');
+  if(synced)toast('☁️ '+synced+' lesson'+(synced>1?'s':'')+' synced to My Library');
+}
+function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();apply(draft||PRESETS[1]);renderLibrary();setTimeout(()=>migrateLocalToCloud().catch(()=>{}),1200)}
 init();
 </script>
 <script src="scripts/whatsapp-feedback.js" defer></script>

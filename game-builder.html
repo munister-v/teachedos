@@ -2134,7 +2134,25 @@ async function publishGame() {
   }
 }
 
+// One-time: push existing local games (saved before cloud sync existed) up to My Library
+async function migrateLocalGames() {
+  if (!libToken()) return;
+  const FLAG = 'teachedos_libmig_game_v1';
+  if (localStorage.getItem(FLAG)) return;
+  const games = readGames();
+  const pending = games.filter(g => !g.cloudId);
+  if (!pending.length) { localStorage.setItem(FLAG, '1'); return; }
+  let synced = 0;
+  for (const g of pending) {
+    const a = await cloudSyncGame(g);
+    if (a && a.id) { attachCloudId(g.id, a.id); synced++; }
+  }
+  localStorage.setItem(FLAG, '1');
+  if (synced) toast('☁️ ' + synced + ' game' + (synced > 1 ? 's' : '') + ' synced to My Library');
+}
+
 init();
+setTimeout(() => migrateLocalGames().catch(() => {}), 1200);
 
 </script>
 <script src="scripts/mobile-perf.js" defer></script>

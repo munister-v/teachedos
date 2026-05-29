@@ -652,7 +652,27 @@ function bootstrap(){
   renderAll();
 }
 
+// One-time: push existing saved quizzes (created before cloud sync existed) up to My Library
+async function migrateLocalQuizzes(){
+  if(!libToken())return;
+  const FLAG='teachedos_libmig_quiz_v1';
+  if(localStorage.getItem(FLAG))return;
+  let drafts;try{drafts=JSON.parse(localStorage.getItem('teachedos_quiz_drafts')||'[]')}catch{drafts=[]}
+  const pending=drafts.filter(d=>d&&!d.cloudId&&d.questions&&d.questions.length);
+  if(!pending.length){localStorage.setItem(FLAG,'1');return}
+  let synced=0;
+  for(const d of pending){
+    const m=d.meta||{};
+    const payload={kind:'quiz',title:m.title||'Untitled quiz',description:`${m.subject||'English'} · ${d.questions.length} questions`,level:m.level||'',skill:m.subject||'',tags:['quiz',m.subject].filter(Boolean),data:{meta:m,questions:d.questions}};
+    try{const r=await libFetch('/api/library',{method:'POST',body:payload});if(r.ok){const j=await r.json();if(j.assignment&&j.assignment.id){d.cloudId=j.assignment.id;synced++}}}catch(e){}
+  }
+  try{localStorage.setItem('teachedos_quiz_drafts',JSON.stringify(drafts))}catch(e){}
+  localStorage.setItem(FLAG,'1');
+  if(synced)showToast('☁️ '+synced+' quiz'+(synced>1?'zes':'')+' synced to My Library');
+}
+
 bootstrap();
+setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
 </body>
 </html>
