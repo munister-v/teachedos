@@ -234,3 +234,34 @@ DROP TRIGGER IF EXISTS trg_hwt_updated ON homework_attempt;
 CREATE TRIGGER trg_hwt_updated
   BEFORE UPDATE ON homework_attempt
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ── Assignments / Teacher Library ───────────────────────────────────────────
+-- A single entity for every teacher-made resource (lesson, quiz, game, board
+-- flow, …). Lives in the owner's "My Library"; can be published to the
+-- Community library, where other teachers can clone a copy into their own.
+CREATE TABLE IF NOT EXISTS assignments (
+  id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind          VARCHAR(24)  NOT NULL DEFAULT 'lesson',     -- lesson | quiz | game | board | other
+  title         VARCHAR(255) NOT NULL DEFAULT 'Untitled',
+  description   TEXT         NOT NULL DEFAULT '',
+  level         VARCHAR(20)  NOT NULL DEFAULT '',
+  skill         VARCHAR(40)  NOT NULL DEFAULT '',
+  tags          JSONB        NOT NULL DEFAULT '[]',
+  data          JSONB        NOT NULL DEFAULT '{}',          -- full payload (lesson plan, quiz config, etc.)
+  image         TEXT,                                        -- optional cover (data URL or URL)
+  visibility    VARCHAR(16)  NOT NULL DEFAULT 'private',     -- private | community
+  cloned_from   UUID         REFERENCES assignments(id) ON DELETE SET NULL,
+  clone_count   INTEGER      NOT NULL DEFAULT 0,
+  published_at  TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_assignments_user       ON assignments(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_assignments_community   ON assignments(visibility, published_at DESC) WHERE visibility = 'community';
+CREATE INDEX IF NOT EXISTS idx_assignments_kind        ON assignments(kind);
+
+DROP TRIGGER IF EXISTS trg_assignments_updated ON assignments;
+CREATE TRIGGER trg_assignments_updated
+  BEFORE UPDATE ON assignments
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
