@@ -95,7 +95,7 @@ Listen first, then repeat with natural intonation.
 Try again, but make it more polite.
 What phrase helped you most today?</textarea></div>
         <div class="quick-row"><button class="btn sm ghost" type="button" onclick="makeDurationVariant(30)">30m version</button><button class="btn sm ghost" type="button" onclick="makeDurationVariant(45)">45m version</button><button class="btn sm ghost" type="button" onclick="makeDurationVariant(60)">60m version</button><button class="btn sm ghost" type="button" onclick="makeDurationVariant(90)">90m workshop</button><button class="btn sm ghost" type="button" onclick="generateRubric()">Generate rubric</button></div><div class="timeline" id="timeline"></div>
-        <div class="actions builder-actions"><button class="btn ghost" type="button" onclick="addStage()">Add stage</button><button class="btn soft" type="button" onclick="saveLesson()">Save lesson</button><button class="btn pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn blue" type="button" onclick="sendBoardFlow()">Build Board Flow</button></div>
+        <div class="actions builder-actions"><button class="btn ghost" type="button" onclick="addStage()">Add stage</button><button class="btn soft" type="button" onclick="saveLesson()">Save lesson</button><button class="btn lime" type="button" onclick="publishLesson()" id="publish-btn">🌍 Publish to Community</button><button class="btn pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn blue" type="button" onclick="sendBoardFlow()">Build Board Flow</button></div>
       </div>
     </section>
     <aside class="panel preview">
@@ -174,8 +174,20 @@ function renderLibrary(){const lib=readLib();const root=document.getElementById(
 function readLib(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch{return[]}}
 function writeLib(v){try{localStorage.setItem(STORE,JSON.stringify(v))}catch(e){toast('Storage full — try a smaller image or delete old lessons')}}
 function safeSetDraft(){try{localStorage.setItem(DRAFT,JSON.stringify(collect()))}catch(e){}}
-function saveLesson(){const lib=readLib();const d=collect();d.id=d.id||'lesson-'+Date.now();lib.unshift(d);writeLib(lib.slice(0,80));renderLibrary();toast('Lesson saved')}
-function applySaved(id){const item=readLib().find(x=>x.id===id);if(item)apply(item)}
+let currentCloudId=null;
+function saveLesson(){const lib=readLib();const d=collect();d.id=d.id||'lesson-'+Date.now();d.cloudId=d.cloudId||currentCloudId;lib.unshift(d);writeLib(lib.slice(0,80));renderLibrary();cloudSyncLesson(d).then(a=>{if(a&&a.id)currentCloudId=a.id});toast('Lesson saved')}
+
+// ── Cloud library sync (My Library + Community) ──────────────────────────────
+const LIB_API='https://teachedos-api.onrender.com';
+function libToken(){return localStorage.getItem('teachedos_token')||''}
+function libFetch(path,opts){const o=opts||{};const t=libToken();return fetch(LIB_API+path,{...o,headers:{'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{}),...(o.headers||{})},body:o.body?JSON.stringify(o.body):undefined})}
+function lessonToAssignment(d){return{kind:'lesson',title:d.title||'Untitled lesson',description:d.brief||'',level:d.level||'',skill:d.skill||'',tags:['lesson-builder',d.skill].filter(Boolean),image:d.image||null,data:d}}
+// Save (or update) the lesson in the user's cloud library. Best-effort: silent if logged out.
+async function cloudSyncLesson(d){if(!libToken())return null;try{const payload=lessonToAssignment(d);let r;if(d.cloudId){r=await libFetch('/api/library/'+d.cloudId,{method:'PATCH',body:payload})}else{r=await libFetch('/api/library',{method:'POST',body:payload})}if(!r.ok)throw new Error('sync failed');const j=await r.json();if(j.assignment&&j.assignment.id){d.cloudId=j.assignment.id;const lib=readLib();const i=lib.findIndex(x=>x.id===d.id);if(i>=0){lib[i].cloudId=j.assignment.id;writeLib(lib)}}return j.assignment}catch(e){return null}}
+// Publish current lesson to the community library.
+async function publishLesson(){if(!libToken()){toast('Sign in to publish to the Community');return}const btn=document.getElementById('publish-btn');if(btn){btn.disabled=true;btn.textContent='Publishing…'}try{let d=collect();d.id=d.id||'lesson-'+Date.now();const lib=readLib();const existing=lib.find(x=>x.id===d.id);d.cloudId=d.cloudId||(existing&&existing.cloudId)||currentCloudId;const a=await cloudSyncLesson(d);if(!a||!a.id)throw new Error('Could not save lesson');currentCloudId=a.id;const r=await libFetch('/api/library/'+a.id+'/publish',{method:'POST'});if(!r.ok)throw new Error('Publish failed');// persist locally
+if(!existing){lib.unshift(d);writeLib(lib.slice(0,80));renderLibrary()}toast('🌍 Published to Community')}catch(e){toast(e.message||'Publish failed')}finally{if(btn){btn.disabled=false;btn.textContent='🌍 Publish to Community'}}}
+function applySaved(id){const item=readLib().find(x=>x.id===id);if(item){currentCloudId=item.cloudId||null;apply(item)}}
 function copySaved(id){const item=readLib().find(x=>x.id===id);if(item)navigator.clipboard?.writeText(lessonText(item)).then(()=>toast('Copied'))}
 function duplicateSaved(id){const lib=readLib();const item=lib.find(x=>x.id===id);if(!item)return;const copy={...item,id:'lesson-'+Date.now(),title:item.title+' (copy)',updatedAt:new Date().toISOString()};lib.unshift(copy);writeLib(lib.slice(0,80));renderLibrary();toast('Duplicated')}
 function exportLibrary(){download('teachedos-lesson-library.json',JSON.stringify(readLib(),null,2),'application/json')}

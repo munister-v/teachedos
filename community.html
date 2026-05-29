@@ -96,6 +96,7 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
   <!-- ══════ TABS: Boards / Games ══════ -->
   <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--border);padding-bottom:0;">
     <button class="comm-tab active" data-tab="boards" onclick="switchCommTab('boards')">📌 Boards</button>
+    <button class="comm-tab" data-tab="library" onclick="switchCommTab('library')">📚 Library</button>
     <button class="comm-tab" data-tab="games" onclick="switchCommTab('games')">🎮 Games</button>
   </div>
   <style>
@@ -115,6 +116,31 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
       <button class="btn ghost" onclick="loadBoards()">Refresh</button>
     </div>
     <section class="grid" id="community-grid"></section>
+  </div>
+
+  <!-- ══════ LIBRARY SECTION (lessons / exercises) ══════ -->
+  <div id="tab-library" style="display:none;">
+    <div class="section-head">
+      <div><div class="section-title">My Library</div><div class="section-sub">Lessons & exercises you created. Synced to your account.</div></div>
+      <a class="btn lime" href="lesson-builder.html">＋ Create lesson</a>
+    </div>
+    <section class="grid" id="my-library-grid"></section>
+
+    <div class="section-head" style="margin-top:30px;">
+      <div><div class="section-title">Community Library</div><div class="section-sub">Lessons & exercises teachers shared. Save a copy to your library.</div></div>
+      <button class="btn ghost" onclick="loadLibrary()">Refresh</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <input id="lib-search" placeholder="Search community library…" style="max-width:340px" oninput="renderCommunityLibrary()">
+      <select id="lib-kind" onchange="renderCommunityLibrary()" style="max-width:170px">
+        <option value="">All types</option><option value="lesson">Lessons</option>
+        <option value="quiz">Quizzes</option><option value="game">Games</option><option value="board">Boards</option>
+      </select>
+      <select id="lib-level" onchange="renderCommunityLibrary()" style="max-width:130px">
+        <option value="">All levels</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+      </select>
+    </div>
+    <section class="grid" id="community-library-grid"></section>
   </div>
 
   <!-- ══════ GAMES SECTION ══════ -->
@@ -457,9 +483,106 @@ function toast(msg) {
 /* ══════════════════════ TAB SWITCHING ══════════════════════ */
 function switchCommTab(tab) {
   document.querySelectorAll('.comm-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.getElementById('tab-boards').style.display = tab === 'boards' ? '' : 'none';
-  document.getElementById('tab-games').style.display  = tab === 'games'  ? '' : 'none';
-  if (tab === 'games') renderCommunityGames();
+  document.getElementById('tab-boards').style.display  = tab === 'boards'  ? '' : 'none';
+  document.getElementById('tab-library').style.display = tab === 'library' ? '' : 'none';
+  document.getElementById('tab-games').style.display   = tab === 'games'   ? '' : 'none';
+  if (tab === 'games')   renderCommunityGames();
+  if (tab === 'library') loadLibrary();
+}
+
+/* ══════════════════════ ASSIGNMENTS LIBRARY ══════════════════════ */
+let _myLibrary = [];
+let _communityLibrary = [];
+const KIND_ICON = { lesson:'📘', quiz:'❓', game:'🎮', board:'📌', other:'📄' };
+
+async function loadLibrary() {
+  // My Library (requires login)
+  const mine = document.getElementById('my-library-grid');
+  if (!token) {
+    mine.innerHTML = '<div class="empty">Sign in to see and sync your library.</div>';
+  } else {
+    mine.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const r = await api('/api/library');
+      const d = await r.json();
+      _myLibrary = d.assignments || [];
+      renderMyLibrary();
+    } catch { mine.innerHTML = '<div class="empty">Could not load your library.</div>'; }
+  }
+  // Community Library (public)
+  const grid = document.getElementById('community-library-grid');
+  grid.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const r = await api('/api/library/community');
+    const d = await r.json();
+    _communityLibrary = d.assignments || [];
+    renderCommunityLibrary();
+  } catch { grid.innerHTML = '<div class="empty">Could not load the community library.</div>'; }
+}
+
+function libCardHtml(a, opts) {
+  const o = opts || {};
+  const icon = KIND_ICON[a.kind] || '📄';
+  const meta = [a.level || 'Mixed', a.skill, a.clone_count ? `${a.clone_count} saves` : ''].filter(Boolean).join(' · ');
+  const author = a.author_name ? `${esc(a.author_name)} · ` : '';
+  return `<article class="board-card">
+    <div class="board-top"><div class="board-ic">${icon}</div>
+      <div><div class="board-name">${esc(a.title)}</div>
+      <div class="board-meta">${author}${esc(meta)}</div></div></div>
+    <div class="board-desc">${esc(a.description || 'No description.')}</div>
+    <div class="tags">${(a.tags||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+    <div class="card-actions">${o.actions || ''}</div>
+  </article>`;
+}
+
+function renderMyLibrary() {
+  const grid = document.getElementById('my-library-grid');
+  if (!_myLibrary.length) { grid.innerHTML = '<div class="empty">No saved lessons yet. Create one in the Lesson Builder.</div>'; return; }
+  grid.innerHTML = _myLibrary.map(a => {
+    const pub = a.visibility === 'community'
+      ? `<button class="mini-btn alt" onclick='unpublishItem(${JSON.stringify(a.id)})'>Unpublish</button>`
+      : `<button class="mini-btn" onclick='publishItem(${JSON.stringify(a.id)})'>🌍 Publish</button>`;
+    return libCardHtml(a, { actions:
+      `<a class="mini-btn" href="lesson-builder.html">Open builder</a>${pub}` +
+      `<button class="mini-btn alt" onclick='deleteItem(${JSON.stringify(a.id)})'>Delete</button>` });
+  }).join('');
+}
+
+function renderCommunityLibrary() {
+  const grid = document.getElementById('community-library-grid');
+  const q = (document.getElementById('lib-search').value || '').toLowerCase();
+  const kind = document.getElementById('lib-kind').value;
+  const level = document.getElementById('lib-level').value;
+  let list = _communityLibrary.filter(a =>
+    (!kind || a.kind === kind) && (!level || a.level === level) &&
+    (!q || (a.title + ' ' + (a.description||'')).toLowerCase().includes(q)));
+  if (!list.length) { grid.innerHTML = '<div class="empty">No shared resources match your filters yet.</div>'; return; }
+  grid.innerHTML = list.map(a => libCardHtml(a, { actions:
+    `<button class="mini-btn" onclick='cloneItem(${JSON.stringify(a.id)})'>＋ Save to my library</button>` })).join('');
+}
+
+async function publishItem(id) {
+  if (!token) { toast('Sign in first'); return; }
+  try { const r = await api('/api/library/' + id + '/publish', { method:'POST' });
+    if (!r.ok) throw 0; toast('🌍 Published to Community'); loadLibrary(); }
+  catch { toast('Could not publish'); }
+}
+async function unpublishItem(id) {
+  try { const r = await api('/api/library/' + id + '/unpublish', { method:'POST' });
+    if (!r.ok) throw 0; toast('Made private'); loadLibrary(); }
+  catch { toast('Could not update'); }
+}
+async function deleteItem(id) {
+  if (!confirm('Delete this resource from your library?')) return;
+  try { const r = await api('/api/library/' + id, { method:'DELETE' });
+    if (!r.ok) throw 0; toast('Deleted'); loadLibrary(); }
+  catch { toast('Could not delete'); }
+}
+async function cloneItem(id) {
+  if (!token) { toast('Sign in to save to your library'); return; }
+  try { const r = await api('/api/library/' + id + '/clone', { method:'POST' });
+    if (!r.ok) throw 0; toast('✓ Saved to your library'); loadLibrary(); }
+  catch { toast('Could not save'); }
 }
 
 /* ══════════════════════ COMMUNITY GAMES ══════════════════════ */
