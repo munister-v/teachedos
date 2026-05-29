@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v72';
+const CACHE = 'teachedos-v73';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -46,6 +46,7 @@ const SHELL = [
   'scripts/teachedos-app.js',
   'scripts/teachedos-data.js',
   'scripts/teachedos-curriculum.js',
+  'scripts/vocab-loader.js',
   'scripts/vocabulary.js',
   'scripts/games-data.js',
   'icons/icon-192.png',

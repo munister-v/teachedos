@@ -394,7 +394,7 @@ textarea{min-height:60px;resize:vertical}
 </div>
 
 <script src="scripts/app-core.js"></script>
-<script src="scripts/vocabulary.js"></script>
+<script src="scripts/vocab-loader.js"></script>
 <script>
 const PRESETS = {
   pairs: [
@@ -1230,8 +1230,14 @@ const TOPIC_SUPPORTED = ['pairs','words','sentences','mcq'];
 
 function renderTopicBar() {
   const bar = document.getElementById('topic-bar');
-  if (!selectedType || !TOPIC_SUPPORTED.includes(selectedType.fields) || !window.TEACHEDOS_VOCAB) {
+  if (!selectedType || !TOPIC_SUPPORTED.includes(selectedType.fields)) {
     bar.style.display = 'none';
+    return;
+  }
+  // Vocabulary dictionaries load on demand — fetch then re-render once ready
+  if (!window.TEACHEDOS_VOCAB) {
+    bar.style.display = 'none';
+    ensureVocab().then(renderTopicBar).catch(() => { bar.style.display = 'none'; });
     return;
   }
   bar.style.display = 'flex';

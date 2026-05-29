@@ -292,7 +292,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocabulary.js"></script>
+<script src="scripts/vocab-loader.js"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -622,8 +622,11 @@ function _buildMp(words){
   return { text: 'Match the words with their translations', pairs: sample.map(w => ({ l: w.en, r: w.uk })) };
 }
 
-function generateFromTopic(){
-  if(!window.TEACHEDOS_VOCAB){ showToast('Vocabulary library not loaded'); return; }
+async function generateFromTopic(){
+  if(!window.TEACHEDOS_VOCAB){
+    try { await ensureVocab(); } catch { showToast('Could not load the vocabulary library'); return; }
+    populateAutoGenOptions();
+  }
   const topicId = document.getElementById('autoTopic').value;
   const level   = document.getElementById('autoLevel').value;
   const count   = parseInt(document.getElementById('autoCount').value, 10);
@@ -679,7 +682,8 @@ function generateFromTopic(){
 // ── Bootstrap with sample questions ──
 function bootstrap(){
   loadMeta();
-  populateAutoGenOptions();
+  // Topic dictionaries load lazily; fill the picker once they arrive
+  ensureVocab().then(populateAutoGenOptions).catch(()=>{});
   // Seed with 2 example questions
   addQuestion('mcq');
   const q1=questions[0];

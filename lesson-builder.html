@@ -193,7 +193,12 @@ function duplicateSaved(id){const lib=readLib();const item=lib.find(x=>x.id===id
 function exportLibrary(){download('teachedos-lesson-library.json',JSON.stringify(readLib(),null,2),'application/json')}
 function importLibrary(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(reader.result);if(!Array.isArray(incoming))throw new Error('bad');writeLib([...incoming,...readLib()].slice(0,120));renderLibrary();toast('Library imported')}catch{toast('Could not import file')}event.target.value=''};reader.readAsText(file)}
 function deleteSaved(id){writeLib(readLib().filter(x=>x.id!==id));renderLibrary();toast('Deleted')}
-function updateDraft(){safeSetDraft();renderTimeline();renderStats();renderPreview()}
+// Autosave + live preview are debounced: typing no longer serializes the whole
+// draft (incl. a ~1 MB image dataURL) and rebuilds the preview on every keystroke.
+let _draftTimer;
+function _updateDraftNow(){safeSetDraft();renderTimeline();renderStats();renderPreview()}
+function updateDraft(){clearTimeout(_draftTimer);_draftTimer=setTimeout(_updateDraftNow,220)}
+function flushDraft(){clearTimeout(_draftTimer);_updateDraftNow()}
 function renderAll(){renderTimeline();renderStats();renderPreview();safeSetDraft()}
 function resetDraft(){if(!confirm('Reset current lesson draft?'))return;localStorage.removeItem(DRAFT);apply(PRESETS[1]);toast('Draft reset')}
 function copyLesson(){navigator.clipboard?.writeText(lessonText()).then(()=>toast('Lesson copied'))}
@@ -217,6 +222,9 @@ async function migrateLocalToCloud(){
 }
 function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();apply(draft||PRESETS[1]);renderLibrary();setTimeout(()=>migrateLocalToCloud().catch(()=>{}),1200)}
 init();
+// Flush any pending debounced autosave before the page is hidden/closed
+window.addEventListener('pagehide', flushDraft);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraft(); });
 </script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 <script src="pwa-boot.js" defer></script>
