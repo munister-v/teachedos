@@ -1,0 +1,53 @@
+/* TeachEd — unified PWA bootstrap.
+ * One file to (1) backfill required PWA <head> tags, (2) register the
+ * service worker with an update→reload flow, and (3) load the pwa.js UX
+ * layer (install banner + offline/online status) exactly once.
+ * Safe to include on any page: it detects what's already present and
+ * never double-registers or double-loads. */
+(function () {
+  // ── 1. Backfill essential PWA meta / link tags ─────────────────────────────
+  const head = document.head;
+  const mk = (tag, attrs) => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const ensure = (sel, make) => { if (!head.querySelector(sel)) head.appendChild(make()); };
+
+  ensure('link[rel="manifest"]', () => mk('link', { rel: 'manifest', href: 'manifest.json' }));
+  ensure('meta[name="theme-color"]', () => mk('meta', { name: 'theme-color', content: '#1C1C1E' }));
+  ensure('meta[name="mobile-web-app-capable"]', () => mk('meta', { name: 'mobile-web-app-capable', content: 'yes' }));
+  ensure('meta[name="apple-mobile-web-app-capable"]', () => mk('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }));
+  ensure('meta[name="apple-mobile-web-app-status-bar-style"]', () => mk('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }));
+  ensure('link[rel="apple-touch-icon"]', () => mk('link', { rel: 'apple-touch-icon', href: 'icons/icon-192.png' }));
+
+  // viewport-fit=cover for notch-safe layouts (only patch if missing, never downgrade)
+  const vp = head.querySelector('meta[name="viewport"]');
+  if (vp && !/viewport-fit/.test(vp.getAttribute('content') || '')) {
+    vp.setAttribute('content', (vp.getAttribute('content') || 'width=device-width, initial-scale=1') + ', viewport-fit=cover');
+  }
+
+  // ── 2. Register the service worker (idempotent) ────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        reg.update();
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (nw) nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage('skipWaiting');
+          });
+        });
+      }).catch(() => {});
+    });
+    if (!window.__teSwReloadWired) {
+      window.__teSwReloadWired = true;
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) { refreshing = true; location.reload(); }
+      });
+    }
+  }
+
+  // ── 3. Load the pwa.js UX layer once (skip if the page already includes it) ─
+  if (!window.TeachedosPWA && !document.querySelector('script[src*="pwa.js"]')) {
+    const s = mk('script', { src: 'pwa.js', defer: 'defer' });
+    head.appendChild(s);
+  }
+})();

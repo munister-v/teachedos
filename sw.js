@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v71';
+const CACHE = 'teachedos-v72';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -15,6 +15,9 @@ const SHELL = [
   'homework-do.html',
   'teacher-tools.html',
   'lesson-builder.html',
+  'quiz-builder.html',
+  'game-builder.html',
+  'community.html',
   'portal.html',
   'admin.html',
   'analytics.html',
@@ -33,6 +36,7 @@ const SHELL = [
   'styles/harmony.css',
   'styles/unify.css',
   'pwa.js',
+  'pwa-boot.js',
   'theme.js',
   'scripts/app-core.js',
   'scripts/mobile-nav.js',
