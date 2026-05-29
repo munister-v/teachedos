@@ -2936,6 +2936,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   #sb-reopen{display:none!important;}
   #board-wrap{left:0!important;}
   #mobile-quickbar{display:flex;}
+  /* "More" popover → bottom sheet anchored above the quickbar, full width,
+     with finger-sized rows (was a tiny top-right popover off-screen). */
+  #more-menu{
+    top:auto!important;left:0!important;right:0!important;
+    bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;
+    min-width:0!important;width:auto!important;margin:0 10px!important;
+    border-radius:18px!important;padding:8px!important;
+    box-shadow:0 -16px 40px rgba(5,5,40,.22)!important;
+    max-height:60vh;overflow-y:auto;font-size:15px!important;
+  }
+  #more-menu .user-menu-item{padding:13px 12px!important;border-radius:10px;}
   #minimap{display:none!important;}
   #zoom-hint{display:none!important;}
   /* Push share/reconnect/follow banners above the quickbar */

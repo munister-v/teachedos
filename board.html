@@ -206,7 +206,7 @@
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 14l3-1 8-8-2-2-8 8z"/><path d="M11 3l2 2"/></svg>
     <span>Pen</span>
   </button>
-  <button class="mq-btn ghost" type="button" onclick="toggleMoreMenu()" aria-label="More actions">
+  <button class="mq-btn ghost" type="button" id="mq-more" onclick="toggleMoreMenu(event)" aria-label="More actions">
     <span style="font-size:18px;line-height:1" aria-hidden="true">⋯</span>
     <span>More</span>
   </button>
@@ -1642,6 +1642,41 @@ function getBoardViewportCenter() {
 function resolveBoardPlacement(pos) {
   if (pos && Number.isFinite(pos.x) && Number.isFinite(pos.y)) return pos;
   return getBoardViewportCenter();
+}
+/* Find a non-overlapping CENTER for a new block of size w×h, starting from a
+   desired center (cx,cy in board coords). Prevents constructors / games from
+   stacking on top of existing content when added repeatedly. Returns {x,y}
+   (the center to use). Only considers top-level cards/frames (those without a
+   parent frame) so we don't bail just because of nested child stickies. */
+function findFreePlacement(cx, cy, w, h) {
+  const cards = (state && Array.isArray(state.cards)) ? state.cards : [];
+  if (!cards.length || !Number.isFinite(cx) || !Number.isFinite(cy)) {
+    return { x: cx, y: cy };
+  }
+  const GAP = 32;
+  const topLevel = cards.filter(c => !(c.data && c.data.parentFrame));
+  const overlaps = (x0, y0) => {
+    const ax1 = x0, ay1 = y0, ax2 = x0 + w, ay2 = y0 + h;
+    return topLevel.some(c => {
+      const bx1 = c.x - GAP, by1 = c.y - GAP;
+      const bx2 = c.x + (c.w || 0) + GAP, by2 = c.y + (c.h || 0) + GAP;
+      return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+    });
+  };
+  // Spiral search: try the desired spot, then expanding rings of offsets.
+  const baseX = cx - w / 2, baseY = cy - h / 2;
+  if (!overlaps(baseX, baseY)) return { x: cx, y: cy };
+  const step = Math.max(w, h) * 0.55 + GAP;
+  for (let ring = 1; ring <= 12; ring++) {
+    for (const [dx, dy] of [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]]) {
+      const nx = baseX + dx * step * ring;
+      const ny = baseY + dy * step * ring;
+      if (!overlaps(nx, ny)) return { x: nx + w / 2, y: ny + h / 2 };
+    }
+  }
+  // Fallback: drop far to the right of everything so it's at least visible.
+  const maxRight = topLevel.reduce((m, c) => Math.max(m, c.x + (c.w || 0)), baseX);
+  return { x: maxRight + GAP + w / 2, y: cy };
 }
 function boardToScreen(bx, by) {
   const r = boardWrap.getBoundingClientRect();
@@ -6764,8 +6799,9 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
   const HEADER_H = 110;
   const FRAME_W = PAD * 2 + STAGE_W * STAGE_COUNT + STAGE_GAP * (STAGE_COUNT - 1);
   const FRAME_H = PAD + HEADER_H + 20 + STAGE_H + PAD;
-  const x0 = Math.round(anchorBoardX - FRAME_W / 2);
-  const y0 = Math.round(anchorBoardY - FRAME_H / 2);
+  const _ap = findFreePlacement(anchorBoardX, anchorBoardY, FRAME_W, FRAME_H);
+  const x0 = Math.round(_ap.x - FRAME_W / 2);
+  const y0 = Math.round(_ap.y - FRAME_H / 2);
 
   snapshot();
   _suppressSnapshot++;
@@ -6841,8 +6877,9 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
   const FRAME_W = 1080;
   const FRAME_H = 740;
   const PAD = 24;
-  const x0 = Math.round(anchorBoardX - FRAME_W / 2);
-  const y0 = Math.round(anchorBoardY - FRAME_H / 2);
+  const _ap = findFreePlacement(anchorBoardX, anchorBoardY, FRAME_W, FRAME_H);
+  const x0 = Math.round(_ap.x - FRAME_W / 2);
+  const y0 = Math.round(_ap.y - FRAME_H / 2);
 
   snapshot();
   _suppressSnapshot++;
@@ -7164,7 +7201,8 @@ function applyTeacherToolBuilderToBoard() {
   const FRAME_W = 1180;
   const FRAME_H = 760;
   const PAD = 26;
-  const center = getBoardViewportCenter() || { x: 320, y: 260 };
+  const _c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(_c0.x, _c0.y, FRAME_W, FRAME_H);
   const x0 = Math.round(center.x - FRAME_W / 2);
   const y0 = Math.round(center.y - FRAME_H / 2);
 
@@ -9018,7 +9056,7 @@ function _syncMobileSheetBackdrop() {
 document.addEventListener('click', e => {
   if (!document.body.classList.contains('mobile-sheet-open')) return;
   // If click is inside a sheet, ignore
-  if (e.target.closest('#user-menu, #more-menu, #ctx-menu, #share-panel, #auth-chip, #btn-more')) return;
+  if (e.target.closest('#user-menu, #more-menu, #ctx-menu, #share-panel, #auth-chip, #btn-more, #mq-more')) return;
   // Outside: close any open sheet
   ['user-menu','more-menu','ctx-menu'].forEach(id => {
     const el = document.getElementById(id);
@@ -9909,13 +9947,16 @@ quickAdd.querySelectorAll('.qa-item').forEach(item => {
 });
 /* ════════════════════════ MORE MENU ════════════════════════ */
 let _moreOpen = false;
-function toggleMoreMenu() {
+function toggleMoreMenu(ev) {
+  // Stop the opening tap from bubbling to the document close-handlers
+  // (otherwise the menu opens and is dismissed by the same click).
+  if (ev && ev.stopPropagation) ev.stopPropagation();
   _moreOpen = !_moreOpen;
   document.getElementById('more-menu').style.display = _moreOpen ? 'block' : 'none';
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 }
 document.addEventListener('click', e => {
-  if (_moreOpen && !e.target.closest('#more-menu') && !e.target.closest('#btn-more')) {
+  if (_moreOpen && !e.target.closest('#more-menu') && !e.target.closest('#btn-more') && !e.target.closest('#mq-more')) {
     _moreOpen = false;
     document.getElementById('more-menu').style.display = 'none';
     if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
@@ -11955,7 +11996,8 @@ function addGameCard(src, title, w, h) {
   const maxH = Math.floor(r.height * 0.82);
   const cardW = Math.min(maxW, w);
   const cardH = Math.min(maxH, h);
-  addCard('game', pos.x - cardW/2, pos.y - cardH/2,
+  const fp = findFreePlacement(pos.x, pos.y, cardW, cardH);
+  addCard('game', fp.x - cardW/2, fp.y - cardH/2,
     { title, src, naturalW: w, naturalH: h }, cardW, cardH);
   closeGamesModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
@@ -11974,7 +12016,8 @@ document.addEventListener('drop', e => {
   const r2 = boardWrap.getBoundingClientRect();
   const cardW = Math.min(Math.floor(r2.width*0.72), w);
   const cardH = Math.min(Math.floor(r2.height*0.82), h);
-  addCard('game', pos.x - cardW/2, pos.y - cardH/2,
+  const fp = findFreePlacement(pos.x, pos.y, cardW, cardH);
+  addCard('game', fp.x - cardW/2, fp.y - cardH/2,
     { title, src, naturalW: w, naturalH: h }, cardW, cardH);
   closeGamesModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
@@ -13531,7 +13574,7 @@ function openStudentQuiz(cardId) {
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=74').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=76').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
