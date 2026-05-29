@@ -132,14 +132,10 @@
       animation-play-state: paused !important;
     }
 
-    .mp-feed > section,
-    .mp-board-card,
-    .stat-card,
-    .course-card,
-    .lesson-card {
-      content-visibility: auto;
-      contain-intrinsic-size: auto 220px;
-    }
+    /* NOTE: content-visibility:auto was removed here. On iOS Safari it makes
+       scrolling stutter — offscreen blocks are sized from an estimate, then
+       jump to real layout as they scroll in, shifting the scroll position.
+       Native scrolling of these pages is smooth without it. */
 
     .anim-paused { animation-play-state: paused !important; }
 
@@ -202,9 +198,8 @@
         img.setAttribute('loading', 'lazy');
       }
       if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
-      if (!img.style.contentVisibility && !img.closest('[data-no-content-visibility]')) {
-        img.style.contentVisibility = 'auto';
-      }
+      // (content-visibility:auto on images intentionally NOT set — it caused
+      // layout jumps / scroll stutter on iOS as images entered the viewport.)
     });
   }
 

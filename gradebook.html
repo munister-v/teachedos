@@ -269,10 +269,6 @@ a{text-decoration:none;color:inherit;}
   display:flex;
   flex-direction:column;
   gap:12px;
-  /* Long stacked student list: skip rendering off-screen rows for smoother
-     scroll on phones. Intrinsic size keeps the scrollbar stable. */
-  content-visibility:auto;
-  contain-intrinsic-size:auto 168px;
 }
 .gb-mobile-head{display:flex;align-items:center;gap:10px;}
 .gb-mobile-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
