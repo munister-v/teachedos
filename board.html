@@ -7167,6 +7167,16 @@ function generateTeacherToolOutput(input) {
 
 function teacherToolOutputText(output) {
   if (!output) return '';
+  if (output.boardKind === 'quiz') {
+    return [output.title, ''].concat(output.questions.map((q, i) => {
+      if (q.type === 'mcq') return `${i+1}. ${q.text}\n` + q.options.map(o => `   ${o === q.answer ? '[x]' : '[ ]'} ${o}`).join('\n');
+      if (q.type === 'truefalse') return `${i+1}. ${q.text}  →  ${q.answer ? 'TRUE' : 'FALSE'}`;
+      return `${i+1}. ${q.text}`;
+    })).join('\n').trim();
+  }
+  if (output.boardKind === 'vocab') {
+    return [output.title, ''].concat(output.items.map((it, i) => `${i+1}. ${it.word}${it.example ? ` — ${it.example}` : ''}`)).join('\n').trim();
+  }
   return [
     output.title,
     `${BOARD_TOOL_NAMES[output.cat] || output.cat} / ${output.kind}`,
@@ -7193,9 +7203,270 @@ function renderTeacherToolBuilderOutput(output) {
   `;
 }
 
+/* ════════════════ PILOT: real local-heuristic generators ════════════════
+   These three tools build genuine, structured output from the teacher's
+   pasted source text (no API, no model) and drop proper cards on the board:
+   - abcd-text   → assignment (Quiz) with real MCQ cloze questions + key
+   - true-false  → assignment (Quiz) with True/False statements + key
+   - extract-vocab → a frame of real vocab cards (word + example from text)
+   Anything else falls back to the legacy template generator below.        */
+const TT_PILOT_TOOLS = { 'abcd-text': 1, 'true-false': 1, 'extract-vocab': 1, 'gap': 1, 'open-questions': 1 };
+const _TT_STOP = new Set(('the a an and or but of to in on at for with as by from is are was were be been being this that these those it its he she him her they them we us you your our my his their not no do does did have has had will would shall can could should may might must about into over under than then so if when while because before after during between among each every some any all both more most other such only own same very just also too not nor only own here there what which who whom whose why how').split(/\s+/));
+function _ttCap(w){ w = String(w||''); return w ? w[0].toUpperCase() + w.slice(1) : w; }
+function _ttWords(text){ return (String(text||'').toLowerCase().match(/[a-z][a-z'-]{1,}/g) || []); }
+function _ttContentWords(text, min){
+  min = min || 4; const seen = new Set(); const out = [];
+  for (const w of _ttWords(text)) {
+    const base = w.replace(/^[^a-z]+|[^a-z]+$/g,'');
+    if (base.length >= min && !_TT_STOP.has(base) && !seen.has(base)) { seen.add(base); out.push(base); }
+  }
+  return out;
+}
+function _ttBlank(sentence, word){
+  const re = new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i');
+  return sentence.replace(re, '_____');
+}
+function _ttShuffle(arr){ for (let i = arr.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]] = [arr[j],arr[i]]; } return arr; }
+
+function _ttGenAbcd(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
+  const pool = _ttContentWords(input.source || sents.join(' '));
+  if (sents.length < 1 || pool.length < 4) return null;
+  const questions = [];
+  for (const s of sents) {
+    if (questions.length >= input.count) break;
+    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
+    if (!target) continue;
+    const candidates = pool
+      .filter(w => w !== target && !s.toLowerCase().includes(w))
+      .sort((a,b) => Math.abs(a.length - target.length) - Math.abs(b.length - target.length));
+    const distract = [];
+    const top = candidates.slice(0, 8);
+    while (distract.length < 3 && top.length) distract.push(top.splice(Math.floor(Math.random()*top.length),1)[0]);
+    const fb = ['information','example','process','reason','result','idea'];
+    while (distract.length < 3) { const w = fb.shift(); if (w && w !== target && !distract.includes(w)) distract.push(w); }
+    const options = _ttShuffle([target, ...distract].map(_ttCap));
+    questions.push({ type:'mcq', text:'Complete from the text: ' + _ttBlank(s, target), options, answer:_ttCap(target), points:1 });
+  }
+  return questions.length
+    ? { boardKind:'quiz', kind:'MCQ', cat:'reading', level:input.level, topic:input.topic, title:`${input.level} · ABCD Questions: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenTrueFalse(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 4);
+  const pool = _ttContentWords(input.source);
+  if (!sents.length) return null;
+  const questions = [];
+  sents.forEach((s, idx) => {
+    if (questions.length >= input.count) return;
+    const makeFalse = idx % 2 === 1; // alternate true / false
+    if (!makeFalse) { questions.push({ type:'truefalse', text:s, answer:true, points:1 }); return; }
+    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
+    const repl = pool.find(w => w !== target && Math.abs(w.length - (target ? target.length : 0)) <= 3 && !s.toLowerCase().includes(w));
+    if (target && repl) {
+      questions.push({ type:'truefalse', text:_ttBlank(s, target).replace('_____', _ttCap(repl)), answer:false, points:1 });
+    } else {
+      questions.push({ type:'truefalse', text:s, answer:true, points:1 });
+    }
+  });
+  return questions.length
+    ? { boardKind:'quiz', kind:'Check', cat:'reading', level:input.level, topic:input.topic, title:`${input.level} · True / False: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenExtractVocab(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 80);
+  const freq = new Map();
+  for (const w of _ttWords(input.source)) {
+    const base = w.replace(/^[^a-z]+|[^a-z]+$/g,'');
+    if (base.length >= 4 && !_TT_STOP.has(base)) freq.set(base, (freq.get(base)||0) + 1);
+  }
+  const words = [...freq.entries()]
+    .sort((a,b) => (b[1]-a[1]) || (b[0].length - a[0].length))
+    .slice(0, input.count)
+    .map(e => e[0]);
+  if (!words.length) return null;
+  const items = words.map(w => {
+    const ex = sents.find(s => new RegExp('\\b'+w+'\\b','i').test(s)) || '';
+    return { word:_ttCap(w), example:ex };
+  });
+  return { boardKind:'vocab', kind:'Extraction', cat:'vocabulary', level:input.level, topic:input.topic, title:`${input.level} · Vocabulary: ${input.topic}`, items };
+}
+
+function _ttGenGapFill(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
+  if (!sents.length) return null;
+  const questions = [];
+  for (const s of sents) {
+    if (questions.length >= input.count) break;
+    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
+    if (!target) continue;
+    questions.push({ type:'gap-fill', text:_ttBlank(s, target), answer:target, points:1 });
+  }
+  return questions.length
+    ? { boardKind:'quiz', kind:'Gap Fill', cat:'grammar', level:input.level, topic:input.topic, title:`${input.level} · Fill in the Gap: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenOpenQuestions(input){
+  const pool = _ttContentWords(input.source).sort((a,b) => b.length - a.length).slice(0, 12);
+  const topic = input.topic || 'the text';
+  if (!pool.length && !input.source) return null;
+  const templates = [
+    w => `What does the text say about ${w}?`,
+    w => `Why is ${w} important in this text?`,
+    w => `How is ${w} connected to ${topic}?`,
+    w => `What is your opinion about ${w}? Give a reason.`,
+    w => `Can you explain ${w} in your own words?`,
+  ];
+  const questions = [], used = new Set();
+  const words = pool.length ? pool : [topic];
+  // Interleave: each word gets a different template so questions vary.
+  for (let i = 0; questions.length < input.count && i < words.length * templates.length; i++) {
+    const w = words[i % words.length];
+    const t = templates[(i + Math.floor(i / words.length)) % templates.length];
+    const text = t(w);
+    if (used.has(text)) continue;
+    used.add(text);
+    questions.push({ type:'open', text, points:2 });
+  }
+  return questions.length
+    ? { boardKind:'quiz', kind:'Questions', cat:'reading', level:input.level, topic:input.topic, title:`${input.level} · Open Questions: ${input.topic}`, questions }
+    : null;
+}
+
+function generateTeacherToolLocal(input){
+  const id = input.tool && input.tool.id;
+  if (id === 'abcd-text')      return _ttGenAbcd(input);
+  if (id === 'true-false')     return _ttGenTrueFalse(input);
+  if (id === 'extract-vocab')  return _ttGenExtractVocab(input);
+  if (id === 'gap')            return _ttGenGapFill(input);
+  if (id === 'open-questions') return _ttGenOpenQuestions(input);
+  return null;
+}
+
+function renderTeacherToolLocalPreview(out){
+  const body = document.getElementById('tbuilder-output');
+  if (!body) return;
+  const chip = document.getElementById('tbuilder-chip');
+  if (out.boardKind === 'vocab') {
+    if (chip) chip.textContent = `${out.items.length} words`;
+    body.innerHTML = `
+      <div class="tbuilder-section">
+        <h4>${esc(out.title)}</h4>
+        <ul>${out.items.map(it => `<li><strong>${esc(it.word)}</strong>${it.example ? ` — <span style="opacity:.65">${esc(it.example)}</span>` : ''}</li>`).join('')}</ul>
+      </div>`;
+    return;
+  }
+  // quiz
+  if (chip) chip.textContent = `${out.questions.length} questions`;
+  body.innerHTML = `<div class="tbuilder-section"><h4>${esc(out.title)}</h4></div>` +
+    out.questions.map((q, i) => {
+      let ans = '';
+      if (q.type === 'mcq') {
+        ans = `<ul>${q.options.map(o => `<li${o === q.answer ? ' style="font-weight:800;color:#16a34a"' : ''}>${esc(o)}${o === q.answer ? '  ✓' : ''}</li>`).join('')}</ul>`;
+      } else if (q.type === 'truefalse') {
+        ans = `<div style="font-weight:800;color:${q.answer ? '#16a34a' : '#dc2626'}">Answer: ${q.answer ? 'True' : 'False'}</div>`;
+      }
+      return `<div class="tbuilder-section"><h4>${i+1}. ${esc(q.text)}</h4>${ans}</div>`;
+    }).join('');
+}
+
+function _ttPlaceQuizOnBoard(output){
+  const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META.utility;
+  const def = getDefaults('assignment');
+  const W = Math.max(def.w, 280), H = Math.max(def.h, 230);
+  const c0 = getBoardViewportCenter() || { x:320, y:260 };
+  const pos = findFreePlacement(c0.x, c0.y, W, H);
+  const totalPts = output.questions.reduce((s,q) => s + (q.points||1), 0);
+  snapshot();
+  const card = addCard('assignment', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
+    title: output.title,
+    type: 'Quiz',
+    level: output.level || 'B1',
+    maxScore: totalPts,
+    deadline: '',
+    desc: `Auto-built from your text · ${output.questions.length} questions.`,
+    questions: output.questions,
+    submitted: 0,
+    total: 0,
+  }, W, H);
+  if (card) {
+    clearSelection && clearSelection();
+    selectCard(card.id);
+    setTimeout(() => { try { zoomToCard && zoomToCard(card.id, true); } catch (e) {} }, 80);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  closeTeacherToolBuilder();
+  toast('✨ Quiz added — open it to preview the key; students can take it');
+}
+
+function _ttPlaceVocabOnBoard(output){
+  const def = getDefaults('vocab');
+  const VW = def.w, VH = def.h, GAP = 20, COLS = 4, PAD = 26, HEAD = 64;
+  const items = output.items;
+  const cols = Math.min(items.length, COLS);
+  const rows = Math.ceil(items.length / COLS);
+  const FW = PAD*2 + cols*VW + (cols-1)*GAP;
+  const FH = HEAD + rows*VH + (rows-1)*GAP + PAD;
+  const c0 = getBoardViewportCenter() || { x:320, y:260 };
+  const center = findFreePlacement(c0.x, c0.y, FW, FH);
+  const x0 = Math.round(center.x - FW/2), y0 = Math.round(center.y - FH/2);
+  snapshot();
+  _suppressSnapshot++;
+  let frame;
+  try {
+    frame = addCard('frame', x0, y0, {
+      title: `📖  ${output.title}`,
+      bg: 'rgba(234,179,8,.06)',
+      border: 'rgba(234,179,8,.40)',
+      childIds: [],
+    }, FW, FH);
+    items.forEach((it, i) => {
+      const r = Math.floor(i / COLS), c = i % COLS;
+      const x = x0 + PAD + c*(VW+GAP), y = y0 + HEAD + r*(VH+GAP);
+      const vc = addCard('vocab', x, y, {
+        word: it.word, phonetic:'', translation:'', pos:'', example: it.example || '', tags:[],
+      }, VW, VH);
+      if (frame && vc) setCardParentFrame && setCardParentFrame(vc, frame);
+    });
+    if (typeof renumberFrames === 'function') renumberFrames();
+  } finally {
+    _suppressSnapshot--;
+  }
+  if (frame && frame.id) {
+    clearSelection && clearSelection();
+    selectCard(frame.id);
+    setTimeout(() => { try { zoomToCard && zoomToCard(frame.id, true); } catch (e) {} }, 80);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  closeTeacherToolBuilder();
+  toast('✨ Vocabulary cards added to board (fill translations as you teach)');
+}
+
 function generateTeacherToolBuilder() {
   if (!activeTeacherToolBuilder) return;
-  lastTeacherToolBuilderOutput = generateTeacherToolOutput(readTeacherToolBuilderInput());
+  const input = readTeacherToolBuilderInput();
+  // Pilot tools build from the teacher's source text — require it.
+  if (TT_PILOT_TOOLS[activeTeacherToolBuilder.id] && !input.source) {
+    lastTeacherToolBuilderOutput = null;
+    const body = document.getElementById('tbuilder-output');
+    const chip = document.getElementById('tbuilder-chip');
+    if (chip) chip.textContent = 'needs text';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Вставьте исходный текст в поле «Source text / lesson notes» — этот инструмент строит задание прямо из вашего текста.</div>';
+    return;
+  }
+  const local = generateTeacherToolLocal(input);
+  if (local) {
+    lastTeacherToolBuilderOutput = local;
+    renderTeacherToolLocalPreview(local);
+    return;
+  }
+  lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
   renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
 }
 
@@ -7204,6 +7475,9 @@ function applyTeacherToolBuilderToBoard() {
   if (!lastTeacherToolBuilderOutput) generateTeacherToolBuilder();
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
+  // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
+  if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return; }
+  if (output.boardKind === 'vocab') { _ttPlaceVocabOnBoard(output); return; }
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
