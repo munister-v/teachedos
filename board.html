@@ -7521,7 +7521,7 @@ async function generateTeacherToolBuilder() {
   if (isPilot && window._ttAI?.supported()) {
     if (chip) chip.textContent = 'AI…';
     if (body) body.innerHTML = `
-      <div class="tbuilder-empty" id="tt-ai-status">Завантаження моделі (~700 MB, лише перший раз)…</div>
+      <div class="tbuilder-empty" id="tt-ai-status">Завантаження моделі (~1.8 GB, лише перший раз)…</div>
       <div style="margin:10px 16px 0;height:6px;border-radius:3px;background:rgba(0,0,0,.08);">
         <div id="tt-ai-bar" style="height:100%;width:0;border-radius:3px;background:var(--accent,#C8E632);transition:width .4s;"></div>
       </div>`;
@@ -14045,7 +14045,7 @@ if('serviceWorker'in navigator){
      Model (~700 MB) is cached in IndexedDB after the first download.
      Writes to window._ttAI; classic scripts poll window._ttAI?.ready.      -->
 <script type="module" id="tt-ai-module">
-const MODEL_ID = 'Llama-3.2-1B-Instruct-q4f16_1-MLC';
+const MODEL_ID = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
 let _engine = null, _enginePromise = null;
 
 async function _loadEngine(onProgress) {
