@@ -661,22 +661,30 @@
             <select id="tbuilder-count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
           </div>
         </div>
-        <label for="tbuilder-topic">Topic / grammar focus</label>
-        <input id="tbuilder-topic" value="Travel problems" placeholder="e.g. job interview, past simple, climate change">
-        <label for="tbuilder-source">Source text / lesson notes</label>
-        <textarea id="tbuilder-source" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
-        <label for="tbuilder-vocab">Target vocabulary</label>
-        <textarea id="tbuilder-vocab" placeholder="One word or phrase per line...">delay
+        <div class="tb-field-wrap" id="tb-wrap-topic">
+          <label for="tbuilder-topic" id="tbuilder-topic-label">Topic / grammar focus</label>
+          <input id="tbuilder-topic" value="Travel problems" placeholder="e.g. job interview, past simple, climate change">
+        </div>
+        <div class="tb-field-wrap" id="tb-wrap-source">
+          <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
+          <textarea id="tbuilder-source" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
+        </div>
+        <div class="tb-field-wrap" id="tb-wrap-vocab">
+          <label for="tbuilder-vocab" id="tbuilder-vocab-label">Target vocabulary</label>
+          <textarea id="tbuilder-vocab" placeholder="One word or phrase per line...">delay
 reservation
 boarding pass
 complaint
 solution
 polite request</textarea>
-        <label for="tbuilder-extra">Student difficulty / teacher instruction</label>
-        <textarea id="tbuilder-extra" placeholder="e.g. weak examples, articles, short answers, needs more confidence..."></textarea>
+        </div>
+        <div class="tb-field-wrap" id="tb-wrap-extra">
+          <label for="tbuilder-extra">Teacher notes (optional)</label>
+          <textarea id="tbuilder-extra" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
+        </div>
         <div class="tbuilder-actions">
           <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder()">✦ Generate</button>
-          <button class="tbuilder-btn blue" onclick="applyTeacherToolBuilderToBoard()">＋ Add to board</button>
+          <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="applyTeacherToolBuilderToBoard()" disabled>＋ Add to board</button>
           <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder()" style="display:none" title="Generate again for a different result">↺ Retry</button>
           <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
           <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>
@@ -7037,6 +7045,97 @@ function addTeacherToolToBoard(toolId) {
   openTeacherToolBuilder(toolId);
 }
 
+/* ── field configs per tool ──────────────────────────────────────── */
+const TT_NEEDS_SOURCE_SET = new Set([
+  'abcd-text','true-false','extract-vocab','gap','open-questions',
+  'gaps-abcd','word-definition-match','error-correction',
+  'gaps-brackets','two-options','gist-detail',
+  'listening-dictation','simplify-text','transcript-helper',
+]);
+const TT_NEEDS_VOCAB_SET = new Set([
+  'sentences-vocab','odd-one-out','word-sorting','essential-vocab',
+  'flashcards','collocations','word-families','word-image-match','word-definition-match',
+]);
+const TT_SOURCE_PLACEHOLDERS = {
+  'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
+  'true-false':'Paste a reading text — we\'ll create True/False statements from it.',
+  'extract-vocab':'Paste a text — we\'ll pull key vocabulary from it.',
+  'gap':'Paste a text — we\'ll make gap-fill sentences from it.',
+  'gaps-abcd':'Paste a text — we\'ll create MCQ gap-fill grammar sentences.',
+  'open-questions':'Paste a text — we\'ll generate open discussion questions.',
+  'word-definition-match':'Paste a text — we\'ll pair words with sentences from it.',
+  'error-correction':'Paste a text — we\'ll introduce mistakes to find and fix.',
+  'gaps-brackets':'Paste a text — we\'ll create word-form exercises from it.',
+  'two-options':'Paste a text — we\'ll make two-option grammar sentences.',
+  'gist-detail':'Paste a text — we\'ll make a gist question + detail questions.',
+  'listening-dictation':'Paste a transcript — we\'ll make dictation gap-fill sentences.',
+  'simplify-text':'Paste a text — we\'ll rewrite it at a simpler level.',
+  'transcript-helper':'Paste a transcript — we\'ll build before/during/after tasks.',
+};
+const TT_VOCAB_PLACEHOLDERS = {
+  'sentences-vocab':'One word or phrase per line — students will make sentences with each.',
+  'odd-one-out':'One word per line — we\'ll group them into odd-one-out sets.',
+  'word-sorting':'One word per line — students will sort them into categories.',
+  'essential-vocab':'One word per line — we\'ll generate definitions and examples.',
+  'flashcards':'One word per line — we\'ll create flashcard entries.',
+  'collocations':'Key words — we\'ll find their strongest collocations.',
+  'word-families':'Key words — we\'ll give noun/verb/adj/adv forms.',
+};
+const TT_EMPTY_ICONS = {
+  reading:'📄', vocabulary:'📖', grammar:'✏️', speaking:'🗣',
+  writing:'✍️', listening:'🎧', utility:'🧰',
+};
+
+function _ttAdaptFields(tool) {
+  if (!tool) return;
+  const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
+  const needsVocab  = TT_NEEDS_VOCAB_SET.has(tool.id);
+  const srcWrap  = document.getElementById('tb-wrap-source');
+  const vocWrap  = document.getElementById('tb-wrap-vocab');
+  const extraWrap= document.getElementById('tb-wrap-extra');
+  const srcTA    = document.getElementById('tbuilder-source');
+  const vocTA    = document.getElementById('tbuilder-vocab');
+  const srcLabel = document.getElementById('tbuilder-source-label');
+  const vocLabel = document.getElementById('tbuilder-vocab-label');
+
+  // Source field
+  if (needsSource) {
+    srcWrap?.classList.remove('tb-field-hidden');
+    srcWrap?.classList.add('tb-field-required');
+    if (srcLabel) srcLabel.textContent = 'Your Text';
+    if (srcTA) srcTA.placeholder = TT_SOURCE_PLACEHOLDERS[tool.id] || 'Paste your text here…';
+  } else {
+    srcWrap?.classList.add('tb-field-hidden');
+    srcWrap?.classList.remove('tb-field-required');
+  }
+
+  // Vocab field
+  if (needsVocab) {
+    vocWrap?.classList.remove('tb-field-hidden');
+    vocWrap?.classList.add('tb-field-required');
+    if (vocLabel) vocLabel.textContent = 'Your Vocabulary';
+    if (vocTA) vocTA.placeholder = TT_VOCAB_PLACEHOLDERS[tool.id] || 'One word or phrase per line…';
+  } else if (needsSource) {
+    // source-primary: vocab optional
+    vocWrap?.classList.remove('tb-field-hidden','tb-field-required');
+    if (vocLabel) vocLabel.textContent = 'Target vocabulary (optional)';
+    if (vocTA) vocTA.placeholder = 'One word or phrase per line (optional)…';
+  } else {
+    // topic-only: vocab optional but useful
+    vocWrap?.classList.remove('tb-field-hidden','tb-field-required');
+    if (vocLabel) vocLabel.textContent = 'Target vocabulary (optional)';
+    if (vocTA) vocTA.placeholder = 'Key words or phrases for this task (optional)…';
+  }
+
+  // Extra field — always optional, sometimes less relevant
+  if (extraWrap) extraWrap.classList.remove('tb-field-hidden');
+}
+
+function _ttSetAddToBoard(enabled) {
+  const btn = document.getElementById('tbuilder-add-btn');
+  if (btn) btn.disabled = !enabled;
+}
+
 function openTeacherToolBuilder(toolId) {
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);
   if (!tool) return;
@@ -7046,7 +7145,11 @@ function openTeacherToolBuilder(toolId) {
   document.getElementById('tbuilder-sub').textContent = tool.desc;
   document.getElementById('tbuilder-kicker').textContent = `${BOARD_TOOL_NAMES[tool.cat] || tool.cat} / ${tool.kind}`;
   document.getElementById('tbuilder-chip').textContent = 'ready';
-  document.getElementById('tbuilder-output').innerHTML = '<div class="tbuilder-empty">Fill the fields and click Generate task.<br>This will create a real activity, not a placeholder note.</div>';
+  const icon = TT_EMPTY_ICONS[tool.cat] || '✦';
+  document.getElementById('tbuilder-output').innerHTML = `<div class="tbuilder-empty"><strong>${icon}</strong>Fill the fields and click Generate.<br>The result will preview here before landing on the board.</div>`;
+  _ttAdaptFields(tool);
+  _ttSetAddToBoard(false);
+  _ttHideRetry();
   document.getElementById('tool-builder-panel')?.classList.add('open');
 }
 
@@ -7904,13 +8007,14 @@ function generateTeacherToolLocal(input){
   return _ttGenScaffold(id, input);
 }
 
-function _ttShowRetry(){ document.getElementById('tbuilder-regen-btn')?.style && (document.getElementById('tbuilder-regen-btn').style.display=''); }
-function _ttHideRetry(){ document.getElementById('tbuilder-regen-btn')?.style && (document.getElementById('tbuilder-regen-btn').style.display='none'); }
+function _ttShowRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display=''; }
+function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display='none'; }
 
 function renderTeacherToolLocalPreview(out){
   const body = document.getElementById('tbuilder-output');
   if (!body) return;
   _ttShowRetry();
+  _ttSetAddToBoard(true);
   const chip = document.getElementById('tbuilder-chip');
   if (out.boardKind === 'cards') {
     if (chip) chip.textContent = `${out.cards.length} cards`;
@@ -7928,17 +8032,26 @@ function renderTeacherToolLocalPreview(out){
     return;
   }
   // quiz
-  if (chip) chip.textContent = `${out.questions.length} questions`;
-  body.innerHTML = `<div class="tbuilder-section"><h4>${esc(out.title)}</h4></div>` +
-    out.questions.map((q, i) => {
-      let ans = '';
-      if (q.type === 'mcq') {
-        ans = `<ul>${q.options.map(o => `<li${o === q.answer ? ' style="font-weight:800;color:#16a34a"' : ''}>${esc(o)}${o === q.answer ? '  ✓' : ''}</li>`).join('')}</ul>`;
-      } else if (q.type === 'truefalse') {
-        ans = `<div style="font-weight:800;color:${q.answer ? '#16a34a' : '#dc2626'}">Answer: ${q.answer ? 'True' : 'False'}</div>`;
-      }
-      return `<div class="tbuilder-section"><h4>${i+1}. ${esc(q.text)}</h4>${ans}</div>`;
-    }).join('');
+  if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
+  body.innerHTML = out.questions.map((q, i) => {
+    let ans = '';
+    if (q.type === 'mcq') {
+      ans = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${
+        q.options.map(o => `<span style="font-size:11px;font-weight:750;padding:3px 9px;border-radius:8px;background:${o===q.answer?'#dcfce7':'#f3f4f6'};color:${o===q.answer?'#16a34a':'#6b7280'};border:1.5px solid ${o===q.answer?'#bbf7d0':'transparent'}">${esc(o)}${o===q.answer?' ✓':''}</span>`
+        ).join('')}</div>`;
+    } else if (q.type === 'truefalse') {
+      ans = `<span class="tt-answer-badge ${q.answer?'true':'false'}">${q.answer?'✅ True':'❌ False'}</span>`;
+    } else if (q.type === 'gap-fill') {
+      ans = `<div style="font-size:11px;margin-top:5px;color:#16a34a;font-weight:800;">Answer: ${esc(q.answer||'')}</div>`;
+    } else if (q.type === 'match') {
+      ans = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;">${
+        (q.pairs||[]).slice(0,4).map(p=>`<span style="font-size:11px;font-weight:750;padding:3px 8px;border-radius:7px;background:#f3f4f6">${esc(p.left)}</span><span style="font-size:11px;padding:3px 8px;color:#5f6070">${esc((p.right||'').slice(0,60))}</span>`).join('')
+      }</div>`;
+    } else if (q.type === 'open') {
+      ans = `<div style="font-size:11px;margin-top:4px;color:#9ca3af;font-style:italic;">Open answer</div>`;
+    }
+    return `<div class="tbuilder-section"><h4>${i+1}. ${esc(q.text)}</h4>${ans}</div>`;
+  }).join('');
 }
 
 function _ttPlaceQuizOnBoard(output){
