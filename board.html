@@ -675,8 +675,9 @@ polite request</textarea>
         <label for="tbuilder-extra">Student difficulty / teacher instruction</label>
         <textarea id="tbuilder-extra" placeholder="e.g. weak examples, articles, short answers, needs more confidence..."></textarea>
         <div class="tbuilder-actions">
-          <button class="tbuilder-btn lime" onclick="generateTeacherToolBuilder()">Generate task</button>
-          <button class="tbuilder-btn blue" onclick="applyTeacherToolBuilderToBoard()">Add to board</button>
+          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder()">✦ Generate</button>
+          <button class="tbuilder-btn blue" onclick="applyTeacherToolBuilderToBoard()">＋ Add to board</button>
+          <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder()" style="display:none" title="Generate again for a different result">↺ Retry</button>
           <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
           <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>
         </div>
@@ -7903,9 +7904,13 @@ function generateTeacherToolLocal(input){
   return _ttGenScaffold(id, input);
 }
 
+function _ttShowRetry(){ document.getElementById('tbuilder-regen-btn')?.style && (document.getElementById('tbuilder-regen-btn').style.display=''); }
+function _ttHideRetry(){ document.getElementById('tbuilder-regen-btn')?.style && (document.getElementById('tbuilder-regen-btn').style.display='none'); }
+
 function renderTeacherToolLocalPreview(out){
   const body = document.getElementById('tbuilder-output');
   if (!body) return;
+  _ttShowRetry();
   const chip = document.getElementById('tbuilder-chip');
   if (out.boardKind === 'cards') {
     if (chip) chip.textContent = `${out.cards.length} cards`;
@@ -7967,22 +7972,28 @@ function _ttPlaceQuizOnBoard(output){
 
 function _ttPlaceCardsOnBoard(output){
   const isDialogue = output.kind === 'Dialogue';
-  const colors = ['#FFF9C4','#C8E6C9','#BBDEFB','#F8BBD9','#FFE0B2'];
+  const colors = ['#FFF9C4','#C8E6C9','#BBDEFB','#F8BBD9','#FFE0B2','#E8D5FF'];
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
-  const CARD_W = isDialogue ? 340 : 300, CARD_H = isDialogue ? 200 : 160, GAP = 20;
   const total = output.cards.length;
-  const totalW = total * CARD_W + (total-1) * GAP;
-  const center = findFreePlacement(c0.x, c0.y, totalW + 48, CARD_H + 80);
-  const x0 = Math.round(center.x - totalW/2), y0 = Math.round(center.y - CARD_H/2);
+  // Layout: single row for ≤3, 2-column grid for 4+
+  const COLS = total <= 3 ? total : 2;
+  const ROWS = Math.ceil(total / COLS);
+  const CARD_W = isDialogue ? 320 : 280, CARD_H = total <= 3 ? 180 : 160, GAP = 20, PAD = 24, HEAD = 56;
+  const FW = PAD*2 + COLS*CARD_W + (COLS-1)*GAP;
+  const FH = HEAD + ROWS*CARD_H + (ROWS-1)*GAP + PAD;
+  const center = findFreePlacement(c0.x, c0.y, FW, FH);
+  const x0 = Math.round(center.x - FW/2), y0 = Math.round(center.y - FH/2);
   snapshot(); _suppressSnapshot++;
   try {
-    const frame = addCard('frame', x0-20, y0-52, {
+    const frame = addCard('frame', x0, y0, {
       title: output.title, bg:'rgba(200,200,255,.05)', border:'rgba(100,100,255,.25)', childIds:[],
-    }, totalW+40, CARD_H+72);
+    }, FW, FH);
     output.cards.forEach((c, i) => {
-      const x = x0 + i*(CARD_W+GAP);
-      const card = addCard('sticky', x, y0, {
-        text: (isDialogue ? `${c.title}:\n` : '') + c.text,
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const cx = x0 + PAD + col*(CARD_W+GAP);
+      const cy = y0 + HEAD + row*(CARD_H+GAP);
+      const card = addCard('sticky', cx, cy, {
+        text: (isDialogue ? `${c.title}:\n` : (total > 3 ? `${c.title}\n` : '')) + c.text,
         color: colors[i % colors.length],
       }, CARD_W, CARD_H);
       if (frame && card) setCardParentFrame?.(card, frame);
@@ -8046,15 +8057,23 @@ async function generateTeacherToolBuilder() {
   const body = document.getElementById('tbuilder-output');
   const chip = document.getElementById('tbuilder-chip');
 
-  if (isPilot && !input.source) {
+  // Only tools that actually parse source text need it — vocab/speaking/scaffold tools don't.
+  const TT_NEEDS_SOURCE = new Set([
+    'abcd-text','true-false','extract-vocab','gap','open-questions',
+    'gaps-abcd','word-definition-match','error-correction',
+    'gaps-brackets','two-options','gist-detail',
+    'listening-dictation','simplify-text','transcript-helper',
+  ]);
+  if (isPilot && TT_NEEDS_SOURCE.has(toolId) && !input.source) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs text';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">Вставьте исходний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
     return;
   }
 
   // ── WebLLM path (real generation) ─────────────────────────────
   if (isPilot && window._ttAI?.supported()) {
+    _ttHideRetry();
     if (chip) chip.textContent = 'AI…';
     if (body) body.innerHTML = `
       <div class="tbuilder-empty" id="tt-ai-status">Завантаження моделі (~1.8 GB, лише перший раз)…</div>
@@ -8074,6 +8093,7 @@ async function generateTeacherToolBuilder() {
         renderTeacherToolLocalPreview(aiOut);
         const n = aiOut.questions?.length ?? aiOut.items?.length ?? 0;
         if (chip) chip.textContent = `AI · ${n} items`;
+        _ttShowRetry();
         return;
       }
       // JSON parsed but couldn't map → warn and fall through to heuristics
@@ -8090,7 +8110,10 @@ async function generateTeacherToolBuilder() {
   if (local) {
     lastTeacherToolBuilderOutput = local;
     renderTeacherToolLocalPreview(local);
-    if (chip && !chip.textContent.startsWith('AI')) chip.textContent = `local · ${local.questions?.length ?? local.items?.length ?? '?'} items`;
+    if (chip && !chip.textContent.startsWith('AI')) {
+      const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
+      chip.textContent = n != null ? `local · ${n} items` : `${local.kind||'ready'}`;
+    }
     return;
   }
   lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
