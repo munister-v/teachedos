@@ -7210,11 +7210,10 @@ function renderTeacherToolBuilderOutput(output) {
    - true-false  → assignment (Quiz) with True/False statements + key
    - extract-vocab → a frame of real vocab cards (word + example from text)
    Anything else falls back to the legacy template generator below.        */
-const TT_PILOT_TOOLS = {
-  'abcd-text':1,'true-false':1,'extract-vocab':1,'gap':1,'open-questions':1,
-  'gaps-abcd':1,'word-definition-match':1,'error-correction':1,
-  'three-titles':1,'summary-task':1,'dialogue':1,
-};
+// All 62 tools covered — specific generators for quality ones, _ttGenScaffold for the rest.
+const TT_PILOT_TOOLS = Object.fromEntries(
+  (typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS : []).map(t => [t.id, 1])
+);
 const _TT_STOP = new Set(('the a an and or but of to in on at for with as by from is are was were be been being this that these those it its he she him her they them we us you your our my his their not no do does did have has had will would shall can could should may might must about into over under than then so if when while because before after during between among each every some any all both more most other such only own same very just also too not nor only own here there what which who whom whose why how').split(/\s+/));
 function _ttCap(w){ w = String(w||''); return w ? w[0].toUpperCase() + w.slice(1) : w; }
 function _ttWords(text){ return (String(text||'').toLowerCase().match(/[a-z][a-z'-]{1,}/g) || []); }
@@ -7408,6 +7407,241 @@ function _ttGenErrorCorrection(input){
     : null;
 }
 
+/* ── vocab-field helper ─────────────────────────────────────────── */
+function _ttVocabLines(input){
+  const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
+  return lines.length ? lines : _ttContentWords(input.source).slice(0, input.count);
+}
+
+/* ── essential-vocab / flashcards ───────────────────────────────── */
+function _ttGenEssentialVocab(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const sents = teacherToolSourceSentences(input.source||'', input.topic, 80);
+  const items = words.map(w => ({
+    word: _ttCap(w),
+    example: sents.find(s => new RegExp('\\b'+w+'\\b','i').test(s)) || '',
+  }));
+  return { boardKind:'vocab', kind:'Essential', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Essential Vocabulary: ${input.topic}`, items };
+}
+function _ttGenFlashcards(input){
+  const out = _ttGenEssentialVocab(input);
+  return out ? { ...out, kind:'Flashcard Set', title:`${input.level} · Flashcards: ${input.topic}` } : null;
+}
+
+/* ── sentences-vocab ────────────────────────────────────────────── */
+function _ttGenSentencesVocab(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open', text:`Make a sentence using the word: "${_ttCap(w)}"`, points:2,
+  }));
+  return { boardKind:'quiz', kind:'Sentence Set', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Sentences with Vocabulary: ${input.topic}`, questions };
+}
+
+/* ── odd-one-out ────────────────────────────────────────────────── */
+function _ttGenOddOneOut(input){
+  const words = _ttVocabLines(input);
+  if (words.length < 4) return null;
+  const pool = _ttShuffle([...words]);
+  const questions = [];
+  for (let i = 0; i + 3 < pool.length && questions.length < input.count; i += 3){
+    const set = pool.slice(i, i+4).map(_ttCap);
+    questions.push({ type:'open', text:`Which word is the odd one out? Explain why:\n${set.join(' / ')}`, points:2 });
+  }
+  if (!questions.length){
+    questions.push({ type:'open', text:`Which word is the odd one out? Explain why:\n${pool.slice(0,4).map(_ttCap).join(' / ')}`, points:2 });
+  }
+  return { boardKind:'quiz', kind:'Odd One Out', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Odd One Out: ${input.topic}`, questions };
+}
+
+/* ── word-sorting ───────────────────────────────────────────────── */
+function _ttGenWordSorting(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (words.length < 3) return null;
+  const half = Math.ceil(words.length/2);
+  const pairs = words.map((w,i) => ({ left:_ttCap(w), right: i < half ? 'Category A' : 'Category B' }));
+  return { boardKind:'quiz', kind:'Word Sort', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Words Sorting: ${input.topic}`,
+    questions:[{ type:'match', text:'Sort these words into two categories. Decide on the category names.', pairs, points:pairs.length }] };
+}
+
+/* ── gaps-brackets ──────────────────────────────────────────────── */
+function _ttGenGapsBrackets(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
+  if (!sents.length) return null;
+  const questions = [];
+  for (const s of sents){
+    if (questions.length >= input.count) break;
+    const target = _ttContentWords(s).sort((a,b)=>b.length-a.length)[0];
+    if (!target) continue;
+    questions.push({ type:'open',
+      text:`Use the word in the correct form:\n"${_ttBlank(s,target)}"  (${target.toUpperCase()})`,
+      answer:target, points:1 });
+  }
+  return questions.length ? { boardKind:'quiz', kind:'Word Form', cat:'grammar', level:input.level, topic:input.topic,
+    title:`${input.level} · Gaps with Brackets: ${input.topic}`, questions } : null;
+}
+
+/* ── two-options ────────────────────────────────────────────────── */
+function _ttGenTwoOptions(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length >= 2);
+  const pool = _ttContentWords(input.source||'');
+  if (!sents.length || pool.length < 2) return null;
+  const questions = [];
+  for (const s of sents){
+    if (questions.length >= input.count) break;
+    const words = _ttContentWords(s); if (words.length < 2) continue;
+    const [a, b] = words.sort((x,y)=>y.length-x.length).slice(0,2);
+    questions.push({ type:'mcq', text:`Choose the correct option:\n"${_ttBlank(s,a)}"`,
+      options:[_ttCap(a),_ttCap(b)], answer:_ttCap(a), points:1 });
+  }
+  return questions.length ? { boardKind:'quiz', kind:'Two Options', cat:'grammar', level:input.level, topic:input.topic,
+    title:`${input.level} · Two Options: ${input.topic}`, questions } : null;
+}
+
+/* ── gist + detail ──────────────────────────────────────────────── */
+function _ttGenGistDetail(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 4);
+  const pool = _ttContentWords(input.source||'');
+  if (!sents.length) return null;
+  const questions = [];
+  const gt = pool.sort((a,b)=>b.length-a.length)[0] || input.topic;
+  const gDistract = _ttShuffle(pool.filter(w=>w!==gt)).slice(0,3).map(_ttCap);
+  while (gDistract.length < 3) gDistract.push(['topic','idea','theme'][gDistract.length]||'concept');
+  questions.push({ type:'mcq', text:'What is the main topic of this text?',
+    options:_ttShuffle([_ttCap(gt),...gDistract]), answer:_ttCap(gt), points:1 });
+  const detailT = ['What does the text say about _____?','Why is _____ mentioned?','How is _____ described?'];
+  for (const s of sents.slice(1)){
+    if (questions.length >= input.count) break;
+    const w = _ttContentWords(s).sort((a,b)=>b.length-a.length)[0]; if(!w) continue;
+    questions.push({ type:'open', text:detailT[(questions.length-1)%detailT.length].replace('_____',_ttCap(w)), points:2 });
+  }
+  return questions.length ? { boardKind:'quiz', kind:'Gist+Detail', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Gist + Detail: ${input.topic}`, questions } : null;
+}
+
+/* ── discussion questions (speaking) ────────────────────────────── */
+function _ttGenDiscussion(input){
+  const words = _ttContentWords(input.source||'').slice(0,8);
+  const topic = input.topic||'the topic';
+  const tmpl = [
+    w=>`What do you think about ${w}? Give two reasons.`,
+    w=>`Have you ever experienced anything related to ${w}? Tell your partner.`,
+    w=>`Do you agree that ${w} is important? Why / why not?`,
+    w=>`How does ${w} affect everyday life in your country?`,
+    w=>`What would happen if ${w} didn't exist? Discuss with a partner.`,
+  ];
+  const questions=[], used=new Set(), ws=words.length?words:[topic];
+  for (let i=0; questions.length<input.count && i<ws.length*tmpl.length; i++){
+    const w=ws[i%ws.length], t=tmpl[(i+Math.floor(i/ws.length))%tmpl.length], text=t(w);
+    if(used.has(text)) continue; used.add(text);
+    questions.push({ type:'open', text, points:2 });
+  }
+  return questions.length ? { boardKind:'quiz', kind:'Discussion', cat:'speaking', level:input.level, topic:input.topic,
+    title:`${input.level} · Discussion Questions: ${input.topic}`, questions } : null;
+}
+
+/* ── question ladder ────────────────────────────────────────────── */
+function _ttGenQuestionLadder(input){
+  const w = (_ttContentWords(input.source||'').sort((a,b)=>b.length-a.length)[0]) || input.topic||'the topic';
+  const questions = [
+    { type:'open', text:`Level 1 — Factual: What is ${w}? Give a short definition.`, points:1 },
+    { type:'open', text:`Level 2 — Descriptive: What is ${w} like? Describe it in 2–3 sentences.`, points:1 },
+    { type:'open', text:`Level 3 — Analytical: Why does ${w} happen / exist? Explain the reason.`, points:2 },
+    { type:'open', text:`Level 4 — Evaluative: Is ${w} positive or negative overall? Give evidence.`, points:2 },
+    { type:'open', text:`Level 5 — Personal: How does ${w} affect you or your community?`, points:3 },
+  ].slice(0, Math.max(3, input.count));
+  return { boardKind:'quiz', kind:'Question Ladder', cat:'speaking', level:input.level, topic:input.topic,
+    title:`${input.level} · Question Ladder: ${input.topic}`, questions };
+}
+
+/* ── role-play cards ────────────────────────────────────────────── */
+function _ttGenRoleplay(input){
+  const topic=input.topic||'the topic', vocab=_ttVocabLines(input).slice(0,4).join(', ')||'useful language';
+  return { boardKind:'cards', kind:'Role-Play', cat:'speaking', level:input.level, topic, title:`${input.level} · Role-Play Cards: ${topic}`,
+    cards:[
+      { title:'Role A', text:`You are supporting / asking about ${topic}.\nUse: ${vocab}.` },
+      { title:'Role B', text:`You are opposing / responding about ${topic}.\nUse: ${vocab}.` },
+      { title:'Useful language', text:'Agreeing: I think… / You\'re right…\nDisagreeing: I\'m not sure… / Actually…\nAsking: Could you explain…? / What do you mean?' },
+    ]};
+}
+
+/* ── debate cards ───────────────────────────────────────────────── */
+function _ttGenDebate(input){
+  const topic=input.topic||'the topic';
+  const words=_ttContentWords(input.source||'').slice(0,3);
+  const mkFor = words.length>=2 ? words.map(w=>`${_ttCap(w)} supports this view.`) : [`${topic} has clear benefits.`,'Evidence from research supports it.','Many people benefit from it.'];
+  const mkAgainst = words.length>=2 ? words.map(w=>`${_ttCap(w)} could be seen as a problem.`) : [`${topic} has real disadvantages.`,'Not everyone benefits equally.','There are risks to consider.'];
+  return { boardKind:'cards', kind:'Debate', cat:'speaking', level:input.level, topic, title:`${input.level} · Debate Cards: ${topic}`,
+    cards:[
+      { title:'✅ FOR', text:mkFor.join('\n') },
+      { title:'❌ AGAINST', text:mkAgainst.join('\n') },
+      { title:'Discussion', text:`Is ${topic} more positive or negative overall?\nUse evidence and give your personal opinion.` },
+    ]};
+}
+
+/* ── listening tools (reuse reading patterns) ───────────────────── */
+function _ttGenListeningDictation(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40)
+    .filter(s=>s.split(/\s+/).length>=4).slice(0,input.count);
+  if (!sents.length) return null;
+  const questions = sents.map(s=>({ type:'gap-fill', text:_ttBlank(s,_ttContentWords(s)[0]||''), answer:_ttContentWords(s)[0]||'', points:1 }));
+  return { boardKind:'quiz', kind:'Dictation', cat:'listening', level:input.level, topic:input.topic,
+    title:`${input.level} · Dictation: ${input.topic}`, questions };
+}
+
+/* ── generic scaffold for all remaining tools ────────────────────── */
+function _ttGenScaffold(toolId, input){
+  const tool = (typeof BOARD_TEACHER_TOOLS!=='undefined' ? BOARD_TEACHER_TOOLS : []).find(t=>t.id===toolId);
+  if (!tool) return null;
+  const topic=input.topic||'the topic', level=input.level||'B1';
+  const bycat = {
+    reading:[
+      { title:'Before reading', text:`Predict: What do you already know about "${topic}"?` },
+      { title:'While reading', text:'Underline 5 key words. Note the main idea of each paragraph.' },
+      { title:'After reading', text:`Discuss: What was the most surprising idea about "${topic}"?` },
+    ],
+    vocabulary:[
+      { title:'Target vocabulary', text:`[Key words and phrases for "${topic}" at ${level}]` },
+      { title:'Student task', text:`Define each word, use it in a sentence, or match it to an example.\nFocus: ${tool.desc}` },
+    ],
+    grammar:[
+      { title:'Grammar focus', text:`${tool.title} · ${level}\nTopic: ${topic}` },
+      { title:'Explanation', text:'Rule: …\nExample 1: …\nExample 2: …\nCommon mistake: …' },
+      { title:'Practice', text:`[Exercise here — ${tool.kind}]` },
+    ],
+    speaking:[
+      { title:'Preparation (1 min)', text:`Think about "${topic}". Note 2–3 ideas.` },
+      { title:'Task', text:`${tool.title}:\nDiscuss with your partner using the language below.` },
+      { title:'Useful language', text:`Giving opinion: I think… / In my view…\nAgreeing: Exactly / You're right…\nDisagreeing: I'm not sure… / Actually…` },
+    ],
+    writing:[
+      { title:'Plan', text:`Task: ${tool.title}\nTopic: ${topic} · Level: ${level}\nBrainstorm your ideas here.` },
+      { title:'Draft', text:'Write your response here. Aim for clear structure.' },
+      { title:'Self-check', text:'✅ Structure is clear\n✅ Target vocabulary used\n✅ Grammar checked\n✅ Good opening & closing' },
+    ],
+    listening:[
+      { title:'Before listening', text:`Predict: What words will you hear about "${topic}"?` },
+      { title:'While listening', text:'Note 3 key ideas. Write one question you want answered.' },
+      { title:'After listening', text:'Summarise in 2 sentences. Discuss: did anything surprise you?' },
+    ],
+    utility:[
+      { title:tool.title, text:`Topic: ${topic} · Level: ${level}` },
+      { title:'Task', text:`${tool.desc}\n[Complete this section with your content]` },
+    ],
+  };
+  const cards = bycat[tool.cat] || bycat.utility;
+  return { boardKind:'cards', kind:tool.kind, cat:tool.cat, level, topic,
+    title:`${level} · ${tool.title}: ${topic}`, cards };
+}
+
 function _ttGenCards(toolId, input){
   // Scaffold for LLM-only tools: returns a placeholder boardKind:'cards'
   // that renders as text/sticky cards. Real content comes from WebLLM.
@@ -7501,6 +7735,120 @@ function _ttBuildFromAI(toolId, input, items) {
     return questions.length ? { ...base, boardKind:'quiz', kind:'Correction', cat:'grammar',
       title:`${input.level} · Error Correction: ${input.topic}`, questions } : null;
   }
+  // ── vocab-field tools ───────────────────────────────────────────
+  if (toolId === 'essential-vocab' || toolId === 'flashcards') {
+    const vItems = items.map(it=>({ word:_ttCap(it.word||''), example:it.example||it.definition||'' })).filter(it=>it.word);
+    const kind = toolId==='flashcards' ? 'Flashcard Set' : 'Essential';
+    const titleLabel = toolId==='flashcards' ? 'Flashcards' : 'Essential Vocabulary';
+    return vItems.length ? { ...base, boardKind:'vocab', kind, cat:'vocabulary',
+      title:`${input.level} · ${titleLabel}: ${input.topic}`, items:vItems } : null;
+  }
+  if (toolId === 'sentences-vocab') {
+    const questions = items.map(it=>({ type:'open', text:String(it.text||''), points:2 })).filter(q=>q.text);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Sentence Set', cat:'vocabulary',
+      title:`${input.level} · Sentences with Vocabulary: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'odd-one-out') {
+    const questions = items.map(it=>({ type:'open',
+      text:`Which word is the odd one out? Explain why:\n${(it.words||[]).join(' / ')}`,
+      points:2 })).filter(q=>q.text.length>40);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Odd One Out', cat:'vocabulary',
+      title:`${input.level} · Odd One Out: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'word-sorting') {
+    const pairs = items.map(it=>({ left:String(it.word||''), right:String(it.category||'?') })).filter(p=>p.left);
+    return pairs.length ? { ...base, boardKind:'quiz', kind:'Word Sort', cat:'vocabulary',
+      title:`${input.level} · Words Sorting: ${input.topic}`,
+      questions:[{ type:'match', text:'Sort these words into categories.', pairs, points:pairs.length }] } : null;
+  }
+  // ── grammar tools ────────────────────────────────────────────────
+  if (toolId === 'gaps-brackets') {
+    const questions = items.map(it=>({ type:'open', text:String(it.text||''), answer:String(it.answer||''), points:1 })).filter(q=>q.text);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Word Form', cat:'grammar',
+      title:`${input.level} · Gaps with Brackets: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'two-options') {
+    const questions = items.map(it=>({ type:'mcq', text:String(it.text||''), options:(it.options||[]).map(String), answer:String(it.answer||''), points:1 })).filter(q=>q.text&&q.options.length>=2);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Two Options', cat:'grammar',
+      title:`${input.level} · Two Options: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'tense-contrast') {
+    const questions = items.map(it=>({ type:'mcq', text:String(it.text||''), options:(it.options||[]).map(String), answer:String(it.answer||''), points:1 })).filter(q=>q.text&&q.options.length>=2);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Tense Contrast', cat:'grammar',
+      title:`${input.level} · Tense Contrast: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'gist-detail') {
+    const questions = items.map(it=>{
+      if (it.type==='mcq') return { type:'mcq', text:String(it.text||''), options:(it.options||[]).map(String), answer:String(it.answer||''), points:1 };
+      return { type:'open', text:String(it.text||''), points:2 };
+    }).filter(q=>q.text);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Gist+Detail', cat:'reading',
+      title:`${input.level} · Gist + Detail: ${input.topic}`, questions } : null;
+  }
+  // ── speaking tools ───────────────────────────────────────────────
+  if (toolId === 'discussion') {
+    const questions = items.map(it=>({ type:'open', text:String(it.text||it.question||''), points:2 })).filter(q=>q.text);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Discussion', cat:'speaking',
+      title:`${input.level} · Discussion Questions: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'question-ladder') {
+    const questions = items.map(it=>({ type:'open', text:`Level ${it.level||'?'} — ${String(it.text||'')}`, points:it.level||1 })).filter(q=>q.text.length>10);
+    return questions.length ? { ...base, boardKind:'quiz', kind:'Question Ladder', cat:'speaking',
+      title:`${input.level} · Question Ladder: ${input.topic}`, questions } : null;
+  }
+  if (toolId === 'roleplay-cards') {
+    const cards = items.map(it=>({ title:String(it.speaker||it.role||'Speaker'), text:String(it.line||it.text||'') })).filter(c=>c.text);
+    return cards.length ? { ...base, boardKind:'cards', kind:'Role-Play', cat:'speaking',
+      title:`${input.level} · Role-Play Cards: ${input.topic}`, cards } : null;
+  }
+  if (toolId === 'debate-cards') {
+    const forPts = items.filter(it=>/for/i.test(it.side||'')).map(it=>it.point||'').join('\n');
+    const against = items.filter(it=>/against/i.test(it.side||'')).map(it=>it.point||'').join('\n');
+    const disc = items.find(it=>/discussion/i.test(it.side||''));
+    const cards = [{ title:'✅ FOR', text:forPts||'...' },{ title:'❌ AGAINST', text:against||'...' }];
+    if (disc) cards.push({ title:'Discussion', text:disc.point||'' });
+    return { ...base, boardKind:'cards', kind:'Debate', cat:'speaking',
+      title:`${input.level} · Debate Cards: ${input.topic}`, cards };
+  }
+  // ── text/writing tools ───────────────────────────────────────────
+  if (toolId === 'simplify-text' || toolId === 'text-topic-vocab') {
+    const text = Array.isArray(items) ? (items[0]?.text||String(items[0]||'')) : String(items||'');
+    return text ? { ...base, boardKind:'cards', kind:toolId==='simplify-text'?'Simplify':'Text', cat:'reading',
+      title:`${input.level} · ${toolId==='simplify-text'?'Simplified Text':'Generated Text'}: ${input.topic}`,
+      cards:[{ title:toolId==='simplify-text'?'Simplified text':'Generated text', text }] } : null;
+  }
+  if (toolId === 'creative-writing') {
+    const cards = items.map(it=>({ title:String(it.title||'Card'), text:String(it.text||'') })).filter(c=>c.text);
+    return cards.length ? { ...base, boardKind:'cards', kind:'Creative', cat:'writing',
+      title:`${input.level} · Creative Writing: ${input.topic}`, cards } : null;
+  }
+  if (toolId === 'essay-outline') {
+    const cards = items.map(it=>({ title:String(it.section||'Section'), text:String(it.text||'') })).filter(c=>c.text);
+    return cards.length ? { ...base, boardKind:'cards', kind:'Outline', cat:'writing',
+      title:`${input.level} · Essay Outline: ${input.topic}`, cards } : null;
+  }
+  if (toolId === 'grammar-rules') {
+    const cards = items.map(it=>({ title:String(it.section||'Grammar'), text:String(it.text||'') })).filter(c=>c.text);
+    return cards.length ? { ...base, boardKind:'cards', kind:'Grammar', cat:'grammar',
+      title:`${input.level} · Grammar Rules: ${input.topic}`, cards } : null;
+  }
+  if (toolId === 'lesson-pack') {
+    const cards = items.map(it=>({ title:String(it.stage||'Stage'), text:String(it.task||it.text||'') })).filter(c=>c.text);
+    return cards.length ? { ...base, boardKind:'cards', kind:'Lesson Pack', cat:'utility',
+      title:`${input.level} · Lesson Pack: ${input.topic}`, cards } : null;
+  }
+  // Generic LLM → cards fallback
+  if (Array.isArray(items) && items.length && items[0] && typeof items[0]==='object') {
+    const cards = items.map((it,i)=>({
+      title: String(it.title||it.section||it.stage||it.task||it.criterion||`Card ${i+1}`),
+      text: String(it.text||it.task||it.line||it.point||it.example||''),
+    })).filter(c=>c.text);
+    if (cards.length) {
+      const tool = (typeof BOARD_TEACHER_TOOLS!=='undefined'?BOARD_TEACHER_TOOLS:[]).find(t=>t.id===toolId);
+      return { ...base, boardKind:'cards', kind:tool?.kind||'Task', cat:tool?.cat||'utility',
+        title:`${input.level} · ${tool?.title||toolId}: ${input.topic}`, cards };
+    }
+  }
   if (toolId === 'three-titles') {
     const cards = (Array.isArray(items) ? items : []).slice(0,3).map((it,i)=>({
       title: `Title ${i+1}`, text: String(it.title || it.text || it || ''),
@@ -7526,18 +7874,33 @@ function _ttBuildFromAI(toolId, input, items) {
 
 function generateTeacherToolLocal(input){
   const id = input.tool && input.tool.id;
-  if (id === 'abcd-text')           return _ttGenAbcd(input);
-  if (id === 'true-false')          return _ttGenTrueFalse(input);
-  if (id === 'extract-vocab')       return _ttGenExtractVocab(input);
-  if (id === 'gap')                 return _ttGenGapFill(input);
-  if (id === 'open-questions')      return _ttGenOpenQuestions(input);
-  if (id === 'gaps-abcd')           return _ttGenGapsAbcd(input);
+  // ── quality local generators ─────────────────────────────────────
+  if (id === 'abcd-text')             return _ttGenAbcd(input);
+  if (id === 'true-false')            return _ttGenTrueFalse(input);
+  if (id === 'extract-vocab')         return _ttGenExtractVocab(input);
+  if (id === 'gap')                   return _ttGenGapFill(input);
+  if (id === 'open-questions')        return _ttGenOpenQuestions(input);
+  if (id === 'gaps-abcd')             return _ttGenGapsAbcd(input);
   if (id === 'word-definition-match') return _ttGenWordDefinitionMatch(input);
-  if (id === 'error-correction')    return _ttGenErrorCorrection(input);
-  // LLM-only tools: return cards scaffold (real content filled by WebLLM)
+  if (id === 'error-correction')      return _ttGenErrorCorrection(input);
+  if (id === 'essential-vocab')       return _ttGenEssentialVocab(input);
+  if (id === 'flashcards')            return _ttGenFlashcards(input);
+  if (id === 'sentences-vocab')       return _ttGenSentencesVocab(input);
+  if (id === 'odd-one-out')           return _ttGenOddOneOut(input);
+  if (id === 'word-sorting')          return _ttGenWordSorting(input);
+  if (id === 'gaps-brackets')         return _ttGenGapsBrackets(input);
+  if (id === 'two-options')           return _ttGenTwoOptions(input);
+  if (id === 'gist-detail')           return _ttGenGistDetail(input);
+  if (id === 'discussion')            return _ttGenDiscussion(input);
+  if (id === 'question-ladder')       return _ttGenQuestionLadder(input);
+  if (id === 'roleplay-cards')        return _ttGenRoleplay(input);
+  if (id === 'debate-cards')          return _ttGenDebate(input);
+  if (id === 'listening-dictation')   return _ttGenListeningDictation(input);
+  // ── LLM-first: specific card scaffolds ──────────────────────────
   if (id === 'three-titles' || id === 'summary-task' || id === 'dialogue')
     return _ttGenCards(id, input);
-  return null;
+  // ── universal scaffold for all remaining tools ───────────────────
+  return _ttGenScaffold(id, input);
 }
 
 function renderTeacherToolLocalPreview(out){
@@ -14258,6 +14621,62 @@ const _PROMPTS = {
     `You are an EFL teacher. Write a clear ${i.level}-level summary of the text in 3-4 sentences. Topic: ${i.topic}.\nReturn ONLY a JSON array with one item:\n[{"text":"summary"}]\n\nText:\n"""${i.source}"""`,
   'dialogue': (i) =>
     `You are an EFL teacher. Write a short natural dialogue between two people (Speaker A and B) about "${i.topic}" at ${i.level} level. ${Math.max(4,i.count)} turns total. Target vocab: ${i.vocab||'none'}.\nReturn ONLY a JSON array:\n[{"speaker":"A","line":"..."},{"speaker":"B","line":"..."}]`,
+  'essential-vocab': (i) =>
+    `You are an EFL teacher. List exactly ${i.count} essential vocabulary items for ${i.level} students learning about "${i.topic}". For each give the word, a clear one-sentence definition, and a natural example sentence.\nReturn ONLY a JSON array:\n[{"word":"word","definition":"one sentence","example":"example sentence"}]`,
+  'flashcards': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} flashcard entries for ${i.level} students on the topic "${i.topic}". Each card: front=word, back=definition + example.\nReturn ONLY a JSON array:\n[{"word":"word","definition":"definition","example":"example"}]`,
+  'sentences-vocab': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} sentence-completion prompts at ${i.level} level using these words: ${i.vocab||i.topic}. Students must write a full sentence.\nReturn ONLY a JSON array:\n[{"text":"Write a sentence using: \\"word\\""}]`,
+  'odd-one-out': (i) =>
+    `You are an EFL teacher. Create exactly ${Math.ceil(i.count/1)} odd-one-out groups at ${i.level} level about "${i.topic}". Each group has 4 words, one doesn't fit. Explain why.\nReturn ONLY a JSON array:\n[{"words":["A","B","C","D"],"odd":"D","reason":"because..."}]`,
+  'word-sorting': (i) =>
+    `You are an EFL teacher. Create a word-sorting task at ${i.level} level for "${i.topic}". Provide ${i.count} words and 2-3 category names. Students decide which word goes where.\nReturn ONLY a JSON array of words with categories:\n[{"word":"word","category":"Category A"}]`,
+  'gaps-brackets': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} gap-fill sentences at ${i.level} level where the student must use the word in brackets in the correct grammatical form. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____  (WORD)","answer":"correct form"}]\n\nText:\n"""${i.source}"""`,
+  'two-options': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} two-option grammar sentences at ${i.level} level. Each has a blank and exactly 2 options (A or B). Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","options":["A","B"],"answer":"A"}]\n\nText:\n"""${i.source}"""`,
+  'gist-detail': (i) =>
+    `You are an EFL teacher. Create one gist question (MCQ, 4 options) and ${i.count-1} detail questions (open) at ${i.level} level for the text. Topic: ${i.topic}.\nReturn ONLY a JSON array with mixed types:\n[{"type":"mcq","text":"...","options":["A","B","C","D"],"answer":"A"},{"type":"open","text":"..."}]\n\nText:\n"""${i.source}"""`,
+  'discussion': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} discussion questions at ${i.level} level for speaking practice. Questions should encourage personal opinions and real-life connections. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"question?"}]`,
+  'question-ladder': (i) =>
+    `You are an EFL teacher. Create a question ladder with ${i.count} questions about "${i.topic}" at ${i.level} level. Progress from factual (level 1) to evaluative/personal (level 5). Label each level.\nReturn ONLY a JSON array:\n[{"level":1,"text":"Factual question?"}]`,
+  'roleplay-cards': (i) =>
+    `You are an EFL teacher. Create a role-play task at ${i.level} level about "${i.topic}". Provide Role A instructions, Role B instructions, and useful language phrases. Vocab: ${i.vocab||'any'}.\nReturn ONLY a JSON array:\n[{"speaker":"Role A","line":"instructions..."},{"speaker":"Role B","line":"instructions..."},{"speaker":"Useful language","line":"phrases..."}]`,
+  'debate-cards': (i) =>
+    `You are an EFL teacher. Create debate argument cards at ${i.level} level for the topic "${i.topic}". Provide 3 FOR arguments, 3 AGAINST arguments, and a discussion question.\nReturn ONLY a JSON array:\n[{"side":"FOR","point":"argument"},{"side":"AGAINST","point":"argument"},{"side":"Discussion","point":"question?"}]`,
+  'simplify-text': (i) =>
+    `You are an EFL teacher. Rewrite the text below at ${i.level} level. Use simpler vocabulary and shorter sentences. Keep the main ideas. Topic: ${i.topic}.\nReturn ONLY a JSON array with one item:\n[{"text":"simplified text here"}]\n\nText:\n"""${i.source}"""`,
+  'text-topic-vocab': (i) =>
+    `You are an EFL teacher. Write a short reading text at ${i.level} level about "${i.topic}" that uses these vocabulary items naturally: ${i.vocab||i.topic}. 4-6 sentences.\nReturn ONLY a JSON array with one item:\n[{"text":"the generated text"}]`,
+  'collocations': (i) =>
+    `You are an EFL teacher. List exactly ${i.count} strong collocations related to "${i.topic}" at ${i.level} level. Each: the collocation and a natural example sentence.\nReturn ONLY a JSON array:\n[{"collocation":"verb + noun","example":"example sentence"}]`,
+  'word-families': (i) =>
+    `You are an EFL teacher. Give word families for ${i.count} key words related to "${i.topic}" at ${i.level} level. For each word give noun, verb, adjective, adverb forms.\nReturn ONLY a JSON array:\n[{"base":"word","noun":"...","verb":"...","adjective":"...","adverb":"..."}]`,
+  'grammar-rules': (i) =>
+    `You are an EFL teacher. Explain the grammar rule for "${i.topic}" clearly for ${i.level} students. Include the rule, 3 examples, and 2 common mistakes.\nReturn ONLY a JSON array:\n[{"section":"Rule","text":"..."},{"section":"Examples","text":"1.\\n2.\\n3."},{"section":"Common mistakes","text":"..."}]`,
+  'tense-contrast': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} tense-contrast sentences at ${i.level} level about "${i.topic}". Students choose or transform the correct tense.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","options":["tense A form","tense B form"],"answer":"correct form"}]`,
+  'essay-outline': (i) =>
+    `You are an EFL teacher. Create an essay outline at ${i.level} level for the topic "${i.topic}". Include introduction, 3 body paragraph points, and conclusion.\nReturn ONLY a JSON array:\n[{"section":"Introduction","text":"Hook + thesis idea"},{"section":"Body 1","text":"..."},{"section":"Body 2","text":"..."},{"section":"Body 3","text":"..."},{"section":"Conclusion","text":"..."}]`,
+  'creative-writing': (i) =>
+    `You are an EFL teacher. Create a creative writing prompt and a model answer at ${i.level} level about "${i.topic}". Use vocab: ${i.vocab||'general'}.\nReturn ONLY a JSON array:\n[{"title":"Prompt","text":"writing prompt here"},{"title":"Model answer","text":"short model text"}]`,
+  'sentence-translation': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} translation sentences at ${i.level} level about "${i.topic}". Provide sentences in the target language and the English answer.\nReturn ONLY a JSON array:\n[{"text":"Translate into English: \\"sentence\\"","answer":"English translation"}]`,
+  'rewrite': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} sentence transformation exercises at ${i.level} level about "${i.topic}". Each: original sentence + instruction + model answer.\nReturn ONLY a JSON array:\n[{"text":"Rewrite using \\"word\\": \\"original sentence\\"","answer":"transformed sentence"}]`,
+  'transcript-helper': (i) =>
+    `You are an EFL teacher. Create a listening lesson task at ${i.level} level for a transcript about "${i.topic}". Include before/during/after tasks.\nReturn ONLY a JSON array:\n[{"stage":"Before listening","task":"..."},{"stage":"While listening","task":"..."},{"stage":"After listening","task":"..."}]`,
+  'listening-dictation': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} dictation sentences at ${i.level} level related to "${i.topic}". Each should practise a key sound or structure.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","answer":"missing word"}]`,
+  'lesson-pack': (i) =>
+    `You are an EFL teacher. Create a complete lesson plan at ${i.level} level for "${i.topic}". Include warmer, main tasks, and homework.\nReturn ONLY a JSON array of lesson stages:\n[{"stage":"Warmer (5 min)","task":"..."},{"stage":"Main task (20 min)","task":"..."},{"stage":"Production (10 min)","task":"..."},{"stage":"Homework","task":"..."}]`,
+  'rubric-maker': (i) =>
+    `You are an EFL teacher. Create a marking rubric at ${i.level} level for a ${i.topic} task. Include 4-5 criteria with descriptors for excellent/good/needs work.\nReturn ONLY a JSON array:\n[{"criterion":"Vocabulary","excellent":"...","good":"...","needs_work":"..."}]`,
+  'essay-outline': (i) =>
+    `You are an EFL teacher. Create an essay outline at ${i.level} level for "${i.topic}" with introduction, 3 body points, conclusion.\nReturn ONLY a JSON array:\n[{"section":"Introduction","text":"hook + thesis"},{"section":"Body 1","text":"..."},{"section":"Body 2","text":"..."},{"section":"Body 3","text":"..."},{"section":"Conclusion","text":"..."}]`,
+  'warmup-listening': (i) =>
+    `You are an EFL teacher. Create a warm-up activity before listening at ${i.level} level for "${i.topic}". Include a prediction task and 2-3 pre-teaching questions.\nReturn ONLY a JSON array:\n[{"task":"Prediction","text":"..."},{"task":"Pre-teach","text":"key words: ..."},{"task":"Discussion","text":"..."}]`,
 };
 
 function _parseJSON(raw) {
