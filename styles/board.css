@@ -1543,8 +1543,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 
 /* ══════════════ IMAGE CARD ══════════════ */
-.card-image .card-header{background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(2,132,199,.03));}
-.image-body{padding:0;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+/* Raw image — no card frame, no header, transparent background. */
+.card-image{background:transparent!important;box-shadow:none!important;border-color:transparent!important;}
+.card-image .card-header{display:none!important;}
+.card-image.selected{box-shadow:0 0 0 2px #4262FF!important;}
+.image-body{padding:0;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent;}
 .image-body img{width:100%;height:100%;object-fit:contain;display:block;}
 
 /* ══════════════ SETTINGS OVERLAY ══════════════ */
@@ -1640,6 +1643,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   color:#050038;word-break:break-word;white-space:pre-wrap;
   padding:16px;outline:none;cursor:move;user-select:none;
   border:none;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
 }
 .card-sticky .sticky-text.editing{
   cursor:text;user-select:text;background:rgba(255,255,255,.16);

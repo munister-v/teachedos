@@ -2421,8 +2421,8 @@ function renderVideo(el, card) {
 
 /* ══════════════════════ IMAGE RENDERER ══════════════════════ */
 function renderImage(el, card) {
-  const hdr = makeHeader('🖼', card.data.title || 'Image', card.id);
-  el.appendChild(hdr);
+  // No header bar — the image shows raw (Miro-style). Edit / lock / delete
+  // live in the floating menu above the selected card (layer-popover).
   const body = document.createElement('div');
   body.className = 'card-body image-body';
   if (card.data.src) {
@@ -4202,9 +4202,12 @@ const FRAME_COLORS = [
 
 function showLayerPopover(cardId) {
   if (state.selected.size !== 1) { hideLayerPopover(); return; }
+  const card = state.cards.find(c => c.id === cardId);
+  // Text cards have their own built-in formatting toolbar — don't stack a
+  // second floating menu on top of it.
+  if (card?.type === 'text') { hideLayerPopover(); return; }
   const pop = ensureLayerPopover();
   pop.dataset.cardId = cardId;
-  const card = state.cards.find(c => c.id === cardId);
   pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
   pop.querySelector('[data-layer="lock"]').title = card?.data?.locked ? 'Unlock' : 'Lock movement';
 
@@ -5084,8 +5087,8 @@ window.addEventListener('blur', () => {
 
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
-  // Space = pan
-  if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+  // Space = pan — but never while typing in a sticky / text card (contenteditable)
+  if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT' && !e.target.isContentEditable) {
     if (!spaceDown) {
       spaceDown = true;
       boardWrap.style.cursor = 'grab';
@@ -5110,7 +5113,14 @@ document.addEventListener('keydown', e => {
   }
   if ((e.ctrlKey||e.metaKey) && e.key === 'd') { e.preventDefault(); duplicateSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'c' && !e.shiftKey) { e.preventDefault(); copySelectedCards(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'v' && !e.shiftKey) { e.preventDefault(); pasteCards(); return; }
+  if ((e.ctrlKey||e.metaKey) && e.key === 'v' && !e.shiftKey) {
+    e.preventDefault();
+    // Board cards on the internal clipboard take priority; otherwise try to
+    // paste an image/URL from the system clipboard at the viewport center.
+    if (_cardClipboard.length) { pasteCards(); }
+    else { const c = getBoardViewportCenter(); if (c) _pasteImageAt(c.x, c.y); }
+    return;
+  }
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'h' && !e.shiftKey) { e.preventDefault(); openVersionHistory(); return; }
