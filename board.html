@@ -8026,48 +8026,143 @@ function generateTeacherToolLocal(input){
 function _ttShowRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display=''; }
 function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display='none'; }
 
+// Live edited output is always lastTeacherToolBuilderOutput; the preview
+// mutates it directly so "Add to board" places the edited version.
+function _ttRerenderPreview(){
+  if (lastTeacherToolBuilderOutput) renderTeacherToolLocalPreview(lastTeacherToolBuilderOutput);
+}
+const _ttEditHint = `<div class="tt-edit-hint">✎ Tap any text to edit · click ○ to set the answer</div>`;
+
 function renderTeacherToolLocalPreview(out){
   const body = document.getElementById('tbuilder-output');
   if (!body) return;
   _ttShowRetry();
   _ttSetAddToBoard(true);
   const chip = document.getElementById('tbuilder-chip');
+
   if (out.boardKind === 'cards') {
     if (chip) chip.textContent = `${out.cards.length} cards`;
-    body.innerHTML = `<div class="tbuilder-section"><h4>${esc(out.title)}</h4></div>` +
-      out.cards.map(c=>`<div class="tbuilder-section"><h4>${esc(c.title)}</h4><p style="opacity:.7;font-size:12px;">${esc(c.text)}</p></div>`).join('');
+    body.innerHTML = _ttEditHint + out.cards.map((c,i)=>`
+      <div class="tbuilder-section tt-q" data-ci="${i}">
+        <button class="tt-del" data-del-card="${i}" title="Remove">×</button>
+        <h4><span class="tt-edit" contenteditable="true" data-card-field="title" data-ci="${i}">${esc(c.title)}</span></h4>
+        <p class="tt-edit" contenteditable="true" data-card-field="text" data-ci="${i}" data-ph="Write here…">${esc(c.text)}</p>
+      </div>`).join('');
+    _ttWirePreviewEvents(out, body);
     return;
   }
+
   if (out.boardKind === 'vocab') {
     if (chip) chip.textContent = `${out.items.length} words`;
-    body.innerHTML = `
-      <div class="tbuilder-section">
-        <h4>${esc(out.title)}</h4>
-        <ul>${out.items.map(it => `<li><strong>${esc(it.word)}</strong>${it.example ? ` — <span style="opacity:.65">${esc(it.example)}</span>` : ''}</li>`).join('')}</ul>
-      </div>`;
+    body.innerHTML = _ttEditHint + out.items.map((it,i)=>`
+      <div class="tbuilder-section tt-q" data-vi="${i}">
+        <button class="tt-del" data-del-vocab="${i}" title="Remove">×</button>
+        <h4><span class="tt-num">${i+1}.</span><span class="tt-edit" contenteditable="true" data-vocab-field="word" data-vi="${i}">${esc(it.word)}</span></h4>
+        <p class="tt-edit" contenteditable="true" data-vocab-field="example" data-vi="${i}" data-ph="Example sentence (optional)…">${esc(it.example||'')}</p>
+      </div>`).join('');
+    _ttWirePreviewEvents(out, body);
     return;
   }
+
   // quiz
   if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
-  body.innerHTML = out.questions.map((q, i) => {
+  body.innerHTML = _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
     if (q.type === 'mcq') {
-      ans = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${
-        q.options.map(o => `<span style="font-size:11px;font-weight:750;padding:3px 9px;border-radius:8px;background:${o===q.answer?'#dcfce7':'#f3f4f6'};color:${o===q.answer?'#16a34a':'#6b7280'};border:1.5px solid ${o===q.answer?'#bbf7d0':'transparent'}">${esc(o)}${o===q.answer?' ✓':''}</span>`
-        ).join('')}</div>`;
+      ans = `<div class="tt-opts">${
+        q.options.map((o,oi) => `
+          <div class="tt-opt-row ${o===q.answer?'correct':''}" data-qi="${i}" data-oi="${oi}">
+            <div class="tt-correct-dot" data-set-correct="${i}" data-oi="${oi}" title="Mark correct">✓</div>
+            <div class="tt-opt-text tt-edit-opt" contenteditable="true" data-qi="${i}" data-oi="${oi}">${esc(o)}</div>
+          </div>`).join('')}</div>`;
     } else if (q.type === 'truefalse') {
-      ans = `<span class="tt-answer-badge ${q.answer?'true':'false'}">${q.answer?'✅ True':'❌ False'}</span>`;
+      ans = `<div class="tt-tf" data-qi="${i}">
+        <button class="tt-tf-btn ${q.answer?'sel-true':''}" data-tf="${i}" data-val="true">✅ True</button>
+        <button class="tt-tf-btn ${!q.answer?'sel-false':''}" data-tf="${i}" data-val="false">❌ False</button>
+      </div>`;
     } else if (q.type === 'gap-fill') {
-      ans = `<div style="font-size:11px;margin-top:5px;color:#16a34a;font-weight:800;">Answer: ${esc(q.answer||'')}</div>`;
+      ans = `<div class="tt-gap-ans">Answer: <span class="tt-edit" contenteditable="true" data-q-field="answer" data-qi="${i}" data-ph="…">${esc(q.answer||'')}</span></div>`;
     } else if (q.type === 'match') {
-      ans = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;">${
-        (q.pairs||[]).slice(0,4).map(p=>`<span style="font-size:11px;font-weight:750;padding:3px 8px;border-radius:7px;background:#f3f4f6">${esc(p.left)}</span><span style="font-size:11px;padding:3px 8px;color:#5f6070">${esc((p.right||'').slice(0,60))}</span>`).join('')
+      ans = `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;margin-top:7px;align-items:center;">${
+        (q.pairs||[]).map((p,pi)=>`
+          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="left" style="font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;background:#eef2ff;color:#4262FF">${esc(p.left)}</span>
+          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="right" style="font-size:11px;padding:3px 8px;color:#5f6070" data-ph="match / definition…">${esc(p.right||'')}</span>`).join('')
       }</div>`;
     } else if (q.type === 'open') {
-      ans = `<div style="font-size:11px;margin-top:4px;color:#9ca3af;font-style:italic;">Open answer</div>`;
+      ans = `<div style="font-size:11px;margin-top:5px;color:#9ca3af;font-style:italic;">Open answer — students write freely</div>`;
     }
-    return `<div class="tbuilder-section"><h4>${i+1}. ${esc(q.text)}</h4>${ans}</div>`;
+    return `<div class="tbuilder-section tt-q" data-qi="${i}">
+      <button class="tt-del" data-del-q="${i}" title="Remove question">×</button>
+      <h4><span class="tt-num">${i+1}.</span><span class="tt-edit" contenteditable="true" data-q-field="text" data-qi="${i}">${esc(q.text)}</span></h4>
+      ${ans}
+    </div>`;
   }).join('');
+  _ttWirePreviewEvents(out, body);
+}
+
+function _ttWirePreviewEvents(out, body){
+  // contenteditable → write back on blur
+  body.querySelectorAll('[contenteditable="true"]').forEach(el => {
+    el.addEventListener('blur', () => {
+      const txt = el.textContent.trim();
+      const qi = el.dataset.qi != null ? +el.dataset.qi : null;
+      const vi = el.dataset.vi != null ? +el.dataset.vi : null;
+      const ci = el.dataset.ci != null ? +el.dataset.ci : null;
+      if (el.dataset.qField && qi != null && out.questions[qi]) {
+        const q = out.questions[qi];
+        if (el.dataset.qField === 'answer') q.answer = txt;
+        else q.text = txt;
+      } else if (el.dataset.oi != null && qi != null && out.questions[qi]) {
+        const q = out.questions[qi], oi = +el.dataset.oi;
+        const wasCorrect = q.options[oi] === q.answer;
+        q.options[oi] = txt;
+        if (wasCorrect) q.answer = txt;
+      } else if (el.dataset.match != null) {
+        const q = out.questions[+el.dataset.match], pi = +el.dataset.pi;
+        if (q && q.pairs[pi]) q.pairs[pi][el.dataset.side] = txt;
+      } else if (el.dataset.vocabField != null && vi != null && out.items[vi]) {
+        out.items[vi][el.dataset.vocabField] = txt;
+      } else if (el.dataset.cardField != null && ci != null && out.cards[ci]) {
+        out.cards[ci][el.dataset.cardField] = txt;
+      }
+    });
+    // Enter on single-line fields = blur (don't insert newline) except multiline text
+    el.addEventListener('keydown', e => {
+      const multiline = el.dataset.qField === 'text' || el.dataset.cardField === 'text' || el.dataset.vocabField === 'example';
+      if (e.key === 'Enter' && !e.shiftKey && !multiline) { e.preventDefault(); el.blur(); }
+    });
+  });
+  // mark correct (mcq)
+  body.querySelectorAll('[data-set-correct]').forEach(dot => {
+    dot.addEventListener('click', () => {
+      const qi = +dot.dataset.setCorrect, oi = +dot.dataset.oi;
+      const q = out.questions[qi];
+      if (q) { q.answer = q.options[oi]; _ttRerenderPreview(); }
+    });
+  });
+  // TF toggle
+  body.querySelectorAll('[data-tf]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = out.questions[+btn.dataset.tf];
+      if (q) { q.answer = btn.dataset.val === 'true'; _ttRerenderPreview(); }
+    });
+  });
+  // delete question / vocab / card
+  body.querySelectorAll('[data-del-q]').forEach(b => b.addEventListener('click', () => {
+    out.questions.splice(+b.dataset.delQ, 1);
+    if (!out.questions.length) { _ttSetAddToBoard(false); }
+    _ttRerenderPreview();
+  }));
+  body.querySelectorAll('[data-del-vocab]').forEach(b => b.addEventListener('click', () => {
+    out.items.splice(+b.dataset.delVocab, 1);
+    if (!out.items.length) _ttSetAddToBoard(false);
+    _ttRerenderPreview();
+  }));
+  body.querySelectorAll('[data-del-card]').forEach(b => b.addEventListener('click', () => {
+    out.cards.splice(+b.dataset.delCard, 1);
+    if (!out.cards.length) _ttSetAddToBoard(false);
+    _ttRerenderPreview();
+  }));
 }
 
 function _ttPlaceQuizOnBoard(output){
