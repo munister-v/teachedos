@@ -111,10 +111,11 @@ window._ttAI = {
     const engine = await _loadEngine(onProgress);
     const mkPrompt = _PROMPTS[toolId];
     if (!mkPrompt) return null;
+    const maxTokens = Math.min(4200, Math.max(1400, Number(input.count || 6) * 120));
     const resp = await engine.chat.completions.create({
       messages: [{ role: 'user', content: mkPrompt(input) }],
       temperature: 0.35,
-      max_tokens: 1400,
+      max_tokens: maxTokens,
     });
     return _parseJSON(resp.choices[0].message.content);
   },

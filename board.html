@@ -658,7 +658,7 @@
           </div>
           <div>
             <label for="tbuilder-count">Items</label>
-            <select id="tbuilder-count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+            <select id="tbuilder-count"><option>4</option><option>6</option><option>8</option><option>10</option><option selected>12</option><option>15</option><option>20</option><option>25</option><option>30</option><option>40</option><option>50</option></select>
           </div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-topic">
@@ -683,9 +683,10 @@ polite request</textarea>
           <textarea id="tbuilder-extra" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
         </div>
         <div class="tbuilder-actions">
-          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder()">✦ Generate</button>
+          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Generate fast</button>
+          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Use local WebLLM only when you want a slower AI rewrite">AI enhance</button>
           <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="applyTeacherToolBuilderToBoard()" disabled>＋ Add to board</button>
-          <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder()" style="display:none" title="Generate again for a different result">↺ Retry</button>
+          <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none" title="Generate again for a different result">↺ Retry</button>
           <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
           <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>
         </div>
@@ -7182,7 +7183,7 @@ function readTeacherToolBuilderInput() {
   return {
     tool: activeTeacherToolBuilder,
     level: getVal('tbuilder-level') || 'B1',
-    count: Math.max(3, Math.min(12, parseInt(getVal('tbuilder-count') || '6', 10) || 6)),
+    count: Math.max(3, Math.min(50, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
     topic: getVal('tbuilder-topic') || 'Practical English',
     source: getVal('tbuilder-source'),
     vocab: getVal('tbuilder-vocab'),
@@ -7190,10 +7191,21 @@ function readTeacherToolBuilderInput() {
   };
 }
 
+function teacherToolTopicSeeds(topic, count = 50) {
+  const clean = String(topic || 'lesson topic').trim().toLowerCase();
+  const words = [
+    'problem','reason','example','solution','opinion','evidence','summary','question','answer','detail','choice','result',
+    'benefit','challenge','risk','change','habit','goal','plan','step','mistake','feedback','context','connection',
+    'comparison','contrast','cause','effect','purpose','support','argument','decision','experience','prediction',
+    'reaction','preference','advice','request','offer','complaint','agreement','disagreement','priority','routine',
+    'process','feature','pattern','rule','exception','keyword','phrase','collocation','revision'
+  ];
+  return words.slice(0, count).map(w => `${w} (${clean})`);
+}
+
 function teacherToolVocabList(text, fallbackTopic, count = 6) {
   const raw = String(text || '').split(/[\n,;]+/).map(x => x.trim()).filter(Boolean);
-  const fallback = ['problem','reason','example','solution','opinion','follow-up','evidence','summary'];
-  return (raw.length ? raw : fallback.map(w => `${w} (${fallbackTopic})`)).slice(0, count);
+  return (raw.length ? raw : teacherToolTopicSeeds(fallbackTopic, count)).slice(0, count);
 }
 
 function teacherToolSourceSentences(text, topic, count = 6) {
@@ -7202,15 +7214,22 @@ function teacherToolSourceSentences(text, topic, count = 6) {
     .split(/(?<=[.!?])\s+/)
     .map(x => x.trim())
     .filter(Boolean);
-  if (s.length) return s.slice(0, count);
-  return [
+  const fallback = [
     `${topic} can be easy to understand when students see a clear example.`,
     `Students often need useful language, controlled practice and time to produce their own answer.`,
     `A good task gives a reason to communicate, not only a gap to complete.`,
     `Teacher feedback should focus on one strong point and one next improvement.`,
     `The final activity should help students reuse the target language in a personal way.`,
-    `Homework should recycle the same language with a small new challenge.`
-  ].slice(0, count);
+    `Homework should recycle the same language with a small new challenge.`,
+    `A useful lesson about ${topic} should include examples, practice and reflection.`,
+    `Students can compare different opinions about ${topic} and explain their reasons.`,
+    `The teacher can turn common mistakes into a short review task.`,
+    `A final speaking task helps students use the new language naturally.`
+  ];
+  const base = s.length ? s : fallback;
+  const out = base.slice(0, count);
+  for (let i = out.length; i < count; i++) out.push(fallback[i % fallback.length]);
+  return out;
 }
 
 function generateTeacherToolOutput(input) {
@@ -7530,7 +7549,9 @@ function _ttGenErrorCorrection(input){
 /* ── vocab-field helper ─────────────────────────────────────────── */
 function _ttVocabLines(input){
   const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
-  return lines.length ? lines : _ttContentWords(input.source).slice(0, input.count);
+  if (lines.length) return lines;
+  const fromSource = _ttContentWords(input.source).slice(0, input.count);
+  return fromSource.length ? fromSource : teacherToolTopicSeeds(input.topic, input.count);
 }
 
 /* ── essential-vocab / flashcards ───────────────────────────────── */
@@ -8025,6 +8046,14 @@ function generateTeacherToolLocal(input){
 
 function _ttShowRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display=''; }
 function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display='none'; }
+function _ttSetGenerating(isGenerating) {
+  const gen = document.getElementById('tbuilder-gen-btn');
+  const ai = document.getElementById('tbuilder-ai-btn');
+  const add = document.getElementById('tbuilder-add-btn');
+  if (gen) gen.disabled = !!isGenerating;
+  if (ai) ai.disabled = !!isGenerating;
+  if (add) add.disabled = !!isGenerating || !lastTeacherToolBuilderOutput;
+}
 
 // Live edited output is always lastTeacherToolBuilderOutput; the preview
 // mutates it directly so "Add to board" places the edited version.
@@ -8274,13 +8303,15 @@ function _ttPlaceVocabOnBoard(output){
   toast('✨ Vocabulary cards added to board (fill translations as you teach)');
 }
 
-async function generateTeacherToolBuilder() {
+async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
   const input = readTeacherToolBuilderInput();
   const toolId = activeTeacherToolBuilder.id;
   const isPilot = !!TT_PILOT_TOOLS[toolId];
+  const wantsAI = mode === 'ai';
   const body = document.getElementById('tbuilder-output');
   const chip = document.getElementById('tbuilder-chip');
+  _ttSetGenerating(true);
 
   // Only tools that actually parse source text need it — vocab/speaking/scaffold tools don't.
   const TT_NEEDS_SOURCE = new Set([
@@ -8293,10 +8324,31 @@ async function generateTeacherToolBuilder() {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs text';
     if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
+    _ttSetGenerating(false);
     return;
   }
 
-  // ── WebLLM path (real generation) ─────────────────────────────
+  // ── Fast local path: default for speed and high item counts ─────────
+  if (!wantsAI) {
+    const local = isPilot ? generateTeacherToolLocal(input) : null;
+    if (local) {
+      lastTeacherToolBuilderOutput = local;
+      renderTeacherToolLocalPreview(local);
+      if (chip) {
+        const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
+        chip.textContent = n != null ? `fast · ${n} items` : `${local.kind||'ready'}`;
+      }
+      _ttSetGenerating(false);
+      return;
+    }
+    lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
+    renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
+    if (chip) chip.textContent = `fast · ${input.count} items`;
+    _ttSetGenerating(false);
+    return;
+  }
+
+  // ── Optional WebLLM path: slower, but better wording when available ──
   if (isPilot && window._ttAI?.supported()) {
     _ttHideRetry();
     if (chip) chip.textContent = 'AI…';
@@ -8319,6 +8371,7 @@ async function generateTeacherToolBuilder() {
         const n = aiOut.questions?.length ?? aiOut.items?.length ?? 0;
         if (chip) chip.textContent = `AI · ${n} items`;
         _ttShowRetry();
+        _ttSetGenerating(false);
         return;
       }
       // JSON parsed but couldn't map → warn and fall through to heuristics
@@ -8328,6 +8381,9 @@ async function generateTeacherToolBuilder() {
       console.warn('[tt-ai] generation error, falling back:', err.message);
       if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI помилка — використовую локальну генерацію.</div>';
     }
+  } else if (wantsAI) {
+    if (chip) chip.textContent = 'AI unavailable';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">AI зараз недоступний у цьому браузері — використовую швидку локальну генерацію.</div>';
   }
 
   // ── Local heuristic fallback ───────────────────────────────────
@@ -8339,10 +8395,13 @@ async function generateTeacherToolBuilder() {
       const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
       chip.textContent = n != null ? `local · ${n} items` : `${local.kind||'ready'}`;
     }
+    _ttSetGenerating(false);
     return;
   }
   lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
   renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
+  if (chip) chip.textContent = `local · ${input.count} items`;
+  _ttSetGenerating(false);
 }
 
 function applyTeacherToolBuilderToBoard() {
