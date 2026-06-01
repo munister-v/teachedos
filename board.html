@@ -8404,9 +8404,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   _ttSetGenerating(false);
 }
 
-function applyTeacherToolBuilderToBoard() {
+async function applyTeacherToolBuilderToBoard() {
   if (!activeTeacherToolBuilder) return;
-  if (!lastTeacherToolBuilderOutput) generateTeacherToolBuilder();
+  if (!lastTeacherToolBuilderOutput) await generateTeacherToolBuilder('fast');
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
   if (_ttPlaceComplexToolOnBoard(output)) return;
