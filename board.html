@@ -658,7 +658,7 @@
           </div>
           <div>
             <label for="tbuilder-count">Items</label>
-            <select id="tbuilder-count"><option>4</option><option>6</option><option>8</option><option>10</option><option selected>12</option><option>15</option><option>20</option><option>25</option><option>30</option><option>40</option><option>50</option></select>
+            <select id="tbuilder-count"><option>4</option><option>6</option><option>8</option><option>10</option><option selected>12</option><option>15</option><option>20</option><option>25</option><option>30</option><option>40</option><option>50</option><option>60</option><option>75</option><option>100</option></select>
           </div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-topic">
@@ -684,7 +684,7 @@ polite request</textarea>
         </div>
         <div class="tbuilder-actions">
           <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Generate fast</button>
-          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Use local WebLLM only when you want a slower AI rewrite">AI enhance</button>
+          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Fast smart rewrite. Heavy local WebLLM is opt-in only.">AI enhance</button>
           <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="applyTeacherToolBuilderToBoard()" disabled>＋ Add to board</button>
           <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none" title="Generate again for a different result">↺ Retry</button>
           <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
@@ -6846,7 +6846,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
     // Outer (lesson) frame — distinctive title with icon + level + duration
     outer = addCard('frame', x0, y0, {
       title: `${pack.icon}  ${pack.title} · ${pack.level} · ${pack.duration}`,
-      bg: pack.bg,
+      bg: '#ffffff',
       border: pack.color,
       childIds: []
     }, FRAME_W, FRAME_H);
@@ -6870,7 +6870,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
       // Inner stage frame
       const stageFrame = addCard('frame', sx, stagesY, {
         title: stage.title,
-        bg: 'rgba(255,255,255,.55)',
+        bg: '#ffffff',
         border: pack.color,
         childIds: []
       }, STAGE_W, STAGE_H);
@@ -6925,7 +6925,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
     // category-tinted background so the Frame is visually identifiable.
     frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${tool.title}`,
-      bg: meta.bg,
+      bg: '#ffffff',
       border: meta.color,
       childIds: []
     }, FRAME_W, FRAME_H);
@@ -7183,12 +7183,99 @@ function readTeacherToolBuilderInput() {
   return {
     tool: activeTeacherToolBuilder,
     level: getVal('tbuilder-level') || 'B1',
-    count: Math.max(3, Math.min(50, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
+    count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
     topic: getVal('tbuilder-topic') || 'Practical English',
     source: getVal('tbuilder-source'),
     vocab: getVal('tbuilder-vocab'),
     extra: getVal('tbuilder-extra'),
   };
+}
+
+const TT_BUILDER_RESULT_CACHE = new Map();
+
+function _ttCloneOutput(output) {
+  return output ? JSON.parse(JSON.stringify(output)) : output;
+}
+
+function _ttCacheKey(mode, input) {
+  return JSON.stringify({
+    mode,
+    tool: input.tool?.id || '',
+    level: input.level,
+    count: input.count,
+    topic: input.topic,
+    source: input.source,
+    vocab: input.vocab,
+    extra: input.extra,
+  });
+}
+
+function _ttCacheRemember(key, output) {
+  if (!key || !output) return;
+  TT_BUILDER_RESULT_CACHE.set(key, _ttCloneOutput(output));
+  if (TT_BUILDER_RESULT_CACHE.size > 24) {
+    TT_BUILDER_RESULT_CACHE.delete(TT_BUILDER_RESULT_CACHE.keys().next().value);
+  }
+}
+
+function _ttCacheRead(key) {
+  return TT_BUILDER_RESULT_CACHE.has(key) ? _ttCloneOutput(TT_BUILDER_RESULT_CACHE.get(key)) : null;
+}
+
+function enhanceTeacherToolOutputFast(output, input) {
+  const out = _ttCloneOutput(output);
+  if (!out) return out;
+  out.aiEnhanced = true;
+
+  const teacherMove = input.extra
+    ? `Teacher focus: ${input.extra}`
+    : `Teacher focus: elicit examples, check meaning, then recycle mistakes.`;
+
+  if (Array.isArray(out.questions)) {
+    out.questions = out.questions.map((q, i) => {
+      const next = { ...q };
+      if (next.type === 'open') {
+        next.text = next.text.replace(/\?*$/, '?');
+      }
+      next.teacherNote = next.teacherNote || (i === 0 ? 'Model the first answer aloud.' : 'Ask students to justify their answer.');
+      next.points = next.points || 1;
+      return next;
+    });
+    out.sections = out.sections || [];
+    out.sections.push({
+      title: 'AI teacher move',
+      items: [
+        teacherMove,
+        'Board flow: silent attempt -> pair check -> reveal key -> mistake bank.',
+        'Extension: ask students to write one original example using the target language.',
+      ],
+    });
+  }
+
+  if (Array.isArray(out.cards)) {
+    out.cards = out.cards.map((c, i) => ({
+      ...c,
+      title: c.title || `Stage ${i + 1}`,
+      text: `${c.text || ''}${(c.text || '').includes('Teacher move:') ? '' : `\n\nTeacher move: ${i === 0 ? 'model one example' : 'upgrade one student answer'}.`}`.trim(),
+    }));
+    out.cards.push({
+      title: 'Teacher flow',
+      text: `${teacherMove}\n\n1. Set the task.\n2. Give silent preparation.\n3. Pair-check.\n4. Collect 2-3 examples.\n5. Turn mistakes into a quick repair task.`,
+    });
+  }
+
+  if (Array.isArray(out.items)) {
+    out.items = out.items.map(it => ({
+      ...it,
+      example: it.example || `Use "${it.word}" in a sentence about ${input.topic}.`,
+    }));
+    out.cards = out.cards || [{
+      title: 'Vocabulary teaching flow',
+      text: `${teacherMove}\n\nReveal meaning -> students create examples -> sort hard words -> send to game builder.`,
+    }];
+  }
+
+  return out;
 }
 
 function teacherToolTopicSeeds(topic, count = 50) {
@@ -8240,7 +8327,7 @@ function _ttPlaceCardsOnBoard(output){
   snapshot(); _suppressSnapshot++;
   try {
     const frame = addCard('frame', x0, y0, {
-      title: output.title, bg:'rgba(200,200,255,.05)', border:'rgba(100,100,255,.25)', childIds:[],
+      title: output.title, bg:'#ffffff', border:'rgba(100,100,255,.25)', childIds:[],
     }, FW, FH);
     output.cards.forEach((c, i) => {
       const col = i % COLS, row = Math.floor(i / COLS);
@@ -8277,7 +8364,7 @@ function _ttPlaceVocabOnBoard(output){
   try {
     frame = addCard('frame', x0, y0, {
       title: `📖  ${output.title}`,
-      bg: 'rgba(234,179,8,.06)',
+      bg: '#ffffff',
       border: 'rgba(234,179,8,.40)',
       childIds: [],
     }, FW, FH);
@@ -8309,9 +8396,26 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const toolId = activeTeacherToolBuilder.id;
   const isPilot = !!TT_PILOT_TOOLS[toolId];
   const wantsAI = mode === 'ai';
+  const wantsWebLLM = mode === 'webllm' || (wantsAI && localStorage.getItem('teachedos_use_webllm') === '1');
   const body = document.getElementById('tbuilder-output');
   const chip = document.getElementById('tbuilder-chip');
   _ttSetGenerating(true);
+  const cacheKey = _ttCacheKey(wantsWebLLM ? 'webllm' : (wantsAI ? 'smart-ai' : 'fast'), input);
+  const cached = _ttCacheRead(cacheKey);
+  if (cached) {
+    lastTeacherToolBuilderOutput = cached;
+    if (cached.boardKind === 'quiz' || cached.boardKind === 'vocab' || cached.boardKind === 'cards') {
+      renderTeacherToolLocalPreview(cached);
+    } else {
+      renderTeacherToolBuilderOutput(cached);
+    }
+    if (chip) {
+      const n = cached.questions?.length ?? cached.items?.length ?? cached.cards?.length ?? input.count;
+      chip.textContent = `${wantsAI ? 'cached AI' : 'cached'} · ${n} items`;
+    }
+    _ttSetGenerating(false);
+    return;
+  }
 
   // Only tools that actually parse source text need it — vocab/speaking/scaffold tools don't.
   const TT_NEEDS_SOURCE = new Set([
@@ -8333,6 +8437,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     const local = isPilot ? generateTeacherToolLocal(input) : null;
     if (local) {
       lastTeacherToolBuilderOutput = local;
+      _ttCacheRemember(cacheKey, local);
       renderTeacherToolLocalPreview(local);
       if (chip) {
         const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
@@ -8342,14 +8447,36 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       return;
     }
     lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
+    _ttCacheRemember(cacheKey, lastTeacherToolBuilderOutput);
     renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
     if (chip) chip.textContent = `fast · ${input.count} items`;
     _ttSetGenerating(false);
     return;
   }
 
+  // ── Fast AI-enhance path: no giant model download by default ────────
+  if (!wantsWebLLM) {
+    if (chip) chip.textContent = 'AI enhance…';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">AI enhance без завантаження моделі: покращую структуру, teacher flow і нотатки…</div>';
+    const base = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
+    const enhanced = enhanceTeacherToolOutputFast(base, input);
+    lastTeacherToolBuilderOutput = enhanced;
+    _ttCacheRemember(cacheKey, enhanced);
+    if (enhanced.boardKind === 'quiz' || enhanced.boardKind === 'vocab' || enhanced.boardKind === 'cards') {
+      renderTeacherToolLocalPreview(enhanced);
+    } else {
+      renderTeacherToolBuilderOutput(enhanced);
+    }
+    if (chip) {
+      const n = enhanced.questions?.length ?? enhanced.items?.length ?? enhanced.cards?.length ?? input.count;
+      chip.textContent = `AI fast · ${n} items`;
+    }
+    _ttSetGenerating(false);
+    return;
+  }
+
   // ── Optional WebLLM path: slower, but better wording when available ──
-  if (isPilot && window._ttAI?.supported()) {
+  if (isPilot && wantsWebLLM && window._ttAI?.supported()) {
     _ttHideRetry();
     if (chip) chip.textContent = 'AI…';
     if (body) body.innerHTML = `
@@ -8367,6 +8494,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       const aiOut = items ? _ttBuildFromAI(toolId, input, items) : null;
       if (aiOut) {
         lastTeacherToolBuilderOutput = aiOut;
+        _ttCacheRemember(cacheKey, aiOut);
         renderTeacherToolLocalPreview(aiOut);
         const n = aiOut.questions?.length ?? aiOut.items?.length ?? 0;
         if (chip) chip.textContent = `AI · ${n} items`;
@@ -8390,6 +8518,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const local = isPilot ? generateTeacherToolLocal(input) : null;
   if (local) {
     lastTeacherToolBuilderOutput = local;
+    _ttCacheRemember(cacheKey, local);
     renderTeacherToolLocalPreview(local);
     if (chip && !chip.textContent.startsWith('AI')) {
       const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
@@ -8399,6 +8528,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     return;
   }
   lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
+  _ttCacheRemember(cacheKey, lastTeacherToolBuilderOutput);
   renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
   if (chip) chip.textContent = `local · ${input.count} items`;
   _ttSetGenerating(false);
@@ -8432,7 +8562,7 @@ async function applyTeacherToolBuilderToBoard() {
   try {
     frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${output.title}`,
-      bg: meta.bg,
+      bg: '#ffffff',
       border: meta.color,
       childIds: []
     }, FRAME_W, FRAME_H);
@@ -9885,7 +10015,7 @@ function buildLessonFlowCards(lesson) {
   const created = [];
   const frameW = Math.max(1180, Math.min(1600, 380 + Math.min(stages.length, 3) * 300));
   const frameH = 850 + Math.max(0, Math.ceil((stages.length - 6) / 3)) * 230;
-  addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'rgba(200,230,50,.055)', border:'rgba(200,230,50,.42)' }, frameW, frameH);
+  addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'#ffffff', border:'rgba(200,230,50,.42)' }, frameW, frameH);
   const overview = addCard('text', baseX, baseY, defaultTextData({
     text: (lesson.title || 'Lesson') + '\n' + [lesson.level, lesson.skill, lesson.format, (lesson.duration || '') + ' min'].filter(Boolean).join(' / ') + '\n\n' + (lesson.brief || ''),
     bgColor:'#ffffff', textColor:'#111111', align:'left'

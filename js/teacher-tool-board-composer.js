@@ -30,7 +30,9 @@ function _ttBoardComposerMeta(output) {
   return {
     ...base,
     cat,
-    frameBg: base.bg || 'rgba(66,98,255,.06)',
+    // Generated activities should read like printable worksheets on the board:
+    // white by default, with category color only as border/accent.
+    frameBg: '#ffffff',
     frameBorder: base.color || '#4262FF',
     pale: cat === 'grammar' ? '#DCFCE7'
       : cat === 'reading' ? '#CFFAFE'
@@ -157,7 +159,7 @@ function _ttPlaceMatchingOrSortingBoard(output, meta) {
 }
 
 function _ttPlaceQuizBoard(output, meta) {
-  const questions = (output.questions || []).slice(0, 30);
+  const questions = (output.questions || []).slice(0, 100);
   if (!questions.length) return false;
   const FRAME_W = 1360, PAD = 26;
   const visibleQ = Math.min(questions.length, 15);
@@ -228,7 +230,7 @@ function _ttPlaceQuizBoard(output, meta) {
 }
 
 function _ttPlaceVocabStudioBoard(output, meta) {
-  const items = (output.items || []).slice(0, 50);
+  const items = (output.items || []).slice(0, 100);
   if (!items.length) return false;
   const FRAME_W = 1360, PAD = 26;
   const visible = Math.min(items.length, 30);
@@ -292,7 +294,7 @@ function _ttPlaceVocabStudioBoard(output, meta) {
 }
 
 function _ttPlaceCardFlowBoard(output, meta) {
-  const cards = (output.cards || []).slice(0, 50);
+  const cards = (output.cards || []).slice(0, 100);
   if (!cards.length) return false;
   const isSpeaking = output.cat === 'speaking' || /role|debate|dialogue/i.test(output.kind || '');
   const isLessonPack = /lesson|worksheet|homework|pack|builder/i.test(output.kind || '') || activeTeacherToolBuilder?.id === 'lesson-pack';

@@ -4,6 +4,7 @@
 
 const MODEL_ID = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
 let _engine = null, _enginePromise = null;
+const _responseCache = new Map();
 
 async function _loadEngine(onProgress) {
   if (_engine) return _engine;
@@ -108,15 +109,33 @@ function _parseJSON(raw) {
 window._ttAI = {
   supported: () => !!navigator.gpu,
   generate: async function(toolId, input, onProgress) {
-    const engine = await _loadEngine(onProgress);
     const mkPrompt = _PROMPTS[toolId];
     if (!mkPrompt) return null;
+    const cacheKey = JSON.stringify({
+      toolId,
+      level: input.level,
+      count: input.count,
+      topic: input.topic,
+      source: input.source,
+      vocab: input.vocab,
+      extra: input.extra,
+    });
+    if (_responseCache.has(cacheKey)) {
+      onProgress?.('Using cached AI result…', 1);
+      return JSON.parse(JSON.stringify(_responseCache.get(cacheKey)));
+    }
+    const engine = await _loadEngine(onProgress);
     const maxTokens = Math.min(4200, Math.max(1400, Number(input.count || 6) * 120));
     const resp = await engine.chat.completions.create({
       messages: [{ role: 'user', content: mkPrompt(input) }],
       temperature: 0.35,
       max_tokens: maxTokens,
     });
-    return _parseJSON(resp.choices[0].message.content);
+    const parsed = _parseJSON(resp.choices[0].message.content);
+    if (parsed) {
+      _responseCache.set(cacheKey, parsed);
+      if (_responseCache.size > 16) _responseCache.delete(_responseCache.keys().next().value);
+    }
+    return parsed;
   },
 };
