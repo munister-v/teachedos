@@ -3314,6 +3314,16 @@ async function checkAuthAndRoute() {
     if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
+    // On the VPS domain the API is same-origin and should be immediate. If auth
+    // fails here, avoid showing a fake desktop that looks like a broken login.
+    if (location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) {
+      localStorage.removeItem('teachedos_token');
+      localStorage.removeItem('teachedos_user');
+      _authToken = null;
+      showAuthOverlay();
+      return;
+    }
+
     // Offline / Render cold start — check cached role before showing desktop
     const cachedRole = localStorage.getItem('teachedos_role');
     if (cachedRole === 'student') {

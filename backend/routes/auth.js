@@ -23,6 +23,100 @@ function isValidTimeZone(timeZone) {
   }
 }
 
+function publicUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    avatar: user.avatar,
+    plan: user.plan || 'free',
+    plan_status: user.plan_status || (user.plan === 'free' ? 'free' : 'active'),
+    billing_cycle: user.billing_cycle || 'monthly',
+    plan_started_at: user.plan_started_at,
+    plan_expires_at: user.plan_expires_at,
+    plan_source: user.plan_source || 'free',
+    timezone: user.timezone,
+    timezone_mode: user.timezone_mode,
+    created_at: user.created_at
+  };
+}
+
+async function issueLoginSession(req, user) {
+  const token = signToken(user.id);
+  await pool.query(
+    `INSERT INTO sessions (user_id, token, user_agent, ip, expires_at)
+     VALUES ($1, $2, $3, $4, NOW() + INTERVAL '7 days')`,
+    [user.id, token, req.headers['user-agent'] || '', req.ip]
+  );
+  return { token, user: publicUser(user) };
+}
+
+async function authenticateLegacyUser(email, password) {
+  const legacyBase = (process.env.LEGACY_API_BASE || 'https://teachedos-api.onrender.com').replace(/\/+$/, '');
+  if (!legacyBase) return null;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+  try {
+    const response = await fetch(`${legacyBase}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const data = await response.json().catch(() => null);
+    return data && data.user && data.token ? data.user : null;
+  } catch (err) {
+    console.warn('[auth/legacy-login]', err.message);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function upsertLegacyUser(email, password, legacyUser, existingUser = null) {
+  const normalizedEmail = email.toLowerCase().trim();
+  const hash = await bcrypt.hash(password, 12);
+  const safeRole = ['admin', 'teacher', 'student'].includes(legacyUser.role) ? legacyUser.role : 'teacher';
+  const safePlan = ['free', 'pro', 'school'].includes(legacyUser.plan) ? legacyUser.plan : 'free';
+  const safePlanStatus = legacyUser.plan_status || (safePlan === 'free' ? 'free' : 'active');
+  const safeBillingCycle = legacyUser.billing_cycle || 'monthly';
+  const safeTimezone = isValidTimeZone(legacyUser.timezone) ? legacyUser.timezone : 'Europe/Kyiv';
+  const safeTimezoneMode = legacyUser.timezone_mode === 'manual' ? 'manual' : 'auto';
+  const safeAvatar = String(legacyUser.avatar || defaultAvatarForRole(safeRole)).slice(0, 10);
+  const safeName = String(legacyUser.name || normalizedEmail.split('@')[0] || 'Teacher').trim().slice(0, 255);
+
+  if (existingUser) {
+    const { rows } = await pool.query(
+      `UPDATE users
+       SET password_hash=$2, name=$3, role=$4, avatar=$5, plan=$6, plan_status=$7,
+           billing_cycle=$8, plan_source=COALESCE(NULLIF(plan_source, 'free'), 'legacy'),
+           timezone=$9, timezone_mode=$10
+       WHERE id=$1
+       RETURNING id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
+      [existingUser.id, hash, safeName, safeRole, safeAvatar, safePlan, safePlanStatus, safeBillingCycle, safeTimezone, safeTimezoneMode]
+    );
+    return rows[0];
+  }
+
+  const { rows } = await pool.query(
+    `INSERT INTO users (email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_source, timezone, timezone_mode)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'legacy', $9, $10)
+     RETURNING id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
+    [normalizedEmail, hash, safeName, safeRole, safeAvatar, safePlan, safePlanStatus, safeBillingCycle, safeTimezone, safeTimezoneMode]
+  );
+  const user = rows[0];
+  await pool.query(
+    `INSERT INTO boards (user_id, name)
+     VALUES ($1, $2)
+     ON CONFLICT DO NOTHING`,
+    [user.id, 'My First Board']
+  );
+  return user;
+}
+
 async function loadActiveInvite(token) {
   const { rows } = await pool.query(
     `SELECT id, email, role, note, expires_at, accepted_at, revoked_at
@@ -218,40 +312,24 @@ router.post('/login', async (req, res) => {
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      const legacyUser = await authenticateLegacyUser(email.toLowerCase().trim(), password);
+      if (!legacyUser) return res.status(401).json({ error: 'Invalid email or password' });
+      const migratedUser = await upsertLegacyUser(email, password, legacyUser);
+      const payload = await issueLoginSession(req, migratedUser);
+      return res.json({ ...payload, migrated: true });
     }
     const user = rows[0];
     const ok   = await bcrypt.compare(password, user.password_hash);
-    if (!ok) return res.status(401).json({ error: 'Invalid email or password' });
+    if (!ok) {
+      const legacyUser = await authenticateLegacyUser(email.toLowerCase().trim(), password);
+      if (!legacyUser) return res.status(401).json({ error: 'Invalid email or password' });
+      const refreshedUser = await upsertLegacyUser(email, password, legacyUser, user);
+      const payload = await issueLoginSession(req, refreshedUser);
+      return res.json({ ...payload, migrated: true });
+    }
 
-    const token = signToken(user.id);
-
-    // Persist session record
-    await pool.query(
-      `INSERT INTO sessions (user_id, token, user_agent, ip, expires_at)
-       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '7 days')`,
-      [user.id, token, req.headers['user-agent'] || '', req.ip]
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-        plan: user.plan || 'free',
-        plan_status: user.plan_status || (user.plan === 'free' ? 'free' : 'active'),
-        billing_cycle: user.billing_cycle || 'monthly',
-        plan_started_at: user.plan_started_at,
-        plan_expires_at: user.plan_expires_at,
-        plan_source: user.plan_source || 'free',
-        timezone: user.timezone,
-        timezone_mode: user.timezone_mode,
-        created_at: user.created_at
-      }
-    });
+    const payload = await issueLoginSession(req, user);
+    res.json(payload);
   } catch (err) {
     console.error('[auth/login]', err.message, err.code);
     res.status(500).json({ error: err.message });
