@@ -74,11 +74,13 @@ function normaliseInput(body) {
   const toolId = clean(body?.toolId || raw.toolId || raw.tool?.id || 'lesson-pack', 'lesson-pack');
   const meta = TOOL_META[toolId] || ['utility', 'Task'];
   const count = Math.max(3, Math.min(MAX_ITEMS, parseInt(raw.count || body?.count || 12, 10) || 12));
+  const action = ['simplify', 'upgrade', 'keep'].includes(raw.action) ? raw.action : 'simplify';
   return {
     toolId,
     level: clean(raw.level, 'B1').slice(0, 8),
     count,
     topic: clean(raw.topic, 'Practical English').slice(0, 160),
+    action,
     source: limitText(raw.source, 18000),
     vocab: limitText(raw.vocab, 8000),
     extra: clean(raw.extra, '').slice(0, 600),
@@ -94,6 +96,7 @@ function cacheKey(userId, input) {
     level: input.level,
     count: input.count,
     topic: input.topic,
+    action: input.action,
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
@@ -287,6 +290,7 @@ function makeCards(input) {
 
 function makeText(input) {
   const words = vocabList(input, Math.min(12, input.count));
+  if (input.toolId === 'simplify-text') return makeAdaptedText(input, words);
   return {
     ...base(input, 'cards'),
     cards: [{
@@ -298,6 +302,56 @@ function makeText(input) {
     }, {
       title: 'After reading',
       text: `Choose 3 useful phrases and write your own example connected to your life.`,
+    }],
+    vocab: words,
+  };
+}
+
+function actionLabel(action) {
+  if (action === 'upgrade') return 'Upgraded text';
+  if (action === 'keep') return 'Leveled text';
+  return 'Simplified text';
+}
+
+function makeAdaptedText(input, words) {
+  const label = actionLabel(input.action);
+  const sentences = sourceSentences(input.source, input.topic, Math.max(8, input.count));
+  let text;
+  if (input.action === 'upgrade') {
+    const connectors = ['Furthermore', 'However', 'As a result', 'In practical terms', 'For this reason'];
+    text = sentences.slice(0, Math.min(8, input.count)).map((sentence, i) =>
+      `${connectors[i % connectors.length]}, ${sentence.replace(/\.$/, '')}, which gives students a more precise way to discuss ${input.topic}.`
+    ).join(' ');
+  } else if (input.action === 'keep') {
+    text = sentences.slice(0, Math.min(10, input.count)).join(' ');
+  } else {
+    const easyPairs = [
+      [/\bfrustrating\b/gi, 'difficult'],
+      [/\bcontact\b/gi, 'call or message'],
+      [/\breservation\b/gi, 'booking'],
+      [/\bflexible\b/gi, 'ready to change plans'],
+      [/\bencounter\b/gi, 'have'],
+      [/\bapproximately\b/gi, 'about'],
+      [/\bassistance\b/gi, 'help'],
+    ];
+    text = sentences.slice(0, Math.min(8, input.count)).map(sentence => {
+      let adapted = sentence;
+      easyPairs.forEach(([from, to]) => { adapted = adapted.replace(from, to); });
+      if (adapted.length > 150) adapted = adapted.slice(0, 145).replace(/\s+\S*$/, '') + '.';
+      return adapted;
+    }).join(' ');
+  }
+  return {
+    ...base(input, 'cards'),
+    kind: label,
+    title: `${input.level} · ${label}: ${input.topic}`,
+    action: input.action,
+    cards: [{
+      title: label,
+      text,
+    }, {
+      title: 'Teacher note',
+      text: `Mode: ${label}. Target vocabulary to recycle: ${words.slice(0, 8).join(', ') || input.topic}.`,
     }],
     vocab: words,
   };

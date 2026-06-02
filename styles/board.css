@@ -2664,6 +2664,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .tbuilder-form textarea{min-height:86px;resize:vertical;}
 .tbuilder-form input:focus,.tbuilder-form select:focus,.tbuilder-form textarea:focus{border-color:#4262FF;box-shadow:0 0 0 4px rgba(66,98,255,.10);}
+.tbuilder-choice-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:5px;border:1px solid rgba(17,24,39,.08);border-radius:15px;background:rgba(255,255,255,.72);}
+.tbuilder-choice-row button{border:0;border-radius:11px;background:transparent;color:#5f6070;font:950 12px/1 var(--font);padding:11px 8px;cursor:pointer;transition:background .14s,color .14s,box-shadow .14s;}
+.tbuilder-choice-row button:hover{background:rgba(66,98,255,.07);color:#4262FF;}
+.tbuilder-choice-row button.active{background:#111018;color:#fff;box-shadow:0 8px 20px rgba(17,16,24,.18);}
 .tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
 .tbuilder-btn{border:0;border-radius:14px;background:#111018;color:#fff;font-weight:950;padding:11px 14px;cursor:pointer;}
 .tbuilder-btn.lime{background:#C8E632;color:#101010;}

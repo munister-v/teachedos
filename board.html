@@ -251,8 +251,6 @@
 <div id="sidebar">
   <div class="sb-tabs">
     <div class="sb-tab active" data-tab="plans" title="Plans"><span class="sb-tab-ic">📋</span><span class="sb-tab-lbl">Plans</span></div>
-    <div class="sb-tab" data-tab="students" title="Students"><span class="sb-tab-ic">👥</span><span class="sb-tab-lbl">Students</span></div>
-    <div class="sb-tab" data-tab="elements" title="Add"><span class="sb-tab-ic">＋</span><span class="sb-tab-lbl">Add</span></div>
     <div class="sb-tab" data-tab="tools" title="Teacher Tools"><span class="sb-tab-ic">✦</span><span class="sb-tab-lbl">Tools</span></div>
     <div class="sb-tab sb-tab-more" id="sb-tab-more" onclick="toggleSbMoreMenu(event)" title="More tabs"><span class="sb-tab-ic">⋯</span><span class="sb-tab-lbl">More</span></div>
     <button class="sb-collapse" id="sb-collapse" onclick="toggleSidebar()" title="Hide sidebar" aria-label="Collapse sidebar">
@@ -664,6 +662,14 @@
         <div class="tb-field-wrap" id="tb-wrap-topic">
           <label for="tbuilder-topic" id="tbuilder-topic-label">Topic / grammar focus</label>
           <input id="tbuilder-topic" value="Travel problems" placeholder="e.g. job interview, past simple, climate change">
+        </div>
+        <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-action">
+          <label>What do you want to do?</label>
+          <div class="tbuilder-choice-row" id="tbuilder-action">
+            <button type="button" class="active" data-tt-action="simplify" onclick="setTeacherToolAction('simplify', this)">Simplify</button>
+            <button type="button" data-tt-action="upgrade" onclick="setTeacherToolAction('upgrade', this)">Upgrade</button>
+            <button type="button" data-tt-action="keep" onclick="setTeacherToolAction('keep', this)">Keep level</button>
+          </div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-source">
           <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
@@ -6507,7 +6513,7 @@ function selectSidebarTab(name) {
   if (!name) return;
   activeTab = name;
   // Primary tabs in the bar: mark active. Secondary (Notes/Course/Games) fall under the "More" tab indicator.
-  const primaryNames = ['plans','students','elements','tools'];
+  const primaryNames = ['plans','tools'];
   document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
   if (primaryNames.includes(name)) {
     const t = document.querySelector(`.sb-tab[data-tab="${name}"]`);
@@ -6519,7 +6525,7 @@ function selectSidebarTab(name) {
   searchQ = '';
   const search = document.getElementById('sb-search');
   if (search) search.value = '';
-  document.getElementById('sb-search-wrap').style.display = name === 'elements' ? 'none' : '';
+  document.getElementById('sb-search-wrap').style.display = '';
   document.getElementById('mt-tools')?.classList.toggle('active', name === 'tools');
   document.getElementById('sidebar')?.classList.toggle('tools-mode', name === 'tools');
   renderSidebar();
@@ -7086,7 +7092,7 @@ const TT_SOURCE_PLACEHOLDERS = {
   'two-options':'Paste a text — we\'ll make two-option grammar sentences.',
   'gist-detail':'Paste a text — we\'ll make a gist question + detail questions.',
   'listening-dictation':'Paste a transcript — we\'ll make dictation gap-fill sentences.',
-  'simplify-text':'Paste a text — we\'ll rewrite it at a simpler level.',
+  'simplify-text':'Paste a text — choose Simplify, Upgrade or Keep level.',
   'transcript-helper':'Paste a transcript — we\'ll build before/during/after tasks.',
 };
 const TT_VOCAB_PLACEHOLDERS = {
@@ -7107,13 +7113,18 @@ function _ttAdaptFields(tool) {
   if (!tool) return;
   const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
   const needsVocab  = TT_NEEDS_VOCAB_SET.has(tool.id);
+  const needsAction = tool.id === 'simplify-text';
   const srcWrap  = document.getElementById('tb-wrap-source');
   const vocWrap  = document.getElementById('tb-wrap-vocab');
   const extraWrap= document.getElementById('tb-wrap-extra');
+  const actionWrap = document.getElementById('tb-wrap-action');
   const srcTA    = document.getElementById('tbuilder-source');
   const vocTA    = document.getElementById('tbuilder-vocab');
   const srcLabel = document.getElementById('tbuilder-source-label');
   const vocLabel = document.getElementById('tbuilder-vocab-label');
+
+  if (actionWrap) actionWrap.classList.toggle('tb-field-hidden', !needsAction);
+  if (needsAction) setTeacherToolAction(document.querySelector('#tbuilder-action .active')?.dataset.ttAction || 'simplify');
 
   // Source field
   if (needsSource) {
@@ -7146,6 +7157,15 @@ function _ttAdaptFields(tool) {
 
   // Extra field — always optional, sometimes less relevant
   if (extraWrap) extraWrap.classList.remove('tb-field-hidden');
+}
+
+function setTeacherToolAction(action, btn) {
+  const safe = ['simplify', 'upgrade', 'keep'].includes(action) ? action : 'simplify';
+  const row = document.getElementById('tbuilder-action');
+  if (!row) return;
+  row.dataset.action = safe;
+  row.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.ttAction === safe));
+  if (btn) btn.classList.add('active');
 }
 
 function _ttSetAddToBoard(enabled) {
@@ -7185,6 +7205,7 @@ function readTeacherToolBuilderInput() {
     level: getVal('tbuilder-level') || 'B1',
     count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
     topic: getVal('tbuilder-topic') || 'Practical English',
+    action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
     source: getVal('tbuilder-source'),
     vocab: getVal('tbuilder-vocab'),
     extra: getVal('tbuilder-extra'),
@@ -7204,6 +7225,7 @@ function _ttCacheKey(mode, input) {
     level: input.level,
     count: input.count,
     topic: input.topic,
+    action: input.action,
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
@@ -7289,6 +7311,7 @@ async function requestServerTeacherTool(input) {
           level: input.level,
           count: input.count,
           topic: input.topic,
+          action: input.action,
           source: input.source,
           vocab: input.vocab,
           extra: input.extra,
@@ -7346,6 +7369,46 @@ function teacherToolSourceSentences(text, topic, count = 6) {
   const out = base.slice(0, count);
   for (let i = out.length; i < count; i++) out.push(fallback[i % fallback.length]);
   return out;
+}
+
+function teacherToolActionLabel(action) {
+  if (action === 'upgrade') return 'Upgraded text';
+  if (action === 'keep') return 'Leveled text';
+  return 'Simplified text';
+}
+
+function adaptTeacherToolText(input) {
+  const action = ['simplify', 'upgrade', 'keep'].includes(input.action) ? input.action : 'simplify';
+  const source = String(input.source || '').replace(/\s+/g, ' ').trim();
+  const words = teacherToolVocabList(input.vocab, input.topic, Math.min(10, input.count));
+  if (!source) {
+    return `${teacherToolActionLabel(action)} for ${input.level}: add source text first, then generate again.`;
+  }
+  const sentences = teacherToolSourceSentences(source, input.topic, Math.max(4, input.count));
+  if (action === 'upgrade') {
+    return sentences.slice(0, Math.min(8, input.count)).map((sentence, i) => {
+      const connector = ['Furthermore', 'However', 'As a result', 'In practical terms', 'For this reason'][i % 5];
+      return `${connector}, ${sentence.replace(/\.$/, '')}, which helps students discuss ${input.topic} with more precise ${input.level} language.`;
+    }).join(' ');
+  }
+  if (action === 'keep') {
+    return sentences.slice(0, Math.min(10, input.count)).join(' ');
+  }
+  const easyMap = [
+    [/\bfrustrating\b/gi, 'difficult'],
+    [/\bcontact\b/gi, 'call or message'],
+    [/\breservation\b/gi, 'booking'],
+    [/\bflexible\b/gi, 'ready to change plans'],
+    [/\bencounter\b/gi, 'have'],
+    [/\bapproximately\b/gi, 'about'],
+    [/\bassistance\b/gi, 'help'],
+  ];
+  return sentences.slice(0, Math.min(8, input.count)).map(sentence => {
+    let s = sentence;
+    easyMap.forEach(([from, to]) => { s = s.replace(from, to); });
+    if (s.length > 150) s = s.slice(0, 145).replace(/\s+\S*$/, '') + '.';
+    return s;
+  }).join(' ');
 }
 
 function generateTeacherToolOutput(input) {
@@ -7922,6 +7985,29 @@ function _ttGenCards(toolId, input){
     cards: tts.map(t=>({ title:t, text: fn(t) })) };
 }
 
+function _ttGenAdaptText(input) {
+  const label = teacherToolActionLabel(input.action);
+  const text = adaptTeacherToolText(input);
+  const actionNotes = {
+    simplify: 'Shorter sentences, easier words, clearer classroom rhythm.',
+    upgrade: 'Richer connectors, more precise phrasing and stronger academic tone.',
+    keep: 'Same general level, cleaner structure and teacher-ready formatting.',
+  };
+  return {
+    boardKind: 'cards',
+    kind: label,
+    cat: 'reading',
+    level: input.level,
+    topic: input.topic,
+    title: `${input.level} · ${label}: ${input.topic}`,
+    action: input.action || 'simplify',
+    cards: [
+      { title: label, text },
+      { title: 'Teacher note', text: actionNotes[input.action] || actionNotes.simplify },
+    ],
+  };
+}
+
 function _ttBuildFromAI(toolId, input, items) {
   if (!Array.isArray(items) || !items.length) return null;
   const base = { level: input.level, topic: input.topic };
@@ -8073,9 +8159,10 @@ function _ttBuildFromAI(toolId, input, items) {
   // ── text/writing tools ───────────────────────────────────────────
   if (toolId === 'simplify-text' || toolId === 'text-topic-vocab') {
     const text = Array.isArray(items) ? (items[0]?.text||String(items[0]||'')) : String(items||'');
-    return text ? { ...base, boardKind:'cards', kind:toolId==='simplify-text'?'Simplify':'Text', cat:'reading',
-      title:`${input.level} · ${toolId==='simplify-text'?'Simplified Text':'Generated Text'}: ${input.topic}`,
-      cards:[{ title:toolId==='simplify-text'?'Simplified text':'Generated text', text }] } : null;
+    const label = toolId === 'simplify-text' ? teacherToolActionLabel(input.action) : 'Generated text';
+    return text ? { ...base, boardKind:'cards', kind:toolId==='simplify-text'?label:'Text', cat:'reading',
+      title:`${input.level} · ${toolId==='simplify-text'?label:'Generated Text'}: ${input.topic}`,
+      cards:[{ title:label, text }] } : null;
   }
   if (toolId === 'creative-writing') {
     const cards = items.map(it=>({ title:String(it.title||'Card'), text:String(it.text||'') })).filter(c=>c.text);
@@ -8156,6 +8243,7 @@ function generateTeacherToolLocal(input){
   if (id === 'roleplay-cards')        return _ttGenRoleplay(input);
   if (id === 'debate-cards')          return _ttGenDebate(input);
   if (id === 'listening-dictation')   return _ttGenListeningDictation(input);
+  if (id === 'simplify-text')         return _ttGenAdaptText(input);
   // ── LLM-first: specific card scaffolds ──────────────────────────
   if (id === 'three-titles' || id === 'summary-task' || id === 'dialogue')
     return _ttGenCards(id, input);
