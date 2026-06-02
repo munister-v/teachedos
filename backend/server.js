@@ -17,6 +17,8 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
     'http://127.0.0.1:5500',
     'https://munister-v.github.io',
     'https://munister.com.ua',
+    'https://teached.tech',
+    'https://www.teached.tech',
   ]);
 
 app.use(cors({
@@ -57,6 +59,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/journal', require('./routes/journal'));
 app.use('/api/homework', require('./routes/homework'));
 app.use('/api/library', require('./routes/library'));
+app.use('/api/ai', require('./routes/ai'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

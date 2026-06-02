@@ -7278,6 +7278,35 @@ function enhanceTeacherToolOutputFast(output, input) {
   return out;
 }
 
+async function requestServerTeacherTool(input) {
+  if (!authToken) return null;
+  try {
+    const response = await apiFetch('/api/ai/teacher-tool', {
+      method: 'POST',
+      body: {
+        toolId: input.tool?.id,
+        input: {
+          level: input.level,
+          count: input.count,
+          topic: input.topic,
+          source: input.source,
+          vocab: input.vocab,
+          extra: input.extra,
+        },
+      },
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.output) {
+      console.warn('[tt-ai-server] unavailable', data?.error || response.status);
+      return null;
+    }
+    return data.output;
+  } catch (err) {
+    console.warn('[tt-ai-server] fallback:', err.message);
+    return null;
+  }
+}
+
 function teacherToolTopicSeeds(topic, count = 50) {
   const clean = String(topic || 'lesson topic').trim().toLowerCase();
   const words = [
@@ -7402,6 +7431,9 @@ function teacherToolOutputText(output) {
   }
   if (output.boardKind === 'vocab') {
     return [output.title, ''].concat(output.items.map((it, i) => `${i+1}. ${it.word}${it.example ? ` — ${it.example}` : ''}`)).join('\n').trim();
+  }
+  if (output.boardKind === 'cards') {
+    return [output.title, ''].concat((output.cards || []).map((card, i) => `${i+1}. ${card.title}\n${card.text || ''}`)).join('\n\n').trim();
   }
   return [
     output.title,
@@ -8400,7 +8432,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const body = document.getElementById('tbuilder-output');
   const chip = document.getElementById('tbuilder-chip');
   _ttSetGenerating(true);
-  const cacheKey = _ttCacheKey(wantsWebLLM ? 'webllm' : (wantsAI ? 'smart-ai' : 'fast'), input);
+  const cacheKey = _ttCacheKey(wantsWebLLM ? 'webllm' : (wantsAI ? 'vps-ai' : 'fast'), input);
   const cached = _ttCacheRead(cacheKey);
   if (cached) {
     lastTeacherToolBuilderOutput = cached;
@@ -8456,10 +8488,11 @@ async function generateTeacherToolBuilder(mode = 'fast') {
 
   // ── Fast AI-enhance path: no giant model download by default ────────
   if (!wantsWebLLM) {
-    if (chip) chip.textContent = 'AI enhance…';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">AI enhance без завантаження моделі: покращую структуру, teacher flow і нотатки…</div>';
-    const base = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
-    const enhanced = enhanceTeacherToolOutputFast(base, input);
+    if (chip) chip.textContent = 'VPS AI…';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">VPS AI engine: швидко збираю завдання на сервері, без завантаження моделі в браузері…</div>';
+    const serverOutput = await requestServerTeacherTool(input);
+    const base = serverOutput || (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
+    const enhanced = serverOutput || enhanceTeacherToolOutputFast(base, input);
     lastTeacherToolBuilderOutput = enhanced;
     _ttCacheRemember(cacheKey, enhanced);
     if (enhanced.boardKind === 'quiz' || enhanced.boardKind === 'vocab' || enhanced.boardKind === 'cards') {
@@ -8469,7 +8502,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     }
     if (chip) {
       const n = enhanced.questions?.length ?? enhanced.items?.length ?? enhanced.cards?.length ?? input.count;
-      chip.textContent = `AI fast · ${n} items`;
+      chip.textContent = `${serverOutput ? 'VPS AI' : 'AI fast'} · ${n} items`;
     }
     _ttSetGenerating(false);
     return;
