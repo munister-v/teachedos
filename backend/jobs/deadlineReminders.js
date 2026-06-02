@@ -7,9 +7,10 @@ webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIV
 
 async function sendDeadlineReminders() {
   try {
-    // Find all boards with state (JSONB) and scan for assignment cards with deadlines in ~24h
+    // Find all boards with saved JSON state and scan for assignment cards with deadlines in ~24h.
+    // Older code called this payload "state"; the current schema stores it in boards.data.
     const { rows: boards } = await pool.query(
-      `SELECT id, state FROM boards WHERE state IS NOT NULL`
+      `SELECT id, data AS state FROM boards WHERE data IS NOT NULL`
     );
 
     const now     = Date.now();

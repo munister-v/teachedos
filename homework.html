@@ -379,7 +379,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-  ? 'http://localhost:8080' : 'https://teachedos-api.onrender.com';
+  ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com');
 const token = localStorage.getItem('teachedos_token') || '';
 const LOCAL_KEY = 'teachedos_homework_local_v2';
 const LOCAL_BOARDS_KEY = 'teachedos_homework_boards_v2';

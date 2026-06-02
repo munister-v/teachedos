@@ -3223,7 +3223,7 @@ mobInit();
 /* ════════════════════════════════════════════════════
    AUTH + ROLE ROUTING
    ════════════════════════════════════════════════════ */
-const API_BASE = 'https://teachedos-api.onrender.com';
+const API_BASE = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
 const TEACHER_DASHBOARD_CACHE_KEY = 'teachedos_teacher_dashboard_cache_v1';
 let _authToken = localStorage.getItem('teachedos_token');
 let _currentUser = null;
@@ -3629,7 +3629,7 @@ setInterval(loadNotifications, 120000);
    LIVE WIDGETS (teacher/admin only — students are redirected above)
    ════════════════════════════════════════════════════ */
 (function() {
-  const API = 'https://teachedos-api.onrender.com';
+  const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
   const token = localStorage.getItem('teachedos_token');
   const cachedDash = readTeacherDashboardCache();
   if (!token) return;
@@ -3943,7 +3943,7 @@ function obSelectTpl(id) {
 async function obCreateBoard() {
   const name = document.getElementById('ob-board-name').value.trim() || 'My First Board';
   try {
-    const API = 'https://teachedos-api.onrender.com';
+    const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
     const token = localStorage.getItem('teachedos_token');
     // Create board
     const r = await fetch(API + '/api/boards', {
@@ -3992,7 +3992,7 @@ async function obSaveAndFinish() {
   const zoom = document.getElementById('ob-zoom-url')?.value.trim();
   if (meet || zoom) {
     try {
-      const API = 'https://teachedos-api.onrender.com';
+      const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
       const token = localStorage.getItem('teachedos_token');
       await fetch(API + '/api/users/me', {
         method: 'PATCH',

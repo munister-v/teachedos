@@ -184,7 +184,7 @@ let currentCloudId=null;
 function saveLesson(){const lib=readLib();const d=collect();d.id=d.id||'lesson-'+Date.now();d.cloudId=d.cloudId||currentCloudId;lib.unshift(d);writeLib(lib.slice(0,80));renderLibrary();cloudSyncLesson(d).then(a=>{if(a&&a.id)currentCloudId=a.id});toast('Lesson saved')}
 
 // ── Cloud library sync (My Library + Community) ──────────────────────────────
-const LIB_API='https://teachedos-api.onrender.com';
+const LIB_API=(window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
 function libToken(){return localStorage.getItem('teachedos_token')||''}
 function libFetch(path,opts){const o=opts||{};const t=libToken();return fetch(LIB_API+path,{...o,headers:{'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{}),...(o.headers||{})},body:o.body?JSON.stringify(o.body):undefined})}
 function lessonToAssignment(d){return{kind:'lesson',title:d.title||'Untitled lesson',description:d.brief||'',level:d.level||'',skill:d.skill||'',tags:['lesson-builder',d.skill].filter(Boolean),image:d.image||null,data:d}}
