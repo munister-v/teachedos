@@ -7188,6 +7188,7 @@ function openTeacherToolBuilder(toolId) {
   _ttSetAddToBoard(false);
   _ttHideRetry();
   document.getElementById('tool-builder-panel')?.classList.add('open');
+  prewarmTeacherAiEngine();
 }
 
 function closeTeacherToolBuilder() {
@@ -7213,9 +7214,22 @@ function readTeacherToolBuilderInput() {
 }
 
 const TT_BUILDER_RESULT_CACHE = new Map();
+const TT_CACHE_PREFIX = 'teachedos_tt_cache_v2:';
+const TT_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
+let _ttActiveGenerationKey = '';
+let _ttAiPrewarmAt = 0;
 
 function _ttCloneOutput(output) {
   return output ? JSON.parse(JSON.stringify(output)) : output;
+}
+
+function _ttCacheStorageKey(key) {
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return TT_CACHE_PREFIX + (hash >>> 0).toString(36);
 }
 
 function _ttCacheKey(mode, input) {
@@ -7234,14 +7248,31 @@ function _ttCacheKey(mode, input) {
 
 function _ttCacheRemember(key, output) {
   if (!key || !output) return;
-  TT_BUILDER_RESULT_CACHE.set(key, _ttCloneOutput(output));
+  const cloned = _ttCloneOutput(output);
+  TT_BUILDER_RESULT_CACHE.set(key, cloned);
   if (TT_BUILDER_RESULT_CACHE.size > 24) {
     TT_BUILDER_RESULT_CACHE.delete(TT_BUILDER_RESULT_CACHE.keys().next().value);
   }
+  try {
+    localStorage.setItem(_ttCacheStorageKey(key), JSON.stringify({ at: Date.now(), output: cloned }));
+  } catch (e) {}
 }
 
 function _ttCacheRead(key) {
-  return TT_BUILDER_RESULT_CACHE.has(key) ? _ttCloneOutput(TT_BUILDER_RESULT_CACHE.get(key)) : null;
+  if (TT_BUILDER_RESULT_CACHE.has(key)) return _ttCloneOutput(TT_BUILDER_RESULT_CACHE.get(key));
+  try {
+    const raw = localStorage.getItem(_ttCacheStorageKey(key));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.output || Date.now() - Number(parsed.at || 0) > TT_CACHE_TTL_MS) {
+      localStorage.removeItem(_ttCacheStorageKey(key));
+      return null;
+    }
+    TT_BUILDER_RESULT_CACHE.set(key, parsed.output);
+    return _ttCloneOutput(parsed.output);
+  } catch (e) {
+    return null;
+  }
 }
 
 function enhanceTeacherToolOutputFast(output, input) {
@@ -7300,11 +7331,14 @@ function enhanceTeacherToolOutputFast(output, input) {
   return out;
 }
 
-async function requestServerTeacherTool(input) {
+async function requestServerTeacherTool(input, timeoutMs = 1200) {
   if (!authToken) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await apiFetch('/api/ai/teacher-tool', {
       method: 'POST',
+      signal: controller.signal,
       body: {
         toolId: input.tool?.id,
         input: {
@@ -7325,9 +7359,21 @@ async function requestServerTeacherTool(input) {
     }
     return data.output;
   } catch (err) {
-    console.warn('[tt-ai-server] fallback:', err.message);
+    if (err.name !== 'AbortError') console.warn('[tt-ai-server] fallback:', err.message);
     return null;
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+function prewarmTeacherAiEngine() {
+  if (!authToken || Date.now() - _ttAiPrewarmAt < 45000) return;
+  _ttAiPrewarmAt = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 700);
+  apiFetch('/api/ai/status', { signal: controller.signal })
+    .catch(() => {})
+    .finally(() => clearTimeout(timer));
 }
 
 function teacherToolTopicSeeds(topic, count = 50) {
@@ -8521,6 +8567,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const chip = document.getElementById('tbuilder-chip');
   _ttSetGenerating(true);
   const cacheKey = _ttCacheKey(wantsWebLLM ? 'webllm' : (wantsAI ? 'vps-ai' : 'fast'), input);
+  _ttActiveGenerationKey = cacheKey;
   const cached = _ttCacheRead(cacheKey);
   if (cached) {
     lastTeacherToolBuilderOutput = cached;
@@ -8576,23 +8623,34 @@ async function generateTeacherToolBuilder(mode = 'fast') {
 
   // ── Fast AI-enhance path: no giant model download by default ────────
   if (!wantsWebLLM) {
-    if (chip) chip.textContent = 'VPS AI…';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">VPS AI engine: швидко збираю завдання на сервері, без завантаження моделі в браузері…</div>';
-    const serverOutput = await requestServerTeacherTool(input);
-    const base = serverOutput || (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
-    const enhanced = serverOutput || enhanceTeacherToolOutputFast(base, input);
-    lastTeacherToolBuilderOutput = enhanced;
-    _ttCacheRemember(cacheKey, enhanced);
-    if (enhanced.boardKind === 'quiz' || enhanced.boardKind === 'vocab' || enhanced.boardKind === 'cards') {
-      renderTeacherToolLocalPreview(enhanced);
+    const instantBase = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
+    const instant = enhanceTeacherToolOutputFast(instantBase, input);
+    lastTeacherToolBuilderOutput = instant;
+    _ttCacheRemember(cacheKey, instant);
+    if (instant.boardKind === 'quiz' || instant.boardKind === 'vocab' || instant.boardKind === 'cards') {
+      renderTeacherToolLocalPreview(instant);
     } else {
-      renderTeacherToolBuilderOutput(enhanced);
+      renderTeacherToolBuilderOutput(instant);
     }
     if (chip) {
-      const n = enhanced.questions?.length ?? enhanced.items?.length ?? enhanced.cards?.length ?? input.count;
-      chip.textContent = `${serverOutput ? 'VPS AI' : 'AI fast'} · ${n} items`;
+      const n = instant.questions?.length ?? instant.items?.length ?? instant.cards?.length ?? input.count;
+      chip.textContent = `instant AI · ${n} items`;
     }
     _ttSetGenerating(false);
+    requestServerTeacherTool(input, 900).then(serverOutput => {
+      if (!serverOutput || _ttActiveGenerationKey !== cacheKey) return;
+      lastTeacherToolBuilderOutput = serverOutput;
+      _ttCacheRemember(cacheKey, serverOutput);
+      if (serverOutput.boardKind === 'quiz' || serverOutput.boardKind === 'vocab' || serverOutput.boardKind === 'cards') {
+        renderTeacherToolLocalPreview(serverOutput);
+      } else {
+        renderTeacherToolBuilderOutput(serverOutput);
+      }
+      if (chip) {
+        const n = serverOutput.questions?.length ?? serverOutput.items?.length ?? serverOutput.cards?.length ?? input.count;
+        chip.textContent = `VPS cached · ${n} items`;
+      }
+    });
     return;
   }
 
