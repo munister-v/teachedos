@@ -98,6 +98,38 @@ const _PROMPTS = {
     `You are an EFL teacher. Create an essay outline at ${i.level} level for "${i.topic}" with introduction, 3 body points, conclusion.\nReturn ONLY a JSON array:\n[{"section":"Introduction","text":"hook + thesis"},{"section":"Body 1","text":"..."},{"section":"Body 2","text":"..."},{"section":"Body 3","text":"..."},{"section":"Conclusion","text":"..."}]`,
   'warmup-listening': (i) =>
     `You are an EFL teacher. Create a warm-up activity before listening at ${i.level} level for "${i.topic}". Include a prediction task and 2-3 pre-teaching questions.\nReturn ONLY a JSON array:\n[{"task":"Prediction","text":"..."},{"task":"Pre-teach","text":"key words: ..."},{"task":"Discussion","text":"..."}]`,
+  'worksheet-builder': (i) =>
+    `You are an EFL teacher. Build a printable worksheet at ${i.level} level about "${i.topic}". Use these sections: Warm-up, Vocabulary, Practice, Speaking/Writing, Answer key. Vocab: ${i.vocab||'choose suitable items'}.\nReturn ONLY a JSON array:\n[{"section":"Warm-up","text":"..."},{"section":"Vocabulary","text":"..."},{"section":"Practice","text":"..."},{"section":"Speaking/Writing","text":"..."},{"section":"Answer key","text":"..."}]${i.source?'\n\nText:\n"""'+i.source+'"""':''}`,
+  'homework-set': (i) =>
+    `You are an EFL teacher. Create a homework assignment at ${i.level} level about "${i.topic}". Include clear tasks, an estimated time, and success criteria. Vocab: ${i.vocab||'general'}.\nReturn ONLY a JSON array:\n[{"section":"Task 1","text":"..."},{"section":"Task 2","text":"..."},{"section":"Task 3","text":"..."},{"section":"Success criteria","text":"..."}]`,
+  'link-words': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} prompts at ${i.level} level asking students to connect target words into one meaningful sentence. Words: ${i.vocab||i.topic}.\nReturn ONLY a JSON array:\n[{"text":"Use these words in one sentence: word1 + word2"}]`,
+  'word-order': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} word-order (unscramble) tasks at ${i.level} level about "${i.topic}". For each: scrambled words separated by " / " as the text, and the correct sentence as the answer.\nReturn ONLY a JSON array:\n[{"text":"word / scrambled / order","answer":"The correct sentence."}]`,
+  'matching-halves': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} collocations or split sentences at ${i.level} level about "${i.topic}". Give the first half as "word" and the matching second half as "definition".\nReturn ONLY a JSON array:\n[{"word":"first half","definition":"second half"}]`,
+  'audio-video-questions': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} listening comprehension questions at ${i.level} level based on the transcript. Mix gist and detail. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"question?"}]\n\nTranscript:\n"""${i.source}"""`,
+  'comm-situations': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} communicative role-play situation cards at ${i.level} level about "${i.topic}". Each should tell students what to do and which target word to use. Vocab: ${i.vocab||'any'}.\nReturn ONLY a JSON array:\n[{"text":"You are... Use the word \\"word\\"."}]`,
+  'rephrase-word': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} "rephrase using the word given" tasks at ${i.level} level about "${i.topic}". Provide an original sentence with a KEY WORD to use, and a model rephrasing as the answer.\nReturn ONLY a JSON array:\n[{"text":"Rephrase using \\"WORD\\": original sentence.","answer":"model rephrased sentence"}]`,
+  'four-opinions': (i) =>
+    `You are an EFL teacher. Write four contrasting opinions about "${i.topic}" at ${i.level} level for a response-writing task. Each is a named person with a short opinion.\nReturn ONLY a JSON array:\n[{"speaker":"Anna","line":"opinion..."},{"speaker":"Ben","line":"opinion..."},{"speaker":"Carla","line":"opinion..."},{"speaker":"David","line":"opinion..."}]`,
+  'essay-topics': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} essay prompts/questions at ${i.level} level about "${i.topic}". Vary the type (agree/disagree, advantages/disadvantages, discuss).\nReturn ONLY a JSON array:\n[{"text":"essay question?"}]`,
+  'lead-in': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} quick lead-in / warm-up activities at ${i.level} level to introduce the topic "${i.topic}".\nReturn ONLY a JSON array:\n[{"task":"Activity name","text":"what students do"}]`,
+  'pros-cons': (i) =>
+    `You are an EFL teacher. List arguments for and against "${i.topic}" at ${i.level} level for a debate. Provide ${Math.max(3,Math.ceil(i.count/2))} PRO and the same number of CON points.\nReturn ONLY a JSON array:\n[{"side":"PRO","point":"argument"},{"side":"CON","point":"argument"}]`,
+  'type-gap': (i) =>
+    `You are an EFL teacher. Create exactly ${i.count} open cloze sentences at ${i.level} level about "${i.topic}" where the student types a suitable word into "_____". Give one good answer.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","answer":"a suitable word"}]${i.source?'\n\nText:\n"""'+i.source+'"""':''}`,
+  'word-bank': (i) =>
+    `You are an EFL teacher. Create a word-bank gap-fill at ${i.level} level about "${i.topic}". Make exactly ${i.count} sentences, each with one "_____" gap. The answer is the correct word from the bank. Words: ${i.vocab||'choose suitable items'}.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","answer":"correct word"}]`,
+  'summary-gapfill': (i) =>
+    `You are an EFL teacher. Write a short ${i.level}-level summary of the transcript, then turn it into exactly ${i.count} gap-fill sentences with "_____" for a key word. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"summary sentence with _____","answer":"missing word"}]\n\nTranscript:\n"""${i.source}"""`,
+  'choose-summary': (i) =>
+    `You are an EFL teacher. Based on the transcript/text, write one "choose the correct summary" multiple-choice question at ${i.level} level with 3 options (one correct). Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"Which summary best matches the text?","options":["correct summary","wrong summary","wrong summary"],"answer":"correct summary"}]\n\nText:\n"""${i.source}"""`,
 };
 
 function _parseJSON(raw) {
