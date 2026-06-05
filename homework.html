@@ -454,7 +454,7 @@ function loadLocal(){
 
 async function init() {
   document.getElementById('hw-list').innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⏳</div><div class="empty-title">Loading homework…</div><div class="empty-sub">Preparing assignments, boards and student progress.</div></div>';
-  if (!token) { loadLocal(); return; }
+  if (!token) { loadLocal(); maybeImportToolMaterial(); return; }
   try {
     const r = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
     if (!r.ok) throw new Error('Auth unavailable');
@@ -465,6 +465,23 @@ async function init() {
     loadLocal();
     toast('Server unavailable — local homework mode is active');
   }
+  maybeImportToolMaterial();
+}
+function maybeImportToolMaterial(){
+  const raw = sessionStorage.getItem('teachedos_tools_to_homework');
+  if (!raw) return;
+  sessionStorage.removeItem('teachedos_tools_to_homework');
+  let payload = null;
+  try { payload = JSON.parse(raw); } catch { return; }
+  if (!payload) return;
+  openCreateModal();
+  setTimeout(() => {
+    const t = document.getElementById('f-title');
+    const ins = document.getElementById('f-instructions');
+    if (t) t.value = payload.title || 'Teacher Tools material';
+    if (ins) ins.value = payload.instructions || '';
+  }, 80);
+  toast('Imported from Teacher Tools — pick a board and students, then create');
 }
 function updateUser(user){
   const first = (user.name || 'Teacher').split(' ')[0];

@@ -419,4 +419,47 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
   });
 });
 
+// ── YouTube transcript (no API key, no auth — used by the Teacher Tools hub) ──
+const TRANSCRIPT_CACHE = new Map();
+function ytVideoId(url) {
+  const s = String(url || '').trim();
+  const m = s.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : null;
+}
+function decodeEntities(t) {
+  return String(t)
+    .replace(/&amp;#39;|&#39;/g, "'").replace(/&amp;quot;|&quot;/g, '"')
+    .replace(/&amp;amp;|&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+router.get('/youtube-transcript', async (req, res) => {
+  const id = ytVideoId(req.query.url || '');
+  if (!id) return res.status(400).json({ error: 'Provide a valid YouTube link' });
+  if (TRANSCRIPT_CACHE.has(id)) return res.json({ transcript: TRANSCRIPT_CACHE.get(id), videoId: id, cached: true });
+  try {
+    const watch = await fetch(`https://www.youtube.com/watch?v=${id}&hl=en`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept-Language': 'en-US,en;q=0.9' },
+    });
+    const html = await watch.text();
+    const m = html.match(/"captionTracks":(\[.*?\])/);
+    if (!m) return res.status(404).json({ error: 'This video has no captions to transcribe' });
+    let tracks;
+    try { tracks = JSON.parse(m[1]); } catch { return res.status(502).json({ error: 'Could not read captions' }); }
+    const track = tracks.find(t => /^en/.test(t.languageCode || '')) || tracks[0];
+    if (!track || !track.baseUrl) return res.status(404).json({ error: 'No transcript track available' });
+    const xml = await (await fetch(track.baseUrl)).text();
+    const text = decodeEntities(
+      xml.replace(/<text[^>]*>/g, ' ').replace(/<\/text>/g, ' ').replace(/<[^>]+>/g, '')
+    ).replace(/\s+/g, ' ').trim();
+    if (!text) return res.status(404).json({ error: 'Transcript was empty' });
+    TRANSCRIPT_CACHE.set(id, text);
+    if (TRANSCRIPT_CACHE.size > 100) TRANSCRIPT_CACHE.delete(TRANSCRIPT_CACHE.keys().next().value);
+    res.json({ transcript: text, videoId: id });
+  } catch (err) {
+    console.error('[ai/youtube-transcript]', err.message);
+    res.status(502).json({ error: 'Could not fetch the transcript right now' });
+  }
+});
+
 module.exports = router;
