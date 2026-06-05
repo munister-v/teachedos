@@ -312,20 +312,12 @@ router.post('/login', async (req, res) => {
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
-      const legacyUser = await authenticateLegacyUser(email.toLowerCase().trim(), password);
-      if (!legacyUser) return res.status(401).json({ error: 'Invalid email or password' });
-      const migratedUser = await upsertLegacyUser(email, password, legacyUser);
-      const payload = await issueLoginSession(req, migratedUser);
-      return res.json({ ...payload, migrated: true });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     const user = rows[0];
     const ok   = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      const legacyUser = await authenticateLegacyUser(email.toLowerCase().trim(), password);
-      if (!legacyUser) return res.status(401).json({ error: 'Invalid email or password' });
-      const refreshedUser = await upsertLegacyUser(email, password, legacyUser, user);
-      const payload = await issueLoginSession(req, refreshedUser);
-      return res.json({ ...payload, migrated: true });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const payload = await issueLoginSession(req, user);
