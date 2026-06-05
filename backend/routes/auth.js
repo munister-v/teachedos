@@ -1,12 +1,31 @@
 const router  = require('express').Router();
 const bcrypt  = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
+const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { requireAuth, signToken } = require('../middleware/auth');
 const { ensureBillingSchema } = require('../lib/billing');
 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
+// OAuth support: password becomes optional, track the external identity.
+pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20)`).catch(() => {});
+pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`).catch(() => {});
 ensureBillingSchema(pool).catch(() => {});
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+// Throttle credential-guessing: 20 attempts / 15 min per IP on auth endpoints.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait a few minutes and try again.' },
+});
 
 function defaultAvatarForRole(role) {
   if (role === 'student') return '🎓';
@@ -149,7 +168,7 @@ async function loadActiveInvite(token) {
 }
 
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   const { email, password, name, role = 'teacher', avatar = '🧑‍🏫' } = req.body;
   const safeRole = role === 'student' ? 'student' : 'teacher';
   if (!email || !password || !name) {
@@ -301,7 +320,7 @@ router.post('/invites/:token/accept', async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
@@ -315,6 +334,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     const user = rows[0];
+    if (!user.password_hash) {
+      return res.status(401).json({ error: 'This account uses Google sign-in. Please continue with Google.' });
+    }
     const ok   = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -325,6 +347,69 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('[auth/login]', err.message, err.code);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/config — public client config (which providers are enabled)
+router.get('/config', (_req, res) => {
+  res.json({ googleClientId: GOOGLE_CLIENT_ID || null, googleEnabled: !!googleClient });
+});
+
+// POST /api/auth/google — sign in / sign up with a Google ID token
+router.post('/google', authLimiter, async (req, res) => {
+  if (!googleClient) {
+    return res.status(503).json({ error: 'Google sign-in is not configured on this server.' });
+  }
+  const { credential, role } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'Missing Google credential' });
+  }
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
+    const p = ticket.getPayload();
+    if (!p || !p.email || !p.email_verified) {
+      return res.status(401).json({ error: 'Google account email is not verified' });
+    }
+    const email = String(p.email).toLowerCase().trim();
+    const googleId = p.sub;
+    const safeRole = role === 'student' ? 'student' : 'teacher';
+    const name = String(p.name || email.split('@')[0] || 'Teacher').trim().slice(0, 255);
+    const avatar = defaultAvatarForRole(safeRole);
+
+    // Match by google_id first, then by email (link existing password account).
+    let { rows } = await pool.query(
+      `SELECT id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at, google_id
+       FROM users WHERE google_id = $1 OR email = $2 LIMIT 1`,
+      [googleId, email]
+    );
+    let user = rows[0];
+
+    if (user) {
+      if (!user.google_id) {
+        await pool.query(
+          `UPDATE users SET google_id = $2, oauth_provider = COALESCE(oauth_provider, 'google') WHERE id = $1`,
+          [user.id, googleId]
+        );
+      }
+    } else {
+      const inserted = await pool.query(
+        `INSERT INTO users (email, name, role, avatar, google_id, oauth_provider, plan_source)
+         VALUES ($1, $2, $3, $4, $5, 'google', 'free')
+         RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
+        [email, name, safeRole, avatar, googleId]
+      );
+      user = inserted.rows[0];
+      await pool.query(
+        `INSERT INTO boards (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [user.id, 'My First Board']
+      );
+    }
+
+    const payload = await issueLoginSession(req, user);
+    res.json(payload);
+  } catch (err) {
+    console.error('[auth/google]', err.message);
+    res.status(401).json({ error: 'Could not verify Google sign-in' });
   }
 });
 
@@ -452,23 +537,6 @@ router.post('/set-role', async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
     res.json({ user: rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/auth/list-users  — list users using ADMIN_SECRET (temp debug)
-router.post('/list-users', async (req, res) => {
-  const { secret } = req.body;
-  const ADMIN_SECRET = process.env.ADMIN_SECRET;
-  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
-    return res.status(403).json({ error: 'Invalid secret' });
-  }
-  try {
-    const { rows } = await pool.query(
-      `SELECT email, name, role, created_at FROM users ORDER BY created_at DESC LIMIT 20`
-    );
-    res.json({ users: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
