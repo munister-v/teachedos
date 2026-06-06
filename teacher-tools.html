@@ -1099,7 +1099,7 @@ function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count(
   else {out.text=src;}
   lastOutput=out;renderResult(out);if(window.innerWidth<=820){document.querySelector('.result').scrollIntoView({behavior:'smooth',block:'start'})}}
 function parseGroups(text){return lines(text).map((line,i)=>{const [name,rest]=line.includes(':')?line.split(/:(.+)/):[`Group ${i+1}`,line];const words=(rest||'').split(',').map(s=>s.trim()).filter(Boolean);return {name:name.trim(),words:words.slice(0,8),odd:['umbrella','banana','airport','winter','keyboard'][i%5]}}).filter(g=>g.words.length)}
-function renderResult(out){document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button><button class="btn sm pink" type="button" onclick="shareLink()">Share link</button><button class="btn sm blue" type="button" onclick="sendToGameBuilder()" ${out.gameType?'':'disabled'}>Send to Game Builder</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the in-browser AI model.</div>':''}${worksheetHtml(out)}`}
+function renderResult(out){document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button><button class="btn sm pink" type="button" onclick="shareLink()">Share link</button><button class="btn sm blue" type="button" onclick="sendToGameBuilder()" ${out.gameType?'':'disabled'}>Send to Game Builder</button><button class="btn sm ghost" type="button" onclick="exportToGoogleForms()" title="Export as a Google Form (requires Google sign-in)">📋 Google Forms</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the in-browser AI model.</div>':''}${worksheetHtml(out)}`}
 function worksheetHtml(out){const meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;const cardHtml=(out.cards&&out.cards.length&&!out.edited)?`<div class="worksheet-list">${out.cards.slice(0,60).map(c=>`<div class="worksheet-task"><b>${esc(c.a||c.word||c.name||'Item')}</b><br><span>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</span></div>`).join('')}</div>`:`<div class="worksheet-body">${esc(out.text||'')}</div>`;return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}</div></div><div class="tag">TeachEd</div></header>${cardHtml}</article>`}
 function editOutput(){if(!lastOutput){toast('Generate something first');return;}const current=lastOutput.text||((lastOutput.cards||[]).map(c=>`${c.a||c.word||c.name||''} — ${c.b||c.def||c.note||''}`).join('\n'));const body=document.getElementById('result-body');const strip=body.querySelector('.action-strip');const ws=body.querySelector('.worksheet');if(ws)ws.remove();const existing=document.getElementById('tt-editor');if(existing)existing.remove();const editor=document.createElement('div');editor.id='tt-editor';editor.innerHTML=`<textarea id="tt-edit-area" style="width:100%;min-height:340px;padding:16px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">${esc(current)}</textarea><div class="hero-actions" style="margin-top:10px;"><button class="btn lime" type="button" onclick="saveEdit()">Save changes</button><button class="btn ghost" type="button" onclick="renderResult(lastOutput)">Cancel</button></div>`;body.appendChild(editor);document.getElementById('tt-edit-area').focus();}
 function saveEdit(){const ta=document.getElementById('tt-edit-area');if(!ta||!lastOutput)return;lastOutput.text=ta.value;lastOutput.edited=true;renderResult(lastOutput);toast('Changes saved — export or assign the edited version');}
@@ -1113,6 +1113,54 @@ function slug(s){return String(s||'teachedos-material').toLowerCase().replace(/[
 function copyInputs(){const text=[get('topic'),get('source'),get('vocab')].filter(Boolean).join('\n\n');navigator.clipboard?.writeText(text).then(()=>toast('Inputs copied'))}
 function saveOutput(){if(!lastOutput)return;const lib=readJson(TOOL_STORE,[]);lib.unshift({...lastOutput,id:'tool-'+Date.now(),savedAt:new Date().toISOString(),toolId:activeTool.id});writeJson(TOOL_STORE,lib.slice(0,80));renderLibrary();toast('Saved to library')}
 function sendToGameBuilder(){if(!lastOutput||!lastOutput.gameType){toast('This tool creates worksheet content, not a game payload yet');return}sessionStorage.setItem('teachedos_tools_to_game',JSON.stringify({title:lastOutput.title,gameType:lastOutput.gameType,content:lastOutput.gameContent,level:lastOutput.level,tags:lastOutput.tags}));location.href='game-builder.html?from=teacher-tools'}
+// ── Google Forms export ──────────────────────────────────────────────────────
+const GF_CLIENT_ID='588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
+let _gfTokenClient=null;
+
+function exportToGoogleForms(){
+  if(!lastOutput){toast('Generate something first');return;}
+  if(typeof google==='undefined'||!google.accounts?.oauth2){
+    toast('Google Identity Services not loaded yet — try again in a moment.');return;
+  }
+  if(!_gfTokenClient){
+    _gfTokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:GF_CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/forms.body',
+      callback:(resp)=>{
+        if(resp.error){toast('Google Forms: '+resp.error);return;}
+        _doCreateGoogleForm(resp.access_token);
+      }
+    });
+  }
+  _gfTokenClient.requestAccessToken();
+}
+
+async function _doCreateGoogleForm(accessToken){
+  const btn=document.querySelector('[onclick="exportToGoogleForms()"]');
+  if(btn){btn.disabled=true;btn.textContent='Creating…';}
+  try{
+    const token=localStorage.getItem('teachedos_token');
+    const r=await fetch(API_BASE+'/api/google-forms/create',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({access_token:accessToken,output:lastOutput})
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Form creation failed');
+    // Show success banner
+    const strip=document.querySelector('#result-body .action-strip');
+    const banner=document.createElement('div');
+    banner.style.cssText='background:#e8f5e9;border:1px solid #66bb6a;border-radius:13px;padding:11px 14px;margin-bottom:12px;font-size:13px;font-weight:700;';
+    banner.innerHTML=`✅ Google Form created! &nbsp;<a href="${d.editUrl}" target="_blank" rel="noopener" style="color:#2e7d32;text-decoration:underline;">Edit (teacher)</a> &nbsp;·&nbsp; <a href="${d.respondentUrl}" target="_blank" rel="noopener" style="color:#2e7d32;text-decoration:underline;">Student link</a>`;
+    strip?.after(banner);
+    toast('Google Form created ✓');
+  }catch(e){
+    toast('Error: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='📋 Google Forms';}
+  }
+}
+
 function sendToBoard(){if(!lastOutput){toast('Generate something first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text:lastOutput.text,level:lastOutput.level,tags:lastOutput.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
 function renderLibrary(){const grid=document.getElementById('library-grid');const lib=readJson(TOOL_STORE,[]);if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Generate something and press Save.</div>';return}grid.innerHTML=lib.slice(0,24).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button>${item.gameType?`<button class="btn sm lime" type="button" onclick="sendSaved('${item.id}')">Game Builder</button>`:''}<button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
 function viewSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;lastOutput=item;document.getElementById('workspace').classList.add('show');document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">Download .txt</button><button class="btn sm ghost" type="button" onclick="downloadHtmlOutput()">Download HTML</button><button class="btn sm pink" type="button" onclick="sendSavedToBoard('${item.id}')">Add to Board</button>${item.gameType?`<button class="btn sm blue" type="button" onclick="sendSaved('${item.id}')">Send to Game Builder</button>`:''}</div>${worksheetHtml(item)}`;document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}

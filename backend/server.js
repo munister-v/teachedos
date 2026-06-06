@@ -61,6 +61,7 @@ app.use('/api/journal', require('./routes/journal'));
 app.use('/api/homework', require('./routes/homework'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/google-forms', require('./routes/google-forms'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
