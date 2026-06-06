@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v81';
+const CACHE = 'teachedos-v82';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -53,7 +53,6 @@ const SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'logo.png',
-  'desktop-wallpaper-space-cat.png',
 ].map(base);
 
 self.addEventListener('install', e => {
