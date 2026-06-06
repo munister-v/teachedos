@@ -107,23 +107,52 @@
     return diff > 0 ? `${pretty} ${ahead}` : `${pretty} ${behind}`;
   }
 
+  // Mid-session 401 handler — show a banner once, redirect after 4 s.
+  // Pages can suppress the auto-redirect by setting window.__teachedNoRedirectOn401.
+  var _sessionExpiredShown = false;
+  function _handleSessionExpired() {
+    if (_sessionExpiredShown) return;
+    _sessionExpiredShown = true;
+    window.dispatchEvent(new CustomEvent('teached:session-expired'));
+    // Inject a non-intrusive top banner.
+    var el = document.createElement('div');
+    el.id = 'teached-session-banner';
+    el.setAttribute('style', [
+      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:999999',
+      'background:#dc2626', 'color:#fff', 'padding:12px 20px',
+      'text-align:center', 'font:14px/1.4 system-ui,sans-serif',
+      'box-shadow:0 2px 8px rgba(0,0,0,.25)'
+    ].join(';'));
+    el.innerHTML = 'Your session has expired. ' +
+      '<a href="/index.html" style="color:#fff;font-weight:700;text-decoration:underline">Sign in again →</a>';
+    if (document.body) document.body.prepend(el);
+    else document.addEventListener('DOMContentLoaded', function() { document.body.prepend(el); });
+    if (!window.__teachedNoRedirectOn401) {
+      setTimeout(function() { window.location.href = '/index.html'; }, 4000);
+    }
+  }
+
   function createApiClient(getToken) {
+    // Paths where 401 is expected and should NOT trigger the banner.
+    var AUTH_PATHS = ['/api/auth/login', '/api/auth/me', '/api/auth/google', '/api/auth/register'];
     return function apiFetch(path, opts) {
-      const options = opts || {};
-      const headers = { ...(options.headers || {}) };
+      var options = opts || {};
+      var headers = Object.assign({}, options.headers || {});
       if (!headers['Content-Type'] && !headers['content-type']) {
         headers['Content-Type'] = 'application/json';
       }
-      const token = typeof getToken === 'function' ? getToken() : getToken;
-      if (token) headers.Authorization = `Bearer ${token}`;
-      const body = options.body == null
+      var token = typeof getToken === 'function' ? getToken() : getToken;
+      if (token) headers.Authorization = 'Bearer ' + token;
+      var body = options.body == null
         ? undefined
         : (typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
-      return fetch(API_BASE + path, {
-        ...options,
-        headers,
-        body
-      });
+      return fetch(API_BASE + path, Object.assign({}, options, { headers: headers, body: body }))
+        .then(function(resp) {
+          if (resp.status === 401 && AUTH_PATHS.indexOf(path) === -1) {
+            _handleSessionExpired();
+          }
+          return resp;
+        });
     };
   }
 

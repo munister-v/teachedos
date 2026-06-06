@@ -17,7 +17,7 @@
 // Without AI_API_KEY, or on any error, the caller falls back to the local rule
 // engine — nothing breaks, generation just degrades to the old templates.
 
-const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 25000);
+const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 12000);
 
 // Ordered provider chain. The first with a key is primary; on any failure
 // (rate limit, timeout, bad output) we try the next, then the caller falls
