@@ -12,7 +12,7 @@ pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Eu
 pool.query(`
   CREATE TABLE IF NOT EXISTS email_tokens (
     id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id    INTEGER     REFERENCES users(id) ON DELETE CASCADE,
+    user_id    UUID        REFERENCES users(id) ON DELETE CASCADE,
     email      TEXT        NOT NULL,
     token      TEXT        NOT NULL UNIQUE,
     type       TEXT        NOT NULL DEFAULT 'reset',
