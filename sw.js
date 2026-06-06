@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v82';
+const CACHE = 'teachedos-v83';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -40,6 +40,7 @@ const SHELL = [
   'pwa-boot.js',
   'theme.js',
   'scripts/app-core.js',
+  'scripts/board-app.js',
   'scripts/mobile-nav.js',
   'scripts/nav-boost.js',
   'scripts/mobile-perf.js',
