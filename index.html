@@ -3281,6 +3281,11 @@ function applyTeacherDashboardCache(cache, options = {}) {
 
 async function checkAuthAndRoute() {
   if (!_authToken) {
+    // Try Google One Tap first (silent floating prompt in the corner).
+    // If the user has no Google session or dismisses it, showAuthOverlay()
+    // will be called by the fallback in tryGoogleOneTap or the user
+    // clicks "Sign in" manually.
+    tryGoogleOneTap(); // non-blocking, graceful fallback
     showAuthOverlay();
     return;
   }
@@ -3465,45 +3470,101 @@ function showAuthOverlay() {
 
 /* ─── Google Sign-In (GIS) ─── */
 let _gsiClientId = null;
+let _gsiInitialized = false;
+let _gsiPromptShown = false;
+
 function loadGsiScript() {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.id) return resolve();
     if (document.getElementById('gsi-script')) {
-      document.getElementById('gsi-script').addEventListener('load', () => resolve());
+      // Script tag exists but not yet loaded — wait for it
+      const existing = document.getElementById('gsi-script');
+      existing.addEventListener('load', resolve, {once:true});
+      existing.addEventListener('error', () => reject(new Error('GSI load failed')), {once:true});
       return;
     }
     const s = document.createElement('script');
-    s.id = 'gsi-script'; s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true;
-    s.onload = () => resolve(); s.onerror = () => reject(new Error('Failed to load Google script'));
+    s.id = 'gsi-script';
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load Google Identity Services'));
     document.head.appendChild(s);
   });
 }
-async function setupGoogleSignIn() {
+
+async function _initGsi() {
+  if (_gsiInitialized) return true;
   try {
     const cfgRes = await fetch(API_BASE + '/api/auth/config');
     const cfg = await cfgRes.json();
-    if (!cfg.googleClientId) return; // provider disabled — keep email/password only
+    if (!cfg.googleClientId) return false;
     _gsiClientId = cfg.googleClientId;
     await loadGsiScript();
-    google.accounts.id.initialize({ client_id: _gsiClientId, callback: handleGoogleCredential });
-    const area = document.getElementById('os-google-area');
-    const btnWrap = document.getElementById('os-google-btn');
-    if (area && btnWrap) {
-      area.style.display = 'block';
-      btnWrap.innerHTML = '';
-      google.accounts.id.renderButton(btnWrap, { theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width: 320, logo_alignment: 'center' });
-    }
+    google.accounts.id.initialize({
+      client_id: _gsiClientId,
+      callback: handleGoogleCredential,
+      auto_select: false,            // never auto-sign-in without user gesture
+      cancel_on_tap_outside: true,   // dismiss One Tap if user clicks elsewhere
+      context: 'signin',
+      itp_support: true,             // ITP/Safari compatibility
+    });
+    _gsiInitialized = true;
+    return true;
   } catch (err) {
-    console.warn('[google-signin]', err.message);
+    console.warn('[google-signin] init failed:', err.message);
+    return false;
   }
 }
+
+/* Called once after page load if user is not authenticated —
+   shows Google One Tap floating prompt.  If dismissed, nothing
+   happens (user can still use the email/password modal).        */
+async function tryGoogleOneTap() {
+  if (_gsiPromptShown || _authToken) return;
+  const ok = await _initGsi();
+  if (!ok) return;
+  _gsiPromptShown = true;
+  google.accounts.id.prompt(notification => {
+    // If One Tap is not available or dismissed, fall through to modal
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      console.log('[google-oneTap] not shown:', notification.getNotDisplayedReason?.() || notification.getSkippedReason?.());
+    }
+  });
+}
+
+/* Called when the auth modal opens — renders the Google button inside it. */
+async function setupGoogleSignIn() {
+  const ok = await _initGsi();
+  if (!ok) return;
+  const area   = document.getElementById('os-google-area');
+  const btnWrap = document.getElementById('os-google-btn');
+  if (!area || !btnWrap) return;
+  area.style.display = 'block';
+  btnWrap.innerHTML = '';
+  // Small delay ensures the container is visible and laid out
+  requestAnimationFrame(() => {
+    try {
+      google.accounts.id.renderButton(btnWrap, {
+        type: 'standard', theme: 'outline', size: 'large',
+        shape: 'pill', text: 'continue_with', width: 320,
+        logo_alignment: 'center', locale: 'en',
+      });
+    } catch (e) {
+      console.warn('[google-signin] renderButton failed:', e.message);
+    }
+  });
+}
+
 async function handleGoogleCredential(response) {
   const errEl = document.getElementById('os-auth-err');
-  if (errEl) errEl.style.display = 'none';
+  if (errEl) { errEl.style.display = 'none'; errEl.style.color = ''; }
+  // Dismiss One Tap so it doesn't appear again this session
+  try { google.accounts.id.cancel(); } catch(_) {}
   try {
     const r = await fetch(API_BASE + '/api/auth/google', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential, role: _osRole })
+      body: JSON.stringify({ credential: response.credential, role: _osRole || 'teacher' })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
