@@ -3233,6 +3233,15 @@ const TEACHER_DASHBOARD_CACHE_KEY = 'teachedos_teacher_dashboard_cache_v1';
 let _authToken = localStorage.getItem('teachedos_token');
 let _currentUser = null;
 
+function clearAuthState() {
+  _authToken = null;
+  _currentUser = null;
+  _mePromise = null;
+  ['teachedos_token','teachedos_role','teachedos_user','teachedos_user_email',
+   'teachedos_board_id', TEACHER_DASHBOARD_CACHE_KEY].forEach(k => localStorage.removeItem(k));
+  try { google.accounts.id.disableAutoSelect(); } catch {}
+}
+
 // Single shared /api/auth/me request, memoised for the whole page load so the
 // boot router and the live-widgets block don't each hit the network. Resolves
 // with { ok, status, user }; only rejects on a real network failure (so the
@@ -3323,9 +3332,7 @@ async function checkAuthAndRoute() {
   try {
     const res = await fetchMe();
     if (!res.ok) {
-      // Token invalid — clear and show login
-      localStorage.removeItem('teachedos_token');
-      _authToken = null;
+      clearAuthState();
       showAuthOverlay();
       return;
     }
@@ -3352,9 +3359,7 @@ async function checkAuthAndRoute() {
     // On the VPS domain the API is same-origin and should be immediate. If auth
     // fails here, avoid showing a fake desktop that looks like a broken login.
     if (location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) {
-      localStorage.removeItem('teachedos_token');
-      localStorage.removeItem('teachedos_user');
-      _authToken = null;
+      clearAuthState();
       showAuthOverlay();
       return;
     }
@@ -3375,7 +3380,7 @@ async function checkAuthAndRoute() {
       btn.id = 'mp-offline-signin';
       btn.textContent = '⚡ Sign in';
       btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#1C1C1E;color:#C8E632;border:none;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(14,14,16,.25);display:none;';
-      btn.onclick = () => { localStorage.removeItem('teachedos_token'); showAuthOverlay(); btn.remove(); };
+      btn.onclick = () => { clearAuthState(); showAuthOverlay(); btn.remove(); };
       document.body.appendChild(btn);
       // Show only on mobile
       if (window.innerWidth < 861) btn.style.display = 'block';

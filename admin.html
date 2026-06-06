@@ -1792,8 +1792,11 @@ function doLogout() {
     fetch(`${API}/api/auth/logout`, { method:'POST', headers:{ Authorization:`Bearer ${token}` } }).catch(()=>{});
   }
   token = null;
-  localStorage.removeItem('teachedos_admin_token');
-  location.reload();
+  ['teachedos_token','teachedos_admin_token','teachedos_role','teachedos_user',
+   'teachedos_user_email','teachedos_board_id','teachedos_teacher_dashboard_cache_v1']
+    .forEach(k => localStorage.removeItem(k));
+  try { google.accounts.id.disableAutoSelect(); } catch {}
+  location.href = 'index.html';
 }
 
 // ── API helper ────────────────────────────────────────────────────────────

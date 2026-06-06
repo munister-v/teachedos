@@ -1792,9 +1792,22 @@ async function deleteAllBoards() {
 // ── Logout ────────────────────────────────────────────────────
 async function doLogout() {
   try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
-  localStorage.removeItem('teachedos_token');
-  localStorage.removeItem('teachedos_board_id');
+  clearAuthState();
   window.location.href = 'index.html';
+}
+
+function clearAuthState() {
+  const keys = [
+    'teachedos_token',
+    'teachedos_role',
+    'teachedos_user',
+    'teachedos_user_email',
+    'teachedos_board_id',
+    'teachedos_teacher_dashboard_cache_v1',
+  ];
+  keys.forEach(k => localStorage.removeItem(k));
+  // Revoke Google One Tap auto-select so it doesn't re-sign in immediately
+  try { google.accounts.id.disableAutoSelect(); } catch {}
 }
 
 // ── Subscription / IBAN payment ──────────────────────────────
