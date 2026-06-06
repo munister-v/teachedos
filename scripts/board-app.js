@@ -6170,27 +6170,26 @@ function _ttGenGapFill(input){
 }
 
 function _ttGenOpenQuestions(input){
-  const pool = _ttContentWords(input.source).sort((a,b) => b.length - a.length).slice(0, 12);
-  const topic = input.topic || 'the text';
-  if (!pool.length && !input.source) return null;
-  const templates = [
-    w => `What does the text say about ${w}?`,
-    w => `Why is ${w} important in this text?`,
-    w => `How is ${w} connected to ${topic}?`,
+  const wordTemplates = [
+    (w, topic) => `What does the text say about ${w}?`,
+    w => `Why is ${w} important here?`,
+    (w, topic) => `How is ${w} connected to ${topic}?`,
     w => `What is your opinion about ${w}? Give a reason.`,
     w => `Can you explain ${w} in your own words?`,
+    w => `What example of ${w} can you think of?`,
+    w => `How would you describe ${w} to a friend?`,
+    w => `What questions do you still have about ${w}?`,
   ];
-  const questions = [], used = new Set();
-  const words = pool.length ? pool : [topic];
-  // Interleave: each word gets a different template so questions vary.
-  for (let i = 0; questions.length < input.count && i < words.length * templates.length; i++) {
-    const w = words[i % words.length];
-    const t = templates[(i + Math.floor(i / words.length)) % templates.length];
-    const text = t(w);
-    if (used.has(text)) continue;
-    used.add(text);
-    questions.push({ type:'open', text, points:2 });
-  }
+  const topicTemplates = [
+    t => `What is the main idea about ${t}?`,
+    t => `What did you find most interesting about ${t}?`,
+    t => `What would you like to know more about regarding ${t}?`,
+    t => `How does ${t} relate to your own life?`,
+    t => `What is one new thing you learned about ${t}?`,
+    t => `Do you agree with what was said about ${t}? Why?`,
+  ];
+  const questions = _ttScaleQuestions(input, wordTemplates, topicTemplates)
+    .map(text => ({ type:'open', text, points:2 }));
   return questions.length
     ? { boardKind:'quiz', kind:'Questions', cat:'reading', level:input.level, topic:input.topic, title:`${input.level} · Open Questions: ${input.topic}`, questions }
     : null;
@@ -6267,6 +6266,49 @@ function _ttVocabLines(input){
   if (lines.length) return lines;
   const fromSource = _ttContentWords(input.source).slice(0, input.count);
   return fromSource.length ? fromSource : teacherToolTopicSeeds(input.topic, input.count);
+}
+
+/* ── content pool: target vocabulary ∪ source content words ──────────
+   Real, meaningful subjects for topic-style tools (discussion, open
+   questions, ladders). Unlike teacherToolTopicSeeds it does NOT inject
+   generic filler words, so questions stay natural. */
+function _ttContentPool(input){
+  const out = [], seen = new Set();
+  const push = w => {
+    const v = String(w || '').trim();
+    const k = v.toLowerCase();
+    if (v && !seen.has(k)) { seen.add(k); out.push(v); }
+  };
+  String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean).forEach(push);
+  _ttContentWords(input.source||'').forEach(push);
+  return out;
+}
+
+/* Build up to `count` unique question strings by cycling a word-template bank
+   over the content pool (diagonally, for variety), then filling any shortfall
+   from a bank of topic-level templates. Honours input.count for every tool
+   that isn't bound to a fixed source text. */
+function _ttScaleQuestions(input, wordTemplates, topicTemplates){
+  const count = Math.max(1, input.count || 5);
+  const topic = _ttCap(input.topic || 'this topic');
+  const realPool = _ttContentPool(input);
+  // No vocab / no source → treat the topic itself as the single subject so the
+  // word-template bank still contributes (instead of only topic templates).
+  const pool = realPool.length ? realPool : [topic];
+  const out = [], used = new Set();
+  const add = text => { if (text && !used.has(text)) { used.add(text); out.push(text); } };
+  if (pool.length && wordTemplates.length) {
+    const total = pool.length * wordTemplates.length;
+    for (let i = 0; out.length < count && i < total; i++) {
+      const w = _ttCap(pool[i % pool.length]);
+      const t = wordTemplates[Math.floor(i / pool.length) % wordTemplates.length];
+      add(t(w, topic));
+    }
+  }
+  for (let i = 0; out.length < count && i < topicTemplates.length; i++) {
+    add(topicTemplates[i](topic));
+  }
+  return out;
 }
 
 /* ── essential-vocab / flashcards ───────────────────────────────── */
@@ -6385,35 +6427,56 @@ function _ttGenGistDetail(input){
 
 /* ── discussion questions (speaking) ────────────────────────────── */
 function _ttGenDiscussion(input){
-  const words = _ttContentWords(input.source||'').slice(0,8);
-  const topic = input.topic||'the topic';
-  const tmpl = [
-    w=>`What do you think about ${w}? Give two reasons.`,
-    w=>`Have you ever experienced anything related to ${w}? Tell your partner.`,
-    w=>`Do you agree that ${w} is important? Why / why not?`,
-    w=>`How does ${w} affect everyday life in your country?`,
-    w=>`What would happen if ${w} didn't exist? Discuss with a partner.`,
+  const wordTemplates = [
+    w => `What do you think about ${w}? Give two reasons.`,
+    w => `Have you ever experienced anything related to ${w}? Tell your partner.`,
+    w => `Do you agree that ${w} is important? Why / why not?`,
+    w => `How does ${w} affect everyday life in your country?`,
+    w => `What would happen if ${w} didn't exist? Discuss with a partner.`,
+    w => `How has ${w} changed over the last ten years?`,
+    w => `What are the advantages and disadvantages of ${w}?`,
+    w => `Describe a time when ${w} was a problem for you.`,
+    w => `Who is most affected by ${w}, and why?`,
+    w => `How could ${w} be improved?`,
+    (w, topic) => `How is ${w} connected to ${topic}?`,
+    w => `Would you like to learn more about ${w}? What exactly?`,
   ];
-  const questions=[], used=new Set(), ws=words.length?words:[topic];
-  for (let i=0; questions.length<input.count && i<ws.length*tmpl.length; i++){
-    const w=ws[i%ws.length], t=tmpl[(i+Math.floor(i/ws.length))%tmpl.length], text=t(w);
-    if(used.has(text)) continue; used.add(text);
-    questions.push({ type:'open', text, points:2 });
-  }
+  const topicTemplates = [
+    t => `What is your personal experience with ${t}?`,
+    t => `Why do you think ${t} matters today?`,
+    t => `How do people in your country usually deal with ${t}?`,
+    t => `What is the biggest misconception about ${t}?`,
+    t => `If you could change one thing about ${t}, what would it be?`,
+    t => `How might ${t} look different in the future?`,
+    t => `What advice would you give someone struggling with ${t}?`,
+    t => `Do you think ${t} is getting better or worse? Why?`,
+    t => `What role does technology play in ${t}?`,
+    t => `Tell a short story related to ${t}.`,
+  ];
+  const questions = _ttScaleQuestions(input, wordTemplates, topicTemplates)
+    .map(text => ({ type:'open', text, points:2 }));
   return questions.length ? { boardKind:'quiz', kind:'Discussion', cat:'speaking', level:input.level, topic:input.topic,
     title:`${input.level} · Discussion Questions: ${input.topic}`, questions } : null;
 }
 
 /* ── question ladder ────────────────────────────────────────────── */
 function _ttGenQuestionLadder(input){
-  const w = (_ttContentWords(input.source||'').sort((a,b)=>b.length-a.length)[0]) || input.topic||'the topic';
-  const questions = [
-    { type:'open', text:`Level 1 — Factual: What is ${w}? Give a short definition.`, points:1 },
-    { type:'open', text:`Level 2 — Descriptive: What is ${w} like? Describe it in 2–3 sentences.`, points:1 },
-    { type:'open', text:`Level 3 — Analytical: Why does ${w} happen / exist? Explain the reason.`, points:2 },
-    { type:'open', text:`Level 4 — Evaluative: Is ${w} positive or negative overall? Give evidence.`, points:2 },
-    { type:'open', text:`Level 5 — Personal: How does ${w} affect you or your community?`, points:3 },
-  ].slice(0, Math.max(3, input.count));
+  // One 5-rung ladder per subject; add subjects until we reach input.count rungs.
+  const rungs = [
+    w => ({ type:'open', text:`Level 1 — Factual: What is ${w}? Give a short definition.`, points:1 }),
+    w => ({ type:'open', text:`Level 2 — Descriptive: What is ${w} like? Describe it in 2–3 sentences.`, points:1 }),
+    w => ({ type:'open', text:`Level 3 — Analytical: Why does ${w} happen / exist? Explain the reason.`, points:2 }),
+    w => ({ type:'open', text:`Level 4 — Evaluative: Is ${w} positive or negative overall? Give evidence.`, points:2 }),
+    w => ({ type:'open', text:`Level 5 — Personal: How does ${w} affect you or your community?`, points:3 }),
+  ];
+  const pool = _ttContentPool(input);
+  const subjects = pool.length ? pool : [input.topic || 'the topic'];
+  const count = Math.max(3, input.count || 5);
+  const questions = [];
+  for (let s = 0; s < subjects.length && questions.length < count; s++) {
+    const w = _ttCap(subjects[s]);
+    for (let r = 0; r < rungs.length && questions.length < count; r++) questions.push(rungs[r](w));
+  }
   return { boardKind:'quiz', kind:'Question Ladder', cat:'speaking', level:input.level, topic:input.topic,
     title:`${input.level} · Question Ladder: ${input.topic}`, questions };
 }
