@@ -384,7 +384,7 @@ function boardKindFor(toolId) {
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation'].includes(toolId)) return 'quiz';
   return 'cards';
 }
 
@@ -393,7 +393,7 @@ function generateLocal(input) {
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(input.toolId)) return makeQuiz(input);
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation'].includes(input.toolId)) return makeQuiz(input);
   return makeCards(input);
 }
 

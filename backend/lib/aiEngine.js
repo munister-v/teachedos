@@ -135,6 +135,7 @@ function shapeSpec(input) {
     const isAbcd = toolId === 'abcd-text';
     const isGist = toolId === 'gist-detail';
     const isOdd = toolId === 'odd-one-out';
+    const isWarmup = toolId === 'warmup-listening';
 
     if (isOdd) {
       return {
@@ -190,10 +191,44 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"mcq","text":"sentence with _____","options":["A","B"],"answer":"A","points":1}]}',
       };
     }
-    if (isOpen) {
+    if (isOpen || isWarmup) {
+      const openTask = isWarmup
+        ? `${head} Produce exactly ${count} pre-listening prediction questions at ${level} level that activate prior knowledge and curiosity before hearing/watching. Mix prediction ("What do you think...?"), prior knowledge ("What do you already know about...?"), and personal connection ("Have you ever...?") types. Use type "open".`
+        : `${head} Produce exactly ${count} open-ended questions at ${level} level that encourage critical thinking and personal response. Use type "open".`;
       return {
-        task: `${head} Produce exactly ${count} open-ended questions at ${level} level that encourage critical thinking and personal response. Use type "open".${context}`,
+        task: `${openTask}${context}`,
         schema: '{"questions":[{"type":"open","text":"question?","points":1}]}',
+      };
+    }
+    if (toolId === 'three-titles') {
+      return {
+        task: `${head} Read the source text and produce exactly 1 MCQ: "text" = "Which title best fits the text?", "options" = 3 possible titles (the correct one + 2 plausible but inaccurate distractors), "answer" = the correct title text exactly. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"Which title best fits the text?","options":["Title A","Title B","Title C"],"answer":"Title A","points":1}]}',
+      };
+    }
+    if (toolId === 'reading-bits') {
+      const n = Math.max(4, Math.min(count, 6));
+      return {
+        task: `${head} Split the source text (or create a short ${level} reading text about the topic) into exactly ${n} logical paragraphs. Return them in SHUFFLED order. Each paragraph = one question: "text" = the paragraph content, "answer" = the correct position number as a string ("1", "2", …), type = "gap-fill". The student rearranges them.${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"paragraph text here","answer":"2","points":1}]}',
+      };
+    }
+    if (toolId === 'summary-gapfill') {
+      return {
+        task: `${head} Write a 5–7 sentence summary of the source text / topic at ${level} level. Remove 6–8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"removed word","points":1}]}',
+      };
+    }
+    if (toolId === 'choose-summary') {
+      return {
+        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate summary of the source text / topic. "options" = 3 summaries: one accurate, one too vague, one with an incorrect detail. "answer" = text of the accurate summary exactly. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"Which summary best describes the text?","options":["Accurate summary","Vague but not wrong","Contains incorrect detail"],"answer":"Accurate summary","points":1}]}',
+      };
+    }
+    if (toolId === 'sentence-translation') {
+      return {
+        task: `${head} Produce exactly ${count} translation tasks. Each: "text" = a Ukrainian sentence (or the language named in the teacher note) containing a highlighted target English word/phrase; "answer" = a natural English translation at ${level} level. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"Ukrainian sentence with [target word]","answer":"Natural English translation","points":1}]}',
       };
     }
     if (isGist) {
@@ -251,6 +286,73 @@ function shapeSpec(input) {
       schema: '{"cards":[{"title":"Rule","text":"..."},{"title":"Examples","text":"..."},{"title":"Common mistakes","text":"..."},{"title":"Practice","text":"..."}],"vocab":["term"]}',
     };
   }
+  // ── Listening ────────────────────────────────────────────────────────────────
+  if (toolId === 'transcript-helper') {
+    return {
+      task: `${head} From the transcript / notes create exactly 4 classroom cards in this order: 1) "Pre-listening vocab" — 5–6 key words with short student-friendly definitions; 2) "While-listening task" — one clear focus task to do while listening; 3) "Post-listening questions" — 4–5 comprehension questions; 4) "Speaking follow-up" — 2–3 open discussion prompts. Include a "vocab" list of the key words.${context}`,
+      schema: '{"cards":[{"title":"Pre-listening vocab","text":"word — definition\\n..."},{"title":"While-listening task","text":"..."},{"title":"Post-listening questions","text":"1. ...\\n2. ..."},{"title":"Speaking follow-up","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
+    };
+  }
+
+  // ── Speaking ─────────────────────────────────────────────────────────────────
+  if (toolId === 'dialogue') {
+    return {
+      task: `${head} Write a natural 8–12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" — full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" — 5–6 key phrases with brief explanations (one per line: phrase — meaning); 3) "Extension task" — a speaking or writing follow-up activity. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Dialogue","text":"A: ...\\nB: ..."},{"title":"Useful language","text":"phrase — meaning\\n..."},{"title":"Extension task","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
+  if (toolId === 'lead-in') {
+    return {
+      task: `${head} Design 3–4 warm-up activities (5–7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
+      schema: '{"cards":[{"title":"Activity 1: Brainstorm","text":"..."},{"title":"Activity 2: Quick poll","text":"..."},{"title":"Activity 3: Prediction","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'interesting-facts') {
+    return {
+      task: `${head} Generate 5–6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2–3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,
+      schema: '{"cards":[{"title":"Fact 1: ...","text":"Interesting fact text.\\n💬 Discussion: open question?"}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'pros-cons') {
+    return {
+      task: `${head} Produce 3 cards for debate/writing: 1) "Pros" — 5 arguments in favour, each on its own line starting "N. ..."; 2) "Cons" — 5 arguments against, same format; 3) "Discussion starter" — 2–3 nuanced questions to open debate. Language at ${level} level. Include "vocab" of useful discourse markers and opinion phrases.${context}`,
+      schema: '{"cards":[{"title":"Pros","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Cons","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Discussion starter","text":"1. ...\\n2. ..."}],"vocab":["discourse marker"]}',
+    };
+  }
+
+  // ── Writing ──────────────────────────────────────────────────────────────────
+  if (toolId === 'link-words') {
+    return {
+      task: `${head} Choose 5–7 target words/phrases from the topic. Return 3 cards: 1) "Task" — instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" — each word with a one-line usage note; 3) "Model answer" — a short model paragraph using all words (target words in **bold**) plus 2–3 writing tips. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Task","text":"..."},{"title":"Word list","text":"word — usage note\\n..."},{"title":"Model answer","text":"Model paragraph.\\n\\nTips:\\n1. ..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'creative-writing') {
+    return {
+      task: `${head} Create a creative writing task at ${level} level. Return 4 cards: 1) "Writing prompt" — an engaging scenario or question; 2) "Requirements" — 3 clear requirements (text type, length, vocabulary to include); 3) "Useful phrases" — 5–6 phrases with brief usage notes; 4) "Model opener" — first 2–3 sentences as a model. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Requirements","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Useful phrases","text":"phrase — use\\n..."},{"title":"Model opener","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
+  if (toolId === 'four-opinions') {
+    return {
+      task: `${head} Write 4 contrasting opinions on the topic for debate or response writing at ${level} level. Return one card per opinion: 1) "Strongly agree" — confident, direct; 2) "Partially agree" — nuanced, with a concession; 3) "Disagree" — clear counterargument; 4) "Provocative" — surprising or extreme view to spark debate. Include "vocab" of opinion/hedging phrases.${context}`,
+      schema: '{"cards":[{"title":"Strongly agree","text":"..."},{"title":"Partially agree","text":"..."},{"title":"Disagree","text":"..."},{"title":"Provocative","text":"..."}],"vocab":["opinion phrase"]}',
+    };
+  }
+  if (toolId === 'find-quotes') {
+    return {
+      task: `${head} Select or compose 5–6 quotes on the topic (real or plausible, varied viewpoints). Each card: "title" = "Author Name", "text" = the quote in quotation marks + a blank line + "💬 " + an open discussion question. Include "vocab" of key concepts from the quotes.${context}`,
+      schema: '{"cards":[{"title":"Author Name","text":"\\"Quote text.\\"\\n\\n💬 Discussion question?"}],"vocab":["concept"]}',
+    };
+  }
+  if (toolId === 'essay-topics') {
+    return {
+      task: `${head} Generate 5–6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4–5 useful terms. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Argumentative","text":"Essay prompt.\\n\\n📋 Structure: Introduction → Main arguments (2–3) → Conclusion\\n📝 Key vocabulary: term1, term2, term3"}],"vocab":["term"]}',
+    };
+  }
+
+  // ── Default cards fallback ────────────────────────────────────────────────────
   return {
     task: `${head} Produce a complete, ready-to-teach set of ${Math.max(4, count)} cards. Each card has a clear stage/section "title" and rich classroom "text" (instructions, examples, teacher moves) at ${level} level. End with a "Teacher flow" card. Include a "vocab" list of useful target words.${context}`,
     schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word"]}',
