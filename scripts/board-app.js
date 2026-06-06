@@ -5898,8 +5898,12 @@ function teacherToolSourceSentences(text, topic, count = 6) {
     `The teacher can turn common mistakes into a short review task.`,
     `A final speaking task helps students use the new language naturally.`
   ];
-  const base = s.length ? s : fallback;
-  const out = base.slice(0, count);
+  // Real source text: return only the genuine sentences (never inflate the
+  // count with generic filler — better 8 relevant items than 20 with 12 junk).
+  if (s.length) return s.slice(0, count);
+  // No source at all (only reached by text-adaptation, since source-based
+  // tools are gated behind a "paste text" check): use the pedagogical fallback.
+  const out = fallback.slice(0, count);
   for (let i = out.length; i < count; i++) out.push(fallback[i % fallback.length]);
   return out;
 }
@@ -6260,6 +6264,19 @@ function _ttGenErrorCorrection(input){
     : null;
 }
 
+/* Most meaningful item count for the preview chip. A single "match" question
+   (sorting / word-definition) really contains N pairs, so count those. */
+function _ttCountItems(out){
+  if (!out) return null;
+  if (Array.isArray(out.questions)) {
+    if (out.questions.length === 1 && Array.isArray(out.questions[0].pairs)) return out.questions[0].pairs.length;
+    return out.questions.length;
+  }
+  if (Array.isArray(out.items)) return out.items.length;
+  if (Array.isArray(out.cards)) return out.cards.length;
+  return null;
+}
+
 /* ── vocab-field helper ─────────────────────────────────────────── */
 function _ttVocabLines(input){
   const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
@@ -6341,16 +6358,17 @@ function _ttGenSentencesVocab(input){
 
 /* ── odd-one-out ────────────────────────────────────────────────── */
 function _ttGenOddOneOut(input){
-  const words = _ttVocabLines(input);
+  const words = _ttVocabLines(input).map(_ttCap);
   if (words.length < 4) return null;
-  const pool = _ttShuffle([...words]);
-  const questions = [];
-  for (let i = 0; i + 3 < pool.length && questions.length < input.count; i += 3){
-    const set = pool.slice(i, i+4).map(_ttCap);
+  const questions = [], used = new Set();
+  // Build up to `count` distinct groups of 4 by re-shuffling the pool; allow
+  // overlap between groups but keep each group's membership unique.
+  for (let attempt = 0; questions.length < input.count && attempt < input.count * 6; attempt++){
+    const set = _ttShuffle([...words]).slice(0, 4).sort();
+    const key = set.join('|');
+    if (used.has(key)) continue;
+    used.add(key);
     questions.push({ type:'open', text:`Which word is the odd one out? Explain why:\n${set.join(' / ')}`, points:2 });
-  }
-  if (!questions.length){
-    questions.push({ type:'open', text:`Which word is the odd one out? Explain why:\n${pool.slice(0,4).map(_ttCap).join(' / ')}`, points:2 });
   }
   return { boardKind:'quiz', kind:'Odd One Out', cat:'vocabulary', level:input.level, topic:input.topic,
     title:`${input.level} · Odd One Out: ${input.topic}`, questions };
@@ -7127,7 +7145,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       renderTeacherToolBuilderOutput(cached);
     }
     if (chip) {
-      const n = cached.questions?.length ?? cached.items?.length ?? cached.cards?.length ?? input.count;
+      const n = _ttCountItems(cached) ?? input.count;
       chip.textContent = `${wantsAI ? 'cached AI' : 'cached'} · ${n} items`;
     }
     _ttSetGenerating(false);
@@ -7157,8 +7175,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       _ttCacheRemember(cacheKey, local);
       renderTeacherToolLocalPreview(local);
       if (chip) {
-        const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
-        chip.textContent = n != null ? `fast · ${n} items` : `${local.kind||'ready'}`;
+        const n = _ttCountItems(local);
+        chip.textContent = n == null ? `${local.kind||'ready'}`
+          : (n < input.count ? `fast · ${n} of ${input.count} items` : `fast · ${n} items`);
       }
       _ttSetGenerating(false);
       return;
@@ -7183,7 +7202,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       renderTeacherToolBuilderOutput(instant);
     }
     if (chip) {
-      const n = instant.questions?.length ?? instant.items?.length ?? instant.cards?.length ?? input.count;
+      const n = _ttCountItems(instant) ?? input.count;
       chip.textContent = `instant AI · ${n} items`;
     }
     _ttSetGenerating(false);
@@ -7197,7 +7216,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         renderTeacherToolBuilderOutput(serverOutput);
       }
       if (chip) {
-        const n = serverOutput.questions?.length ?? serverOutput.items?.length ?? serverOutput.cards?.length ?? input.count;
+        const n = _ttCountItems(serverOutput) ?? input.count;
         chip.textContent = `VPS cached · ${n} items`;
       }
     });
@@ -7225,7 +7244,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         lastTeacherToolBuilderOutput = aiOut;
         _ttCacheRemember(cacheKey, aiOut);
         renderTeacherToolLocalPreview(aiOut);
-        const n = aiOut.questions?.length ?? aiOut.items?.length ?? 0;
+        const n = _ttCountItems(aiOut) ?? 0;
         if (chip) chip.textContent = `AI · ${n} items`;
         _ttShowRetry();
         _ttSetGenerating(false);
@@ -7250,8 +7269,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     _ttCacheRemember(cacheKey, local);
     renderTeacherToolLocalPreview(local);
     if (chip && !chip.textContent.startsWith('AI')) {
-      const n = local.questions?.length ?? local.items?.length ?? local.cards?.length;
-      chip.textContent = n != null ? `local · ${n} items` : `${local.kind||'ready'}`;
+      const n = _ttCountItems(local);
+      chip.textContent = n == null ? `${local.kind||'ready'}`
+        : (n < input.count ? `local · ${n} of ${input.count} items` : `local · ${n} items`);
     }
     _ttSetGenerating(false);
     return;
