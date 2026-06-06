@@ -756,6 +756,10 @@ html{scroll-behavior:smooth}
       </div>
       <div class="time-text" id="ai-chain" style="margin-top:10px;color:var(--muted)"></div>
       <div class="time-text" id="ai-lasterror" style="margin-top:4px;color:var(--muted)"></div>
+      <div style="margin-top:14px">
+        <div class="time-text" style="margin-bottom:6px;color:var(--muted)">Requests · last 14 days</div>
+        <div id="ai-usage-chart" style="display:flex;align-items:flex-end;gap:4px;height:60px"></div>
+      </div>
     </div>
 
     <div class="brief-card" id="admin-brief">
@@ -1976,9 +1980,32 @@ async function loadAIStatus() {
     }
     const errEl = document.getElementById('ai-lasterror');
     errEl.textContent = m.lastError ? `Last fallback reason: ${m.lastError}` : '';
+    loadAIUsage();
   } catch(e) {
     badge.textContent = '⚠️ unavailable';
     badge.className = 'badge badge-student';
+  }
+}
+
+async function loadAIUsage() {
+  const root = document.getElementById('ai-usage-chart');
+  if (!root) return;
+  try {
+    const d = await api('GET', '/api/ai/usage?days=14');
+    const rows = d.rows || [];
+    if (!rows.length) { root.innerHTML = '<div class="time-text" style="color:var(--muted)">No requests yet.</div>'; return; }
+    const max = Math.max(1, ...rows.map(r => r.total));
+    root.innerHTML = rows.map(r => {
+      const h = Math.max(4, Math.round((r.total / max) * 56));
+      const day = r.day.slice(5); // MM-DD
+      const tip = `${r.day}: ${r.total} total · ${r.llm_ok} LLM · ${r.fallback} fallback · ${r.cache_hits} cache`;
+      return `<div title="${tip}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div style="width:100%;height:${h}px;background:var(--lime,#9ae600);border-radius:3px 3px 0 0;min-height:4px"></div>
+        <div style="font-size:9px;color:var(--muted)">${day}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    root.innerHTML = `<div class="time-text" style="color:var(--muted)">Usage unavailable</div>`;
   }
 }
 

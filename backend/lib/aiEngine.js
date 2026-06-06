@@ -57,6 +57,28 @@ let lastUsedModel = null;
 function getLastModel() { return lastUsedModel; }
 function listModels() { return CHAIN.map(p => p.model); }
 
+// Complexity routing. "Heavy" work (full lesson cards, essays, reading
+// comprehension, gist) genuinely benefits from the big model, so it stays
+// first. Everything else (vocab, matching, simple grammar/quiz drills) is
+// "light": we try the fast small model FIRST to save the 70B quota and cut
+// latency, with the big model still behind it as a quality backstop.
+const HEAVY_TOOLS = new Set([
+  'abcd-text', 'gist-detail', 'three-titles', 'choose-summary', 'reading-bits',
+]);
+function isLight(input) {
+  if (input.boardKind === 'cards') return false;      // lesson packs, dialogues, essays…
+  if (HEAVY_TOOLS.has(input.toolId)) return false;    // comprehension / reasoning
+  return true;
+}
+// Return the provider chain ordered for this request's complexity.
+function orderedChain(input) {
+  if (!isLight(input)) return CHAIN;
+  const light = CHAIN.filter(p => p.name === 'light');
+  if (!light.length) return CHAIN;
+  const rest = CHAIN.filter(p => p.name !== 'light');
+  return [...light, ...rest];
+}
+
 function enabled() {
   return CHAIN.length > 0;
 }
@@ -434,7 +456,7 @@ async function generate(input) {
   const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
 
   let lastErr;
-  for (const provider of CHAIN) {
+  for (const provider of orderedChain(input)) {
     // Up to 2 attempts per provider: one retry on a transient (429/5xx/timeout)
     // error after a short jittered back-off.
     for (let attempt = 0; attempt < 2; attempt++) {

@@ -2,6 +2,31 @@ const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
+const pool = require('../db/pool');
+
+// Persistent daily usage counters (survive restarts; power the dashboard chart).
+pool.query(`
+  CREATE TABLE IF NOT EXISTS ai_usage_daily (
+    day        DATE PRIMARY KEY,
+    total      INTEGER NOT NULL DEFAULT 0,
+    llm_ok     INTEGER NOT NULL DEFAULT 0,
+    fallback   INTEGER NOT NULL DEFAULT 0,
+    cache_hits INTEGER NOT NULL DEFAULT 0
+  )
+`).catch(() => {});
+
+// Fire-and-forget daily upsert. kind ∈ {'llm_ok','fallback','cache_hits'}.
+function recordUsage(kind) {
+  const col = ['llm_ok', 'fallback', 'cache_hits'].includes(kind) ? kind : null;
+  if (!col) return;
+  pool.query(
+    `INSERT INTO ai_usage_daily (day, total, ${col})
+     VALUES (CURRENT_DATE, 1, 1)
+     ON CONFLICT (day) DO UPDATE
+       SET total = ai_usage_daily.total + 1,
+           ${col} = ai_usage_daily.${col} + 1`
+  ).catch(() => {});
+}
 
 // Per-user throttle so one teacher cannot exhaust the shared free-tier budget.
 // Keyed by user id (set by requireAuth); generous enough for normal lesson prep.
@@ -534,10 +559,12 @@ async function generate(input) {
       const m = aiEngine.getLastModel() || aiEngine.MODEL;
       METRICS.lastModel = m;
       METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
+      recordUsage('llm_ok');
       return out;
     } catch (err) {
       METRICS.fallback++;
       METRICS.lastError = err.message;
+      recordUsage('fallback');
       console.error('[ai/llm] falling back to rule engine:', err.message);
     }
   }
@@ -554,6 +581,7 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
     const hit = cacheGet(key);
     if (hit) {
       METRICS.cacheHits++;
+      recordUsage('cache_hits');
       hit.cached = true;
       hit.processingMs = Date.now() - started;
       return res.json({ output: hit });
@@ -584,6 +612,23 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
     ratePerMin: Number(process.env.AI_RATE_PER_MIN || 15),
     metrics: { ...METRICS },
   });
+});
+
+// ── GET /api/ai/usage — persistent daily counters (last N days) ──────────────
+router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
+  const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
+  try {
+    const { rows } = await pool.query(
+      `SELECT to_char(day,'YYYY-MM-DD') AS day, total, llm_ok, fallback, cache_hits
+       FROM ai_usage_daily
+       WHERE day >= CURRENT_DATE - ($1::int - 1)
+       ORDER BY day ASC`,
+      [days]
+    );
+    res.json({ days, rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── YouTube transcript (no API key, no auth — used by the Teacher Tools hub) ──
