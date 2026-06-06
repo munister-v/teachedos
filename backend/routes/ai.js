@@ -381,19 +381,19 @@ function escapeRegExp(value) {
 }
 
 function boardKindFor(toolId) {
-  if (['word-definition-match', 'word-image-match', 'word-sorting'].includes(toolId)) return 'matching';
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
   return 'cards';
 }
 
 // Local rule-engine fallback (the original `vps-fast-v1` behaviour).
 function generateLocal(input) {
-  if (['word-definition-match', 'word-image-match', 'word-sorting'].includes(input.toolId)) return makeMatching(input);
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(input.toolId)) return makeQuiz(input);
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(input.toolId)) return makeQuiz(input);
   return makeCards(input);
 }
 
@@ -450,11 +450,16 @@ function assembleFromLLM(input, data) {
       .map(p => ({ left: line(p.left), right: line(p.right) }))
       .filter(p => p.left && p.right);
     if (!pairs.length) throw new Error('LLM returned no pairs');
+    const matchText = input.toolId === 'word-sorting'
+      ? `Sort the words into the correct categories for ${input.topic}.`
+      : input.toolId === 'word-translation-match'
+        ? `Match each word with its translation (${input.topic}).`
+        : `Match the words with student-friendly definitions for ${input.topic}.`;
     return {
       ...env,
       questions: [{
         type: 'match',
-        text: `Match the words with student-friendly definitions for ${input.topic}.`,
+        text: matchText,
         pairs,
         points: pairs.length,
       }],

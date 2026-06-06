@@ -71,13 +71,29 @@ function shapeSpec(input) {
   const head = `Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
 
   if (boardKind === 'vocab') {
+    const source = toolId === 'extract-vocab'
+      ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below (skip trivial function words). For each, give a short student-friendly definition (max 15 words) and quote or adapt a natural example sentence at ${level} level.`
+      : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
     return {
-      task: `${head} Produce exactly ${count} vocabulary items. Each item: the word/phrase, a short student-friendly definition (max 15 words), and a natural example sentence at ${level} level.${context}`,
+      task: `${head} ${source}${context}`,
       schema: '{"items":[{"word":"...","definition":"...","example":"..."}]}',
     };
   }
 
   if (boardKind === 'matching') {
+    if (toolId === 'word-translation-match') {
+      return {
+        task: `${head} Produce exactly ${count} matching pairs. "left" = the English target word/phrase, "right" = its translation. Translate into the language named in the teacher note; if none is given, translate into Ukrainian. Keep translations short and natural at ${level} level.${context}`,
+        schema: '{"pairs":[{"left":"english word","right":"translation"}]}',
+      };
+    }
+    if (toolId === 'word-sorting') {
+      const cats = Math.max(2, Math.min(4, Math.round(count / 4)));
+      return {
+        task: `${head} Choose ${cats} clear categories related to the topic, then produce exactly ${count} words to sort. For each word, "left" = the word and "right" = the EXACT category label it belongs to. Spread words roughly evenly across the categories.${context}`,
+        schema: '{"pairs":[{"left":"word","right":"Category label"}]}',
+      };
+    }
     return {
       task: `${head} Produce exactly ${count} matching pairs. "left" = a word/phrase, "right" = a short student-friendly definition or match at ${level} level.${context}`,
       schema: '{"pairs":[{"left":"...","right":"..."}]}',
@@ -92,7 +108,14 @@ function shapeSpec(input) {
     const isMcqGap = toolId === 'gaps-abcd';
     const isAbcd = toolId === 'abcd-text';
     const isGist = toolId === 'gist-detail';
+    const isOdd = toolId === 'odd-one-out';
 
+    if (isOdd) {
+      return {
+        task: `${head} Produce exactly ${count} "odd one out" groups. In each group, "options" is an array of 4 words where 3 clearly share a category (meaning, grammar or theme) and 1 does not belong; "answer" is the word that does NOT belong; "text" briefly names what the 3 have in common. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"3 are ... — which is the odd one?","options":["w1","w2","w3","w4"],"answer":"odd word","points":1}]}',
+      };
+    }
     if (isTf) {
       return {
         task: `${head} Produce exactly ${count} True/False statements at ${level} level. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
@@ -146,6 +169,24 @@ function shapeSpec(input) {
     return {
       task: `${head} Write the requested reading/summary content at ${level} level as 2–3 cards (e.g. "Generated text", "Before reading", "After reading"). Include a "vocab" list of key words.${context}`,
       schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'sentences-vocab') {
+    return {
+      task: `${head} For each target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return one card per word: "title" = the word, "text" = the example sentence with the target word in **bold**. Produce ${count} cards. Put all target words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"target word","text":"Example sentence with **word**."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'comm-situations') {
+    return {
+      task: `${head} Create ${count} short communicative situations that show the target vocabulary in use. Return one card per situation: "title" = the real-life situation, "text" = a natural 2-line mini-dialogue formatted "A: ...\\nB: ..." that uses a target word at ${level} level. Put the target words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"situation","text":"A: ...\\nB: ..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'rephrase-word') {
+    return {
+      task: `${head} Create ${count} rephrasing tasks: give a sentence and ONE key word the student must use to rewrite it keeping the same meaning. Return one card per task: "title" = "Use: KEYWORD", "text" = the original sentence. End with ONE extra card titled "Answer key" listing the model rewrites, numbered. Keep everything at ${level} level.${context}`,
+      schema: '{"cards":[{"title":"Use: KEYWORD","text":"Original sentence."},{"title":"Answer key","text":"1. ... 2. ..."}],"vocab":["KEYWORD"]}',
     };
   }
   return {
