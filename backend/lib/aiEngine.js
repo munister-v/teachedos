@@ -114,6 +114,12 @@ function shapeSpec(input) {
         schema: '{"pairs":[{"left":"word","right":"Category label"}]}',
       };
     }
+    if (toolId === 'matching-halves') {
+      return {
+        task: `${head} Produce exactly ${count} items split into two halves to be matched — sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${context}`,
+        schema: '{"pairs":[{"left":"first half","right":"second half"}]}',
+      };
+    }
     return {
       task: `${head} Produce exactly ${count} matching pairs. "left" = a word/phrase, "right" = a short student-friendly definition or match at ${level} level.${context}`,
       schema: '{"pairs":[{"left":"...","right":"..."}]}',
@@ -134,6 +140,36 @@ function shapeSpec(input) {
       return {
         task: `${head} Produce exactly ${count} "odd one out" groups. In each group, "options" is an array of 4 words where 3 clearly share a category (meaning, grammar or theme) and 1 does not belong; "answer" is the word that does NOT belong; "text" briefly names what the 3 have in common. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"3 are ... — which is the odd one?","options":["w1","w2","w3","w4"],"answer":"odd word","points":1}]}',
+      };
+    }
+    if (toolId === 'error-correction') {
+      return {
+        task: `${head} Produce exactly ${count} sentences that each contain exactly ONE natural grammar or vocabulary mistake a ${level} learner would make. "text" = the incorrect sentence; "answer" = the fully corrected sentence. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"incorrect sentence","answer":"corrected sentence","points":1}]}',
+      };
+    }
+    if (toolId === 'rewrite') {
+      return {
+        task: `${head} Produce exactly ${count} rewrite tasks targeting the grammar structure in the topic/teacher note. "text" = the original sentence followed by " → (use: KEY WORD/STRUCTURE)"; "answer" = the correctly rewritten sentence keeping the same meaning. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"Original sentence. → (use: ...)","answer":"rewritten sentence","points":1}]}',
+      };
+    }
+    if (toolId === 'word-order') {
+      return {
+        task: `${head} Produce exactly ${count} sentences for word-order practice at ${level} level. "text" = the sentence words shuffled out of order and joined with " / " (keep capitalisation natural, drop the final period); "answer" = the correct sentence. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"word / shuffled / the / are","answer":"The words are shuffled.","points":1}]}',
+      };
+    }
+    if (toolId === 'type-gap') {
+      return {
+        task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level where several words could fit and the student types their own. Use "_____" for the gap; "answer" = ONE natural example word that fits. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"example word","points":1}]}',
+      };
+    }
+    if (toolId === 'word-bank') {
+      return {
+        task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level. Use "_____" for the gap; "answer" = the exact missing word. The set of all answers will be shown to students as a shuffled word bank, so make every answer a distinct single word. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"word","points":1}]}',
       };
     }
     if (isTf) {
@@ -207,6 +243,12 @@ function shapeSpec(input) {
     return {
       task: `${head} Create ${count} rephrasing tasks: give a sentence and ONE key word the student must use to rewrite it keeping the same meaning. Return one card per task: "title" = "Use: KEYWORD", "text" = the original sentence. End with ONE extra card titled "Answer key" listing the model rewrites, numbered. Keep everything at ${level} level.${context}`,
       schema: '{"cards":[{"title":"Use: KEYWORD","text":"Original sentence."},{"title":"Answer key","text":"1. ... 2. ..."}],"vocab":["KEYWORD"]}',
+    };
+  }
+  if (toolId === 'grammar-rules') {
+    return {
+      task: `${head} Explain the target grammar point clearly for a ${level} learner as 4 cards in this order: "Rule" (concise explanation + form), "Examples" (3-5 model sentences), "Common mistakes" (typical errors + the fix), "Practice" (3-5 short practice prompts with answers). Put key terms in "vocab".${context}`,
+      schema: '{"cards":[{"title":"Rule","text":"..."},{"title":"Examples","text":"..."},{"title":"Common mistakes","text":"..."},{"title":"Practice","text":"..."}],"vocab":["term"]}',
     };
   }
   return {

@@ -381,19 +381,19 @@ function escapeRegExp(value) {
 }
 
 function boardKindFor(toolId) {
-  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting'].includes(toolId)) return 'matching';
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
   return 'cards';
 }
 
 // Local rule-engine fallback (the original `vps-fast-v1` behaviour).
 function generateLocal(input) {
-  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting'].includes(input.toolId)) return makeMatching(input);
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(input.toolId)) return makeQuiz(input);
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(input.toolId)) return makeQuiz(input);
   return makeCards(input);
 }
 
@@ -454,7 +454,9 @@ function assembleFromLLM(input, data) {
       ? `Sort the words into the correct categories for ${input.topic}.`
       : input.toolId === 'word-translation-match'
         ? `Match each word with its translation (${input.topic}).`
-        : `Match the words with student-friendly definitions for ${input.topic}.`;
+        : input.toolId === 'matching-halves'
+          ? `Match the two halves to make complete sentences (${input.topic}).`
+          : `Match the words with student-friendly definitions for ${input.topic}.`;
     return {
       ...env,
       questions: [{
@@ -470,7 +472,13 @@ function assembleFromLLM(input, data) {
   if (kind === 'quiz') {
     const questions = (data.questions || []).slice(0, input.count).map(sanitizeQuestion).filter(Boolean);
     if (!questions.length) throw new Error('LLM returned no questions');
-    return { ...env, questions, sections: teacherFlow(input) };
+    const sections = teacherFlow(input);
+    if (input.toolId === 'word-bank') {
+      const bank = [...new Set(questions.map(q => q.answer).filter(Boolean))]
+        .sort(() => Math.random() - 0.5);
+      if (bank.length) sections.unshift({ title: 'Word bank', items: bank });
+    }
+    return { ...env, questions, sections };
   }
 
   // cards (lesson packs, worksheets, texts, dialogues, …)
