@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const aiEngine = require('../lib/aiEngine');
 
 const MAX_ITEMS = 100;
 const CACHE_TTL_MS = 1000 * 60 * 30;
@@ -379,7 +380,16 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function generate(input) {
+function boardKindFor(toolId) {
+  if (['word-definition-match', 'word-image-match', 'word-sorting'].includes(toolId)) return 'matching';
+  if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(toolId)) return 'vocab';
+  if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'tense-contrast', 'gist-detail', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions'].includes(toolId)) return 'quiz';
+  return 'cards';
+}
+
+// Local rule-engine fallback (the original `vps-fast-v1` behaviour).
+function generateLocal(input) {
   if (['word-definition-match', 'word-image-match', 'word-sorting'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
@@ -387,7 +397,109 @@ function generate(input) {
   return makeCards(input);
 }
 
-router.post('/teacher-tool', requireAuth, requireTeacher, (req, res) => {
+// Light cleaners used when assembling the LLM payload into the shared envelope.
+function line(v) { return clean(v); }
+function block(v) { return String(v == null ? '' : v).replace(/\r/g, '').trim(); }
+
+function sanitizeQuestion(q) {
+  if (!q || typeof q !== 'object') return null;
+  const type = ['mcq', 'truefalse', 'gap-fill', 'open', 'match'].includes(q.type) ? q.type : 'mcq';
+  const text = block(q.text);
+  if (!text) return null;
+  const out = { type, text, points: 1 };
+  if (type === 'mcq') {
+    out.options = (q.options || []).map(line).filter(Boolean);
+    if (out.options.length < 2) return null;
+    out.answer = q.answer != null ? line(q.answer) : out.options[0];
+  } else if (type === 'truefalse') {
+    out.answer = Boolean(q.answer);
+  } else if (type === 'gap-fill') {
+    out.answer = line(q.answer);
+  } else if (type === 'match') {
+    out.pairs = (q.pairs || []).map(p => ({ left: line(p.left), right: line(p.right) })).filter(p => p.left && p.right);
+    if (!out.pairs.length) return null;
+  }
+  return out;
+}
+
+// Wrap the LLM's structured pieces in the exact envelope the front-end expects.
+function assembleFromLLM(input, data) {
+  const kind = input.boardKind;
+  const env = {
+    ...base(input, kind === 'matching' ? 'quiz' : kind),
+    engine: `llm:${aiEngine.MODEL}`,
+  };
+
+  if (kind === 'vocab') {
+    const items = (data.items || []).slice(0, input.count)
+      .map(x => ({ word: line(x.word), definition: block(x.definition), example: block(x.example) }))
+      .filter(x => x.word);
+    if (!items.length) throw new Error('LLM returned no vocab items');
+    return {
+      ...env,
+      items,
+      cards: [{
+        title: 'Teacher flow',
+        text: 'Reveal meaning -> ask for examples -> sort hard words -> recycle in a speaking or writing task.',
+      }],
+    };
+  }
+
+  if (kind === 'matching') {
+    const pairs = (data.pairs || []).slice(0, input.count)
+      .map(p => ({ left: line(p.left), right: line(p.right) }))
+      .filter(p => p.left && p.right);
+    if (!pairs.length) throw new Error('LLM returned no pairs');
+    return {
+      ...env,
+      questions: [{
+        type: 'match',
+        text: `Match the words with student-friendly definitions for ${input.topic}.`,
+        pairs,
+        points: pairs.length,
+      }],
+      sections: teacherFlow(input),
+    };
+  }
+
+  if (kind === 'quiz') {
+    const questions = (data.questions || []).slice(0, input.count).map(sanitizeQuestion).filter(Boolean);
+    if (!questions.length) throw new Error('LLM returned no questions');
+    return { ...env, questions, sections: teacherFlow(input) };
+  }
+
+  // cards (lesson packs, worksheets, texts, dialogues, …)
+  const cards = (data.cards || [])
+    .map(c => ({ title: line(c.title) || 'Card', text: block(c.text) }))
+    .filter(c => c.text);
+  if (!cards.length) throw new Error('LLM returned no cards');
+  const vocab = Array.isArray(data.vocab) ? data.vocab.map(line).filter(Boolean).slice(0, 16) : [];
+  const out = { ...env, cards, vocab };
+  if (input.toolId === 'simplify-text') {
+    const label = actionLabel(input.action);
+    out.kind = label;
+    out.title = `${input.level} · ${label}: ${input.topic}`;
+    out.action = input.action;
+  } else {
+    out.sections = teacherFlow(input);
+  }
+  return out;
+}
+
+// Primary entry: try the LLM, fall back to the local rule engine on any error.
+async function generate(input) {
+  if (aiEngine.enabled()) {
+    try {
+      input.boardKind = boardKindFor(input.toolId);
+      return assembleFromLLM(input, await aiEngine.generate(input));
+    } catch (err) {
+      console.error('[ai/llm] falling back to rule engine:', err.message);
+    }
+  }
+  return generateLocal(input);
+}
+
+router.post('/teacher-tool', requireAuth, requireTeacher, async (req, res) => {
   const started = Date.now();
   try {
     const input = normaliseInput(req.body);
@@ -398,7 +510,7 @@ router.post('/teacher-tool', requireAuth, requireTeacher, (req, res) => {
       hit.processingMs = Date.now() - started;
       return res.json({ output: hit });
     }
-    const output = generate(input);
+    const output = await generate(input);
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
@@ -410,10 +522,12 @@ router.post('/teacher-tool', requireAuth, requireTeacher, (req, res) => {
 });
 
 router.get('/status', requireAuth, requireTeacher, (_req, res) => {
+  const llm = aiEngine.enabled();
   res.json({
     ok: true,
-    engine: 'vps-fast-v1',
-    mode: 'server-cache-rule-engine',
+    engine: llm ? `llm:${aiEngine.MODEL}` : 'vps-fast-v1',
+    mode: llm ? 'cloud-llm-with-rule-fallback' : 'server-cache-rule-engine',
+    llmEnabled: llm,
     cacheSize: cache.size,
     maxItems: MAX_ITEMS,
   });
