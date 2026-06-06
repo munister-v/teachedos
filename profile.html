@@ -899,7 +899,14 @@ async function init() {
   const cached = readProfileCache();
   try {
     const r = await apiFetch('/api/auth/me');
-    if (!r.ok && !cached?.me) { window.location.href = 'index.html'; return; }
+    if (!r.ok && !cached?.me) {
+      if (r.status === 401 || r.status === 403) {
+        ['teachedos_token','teachedos_role','teachedos_user','teachedos_user_email',
+         'teachedos_teacher_dashboard_cache_v1'].forEach(k => localStorage.removeItem(k));
+        try { google?.accounts?.id?.disableAutoSelect(); } catch {}
+      }
+      window.location.href = 'index.html'; return;
+    }
     if (r.ok) {
       const { user } = await r.json();
       me = user;
