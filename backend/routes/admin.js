@@ -16,6 +16,39 @@ async function ensureIbanPaymentsTable() {
   await ensureBillingSchema(pool);
 }
 
+// ── Admin action audit log ─────────────────────────────────────────────────
+pool.query(`
+  CREATE TABLE IF NOT EXISTS admin_audit (
+    id           BIGSERIAL    PRIMARY KEY,
+    admin_id     UUID,
+    admin_email  TEXT,
+    action       TEXT         NOT NULL,
+    target_id    TEXT,
+    target_label TEXT,
+    detail       TEXT,
+    ip           TEXT,
+    created_at   TIMESTAMPTZ  DEFAULT NOW()
+  )
+`).catch(() => {});
+pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit(created_at DESC)`).catch(() => {});
+
+// Fire-and-forget: record a sensitive admin action. Never blocks the response.
+function logAdminAction(req, action, opts = {}) {
+  pool.query(
+    `INSERT INTO admin_audit (admin_id, admin_email, action, target_id, target_label, detail, ip)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      req.user?.id || null,
+      req.user?.email || null,
+      String(action).slice(0, 64),
+      opts.targetId ? String(opts.targetId).slice(0, 64) : null,
+      opts.targetLabel ? String(opts.targetLabel).slice(0, 160) : null,
+      opts.detail ? String(opts.detail).slice(0, 500) : null,
+      req.ip || null,
+    ]
+  ).catch(() => {});
+}
+
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
 router.get('/stats', async (req, res) => {
   try {
@@ -683,6 +716,21 @@ router.post('/invites', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/audit-log ───────────────────────────────────────────────
+router.get('/audit-log', async (req, res) => {
+  const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 30));
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, admin_email, action, target_label, detail, ip, created_at
+       FROM admin_audit ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+    res.json({ entries: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 router.get('/users', async (req, res) => {
   try {
@@ -741,6 +789,7 @@ router.post('/users', async (req, res) => {
       [user.id, 'My First Board']
     );
 
+    logAdminAction(req, 'user.create', { targetId: user.id, targetLabel: user.email, detail: `role=${user.role}` });
     res.status(201).json({ user });
   } catch (err) {
     if (err.code === '23505') {
@@ -752,7 +801,8 @@ router.post('/users', async (req, res) => {
 
 // ── PATCH /api/admin/users/:id ─────────────────────────────────────────────
 router.patch('/users/:id', async (req, res) => {
-  const { name, role, avatar, password, plan, plan_status, billing_cycle, plan_expires_at } = req.body;
+  const { name, email, role, avatar, password, plan, plan_status, billing_cycle, plan_expires_at } = req.body;
+  const changes = [];
   try {
     const sets = [];
     const vals = [];
@@ -763,12 +813,26 @@ router.patch('/users/:id', async (req, res) => {
       sets.push(`name=$${i++}`);
       vals.push(safeName);
     }
+    if (email !== undefined) {
+      const safeEmail = String(email).trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail)) {
+        return res.status(400).json({ error: 'Invalid email' });
+      }
+      const { rows: dup } = await pool.query(
+        'SELECT id FROM users WHERE email=$1 AND id<>$2', [safeEmail, req.params.id]
+      );
+      if (dup.length) return res.status(409).json({ error: 'Email already in use' });
+      sets.push(`email=$${i++}`);
+      vals.push(safeEmail);
+      changes.push('login');
+    }
     if (role !== undefined) {
       if (!['teacher', 'student', 'admin'].includes(role)) {
         return res.status(400).json({ error: 'Invalid role' });
       }
       sets.push(`role=$${i++}`);
       vals.push(role);
+      changes.push(`role→${role}`);
     }
     if (avatar !== undefined) {
       sets.push(`avatar=$${i++}`);
@@ -803,6 +867,7 @@ router.patch('/users/:id', async (req, res) => {
       const hash = await bcrypt.hash(password, 12);
       sets.push(`password_hash=$${i++}`);
       vals.push(hash);
+      changes.push('password');
     }
     if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
     vals.push(req.params.id);
@@ -812,6 +877,13 @@ router.patch('/users/:id', async (req, res) => {
       vals
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    if (changes.length) {
+      logAdminAction(req, 'user.update', {
+        targetId: rows[0].id,
+        targetLabel: rows[0].email,
+        detail: changes.join(', '),
+      });
+    }
     res.json({ user: rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -824,7 +896,8 @@ router.delete('/users/:id', async (req, res) => {
     return res.status(400).json({ error: 'Cannot delete yourself' });
   }
   try {
-    await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
+    const { rows } = await pool.query('DELETE FROM users WHERE id=$1 RETURNING email', [req.params.id]);
+    logAdminAction(req, 'user.delete', { targetId: req.params.id, targetLabel: rows[0]?.email || req.params.id });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

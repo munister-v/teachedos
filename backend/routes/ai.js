@@ -499,13 +499,28 @@ function assembleFromLLM(input, data) {
   return out;
 }
 
+// Lightweight in-memory usage metrics (reset on restart) for the admin dashboard.
+const METRICS = {
+  total: 0,        // teacher-tool requests served
+  llmOk: 0,        // produced by the cloud LLM
+  fallback: 0,     // LLM failed → rule engine used
+  cacheHits: 0,    // served from cache
+  lastError: null, // last LLM error message
+  lastAt: null,    // ISO timestamp of last request
+  startedAt: new Date().toISOString(),
+};
+
 // Primary entry: try the LLM, fall back to the local rule engine on any error.
 async function generate(input) {
   if (aiEngine.enabled()) {
     try {
       input.boardKind = boardKindFor(input.toolId);
-      return assembleFromLLM(input, await aiEngine.generate(input));
+      const out = assembleFromLLM(input, await aiEngine.generate(input));
+      METRICS.llmOk++;
+      return out;
     } catch (err) {
+      METRICS.fallback++;
+      METRICS.lastError = err.message;
       console.error('[ai/llm] falling back to rule engine:', err.message);
     }
   }
@@ -516,9 +531,12 @@ router.post('/teacher-tool', requireAuth, requireTeacher, async (req, res) => {
   const started = Date.now();
   try {
     const input = normaliseInput(req.body);
+    METRICS.total++;
+    METRICS.lastAt = new Date().toISOString();
     const key = cacheKey(req.user.id, input);
     const hit = cacheGet(key);
     if (hit) {
+      METRICS.cacheHits++;
       hit.cached = true;
       hit.processingMs = Date.now() - started;
       return res.json({ output: hit });
@@ -539,10 +557,13 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
   res.json({
     ok: true,
     engine: llm ? `llm:${aiEngine.MODEL}` : 'vps-fast-v1',
+    model: llm ? aiEngine.MODEL : null,
+    baseUrl: llm ? aiEngine.BASE_URL : null,
     mode: llm ? 'cloud-llm-with-rule-fallback' : 'server-cache-rule-engine',
     llmEnabled: llm,
     cacheSize: cache.size,
     maxItems: MAX_ITEMS,
+    metrics: { ...METRICS },
   });
 });
 

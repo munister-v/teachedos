@@ -742,6 +742,21 @@ html{scroll-behavior:smooth}
       <div class="roles-list" id="roles-list">Loading…</div>
     </div>
 
+    <div class="table-card" style="padding:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <div style="font-size:16px;font-weight:800">🤖 AI Engine</div>
+        <span class="badge" id="ai-engine-badge" style="font-size:12px">checking…</span>
+      </div>
+      <div class="stats-grid" style="margin-bottom:0">
+        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-num" id="ai-model" style="font-size:15px">—</div><div class="stat-label">Active model</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-num" id="ai-llmok">—</div><div class="stat-label">LLM generations</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">↩️</div><div><div class="stat-num" id="ai-fallback">—</div><div class="stat-label">Rule fallbacks</div></div></div>
+        <div class="stat-card"><div class="stat-icon pink">⚡</div><div><div class="stat-num" id="ai-cache">—</div><div class="stat-label">Cache hits</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-num" id="ai-total">—</div><div class="stat-label">Total requests</div></div></div>
+      </div>
+      <div class="time-text" id="ai-lasterror" style="margin-top:10px;color:var(--muted)"></div>
+    </div>
+
     <div class="brief-card" id="admin-brief">
       <div class="brief-score" style="--score:0">
         <div class="brief-score-num">—</div>
@@ -1069,6 +1084,19 @@ html{scroll-behavior:smooth}
         <button class="btn-sm btn-green" onclick="showPage('users');setUsersRoleFilter('')">Open Users</button>
         <button class="btn-sm btn-orange" onclick="showPage('boards')">Open Boards</button>
         <button class="btn-sm btn-danger" onclick="purgeExpiredSessions()">Purge Expired Sessions</button>
+      </div>
+    </div>
+
+    <div class="table-card" style="padding:22px">
+      <div class="table-header" style="padding:0 0 16px;border-bottom:none">
+        <div class="table-header-title">🛡️ Admin Action Log</div>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAdminAuditLog()">🔄 Refresh</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="responsive-mobile">
+          <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+          <tbody id="admin-auditlog-tbody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
+        </table>
       </div>
     </div>
 
@@ -1534,8 +1562,9 @@ html{scroll-behavior:smooth}
       <input class="form-input" id="mu-name" type="text" placeholder="Full name"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Email (read-only)</label>
-      <input class="form-input" id="mu-email" type="email" disabled style="opacity:.6"/>
+      <label class="form-label">Email / Login</label>
+      <input class="form-input" id="mu-email" type="email" placeholder="user@example.com"/>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Changing this updates the user's sign-in login.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Role</label>
@@ -1915,9 +1944,31 @@ async function refreshStats() {
     );
     loadAdminBrief();
     loadTimeline();
+    loadAIStatus();
     updateSidebarBadges(stats);
   } catch(e) {
     toast('Failed to load stats: ' + e.message, 'error');
+  }
+}
+
+// ── AI engine status ───────────────────────────────────────────────────────
+async function loadAIStatus() {
+  const badge = document.getElementById('ai-engine-badge');
+  try {
+    const d = await api('GET', '/api/ai/status');
+    const m = d.metrics || {};
+    badge.textContent = d.llmEnabled ? '🟢 LLM active' : '🟡 Rule engine';
+    badge.className = 'badge badge-' + (d.llmEnabled ? 'teacher' : 'student');
+    document.getElementById('ai-model').textContent    = d.model || 'vps-fast-v1';
+    document.getElementById('ai-llmok').textContent    = m.llmOk ?? 0;
+    document.getElementById('ai-fallback').textContent = m.fallback ?? 0;
+    document.getElementById('ai-cache').textContent    = m.cacheHits ?? 0;
+    document.getElementById('ai-total').textContent    = m.total ?? 0;
+    const errEl = document.getElementById('ai-lasterror');
+    errEl.textContent = m.lastError ? `Last fallback reason: ${m.lastError}` : '';
+  } catch(e) {
+    badge.textContent = '⚠️ unavailable';
+    badge.className = 'badge badge-student';
   }
 }
 
@@ -2327,8 +2378,31 @@ async function loadAudit() {
       title: item.name,
       sub: `${item.email} · ${item.role} · joined ${fmtDate(item.created_at)}`,
     }));
+    loadAdminAuditLog();
   } catch(e) {
     document.getElementById('audit-warnings').innerHTML = `<div class="audit-warning medium">Audit failed: ${esc(e.message)}</div>`;
+  }
+}
+
+async function loadAdminAuditLog() {
+  const tbody = document.getElementById('admin-auditlog-tbody');
+  if (!tbody) return;
+  try {
+    const d = await api('GET', '/api/admin/audit-log?limit=50');
+    if (!d.entries || !d.entries.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No admin actions recorded yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.entries.map(e => `<tr>
+      <td class="time-text">${fmtDate(e.created_at)}</td>
+      <td>${esc(e.admin_email || '—')}</td>
+      <td><span class="badge badge-teacher">${esc(e.action)}</span></td>
+      <td>${esc(e.target_label || '—')}</td>
+      <td style="color:var(--muted);font-size:13px">${esc(e.detail || '')}</td>
+      <td class="time-text">${esc(e.ip || '')}</td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Error: ${esc(e.message)}</td></tr>`;
   }
 }
 
@@ -2433,8 +2507,10 @@ async function loadUsers() {
 }
 
 let editingUserId = null;
+let editingUserEmail = '';
 function openEditUser(u) {
   editingUserId = u.id;
+  editingUserEmail = u.email || '';
   document.getElementById('modal-user-title').textContent = `Edit: ${u.name}`;
   document.getElementById('mu-name').value   = u.name;
   document.getElementById('mu-email').value  = u.email;
@@ -2464,6 +2540,11 @@ async function saveUser() {
   };
   const pass = document.getElementById('mu-pass').value;
   if (pass) { if (pass.length < 8) { toast('Password min 8 chars','error'); return; } body.password = pass; }
+  const newEmail = document.getElementById('mu-email').value.trim().toLowerCase();
+  if (newEmail && newEmail !== editingUserEmail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { toast('Invalid email','error'); return; }
+    body.email = newEmail;
+  }
   try {
     await api('PATCH', `/api/admin/users/${editingUserId}`, body);
     closeUserModal();
