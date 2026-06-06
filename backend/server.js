@@ -46,6 +46,7 @@ app.get('/health', (_, res) => res.json({ ok: true, ts: new Date().toISOString()
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/auth',   require('./routes/auth'));
+app.use('/api/share',  require('./routes/share'));
 app.use('/api/boards', require('./routes/boards'));
 app.use('/api/users',  require('./routes/users'));
 app.use('/api/admin',  require('./routes/admin'));

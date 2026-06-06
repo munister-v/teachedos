@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeachEd · Shared Task</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{--lime:#C8E64A;--ink:#181818;--muted:#6b6b5e;--line:#e6e6da;--bg:#faf9f4;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 18px 80px}
+  header.top{display:flex;align-items:center;gap:10px;margin:8px 0 22px}
+  header.top img{width:34px;height:34px;border-radius:9px}
+  header.top b{font-size:18px;letter-spacing:-.02em}
+  header.top b span{color:#5C8500}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.05)}
+  h1{margin:.1em 0 .2em;font-size:1.5rem;letter-spacing:-.03em}
+  .meta{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:18px}
+  pre.body{white-space:pre-wrap;font:inherit;margin:0}
+  .q{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;background:#fff}
+  .q .qt{font-weight:700;margin-bottom:10px}
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 13px;margin:7px 0;cursor:pointer;font:inherit;transition:.12s}
+  .opt:hover{border-color:#bcd24a}
+  .opt.correct{border-color:#4caf50;background:rgba(76,175,80,.12)}
+  .opt.wrong{border-color:#e53935;background:rgba(229,57,53,.10)}
+  .gap-input{border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;font:inherit;min-width:120px}
+  .gap-input.ok{border-color:#4caf50;background:rgba(76,175,80,.1)}
+  .gap-input.no{border-color:#e53935;background:rgba(229,57,53,.08)}
+  .tf{display:inline-flex;gap:8px;margin-left:10px}
+  .tf button{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:5px 14px;cursor:pointer;font:inherit;font-weight:600}
+  .tf button.sel{border-color:#1a1a1a;background:#1a1a1a;color:var(--lime)}
+  .tf button.good{border-color:#4caf50;background:rgba(76,175,80,.14)}
+  .tf button.bad{border-color:#e53935;background:rgba(229,57,53,.12)}
+  .btn{border:none;border-radius:12px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer}
+  .btn.lime{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);color:var(--lime)}
+  .pair{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:11px;padding:9px 13px;margin:7px 0}
+  .pair b{color:#3a5b00}
+  .score{margin-top:16px;font-weight:800}
+  .foot{margin-top:26px;text-align:center;font-size:13px;color:var(--muted)}
+  .foot a{color:#5C8500;font-weight:700;text-decoration:none}
+  .state{padding:40px 0;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><img src="logo.png" alt=""><b>Teach<span>Ed</span></b></header>
+  <div id="root"><div class="state">Loading task…</div></div>
+  <div class="foot">Made with <a href="landing.html">TeachEd</a> · a free task shared by your teacher.</div>
+</div>
+<script>
+const API_BASE = (window.TEACHED_API_BASE || ((location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:4000':((location.hostname==='teached.tech'||location.hostname.endsWith('.teached.tech'))?location.origin:'https://teachedos-api.onrender.com')));
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function token(){return new URLSearchParams(location.search).get('t')||'';}
+
+async function load(){
+  const t=token();
+  const root=document.getElementById('root');
+  if(!t){root.innerHTML='<div class="state">This link is missing its code.</div>';return;}
+  try{
+    const r=await fetch(`${API_BASE}/api/share/${encodeURIComponent(t)}`);
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Not found');
+    render(d.material);
+  }catch(err){
+    root.innerHTML=`<div class="state">${esc(err.message||'Could not load this task')}</div>`;
+  }
+}
+
+function render(m){
+  const root=document.getElementById('root');
+  const meta=`${esc(m.level||'Mixed')} · ${(m.tags||[]).filter(Boolean).map(esc).join(' · ')}`;
+  let interactive='';
+  const gt=m.gameType, gc=m.gameContent;
+  if(gt==='speed-quiz' && gc && Array.isArray(gc.questions)) interactive=renderQuiz(gc.questions);
+  else if(gt==='fill-blank' && gc && Array.isArray(gc.sentences)) interactive=renderGaps(gc.sentences);
+  else if(gt==='true-false' && gc && Array.isArray(gc.statements)) interactive=renderTF(gc.statements);
+  else if(gt==='memory-match' && gc && Array.isArray(gc.pairs)) interactive=renderPairs(gc.pairs);
+  else if(gt==='word-categories' && gc && Array.isArray(gc.categories)) interactive=renderCats(gc.categories);
+
+  root.innerHTML=`<div class="card">
+    <h1>${esc(m.title||'TeachEd Task')}</h1>
+    <div class="meta">${meta}</div>
+    ${interactive || `<pre class="body">${esc(m.text||'')}</pre>`}
+  </div>`;
+  if(interactive) wireInteractive(gt);
+}
+
+/* ---- interactive renderers ---- */
+function renderQuiz(qs){
+  return qs.map((q,i)=>`<div class="q" data-correct="${q.correct||0}"><div class="qt">${i+1}. ${esc(q.q||'')}</div>${(q.opts||[]).map((o,j)=>`<button class="opt" data-i="${j}">${esc(o)}</button>`).join('')}</div>`).join('')+scoreBar('quiz');
+}
+function renderGaps(sentences){
+  return sentences.map((s,i)=>{
+    const parts=String(s).split('|');
+    const prompt=esc(parts[0]||'').replace('___','<input class="gap-input" data-gap="1">');
+    const ans=esc((parts[1]||'').trim().toLowerCase());
+    return `<div class="q" data-answer="${ans}"><div class="qt">${i+1}. ${prompt}</div></div>`;
+  }).join('')+`<button class="btn lime" id="check-gaps">Check answers</button><div class="score" id="score"></div>`;
+}
+function renderTF(st){
+  return st.map((s,i)=>`<div class="q" data-answer="${s.answer?'1':'0'}"><div class="qt">${i+1}. ${esc(s.text||'')}<span class="tf"><button data-v="1">True</button><button data-v="0">False</button></span></div></div>`).join('')+scoreBar('tf');
+}
+function renderPairs(pairs){
+  return `<p>Match each word with its meaning:</p>`+pairs.map(p=>`<div class="pair"><b>${esc(p.a||'')}</b><span>${esc(p.b||'')}</span></div>`).join('');
+}
+function renderCats(cats){
+  return cats.map(c=>`<div class="q"><div class="qt">${esc(c.name||'')}</div><div>${(c.words||[]).map(esc).join(', ')}</div></div>`).join('');
+}
+function scoreBar(){return `<div class="score" id="score"></div>`;}
+
+function wireInteractive(gt){
+  if(gt==='speed-quiz'){
+    let answered=0,correct=0;const total=document.querySelectorAll('.q').length;
+    document.querySelectorAll('.q').forEach(q=>{
+      q.querySelectorAll('.opt').forEach(opt=>opt.addEventListener('click',()=>{
+        if(q.dataset.done)return;q.dataset.done='1';answered++;
+        const ci=Number(q.dataset.correct);const pick=Number(opt.dataset.i);
+        q.querySelectorAll('.opt').forEach(o=>{if(Number(o.dataset.i)===ci)o.classList.add('correct');});
+        if(pick===ci)correct++;else opt.classList.add('wrong');
+        if(answered===total)document.getElementById('score').textContent=`Score: ${correct} / ${total}`;
+      }));
+    });
+  } else if(gt==='fill-blank'){
+    document.getElementById('check-gaps')?.addEventListener('click',()=>{
+      let correct=0,total=0;
+      document.querySelectorAll('.q').forEach(q=>{const inp=q.querySelector('[data-gap]');if(!inp)return;total++;
+        const ok=inp.value.trim().toLowerCase()===q.dataset.answer;inp.classList.toggle('ok',ok);inp.classList.toggle('no',!ok);if(ok)correct++;});
+      document.getElementById('score').textContent=`Score: ${correct} / ${total}`;
+    });
+  } else if(gt==='true-false'){
+    let answered=0,correct=0;const total=document.querySelectorAll('.q').length;
+    document.querySelectorAll('.q').forEach(q=>{
+      q.querySelectorAll('.tf button').forEach(b=>b.addEventListener('click',()=>{
+        if(q.dataset.done)return;q.dataset.done='1';answered++;
+        const right=q.dataset.answer;const pick=b.dataset.v;
+        q.querySelectorAll('.tf button').forEach(x=>{if(x.dataset.v===right)x.classList.add('good');});
+        if(pick===right)correct++;else b.classList.add('bad');
+        if(answered===total)document.getElementById('score').textContent=`Score: ${correct} / ${total}`;
+      }));
+    });
+  }
+}
+load();
+</script>
+</body>
+</html>
