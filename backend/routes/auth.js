@@ -15,7 +15,11 @@ pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20
 pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`).catch(() => {});
 ensureBillingSchema(pool).catch(() => {});
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+// Public OAuth 2.0 Web client ID (not a secret — it is exposed in browser code
+// by design). Hardcoded as the default so Google Sign-In works without setting
+// a server env var; GOOGLE_CLIENT_ID env still overrides it if present.
+const DEFAULT_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 // Throttle credential-guessing: 20 attempts / 15 min per IP on auth endpoints.
