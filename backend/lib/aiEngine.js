@@ -17,13 +17,33 @@
 // Without AI_API_KEY, or on any error, the caller falls back to the local rule
 // engine — nothing breaks, generation just degrades to the old templates.
 
-const API_KEY = process.env.AI_API_KEY || '';
-const BASE_URL = (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
-const MODEL = process.env.AI_MODEL || 'llama-3.3-70b-versatile';
 const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 25000);
 
+// Ordered provider chain. The first with a key is primary; on any failure
+// (rate limit, timeout, bad output) we try the next, then the caller falls
+// back to the local rule engine. Add a key to AI_API_KEY_2 to enable the
+// duplicate provider (default: OpenRouter free tier).
+const PROVIDERS = [
+  {
+    name: 'primary',
+    key: process.env.AI_API_KEY || '',
+    baseUrl: (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, ''),
+    model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+  },
+  {
+    name: 'secondary',
+    key: process.env.AI_API_KEY_2 || '',
+    baseUrl: (process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
+    model: process.env.AI_MODEL_2 || 'meta-llama/llama-3.3-70b-instruct:free',
+  },
+].filter(p => p.key);
+
+// Primary descriptors kept for status reporting / the engine label.
+const MODEL = PROVIDERS[0]?.model || (process.env.AI_MODEL || 'llama-3.3-70b-versatile');
+const BASE_URL = PROVIDERS[0]?.baseUrl || 'https://api.groq.com/openai/v1';
+
 function enabled() {
-  return Boolean(API_KEY);
+  return PROVIDERS.length > 0;
 }
 
 // Pull the first balanced JSON value (object or array) out of a model reply,
@@ -195,23 +215,26 @@ function shapeSpec(input) {
   };
 }
 
-async function generate(input) {
-  if (!API_KEY) throw new Error('AI_API_KEY not set');
-  const { task, schema } = shapeSpec(input);
-  const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
-
+// Call one provider's chat-completions endpoint and parse its JSON reply.
+async function callProvider(provider, user) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${provider.key}`,
+  };
+  // OpenRouter asks for these attribution headers; harmless elsewhere.
+  if (provider.baseUrl.includes('openrouter')) {
+    headers['HTTP-Referer'] = process.env.SITE_URL || 'https://teached.tech';
+    headers['X-Title'] = 'TeachEd';
+  }
   let resp;
   try {
-    resp = await fetch(`${BASE_URL}/chat/completions`, {
+    resp = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
+      headers,
       body: JSON.stringify({
-        model: MODEL,
+        model: provider.model,
         temperature: 0.6,
         max_tokens: 4096,
         response_format: { type: 'json_object' },
@@ -233,6 +256,23 @@ async function generate(input) {
   const data = await resp.json();
   const text = data?.choices?.[0]?.message?.content || '';
   return extractJson(text);
+}
+
+async function generate(input) {
+  if (!PROVIDERS.length) throw new Error('No AI provider configured');
+  const { task, schema } = shapeSpec(input);
+  const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
+
+  let lastErr;
+  for (const provider of PROVIDERS) {
+    try {
+      return await callProvider(provider, user);
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[ai/${provider.name}] ${provider.model} failed: ${err.message}`);
+    }
+  }
+  throw lastErr || new Error('All AI providers failed');
 }
 
 module.exports = { enabled, generate, MODEL, BASE_URL };
