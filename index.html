@@ -3233,6 +3233,20 @@ const TEACHER_DASHBOARD_CACHE_KEY = 'teachedos_teacher_dashboard_cache_v1';
 let _authToken = localStorage.getItem('teachedos_token');
 let _currentUser = null;
 
+// Single shared /api/auth/me request, memoised for the whole page load so the
+// boot router and the live-widgets block don't each hit the network. Resolves
+// with { ok, status, user }; only rejects on a real network failure (so the
+// caller can still tell "bad token" apart from "offline").
+let _mePromise = null;
+function fetchMe() {
+  if (_mePromise) return _mePromise;
+  if (!_authToken) return Promise.resolve({ ok: false, status: 0, user: null });
+  _mePromise = fetch(API_BASE + '/api/auth/me', {
+    headers: { Authorization: 'Bearer ' + _authToken }
+  }).then(async r => ({ ok: r.ok, status: r.status, user: r.ok ? (await r.json()).user : null }));
+  return _mePromise;
+}
+
 function readTeacherDashboardCache() {
   try {
     return JSON.parse(localStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY) || 'null');
@@ -3294,18 +3308,28 @@ async function checkAuthAndRoute() {
     showAuthOverlay();
     return;
   }
+  // Optimistic boot: if we already have a cached teacher/admin dashboard,
+  // paint it instantly so the desktop appears without waiting for the network.
+  // The /api/auth/me call below then reconciles with fresh data (or bounces to
+  // login if the token turned out to be invalid).
+  const cachedRole = localStorage.getItem('teachedos_role');
+  if (cachedRole === 'teacher' || cachedRole === 'admin') {
+    const cached = readTeacherDashboardCache();
+    if (cached) {
+      applyTeacherDashboardCache(cached);
+      revealPage();
+    }
+  }
   try {
-    const r = await fetch(API_BASE + '/api/auth/me', {
-      headers: { Authorization: 'Bearer ' + _authToken }
-    });
-    if (!r.ok) {
+    const res = await fetchMe();
+    if (!res.ok) {
       // Token invalid — clear and show login
       localStorage.removeItem('teachedos_token');
       _authToken = null;
       showAuthOverlay();
       return;
     }
-    const { user } = await r.json();
+    const user = res.user;
     _currentUser = user;
 
     // Role routing
@@ -3317,6 +3341,7 @@ async function checkAuthAndRoute() {
     // Teacher / Admin: cache role to avoid redirect loops
     localStorage.setItem('teachedos_role', user.role);
     if (user.email) localStorage.setItem('teachedos_user_email', user.email);
+    writeTeacherDashboardCache({ user }); // seed optimistic boot for next load
 
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
@@ -3823,7 +3848,9 @@ setInterval(loadNotifications, 120000);
   if (!token) return;
   const auth = { headers: { Authorization: 'Bearer ' + token } };
 
-  fetch(API + '/api/auth/me', auth).then(r => r.json()).then(d => {
+  // Reuse the shared /api/auth/me from boot instead of firing a second request.
+  fetchMe().then(res => {
+    const d = { user: res.ok ? res.user : null };
     if (!d.user) return;
     // Students are handled by checkAuthAndRoute — skip widget wiring for them
     if (d.user.role === 'student') return;
