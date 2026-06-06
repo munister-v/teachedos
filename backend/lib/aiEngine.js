@@ -19,31 +19,46 @@
 
 const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 12000);
 
-// Ordered provider chain. The first with a key is primary; on any failure
-// (rate limit, timeout, bad output) we try the next, then the caller falls
-// back to the local rule engine. Add a key to AI_API_KEY_2 to enable the
-// duplicate provider (default: OpenRouter free tier).
+const PRIMARY_KEY = process.env.AI_API_KEY || '';
+const PRIMARY_URL = (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
+const PRIMARY_MODEL = process.env.AI_MODEL || 'llama-3.3-70b-versatile';
+// Lighter, much faster model on the SAME provider/key. On Groq it lives in a
+// separate rate-limit bucket, so it rescues most 429s before we ever drop to
+// the rule engine. Set AI_MODEL_LIGHT='' to disable.
+const LIGHT_MODEL = process.env.AI_MODEL_LIGHT === undefined
+  ? 'llama-3.1-8b-instant'
+  : process.env.AI_MODEL_LIGHT;
+
+// Ordered provider chain. We try each in turn; on the final failure the caller
+// falls back to the local rule engine. The chain is:
+//   1) primary model            (e.g. Groq llama-3.3-70b-versatile)
+//   2) light model, same key    (e.g. Groq llama-3.1-8b-instant) — fresh quota
+//   3) external secondary        (e.g. OpenRouter free, via AI_API_KEY_2)
 const PROVIDERS = [
-  {
-    name: 'primary',
-    key: process.env.AI_API_KEY || '',
-    baseUrl: (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, ''),
-    model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
-  },
-  {
-    name: 'secondary',
-    key: process.env.AI_API_KEY_2 || '',
-    baseUrl: (process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
-    model: process.env.AI_MODEL_2 || 'meta-llama/llama-3.3-70b-instruct:free',
-  },
-].filter(p => p.key);
+  { name: 'primary', key: PRIMARY_KEY, baseUrl: PRIMARY_URL, model: PRIMARY_MODEL },
+];
+if (PRIMARY_KEY && LIGHT_MODEL && LIGHT_MODEL !== PRIMARY_MODEL) {
+  PROVIDERS.push({ name: 'light', key: PRIMARY_KEY, baseUrl: PRIMARY_URL, model: LIGHT_MODEL });
+}
+PROVIDERS.push({
+  name: 'secondary',
+  key: process.env.AI_API_KEY_2 || '',
+  baseUrl: (process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
+  model: process.env.AI_MODEL_2 || 'meta-llama/llama-3.3-70b-instruct:free',
+});
+const CHAIN = PROVIDERS.filter(p => p.key);
 
 // Primary descriptors kept for status reporting / the engine label.
-const MODEL = PROVIDERS[0]?.model || (process.env.AI_MODEL || 'llama-3.3-70b-versatile');
-const BASE_URL = PROVIDERS[0]?.baseUrl || 'https://api.groq.com/openai/v1';
+const MODEL = CHAIN[0]?.model || PRIMARY_MODEL;
+const BASE_URL = CHAIN[0]?.baseUrl || PRIMARY_URL;
+
+// The model that actually produced the last successful generation.
+let lastUsedModel = null;
+function getLastModel() { return lastUsedModel; }
+function listModels() { return CHAIN.map(p => p.model); }
 
 function enabled() {
-  return PROVIDERS.length > 0;
+  return CHAIN.length > 0;
 }
 
 // Pull the first balanced JSON value (object or array) out of a model reply,
@@ -389,34 +404,56 @@ async function callProvider(provider, user) {
       }),
       signal: ctrl.signal,
     });
+  } catch (err) {
+    // Network error or aborted by our timeout — treat as retryable.
+    const e = new Error(ctrl.signal.aborted ? `timeout after ${TIMEOUT_MS}ms` : err.message);
+    e.retryable = true;
+    throw e;
   } finally {
     clearTimeout(timer);
   }
 
   if (!resp.ok) {
     const detail = await resp.text().catch(() => '');
-    throw new Error(`LLM ${resp.status}: ${detail.slice(0, 200)}`);
+    const e = new Error(`LLM ${resp.status}: ${detail.slice(0, 200)}`);
+    e.status = resp.status;
+    // 429 (rate limit) and 5xx (server) are worth a quick retry; 4xx are not.
+    e.retryable = resp.status === 429 || resp.status >= 500;
+    throw e;
   }
   const data = await resp.json();
   const text = data?.choices?.[0]?.message?.content || '';
   return extractJson(text);
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function generate(input) {
-  if (!PROVIDERS.length) throw new Error('No AI provider configured');
+  if (!CHAIN.length) throw new Error('No AI provider configured');
   const { task, schema } = shapeSpec(input);
   const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
 
   let lastErr;
-  for (const provider of PROVIDERS) {
-    try {
-      return await callProvider(provider, user);
-    } catch (err) {
-      lastErr = err;
-      console.warn(`[ai/${provider.name}] ${provider.model} failed: ${err.message}`);
+  for (const provider of CHAIN) {
+    // Up to 2 attempts per provider: one retry on a transient (429/5xx/timeout)
+    // error after a short jittered back-off.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const out = await callProvider(provider, user);
+        lastUsedModel = provider.model;
+        return out;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[ai/${provider.name}] ${provider.model} attempt ${attempt + 1} failed: ${err.message}`);
+        if (err.retryable && attempt === 0) {
+          await sleep(500 + Math.floor(Math.random() * 400));
+          continue;
+        }
+        break; // non-retryable, or retry already used → next provider
+      }
     }
   }
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, MODEL, BASE_URL };
+module.exports = { enabled, generate, MODEL, BASE_URL, getLastModel, listModels };

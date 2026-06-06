@@ -1,6 +1,18 @@
 const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
+
+// Per-user throttle so one teacher cannot exhaust the shared free-tier budget.
+// Keyed by user id (set by requireAuth); generous enough for normal lesson prep.
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: Number(process.env.AI_RATE_PER_MIN || 15),
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  message: { error: 'You are generating too fast. Please wait a few seconds and try again.' },
+});
 
 const MAX_ITEMS = 100;
 const CACHE_TTL_MS = 1000 * 60 * 30;
@@ -427,7 +439,7 @@ function assembleFromLLM(input, data) {
   const kind = input.boardKind;
   const env = {
     ...base(input, kind === 'matching' ? 'quiz' : kind),
-    engine: `llm:${aiEngine.MODEL}`,
+    engine: `llm:${aiEngine.getLastModel() || aiEngine.MODEL}`,
   };
 
   if (kind === 'vocab') {
@@ -506,7 +518,9 @@ const METRICS = {
   fallback: 0,     // LLM failed → rule engine used
   cacheHits: 0,    // served from cache
   lastError: null, // last LLM error message
+  lastModel: null, // model that produced the last LLM generation
   lastAt: null,    // ISO timestamp of last request
+  byModel: {},     // per-model success counts
   startedAt: new Date().toISOString(),
 };
 
@@ -517,6 +531,9 @@ async function generate(input) {
       input.boardKind = boardKindFor(input.toolId);
       const out = assembleFromLLM(input, await aiEngine.generate(input));
       METRICS.llmOk++;
+      const m = aiEngine.getLastModel() || aiEngine.MODEL;
+      METRICS.lastModel = m;
+      METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
       return out;
     } catch (err) {
       METRICS.fallback++;
@@ -527,7 +544,7 @@ async function generate(input) {
   return generateLocal(input);
 }
 
-router.post('/teacher-tool', requireAuth, requireTeacher, async (req, res) => {
+router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req, res) => {
   const started = Date.now();
   try {
     const input = normaliseInput(req.body);
@@ -559,10 +576,12 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
     engine: llm ? `llm:${aiEngine.MODEL}` : 'vps-fast-v1',
     model: llm ? aiEngine.MODEL : null,
     baseUrl: llm ? aiEngine.BASE_URL : null,
+    chain: llm ? aiEngine.listModels() : [],
     mode: llm ? 'cloud-llm-with-rule-fallback' : 'server-cache-rule-engine',
     llmEnabled: llm,
     cacheSize: cache.size,
     maxItems: MAX_ITEMS,
+    ratePerMin: Number(process.env.AI_RATE_PER_MIN || 15),
     metrics: { ...METRICS },
   });
 });

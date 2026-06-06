@@ -754,7 +754,8 @@ html{scroll-behavior:smooth}
         <div class="stat-card"><div class="stat-icon pink">⚡</div><div><div class="stat-num" id="ai-cache">—</div><div class="stat-label">Cache hits</div></div></div>
         <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-num" id="ai-total">—</div><div class="stat-label">Total requests</div></div></div>
       </div>
-      <div class="time-text" id="ai-lasterror" style="margin-top:10px;color:var(--muted)"></div>
+      <div class="time-text" id="ai-chain" style="margin-top:10px;color:var(--muted)"></div>
+      <div class="time-text" id="ai-lasterror" style="margin-top:4px;color:var(--muted)"></div>
     </div>
 
     <div class="brief-card" id="admin-brief">
@@ -1964,6 +1965,15 @@ async function loadAIStatus() {
     document.getElementById('ai-fallback').textContent = m.fallback ?? 0;
     document.getElementById('ai-cache').textContent    = m.cacheHits ?? 0;
     document.getElementById('ai-total').textContent    = m.total ?? 0;
+    const chainEl = document.getElementById('ai-chain');
+    if (chainEl) {
+      const chain = (d.chain || []).join(' → ');
+      const parts = [];
+      if (chain) parts.push(`Fallback chain: ${chain} → rule engine`);
+      if (d.ratePerMin) parts.push(`Limit: ${d.ratePerMin} req/min per user`);
+      if (m.lastModel) parts.push(`Last served by: ${m.lastModel}`);
+      chainEl.textContent = parts.join('  ·  ');
+    }
     const errEl = document.getElementById('ai-lasterror');
     errEl.textContent = m.lastError ? `Last fallback reason: ${m.lastError}` : '';
   } catch(e) {
