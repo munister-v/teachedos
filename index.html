@@ -3448,6 +3448,9 @@ function showAuthOverlay() {
         </div>
         <div id="os-auth-fields"></div>
         <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+        <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
+          <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
+        </div>
         <div style="text-align:center;margin-top:16px;font-size:13px;color:#5A5A4A;font-weight:500;">
           <span id="os-toggle-text">Don't have an account?</span>
           <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
@@ -3539,6 +3542,9 @@ function renderOsAuthFields() {
   const isLogin = _osAuthMode === 'login';
   const sub = document.getElementById('os-auth-sub');
   const btn = document.getElementById('os-auth-btn');
+  const forgotRow = document.getElementById('os-forgot-row');
+  if (forgotRow) forgotRow.style.display = isLogin ? '' : 'none';
+  if (btn) btn.onclick = submitOsAuth;
   const roleRow = document.getElementById('os-role-row');
   const togText = document.getElementById('os-toggle-text');
   const togLink = document.getElementById('os-toggle-link');
@@ -3559,7 +3565,53 @@ function renderOsAuthFields() {
 function toggleOsAuth() {
   _osAuthMode = _osAuthMode === 'login' ? 'register' : 'login';
   document.getElementById('os-auth-err').style.display='none';
+  document.getElementById('os-forgot-row').style.display = _osAuthMode==='login' ? '' : 'none';
   renderOsAuthFields();
+}
+
+function startForgotPassword() {
+  _osAuthMode = 'forgot';
+  const sub = document.getElementById('os-auth-sub');
+  const btn = document.getElementById('os-auth-btn');
+  const row = document.getElementById('os-forgot-row');
+  const tog = document.getElementById('os-toggle-text');
+  const togLink = document.getElementById('os-toggle-link');
+  const err = document.getElementById('os-auth-err');
+  if (sub) sub.textContent = 'Reset your password';
+  if (btn) { btn.textContent = 'Send reset link'; btn.onclick = submitForgotPassword; }
+  if (row) row.style.display = 'none';
+  if (tog) tog.textContent = 'Remember your password?';
+  if (togLink) { togLink.textContent = 'Sign in'; togLink.onclick = () => { _osAuthMode='login'; err.style.display='none'; row.style.display=''; toggleOsAuth(); btn.onclick=submitOsAuth; }; }
+  err.style.display = 'none';
+  const f = document.getElementById('os-auth-fields');
+  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
+  f.innerHTML = `<input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });
+}
+
+async function submitForgotPassword() {
+  const email = document.getElementById('os-af-email')?.value.trim();
+  const errEl = document.getElementById('os-auth-err');
+  const btn   = document.getElementById('os-auth-btn');
+  if (!email) return;
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await fetch(API_BASE + '/api/auth/forgot-password', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email})
+    });
+    // Always show success (server doesn't reveal if email exists)
+    errEl.style.color = '#179955';
+    errEl.textContent = '✓ If that email is registered, a reset link is on its way. Check your inbox.';
+    errEl.style.display = 'block';
+    btn.textContent = 'Sent';
+    document.getElementById('os-auth-fields').innerHTML = '';
+  } catch {
+    errEl.style.color = '#d73333';
+    errEl.textContent = 'Something went wrong. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Send reset link';
+  }
 }
 
 async function submitOsAuth() {

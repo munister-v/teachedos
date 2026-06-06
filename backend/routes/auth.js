@@ -1,12 +1,26 @@
 const router  = require('express').Router();
 const bcrypt  = require('bcryptjs');
+const crypto  = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { requireAuth, signToken } = require('../middleware/auth');
 const { ensureBillingSchema } = require('../lib/billing');
+const { sendEmail, resetPasswordEmail } = require('../lib/email');
 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
+pool.query(`
+  CREATE TABLE IF NOT EXISTS email_tokens (
+    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    INTEGER     REFERENCES users(id) ON DELETE CASCADE,
+    email      TEXT        NOT NULL,
+    token      TEXT        NOT NULL UNIQUE,
+    type       TEXT        NOT NULL DEFAULT 'reset',
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at    TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
 // OAuth support: password becomes optional, track the external identity.
 pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
@@ -543,6 +557,105 @@ router.post('/set-role', async (req, res) => {
     res.json({ user: rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Password reset ───────────────────────────────────────────────────────────
+const forgotLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5,
+  message: { error: 'Too many reset requests, please try again in 15 minutes.' } });
+
+// POST /api/auth/forgot-password  { email }
+router.post('/forgot-password', forgotLimiter, async (req, res) => {
+  const email = (req.body.email || '').toLowerCase().trim();
+  if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+  // Always return success to prevent user enumeration
+  res.json({ ok: true, message: 'If an account with that email exists, a reset link has been sent.' });
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT id FROM users WHERE email = $1', [email]);
+    if (!rows.length) return; // silent — don't leak existence
+
+    const userId = rows[0].id;
+    const token  = crypto.randomBytes(32).toString('hex');
+    const exp    = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Invalidate older unused reset tokens for this user
+    await pool.query(
+      `UPDATE email_tokens SET used_at = NOW()
+       WHERE user_id = $1 AND type = 'reset' AND used_at IS NULL`, [userId]);
+
+    await pool.query(
+      `INSERT INTO email_tokens (user_id, email, token, type, expires_at)
+       VALUES ($1, $2, $3, 'reset', $4)`,
+      [userId, email, token, exp]);
+
+    const { subject, html } = resetPasswordEmail(token);
+    await sendEmail({ to: email, subject, html });
+  } catch (err) {
+    console.error('[auth/forgot-password]', err.message);
+  }
+});
+
+// GET /api/auth/reset-password?token=...  — validate token
+router.get('/reset-password', async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).json({ valid: false, error: 'Token is required.' });
+  try {
+    const { rows } = await pool.query(
+      `SELECT email, expires_at, used_at
+       FROM email_tokens
+       WHERE token = $1 AND type = 'reset'`, [token]);
+    if (!rows.length)     return res.json({ valid: false, error: 'Invalid or expired link.' });
+    if (rows[0].used_at)  return res.json({ valid: false, error: 'This link has already been used.' });
+    if (new Date(rows[0].expires_at) < new Date())
+                          return res.json({ valid: false, error: 'This link has expired.' });
+    res.json({ valid: true, email: rows[0].email });
+  } catch (err) {
+    res.status(500).json({ valid: false, error: err.message });
+  }
+});
+
+// POST /api/auth/reset-password  { token, password }
+router.post('/reset-password', forgotLimiter, async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password)
+    return res.status(400).json({ error: 'Token and new password are required.' });
+  if (password.length < 8)
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `SELECT t.id, t.user_id, t.email, t.expires_at, t.used_at
+       FROM email_tokens t
+       WHERE t.token = $1 AND t.type = 'reset'
+       FOR UPDATE`, [token]);
+
+    if (!rows.length)    throw Object.assign(new Error('Invalid or expired link.'),    { status: 400 });
+    if (rows[0].used_at) throw Object.assign(new Error('This link has already been used.'), { status: 400 });
+    if (new Date(rows[0].expires_at) < new Date())
+                         throw Object.assign(new Error('This link has expired.'),       { status: 400 });
+
+    const hash = await bcrypt.hash(password, 12);
+    await client.query('UPDATE users SET password_hash = $1 WHERE id = $2',
+      [hash, rows[0].user_id]);
+    await client.query('UPDATE email_tokens SET used_at = NOW() WHERE id = $1',
+      [rows[0].id]);
+    // Invalidate all sessions for this user
+    await client.query('DELETE FROM sessions WHERE user_id = $1', [rows[0].user_id]);
+
+    await client.query('COMMIT');
+    res.json({ ok: true, message: 'Password updated. You can now sign in.' });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[auth/reset-password]', err.message);
+    res.status(err.status || 500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
