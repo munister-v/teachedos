@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <!-- DNS + TLS pre-negotiation for Google Fonts — saves ~200ms on first load -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Google Sign-In: preconnect to reduce first-auth latency -->
+<link rel="preconnect" href="https://accounts.google.com" crossorigin>
+<link rel="preconnect" href="https://apis.google.com" crossorigin>
+<!-- Google Sign-In client_id meta tag (required for One Tap) -->
+<meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#EC2D8C">
