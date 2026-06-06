@@ -265,3 +265,19 @@ DROP TRIGGER IF EXISTS trg_assignments_updated ON assignments;
 CREATE TRIGGER trg_assignments_updated
   BEFORE UPDATE ON assignments
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ── Shared materials (public interactive links from Teacher Tools) ───────────
+CREATE TABLE IF NOT EXISTS shared_materials (
+  id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  token         TEXT         UNIQUE NOT NULL,
+  owner_id      UUID         REFERENCES users(id) ON DELETE SET NULL,
+  title         VARCHAR(255) NOT NULL DEFAULT 'TeachEd Material',
+  level         VARCHAR(20),
+  text          TEXT,
+  game_type     VARCHAR(40),
+  game_content  JSONB,
+  tags          JSONB        NOT NULL DEFAULT '[]',
+  views         INTEGER      NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_shared_materials_owner ON shared_materials(owner_id, created_at DESC);
