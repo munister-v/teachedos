@@ -7499,15 +7499,18 @@ function _ttPlaceVocabOnBoard(output){
 // from the vocab/sentences the teacher already supplied (gap-fill, sorting,
 // flashcards, etc.). For these "Generate fast" stays instant and local.
 //
-// COMPREHENSION tools (abcd-text, true-false, open-questions, gaps-abcd,
-// gist-detail) are deliberately NOT here: a template can't understand a text, so
-// it produced nonsense MCQ distractors. When the teacher is logged in they go
-// AI-first; when offline they still fall back to the local generator.
+// NOT here (→ AI-first when logged in, local only as offline fallback):
+//  • comprehension tools — a template can't understand a text: abcd-text,
+//    true-false, open-questions, gaps-abcd, gist-detail.
+//  • tools whose local output is misleading: word-sorting (split the list in
+//    half into meaningless "Category A/B"), two-options (two random words as the
+//    choices), odd-one-out (random 4 words, no shared category), simplify-text
+//    (a template can't actually re-level a text).
 const TT_LOCAL_QUALITY_SET = new Set([
   'extract-vocab','gap','word-definition-match','error-correction','essential-vocab',
-  'flashcards','sentences-vocab','odd-one-out','word-sorting','gaps-brackets','two-options',
+  'flashcards','sentences-vocab','gaps-brackets',
   'discussion','question-ladder','roleplay-cards','debate-cards',
-  'listening-dictation','simplify-text',
+  'listening-dictation',
 ]);
 
 async function generateTeacherToolBuilder(mode = 'fast') {
