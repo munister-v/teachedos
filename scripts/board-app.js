@@ -5568,6 +5568,7 @@ const TT_NEEDS_SOURCE_SET = new Set([
 const TT_NEEDS_VOCAB_SET = new Set([
   'sentences-vocab','odd-one-out','word-sorting','essential-vocab',
   'flashcards','collocations','word-families','word-image-match','word-definition-match',
+  'synonyms-antonyms','phrasal-verbs','idioms',
   // tools built around the teacher's target vocabulary
   'text-topic-vocab','creative-writing','link-words','sentence-translation',
 ]);
@@ -5576,6 +5577,34 @@ const TT_REQUIRE_VOCAB_SET = new Set([
   'text-topic-vocab','link-words','sentence-translation',
   'sentences-vocab','odd-one-out','word-sorting',
 ]);
+// Listening / video tools — offer a YouTube link that auto-fills the transcript.
+const TT_MEDIA_SET = new Set([
+  'audio-video-questions','transcript-helper','summary-gapfill',
+  'choose-summary','warmup-listening','listening-dictation','add-video',
+]);
+
+// Fetch a YouTube transcript into the source field (Twee-style one-click flow).
+async function fetchYoutubeTranscript() {
+  const urlEl = document.getElementById('tbuilder-youtube');
+  const status = document.getElementById('tbuilder-yt-status');
+  const btn = document.getElementById('tbuilder-yt-btn');
+  const url = (urlEl?.value || '').trim();
+  if (!url) { if (status) status.textContent = 'Paste a YouTube link first.'; return; }
+  if (status) status.textContent = '⏳ Fetching transcript…';
+  if (btn) btn.disabled = true;
+  try {
+    const r = await apiFetch('/api/ai/youtube-transcript?url=' + encodeURIComponent(url));
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
+    const src = document.getElementById('tbuilder-source');
+    if (src) src.value = d.transcript;
+    if (status) status.textContent = `✓ Transcript loaded (${d.transcript.length.toLocaleString()} chars). Now click Generate.`;
+  } catch (e) {
+    if (status) status.textContent = `⚠ ${e.message}. Paste the transcript manually instead.`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
 // Tools that produce a single artifact or a fixed scaffold — the "Items" count
 // is meaningless, so hide it to avoid confusion (e.g. "Simplify a Text" + 50).
 const TT_NO_COUNT_SET = new Set([
@@ -5583,6 +5612,7 @@ const TT_NO_COUNT_SET = new Set([
   'answer-key','add-text','add-images','add-video','simplify-text','summary-task',
   'three-titles','text-topic-vocab','essay-outline','email-reply','rewrite-style',
   'grammar-rules','dialogue','roleplay-cards','debate-cards','transcript-helper',
+  'generate-text',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
   'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
@@ -5618,6 +5648,9 @@ const TT_VOCAB_PLACEHOLDERS = {
   'creative-writing':'Target words students must use in their writing.',
   'link-words':'One word or phrase per line — students link them into sentences.',
   'sentence-translation':'Words or phrases to practise via translation.',
+  'synonyms-antonyms':'Optional: specific words. Leave empty to generate from the topic.',
+  'phrasal-verbs':'Optional: specific phrasal verbs. Leave empty to generate from the topic.',
+  'idioms':'Optional: specific idioms. Leave empty to generate from the topic.',
 };
 const TT_EMPTY_ICONS = {
   reading:'📄', vocabulary:'📖', grammar:'✏️', speaking:'🗣',
@@ -5629,6 +5662,7 @@ function _ttAdaptFields(tool) {
   const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
   const needsVocab  = TT_NEEDS_VOCAB_SET.has(tool.id);
   const needsAction = tool.id === 'simplify-text';
+  const isMedia     = TT_MEDIA_SET.has(tool.id);
   const srcWrap  = document.getElementById('tb-wrap-source');
   const vocWrap  = document.getElementById('tb-wrap-vocab');
   const extraWrap= document.getElementById('tb-wrap-extra');
@@ -5645,12 +5679,19 @@ function _ttAdaptFields(tool) {
   const countWrap = document.getElementById('tb-wrap-count');
   if (countWrap) countWrap.classList.toggle('tb-field-hidden', TT_NO_COUNT_SET.has(tool.id));
 
-  // Source field
-  if (needsSource) {
+  // YouTube link → transcript (listening / video tools)
+  const ytWrap = document.getElementById('tb-wrap-youtube');
+  const ytStatus = document.getElementById('tbuilder-yt-status');
+  if (ytWrap) ytWrap.classList.toggle('tb-field-hidden', !isMedia);
+  if (ytStatus) ytStatus.textContent = '';
+
+  // Source field — shown for text tools and (as an optional transcript) media tools
+  if (needsSource || isMedia) {
     srcWrap?.classList.remove('tb-field-hidden');
-    srcWrap?.classList.add('tb-field-required');
-    if (srcLabel) srcLabel.textContent = 'Your Text';
-    if (srcTA) srcTA.placeholder = TT_SOURCE_PLACEHOLDERS[tool.id] || 'Paste your text here…';
+    srcWrap?.classList.toggle('tb-field-required', needsSource);
+    if (srcLabel) srcLabel.textContent = isMedia && !needsSource ? 'Transcript (optional)' : 'Your Text';
+    if (srcTA) srcTA.placeholder = TT_SOURCE_PLACEHOLDERS[tool.id]
+      || (isMedia ? 'Paste the transcript, or fetch it from a YouTube link above…' : 'Paste your text here…');
   } else {
     srcWrap?.classList.add('tb-field-hidden');
     srcWrap?.classList.remove('tb-field-required');

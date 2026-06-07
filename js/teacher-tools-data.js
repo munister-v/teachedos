@@ -27,6 +27,7 @@ const BOARD_TEACHER_TOOLS = [
   {id:'summary-task',cat:'reading',title:'Summarize a Text',desc:'Main idea, key details and short student summary prompt.',kind:'Summary'},
   {id:'simplify-text',cat:'reading',title:'Simplify / Upgrade a Text',desc:'Adapt source text up or down by CEFR level.',kind:'Adaptation'},
   {id:'gist-detail',cat:'reading',title:'Gist + Detail Reading Tasks',desc:'Prediction, gist scan, detail questions and transfer speaking.',kind:'Reading Flow'},
+  {id:'generate-text',cat:'reading',title:'Generate a Text on a Topic',desc:'A ready-to-use leveled reading text with pre- and post-reading tasks.',kind:'Reading Text'},
 
   {id:'word-image-match',cat:'vocabulary',title:'Word-Image Matching',desc:'Visual matching exercise for words and image prompts.',kind:'Matching'},
   {id:'word-definition-match',cat:'vocabulary',title:'Word-Definition Matching',desc:'Vocabulary pairs ready for cards, memory match or worksheet.',kind:'Matching'},
@@ -38,6 +39,9 @@ const BOARD_TEACHER_TOOLS = [
   {id:'collocations',cat:'vocabulary',title:'Collocation Builder',desc:'Natural word partnerships and mini practice tasks.',kind:'Collocations'},
   {id:'word-families',cat:'vocabulary',title:'Word Families',desc:'Noun, verb, adjective and adverb forms with examples.',kind:'Word Forms'},
   {id:'flashcards',cat:'vocabulary',title:'Flashcard Set',desc:'Front/back vocabulary cards with retrieval prompts.',kind:'Flashcards'},
+  {id:'synonyms-antonyms',cat:'vocabulary',title:'Synonyms & Antonyms',desc:'Synonyms and antonyms for each word with an example sentence.',kind:'Word Bank'},
+  {id:'phrasal-verbs',cat:'vocabulary',title:'Phrasal Verbs',desc:'Topic phrasal verbs with meaning and a natural example.',kind:'Phrasal Verbs'},
+  {id:'idioms',cat:'vocabulary',title:'Idioms & Expressions',desc:'Useful idioms with plain meaning and an example in context.',kind:'Idioms'},
 
   {id:'link-words',cat:'writing',title:'Link Words into Sentences',desc:'Students connect target words into meaningful sentence chains.',kind:'Writing'},
   {id:'creative-writing',cat:'writing',title:'Creative Writing with Target Vocabulary',desc:'Prompt, constraints and checklist for using target vocabulary.',kind:'Prompt'},
@@ -60,6 +64,7 @@ const BOARD_TEACHER_TOOLS = [
   {id:'roleplay-cards',cat:'speaking',title:'Role-Play Cards',desc:'Student A/B role cards with goal, phrases and challenge.',kind:'Role Play'},
   {id:'debate-cards',cat:'speaking',title:'Debate Cards',desc:'For/against claims, evidence prompts and rebuttal language.',kind:'Debate'},
   {id:'question-ladder',cat:'speaking',title:'Question Ladder',desc:'Simple-to-advanced question sequence for fluency growth.',kind:'Fluency'},
+  {id:'conversation-starters',cat:'speaking',title:'Conversation Starters',desc:'Fun "would you rather", openers and personal questions to get students talking.',kind:'Warm-up'},
 
   {id:'audio-video-questions',cat:'listening',title:'Audio & Video Question Creator',desc:'Question set from transcript, video notes or listening focus.',kind:'Listening'},
   {id:'transcript-helper',cat:'listening',title:'Transcript to Lesson Tasks',desc:'Turn transcript into gist, detail, vocab and speaking tasks.',kind:'Transcript'},

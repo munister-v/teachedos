@@ -140,6 +140,24 @@ function shapeSpec(input) {
         schema: '{"items":[{"word":"base word","definition":"noun: … · verb: … · adjective: … · adverb: …","example":"..."}]}',
       };
     }
+    if (toolId === 'synonyms-antonyms') {
+      return {
+        task: `${head} Produce exactly ${count} entries for useful topic words. For each: "word" = the headword; "definition" = "synonyms: … · antonyms: …" (2–3 each at ${level} level; if a word has no real antonym, write "antonyms: —"); "example" = one natural sentence using the headword.${context}`,
+        schema: '{"items":[{"word":"headword","definition":"synonyms: …, … · antonyms: …, …","example":"..."}]}',
+      };
+    }
+    if (toolId === 'phrasal-verbs') {
+      return {
+        task: `${head} Produce exactly ${count} phrasal verbs relevant to this topic. For each: "word" = the phrasal verb (e.g. "check in"); "definition" = a short plain-English meaning (max 12 words); "example" = a natural ${level} sentence using it.${context}`,
+        schema: '{"items":[{"word":"phrasal verb","definition":"plain meaning","example":"..."}]}',
+      };
+    }
+    if (toolId === 'idioms') {
+      return {
+        task: `${head} Produce exactly ${count} common idioms / fixed expressions connected to this topic. For each: "word" = the idiom; "definition" = its plain meaning (max 12 words); "example" = a natural ${level} sentence using it in context.${context}`,
+        schema: '{"items":[{"word":"idiom","definition":"plain meaning","example":"..."}]}',
+      };
+    }
     const source = toolId === 'extract-vocab'
       ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below (skip trivial function words). For each, give a short student-friendly definition (max 15 words) and quote or adapt a natural example sentence at ${level} level.`
       : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
@@ -265,6 +283,12 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"gap-fill","text":"Original sentence. → (rewrite: formal)","answer":"Rewritten sentence.","points":1}]}',
       };
     }
+    if (toolId === 'conversation-starters') {
+      return {
+        task: `${head} Produce exactly ${count} fun, low-pressure conversation starters at ${level} level to get students talking about this topic. Mix formats: "Would you rather …?", personal questions ("Have you ever …?"), opinions and imaginative "what if" prompts. Keep them light and engaging. Use type "open".${context}`,
+        schema: '{"questions":[{"type":"open","text":"Would you rather …?","points":1}]}',
+      };
+    }
     if (isOpen || isWarmup) {
       const openTask = isWarmup
         ? `${head} Produce exactly ${count} pre-listening prediction questions at ${level} level that activate prior knowledge and curiosity before hearing/watching. Mix prediction ("What do you think...?"), prior knowledge ("What do you already know about...?"), and personal connection ("Have you ever...?") types. Use type "open".`
@@ -334,6 +358,12 @@ function shapeSpec(input) {
     return {
       task: `${head} Write the requested reading/summary content at ${level} level as 2–3 cards (e.g. "Generated text", "Before reading", "After reading"). Include a "vocab" list of key words.${context}`,
       schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'generate-text') {
+    return {
+      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about 150–220 words, natural paragraphs). Return cards: 1) "Reading text" — the full text; 2) "Before reading" — 2–3 prediction/lead-in questions; 3) "After reading" — 3–4 comprehension + discussion questions. Include a "vocab" list of 6–8 key words from the text.${context}`,
+      schema: '{"cards":[{"title":"Reading text","text":"..."},{"title":"Before reading","text":"1. ...\\n2. ..."},{"title":"After reading","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'sentences-vocab') {

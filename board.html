@@ -671,6 +671,14 @@
             <button type="button" data-tt-action="keep" onclick="setTeacherToolAction('keep', this)">Keep level</button>
           </div>
         </div>
+        <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-youtube">
+          <label for="tbuilder-youtube">YouTube link</label>
+          <div style="display:flex;gap:8px;align-items:stretch">
+            <input id="tbuilder-youtube" type="url" placeholder="https://youtube.com/watch?v=…" style="flex:1">
+            <button type="button" class="tbuilder-btn ghost" id="tbuilder-yt-btn" onclick="fetchYoutubeTranscript()" style="white-space:nowrap">Get transcript</button>
+          </div>
+          <div id="tbuilder-yt-status" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+        </div>
         <div class="tb-field-wrap" id="tb-wrap-source">
           <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
           <textarea id="tbuilder-source" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>

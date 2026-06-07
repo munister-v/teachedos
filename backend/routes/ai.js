@@ -58,6 +58,7 @@ const TOOL_META = {
   'summary-task': ['reading', 'Summary'],
   'simplify-text': ['reading', 'Adaptation'],
   'gist-detail': ['reading', 'Reading Flow'],
+  'generate-text': ['reading', 'Reading Text'],
   'word-definition-match': ['vocabulary', 'Matching'],
   'word-image-match': ['vocabulary', 'Matching'],
   'extract-vocab': ['vocabulary', 'Extraction'],
@@ -68,6 +69,9 @@ const TOOL_META = {
   'collocations': ['vocabulary', 'Collocations'],
   'word-families': ['vocabulary', 'Word Forms'],
   'flashcards': ['vocabulary', 'Flashcards'],
+  'synonyms-antonyms': ['vocabulary', 'Word Bank'],
+  'phrasal-verbs': ['vocabulary', 'Phrasal Verbs'],
+  'idioms': ['vocabulary', 'Idioms'],
   'creative-writing': ['writing', 'Prompt'],
   'sentence-translation': ['writing', 'Translation'],
   'essay-outline': ['writing', 'Essay'],
@@ -86,6 +90,7 @@ const TOOL_META = {
   'roleplay-cards': ['speaking', 'Role Play'],
   'debate-cards': ['speaking', 'Debate'],
   'question-ladder': ['speaking', 'Fluency'],
+  'conversation-starters': ['speaking', 'Warm-up'],
   'audio-video-questions': ['listening', 'Listening'],
   'transcript-helper': ['listening', 'Transcript'],
   'warmup-listening': ['listening', 'Warm-up'],
@@ -419,9 +424,9 @@ function escapeRegExp(value) {
 
 function boardKindFor(toolId) {
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(toolId)) return 'matching';
-  if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(toolId)) return 'vocab';
+  if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families', 'synonyms-antonyms', 'phrasal-verbs', 'idioms'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'rewrite-style', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation'].includes(toolId)) return 'quiz';
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'rewrite-style', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation', 'conversation-starters'].includes(toolId)) return 'quiz';
   return 'cards';
 }
 
