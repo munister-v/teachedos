@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#CDF24F">
 <meta name="mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
     <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
   </button>
   <a class="tb-logo" href="index.html" title="TeachEd Home">
-    <img class="tb-logo-img" src="logo.png" alt="TeachEd" width="26" height="26">
+    <img class="tb-logo-img" src="logo-sm.png" alt="TeachEd" width="26" height="26">
     <span class="tb-logo-mark">TeachEd</span>
   </a>
   <span class="tb-slash" aria-hidden="true">/</span>
@@ -1530,7 +1530,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=81').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=90').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1587,7 +1587,7 @@ if('serviceWorker'in navigator){
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- ══════════════ WEBLLM — in-browser LLM for Teacher Tools ══════════════

@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v89';
+const CACHE = 'teachedos-v90';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -41,6 +41,7 @@ const SHELL = [
   'theme.js',
   'scripts/app-core.js',
   'scripts/board-app.js',
+  'scripts/desktop-app.js',
   'scripts/mobile-nav.js',
   'scripts/nav-boost.js',
   'scripts/mobile-perf.js',
@@ -53,7 +54,7 @@ const SHELL = [
   'scripts/games-data.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
-  'logo.png',
+  'logo-sm.png',
 ].map(base);
 
 self.addEventListener('install', e => {

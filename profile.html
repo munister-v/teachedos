@@ -5,7 +5,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#C8E632">
 <meta name="mobile-web-app-capable" content="yes">
@@ -335,9 +335,8 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="dark.css">
 <link rel="stylesheet" href="styles/mobile-pro.css">
-<script src="theme.js"></script>
+<script src="theme.js" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -350,7 +349,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 <!-- NAVBAR -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
@@ -1943,7 +1942,7 @@ if('serviceWorker'in navigator){
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 </body>
 </html>

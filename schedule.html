@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <meta name="theme-color" content="#C8E632"/>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -304,9 +304,8 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<link rel="stylesheet" href="dark.css">
 <link rel="stylesheet" href="styles/mobile-pro.css">
-<script src="theme.js"></script>
+<script src="theme.js" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -316,7 +315,7 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
@@ -1554,7 +1553,7 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 </body>
 </html>
