@@ -2723,7 +2723,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ── Worksheet board card ── */
 .ws-body{padding:0 12px 12px;display:flex;flex-direction:column;height:calc(100% - 40px);}
-.ws-strip{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 10px;}
+.ws-strip{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 0 10px;}
+.ws-tools{display:flex;gap:5px;margin-left:auto;}
+.ws-btn{border:1px solid rgba(17,24,39,.12);background:#fff;border-radius:8px;padding:3px 9px;font-size:10.5px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap;}
+.ws-btn:hover{background:rgba(66,98,255,.08);border-color:rgba(66,98,255,.3);color:#4262FF;}
 .ws-pill{font-size:9.5px;font-weight:900;border-radius:999px;padding:3px 9px;font-family:var(--mono);letter-spacing:.02em;}
 .ws-pill.ghost{background:rgba(17,24,39,.06);color:#6b7280;}
 .ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px;}

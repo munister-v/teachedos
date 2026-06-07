@@ -518,7 +518,7 @@ function renderCard(card) {
     if (e.target.classList.contains('resize-handle')) return;
     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.target.closest('[contenteditable="true"],.text-format-toolbar,.layer-popover')) return;
-    if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot')) return;
+    if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot,.ws-btn')) return;
 
     if (state.mode === 'connect') {
       // In connect mode, clicking the card body uses the nearest anchor
@@ -1635,42 +1635,26 @@ function renderAssignment(el, card) {
    Read-only, print-ready exercise card that mirrors the builder preview:
    white sheet, numbered questions, MCQ options with the answer highlighted.
    card.data holds a full teacher-tool output (questions / items / cards).      */
-function renderWorksheet(el, card) {
-  const d = card.data || {};
-  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
-             || { icon:'📄', color:'#4262FF' };
-  const accent = meta.color || '#4262FF';
-  const hdr = makeHeader(meta.icon || '📄', d.title || 'Worksheet', card.id);
-  el.appendChild(hdr);
-
-  const body = document.createElement('div');
-  body.className = 'card-body ws-body';
-
-  // Meta strip
+// Build the inner question/list HTML for a worksheet. Shared by the board card
+// and the print document so both stay identical. `showAns` toggles the answer
+// key: when false the sheet is a clean student hand-out (no green highlight, no
+// revealed answers) — when true it's the teacher key.
+function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
   const qs    = Array.isArray(d.questions) ? d.questions : null;
-  const n = (qs || items || cards || []).length;
-  const unit = qs ? 'questions' : items ? 'words' : 'cards';
-  const strip = `<div class="ws-strip">
-      <span class="ws-pill" style="background:${accent}18;color:${accent}">${esc(d.kind || 'Worksheet')}</span>
-      ${d.level ? `<span class="ws-pill ghost">${esc(d.level)}</span>` : ''}
-      <span class="ws-pill ghost">${n} ${unit}</span>
-    </div>`;
-
-  let listHtml = '';
   if (qs) {
-    listHtml = qs.map((q, i) => {
+    return qs.map((q, i) => {
       let ans = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         ans = `<div class="ws-opts">${q.options.map(o => {
-          const ok = o === q.answer;
+          const ok = showAns && o === q.answer;
           return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : '○'}</span><span>${esc(o)}</span></div>`;
         }).join('')}</div>`;
       } else if (q.type === 'truefalse') {
-        ans = `<div class="ws-tf"><span class="ws-tf-b${q.answer ? ' on' : ''}">✅ True</span><span class="ws-tf-b${!q.answer ? ' on' : ''}">❌ False</span></div>`;
+        ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">✅ True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">❌ False</span></div>`;
       } else if (q.type === 'gap-fill') {
-        ans = q.answer ? `<div class="ws-ans">Answer: <b>${esc(q.answer)}</b></div>` : '';
+        ans = (showAns && q.answer) ? `<div class="ws-ans">Answer: <b>${esc(q.answer)}</b></div>` : '';
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
         ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
@@ -1678,14 +1662,102 @@ function renderWorksheet(el, card) {
       }
       return `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span>${esc(q.text || '')}</div>${ans}</div>`;
     }).join('');
-  } else if (items) {
-    listHtml = items.map((it, i) => `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span><b>${esc(it.word || '')}</b></div>${it.example ? `<div class="ws-ans">${esc(it.example)}</div>` : (it.definition ? `<div class="ws-ans">${esc(it.definition)}</div>` : '')}</div>`).join('');
-  } else if (cards) {
-    listHtml = cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${esc(c.text || '').replace(/\n/g, '<br>')}</div></div>`).join('');
   }
+  if (items) {
+    return items.map((it, i) => {
+      const def = it.example || it.definition || '';
+      return `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span><b>${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open">______________________________</div>'}</div>`;
+    }).join('');
+  }
+  if (cards) {
+    return cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${esc(c.text || '').replace(/\n/g, '<br>')}</div></div>`).join('');
+  }
+  return '';
+}
 
+function renderWorksheet(el, card) {
+  const d = card.data || {};
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
+             || { icon:'📄', color:'#4262FF' };
+  const accent = meta.color || '#4262FF';
+  const showAns = d.showAnswers !== false; // default: show the key
+  const hdr = makeHeader(meta.icon || '📄', d.title || 'Worksheet', card.id);
+  el.appendChild(hdr);
+
+  const body = document.createElement('div');
+  body.className = 'card-body ws-body';
+
+  const qs    = Array.isArray(d.questions) ? d.questions : null;
+  const items = Array.isArray(d.items) ? d.items : null;
+  const cards = Array.isArray(d.cards) ? d.cards : null;
+  const n = (qs || items || cards || []).length;
+  const unit = qs ? 'questions' : items ? 'words' : 'cards';
+  const hasKey = !!qs && qs.some(q => q.type === 'mcq' || q.type === 'truefalse' || (q.type === 'gap-fill' && q.answer));
+  const strip = `<div class="ws-strip">
+      <span class="ws-pill" style="background:${accent}18;color:${accent}">${esc(d.kind || 'Worksheet')}</span>
+      ${d.level ? `<span class="ws-pill ghost">${esc(d.level)}</span>` : ''}
+      <span class="ws-pill ghost">${n} ${unit}</span>
+      <span class="ws-tools">
+        ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Answers: on' : '👁 Answers: off'}</button>` : ''}
+        <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">🖨 Print</button>
+      </span>
+    </div>`;
+
+  const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
+}
+
+/* Flip the answer-key visibility on a worksheet card and re-render it. */
+function toggleWorksheetAnswers(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  card.data.showAnswers = card.data.showAnswers === false ? true : false;
+  reRenderCard(card);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* Open a clean A4 print/PDF view of the worksheet, respecting the answer-key
+   toggle. Pure HTML — no canvas — so text is crisp and never clipped. */
+function printWorksheet(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const d = card.data || {};
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#4262FF' };
+  const accent = meta.color || '#4262FF';
+  const showAns = d.showAnswers !== false;
+  const listHtml = _ttWorksheetListHTML(d, showAns, accent);
+  const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
+  const css = `
+    *{box-sizing:border-box}
+    body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
+    h1{font-size:22px;margin:0 0 2px;letter-spacing:-.02em}
+    .meta{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7b7282;margin-bottom:18px}
+    .ws-q{border:1px solid #e6e7ee;border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
+    .ws-qh{font-size:14px;font-weight:700;line-height:1.45}
+    .ws-num{font-weight:800;margin-right:6px}
+    .ws-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+    .ws-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;padding:4px 9px;border-radius:7px;background:#f5f6fa}
+    .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}
+    .ws-mark{width:14px;text-align:center;opacity:.6}
+    .ws-opt.correct .ws-mark{opacity:1}
+    .ws-tf{display:flex;gap:10px;margin-top:8px}
+    .ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}
+    .ws-tf-b.on{background:#dcfce7;color:#15803d}
+    .ws-ans{font-size:13px;margin-top:7px;color:#15803d}
+    .ws-ans b{color:#15803d}
+    .ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
+    .ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}
+    .ws-l{font-weight:700;color:${accent}}
+    .ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    @media print{body{padding:0}@page{margin:1.6cm}}`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
+    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  w.focus();
+  setTimeout(() => { try { w.print(); } catch (e) {} }, 350);
 }
 
 /* ══════════════════════ MILESTONE RENDERER ══════════════════════ */
