@@ -13,6 +13,13 @@
        italic em emphasis. Do NOT use for routine CTAs.
 ═══════════════════════════════════════════════════════════════════════ */
 
+/* Desktop base for the mobile-only topbar. mobile-pro.css is now loaded with
+   media="(max-width:860px)" so its base ".mp-mobile-only{display:none}" no
+   longer reaches desktop — restate it here behind a desktop-only query so the
+   mobile topbar stays hidden on wide screens. (mobile-pro.css flips it to
+   display:flex inside its own ≤860px block, so the two never conflict.) */
+@media (min-width: 861px) { .mp-mobile-only { display: none !important; } }
+
 :root {
   /* Override the legacy --accent token across all pages.
      harmony.css doesn't consume var(--accent) directly (uses var(--pink) explicitly),
