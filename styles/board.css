@@ -1384,6 +1384,14 @@ body.alt-duplicating *{cursor:copy!important;}
 .board-card:hover:not(.selected):not(.dragging){
   box-shadow:0 0 0 1px rgba(66,98,255,.22),0 2px 10px rgba(0,0,0,.10);
 }
+/* Card spawn / despawn micro-animations (single add/remove, not bulk load) */
+@keyframes cardPopIn{from{opacity:0;transform:scale(.85) translateZ(0);}to{opacity:1;transform:scale(1) translateZ(0);}}
+@keyframes cardPopOut{from{opacity:1;transform:scale(1) translateZ(0);}to{opacity:0;transform:scale(.82) translateZ(0);}}
+.board-card.card-appear{animation:cardPopIn .2s cubic-bezier(.34,1.4,.64,1);}
+.board-card.card-removing{animation:cardPopOut .17s ease forwards;pointer-events:none;}
+@media (prefers-reduced-motion: reduce){
+  .board-card.card-appear,.board-card.card-removing{animation:none!important;}
+}
 /* Cards being dragged */
 .board-card.dragging{
   opacity:.92;cursor:grabbing!important;

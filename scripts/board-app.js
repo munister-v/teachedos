@@ -428,6 +428,12 @@ function addCard(type, x, y, data={}, w, h) {
   state.cards.push(card);
   const el = renderCard(card);
   board.appendChild(el);
+  // Pop-in micro-animation for interactive single adds (skipped under
+  // reduced-motion; bulk loads go through renderCard directly, not here).
+  if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.classList.add('card-appear');
+    el.addEventListener('animationend', () => el.classList.remove('card-appear'), { once: true });
+  }
   updateEmpty();
   return card;
 }
@@ -2601,7 +2607,19 @@ function removeCard(id) {
     _timerIntervals.delete(id);
   }
   state.cards.splice(idx, 1);
-  getCardEl(id)?.remove();
+  const elGone = getCardEl(id);
+  if (elGone) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      elGone.remove();
+    } else {
+      elGone.classList.add('card-removing');
+      let done = false;
+      const kill = () => { if (done) return; done = true; elGone.remove(); };
+      elGone.addEventListener('animationend', kill, { once: true });
+      setTimeout(kill, 240); // fallback if animationend doesn't fire
+    }
+  }
   state.selected.delete(id);
   renderAllArrows();
   updateEmpty();
