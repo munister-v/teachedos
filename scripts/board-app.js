@@ -428,6 +428,12 @@ function addCard(type, x, y, data={}, w, h) {
   state.cards.push(card);
   const el = renderCard(card);
   board.appendChild(el);
+  // Pop-in micro-animation for interactive single adds (skipped under
+  // reduced-motion; bulk loads go through renderCard directly, not here).
+  if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.classList.add('card-appear');
+    el.addEventListener('animationend', () => el.classList.remove('card-appear'), { once: true });
+  }
   updateEmpty();
   return card;
 }
@@ -2438,6 +2444,106 @@ function markLessonDoneFromPresent(cardId) {
   openLessonPresent(cardId);
 }
 
+/* ════════════════════ FULL-BOARD PRESENT MODE ════════════════════
+   Lead a lesson straight from the board: step through frames (or, if the
+   board has none, through the content cards in reading order), zooming to
+   each. Floating controls + keyboard (← → Space Esc) + click-to-advance. */
+let _presentSlides = [];
+let _presentIdx = 0;
+let _presentReturnView = null;
+let _presentActive = false;
+
+function _buildPresentSlides() {
+  const readingOrder = (a, b) => (Math.abs(a.y - b.y) > 60 ? a.y - b.y : a.x - b.x);
+  const frames = state.cards.filter(c => c.type === 'frame').slice().sort(readingOrder);
+  if (frames.length) return frames.map(f => f.id);
+  // No frames → present the content cards themselves (skip pure decoration).
+  const skip = new Set(['sticker', 'shape']);
+  const cards = state.cards.filter(c => {
+    if (skip.has(c.type)) return false;
+    if (c.data && c.data.private && c.data.private !== _currentUserId()) return false;
+    return true;
+  }).slice().sort(readingOrder);
+  return cards.map(c => c.id);
+}
+
+function startBoardPresent() {
+  if (_presentActive) { exitBoardPresent(); return; }
+  _presentSlides = _buildPresentSlides();
+  if (!_presentSlides.length) { toast('Add a frame or some cards first'); return; }
+  _presentReturnView = { pan: { ...state.pan }, scale: state.scale };
+  _presentActive = true;
+  _presentIdx = 0;
+  document.body.classList.add('board-presenting');
+  const bar = document.getElementById('board-present-bar');
+  if (bar) bar.setAttribute('aria-hidden', 'false');
+  const hint = document.getElementById('board-present-hint');
+  if (hint) { hint.classList.add('show'); setTimeout(() => hint.classList.remove('show'), 2600); }
+  document.addEventListener('keydown', _presentKeydown, true);
+  boardWrap.addEventListener('click', _presentClickAdvance);
+  presentGoTo(0);
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+function presentGoTo(i) {
+  if (!_presentActive) return;
+  _presentIdx = Math.max(0, Math.min(_presentSlides.length - 1, i));
+  const id = _presentSlides[_presentIdx];
+  // Highlight the active slide, clear others.
+  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  const el = document.querySelector('[data-id="' + id + '"]');
+  if (el) el.classList.add('present-current');
+  zoomToCard(id, true);
+  const prog = document.getElementById('bp-progress');
+  if (prog) prog.textContent = (_presentIdx + 1) + ' / ' + _presentSlides.length;
+  const prev = document.getElementById('bp-prev'), next = document.getElementById('bp-next');
+  if (prev) prev.disabled = _presentIdx === 0;
+  if (next) next.disabled = _presentIdx === _presentSlides.length - 1;
+}
+
+function presentNext() { if (_presentActive && _presentIdx < _presentSlides.length - 1) presentGoTo(_presentIdx + 1); }
+function presentPrev() { if (_presentActive && _presentIdx > 0) presentGoTo(_presentIdx - 1); }
+
+function _presentKeydown(e) {
+  if (!_presentActive) return;
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); e.stopPropagation(); presentNext(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); e.stopPropagation(); presentPrev(); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); exitBoardPresent(); }
+}
+
+function _presentClickAdvance(e) {
+  if (!_presentActive) return;
+  // Ignore clicks on the floating control bar.
+  if (e.target.closest && e.target.closest('#board-present-bar')) return;
+  presentNext();
+}
+
+function exitBoardPresent() {
+  if (!_presentActive) return;
+  _presentActive = false;
+  document.removeEventListener('keydown', _presentKeydown, true);
+  boardWrap.removeEventListener('click', _presentClickAdvance);
+  document.body.classList.remove('board-presenting');
+  const bar = document.getElementById('board-present-bar');
+  if (bar) bar.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  // Tween back to the pre-present view.
+  if (_presentReturnView) {
+    const start = { pan: { ...state.pan }, scale: state.scale };
+    const end = _presentReturnView;
+    const t0 = performance.now(), dur = 320;
+    (function back(now) {
+      const p = Math.min(1, (now - t0) / dur), ease = 1 - Math.pow(1 - p, 3);
+      state.scale = start.scale + (end.scale - start.scale) * ease;
+      state.pan.x = start.pan.x + (end.pan.x - start.pan.x) * ease;
+      state.pan.y = start.pan.y + (end.pan.y - start.pan.y) * ease;
+      applyTransform();
+      if (p < 1) requestAnimationFrame(back);
+    })(performance.now());
+    _presentReturnView = null;
+  }
+}
+
 // Helper: add anchor dots + 8 resize handles to a freshly re-rendered card el
 function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
@@ -2501,7 +2607,19 @@ function removeCard(id) {
     _timerIntervals.delete(id);
   }
   state.cards.splice(idx, 1);
-  getCardEl(id)?.remove();
+  const elGone = getCardEl(id);
+  if (elGone) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      elGone.remove();
+    } else {
+      elGone.classList.add('card-removing');
+      let done = false;
+      const kill = () => { if (done) return; done = true; elGone.remove(); };
+      elGone.addEventListener('animationend', kill, { once: true });
+      setTimeout(kill, 240); // fallback if animationend doesn't fire
+    }
+  }
   state.selected.delete(id);
   renderAllArrows();
   updateEmpty();
@@ -10174,6 +10292,125 @@ function openExportMenu(e) {
   e.stopPropagation();
 }
 document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
+
+// Lazy CDN script loader (board has no bundler) — memoised per URL.
+const _loadedScripts = {};
+function loadBoardScript(src) {
+  if (_loadedScripts[src]) return _loadedScripts[src];
+  _loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve;
+    s.onerror = () => { delete _loadedScripts[src]; reject(new Error('Failed to load ' + src)); };
+    document.head.appendChild(s);
+  });
+  return _loadedScripts[src];
+}
+
+// Bounding box (board coords) enclosing every card, with padding.
+function boardContentBounds(pad = 48) {
+  if (!state.cards.length) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const c of state.cards) {
+    if (c.data && c.data.private && c.data.private !== _currentUserId()) continue;
+    minX = Math.min(minX, c.x);
+    minY = Math.min(minY, c.y);
+    maxX = Math.max(maxX, c.x + (c.w || 220));
+    maxY = Math.max(maxY, c.y + (c.h || 160));
+  }
+  if (minX === Infinity) return null;
+  return { x: minX - pad, y: minY - pad, w: (maxX - minX) + pad * 2, h: (maxY - minY) + pad * 2 };
+}
+
+// Render the board content to a canvas via html2canvas, neutralising the
+// pan/zoom transform and hiding editor chrome (handles, selection, dots) so
+// the snapshot looks like a clean printable artboard.
+async function renderBoardToCanvas() {
+  const bounds = boardContentBounds();
+  if (!bounds) { toast('Board is empty — nothing to export'); return null; }
+  await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if (!window.html2canvas) throw new Error('html2canvas unavailable');
+
+  // Snapshot + neutralise the live view transform so cards sit at their
+  // natural board coordinates while we capture.
+  const prevPan = { ...state.pan }, prevScale = state.scale;
+  const prevTransform = board.style.transform;
+  const prevOverflow = board.style.overflow;
+  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F5F0E8';
+
+  board.style.transform = 'none';
+  board.style.overflow = 'visible';
+  document.body.classList.add('board-exporting');
+  // Let arrows redraw at scale 1 so they line up in the capture.
+  state.pan = { x: 0, y: 0 }; state.scale = 1;
+  if (typeof renderAllArrows === 'function') renderAllArrows();
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  let canvas = null;
+  try {
+    canvas = await window.html2canvas(board, {
+      x: bounds.x, y: bounds.y, width: bounds.w, height: bounds.h,
+      backgroundColor: bgColor, scale: 2, // fixed 2× for crisp print regardless of screen DPR
+      useCORS: true, logging: false, removeContainer: true,
+    });
+  } finally {
+    // Always restore the live view, even if capture throws.
+    document.body.classList.remove('board-exporting');
+    board.style.transform = prevTransform;
+    board.style.overflow = prevOverflow;
+    state.pan = prevPan; state.scale = prevScale;
+    applyTransform();
+    if (typeof renderAllArrows === 'function') renderAllArrows();
+  }
+  return canvas;
+}
+
+function _boardExportName() {
+  const el = document.getElementById('board-name-display');
+  return (el && el.textContent.trim()) || 'board';
+}
+
+async function exportBoardImage(format) {
+  if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
+  const menu = document.getElementById('export-menu');
+  if (menu) menu.classList.remove('open');
+  toast(format === 'pdf' ? '📑 Rendering PDF…' : '🖼 Rendering image…');
+  try {
+    const canvas = await renderBoardToCanvas();
+    if (!canvas) return;
+    const name = _boardExportName();
+    if (format === 'png') {
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name + '.png';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        toast('🖼 Board exported as PNG');
+      }, 'image/png');
+    } else {
+      await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) throw new Error('jsPDF unavailable');
+      // Fit the artboard onto a landscape/portrait A4 preserving aspect ratio.
+      const imgW = canvas.width, imgH = canvas.height;
+      const landscape = imgW >= imgH;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: landscape ? 'landscape' : 'portrait' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 24;
+      const scale = Math.min((pageW - margin * 2) / imgW, (pageH - margin * 2) / imgH);
+      const drawW = imgW * scale, drawH = imgH * scale;
+      const offX = (pageW - drawW) / 2, offY = (pageH - drawH) / 2;
+      doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', offX, offY, drawW, drawH);
+      doc.save(name + '.pdf');
+      toast('📑 Board exported as PDF');
+    }
+  } catch (err) {
+    console.error('[board export]', err);
+    toast('⚠️ Export failed — please try again');
+  }
+}
 
 function exportBoardJSON() {
   if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
