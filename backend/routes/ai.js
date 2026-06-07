@@ -650,25 +650,42 @@ function decodeEntities(t) {
     .replace(/&amp;amp;|&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
 }
+// Public InnerTube web key. The ANDROID client returns caption baseUrls that
+// still work when fetched directly — unlike the watch-page baseUrls, which
+// YouTube now gates behind a proof-of-origin token and serves empty.
+const YT_INNERTUBE_KEY = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+async function ytCaptionTracks(id) {
+  const body = {
+    context: { client: { clientName: 'ANDROID', clientVersion: '20.10.38', androidSdkVersion: 30, hl: 'en' } },
+    videoId: id,
+  };
+  const r = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${YT_INNERTUBE_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip',
+    },
+    body: JSON.stringify(body),
+  });
+  const j = await r.json().catch(() => null);
+  return j?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+}
+
 router.get('/youtube-transcript', async (req, res) => {
   const id = ytVideoId(req.query.url || '');
   if (!id) return res.status(400).json({ error: 'Provide a valid YouTube link' });
   if (TRANSCRIPT_CACHE.has(id)) return res.json({ transcript: TRANSCRIPT_CACHE.get(id), videoId: id, cached: true });
   try {
-    const watch = await fetch(`https://www.youtube.com/watch?v=${id}&hl=en`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept-Language': 'en-US,en;q=0.9' },
-    });
-    const html = await watch.text();
-    const m = html.match(/"captionTracks":(\[.*?\])/);
-    if (!m) return res.status(404).json({ error: 'This video has no captions to transcribe' });
-    let tracks;
-    try { tracks = JSON.parse(m[1]); } catch { return res.status(502).json({ error: 'Could not read captions' }); }
-    const track = tracks.find(t => /^en/.test(t.languageCode || '')) || tracks[0];
+    const tracks = await ytCaptionTracks(id);
+    if (!tracks.length) return res.status(404).json({ error: 'This video has no captions to transcribe' });
+    // Prefer a manual English track, then any English (incl. auto), then anything.
+    const track = tracks.find(t => /^en/.test(t.languageCode || '') && t.kind !== 'asr')
+      || tracks.find(t => /^en/.test(t.languageCode || ''))
+      || tracks[0];
     if (!track || !track.baseUrl) return res.status(404).json({ error: 'No transcript track available' });
     const xml = await (await fetch(track.baseUrl)).text();
-    const text = decodeEntities(
-      xml.replace(/<text[^>]*>/g, ' ').replace(/<\/text>/g, ' ').replace(/<[^>]+>/g, '')
-    ).replace(/\s+/g, ' ').trim();
+    // format="3" timedtext: strip all tags (<p>, <s>, …), decode, collapse.
+    const text = decodeEntities(xml.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
     if (!text) return res.status(404).json({ error: 'Transcript was empty' });
     TRANSCRIPT_CACHE.set(id, text);
     if (TRANSCRIPT_CACHE.size > 100) TRANSCRIPT_CACHE.delete(TRANSCRIPT_CACHE.keys().next().value);
