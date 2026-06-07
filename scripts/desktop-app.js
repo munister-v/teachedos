@@ -267,7 +267,14 @@ const WM = (function () {
     const di  = document.getElementById('di-' + id);
     if (win) {
       saveGeom(id);
-      win.classList.remove('open', 'focused');
+      if (win.classList.contains('open')) {
+        win.classList.add('closing');
+        setTimeout(() => {
+          win.classList.remove('open', 'focused', 'closing');
+        }, 160);
+      } else {
+        win.classList.remove('open', 'focused');
+      }
     }
     if (di) di.classList.remove('open');
     if (focusedId === id) focusedId = null;
