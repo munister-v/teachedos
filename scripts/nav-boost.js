@@ -128,8 +128,10 @@
 
   // ── View Transitions (cross-document) — Chrome 126+ ──────────
   // Opt-in via a tiny CSS injection so transitions animate page swaps
-  if ('CSSViewTransitionRule' in window || (window.CSS && CSS.supports &&
-      CSS.supports('view-transition-name', 'root'))) {
+  const reducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion && ('CSSViewTransitionRule' in window || (window.CSS && CSS.supports &&
+      CSS.supports('view-transition-name', 'root')))) {
     const vt = document.createElement('style');
     vt.textContent = `
       @view-transition { navigation: auto; }

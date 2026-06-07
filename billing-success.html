@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#C8E632">
 <meta name="mobile-web-app-capable" content="yes">
@@ -30,6 +30,7 @@ h1{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;margin-bottom:10px;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(200,230,50,.42);}
 .btn-ghost{background:transparent;border:1.5px solid rgba(94,94,74,.28);color:#3A3A2E;box-shadow:none;}
 .btn-ghost:hover{background:rgba(94,94,74,.06);transform:none;}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -98,6 +99,6 @@ if('serviceWorker'in navigator){
 </script>
 <script src="pwa.js"></script>
 <script src="scripts/nav-boost.js" defer></script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 </body>
 </html>

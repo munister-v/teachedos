@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <meta name="theme-color" content="#C8E632">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Community · TeachEd</title>
 <style>
@@ -36,7 +36,7 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
 #toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px) translateZ(0);transition:opacity .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.34,1.3,.64,1);z-index:9999;will-change:transform,opacity;backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.18)}#toast.show{opacity:1;transform:translateY(0) translateZ(0)}
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 80px}#nav{display:none}}
 </style>
-<script src="theme.js"></script>
+<script src="theme.js" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -44,7 +44,7 @@ h1{font-size:clamp(36px,5vw,64px);line-height:.95;letter-spacing:-.06em;max-widt
 </head>
 <body>
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
@@ -722,7 +722,7 @@ loadBoards();
 
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 <script src="pwa-boot.js" defer></script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#C8E632">
 <meta name="mobile-web-app-capable" content="yes">
@@ -179,7 +179,7 @@ textarea{min-height:60px;resize:vertical}
 @media(max-width:500px){.type-grid,.tpl-grid{grid-template-columns:1fr}.preview-overlay{padding:12px;align-items:flex-end}.preview-box{max-width:none;max-height:92vh;padding:18px;border-radius:20px 20px 18px 18px;padding-bottom:max(18px,env(safe-area-inset-bottom,18px))}}
 
 </style>
-<script src="theme.js"></script>
+<script src="theme.js" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css">
@@ -187,7 +187,7 @@ textarea{min-height:60px;resize:vertical}
 </head>
 <body>
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="index.html">Home</a>
   <a class="nav-link" href="board.html">Board</a>
@@ -2163,7 +2163,7 @@ setTimeout(() => migrateLocalGames().catch(() => {}), 1200);
 </script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
-<script src="scripts/mobile-zoom-guard.js"></script>
+<script src="scripts/mobile-zoom-guard.js" defer></script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 <script src="pwa-boot.js" defer></script>
 </body>

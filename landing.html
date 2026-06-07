@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd — The classroom OS for language teachers</title>
@@ -510,6 +510,7 @@ footer{
   .bento{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr;}
 }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
 <link rel="stylesheet" href="styles/mobile-guard.css">
 <link rel="stylesheet" href="styles/mobile-unified.css">
@@ -520,7 +521,7 @@ footer{
 <nav class="ln" role="navigation">
   <div class="nav-inner">
     <a class="nav-logo" href="landing.html">
-      <img src="logo.png" alt="TeachEd">
+      <img src="logo-sm.png" alt="TeachEd">
       Teach<em style="color:var(--pink)">Ed</em>
     </a>
     <div class="nav-links">
