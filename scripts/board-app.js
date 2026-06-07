@@ -5731,6 +5731,69 @@ function setTeacherToolAction(action, btn) {
 function _ttSetAddToBoard(enabled) {
   const btn = document.getElementById('tbuilder-add-btn');
   if (btn) btn.disabled = !enabled;
+  const gameBtn = document.getElementById('tbuilder-game-btn');
+  if (gameBtn) gameBtn.disabled = !enabled || !_ttToGamePayload(lastTeacherToolBuilderOutput);
+}
+
+// One-line cleaner for game payloads.
+function _ttG(v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); }
+
+// Map a teacher-tool result to a playable game-builder payload, or null if the
+// result can't sensibly become a game. Picks the best-fit game per content type.
+function _ttToGamePayload(out) {
+  if (!out) return null;
+  const meta = { title: out.title || 'From Teacher Tools', level: out.level || 'B1' };
+
+  // Vocabulary items → Memory Match (word ↔ definition).
+  if (Array.isArray(out.items) && out.items.length) {
+    const pairs = out.items
+      .map(i => ({ a: _ttG(i.word), b: _ttG(i.definition) || _ttG(i.example) }))
+      .filter(p => p.a && p.b);
+    if (pairs.length >= 3) return { gameType: 'memory-match', ...meta, content: { pairs } };
+  }
+
+  if (Array.isArray(out.questions) && out.questions.length) {
+    const qs = out.questions;
+    // Matching exercise (word-definition / sorting) → Memory Match.
+    if (qs[0].type === 'match' && Array.isArray(qs[0].pairs)) {
+      const pairs = qs[0].pairs.map(p => ({ a: _ttG(p.left), b: _ttG(p.right) })).filter(p => p.a && p.b);
+      if (pairs.length >= 3) return { gameType: 'memory-match', ...meta, content: { pairs } };
+    }
+    // MCQ → Speed Quiz.
+    const mcqs = qs.filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2);
+    if (mcqs.length >= 3) {
+      const questions = mcqs.map(q => ({
+        q: _ttG(q.text),
+        opts: q.options.map(_ttG),
+        correct: Math.max(0, q.options.indexOf(q.answer)),
+      }));
+      return { gameType: 'speed-quiz', ...meta, content: { questions } };
+    }
+    // True/False → True or False.
+    const tfs = qs.filter(q => q.type === 'truefalse');
+    if (tfs.length >= 3) {
+      return { gameType: 'true-false', ...meta, content: { statements: tfs.map(q => ({ text: _ttG(q.text), answer: !!q.answer })) } };
+    }
+    // Gap-fill → Fill in the Blank. The builder expects strings of the form
+    // "sentence ___ (answer)", so inline the answer in parentheses at the gap.
+    const gaps = qs.filter(q => q.type === 'gap-fill' && /_{2,}/.test(q.text || '') && q.answer);
+    if (gaps.length >= 3) {
+      const sentences = gaps.map(q => _ttG(q.text).replace(/_{2,}/, `___ (${_ttG(q.answer)})`));
+      return { gameType: 'fill-blank', ...meta, content: { sentences } };
+    }
+    // Open prompts → Spin the Wheel.
+    const opens = qs.filter(q => q.type === 'open');
+    if (opens.length >= 3) return { gameType: 'spin-wheel', ...meta, content: { words: opens.map(q => _ttG(q.text)) } };
+  }
+  return null;
+}
+
+function sendTeacherToolToGame() {
+  const payload = _ttToGamePayload(lastTeacherToolBuilderOutput);
+  if (!payload) { toast('This result can\'t become a game — try a vocabulary, matching or quiz tool.', 'error'); return; }
+  payload.tags = ['teacher-tools', activeTeacherToolBuilder?.cat || 'vocabulary'];
+  try { sessionStorage.setItem('teachedos_tools_to_game', JSON.stringify(payload)); } catch (e) {}
+  window.location.href = 'game-builder.html';
 }
 
 function openTeacherToolBuilder(toolId) {
