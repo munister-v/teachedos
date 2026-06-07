@@ -6070,9 +6070,15 @@ function _ttSetAddToBoard(enabled) {
   const btn = document.getElementById('tbuilder-add-btn');
   if (btn) btn.disabled = !enabled;
   if (!enabled) closeAddToBoardMenu();
-  // Game menu item: only enabled when the result maps to a playable game.
-  const gameItem = document.getElementById('tbuilder-menu-game');
-  if (gameItem) gameItem.classList.toggle('disabled', !enabled || !_ttToGamePayload(lastTeacherToolBuilderOutput));
+  // Build the "Play as game" section from every game that fits this result.
+  const wrap = document.getElementById('tbuilder-menu-games');
+  if (wrap) {
+    const games = enabled ? _ttGamePayloads(lastTeacherToolBuilderOutput) : [];
+    wrap.innerHTML = games.length
+      ? `<div class="tbuilder-menu-sep">Play as game</div>` + games.map(g =>
+          `<button class="tbuilder-menu-item" onclick="sendTeacherToolToGameType('${g.gameType}')"><span>${g.icon}</span><div><strong>${g.label}</strong></div></button>`).join('')
+      : '';
+  }
 }
 
 /* "Add to board ▾" dropdown — worksheet / interactive quiz / game. */
@@ -6095,63 +6101,67 @@ function _ttAddMenuOutside(e) {
 // One-line cleaner for game payloads.
 function _ttG(v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); }
 
-// Map a teacher-tool result to a playable game-builder payload, or null if the
-// result can't sensibly become a game. Picks the best-fit game per content type.
-function _ttToGamePayload(out) {
-  if (!out) return null;
-  const meta = { title: out.title || 'From Teacher Tools', level: out.level || 'B1' };
+// All playable games a teacher-tool result can become — one result often fits
+// several (e.g. vocab → Memory Match / Flashcards / Hangman). Returns an array
+// of { gameType, label, icon, content }; the teacher picks one.
+function _ttGamePayloads(out) {
+  if (!out) return [];
+  const games = [];
+  const push = (gameType, label, icon, content) => games.push({ gameType, label, icon, content });
 
-  // Vocabulary items → Memory Match (word ↔ definition).
+  // Vocabulary items (word + definition/example).
   if (Array.isArray(out.items) && out.items.length) {
-    const pairs = out.items
-      .map(i => ({ a: _ttG(i.word), b: _ttG(i.definition) || _ttG(i.example) }))
-      .filter(p => p.a && p.b);
-    if (pairs.length >= 3) return { gameType: 'memory-match', ...meta, content: { pairs } };
+    const pairs = out.items.map(i => ({ a: _ttG(i.word), b: _ttG(i.definition) || _ttG(i.example) })).filter(p => p.a && p.b);
+    const words = out.items.map(i => _ttG(i.word)).filter(Boolean);
+    if (pairs.length >= 3) { push('memory-match', 'Memory Match', '🃏', { pairs }); push('flashcards', 'Flashcards', '📇', { pairs }); }
+    if (words.length >= 3) push('hangman', 'Hangman', '🔤', { words });
   }
 
   if (Array.isArray(out.questions) && out.questions.length) {
     const qs = out.questions;
-    // Matching exercise (word-definition / sorting) → Memory Match.
+    // Matching exercise — word↔definition or word↔category (word-sorting).
     if (qs[0].type === 'match' && Array.isArray(qs[0].pairs)) {
-      const pairs = qs[0].pairs.map(p => ({ a: _ttG(p.left), b: _ttG(p.right) })).filter(p => p.a && p.b);
-      if (pairs.length >= 3) return { gameType: 'memory-match', ...meta, content: { pairs } };
+      const raw = qs[0].pairs.map(p => ({ left: _ttG(p.left), right: _ttG(p.right) })).filter(p => p.left && p.right);
+      const rights = [...new Set(raw.map(p => p.right.toLowerCase()))];
+      // Few distinct right-hand values ⇒ they're categories ⇒ Sort into Categories.
+      if (rights.length >= 2 && rights.length <= Math.max(2, Math.ceil(raw.length / 2))) {
+        const cats = {};
+        raw.forEach(p => { (cats[p.right] = cats[p.right] || []).push(p.left); });
+        push('word-categories', 'Sort into Categories', '🗂', { categories: Object.entries(cats).map(([name, words]) => ({ name, words })) });
+      }
+      const pairs = raw.map(p => ({ a: p.left, b: p.right }));
+      if (pairs.length >= 3) { push('memory-match', 'Memory Match', '🃏', { pairs }); push('flashcards', 'Flashcards', '📇', { pairs }); }
     }
-    // MCQ → Speed Quiz.
     const mcqs = qs.filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2);
-    if (mcqs.length >= 3) {
-      const questions = mcqs.map(q => ({
-        q: _ttG(q.text),
-        opts: q.options.map(_ttG),
-        correct: Math.max(0, q.options.indexOf(q.answer)),
-      }));
-      return { gameType: 'speed-quiz', ...meta, content: { questions } };
-    }
-    // True/False → True or False.
+    if (mcqs.length >= 3) push('speed-quiz', 'Speed Quiz', '⚡', { questions: mcqs.map(q => ({ q: _ttG(q.text), opts: q.options.map(_ttG), correct: Math.max(0, q.options.indexOf(q.answer)) })) });
     const tfs = qs.filter(q => q.type === 'truefalse');
-    if (tfs.length >= 3) {
-      return { gameType: 'true-false', ...meta, content: { statements: tfs.map(q => ({ text: _ttG(q.text), answer: !!q.answer })) } };
-    }
-    // Gap-fill → Fill in the Blank. The builder expects strings of the form
-    // "sentence ___ (answer)", so inline the answer in parentheses at the gap.
+    if (tfs.length >= 3) push('true-false', 'True or False', '✅', { statements: tfs.map(q => ({ text: _ttG(q.text), answer: !!q.answer })) });
     const gaps = qs.filter(q => q.type === 'gap-fill' && /_{2,}/.test(q.text || '') && q.answer);
-    if (gaps.length >= 3) {
-      const sentences = gaps.map(q => _ttG(q.text).replace(/_{2,}/, `___ (${_ttG(q.answer)})`));
-      return { gameType: 'fill-blank', ...meta, content: { sentences } };
-    }
-    // Open prompts → Spin the Wheel.
+    if (gaps.length >= 3) push('fill-blank', 'Fill the Blank', '␣', { sentences: gaps.map(q => _ttG(q.text).replace(/_{2,}/, `___ (${_ttG(q.answer)})`)) });
     const opens = qs.filter(q => q.type === 'open');
-    if (opens.length >= 3) return { gameType: 'spin-wheel', ...meta, content: { words: opens.map(q => _ttG(q.text)) } };
+    if (opens.length >= 3) push('spin-wheel', 'Spin the Wheel', '🎡', { words: opens.map(q => _ttG(q.text)) });
   }
-  return null;
+  return games;
 }
 
-function sendTeacherToolToGame() {
-  const payload = _ttToGamePayload(lastTeacherToolBuilderOutput);
-  if (!payload) { toast('This result can\'t become a game — try a vocabulary, matching or quiz tool.', 'error'); return; }
-  payload.tags = ['teacher-tools', activeTeacherToolBuilder?.cat || 'vocabulary'];
+// Kept for the enable check — true when at least one game fits.
+function _ttToGamePayload(out) { return _ttGamePayloads(out)[0] || null; }
+
+function sendTeacherToolToGameType(gameType) {
+  const games = _ttGamePayloads(lastTeacherToolBuilderOutput);
+  const g = games.find(x => x.gameType === gameType) || games[0];
+  if (!g) { toast('This result can\'t become a game — try a vocabulary, matching or quiz tool.', 'error'); return; }
+  const payload = {
+    gameType: g.gameType, content: g.content,
+    title: lastTeacherToolBuilderOutput.title || 'From Teacher Tools',
+    level: lastTeacherToolBuilderOutput.level || 'B1',
+    tags: ['teacher-tools', activeTeacherToolBuilder?.cat || 'vocabulary'],
+  };
   try { sessionStorage.setItem('teachedos_tools_to_game', JSON.stringify(payload)); } catch (e) {}
   window.location.href = 'game-builder.html';
 }
+// Back-compat: default to the best-fit game.
+function sendTeacherToolToGame() { sendTeacherToolToGameType(); }
 
 function openTeacherToolBuilder(toolId) {
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);

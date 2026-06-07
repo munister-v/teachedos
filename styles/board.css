@@ -2720,6 +2720,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-menu-item strong{display:block;font-size:13px;font-weight:850;}
 .tbuilder-menu-item small{display:block;font-size:10.5px;color:#7b7282;font-weight:650;}
 .tbuilder-menu-item.disabled{opacity:.4;pointer-events:none;}
+.tbuilder-menu-sep{font:900 9px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#9b95a3;padding:8px 11px 4px;margin-top:3px;border-top:1px solid rgba(17,24,39,.07);}
 
 /* ── YouTube → Lesson CTA + modal ── */
 .yt-lesson-cta{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:16px;padding:14px 16px;margin-bottom:14px;cursor:pointer;text-align:left;color:#fff;background:linear-gradient(135deg,#4262FF,#7C3AED);box-shadow:0 10px 26px rgba(66,98,255,.28);}
