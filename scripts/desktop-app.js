@@ -1261,7 +1261,16 @@ async function checkAuthAndRoute() {
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
     revealPage();
-    if (!localStorage.getItem('teachedos_onboarded')) setTimeout(() => showOnboarding(user), 800);
+    // Onboarding is per-account, so switching teachers on the same browser shows
+    // it to the new user. One-time migration: an already-onboarded teacher keeps
+    // their state, then the legacy global flag is dropped so other accounts on
+    // this browser still get onboarded.
+    const _obKey = 'teachedos_onboarded_' + (user.email || 'anon');
+    if (localStorage.getItem('teachedos_onboarded') === '1') {
+      localStorage.setItem(_obKey, '1');
+      localStorage.removeItem('teachedos_onboarded');
+    }
+    if (!localStorage.getItem(_obKey)) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
     // On the VPS domain the API is same-origin and should be immediate. If auth

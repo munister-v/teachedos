@@ -7352,14 +7352,17 @@ function _ttEstWorksheetHeight(output){
   let sum = 0;
   if (Array.isArray(output.questions)) {
     for (const q of output.questions) {
-      if (q.type === 'mcq' && Array.isArray(q.options)) sum += 34 + q.options.length * 24;
-      else if (q.type === 'truefalse') sum += 64;
-      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += 34 + q.pairs.length * 22;
-      else sum += 56;
+      if (q.type === 'mcq' && Array.isArray(q.options)) sum += 42 + q.options.length * 26;
+      else if (q.type === 'truefalse') sum += 72;
+      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += 42 + q.pairs.length * 24;
+      else sum += 64;
     }
-  } else if (Array.isArray(output.items)) sum = output.items.length * 50;
-  else if (Array.isArray(output.cards)) sum = output.cards.reduce((s,c)=> s + 56 + Math.ceil((c.text||'').length/46)*16, 0);
-  return Math.max(280, Math.min(660, 92 + sum + 16));
+  } else if (Array.isArray(output.items)) sum = output.items.length * 56;
+  else if (Array.isArray(output.cards)) sum = output.cards.reduce((s,c)=> s + 64 + Math.ceil((c.text||'').length/44)*16, 0);
+  // Size to fit ALL content (generous ceiling + headroom): the card then has no
+  // inner scroll for realistic worksheets, so the whole sheet shows on the board
+  // and exports/prints in full (html2canvas clips scrolled-away overflow).
+  return Math.max(300, Math.min(1700, 110 + sum + 24));
 }
 function _ttPlaceWorksheetOnBoard(output){
   const W = 440, H = _ttEstWorksheetHeight(output);

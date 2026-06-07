@@ -2344,7 +2344,10 @@ async function obSaveAndFinish() {
 }
 
 function skipOnboarding() {
-  localStorage.setItem('teachedos_onboarded', '1');
+  // Per-account flag so a different teacher on this browser still onboards.
+  var email = localStorage.getItem('teachedos_user_email') || 'anon';
+  localStorage.setItem('teachedos_onboarded_' + email, '1');
+  localStorage.removeItem('teachedos_onboarded');
   document.getElementById('onboarding-overlay').style.display = 'none';
 }
 
