@@ -952,22 +952,29 @@ function ttHubHasKey(out){const s=out&&out.struct;if(!s||!Array.isArray(s.questi
 // Styled, structured worksheet for the hub — mirrors the board's worksheet card
 // (numbered questions, MCQ options with the correct one highlighted, T/F, gaps,
 // matching, vocab). `showAns` toggles the answer key for student hand-outs.
-function richWorksheetHtml(out,showAns){
-  const s=out.struct,meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;
-  let list='';
+// Inner list HTML for a structured result — shared by the on-page card and the
+// A4 print document so both look identical. `showAns` toggles the answer key.
+function ttStructListHtml(s,showAns){
   if(Array.isArray(s.questions)&&s.questions.length){
-    list=s.questions.map((q,i)=>{let a='';
+    return s.questions.map((q,i)=>{let a='';
       if(q.type==='mcq'&&Array.isArray(q.options)){a=`<div class="tt-ws-opts">${q.options.map(o=>{const ok=showAns&&o===q.answer;return `<div class="tt-ws-opt${ok?' correct':''}"><span class="tt-ws-mark">${ok?'✓':'○'}</span><span>${esc(o)}</span></div>`}).join('')}</div>`}
       else if(q.type==='truefalse'){a=`<div class="tt-ws-tf"><span class="tt-ws-tf-b${showAns&&q.answer?' on':''}">✅ True</span><span class="tt-ws-tf-b${showAns&&!q.answer?' on':''}">❌ False</span></div>`}
       else if(q.type==='gap-fill'){a=(showAns&&q.answer)?`<div class="tt-ws-ans">Answer: <b>${esc(q.answer)}</b></div>`:''}
       else if(q.type==='match'&&Array.isArray(q.pairs)){a=`<div class="tt-ws-match">${q.pairs.map(p=>`<span class="tt-ws-l">${esc(p.left)}</span><span class="tt-ws-r">${esc(p.right||'')}</span>`).join('')}</div>`}
       else if(q.type==='open'){a='<div class="tt-ws-open">______________________________</div>'}
       return `<div class="tt-ws-q"><div class="tt-ws-qh"><span class="tt-ws-num">${i+1}.</span>${esc(q.text||'')}</div>${a}</div>`}).join('');
-  }else if(Array.isArray(s.items)&&s.items.length){
-    list=s.items.map((it,i)=>{const d=it.example||it.definition||'';return `<div class="tt-ws-q"><div class="tt-ws-qh"><span class="tt-ws-num">${i+1}.</span><b>${esc(it.word||'')}</b></div>${(showAns&&d)?`<div class="tt-ws-ans">${esc(d)}</div>`:'<div class="tt-ws-open">______________________________</div>'}</div>`}).join('');
-  }else if(Array.isArray(s.cards)&&s.cards.length){
-    list=s.cards.map(c=>`<div class="tt-ws-q"><div class="tt-ws-qh">${esc(c.title||'')}</div><div class="tt-ws-card-txt">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>`).join('');
   }
+  if(Array.isArray(s.items)&&s.items.length){
+    return s.items.map((it,i)=>{const d=it.example||it.definition||'';return `<div class="tt-ws-q"><div class="tt-ws-qh"><span class="tt-ws-num">${i+1}.</span><b>${esc(it.word||'')}</b></div>${(showAns&&d)?`<div class="tt-ws-ans">${esc(d)}</div>`:'<div class="tt-ws-open">______________________________</div>'}</div>`}).join('');
+  }
+  if(Array.isArray(s.cards)&&s.cards.length){
+    return s.cards.map(c=>`<div class="tt-ws-q"><div class="tt-ws-qh">${esc(c.title||'')}</div><div class="tt-ws-card-txt">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>`).join('');
+  }
+  return '';
+}
+function richWorksheetHtml(out,showAns){
+  const s=out.struct,meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;
+  const list=ttStructListHtml(s,showAns);
   if(!list)return worksheetHtml(out);
   return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}${ttHubHasKey(out)?` · ${showAns?'Answer key':'Student copy'}`:''}</div></div><div class="tag">TeachEd</div></header><div class="tt-ws-list">${list}</div></article>`;
 }
@@ -977,7 +984,32 @@ function worksheetHtml(out){const meta=`${out.level||'Mixed'} / ${(out.tags||[])
 function editOutput(){if(!lastOutput){toast('Generate something first');return;}const current=lastOutput.text||((lastOutput.cards||[]).map(c=>`${c.a||c.word||c.name||''} — ${c.b||c.def||c.note||''}`).join('\n'));const body=document.getElementById('result-body');const strip=body.querySelector('.action-strip');const ws=body.querySelector('.worksheet');if(ws)ws.remove();const existing=document.getElementById('tt-editor');if(existing)existing.remove();const editor=document.createElement('div');editor.id='tt-editor';editor.innerHTML=`<textarea id="tt-edit-area" style="width:100%;min-height:340px;padding:16px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">${esc(current)}</textarea><div class="hero-actions" style="margin-top:10px;"><button class="btn lime" type="button" onclick="saveEdit()">Save changes</button><button class="btn ghost" type="button" onclick="renderResult(lastOutput)">Cancel</button></div>`;body.appendChild(editor);document.getElementById('tt-edit-area').focus();}
 function saveEdit(){const ta=document.getElementById('tt-edit-area');if(!ta||!lastOutput)return;lastOutput.text=ta.value;lastOutput.edited=true;renderResult(lastOutput);toast('Changes saved — export or assign the edited version');}
 function copyOutput(){if(!lastOutput)return;navigator.clipboard?.writeText(lastOutput.text).then(()=>toast('Copied'))}
-function printOutput(){if(!lastOutput){toast('Generate something first');return}window.print()}
+function printOutput(){
+  if(!lastOutput){toast('Generate something first');return}
+  const out=lastOutput;
+  // Plain-text / non-structured results: print the page as before.
+  if(!out.struct){window.print();return}
+  const showAns=out.showAnswers!==false;
+  const list=ttStructListHtml(out.struct,showAns);
+  if(!list){window.print();return}
+  const metaLine=[(out.tags||[]).filter(Boolean).join(' · '),out.level,ttHubHasKey(out)?(showAns?'Answer key':'Student copy'):''].filter(Boolean).join(' · ');
+  const css=`*{box-sizing:border-box}body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
+    h1{font-size:22px;margin:0 0 2px;letter-spacing:-.02em}.meta{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7b7282;margin-bottom:18px}
+    .tt-ws-q{border:1px solid #e6e7ee;border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
+    .tt-ws-qh{font-size:14px;font-weight:700;line-height:1.45}.tt-ws-num{font-weight:800;margin-right:6px}
+    .tt-ws-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+    .tt-ws-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;padding:4px 9px;border-radius:7px;background:#f5f6fa}
+    .tt-ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}.tt-ws-mark{width:14px;text-align:center;opacity:.6}.tt-ws-opt.correct .tt-ws-mark{opacity:1}
+    .tt-ws-tf{display:flex;gap:10px;margin-top:8px}.tt-ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}.tt-ws-tf-b.on{background:#dcfce7;color:#15803d}
+    .tt-ws-ans{font-size:13px;margin-top:7px;color:#15803d}.tt-ws-ans b{color:#15803d}.tt-ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
+    .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:700;color:#4262FF}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    @media print{body{padding:0}@page{margin:1.6cm}}`;
+  const doc=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(out.title||'Worksheet')}</title><style>${css}</style></head><body><h1>${esc(out.title||'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${list}</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to print the worksheet');return}
+  w.document.open();w.document.write(doc);w.document.close();w.focus();
+  setTimeout(()=>{try{w.print()}catch(e){}},350);
+}
 function downloadOutput(){if(!lastOutput)return downloadText(`${slug(lastOutput.title)}.txt`, lastOutput.text)}
 function downloadHtmlOutput(){if(!lastOutput)return;const doc=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(lastOutput.title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;max-width:820px;margin:40px auto;padding:0 22px;color:#181818;line-height:1.6}.sheet{border:1px solid #ddd;border-radius:20px;padding:28px}h1{letter-spacing:-.04em}.meta{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:18px}pre{white-space:pre-wrap;font:inherit}.task{border:1px solid #eee;border-radius:14px;padding:12px 14px;margin:10px 0}@media print{body{margin:0;max-width:none}.sheet{border:0}}</style></head><body><main class="sheet"><h1>${esc(lastOutput.title)}</h1><div class="meta">TeachEd / ${esc(lastOutput.level||'Mixed')}</div>${htmlForExport(lastOutput)}</main></body></html>`;downloadText(`${slug(lastOutput.title)}.html`,doc)}
 function htmlForExport(out){if(out.cards&&out.cards.length){return out.cards.map(c=>`<div class="task"><b>${esc(c.a||c.word||c.name||'Item')}</b><br>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</div>`).join('')}return `<pre>${esc(out.text||'')}</pre>`}
