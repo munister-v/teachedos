@@ -1,0 +1,1184 @@
+/* ════════════════════════════════════════════════════════════════
+   profile-app.js — TeachEd Profile page logic
+   Extracted from the inline <script> block for HTTP/SW cacheability
+   (loads after app-core.js, same as before)
+   ════════════════════════════════════════════════════════════════ */
+const PROFILE_CACHE_KEY = 'teachedos_profile_cache_v1';
+let token = localStorage.getItem('teachedos_token');
+let me = null;
+let selectedAvatar = null;
+let billingOverview = null;
+let billingPlans = null;
+const {
+  createApiClient,
+  DEFAULT_TIME_ZONE,
+  browserTimeZone,
+  isValidTimeZone,
+  planHasFeature,
+  userPlan,
+  upgradeMessage
+} = window.TeachEdApp;
+const apiFetch = createApiClient(() => token);
+const TIME_ZONE_OPTIONS = [
+  'Europe/Kyiv','Europe/Warsaw','Europe/Berlin','Europe/Madrid','Europe/Paris','Europe/London',
+  'Europe/Rome','Europe/Prague','Europe/Vilnius','Europe/Helsinki','Europe/Istanbul',
+  'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Toronto',
+  'America/Sao_Paulo','Asia/Dubai','Asia/Tbilisi','Asia/Almaty','Asia/Bangkok','Asia/Tokyo',
+  'Asia/Seoul','Asia/Singapore','Australia/Sydney'
+];
+
+const AVATARS = ['🧑‍🏫','👩‍🏫','👨‍🏫','🦸','🦸‍♀️','🎓','📚','✏️','🌟','💡','🎨','🎭','🌸','🦊','🐧','🦉','🐸','🐱','🐶','🦄'];
+
+// ── Helpers ──────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let toastTimer;
+function toast(msg, dur = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function readProfileCache() {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeProfileCache(patch) {
+  try {
+    const current = readProfileCache() || {};
+    const next = { ...current, ...patch, cachedAt: new Date().toISOString() };
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+function updateMobileProfileSummary(options = {}) {
+  const eyebrow = document.getElementById('mobile-profile-eyebrow');
+  const title = document.getElementById('mobile-profile-title');
+  const copy = document.getElementById('mobile-profile-copy');
+  if (!eyebrow || !title || !copy) return;
+  const firstName = me?.name ? me.name.split(' ')[0] : 'Teacher';
+  eyebrow.textContent = `${me?.avatar || '🧑‍🏫'} ${firstName}'s profile`;
+  title.textContent = options.offline
+    ? 'Offline profile snapshot ready'
+    : `${firstName}, your workspace settings are ready`;
+  const boardCount = Array.isArray(boardsCache) ? boardsCache.length : 0;
+  const sharedCount = Array.isArray(sharedBoardsCache) ? sharedBoardsCache.length : 0;
+  copy.textContent = options.offline
+    ? `Offline mode: showing your last saved account view with ${boardCount} boards and ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}.`
+    : `Manage ${boardCount} board${boardCount === 1 ? '' : 's'}, review ${sharedCount} shared board${sharedCount === 1 ? '' : 's'}, and keep your account details current from this phone view.`;
+}
+
+function effectiveTimeZoneLabel() {
+  if (!me) return DEFAULT_TIME_ZONE;
+  if (me.timezone_mode === 'manual') return me.timezone || DEFAULT_TIME_ZONE;
+  return me.timezone || browserTimeZone() || DEFAULT_TIME_ZONE;
+}
+
+function describeTimeZone(timeZone) {
+  const zone = timeZone || DEFAULT_TIME_ZONE;
+  const local = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: zone });
+  return `${zone} · ${local}`;
+}
+
+function renderTimeZoneOptions() {
+  const list = document.getElementById('timezone-options');
+  if (!list) return;
+  // Use full IANA list from the browser (all modern browsers support this)
+  let zones;
+  try {
+    zones = Intl.supportedValuesOf('timeZone');
+  } catch {
+    zones = TIME_ZONE_OPTIONS;
+  }
+  list.innerHTML = zones.map(zone => `<option value="${zone}"></option>`).join('');
+}
+
+function updateTimeZonePreview() {
+  const isAuto = document.getElementById('set-tz-auto')?.checked;
+  const input = document.getElementById('set-timezone');
+  const rawZone = (isAuto ? browserTimeZone() : input?.value || '').trim();
+  const zone = isValidTimeZone(rawZone) ? rawZone : DEFAULT_TIME_ZONE;
+  const current = document.getElementById('tz-current-label');
+  const preview = document.getElementById('tz-preview-time');
+  const detected = document.getElementById('tz-detected-label');
+  if (detected) detected.textContent = browserTimeZone();
+  if (current) current.textContent = zone;
+  if (preview) {
+    preview.textContent = new Date().toLocaleString([], {
+      timeZone: zone,
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+}
+
+function toggleTimeZoneMode(isAuto) {
+  const input = document.getElementById('set-timezone');
+  if (!input) return;
+  input.disabled = !!isAuto;
+  if (isAuto) input.value = browserTimeZone();
+  updateTimeZonePreview();
+}
+
+function initTimeZoneSettings() {
+  renderTimeZoneOptions();
+  const autoToggle = document.getElementById('set-tz-auto');
+  const input = document.getElementById('set-timezone');
+  if (!autoToggle || !input || !me) return;
+  const isAuto = me.timezone_mode !== 'manual';
+  autoToggle.checked = isAuto;
+  input.value = isAuto ? browserTimeZone() : (me.timezone || browserTimeZone() || DEFAULT_TIME_ZONE);
+  toggleTimeZoneMode(isAuto);
+}
+
+async function syncAutoTimeZone(options = {}) {
+  if (!me || me.timezone_mode === 'manual') return;
+  const detected = browserTimeZone();
+  if (!detected || me.timezone === detected) return;
+  try {
+    const r = await apiFetch('/api/auth/me', { method: 'PATCH', body: { timezone: detected, timezone_mode: 'auto' } });
+    if (!r.ok) return;
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    writeProfileCache({ me });
+    renderOverview();
+    if (!options.silent) toast('Time zone updated from this device');
+  } catch {}
+}
+
+// ── Tab switching ─────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.st-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('tab-' + name)?.classList.add('active');
+  document.querySelector(`.st-item[data-tab="${name}"]`)?.classList.add('active');
+  if (name === 'boards') loadBoards();
+  if (name === 'shared') loadSharedBoards();
+  if (name === 'settings') initSettings();
+}
+
+function openPlansSection() {
+  switchTab('settings');
+  setTimeout(() => document.getElementById('plan-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+// ── Auth & Init ───────────────────────────────────────────────
+async function init() {
+  if (!token) {
+    window.location.href = 'index.html';
+    return;
+  }
+  const cached = readProfileCache();
+  try {
+    const r = await apiFetch('/api/auth/me');
+    if (!r.ok && !cached?.me) {
+      if (r.status === 401 || r.status === 403) {
+        ['teachedos_token','teachedos_role','teachedos_user','teachedos_user_email',
+         'teachedos_teacher_dashboard_cache_v1'].forEach(k => localStorage.removeItem(k));
+        try { google?.accounts?.id?.disableAutoSelect(); } catch {}
+      }
+      window.location.href = 'index.html'; return;
+    }
+    if (r.ok) {
+      const { user } = await r.json();
+      me = user;
+      await syncAutoTimeZone({ silent: true });
+      writeProfileCache({ me });
+    } else {
+      me = cached.me;
+    }
+    selectedAvatar = me.avatar;
+    renderOverview();
+    // Preload boards & shared lists so tabs don't sit on "Loading..."
+    loadBoards().catch(() => {});
+    loadSharedBoards().catch(() => {});
+    document.getElementById('page-loading').style.display = 'none';
+    if (me.role === 'admin') document.getElementById('nb-admin-link').style.display = '';
+    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    document.getElementById('nb-user-info').style.display = '';
+    updateMobileProfileSummary({ offline: !r.ok });
+    if (location.hash === '#plans') openPlansSection();
+  } catch (e) {
+    if (cached?.me) {
+      me = cached.me;
+      selectedAvatar = me.avatar;
+      renderOverview(true);
+      loadBoards(true).catch(() => {});
+      loadSharedBoards(true).catch(() => {});
+      document.getElementById('page-loading').style.display = 'none';
+      document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+      document.getElementById('nb-user-info').style.display = '';
+      updateMobileProfileSummary({ offline: true });
+      if (location.hash === '#plans') openPlansSection();
+      toast('Offline mode enabled');
+      return;
+    }
+    window.location.href = 'index.html';
+  }
+}
+
+async function renderOverview(forceOffline = false) {
+  document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
+  document.getElementById('profile-name-big').textContent = me.name;
+  document.getElementById('profile-email-big').textContent = me.email;
+  document.getElementById('profile-timezone-big').textContent = `🕒 ${describeTimeZone(effectiveTimeZoneLabel())}`;
+  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
+
+  const planBadges = { free:'', pro:'🚀 Pro', school:'🏫 School' };
+  const planBadge = planBadges[me.plan];
+  // Remove any existing plan badge first to prevent duplicates (function may be called
+  // twice: once from cache, once from API response).
+  const existingPlanBadge = document.getElementById('profile-plan-badge');
+  if (existingPlanBadge) existingPlanBadge.remove();
+  if (planBadge) {
+    const el = document.getElementById('profile-role-badge');
+    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(200,230,50,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
+  }
+
+  if (me.created_at) {
+    const since = new Date(me.created_at);
+    document.getElementById('stat-since').textContent =
+      isNaN(since) ? '—' : since.toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  } else {
+    document.getElementById('stat-since').textContent = '—';
+  }
+
+  // Load boards for stats
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    writeProfileCache({ boards });
+    document.getElementById('stat-boards').textContent = boards.length;
+    const totalCards = boards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
+    document.getElementById('stat-cards').textContent = totalCards;
+
+    // Recent boards
+    const recentBoards = boards.slice(0, 5);
+    const rbl = document.getElementById('recent-boards-list');
+    if (!recentBoards.length) {
+      rbl.innerHTML = '<div style="color:var(--text-3);font-size:14px;">No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a></div>';
+    } else {
+      rbl.innerHTML = recentBoards.map(b => `
+        <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
+          <div class="rbi-icon">📌</div>
+          <div>
+            <div class="rbi-name">${esc(b.name)}</div>
+            <div class="rbi-meta">${b.card_count || 0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div>
+          </div>
+        </a>`).join('');
+    }
+  } catch {
+    const cached = readProfileCache();
+    const cachedBoards = cached?.boards || [];
+    document.getElementById('stat-boards').textContent = cachedBoards.length;
+    document.getElementById('stat-cards').textContent = cachedBoards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
+    const rbl = document.getElementById('recent-boards-list');
+    if (!cachedBoards.length) {
+      rbl.innerHTML = `<div style="color:var(--text-3);font-size:14px;">${forceOffline ? 'Offline mode: no saved boards yet.' : 'No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a>'}</div>`;
+    } else {
+      rbl.innerHTML = cachedBoards.slice(0, 5).map(b => `
+        <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
+          <div class="rbi-icon">📌</div>
+          <div>
+            <div class="rbi-name">${esc(b.name)}</div>
+            <div class="rbi-meta">${b.card_count || 0} cards · Saved snapshot</div>
+          </div>
+        </a>`).join('');
+    }
+  }
+
+  // Sessions count
+  try {
+    const rs = await apiFetch('/api/auth/sessions');
+    if (rs.ok) {
+      const d = await rs.json();
+      document.getElementById('stat-sessions').textContent = d.sessions?.length || 1;
+    } else {
+      document.getElementById('stat-sessions').textContent = '1';
+    }
+  } catch {
+    document.getElementById('stat-sessions').textContent = '1';
+  }
+  updateMobileProfileSummary({ offline: forceOffline });
+}
+
+// ── My Boards ─────────────────────────────────────────────────
+let boardsCache = [];
+let sharedBoardsCache = [];
+async function loadBoards(forceOffline = false) {
+  const grid = document.getElementById('boards-grid');
+  grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>';
+  try {
+    if (forceOffline) throw new Error('offline');
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    boardsCache = boards;
+    writeProfileCache({ boards });
+    renderBoardsGrid(boards);
+  } catch {
+    const cachedBoards = readProfileCache()?.boards || [];
+    boardsCache = cachedBoards;
+    if (cachedBoards.length) renderBoardsGrid(cachedBoards);
+    else grid.innerHTML = '<div style="color:#e55;grid-column:1/-1;">Failed to load boards</div>';
+  }
+  updateMobileProfileSummary({ offline: forceOffline });
+}
+
+function renderBoardsGrid(boards) {
+  const grid = document.getElementById('boards-grid');
+  if (!boards.length) {
+    grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">No boards yet. Click "New Board" to create one.</div>';
+    return;
+  }
+  grid.innerHTML = boards.map(b => `
+    <div class="board-card" id="bc-${esc(b.id)}">
+      <div class="bc-thumb">📌</div>
+      <div class="bc-body">
+        <div class="bc-name-wrap">
+          <div class="bc-name" id="bc-name-${esc(b.id)}" onclick="startBoardRename('${esc(b.id)}')" title="Click to rename">${esc(b.name)}</div>
+        </div>
+        <div class="bc-meta">${b.card_count || 0} cards · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+      </div>
+      <div class="bc-actions">
+        <button class="bc-btn primary" onclick="window.location.href='board.html?id=${esc(b.id)}'">Open</button>
+        <button class="bc-btn" onclick="startBoardRename('${esc(b.id)}')">Rename</button>
+        <button class="bc-btn danger" onclick="deleteBoard('${esc(b.id)}','${esc(b.name)}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function startBoardRename(id) {
+  const el = document.getElementById('bc-name-' + id);
+  const oldName = el.textContent;
+  const inp = document.createElement('input');
+  inp.value = oldName;
+  inp.style.cssText = 'font-size:14px;font-weight:800;border:1.5px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:100%;font-family:var(--font);';
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  async function save() {
+    const newName = inp.value.trim() || oldName;
+    const span = document.createElement('div');
+    span.id = 'bc-name-' + id;
+    span.className = 'bc-name';
+    span.title = 'Click to rename';
+    span.textContent = newName;
+    span.onclick = () => startBoardRename(id);
+    inp.replaceWith(span);
+    if (newName !== oldName) {
+      try {
+        await apiFetch('/api/boards/' + id + '/name', { method: 'PATCH', body: { name: newName } });
+        toast('Renamed to: ' + newName);
+      } catch { toast('Rename failed'); }
+    }
+  }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = oldName; inp.blur(); } });
+}
+
+async function deleteBoard(id, name) {
+  if (!confirm(`Delete board "${name}"? This cannot be undone.`)) return;
+  try {
+    const r = await apiFetch('/api/boards/' + id, { method: 'DELETE' });
+    if (!r.ok) { toast('Delete failed'); return; }
+    toast('Board deleted');
+    loadBoards();
+  } catch { toast('Delete failed'); }
+}
+
+const BOARD_TEMPLATES = [
+  { id:'blank',      icon:'⬜', name:'Blank Board',          desc:'Start from scratch', cards:[] },
+
+  { id:'speaking',   icon:'🗣️', name:'Speaking Lesson',      desc:'Warm-up · Discussion · Feedback', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:200, data:{ title:'Warm-up — Small Talk', status:'available', skill:'Speaking', duration:'5 min', level:'A2', desc:'2-minute chat prompt: "What did you do last weekend?" Students share in pairs.' }},
+    { type:'vocab',      x:340, y:80,  w:220, h:180, data:{ word:'Conversation starters', phonetic:'', pos:'phrase', translation:'Фрази для початку розмови', example:'By the way… / Speaking of which… / That reminds me…' }},
+    { type:'lesson',     x:60,  y:310, w:260, h:200, data:{ title:'Main Discussion', status:'locked', skill:'Speaking', duration:'20 min', level:'B1', desc:'Guided discussion questions on the topic. Use opinion phrases: I think… / In my view… / I agree because…' }},
+    { type:'assignment', x:340, y:310, w:260, h:180, data:{ title:'Speaking Task', type:'Speaking', maxScore:20, desc:'Record a 1-minute response to the discussion question. Focus on fluency and vocabulary range.' }},
+    { type:'checklist',  x:60,  y:540, w:260, h:180, data:{ title:'Lesson Checklist', items:[{text:'Warm-up done',done:false},{text:'New vocabulary covered',done:false},{text:'Discussion completed',done:false},{text:'Speaking task submitted',done:false}]}},
+    { type:'milestone',  x:340, y:540, w:220, h:120, data:{ title:'Speaking Lesson ✓', desc:'All tasks complete — great work!' }},
+  ]},
+
+  { id:'grammar',    icon:'📐', name:'Grammar Lesson',       desc:'PPP: Present · Practice · Produce', cards:[
+    { type:'lesson',     x:60,  y:80,  w:280, h:210, data:{ title:'Grammar Presentation', status:'available', skill:'Grammar', duration:'15 min', level:'B1', desc:'Present the Past Perfect with a timeline diagram. Contrast with Past Simple. Show 5 example sentences.' }},
+    { type:'sticky',     x:360, y:80,  w:200, h:160, data:{ text:'💡 Form:\nHad + past participle\n\nBy the time she arrived,\nhe had already left.', color:'#FFF9C4' }},
+    { type:'lesson',     x:60,  y:320, w:280, h:200, data:{ title:'Controlled Practice', status:'locked', skill:'Grammar', duration:'15 min', level:'B1', desc:'Gap-fill exercise: complete 10 sentences using Past Perfect. Check in pairs.' }},
+    { type:'assignment', x:360, y:260, w:260, h:180, data:{ title:'Grammar Quiz', type:'Quiz', maxScore:20, desc:'10 multiple-choice questions on Past Perfect vs Past Simple.', questions:[] }},
+    { type:'lesson',     x:60,  y:550, w:280, h:180, data:{ title:'Free Production', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Students write 3 sentences about their life using Past Perfect. Share with the class.' }},
+    { type:'milestone',  x:360, y:460, w:220, h:120, data:{ title:'Grammar Unit ✓', desc:'PPP cycle complete' }},
+  ]},
+
+  { id:'reading',    icon:'📚', name:'Reading Lesson',       desc:'Pre-read · Read · Comprehend', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Pre-reading Activity', status:'available', skill:'Vocabulary', duration:'10 min', level:'B1', desc:'Activate prior knowledge. Preview 8 key words from the text. Predict: what is the article about?' }},
+    { type:'vocab',      x:350, y:80,  w:220, h:180, data:{ word:'Key Vocabulary', phonetic:'', pos:'noun list', translation:'Ключові слова', example:'controversial · significant · impact · perspective · evidence' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:200, data:{ title:'Reading Task', status:'locked', skill:'Reading', duration:'20 min', level:'B1', desc:'Read the article. Task 1: identify main idea per paragraph. Task 2: find 3 supporting details.' }},
+    { type:'assignment', x:350, y:290, w:260, h:180, data:{ title:'Comprehension Check', type:'Quiz', maxScore:15, desc:'5 True/False + 5 multiple choice questions about the text.', questions:[] }},
+    { type:'assignment', x:60,  y:540, w:270, h:160, data:{ title:'Critical Thinking', type:'Essay', maxScore:10, desc:'In 100 words: Do you agree with the author\'s main argument? Give 2 reasons.' }},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Reading Lesson ✓', desc:'Comprehension + critical thinking done' }},
+  ]},
+
+  { id:'writing',    icon:'✍️', name:'Writing Lesson',       desc:'Model · Plan · Write · Feedback', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Analyse the Model Text', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Read a model essay. Identify: thesis, topic sentences, supporting evidence, conclusion. Highlight linking words.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:180, data:{ text:'📝 Essay Structure:\n\n1. Introduction + thesis\n2. Body ¶1 — Point + Evidence\n3. Body ¶2 — Point + Evidence\n4. Conclusion', color:'#E8F5E9' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:180, data:{ title:'Planning Stage', status:'locked', skill:'Writing', duration:'10 min', level:'B2', desc:'Students create a mind map / outline for their own essay. Teacher checks plans before writing.' }},
+    { type:'assignment', x:350, y:290, w:260, h:180, data:{ title:'Essay Writing Task', type:'Essay', maxScore:30, desc:'Write a 250-word opinion essay. Use the model structure. Time limit: 30 minutes.' }},
+    { type:'checklist',  x:60,  y:520, w:270, h:180, data:{ title:'Self-check Before Submitting', items:[{text:'Clear thesis statement',done:false},{text:'2 body paragraphs with evidence',done:false},{text:'Linking words used (however, therefore…)',done:false},{text:'Conclusion restates thesis',done:false},{text:'Word count 230-270',done:false}]}},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Writing Task ✓', desc:'Draft submitted for feedback' }},
+  ]},
+
+  { id:'listening',  icon:'🎧', name:'Listening Lesson',     desc:'Pre-listen · Listen · Respond', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Pre-listening', status:'available', skill:'Listening', duration:'8 min', level:'B1', desc:'Predict content from the title and images. Pre-teach 5 key words. Set the listening task.' }},
+    { type:'lesson',     x:350, y:80,  w:270, h:200, data:{ title:'First Listen — Gist', status:'locked', skill:'Listening', duration:'5 min', level:'B1', desc:'Listen once for the main idea. Answer: What is the speaker\'s main point? Where/when is this happening?' }},
+    { type:'assignment', x:60,  y:310, w:270, h:180, data:{ title:'Second Listen — Detail', type:'Quiz', maxScore:10, desc:'Listen again. Answer 5 specific detail questions. Note key numbers, names, and facts.' }},
+    { type:'lesson',     x:350, y:310, w:270, h:180, data:{ title:'Post-listening Discussion', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'React to the content. Do you agree with the speaker? Has this changed your opinion?' }},
+    { type:'milestone',  x:60,  y:520, w:270, h:120, data:{ title:'Listening Lesson ✓', desc:'Gist + detail + discussion complete' }},
+  ]},
+
+  { id:'vocab',      icon:'📖', name:'Vocabulary Unit',      desc:'Introduce · Practise · Use', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:190, data:{ title:'Vocabulary Introduction', status:'available', skill:'Vocabulary', duration:'15 min', level:'B1', desc:'Present 10 new words in context. Use images, definitions, and example sentences. Students guess meaning from context.' }},
+    { type:'vocab',      x:340, y:80,  w:220, h:170, data:{ word:'ambitious', phonetic:'/æmˈbɪʃəs/', pos:'adjective', translation:'амбітний', example:'She is very ambitious — she wants to become CEO by 30.' }},
+    { type:'vocab',      x:340, y:270, w:220, h:170, data:{ word:'resilient', phonetic:'/rɪˈzɪliənt/', pos:'adjective', translation:'стійкий', example:'You need to be resilient to succeed in business.' }},
+    { type:'assignment', x:60,  y:300, w:260, h:170, data:{ title:'Vocabulary Quiz', type:'Quiz', maxScore:20, desc:'Match words to definitions. Fill gaps in sentences. 10 questions total.', questions:[] }},
+    { type:'lesson',     x:60,  y:500, w:260, h:170, data:{ title:'Vocabulary in Use', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Students create 2 original sentences using 5 of the new words. Share and peer-correct.' }},
+    { type:'milestone',  x:340, y:460, w:220, h:120, data:{ title:'Vocabulary Unit ✓', desc:'10 words learned and practised' }},
+  ]},
+
+  { id:'testprep',   icon:'📝', name:'Exam Preparation',     desc:'Review · Mock Test · Debrief', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', level:'B2', desc:'Quick review of key grammar (conditionals, passive, reported speech) and topic vocabulary. Mind map on board.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'⏱ Exam Tips:\n• Read questions first\n• Manage your time\n• Check for spelling\n• Don\'t leave blanks', color:'#FFF3E0' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Mock Test — Part 1: Use of English', type:'Quiz', maxScore:30, timeLimit:20, desc:'15 multiple choice grammar questions. Exam conditions — no dictionaries.', questions:[] }},
+    { type:'assignment', x:350, y:270, w:270, h:170, data:{ title:'Mock Test — Part 2: Writing', type:'Essay', maxScore:20, timeLimit:30, desc:'Write a formal email (150 words) responding to a complaint. Use appropriate register.' }},
+    { type:'lesson',     x:60,  y:510, w:270, h:170, data:{ title:'Test Debrief', status:'locked', skill:'Grammar', duration:'15 min', level:'B2', desc:'Go through answers together. Focus on most common mistakes. Students note their weak areas.' }},
+    { type:'milestone',  x:350, y:460, w:220, h:120, data:{ title:'Mock Exam ✓', desc:'Results reviewed — target weak areas' }},
+  ]},
+
+  { id:'conversation', icon:'💬', name:'Conversation Class',  desc:'Topic · Debate · Reflection', cards:[
+    { type:'sticky',     x:60,  y:80,  w:240, h:160, data:{ text:'🎯 Today\'s Topic:\n\n"Is social media doing more harm than good?"\n\nLevel: B2 | Time: 60 min', color:'#E3F2FD' }},
+    { type:'lesson',     x:320, y:80,  w:270, h:190, data:{ title:'Warm-up — Opinion Poll', status:'available', skill:'Speaking', duration:'5 min', level:'B2', desc:'Quick show of hands: agree / disagree / not sure. Students give one-sentence reasons.' }},
+    { type:'vocab',      x:60,  y:270, w:240, h:180, data:{ word:'Debate phrases', phonetic:'', pos:'functional language', translation:'Фрази для дискусії', example:'I\'d argue that… / On the other hand… / That\'s a fair point, but… / The evidence suggests…' }},
+    { type:'lesson',     x:320, y:300, w:270, h:190, data:{ title:'Structured Debate', status:'locked', skill:'Speaking', duration:'25 min', level:'B2', desc:'Split into FOR / AGAINST groups. 5 min prep, then 15 min debate. Teacher notes language errors for feedback.' }},
+    { type:'assignment', x:60,  y:480, w:240, h:160, data:{ title:'Reflection Task', type:'Essay', maxScore:10, desc:'Write 5 sentences: What was the strongest argument? Did your opinion change? Why / why not?' }},
+    { type:'milestone',  x:320, y:510, w:220, h:120, data:{ title:'Conversation Class ✓', desc:'Debate + reflection complete' }},
+  ]},
+
+  { id:'pronunciation', icon:'🔊', name:'Pronunciation Lesson', desc:'Sound · Drill · Minimal pairs', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Sound Introduction', status:'available', skill:'Speaking', duration:'10 min', level:'A2', desc:'Introduce the target sound /θ/ (th). Show mouth position diagram. Teacher models: think, three, through.' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'👄 /θ/ vs /ð/\n\nVoiceless: think, three, bath\nVoiced: this, that, breathe\n\nTip: tongue between teeth!', color:'#FCE4EC' }},
+    { type:'lesson',     x:60,  y:310, w:270, h:180, data:{ title:'Minimal Pairs Drill', status:'locked', skill:'Speaking', duration:'10 min', level:'A2', desc:'Practise: think/sink, three/tree, bath/bat. Students listen and repeat. Record yourself and compare.' }},
+    { type:'assignment', x:350, y:270, w:260, h:170, data:{ title:'Pronunciation Quiz', type:'Quiz', maxScore:10, desc:'Listen to 10 words. Write: does it contain /θ/ or /ð/? Circle the correct sound.' }},
+    { type:'lesson',     x:60,  y:520, w:270, h:160, data:{ title:'Connected Speech Practice', status:'locked', skill:'Speaking', duration:'10 min', level:'B1', desc:'Read a short paragraph aloud focusing on /θ/ sounds. Peer feedback on accuracy.' }},
+    { type:'milestone',  x:350, y:460, w:220, h:120, data:{ title:'Pronunciation ✓', desc:'/θ/ and /ð/ mastered' }},
+  ]},
+
+  { id:'business',   icon:'💼', name:'Business English',     desc:'Emails · Meetings · Presentations', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'Formal vs Informal Register', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Compare formal email vs casual message. Identify: salutation, body, closing. Key phrases for each register.' }},
+    { type:'vocab',      x:350, y:80,  w:220, h:180, data:{ word:'Business phrases', phonetic:'', pos:'functional language', translation:'Ділові фрази', example:'I am writing with regard to… / Please find attached… / I look forward to hearing from you…' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Email Writing Task', type:'Essay', maxScore:20, desc:'Write a formal email (120 words) to a client apologising for a delayed delivery. Use appropriate register.' }},
+    { type:'lesson',     x:350, y:290, w:270, h:180, data:{ title:'Meeting Language', status:'locked', skill:'Speaking', duration:'20 min', level:'B2', desc:'Phrases for: opening a meeting, agreeing/disagreeing politely, summarising, closing. Role-play a team meeting.' }},
+    { type:'checklist',  x:60,  y:510, w:270, h:170, data:{ title:'Business English Checklist', items:[{text:'Formal email written',done:false},{text:'Register appropriate',done:false},{text:'Meeting phrases practised',done:false},{text:'Presentation vocabulary covered',done:false}]}},
+    { type:'milestone',  x:350, y:490, w:220, h:120, data:{ title:'Business English ✓', desc:'Email + meeting skills complete' }},
+  ]},
+
+  { id:'ielts',      icon:'🎓', name:'IELTS Preparation',    desc:'Task 1 · Task 2 · Speaking', cards:[
+    { type:'lesson',     x:60,  y:80,  w:270, h:200, data:{ title:'IELTS Writing Task 1', status:'available', skill:'Writing', duration:'20 min', level:'C1', desc:'Describe a bar chart. Structure: overview → key features → comparison. Use: rose significantly, remained stable, peaked at…' }},
+    { type:'sticky',     x:350, y:80,  w:210, h:160, data:{ text:'📊 Task 1 Tips:\n• Write 150+ words\n• Start with overview\n• Use data selectively\n• No personal opinion\n• 20 minutes max', color:'#F3E5F5' }},
+    { type:'assignment', x:60,  y:310, w:270, h:170, data:{ title:'Task 1 Practice', type:'Essay', maxScore:9, timeLimit:20, desc:'Describe the bar chart showing internet usage by age group 2010-2020. Write at least 150 words.' }},
+    { type:'lesson',     x:350, y:270, w:270, h:180, data:{ title:'IELTS Writing Task 2', status:'locked', skill:'Writing', duration:'40 min', level:'C1', desc:'Opinion essay structure. Thesis → 2 body paragraphs → conclusion. Band 7+ requires: complex sentences, range of vocabulary, clear position.' }},
+    { type:'assignment', x:60,  y:510, w:270, h:170, data:{ title:'Task 2 Practice Essay', type:'Essay', maxScore:9, timeLimit:40, desc:'Some people think technology has made our lives more complicated. To what extent do you agree? Write 250 words.' }},
+    { type:'milestone',  x:350, y:470, w:220, h:120, data:{ title:'IELTS Writing ✓', desc:'Task 1 + Task 2 practised' }},
+  ]},
+
+  { id:'kids',       icon:'🧒', name:'Kids Lesson (A1)',     desc:'Fun · Games · Simple tasks', cards:[
+    { type:'lesson',     x:60,  y:80,  w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! / Hi! / Good morning! / How are you? / I\'m fine, thank you!' }},
+    { type:'sticky',     x:340, y:80,  w:200, h:160, data:{ text:'🌈 Today we learn:\n\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun! 🎉', color:'#E8F5E9' }},
+    { type:'lesson',     x:60,  y:300, w:260, h:180, data:{ title:'Vocabulary — Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word. Repeat 3 times. Then: "What colour is the cat?"' }},
+    { type:'assignment', x:340, y:270, w:240, h:160, data:{ title:'Colour & Match Activity', type:'Quiz', maxScore:10, desc:'Match the animal to its colour. Draw and colour 3 animals. Label them in English.' }},
+    { type:'lesson',     x:60,  y:510, w:260, h:160, data:{ title:'Song & Game — Goodbye', status:'locked', skill:'Speaking', duration:'5 min', level:'A1', desc:'Play "Simon Says" with vocabulary from the lesson. Finish with the goodbye song.' }},
+    { type:'milestone',  x:340, y:450, w:220, h:110, data:{ title:'Kids Lesson ✓ 🌟', desc:'Great job today!' }},
+  ]},
+];
+
+let _selectedTemplate = 'blank';
+
+function createNewBoard() {
+  _selectedTemplate = 'blank';
+  const grid = document.getElementById('tpl-grid');
+  grid.innerHTML = BOARD_TEMPLATES.map(t => `
+    <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
+      style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(200,230,50,.05)':'#F5F0E8'};">
+      <div style="font-size:22px;margin-bottom:6px;">${t.icon}</div>
+      <div style="font-size:13px;font-weight:800;color:#1C1C1E;letter-spacing:-.01em;">${t.name}</div>
+      <div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${t.desc}</div>
+      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#C8E632;font-family:monospace;">${t.cards.length} cards</div>` : ''}
+    </div>`).join('');
+  document.getElementById('tpl-name').value = '';
+  const modal = document.getElementById('tpl-modal');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('tpl-name').focus(), 100);
+}
+
+function selectTemplate(id) {
+  _selectedTemplate = id;
+  const tpl = BOARD_TEMPLATES.find(t => t.id === id);
+  if (tpl && !document.getElementById('tpl-name').value) {
+    document.getElementById('tpl-name').value = tpl.id === 'blank' ? '' : tpl.name;
+  }
+  document.querySelectorAll('#tpl-grid > div').forEach(el => {
+    const tid = el.id.replace('tpl-','');
+    el.style.borderColor = tid === id ? 'var(--accent)' : 'var(--border)';
+    el.style.background   = tid === id ? 'rgba(94,94,74,.04)' : '#fafafa';
+  });
+}
+
+function closeTplModal() {
+  document.getElementById('tpl-modal').style.display = 'none';
+}
+
+async function confirmNewBoard() {
+  const name = document.getElementById('tpl-name').value.trim() || 'New Board';
+  const tpl  = BOARD_TEMPLATES.find(t => t.id === _selectedTemplate) || BOARD_TEMPLATES[0];
+  try {
+    const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
+    if (!r.ok) { toast('Failed to create board'); return; }
+    const { board } = await r.json();
+    // If template has cards, seed them with proper positions
+    if (tpl.cards.length) {
+      const seedCards = tpl.cards.map((c, i) => ({
+        id: 'c' + (Date.now() + i),
+        type: c.type,
+        x: c.x !== undefined ? c.x : 60 + (i % 3) * 280,
+        y: c.y !== undefined ? c.y : 60 + Math.floor(i / 3) * 220,
+        w: c.w || (c.type === 'sticky' ? 200 : c.type === 'milestone' ? 220 : 260),
+        h: c.h || (c.type === 'sticky' ? 160 : c.type === 'milestone' ? 120 : 180),
+        data: { ...c.data },
+        color: c.color || null,
+      }));
+      await apiFetch(`/api/boards/${board.id}`, {
+        method: 'PATCH',
+        body: { data: { cards: seedCards, arrows: [], pan: { x: 40, y: 40 }, scale: 1, nextId: seedCards.length + 1 } }
+      });
+    }
+    closeTplModal();
+    window.location.href = 'board.html?id=' + board.id;
+  } catch { toast('Failed to create board'); }
+}
+
+// ── Shared Boards ─────────────────────────────────────────────
+async function loadSharedBoards(forceOffline = false) {
+  const wrap = document.getElementById('shared-boards-list');
+  wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>';
+  try {
+    if (forceOffline) throw new Error('offline');
+    const r = await apiFetch('/api/members/my/boards');
+    const { boards } = await r.json();
+    sharedBoardsCache = boards;
+    writeProfileCache({ sharedBoards: boards });
+    if (!boards.length) {
+      wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">No shared boards yet.<br>Ask your teacher to invite you to a board.</div>';
+      return;
+    }
+    wrap.innerHTML = boards.map(b => `
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
+      </a>`).join('');
+  } catch {
+    const cachedBoards = readProfileCache()?.sharedBoards || [];
+    sharedBoardsCache = cachedBoards;
+    if (!cachedBoards.length) {
+      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#e55'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
+      return;
+    }
+    wrap.innerHTML = cachedBoards.map(b => `
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar || '👩‍🏫'} ${esc(b.owner_name || 'Teacher')} · Saved snapshot</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role || 'viewer'}</span>
+      </a>`).join('');
+  }
+  updateMobileProfileSummary({ offline: forceOffline });
+}
+
+// ── Settings ──────────────────────────────────────────────────
+function initSettings() {
+  document.getElementById('set-name').value = me.name;
+  document.getElementById('set-email').value = me.email || '';
+  renderEmojiGrid();
+  initTimeZoneSettings();
+  initMeetingRooms();
+  initPlanCard().catch(() => {});
+}
+
+// Pre-populate meeting URL inputs
+function initMeetingRooms() {
+  if (me.meeting_url) document.getElementById('set-meet-url').value = me.meeting_url;
+  if (me.zoom_url) document.getElementById('set-zoom-url').value = me.zoom_url;
+}
+
+function billingToneStyle(tone) {
+  if (tone === 'good') return { color: '#166534', border: 'rgba(34,197,94,.2)', bg: 'rgba(34,197,94,.08)' };
+  if (tone === 'warn') return { color: '#b45309', border: 'rgba(249,115,22,.22)', bg: 'rgba(249,115,22,.08)' };
+  if (tone === 'bad') return { color: '#b91c1c', border: 'rgba(239,68,68,.22)', bg: 'rgba(239,68,68,.08)' };
+  return { color: 'var(--text-2)', border: 'var(--border)', bg: 'rgba(28,28,30,.03)' };
+}
+
+function billingCycleLabel(cycle) {
+  return ({ monthly: 'Monthly', quarterly: 'Quarterly', yearly: 'Yearly' }[cycle] || 'Monthly');
+}
+
+function formatMoney(amount, currency = 'usd') {
+  const value = Number(amount || 0);
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: String(currency || 'USD').toUpperCase(),
+      minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  } catch {
+    return `${value.toFixed(2)} ${String(currency || 'usd').toUpperCase()}`;
+  }
+}
+
+function formatBillingDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderBillingUsage(usage) {
+  const root = document.getElementById('plan-usage-summary');
+  if (!root) return;
+  const items = [
+    {
+      label: 'Boards',
+      entry: usage?.boards,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? `${entry.used} active` : `${entry.remaining} left`
+    },
+    {
+      label: 'Students / board',
+      entry: usage?.students_per_board,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? 'No cap' : `${entry.remaining} left`
+    },
+    {
+      label: 'Courses',
+      entry: usage?.courses,
+      formatter: entry => entry.unlimited ? 'Unlimited' : `${entry.used}/${entry.limit}`,
+      detail: entry => entry.unlimited ? 'No cap' : `${entry.remaining} left`
+    },
+    {
+      label: 'Storage',
+      entry: usage?.storage_mb,
+      formatter: entry => entry.unlimited ? `${entry.used} MB` : `${entry.used} / ${entry.limit} MB`,
+      detail: entry => entry.unlimited ? 'Tracked locally' : `${entry.remaining} MB left`
+    }
+  ];
+  root.innerHTML = `
+    <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;">Usage & limits</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+      ${items.map(item => {
+        const entry = item.entry || { used: 0, limit: 0, remaining: 0, unlimited: false };
+        return `
+          <div style="padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);">
+            <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">${item.label}</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text);margin-top:4px;">${item.formatter(entry)}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${item.detail(entry)}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderBillingFeatures(features = [], flags = {}) {
+  const root = document.getElementById('plan-features-list');
+  if (!root) return;
+  const flagFeatures = [
+    flags.analytics ? 'Analytics enabled' : null,
+    flags.realtime ? 'Realtime collaboration' : null,
+    flags.exports ? 'Exports included' : null,
+    flags.adminPanel ? 'Admin controls' : null,
+    flags.customBranding ? 'Custom branding' : null
+  ].filter(Boolean);
+  const chips = [...features, ...flagFeatures].slice(0, 8);
+  root.innerHTML = chips.map(feature => `
+    <div style="padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);font-size:12px;font-weight:700;color:var(--text-2);">
+      ✓ ${esc(feature)}
+    </div>
+  `).join('');
+}
+
+function renderPlanStatusBanner(current, pendingPayment) {
+  const root = document.getElementById('plan-status-banner');
+  if (!root) return;
+  const tone = billingToneStyle(current?.status_meta?.tone);
+  let message = '';
+  if (pendingPayment) {
+    message = `Invoice ${esc(pendingPayment.invoice_no || '#' + pendingPayment.id)} is waiting for admin review. Package: ${esc(PLAN_NAMES[pendingPayment.plan] || pendingPayment.plan)} · ${billingCycleLabel(pendingPayment.billing_cycle)} · ${formatMoney(pendingPayment.amount, pendingPayment.currency)}.`;
+  } else if ((current?.status || 'free') === 'free') {
+    message = 'You are on the free tier. Upgrade to unlock more boards, more students, analytics, and stronger admin controls.';
+  } else {
+    const expires = current?.plan_expires_at ? ` Access runs until ${formatBillingDate(current.plan_expires_at)}.` : '';
+    const source = current?.plan_source ? ` Source: ${esc(current.plan_source)}.` : '';
+    message = `${esc(current?.status_meta?.label || 'Plan active')} on ${esc(PLAN_NAMES[current.plan] || current.plan)} with ${billingCycleLabel(current.cycle)} billing.${expires}${source}`;
+  }
+  root.style.display = 'block';
+  root.style.color = tone.color;
+  root.style.borderColor = tone.border;
+  root.style.background = tone.bg;
+  root.innerHTML = `<strong style="font-size:12px;">${esc(current?.status_meta?.label || 'Billing')}</strong><div style="margin-top:4px;">${message}</div>`;
+}
+
+function updatePlanOptionPrices() {
+  ['pro', 'school'].forEach(plan => {
+    const priceEl = document.getElementById(`plan-price-${plan}`);
+    if (!priceEl) return;
+    const cycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
+    const quote = billingPlans?.[plan]?.cycles?.find(item => item.key === cycle);
+    if (!quote) {
+      priceEl.textContent = PLAN_PRICES[plan] || '';
+      return;
+    }
+    const monthlyEquivalent = quote.monthly_equivalent ? `${formatMoney(quote.monthly_equivalent, quote.currency)}/mo` : '';
+    const savings = quote.savings > 0 ? ` · save ${formatMoney(quote.savings, quote.currency)}` : '';
+    priceEl.textContent = cycle === 'monthly'
+      ? monthlyEquivalent
+      : `${formatMoney(quote.total, quote.currency)}${savings}`;
+  });
+}
+
+function renderPlanCardFromOverview(overview) {
+  const current = overview?.current || {};
+  const plan = current.plan || me?.plan || 'free';
+  const planIcons = { free: '⭐', pro: '🚀', school: '🏫' };
+  const planName = current.name || PLAN_NAMES[plan] || 'Free';
+  const badge = current.badge ? ` · ${current.badge}` : '';
+  const expiry = current.plan_expires_at ? ` · active until ${formatBillingDate(current.plan_expires_at)}` : '';
+  document.getElementById('plan-icon').textContent = planIcons[plan] || '⭐';
+  document.getElementById('plan-name-display').textContent = planName;
+  document.getElementById('plan-desc-display').textContent = `${billingCycleLabel(current.cycle || 'monthly')} billing${badge}${expiry}`;
+  renderPlanStatusBanner(current, overview?.pending_payment || null);
+  renderBillingUsage(overview?.usage || {});
+  renderBillingFeatures(current.features || [], current.flags || {});
+  updatePlanOptionPrices();
+
+  const submitBtn = document.getElementById('iban-submit-btn');
+  if (submitBtn) {
+    const locked = !!overview?.pending_payment;
+    submitBtn.disabled = locked;
+    submitBtn.style.opacity = locked ? '.65' : '1';
+    submitBtn.style.cursor = locked ? 'not-allowed' : 'pointer';
+    submitBtn.textContent = locked ? 'Pending review in progress' : 'Send for Admin Review →';
+  }
+
+  const emailInput = document.getElementById('iban-contact-email');
+  if (emailInput && !emailInput.value) emailInput.value = me?.email || '';
+}
+
+async function initPlanCard() {
+  const fallbackOverview = {
+    current: {
+      plan: me?.plan || 'free',
+      cycle: me?.billing_cycle || 'monthly',
+      status: me?.plan_status || (me?.plan === 'free' ? 'free' : 'active'),
+      status_meta: { label: me?.plan_status || 'free', tone: me?.plan === 'free' ? 'muted' : 'good' },
+      plan_expires_at: me?.plan_expires_at || null,
+      plan_source: me?.plan_source || null,
+      name: PLAN_NAMES[me?.plan || 'free'] || 'Free',
+      badge: me?.plan === 'school' ? 'Team' : me?.plan === 'pro' ? 'Most popular' : 'Starter',
+      features: [],
+      flags: {}
+    },
+    usage: {},
+    pending_payment: null
+  };
+  renderPlanCardFromOverview(fallbackOverview);
+  try {
+    const response = await apiFetch('/api/billing/overview');
+    if (!response.ok) throw new Error('billing-overview-failed');
+    billingOverview = await response.json();
+    billingPlans = billingOverview.plans || {};
+    me = {
+      ...me,
+      plan: billingOverview.current?.plan || me.plan,
+      plan_status: billingOverview.current?.status || me.plan_status,
+      billing_cycle: billingOverview.current?.cycle || me.billing_cycle,
+      plan_started_at: billingOverview.current?.plan_started_at || me.plan_started_at,
+      plan_expires_at: billingOverview.current?.plan_expires_at || me.plan_expires_at,
+      plan_source: billingOverview.current?.plan_source || me.plan_source
+    };
+    writeProfileCache({ me, billingOverview });
+    renderPlanCardFromOverview(billingOverview);
+  } catch {
+    const cachedOverview = readProfileCache()?.billingOverview || null;
+    if (cachedOverview) {
+      billingOverview = cachedOverview;
+      billingPlans = cachedOverview.plans || {};
+      renderPlanCardFromOverview(cachedOverview);
+    }
+  }
+}
+
+async function loadBillingRequests() {
+  const root = document.getElementById('billing-requests');
+  if (!root) return;
+  let payments = billingOverview?.payments || null;
+  if (!payments) {
+    const r = await apiFetch('/api/billing/payments');
+    if (!r.ok) return;
+    const payload = await r.json();
+    payments = payload.payments || [];
+  }
+  if (!payments?.length) {
+    root.innerHTML = '<div style="font-size:12px;color:var(--text-3);">No manual payment requests yet.</div>';
+    return;
+  }
+  root.innerHTML = `
+    <div style="font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Payment Requests</div>
+    <div style="display:grid;gap:8px;">
+      ${payments.slice(0, 8).map(p => {
+        const amount = formatMoney(p.amount, p.currency);
+        const tone = billingToneStyle(p.status_meta?.tone);
+        return `<div style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);">
+          <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
+            <strong style="font-size:12px;color:var(--text);">${p.invoice_no || '#' + p.id}</strong>
+            <span style="font-size:11px;font-weight:900;color:${tone.color};text-transform:uppercase;">${esc(p.status_meta?.label || p.status)}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">${PLAN_NAMES[p.plan] || p.plan} · ${billingCycleLabel(p.billing_cycle)} · ${amount}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Created ${formatBillingDate(p.created_at)} · ${p.months || 1} month(s)</div>
+          ${p.company_name ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px;">Company: ${esc(p.company_name)}</div>` : ''}
+          ${p.admin_note ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px;">Admin note: ${esc(p.admin_note)}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function saveMeetingRooms() {
+  const meeting_url = document.getElementById('set-meet-url').value.trim();
+  const zoom_url = document.getElementById('set-zoom-url').value.trim();
+  try {
+    const r = await apiFetch('/api/auth/me', { method: 'PATCH', body: { meeting_url: meeting_url || null, zoom_url: zoom_url || null } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    try { localStorage.setItem('teachedos_user', JSON.stringify(me)); } catch {}
+    toast('Meeting rooms saved ✓');
+  } catch { toast('Failed to save'); }
+}
+
+async function saveTimeZoneSettings() {
+  const isAuto = document.getElementById('set-tz-auto')?.checked;
+  const candidate = (isAuto ? browserTimeZone() : document.getElementById('set-timezone')?.value || '').trim();
+  if (!isValidTimeZone(candidate)) {
+    toast('Use a valid IANA time zone, for example Europe/Kyiv');
+    return;
+  }
+  try {
+    const r = await apiFetch('/api/auth/me', {
+      method: 'PATCH',
+      body: { timezone: candidate, timezone_mode: isAuto ? 'auto' : 'manual' }
+    });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    writeProfileCache({ me });
+    renderOverview();
+    initTimeZoneSettings();
+    toast(isAuto ? 'Automatic time zone saved' : 'Time zone saved');
+  } catch {
+    toast('Failed to save time zone');
+  }
+}
+
+function toggleManagePanel() {
+  const panel = document.getElementById('manage-sub-panel');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  if (!open) return;
+
+  const current = billingOverview?.current || {
+    plan: me?.plan || 'free',
+    status: me?.plan_status || (me?.plan === 'free' ? 'free' : 'active'),
+    cycle: me?.billing_cycle || 'monthly',
+    plan_expires_at: me?.plan_expires_at || null
+  };
+  const quote = billingPlans?.[current.plan]?.cycles?.find(item => item.key === (current.cycle || 'monthly'));
+  const expires = current.plan_expires_at ? new Date(current.plan_expires_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null;
+  const daysLeft = expires && current.plan_expires_at ? Math.ceil((new Date(current.plan_expires_at) - Date.now()) / 86400000) : null;
+  const expiryColor = daysLeft != null && daysLeft < 14 ? '#ef4444' : 'var(--text-2)';
+
+  const row = (label, value, color='var(--text)') =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+       <span style="color:var(--text-3);font-weight:600;">${label}</span>
+       <span style="font-weight:700;color:${color};">${value}</span>
+     </div>`;
+
+  document.getElementById('manage-plan-summary').innerHTML = [
+    row('Plan', PLAN_NAMES[current.plan] || current.plan),
+    row('Status', current.status_meta?.label || current.status || 'Free tier', billingToneStyle(current.status_meta?.tone).color),
+    row('Cycle', billingCycleLabel(current.cycle || 'monthly')),
+    row('Price', quote ? formatMoney(quote.total, quote.currency) : (current.plan === 'free' ? '$0' : '—')),
+    expires ? row('Active until', expires + (daysLeft != null ? ` (${daysLeft}d left)` : ''), expiryColor) : '',
+    billingOverview?.pending_payment ? row('Pending invoice', billingOverview.pending_payment.invoice_no || `#${billingOverview.pending_payment.id}`, '#b45309') : '',
+  ].join('');
+
+  loadBillingRequests().catch(() => {});
+}
+
+async function openBillingPortal() { toggleManagePanel(); }
+
+function renderEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = AVATARS.map(e => `
+    <div class="emoji-opt ${e === selectedAvatar ? 'selected' : ''}" onclick="selectAvatar('${e}')" title="${e}">${e}</div>
+  `).join('');
+}
+
+function selectAvatar(emoji) {
+  selectedAvatar = emoji;
+  renderEmojiGrid();
+}
+
+async function saveName() {
+  const name = document.getElementById('set-name').value.trim();
+  if (!name) { toast('Name cannot be empty'); return; }
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { name } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-name-big').textContent = me.name;
+    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    toast('Name updated!');
+  } catch { toast('Failed to save name'); }
+}
+
+async function saveEmail() {
+  const email = document.getElementById('set-email').value.trim();
+  if (!email) { toast('Email cannot be empty'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Invalid email address'); return; }
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { email } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-email-big').textContent = me.email;
+    toast('Email updated!');
+  } catch { toast('Failed to save email'); }
+}
+
+async function saveAvatar() {
+  if (!selectedAvatar) return;
+  try {
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { avatar: selectedAvatar } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const { user } = await r.json();
+    me = { ...me, ...user };
+    document.getElementById('profile-avatar-big').textContent = me.avatar;
+    toast('Avatar updated!');
+  } catch { toast('Failed to save avatar'); }
+}
+
+/* ── Bulk Import ── */
+function openBulkImport() {
+  if (!planHasFeature(userPlan(me), 'bulkInvite')) {
+    toast(upgradeMessage('bulkInvite'));
+    openPlansSection();
+    return;
+  }
+  const sel = document.getElementById('bulk-board-select');
+  if (sel && boardsCache.length) {
+    sel.innerHTML = boardsCache.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  }
+  document.getElementById('bulk-emails-input').value = '';
+  document.getElementById('bulk-result').style.display = 'none';
+  document.getElementById('bulk-import-modal').style.display = 'flex';
+}
+function closeBulkImport() {
+  document.getElementById('bulk-import-modal').style.display = 'none';
+}
+async function submitBulkImport() {
+  if (!planHasFeature(userPlan(me), 'bulkInvite')) {
+    toast(upgradeMessage('bulkInvite'));
+    openPlansSection();
+    return;
+  }
+  const boardId = document.getElementById('bulk-board-select').value;
+  const raw = document.getElementById('bulk-emails-input').value;
+  if (!boardId || !raw.trim()) { toast('Select a board and enter emails'); return; }
+  const emails = raw.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
+  if (!emails.length) { toast('No valid emails found'); return; }
+  const resultEl = document.getElementById('bulk-result');
+  resultEl.style.display = 'none';
+  try {
+    const r = await apiFetch(`/api/members/${boardId}/bulk-invite`, {
+      method: 'POST', body: { emails, role: 'student' }
+    });
+    const d = await r.json();
+    let msg = '';
+    if (d.added?.length)    msg += `✅ Added: ${d.added.map(x=>x.name||x.email).join(', ')}\n`;
+    if (d.notFound?.length) msg += `⚠️ Not found: ${d.notFound.join(', ')}\n`;
+    if (d.alreadyMember?.length) msg += `ℹ️ Already members: ${d.alreadyMember.join(', ')}`;
+    resultEl.textContent = msg || 'Done';
+    resultEl.style.background = d.added?.length ? 'rgba(34,197,94,.1)' : 'rgba(245,158,11,.1)';
+    resultEl.style.border = d.added?.length ? '1px solid rgba(34,197,94,.3)' : '1px solid rgba(245,158,11,.3)';
+    resultEl.style.color = d.added?.length ? '#15803d' : '#92400e';
+    resultEl.style.display = 'block';
+    resultEl.style.whiteSpace = 'pre-line';
+    if (d.limitReached) {
+      toast(`Student limit reached: ${d.limitReached.limit} on ${d.limitReached.plan}.`);
+    } else if (d.added?.length) {
+      toast(`✅ ${d.added.length} student(s) invited!`);
+    }
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function savePassword() {
+  const current = document.getElementById('set-pass-current').value;
+  const next = document.getElementById('set-pass-new').value;
+  const confirm = document.getElementById('set-pass-confirm').value;
+  if (!current || !next) { toast('Fill in all fields'); return; }
+  if (next !== confirm) { toast('Passwords do not match'); return; }
+  if (next.length < 8) { toast('Password must be at least 8 characters'); return; }
+  try {
+    const r = await apiFetch('/api/users/me/password', { method: 'PATCH', body: { current, next } });
+    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    document.getElementById('set-pass-current').value = '';
+    document.getElementById('set-pass-new').value = '';
+    document.getElementById('set-pass-confirm').value = '';
+    toast('Password changed!');
+  } catch { toast('Failed to change password'); }
+}
+
+async function deleteAllBoards() {
+  if (!confirm('Delete ALL your boards? This cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure? All board data will be lost.')) return;
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    await Promise.all(boards.map(b => apiFetch('/api/boards/' + b.id, { method: 'DELETE' })));
+    toast('All boards deleted');
+    loadBoards();
+  } catch { toast('Failed to delete boards'); }
+}
+
+// ── Logout ────────────────────────────────────────────────────
+async function doLogout() {
+  try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  clearAuthState();
+  window.location.href = 'index.html';
+}
+
+function clearAuthState() {
+  const keys = [
+    'teachedos_token',
+    'teachedos_role',
+    'teachedos_user',
+    'teachedos_user_email',
+    'teachedos_board_id',
+    'teachedos_teacher_dashboard_cache_v1',
+  ];
+  keys.forEach(k => localStorage.removeItem(k));
+  // Revoke Google One Tap auto-select so it doesn't re-sign in immediately
+  try { google.accounts.id.disableAutoSelect(); } catch {}
+}
+
+// ── Subscription / IBAN payment ──────────────────────────────
+let _selectedPlan = null;
+const PLAN_PRICES = { pro: '$9.90/mo', school: '$29/mo' };
+const PLAN_NAMES  = { free: 'Free', pro: 'Teacher Pro', school: 'School' };
+
+function updateSelectedPlanPrice() {
+  updatePlanOptionPrices();
+  if (!_selectedPlan) return;
+  const cycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
+  const quote = billingPlans?.[_selectedPlan]?.cycles?.find(item => item.key === cycle);
+  document.getElementById('iban-plan-name').textContent = PLAN_NAMES[_selectedPlan] || _selectedPlan;
+  document.getElementById('iban-plan-price').textContent = quote ? formatMoney(quote.total, quote.currency) : (PLAN_PRICES[_selectedPlan] || '');
+  document.getElementById('iban-plan-cycle').textContent = quote
+    ? `${billingCycleLabel(quote.cycle)} · ${quote.months} month(s)${quote.savings > 0 ? ` · save ${formatMoney(quote.savings, quote.currency)}` : ''}`
+    : billingCycleLabel(cycle);
+}
+
+function selectPlan(plan) {
+  _selectedPlan = plan;
+  document.querySelectorAll('.plan-option').forEach(el => {
+    el.style.borderColor = 'var(--border)';
+    el.style.background = 'transparent';
+  });
+  const opt = document.getElementById('plan-opt-' + plan);
+  if (opt) {
+    opt.style.borderColor = 'var(--accent)';
+    opt.style.background = 'rgba(200,230,50,.05)';
+  }
+  document.getElementById('iban-payment-section').style.display = 'block';
+  updateSelectedPlanPrice();
+}
+
+function copyIBAN() {
+  navigator.clipboard.writeText('UA623052990262056400990700807').then(() => toast('IBAN copied!')).catch(() => {
+    const el = document.getElementById('iban-display');
+    const range = document.createRange(); range.selectNodeContents(el);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    toast('Select & copy manually');
+  });
+}
+
+async function submitIBANPayment() {
+  if (!_selectedPlan) { toast('Select a plan first'); return; }
+  const payerName = document.getElementById('iban-payer-name').value.trim();
+  const txDate = document.getElementById('iban-tx-date').value;
+  const txNote = document.getElementById('iban-tx-note').value.trim();
+  const contactEmail = document.getElementById('iban-contact-email').value.trim();
+  const companyName = document.getElementById('iban-company-name').value.trim();
+  const billingCycle = document.getElementById('billing-cycle-select')?.value || 'monthly';
+  if (!payerName) { toast('Enter your full name'); return; }
+  if (!txDate) { toast('Enter payment date'); return; }
+  if (billingOverview?.pending_payment) { toast('Wait until the current invoice is reviewed'); return; }
+  try {
+    const r = await apiFetch('/api/billing/iban-activate', {
+      method: 'POST',
+      body: {
+        plan: _selectedPlan,
+        billing_cycle: billingCycle,
+        payer_name: payerName,
+        tx_date: txDate,
+        tx_note: txNote,
+        contact_email: contactEmail || null,
+        company_name: companyName || null
+      }
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const invoiceNo = d.payment?.invoice_no ? ` Invoice ${d.payment.invoice_no}.` : '';
+      toast('Payment request sent for admin review.' + invoiceNo);
+      document.getElementById('iban-payment-section').style.display = 'none';
+      ['iban-company-name', 'iban-payer-name', 'iban-tx-date', 'iban-tx-note'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+      });
+      await initPlanCard();
+      loadBillingRequests().catch(() => {});
+    } else {
+      const d = await r.json().catch(() => ({}));
+      toast(d.error || 'Payment request sent. We will verify and activate soon.');
+    }
+  } catch {
+    toast('Could not send request. Please try again.');
+  }
+}
+
+// ── Start ─────────────────────────────────────────────────────
+init();
