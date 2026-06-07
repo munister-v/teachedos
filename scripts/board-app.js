@@ -10175,6 +10175,125 @@ function openExportMenu(e) {
 }
 document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
 
+// Lazy CDN script loader (board has no bundler) — memoised per URL.
+const _loadedScripts = {};
+function loadBoardScript(src) {
+  if (_loadedScripts[src]) return _loadedScripts[src];
+  _loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve;
+    s.onerror = () => { delete _loadedScripts[src]; reject(new Error('Failed to load ' + src)); };
+    document.head.appendChild(s);
+  });
+  return _loadedScripts[src];
+}
+
+// Bounding box (board coords) enclosing every card, with padding.
+function boardContentBounds(pad = 48) {
+  if (!state.cards.length) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const c of state.cards) {
+    if (c.data && c.data.private && c.data.private !== _currentUserId()) continue;
+    minX = Math.min(minX, c.x);
+    minY = Math.min(minY, c.y);
+    maxX = Math.max(maxX, c.x + (c.w || 220));
+    maxY = Math.max(maxY, c.y + (c.h || 160));
+  }
+  if (minX === Infinity) return null;
+  return { x: minX - pad, y: minY - pad, w: (maxX - minX) + pad * 2, h: (maxY - minY) + pad * 2 };
+}
+
+// Render the board content to a canvas via html2canvas, neutralising the
+// pan/zoom transform and hiding editor chrome (handles, selection, dots) so
+// the snapshot looks like a clean printable artboard.
+async function renderBoardToCanvas() {
+  const bounds = boardContentBounds();
+  if (!bounds) { toast('Board is empty — nothing to export'); return null; }
+  await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if (!window.html2canvas) throw new Error('html2canvas unavailable');
+
+  // Snapshot + neutralise the live view transform so cards sit at their
+  // natural board coordinates while we capture.
+  const prevPan = { ...state.pan }, prevScale = state.scale;
+  const prevTransform = board.style.transform;
+  const prevOverflow = board.style.overflow;
+  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F5F0E8';
+
+  board.style.transform = 'none';
+  board.style.overflow = 'visible';
+  document.body.classList.add('board-exporting');
+  // Let arrows redraw at scale 1 so they line up in the capture.
+  state.pan = { x: 0, y: 0 }; state.scale = 1;
+  if (typeof renderAllArrows === 'function') renderAllArrows();
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  let canvas = null;
+  try {
+    canvas = await window.html2canvas(board, {
+      x: bounds.x, y: bounds.y, width: bounds.w, height: bounds.h,
+      backgroundColor: bgColor, scale: 2, // fixed 2× for crisp print regardless of screen DPR
+      useCORS: true, logging: false, removeContainer: true,
+    });
+  } finally {
+    // Always restore the live view, even if capture throws.
+    document.body.classList.remove('board-exporting');
+    board.style.transform = prevTransform;
+    board.style.overflow = prevOverflow;
+    state.pan = prevPan; state.scale = prevScale;
+    applyTransform();
+    if (typeof renderAllArrows === 'function') renderAllArrows();
+  }
+  return canvas;
+}
+
+function _boardExportName() {
+  const el = document.getElementById('board-name-display');
+  return (el && el.textContent.trim()) || 'board';
+}
+
+async function exportBoardImage(format) {
+  if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
+  const menu = document.getElementById('export-menu');
+  if (menu) menu.classList.remove('open');
+  toast(format === 'pdf' ? '📑 Rendering PDF…' : '🖼 Rendering image…');
+  try {
+    const canvas = await renderBoardToCanvas();
+    if (!canvas) return;
+    const name = _boardExportName();
+    if (format === 'png') {
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name + '.png';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        toast('🖼 Board exported as PNG');
+      }, 'image/png');
+    } else {
+      await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) throw new Error('jsPDF unavailable');
+      // Fit the artboard onto a landscape/portrait A4 preserving aspect ratio.
+      const imgW = canvas.width, imgH = canvas.height;
+      const landscape = imgW >= imgH;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: landscape ? 'landscape' : 'portrait' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 24;
+      const scale = Math.min((pageW - margin * 2) / imgW, (pageH - margin * 2) / imgH);
+      const drawW = imgW * scale, drawH = imgH * scale;
+      const offX = (pageW - drawW) / 2, offY = (pageH - drawH) / 2;
+      doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', offX, offY, drawW, drawH);
+      doc.save(name + '.pdf');
+      toast('📑 Board exported as PDF');
+    }
+  } catch (err) {
+    console.error('[board export]', err);
+    toast('⚠️ Export failed — please try again');
+  }
+}
+
 function exportBoardJSON() {
   if (!boardHasFeature('exports')) { showUpgradeModal('exports'); return; }
   document.getElementById('export-menu').classList.remove('open');

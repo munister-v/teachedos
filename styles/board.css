@@ -2923,6 +2923,26 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 #export-menu.open{display:block;}
 .exp-item{padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);}
 .exp-item:hover{background:rgba(94,94,74,.06);}
+.exp-sep{height:1px;background:var(--border,rgba(94,94,74,.14));margin:4px 8px;}
+
+/* Hide editor chrome while capturing the board for PNG/PDF export so the
+   snapshot is a clean artboard (no handles, selection rings, anchor dots,
+   minimap, marquee, snap guides). */
+.board-exporting .resize-handle,
+.board-exporting .anchor-dot,
+.board-exporting .card-comment-badge,
+.board-exporting #selection-box,
+.board-exporting .selection-box,
+.board-exporting .snap-guide,
+.board-exporting #minimap,
+.board-exporting #empty-state,
+.board-exporting .arrow-add-dot{display:none!important;}
+.board-exporting .board-card.selected{box-shadow:none!important;outline:none!important;}
+.board-exporting .board-card.dragging{box-shadow:none!important;}
+.board-exporting .lesson-present-btn,
+.board-exporting .lesson-edit-btn,
+.board-exporting .assign-edit-btn,
+.board-exporting .tt-edit-hint{display:none!important;}
 /* Mobile responsive */
 @media(max-width:860px){
   :root{--tb-h:54px;}

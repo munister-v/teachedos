@@ -557,9 +557,11 @@
 
 <!-- Export dropdown menu -->
 <div id="export-menu">
+  <div class="exp-item" onclick="exportBoardImage('png')">🖼 Export PNG</div>
+  <div class="exp-item" onclick="exportBoardImage('pdf')">📑 Export PDF</div>
+  <div class="exp-sep"></div>
   <div class="exp-item" onclick="exportBoardJSON()">📄 Export JSON</div>
-  <div class="exp-item" onclick="exportBoardCSV()">📊 Export CSV</div>
-  <div class="exp-item" onclick="window.print()">🖨 Print / PDF</div>
+  <div class="exp-item" onclick="exportBoardCSV()">📊 Export CSV (lessons)</div>
 </div>
 
 <!-- Board search bar (Ctrl+F) -->
