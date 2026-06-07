@@ -128,6 +128,18 @@ function shapeSpec(input) {
   const head = `Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
 
   if (boardKind === 'vocab') {
+    if (toolId === 'collocations') {
+      return {
+        task: `${head} Produce exactly ${count} collocation entries for this topic. For each: "word" = the headword; "definition" = its 3–4 strongest natural collocations separated by commas (e.g. "make a decision, take a decision, reach a decision"); "example" = one natural ${level} sentence using one collocation.${context}`,
+        schema: '{"items":[{"word":"headword","definition":"collocation, collocation, collocation","example":"..."}]}',
+      };
+    }
+    if (toolId === 'word-families') {
+      return {
+        task: `${head} Produce exactly ${count} word-family entries. For each: "word" = the base word; "definition" = the family forms labelled "noun: … · verb: … · adjective: … · adverb: …" (use "—" when a form does not exist); "example" = one natural ${level} sentence using one of the forms.${context}`,
+        schema: '{"items":[{"word":"base word","definition":"noun: … · verb: … · adjective: … · adverb: …","example":"..."}]}',
+      };
+    }
     const source = toolId === 'extract-vocab'
       ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below (skip trivial function words). For each, give a short student-friendly definition (max 15 words) and quote or adapt a natural example sentence at ${level} level.`
       : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
@@ -155,6 +167,12 @@ function shapeSpec(input) {
       return {
         task: `${head} Produce exactly ${count} items split into two halves to be matched — sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${context}`,
         schema: '{"pairs":[{"left":"first half","right":"second half"}]}',
+      };
+    }
+    if (toolId === 'word-image-match') {
+      return {
+        task: `${head} Produce exactly ${count} concrete, picturable words for this topic. "left" = the word; "right" = a relevant emoji followed by a short vivid visual description students could match to an image (e.g. "✈️ a plane taking off from a runway"). Choose words that have clear visual referents.${context}`,
+        schema: '{"pairs":[{"left":"word","right":"😀 short visual description"}]}',
       };
     }
     return {
@@ -226,6 +244,25 @@ function shapeSpec(input) {
       return {
         task: `${head} Produce exactly ${count} two-option grammar/vocabulary choices at ${level} level. Each has a blank and exactly 2 options; "answer" must equal the correct option text. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"sentence with _____","options":["A","B"],"answer":"A","points":1}]}',
+      };
+    }
+    if (toolId === 'tense-contrast') {
+      return {
+        task: `${head} Produce exactly ${count} sentences that contrast the two tenses named in the topic/teacher note (e.g. Present Perfect vs Past Simple). Each: "text" = a sentence with a blank and exactly 2 tense-form options shown as the blank; "options" = the two verb forms; "answer" = the correct form for that context. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"I _____ (just finish / just finished) my homework.","options":["have just finished","just finished"],"answer":"have just finished","points":1}]}',
+      };
+    }
+    if (toolId === 'audio-video-questions') {
+      return {
+        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq", 4 options, "answer" = correct option text) and the rest open detail questions (type "open").${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"question","options":["A","B","C","D"],"answer":"A","points":1},{"type":"open","text":"detail question?","points":1}]}',
+      };
+    }
+    if (toolId === 'rewrite-style') {
+      const tone = input.extra ? `the style named in the teacher note (${input.extra})` : 'a more formal / academic style';
+      return {
+        task: `${head} Produce exactly ${count} rewrite tasks. "text" = an original ${level} sentence + " → (rewrite: TONE)"; "answer" = the same sentence rewritten in ${tone}, keeping the meaning. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"Original sentence. → (rewrite: formal)","answer":"Rewritten sentence.","points":1}]}',
       };
     }
     if (isOpen || isWarmup) {
@@ -386,6 +423,79 @@ function shapeSpec(input) {
     return {
       task: `${head} Generate 5–6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4–5 useful terms. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Argumentative","text":"Essay prompt.\\n\\n📋 Structure: Introduction → Main arguments (2–3) → Conclusion\\n📝 Key vocabulary: term1, term2, term3"}],"vocab":["term"]}',
+    };
+  }
+
+  // ── Writing ──────────────────────────────────────────────────────────────────
+  if (toolId === 'essay-outline') {
+    return {
+      task: `${head} Build a complete essay outline at ${level} level. Return cards: 1) "Essay question" — a clear prompt; 2) "Thesis statement" — a model thesis; 3) "Introduction" — hook + background + thesis plan; 4) "Body paragraph 1/2/3" — one card each with topic sentence + supporting points + example; 5) "Conclusion" — restate + final thought. Include "vocab" of useful linking/academic phrases.${context}`,
+      schema: '{"cards":[{"title":"Essay question","text":"..."},{"title":"Thesis statement","text":"..."},{"title":"Introduction","text":"..."},{"title":"Body paragraph 1","text":"Topic sentence: ...\\nSupport: ...\\nExample: ..."},{"title":"Conclusion","text":"..."}],"vocab":["linking phrase"]}',
+    };
+  }
+  if (toolId === 'email-reply') {
+    return {
+      task: `${head} Create an email-writing task at ${level} level. Return cards: 1) "The email" — a short prompt email the student must reply to; 2) "Your task" — what to include in the reply + register (formal/informal); 3) "Useful phrases" — opening, body and closing phrases for this register; 4) "Model reply" — a complete sample answer. Include "vocab" of functional phrases.${context}`,
+      schema: '{"cards":[{"title":"The email","text":"..."},{"title":"Your task","text":"..."},{"title":"Useful phrases","text":"Opening: ...\\nBody: ...\\nClosing: ..."},{"title":"Model reply","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
+
+  // ── Speaking ─────────────────────────────────────────────────────────────────
+  if (toolId === 'roleplay-cards') {
+    return {
+      task: `${head} Create a role-play at ${level} level. Return cards: 1) "Situation" — the scenario + goal; 2) "Role A" — who they are, their aim and 2–3 things to say; 3) "Role B" — the contrasting role, aim and 2–3 things to say; 4) "Useful language" — functional phrases for this interaction; 5) "Extension" — a follow-up speaking task. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Situation","text":"..."},{"title":"Role A","text":"..."},{"title":"Role B","text":"..."},{"title":"Useful language","text":"..."},{"title":"Extension","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
+  if (toolId === 'debate-cards') {
+    return {
+      task: `${head} Create debate material at ${level} level. Return cards: 1) "Motion" — a clear debate statement; 2) "For — arguments" — 4–5 supporting points with brief evidence; 3) "Against — arguments" — 4–5 opposing points; 4) "Rebuttals" — how each side answers the other; 5) "Useful language" — phrases for arguing, conceding and rebutting. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Motion","text":"..."},{"title":"For — arguments","text":"1. ...\\n2. ..."},{"title":"Against — arguments","text":"1. ...\\n2. ..."},{"title":"Rebuttals","text":"..."},{"title":"Useful language","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
+
+  // ── Utility / lesson builders ────────────────────────────────────────────────
+  if (toolId === 'lesson-pack') {
+    return {
+      task: `${head} Build a complete, ready-to-teach lesson at ${level} level. Return cards in order: "Lesson aims", "Warm-up (5 min)", "Lead-in", "Pre-teach vocabulary", "Input / presentation", "Controlled practice", "Freer practice / production", "Homework", "Teacher notes". Each card = clear classroom instructions, timing and examples. Include "vocab" of target words.${context}`,
+      schema: '{"cards":[{"title":"Lesson aims","text":"..."},{"title":"Warm-up (5 min)","text":"..."},{"title":"Controlled practice","text":"..."},{"title":"Homework","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'worksheet-builder') {
+    return {
+      task: `${head} Build a printable worksheet at ${level} level. Return cards: "Warm-up", then 3–4 graded exercise cards (each with a clear instruction line and the items), an "Answer key" card, and a "Teacher notes" card. Make exercises varied (matching, gap-fill, short answer). Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Warm-up","text":"..."},{"title":"Exercise 1: ...","text":"..."},{"title":"Answer key","text":"..."},{"title":"Teacher notes","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'homework-set') {
+    return {
+      task: `${head} Create a homework assignment at ${level} level. Return cards: "Brief" — what to do and why; "Tasks" — 3–4 numbered tasks of increasing challenge; "Success criteria" — what a good answer includes; "Self-check" — a short checklist. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Brief","text":"..."},{"title":"Tasks","text":"1. ...\\n2. ..."},{"title":"Success criteria","text":"..."},{"title":"Self-check","text":"✅ ...\\n✅ ..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'rubric-maker') {
+    return {
+      task: `${head} Create an assessment rubric for this task at ${level} level. Return one card per criterion (e.g. Task achievement, Coherence, Vocabulary, Grammar, Pronunciation/Spelling). Each card "text" describes what Excellent / Good / Needs work looks like for that criterion. End with a "How to use" card.${context}`,
+      schema: '{"cards":[{"title":"Task achievement","text":"Excellent: ...\\nGood: ...\\nNeeds work: ..."},{"title":"How to use","text":"..."}],"vocab":["criterion"]}',
+    };
+  }
+  if (toolId === 'answer-key') {
+    return {
+      task: `${head} Produce a teacher answer key for the exercise in the source text. Return cards: "Answers" — numbered correct answers; "Distractor notes" — why common wrong options are wrong; "Common errors" — mistakes to watch for and how to fix them.${context}`,
+      schema: '{"cards":[{"title":"Answers","text":"1. ...\\n2. ..."},{"title":"Distractor notes","text":"..."},{"title":"Common errors","text":"..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'cefr-checker') {
+    return {
+      task: `${head} Analyse the source text's difficulty. Return cards: "Estimated level" — the CEFR level + a one-line justification; "Why" — features driving the level (sentence length, tenses, vocabulary); "To simplify" — concrete moves to lower it one level; "To upgrade" — moves to raise it one level. Include "vocab" of the hardest words found.${context}`,
+      schema: '{"cards":[{"title":"Estimated level","text":"B1 — ..."},{"title":"Why","text":"..."},{"title":"To simplify","text":"..."},{"title":"To upgrade","text":"..."}],"vocab":["hard word"]}',
+    };
+  }
+  if (toolId === 'add-text' || toolId === 'add-images' || toolId === 'add-video') {
+    const media = toolId === 'add-images' ? 'image' : toolId === 'add-video' ? 'video' : 'text';
+    return {
+      task: `${head} Build a ${media}-based activity at ${level} level. Return cards: "Before" — prediction / lead-in questions; "While" — a focus task to do during reading/viewing; "After" — comprehension + discussion questions; "Speaking follow-up" — a personal-response task. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Before","text":"..."},{"title":"While","text":"..."},{"title":"After","text":"..."},{"title":"Speaking follow-up","text":"..."}],"vocab":["word"]}',
     };
   }
 

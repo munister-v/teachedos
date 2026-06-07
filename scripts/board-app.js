@@ -7156,11 +7156,25 @@ function _ttPlaceVocabOnBoard(output){
   toast('✨ Vocabulary cards added to board (fill translations as you teach)');
 }
 
+// Tools with a genuinely useful offline generator. Everything else has only a
+// generic scaffold locally, so its "Generate fast" goes straight to the cloud
+// LLM — every tool then yields real, tool-specific AI content (Twee-style).
+const TT_LOCAL_QUALITY_SET = new Set([
+  'abcd-text','true-false','extract-vocab','gap','open-questions','gaps-abcd',
+  'word-definition-match','error-correction','essential-vocab','flashcards',
+  'sentences-vocab','odd-one-out','word-sorting','gaps-brackets','two-options',
+  'gist-detail','discussion','question-ladder','roleplay-cards','debate-cards',
+  'listening-dictation','simplify-text',
+]);
+
 async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
   const input = readTeacherToolBuilderInput();
   const toolId = activeTeacherToolBuilder.id;
   const isPilot = !!TT_PILOT_TOOLS[toolId];
+  // AI-first: tools without a quality local generator default to the LLM so they
+  // never fall back to a useless generic scaffold on "Generate fast".
+  if (mode === 'fast' && !TT_LOCAL_QUALITY_SET.has(toolId) && authToken) mode = 'ai';
   const wantsAI = mode === 'ai';
   const wantsWebLLM = mode === 'webllm' || (wantsAI && localStorage.getItem('teachedos_use_webllm') === '1');
   const body = document.getElementById('tbuilder-output');
