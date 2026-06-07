@@ -704,8 +704,14 @@ polite request</textarea>
         <div class="tbuilder-actions">
           <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Generate fast</button>
           <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Fast smart rewrite. Heavy local WebLLM is opt-in only.">AI enhance</button>
-          <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="applyTeacherToolBuilderToBoard()" disabled>＋ Add to board</button>
-          <button class="tbuilder-btn ghost" id="tbuilder-game-btn" onclick="sendTeacherToolToGame()" disabled title="Turn this result into a playable game">🎮 Play as game</button>
+          <div class="tbuilder-add-wrap" id="tbuilder-add-wrap">
+            <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="toggleAddToBoardMenu()" disabled>＋ Add to board ▾</button>
+            <div class="tbuilder-add-menu" id="tbuilder-add-menu" role="menu">
+              <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('worksheet')"><span>📄</span><div><strong>As worksheet</strong><small>Styled, print-ready sheet</small></div></button>
+              <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('quiz')"><span>📝</span><div><strong>As interactive quiz</strong><small>Students take it, auto-scored</small></div></button>
+              <button class="tbuilder-menu-item" id="tbuilder-menu-game" onclick="sendTeacherToolToGame()"><span>🎮</span><div><strong>As game</strong><small>Play in the game builder</small></div></button>
+            </div>
+          </div>
           <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none" title="Generate again for a different result">↺ Retry</button>
           <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
           <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>

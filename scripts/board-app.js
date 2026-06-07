@@ -384,6 +384,7 @@ function getDefaults(type) {
             frame:{w:500,h:340},  sticker:{w:96,h:96},
             voting:{w:300,h:260},
             shape:{w:200,h:160},  mindmap:{w:180,h:64},  table:{w:320,h:200},
+            worksheet:{w:420,h:360},
           })[type] || { w:220,h:160 };
 }
 
@@ -470,6 +471,7 @@ function renderCard(card) {
   else if (card.type === 'video')      renderVideo(el, card);
   else if (card.type === 'lesson')     renderLesson(el, card);
   else if (card.type === 'assignment') renderAssignment(el, card);
+  else if (card.type === 'worksheet')  renderWorksheet(el, card);
   else if (card.type === 'milestone')  renderMilestone(el, card);
   else if (card.type === 'vocab')      renderVocab(el, card);
   else if (card.type === 'checklist')  renderChecklist(el, card);
@@ -1626,6 +1628,63 @@ function renderAssignment(el, card) {
 
   body.innerHTML = statsRow + preview + deadlineHtml + progHtml + `
     <div class="assign-actions">${actionsHtml}</div>`;
+  el.appendChild(body);
+}
+
+/* ══════════════════════ WORKSHEET RENDERER ══════════════════════
+   Read-only, print-ready exercise card that mirrors the builder preview:
+   white sheet, numbered questions, MCQ options with the answer highlighted.
+   card.data holds a full teacher-tool output (questions / items / cards).      */
+function renderWorksheet(el, card) {
+  const d = card.data || {};
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
+             || { icon:'📄', color:'#4262FF' };
+  const accent = meta.color || '#4262FF';
+  const hdr = makeHeader(meta.icon || '📄', d.title || 'Worksheet', card.id);
+  el.appendChild(hdr);
+
+  const body = document.createElement('div');
+  body.className = 'card-body ws-body';
+
+  // Meta strip
+  const items = Array.isArray(d.items) ? d.items : null;
+  const cards = Array.isArray(d.cards) ? d.cards : null;
+  const qs    = Array.isArray(d.questions) ? d.questions : null;
+  const n = (qs || items || cards || []).length;
+  const unit = qs ? 'questions' : items ? 'words' : 'cards';
+  const strip = `<div class="ws-strip">
+      <span class="ws-pill" style="background:${accent}18;color:${accent}">${esc(d.kind || 'Worksheet')}</span>
+      ${d.level ? `<span class="ws-pill ghost">${esc(d.level)}</span>` : ''}
+      <span class="ws-pill ghost">${n} ${unit}</span>
+    </div>`;
+
+  let listHtml = '';
+  if (qs) {
+    listHtml = qs.map((q, i) => {
+      let ans = '';
+      if (q.type === 'mcq' && Array.isArray(q.options)) {
+        ans = `<div class="ws-opts">${q.options.map(o => {
+          const ok = o === q.answer;
+          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : '○'}</span><span>${esc(o)}</span></div>`;
+        }).join('')}</div>`;
+      } else if (q.type === 'truefalse') {
+        ans = `<div class="ws-tf"><span class="ws-tf-b${q.answer ? ' on' : ''}">✅ True</span><span class="ws-tf-b${!q.answer ? ' on' : ''}">❌ False</span></div>`;
+      } else if (q.type === 'gap-fill') {
+        ans = q.answer ? `<div class="ws-ans">Answer: <b>${esc(q.answer)}</b></div>` : '';
+      } else if (q.type === 'match' && Array.isArray(q.pairs)) {
+        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
+      } else if (q.type === 'open') {
+        ans = `<div class="ws-open">______________________________</div>`;
+      }
+      return `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span>${esc(q.text || '')}</div>${ans}</div>`;
+    }).join('');
+  } else if (items) {
+    listHtml = items.map((it, i) => `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span><b>${esc(it.word || '')}</b></div>${it.example ? `<div class="ws-ans">${esc(it.example)}</div>` : (it.definition ? `<div class="ws-ans">${esc(it.definition)}</div>` : '')}</div>`).join('');
+  } else if (cards) {
+    listHtml = cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${esc(c.text || '').replace(/\n/g, '<br>')}</div></div>`).join('');
+  }
+
+  body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
 
@@ -5849,8 +5908,27 @@ function setTeacherToolAction(action, btn) {
 function _ttSetAddToBoard(enabled) {
   const btn = document.getElementById('tbuilder-add-btn');
   if (btn) btn.disabled = !enabled;
-  const gameBtn = document.getElementById('tbuilder-game-btn');
-  if (gameBtn) gameBtn.disabled = !enabled || !_ttToGamePayload(lastTeacherToolBuilderOutput);
+  if (!enabled) closeAddToBoardMenu();
+  // Game menu item: only enabled when the result maps to a playable game.
+  const gameItem = document.getElementById('tbuilder-menu-game');
+  if (gameItem) gameItem.classList.toggle('disabled', !enabled || !_ttToGamePayload(lastTeacherToolBuilderOutput));
+}
+
+/* "Add to board ▾" dropdown — worksheet / interactive quiz / game. */
+function toggleAddToBoardMenu() {
+  const menu = document.getElementById('tbuilder-add-menu');
+  if (!menu) return;
+  const open = menu.classList.toggle('open');
+  if (open) {
+    setTimeout(() => document.addEventListener('click', _ttAddMenuOutside, { once:true }), 0);
+  }
+}
+function closeAddToBoardMenu() {
+  document.getElementById('tbuilder-add-menu')?.classList.remove('open');
+}
+function _ttAddMenuOutside(e) {
+  if (!e.target.closest('#tbuilder-add-wrap')) closeAddToBoardMenu();
+  else setTimeout(() => document.addEventListener('click', _ttAddMenuOutside, { once:true }), 0);
 }
 
 // One-line cleaner for game payloads.
@@ -7269,6 +7347,45 @@ function _ttWirePreviewEvents(out, body){
   }));
 }
 
+/* Styled, read-only worksheet card — mirrors the builder preview on the board. */
+function _ttEstWorksheetHeight(output){
+  let sum = 0;
+  if (Array.isArray(output.questions)) {
+    for (const q of output.questions) {
+      if (q.type === 'mcq' && Array.isArray(q.options)) sum += 34 + q.options.length * 24;
+      else if (q.type === 'truefalse') sum += 64;
+      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += 34 + q.pairs.length * 22;
+      else sum += 56;
+    }
+  } else if (Array.isArray(output.items)) sum = output.items.length * 50;
+  else if (Array.isArray(output.cards)) sum = output.cards.reduce((s,c)=> s + 56 + Math.ceil((c.text||'').length/46)*16, 0);
+  return Math.max(280, Math.min(660, 92 + sum + 16));
+}
+function _ttPlaceWorksheetOnBoard(output){
+  const W = 440, H = _ttEstWorksheetHeight(output);
+  const c0 = getBoardViewportCenter() || { x:320, y:260 };
+  const pos = findFreePlacement(c0.x, c0.y, W, H);
+  snapshot();
+  const card = addCard('worksheet', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
+    title: output.title,
+    kind: output.kind,
+    cat: output.cat,
+    level: output.level || 'B1',
+    boardKind: output.boardKind,
+    questions: output.questions,
+    items: output.items,
+    cards: output.cards,
+  }, W, H);
+  if (card) {
+    clearSelection && clearSelection();
+    selectCard(card.id);
+    setTimeout(() => { try { zoomToCard && zoomToCard(card.id, true); } catch (e) {} }, 80);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  closeTeacherToolBuilder();
+  toast('✨ Worksheet added — print-ready, click ✏️ on any card to annotate');
+}
+
 /* Complex Teacher Tool board layouts live in js/teacher-tool-board-composer.js */
 function _ttPlaceQuizOnBoard(output){
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META.utility;
@@ -7378,14 +7495,18 @@ function _ttPlaceVocabOnBoard(output){
   toast('✨ Vocabulary cards added to board (fill translations as you teach)');
 }
 
-// Tools with a genuinely useful offline generator. Everything else has only a
-// generic scaffold locally, so its "Generate fast" goes straight to the cloud
-// LLM — every tool then yields real, tool-specific AI content (Twee-style).
+// Tools with a genuinely useful offline generator — mechanical tasks that build
+// from the vocab/sentences the teacher already supplied (gap-fill, sorting,
+// flashcards, etc.). For these "Generate fast" stays instant and local.
+//
+// COMPREHENSION tools (abcd-text, true-false, open-questions, gaps-abcd,
+// gist-detail) are deliberately NOT here: a template can't understand a text, so
+// it produced nonsense MCQ distractors. When the teacher is logged in they go
+// AI-first; when offline they still fall back to the local generator.
 const TT_LOCAL_QUALITY_SET = new Set([
-  'abcd-text','true-false','extract-vocab','gap','open-questions','gaps-abcd',
-  'word-definition-match','error-correction','essential-vocab','flashcards',
-  'sentences-vocab','odd-one-out','word-sorting','gaps-brackets','two-options',
-  'gist-detail','discussion','question-ladder','roleplay-cards','debate-cards',
+  'extract-vocab','gap','word-definition-match','error-correction','essential-vocab',
+  'flashcards','sentences-vocab','odd-one-out','word-sorting','gaps-brackets','two-options',
+  'discussion','question-ladder','roleplay-cards','debate-cards',
   'listening-dictation','simplify-text',
 ]);
 
@@ -7568,11 +7689,18 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   _ttSetGenerating(false);
 }
 
-async function applyTeacherToolBuilderToBoard() {
+async function applyTeacherToolBuilderToBoard(mode) {
   if (!activeTeacherToolBuilder) return;
+  closeAddToBoardMenu();
   if (!lastTeacherToolBuilderOutput) await generateTeacherToolBuilder('fast');
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
+  // Styled read-only worksheet — available for the primitive board kinds.
+  if (mode === 'worksheet' &&
+      ['quiz','vocab','cards'].includes(output.boardKind)) {
+    _ttPlaceWorksheetOnBoard(output); return;
+  }
+  // 'quiz' (interactive) or default → existing structured placement.
   if (_ttPlaceComplexToolOnBoard(output)) return;
   // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
   if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return; }

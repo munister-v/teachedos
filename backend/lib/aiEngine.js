@@ -331,8 +331,8 @@ function shapeSpec(input) {
     }
     if (isGist) {
       return {
-        task: `${head} Produce exactly ${count} questions: the FIRST is a gist MCQ (type "mcq", 4 options, "answer" = correct option text); the rest are detail questions (type "open").${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"gist question","options":["A","B","C","D"],"answer":"A","points":1},{"type":"open","text":"detail question?","points":1}]}',
+        task: `${head} Produce exactly ${count} reading-comprehension questions based ONLY on the source text, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) then about half of the remaining questions as DETAIL MCQs that check specific facts stated in the text; (3) the rest as OPEN inference / opinion questions. Every MCQ must have 4 plausible options that are FULL, meaningful answers (complete phrases — NOT single words copied from the text), with exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"What is the main idea of the text?","options":["full answer phrase A","full answer phrase B","full answer phrase C","full answer phrase D"],"answer":"full answer phrase A","points":1},{"type":"mcq","text":"detail question about a stated fact?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
       };
     }
     const verb = isMcqGap ? 'multiple-choice gap-fill sentences (one blank, 4 options)'
