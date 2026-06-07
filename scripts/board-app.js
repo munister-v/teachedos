@@ -5561,10 +5561,28 @@ const TT_NEEDS_SOURCE_SET = new Set([
   'gaps-abcd','word-definition-match','error-correction',
   'gaps-brackets','two-options','gist-detail',
   'listening-dictation','simplify-text','transcript-helper',
+  // tools whose whole purpose is to process a pasted text / transcript
+  'summary-task','three-titles','cefr-checker','add-text',
+  'audio-video-questions','answer-key',
 ]);
 const TT_NEEDS_VOCAB_SET = new Set([
   'sentences-vocab','odd-one-out','word-sorting','essential-vocab',
   'flashcards','collocations','word-families','word-image-match','word-definition-match',
+  // tools built around the teacher's target vocabulary
+  'text-topic-vocab','creative-writing','link-words','sentence-translation',
+]);
+// Tools that are pointless without target words → block generation until given.
+const TT_REQUIRE_VOCAB_SET = new Set([
+  'text-topic-vocab','link-words','sentence-translation',
+  'sentences-vocab','odd-one-out','word-sorting',
+]);
+// Tools that produce a single artifact or a fixed scaffold — the "Items" count
+// is meaningless, so hide it to avoid confusion (e.g. "Simplify a Text" + 50).
+const TT_NO_COUNT_SET = new Set([
+  'lesson-pack','worksheet-builder','homework-set','cefr-checker','rubric-maker',
+  'answer-key','add-text','add-images','add-video','simplify-text','summary-task',
+  'three-titles','text-topic-vocab','essay-outline','email-reply','rewrite-style',
+  'grammar-rules','dialogue','roleplay-cards','debate-cards','transcript-helper',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
   'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
@@ -5581,6 +5599,12 @@ const TT_SOURCE_PLACEHOLDERS = {
   'listening-dictation':'Paste a transcript — we\'ll make dictation gap-fill sentences.',
   'simplify-text':'Paste a text — choose Simplify, Upgrade or Keep level.',
   'transcript-helper':'Paste a transcript — we\'ll build before/during/after tasks.',
+  'summary-task':'Paste the text your students will summarize.',
+  'three-titles':'Paste the text — we\'ll create one correct title and two distractors.',
+  'cefr-checker':'Paste a text — we\'ll estimate its CEFR level and suggest changes.',
+  'add-text':'Paste your classroom text — we\'ll add pre/post-reading tasks.',
+  'audio-video-questions':'Paste the transcript or your notes about the audio/video.',
+  'answer-key':'Paste the exercise / questions you need an answer key for.',
 };
 const TT_VOCAB_PLACEHOLDERS = {
   'sentences-vocab':'One word or phrase per line — students will make sentences with each.',
@@ -5590,6 +5614,10 @@ const TT_VOCAB_PLACEHOLDERS = {
   'flashcards':'One word per line — we\'ll create flashcard entries.',
   'collocations':'Key words — we\'ll find their strongest collocations.',
   'word-families':'Key words — we\'ll give noun/verb/adj/adv forms.',
+  'text-topic-vocab':'One word or phrase per line — we\'ll weave them into a leveled text.',
+  'creative-writing':'Target words students must use in their writing.',
+  'link-words':'One word or phrase per line — students link them into sentences.',
+  'sentence-translation':'Words or phrases to practise via translation.',
 };
 const TT_EMPTY_ICONS = {
   reading:'📄', vocabulary:'📖', grammar:'✏️', speaking:'🗣',
@@ -5612,6 +5640,10 @@ function _ttAdaptFields(tool) {
 
   if (actionWrap) actionWrap.classList.toggle('tb-field-hidden', !needsAction);
   if (needsAction) setTeacherToolAction(document.querySelector('#tbuilder-action .active')?.dataset.ttAction || 'simplify');
+
+  // Hide the "Items" count for tools that produce a single artifact / scaffold.
+  const countWrap = document.getElementById('tb-wrap-count');
+  if (countWrap) countWrap.classList.toggle('tb-field-hidden', TT_NO_COUNT_SET.has(tool.id));
 
   // Source field
   if (needsSource) {
@@ -7152,17 +7184,21 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     return;
   }
 
-  // Only tools that actually parse source text need it — vocab/speaking/scaffold tools don't.
-  const TT_NEEDS_SOURCE = new Set([
-    'abcd-text','true-false','extract-vocab','gap','open-questions',
-    'gaps-abcd','word-definition-match','error-correction',
-    'gaps-brackets','two-options','gist-detail',
-    'listening-dictation','simplify-text','transcript-helper',
-  ]);
-  if (isPilot && TT_NEEDS_SOURCE.has(toolId) && !input.source) {
+  // Source-text requirement — single source of truth shared with the field
+  // configurator (TT_NEEDS_SOURCE_SET), so the guard and the UI never diverge.
+  if (isPilot && TT_NEEDS_SOURCE_SET.has(toolId) && !input.source) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs text';
     if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
+    _ttSetGenerating(false);
+    return;
+  }
+
+  // Vocabulary requirement — tools that are meaningless without target words.
+  if (isPilot && TT_REQUIRE_VOCAB_SET.has(toolId) && !String(input.vocab || '').trim()) {
+    lastTeacherToolBuilderOutput = null;
+    if (chip) chip.textContent = 'needs vocab';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Додайте цільові слова у поле «Your Vocabulary» — цей інструмент будує завдання навколо ваших слів.</div>';
     _ttSetGenerating(false);
     return;
   }
@@ -7195,19 +7231,31 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     const instantBase = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
     const instant = enhanceTeacherToolOutputFast(instantBase, input);
     lastTeacherToolBuilderOutput = instant;
-    _ttCacheRemember(cacheKey, instant);
+    // NB: do NOT cache the draft under the AI key — only the real server result
+    // is cached below, so a failed AI call retries instead of returning a draft.
     if (instant.boardKind === 'quiz' || instant.boardKind === 'vocab' || instant.boardKind === 'cards') {
       renderTeacherToolLocalPreview(instant);
     } else {
       renderTeacherToolBuilderOutput(instant);
     }
+    // The instant result is a local draft; show it immediately so the teacher
+    // sees something, then upgrade to the real server LLM when it arrives.
     if (chip) {
       const n = _ttCountItems(instant) ?? input.count;
-      chip.textContent = `instant AI · ${n} items`;
+      chip.textContent = `draft · ${n} · ✨ AI improving…`;
     }
     _ttSetGenerating(false);
-    requestServerTeacherTool(input, 900).then(serverOutput => {
-      if (!serverOutput || _ttActiveGenerationKey !== cacheKey) return;
+    // The cloud LLM (Groq 70B/8B → OpenRouter) usually answers in 0.5–2 s but
+    // can take longer under load; give it a realistic window before giving up.
+    requestServerTeacherTool(input, 20000).then(serverOutput => {
+      if (_ttActiveGenerationKey !== cacheKey) return;          // superseded
+      if (!serverOutput) {                                       // AI failed → keep draft
+        if (chip) {
+          const n = _ttCountItems(lastTeacherToolBuilderOutput) ?? input.count;
+          chip.textContent = `fast · ${n} items · AI busy`;
+        }
+        return;
+      }
       lastTeacherToolBuilderOutput = serverOutput;
       _ttCacheRemember(cacheKey, serverOutput);
       if (serverOutput.boardKind === 'quiz' || serverOutput.boardKind === 'vocab' || serverOutput.boardKind === 'cards') {
@@ -7217,7 +7265,8 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       }
       if (chip) {
         const n = _ttCountItems(serverOutput) ?? input.count;
-        chip.textContent = `VPS cached · ${n} items`;
+        const model = /^llm:(.+)$/.exec(serverOutput.engine || '');
+        chip.textContent = model ? `AI · ${n} items · ${model[1].split('-').slice(0,2).join(' ')}` : `AI · ${n} items`;
       }
     });
     return;
