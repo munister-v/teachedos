@@ -5854,6 +5854,94 @@ async function fetchYoutubeTranscript() {
     if (btn) btn.disabled = false;
   }
 }
+/* ══════════════ YouTube → full lesson (one click) ══════════════
+   Paste a link → fetch transcript → generate a curated set of exercises from
+   it → drop them as styled worksheet cards inside a single "Lesson" frame.   */
+const YT_LESSON_TOOLS = [
+  { id:'gist-detail',   label:'Gist + Detail questions' },
+  { id:'extract-vocab', label:'Key vocabulary' },
+  { id:'gap',           label:'Gap-fill from the text' },
+  { id:'true-false',    label:'True / False statements' },
+  { id:'open-questions',label:'Discussion questions' },
+];
+function openYtLesson() {
+  const m = document.getElementById('yt-lesson-modal');
+  if (!m) return;
+  const st = document.getElementById('yt-lesson-status'); if (st) st.textContent = '';
+  // default exercise picks (first 4)
+  document.querySelectorAll('.yt-tool-cb').forEach((cb, i) => { cb.checked = i < 4; });
+  m.style.display = 'flex';
+  setTimeout(() => document.getElementById('yt-lesson-url')?.focus(), 50);
+}
+function closeYtLesson() {
+  const m = document.getElementById('yt-lesson-modal');
+  if (m) m.style.display = 'none';
+}
+function _ytStatus(msg) { const st = document.getElementById('yt-lesson-status'); if (st) st.innerHTML = msg; }
+async function runYtLesson() {
+  const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
+  const level = document.getElementById('yt-lesson-level')?.value || 'B1';
+  const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
+  const runBtn = document.getElementById('yt-lesson-run');
+  if (!url) { _ytStatus('Paste a YouTube link first.'); return; }
+  if (!picks.length) { _ytStatus('Pick at least one exercise.'); return; }
+  if (!authToken) { _ytStatus('Sign in to build a lesson with AI.'); return; }
+  if (runBtn) runBtn.disabled = true;
+  try {
+    _ytStatus('⏳ Fetching transcript…');
+    let transcript = '';
+    try {
+      const r = await apiFetch('/api/ai/youtube-transcript?url=' + encodeURIComponent(url));
+      const d = await r.json().catch(() => null);
+      if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
+      transcript = d.transcript;
+    } catch (e) { _ytStatus(`⚠ ${e.message}. Try another video or paste the text into a tool manually.`); return; }
+
+    const results = [];
+    for (let i = 0; i < picks.length; i++) {
+      const toolId = picks[i];
+      const label = (YT_LESSON_TOOLS.find(t => t.id === toolId) || {}).label || toolId;
+      _ytStatus(`✨ Generating ${i + 1}/${picks.length}: ${esc(label)}…`);
+      const out = await requestServerTeacherTool(
+        { tool: { id: toolId }, level, count: 8, topic: 'Video lesson', source: transcript }, 30000);
+      if (out && (out.questions?.length || out.items?.length || out.cards?.length)) results.push(out);
+    }
+    if (!results.length) { _ytStatus('⚠ The engine was busy — no exercises came back. Try again in a moment.'); return; }
+    _placeLessonOnBoard(results);
+    closeYtLesson();
+    toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board`);
+  } finally { if (runBtn) runBtn.disabled = false; }
+}
+// Lay the generated worksheets out in a row inside one titled frame.
+function _placeLessonOnBoard(results) {
+  const CARD_W = 440, GAP = 26, PAD = 30, HEAD = 64;
+  const heights = results.map(_ttEstWorksheetHeight);
+  const n = results.length;
+  const FW = PAD * 2 + n * CARD_W + (n - 1) * GAP;
+  const FH = HEAD + Math.max(...heights) + PAD;
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(c0.x, c0.y, FW, FH);
+  const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
+  snapshot(); _suppressSnapshot++;
+  let frame;
+  try {
+    frame = addCard('frame', x0, y0, {
+      title: '🎬  Lesson from YouTube', bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
+    }, FW, FH);
+    results.forEach((out, i) => {
+      const x = x0 + PAD + i * (CARD_W + GAP), y = y0 + HEAD;
+      const card = addCard('worksheet', x, y, {
+        title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
+        boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
+      }, CARD_W, heights[i]);
+      if (frame && card) setCardParentFrame?.(card, frame);
+    });
+    if (typeof renumberFrames === 'function') renumberFrames();
+    if (frame?.id) { clearSelection?.(); selectCard?.(frame.id); setTimeout(() => { try { zoomToCard?.(frame.id, true); } catch (e) {} }, 80); }
+  } finally { _suppressSnapshot--; }
+  scheduleSave?.(); saveLocal?.();
+}
+
 // Tools that produce a single artifact or a fixed scaffold — the "Items" count
 // is meaningless, so hide it to avoid confusion (e.g. "Simplify a Text" + 50).
 const TT_NO_COUNT_SET = new Set([
@@ -8160,6 +8248,15 @@ function _mkToolGrid() {
 }
 
 function renderToolsTab_Tools(sec, q, cats) {
+  // One-click "YouTube → Lesson" hero (only when on "All" and no search)
+  if (activeToolSkill === 'all' && !q) {
+    const cta = document.createElement('button');
+    cta.type = 'button';
+    cta.className = 'yt-lesson-cta';
+    cta.innerHTML = `<span class="yt-cta-ic">🎬</span><span class="yt-cta-tx"><b>YouTube → Lesson</b><small>Paste a link — get a full set of exercises in one click</small></span><span class="yt-cta-go">→</span>`;
+    cta.onclick = openYtLesson;
+    sec.appendChild(cta);
+  }
   // Featured row (only when on "All" and no search)
   if (activeToolSkill === 'all' && !q) {
     const featured = BOARD_TOOL_FEATURED
