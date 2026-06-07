@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v90';
+const CACHE = 'teachedos-v91';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -42,6 +42,11 @@ const SHELL = [
   'scripts/app-core.js',
   'scripts/board-app.js',
   'scripts/desktop-app.js',
+  'scripts/teacher-tools-app.js',
+  'scripts/game-builder-app.js',
+  'scripts/admin-app.js',
+  'scripts/lesson-packs-app.js',
+  'scripts/profile-app.js',
   'scripts/mobile-nav.js',
   'scripts/nav-boost.js',
   'scripts/mobile-perf.js',

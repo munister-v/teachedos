@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- DNS + TLS pre-negotiation for Google Fonts — saves ~200ms on first load -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
+<link rel="preload" as="style" href="styles/harmony.css">
+<link rel="preload" as="style" href="styles/unify.css">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#EC2D8C">
 <link rel="icon" type="image/png" href="logo-sm.png">
@@ -1420,11 +1420,11 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css">
+<link rel="stylesheet" href="styles/mobile-pro.css" media="(max-width: 860px)">
 <script src="theme.js" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css">
 <link rel="stylesheet" href="styles/harmony.css">
-<link rel="stylesheet" href="styles/mobile-guard.css">
+<link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
 <link rel="stylesheet" href="styles/unify.css">
 </head>
 <body class="os-desktop">
@@ -2124,7 +2124,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=90').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=91').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
