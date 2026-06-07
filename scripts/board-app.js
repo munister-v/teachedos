@@ -5858,6 +5858,7 @@ async function fetchYoutubeTranscript() {
    Paste a link → fetch transcript → generate a curated set of exercises from
    it → drop them as styled worksheet cards inside a single "Lesson" frame.   */
 const YT_LESSON_TOOLS = [
+  { id:'lesson-pack',   label:'Lesson plan (warm-up → production)' },
   { id:'gist-detail',   label:'Gist + Detail questions' },
   { id:'extract-vocab', label:'Key vocabulary' },
   { id:'gap',           label:'Gap-fill from the text' },
