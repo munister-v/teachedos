@@ -2438,6 +2438,106 @@ function markLessonDoneFromPresent(cardId) {
   openLessonPresent(cardId);
 }
 
+/* ════════════════════ FULL-BOARD PRESENT MODE ════════════════════
+   Lead a lesson straight from the board: step through frames (or, if the
+   board has none, through the content cards in reading order), zooming to
+   each. Floating controls + keyboard (← → Space Esc) + click-to-advance. */
+let _presentSlides = [];
+let _presentIdx = 0;
+let _presentReturnView = null;
+let _presentActive = false;
+
+function _buildPresentSlides() {
+  const readingOrder = (a, b) => (Math.abs(a.y - b.y) > 60 ? a.y - b.y : a.x - b.x);
+  const frames = state.cards.filter(c => c.type === 'frame').slice().sort(readingOrder);
+  if (frames.length) return frames.map(f => f.id);
+  // No frames → present the content cards themselves (skip pure decoration).
+  const skip = new Set(['sticker', 'shape']);
+  const cards = state.cards.filter(c => {
+    if (skip.has(c.type)) return false;
+    if (c.data && c.data.private && c.data.private !== _currentUserId()) return false;
+    return true;
+  }).slice().sort(readingOrder);
+  return cards.map(c => c.id);
+}
+
+function startBoardPresent() {
+  if (_presentActive) { exitBoardPresent(); return; }
+  _presentSlides = _buildPresentSlides();
+  if (!_presentSlides.length) { toast('Add a frame or some cards first'); return; }
+  _presentReturnView = { pan: { ...state.pan }, scale: state.scale };
+  _presentActive = true;
+  _presentIdx = 0;
+  document.body.classList.add('board-presenting');
+  const bar = document.getElementById('board-present-bar');
+  if (bar) bar.setAttribute('aria-hidden', 'false');
+  const hint = document.getElementById('board-present-hint');
+  if (hint) { hint.classList.add('show'); setTimeout(() => hint.classList.remove('show'), 2600); }
+  document.addEventListener('keydown', _presentKeydown, true);
+  boardWrap.addEventListener('click', _presentClickAdvance);
+  presentGoTo(0);
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+function presentGoTo(i) {
+  if (!_presentActive) return;
+  _presentIdx = Math.max(0, Math.min(_presentSlides.length - 1, i));
+  const id = _presentSlides[_presentIdx];
+  // Highlight the active slide, clear others.
+  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  const el = document.querySelector('[data-id="' + id + '"]');
+  if (el) el.classList.add('present-current');
+  zoomToCard(id, true);
+  const prog = document.getElementById('bp-progress');
+  if (prog) prog.textContent = (_presentIdx + 1) + ' / ' + _presentSlides.length;
+  const prev = document.getElementById('bp-prev'), next = document.getElementById('bp-next');
+  if (prev) prev.disabled = _presentIdx === 0;
+  if (next) next.disabled = _presentIdx === _presentSlides.length - 1;
+}
+
+function presentNext() { if (_presentActive && _presentIdx < _presentSlides.length - 1) presentGoTo(_presentIdx + 1); }
+function presentPrev() { if (_presentActive && _presentIdx > 0) presentGoTo(_presentIdx - 1); }
+
+function _presentKeydown(e) {
+  if (!_presentActive) return;
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); e.stopPropagation(); presentNext(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); e.stopPropagation(); presentPrev(); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); exitBoardPresent(); }
+}
+
+function _presentClickAdvance(e) {
+  if (!_presentActive) return;
+  // Ignore clicks on the floating control bar.
+  if (e.target.closest && e.target.closest('#board-present-bar')) return;
+  presentNext();
+}
+
+function exitBoardPresent() {
+  if (!_presentActive) return;
+  _presentActive = false;
+  document.removeEventListener('keydown', _presentKeydown, true);
+  boardWrap.removeEventListener('click', _presentClickAdvance);
+  document.body.classList.remove('board-presenting');
+  const bar = document.getElementById('board-present-bar');
+  if (bar) bar.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  // Tween back to the pre-present view.
+  if (_presentReturnView) {
+    const start = { pan: { ...state.pan }, scale: state.scale };
+    const end = _presentReturnView;
+    const t0 = performance.now(), dur = 320;
+    (function back(now) {
+      const p = Math.min(1, (now - t0) / dur), ease = 1 - Math.pow(1 - p, 3);
+      state.scale = start.scale + (end.scale - start.scale) * ease;
+      state.pan.x = start.pan.x + (end.pan.x - start.pan.x) * ease;
+      state.pan.y = start.pan.y + (end.pan.y - start.pan.y) * ease;
+      applyTransform();
+      if (p < 1) requestAnimationFrame(back);
+    })(performance.now());
+    _presentReturnView = null;
+  }
+}
+
 // Helper: add anchor dots + 8 resize handles to a freshly re-rendered card el
 function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
