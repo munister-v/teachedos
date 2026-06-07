@@ -443,6 +443,43 @@ function generateLocal(input) {
 function line(v) { return clean(v); }
 function block(v) { return String(v == null ? '' : v).replace(/\r/g, '').trim(); }
 
+// Resolve the model's stated MCQ answer to the EXACT text of one of the options,
+// so the front-end always highlights a correct choice. Handles the common LLM
+// quirks: a letter ("A"/"b)"), an index ("2"), or an answer reworded/cased
+// slightly differently from the option. Falls back to the first option.
+function resolveMcqAnswer(answer, options) {
+  if (!options.length) return '';
+  const raw = String(answer == null ? '' : answer).trim();
+  if (!raw) return options[0];
+  // exact match
+  if (options.includes(raw)) return raw;
+  // case-insensitive / trimmed match
+  const ci = options.find(o => o.toLowerCase() === raw.toLowerCase());
+  if (ci) return ci;
+  // a bare letter, optionally with ")"/"." — "A", "b)", "C."
+  const letter = raw.match(/^([A-Za-z])[).\s]*$/);
+  if (letter) {
+    const idx = letter[1].toUpperCase().charCodeAt(0) - 65;
+    if (idx >= 0 && idx < options.length) return options[idx];
+  }
+  // a 1-based index — "2", "3)"
+  const num = raw.match(/^(\d+)[).\s]*$/);
+  if (num) {
+    const idx = parseInt(num[1], 10) - 1;
+    if (idx >= 0 && idx < options.length) return options[idx];
+  }
+  // an option that contains the answer (or vice versa) — minor wording drift
+  const sub = options.find(o => o.toLowerCase().includes(raw.toLowerCase()) || raw.toLowerCase().includes(o.toLowerCase()));
+  if (sub) return sub;
+  return options[0];
+}
+
+// Drop duplicates by a key function, keeping first occurrence.
+function dedupeBy(arr, keyFn) {
+  const seen = new Set();
+  return arr.filter(x => { const k = keyFn(x); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
 function sanitizeQuestion(q) {
   if (!q || typeof q !== 'object') return null;
   const type = ['mcq', 'truefalse', 'gap-fill', 'open', 'match'].includes(q.type) ? q.type : 'mcq';
@@ -450,9 +487,15 @@ function sanitizeQuestion(q) {
   if (!text) return null;
   const out = { type, text, points: 1 };
   if (type === 'mcq') {
-    out.options = (q.options || []).map(line).filter(Boolean);
+    // De-duplicate options (case-insensitive) so there are no repeated choices.
+    const seen = new Set();
+    out.options = (q.options || []).map(line).filter(o => {
+      const k = o.toLowerCase();
+      if (!o || seen.has(k)) return false;
+      seen.add(k); return true;
+    });
     if (out.options.length < 2) return null;
-    out.answer = q.answer != null ? line(q.answer) : out.options[0];
+    out.answer = resolveMcqAnswer(q.answer, out.options);
   } else if (type === 'truefalse') {
     out.answer = Boolean(q.answer);
   } else if (type === 'gap-fill') {
@@ -473,9 +516,12 @@ function assembleFromLLM(input, data) {
   };
 
   if (kind === 'vocab') {
-    const items = (data.items || []).slice(0, input.count)
-      .map(x => ({ word: line(x.word), definition: block(x.definition), example: block(x.example) }))
-      .filter(x => x.word);
+    const items = dedupeBy(
+      (data.items || [])
+        .map(x => ({ word: line(x.word), definition: block(x.definition), example: block(x.example) }))
+        .filter(x => x.word),
+      x => x.word.toLowerCase(),
+    ).slice(0, input.count);
     if (!items.length) throw new Error('LLM returned no vocab items');
     return {
       ...env,
@@ -488,9 +534,12 @@ function assembleFromLLM(input, data) {
   }
 
   if (kind === 'matching') {
-    const pairs = (data.pairs || []).slice(0, input.count)
-      .map(p => ({ left: line(p.left), right: line(p.right) }))
-      .filter(p => p.left && p.right);
+    const pairs = dedupeBy(
+      (data.pairs || [])
+        .map(p => ({ left: line(p.left), right: line(p.right) }))
+        .filter(p => p.left && p.right),
+      p => p.left.toLowerCase(),
+    ).slice(0, input.count);
     if (!pairs.length) throw new Error('LLM returned no pairs');
     const matchText = input.toolId === 'word-sorting'
       ? `Sort the words into the correct categories for ${input.topic}.`
@@ -512,7 +561,9 @@ function assembleFromLLM(input, data) {
   }
 
   if (kind === 'quiz') {
-    const questions = (data.questions || []).slice(0, input.count).map(sanitizeQuestion).filter(Boolean);
+    // Sanitise first, drop invalid, THEN cap to count — so bad items don't
+    // silently shrink the set below what the teacher asked for.
+    const questions = (data.questions || []).map(sanitizeQuestion).filter(Boolean).slice(0, input.count);
     if (!questions.length) throw new Error('LLM returned no questions');
     const sections = teacherFlow(input);
     if (input.toolId === 'word-bank') {
