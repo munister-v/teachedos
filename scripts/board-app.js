@@ -6187,6 +6187,17 @@ function openTeacherToolBuilder(toolId) {
 
 function closeTeacherToolBuilder() {
   document.getElementById('tool-builder-panel')?.classList.remove('open');
+  _ttRefreshBuildLessonBtn();
+}
+
+/* Show / hide the "📚 Build Lesson" toolbar button based on whether there are
+   any TT-generated cards on the board. Called after every placement. */
+function _ttRefreshBuildLessonBtn(){
+  const btn = document.getElementById('btn-build-lesson');
+  if (!btn) return;
+  const hasTT = (typeof state !== 'undefined' && state.cards || [])
+    .some(c => c && c.data && c.data._ttSrc === 1);
+  btn.classList.toggle('show', hasTT);
 }
 
 document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
@@ -6908,15 +6919,16 @@ function _ttGenWordSorting(input){
 }
 
 /* ── gaps-brackets ──────────────────────────────────────────────── */
+// Scaled with _ttSentenceTargets: up to 3 different words per sentence blanked,
+// so 3 sentences → up to 9 exercises instead of 3.
 function _ttGenGapsBrackets(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
   if (!sents.length) return null;
+  const targets = _ttSentenceTargets(sents, 3);
   const questions = [];
-  for (const s of sents){
+  for (const [s, target] of targets){
     if (questions.length >= input.count) break;
-    const target = _ttContentWords(s).sort((a,b)=>b.length-a.length)[0];
-    if (!target) continue;
     questions.push({ type:'open',
       text:`Use the word in the correct form:\n"${_ttBlank(s,target)}"  (${target.toUpperCase()})`,
       answer:target, points:1 });
@@ -6926,21 +6938,83 @@ function _ttGenGapsBrackets(input){
 }
 
 /* ── two-options ────────────────────────────────────────────────── */
+// Scaled with _ttSentenceTargets: 2 words per sentence → more questions from short texts.
 function _ttGenTwoOptions(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length >= 2);
   const pool = _ttContentWords(input.source||'');
   if (!sents.length || pool.length < 2) return null;
+  const targets = _ttSentenceTargets(sents, 2);
   const questions = [];
-  for (const s of sents){
+  for (const [s, a] of targets){
     if (questions.length >= input.count) break;
-    const words = _ttContentWords(s); if (words.length < 2) continue;
-    const [a, b] = words.sort((x,y)=>y.length-x.length).slice(0,2);
+    // Distractor: a content word from the pool with similar length, not in this sentence
+    const distractor = pool.find(w => w !== a && Math.abs(w.length-a.length) <= 2 && !s.toLowerCase().includes(w))
+      || pool.find(w => w !== a) || a + 's';
     questions.push({ type:'mcq', text:`Choose the correct option:\n"${_ttBlank(s,a)}"`,
-      options:[_ttCap(a),_ttCap(b)], answer:_ttCap(a), points:1 });
+      options:_ttShuffle([_ttCap(a), _ttCap(distractor)]), answer:_ttCap(a), points:1 });
   }
   return questions.length ? { boardKind:'quiz', kind:'Two Options', cat:'grammar', level:input.level, topic:input.topic,
     title:`${input.level} · Two Options: ${input.topic}`, questions } : null;
+}
+
+/* ── rewrite (key-word transformation) ─────────────────────────── */
+// CAE-style sentence transformation. Source sentences become the original
+// sentences; a rotating set of linking words serves as the KEY WORD prompt.
+// The AI upgrade replaces these with real transformations; this is the draft.
+function _ttGenRewrite(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 6);
+  if (!sents.length) return null;
+  const targets = _ttSentenceTargets(sents, 2);
+  const KWS = ['although','however','despite','unless','because','so that',
+    'in order to','not only','as well as','even though','due to','provided that',
+    'had','were','being','having','despite','without','instead of','as long as'];
+  let ki = 0;
+  const questions = [];
+  for (const [s] of targets){
+    if (questions.length >= input.count) break;
+    const kw = KWS[ki++ % KWS.length].toUpperCase();
+    questions.push({ type:'open',
+      text:`Complete the second sentence so it has a similar meaning. Use the word in capitals (do NOT change it).\n\n"${s}"\n\n${kw} _______________`,
+      answer:'', points:2 });
+  }
+  return questions.length
+    ? { boardKind:'quiz', kind:'Transformation', cat:'grammar', level:input.level, topic:input.topic,
+        title:`${input.level} · Rewrite the Sentence: ${input.topic}`, questions }
+    : null;
+}
+
+/* ── tense-contrast ─────────────────────────────────────────────── */
+// Level-appropriate tense pair MCQs.  Source sentences illustrate context;
+// without a source text, a free-writing prompt is generated instead.
+function _ttGenTenseContrast(input){
+  const lvl = String(input.level||'B1').match(/[A-C][12]/)?.[0] || 'B1';
+  const PAIRS = {
+    A1:[['Present Simple','Present Continuous']],
+    A2:[['Present Simple','Present Continuous'],['Past Simple','Past Continuous']],
+    B1:[['Past Simple','Present Perfect'],['Past Continuous','Past Simple']],
+    B2:[['Present Perfect','Present Perfect Continuous'],['Past Perfect','Past Simple']],
+    C1:[['Future Perfect','Future Continuous'],['Past Perfect Continuous','Past Simple']],
+    C2:[['Past Perfect Continuous','Present Perfect Continuous'],['Future Perfect','Future Perfect Continuous']],
+  };
+  const [tA, tB] = (PAIRS[lvl]||PAIRS.B1)[0];
+  const sents = teacherToolSourceSentences(input.source||'', input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5).slice(0, input.count);
+  const questions = [];
+  for (const s of sents){
+    if (questions.length >= input.count) break;
+    questions.push({ type:'mcq', text:`Choose the correct tense:\n"${s}"`,
+      options:[tA, tB, 'either is correct'], answer:tA, points:1 });
+  }
+  if (!questions.length){
+    // No source text — open writing prompt
+    questions.push({ type:'open',
+      text:`Write 3 sentences using the ${tA} and 3 using the ${tB} about "${input.topic || 'the topic'}". Explain in one line why you chose each tense.`,
+      points:4 });
+  }
+  return { boardKind:'quiz', kind:'Tense Contrast', cat:'grammar', level:input.level, topic:input.topic,
+    title:`${input.level} · ${tA} vs ${tB}: ${input.topic}`, questions };
 }
 
 /* ── gist + detail ──────────────────────────────────────────────── */
@@ -7379,6 +7453,8 @@ function generateTeacherToolLocal(input){
   if (id === 'word-sorting')          return _ttGenWordSorting(input);
   if (id === 'gaps-brackets')         return _ttGenGapsBrackets(input);
   if (id === 'two-options')           return _ttGenTwoOptions(input);
+  if (id === 'rewrite')               return _ttGenRewrite(input);
+  if (id === 'tense-contrast')        return _ttGenTenseContrast(input);
   if (id === 'gist-detail')           return _ttGenGistDetail(input);
   if (id === 'discussion')            return _ttGenDiscussion(input);
   if (id === 'question-ladder')       return _ttGenQuestionLadder(input);
@@ -7654,6 +7730,7 @@ function _ttPlaceWorksheetOnBoard(output){
     questions: output.questions,
     items: output.items,
     cards: output.cards,
+    _ttSrc: 1,  // marks this card as Teacher Tool generated
   }, W, H);
   if (card) {
     clearSelection && clearSelection();
@@ -7684,6 +7761,9 @@ function _ttPlaceQuizOnBoard(output){
     questions: output.questions,
     submitted: 0,
     total: 0,
+    _ttSrc: 1,
+    _ttCat: output.cat || 'utility',
+    _ttKind: output.kind || 'Quiz',
   }, W, H);
   if (card) {
     clearSelection && clearSelection();
@@ -7722,6 +7802,7 @@ function _ttPlaceCardsOnBoard(output){
       title: `${meta.icon}  ${output.title}`, bg:'#ffffff',
       border: (meta.color || '#4262FF') + '55', // ~33% alpha (8-digit hex)
       childIds:[],
+      _ttSrc: 1, _ttCat: output.cat || 'utility', _ttKind: output.kind || '',
     }, FW, FH);
     cards.forEach((c, i) => {
       const col = i % COLS, row = Math.floor(i / COLS);
@@ -7761,6 +7842,7 @@ function _ttPlaceVocabOnBoard(output){
       bg: '#ffffff',
       border: (_vmeta.color || '#EC2D8C') + '55',
       childIds: [],
+      _ttSrc: 1, _ttCat: output.cat || 'vocabulary', _ttKind: output.kind || 'Vocabulary',
     }, FW, FH);
     items.forEach((it, i) => {
       const r = Math.floor(i / COLS), c = i % COLS;
@@ -7784,6 +7866,188 @@ function _ttPlaceVocabOnBoard(output){
   toast('✨ Vocabulary cards added — meanings pre-filled; edit translations as you teach');
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   LESSON COLLECTOR — "Build Lesson from Board"
+   Scans the board for TeachEd-generated cards (_ttSrc:1), groups them
+   by pedagogical category, and creates a Lesson Plan worksheet card.
+   ══════════════════════════════════════════════════════════════════ */
+
+// Pedagogical order: vocabulary → reading → grammar → listening → writing → speaking
+const _TT_CAT_ORDER = ['vocabulary','reading','grammar','listening','writing','speaking','utility'];
+const _TT_CAT_LABELS = {
+  vocabulary:'📖 Vocabulary', reading:'📄 Reading & Comprehension',
+  grammar:'⚙️ Grammar Practice', listening:'🎧 Listening',
+  writing:'✍️ Writing', speaking:'🗣 Speaking & Discussion', utility:'🔧 Other',
+};
+
+/* Collect all TT-source cards currently on the board. */
+function _ttCollectBoardCards(){
+  if (typeof state === 'undefined' || !state.cards) return [];
+  return state.cards.filter(c => c && c.data && c.data._ttSrc === 1);
+}
+
+/* Derive a display title from a card. */
+function _ttCardTitle(c){
+  return c.data.title || c.data.word || c.id;
+}
+
+/* Derive category from a card's stored _ttCat or type. */
+function _ttCardCat(c){
+  if (c.data._ttCat) return c.data._ttCat;
+  if (c.type === 'vocab') return 'vocabulary';
+  if (c.type === 'assignment') return 'grammar';
+  return 'utility';
+}
+
+/* Open the Lesson Collector modal. */
+function openLessonCollectorModal(){
+  const found = _ttCollectBoardCards();
+  if (!found.length){
+    toast('No Teacher Tool results on the board yet — generate some tasks first!');
+    return;
+  }
+
+  // Group by category in pedagogical order
+  const grouped = {};
+  _TT_CAT_ORDER.forEach(cat => { grouped[cat] = []; });
+  found.forEach(c => {
+    const cat = _ttCardCat(c);
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(c);
+  });
+
+  const sections = _TT_CAT_ORDER.filter(cat => grouped[cat].length);
+
+  // Build modal HTML
+  const itemsHtml = sections.map(cat => {
+    const label = _TT_CAT_LABELS[cat] || cat;
+    const rows = grouped[cat].map(c => `
+      <label class="lc-item">
+        <input type="checkbox" class="lc-cb" data-id="${c.id}" checked>
+        <span class="lc-icon">${BOARD_TOOL_META[cat]?.icon || '📝'}</span>
+        <span class="lc-title">${escapeHtml(_ttCardTitle(c))}</span>
+        <span class="lc-kind">${c.data._ttKind || c.type}</span>
+      </label>`).join('');
+    return `<div class="lc-section"><div class="lc-cat-label">${label}</div>${rows}</div>`;
+  }).join('');
+
+  const existing = document.getElementById('lesson-collector-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'lesson-collector-modal';
+  modal.className = 'lc-overlay';
+  modal.innerHTML = `
+    <div class="lc-dialog">
+      <div class="lc-header">
+        <span class="lc-hicon">📚</span>
+        <div class="lc-htitle">Build Lesson from Board</div>
+        <button class="lc-close" onclick="closeLessonCollectorModal()">✕</button>
+      </div>
+      <div class="lc-body">
+        <div class="lc-intro">Select activities to include in your lesson plan. They will be assembled in pedagogical order.</div>
+        <div class="lc-topic-row">
+          <label>Lesson topic</label>
+          <input id="lc-topic-input" type="text" placeholder="e.g. The Environment · B1" value="">
+        </div>
+        <div class="lc-items">${itemsHtml}</div>
+      </div>
+      <div class="lc-footer">
+        <button class="lc-btn-all" onclick="_lcToggleAll(true)">Select all</button>
+        <button class="lc-btn-all" onclick="_lcToggleAll(false)">Deselect all</button>
+        <div style="flex:1"></div>
+        <button class="lc-btn-cancel" onclick="closeLessonCollectorModal()">Cancel</button>
+        <button class="lc-btn-create" onclick="buildLessonFromSelected()">📚 Create Lesson Plan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeLessonCollectorModal(); });
+
+  // Pre-fill topic from first card title
+  const first = found[0];
+  const guessedTopic = (first.data.title || '').replace(/^[A-C][12]\s*·\s*/,'').split(':')[1]?.trim() || '';
+  const topicInput = document.getElementById('lc-topic-input');
+  if (topicInput && guessedTopic) topicInput.value = guessedTopic;
+}
+
+function closeLessonCollectorModal(){
+  const m = document.getElementById('lesson-collector-modal');
+  if (m) { m.classList.add('lc-closing'); setTimeout(() => m.remove(), 280); }
+}
+
+function _lcToggleAll(on){
+  document.querySelectorAll('#lesson-collector-modal .lc-cb').forEach(cb => cb.checked = on);
+}
+
+function buildLessonFromSelected(){
+  const modal = document.getElementById('lesson-collector-modal');
+  if (!modal) return;
+  const topic = (document.getElementById('lc-topic-input')?.value || 'Lesson').trim();
+  const selectedIds = new Set(
+    [...modal.querySelectorAll('.lc-cb:checked')].map(cb => cb.dataset.id)
+  );
+  if (!selectedIds.size){ toast('Select at least one activity'); return; }
+
+  const found = _ttCollectBoardCards().filter(c => selectedIds.has(c.id));
+  if (!found.length) return;
+
+  // Group & sort
+  const grouped = {};
+  _TT_CAT_ORDER.forEach(cat => { grouped[cat] = []; });
+  found.forEach(c => {
+    const cat = _ttCardCat(c);
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(c);
+  });
+
+  const level = found[0]?.data?.level || 'B1';
+
+  // Build the lesson plan worksheet questions array
+  // Each section becomes a header; each card becomes a task item
+  const questions = [];
+  let stageNum = 0;
+  _TT_CAT_ORDER.forEach(cat => {
+    if (!grouped[cat].length) return;
+    stageNum++;
+    const catLabel = _TT_CAT_LABELS[cat] || cat;
+    questions.push({
+      type: 'open',
+      text: `── STAGE ${stageNum}: ${catLabel} ──`,
+      answer: '',
+      points: 0,
+      _header: true,
+    });
+    grouped[cat].forEach(c => {
+      const kind = c.data._ttKind || c.type || 'Task';
+      const cardTitle = _ttCardTitle(c);
+      const qCount = Array.isArray(c.data.questions) ? c.data.questions.length
+        : Array.isArray(c.data.items) ? c.data.items.length : '';
+      const countTxt = qCount ? ` · ${qCount} items` : '';
+      questions.push({
+        type: 'open',
+        text: `${BOARD_TOOL_META[cat]?.icon || '📝'} ${kind}: ${cardTitle}${countTxt}`,
+        answer: '📌 See card on board',
+        points: 1,
+      });
+    });
+  });
+
+  // Create lesson plan worksheet card on the board
+  closeLessonCollectorModal();
+  _ttPlaceWorksheetOnBoard({
+    boardKind: 'worksheet',
+    kind: 'Lesson Plan',
+    cat: 'utility',
+    level,
+    topic,
+    title: `${level} · Lesson Plan: ${topic}`,
+    questions,
+    items: null,
+    cards: null,
+  });
+  toast(`📚 Lesson plan created — ${found.length} activities, ${stageNum} stages`);
+}
+
 // Tools with a genuinely useful offline generator — mechanical tasks that build
 // from the vocab/sentences the teacher already supplied (gap-fill, sorting,
 // flashcards, etc.). For these "Generate fast" stays instant and local.
@@ -7797,7 +8061,8 @@ function _ttPlaceVocabOnBoard(output){
 //    (a template can't actually re-level a text).
 const TT_LOCAL_QUALITY_SET = new Set([
   'extract-vocab','gap','word-definition-match','error-correction','essential-vocab',
-  'flashcards','sentences-vocab','gaps-brackets',
+  'flashcards','sentences-vocab','gaps-brackets','two-options',
+  'rewrite','tense-contrast',
   'discussion','question-ladder','roleplay-cards','debate-cards',
   'listening-dictation',
 ]);
@@ -9050,6 +9315,7 @@ function loadBoard() {
     lastSavedAt = data.savedAt ? new Date(data.savedAt) : new Date();
     lastSavedHash = boardHash();
     if (data.savedAt) setSaveUI('saved', `✓ saved ${new Date(data.savedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`);
+    setTimeout(_ttRefreshBuildLessonBtn, 200); // show "Build Lesson" btn if TT cards present
     return true;
   } catch(e) { return false; }
 }
@@ -10079,6 +10345,7 @@ function loadBoardData(data) {
   updateGroupOutlines();
   // Load real quiz submission counts for teacher view
   setTimeout(loadQuizResultsCache, 800);
+  setTimeout(_ttRefreshBuildLessonBtn, 300);
 }
 
 // (duplicate saveToCloud removed — canonical version with retry is defined above)

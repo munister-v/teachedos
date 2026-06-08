@@ -92,6 +92,7 @@
   <button class="tb-icon-btn" id="btn-invite-plus" style="display:none;" aria-hidden="true"></button>
   <button class="tb-icon-btn" id="btn-layout" style="display:none;" aria-hidden="true"></button>
   <div class="tb-divider"></div>
+  <button id="btn-build-lesson" title="Build Lesson from generated board cards" onclick="openLessonCollectorModal()">📚 Build Lesson</button>
   <button id="btn-upgrade" title="Upgrade to Pro" onclick="showUpgradeModal('default')" style="display:none;">⚡ Upgrade</button>
   <button class="tb-btn-primary" id="btn-share" title="Share board" onclick="openSharePanel()">
     <span>Share</span>
@@ -710,6 +711,8 @@ polite request</textarea>
               <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('worksheet')"><span>📄</span><div><strong>As worksheet</strong><small>Styled, print-ready sheet</small></div></button>
               <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('quiz')"><span>📝</span><div><strong>As interactive quiz</strong><small>Students take it, auto-scored</small></div></button>
               <div id="tbuilder-menu-games"></div>
+              <div class="tbuilder-menu-sep"></div>
+              <button class="tbuilder-menu-item" onclick="closeAddToBoardMenu();openLessonCollectorModal()"><span>📚</span><div><strong>Build Lesson from Board</strong><small>Collect all generated cards into a plan</small></div></button>
             </div>
           </div>
           <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none" title="Generate again for a different result">↺ Retry</button>
