@@ -689,6 +689,7 @@ router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
 
 // ── YouTube transcript (no API key, no auth — used by the Teacher Tools hub) ──
 const TRANSCRIPT_CACHE = new Map();
+const TITLE_CACHE = new Map();
 function ytVideoId(url) {
   const s = String(url || '').trim();
   const m = s.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/);
@@ -719,15 +720,20 @@ async function ytCaptionTracks(id) {
     body: JSON.stringify(body),
   });
   const j = await r.json().catch(() => null);
-  return j?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  return {
+    tracks: j?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [],
+    title: (j?.videoDetails?.title || '').trim(),
+  };
 }
 
 router.get('/youtube-transcript', async (req, res) => {
   const id = ytVideoId(req.query.url || '');
   if (!id) return res.status(400).json({ error: 'Provide a valid YouTube link' });
-  if (TRANSCRIPT_CACHE.has(id)) return res.json({ transcript: TRANSCRIPT_CACHE.get(id), videoId: id, cached: true });
+  if (TRANSCRIPT_CACHE.has(id)) {
+    return res.json({ transcript: TRANSCRIPT_CACHE.get(id), title: TITLE_CACHE.get(id) || '', videoId: id, cached: true });
+  }
   try {
-    const tracks = await ytCaptionTracks(id);
+    const { tracks, title } = await ytCaptionTracks(id);
     if (!tracks.length) return res.status(404).json({ error: 'This video has no captions to transcribe' });
     // Prefer a manual English track, then any English (incl. auto), then anything.
     const track = tracks.find(t => /^en/.test(t.languageCode || '') && t.kind !== 'asr')
@@ -739,8 +745,12 @@ router.get('/youtube-transcript', async (req, res) => {
     const text = decodeEntities(xml.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
     if (!text) return res.status(404).json({ error: 'Transcript was empty' });
     TRANSCRIPT_CACHE.set(id, text);
-    if (TRANSCRIPT_CACHE.size > 100) TRANSCRIPT_CACHE.delete(TRANSCRIPT_CACHE.keys().next().value);
-    res.json({ transcript: text, videoId: id });
+    TITLE_CACHE.set(id, title);
+    if (TRANSCRIPT_CACHE.size > 100) {
+      const oldest = TRANSCRIPT_CACHE.keys().next().value;
+      TRANSCRIPT_CACHE.delete(oldest); TITLE_CACHE.delete(oldest);
+    }
+    res.json({ transcript: text, title, videoId: id });
   } catch (err) {
     console.error('[ai/youtube-transcript]', err.message);
     res.status(502).json({ error: 'Could not fetch the transcript right now' });

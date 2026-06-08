@@ -5869,72 +5869,272 @@ const YT_LESSON_TOOLS = [
   { id:'true-false',    label:'True / False statements' },
   { id:'open-questions',label:'Discussion questions' },
 ];
+/* ── YouTube→Lesson run state ──────────────────────────────────────────────
+   Tracks the in-flight build so the modal can show live progress, be stopped
+   mid-run (AbortController), and retry only the exercises that failed.        */
+let _ytAbort = null;          // AbortController for the active build
+let _ytRunning = false;       // a build is in flight
+let _ytLastUrl = '';          // transcript cache key (avoid refetching same video)
+let _ytLastTranscript = '';   // cached transcript text
+let _ytLastTitle = '';        // cached video title (used for the frame name)
+let _ytFailedPicks = [];      // toolIds that came back empty (for "Retry failed")
+const YT_PREFS_KEY = 'tt.ytLesson.prefs';
+
+function _ytValidUrl(u) {
+  const s = String(u || '').trim();
+  return /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/.test(s)
+    || /^[\w-]{11}$/.test(s);
+}
+function _ytSavePrefs() {
+  try {
+    const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
+    const level = document.getElementById('yt-lesson-level')?.value || 'B1';
+    localStorage.setItem(YT_PREFS_KEY, JSON.stringify({ picks, level }));
+  } catch {}
+}
+function _ytLoadPrefs() {
+  try { return JSON.parse(localStorage.getItem(YT_PREFS_KEY) || 'null'); } catch { return null; }
+}
+
 function openYtLesson() {
   const m = document.getElementById('yt-lesson-modal');
   if (!m) return;
-  const st = document.getElementById('yt-lesson-status'); if (st) st.textContent = '';
-  // default exercise picks (first 4)
-  document.querySelectorAll('.yt-tool-cb').forEach((cb, i) => { cb.checked = i < 4; });
+  _ytStatus('');
+  _ytSetProgress(0, true);
+  _ytClearChips();
+  _ytFailedPicks = [];
+  // Restore last-used exercise picks + level, falling back to the first 4 tools.
+  const prefs = _ytLoadPrefs();
+  const saved = (prefs && Array.isArray(prefs.picks) && prefs.picks.length) ? prefs.picks : null;
+  document.querySelectorAll('.yt-tool-cb').forEach((cb, i) => {
+    cb.checked = saved ? saved.includes(cb.value) : i < 4;
+  });
+  if (prefs?.level) { const sel = document.getElementById('yt-lesson-level'); if (sel) sel.value = prefs.level; }
   m.style.display = 'flex';
+  requestAnimationFrame(() => m.classList.add('open'));
+  _ytSyncUrlState();
   setTimeout(() => document.getElementById('yt-lesson-url')?.focus(), 50);
 }
 function closeYtLesson() {
+  if (_ytRunning) { _ytStop(); return; }   // "Stop" while building
   const m = document.getElementById('yt-lesson-modal');
-  if (m) m.style.display = 'none';
+  if (!m) return;
+  m.classList.remove('open');
+  setTimeout(() => { m.style.display = 'none'; }, 160);
+}
+function _ytStop() {
+  if (_ytAbort) { try { _ytAbort.abort(); } catch {} }
+  _ytRunning = false;
+  _ytStatus('⏹ Stopped.');
 }
 function _ytStatus(msg) { const st = document.getElementById('yt-lesson-status'); if (st) st.innerHTML = msg; }
+function _ytSetProgress(pct, hide) {
+  const wrap = document.getElementById('yt-progress');
+  const fill = document.getElementById('yt-progress-fill');
+  if (!wrap || !fill) return;
+  wrap.style.display = hide ? 'none' : 'block';
+  fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+}
+function _ytClearChips() {
+  const list = document.getElementById('yt-prog-list');
+  if (list) { list.innerHTML = ''; list.style.display = 'none'; }
+}
+function _ytRenderChips(picks, statusMap) {
+  const list = document.getElementById('yt-prog-list');
+  if (!list) return;
+  list.style.display = 'flex';
+  list.innerHTML = picks.map(id => {
+    const label = (YT_LESSON_TOOLS.find(t => t.id === id) || {}).label || id;
+    const st = statusMap[id] || 'pending';
+    const ic = st === 'done' ? '✓' : st === 'fail' ? '✗' : st === 'running' ? '◌' : '•';
+    return `<span class="yt-chip ${st}"><span class="yt-chip-ic">${ic}</span>${esc(label)}</span>`;
+  }).join('');
+}
+// Live validity feedback for the URL field + Build-button enablement.
+function _ytSyncUrlState() {
+  const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
+  const hint = document.getElementById('yt-url-hint');
+  if (hint) {
+    if (!url) { hint.textContent = ''; hint.className = 'yt-url-hint'; }
+    else if (_ytValidUrl(url)) { hint.textContent = '✓ Valid YouTube link'; hint.className = 'yt-url-hint ok'; }
+    else { hint.textContent = '✗ Paste a YouTube watch or share link'; hint.className = 'yt-url-hint bad'; }
+  }
+  _ytSyncRunBtn();
+}
+function _ytSyncRunBtn() {
+  const btn = document.getElementById('yt-lesson-run');
+  if (!btn || _ytRunning) return;   // button label/state is managed during a run
+  const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
+  const picks = document.querySelectorAll('.yt-tool-cb:checked').length;
+  btn.disabled = !(_ytValidUrl(url) && picks > 0);
+}
+function ytSelectAllTools(on) {
+  document.querySelectorAll('.yt-tool-cb').forEach(cb => { cb.checked = on; });
+  _ytSyncRunBtn();
+}
+
 async function runYtLesson() {
+  if (_ytRunning) return;
   const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
   const level = document.getElementById('yt-lesson-level')?.value || 'B1';
   const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
-  const runBtn = document.getElementById('yt-lesson-run');
-  if (!url) { _ytStatus('Paste a YouTube link first.'); return; }
-  if (!picks.length) { _ytStatus('Pick at least one exercise.'); return; }
-  if (!authToken) { _ytStatus('Sign in to build a lesson with AI.'); return; }
-  if (runBtn) runBtn.disabled = true;
-  try {
-    _ytStatus('⏳ Fetching transcript…');
-    let transcript = '';
-    try {
-      const r = await apiFetch('/api/ai/youtube-transcript?url=' + encodeURIComponent(url));
-      const d = await r.json().catch(() => null);
-      if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
-      transcript = d.transcript;
-    } catch (e) { _ytStatus(`⚠ ${e.message}. Try another video or paste the text into a tool manually.`); return; }
-
-    const results = [];
-    for (let i = 0; i < picks.length; i++) {
-      const toolId = picks[i];
-      const label = (YT_LESSON_TOOLS.find(t => t.id === toolId) || {}).label || toolId;
-      _ytStatus(`✨ Generating ${i + 1}/${picks.length}: ${esc(label)}…`);
-      const out = await requestServerTeacherTool(
-        { tool: { id: toolId }, level, count: 8, topic: 'Video lesson', source: transcript }, 30000);
-      if (out && (out.questions?.length || out.items?.length || out.cards?.length)) results.push(out);
-    }
-    if (!results.length) { _ytStatus('⚠ The engine was busy — no exercises came back. Try again in a moment.'); return; }
-    _placeLessonOnBoard(results);
-    closeYtLesson();
-    toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board`);
-  } finally { if (runBtn) runBtn.disabled = false; }
+  if (!_ytValidUrl(url)) { _ytStatus('⚠ Paste a valid YouTube link first.'); return; }
+  if (!picks.length)     { _ytStatus('⚠ Pick at least one exercise.'); return; }
+  if (!authToken)        { _ytStatus('🔒 Sign in to build a lesson with AI.'); return; }
+  _ytSavePrefs();
+  await _ytGenerate(url, level, picks);
 }
-// Lay the generated worksheets out in a row inside one titled frame.
-function _placeLessonOnBoard(results) {
+
+// Core build: fetch transcript (cached per-URL) → generate exercises in a
+// concurrency-limited pool with one retry each → place them on the board.
+async function _ytGenerate(url, level, picks, transcriptOverride) {
+  const runBtn = document.getElementById('yt-lesson-run');
+  const cancelBtn = document.getElementById('yt-lesson-cancel');
+  _ytAbort = new AbortController();
+  const signal = _ytAbort.signal;
+  _ytRunning = true;
+  if (runBtn)    { runBtn.disabled = true; runBtn.textContent = '✨ Building…'; }
+  if (cancelBtn) cancelBtn.textContent = 'Stop';
+
+  try {
+    // 1) Transcript — reuse the cached one when the URL is unchanged.
+    let transcript = transcriptOverride
+      || (_ytLastUrl === url ? _ytLastTranscript : '') || '';
+    let videoTitle = (_ytLastUrl === url ? _ytLastTitle : '') || '';
+    if (!transcript) {
+      _ytStatus('⏳ Fetching transcript…');
+      _ytSetProgress(6);
+      try {
+        const r = await apiFetch('/api/ai/youtube-transcript?url=' + encodeURIComponent(url), { signal });
+        const d = await r.json().catch(() => null);
+        if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
+        transcript = d.transcript; videoTitle = (d.title || '').trim();
+        _ytLastUrl = url; _ytLastTranscript = transcript; _ytLastTitle = videoTitle;
+      } catch (e) {
+        if (signal.aborted) { _ytStatus('⏹ Stopped.'); return; }
+        _ytStatus(`⚠ ${esc(e.message)}. Try another video or paste the text into a tool manually.`);
+        return;
+      }
+    }
+    if (signal.aborted) { _ytStatus('⏹ Stopped.'); return; }
+
+    // 2) Generate, 2 at a time, one retry each.
+    const statusMap = {};
+    picks.forEach(p => { statusMap[p] = 'pending'; });
+    _ytRenderChips(picks, statusMap);
+    _ytStatus(`✨ Generating ${picks.length} exercise${picks.length > 1 ? 's' : ''}…`);
+    _ytSetProgress(10);
+
+    const ordered = new Array(picks.length).fill(null);
+    const failed = [];
+    let done = 0;
+
+    async function genOne(toolId) {
+      if (signal.aborted) return null;
+      statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
+      let out = null;
+      for (let attempt = 0; attempt < 2 && !signal.aborted; attempt++) {
+        out = await requestServerTeacherTool(
+          { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source: transcript },
+          30000, signal);
+        if (out && (out.questions?.length || out.items?.length || out.cards?.length)) break;
+        out = null;
+      }
+      done++;
+      _ytSetProgress(10 + Math.round((done / picks.length) * 88));
+      if (out) { statusMap[toolId] = 'done'; }
+      else if (signal.aborted) { statusMap[toolId] = 'pending'; }
+      else { statusMap[toolId] = 'fail'; failed.push(toolId); }
+      _ytRenderChips(picks, statusMap);
+      return out;
+    }
+
+    const LIMIT = Math.min(2, picks.length);   // fast, but gentle on free AI providers
+    let idx = 0;
+    async function worker() {
+      while (idx < picks.length && !signal.aborted) {
+        const cur = idx++;
+        ordered[cur] = await genOne(picks[cur]);
+      }
+    }
+    await Promise.all(Array.from({ length: LIMIT }, worker));
+
+    if (signal.aborted) { _ytStatus('⏹ Stopped. Nothing placed.'); return; }
+
+    const results = ordered.filter(Boolean);
+    _ytFailedPicks = failed;
+    if (!results.length) {
+      _ytStatus('⚠ The engine was busy — no exercises came back. Try again in a moment.');
+      return;
+    }
+
+    _ytSetProgress(100);
+    _placeLessonOnBoard(results, videoTitle);
+
+    if (failed.length) {
+      // Partial success — keep the modal open and let the user retry the misses.
+      const labels = failed.map(id => (YT_LESSON_TOOLS.find(t => t.id === id) || {}).label || id);
+      _ytStatus(`✓ ${results.length}/${picks.length} placed. ${failed.length} failed: ${esc(labels.join(', '))}. ` +
+        `<button type="button" class="yt-retry-btn" onclick="_ytRetryFailed()">↻ Retry failed</button>`);
+      toast(`🎬 ${results.length}/${picks.length} exercises on the board`);
+    } else {
+      closeYtLesson();
+      toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board`);
+    }
+  } finally {
+    _ytRunning = false;
+    _ytAbort = null;
+    if (runBtn)    runBtn.textContent = '✨ Build lesson';
+    if (cancelBtn) cancelBtn.textContent = 'Close';
+    _ytSyncRunBtn();
+  }
+}
+
+// Re-run only the exercises that failed last time (reuses the cached transcript).
+function _ytRetryFailed() {
+  if (_ytRunning || !_ytFailedPicks.length) return;
+  const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
+  const level = document.getElementById('yt-lesson-level')?.value || 'B1';
+  const picks = _ytFailedPicks.slice();
+  _ytFailedPicks = [];
+  _ytGenerate(url, level, picks, _ytLastTranscript);
+}
+
+// Lay the generated worksheets out in a grid (≤3 per row) inside one titled frame.
+function _placeLessonOnBoard(results, videoTitle) {
   const CARD_W = 440, GAP = 26, PAD = 30, HEAD = 64;
-  const heights = results.map(_ttEstWorksheetHeight);
   const n = results.length;
-  const FW = PAD * 2 + n * CARD_W + (n - 1) * GAP;
-  const FH = HEAD + Math.max(...heights) + PAD;
+  const heights = results.map(_ttEstWorksheetHeight);
+  const cols = n <= 2 ? n : 3;
+  const rows = Math.ceil(n / cols);
+  // Each grid row is as tall as its tallest card.
+  const rowH = [];
+  for (let r = 0; r < rows; r++) {
+    let mh = 0;
+    for (let c = 0; c < cols; c++) { const i = r * cols + c; if (i < n) mh = Math.max(mh, heights[i]); }
+    rowH.push(mh);
+  }
+  const FW = PAD * 2 + cols * CARD_W + (cols - 1) * GAP;
+  const FH = HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, FW, FH);
   const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
+  // Title the frame after the actual video when we have it.
+  let title = '🎬  Lesson from YouTube';
+  if (videoTitle) {
+    const t = videoTitle.length > 60 ? videoTitle.slice(0, 57).trim() + '…' : videoTitle;
+    title = `🎬  ${t}`;
+  }
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
     frame = addCard('frame', x0, y0, {
-      title: '🎬  Lesson from YouTube', bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
+      title, bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
     }, FW, FH);
     results.forEach((out, i) => {
-      const x = x0 + PAD + i * (CARD_W + GAP), y = y0 + HEAD;
+      const r = Math.floor(i / cols), c = i % cols;
+      const x = x0 + PAD + c * (CARD_W + GAP);
+      const y = y0 + HEAD + rowH.slice(0, r).reduce((s, h) => s + h + GAP, 0);
       const card = addCard('worksheet', x, y, {
         title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
         boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
@@ -6336,10 +6536,16 @@ function enhanceTeacherToolOutputFast(output, input) {
   return out;
 }
 
-async function requestServerTeacherTool(input, timeoutMs = 1200) {
+async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = null) {
   if (!authToken) return null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  // Allow an external signal (e.g. the YouTube→Lesson "Stop" button) to abort
+  // this request alongside the per-request timeout.
+  if (extraSignal) {
+    if (extraSignal.aborted) controller.abort();
+    else extraSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
   try {
     const response = await apiFetch('/api/ai/teacher-tool', {
       method: 'POST',

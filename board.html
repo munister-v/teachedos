@@ -742,23 +742,32 @@ polite request</textarea>
       <button class="yt-modal-close" onclick="closeYtLesson()" aria-label="Close">×</button>
     </div>
     <label class="yt-modal-label" for="yt-lesson-url">Video link</label>
-    <input id="yt-lesson-url" type="url" placeholder="https://www.youtube.com/watch?v=…">
+    <input id="yt-lesson-url" type="url" placeholder="https://www.youtube.com/watch?v=…" oninput="_ytSyncUrlState()">
+    <div class="yt-url-hint" id="yt-url-hint"></div>
     <div class="yt-modal-row">
       <div><label class="yt-modal-label" for="yt-lesson-level">Level</label>
       <select id="yt-lesson-level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option></select></div>
     </div>
-    <label class="yt-modal-label">Exercises to build</label>
-    <div class="yt-modal-tools">
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="lesson-pack" checked> 📋 Lesson plan (warm-up → production)</label>
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="gist-detail" checked> Gist + Detail questions</label>
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="extract-vocab" checked> Key vocabulary</label>
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="gap" checked> Gap-fill from the text</label>
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="true-false"> True / False statements</label>
-      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="open-questions"> Discussion questions</label>
+    <div class="yt-tools-head">
+      <label class="yt-modal-label" style="margin:0;">Exercises to build</label>
+      <div class="yt-tools-actions">
+        <button type="button" class="yt-mini-btn" onclick="ytSelectAllTools(true)">All</button>
+        <button type="button" class="yt-mini-btn" onclick="ytSelectAllTools(false)">Clear</button>
+      </div>
     </div>
+    <div class="yt-modal-tools">
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="lesson-pack" checked onchange="_ytSyncRunBtn()"> 📋 Lesson plan (warm-up → production)</label>
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="gist-detail" checked onchange="_ytSyncRunBtn()"> Gist + Detail questions</label>
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="extract-vocab" checked onchange="_ytSyncRunBtn()"> Key vocabulary</label>
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="gap" checked onchange="_ytSyncRunBtn()"> Gap-fill from the text</label>
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="true-false" onchange="_ytSyncRunBtn()"> True / False statements</label>
+      <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="open-questions" onchange="_ytSyncRunBtn()"> Discussion questions</label>
+    </div>
+    <div class="yt-progress" id="yt-progress" style="display:none;"><div class="yt-progress-fill" id="yt-progress-fill"></div></div>
+    <div class="yt-prog-list" id="yt-prog-list" style="display:none;"></div>
     <div class="yt-modal-status" id="yt-lesson-status"></div>
     <div class="yt-modal-actions">
-      <button class="tbuilder-btn ghost" onclick="closeYtLesson()">Cancel</button>
+      <button class="tbuilder-btn ghost" id="yt-lesson-cancel" onclick="closeYtLesson()">Close</button>
       <button class="tbuilder-btn blue" id="yt-lesson-run" onclick="runYtLesson()">✨ Build lesson</button>
     </div>
   </div>
@@ -1591,7 +1600,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=92').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=115').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
