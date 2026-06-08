@@ -7400,6 +7400,55 @@ function _ttRerenderPreview(){
 }
 const _ttEditHint = `<div class="tt-edit-hint">✎ Tap any text to edit · click ○ to set the answer</div>`;
 
+// Short labels for the "make more from this" quick-switch suggestions.
+const _TT_ALSO_LABELS = {
+  'extract-vocab':'Key vocabulary','abcd-text':'MCQ questions','true-false':'True / False',
+  'open-questions':'Open questions','gap':'Gap-fill','gist-detail':'Gist + Detail',
+  'summary-task':'Summary','sentences-vocab':'Example sentences','word-definition-match':'Match words',
+  'flashcards':'Flashcards','collocations':'Collocations','idioms':'Idioms','discussion':'Discussion',
+  'essential-vocab':'Topic vocabulary','dialogue':'Dialogue','warmup-listening':'Warm-up questions',
+};
+// Suggest other tools that can reuse the input the teacher already provided, so
+// they can spin a second activity from the same text / vocab / topic in one tap.
+function _ttSuggestAlternatives(currentToolId) {
+  const hasSource = !!(document.getElementById('tbuilder-source')?.value || '').trim();
+  const hasVocab  = !!(document.getElementById('tbuilder-vocab')?.value || '').trim();
+  const sourceTools = ['extract-vocab','abcd-text','true-false','open-questions','gap','gist-detail','summary-task'];
+  const vocabTools  = ['sentences-vocab','word-definition-match','flashcards','collocations','idioms','gap'];
+  const topicTools  = ['discussion','essential-vocab','dialogue','gist-detail','warmup-listening'];
+  const pool = hasSource ? sourceTools : (hasVocab ? vocabTools : topicTools);
+  return pool.filter(id => id !== currentToolId)
+    .map(id => (typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS : []).find(t => t.id === id))
+    .filter(Boolean).slice(0, 4);
+}
+function _ttAppendSuggestions(body) {
+  const cur = activeTeacherToolBuilder && activeTeacherToolBuilder.id;
+  const picks = _ttSuggestAlternatives(cur);
+  if (!picks.length || !body) return;
+  const row = document.createElement('div');
+  row.className = 'tt-also';
+  row.innerHTML = `<div class="tt-also-label">✨ Make more from the same input</div>
+    <div class="tt-also-row">${picks.map(t => {
+      const m = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[t.cat]) || { icon:'✦' };
+      const label = _TT_ALSO_LABELS[t.id] || t.kind || t.title;
+      return `<button type="button" class="tt-also-btn" onclick="switchTeacherToolAndGenerate('${t.id}')"><span>${m.icon}</span>${esc(label)}</button>`;
+    }).join('')}</div>`;
+  body.appendChild(row);
+}
+// Switch the constructor to another tool, KEEP the current inputs, and generate
+// straight away — a one-tap pivot to a related activity.
+function switchTeacherToolAndGenerate(toolId) {
+  const tool = (typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS : []).find(t => t.id === toolId);
+  if (!tool) return;
+  activeTeacherToolBuilder = tool;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('tbuilder-title', tool.title);
+  set('tbuilder-sub', tool.desc);
+  set('tbuilder-kicker', `${(typeof BOARD_TOOL_NAMES !== 'undefined' && BOARD_TOOL_NAMES[tool.cat]) || tool.cat} / ${tool.kind}`);
+  _ttAdaptFields(tool);              // toggles field visibility, keeps the values
+  generateTeacherToolBuilder('fast');
+}
+
 // Premium result header shown above the generated cards — tool icon badge,
 // title and meta chips (kind · level · count).
 function _ttPreviewHeader(out, n, unit){
@@ -7434,6 +7483,7 @@ function renderTeacherToolLocalPreview(out){
         <p class="tt-edit" contenteditable="true" data-card-field="text" data-ci="${i}" data-ph="Write here…">${esc(c.text)}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
+    _ttAppendSuggestions(body);
     return;
   }
 
@@ -7446,6 +7496,7 @@ function renderTeacherToolLocalPreview(out){
         <p class="tt-edit" contenteditable="true" data-vocab-field="example" data-vi="${i}" data-ph="Example sentence (optional)…">${esc(it.example||'')}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
+    _ttAppendSuggestions(body);
     return;
   }
 
@@ -7483,6 +7534,7 @@ function renderTeacherToolLocalPreview(out){
     </div>`;
   }).join('');
   _ttWirePreviewEvents(out, body);
+  _ttAppendSuggestions(body);
 }
 
 function _ttWirePreviewEvents(out, body){

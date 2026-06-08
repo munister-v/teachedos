@@ -2858,6 +2858,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tt-gap-ans .tt-edit{background:#dcfce7;color:#15803d;min-width:60px;}
 /* preview edit hint */
 .tt-edit-hint{font-size:10px;color:#9ca3af;font-weight:700;margin:0 4px 4px;display:flex;align-items:center;gap:5px;}
+/* "make more from this" quick-switch suggestions */
+.tt-also{margin-top:10px;padding-top:12px;border-top:1px dashed rgba(17,24,39,.12);}
+.tt-also-label{font:950 9.5px var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:#9b95a3;margin:0 2px 8px;}
+.tt-also-row{display:flex;gap:7px;flex-wrap:wrap;}
+.tt-also-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(66,98,255,.22);background:rgba(66,98,255,.05);border-radius:11px;padding:7px 11px;font-size:12px;font-weight:800;color:#3550d6;cursor:pointer;transition:background .14s,transform .14s,box-shadow .14s;}
+.tt-also-btn:hover{background:rgba(66,98,255,.12);transform:translateY(-1px);box-shadow:0 6px 16px rgba(66,98,255,.16);}
+.tt-also-btn>span{font-size:14px;line-height:1;}
 @media(max-width:760px){
   #ai-assistant-panel{padding:12px;}
   .ai-box{padding:16px;border-radius:22px;}
