@@ -6596,15 +6596,24 @@ function _ttBlank(sentence, word){
 }
 function _ttShuffle(arr){ for (let i = arr.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]] = [arr[j],arr[i]]; } return arr; }
 
+// Build (sentence, target-word) pairs — up to `perSentence` different content
+// words per sentence — so a short text still yields many distinct questions
+// (each blanks a different word). Interleaved so variety comes first.
+function _ttSentenceTargets(sents, perSentence = 3){
+  const rows = sents.map(s => ({ s, ws: _ttContentWords(s).sort((a,b)=>b.length-a.length).slice(0, perSentence) }));
+  const out = [];
+  for (let k = 0; k < perSentence; k++) for (const r of rows) if (r.ws[k]) out.push([r.s, r.ws[k]]);
+  return out;
+}
+
 function _ttGenAbcd(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
   const pool = _ttContentWords(input.source || sents.join(' '));
   if (sents.length < 1 || pool.length < 4) return null;
   const questions = [];
-  for (const s of sents) {
+  for (const [s, target] of _ttSentenceTargets(sents, 3)) {
     if (questions.length >= input.count) break;
-    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
     if (!target) continue;
     const candidates = pool
       .filter(w => w !== target && !s.toLowerCase().includes(w))
@@ -6628,18 +6637,26 @@ function _ttGenTrueFalse(input){
   const pool = _ttContentWords(input.source);
   if (!sents.length) return null;
   const questions = [];
-  sents.forEach((s, idx) => {
-    if (questions.length >= input.count) return;
-    const makeFalse = idx % 2 === 1; // alternate true / false
-    if (!makeFalse) { questions.push({ type:'truefalse', text:s, answer:true, points:1 }); return; }
-    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
-    const repl = pool.find(w => w !== target && Math.abs(w.length - (target ? target.length : 0)) <= 3 && !s.toLowerCase().includes(w));
-    if (target && repl) {
-      questions.push({ type:'truefalse', text:_ttBlank(s, target).replace('_____', _ttCap(repl)), answer:false, points:1 });
-    } else {
+  const seenTrue = new Set();
+  let tfIdx = 0;
+  for (const [s, target] of _ttSentenceTargets(sents, 2)) {
+    if (questions.length >= input.count) break;
+    const makeFalse = tfIdx % 2 === 1; // alternate true / false
+    tfIdx++;
+    if (!makeFalse) {
+      if (seenTrue.has(s)) continue;            // never repeat an identical TRUE statement
+      seenTrue.add(s);
       questions.push({ type:'truefalse', text:s, answer:true, points:1 });
+    } else {
+      const repl = pool.find(w => w !== target && Math.abs(w.length - (target ? target.length : 0)) <= 3 && !s.toLowerCase().includes(w));
+      if (target && repl) {
+        questions.push({ type:'truefalse', text:_ttBlank(s, target).replace('_____', _ttCap(repl)), answer:false, points:1 });
+      } else if (!seenTrue.has(s)) {
+        seenTrue.add(s);
+        questions.push({ type:'truefalse', text:s, answer:true, points:1 });
+      }
     }
-  });
+  }
   return questions.length
     ? { boardKind:'quiz', kind:'Check', cat:'reading', level:input.level, topic:input.topic, title:`${input.level} · True / False: ${input.topic}`, questions }
     : null;
@@ -6669,9 +6686,8 @@ function _ttGenGapFill(input){
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length);
   if (!sents.length) return null;
   const questions = [];
-  for (const s of sents) {
+  for (const [s, target] of _ttSentenceTargets(sents, 3)) {
     if (questions.length >= input.count) break;
-    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
     if (!target) continue;
     questions.push({ type:'gap-fill', text:_ttBlank(s, target), answer:target, points:1 });
   }
@@ -6712,9 +6728,8 @@ function _ttGenGapsAbcd(input){
   const pool = _ttContentWords(input.source || '');
   if (!sents.length || pool.length < 4) return null;
   const questions = [];
-  for (const s of sents) {
+  for (const [s, target] of _ttSentenceTargets(sents, 3)) {
     if (questions.length >= input.count) break;
-    const target = _ttContentWords(s).sort((a,b) => b.length - a.length)[0];
     if (!target) continue;
     const cands = pool.filter(w => w !== target && !s.toLowerCase().includes(w))
       .sort((a,b) => Math.abs(a.length-target.length)-Math.abs(b.length-target.length));
