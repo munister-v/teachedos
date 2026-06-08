@@ -1684,6 +1684,7 @@ function renderWorksheet(el, card) {
              || { icon:'📄', color:'#4262FF' };
   const accent = meta.color || '#4262FF';
   const showAns = d.showAnswers !== false; // default: show the key
+  el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent); // category accent edge
   const hdr = makeHeader(meta.icon || '📄', d.title || 'Worksheet', card.id);
   el.appendChild(hdr);
 
@@ -7380,6 +7381,16 @@ function _ttSetGenerating(isGenerating) {
   if (gen) gen.disabled = !!isGenerating;
   if (ai) ai.disabled = !!isGenerating;
   if (add) add.disabled = !!isGenerating || !lastTeacherToolBuilderOutput;
+  if (isGenerating) _ttSetImproving(false); // clear any stale shimmer on a new run
+}
+
+// Shimmer state for the "draft shown → AI upgrading it" phase: a sweeping bar on
+// the preview + a pulsing chip so the teacher sees the result is being improved.
+function _ttSetImproving(on) {
+  const chip = document.getElementById('tbuilder-chip');
+  const out = document.getElementById('tbuilder-output');
+  if (chip) chip.classList.toggle('improving', !!on);
+  if (out) out.classList.toggle('tt-improving', !!on);
 }
 
 // Live edited output is always lastTeacherToolBuilderOutput; the preview
@@ -7682,7 +7693,7 @@ function _ttPlaceVocabOnBoard(output){
       const r = Math.floor(i / COLS), c = i % COLS;
       const x = x0 + PAD + c*(VW+GAP), y = y0 + HEAD + r*(VH+GAP);
       const vc = addCard('vocab', x, y, {
-        word: it.word, phonetic:'', translation: it.definition || '', pos:'', example: it.example || '', tags:[],
+        word: it.word, phonetic:'', translation: it.definition || '', pos:'', example: it.example || '', tags:[], accent: _vmeta.color,
       }, VW, VH);
       if (frame && vc) setCardParentFrame && setCardParentFrame(vc, frame);
     });
@@ -7810,10 +7821,12 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       chip.textContent = `draft · ${n} · ✨ AI improving…`;
     }
     _ttSetGenerating(false);
+    _ttSetImproving(true);
     // The cloud LLM (Groq 70B/8B → OpenRouter) usually answers in 0.5–2 s but
     // can take longer under load; give it a realistic window before giving up.
     requestServerTeacherTool(input, 20000).then(serverOutput => {
       if (_ttActiveGenerationKey !== cacheKey) return;          // superseded
+      _ttSetImproving(false);
       if (!serverOutput) {                                       // AI failed → keep draft
         if (chip) {
           const n = _ttCountItems(lastTeacherToolBuilderOutput) ?? input.count;
@@ -11377,6 +11390,7 @@ function quickAddCard(type, bx, by) {
 /* ════════════════════════ VOCABULARY CARD ════════════════════════ */
 function renderVocab(el, card) {
   const d = card.data;
+  if (d.accent) { el.classList.add('tt-note'); el.style.setProperty('--tt-accent', d.accent); }
   el.appendChild(makeHeader('📖', d.word || 'Word', card.id));
   const body = document.createElement('div');
   body.className = 'card-body vocab-body';
