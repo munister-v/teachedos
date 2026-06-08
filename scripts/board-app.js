@@ -842,6 +842,9 @@ function renderNote(el, card) {
   if (!d.title) d.title = 'Note';
   if (d.body === undefined && d.text !== undefined) { d.body = d.text; delete d.text; }
   if (!d.body) d.body = '';
+  // Optional category accent (colored left edge + tinted header) so teacher-tool
+  // cards read as a designed set tied to their frame colour.
+  if (d.accent) { el.classList.add('tt-note'); el.style.setProperty('--tt-accent', d.accent); }
   const hdr = makeHeader(d.icon || '✍️', d.title, card.id);
   // Make the title editable inline
   const titleSpan = hdr.querySelector('.card-title-text');
@@ -7641,7 +7644,7 @@ function _ttPlaceCardsOnBoard(output){
       const cx = x0 + PAD + col*(CARD_W+GAP);
       const cy = y0 + HEAD + row*(CARD_H+GAP);
       const card = addCard('note', cx, cy, {
-        icon: meta.icon, title: c.title || `Card ${i+1}`, body: c.text || '',
+        icon: meta.icon, title: c.title || `Card ${i+1}`, body: c.text || '', accent: meta.color,
       }, CARD_W, CARD_H);
       if (frame && card) setCardParentFrame?.(card, frame);
     });

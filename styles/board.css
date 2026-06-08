@@ -2792,6 +2792,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ws-r{font-size:11px;color:#5f6070;}
 .ws-card-txt{font-size:11.5px;line-height:1.5;color:#5f6070;font-weight:600;margin-top:5px;}
 
+/* ── Teacher-tool note cards — category accent (cohesive board set) ── */
+.board-card.tt-note{box-shadow:inset 4px 0 0 var(--tt-accent,#4262FF),0 1px 2px rgba(17,24,39,.05),0 10px 26px rgba(17,24,39,.08)!important;}
+.board-card.tt-note .card-header{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--tt-accent,#4262FF) 18%,transparent);}
+.board-card.tt-note .card-title-text{color:#171420;font-weight:850;}
+
 /* ── Editable preview ── */
 .tt-q{position:relative;}
 .tt-q .tt-del{
