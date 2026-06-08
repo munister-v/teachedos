@@ -7668,17 +7668,18 @@ function _ttPlaceVocabOnBoard(output){
   _suppressSnapshot++;
   let frame;
   try {
+    const _vmeta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'🧠', color:'#EC2D8C' };
     frame = addCard('frame', x0, y0, {
-      title: `📖  ${output.title}`,
+      title: `${_vmeta.icon}  ${output.title}`,
       bg: '#ffffff',
-      border: 'rgba(234,179,8,.40)',
+      border: (_vmeta.color || '#EC2D8C') + '55',
       childIds: [],
     }, FW, FH);
     items.forEach((it, i) => {
       const r = Math.floor(i / COLS), c = i % COLS;
       const x = x0 + PAD + c*(VW+GAP), y = y0 + HEAD + r*(VH+GAP);
       const vc = addCard('vocab', x, y, {
-        word: it.word, phonetic:'', translation:'', pos:'', example: it.example || '', tags:[],
+        word: it.word, phonetic:'', translation: it.definition || '', pos:'', example: it.example || '', tags:[],
       }, VW, VH);
       if (frame && vc) setCardParentFrame && setCardParentFrame(vc, frame);
     });
@@ -7693,7 +7694,7 @@ function _ttPlaceVocabOnBoard(output){
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
-  toast('✨ Vocabulary cards added to board (fill translations as you teach)');
+  toast('✨ Vocabulary cards added — meanings pre-filled; edit translations as you teach');
 }
 
 // Tools with a genuinely useful offline generator — mechanical tasks that build
