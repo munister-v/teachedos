@@ -898,7 +898,7 @@ function generateSmart(){
 }
 function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()]};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
-  else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);out.text=`Complete lesson pack: ${topic()} (${level()})\n\n1. Warm-up (5 min): Ask students to predict three ideas connected to ${topic().toLowerCase()}.\n2. Lead-in vocabulary (8 min): Teach and drill ${ws.join(', ') || 'the target vocabulary'}.\n3. Reading / input (12 min): Use the source text and ask students to identify the main idea plus two details.\n4. Controlled practice (10 min): Students complete gap-fill or matching tasks with the target language.\n5. Speaking production (12 min): Pair role-play or discussion using at least four target items.\n6. Error correction (5 min): Review two useful corrections from student output.\n7. Homework: Write 8-10 sentences or a short paragraph using the target language.\n\nTeacher notes:\n- Support weaker students with sentence starters.\n- Push stronger students to add reasons and examples.\n- Save useful student mistakes for the next lesson.`;}
+  else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const stageCards=[{title:'🎯 Lesson aims',text:'Topic: '+t+' · Level: '+lv+'\n\nBy the end of this lesson, students will be able to:\n• Use the target vocabulary naturally in context\n• Identify gist and key details in the input text\n• Complete the controlled practice accurately\n• Communicate ideas on the topic fluently'},{title:'🔥 Warm-up (5 min)',text:'Ask: "What do you already know about '+t.toLowerCase()+'?" Students brainstorm in pairs (1 min), then share with the class.\n\nAlternative starter: "Two Truths and a Lie" about the topic — great for energy and engagement.'},{title:'📖 Lead-in vocabulary (8 min)',text:'Teach and drill: '+(ws.join(', ')||'target vocabulary')+'.\n\nProcedure: Elicit meaning → CCQ → choral drill → pair practice → spot check.\nTip: Use flash cards or write on the board with a gap for students to complete.'},{title:'📄 Input / presentation (12 min)',text:'Use the source text. Set a gist question first, then detail questions:\n\n1. Gist: What is the text mainly about? (1 min read)\n2. Detail: Find three specific facts or ideas.\n3. Vocabulary in context: How are the target words used? What clues help?\n\nFeedback: whole class, then peer check.'},{title:'✏️ Controlled practice (10 min)',text:'Students complete gap-fill, matching or MCQ tasks using the target language.\n\nMonitor closely. Encourage students to check with a partner before whole-class feedback.\nAddress common errors as a class — don\'t single out individuals.'},{title:'🗣 Freer practice / production (12 min)',text:'Give a clear communicative task:\n"Discuss with your partner: [open-ended question about '+t.toLowerCase()+']"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ Strong examples to praise\n❌ 2–3 errors for feedback (write anonymously on the board)'},{title:'📋 Feedback & error correction (5 min)',text:'1. Praise 2 strong examples of language from student output.\n2. Write 2–3 errors on the board — ask the class to identify and correct.\n3. Clarify any confusion about target language.\n\nNote: Keep a list of errors — revisit at the start of next lesson!'},{title:'📚 Homework',text:'Write 8–10 sentences or a short paragraph (80–100 words) using the target vocabulary.\n\nTopic prompt: Describe your own experience with '+t.toLowerCase()+'. Use at least 5 target words.\n\nDifferentiation:\n✦ Weaker: Use the sentence starters provided in class.\n✦ Stronger: Add supporting evidence, examples and a personal opinion.\n\nDeadline: _______________'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
   else if(m==='worksheet'){const ws=wordsForCount(voc,n);out.text=`Printable worksheet: ${topic()} (${level()})\n\nStudent name: ____________________   Date: __________\n\nA. Vocabulary match\n${ws.map((w,i)=>`${i+1}. ${w} — ______________________________`).join('\n')}\n\nB. Reading check\n1. What is the main idea?\n2. Write two important details.\n3. Which word from the text is most useful for you?\n\nC. Practice\nComplete five sentences with the target vocabulary.\n\nD. Speaking / writing\nUse at least four target words to explain your opinion about ${topic().toLowerCase()}.\n\nAnswer key / teacher notes:\n${makeDefinitions(items).slice(0,n).map((p,i)=>`${i+1}. ${p.a}: ${p.b}`).join('\n')}`;}
   else if(m==='homework'){const ws=wordsForCount(voc,n);out.text=`Homework assignment: ${topic()} (${level()})\n\nDue date: ____________________\nEstimated time: 25-35 minutes\n\nTask 1: Review these words: ${ws.join(', ') || 'target vocabulary'}. Write one personal sentence with each.\nTask 2: Read the lesson text again and write five key ideas.\nTask 3: Prepare a 60-second answer to this question: What is your opinion about ${topic().toLowerCase()}?\nTask 4: Self-check. Underline one strong sentence and one sentence you want to improve.\n\nSuccess criteria:\n- You used the target vocabulary accurately.\n- Your sentences are complete and clear.\n- You can explain your answer without reading every word.`;}
   else if(m==='pairs'){const pairs=makeDefinitions(items).slice(0,n);out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n');out.gameContent={pairs};}
@@ -968,6 +968,13 @@ function ttStructListHtml(s,showAns){
     return s.items.map((it,i)=>{const d=it.example||it.definition||'';return `<div class="tt-ws-q"><div class="tt-ws-qh"><span class="tt-ws-num">${i+1}.</span><b>${esc(it.word||'')}</b></div>${(showAns&&d)?`<div class="tt-ws-ans">${esc(d)}</div>`:'<div class="tt-ws-open">______________________________</div>'}</div>`}).join('');
   }
   if(Array.isArray(s.cards)&&s.cards.length){
+    // Detect lesson-pack style (stages with timing or aims) → richer layout
+    const isStageList = s.cards.some(c=>/min|aim|warm|homework|practice|vocabulary/i.test(c.title||''));
+    if(isStageList){
+      const stageColors={'aims':'#4262FF','warm':'#F59E0B','vocab':'#EC4899','input':'#10B981','prac':'#8B5CF6','prod':'#EF4444','feed':'#6366F1','home':'#0EA5E9'};
+      function stageColor(t){const k=t.toLowerCase();if(k.includes('aim'))return stageColors.aims;if(k.includes('warm'))return stageColors.warm;if(k.includes('vocab'))return stageColors.vocab;if(k.includes('input')||k.includes('pres'))return stageColors.input;if(k.includes('practic'))return stageColors.prac;if(k.includes('produc')||k.includes('freer'))return stageColors.prod;if(k.includes('feed')||k.includes('error'))return stageColors.feed;if(k.includes('home'))return stageColors.home;return '#4262FF';}
+      return s.cards.map((c,i)=>{const col=stageColor(c.title||'');const body=esc(c.text||'').replace(/\n/g,'<br>').replace(/✅/g,'<span style="color:#16a34a">✅</span>').replace(/✦/g,'<span style="color:#f59e0b">✦</span>').replace(/❌/g,'<span style="color:#dc2626">❌</span>');return `<div class="tt-ws-stage" style="border-left:4px solid ${col}"><div class="tt-ws-stage-head" style="color:${col}">${esc(c.title||'')}</div><div class="tt-ws-stage-body">${body}</div></div>`;}).join('');
+    }
     return s.cards.map(c=>`<div class="tt-ws-q"><div class="tt-ws-qh">${esc(c.title||'')}</div><div class="tt-ws-card-txt">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>`).join('');
   }
   return '';
@@ -1003,7 +1010,10 @@ function printOutput(){
     .tt-ws-tf{display:flex;gap:10px;margin-top:8px}.tt-ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}.tt-ws-tf-b.on{background:#dcfce7;color:#15803d}
     .tt-ws-ans{font-size:13px;margin-top:7px;color:#15803d}.tt-ws-ans b{color:#15803d}.tt-ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
     .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:700;color:#4262FF}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
-    @media print{body{padding:0}@page{margin:1.6cm}}`;
+    .tt-ws-stage{border-radius:12px;padding:13px 16px;margin-bottom:11px;page-break-inside:avoid;background:#fff;border:1.5px solid currentColor;border-left-width:4px;}
+    .tt-ws-stage-head{font-size:14px;font-weight:900;letter-spacing:-.01em;margin-bottom:8px;}
+    .tt-ws-stage-body{font-size:12.5px;line-height:1.65;color:#2d2e38;white-space:pre-wrap;}
+    @media print{body{padding:0}@page{margin:1.6cm;size:A4}.tt-ws-stage,.tt-ws-q{page-break-inside:avoid;}}`;
   const doc=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(out.title||'Worksheet')}</title><style>${css}</style></head><body><h1>${esc(out.title||'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${list}</body></html>`;
   const w=window.open('','_blank');
   if(!w){toast('Allow pop-ups to print the worksheet');return}
@@ -1136,32 +1146,37 @@ async function generateWithAI(){
   if(!activeTool)return;
   const body=document.getElementById('result-body');
   const btn=document.getElementById('ai-gen-btn');if(btn)btn.disabled=true;
-  body.innerHTML='<div class="result-empty"><div><b>Generating with AI…</b><span id="ai-progress">Asking the TeachEd cloud model…</span></div></div>';
   try{
-    // 1) Cloud Groq engine — best quality, same as the board.
+    // ── Step 1: show local draft instantly (same two-pass approach as the board) ──
+    generate(); // sets lastOutput + renders result immediately
+    // Overlay a shimmer badge so teacher sees it's being upgraded
+    const improveNote=document.createElement('div');
+    improveNote.id='tt-ai-improving';
+    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#4262FF,#7C3AED);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
+    improveNote.innerHTML='<span style="font-size:16px">✨</span> AI is enhancing this result…';
+    body.insertBefore(improveNote,body.firstChild);
+    // ── Step 2: cloud Groq in background ──
     const env=await requestServerHubAI();
+    if(document.getElementById('tt-ai-improving'))document.getElementById('tt-ai-improving').remove();
     if(env){
       const arr=serverEnvelopeToArr(env);
       if(arr.length){
         const input={level:env.level||level(),count:count(),topic:topic()};
         const out=aiResultToOutput(activeTool,arr,input);
         out.aiGenerated=true;if(env.title)out.title=env.title;
-        // Keep the structured envelope for rich, styled rendering (out.text stays
-        // the flat version used by copy/export/share).
         out.struct={boardKind:env.boardKind,questions:env.questions||null,items:env.items||null,cards:env.cards||null};
-        lastOutput=out;renderResult(out);toast('Generated with AI ✨');return;
+        lastOutput=out;renderResult(out);toast('✨ AI result ready');return;
       }
     }
-    // 2) In-browser WebLLM fallback (no key, needs WebGPU).
-    if(window._ttAI&&_ttAI.supported()){
+    // ── Step 3: cloud unavailable — local draft already shown, just notify ──
+    // WebLLM only if user explicitly enables it (Settings → Use in-browser AI model).
+    if(localStorage.getItem('teachedos_use_webllm')==='1'&&window._ttAI&&_ttAI.supported()){
       const input={level:level(),count:count(),topic:topic(),source:get('source')||'',vocab:get('vocab')||''};
-      const e=document.getElementById('ai-progress');if(e)e.textContent='Loading the in-browser model (first run downloads it once)…';
-      const arr=await _ttAI.generate(activeTool.id,input,(t,p)=>{const el=document.getElementById('ai-progress');if(el)el.textContent=t+(p?` ${Math.round(p*100)}%`:'');});
+      const arr=await _ttAI.generate(activeTool.id,input,()=>{});
       if(arr&&arr.length){const out=aiResultToOutput(activeTool,arr,input);out.aiGenerated=true;lastOutput=out;renderResult(out);toast('Generated with AI ✨');return;}
     }
-    // 3) Local templates.
-    toast('Using fast local generation');generate();
-  }catch(err){console.warn('[ai-generate]',err);toast('AI generation failed — using local generation');generate();}
+    toast('Using fast local result');
+  }catch(err){console.warn('[ai-generate]',err);const n=document.getElementById('tt-ai-improving');if(n)n.remove();toast('AI busy — showing fast local result');}
   finally{if(btn)btn.disabled=false;}
 }
 function aiResultToOutput(tool,arr,input){
@@ -1248,16 +1263,10 @@ function downloadWord(){
 }
 async function downloadPdf(){
   if(!lastOutput){toast('Generate something first');return;}
-  try{
-    if(!window.jspdf)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'pt',format:'a4'});
-    const margin=48,width=doc.internal.pageSize.getWidth()-margin*2,ph=doc.internal.pageSize.getHeight();let y=margin;
-    doc.setFont('helvetica','bold');doc.setFontSize(18);doc.splitTextToSize(lastOutput.title||'TeachEd Worksheet',width).forEach(l=>{doc.text(l,margin,y);y+=22;});
-    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(120);doc.text('TeachEd / '+(lastOutput.level||'Mixed'),margin,y);y+=22;
-    doc.setTextColor(20);doc.setFontSize(12);
-    doc.splitTextToSize(lastOutput.text||'',width).forEach(line=>{if(y>ph-margin){doc.addPage();y=margin;}doc.text(line,margin,y);y+=16;});
-    doc.save(`${slug(lastOutput.title)}.pdf`);toast('PDF downloaded');
-  }catch(err){console.warn('[pdf]',err);toast('PDF export failed');}
+  // Use the rich print-window approach (same as printOutput) — much better than jsPDF plain text.
+  // The user's browser saves it as PDF via the native print dialog (Cmd/Ctrl+P → Save as PDF).
+  printOutput();
+  toast('Use your browser\'s "Save as PDF" option in the print dialog');
 }
 
 /* ── Assign generated material to students (hands off to Homework) ── */
