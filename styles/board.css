@@ -2755,8 +2755,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-cta-tx b{font-size:14px;font-weight:850;}
 .yt-cta-tx small{font-size:11px;opacity:.9;font-weight:600;}
 .yt-cta-go{font-size:20px;font-weight:900;opacity:.85;}
-.yt-modal{position:fixed;inset:0;z-index:1200;background:rgba(17,16,24,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;}
-.yt-modal-card{width:100%;max-width:460px;background:#fff;border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(17,16,24,.4);max-height:90vh;overflow:auto;}
+.yt-modal{position:fixed;inset:0;z-index:1200;background:rgba(17,16,24,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .16s ease;}
+.yt-modal.open{opacity:1;}
+.yt-modal-card{width:100%;max-width:460px;background:#fff;border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(17,16,24,.4);max-height:90vh;overflow:auto;transform:translateY(10px) scale(.985);transition:transform .18s cubic-bezier(.34,1.3,.64,1);}
+.yt-modal.open .yt-modal-card{transform:none;}
+@media (prefers-reduced-motion: reduce){.yt-modal,.yt-modal-card{transition:none!important;}}
 .yt-modal-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;}
 .yt-modal-title{font-size:19px;font-weight:950;letter-spacing:-.02em;color:#171420;}
 .yt-modal-sub{font-size:12px;color:#6b7280;line-height:1.45;margin-top:4px;}
@@ -2768,8 +2771,34 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-tool{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:#374151;padding:8px 11px;border:1px solid rgba(24,24,24,.1);border-radius:11px;cursor:pointer;}
 .yt-tool:hover{background:rgba(66,98,255,.05);border-color:rgba(66,98,255,.3);}
 .yt-tool input{width:16px;height:16px;accent-color:#4262FF;}
-.yt-modal-status{font-size:12px;font-weight:700;color:#4262FF;min-height:18px;margin:12px 0 4px;line-height:1.4;}
+.yt-modal-status{font-size:12px;font-weight:700;color:#4262FF;min-height:18px;margin:12px 0 4px;line-height:1.5;}
 .yt-modal-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:8px;}
+/* URL validity hint */
+.yt-url-hint{font-size:11px;font-weight:700;min-height:14px;margin:5px 2px 0;line-height:1.3;color:transparent;}
+.yt-url-hint.ok{color:#16a34a;}
+.yt-url-hint.bad{color:#dc2626;}
+/* Exercise list header with All / Clear shortcuts */
+.yt-tools-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px;}
+.yt-tools-actions{display:flex;gap:6px;}
+.yt-mini-btn{border:1px solid rgba(24,24,24,.12);background:#fff;color:#6b7280;font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;}
+.yt-mini-btn:hover{background:rgba(66,98,255,.06);border-color:rgba(66,98,255,.3);color:#4262FF;}
+/* Build progress bar */
+.yt-progress{height:6px;border-radius:6px;background:rgba(66,98,255,.12);overflow:hidden;margin:12px 0 4px;}
+.yt-progress-fill{height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#4262FF,#7C3AED);transition:width .3s ease;}
+@media (prefers-reduced-motion: reduce){.yt-progress-fill{transition:none;}}
+/* Per-exercise status chips */
+.yt-prog-list{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;}
+.yt-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:750;padding:4px 9px;border-radius:999px;background:rgba(24,24,24,.05);color:#6b7280;border:1px solid transparent;}
+.yt-chip-ic{font-weight:900;font-size:10px;}
+.yt-chip.running{background:rgba(66,98,255,.1);color:#4262FF;border-color:rgba(66,98,255,.25);}
+.yt-chip.running .yt-chip-ic{animation:ytSpin 1s linear infinite;}
+.yt-chip.done{background:rgba(22,163,74,.1);color:#16a34a;border-color:rgba(22,163,74,.25);}
+.yt-chip.fail{background:rgba(220,38,38,.1);color:#dc2626;border-color:rgba(220,38,38,.25);}
+@keyframes ytSpin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.yt-chip.running .yt-chip-ic{animation:none;}}
+/* Retry-failed inline button inside the status line */
+.yt-retry-btn{display:inline-flex;align-items:center;border:0;background:rgba(66,98,255,.12);color:#4262FF;font-size:11px;font-weight:850;padding:3px 10px;border-radius:8px;cursor:pointer;margin-left:6px;vertical-align:middle;}
+.yt-retry-btn:hover{background:rgba(66,98,255,.2);}
 
 /* ── Worksheet board card ── */
 .ws-body{padding:0 12px 12px;display:flex;flex-direction:column;height:calc(100% - 40px);}
