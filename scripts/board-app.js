@@ -842,7 +842,7 @@ function renderNote(el, card) {
   if (!d.title) d.title = 'Note';
   if (d.body === undefined && d.text !== undefined) { d.body = d.text; delete d.text; }
   if (!d.body) d.body = '';
-  const hdr = makeHeader('✍️', d.title, card.id);
+  const hdr = makeHeader(d.icon || '✍️', d.title, card.id);
   // Make the title editable inline
   const titleSpan = hdr.querySelector('.card-title-text');
   if (titleSpan) {
@@ -7609,30 +7609,39 @@ function _ttPlaceQuizOnBoard(output){
 }
 
 function _ttPlaceCardsOnBoard(output){
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#4262FF' };
+  const cards = output.cards;
+  const total = cards.length;
   const isDialogue = output.kind === 'Dialogue';
-  const colors = ['#FFF9C4','#C8E6C9','#BBDEFB','#F8BBD9','#FFE0B2','#E8D5FF'];
-  const c0 = getBoardViewportCenter() || { x:320, y:260 };
-  const total = output.cards.length;
-  // Layout: single row for ≤3, 2-column grid for 4+
-  const COLS = total <= 3 ? total : 2;
+  const CARD_W = isDialogue ? 340 : 300, GAP = 22, PAD = 28, HEAD = 62;
+  // Estimate each card's natural height from its text so nothing is clipped and
+  // rows never overlap. Use a uniform row height (= the tallest card, capped) to
+  // keep the grid crisp and aligned; longer cards scroll their body.
+  const charsPerLine = Math.max(16, Math.floor((CARD_W - 30) / 7.1));
+  const estH = c => 44 + String(c.text || '').split('\n')
+    .reduce((s, l) => s + Math.max(1, Math.ceil((l.length || 1) / charsPerLine)), 0) * 20 + 16;
+  const CARD_H = Math.max(150, Math.min(360, Math.max(...cards.map(estH))));
+  // Reading order preserved (row-major); columns scale with item count.
+  const COLS = total <= 2 ? total : (total <= 6 ? 2 : 3);
   const ROWS = Math.ceil(total / COLS);
-  const CARD_W = isDialogue ? 320 : 280, CARD_H = total <= 3 ? 180 : 160, GAP = 20, PAD = 24, HEAD = 56;
   const FW = PAD*2 + COLS*CARD_W + (COLS-1)*GAP;
   const FH = HEAD + ROWS*CARD_H + (ROWS-1)*GAP + PAD;
+  const c0 = getBoardViewportCenter() || { x:320, y:260 };
   const center = findFreePlacement(c0.x, c0.y, FW, FH);
   const x0 = Math.round(center.x - FW/2), y0 = Math.round(center.y - FH/2);
   snapshot(); _suppressSnapshot++;
   try {
     const frame = addCard('frame', x0, y0, {
-      title: output.title, bg:'#ffffff', border:'rgba(100,100,255,.25)', childIds:[],
+      title: `${meta.icon}  ${output.title}`, bg:'#ffffff',
+      border: (meta.color || '#4262FF') + '55', // ~33% alpha (8-digit hex)
+      childIds:[],
     }, FW, FH);
-    output.cards.forEach((c, i) => {
+    cards.forEach((c, i) => {
       const col = i % COLS, row = Math.floor(i / COLS);
       const cx = x0 + PAD + col*(CARD_W+GAP);
       const cy = y0 + HEAD + row*(CARD_H+GAP);
-      const card = addCard('sticky', cx, cy, {
-        text: (isDialogue ? `${c.title}:\n` : (total > 3 ? `${c.title}\n` : '')) + c.text,
-        color: colors[i % colors.length],
+      const card = addCard('note', cx, cy, {
+        icon: meta.icon, title: c.title || `Card ${i+1}`, body: c.text || '',
       }, CARD_W, CARD_H);
       if (frame && card) setCardParentFrame?.(card, frame);
     });
