@@ -7386,6 +7386,24 @@ function _ttRerenderPreview(){
 }
 const _ttEditHint = `<div class="tt-edit-hint">✎ Tap any text to edit · click ○ to set the answer</div>`;
 
+// Premium result header shown above the generated cards — tool icon badge,
+// title and meta chips (kind · level · count).
+function _ttPreviewHeader(out, n, unit){
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[out.cat]) || { icon:'✦', color:'#4262FF' };
+  const accent = meta.color || '#4262FF';
+  return `<div class="tt-result-head" style="--accent:${accent}">
+    <div class="tt-result-icon">${meta.icon || '✦'}</div>
+    <div class="tt-result-meta">
+      <div class="tt-result-title">${esc(out.title || 'Worksheet')}</div>
+      <div class="tt-result-chips">
+        <span class="tt-rc accent">${esc(out.kind || 'Task')}</span>
+        ${out.level ? `<span class="tt-rc">${esc(out.level)}</span>` : ''}
+        <span class="tt-rc">${n} ${unit}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderTeacherToolLocalPreview(out){
   const body = document.getElementById('tbuilder-output');
   if (!body) return;
@@ -7395,10 +7413,10 @@ function renderTeacherToolLocalPreview(out){
 
   if (out.boardKind === 'cards') {
     if (chip) chip.textContent = `${out.cards.length} cards`;
-    body.innerHTML = _ttEditHint + out.cards.map((c,i)=>`
-      <div class="tbuilder-section tt-q" data-ci="${i}">
+    body.innerHTML = _ttPreviewHeader(out, out.cards.length, 'cards') + _ttEditHint + out.cards.map((c,i)=>`
+      <div class="tbuilder-section tt-q" style="--i:${i}" data-ci="${i}">
         <button class="tt-del" data-del-card="${i}" title="Remove">×</button>
-        <h4><span class="tt-edit" contenteditable="true" data-card-field="title" data-ci="${i}">${esc(c.title)}</span></h4>
+        <h4><span class="tt-num">${i+1}</span><span class="tt-edit" contenteditable="true" data-card-field="title" data-ci="${i}">${esc(c.title)}</span></h4>
         <p class="tt-edit" contenteditable="true" data-card-field="text" data-ci="${i}" data-ph="Write here…">${esc(c.text)}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
@@ -7407,10 +7425,10 @@ function renderTeacherToolLocalPreview(out){
 
   if (out.boardKind === 'vocab') {
     if (chip) chip.textContent = `${out.items.length} words`;
-    body.innerHTML = _ttEditHint + out.items.map((it,i)=>`
-      <div class="tbuilder-section tt-q" data-vi="${i}">
+    body.innerHTML = _ttPreviewHeader(out, out.items.length, 'words') + _ttEditHint + out.items.map((it,i)=>`
+      <div class="tbuilder-section tt-q" style="--i:${i}" data-vi="${i}">
         <button class="tt-del" data-del-vocab="${i}" title="Remove">×</button>
-        <h4><span class="tt-num">${i+1}.</span><span class="tt-edit" contenteditable="true" data-vocab-field="word" data-vi="${i}">${esc(it.word)}</span></h4>
+        <h4><span class="tt-num">${i+1}</span><span class="tt-edit" contenteditable="true" data-vocab-field="word" data-vi="${i}">${esc(it.word)}</span></h4>
         <p class="tt-edit" contenteditable="true" data-vocab-field="example" data-vi="${i}" data-ph="Example sentence (optional)…">${esc(it.example||'')}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
@@ -7419,7 +7437,7 @@ function renderTeacherToolLocalPreview(out){
 
   // quiz
   if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
-  body.innerHTML = _ttEditHint + out.questions.map((q, i) => {
+  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
     if (q.type === 'mcq') {
       ans = `<div class="tt-opts">${
@@ -7444,9 +7462,9 @@ function renderTeacherToolLocalPreview(out){
     } else if (q.type === 'open') {
       ans = `<div style="font-size:11px;margin-top:5px;color:#9ca3af;font-style:italic;">Open answer — students write freely</div>`;
     }
-    return `<div class="tbuilder-section tt-q" data-qi="${i}">
+    return `<div class="tbuilder-section tt-q" style="--i:${i}" data-qi="${i}">
       <button class="tt-del" data-del-q="${i}" title="Remove question">×</button>
-      <h4><span class="tt-num">${i+1}.</span><span class="tt-edit" contenteditable="true" data-q-field="text" data-qi="${i}">${esc(q.text)}</span></h4>
+      <h4><span class="tt-num">${i+1}</span><span class="tt-edit" contenteditable="true" data-q-field="text" data-qi="${i}">${esc(q.text)}</span></h4>
       ${ans}
     </div>`;
   }).join('');

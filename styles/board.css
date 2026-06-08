@@ -2672,6 +2672,23 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .tbuilder-form textarea{min-height:86px;resize:vertical;}
 .tbuilder-form input:focus,.tbuilder-form select:focus,.tbuilder-form textarea:focus{border-color:#4262FF;box-shadow:0 0 0 4px rgba(66,98,255,.10);}
+/* The light constructor panel must keep light fields even under the global dark
+   form theme (harmony.css forces dark controls with !important) — so the inputs,
+   selects and textareas stay consistent instead of half-dark/half-white. */
+#tool-builder-panel .tbuilder-form input,
+#tool-builder-panel .tbuilder-form select,
+#tool-builder-panel .tbuilder-form textarea{
+  background:#fff !important;color:#171420 !important;
+  border:1.5px solid rgba(17,24,39,.10) !important;border-radius:13px !important;
+  font-weight:750 !important;
+}
+#tool-builder-panel .tbuilder-form input::placeholder,
+#tool-builder-panel .tbuilder-form textarea::placeholder{color:#aeb0bb !important;}
+#tool-builder-panel .tbuilder-form input:focus,
+#tool-builder-panel .tbuilder-form select:focus,
+#tool-builder-panel .tbuilder-form textarea:focus{
+  border-color:#4262FF !important;box-shadow:0 0 0 4px rgba(66,98,255,.12) !important;
+}
 .tbuilder-choice-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:5px;border:1px solid rgba(17,24,39,.08);border-radius:15px;background:rgba(255,255,255,.72);}
 .tbuilder-choice-row button{border:0;border-radius:11px;background:transparent;color:#5f6070;font:950 12px/1 var(--font);padding:11px 8px;cursor:pointer;transition:background .14s,color .14s,box-shadow .14s;}
 .tbuilder-choice-row button:hover{background:rgba(66,98,255,.07);color:#4262FF;}
@@ -2688,8 +2705,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-chip{border:1.5px solid rgba(66,98,255,.22);background:rgba(66,98,255,.07);border-radius:999px;padding:5px 10px;font-size:10px;font-weight:900;color:#4262FF;font-family:var(--mono);}
 .tbuilder-output{display:grid;gap:8px;overflow-y:auto;max-height:380px;}
 /* Question / card items */
-.tbuilder-section{border:1px solid rgba(17,24,39,.08);background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(17,24,39,.04);}
-.tbuilder-section h4{margin:0 0 5px;color:#171420;font-size:13px;font-weight:800;line-height:1.35;}
+.tbuilder-section{border:1px solid rgba(17,24,39,.07);background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 1px 2px rgba(17,24,39,.04),0 6px 18px rgba(17,24,39,.05);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
+.tbuilder-section:hover{transform:translateY(-1px);border-color:rgba(66,98,255,.22);box-shadow:0 2px 4px rgba(17,24,39,.05),0 12px 28px rgba(66,98,255,.1);}
+.tbuilder-section h4{display:flex;align-items:flex-start;gap:9px;margin:0 0 5px;color:#171420;font-size:13.5px;font-weight:800;line-height:1.4;}
 .tbuilder-section p{font-size:12px;line-height:1.5;color:#5f6070;font-weight:650;margin:0;}
 .tbuilder-section li{font-size:12px;line-height:1.52;color:#5f6070;font-weight:650;}
 .tbuilder-section ul{margin:4px 0 0;padding-left:16px;}
@@ -2783,7 +2801,22 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .tt-q:hover .tt-del{opacity:1;}
 .tt-q .tt-del:hover{background:#fee2e2;color:#dc2626;}
-.tt-num{color:#9ca3af;font-weight:900;margin-right:4px;}
+.tt-num{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;margin-top:0;border-radius:8px;background:linear-gradient(135deg,rgba(66,98,255,.14),rgba(124,58,237,.14));color:#4262FF;font:900 11px var(--mono,monospace);box-shadow:inset 0 0 0 1px rgba(66,98,255,.16);}
+
+/* ── Premium result header ── */
+.tt-result-head{display:flex;align-items:center;gap:13px;padding:14px 16px;margin-bottom:12px;border-radius:18px;background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--accent,#4262FF) 9%,#fff));border:1px solid color-mix(in srgb,var(--accent,#4262FF) 18%,transparent);box-shadow:0 8px 22px color-mix(in srgb,var(--accent,#4262FF) 12%,transparent);animation:ttHeadIn .35s cubic-bezier(.2,.8,.2,1) both;}
+.tt-result-icon{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:#fff;box-shadow:0 4px 12px rgba(17,24,39,.1),inset 0 0 0 1px color-mix(in srgb,var(--accent,#4262FF) 20%,transparent);}
+.tt-result-meta{min-width:0;flex:1;}
+.tt-result-title{font-size:15px;font-weight:950;letter-spacing:-.02em;color:#171420;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tt-result-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.tt-rc{font:900 9.5px var(--mono,monospace);letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:rgba(17,24,39,.06);color:#6b7280;}
+.tt-rc.accent{background:color-mix(in srgb,var(--accent,#4262FF) 14%,transparent);color:var(--accent,#4262FF);}
+
+/* ── Staggered entrance for generated cards ── */
+@keyframes ttCardIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
+@keyframes ttHeadIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.tbuilder-output .tt-q{animation:ttCardIn .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*55ms + 60ms);}
+@media(prefers-reduced-motion:reduce){.tt-result-head,.tbuilder-output .tt-q{animation:none;}}
 /* contenteditable affordance */
 .tt-edit{outline:none;border-radius:6px;padding:1px 4px;margin:-1px -4px;transition:background .12s,box-shadow .12s;cursor:text;}
 .tt-edit:hover{background:rgba(66,98,255,.06);}
