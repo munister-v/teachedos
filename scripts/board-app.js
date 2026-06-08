@@ -7137,6 +7137,84 @@ function _ttGenListeningDictation(input){
 }
 
 /* ── generic scaffold for all remaining tools ────────────────────── */
+function _ttGenLessonPack(input){
+  const t=input.topic||'Everyday English', lv=input.level||'B1', tl=t.toLowerCase();
+  const ws=_ttContentWords((input.vocab||'')+' '+(input.source||'')+' '+t,4).slice(0,8);
+  const vocStr=ws.slice(0,6).join(', ')||tl;
+  return {boardKind:'cards',kind:'Lesson Pack',cat:'utility',level:lv,topic:t,
+    title:`${lv} · Lesson Plan: ${t}`,cards:[
+    {title:'🎯 Lesson aims & objectives',
+     text:`Topic: ${t} · Level: ${lv}\nDuration: ~60 min\n\nBy the end, students will be able to:\n• Use target vocabulary in context: ${vocStr}\n• Identify gist and key details in the input\n• Complete controlled practice (80%+ accuracy)\n• Communicate ideas on "${tl}" for 2+ minutes\n\n📌 Key vocabulary: ${vocStr}\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________`},
+    {title:'🔥 Warm-up & lead-in (7 min)',
+     text:`Option A — Word association (3 min)\nWrite "${t}" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2–3 unknown words.\n\nOption B — Two Truths and a Lie (4 min)\nSay 3 statements about ${tl} — students guess which is false. Then pairs do the same.\n\nOption C — Image / quote prompt (3 min)\nShow an image about ${tl}. Students describe and predict the lesson focus.\n\n💡 Aim: activate prior knowledge + create curiosity.`},
+    {title:'📖 Vocabulary presentation (8 min)',
+     text:`Target words: ${vocStr}.\n\nStep-by-step:\n1. Context — show each word in a sentence (not isolated)\n2. Meaning — elicit, then confirm\n3. CCQ — ask 1–2 concept check questions per word\n4. Pronunciation — model → choral drill → individual\n5. Record — word / definition / example in notebook\n\n⏱ ~1 min per word. Don't rush — quality over quantity.\n💡 Use the Flashcards tool to build a drill activity.`},
+    {title:'📄 Input & reading/listening (12 min)',
+     text:`1. PRE-TASK (2 min): "What is the main idea?"\n2. FIRST READ (3 min): students find gist answer only.\n3. FEEDBACK (1 min): quick whole-class check.\n4. SECOND READ (4 min):\n   a) Find 3 specific facts about ${tl}.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer's/speaker's opinion.\n5. PEER CHECK (2 min): compare in pairs before whole-class.\n\n💡 Extension: stronger students write a 2-sentence summary.`},
+    {title:'✏️ Controlled practice (10 min)',
+     text:`Activity: gap-fill / matching / MCQ (choose one).\n\n1. Demo one example together.\n2. Students work individually (5 min).\n3. Peer check in pairs (2 min).\n4. Whole-class feedback (3 min).\n\nMonitoring tips:\n• Circulate — note 2–3 errors anonymously.\n• Give quiet support; avoid giving answers directly.\n\n✦ Fast finishers: write 3 new gap-fill sentences for a partner.`},
+    {title:'🗣 Freer practice & production (12 min)',
+     text:`Task: "Discuss with your partner — what do you think about ${tl}?"\n\n• 30 sec: individual think time (3 bullet points)\n• 3 min: pair discussion (both speak equally)\n• 1 min: report back — "My partner said that…"\n\nExpect 4+ target words used. Monitor and note:\n✅ 2 strong examples to praise\n❌ 2–3 errors for feedback\n\n💡 Fast pairs: "Now argue the opposite point of view."`},
+    {title:'📋 Feedback & error correction (5 min)',
+     text:`1. PRAISE (1 min) — write 2 strong student examples on board.\n   Ask: what is good about these?\n2. ERRORS (2 min) — write 2–3 anonymous errors.\n   Students identify and correct as a class.\n3. CLARIFY (2 min) — address remaining confusion.\n\n   ✗ "_______________"\n   ✓ "_______________" — because _______________\n\n📌 Keep error notes — revisit at the start of next lesson!`},
+    {title:'📚 Homework (set in final 2 min)',
+     text:`Task: Write 80–100 words on "${t}". Use 5+ target words.\n\nPrompt: "Describe your experience with ${tl}. Include your opinion and one recommendation for others."\n\nDifferentiation:\n✦ Support: use starters — "In my experience…" / "One thing I noticed…"\n✦ Extension: add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check: vocabulary ☐ · opinion ☐ · spelling ☐`},
+    {title:'🔄 Fast finishers & extension',
+     text:`After vocabulary:\n→ Write a paragraph using 5 target words. Make it surprising or personal.\n\nAfter controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\nAfter freer practice:\n→ "Teach your partner — explain the key ideas as if they missed the lesson."\n\n🏆 Challenge:\n→ Find a real-world example of ${tl} (news, video, website) and present it in 60 sec next lesson.`},
+    {title:'📊 Assessment & success criteria',
+     text:`✅ Vocabulary: students define/use ${Math.min(ws.length||4,5)} words without prompting.\n✅ Comprehension: gist + 2 detail questions answered correctly.\n✅ Practice: 80%+ accuracy on controlled exercise.\n✅ Production: students speak for 90+ sec on ${tl}.\n\n☐ All students participated in warm-up.\n☐ Vocabulary drilled 3+ times.\n☐ Errors corrected anonymously.\n☐ Homework set with clear deadline.\n\nNext lesson: revisit errors → 5-min vocab quiz → homework feedback.`},
+  ]};
+}
+function _ttGenWorksheetBoard(input){
+  const t=input.topic||'English', lv=input.level||'B1', tl=t.toLowerCase();
+  const ws=_ttContentWords((input.vocab||'')+' '+(input.source||'')+' '+t,4).slice(0,8);
+  const wsSlice=ws.slice(0,6); const shuffled=[...wsSlice].sort(()=>Math.random()-.5);
+  return {boardKind:'cards',kind:'Worksheet',cat:'utility',level:lv,topic:t,
+    title:`${lv} · Worksheet: ${t}`,cards:[
+    {title:'📝 Student information',
+     text:`Student name: ____________________   Date: __________\nClass: ____________________   Teacher: __________\nLevel: ${lv}   Topic: ${t}\n\n📌 Read all instructions before starting.\n📌 Check your work when you finish each section.`},
+    {title:'A. Vocabulary — match & define',
+     text:`Match the words with their meanings:\n\n${wsSlice.map((w,i)=>`${i+1}. ${w}  → ___________________________`).join('\n')}\n\nWord bank: ${shuffled.join(' · ')}\n\nChoose 2 words. Write your own sentence for each:\na) _______________________________________________\nb) _______________________________________________`},
+    {title:'B. Vocabulary in context — gap fill',
+     text:`Complete the sentences with a word from Section A:\n\n${wsSlice.slice(0,5).map((w,i)=>`${i+1}. Understanding _____ helps us make progress in ${tl}.`).join('\n')}\n\n★ Challenge: which sentence is most true for you? Explain why.`},
+    {title:'C. Reading comprehension',
+     text:`Answer in full sentences:\n\n1. Main idea: What is the text mainly about?\n   → ________________________________\n\n2. Give two specific facts from the text:\n   a) ________________________________\n   b) ________________________________\n\n3. What is the writer's view on ${tl}?\n   → ________________________________\n\n4. Find a word in the text meaning "important" or "essential":\n   → The word is: ___________  (line: ___)` },
+    {title:'D. Grammar in context',
+     text:`Find one example of the target grammar structure in the text:\n   → ________________________________\n\nWrite two more examples using the same structure:\na) ________________________________\nb) ________________________________\n\n★ Challenge: write an INCORRECT version of b) — swap with a partner to correct it.`},
+    {title:'E. Speaking / discussion (5 min)',
+     text:`Work with a partner:\n\n🗣 Q1: How does ${tl} affect everyday life? Give a real example.\n🗣 Q2: Is ${tl} important for your future? Why / why not?\n🗣 Q3: What else would you like to know about ${tl}?\n\nUse at least 3 words from Section A.\n\nUseful phrases:\n• "In my experience…"\n• "I think this is important because…"\n• "On the other hand…"`},
+    {title:'F. Writing task (80–100 words)',
+     text:`Choose ONE prompt:\n\n✍️ Opinion: "Is ${tl} important today? Give your view with 2 reasons and an example."\n\n✍️ Personal: "Describe a time when ${tl} made a difference to you or someone you know."\n\nChecklist:\n☐ Used 4+ words from Section A.\n☐ Complete sentences (subject + verb + idea).\n☐ Included personal opinion.\n☐ Checked spelling and punctuation.`},
+    {title:'G. Reflection & self-assessment',
+     text:`Rate yourself honestly (✗ / ✦ / ✅):\n\nVocabulary: I can explain 4+ words without looking.     ___\nReading: I found main idea + 2 details.                 ___\nGrammar: I formed the structure correctly.              ___\nSpeaking: I spoke for 2+ minutes.                      ___\nWriting: Clear paragraph using target language.         ___\n\nStrongest skill today: ________________________________\nWhat I need to practise more: ________________________________\nOne word I'll use this week: ________________________________`},
+    {title:'🔑 Answer key (teacher only)',
+     text:`Vocabulary:\n${wsSlice.map((w,i)=>`${i+1}. ${w} — [definition / translation]`).join('\n')}\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min`},
+  ]};
+}
+function _ttGenHomeworkBoard(input){
+  const t=input.topic||'English', lv=input.level||'B1', tl=t.toLowerCase();
+  const ws=_ttContentWords((input.vocab||'')+' '+(input.source||'')+' '+t,4).slice(0,8);
+  const vocStr=ws.join(', ')||tl;
+  return {boardKind:'cards',kind:'Homework',cat:'utility',level:lv,topic:t,
+    title:`${lv} · Homework: ${t}`,cards:[
+    {title:'📚 Homework brief',
+     text:`Topic: ${t} · Level: ${lv}\nEstimated time: 30–40 minutes\nDue date: ____________________\n\n📌 Complete all 5 tasks in order.\n📌 Quality matters more than length.\n📌 If stuck: re-read your class notes first.`},
+    {title:'Task 1 — Vocabulary review (8 min)',
+     text:`Words to practise: ${vocStr}.\n\n① Write one personal, true sentence for each word.\n② Circle the 2 words you found hardest. Write an extra sentence for those.\n③ Write one question using any word — ask your partner next class.\n\n💡 Read your sentences aloud. If it sounds natural, it probably is.`},
+    {title:'Task 2 — Reading / listening review (8 min)',
+     text:`Return to the lesson text or audio.\n\n① Write 5 key ideas IN YOUR OWN WORDS:\n   1.___ 2.___ 3.___ 4.___ 5.___\n\n② Underline 3 phrases you want to use yourself:\n   • ___  • ___  • ___\n\n③ Write one thing you are still unsure about:\n   → _______________`},
+    {title:'Task 3 — Grammar (7 min)',
+     text:`Focus on today's target structure.\n\n① Write 5 original sentences (NOT from class examples):\n   1.___ 2.___ 3.___ 4.___ 5.___\n\n② Check for errors — correct them now.\n\n③ Write ONE sentence combining today's grammar + vocabulary:\n   → _______________\n\n💡 Mixing grammar + vocabulary = excellent practice.`},
+    {title:'Task 4 — Speaking preparation (7 min)',
+     text:`Prepare a 60–90 second answer:\n\n"What is your opinion about ${tl}?"\n\nStructure:\n📌 Point: "I think / believe that…"\n📌 Reason: "This is because…"\n📌 Example: "For example…"\n📌 Conclusion: "Overall, I would say…"\n\n★ Record yourself. Listen back. Improve one sentence. Record again.\n★ Target: speak for 60+ sec without reading notes.`},
+    {title:'Task 5 — Writing (10 min)',
+     text:`Write 80–100 words on "${t}".\n\nChoose a prompt:\n✍️ Opinion: "Is ${tl} important today? Give 2 reasons."\n✍️ Personal: "Describe your experience with ${tl}."\n\nRequirements:\n☐ Use 5+ words from Task 1.\n☐ Use today's grammar structure at least once.\n☐ Include your personal opinion.\n☐ Write in paragraphs (not bullets).`},
+    {title:'🏆 Challenge extension (optional)',
+     text:`For students who want extra practice:\n\n① Find a short English article or video about ${tl}. Summarise in 3 sentences. Share next class.\n\n② Write 5 questions for an expert on ${tl}:\n   What…? Why…? How…? Do you think…? What if…?\n\n③ Teach a family member one word from today. Write what they asked you.\n\n📌 Bonus: share your Task 4 recording and invite feedback.`},
+    {title:'✅ Self-check before submitting',
+     text:`☐ Task 1: personal sentences (not definitions).\n☐ Task 2: my own words, not copied.\n☐ Task 3: grammar sentences are correct.\n☐ Task 4: I recorded and listened back.\n☐ Task 5: 80–100 words with vocab + grammar used.\n\nStrongest moment: ________________________________\nWhat to practise more: ________________________________\nA word I'll use more often: ________________________________\n\n📌 Bring this sheet to class — we review it together.`},
+  ]};
+}
 function _ttGenScaffold(toolId, input){
   const tool = (typeof BOARD_TEACHER_TOOLS!=='undefined' ? BOARD_TEACHER_TOOLS : []).find(t=>t.id===toolId);
   if (!tool) return null;
@@ -7462,6 +7540,9 @@ function generateTeacherToolLocal(input){
   if (id === 'debate-cards')          return _ttGenDebate(input);
   if (id === 'listening-dictation')   return _ttGenListeningDictation(input);
   if (id === 'simplify-text')         return _ttGenAdaptText(input);
+  if (id === 'lesson-pack')           return _ttGenLessonPack(input);
+  if (id === 'worksheet-builder')     return _ttGenWorksheetBoard(input);
+  if (id === 'homework-set')          return _ttGenHomeworkBoard(input);
   // ── LLM-first: specific card scaffolds ──────────────────────────
   if (id === 'three-titles' || id === 'summary-task' || id === 'dialogue')
     return _ttGenCards(id, input);
