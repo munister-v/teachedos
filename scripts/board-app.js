@@ -6940,11 +6940,17 @@ function _ttGenGistDetail(input){
   while (gDistract.length < 3) gDistract.push(['topic','idea','theme'][gDistract.length]||'concept');
   questions.push({ type:'mcq', text:'What is the main topic of this text?',
     options:_ttShuffle([_ttCap(gt),...gDistract]), answer:_ttCap(gt), points:1 });
-  const detailT = ['What does the text say about _____?','Why is _____ mentioned?','How is _____ described?'];
-  for (const s of sents.slice(1)){
-    if (questions.length >= input.count) break;
-    const w = _ttContentWords(s).sort((a,b)=>b.length-a.length)[0]; if(!w) continue;
-    questions.push({ type:'open', text:detailT[(questions.length-1)%detailT.length].replace('_____',_ttCap(w)), points:2 });
+  // Detail questions scaled to the requested count (a short text shouldn't yield
+  // only 2 questions). This is an instant local DRAFT — the AI upgrade turns most
+  // of these into detail MCQs; here they are open prompts cycling the key words.
+  const detailT = ['What does the text say about _____?','Why is _____ important here?',
+    'How is _____ described in the text?','What happens to _____?',
+    'What is the writer\'s view on _____?','What detail is given about _____?'];
+  const dWords = pool.filter(w => w !== gt);
+  const words = dWords.length ? dWords : [gt || input.topic || 'the topic'];
+  for (let di = 0; questions.length < Math.max(2, input.count) && di < input.count * 4; di++) {
+    const w = _ttCap(words[di % words.length]);
+    questions.push({ type:'open', text: detailT[(questions.length - 1) % detailT.length].replace('_____', w), points:2 });
   }
   return questions.length ? { boardKind:'quiz', kind:'Gist+Detail', cat:'reading', level:input.level, topic:input.topic,
     title:`${input.level} · Gist + Detail: ${input.topic}`, questions } : null;
