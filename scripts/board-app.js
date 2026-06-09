@@ -12973,19 +12973,98 @@ function renderAiAssistantPreview(result) {
   `;
 }
 
+// AI Memory Studio output-mode -> real server teacher-tool.
+const AI_MODE_TOOL = {
+  'lesson-board': 'lesson-pack',
+  'quick-activities': 'worksheet-builder',
+  'homework-pack': 'homework-set',
+  'mistake-clinic': 'worksheet-builder',
+  'game-pack': 'worksheet-builder',
+};
+let _aiVariationN = 0;        // bumped by Regenerate to force a fresh result
+let _lastAiServerOut = null;  // last styled server output (null in offline mode)
+
+// Fold the studio form (incl. teacher/student memory) into a memory-aware
+// server teacher-tool input.
+function buildAiServerInput(input) {
+  const toolId = AI_MODE_TOOL[input.mode] || 'lesson-pack';
+  const goalText = {
+    confidence: 'low-pressure confidence building', accuracy: 'accuracy and cleaner output',
+    fluency: 'fluency and natural responses', exam: 'exam strategy and measurable criteria',
+    revision: 'retrieval and long-term retention',
+  }[input.goal] || 'balanced progress';
+  const extra = [
+    `Skill focus: ${input.skill}`, `Audience: ${input.audience}`, `Duration: ${input.duration}`,
+    `Lesson goal: ${goalText}`, `Teaching tone: ${input.tone}`,
+    input.teacherMemory && `Teacher style/preferences: ${input.teacherMemory}`,
+    input.studentMemory && `Class profile: ${input.studentMemory}`,
+    input.mistakes && `Target these common student mistakes: ${input.mistakes}`,
+    _aiVariationN > 0 && `Variation ${_aiVariationN}: use a fresh angle with different activities and examples than before.`,
+  ].filter(Boolean).join('. ');
+  return {
+    tool: { id: toolId, cat: 'utility', title: 'AI Lesson' },
+    level: input.level, count: 10, topic: input.topic, extra, source: input.source, vocab: '',
+  };
+}
+
+function renderAiAssistantServerPreview(out, input) {
+  const body = document.getElementById('ai-preview-body');
+  if (!body) return;
+  const cards = out.cards || [], qs = out.questions || [], items = out.items || [], vocab = out.vocab || [];
+  const n = cards.length || qs.length || items.length;
+  const engine = (out.engine || '').startsWith('llm:') ? 'AI · ' + out.engine.slice(4).split('-').slice(0, 2).join(' ') : 'local';
+  let html = `<div class="ai-stage"><div class="ai-stage-top"><span>${esc(engine)}</span><span>${n} ${cards.length ? 'cards' : qs.length ? 'questions' : 'words'}</span></div><h4>${esc(out.title || input.topic)}</h4></div>`;
+  html += cards.map(c => `<div class="ai-stage"><div class="ai-stage-top"><span>${esc(c.title || 'Card')}</span></div><p>${esc(c.text || '').replace(/\n/g, '<br>')}</p></div>`).join('');
+  html += qs.map((q, i) => `<div class="ai-stage"><div class="ai-stage-top"><span>Q${i + 1}</span><span>${esc(q.type || '')}</span></div><p>${esc(q.text || '')}</p></div>`).join('');
+  html += items.map((it, i) => `<div class="ai-stage"><div class="ai-stage-top"><span>${i + 1}</span></div><h4>${esc(it.word || '')}</h4><p>${esc(it.definition || it.example || '')}</p></div>`).join('');
+  if (vocab.length) html += `<div class="ai-stage"><div class="ai-stage-top"><span>Target vocabulary</span></div><ul class="ai-mini-list"><li>${vocab.map(esc).join('</li><li>')}</li></ul></div>`;
+  body.innerHTML = html;
+}
+
 async function runAiAssistant() {
   const status = document.getElementById('ai-status');
   const input = getAiAssistantInput();
-  if (status) status.textContent = 'Generating from local memory...';
   saveAiAssistantSettings();
-  const result = generateLocalAiLesson(input);
-  renderAiAssistantPreview(result);
-  if (status) status.textContent = 'Preview ready. No API key needed.';
+  if (status) status.textContent = '\u2728 Generating with AI\u2026';
+  let out = null;
+  try {
+    if (typeof authToken !== 'undefined' && authToken) {
+      out = await requestServerTeacherTool(buildAiServerInput(input), 20000);
+    }
+  } catch (e) {}
+  if (out && ((out.cards && out.cards.length) || (out.questions && out.questions.length) || (out.items && out.items.length))) {
+    _lastAiServerOut = out;
+    renderAiAssistantServerPreview(out, input);
+    if (status) status.textContent = `Ready \u00b7 styled cards \u00b7 click \u{1F504} Regenerate for a new version`;
+    return;
+  }
+  // Offline / not-logged-in fallback: the original local generator.
+  _lastAiServerOut = null;
+  renderAiAssistantPreview(generateLocalAiLesson(input));
+  if (status) status.textContent = 'Preview ready (offline mode). Sign in for richer AI lessons.';
+}
+
+function regenerateAiAssistant() {
+  _aiVariationN++;
+  return runAiAssistant();
 }
 
 function applyAiAssistantToBoard() {
   if (!boardHasFeature('ai')) { showUpgradeModal('ai'); return; }
-  if (!_lastAiAssistantResult) runAiAssistant().then(applyAiAssistantToBoard);
+  const sout = _lastAiServerOut;
+  if (sout && ((sout.cards && sout.cards.length) || (sout.questions && sout.questions.length) || (sout.items && sout.items.length))) {
+    if (sout.boardKind === 'quiz' || (sout.questions && sout.questions.length && !(sout.cards && sout.cards.length))) _ttPlaceQuizOnBoard(sout);
+    else if (sout.boardKind === 'vocab' || (sout.items && sout.items.length && !(sout.cards && sout.cards.length))) _ttPlaceVocabOnBoard(sout);
+    else _ttPlaceCardsOnBoard(sout);
+    closeAiAssistantPanel();
+    return;
+  }
+  if (!_lastAiAssistantResult) { runAiAssistant().then(applyAiAssistantToBoard); return; }
+  _applyLocalAiLessonToBoard();
+}
+
+// Legacy offline placement: multi-column sticky/text layout (fallback only).
+function _applyLocalAiLessonToBoard() {
   const result = _lastAiAssistantResult;
   if (!result) return;
   snapshot();

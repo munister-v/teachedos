@@ -94,7 +94,6 @@
   <button class="tb-icon-btn" id="btn-invite-plus" style="display:none;" aria-hidden="true"></button>
   <button class="tb-icon-btn" id="btn-layout" style="display:none;" aria-hidden="true"></button>
   <div class="tb-divider"></div>
-  <button id="btn-build-lesson" title="Build Lesson from generated board cards" onclick="openLessonCollectorModal()">📚 Build Lesson</button>
   <button id="btn-upgrade" title="Upgrade to Pro" onclick="showUpgradeModal('default')" style="display:none;">⚡ Upgrade</button>
   <button class="tb-btn-primary" id="btn-share" title="Share board" onclick="openSharePanel()">
     <span>Share</span>
@@ -793,9 +792,9 @@ polite request</textarea>
     <div class="ai-hero">
       <div class="ai-kicker">AI memory studio</div>
       <h2>Generate lesson boards from your <em>teaching memory.</em></h2>
-      <p>No keys, no payments, no external calls. The assistant remembers teacher style, class profile, common mistakes and preferred activities directly in this browser.</p>
+      <p>Powered by TeachEd AI — adapts to your teacher style, class profile and target mistakes. Places styled, ready-to-teach cards. Works offline too.</p>
       <div class="ai-chip-row">
-        <span class="ai-chip">100% local</span>
+        <span class="ai-chip">AI-powered</span>
         <span class="ai-chip">Teacher memory</span>
         <span class="ai-chip">Student profile</span>
         <span class="ai-chip">Mistake-aware</span>
@@ -888,6 +887,7 @@ polite request</textarea>
         <div class="ai-memory-note" id="ai-memory-note">Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.</div>
         <div class="ai-action-row">
           <button class="ai-action" onclick="runAiAssistant()">Generate preview</button>
+          <button class="ai-action ghost" onclick="regenerateAiAssistant()" title="Generate a different version">🔄 Regenerate</button>
           <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>
           <button class="ai-action ghost" onclick="useSelectedCardsForAi()">Use selected</button>
           <button class="ai-action ghost" onclick="addAiMemoryFromBoard()">Learn board</button>
@@ -1620,7 +1620,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=118').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=119').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
