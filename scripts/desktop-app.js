@@ -713,19 +713,22 @@ let activeNote = null;
 let _notesSaveTimer = null;
 let _notesLoaded = false;
 
-async function notesLoad() {
-  if (_notesLoaded) return;
+async function notesLoad(force = false) {
+  if (_notesLoaded && !force) return;
   _notesLoaded = true;
   try {
+    if (!_authToken) throw new Error('no-token');
     const r = await fetch(API_BASE + '/api/notes', { headers: { Authorization: 'Bearer ' + _authToken } });
-    if (r.ok) {
-      const { notes } = await r.json();
-      NOTES = notes;
-      if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
-      notesRender();
-    }
+    if (!r.ok) throw new Error('http-' + r.status);
+    const { notes } = await r.json();
+    // Preserve any in-flight unsaved changes
+    const dirty = {};
+    NOTES.forEach(n => { if (n._dirty) dirty[n.id] = { body: n.body, title: n.title }; });
+    NOTES = notes;
+    NOTES.forEach(n => { if (dirty[n.id]) Object.assign(n, dirty[n.id], { _dirty: true }); });
+    if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
+    notesRender();
   } catch {
-    // fallback to localStorage
     try { const s = localStorage.getItem(NOTES_KEY); if (s) NOTES = JSON.parse(s); } catch {}
     if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
     notesRender();
@@ -821,25 +824,52 @@ function notesAutoSave() {
   note.body = ta.value;
   const lines = ta.value.split('\n');
   note.title = lines[0]?.trim() || 'Untitled';
+  note._dirty = true;
   notesUpdateCount();
+  // Immediately backup to localStorage
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
   const statusEl = document.getElementById('notes-save-status');
   if (statusEl) statusEl.textContent = 'editing…';
   clearTimeout(_notesSaveTimer);
   _notesSaveTimer = setTimeout(async () => {
-    try {
-      await fetch(API_BASE + '/api/notes/' + note.id, {
-        method: 'PATCH',
-        headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: note.title, body: note.body })
-      });
-      if (statusEl) statusEl.textContent = '✓ saved';
-    } catch {
-      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
-      if (statusEl) statusEl.textContent = '✓ local';
-    }
+    await notesSyncOne(note, statusEl);
     notesRender();
   }, 900);
 }
+
+async function notesSyncOne(note, statusEl) {
+  if (!note || !note._dirty) return;
+  try {
+    if (!_authToken) throw new Error('no-token');
+    const r = await fetch(API_BASE + '/api/notes/' + note.id, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: note.title, body: note.body })
+    });
+    if (!r.ok) throw new Error('http-' + r.status);
+    note._dirty = false;
+    if (statusEl) statusEl.textContent = '✓ saved';
+  } catch (err) {
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+    const isOffline = err.message.startsWith('no-token') || err.message === 'Failed to fetch';
+    if (statusEl) statusEl.textContent = isOffline ? '✓ saved locally' : '⚠️ retrying…';
+    if (!isOffline) {
+      // Retry once after 3s
+      setTimeout(async () => {
+        try {
+          const r2 = await fetch(API_BASE + '/api/notes/' + note.id, {
+            method: 'PATCH',
+            headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: note.title, body: note.body })
+          });
+          if (r2.ok) { note._dirty = false; if (statusEl) statusEl.textContent = '✓ saved'; }
+        } catch {}
+      }, 3000);
+    }
+    console.warn('[notes] sync:', err.message);
+  }
+}
+
 
 function notesUpdateCount() {
   const ta = document.getElementById('notes-ta');
@@ -853,6 +883,30 @@ function notesUpdateCount() {
 document.getElementById('win-notes')?.addEventListener('click', () => {
   if (!_notesLoaded) notesLoad();
 }, { once: true });
+
+// Load when window opened via openApp('notes') dock click
+(function() {
+  const winEl = document.getElementById('win-notes');
+  if (!winEl) return;
+  new MutationObserver(() => {
+    if (winEl.classList.contains('open')) notesLoad();
+  }).observe(winEl, { attributes: true, attributeFilter: ['class'] });
+})();
+
+// Flush dirty notes on page unload (sendBeacon doesn't require response)
+window.addEventListener('beforeunload', () => {
+  const dirty = NOTES.filter(n => n._dirty);
+  if (!dirty.length || !_authToken) return;
+  dirty.forEach(note => {
+    try {
+      navigator.sendBeacon(
+        API_BASE + '/api/notes/' + note.id,
+        new Blob([JSON.stringify({ title: note.title, body: note.body })],
+                 { type: 'application/json' })
+      );
+    } catch {}
+  });
+});
 
 studentsRender();
 
