@@ -9059,8 +9059,105 @@ function _renderEmptyToolsState() {
   return empty;
 }
 
+let _realPlans = null;
+let _plansLoaded = false;
+
+// Load the teacher's own saved lessons from their library. Called once when the
+// Plans tab first renders; re-renders the sidebar when the data arrives.
+async function loadRealPlans() {
+  if (_plansLoaded) return;
+  _plansLoaded = true;
+  try {
+    const r = await apiFetch('/api/library?kind=lesson');
+    if (r.ok) { const d = await r.json(); _realPlans = d.assignments || []; }
+    else _realPlans = [];
+  } catch { _realPlans = []; }
+  if (activeTab === 'plans') renderSidebar();
+}
+
+const _cap = s => { s = String(s || ''); return s ? s[0].toUpperCase() + s.slice(1) : s; };
+
+// Teacher's hub-saved materials live in localStorage (same origin as the board).
+function _readHubLibrary() {
+  try { return JSON.parse(localStorage.getItem('teachedos_teacher_tools_library') || '[]') || []; }
+  catch { return []; }
+}
+
+// Place a saved hub material on the board using the proper structured placer
+// (worksheet cards / quiz / vocab), falling back to a text card.
+function placeHubMaterialOnBoard(item) {
+  const s = item.struct || {};
+  const kind = s.boardKind || (Array.isArray(s.cards) && s.cards.length ? 'cards'
+    : Array.isArray(s.questions) && s.questions.length ? 'quiz'
+    : Array.isArray(s.items) && s.items.length ? 'vocab' : null);
+  const output = {
+    title: item.title || 'Lesson material',
+    level: item.level || 'B1',
+    boardKind: kind,
+    questions: s.questions || null, items: s.items || null, cards: s.cards || null,
+    cat: (item.tags && item.tags[0]) || 'utility',
+    kind: item.title || 'Material',
+  };
+  if (kind === 'cards' && output.cards) { _ttPlaceCardsOnBoard(output); return; }
+  if (kind === 'quiz'  && output.questions) { _ttPlaceQuizOnBoard(output); return; }
+  if (kind === 'vocab' && output.items) { _ttPlaceVocabOnBoard(output); return; }
+  // Fallback: drop the plain text as a card.
+  const c = getBoardViewportCenterScreen();
+  const bp = screenToBoard(c.x + (Math.random()-.5)*80, c.y + (Math.random()-.5)*60);
+  const meta = [item.level, ...(item.tags || [])].filter(Boolean).join(' / ');
+  const text = (item.title || 'Material') + (meta ? '\n' + meta : '') + '\n\n' + (item.text || '');
+  addCard('text', bp.x - 260, bp.y - 200, defaultTextData({
+    text, fontFamily:'var(--font)', textColor:'#111111', bgColor:'#ffffff', align:'left',
+  }), 520, 420);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  toast && toast('✦ Added to board');
+}
+
+// A click-to-add snippet for a saved hub material (mirrors .snippet markup).
+function makeHubPlanSnippet(item) {
+  const title = item.title || 'Untitled material';
+  if (searchQ && !title.toLowerCase().includes(searchQ)) return null;
+  const lvl = item.level || '';
+  const tag = (item.tags && item.tags[0]) || '';
+  const lc = String(lvl).toLowerCase(), tc = String(tag).toLowerCase();
+  const el = document.createElement('div');
+  el.className = 'snippet';
+  el.innerHTML = `<div class="sn-label">📦 Saved material</div><div class="sn-title">${esc(title)}</div>`
+    + `<div class="sn-meta">${lvl?`<span class="badge ${lc}">${esc(lvl)}</span>`:''}${tag?`<span class="badge ${tc}">${esc(_cap(tag))}</span>`:''}</div>`;
+  el.addEventListener('click', () => placeHubMaterialOnBoard(item));
+  return el;
+}
+
 function renderPlansTab(sec) {
-  sec.appendChild(makeLegend('Drag or click → add to board'));
+  loadRealPlans(); // pulls server lessons in the background (no-op after first call)
+  const hub = _readHubLibrary();
+  const server = _realPlans || [];
+
+  if (hub.length || server.length) {
+    sec.appendChild(makeLegend('Your lessons & materials · click → board'));
+    // Hub-saved materials first (they place real structured content).
+    hub.slice(0, 60).forEach(item => { const el = makeHubPlanSnippet(item); if (el) sec.appendChild(el); });
+    // Then server library lessons (metadata → plan card).
+    server.forEach(a => {
+      const lvl = a.level || '—';
+      const skill = _cap(a.skill || 'Lesson');
+      const lc = String(lvl).toLowerCase(), tc = String(a.skill || '').toLowerCase();
+      const el = makeSnippet('📋 Lesson Plan', a.title || 'Untitled lesson',
+        `<span class="badge ${lc}">${lvl}</span><span class="badge ${tc}">${skill}</span>`,
+        'plan',
+        { title: a.title || 'Untitled lesson', level: lvl, type: skill, dur: '', status: 'active', desc: a.description || '' });
+      if (el) sec.appendChild(el);
+    });
+    const foot = document.createElement('a');
+    foot.href = 'teacher-tools.html';
+    foot.style.cssText = 'display:block;padding:10px 12px;margin:6px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;';
+    foot.textContent = '+ Create more in Teacher Tools →';
+    sec.appendChild(foot);
+    return;
+  }
+
+  // Nothing saved yet → starter demo plans to get going.
+  sec.appendChild(makeLegend(_plansLoaded ? 'Starter plans · drag or click → board' : 'Loading your lessons…'));
   PLANS.forEach(d => {
     const lc=(d.level||'').toLowerCase(), tc=(d.type||'').toLowerCase();
     const el = makeSnippet('📋 Lesson Plan', d.title,
