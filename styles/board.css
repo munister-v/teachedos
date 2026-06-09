@@ -2833,6 +2833,35 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-card.tt-note .card-header{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--tt-accent,#4262FF) 18%,transparent);}
 .board-card.tt-note .card-title-text{color:#171420;font-weight:850;}
 
+/* ── Visual polish: generated cards + frames read as a premium, designed set ── */
+/* Rounder corners + a soft tinted header pulled from the card's accent colour */
+.board-card.tt-note{ border-radius:14px!important; }
+.board-card.tt-note .card-header{
+  background:color-mix(in srgb, var(--tt-accent,#4262FF) 7%, var(--card-bg,#fff));
+  padding-top:9px;padding-bottom:9px;
+}
+[data-theme="dark"] .board-card.tt-note .card-header{
+  background:color-mix(in srgb, var(--tt-accent,#4262FF) 16%, #1F1F35);
+}
+.board-card.tt-note .card-title-text{ letter-spacing:-.01em; }
+/* Roomier, more readable note body */
+.board-card.tt-note .note-body{ padding:11px 13px!important; }
+
+/* Frame label → clean floating pill so it stays legible over any canvas bg */
+.card-frame .frame-title{
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 2px 10px rgba(5,5,40,.12);
+  padding:5px 11px 5px 5px;border-radius:999px;font-weight:800;letter-spacing:-.01em;
+}
+[data-theme="dark"] .card-frame .frame-title{
+  background:rgba(31,31,53,.86);box-shadow:0 2px 10px rgba(0,0,0,.30);
+}
+.card-frame .frame-title:hover{ background:rgba(255,255,255,.96); }
+[data-theme="dark"] .card-frame .frame-title:hover{ background:rgba(40,40,66,.96); }
+/* Softer, rounder frame container */
+.card-frame .frame-body{ border-radius:16px; border-width:1.5px; }
+
 /* ── Editable preview ── */
 .tt-q{position:relative;}
 .tt-q .tt-del{
@@ -3418,7 +3447,37 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   #miro-toolbar{display:none;}
   #zoom-controls{display:none;}
   #bg-shortcut-btn{display:none;}
+  /* Mobile zoom widget: vertical pill on the right, above the quickbar */
+  #mobile-zoom{
+    display:flex;flex-direction:column;align-items:stretch;
+    position:fixed;right:12px;z-index:1200;
+    bottom:calc(80px + env(safe-area-inset-bottom,0px) + 12px);
+    background:var(--card-bg,#fff);
+    border:1px solid rgba(94,94,74,.12);
+    border-radius:16px;overflow:hidden;
+    box-shadow:0 8px 28px rgba(5,5,40,.16);
+  }
+  [data-theme="dark"] #mobile-zoom{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+  body.editor-open #mobile-zoom,
+  body:has(#sidebar.open) #mobile-zoom,
+  body.mq-sheet-open #mobile-zoom{display:none;}
+  .mz-btn,.mz-pct{
+    border:0;background:transparent;color:var(--text);
+    width:46px;min-height:42px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font);cursor:pointer;touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;transition:background .12s;
+  }
+  .mz-btn:active,.mz-pct:active{background:color-mix(in srgb,var(--accent,#4262FF) 14%,transparent);}
+  .mz-pct{
+    font-size:11px;font-weight:800;color:var(--accent,#4262FF);
+    border-top:1px solid rgba(94,94,74,.10);border-bottom:1px solid rgba(94,94,74,.10);
+    min-height:34px;
+  }
+  [data-theme="dark"] .mz-pct{border-color:rgba(255,255,255,.08);}
 }
+/* Desktop: the mobile zoom widget stays hidden (desktop has #zoom-controls).
+   Scoped to min-width so it never overrides the mobile display:flex above. */
+@media(min-width:861px){ #mobile-zoom{display:none;} }
 @media(max-width:480px){
   .tb-btn{min-width:28px;height:28px;font-size:12px;}
   .tb-title{max-width:36vw!important;font-size:12px;}

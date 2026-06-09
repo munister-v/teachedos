@@ -481,6 +481,17 @@
   </button>
 </div>
 
+<!-- MOBILE ZOOM WIDGET (phones only — desktop zoom-controls are hidden on mobile) -->
+<div id="mobile-zoom" aria-label="Zoom controls">
+  <button class="mz-btn" type="button" aria-label="Zoom in" onclick="document.getElementById('btn-zoom-in').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8h8M8 4v8"/></svg>
+  </button>
+  <button class="mz-pct" type="button" id="mz-pct" aria-label="Fit board to screen" onclick="document.getElementById('btn-fit').click()">100%</button>
+  <button class="mz-btn" type="button" aria-label="Zoom out" onclick="document.getElementById('btn-zoom-out').click()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8h8"/></svg>
+  </button>
+</div>
+
 <!-- BACKGROUND BUTTON (bottom-right, above zoom controls) -->
 <!-- floating 🎨 button removed: background is in the more menu (Miro keeps the canvas chrome-free) -->
 <button id="bg-shortcut-btn" hidden aria-hidden="true" onclick="openBgModal()"></button>

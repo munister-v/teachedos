@@ -79,6 +79,7 @@ function _scheduleMinimap() {
   _minimapRaf = requestAnimationFrame(() => { _minimapRaf = null; renderMinimap(); });
 }
 let _zcPct = null;
+let _mzPct = null;
 let _isMomentum = false;
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
@@ -86,6 +87,8 @@ function applyTransform() {
   if (zoomDisp) zoomDisp.textContent = pct;
   if (!_zcPct) _zcPct = document.getElementById('zc-pct');
   if (_zcPct) _zcPct.textContent = pct;
+  if (!_mzPct) _mzPct = document.getElementById('mz-pct');
+  if (_mzPct) _mzPct.textContent = pct;
   _scheduleArrows();
   _scheduleMinimap();
   positionLayerPopover();
@@ -3643,6 +3646,7 @@ document.addEventListener('mouseup', e => {
   let longPressTimer = null;
   let longPressStart = null;
   let touchDriving = false; // forwarding touch → mouse for handles/dots/card-drag
+  let tapInfo = null;       // tracks a single-finger tap on empty canvas (→ deselect)
 
   function midpoint(a, b) { return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2 }; }
   function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
@@ -3668,6 +3672,7 @@ document.addEventListener('mouseup', e => {
       const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card');
       if (hit) {
         touchDriving = true;
+        tapInfo = null;
         const t = e.touches[0];
         tt.dispatchEvent(new MouseEvent('mousedown', {
           clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0
@@ -3684,6 +3689,8 @@ document.addEventListener('mouseup', e => {
       pinchOrigin = null;
       // Long-press on empty board area → open context menu (mobile-only behavior)
       const onBg = e.target === boardWrap || e.target === board || e.target.id === 'empty-state';
+      // Track a clean tap on empty canvas so touchend can clear selection.
+      tapInfo = { x:t0.clientX, y:t0.clientY, onBg, moved:false, ctxOpened:false };
       if (onBg && window.matchMedia('(max-width:860px)').matches) {
         const sx = t0.clientX, sy = t0.clientY;
         longPressStart = { x:sx, y:sy };
@@ -3707,12 +3714,14 @@ document.addEventListener('mouseup', e => {
             ctxMenuEl.style.display = 'block';
             if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
           }
+          if (tapInfo) tapInfo.ctxOpened = true;
           panOrigin = null;
         }, 480);
       }
     } else if (ts.length === 2) {
       cancelLongPress();
       touchDriving = false;
+      tapInfo = null;
       t0 = ts[0]; t1 = ts[1];
       lastPinchDist = tdist(t0, t1);
       lastPinchScale = state.scale;
@@ -3738,6 +3747,10 @@ document.addEventListener('mouseup', e => {
       const mdx = Math.abs(ts[0].clientX - longPressStart.x);
       const mdy = Math.abs(ts[0].clientY - longPressStart.y);
       if (mdx > 8 || mdy > 8) cancelLongPress();
+    }
+    if (tapInfo && ts.length === 1 &&
+        (Math.abs(ts[0].clientX - tapInfo.x) > 8 || Math.abs(ts[0].clientY - tapInfo.y) > 8)) {
+      tapInfo.moved = true;
     }
     if (ts.length === 1 && panOrigin && !isDraggingCard) {
       const dx = ts[0].clientX - panOrigin.mx;
@@ -3779,13 +3792,22 @@ document.addEventListener('mouseup', e => {
     }
     cancelLongPress();
     const ts = Array.from(e.touches);
-    if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
+    if (ts.length === 0) {
+      // Clean tap on empty canvas with an active selection → deselect (matches
+      // desktop click-empty-to-deselect; bg taps aren't forwarded to the mouse pipeline).
+      if (tapInfo && tapInfo.onBg && !tapInfo.moved && !tapInfo.ctxOpened &&
+          (state.selected.size > 0 || state.selectedArrows.size > 0)) {
+        clearSelection();
+      }
+      tapInfo = null;
+      panOrigin = null; pinchOrigin = null; t0 = null; t1 = null;
+    }
     else if (ts.length === 1) {
       t0 = ts[0]; t1 = null; pinchOrigin = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
     }
   }, { passive: true });
-  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); }, { passive: true });
+  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); tapInfo = null; }, { passive: true });
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
