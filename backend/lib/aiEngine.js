@@ -154,6 +154,26 @@ function addPassageToSpec(spec, input) {
   };
 }
 
+// Listening comprehension tools attach a TRANSCRIPT (the spoken text students
+// hear). Same passage envelope as reading; only the wording differs.
+const LISTENING_PASSAGE_TOOLS = new Set(['audio-video-questions', 'summary-gapfill', 'listening-dictation']);
+
+function transcriptDirective(input) {
+  const hasSource = input.source && String(input.source).trim().length > 40;
+  if (hasSource) {
+    return 'AUDIO TRANSCRIPT: A transcript / notes are provided above. Use it AS the transcript: set passage.text to that text (lightly cleaned, do NOT rewrite or shorten it), passage.title to a short fitting title, and passage.vocab to 5-7 of its key words, each with a short student-friendly gloss. Base EVERY question strictly and only on this transcript.';
+  }
+  const words = passageWordTarget(input.level);
+  return `AUDIO TRANSCRIPT: No transcript was given, so FIRST write a short, natural spoken-style transcript about the topic at ${input.level} level (${words} words) - a monologue or a short two-speaker dialogue, exactly as if it were the audio students hear (use speaker labels like "A:" / "B:" for a dialogue). Set passage.text to the transcript, passage.title to a short title, and list 5-7 key words in passage.vocab, each with a short gloss. THEN base EVERY question strictly and only on this transcript.`;
+}
+
+function addTranscriptToSpec(spec, input) {
+  return {
+    task: transcriptDirective(input) + '\n\n' + spec.task,
+    schema: spec.schema.replace('{', '{' + PASSAGE_SCHEMA),
+  };
+}
+
 // Describe the target JSON shape per board kind. The model fills these in;
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
@@ -239,7 +259,7 @@ function shapeSpec(input) {
 
   if (boardKind === 'quiz') {
     const isTf = toolId === 'true-false';
-    const isGap = ['gap', 'gaps-brackets', 'listening-dictation'].includes(toolId);
+    const isGap = ['gap', 'gaps-brackets'].includes(toolId);
     const isTwo = toolId === 'two-options';
     const isOpen = ['open-questions', 'discussion', 'question-ladder'].includes(toolId);
     const isMcqGap = toolId === 'gaps-abcd';
@@ -290,6 +310,12 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"truefalse","text":"statement","answer":true,"points":1}]}',
       }, input);
     }
+    if (toolId === 'listening-dictation') {
+      return addTranscriptToSpec({
+        task: `${head} Produce exactly ${count} dictation sentences taken (or lightly adapted) from the transcript at ${level} level. Each "text" = the full sentence the student hears and must write; blank ONE key word in it with "_____"; "answer" = that exact word. The full transcript is the answer key. Use type "gap-fill".${context}`,
+        schema: '{"questions":[{"type":"gap-fill","text":"a full sentence with one _____ to fill","answer":"word","points":1}]}',
+      }, input);
+    }
     if (isGap) {
       return {
         task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level. Use "_____" for the gap and give the exact missing word as "answer". Use type "gap-fill".${context}`,
@@ -309,10 +335,10 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'audio-video-questions') {
-      return {
-        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq", 4 options, "answer" = correct option text) and the rest open detail questions (type "open").${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"question","options":["A","B","C","D"],"answer":"A","points":1},{"type":"open","text":"detail question?","points":1}]}',
-      };
+      return addTranscriptToSpec({
+        task: `${head} Produce EXACTLY ${count} listening-comprehension questions based ONLY on the transcript, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts said in the audio - make these the bulk; (3) end with only 1-2 OPEN inference / opinion questions. Every MCQ has 4 full, plausible options (complete phrases, not single words), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"What is the speaker mainly talking about?","options":["full answer A","full answer B","full answer C","full answer D"],"answer":"full answer A","points":1},{"type":"mcq","text":"detail question about something stated?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
+      }, input);
     }
     if (toolId === 'rewrite-style') {
       const tone = input.extra ? `the style named in the teacher note (${input.extra})` : 'a more formal / academic style';
@@ -356,10 +382,10 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'summary-gapfill') {
-      return {
-        task: `${head} Write a 5–7 sentence summary of the source text / topic at ${level} level. Remove 6–8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
+      return addTranscriptToSpec({
+        task: `${head} Based on the transcript, write a 5-7 sentence summary at ${level} level. Remove 6-8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
         schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"removed word","points":1}]}',
-      };
+      }, input);
     }
     if (toolId === 'choose-summary') {
       return addPassageToSpec({

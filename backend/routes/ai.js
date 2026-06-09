@@ -641,7 +641,7 @@ async function generate(input) {
   // Reading comprehension fallback: if the teacher pasted a source, echo it as
   // the passage so the worksheet still shows a text to read.
   if (out && out.boardKind === 'quiz' && !out.passage
-      && ['abcd-text','true-false','gist-detail','three-titles','open-questions','choose-summary'].includes(input.toolId)
+      && ['abcd-text','true-false','gist-detail','three-titles','open-questions','choose-summary','audio-video-questions','summary-gapfill','listening-dictation'].includes(input.toolId)
       && input.source && String(input.source).trim().length > 40) {
     out.passage = { title: String(input.topic || 'Reading text'), text: String(input.source).trim(), vocab: [] };
   }

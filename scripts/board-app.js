@@ -1656,6 +1656,9 @@ function _ttPassageHTML(passage, accent, opts) {
   const bodyHtml = paras.map(p => `<p>${esc(p)}</p>`).join('') || `<p>${esc(text)}</p>`;
   const vocab = Array.isArray(passage.vocab) ? passage.vocab.filter(v => v && v.word) : [];
   const wc = text.split(/\s+/).filter(Boolean).length;
+  const isListen = opts.cat === 'listening';
+  const ptIcon = isListen ? '🎧' : '📖';
+  const ptLabel = isListen ? 'Transcript' : 'Reading';
   const vocabHtml = vocab.length
     ? `<div class="ws-passage-vocab"><span class="ws-passage-vocab-h">Key words</span>${vocab.map(v =>
         `<span class="ws-passage-word"><b>${esc(v.word)}</b>${v.gloss ? ' — ' + esc(v.gloss) : ''}</span>`).join('')}</div>`
@@ -1668,7 +1671,7 @@ function _ttPassageHTML(passage, accent, opts) {
     ? `<button class="ws-passage-edit" onclick="_ttTogglePassageEdit('${opts.cardId}')" title="Edit the reading text">✏️ Edit text</button>`
     : '';
   return `<div class="ws-passage" data-card-id="${opts.cardId || ''}">
-      <div class="ws-passage-head"><span class="ws-passage-tag" style="background:${accent}18;color:${accent}">📖 Reading${wc ? ' · ' + wc + ' words' : ''}</span>${editBtn}</div>
+      <div class="ws-passage-head"><span class="ws-passage-tag" style="background:${accent}18;color:${accent}">${ptIcon} ${ptLabel}${wc ? ' · ' + wc + ' words' : ''}</span>${editBtn}</div>
       <div class="ws-passage-title">${title}</div>
       <div class="ws-passage-body" id="ws-passage-body-${opts.cardId || ''}">${bodyHtml}</div>
       ${vocabHtml}
@@ -1766,7 +1769,7 @@ function renderWorksheet(el, card) {
     </div>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  const passageHtml = _ttPassageHTML(d.passage, accent, { editable: true, cardId: card.id });
+  const passageHtml = _ttPassageHTML(d.passage, accent, { editable: true, cardId: card.id, cat: d.cat });
   body.innerHTML = strip + passageHtml + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
@@ -1791,7 +1794,7 @@ function printWorksheet(cardId) {
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
-  const printPassage = _ttPassageHTML(d.passage, accent, { print: true });
+  const printPassage = _ttPassageHTML(d.passage, accent, { print: true, cat: d.cat });
   const css = `
     *{box-sizing:border-box}
     body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
@@ -8116,7 +8119,7 @@ function renderTeacherToolLocalPreview(out){
   // quiz
   if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
   const _passagePrev = (out.passage && (out.passage.text || out.passage.title))
-    ? `<div class="tt-passage"><div class="tt-passage-tag">📖 Reading${out.passage.text ? ' · ' + out.passage.text.split(/\s+/).filter(Boolean).length + ' words' : ''}</div>${out.passage.title ? `<div class="tt-passage-title">${esc(out.passage.title)}</div>` : ''}<div class="tt-passage-body">${esc(out.passage.text || '').replace(/\n+/g, '<br><br>')}</div></div>`
+    ? `<div class="tt-passage"><div class="tt-passage-tag">${out.cat === 'listening' ? '🎧 Transcript' : '📖 Reading'}${out.passage.text ? ' · ' + out.passage.text.split(/\s+/).filter(Boolean).length + ' words' : ''}</div>${out.passage.title ? `<div class="tt-passage-title">${esc(out.passage.title)}</div>` : ''}<div class="tt-passage-body">${esc(out.passage.text || '').replace(/\n+/g, '<br><br>')}</div></div>`
     : '';
   body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _passagePrev + _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
@@ -15466,7 +15469,7 @@ function openStudentQuiz(cardId) {
       </div>
       <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/qs.length)*100}%"></div></div>
       <div class="quiz-body">
-        ${(d.passage && d.passage.text) ? `<details class="quiz-passage" open><summary>📖 Read the text${d.passage.title ? ' · ' + esc(d.passage.title) : ''}</summary><div class="quiz-passage-body">${esc(d.passage.text).replace(/\n+/g, '<br><br>')}</div></details>` : ''}
+        ${(d.passage && d.passage.text) ? `<details class="quiz-passage"${d.cat === 'listening' ? '' : ' open'}><summary>${d.cat === 'listening' ? '🎧 Transcript' : '📖 Read the text'}${d.passage.title ? ' · ' + esc(d.passage.title) : ''}</summary><div class="quiz-passage-body">${esc(d.passage.text).replace(/\n+/g, '<br><br>')}</div></details>` : ''}
         <div class="quiz-question">${esc(q.text||'')}</div>
         <div class="quiz-input-area" id="quiz-input-area">${inputHtml}</div>
       </div>
