@@ -7487,6 +7487,112 @@ function _ttGenScaffold(toolId, input){
     title:`${level} · ${tool.title}: ${topic}`, cards };
 }
 
+// Real local "Three Titles" — 1 plausible correct title built from the topic +
+// the strongest content words, plus 2 off-topic distractors. No placeholders.
+function _ttGenThreeTitlesLocal(input){
+  const topic = input.topic || 'the text';
+  const tl = topic.toLowerCase();
+  const kws = _ttContentWords(input.source || '', 4).slice(0, 6);
+  const k1 = kws[0] ? _ttCap(kws[0]) : _ttCap(tl);
+  const k2 = kws[1] ? _ttCap(kws[1]) : _ttCap(tl);
+  const correctFrames = [
+    `${_ttCap(tl)}: Key Ideas and Practical Insights`,
+    `Understanding ${_ttCap(tl)}: What the Text Tells Us`,
+    `${k1} and ${k2}: A Closer Look at ${_ttCap(tl)}`,
+    `Why ${_ttCap(tl)} Matters: The Main Points`,
+    `${_ttCap(tl)}: Challenges, Ideas and Takeaways`,
+  ];
+  const correct = correctFrames[Math.floor(Math.random() * correctFrames.length)];
+  const distractorBank = [
+    'How to Cook a Three-Course Meal on a Budget',
+    'The History of Ancient Roman Architecture',
+    'A Beginner’s Guide to Buying Your First Car',
+    'Tips for Growing Tomatoes in a Small Garden',
+    'How to Learn Chess in Seven Days',
+    'The Science of Ocean Tides Explained',
+    'A Short History of the Printing Press',
+    'Training for a Marathon in Six Months',
+  ];
+  const wrongs = _ttShuffle(distractorBank.slice()).slice(0, 2);
+  const options = _ttShuffle([correct, ...wrongs]);
+  const letter = String.fromCharCode(65 + options.indexOf(correct));
+  return {
+    boardKind:'cards', kind:'Titles', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Three Titles: ${input.topic}`,
+    cards: [
+      { title:'Title A', text: options[0] },
+      { title:'Title B', text: options[1] },
+      { title:'Title C', text: options[2] },
+      { title:'✅ Best title', text:`Option ${letter}: ${correct}\n\nThe other two are distractors — they describe completely different texts. A good title matches the main idea, not just one detail.` },
+    ],
+  };
+}
+
+// Real local extractive summary — picks the highest keyword-density sentences
+// from the source (in original order) so the "model summary" is genuine text.
+function _ttGenSummaryLocal(input){
+  const hasSource = String(input.source || '').trim().length > 0;
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60);
+  const tl = (input.topic || 'the topic').toLowerCase();
+  let summary;
+  if (hasSource && sents.length) {
+    const freq = new Map();
+    for (const w of _ttContentWords(input.source)) freq.set(w, (freq.get(w) || 0) + 1);
+    const scored = sents.map((s, i) => {
+      const ws = _ttContentWords(s);
+      const score = ws.reduce((a, w) => a + (freq.get(w) || 0), 0) / Math.max(1, ws.length);
+      return { s, i, score };
+    });
+    const pickN = Math.min(4, Math.max(2, Math.round(sents.length / 3)));
+    summary = scored.slice().sort((a, b) => b.score - a.score).slice(0, pickN)
+      .sort((a, b) => a.i - b.i).map(x => x.s).join(' ');
+  } else {
+    summary = `This text is about ${tl}. It introduces the main idea, gives one or two key details, and shows why ${tl} matters. Notice how a good summary keeps only the essential points and leaves out examples and repetition.`;
+  }
+  return {
+    boardKind:'cards', kind:'Summary', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Summary: ${input.topic}`,
+    cards: [
+      { title:'📝 Model summary', text: summary },
+      { title:'✏️ Student task', text:`Now write your OWN 3–4 sentence summary of the text about "${input.topic}".\n\n• Keep only the main ideas.\n• Use your own words — do not copy whole sentences.\n• Read it back: would someone who missed the text understand it?` },
+    ],
+  };
+}
+
+// Real local "Text with Your Vocabulary" — weaves the target words into a short
+// leveled reading paragraph, then adds a target list + post-reading task.
+function _ttGenTextWithVocabLocal(input){
+  const topic = input.topic || 'everyday English';
+  const tl = topic.toLowerCase();
+  const lvl = input.level || 'B1';
+  const words = teacherToolVocabList(input.vocab, input.topic, Math.min(10, input.count || 8))
+    .map(x => String(x).split(/[-–—:]/)[0].trim()).filter(Boolean);
+  const frames = [
+    w => `First, it helps to understand the word "${w}".`,
+    w => `Many people think about "${w}" when they talk about ${tl}.`,
+    w => `A good example of ${tl} often includes "${w}".`,
+    w => `In real life, "${w}" can change how we see ${tl}.`,
+    w => `Teachers usually explain "${w}" early, because it matters for ${tl}.`,
+    w => `When you practise ${tl}, try to use "${w}" in your own sentences.`,
+    w => `Another key idea is "${w}", which appears in many situations.`,
+    w => `Finally, remember that "${w}" helps you describe ${tl} more clearly.`,
+  ];
+  const intro = `Today we are going to read about ${tl}.`;
+  const body = words.length
+    ? words.slice(0, 8).map((w, i) => frames[i % frames.length](w)).join(' ')
+    : `It is a topic that students meet often, and it is full of useful language to learn and reuse.`;
+  const outro = `By the end of this text, you should be able to use the new words to talk about ${tl} yourself.`;
+  return {
+    boardKind:'cards', kind:'Text', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Text with Vocabulary: ${input.topic}`,
+    cards: [
+      { title:`📖 Reading text (${lvl})`, text:`${intro} ${body} ${outro}` },
+      { title:'🎯 Target vocabulary', text: words.length ? words.join(', ') : 'Add your target words in the configurator.' },
+      { title:'✏️ Post-reading task', text:`1. Underline every target word in the text.\n2. Write one personal sentence with each word.\n3. Tell a partner two things you learned about ${tl}.` },
+    ],
+  };
+}
+
 function _ttGenCards(toolId, input){
   // Scaffold for LLM-only tools: returns a placeholder boardKind:'cards'
   // that renders as text/sticky cards. Real content comes from WebLLM.
@@ -7771,9 +7877,12 @@ function generateTeacherToolLocal(input){
   if (id === 'lesson-pack')           return _ttGenLessonPack(input);
   if (id === 'worksheet-builder')     return _ttGenWorksheetBoard(input);
   if (id === 'homework-set')          return _ttGenHomeworkBoard(input);
+  // ── reading tools with real local generators (no AI placeholders) ─
+  if (id === 'three-titles')          return _ttGenThreeTitlesLocal(input);
+  if (id === 'summary-task')          return _ttGenSummaryLocal(input);
+  if (id === 'text-topic-vocab')      return _ttGenTextWithVocabLocal(input);
   // ── LLM-first: specific card scaffolds ──────────────────────────
-  if (id === 'three-titles' || id === 'summary-task' || id === 'dialogue')
-    return _ttGenCards(id, input);
+  if (id === 'dialogue')              return _ttGenCards(id, input);
   // ── universal scaffold for all remaining tools ───────────────────
   return _ttGenScaffold(id, input);
 }
@@ -8374,6 +8483,10 @@ const TT_LOCAL_QUALITY_SET = new Set([
   'rewrite','tense-contrast',
   'discussion','question-ladder','roleplay-cards','debate-cards',
   'listening-dictation',
+  // reading tools with genuine local generators (real content, no placeholders):
+  // summary = extractive from source, three-titles = topic+keyword titles +
+  // distractors, text-topic-vocab = vocab woven into a leveled reading text.
+  'summary-task','three-titles','text-topic-vocab',
 ]);
 
 async function generateTeacherToolBuilder(mode = 'fast') {
