@@ -797,7 +797,7 @@ function renderMobileProSchedule(_unused) {
 
   /* Timeline for selected day */
   const selectedDate = weekDates[mpSelectedDow];
-  const selectedDateStr = selectedDate.toISOString().slice(0,10);
+  const selectedDateStr = localYMD(selectedDate);
   const isToday = selectedDate.getTime() === today.getTime();
 
   /* Filter classes: show recurring for this DOW + one-time for this exact date */
@@ -951,6 +951,15 @@ async function loadSchedule() {
 }
 
 // ── Week navigation ───────────────────────────────────────────────────
+// Local calendar date as YYYY-MM-DD. Must NOT use toISOString() here — that
+// converts to UTC and shifts the date back a day for positive-UTC zones
+// (e.g. Europe/Kyiv), which made one-time sessions store the wrong calendar day.
+function localYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 function getWeekDates() {
   const now = new Date();
   const dow = (now.getDay() + 6) % 7; // 0=Mon
@@ -1023,7 +1032,7 @@ function renderGrid() {
     }
     // Render slots for this day
     const colDate = weekDates[d];
-    const colDateStr = colDate.toISOString().slice(0, 10);
+    const colDateStr = localYMD(colDate);
 
     const slots = schedule.filter(s => {
       if (s.day !== d) return false;
@@ -1076,7 +1085,7 @@ function openPlannerAt(day, startMin) {
     day,
     start_time: minutesToTime(start),
     end_time: minutesToTime(end),
-    specific_date: weekDate ? weekDate.toISOString().slice(0, 10) : '',
+    specific_date: weekDate ? localYMD(weekDate) : '',
     recurring: true,
     color: selectedColor || '#C8E632',
   });
@@ -1227,7 +1236,7 @@ async function moveScheduleSlot(slot, day, startMin, duration) {
   const patch = { day, start_time:start, end_time:end };
   if (slot.specific_date && weekDate) {
     patch.recurring = false;
-    patch.specific_date = weekDate.toISOString().slice(0, 10);
+    patch.specific_date = localYMD(weekDate);
   }
   const idx = schedule.findIndex(s => String(s.id) === String(slot.id));
   const prev = idx >= 0 ? { ...schedule[idx] } : null;
@@ -1312,7 +1321,7 @@ function toggleRecurring(checked) {
     if (!dateInput.value) {
       // Default to today
       const today = new Date();
-      dateInput.value = today.toISOString().slice(0, 10);
+      dateInput.value = localYMD(today);
     }
     syncDayFromDate();
   }
@@ -1346,7 +1355,7 @@ function openModal(slot = null, preset = null) {
 
   // Specific date
   const specificDate = data.specific_date ? data.specific_date.slice(0, 10) : '';
-  document.getElementById('f-specific-date').value = specificDate || new Date().toISOString().slice(0, 10);
+  document.getElementById('f-specific-date').value = specificDate || localYMD(new Date());
   document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
 
   const color = data.color || '#C8E632';
