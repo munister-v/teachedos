@@ -7454,13 +7454,13 @@ function _ttGenScaffold(toolId, input){
       { title:'After reading', text:`Discuss: What was the most surprising idea about "${topic}"?` },
     ],
     vocabulary:[
-      { title:'Target vocabulary', text:`[Key words and phrases for "${topic}" at ${level}]` },
+      { title:'Target vocabulary', text:`Choose 8–10 key words for "${topic}" (${level}). For each one, write: the word — a short definition — one example sentence.` },
       { title:'Student task', text:`Define each word, use it in a sentence, or match it to an example.\nFocus: ${tool.desc}` },
     ],
     grammar:[
       { title:'Grammar focus', text:`${tool.title} · ${level}\nTopic: ${topic}` },
       { title:'Explanation', text:'Rule: …\nExample 1: …\nExample 2: …\nCommon mistake: …' },
-      { title:'Practice', text:`[Exercise here — ${tool.kind}]` },
+      { title:'Practice', text:`Write 5 practice sentences about "${topic}" that use this grammar point. Leave a gap or a choice in each one, then add the answer key below.` },
     ],
     speaking:[
       { title:'Preparation (1 min)', text:`Think about "${topic}". Note 2–3 ideas.` },
@@ -7479,7 +7479,7 @@ function _ttGenScaffold(toolId, input){
     ],
     utility:[
       { title:tool.title, text:`Topic: ${topic} · Level: ${level}` },
-      { title:'Task', text:`${tool.desc}\n[Complete this section with your content]` },
+      { title:'Task', text:`${tool.desc}\n\nUse this card to build the activity: add your instructions, an example for students, and the answer key.` },
     ],
   };
   const cards = bycat[tool.cat] || bycat.utility;
