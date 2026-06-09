@@ -112,6 +112,10 @@ function updateMobileTeacherOverview() {
     setText('mp-avatar', (initials + lastInitial) || 'T');
     setText('mp-greeting-meta', dayStr);
     setText('mp-greeting-name', `Hi, ${firstName}`);
+    // Account dropdown header
+    setText('mp-account-menu-av', (initials + lastInitial) || 'T');
+    setText('mp-account-menu-name', user.name || 'Teacher');
+    setText('mp-account-menu-email', user.email || localStorage.getItem('teachedos_user_email') || '');
     setText('mp-stat-lessons', String(todays.length || 0));
     setText('mp-stat-students', String(studentCount));
     setText('mp-stat-boards', String(boardCount));
@@ -1915,3 +1919,41 @@ setInterval(loadNotifications, 120000);
     if (cachedDash?.sharedBoards) applyTeacherDashboardCache({ sharedBoards: cachedDash.sharedBoards }, { offlineNotice: true });
   });
 })();
+
+/* ── Mobile account menu (clear, always-reachable sign-out from home) ── */
+function teachedAccountMenuToggle(ev) {
+  if (ev) ev.stopPropagation();
+  var menu = document.getElementById('mp-account-menu');
+  var back = document.getElementById('mp-account-backdrop');
+  var btn = document.getElementById('mp-avatar');
+  if (!menu) return;
+  var open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  if (back) back.classList.toggle('open', open);
+  menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (navigator.vibrate) navigator.vibrate(6);
+}
+function teachedAccountMenuClose() {
+  var menu = document.getElementById('mp-account-menu');
+  var back = document.getElementById('mp-account-backdrop');
+  var btn = document.getElementById('mp-avatar');
+  if (menu) { menu.classList.remove('open'); menu.setAttribute('aria-hidden', 'true'); }
+  if (back) back.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') teachedAccountMenuClose(); });
+async function teachedLogout() {
+  try {
+    var token = localStorage.getItem('teachedos_token');
+    await fetch((typeof API !== 'undefined' ? API : '') + '/api/auth/logout', {
+      method: 'POST', headers: token ? { Authorization: 'Bearer ' + token } : {},
+    });
+  } catch (e) {}
+  ['teachedos_token','teachedos_role','teachedos_user','teachedos_user_email',
+   'teachedos_board_id','teachedos_teacher_dashboard_cache_v1'].forEach(function (k) {
+    localStorage.removeItem(k);
+  });
+  try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+  window.location.href = 'index.html';
+}

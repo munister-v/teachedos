@@ -395,6 +395,11 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* Buried logout pill is now redundant on mobile — the account menu owns sign-out */
 @media (max-width: 860px) {
   .st-item[data-tab="logout"] { display: none; }
+  /* 16px inputs stop iOS Safari from auto-zooming the whole page on focus */
+  .setting-input { font-size: 16px; padding: 13px 14px; }
+  /* Full-width, finger-sized action buttons */
+  .setting-btn { width: 100%; padding: 14px 20px; font-size: 15px; }
+  .emoji-opt { font-size: 24px; padding: 10px; }
 }
 </style>
 <link rel="stylesheet" href="styles/mobile-pro.css" media="(max-width: 860px)">
