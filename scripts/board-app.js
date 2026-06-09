@@ -7594,23 +7594,24 @@ function _ttGenTextWithVocabLocal(input){
 }
 
 function _ttGenCards(toolId, input){
-  // Scaffold for LLM-only tools: returns a placeholder boardKind:'cards'
-  // that renders as text/sticky cards. Real content comes from WebLLM.
-  const titles = {
-    'three-titles': ['Title option 1','Title option 2','Title option 3'],
-    'summary-task': ['Summary'],
-    'dialogue':     ['Speaker A','Speaker B','Speaker A (cont.)'],
+  // Dialogue scaffold. Dialogue is AI-first; this is the offline / AI-busy
+  // fallback — a real, usable starter conversation (never a bracket placeholder).
+  // (three-titles & summary-task have their own real local generators and no
+  // longer route here.)
+  const topic = input.topic || 'the topic';
+  const tl = topic.toLowerCase();
+  const title = `${input.level} · ${(typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS.find(t => t.id === toolId) : null)?.title || 'Dialogue'}: ${topic}`;
+  return {
+    boardKind: 'cards', kind: 'Dialogue', cat: 'speaking', level: input.level, topic: input.topic,
+    title,
+    cards: [
+      { title: '🎭 Context', text: `Two people are talking about ${tl}. Read the starter, then continue the conversation in pairs.` },
+      { title: 'A', text: `So, what do you think about ${tl}?` },
+      { title: 'B', text: `Honestly, I have mixed feelings about ${tl}. It can be really useful, but it also has its difficult side.` },
+      { title: 'A', text: `That's interesting — can you give me an example?` },
+      { title: '✏️ Your turn', text: `Continue the dialogue for 6–8 more lines. Use at least 3 words from your lesson vocabulary, ask follow-up questions, and react naturally ("Really?", "I see what you mean", "I'm not so sure…").` },
+    ],
   };
-  const notes = {
-    'three-titles': t => `[Write a catchy title for the text about "${input.topic}" here]`,
-    'summary-task': t => `[Write a 3-4 sentence summary of the text about "${input.topic}" here]`,
-    'dialogue':     t => `[${t}: write 2-3 lines about "${input.topic}" here]`,
-  };
-  const fn = notes[toolId]; const tts = titles[toolId] || ['Card'];
-  return { boardKind:'cards', kind: toolId==='dialogue'?'Dialogue':toolId==='summary-task'?'Summary':'Titles',
-    cat: toolId==='dialogue'?'speaking':'reading', level:input.level, topic:input.topic,
-    title:`${input.level} · ${BOARD_TEACHER_TOOLS.find(t=>t.id===toolId)?.title||toolId}: ${input.topic}`,
-    cards: tts.map(t=>({ title:t, text: fn(t) })) };
 }
 
 function _ttGenAdaptText(input) {
@@ -12489,7 +12490,8 @@ function saveAiAssistantSettings() {
 function updateAiProviderNote() {
   const note = document.getElementById('ai-memory-note');
   if (!note) return;
-  const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}') || {}; } catch {}
   const count = ['teacherMemory','studentMemory','mistakes'].filter(k => String(saved[k] || '').trim()).length;
   note.textContent = count
     ? `Memory active: ${count}/3 blocks saved. Generated boards will adapt to your teaching style.`
