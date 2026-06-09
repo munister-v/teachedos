@@ -3291,7 +3291,7 @@ boardWrap.addEventListener('dblclick', e => {
 });
 
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
-document.addEventListener('mousemove', e => {
+function _boardMove(e) {
   if (spaceDown && (e.buttons & 1)) {
     if (!isPanning) {
       isPanning = true;
@@ -3467,10 +3467,33 @@ document.addEventListener('mousemove', e => {
     // Track whether the user actually dragged after auto-entering connect.
     if (window._autoConnectMode) window._anchorDragMoved = true;
   }
-});
+}
+
+// ── Perf: coalesce mousemove → at most one board update per animation frame.
+// High-Hz mice / trackpads fire far more than 60 move events/sec; previously the
+// full handler (smart-snap O(n) scan + layout reads + position writes) ran on
+// every single event. Now the latest event is processed once per frame, with a
+// synchronous flush on release so drops land on the exact final position.
+let _boardMoveEvt = null, _boardMoveRaf = null;
+function _onBoardMoveCoalesced(e) {
+  _boardMoveEvt = e;
+  if (_boardMoveRaf) return;
+  _boardMoveRaf = requestAnimationFrame(() => {
+    _boardMoveRaf = null;
+    const ev = _boardMoveEvt; _boardMoveEvt = null;
+    if (ev) _boardMove(ev);
+  });
+}
+function _flushBoardMove() {
+  if (_boardMoveRaf) { cancelAnimationFrame(_boardMoveRaf); _boardMoveRaf = null; }
+  const ev = _boardMoveEvt; _boardMoveEvt = null;
+  if (ev) _boardMove(ev);
+}
+document.addEventListener('mousemove', _onBoardMoveCoalesced, { passive: true });
 
 /* ════════════════════════ MOUSE UP ════════════════════════ */
 document.addEventListener('mouseup', e => {
+  _flushBoardMove();   // apply the final pending move frame before end-logic reads positions
   // Anchor-drag → finish connection on the release point (Miro parity).
   // Fires only when we entered connect mode via the auto path AND a real
   // drag happened (so a simple click on anchor still falls through to the
