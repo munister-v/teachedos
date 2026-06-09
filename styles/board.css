@@ -2737,13 +2737,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ── Add-to-board dropdown ── */
 .tbuilder-add-wrap{position:relative;display:inline-block;}
-.tbuilder-add-menu{position:absolute;bottom:calc(100% + 8px);left:0;min-width:248px;background:#fff;border:1px solid rgba(17,24,39,.1);border-radius:14px;box-shadow:0 14px 40px rgba(17,24,39,.22);padding:6px;display:none;flex-direction:column;gap:2px;z-index:60;}
+.tbuilder-add-menu{position:absolute;bottom:calc(100% + 8px);left:0;width:max(252px,100%);max-width:330px;max-height:min(58vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid rgba(17,24,39,.12);border-radius:14px;box-shadow:0 18px 54px rgba(17,24,39,.28);padding:6px;display:none;flex-direction:column;gap:2px;z-index:300;}
+[data-theme="dark"] .tbuilder-add-menu{background:#252540;border-color:rgba(255,255,255,.12);}
 .tbuilder-add-menu.open{display:flex;}
-.tbuilder-menu-item{display:flex;align-items:center;gap:11px;width:100%;border:0;background:transparent;border-radius:10px;padding:9px 11px;cursor:pointer;text-align:left;color:#171420;}
-.tbuilder-menu-item:hover{background:rgba(66,98,255,.08);}
-.tbuilder-menu-item>span{font-size:19px;line-height:1;}
-.tbuilder-menu-item strong{display:block;font-size:13px;font-weight:850;}
-.tbuilder-menu-item small{display:block;font-size:10.5px;color:#7b7282;font-weight:650;}
+.tbuilder-menu-item{display:flex;align-items:center;gap:11px;width:100%;border:0;background:transparent;border-radius:10px;padding:10px 11px;cursor:pointer;text-align:left;color:#171420;}
+[data-theme="dark"] .tbuilder-menu-item{color:var(--text);}
+.tbuilder-menu-item:hover{background:rgba(66,98,255,.10);}
+.tbuilder-menu-item>span{flex:0 0 22px;width:22px;text-align:center;font-size:18px;line-height:1;}
+.tbuilder-menu-item>div{flex:1;min-width:0;}
+.tbuilder-menu-item strong{display:block;font-size:13px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tbuilder-menu-item small{display:block;font-size:10.5px;color:#7b7282;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+[data-theme="dark"] .tbuilder-menu-item small{color:#a9a3b5;}
 .tbuilder-menu-item.disabled{opacity:.4;pointer-events:none;}
 .tbuilder-menu-sep{font:900 9px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#9b95a3;padding:8px 11px 4px;margin-top:3px;border-top:1px solid rgba(17,24,39,.07);}
 
@@ -3414,6 +3418,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tbuilder-layout{grid-template-columns:1fr!important;}
   .tbuilder-title{font-size:24px!important;}
   .tbuilder-close{width:40px!important;height:40px!important;}
+  /* Add-to-board menu → bottom-anchored card on phones (never clipped by the
+     full-screen builder's scroll container). */
+  .tbuilder-add-menu{
+    position:fixed!important;left:12px!important;right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;top:auto!important;
+    width:auto!important;max-width:none!important;max-height:62vh;
+  }
   /* Modal close (×) buttons sized for fingers */
   #video-url-overlay > div > div[onclick*="close"],
   #image-url-overlay > div > div[onclick*="close"]{

@@ -8569,11 +8569,19 @@ async function applyTeacherToolBuilderToBoard(mode) {
     _ttPlaceWorksheetOnBoard(output); return;
   }
   // 'quiz' (interactive) or default → existing structured placement.
-  if (_ttPlaceComplexToolOnBoard(output)) return;
+  // (Optional complex placer — only call it if it actually exists; it was
+  //  referenced here but never defined, which threw and silently aborted the
+  //  whole "Add to board" action.)
+  if (typeof _ttPlaceComplexToolOnBoard === 'function' && _ttPlaceComplexToolOnBoard(output)) return;
   // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
   if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return; }
   if (output.boardKind === 'vocab') { _ttPlaceVocabOnBoard(output); return; }
   if (output.boardKind === 'cards') { _ttPlaceCardsOnBoard(output); return; }
+  // Robust fallback: place by whatever content exists even if boardKind is unset
+  // (e.g. AI results that didn't tag a boardKind) — never silently drop the result.
+  if (Array.isArray(output.questions) && output.questions.length) { _ttPlaceQuizOnBoard(output);  return; }
+  if (Array.isArray(output.cards)     && output.cards.length)     { _ttPlaceCardsOnBoard(output);  return; }
+  if (Array.isArray(output.items)     && output.items.length)     { _ttPlaceVocabOnBoard(output);  return; }
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
