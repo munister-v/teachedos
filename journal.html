@@ -353,7 +353,7 @@ function renderStats() {
 
 const COLORS = ['#C8E632','#1C1C1E','#C8E632','#22c55e','#3b82f6','#f59e0b','#ec4899','#14b8a6'];
 function avatarColor(name) { let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
-function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+// NB: initials() is defined once above (handles multi-space names + empty fallback).
 
 function renderTable() {
   const body = document.getElementById('journal-body');
