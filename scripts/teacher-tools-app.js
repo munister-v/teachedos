@@ -711,8 +711,9 @@ function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)|
 function writeJson(key,val){localStorage.setItem(key,JSON.stringify(val));}
 function favs(){return readJson(FAV_STORE,[])}
 function isFav(id){return favs().includes(id)}
-function toggleSide(){document.getElementById('side').classList.toggle('open')}
-function setCategory(cat,el){currentCat=cat;document.querySelectorAll('.side-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('side').classList.remove('open');renderChips();renderTools()}
+function toggleSide(){const open=document.getElementById('side').classList.toggle('open');const bd=document.getElementById('side-backdrop');if(bd)bd.classList.toggle('open',open);if(navigator.vibrate)navigator.vibrate(6)}
+function closeSide(){document.getElementById('side').classList.remove('open');const bd=document.getElementById('side-backdrop');if(bd)bd.classList.remove('open')}
+function setCategory(cat,el){currentCat=cat;document.querySelectorAll('.side-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');closeSide();renderChips();renderTools()}
 function toggleFav(id,e){e.stopPropagation();const list=favs();const next=list.includes(id)?list.filter(x=>x!==id):[...list,id];writeJson(FAV_STORE,next);renderCounts();renderTools();toast(next.includes(id)?'Added to favorites':'Removed from favorites')}
 function renderCounts(){const counts={all:TOOLS.length,favorites:favs().length};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
 function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
