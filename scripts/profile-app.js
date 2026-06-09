@@ -227,6 +227,7 @@ async function renderOverview(forceOffline = false) {
   document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
+  syncMobileAccountChip(me);
   document.getElementById('profile-timezone-big').textContent = `🕒 ${describeTimeZone(effectiveTimeZoneLabel())}`;
   document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
 
@@ -960,7 +961,8 @@ async function saveName() {
     const { user } = await r.json();
     me = { ...me, ...user };
     document.getElementById('profile-name-big').textContent = me.name;
-    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    const nb = document.getElementById('nb-user-info'); if (nb) nb.textContent = me.name.split(' ')[0];
+    syncMobileAccountChip(me);
     toast('Name updated!');
   } catch { toast('Failed to save name'); }
 }
@@ -975,6 +977,7 @@ async function saveEmail() {
     const { user } = await r.json();
     me = { ...me, ...user };
     document.getElementById('profile-email-big').textContent = me.email;
+    syncMobileAccountChip(me);
     toast('Email updated!');
   } catch { toast('Failed to save email'); }
 }
@@ -1093,6 +1096,43 @@ function clearAuthState() {
   keys.forEach(k => localStorage.removeItem(k));
   // Revoke Google One Tap auto-select so it doesn't re-sign in immediately
   try { google.accounts.id.disableAutoSelect(); } catch {}
+}
+
+// ── Mobile account dropdown (clear sign-out path) ─────────────
+function toggleAccountMenu(ev) {
+  if (ev) ev.stopPropagation();
+  const menu = document.getElementById('mp-account-menu');
+  const back = document.getElementById('mp-account-backdrop');
+  const btn = document.getElementById('mp-account-btn');
+  if (!menu) return;
+  const open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  back?.classList.toggle('open', open);
+  menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+  btn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (navigator.vibrate) navigator.vibrate(6);
+}
+function closeAccountMenu() {
+  document.getElementById('mp-account-menu')?.classList.remove('open');
+  document.getElementById('mp-account-backdrop')?.classList.remove('open');
+  document.getElementById('mp-account-menu')?.setAttribute('aria-hidden', 'true');
+  document.getElementById('mp-account-btn')?.setAttribute('aria-expanded', 'false');
+}
+// Close on Escape for keyboard / external-keyboard users
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAccountMenu(); });
+
+// Fill the topbar chip + dropdown header from the loaded profile.
+function syncMobileAccountChip(user) {
+  if (!user) return;
+  const initial = (user.avatar && /\p{Emoji}/u.test(user.avatar))
+    ? user.avatar
+    : (user.name || user.email || 'T').trim().charAt(0).toUpperCase();
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('mp-account-av', initial);
+  set('mp-account-menu-av', initial);
+  set('mp-account-menu-name', user.name || 'Teacher');
+  set('mp-account-menu-email', user.email || '');
+  set('mp-profile-name', user.name || 'My Profile');
 }
 
 // ── Subscription / IBAN payment ──────────────────────────────

@@ -337,6 +337,65 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .stats-grid { grid-template-columns: 1fr; }
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
+
+/* ── Mobile account menu (clear sign-out path) ── */
+.mp-account-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); background: rgba(255,255,255,.85);
+  border-radius: 999px; padding: 5px 10px 5px 6px; cursor: pointer; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.mp-account-btn:active { transform: scale(.97); }
+.mp-account-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent), rgba(28,28,30,.82));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; line-height: 1;
+}
+.mp-account-chev { color: var(--text-3); transition: transform .2s; }
+.mp-account-btn[aria-expanded="true"] .mp-account-chev { transform: rotate(180deg); }
+.mp-account-backdrop {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(17,16,24,.28); opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.mp-account-backdrop.open { opacity: 1; pointer-events: auto; }
+.mp-account-menu {
+  position: fixed; top: calc(56px + env(safe-area-inset-top,0px)); right: 12px; z-index: 10001;
+  width: 250px; max-width: calc(100vw - 24px);
+  background: #fff; border: 1px solid rgba(14,14,16,.1); border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(17,16,24,.22); padding: 8px;
+  opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top right;
+  pointer-events: none; transition: opacity .18s, transform .18s;
+}
+.mp-account-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.mp-account-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 12px; border-bottom: 1px solid rgba(14,14,16,.07); margin-bottom: 6px;
+}
+.mp-account-head-av {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent), rgba(28,28,30,.82));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 17px; flex-shrink: 0; line-height: 1;
+}
+.mp-account-head-name { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.mp-account-head-email { font-size: 11.5px; color: var(--text-3); line-height: 1.3; margin-top: 2px; word-break: break-all; }
+.mp-account-item {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  border: none; background: none; padding: 12px; border-radius: 12px;
+  font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text);
+  text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.mp-account-item > span { font-size: 16px; width: 20px; text-align: center; }
+.mp-account-item:active { background: rgba(0,0,0,.05); }
+.mp-account-item.danger { color: #ef4444; }
+.mp-account-item.danger:active { background: rgba(239,68,68,.08); }
+.mp-account-sep { height: 1px; background: rgba(14,14,16,.07); margin: 6px 4px; }
+/* Buried logout pill is now redundant on mobile — the account menu owns sign-out */
+@media (max-width: 860px) {
+  .st-item[data-tab="logout"] { display: none; }
+}
 </style>
 <link rel="stylesheet" href="styles/mobile-pro.css" media="(max-width: 860px)">
 <script src="theme.js" defer></script>
@@ -378,9 +437,29 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     <div class="mp-greeting-name" id="mp-profile-name">My Profile</div>
   </div>
   <div class="mp-topbar-actions">
-    <button class="mp-icon-btn" onclick="switchTab('settings')" aria-label="Settings">⚙</button>
+    <button class="mp-account-btn" id="mp-account-btn" onclick="toggleAccountMenu(event)" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+      <span class="mp-account-av" id="mp-account-av">T</span>
+      <svg class="mp-account-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </div>
 </header>
+
+<!-- Mobile account dropdown -->
+<div class="mp-account-backdrop" id="mp-account-backdrop" onclick="closeAccountMenu()"></div>
+<div class="mp-account-menu" id="mp-account-menu" role="menu" aria-hidden="true">
+  <div class="mp-account-head">
+    <span class="mp-account-head-av" id="mp-account-menu-av">T</span>
+    <div class="mp-account-head-meta">
+      <div class="mp-account-head-name" id="mp-account-menu-name">Teacher</div>
+      <div class="mp-account-head-email" id="mp-account-menu-email">—</div>
+    </div>
+  </div>
+  <button class="mp-account-item" role="menuitem" onclick="closeAccountMenu();switchTab('overview')"><span>👤</span> Overview</button>
+  <button class="mp-account-item" role="menuitem" onclick="closeAccountMenu();switchTab('settings')"><span>⚙️</span> Settings</button>
+  <button class="mp-account-item" role="menuitem" onclick="closeAccountMenu();openPlansSection()"><span>💳</span> Tariffs &amp; plan</button>
+  <div class="mp-account-sep"></div>
+  <button class="mp-account-item danger" role="menuitem" onclick="doLogout()"><span>🚪</span> Sign out</button>
+</div>
 
 <!-- LAYOUT -->
 <div id="layout" class="mp-shell">
