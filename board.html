@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://accounts.google.com">
+<link rel="dns-prefetch" href="https://accounts.google.com">
 <link rel="icon" type="image/png" href="logo-sm.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#CDF24F">
@@ -980,36 +982,43 @@ polite request</textarea>
 <div id="undo-toast"></div>
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
-<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
-  <div id="auth-modal" style="background:#fff;border-radius:12px;padding:28px 26px 24px;width:100%;max-width:400px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
-    <div style="text-align:center;margin-bottom:22px;">
-      <div style="font-size:2.4rem;line-height:1;">📌</div>
-      <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-top:8px;letter-spacing:-.02em;">Teached<em style="color:var(--accent);font-style:normal;">Board</em></div>
-      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:5px;">Sign in to sync your boards</div>
+<div id="auth-overlay" onclick="if(event.target===this)closeAuthModal()">
+  <div id="auth-modal">
+    <button class="auth-close" onclick="closeAuthModal()" aria-label="Close">&#215;</button>
+    <div class="auth-header">
+      <img src="logo-sm.png" alt="TeachEd" class="auth-logo">
+      <div class="auth-brand">Teach<em>Ed</em> <span>Board</span></div>
+      <div id="auth-subtitle" class="auth-sub">Sign in to sync your boards</div>
     </div>
-    <div id="auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
-    <div id="auth-role-row" style="display:none;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+    <div id="auth-err" class="auth-err" style="display:none;"></div>
+    <div id="auth-google-area" style="display:none;margin-bottom:18px;">
+      <div id="auth-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
+      <div class="auth-divider"><span>or</span></div>
+    </div>
+    <div id="auth-role-row" style="display:none;margin-bottom:16px;">
+      <div class="auth-role-label">I am a&hellip;</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')">
-          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
-          <div style="font-size:12px;font-weight:800;color:var(--text);">Teacher</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Create boards & courses</div>
+        <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole(teacher)">
+          <div class="auth-role-emoji">&#129489;&#8205;&#127979;</div>
+          <div class="auth-role-name">Teacher</div>
+          <div class="auth-role-desc">Create &amp; manage</div>
         </div>
-        <div class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')">
-          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🎓</div>
-          <div style="font-size:12px;font-weight:800;color:var(--text);">Student</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Follow & collaborate</div>
+        <div class="auth-role-btn" data-role="student" onclick="selectAuthRole(student)">
+          <div class="auth-role-emoji">&#127891;</div>
+          <div class="auth-role-name">Student</div>
+          <div class="auth-role-desc">Learn &amp; progress</div>
         </div>
       </div>
     </div>
     <div id="auth-fields"></div>
-    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
-    <div style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--text-3);">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
+    <button id="auth-submit" onclick="submitAuth()" class="auth-submit-btn">Sign in</button>
+    <div id="auth-forgot-row" class="auth-forgot-row">
+      <button type="button" onclick="startBoardForgotPassword()" class="auth-forgot-link">Forgot password?</button>
     </div>
-    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);line-height:1;transition:background .12s;">×</div>
+    <div class="auth-toggle-row">
+      <span id="auth-toggle-text">Don’t have an account?</span>
+      <button type="button" onclick="toggleAuthMode()" class="auth-toggle-link" id="auth-toggle-link">Register</button>
+    </div>
   </div>
 </div>
 

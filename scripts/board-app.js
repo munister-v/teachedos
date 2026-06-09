@@ -10504,16 +10504,113 @@ function apiFetch(path, opts = {}) {
   });
 }
 
+
+// ── Board Google Sign-In (lazy) ─────────────────────────────────
+const BOARD_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
+let _boardGsiInit = false;
+
+function _loadBoardGsiScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
+    if (document.getElementById('gsi-script')) {
+      const s = document.getElementById('gsi-script');
+      s.addEventListener('load', resolve, {once:true});
+      s.addEventListener('error', () => reject(new Error('GSI load failed')), {once:true});
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = 'gsi-script'; s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true; s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load Google Sign-In'));
+    document.head.appendChild(s);
+  });
+}
+
+async function _initBoardGsi() {
+  if (_boardGsiInit) return true;
+  try {
+    await _loadBoardGsiScript();
+    google.accounts.id.initialize({
+      client_id: BOARD_GOOGLE_CLIENT_ID,
+      callback: _handleBoardGoogleCredential,
+      auto_select: false, cancel_on_tap_outside: true,
+      context: 'signin', itp_support: true,
+    });
+    _boardGsiInit = true;
+    return true;
+  } catch(e) {
+    console.warn('[board-gsi] init failed:', e.message);
+    return false;
+  }
+}
+
+async function _handleBoardGoogleCredential(response) {
+  const errEl = document.getElementById('auth-err');
+  if (errEl) errEl.style.display = 'none';
+  try { google.accounts.id.cancel(); } catch(_) {}
+  try {
+    const r = await apiFetch('/api/auth/google', {
+      method:'POST', body:{ credential: response.credential, role: selectedRole || 'teacher' }
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
+    setToken(d.token); currentUser = d.user;
+    try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
+    closeAuthModal(); updateAuthUI();
+    if (d.user.role === 'student' && !URL_BOARD_ID) { location.href = 'student.html'; return; }
+    await initUserBoard();
+  } catch(err) {
+    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+  }
+}
+
+async function startBoardForgotPassword() {
+  const email = document.getElementById('af-email') && document.getElementById('af-email').value.trim();
+  const errEl = document.getElementById('auth-err');
+  if (!email) {
+    if (errEl) { errEl.textContent = 'Enter your email first'; errEl.style.display = 'block'; }
+    return;
+  }
+  try {
+    const r = await apiFetch('/api/auth/forgot-password', { method:'POST', body:{ email } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Error');
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    alert('Password reset link sent to ' + email);
+  } catch(err) {
+    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+  }
+}
+
 // ── Auth UI ──────────────────────────────────────────────────
 function openAuthModal(mode = 'login') {
   authMode = mode;
   renderAuthFields();
   const ov = document.getElementById('auth-overlay');
-  ov.style.display = 'flex';
+  ov.classList.add('open'); ov.style.display = 'flex';
   setTimeout(() => document.querySelector('.auth-input')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
+  _initBoardGsi().then(ok => {
+    if (!ok) return;
+    const area = document.getElementById('auth-google-area');
+    const btnWrap = document.getElementById('auth-google-btn');
+    if (!area || !btnWrap) return;
+    area.style.display = 'block'; btnWrap.innerHTML = '';
+    requestAnimationFrame(() => {
+      try {
+        google.accounts.id.renderButton(btnWrap, {
+          type:'standard',theme:'outline',size:'large',
+          shape:'pill',text:'continue_with',width:320,
+          logo_alignment:'center',locale:'en'
+        });
+      } catch(e) { console.warn('[gsi-board]', e.message); }
+    });
+  });
 }
-function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
+function closeAuthModal() {
+  const ov = document.getElementById('auth-overlay');
+  ov.classList.remove('open'); ov.style.display = 'none';
+}
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
 
 function renderAuthFields() {
@@ -10523,6 +10620,8 @@ function renderAuthFields() {
   document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
   document.getElementById('auth-toggle-link').textContent = isLogin ? 'Register' : 'Sign in';
   document.getElementById('auth-role-row').style.display = isLogin ? 'none' : 'block';
+  const forgotRow = document.getElementById('auth-forgot-row');
+  if (forgotRow) forgotRow.style.display = isLogin ? 'block' : 'none';
   const f = document.getElementById('auth-fields');
   f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
     `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
