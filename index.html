@@ -2182,7 +2182,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=117').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=118').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -2402,11 +2402,21 @@ async function obSaveAndFinish() {
 }
 
 function skipOnboarding() {
-  // Per-account flag so a different teacher on this browser still onboards.
-  var email = localStorage.getItem('teachedos_user_email') || 'anon';
-  localStorage.setItem('teachedos_onboarded_' + email, '1');
-  localStorage.removeItem('teachedos_onboarded');
   document.getElementById('onboarding-overlay').style.display = 'none';
+  // Persist server-side so the welcome flow never shows again, on any device.
+  try {
+    var token = localStorage.getItem('teachedos_token');
+    var _API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+    if (token) {
+      fetch(_API + '/api/auth/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ onboarded: true })
+      }).catch(function () {});
+    }
+    var cu = JSON.parse(localStorage.getItem('teachedos_user') || 'null');
+    if (cu) { cu.onboarded = true; localStorage.setItem('teachedos_user', JSON.stringify(cu)); }
+  } catch (e) {}
 }
 
 document.getElementById('onboarding-overlay').addEventListener('click', function(e) {

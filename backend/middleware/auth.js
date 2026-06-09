@@ -9,6 +9,7 @@ pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS zoom_url TEXT`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarded BOOLEAN DEFAULT false`).catch(() => {});
 ensureBillingSchema(pool).catch(() => {});
 
 // Verify JWT, attach req.user with billing, room, and timezone fields.
@@ -22,7 +23,7 @@ async function requireAuth(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET);
     // Light DB check: make sure user still exists
     const { rows } = await pool.query(
-      'SELECT id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode, onboarded, created_at FROM users WHERE id = $1',
       [payload.sub]
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found' });
