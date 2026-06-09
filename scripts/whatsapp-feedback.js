@@ -94,17 +94,20 @@
 
   btn.style.cssText = [
     'position:fixed',
-    'right:24px',
-    'bottom:' + (isMobile ? '80px' : '24px'),
-    'width:52px',
-    'height:52px',
+    'right:16px',
+    // Sit clearly above the bottom tab bar (60px + safe-area) on mobile.
+    'bottom:' + (isMobile ? 'calc(74px + env(safe-area-inset-bottom,0px))' : '24px'),
+    'width:' + (isMobile ? '48px' : '52px'),
+    'height:' + (isMobile ? '48px' : '52px'),
     'border-radius:50%',
     'background:#25D366',
     'display:flex',
     'align-items:center',
     'justify-content:center',
     'cursor:pointer',
-    'z-index:999999',
+    // Below slide-in sidebars (70), backdrops (65), nav (9990) and all modals,
+    // but above normal page content — so it never floats on top of menus/dialogs.
+    'z-index:55',
     'box-shadow:0 4px 20px rgba(37,211,102,.45),0 2px 8px rgba(0,0,0,.18)',
     'transition:transform .18s ease,box-shadow .18s ease',
     'user-select:none',
@@ -144,9 +147,9 @@
 
   /* ── Responsive bottom offset: update on resize ── */
   window.addEventListener('resize', function () {
-    btn.style.bottom = (window.innerWidth < 860 || /Mobi|Android/i.test(navigator.userAgent))
-      ? '80px'
-      : '24px';
+    var mob = window.innerWidth < 860 || /Mobi|Android/i.test(navigator.userAgent);
+    btn.style.bottom = mob ? 'calc(74px + env(safe-area-inset-bottom,0px))' : '24px';
+    btn.style.width = btn.style.height = mob ? '48px' : '52px';
   });
 
   /* ── Inject into DOM when ready ── */
