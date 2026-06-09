@@ -1056,16 +1056,25 @@ async function copyLimitPolicy() {
   }
 }
 
+// Local calendar date (Y-M-D) — never toISOString() for a local target date:
+// UTC conversion shifts the day back for positive-UTC admins in the early hours.
+function _localYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function dateInputAfterMonths(months) {
   const d = new Date();
   d.setMonth(d.getMonth() + Number(months || 0));
-  return d.toISOString().slice(0, 10);
+  return _localYMD(d);
 }
 
 function dateInputAfterDays(days) {
   const d = new Date();
   d.setDate(d.getDate() + Number(days || 0));
-  return d.toISOString().slice(0, 10);
+  return _localYMD(d);
 }
 
 // ── Billing ──────────────────────────────────────────────────────────────

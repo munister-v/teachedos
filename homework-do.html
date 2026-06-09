@@ -286,6 +286,18 @@ function renderSide() {
 
 function showCurrent() {
   const host = document.getElementById('runner-card-host');
+  // Empty assignment guard: avoid "Card 1 of 0" + Infinity% width + a misleading
+  // "card no longer exists" message when there are no required cards.
+  if (!requiredCards.length) {
+    document.getElementById('runner-step').textContent = 'No tasks';
+    const pr = document.querySelector('#runner-progress > div');
+    if (pr) pr.style.width = '0%';
+    host.innerHTML = `<div class="card-empty">This homework has no tasks yet. Ask your teacher to add some.</div>`;
+    document.getElementById('btn-prev').disabled = true;
+    document.getElementById('btn-next').style.display = 'none';
+    document.getElementById('btn-submit').style.display = 'none';
+    return;
+  }
   document.getElementById('runner-step').textContent =
     `Card ${stepIdx+1} of ${requiredCards.length}`;
   const progress = document.querySelector('#runner-progress > div');
