@@ -12403,22 +12403,30 @@ function generateLocalAiLesson(input) {
   };
   const recipe = skillRecipes[input.skill] || skillRecipes.Writing;
   const cleanTopic = input.topic.replace(/\s+/g, ' ').trim();
-  const words = cleanTopic
+  // Lesson-jargon + skill labels we never want surfaced as "target language".
+  const _AI_VOCAB_SKIP = new Set(('lesson lessons class classes unit units topic topics module course writing speaking reading listening grammar vocabulary essay essays paragraph task tasks activity activities exercise strong weak good bad nice basic simple advanced about with from into your their this that these those will would shall could should other another using used uses make makes making student students teacher teachers learner learners english language skill skills practice practise level levels intermediate elementary beginner part plan board').split(/\s+/));
+  const topicWords = cleanTopic.toLowerCase()
     .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 3)
-    .slice(0, 8);
-  const memoryWords = `${input.teacherMemory} ${input.studentMemory} ${input.mistakes} ${input.source}`
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 4)
-    .slice(0, 12);
+    .filter(w => w.length > 3 && !_AI_VOCAB_SKIP.has(w) && !_TT_STOP.has(w));
+  // Skill-specific FUNCTIONAL language banks — genuinely teachable target
+  // language for the lesson, not just words sliced from the title.
+  const _AI_SKILL_LANG = {
+    Writing:   ['In my opinion, …', 'Firstly / Secondly / Finally', 'Furthermore, …', 'On the other hand, …', 'For example, …', 'As a result, …', 'In conclusion, …', 'This clearly shows that …'],
+    Speaking:  ['What do you think?', 'I see your point, but …', 'To be honest, …', 'It really depends on …', 'For instance, …', 'I completely agree because …', 'I’m not so sure about that', 'That’s a good point'],
+    Vocabulary:['collocation', 'synonym / antonym', 'word family', 'fixed expression', 'register (formal / informal)', 'word in context', 'example sentence', 'common confusion'],
+    Grammar:   ['affirmative / negative / question', 'time markers', 'common exception', 'short-answer form', 'spoken vs written use', 'typical learner error', 'contrast with similar form', 'example in context'],
+    Reading:   ['skim for gist', 'scan for detail', 'main idea', 'supporting detail', 'infer from context', 'author’s purpose', 'topic sentence', 'reference words (it / this / they)'],
+    Listening: ['listen for gist', 'key words', 'signpost language', 'predict content', 'note key points', 'paraphrase what you hear', 'speaker’s attitude', 'catch weak forms'],
+  };
+  const skillLang = _AI_SKILL_LANG[input.skill] || _AI_SKILL_LANG.Writing;
   const mistakeItems = input.mistakes
     .split(/[,;\n]/)
     .map(x => x.trim())
     .filter(Boolean)
     .slice(0, 6);
-  const vocabulary = [...new Set([...(words.length ? words : ['claim','reason','example','contrast','conclusion']), ...memoryWords].slice(0, 10))];
+  // Target language = skill scaffolding (primary) + up to 3 genuine topic words.
+  const vocabulary = [...new Set([...skillLang.slice(0, 6), ...topicWords.slice(0, 3)])].slice(0, 8);
   const memoryHints = [
     input.teacherMemory ? `Teacher style: ${input.teacherMemory}` : '',
     input.studentMemory ? `Class profile: ${input.studentMemory}` : '',
@@ -12452,7 +12460,7 @@ function generateLocalAiLesson(input) {
   }[input.tone] || 'supportive';
   const assessmentCriteria = [
     input.skill === 'Writing' ? 'Clear position and logical paragraphing' : 'Clear message and active participation',
-    `Accurate use of ${vocabulary.slice(0, 3).join(', ') || 'target language'}`,
+    `Accurate use of ${topicWords.slice(0, 3).join(', ') || 'today’s target language'}`,
     mistakeItems[0] ? `Avoid: ${mistakeItems[0]}` : 'Self-correct at least one sentence',
   ];
   const teacherScript = [
@@ -12536,93 +12544,110 @@ function applyAiAssistantToBoard() {
   if (!result) return;
   snapshot();
   const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
-  const frame = addCard('frame', center.x - 460, center.y - 260, {
-    title: result.title || 'AI Lesson Flow',
-    bg: 'rgba(202,255,50,.08)',
-    border: 'rgba(236,72,153,.32)',
-  }, 920, 560);
-  const lesson = addCard('lesson', center.x - 430, center.y - 220, {
-    title: result.title || 'AI Lesson',
-    status: 'available',
-    level: document.getElementById('ai-level')?.value || 'B1',
-    skill: document.getElementById('ai-skill')?.value || 'Writing',
-    duration: document.getElementById('ai-duration')?.value || '45 min',
+  // ── Clean 3-column packed layout: every card is sized to its own text and
+  //    stacked with a fixed gap, so nothing ever overlaps. ──────────────────
+  const PAD = 32, HEAD = 60, GAP = 18, LW = 300, MW = 300, RW = 252;
+  const estTextH = (t, w, base) => {
+    const cpl = Math.max(12, Math.floor((w - 28) / 6.9));
+    const lines = String(t || '').split('\n')
+      .reduce((s, l) => s + Math.max(1, Math.ceil((l.length || 1) / cpl)), 0);
+    return Math.max(base || 90, 46 + lines * 19);
+  };
+  const lvl = document.getElementById('ai-level')?.value || 'B1';
+  const skl = document.getElementById('ai-skill')?.value || 'Writing';
+  const dur = document.getElementById('ai-duration')?.value || '45 min';
+
+  const left = [], mid = [], right = [];
+
+  left.push({ type: 'lesson', w: LW, h: 214, isLesson: true, data: {
+    title: result.title || 'AI Lesson', status: 'available', level: lvl, skill: skl, duration: dur,
     desc: result.summary || '',
     objectives: (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
     attachments: [],
     notes: ['Generated by TeachEd AI Assistant local memory mode. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
-  });
-  (result.stages || []).slice(0, 5).forEach((stage, idx) => {
-    const x = center.x - 130 + (idx % 2) * 300;
-    const y = center.y - 220 + Math.floor(idx / 2) * 145;
-    addCard('text', x, y, defaultTextData({
-      text: `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
-      bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
-      textColor: '#15131d',
-      fontFamily: 'var(--font)',
-      align: 'left',
-    }), 260, 112);
-  });
+  }});
   if (result.vocabulary?.length) {
-    addCard('checklist', center.x - 430, center.y + 80, {
-      title: 'Target language',
-      items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
-    }, 250, 230);
-  }
-  if (result.mistakeItems?.length || result.memoryHints?.length) {
-    addCard('note', center.x - 130, center.y + 75, {
-      title: 'AI Memory Notes',
-      text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n'),
-    }, 270, 190);
-  }
-  if (result.modeAddons?.length) {
-    addCard('checklist', center.x + 460, center.y - 220, {
-      title: 'Smart extras',
-      items: result.modeAddons.map(text => ({ text, done: false })),
-    }, 220, 170);
-  }
-  if (result.warmupPrompts?.length) {
-    addCard('sticky', center.x + 465, center.y - 20, {
-      text: result.warmupPrompts.join('\n'),
-      color: STICKY_COLORS[1] || '#d9f99d',
-    }, 220, 190);
-  }
-  if (result.assessmentCriteria?.length) {
-    addCard('checklist', center.x + 465, center.y + 195, {
-      title: 'Success criteria',
-      items: result.assessmentCriteria.map(text => ({ text, done: false })),
-    }, 230, 180);
+    left.push({ type: 'checklist', w: LW, h: 58 + Math.min(result.vocabulary.length, 8) * 28, data: {
+      title: '🎯 Target language', items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
+    }});
   }
   if (result.teacherScript?.length) {
-    addCard('note', center.x - 430, center.y + 330, {
-      title: 'Teacher script',
-      text: result.teacherScript.join('\n'),
-    }, 300, 190);
+    const t = result.teacherScript.join('\n');
+    left.push({ type: 'note', w: LW, h: estTextH(t, LW, 130), data: { title: '🗒 Teacher script', text: t }});
   }
-  if (result.challenge) {
-    addCard('sticky', center.x - 90, center.y + 330, {
-      text: 'Challenge:\n' + result.challenge,
-      color: STICKY_COLORS[2] || '#fde68a',
-    }, 240, 160);
+
+  (result.stages || []).slice(0, 6).forEach((stage, idx) => {
+    const t = `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`;
+    mid.push({ type: 'text', w: MW, h: estTextH(t, MW, 100), data: defaultTextData({
+      text: t, bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
+      textColor: '#15131d', fontFamily: 'var(--font)', align: 'left',
+    })});
+  });
+
+  if (result.modeAddons?.length) {
+    right.push({ type: 'checklist', w: RW, h: 58 + result.modeAddons.length * 28, data: {
+      title: '✨ Smart extras', items: result.modeAddons.map(text => ({ text, done: false })),
+    }});
+  }
+  if (result.warmupPrompts?.length) {
+    const t = result.warmupPrompts.join('\n');
+    right.push({ type: 'sticky', w: RW, h: estTextH(t, RW, 130), data: {
+      text: '🔥 Warm-up prompts\n' + t, color: STICKY_COLORS[1] || '#d9f99d',
+    }});
+  }
+  if (result.assessmentCriteria?.length) {
+    right.push({ type: 'checklist', w: RW, h: 58 + result.assessmentCriteria.length * 32, data: {
+      title: '✅ Success criteria', items: result.assessmentCriteria.map(text => ({ text, done: false })),
+    }});
   }
   if (result.homework) {
-    addCard('assignment', center.x + 170, center.y + 75, {
-      title: 'AI Homework',
-      type: 'Mixed',
-      maxScore: 100,
-      deadline: '',
-      desc: result.homework,
-      submitted: 0,
-      total: 0,
-    }, 260, 190);
+    right.push({ type: 'assignment', w: RW, h: estTextH(result.homework, RW, 156), data: {
+      title: '📚 AI Homework', type: 'Mixed', maxScore: 100, deadline: '', desc: result.homework,
+      submitted: 0, total: 0, level: lvl,
+    }});
   }
-  if (frame?.id && frame.data) {
+  if (result.challenge) {
+    const t = '🏆 Challenge\n' + result.challenge;
+    right.push({ type: 'sticky', w: RW, h: estTextH(t, RW, 110), data: { text: t, color: STICKY_COLORS[2] || '#fde68a' }});
+  }
+  if (result.mistakeItems?.length || result.memoryHints?.length) {
+    const t = [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n');
+    right.push({ type: 'note', w: RW, h: estTextH(t, RW, 110), data: { title: '🧠 AI Memory notes', text: t }});
+  }
+
+  const colH = arr => arr.reduce((s, it) => s + it.h, 0) + Math.max(0, arr.length - 1) * GAP;
+  const FW = PAD + LW + GAP + MW + GAP + RW + PAD;
+  const FH = HEAD + Math.max(colH(left), colH(mid), colH(right)) + PAD;
+  const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
+
+  const frame = addCard('frame', x0, y0, {
+    title: result.title || 'AI Lesson Flow', bg: 'rgba(202,255,50,.06)', border: 'rgba(236,72,153,.32)', childIds: [],
+  }, FW, FH);
+
+  let lessonCard = null;
+  const placeCol = (arr, colX) => {
+    let cy = y0 + HEAD;
+    for (const it of arr) {
+      const card = addCard(it.type, colX, cy, it.data, it.w, it.h);
+      if (it.isLesson) lessonCard = card;
+      if (frame && card) setCardParentFrame?.(card, frame);
+      cy += it.h + GAP;
+    }
+  };
+  if (typeof _suppressSnapshot === 'number') _suppressSnapshot++;
+  try {
+    placeCol(left,  x0 + PAD);
+    placeCol(mid,   x0 + PAD + LW + GAP);
+    placeCol(right, x0 + PAD + LW + GAP + MW + GAP);
+  } finally { if (typeof _suppressSnapshot === 'number') _suppressSnapshot--; }
+  if (typeof renumberFrames === 'function') renumberFrames();
+  if (frame?.id && frame.data && !frame.data.childIds?.length) {
     frame.data.childIds = state.cards
       .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
       .map(c => c.id);
   }
   clearSelection();
-  if (lesson?.id) selectCard(lesson.id);
+  if (lessonCard?.id) selectCard(lessonCard.id);
   renderAllArrows?.();
   scheduleSave(); saveLocal?.();
   closeAiAssistantPanel();
