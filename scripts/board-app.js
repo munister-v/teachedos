@@ -1645,6 +1645,61 @@ function renderAssignment(el, card) {
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
 // revealed answers) — when true it's the teacher key.
+// Render a reading passage block (shared by worksheet card + print view).
+// opts: { editable, cardId, print }
+function _ttPassageHTML(passage, accent, opts) {
+  opts = opts || {};
+  if (!passage || (!passage.text && !passage.title)) return '';
+  const title = passage.title ? esc(passage.title) : 'Reading text';
+  const text  = String(passage.text || '');
+  const paras = text.split(/\n+/).map(p => p.trim()).filter(Boolean);
+  const bodyHtml = paras.map(p => `<p>${esc(p)}</p>`).join('') || `<p>${esc(text)}</p>`;
+  const vocab = Array.isArray(passage.vocab) ? passage.vocab.filter(v => v && v.word) : [];
+  const wc = text.split(/\s+/).filter(Boolean).length;
+  const vocabHtml = vocab.length
+    ? `<div class="ws-passage-vocab"><span class="ws-passage-vocab-h">Key words</span>${vocab.map(v =>
+        `<span class="ws-passage-word"><b>${esc(v.word)}</b>${v.gloss ? ' — ' + esc(v.gloss) : ''}</span>`).join('')}</div>`
+    : '';
+  if (opts.print) {
+    return `<div class="ws-passage print"><div class="ws-passage-title">${title}</div>` +
+           `<div class="ws-passage-body">${bodyHtml}</div>${vocabHtml}</div>`;
+  }
+  const editBtn = (opts.editable && opts.cardId)
+    ? `<button class="ws-passage-edit" onclick="_ttTogglePassageEdit('${opts.cardId}')" title="Edit the reading text">✏️ Edit text</button>`
+    : '';
+  return `<div class="ws-passage" data-card-id="${opts.cardId || ''}">
+      <div class="ws-passage-head"><span class="ws-passage-tag" style="background:${accent}18;color:${accent}">📖 Reading${wc ? ' · ' + wc + ' words' : ''}</span>${editBtn}</div>
+      <div class="ws-passage-title">${title}</div>
+      <div class="ws-passage-body" id="ws-passage-body-${opts.cardId || ''}">${bodyHtml}</div>
+      ${vocabHtml}
+    </div>`;
+}
+
+// Toggle inline editing of a worksheet's reading passage; save on second click.
+function _ttTogglePassageEdit(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const bodyEl = document.getElementById('ws-passage-body-' + cardId);
+  const btn = document.querySelector(`.ws-passage[data-card-id="${cardId}"] .ws-passage-edit`);
+  if (!bodyEl) return;
+  const editing = bodyEl.getAttribute('contenteditable') === 'true';
+  if (editing) {
+    const text = bodyEl.innerText.replace(/\n{3,}/g, '\n\n').trim();
+    card.data.passage = card.data.passage || {};
+    card.data.passage.text = text;
+    bodyEl.setAttribute('contenteditable', 'false');
+    bodyEl.classList.remove('editing');
+    if (btn) btn.textContent = '✏️ Edit text';
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    toast('📖 Reading text saved');
+  } else {
+    bodyEl.setAttribute('contenteditable', 'true');
+    bodyEl.classList.add('editing');
+    bodyEl.focus();
+    if (btn) btn.textContent = '✅ Save text';
+  }
+}
+
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -1711,7 +1766,8 @@ function renderWorksheet(el, card) {
     </div>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
+  const passageHtml = _ttPassageHTML(d.passage, accent, { editable: true, cardId: card.id });
+  body.innerHTML = strip + passageHtml + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
 
@@ -1735,6 +1791,7 @@ function printWorksheet(cardId) {
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
+  const printPassage = _ttPassageHTML(d.passage, accent, { print: true });
   const css = `
     *{box-sizing:border-box}
     body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
@@ -1757,9 +1814,16 @@ function printWorksheet(cardId) {
     .ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}
     .ws-l{font-weight:700;color:${accent}}
     .ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    .ws-passage{border:1px solid #e6e7ee;border-left:3px solid ${accent};border-radius:10px;padding:14px 16px;margin-bottom:16px;background:#fcfcfe;page-break-inside:avoid}
+    .ws-passage-title{font-size:15px;font-weight:800;margin-bottom:6px;color:#171420}
+    .ws-passage-body{font-size:13.5px;line-height:1.7;color:#2b2733}
+    .ws-passage-body p{margin:0 0 8px}
+    .ws-passage-vocab{margin-top:10px;padding-top:9px;border-top:1px dashed #d9dbe6;font-size:12px;line-height:1.7;color:#555}
+    .ws-passage-vocab-h{display:block;font:700 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#9a93a6;margin-bottom:3px}
+    .ws-passage-word{display:block}
     @media print{body{padding:0}@page{margin:1.6cm}}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
-    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
+    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${printPassage}${listHtml}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -7872,6 +7936,16 @@ function _ttBuildFromAI(toolId, input, items) {
 }
 
 function generateTeacherToolLocal(input){
+  const out = _ttLocalRaw(input);
+  const RP = ['abcd-text','true-false','gist-detail','three-titles','open-questions','choose-summary'];
+  const id0 = input.tool && input.tool.id;
+  if (out && out.boardKind === 'quiz' && !out.passage && RP.includes(id0)
+      && input.source && String(input.source).trim().length > 40) {
+    out.passage = { title: String(input.topic || 'Reading text'), text: String(input.source).trim(), vocab: [] };
+  }
+  return out;
+}
+function _ttLocalRaw(input){
   const id = input.tool && input.tool.id;
   // ── quality local generators ─────────────────────────────────────
   if (id === 'abcd-text')             return _ttGenAbcd(input);
@@ -8041,7 +8115,10 @@ function renderTeacherToolLocalPreview(out){
 
   // quiz
   if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
-  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _ttEditHint + out.questions.map((q, i) => {
+  const _passagePrev = (out.passage && (out.passage.text || out.passage.title))
+    ? `<div class="tt-passage"><div class="tt-passage-tag">📖 Reading${out.passage.text ? ' · ' + out.passage.text.split(/\s+/).filter(Boolean).length + ' words' : ''}</div>${out.passage.title ? `<div class="tt-passage-title">${esc(out.passage.title)}</div>` : ''}<div class="tt-passage-body">${esc(out.passage.text || '').replace(/\n+/g, '<br><br>')}</div></div>`
+    : '';
+  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _passagePrev + _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
     if (q.type === 'mcq') {
       ans = `<div class="tt-opts">${
@@ -8172,6 +8249,7 @@ function _ttPlaceWorksheetOnBoard(output){
     questions: output.questions,
     items: output.items,
     cards: output.cards,
+    passage: output.passage || null,
     _ttSrc: 1,  // marks this card as Teacher Tool generated
   }, W, H);
   if (card) {
@@ -8201,6 +8279,7 @@ function _ttPlaceQuizOnBoard(output){
     deadline: '',
     desc: `Auto-built from your text · ${output.questions.length} questions.`,
     questions: output.questions,
+    passage: output.passage || null,
     submitted: 0,
     total: 0,
     _ttSrc: 1,
@@ -15387,6 +15466,7 @@ function openStudentQuiz(cardId) {
       </div>
       <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/qs.length)*100}%"></div></div>
       <div class="quiz-body">
+        ${(d.passage && d.passage.text) ? `<details class="quiz-passage" open><summary>📖 Read the text${d.passage.title ? ' · ' + esc(d.passage.title) : ''}</summary><div class="quiz-passage-body">${esc(d.passage.text).replace(/\n+/g, '<br><br>')}</div></details>` : ''}
         <div class="quiz-question">${esc(q.text||'')}</div>
         <div class="quiz-input-area" id="quiz-input-area">${inputHtml}</div>
       </div>
