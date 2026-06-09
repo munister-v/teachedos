@@ -378,3 +378,91 @@ button, a, [role="button"], summary {
   animation: tx-spin .7s linear infinite;
 }
 @keyframes tx-spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLL + ADAPTIVE UPGRADE  (loaded on every page)
+   Smooth momentum, snap on horizontal strips, scroll-chaining
+   containment, sticky-nav anchor offset, refined scrollbars, and
+   fluid breakpoints. All motion is gated by prefers-reduced-motion.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth in-page scrolling + anchor offset under sticky navs ──
+   Anchored jumps (#section links, scrollIntoView) land below the
+   sticky top nav instead of being hidden under it. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 64px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ── Momentum + hidden scrollbars on EVERY known horizontal strip ──
+   One place, so new pages inherit the polished behaviour. */
+.mp-hscroll, .mp-filters, .mp-stats,
+.preset-strip, .level-tabs, .hero-chips, .action-strip,
+.chips, .view-toggle, .quick-row, .lib-actions, .tbuilder-choice-row,
+[class*="hscroll"], [class*="-strip"], [class*="-tabs"], [data-scroll-x] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* ── Scroll-snap on horizontal card rails (gentle "proximity") ──
+   Cards settle to a clean left edge without fighting the user. */
+.mp-hscroll, #nav, [data-snap-x] {
+  scroll-snap-type: x proximity;
+  scroll-padding-left: 18px;
+}
+.mp-hscroll > *, #nav > *, [data-snap-x] > * {
+  scroll-snap-align: start;
+}
+
+/* ── Scroll-chaining containment ──
+   Scrolling inside a modal, sheet, menu or panel never "leaks" into
+   the page behind it (a classic mobile annoyance). */
+.modal, .modal-card, .modal-panel, .modal-box,
+.mp-account-menu, .lc-dialog, .sheet, .drawer,
+.result .panel-body, .tbuilder-box, .preview .panel-body,
+[role="dialog"], [aria-modal="true"] {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Refined scrollbars on pointer devices (desktop / trackpad) ──
+   Thin, subtle, theme-aware — replaces the chunky default bars. */
+@media (hover: hover) and (pointer: fine) {
+  * { scrollbar-width: thin; scrollbar-color: rgba(120,120,135,.4) transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(120,120,135,.35);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: rgba(120,120,135,.6); background-clip: content-box; }
+  [data-theme="dark"] * { scrollbar-color: rgba(200,200,215,.32) transparent; }
+  [data-theme="dark"] *::-webkit-scrollbar-thumb { background: rgba(200,200,215,.28); background-clip: content-box; }
+}
+
+/* ── Tablet adaptivity (861–1180px) ──
+   Bridge the gap between the phone layout (≤860) and the full desktop
+   layout so mid-size screens / split-view don't get a stretched phone
+   UI or a cramped desktop one. Safe, layout-agnostic tweaks only. */
+@media (min-width: 861px) and (max-width: 1180px) {
+  /* Keep long-form text readable — cap line length on prose containers */
+  .doc-section p, .worksheet-body, .panel-sub, .hero p { max-width: 70ch; }
+  /* Generic 3-up grids relax to 2-up on tablets if a page didn't define it */
+  .grid-3:not([style*="grid-template"]) { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+/* ── Fluid type on large phones / small tablets (xs→sm) ──
+   Slightly larger base above the phone band for comfortable reading. */
+@media (min-width: 861px) and (max-width: 1024px) {
+  html { font-size: 15.5px; }
+}
+
+/* ── Overscroll guard for the app body on every viewport ──
+   Stops the whole page rubber-banding when a nested region is at its
+   scroll limit (keeps fixed headers/navs rock-steady). */
+body { overscroll-behavior-y: none; }
