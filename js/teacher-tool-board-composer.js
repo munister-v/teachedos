@@ -392,10 +392,43 @@ function _ttPlaceCardFlowBoard(output, meta) {
   return true;
 }
 
+// ── Reading worksheet section styling ───────────────────────────────────────
+// Each block is an inline-styled card (uppercase accent label, white panel, left
+// accent rule, soft shadow, comfortable padding) rendered inside a transparent
+// text card so the whole thing reads like a printed worksheet but stays editable.
+function _ttReadingSection(label, bodyHtml, accent, bg) {
+  return `<div style="box-sizing:border-box;background:${bg || '#ffffff'};border:1px solid rgba(17,24,39,.09);border-left:4px solid ${accent};border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(17,24,39,.05);font-family:var(--font)">`
+    + `<div style="font:800 10.5px var(--font);letter-spacing:.09em;text-transform:uppercase;color:${accent};margin:0 0 11px">${esc(label)}</div>`
+    + bodyHtml + `</div>`;
+}
+function _ttReadingTextBody(text) {
+  const raw = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  let title = '';
+  if (raw.length > 1 && raw[0].length <= 64 && !/[.!?:]$/.test(raw[0])) title = raw.shift();
+  const titleHtml = title ? `<div style="font:800 19px var(--font);color:#0f172a;line-height:1.3;margin:0 0 12px">${_ttMdInline(title)}</div>` : '';
+  const body = raw.map(p => `<p style="margin:0 0 11px">${_ttMdInline(p)}</p>`).join('');
+  return `${titleHtml}<div style="font:400 15.5px/1.72 var(--font);color:#232830">${body}</div>`;
+}
+function _ttReadingGlossaryBody(text) {
+  return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(r => {
+    const parts = r.split(/\s+[—–-]\s+/);
+    if (parts.length >= 2) {
+      const w = parts.shift();
+      return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px"><span style="font-weight:700;color:#0f172a">${_ttMdInline(w)}</span><span style="color:#5b6472"> — ${_ttMdInline(parts.join(' — '))}</span></div>`;
+    }
+    return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px;color:#232830">${_ttMdInline(r)}</div>`;
+  }).join('');
+}
+function _ttReadingQuestionsBody(text) {
+  return `<div style="font:400 14.5px/1.6 var(--font);color:#232830">`
+    + String(text || '').split('\n').map(l => l.trim()).filter(Boolean)
+        .map(r => `<div style="margin:0 0 8px">${_ttMdInline(r)}</div>`).join('')
+    + `</div>`;
+}
+
 // Reading-text lesson: a real reading worksheet on the board, not a sticky grid.
 // Left column flows pre-reading → the full text → post-reading; the right column
-// holds the glossary and a class timer. Text cards (Apple system font, white,
-// **bold** target words) auto-size so the whole text shows.
+// holds the glossary and a class timer.
 function _ttPlaceReadingBoard(output, meta) {
   const cards = (output.cards || []).filter(Boolean);
   if (!cards.length) return false;
@@ -409,26 +442,29 @@ function _ttPlaceReadingBoard(output, meta) {
   const used = new Set([beforeCard, afterCard, glossaryCard, readingCard].filter(Boolean));
   const extras = cards.filter(c => !used.has(c));
 
-  const PAD = 28, GAP = 18, HEADER_H = 92, COL_GAP = 24;
+  const PAD = 28, GAP = 18, HEADER_H = 60, COL_GAP = 24;
   const LEFT_W = 660, RIGHT_W = 320;
   const FRAME_W = PAD * 2 + LEFT_W + COL_GAP + RIGHT_W;
+  const accent = meta.frameBorder;
+  const cleanTitle = c => String(c.title || '').replace(/^[^\w]+/, '').trim();
 
-  const beforeH = beforeCard ? _ttTextCardHeight(beforeCard.text, LEFT_W, 15) : 0;
-  const textH   = readingCard ? Math.max(240, _ttTextCardHeight(readingCard.text, LEFT_W, 16)) : 0;
-  const afterH  = afterCard ? _ttTextCardHeight(afterCard.text, LEFT_W, 15) : 0;
-  const extrasH = extras.reduce((s, c) => s + _ttTextCardHeight(c.text, LEFT_W, 14) + GAP, 0);
+  // Heights: pass the full card text + chrome allowance so the styled panel (label
+  // + padding + accent border) fits without an internal scrollbar.
+  const beforeH = beforeCard ? _ttTextCardHeight(beforeCard.text, LEFT_W, 14.5, 30) : 0;
+  const textH   = readingCard ? Math.max(260, _ttTextCardHeight(readingCard.text, LEFT_W, 15.5, 56)) : 0;
+  const afterH  = afterCard ? _ttTextCardHeight(afterCard.text, LEFT_W, 14.5, 30) : 0;
+  const extrasH = extras.reduce((s, c) => s + _ttTextCardHeight(c.text, LEFT_W, 14, 30) + GAP, 0);
   const leftColH = [beforeH, textH, afterH].filter(Boolean).reduce((s, h) => s + h + GAP, 0) + extrasH;
 
   const TIMER_H = 170;
-  const glossH = glossaryCard ? Math.max(200, _ttTextCardHeight(glossaryCard.text, RIGHT_W, 14)) : 0;
+  const glossH = glossaryCard ? Math.max(210, _ttTextCardHeight(glossaryCard.text, RIGHT_W, 13.5, 30)) : 0;
   const rightColH = (glossH ? glossH + GAP : 0) + TIMER_H;
 
   const FRAME_H = HEADER_H + Math.max(leftColH, rightColH) + PAD;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
   const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
-  const accent = meta.frameBorder;
-  const titled = (c, body) => `<strong style="color:${accent};font-size:1.05em">${esc(c.title || '')}</strong><br><br>${body}`;
+  const wordCount = readingCard ? (String(readingCard.text || '').match(/\b[\w'-]+\b/g) || []).length : 0;
 
   snapshot(); _suppressSnapshot++;
   let frame;
@@ -440,19 +476,22 @@ function _ttPlaceReadingBoard(output, meta) {
       childIds: [],
     }, FRAME_W, FRAME_H);
 
-    _ttAddTextCard(frame, x0 + PAD, y0 + 54, FRAME_W - PAD * 2, 54,
-      `${output.title}\nReading · ${output.level || 'B1'}`, { textColor: accent, fontSize: 14 });
+    // Slim context strip (the frame title carries the name).
+    _ttAddTextCard(frame, x0 + PAD, y0 + 50, FRAME_W - PAD * 2, 30, null, {
+      html: `<div style="font:800 11px var(--font);letter-spacing:.07em;color:${accent}">READING · ${esc(output.level || 'B1')}${wordCount ? ` · ${wordCount} WORDS` : ''}</div>`,
+      bgColor: 'transparent',
+    });
 
     // Left column: Before → Text → After → extras
-    const leftX = x0 + PAD; let ly = y0 + HEADER_H + 14;
-    if (beforeCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, beforeH, null, { html: titled(beforeCard, _ttMdToHtml(beforeCard.text)), fontSize: 15, bgColor: meta.pale }); ly += beforeH + GAP; }
-    if (readingCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, textH, null, { html: titled(readingCard, _ttMdToHtml(readingCard.text)), fontSize: 16 }); ly += textH + GAP; }
-    if (afterCard)  { _ttAddTextCard(frame, leftX, ly, LEFT_W, afterH, null, { html: titled(afterCard, _ttMdToHtml(afterCard.text)), fontSize: 15, bgColor: meta.pale }); ly += afterH + GAP; }
-    extras.forEach(c => { const h = _ttTextCardHeight(c.text, LEFT_W, 14); _ttAddTextCard(frame, leftX, ly, LEFT_W, h, null, { html: titled(c, _ttMdToHtml(c.text)), fontSize: 14 }); ly += h + GAP; });
+    const leftX = x0 + PAD; let ly = y0 + HEADER_H + 12;
+    if (beforeCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, beforeH, null, { html: _ttReadingSection(cleanTitle(beforeCard), _ttReadingQuestionsBody(beforeCard.text), accent, '#F7FBFF'), bgColor: 'transparent' }); ly += beforeH + GAP; }
+    if (readingCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, textH, null, { html: _ttReadingSection(cleanTitle(readingCard) || 'Reading text', _ttReadingTextBody(readingCard.text), accent), bgColor: 'transparent' }); ly += textH + GAP; }
+    if (afterCard)  { _ttAddTextCard(frame, leftX, ly, LEFT_W, afterH, null, { html: _ttReadingSection(cleanTitle(afterCard), _ttReadingQuestionsBody(afterCard.text), accent, '#F7FBFF'), bgColor: 'transparent' }); ly += afterH + GAP; }
+    extras.forEach(c => { const h = _ttTextCardHeight(c.text, LEFT_W, 14, 30); _ttAddTextCard(frame, leftX, ly, LEFT_W, h, null, { html: _ttReadingSection(cleanTitle(c), _ttReadingQuestionsBody(c.text), accent), bgColor: 'transparent' }); ly += h + GAP; });
 
     // Right column: Glossary → Timer
-    const rightX = x0 + PAD + LEFT_W + COL_GAP; let ry = y0 + HEADER_H + 14;
-    if (glossaryCard) { _ttAddTextCard(frame, rightX, ry, RIGHT_W, glossH, null, { html: titled(glossaryCard, _ttMdToHtml(glossaryCard.text)), fontSize: 14, bgColor: '#FFFDF4' }); ry += glossH + GAP; }
+    const rightX = x0 + PAD + LEFT_W + COL_GAP; let ry = y0 + HEADER_H + 12;
+    if (glossaryCard) { _ttAddTextCard(frame, rightX, ry, RIGHT_W, glossH, null, { html: _ttReadingSection(cleanTitle(glossaryCard) || 'Glossary', _ttReadingGlossaryBody(glossaryCard.text), accent, '#FFFDF4'), bgColor: 'transparent' }); ry += glossH + GAP; }
     _ttAddTimerCard(frame, rightX, ry, 8);
   } finally {
     _suppressSnapshot--;

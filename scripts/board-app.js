@@ -1825,6 +1825,13 @@ function _ttMdToHtml(s){
 }
 // Plain-text fallback: just strip the ** markers (for places that can't show HTML).
 function _ttStripMd(s){ return String(s||'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1'); }
+// Inline variant: escape + **bold**→<strong>, but NO newline→<br> (caller controls
+// block layout, e.g. wrapping each line/paragraph in its own element).
+function _ttMdInline(s){
+  return esc(s || '')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>');
+}
 
 function textFontOptions() {
   return [
