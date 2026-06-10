@@ -45,16 +45,32 @@ function _ttBoardComposerMeta(output) {
 }
 
 function _ttAddTextCard(frame, x, y, w, h, text, opts = {}) {
-  const card = addCard('text', x, y, defaultTextData({
-    text,
+  const data = defaultTextData({
+    text: text != null ? text : (opts.html ? '' : ''),
     textColor: opts.textColor || '#111827',
     bgColor: opts.bgColor == null ? '#ffffff' : opts.bgColor,
     align: opts.align || 'left',
     fontSize: opts.fontSize || 14,
     fontFamily: opts.fontFamily || 'var(--font)',
-  }), w, h);
+  });
+  // Rich HTML (e.g. **bold** target words rendered as <strong>) when provided.
+  if (opts.html != null) data.html = opts.html;
+  const card = addCard('text', x, y, data, w, h);
   if (frame && card) setCardParentFrame?.(card, frame);
   return card;
+}
+
+// Rough pixel height for a text card so generated reading texts show in full
+// instead of being clipped to a fixed sticky height.
+function _ttTextCardHeight(text, w, fontSize = 15, extra = 0) {
+  const fs = fontSize;
+  const charsPerLine = Math.max(10, Math.floor((w - 36) / (fs * 0.515)));
+  let rows = 0;
+  String(text || '').split('\n').forEach(ln => {
+    rows += Math.max(1, Math.ceil((ln.length || 1) / charsPerLine));
+  });
+  const lineH = fs * 1.55;
+  return Math.round(rows * lineH * 1.2 + 64 + extra); // title + padding + 20% safety (editor scrolls if short)
 }
 
 function _ttAddStickyCard(frame, x, y, w, h, text, color = '#FFF9C4') {
@@ -376,6 +392,75 @@ function _ttPlaceCardFlowBoard(output, meta) {
   return true;
 }
 
+// Reading-text lesson: a real reading worksheet on the board, not a sticky grid.
+// Left column flows pre-reading → the full text → post-reading; the right column
+// holds the glossary and a class timer. Text cards (Apple system font, white,
+// **bold** target words) auto-size so the whole text shows.
+function _ttPlaceReadingBoard(output, meta) {
+  const cards = (output.cards || []).filter(Boolean);
+  if (!cards.length) return false;
+  const find = re => cards.find(c => re.test(String(c.title || '')));
+  const beforeCard   = find(/before reading|pre-?reading|pre-?listening|lead-?in|prediction|warm/i);
+  const afterCard    = find(/after reading|after listening|post-?reading|post-?listening|comprehension|discussion/i);
+  const glossaryCard = find(/glossary|vocabulary|key words|word list/i);
+  const readingCard  = find(/reading text|generated text|^.{0,3}\s*text$|the text/i)
+    || cards.filter(c => c !== beforeCard && c !== afterCard && c !== glossaryCard)
+            .reduce((a, b) => (String((b && b.text) || '').length > String((a && a.text) || '').length ? b : a), null);
+  const used = new Set([beforeCard, afterCard, glossaryCard, readingCard].filter(Boolean));
+  const extras = cards.filter(c => !used.has(c));
+
+  const PAD = 28, GAP = 18, HEADER_H = 92, COL_GAP = 24;
+  const LEFT_W = 660, RIGHT_W = 320;
+  const FRAME_W = PAD * 2 + LEFT_W + COL_GAP + RIGHT_W;
+
+  const beforeH = beforeCard ? _ttTextCardHeight(beforeCard.text, LEFT_W, 15) : 0;
+  const textH   = readingCard ? Math.max(240, _ttTextCardHeight(readingCard.text, LEFT_W, 16)) : 0;
+  const afterH  = afterCard ? _ttTextCardHeight(afterCard.text, LEFT_W, 15) : 0;
+  const extrasH = extras.reduce((s, c) => s + _ttTextCardHeight(c.text, LEFT_W, 14) + GAP, 0);
+  const leftColH = [beforeH, textH, afterH].filter(Boolean).reduce((s, h) => s + h + GAP, 0) + extrasH;
+
+  const TIMER_H = 170;
+  const glossH = glossaryCard ? Math.max(200, _ttTextCardHeight(glossaryCard.text, RIGHT_W, 14)) : 0;
+  const rightColH = (glossH ? glossH + GAP : 0) + TIMER_H;
+
+  const FRAME_H = HEADER_H + Math.max(leftColH, rightColH) + PAD;
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
+  const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
+  const accent = meta.frameBorder;
+  const titled = (c, body) => `<strong style="color:${accent};font-size:1.05em">${esc(c.title || '')}</strong><br><br>${body}`;
+
+  snapshot(); _suppressSnapshot++;
+  let frame;
+  try {
+    frame = addCard('frame', x0, y0, {
+      title: `${meta.icon}  ${output.title}`,
+      bg: meta.frameBg,
+      border: meta.frameBorder,
+      childIds: [],
+    }, FRAME_W, FRAME_H);
+
+    _ttAddTextCard(frame, x0 + PAD, y0 + 54, FRAME_W - PAD * 2, 54,
+      `${output.title}\nReading · ${output.level || 'B1'}`, { textColor: accent, fontSize: 14 });
+
+    // Left column: Before → Text → After → extras
+    const leftX = x0 + PAD; let ly = y0 + HEADER_H + 14;
+    if (beforeCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, beforeH, null, { html: titled(beforeCard, _ttMdToHtml(beforeCard.text)), fontSize: 15, bgColor: meta.pale }); ly += beforeH + GAP; }
+    if (readingCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, textH, null, { html: titled(readingCard, _ttMdToHtml(readingCard.text)), fontSize: 16 }); ly += textH + GAP; }
+    if (afterCard)  { _ttAddTextCard(frame, leftX, ly, LEFT_W, afterH, null, { html: titled(afterCard, _ttMdToHtml(afterCard.text)), fontSize: 15, bgColor: meta.pale }); ly += afterH + GAP; }
+    extras.forEach(c => { const h = _ttTextCardHeight(c.text, LEFT_W, 14); _ttAddTextCard(frame, leftX, ly, LEFT_W, h, null, { html: titled(c, _ttMdToHtml(c.text)), fontSize: 14 }); ly += h + GAP; });
+
+    // Right column: Glossary → Timer
+    const rightX = x0 + PAD + LEFT_W + COL_GAP; let ry = y0 + HEADER_H + 14;
+    if (glossaryCard) { _ttAddTextCard(frame, rightX, ry, RIGHT_W, glossH, null, { html: titled(glossaryCard, _ttMdToHtml(glossaryCard.text)), fontSize: 14, bgColor: '#FFFDF4' }); ry += glossH + GAP; }
+    _ttAddTimerCard(frame, rightX, ry, 8);
+  } finally {
+    _suppressSnapshot--;
+  }
+  _ttFinishComposedBoard(frame, '✨ Reading lesson added: pre-reading → text → post-reading + glossary');
+  return true;
+}
+
 function _ttPlaceComplexToolOnBoard(output) {
   if (!output || !output.boardKind) return false;
   const meta = _ttBoardComposerMeta(output);
@@ -385,6 +470,14 @@ function _ttPlaceComplexToolOnBoard(output) {
     return _ttPlaceQuizBoard(output, meta);
   }
   if (output.boardKind === 'vocab') return _ttPlaceVocabStudioBoard(output, meta);
-  if (output.boardKind === 'cards') return _ttPlaceCardFlowBoard(output, meta);
+  if (output.boardKind === 'cards') {
+    const cards = output.cards || [];
+    // Reading-text lessons (generate-text / text-topic-vocab) get the dedicated
+    // pre→text→post + glossary layout; everything else uses the card flow.
+    const isReading = (output.cat === 'reading' || activeTeacherToolBuilder?.cat === 'reading')
+      && cards.some(c => /reading text|generated text|\btext\b/i.test(String(c.title || '')));
+    if (isReading) return _ttPlaceReadingBoard(output, meta);
+    return _ttPlaceCardFlowBoard(output, meta);
+  }
   return false;
 }
