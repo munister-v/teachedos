@@ -2729,7 +2729,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-empty strong{display:block;font-size:22px;margin-bottom:8px;opacity:.5;}
 /* Field visibility helpers */
 .tb-field-wrap{transition:opacity .15s;}
-.tb-field-wrap.tb-field-hidden{display:none;}
+/* Hide regardless of the companion class — #tb-wrap-count is a bare row child
+   (no .tb-field-wrap), so the old compound selector never matched it and the
+   Items count stayed visible for scaffold tools. */
+.tb-field-hidden{display:none;}
 .tb-field-wrap.tb-field-required label::after{content:" *";color:#4262FF;font-weight:900;}
 .tb-field-wrap.tb-field-required textarea,.tb-field-wrap.tb-field-required input{border-color:rgba(66,98,255,.35);background:rgba(66,98,255,.025);}
 /* Disabled Add-to-board */
