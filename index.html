@@ -1419,47 +1419,6 @@ html,body {
   .prog-stats { grid-template-columns:1fr 1fr; }
   .stat-n { font-size:22px; }
 }
-
-/* ── Account menu (tap avatar → clear sign-out path) ── */
-.mp-avatar-btn { border: none; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; padding: 0; }
-.mp-avatar-btn:active { transform: scale(.95); }
-.mp-account-backdrop {
-  position: fixed; inset: 0; z-index: 10000;
-  background: rgba(17,16,24,.28); opacity: 0; pointer-events: none; transition: opacity .2s;
-}
-.mp-account-backdrop.open { opacity: 1; pointer-events: auto; }
-.mp-account-menu {
-  position: fixed; top: calc(58px + env(safe-area-inset-top,0px)); left: 12px; z-index: 10001;
-  width: 250px; max-width: calc(100vw - 24px);
-  background: #fff; border: 1px solid rgba(14,14,16,.1); border-radius: 18px;
-  box-shadow: 0 24px 60px rgba(17,16,24,.22); padding: 8px;
-  opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top left;
-  pointer-events: none; transition: opacity .18s, transform .18s;
-}
-.mp-account-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-.mp-account-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 10px 12px; border-bottom: 1px solid rgba(14,14,16,.07); margin-bottom: 6px;
-}
-.mp-account-head-av {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: linear-gradient(135deg, #C8E632, #A8C42A);
-  color: #15131d; display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 16px; flex-shrink: 0; line-height: 1;
-}
-.mp-account-head-name { font-size: 14px; font-weight: 800; color: #1c1c1e; line-height: 1.2; }
-.mp-account-head-email { font-size: 11.5px; color: #8a8a92; line-height: 1.3; margin-top: 2px; word-break: break-all; }
-.mp-account-item {
-  display: flex; align-items: center; gap: 11px; width: 100%;
-  border: none; background: none; padding: 12px; border-radius: 12px;
-  font-family: inherit; font-size: 14px; font-weight: 700; color: #1c1c1e;
-  text-align: left; cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent;
-}
-.mp-account-item > span { font-size: 16px; width: 20px; text-align: center; }
-.mp-account-item:active { background: rgba(0,0,0,.05); }
-.mp-account-item.danger { color: #ef4444; }
-.mp-account-item.danger:active { background: rgba(239,68,68,.08); }
-.mp-account-sep { height: 1px; background: rgba(14,14,16,.07); margin: 6px 4px; }
 </style>
 <link rel="stylesheet" href="styles/mobile-pro.css" media="(max-width: 860px)">
 <script src="theme.js" defer></script>
@@ -1631,7 +1590,7 @@ html,body {
       <div class="mob-home-shell mp-shell">
         <!-- Top bar: avatar + greeting + actions -->
         <header class="mp-topbar">
-          <button class="mp-avatar mp-avatar-btn" id="mp-avatar" onclick="teachedAccountMenuToggle(event)" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">EB</button>
+          <div class="mp-avatar" id="mp-avatar">EB</div>
           <div class="mp-greeting">
             <div class="mp-greeting-meta" id="mp-greeting-meta">TODAY</div>
             <div class="mp-greeting-name" id="mp-greeting-name">Hi there</div>
@@ -1646,23 +1605,6 @@ html,body {
             </button>
           </div>
         </header>
-
-        <!-- Account dropdown (clear sign-out path from home) -->
-        <div class="mp-account-backdrop" id="mp-account-backdrop" onclick="teachedAccountMenuClose()"></div>
-        <div class="mp-account-menu" id="mp-account-menu" role="menu" aria-hidden="true">
-          <div class="mp-account-head">
-            <span class="mp-account-head-av" id="mp-account-menu-av">T</span>
-            <div class="mp-account-head-meta">
-              <div class="mp-account-head-name" id="mp-account-menu-name">Teacher</div>
-              <div class="mp-account-head-email" id="mp-account-menu-email">—</div>
-            </div>
-          </div>
-          <a class="mp-account-item" role="menuitem" href="profile.html"><span>👤</span> My profile</a>
-          <a class="mp-account-item" role="menuitem" href="schedule.html"><span>🗓</span> Schedule</a>
-          <a class="mp-account-item" role="menuitem" href="profile.html#plans"><span>💳</span> Tariffs &amp; plan</a>
-          <div class="mp-account-sep"></div>
-          <button class="mp-account-item danger" role="menuitem" onclick="teachedLogout()"><span>🚪</span> Sign out</button>
-        </div>
 
         <!-- Fraunces hero heading -->
         <div class="mp-hero-head">
@@ -2182,7 +2124,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=115').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -2402,21 +2344,11 @@ async function obSaveAndFinish() {
 }
 
 function skipOnboarding() {
+  // Per-account flag so a different teacher on this browser still onboards.
+  var email = localStorage.getItem('teachedos_user_email') || 'anon';
+  localStorage.setItem('teachedos_onboarded_' + email, '1');
+  localStorage.removeItem('teachedos_onboarded');
   document.getElementById('onboarding-overlay').style.display = 'none';
-  // Persist server-side so the welcome flow never shows again, on any device.
-  try {
-    var token = localStorage.getItem('teachedos_token');
-    var _API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
-    if (token) {
-      fetch(_API + '/api/auth/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ onboarded: true })
-      }).catch(function () {});
-    }
-    var cu = JSON.parse(localStorage.getItem('teachedos_user') || 'null');
-    if (cu) { cu.onboarded = true; localStorage.setItem('teachedos_user', JSON.stringify(cu)); }
-  } catch (e) {}
 }
 
 document.getElementById('onboarding-overlay').addEventListener('click', function(e) {

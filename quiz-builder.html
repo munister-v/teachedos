@@ -615,11 +615,7 @@ function _buildTf(w, all){
 function _buildFib(w){
   // Replace the target word in the example sentence with ___
   const re = new RegExp('\\b' + w.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
-  // Fallback when the word has no usable example sentence: a translation-recall
-  // cloze (never a fixed nonsense sentence with the wrong answer).
-  const sentence = w.ex && re.test(w.ex)
-    ? w.ex.replace(re, '___')
-    : (w.uk ? 'Translation: "' + w.uk + '". Write the English word: ___' : 'Write the missing word: ___');
+  const sentence = w.ex && re.test(w.ex) ? w.ex.replace(re, '___') : 'A ___ is something you need on a journey.';
   return { text: sentence, answer: w.en, variants: '' };
 }
 function _buildMp(words){

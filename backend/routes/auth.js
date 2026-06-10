@@ -75,7 +75,6 @@ function publicUser(user) {
     plan_source: user.plan_source || 'free',
     timezone: user.timezone,
     timezone_mode: user.timezone_mode,
-    onboarded: user.onboarded === true,
     created_at: user.created_at
   };
 }
@@ -346,7 +345,7 @@ router.post('/login', authLimiter, async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, onboarded, created_at FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
@@ -439,7 +438,7 @@ router.get('/me', requireAuth, (req, res) => {
 
 // PATCH /api/auth/me — update profile fields
 router.patch('/me', requireAuth, async (req, res) => {
-  const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode, onboarded } = req.body;
+  const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode } = req.body;
   const updates = [];
   const params  = [];
 
@@ -473,9 +472,6 @@ router.patch('/me', requireAuth, async (req, res) => {
     const nextMode = timezone_mode === 'manual' ? 'manual' : 'auto';
     updates.push(`timezone_mode = $${params.length + 1}`); params.push(nextMode);
   }
-  if (onboarded !== undefined) {
-    updates.push(`onboarded = $${params.length + 1}`); params.push(!!onboarded);
-  }
 
   if (!updates.length) return res.status(400).json({ error: 'No fields to update' });
   params.push(req.user.id);
@@ -483,7 +479,7 @@ router.patch('/me', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
-       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode, onboarded`,
+       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode`,
       params
     );
     res.json({ user: rows[0] });

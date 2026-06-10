@@ -79,7 +79,6 @@ function _scheduleMinimap() {
   _minimapRaf = requestAnimationFrame(() => { _minimapRaf = null; renderMinimap(); });
 }
 let _zcPct = null;
-let _mzPct = null;
 let _isMomentum = false;
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
@@ -87,8 +86,6 @@ function applyTransform() {
   if (zoomDisp) zoomDisp.textContent = pct;
   if (!_zcPct) _zcPct = document.getElementById('zc-pct');
   if (_zcPct) _zcPct.textContent = pct;
-  if (!_mzPct) _mzPct = document.getElementById('mz-pct');
-  if (_mzPct) _mzPct.textContent = pct;
   _scheduleArrows();
   _scheduleMinimap();
   positionLayerPopover();
@@ -1645,64 +1642,6 @@ function renderAssignment(el, card) {
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
 // revealed answers) — when true it's the teacher key.
-// Render a reading passage block (shared by worksheet card + print view).
-// opts: { editable, cardId, print }
-function _ttPassageHTML(passage, accent, opts) {
-  opts = opts || {};
-  if (!passage || (!passage.text && !passage.title)) return '';
-  const title = passage.title ? esc(passage.title) : 'Reading text';
-  const text  = String(passage.text || '');
-  const paras = text.split(/\n+/).map(p => p.trim()).filter(Boolean);
-  const bodyHtml = paras.map(p => `<p>${esc(p)}</p>`).join('') || `<p>${esc(text)}</p>`;
-  const vocab = Array.isArray(passage.vocab) ? passage.vocab.filter(v => v && v.word) : [];
-  const wc = text.split(/\s+/).filter(Boolean).length;
-  const isListen = opts.cat === 'listening';
-  const ptIcon = isListen ? '🎧' : '📖';
-  const ptLabel = isListen ? 'Transcript' : 'Reading';
-  const vocabHtml = vocab.length
-    ? `<div class="ws-passage-vocab"><span class="ws-passage-vocab-h">Key words</span>${vocab.map(v =>
-        `<span class="ws-passage-word"><b>${esc(v.word)}</b>${v.gloss ? ' — ' + esc(v.gloss) : ''}</span>`).join('')}</div>`
-    : '';
-  if (opts.print) {
-    return `<div class="ws-passage print"><div class="ws-passage-title">${title}</div>` +
-           `<div class="ws-passage-body">${bodyHtml}</div>${vocabHtml}</div>`;
-  }
-  const editBtn = (opts.editable && opts.cardId)
-    ? `<button class="ws-passage-edit" onclick="_ttTogglePassageEdit('${opts.cardId}')" title="Edit the reading text">✏️ Edit text</button>`
-    : '';
-  return `<div class="ws-passage" data-card-id="${opts.cardId || ''}">
-      <div class="ws-passage-head"><span class="ws-passage-tag" style="background:${accent}18;color:${accent}">${ptIcon} ${ptLabel}${wc ? ' · ' + wc + ' words' : ''}</span>${editBtn}</div>
-      <div class="ws-passage-title">${title}</div>
-      <div class="ws-passage-body" id="ws-passage-body-${opts.cardId || ''}">${bodyHtml}</div>
-      ${vocabHtml}
-    </div>`;
-}
-
-// Toggle inline editing of a worksheet's reading passage; save on second click.
-function _ttTogglePassageEdit(cardId) {
-  const card = state.cards.find(c => c.id === cardId);
-  if (!card) return;
-  const bodyEl = document.getElementById('ws-passage-body-' + cardId);
-  const btn = document.querySelector(`.ws-passage[data-card-id="${cardId}"] .ws-passage-edit`);
-  if (!bodyEl) return;
-  const editing = bodyEl.getAttribute('contenteditable') === 'true';
-  if (editing) {
-    const text = bodyEl.innerText.replace(/\n{3,}/g, '\n\n').trim();
-    card.data.passage = card.data.passage || {};
-    card.data.passage.text = text;
-    bodyEl.setAttribute('contenteditable', 'false');
-    bodyEl.classList.remove('editing');
-    if (btn) btn.textContent = '✏️ Edit text';
-    scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    toast('📖 Reading text saved');
-  } else {
-    bodyEl.setAttribute('contenteditable', 'true');
-    bodyEl.classList.add('editing');
-    bodyEl.focus();
-    if (btn) btn.textContent = '✅ Save text';
-  }
-}
-
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -1769,8 +1708,7 @@ function renderWorksheet(el, card) {
     </div>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  const passageHtml = _ttPassageHTML(d.passage, accent, { editable: true, cardId: card.id, cat: d.cat });
-  body.innerHTML = strip + passageHtml + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
+  body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
 
@@ -1794,7 +1732,6 @@ function printWorksheet(cardId) {
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
-  const printPassage = _ttPassageHTML(d.passage, accent, { print: true, cat: d.cat });
   const css = `
     *{box-sizing:border-box}
     body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
@@ -1817,16 +1754,9 @@ function printWorksheet(cardId) {
     .ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}
     .ws-l{font-weight:700;color:${accent}}
     .ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
-    .ws-passage{border:1px solid #e6e7ee;border-left:3px solid ${accent};border-radius:10px;padding:14px 16px;margin-bottom:16px;background:#fcfcfe;page-break-inside:avoid}
-    .ws-passage-title{font-size:15px;font-weight:800;margin-bottom:6px;color:#171420}
-    .ws-passage-body{font-size:13.5px;line-height:1.7;color:#2b2733}
-    .ws-passage-body p{margin:0 0 8px}
-    .ws-passage-vocab{margin-top:10px;padding-top:9px;border-top:1px dashed #d9dbe6;font-size:12px;line-height:1.7;color:#555}
-    .ws-passage-vocab-h{display:block;font:700 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#9a93a6;margin-bottom:3px}
-    .ws-passage-word{display:block}
     @media print{body{padding:0}@page{margin:1.6cm}}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
-    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${printPassage}${listHtml}</body></html>`;
+    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -3358,7 +3288,7 @@ boardWrap.addEventListener('dblclick', e => {
 });
 
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
-function _boardMove(e) {
+document.addEventListener('mousemove', e => {
   if (spaceDown && (e.buttons & 1)) {
     if (!isPanning) {
       isPanning = true;
@@ -3534,33 +3464,10 @@ function _boardMove(e) {
     // Track whether the user actually dragged after auto-entering connect.
     if (window._autoConnectMode) window._anchorDragMoved = true;
   }
-}
-
-// ── Perf: coalesce mousemove → at most one board update per animation frame.
-// High-Hz mice / trackpads fire far more than 60 move events/sec; previously the
-// full handler (smart-snap O(n) scan + layout reads + position writes) ran on
-// every single event. Now the latest event is processed once per frame, with a
-// synchronous flush on release so drops land on the exact final position.
-let _boardMoveEvt = null, _boardMoveRaf = null;
-function _onBoardMoveCoalesced(e) {
-  _boardMoveEvt = e;
-  if (_boardMoveRaf) return;
-  _boardMoveRaf = requestAnimationFrame(() => {
-    _boardMoveRaf = null;
-    const ev = _boardMoveEvt; _boardMoveEvt = null;
-    if (ev) _boardMove(ev);
-  });
-}
-function _flushBoardMove() {
-  if (_boardMoveRaf) { cancelAnimationFrame(_boardMoveRaf); _boardMoveRaf = null; }
-  const ev = _boardMoveEvt; _boardMoveEvt = null;
-  if (ev) _boardMove(ev);
-}
-document.addEventListener('mousemove', _onBoardMoveCoalesced, { passive: true });
+});
 
 /* ════════════════════════ MOUSE UP ════════════════════════ */
 document.addEventListener('mouseup', e => {
-  _flushBoardMove();   // apply the final pending move frame before end-logic reads positions
   // Anchor-drag → finish connection on the release point (Miro parity).
   // Fires only when we entered connect mode via the auto path AND a real
   // drag happened (so a simple click on anchor still falls through to the
@@ -3736,7 +3643,6 @@ document.addEventListener('mouseup', e => {
   let longPressTimer = null;
   let longPressStart = null;
   let touchDriving = false; // forwarding touch → mouse for handles/dots/card-drag
-  let tapInfo = null;       // tracks a single-finger tap on empty canvas (→ deselect)
 
   function midpoint(a, b) { return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2 }; }
   function tdist(a, b) { return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
@@ -3762,7 +3668,6 @@ document.addEventListener('mouseup', e => {
       const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card');
       if (hit) {
         touchDriving = true;
-        tapInfo = null;
         const t = e.touches[0];
         tt.dispatchEvent(new MouseEvent('mousedown', {
           clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0
@@ -3779,8 +3684,6 @@ document.addEventListener('mouseup', e => {
       pinchOrigin = null;
       // Long-press on empty board area → open context menu (mobile-only behavior)
       const onBg = e.target === boardWrap || e.target === board || e.target.id === 'empty-state';
-      // Track a clean tap on empty canvas so touchend can clear selection.
-      tapInfo = { x:t0.clientX, y:t0.clientY, onBg, moved:false, ctxOpened:false };
       if (onBg && window.matchMedia('(max-width:860px)').matches) {
         const sx = t0.clientX, sy = t0.clientY;
         longPressStart = { x:sx, y:sy };
@@ -3804,14 +3707,12 @@ document.addEventListener('mouseup', e => {
             ctxMenuEl.style.display = 'block';
             if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
           }
-          if (tapInfo) tapInfo.ctxOpened = true;
           panOrigin = null;
         }, 480);
       }
     } else if (ts.length === 2) {
       cancelLongPress();
       touchDriving = false;
-      tapInfo = null;
       t0 = ts[0]; t1 = ts[1];
       lastPinchDist = tdist(t0, t1);
       lastPinchScale = state.scale;
@@ -3837,10 +3738,6 @@ document.addEventListener('mouseup', e => {
       const mdx = Math.abs(ts[0].clientX - longPressStart.x);
       const mdy = Math.abs(ts[0].clientY - longPressStart.y);
       if (mdx > 8 || mdy > 8) cancelLongPress();
-    }
-    if (tapInfo && ts.length === 1 &&
-        (Math.abs(ts[0].clientX - tapInfo.x) > 8 || Math.abs(ts[0].clientY - tapInfo.y) > 8)) {
-      tapInfo.moved = true;
     }
     if (ts.length === 1 && panOrigin && !isDraggingCard) {
       const dx = ts[0].clientX - panOrigin.mx;
@@ -3882,22 +3779,13 @@ document.addEventListener('mouseup', e => {
     }
     cancelLongPress();
     const ts = Array.from(e.touches);
-    if (ts.length === 0) {
-      // Clean tap on empty canvas with an active selection → deselect (matches
-      // desktop click-empty-to-deselect; bg taps aren't forwarded to the mouse pipeline).
-      if (tapInfo && tapInfo.onBg && !tapInfo.moved && !tapInfo.ctxOpened &&
-          (state.selected.size > 0 || state.selectedArrows.size > 0)) {
-        clearSelection();
-      }
-      tapInfo = null;
-      panOrigin = null; pinchOrigin = null; t0 = null; t1 = null;
-    }
+    if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
     else if (ts.length === 1) {
       t0 = ts[0]; t1 = null; pinchOrigin = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
     }
   }, { passive: true });
-  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); tapInfo = null; }, { passive: true });
+  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); }, { passive: true });
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
@@ -7544,13 +7432,13 @@ function _ttGenScaffold(toolId, input){
       { title:'After reading', text:`Discuss: What was the most surprising idea about "${topic}"?` },
     ],
     vocabulary:[
-      { title:'Target vocabulary', text:`Choose 8–10 key words for "${topic}" (${level}). For each one, write: the word — a short definition — one example sentence.` },
+      { title:'Target vocabulary', text:`[Key words and phrases for "${topic}" at ${level}]` },
       { title:'Student task', text:`Define each word, use it in a sentence, or match it to an example.\nFocus: ${tool.desc}` },
     ],
     grammar:[
       { title:'Grammar focus', text:`${tool.title} · ${level}\nTopic: ${topic}` },
       { title:'Explanation', text:'Rule: …\nExample 1: …\nExample 2: …\nCommon mistake: …' },
-      { title:'Practice', text:`Write 5 practice sentences about "${topic}" that use this grammar point. Leave a gap or a choice in each one, then add the answer key below.` },
+      { title:'Practice', text:`[Exercise here — ${tool.kind}]` },
     ],
     speaking:[
       { title:'Preparation (1 min)', text:`Think about "${topic}". Note 2–3 ideas.` },
@@ -7569,7 +7457,7 @@ function _ttGenScaffold(toolId, input){
     ],
     utility:[
       { title:tool.title, text:`Topic: ${topic} · Level: ${level}` },
-      { title:'Task', text:`${tool.desc}\n\nUse this card to build the activity: add your instructions, an example for students, and the answer key.` },
+      { title:'Task', text:`${tool.desc}\n[Complete this section with your content]` },
     ],
   };
   const cards = bycat[tool.cat] || bycat.utility;
@@ -7577,131 +7465,24 @@ function _ttGenScaffold(toolId, input){
     title:`${level} · ${tool.title}: ${topic}`, cards };
 }
 
-// Real local "Three Titles" — 1 plausible correct title built from the topic +
-// the strongest content words, plus 2 off-topic distractors. No placeholders.
-function _ttGenThreeTitlesLocal(input){
-  const topic = input.topic || 'the text';
-  const tl = topic.toLowerCase();
-  const kws = _ttContentWords(input.source || '', 4).slice(0, 6);
-  const k1 = kws[0] ? _ttCap(kws[0]) : _ttCap(tl);
-  const k2 = kws[1] ? _ttCap(kws[1]) : _ttCap(tl);
-  const correctFrames = [
-    `${_ttCap(tl)}: Key Ideas and Practical Insights`,
-    `Understanding ${_ttCap(tl)}: What the Text Tells Us`,
-    `${k1} and ${k2}: A Closer Look at ${_ttCap(tl)}`,
-    `Why ${_ttCap(tl)} Matters: The Main Points`,
-    `${_ttCap(tl)}: Challenges, Ideas and Takeaways`,
-  ];
-  const correct = correctFrames[Math.floor(Math.random() * correctFrames.length)];
-  const distractorBank = [
-    'How to Cook a Three-Course Meal on a Budget',
-    'The History of Ancient Roman Architecture',
-    'A Beginner’s Guide to Buying Your First Car',
-    'Tips for Growing Tomatoes in a Small Garden',
-    'How to Learn Chess in Seven Days',
-    'The Science of Ocean Tides Explained',
-    'A Short History of the Printing Press',
-    'Training for a Marathon in Six Months',
-  ];
-  const wrongs = _ttShuffle(distractorBank.slice()).slice(0, 2);
-  const options = _ttShuffle([correct, ...wrongs]);
-  const letter = String.fromCharCode(65 + options.indexOf(correct));
-  return {
-    boardKind:'cards', kind:'Titles', cat:'reading', level:input.level, topic:input.topic,
-    title:`${input.level} · Three Titles: ${input.topic}`,
-    cards: [
-      { title:'Title A', text: options[0] },
-      { title:'Title B', text: options[1] },
-      { title:'Title C', text: options[2] },
-      { title:'✅ Best title', text:`Option ${letter}: ${correct}\n\nThe other two are distractors — they describe completely different texts. A good title matches the main idea, not just one detail.` },
-    ],
-  };
-}
-
-// Real local extractive summary — picks the highest keyword-density sentences
-// from the source (in original order) so the "model summary" is genuine text.
-function _ttGenSummaryLocal(input){
-  const hasSource = String(input.source || '').trim().length > 0;
-  const sents = teacherToolSourceSentences(input.source, input.topic, 60);
-  const tl = (input.topic || 'the topic').toLowerCase();
-  let summary;
-  if (hasSource && sents.length) {
-    const freq = new Map();
-    for (const w of _ttContentWords(input.source)) freq.set(w, (freq.get(w) || 0) + 1);
-    const scored = sents.map((s, i) => {
-      const ws = _ttContentWords(s);
-      const score = ws.reduce((a, w) => a + (freq.get(w) || 0), 0) / Math.max(1, ws.length);
-      return { s, i, score };
-    });
-    const pickN = Math.min(4, Math.max(2, Math.round(sents.length / 3)));
-    summary = scored.slice().sort((a, b) => b.score - a.score).slice(0, pickN)
-      .sort((a, b) => a.i - b.i).map(x => x.s).join(' ');
-  } else {
-    summary = `This text is about ${tl}. It introduces the main idea, gives one or two key details, and shows why ${tl} matters. Notice how a good summary keeps only the essential points and leaves out examples and repetition.`;
-  }
-  return {
-    boardKind:'cards', kind:'Summary', cat:'reading', level:input.level, topic:input.topic,
-    title:`${input.level} · Summary: ${input.topic}`,
-    cards: [
-      { title:'📝 Model summary', text: summary },
-      { title:'✏️ Student task', text:`Now write your OWN 3–4 sentence summary of the text about "${input.topic}".\n\n• Keep only the main ideas.\n• Use your own words — do not copy whole sentences.\n• Read it back: would someone who missed the text understand it?` },
-    ],
-  };
-}
-
-// Real local "Text with Your Vocabulary" — weaves the target words into a short
-// leveled reading paragraph, then adds a target list + post-reading task.
-function _ttGenTextWithVocabLocal(input){
-  const topic = input.topic || 'everyday English';
-  const tl = topic.toLowerCase();
-  const lvl = input.level || 'B1';
-  const words = teacherToolVocabList(input.vocab, input.topic, Math.min(10, input.count || 8))
-    .map(x => String(x).split(/[-–—:]/)[0].trim()).filter(Boolean);
-  const frames = [
-    w => `First, it helps to understand the word "${w}".`,
-    w => `Many people think about "${w}" when they talk about ${tl}.`,
-    w => `A good example of ${tl} often includes "${w}".`,
-    w => `In real life, "${w}" can change how we see ${tl}.`,
-    w => `Teachers usually explain "${w}" early, because it matters for ${tl}.`,
-    w => `When you practise ${tl}, try to use "${w}" in your own sentences.`,
-    w => `Another key idea is "${w}", which appears in many situations.`,
-    w => `Finally, remember that "${w}" helps you describe ${tl} more clearly.`,
-  ];
-  const intro = `Today we are going to read about ${tl}.`;
-  const body = words.length
-    ? words.slice(0, 8).map((w, i) => frames[i % frames.length](w)).join(' ')
-    : `It is a topic that students meet often, and it is full of useful language to learn and reuse.`;
-  const outro = `By the end of this text, you should be able to use the new words to talk about ${tl} yourself.`;
-  return {
-    boardKind:'cards', kind:'Text', cat:'reading', level:input.level, topic:input.topic,
-    title:`${input.level} · Text with Vocabulary: ${input.topic}`,
-    cards: [
-      { title:`📖 Reading text (${lvl})`, text:`${intro} ${body} ${outro}` },
-      { title:'🎯 Target vocabulary', text: words.length ? words.join(', ') : 'Add your target words in the configurator.' },
-      { title:'✏️ Post-reading task', text:`1. Underline every target word in the text.\n2. Write one personal sentence with each word.\n3. Tell a partner two things you learned about ${tl}.` },
-    ],
-  };
-}
-
 function _ttGenCards(toolId, input){
-  // Dialogue scaffold. Dialogue is AI-first; this is the offline / AI-busy
-  // fallback — a real, usable starter conversation (never a bracket placeholder).
-  // (three-titles & summary-task have their own real local generators and no
-  // longer route here.)
-  const topic = input.topic || 'the topic';
-  const tl = topic.toLowerCase();
-  const title = `${input.level} · ${(typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS.find(t => t.id === toolId) : null)?.title || 'Dialogue'}: ${topic}`;
-  return {
-    boardKind: 'cards', kind: 'Dialogue', cat: 'speaking', level: input.level, topic: input.topic,
-    title,
-    cards: [
-      { title: '🎭 Context', text: `Two people are talking about ${tl}. Read the starter, then continue the conversation in pairs.` },
-      { title: 'A', text: `So, what do you think about ${tl}?` },
-      { title: 'B', text: `Honestly, I have mixed feelings about ${tl}. It can be really useful, but it also has its difficult side.` },
-      { title: 'A', text: `That's interesting — can you give me an example?` },
-      { title: '✏️ Your turn', text: `Continue the dialogue for 6–8 more lines. Use at least 3 words from your lesson vocabulary, ask follow-up questions, and react naturally ("Really?", "I see what you mean", "I'm not so sure…").` },
-    ],
+  // Scaffold for LLM-only tools: returns a placeholder boardKind:'cards'
+  // that renders as text/sticky cards. Real content comes from WebLLM.
+  const titles = {
+    'three-titles': ['Title option 1','Title option 2','Title option 3'],
+    'summary-task': ['Summary'],
+    'dialogue':     ['Speaker A','Speaker B','Speaker A (cont.)'],
   };
+  const notes = {
+    'three-titles': t => `[Write a catchy title for the text about "${input.topic}" here]`,
+    'summary-task': t => `[Write a 3-4 sentence summary of the text about "${input.topic}" here]`,
+    'dialogue':     t => `[${t}: write 2-3 lines about "${input.topic}" here]`,
+  };
+  const fn = notes[toolId]; const tts = titles[toolId] || ['Card'];
+  return { boardKind:'cards', kind: toolId==='dialogue'?'Dialogue':toolId==='summary-task'?'Summary':'Titles',
+    cat: toolId==='dialogue'?'speaking':'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · ${BOARD_TEACHER_TOOLS.find(t=>t.id===toolId)?.title||toolId}: ${input.topic}`,
+    cards: tts.map(t=>({ title:t, text: fn(t) })) };
 }
 
 function _ttGenAdaptText(input) {
@@ -7939,16 +7720,6 @@ function _ttBuildFromAI(toolId, input, items) {
 }
 
 function generateTeacherToolLocal(input){
-  const out = _ttLocalRaw(input);
-  const RP = ['abcd-text','true-false','gist-detail','three-titles','open-questions','choose-summary'];
-  const id0 = input.tool && input.tool.id;
-  if (out && out.boardKind === 'quiz' && !out.passage && RP.includes(id0)
-      && input.source && String(input.source).trim().length > 40) {
-    out.passage = { title: String(input.topic || 'Reading text'), text: String(input.source).trim(), vocab: [] };
-  }
-  return out;
-}
-function _ttLocalRaw(input){
   const id = input.tool && input.tool.id;
   // ── quality local generators ─────────────────────────────────────
   if (id === 'abcd-text')             return _ttGenAbcd(input);
@@ -7978,12 +7749,9 @@ function _ttLocalRaw(input){
   if (id === 'lesson-pack')           return _ttGenLessonPack(input);
   if (id === 'worksheet-builder')     return _ttGenWorksheetBoard(input);
   if (id === 'homework-set')          return _ttGenHomeworkBoard(input);
-  // ── reading tools with real local generators (no AI placeholders) ─
-  if (id === 'three-titles')          return _ttGenThreeTitlesLocal(input);
-  if (id === 'summary-task')          return _ttGenSummaryLocal(input);
-  if (id === 'text-topic-vocab')      return _ttGenTextWithVocabLocal(input);
   // ── LLM-first: specific card scaffolds ──────────────────────────
-  if (id === 'dialogue')              return _ttGenCards(id, input);
+  if (id === 'three-titles' || id === 'summary-task' || id === 'dialogue')
+    return _ttGenCards(id, input);
   // ── universal scaffold for all remaining tools ───────────────────
   return _ttGenScaffold(id, input);
 }
@@ -8118,10 +7886,7 @@ function renderTeacherToolLocalPreview(out){
 
   // quiz
   if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
-  const _passagePrev = (out.passage && (out.passage.text || out.passage.title))
-    ? `<div class="tt-passage"><div class="tt-passage-tag">${out.cat === 'listening' ? '🎧 Transcript' : '📖 Reading'}${out.passage.text ? ' · ' + out.passage.text.split(/\s+/).filter(Boolean).length + ' words' : ''}</div>${out.passage.title ? `<div class="tt-passage-title">${esc(out.passage.title)}</div>` : ''}<div class="tt-passage-body">${esc(out.passage.text || '').replace(/\n+/g, '<br><br>')}</div></div>`
-    : '';
-  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _passagePrev + _ttEditHint + out.questions.map((q, i) => {
+  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
     if (q.type === 'mcq') {
       ans = `<div class="tt-opts">${
@@ -8252,7 +8017,6 @@ function _ttPlaceWorksheetOnBoard(output){
     questions: output.questions,
     items: output.items,
     cards: output.cards,
-    passage: output.passage || null,
     _ttSrc: 1,  // marks this card as Teacher Tool generated
   }, W, H);
   if (card) {
@@ -8282,7 +8046,6 @@ function _ttPlaceQuizOnBoard(output){
     deadline: '',
     desc: `Auto-built from your text · ${output.questions.length} questions.`,
     questions: output.questions,
-    passage: output.passage || null,
     submitted: 0,
     total: 0,
     _ttSrc: 1,
@@ -8589,10 +8352,6 @@ const TT_LOCAL_QUALITY_SET = new Set([
   'rewrite','tense-contrast',
   'discussion','question-ladder','roleplay-cards','debate-cards',
   'listening-dictation',
-  // reading tools with genuine local generators (real content, no placeholders):
-  // summary = extractive from source, three-titles = topic+keyword titles +
-  // distractors, text-topic-vocab = vocab woven into a leveled reading text.
-  'summary-task','three-titles','text-topic-vocab',
 ]);
 
 async function generateTeacherToolBuilder(mode = 'fast') {
@@ -8788,19 +8547,11 @@ async function applyTeacherToolBuilderToBoard(mode) {
     _ttPlaceWorksheetOnBoard(output); return;
   }
   // 'quiz' (interactive) or default → existing structured placement.
-  // (Optional complex placer — only call it if it actually exists; it was
-  //  referenced here but never defined, which threw and silently aborted the
-  //  whole "Add to board" action.)
-  if (typeof _ttPlaceComplexToolOnBoard === 'function' && _ttPlaceComplexToolOnBoard(output)) return;
+  if (_ttPlaceComplexToolOnBoard(output)) return;
   // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
   if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return; }
   if (output.boardKind === 'vocab') { _ttPlaceVocabOnBoard(output); return; }
   if (output.boardKind === 'cards') { _ttPlaceCardsOnBoard(output); return; }
-  // Robust fallback: place by whatever content exists even if boardKind is unset
-  // (e.g. AI results that didn't tag a boardKind) — never silently drop the result.
-  if (Array.isArray(output.questions) && output.questions.length) { _ttPlaceQuizOnBoard(output);  return; }
-  if (Array.isArray(output.cards)     && output.cards.length)     { _ttPlaceCardsOnBoard(output);  return; }
-  if (Array.isArray(output.items)     && output.items.length)     { _ttPlaceVocabOnBoard(output);  return; }
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
@@ -9286,105 +9037,8 @@ function _renderEmptyToolsState() {
   return empty;
 }
 
-let _realPlans = null;
-let _plansLoaded = false;
-
-// Load the teacher's own saved lessons from their library. Called once when the
-// Plans tab first renders; re-renders the sidebar when the data arrives.
-async function loadRealPlans() {
-  if (_plansLoaded) return;
-  _plansLoaded = true;
-  try {
-    const r = await apiFetch('/api/library?kind=lesson');
-    if (r.ok) { const d = await r.json(); _realPlans = d.assignments || []; }
-    else _realPlans = [];
-  } catch { _realPlans = []; }
-  if (activeTab === 'plans') renderSidebar();
-}
-
-const _cap = s => { s = String(s || ''); return s ? s[0].toUpperCase() + s.slice(1) : s; };
-
-// Teacher's hub-saved materials live in localStorage (same origin as the board).
-function _readHubLibrary() {
-  try { return JSON.parse(localStorage.getItem('teachedos_teacher_tools_library') || '[]') || []; }
-  catch { return []; }
-}
-
-// Place a saved hub material on the board using the proper structured placer
-// (worksheet cards / quiz / vocab), falling back to a text card.
-function placeHubMaterialOnBoard(item) {
-  const s = item.struct || {};
-  const kind = s.boardKind || (Array.isArray(s.cards) && s.cards.length ? 'cards'
-    : Array.isArray(s.questions) && s.questions.length ? 'quiz'
-    : Array.isArray(s.items) && s.items.length ? 'vocab' : null);
-  const output = {
-    title: item.title || 'Lesson material',
-    level: item.level || 'B1',
-    boardKind: kind,
-    questions: s.questions || null, items: s.items || null, cards: s.cards || null,
-    cat: (item.tags && item.tags[0]) || 'utility',
-    kind: item.title || 'Material',
-  };
-  if (kind === 'cards' && output.cards) { _ttPlaceCardsOnBoard(output); return; }
-  if (kind === 'quiz'  && output.questions) { _ttPlaceQuizOnBoard(output); return; }
-  if (kind === 'vocab' && output.items) { _ttPlaceVocabOnBoard(output); return; }
-  // Fallback: drop the plain text as a card.
-  const c = getBoardViewportCenterScreen();
-  const bp = screenToBoard(c.x + (Math.random()-.5)*80, c.y + (Math.random()-.5)*60);
-  const meta = [item.level, ...(item.tags || [])].filter(Boolean).join(' / ');
-  const text = (item.title || 'Material') + (meta ? '\n' + meta : '') + '\n\n' + (item.text || '');
-  addCard('text', bp.x - 260, bp.y - 200, defaultTextData({
-    text, fontFamily:'var(--font)', textColor:'#111111', bgColor:'#ffffff', align:'left',
-  }), 520, 420);
-  scheduleSave && scheduleSave(); saveLocal && saveLocal();
-  toast && toast('✦ Added to board');
-}
-
-// A click-to-add snippet for a saved hub material (mirrors .snippet markup).
-function makeHubPlanSnippet(item) {
-  const title = item.title || 'Untitled material';
-  if (searchQ && !title.toLowerCase().includes(searchQ)) return null;
-  const lvl = item.level || '';
-  const tag = (item.tags && item.tags[0]) || '';
-  const lc = String(lvl).toLowerCase(), tc = String(tag).toLowerCase();
-  const el = document.createElement('div');
-  el.className = 'snippet';
-  el.innerHTML = `<div class="sn-label">📦 Saved material</div><div class="sn-title">${esc(title)}</div>`
-    + `<div class="sn-meta">${lvl?`<span class="badge ${lc}">${esc(lvl)}</span>`:''}${tag?`<span class="badge ${tc}">${esc(_cap(tag))}</span>`:''}</div>`;
-  el.addEventListener('click', () => placeHubMaterialOnBoard(item));
-  return el;
-}
-
 function renderPlansTab(sec) {
-  loadRealPlans(); // pulls server lessons in the background (no-op after first call)
-  const hub = _readHubLibrary();
-  const server = _realPlans || [];
-
-  if (hub.length || server.length) {
-    sec.appendChild(makeLegend('Your lessons & materials · click → board'));
-    // Hub-saved materials first (they place real structured content).
-    hub.slice(0, 60).forEach(item => { const el = makeHubPlanSnippet(item); if (el) sec.appendChild(el); });
-    // Then server library lessons (metadata → plan card).
-    server.forEach(a => {
-      const lvl = a.level || '—';
-      const skill = _cap(a.skill || 'Lesson');
-      const lc = String(lvl).toLowerCase(), tc = String(a.skill || '').toLowerCase();
-      const el = makeSnippet('📋 Lesson Plan', a.title || 'Untitled lesson',
-        `<span class="badge ${lc}">${lvl}</span><span class="badge ${tc}">${skill}</span>`,
-        'plan',
-        { title: a.title || 'Untitled lesson', level: lvl, type: skill, dur: '', status: 'active', desc: a.description || '' });
-      if (el) sec.appendChild(el);
-    });
-    const foot = document.createElement('a');
-    foot.href = 'teacher-tools.html';
-    foot.style.cssText = 'display:block;padding:10px 12px;margin:6px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;';
-    foot.textContent = '+ Create more in Teacher Tools →';
-    sec.appendChild(foot);
-    return;
-  }
-
-  // Nothing saved yet → starter demo plans to get going.
-  sec.appendChild(makeLegend(_plansLoaded ? 'Starter plans · drag or click → board' : 'Loading your lessons…'));
+  sec.appendChild(makeLegend('Drag or click → add to board'));
   PLANS.forEach(d => {
     const lc=(d.level||'').toLowerCase(), tc=(d.type||'').toLowerCase();
     const el = makeSnippet('📋 Lesson Plan', d.title,
@@ -10586,113 +10240,16 @@ function apiFetch(path, opts = {}) {
   });
 }
 
-
-// ── Board Google Sign-In (lazy) ─────────────────────────────────
-const BOARD_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
-let _boardGsiInit = false;
-
-function _loadBoardGsiScript() {
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
-    if (document.getElementById('gsi-script')) {
-      const s = document.getElementById('gsi-script');
-      s.addEventListener('load', resolve, {once:true});
-      s.addEventListener('error', () => reject(new Error('GSI load failed')), {once:true});
-      return;
-    }
-    const s = document.createElement('script');
-    s.id = 'gsi-script'; s.src = 'https://accounts.google.com/gsi/client';
-    s.async = true; s.defer = true; s.onload = resolve;
-    s.onerror = () => reject(new Error('Failed to load Google Sign-In'));
-    document.head.appendChild(s);
-  });
-}
-
-async function _initBoardGsi() {
-  if (_boardGsiInit) return true;
-  try {
-    await _loadBoardGsiScript();
-    google.accounts.id.initialize({
-      client_id: BOARD_GOOGLE_CLIENT_ID,
-      callback: _handleBoardGoogleCredential,
-      auto_select: false, cancel_on_tap_outside: true,
-      context: 'signin', itp_support: true,
-    });
-    _boardGsiInit = true;
-    return true;
-  } catch(e) {
-    console.warn('[board-gsi] init failed:', e.message);
-    return false;
-  }
-}
-
-async function _handleBoardGoogleCredential(response) {
-  const errEl = document.getElementById('auth-err');
-  if (errEl) errEl.style.display = 'none';
-  try { google.accounts.id.cancel(); } catch(_) {}
-  try {
-    const r = await apiFetch('/api/auth/google', {
-      method:'POST', body:{ credential: response.credential, role: selectedRole || 'teacher' }
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
-    setToken(d.token); currentUser = d.user;
-    try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
-    closeAuthModal(); updateAuthUI();
-    if (d.user.role === 'student' && !URL_BOARD_ID) { location.href = 'student.html'; return; }
-    await initUserBoard();
-  } catch(err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
-  }
-}
-
-async function startBoardForgotPassword() {
-  const email = document.getElementById('af-email') && document.getElementById('af-email').value.trim();
-  const errEl = document.getElementById('auth-err');
-  if (!email) {
-    if (errEl) { errEl.textContent = 'Enter your email first'; errEl.style.display = 'block'; }
-    return;
-  }
-  try {
-    const r = await apiFetch('/api/auth/forgot-password', { method:'POST', body:{ email } });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Error');
-    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
-    alert('Password reset link sent to ' + email);
-  } catch(err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
-  }
-}
-
 // ── Auth UI ──────────────────────────────────────────────────
 function openAuthModal(mode = 'login') {
   authMode = mode;
   renderAuthFields();
   const ov = document.getElementById('auth-overlay');
-  ov.classList.add('open'); ov.style.display = 'flex';
+  ov.style.display = 'flex';
   setTimeout(() => document.querySelector('.auth-input')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
-  _initBoardGsi().then(ok => {
-    if (!ok) return;
-    const area = document.getElementById('auth-google-area');
-    const btnWrap = document.getElementById('auth-google-btn');
-    if (!area || !btnWrap) return;
-    area.style.display = 'block'; btnWrap.innerHTML = '';
-    requestAnimationFrame(() => {
-      try {
-        google.accounts.id.renderButton(btnWrap, {
-          type:'standard',theme:'outline',size:'large',
-          shape:'pill',text:'continue_with',width:320,
-          logo_alignment:'center',locale:'en'
-        });
-      } catch(e) { console.warn('[gsi-board]', e.message); }
-    });
-  });
 }
-function closeAuthModal() {
-  const ov = document.getElementById('auth-overlay');
-  ov.classList.remove('open'); ov.style.display = 'none';
-}
+function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
 
 function renderAuthFields() {
@@ -10702,8 +10259,6 @@ function renderAuthFields() {
   document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
   document.getElementById('auth-toggle-link').textContent = isLogin ? 'Register' : 'Sign in';
   document.getElementById('auth-role-row').style.display = isLogin ? 'none' : 'block';
-  const forgotRow = document.getElementById('auth-forgot-row');
-  if (forgotRow) forgotRow.style.display = isLogin ? 'block' : 'none';
   const f = document.getElementById('auth-fields');
   f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
     `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
@@ -12694,8 +12249,7 @@ function saveAiAssistantSettings() {
 function updateAiProviderNote() {
   const note = document.getElementById('ai-memory-note');
   if (!note) return;
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}') || {}; } catch {}
+  const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
   const count = ['teacherMemory','studentMemory','mistakes'].filter(k => String(saved[k] || '').trim()).length;
   note.textContent = count
     ? `Memory active: ${count}/3 blocks saved. Generated boards will adapt to your teaching style.`
@@ -12849,30 +12403,22 @@ function generateLocalAiLesson(input) {
   };
   const recipe = skillRecipes[input.skill] || skillRecipes.Writing;
   const cleanTopic = input.topic.replace(/\s+/g, ' ').trim();
-  // Lesson-jargon + skill labels we never want surfaced as "target language".
-  const _AI_VOCAB_SKIP = new Set(('lesson lessons class classes unit units topic topics module course writing speaking reading listening grammar vocabulary essay essays paragraph task tasks activity activities exercise strong weak good bad nice basic simple advanced about with from into your their this that these those will would shall could should other another using used uses make makes making student students teacher teachers learner learners english language skill skills practice practise level levels intermediate elementary beginner part plan board').split(/\s+/));
-  const topicWords = cleanTopic.toLowerCase()
+  const words = cleanTopic
     .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 3 && !_AI_VOCAB_SKIP.has(w) && !_TT_STOP.has(w));
-  // Skill-specific FUNCTIONAL language banks — genuinely teachable target
-  // language for the lesson, not just words sliced from the title.
-  const _AI_SKILL_LANG = {
-    Writing:   ['In my opinion, …', 'Firstly / Secondly / Finally', 'Furthermore, …', 'On the other hand, …', 'For example, …', 'As a result, …', 'In conclusion, …', 'This clearly shows that …'],
-    Speaking:  ['What do you think?', 'I see your point, but …', 'To be honest, …', 'It really depends on …', 'For instance, …', 'I completely agree because …', 'I’m not so sure about that', 'That’s a good point'],
-    Vocabulary:['collocation', 'synonym / antonym', 'word family', 'fixed expression', 'register (formal / informal)', 'word in context', 'example sentence', 'common confusion'],
-    Grammar:   ['affirmative / negative / question', 'time markers', 'common exception', 'short-answer form', 'spoken vs written use', 'typical learner error', 'contrast with similar form', 'example in context'],
-    Reading:   ['skim for gist', 'scan for detail', 'main idea', 'supporting detail', 'infer from context', 'author’s purpose', 'topic sentence', 'reference words (it / this / they)'],
-    Listening: ['listen for gist', 'key words', 'signpost language', 'predict content', 'note key points', 'paraphrase what you hear', 'speaker’s attitude', 'catch weak forms'],
-  };
-  const skillLang = _AI_SKILL_LANG[input.skill] || _AI_SKILL_LANG.Writing;
+    .filter(w => w.length > 3)
+    .slice(0, 8);
+  const memoryWords = `${input.teacherMemory} ${input.studentMemory} ${input.mistakes} ${input.source}`
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 4)
+    .slice(0, 12);
   const mistakeItems = input.mistakes
     .split(/[,;\n]/)
     .map(x => x.trim())
     .filter(Boolean)
     .slice(0, 6);
-  // Target language = skill scaffolding (primary) + up to 3 genuine topic words.
-  const vocabulary = [...new Set([...skillLang.slice(0, 6), ...topicWords.slice(0, 3)])].slice(0, 8);
+  const vocabulary = [...new Set([...(words.length ? words : ['claim','reason','example','contrast','conclusion']), ...memoryWords].slice(0, 10))];
   const memoryHints = [
     input.teacherMemory ? `Teacher style: ${input.teacherMemory}` : '',
     input.studentMemory ? `Class profile: ${input.studentMemory}` : '',
@@ -12906,7 +12452,7 @@ function generateLocalAiLesson(input) {
   }[input.tone] || 'supportive';
   const assessmentCriteria = [
     input.skill === 'Writing' ? 'Clear position and logical paragraphing' : 'Clear message and active participation',
-    `Accurate use of ${topicWords.slice(0, 3).join(', ') || 'today’s target language'}`,
+    `Accurate use of ${vocabulary.slice(0, 3).join(', ') || 'target language'}`,
     mistakeItems[0] ? `Avoid: ${mistakeItems[0]}` : 'Self-correct at least one sentence',
   ];
   const teacherScript = [
@@ -12973,206 +12519,110 @@ function renderAiAssistantPreview(result) {
   `;
 }
 
-// AI Memory Studio output-mode -> real server teacher-tool.
-const AI_MODE_TOOL = {
-  'lesson-board': 'lesson-pack',
-  'quick-activities': 'worksheet-builder',
-  'homework-pack': 'homework-set',
-  'mistake-clinic': 'worksheet-builder',
-  'game-pack': 'worksheet-builder',
-};
-let _aiVariationN = 0;        // bumped by Regenerate to force a fresh result
-let _lastAiServerOut = null;  // last styled server output (null in offline mode)
-
-// Fold the studio form (incl. teacher/student memory) into a memory-aware
-// server teacher-tool input.
-function buildAiServerInput(input) {
-  const toolId = AI_MODE_TOOL[input.mode] || 'lesson-pack';
-  const goalText = {
-    confidence: 'low-pressure confidence building', accuracy: 'accuracy and cleaner output',
-    fluency: 'fluency and natural responses', exam: 'exam strategy and measurable criteria',
-    revision: 'retrieval and long-term retention',
-  }[input.goal] || 'balanced progress';
-  const extra = [
-    `Skill focus: ${input.skill}`, `Audience: ${input.audience}`, `Duration: ${input.duration}`,
-    `Lesson goal: ${goalText}`, `Teaching tone: ${input.tone}`,
-    input.teacherMemory && `Teacher style/preferences: ${input.teacherMemory}`,
-    input.studentMemory && `Class profile: ${input.studentMemory}`,
-    input.mistakes && `Target these common student mistakes: ${input.mistakes}`,
-    _aiVariationN > 0 && `Variation ${_aiVariationN}: use a fresh angle with different activities and examples than before.`,
-  ].filter(Boolean).join('. ');
-  return {
-    tool: { id: toolId, cat: 'utility', title: 'AI Lesson' },
-    level: input.level, count: 10, topic: input.topic, extra, source: input.source, vocab: '',
-  };
-}
-
-function renderAiAssistantServerPreview(out, input) {
-  const body = document.getElementById('ai-preview-body');
-  if (!body) return;
-  const cards = out.cards || [], qs = out.questions || [], items = out.items || [], vocab = out.vocab || [];
-  const n = cards.length || qs.length || items.length;
-  const engine = (out.engine || '').startsWith('llm:') ? 'AI · ' + out.engine.slice(4).split('-').slice(0, 2).join(' ') : 'local';
-  let html = `<div class="ai-stage"><div class="ai-stage-top"><span>${esc(engine)}</span><span>${n} ${cards.length ? 'cards' : qs.length ? 'questions' : 'words'}</span></div><h4>${esc(out.title || input.topic)}</h4></div>`;
-  html += cards.map(c => `<div class="ai-stage"><div class="ai-stage-top"><span>${esc(c.title || 'Card')}</span></div><p>${esc(c.text || '').replace(/\n/g, '<br>')}</p></div>`).join('');
-  html += qs.map((q, i) => `<div class="ai-stage"><div class="ai-stage-top"><span>Q${i + 1}</span><span>${esc(q.type || '')}</span></div><p>${esc(q.text || '')}</p></div>`).join('');
-  html += items.map((it, i) => `<div class="ai-stage"><div class="ai-stage-top"><span>${i + 1}</span></div><h4>${esc(it.word || '')}</h4><p>${esc(it.definition || it.example || '')}</p></div>`).join('');
-  if (vocab.length) html += `<div class="ai-stage"><div class="ai-stage-top"><span>Target vocabulary</span></div><ul class="ai-mini-list"><li>${vocab.map(esc).join('</li><li>')}</li></ul></div>`;
-  body.innerHTML = html;
-}
-
 async function runAiAssistant() {
   const status = document.getElementById('ai-status');
   const input = getAiAssistantInput();
+  if (status) status.textContent = 'Generating from local memory...';
   saveAiAssistantSettings();
-  if (status) status.textContent = '\u2728 Generating with AI\u2026';
-  let out = null;
-  try {
-    if (typeof authToken !== 'undefined' && authToken) {
-      out = await requestServerTeacherTool(buildAiServerInput(input), 20000);
-    }
-  } catch (e) {}
-  if (out && ((out.cards && out.cards.length) || (out.questions && out.questions.length) || (out.items && out.items.length))) {
-    _lastAiServerOut = out;
-    renderAiAssistantServerPreview(out, input);
-    if (status) status.textContent = `Ready \u00b7 styled cards \u00b7 click \u{1F504} Regenerate for a new version`;
-    return;
-  }
-  // Offline / not-logged-in fallback: the original local generator.
-  _lastAiServerOut = null;
-  renderAiAssistantPreview(generateLocalAiLesson(input));
-  if (status) status.textContent = 'Preview ready (offline mode). Sign in for richer AI lessons.';
-}
-
-function regenerateAiAssistant() {
-  _aiVariationN++;
-  return runAiAssistant();
+  const result = generateLocalAiLesson(input);
+  renderAiAssistantPreview(result);
+  if (status) status.textContent = 'Preview ready. No API key needed.';
 }
 
 function applyAiAssistantToBoard() {
   if (!boardHasFeature('ai')) { showUpgradeModal('ai'); return; }
-  const sout = _lastAiServerOut;
-  if (sout && ((sout.cards && sout.cards.length) || (sout.questions && sout.questions.length) || (sout.items && sout.items.length))) {
-    if (sout.boardKind === 'quiz' || (sout.questions && sout.questions.length && !(sout.cards && sout.cards.length))) _ttPlaceQuizOnBoard(sout);
-    else if (sout.boardKind === 'vocab' || (sout.items && sout.items.length && !(sout.cards && sout.cards.length))) _ttPlaceVocabOnBoard(sout);
-    else _ttPlaceCardsOnBoard(sout);
-    closeAiAssistantPanel();
-    return;
-  }
-  if (!_lastAiAssistantResult) { runAiAssistant().then(applyAiAssistantToBoard); return; }
-  _applyLocalAiLessonToBoard();
-}
-
-// Legacy offline placement: multi-column sticky/text layout (fallback only).
-function _applyLocalAiLessonToBoard() {
+  if (!_lastAiAssistantResult) runAiAssistant().then(applyAiAssistantToBoard);
   const result = _lastAiAssistantResult;
   if (!result) return;
   snapshot();
   const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
-  // ── Clean 3-column packed layout: every card is sized to its own text and
-  //    stacked with a fixed gap, so nothing ever overlaps. ──────────────────
-  const PAD = 32, HEAD = 60, GAP = 18, LW = 300, MW = 300, RW = 252;
-  const estTextH = (t, w, base) => {
-    const cpl = Math.max(12, Math.floor((w - 28) / 6.9));
-    const lines = String(t || '').split('\n')
-      .reduce((s, l) => s + Math.max(1, Math.ceil((l.length || 1) / cpl)), 0);
-    return Math.max(base || 90, 46 + lines * 19);
-  };
-  const lvl = document.getElementById('ai-level')?.value || 'B1';
-  const skl = document.getElementById('ai-skill')?.value || 'Writing';
-  const dur = document.getElementById('ai-duration')?.value || '45 min';
-
-  const left = [], mid = [], right = [];
-
-  left.push({ type: 'lesson', w: LW, h: 214, isLesson: true, data: {
-    title: result.title || 'AI Lesson', status: 'available', level: lvl, skill: skl, duration: dur,
+  const frame = addCard('frame', center.x - 460, center.y - 260, {
+    title: result.title || 'AI Lesson Flow',
+    bg: 'rgba(202,255,50,.08)',
+    border: 'rgba(236,72,153,.32)',
+  }, 920, 560);
+  const lesson = addCard('lesson', center.x - 430, center.y - 220, {
+    title: result.title || 'AI Lesson',
+    status: 'available',
+    level: document.getElementById('ai-level')?.value || 'B1',
+    skill: document.getElementById('ai-skill')?.value || 'Writing',
+    duration: document.getElementById('ai-duration')?.value || '45 min',
     desc: result.summary || '',
     objectives: (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
     attachments: [],
     notes: ['Generated by TeachEd AI Assistant local memory mode. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
-  }});
-  if (result.vocabulary?.length) {
-    left.push({ type: 'checklist', w: LW, h: 58 + Math.min(result.vocabulary.length, 8) * 28, data: {
-      title: '🎯 Target language', items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
-    }});
-  }
-  if (result.teacherScript?.length) {
-    const t = result.teacherScript.join('\n');
-    left.push({ type: 'note', w: LW, h: estTextH(t, LW, 130), data: { title: '🗒 Teacher script', text: t }});
-  }
-
-  (result.stages || []).slice(0, 6).forEach((stage, idx) => {
-    const t = `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`;
-    mid.push({ type: 'text', w: MW, h: estTextH(t, MW, 100), data: defaultTextData({
-      text: t, bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
-      textColor: '#15131d', fontFamily: 'var(--font)', align: 'left',
-    })});
   });
-
-  if (result.modeAddons?.length) {
-    right.push({ type: 'checklist', w: RW, h: 58 + result.modeAddons.length * 28, data: {
-      title: '✨ Smart extras', items: result.modeAddons.map(text => ({ text, done: false })),
-    }});
-  }
-  if (result.warmupPrompts?.length) {
-    const t = result.warmupPrompts.join('\n');
-    right.push({ type: 'sticky', w: RW, h: estTextH(t, RW, 130), data: {
-      text: '🔥 Warm-up prompts\n' + t, color: STICKY_COLORS[1] || '#d9f99d',
-    }});
-  }
-  if (result.assessmentCriteria?.length) {
-    right.push({ type: 'checklist', w: RW, h: 58 + result.assessmentCriteria.length * 32, data: {
-      title: '✅ Success criteria', items: result.assessmentCriteria.map(text => ({ text, done: false })),
-    }});
-  }
-  if (result.homework) {
-    right.push({ type: 'assignment', w: RW, h: estTextH(result.homework, RW, 156), data: {
-      title: '📚 AI Homework', type: 'Mixed', maxScore: 100, deadline: '', desc: result.homework,
-      submitted: 0, total: 0, level: lvl,
-    }});
-  }
-  if (result.challenge) {
-    const t = '🏆 Challenge\n' + result.challenge;
-    right.push({ type: 'sticky', w: RW, h: estTextH(t, RW, 110), data: { text: t, color: STICKY_COLORS[2] || '#fde68a' }});
+  (result.stages || []).slice(0, 5).forEach((stage, idx) => {
+    const x = center.x - 130 + (idx % 2) * 300;
+    const y = center.y - 220 + Math.floor(idx / 2) * 145;
+    addCard('text', x, y, defaultTextData({
+      text: `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
+      bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
+      textColor: '#15131d',
+      fontFamily: 'var(--font)',
+      align: 'left',
+    }), 260, 112);
+  });
+  if (result.vocabulary?.length) {
+    addCard('checklist', center.x - 430, center.y + 80, {
+      title: 'Target language',
+      items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
+    }, 250, 230);
   }
   if (result.mistakeItems?.length || result.memoryHints?.length) {
-    const t = [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n');
-    right.push({ type: 'note', w: RW, h: estTextH(t, RW, 110), data: { title: '🧠 AI Memory notes', text: t }});
+    addCard('note', center.x - 130, center.y + 75, {
+      title: 'AI Memory Notes',
+      text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n'),
+    }, 270, 190);
   }
-
-  const colH = arr => arr.reduce((s, it) => s + it.h, 0) + Math.max(0, arr.length - 1) * GAP;
-  const FW = PAD + LW + GAP + MW + GAP + RW + PAD;
-  const FH = HEAD + Math.max(colH(left), colH(mid), colH(right)) + PAD;
-  const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
-
-  const frame = addCard('frame', x0, y0, {
-    title: result.title || 'AI Lesson Flow', bg: 'rgba(202,255,50,.06)', border: 'rgba(236,72,153,.32)', childIds: [],
-  }, FW, FH);
-
-  let lessonCard = null;
-  const placeCol = (arr, colX) => {
-    let cy = y0 + HEAD;
-    for (const it of arr) {
-      const card = addCard(it.type, colX, cy, it.data, it.w, it.h);
-      if (it.isLesson) lessonCard = card;
-      if (frame && card) setCardParentFrame?.(card, frame);
-      cy += it.h + GAP;
-    }
-  };
-  if (typeof _suppressSnapshot === 'number') _suppressSnapshot++;
-  try {
-    placeCol(left,  x0 + PAD);
-    placeCol(mid,   x0 + PAD + LW + GAP);
-    placeCol(right, x0 + PAD + LW + GAP + MW + GAP);
-  } finally { if (typeof _suppressSnapshot === 'number') _suppressSnapshot--; }
-  if (typeof renumberFrames === 'function') renumberFrames();
-  if (frame?.id && frame.data && !frame.data.childIds?.length) {
+  if (result.modeAddons?.length) {
+    addCard('checklist', center.x + 460, center.y - 220, {
+      title: 'Smart extras',
+      items: result.modeAddons.map(text => ({ text, done: false })),
+    }, 220, 170);
+  }
+  if (result.warmupPrompts?.length) {
+    addCard('sticky', center.x + 465, center.y - 20, {
+      text: result.warmupPrompts.join('\n'),
+      color: STICKY_COLORS[1] || '#d9f99d',
+    }, 220, 190);
+  }
+  if (result.assessmentCriteria?.length) {
+    addCard('checklist', center.x + 465, center.y + 195, {
+      title: 'Success criteria',
+      items: result.assessmentCriteria.map(text => ({ text, done: false })),
+    }, 230, 180);
+  }
+  if (result.teacherScript?.length) {
+    addCard('note', center.x - 430, center.y + 330, {
+      title: 'Teacher script',
+      text: result.teacherScript.join('\n'),
+    }, 300, 190);
+  }
+  if (result.challenge) {
+    addCard('sticky', center.x - 90, center.y + 330, {
+      text: 'Challenge:\n' + result.challenge,
+      color: STICKY_COLORS[2] || '#fde68a',
+    }, 240, 160);
+  }
+  if (result.homework) {
+    addCard('assignment', center.x + 170, center.y + 75, {
+      title: 'AI Homework',
+      type: 'Mixed',
+      maxScore: 100,
+      deadline: '',
+      desc: result.homework,
+      submitted: 0,
+      total: 0,
+    }, 260, 190);
+  }
+  if (frame?.id && frame.data) {
     frame.data.childIds = state.cards
       .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
       .map(c => c.id);
   }
   clearSelection();
-  if (lessonCard?.id) selectCard(lessonCard.id);
+  if (lesson?.id) selectCard(lesson.id);
   renderAllArrows?.();
   scheduleSave(); saveLocal?.();
   closeAiAssistantPanel();
@@ -15548,7 +14998,6 @@ function openStudentQuiz(cardId) {
       </div>
       <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/qs.length)*100}%"></div></div>
       <div class="quiz-body">
-        ${(d.passage && d.passage.text) ? `<details class="quiz-passage"${d.cat === 'listening' ? '' : ' open'}><summary>${d.cat === 'listening' ? '🎧 Transcript' : '📖 Read the text'}${d.passage.title ? ' · ' + esc(d.passage.title) : ''}</summary><div class="quiz-passage-body">${esc(d.passage.text).replace(/\n+/g, '<br><br>')}</div></details>` : ''}
         <div class="quiz-question">${esc(q.text||'')}</div>
         <div class="quiz-input-area" id="quiz-input-area">${inputHtml}</div>
       </div>

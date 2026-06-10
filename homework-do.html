@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#C8E632">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<!-- Fonts: app unifies to the system UI stack (styles/unify.css); the Google
-     Fonts download was unused here — removed for speed. -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -286,18 +286,6 @@ function renderSide() {
 
 function showCurrent() {
   const host = document.getElementById('runner-card-host');
-  // Empty assignment guard: avoid "Card 1 of 0" + Infinity% width + a misleading
-  // "card no longer exists" message when there are no required cards.
-  if (!requiredCards.length) {
-    document.getElementById('runner-step').textContent = 'No tasks';
-    const pr = document.querySelector('#runner-progress > div');
-    if (pr) pr.style.width = '0%';
-    host.innerHTML = `<div class="card-empty">This homework has no tasks yet. Ask your teacher to add some.</div>`;
-    document.getElementById('btn-prev').disabled = true;
-    document.getElementById('btn-next').style.display = 'none';
-    document.getElementById('btn-submit').style.display = 'none';
-    return;
-  }
   document.getElementById('runner-step').textContent =
     `Card ${stepIdx+1} of ${requiredCards.length}`;
   const progress = document.querySelector('#runner-progress > div');

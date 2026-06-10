@@ -125,55 +125,6 @@ const SYSTEM = [
   'no markdown, no commentary, no code fences, no trailing text.',
 ].join(' ');
 
-// ── Reading passage support ─────────────────────────────────────────────
-// The six reading-comprehension tools must always ship a visible text so the
-// questions have something to refer to. When the teacher pastes a source we
-// echo it; otherwise the model writes an original passage at the right level.
-const READING_PASSAGE_TOOLS = new Set(['abcd-text', 'true-false', 'gist-detail', 'three-titles', 'open-questions', 'choose-summary']);
-
-function passageWordTarget(level) {
-  return ({ A1: '70-90', A2: '90-120', B1: '130-170', B2: '180-230', C1: '230-290', C2: '260-330' })[level] || '140-180';
-}
-
-function passageDirective(input) {
-  const hasSource = input.source && String(input.source).trim().length > 40;
-  if (hasSource) {
-    return 'READING PASSAGE: A source text is provided above. Use it AS the reading passage: set passage.text to that source text (lightly cleaned, do NOT rewrite or shorten it), passage.title to a short fitting title, and passage.vocab to 5-7 of its hardest words, each with a short student-friendly gloss. Base EVERY question strictly and only on this passage.';
-  }
-  const words = passageWordTarget(input.level);
-  return `READING PASSAGE: No source text was given, so FIRST write an original, engaging, factually-plausible reading passage about the topic at ${input.level} level (${words} words, 2-3 natural paragraphs) as passage.text; give it a short passage.title; and list 5-7 key words in passage.vocab, each with a short gloss. THEN base EVERY question strictly and only on the passage you wrote.`;
-}
-
-const PASSAGE_SCHEMA = '"passage":{"title":"Short title","text":"the full reading passage (2-3 paragraphs)","vocab":[{"word":"key word","gloss":"short meaning"}]},';
-
-// Augment a quiz spec so the model also returns a reading passage.
-function addPassageToSpec(spec, input) {
-  return {
-    task: passageDirective(input) + '\n\n' + spec.task,
-    schema: spec.schema.replace('{', '{' + PASSAGE_SCHEMA),
-  };
-}
-
-// Listening comprehension tools attach a TRANSCRIPT (the spoken text students
-// hear). Same passage envelope as reading; only the wording differs.
-const LISTENING_PASSAGE_TOOLS = new Set(['audio-video-questions', 'summary-gapfill', 'listening-dictation']);
-
-function transcriptDirective(input) {
-  const hasSource = input.source && String(input.source).trim().length > 40;
-  if (hasSource) {
-    return 'AUDIO TRANSCRIPT: A transcript / notes are provided above. Use it AS the transcript: set passage.text to that text (lightly cleaned, do NOT rewrite or shorten it), passage.title to a short fitting title, and passage.vocab to 5-7 of its key words, each with a short student-friendly gloss. Base EVERY question strictly and only on this transcript.';
-  }
-  const words = passageWordTarget(input.level);
-  return `AUDIO TRANSCRIPT: No transcript was given, so FIRST write a short, natural spoken-style transcript about the topic at ${input.level} level (${words} words) - a monologue or a short two-speaker dialogue, exactly as if it were the audio students hear (use speaker labels like "A:" / "B:" for a dialogue). Set passage.text to the transcript, passage.title to a short title, and list 5-7 key words in passage.vocab, each with a short gloss. THEN base EVERY question strictly and only on this transcript.`;
-}
-
-function addTranscriptToSpec(spec, input) {
-  return {
-    task: transcriptDirective(input) + '\n\n' + spec.task,
-    schema: spec.schema.replace('{', '{' + PASSAGE_SCHEMA),
-  };
-}
-
 // Describe the target JSON shape per board kind. The model fills these in;
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
@@ -259,7 +210,7 @@ function shapeSpec(input) {
 
   if (boardKind === 'quiz') {
     const isTf = toolId === 'true-false';
-    const isGap = ['gap', 'gaps-brackets'].includes(toolId);
+    const isGap = ['gap', 'gaps-brackets', 'listening-dictation'].includes(toolId);
     const isTwo = toolId === 'two-options';
     const isOpen = ['open-questions', 'discussion', 'question-ladder'].includes(toolId);
     const isMcqGap = toolId === 'gaps-abcd';
@@ -305,16 +256,10 @@ function shapeSpec(input) {
       };
     }
     if (isTf) {
-      return addPassageToSpec({
-        task: `${head} Produce exactly ${count} True/False statements based ONLY on the passage at ${level} level. Alternate true and false; for the false ones change one factual detail so the statement contradicts the passage. Use type "truefalse" and a boolean "answer".${context}`,
+      return {
+        task: `${head} Produce exactly ${count} True/False statements at ${level} level. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
         schema: '{"questions":[{"type":"truefalse","text":"statement","answer":true,"points":1}]}',
-      }, input);
-    }
-    if (toolId === 'listening-dictation') {
-      return addTranscriptToSpec({
-        task: `${head} Produce exactly ${count} dictation sentences taken (or lightly adapted) from the transcript at ${level} level. Each "text" = the full sentence the student hears and must write; blank ONE key word in it with "_____"; "answer" = that exact word. The full transcript is the answer key. Use type "gap-fill".${context}`,
-        schema: '{"questions":[{"type":"gap-fill","text":"a full sentence with one _____ to fill","answer":"word","points":1}]}',
-      }, input);
+      };
     }
     if (isGap) {
       return {
@@ -335,10 +280,10 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'audio-video-questions') {
-      return addTranscriptToSpec({
-        task: `${head} Produce EXACTLY ${count} listening-comprehension questions based ONLY on the transcript, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts said in the audio - make these the bulk; (3) end with only 1-2 OPEN inference / opinion questions. Every MCQ has 4 full, plausible options (complete phrases, not single words), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"What is the speaker mainly talking about?","options":["full answer A","full answer B","full answer C","full answer D"],"answer":"full answer A","points":1},{"type":"mcq","text":"detail question about something stated?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
-      }, input);
+      return {
+        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq", 4 options, "answer" = correct option text) and the rest open detail questions (type "open").${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"question","options":["A","B","C","D"],"answer":"A","points":1},{"type":"open","text":"detail question?","points":1}]}',
+      };
     }
     if (toolId === 'rewrite-style') {
       const tone = input.extra ? `the style named in the teacher note (${input.extra})` : 'a more formal / academic style';
@@ -353,12 +298,6 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"open","text":"Would you rather …?","points":1}]}',
       };
     }
-    if (toolId === 'open-questions') {
-      return addPassageToSpec({
-        task: `${head} Produce exactly ${count} open-ended reading questions based on the passage at ${level} level: mix literal questions (answer stated in the text), inference questions (read between the lines) and personal-response questions. Use type "open".${context}`,
-        schema: '{"questions":[{"type":"open","text":"question?","points":2}]}',
-      }, input);
-    }
     if (isOpen || isWarmup) {
       const openTask = isWarmup
         ? `${head} Produce exactly ${count} pre-listening prediction questions at ${level} level that activate prior knowledge and curiosity before hearing/watching. Mix prediction ("What do you think...?"), prior knowledge ("What do you already know about...?"), and personal connection ("Have you ever...?") types. Use type "open".`
@@ -369,10 +308,10 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'three-titles') {
-      return addPassageToSpec({
-        task: `${head} Based on the passage, produce exactly 1 MCQ: "text" = "Which title best fits the text?", "options" = 3 possible titles (the correct one + 2 plausible but inaccurate distractors), "answer" = the correct title text exactly. Use type "mcq".${context}`,
+      return {
+        task: `${head} Read the source text and produce exactly 1 MCQ: "text" = "Which title best fits the text?", "options" = 3 possible titles (the correct one + 2 plausible but inaccurate distractors), "answer" = the correct title text exactly. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"Which title best fits the text?","options":["Title A","Title B","Title C"],"answer":"Title A","points":1}]}',
-      }, input);
+      };
     }
     if (toolId === 'reading-bits') {
       const n = Math.max(4, Math.min(count, 6));
@@ -382,16 +321,16 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'summary-gapfill') {
-      return addTranscriptToSpec({
-        task: `${head} Based on the transcript, write a 5-7 sentence summary at ${level} level. Remove 6-8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
+      return {
+        task: `${head} Write a 5–7 sentence summary of the source text / topic at ${level} level. Remove 6–8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
         schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"removed word","points":1}]}',
-      }, input);
+      };
     }
     if (toolId === 'choose-summary') {
-      return addPassageToSpec({
-        task: `${head} Based on the passage, produce exactly 1 MCQ where the student picks the most accurate summary. "options" = 3 summaries: one accurate, one too vague, one with an incorrect detail. "answer" = text of the accurate summary exactly. Use type "mcq".${context}`,
+      return {
+        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate summary of the source text / topic. "options" = 3 summaries: one accurate, one too vague, one with an incorrect detail. "answer" = text of the accurate summary exactly. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"Which summary best describes the text?","options":["Accurate summary","Vague but not wrong","Contains incorrect detail"],"answer":"Accurate summary","points":1}]}',
-      }, input);
+      };
     }
     if (toolId === 'sentence-translation') {
       return {
@@ -400,16 +339,10 @@ function shapeSpec(input) {
       };
     }
     if (isGist) {
-      return addPassageToSpec({
-        task: `${head} Produce EXACTLY ${count} reading-comprehension questions based ONLY on the passage, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts stated in the text — make these the bulk of the set; (3) end with only 1–2 OPEN inference / opinion questions. So most questions are multiple-choice. Every MCQ has 4 plausible options that are FULL, meaningful answers (complete phrases — NOT single words copied from the text), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
+      return {
+        task: `${head} Produce EXACTLY ${count} reading-comprehension questions based ONLY on the source text, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts stated in the text — make these the bulk of the set; (3) end with only 1–2 OPEN inference / opinion questions. So most questions are multiple-choice. Every MCQ has 4 plausible options that are FULL, meaningful answers (complete phrases — NOT single words copied from the text), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
         schema: '{"questions":[{"type":"mcq","text":"What is the main idea of the text?","options":["full answer phrase A","full answer phrase B","full answer phrase C","full answer phrase D"],"answer":"full answer phrase A","points":1},{"type":"mcq","text":"detail question about a stated fact?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
-      }, input);
-    }
-    if (isAbcd) {
-      return addPassageToSpec({
-        task: `${head} Based ONLY on the passage, produce exactly ${count} multiple-choice reading-comprehension questions (4 options each). Mix gist, detail and inference. Each has exactly one correct option and three plausible distractors; "answer" must equal the correct option text verbatim. Use type "mcq".${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"question about the text","options":["A","B","C","D"],"answer":"correct option text","points":1}]}',
-      }, input);
+      };
     }
     const verb = isMcqGap ? 'multiple-choice gap-fill sentences (one blank, 4 options)'
       : isAbcd ? 'multiple-choice comprehension questions (4 options)'

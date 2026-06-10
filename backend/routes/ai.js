@@ -571,20 +571,7 @@ function assembleFromLLM(input, data) {
         .sort(() => Math.random() - 0.5);
       if (bank.length) sections.unshift({ title: 'Word bank', items: bank });
     }
-    const out = { ...env, questions, sections };
-    // Reading tools also return a passage the questions refer to.
-    const p = data.passage;
-    if (p && (p.text || p.title)) {
-      out.passage = {
-        title: line(p.title || ''),
-        text: block(p.text || ''),
-        vocab: Array.isArray(p.vocab)
-          ? p.vocab.map(v => ({ word: line(v.word || ''), gloss: line(v.gloss || v.definition || '') }))
-              .filter(v => v.word).slice(0, 10)
-          : [],
-      };
-    }
-    return out;
+    return { ...env, questions, sections };
   }
 
   // cards (lesson packs, worksheets, texts, dialogues, …)
@@ -637,15 +624,7 @@ async function generate(input) {
       console.error('[ai/llm] falling back to rule engine:', err.message);
     }
   }
-  const out = generateLocal(input);
-  // Reading comprehension fallback: if the teacher pasted a source, echo it as
-  // the passage so the worksheet still shows a text to read.
-  if (out && out.boardKind === 'quiz' && !out.passage
-      && ['abcd-text','true-false','gist-detail','three-titles','open-questions','choose-summary','audio-video-questions','summary-gapfill','listening-dictation'].includes(input.toolId)
-      && input.source && String(input.source).trim().length > 40) {
-    out.passage = { title: String(input.topic || 'Reading text'), text: String(input.source).trim(), vocab: [] };
-  }
-  return out;
+  return generateLocal(input);
 }
 
 router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req, res) => {
