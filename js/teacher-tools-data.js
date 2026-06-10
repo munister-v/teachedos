@@ -28,6 +28,12 @@ const BOARD_TEACHER_TOOLS = [
   {id:'simplify-text',cat:'reading',title:'Simplify / Upgrade a Text',desc:'Adapt source text up or down by CEFR level.',kind:'Adaptation'},
   {id:'gist-detail',cat:'reading',title:'Gist + Detail Reading Tasks',desc:'Prediction, gist scan, detail questions and transfer speaking.',kind:'Reading Flow'},
   {id:'generate-text',cat:'reading',title:'Generate a Text on a Topic',desc:'A ready-to-use leveled reading text with pre- and post-reading tasks.',kind:'Reading Text'},
+  {id:'tf-not-given',cat:'reading',title:'True / False / Not Given',desc:'Exam-style statements: true, false, or not mentioned in the text.',kind:'Check'},
+  {id:'vocab-in-context',cat:'reading',title:'Vocabulary in Context',desc:'Multiple-choice questions on what words mean as used in the text.',kind:'MCQ'},
+  {id:'reference-questions',cat:'reading',title:'Reference Questions',desc:'What do "it / this / they / these" refer to in the text?',kind:'Questions'},
+  {id:'match-headings',cat:'reading',title:'Match Headings to Paragraphs',desc:'Students match a heading to each paragraph of the text.',kind:'Matching'},
+  {id:'sentence-insertion',cat:'reading',title:'Sentence Insertion',desc:'Where does the removed sentence best fit back into the text?',kind:'MCQ'},
+  {id:'reading-bits',cat:'reading',title:'Reading: Bits and Pieces',desc:'Split a text into jumbled pieces for students to reorder.',kind:'Reorder'},
 
   {id:'word-image-match',cat:'vocabulary',title:'Word-Image Matching',desc:'Visual matching exercise for words and image prompts.',kind:'Matching'},
   {id:'word-definition-match',cat:'vocabulary',title:'Word-Definition Matching',desc:'Vocabulary pairs ready for cards, memory match or worksheet.',kind:'Matching'},
