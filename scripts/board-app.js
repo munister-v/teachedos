@@ -6155,6 +6155,11 @@ const TT_NO_COUNT_SET = new Set([
   'three-titles','text-topic-vocab','essay-outline','email-reply','rewrite-style',
   'grammar-rules','dialogue','roleplay-cards','debate-cards','transcript-helper',
   'generate-text',
+  // Fixed-scaffold writing/speaking tools: the prompt hardcodes how many cards
+  // it returns (task + word list + model, 4 opinions, pros/cons, …) and ignores
+  // the Items value — so showing "Items: 40" only misleads (you set 40, get 3).
+  'link-words','creative-writing','four-opinions','pros-cons','lead-in',
+  'interesting-facts','find-quotes','essay-topics',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
   'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
