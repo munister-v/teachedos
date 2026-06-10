@@ -1374,3 +1374,41 @@ body.os-desktop .wg-vocab-next {
 body.os-desktop .wg-vocab-next:hover {
   box-shadow: 0 16px 34px rgba(200,230,50,0.36) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FIX — native <select> rendered grey/dark on light pages
+   A native <select> with appearance:auto ignores its CSS background and
+   paints in the OS theme, so on dark-mode browsers it showed up charcoal
+   next to the white text inputs (Share board, tool forms, etc.). Force the
+   styleable light box + a custom caret so selects match the inputs.
+   Scope: all non-board light pages. Board (.board-page) keeps its own dark
+   styling; intentionally-dark game-builder panels are re-asserted below.
+   Specificity 0,6,2 (5 :not on select) beats harmony.css's :is(…select…)
+   base rule (0,6,1).
+═══════════════════════════════════════════════════════════════ */
+body:not(.board-page) select:not([multiple]):not(.module-select):not(.topic-ctl):not(.native):not([data-native]) {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-color: #fff !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path fill='%231C1C1E' d='M1 1.5 6 6l5-4.5'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 11px 8px !important;
+  padding-right: 38px !important;
+  color: #1c1c1e !important;
+  color-scheme: light !important;
+}
+
+/* Re-assert the intentionally-dark game-builder panel selects so they keep the
+   native dark control. Specificity 0,7,2 (5 :not) > the light rule's 0,6,2. */
+body:not(.board-page) .topic-bar select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
+body:not(.board-page) .ink-panel select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
+body:not(.board-page) .topic-ctl select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]) {
+  -webkit-appearance: auto !important;
+  appearance: auto !important;
+  background-image: none !important;
+  background-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  color-scheme: dark !important;
+  padding-right: 12px !important;
+}
