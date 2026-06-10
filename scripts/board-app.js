@@ -1673,7 +1673,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     }).join('');
   }
   if (cards) {
-    return cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${esc(c.text || '').replace(/\n/g, '<br>')}</div></div>`).join('');
+    return cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${_ttMdToHtml(c.text)}</div></div>`).join('');
   }
   return '';
 }
@@ -1815,6 +1815,16 @@ function refreshAllMilestones() {
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function textToHtml(s){ return esc(s || '').replace(/\n/g,'<br>'); }
+// Escape, then render markdown bold (**word**) as <strong> and newlines as <br>.
+// Used for AI text where target vocabulary comes back marked with **asterisks**.
+function _ttMdToHtml(s){
+  return esc(s || '')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+// Plain-text fallback: just strip the ** markers (for places that can't show HTML).
+function _ttStripMd(s){ return String(s||'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1'); }
 
 function textFontOptions() {
   return [
@@ -7892,7 +7902,7 @@ function renderTeacherToolLocalPreview(out){
       <div class="tbuilder-section tt-q" style="--i:${i}" data-ci="${i}">
         <button class="tt-del" data-del-card="${i}" title="Remove">×</button>
         <h4><span class="tt-num">${i+1}</span><span class="tt-edit" contenteditable="true" data-card-field="title" data-ci="${i}">${esc(c.title)}</span></h4>
-        <p class="tt-edit" contenteditable="true" data-card-field="text" data-ci="${i}" data-ph="Write here…">${esc(c.text)}</p>
+        <p class="tt-edit" contenteditable="true" data-card-field="text" data-ci="${i}" data-ph="Write here…">${_ttMdToHtml(c.text)}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
     _ttAppendSuggestions(body);
