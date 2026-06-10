@@ -6160,6 +6160,11 @@ const TT_NO_COUNT_SET = new Set([
   // the Items value — so showing "Items: 40" only misleads (you set 40, get 3).
   'link-words','creative-writing','four-opinions','pros-cons','lead-in',
   'interesting-facts','find-quotes','essay-topics',
+  // Vocab tools whose output is strictly ONE item per target word the teacher
+  // pastes — the count is dictated by the word list, not a number. Showing
+  // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
+  // teacher controls the count by how many words they type.
+  'sentences-vocab','flashcards',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
   'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
@@ -8364,6 +8369,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const input = readTeacherToolBuilderInput();
   const toolId = activeTeacherToolBuilder.id;
   const isPilot = !!TT_PILOT_TOOLS[toolId];
+  // Count-hidden tools have no meaningful target count, so never show "N of M" —
+  // the item count IS the result (one per pasted word / a fixed scaffold).
+  const hideCount = TT_NO_COUNT_SET.has(toolId);
   // AI-first: tools without a quality local generator default to the LLM so they
   // never fall back to a useless generic scaffold on "Generate fast".
   if (mode === 'fast' && !TT_LOCAL_QUALITY_SET.has(toolId) && authToken) mode = 'ai';
@@ -8419,7 +8427,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       if (chip) {
         const n = _ttCountItems(local);
         chip.textContent = n == null ? `${local.kind||'ready'}`
-          : (n < input.count ? `fast · ${n} of ${input.count} items` : `fast · ${n} items`);
+          : (!hideCount && n < input.count ? `fast · ${n} of ${input.count} items` : `fast · ${n} items`);
       }
       _ttSetGenerating(false);
       return;
@@ -8528,7 +8536,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     if (chip && !chip.textContent.startsWith('AI')) {
       const n = _ttCountItems(local);
       chip.textContent = n == null ? `${local.kind||'ready'}`
-        : (n < input.count ? `local · ${n} of ${input.count} items` : `local · ${n} items`);
+        : (!hideCount && n < input.count ? `local · ${n} of ${input.count} items` : `local · ${n} items`);
     }
     _ttSetGenerating(false);
     return;
