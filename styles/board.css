@@ -1251,6 +1251,29 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 [data-theme="dark"] .card-frame .frame-title{color:var(--text);}
 .card-frame .frame-title:hover{background:rgba(66,98,255,.09);border-radius:4px;}
+/* "+ Add activity" on lesson frames (top-right, above the frame) */
+.card-frame .frame-add-activity{
+  position:absolute;top:-32px;right:0;z-index:11;
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#4262FF,#5B7BFF);color:#fff;border:none;
+  border-radius:10px;padding:5px 11px;font:800 12px var(--font);cursor:pointer;
+  box-shadow:0 2px 8px rgba(66,98,255,.32);transition:transform .12s ease,box-shadow .12s ease;
+}
+.card-frame .frame-add-activity:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(66,98,255,.42);}
+.card-frame .frame-add-activity .faa-ic{font-size:14px;font-weight:900;line-height:1;}
+.lesson-activity-menu{
+  position:fixed;z-index:9999;background:#fff;border:1px solid rgba(17,24,39,.12);
+  border-radius:14px;box-shadow:0 14px 44px rgba(17,24,39,.20);padding:7px;
+  min-width:268px;font-family:var(--font);animation:lamPop .14s ease;
+}
+@keyframes lamPop{from{opacity:0;transform:translateY(-4px) scale(.98);}to{opacity:1;transform:none;}}
+.lesson-activity-menu .lam-head{font:800 10px var(--font);letter-spacing:.08em;text-transform:uppercase;color:#9097a3;padding:6px 10px 7px;}
+.lesson-activity-menu .lam-item{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;border-radius:10px;padding:9px 11px;cursor:pointer;text-align:left;}
+.lesson-activity-menu .lam-item:hover{background:rgba(66,98,255,.08);}
+.lesson-activity-menu .lam-ic{font-size:19px;flex-shrink:0;width:24px;text-align:center;}
+.lesson-activity-menu .lam-txt strong{display:block;font-size:13px;color:#171420;font-weight:800;line-height:1.25;}
+.lesson-activity-menu .lam-txt small{display:block;font-size:11px;color:#6b7280;margin-top:1px;}
+.lesson-activity-menu .lam-empty{padding:12px;color:#6b7280;font-size:12px;}
 .card-frame .frame-num{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:18px;height:18px;padding:0 5px;border-radius:4px;

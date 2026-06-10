@@ -469,11 +469,27 @@ function _ttPlaceReadingBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
+    // Lesson context for the on-frame "+ Add activity" button: word↔meaning
+    // pairs (from the glossary) + the reading text, so added activities are
+    // built from this exact lesson.
+    const glossPairs = glossaryCard
+      ? String(glossaryCard.text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+          const p = l.split(/\s+[—–-]\s+/);
+          return p.length >= 2 ? { word: _ttStripMd(p.shift()).trim(), def: _ttStripMd(p.join(' — ')).trim() } : null;
+        }).filter(Boolean)
+      : [];
     frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${output.title}`,
       bg: meta.frameBg,
       border: meta.frameBorder,
       childIds: [],
+      lesson: {
+        cat: 'reading',
+        topic: output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'this lesson',
+        level: output.level || 'B1',
+        source: readingCard ? String(readingCard.text || '') : '',
+        vocab: glossPairs,
+      },
     }, FRAME_W, FRAME_H);
 
     // Slim context strip (the frame title carries the name).
