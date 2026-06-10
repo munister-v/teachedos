@@ -137,6 +137,12 @@ function shapeSpec(input) {
   const head = `Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
 
   if (boardKind === 'vocab') {
+    if (toolId === 'flashcards') {
+      return {
+        task: `${head} Build a flashcard for EACH target word/phrase the teacher provided: "word" = the target word, "definition" = a short student-friendly definition (max 12 words), "example" = a natural ${level} sentence using it. Make exactly one item per target word — do NOT invent extra words. If no target words are given, choose the ${count} most essential words for the topic.${context}`,
+        schema: '{"items":[{"word":"...","definition":"...","example":"..."}]}',
+      };
+    }
     if (toolId === 'collocations') {
       return {
         task: `${head} Produce exactly ${count} collocation entries for this topic. For each: "word" = the headword; "definition" = its 3–4 strongest natural collocations separated by commas (e.g. "make a decision, take a decision, reach a decision"); "example" = one natural ${level} sentence using one collocation.${context}`,
@@ -377,7 +383,7 @@ function shapeSpec(input) {
   }
   if (toolId === 'sentences-vocab') {
     return {
-      task: `${head} For each target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return one card per word: "title" = the word, "text" = the example sentence with the target word in **bold**. Produce ${count} cards. Put all target words in "vocab".${context}`,
+      task: `${head} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word — do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"target word","text":"Example sentence with **word**."}],"vocab":["word"]}',
     };
   }
