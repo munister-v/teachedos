@@ -136,6 +136,21 @@ function shapeSpec(input) {
   const context = ctx.length ? `\n\n${ctx.join('\n\n')}` : '';
   const head = `Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
 
+  // ── Reading text controls (genre + length) ──────────────────────────────────
+  // Optional input.genre / input.length from the UI; otherwise sensible defaults
+  // (length scales with CEFR level so A1 texts stay short and C1 texts longer).
+  const GENRES = {
+    article: 'a short magazine / news article', story: 'a short narrative story',
+    email: 'an informal email or letter', report: 'a clear factual report',
+    blog: 'an engaging blog post', dialogue: 'a natural two-person dialogue',
+    review: 'a review (film / book / product / place)',
+  };
+  const genre = GENRES[String(input.genre || '').toLowerCase()] || '';
+  const genreText = genre ? ` Write it as ${genre}.` : '';
+  const LEN_BANDS = { short: '90–130', medium: '160–200', long: '240–320' };
+  const lvlDefaultWords = /^A[12]/i.test(level) ? '90–130' : /^C[12]/i.test(level) ? '240–320' : '160–200';
+  const words = LEN_BANDS[String(input.length || '').toLowerCase()] || lvlDefaultWords;
+
   if (boardKind === 'vocab') {
     if (toolId === 'flashcards') {
       return {
@@ -208,6 +223,12 @@ function shapeSpec(input) {
         schema: '{"pairs":[{"left":"word","right":"😀 short visual description"}]}',
       };
     }
+    if (toolId === 'match-headings') {
+      return {
+        task: `${head} Read the source text and divide it into its natural paragraphs (or, if it is one block, into 4–6 logical sections). For EACH paragraph write ONE short, accurate heading that captures its main idea. "left" = "Paragraph N: <first 6–8 words…>" so the student can identify the paragraph; "right" = the heading. Keep headings parallel in style and at ${level} level. Do NOT reuse a heading.${context}`,
+        schema: '{"pairs":[{"left":"Paragraph 1: first words…","right":"Heading"}]}',
+      };
+    }
     return {
       task: `${head} Produce exactly ${count} matching pairs. "left" = a word/phrase, "right" = a short student-friendly definition or match at ${level} level.${context}`,
       schema: '{"pairs":[{"left":"...","right":"..."}]}',
@@ -224,6 +245,31 @@ function shapeSpec(input) {
     const isGist = toolId === 'gist-detail';
     const isOdd = toolId === 'odd-one-out';
     const isWarmup = toolId === 'warmup-listening';
+
+    if (toolId === 'tf-not-given') {
+      return {
+        task: `${head} Based ONLY on the source text, produce exactly ${count} statements at ${level} level in a varied order, mixing three kinds: some clearly TRUE (supported by the text), some FALSE (directly contradicted by the text), and some NOT GIVEN (plausible, on-topic, but the text neither confirms nor denies them). Aim for a roughly even mix. For each: "options" = ["True","False","Not Given"] and "answer" = the correct one. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"statement about the text","options":["True","False","Not Given"],"answer":"True","points":1}]}',
+      };
+    }
+    if (toolId === 'vocab-in-context') {
+      return {
+        task: `${head} Choose exactly ${count} useful words/phrases that ACTUALLY APPEAR in the source text. For each write a question: "text" = 'In the text, "<word>" means:'; "options" = 4 short meanings — exactly ONE matching how the word is used IN THIS TEXT, plus 3 plausible distractors (include a common but wrong-in-this-context meaning); "answer" = the correct meaning text verbatim. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"In the text, \\"word\\" means:","options":["correct meaning","distractor","distractor","distractor"],"answer":"correct meaning","points":1}]}',
+      };
+    }
+    if (toolId === 'reference-questions') {
+      return {
+        task: `${head} Find exactly ${count} reference words in the source text (pronouns / determiners such as it, this, that, they, these, those, one, such, here) and ask what each refers back to. "text" = 'In "<short quote that contains the word>", what does "<word>" refer to?'; "answer" = the exact thing it refers to from the text. Use type "open".${context}`,
+        schema: '{"questions":[{"type":"open","text":"In \\"…it…\\", what does \\"it\\" refer to?","answer":"the noun it refers to","points":1}]}',
+      };
+    }
+    if (toolId === 'sentence-insertion') {
+      return {
+        task: `${head} From the source text build exactly ${count} sentence-insertion items at ${level} level. For each: remove ONE meaningful sentence from a paragraph, then show that paragraph with four numbered gap markers [1] [2] [3] [4] placed between sentences. "text" = 'Where does this sentence best fit?\\nMissing sentence: "<removed sentence>"\\n\\n<paragraph with [1] … [4]>'; "options" = ["[1]","[2]","[3]","[4]"]; "answer" = the correct marker. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"Where does this sentence best fit? Missing sentence: \\"…\\" …[1]…[2]…[3]…[4]…","options":["[1]","[2]","[3]","[4]"],"answer":"[2]","points":1}]}',
+      };
+    }
 
     if (isOdd) {
       return {
@@ -369,16 +415,22 @@ function shapeSpec(input) {
       schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word","word"]}',
     };
   }
-  if (['text-topic-vocab', 'summary-task'].includes(toolId)) {
+  if (toolId === 'text-topic-vocab') {
     return {
-      task: `${head} Write the requested reading/summary content at ${level} level as 2–3 cards (e.g. "Generated text", "Before reading", "After reading"). Include a "vocab" list of key words.${context}`,
-      schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word"]}',
+      task: `${head} Write a leveled reading text (about ${words} words, 2–4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context — mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" — a short title on the first line, then the text; 2) "🔑 Glossary" — every target word, one per line as "word — short ${level} definition"; 3) "Before reading" — 2 prediction/lead-in questions; 4) "After reading" — 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word — definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …\\n3. …"}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'summary-task') {
+    return {
+      task: `${head} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" — ONE sentence capturing the central point; 2) "🔑 Key details" — 4–6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" — a guided frame for the student to write a 40–60 word summary, with 2–3 sentence starters (one per line); 4) "✅ Model summary" — a teacher model summary of 40–60 words. Put key words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"🎯 Main idea","text":"…"},{"title":"🔑 Key details","text":"• …\\n• …"},{"title":"✍️ Your summary","text":"Write 40–60 words.\\nStart: \\"The text is about…\\"\\n…"},{"title":"✅ Model summary","text":"…"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'generate-text') {
     return {
-      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about 150–220 words, natural paragraphs). Return cards: 1) "Reading text" — the full text; 2) "Before reading" — 2–3 prediction/lead-in questions; 3) "After reading" — 3–4 comprehension + discussion questions. Include a "vocab" list of 6–8 key words from the text.${context}`,
-      schema: '{"cards":[{"title":"Reading text","text":"..."},{"title":"Before reading","text":"1. ...\\n2. ..."},{"title":"After reading","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
+      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2–4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" — a short title on the first line, then the text; 2) "🔑 Glossary" — 6–8 key words from the text, one per line as "word — short ${level} definition"; 3) "Before reading" — 2–3 prediction/lead-in questions; 4) "After reading" — 3–4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word — definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'sentences-vocab') {

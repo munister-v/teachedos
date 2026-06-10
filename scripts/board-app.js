@@ -5817,6 +5817,9 @@ const TT_NEEDS_SOURCE_SET = new Set([
   // tools whose whole purpose is to process a pasted text / transcript
   'summary-task','three-titles','cefr-checker','add-text',
   'audio-video-questions','answer-key',
+  // exam-style reading tasks — all read FROM a pasted text
+  'tf-not-given','vocab-in-context','reference-questions',
+  'match-headings','sentence-insertion','reading-bits',
 ]);
 const TT_NEEDS_VOCAB_SET = new Set([
   'sentences-vocab','odd-one-out','word-sorting','essential-vocab',
@@ -5835,6 +5838,8 @@ const TT_MEDIA_SET = new Set([
   'audio-video-questions','transcript-helper','summary-gapfill',
   'choose-summary','warmup-listening','listening-dictation','add-video',
 ]);
+// Text-generation tools — offer Genre + Length controls for the produced text.
+const TT_TEXTGEN_SET = new Set(['generate-text','text-topic-vocab']);
 
 // Fetch a YouTube transcript into the source field (Twee-style one-click flow).
 async function fetchYoutubeTranscript() {
@@ -6165,6 +6170,9 @@ const TT_NO_COUNT_SET = new Set([
   // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
   // teacher controls the count by how many words they type.
   'sentences-vocab','flashcards',
+  // match-headings makes one heading PER PARAGRAPH of the pasted text — the
+  // count comes from the text, not a number.
+  'match-headings',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
   'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
@@ -6230,6 +6238,10 @@ function _ttAdaptFields(tool) {
   // Hide the "Items" count for tools that produce a single artifact / scaffold.
   const countWrap = document.getElementById('tb-wrap-count');
   if (countWrap) countWrap.classList.toggle('tb-field-hidden', TT_NO_COUNT_SET.has(tool.id));
+
+  // Genre + Length controls (reading-text generators only)
+  const textgenWrap = document.getElementById('tb-wrap-textgen');
+  if (textgenWrap) textgenWrap.classList.toggle('tb-field-hidden', !TT_TEXTGEN_SET.has(tool.id));
 
   // YouTube link → transcript (listening / video tools)
   const ytWrap = document.getElementById('tb-wrap-youtube');
@@ -6422,6 +6434,8 @@ function readTeacherToolBuilderInput() {
     count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
     topic: getVal('tbuilder-topic') || 'Practical English',
     action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
+    genre: getVal('tbuilder-genre'),
+    length: getVal('tbuilder-length'),
     source: getVal('tbuilder-source'),
     vocab: getVal('tbuilder-vocab'),
     extra: getVal('tbuilder-extra'),
@@ -6455,6 +6469,8 @@ function _ttCacheKey(mode, input) {
     count: input.count,
     topic: input.topic,
     action: input.action,
+    genre: input.genre,
+    length: input.length,
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
@@ -6567,6 +6583,8 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
           count: input.count,
           topic: input.topic,
           action: input.action,
+          genre: input.genre,
+          length: input.length,
           source: input.source,
           vocab: input.vocab,
           extra: input.extra,

@@ -677,6 +677,32 @@
             <button type="button" data-tt-action="keep" onclick="setTeacherToolAction('keep', this)">Keep level</button>
           </div>
         </div>
+        <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-textgen">
+          <div class="tbuilder-row">
+            <div>
+              <label for="tbuilder-genre">Genre</label>
+              <select id="tbuilder-genre">
+                <option value="">Auto</option>
+                <option value="article">Article</option>
+                <option value="story">Story</option>
+                <option value="email">Email / letter</option>
+                <option value="report">Report</option>
+                <option value="blog">Blog post</option>
+                <option value="dialogue">Dialogue</option>
+                <option value="review">Review</option>
+              </select>
+            </div>
+            <div>
+              <label for="tbuilder-length">Length</label>
+              <select id="tbuilder-length">
+                <option value="">Auto (by level)</option>
+                <option value="short">Short</option>
+                <option value="medium">Medium</option>
+                <option value="long">Long</option>
+              </select>
+            </div>
+          </div>
+        </div>
         <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-youtube">
           <label for="tbuilder-youtube">YouTube link</label>
           <div style="display:flex;gap:8px;align-items:stretch">
@@ -1600,7 +1626,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=117').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=118').then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

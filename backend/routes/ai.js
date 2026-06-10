@@ -59,6 +59,12 @@ const TOOL_META = {
   'simplify-text': ['reading', 'Adaptation'],
   'gist-detail': ['reading', 'Reading Flow'],
   'generate-text': ['reading', 'Reading Text'],
+  'tf-not-given': ['reading', 'Check'],
+  'vocab-in-context': ['reading', 'MCQ'],
+  'reference-questions': ['reading', 'Questions'],
+  'match-headings': ['reading', 'Matching'],
+  'sentence-insertion': ['reading', 'MCQ'],
+  'reading-bits': ['reading', 'Reorder'],
   'word-definition-match': ['vocabulary', 'Matching'],
   'word-image-match': ['vocabulary', 'Matching'],
   'extract-vocab': ['vocabulary', 'Extraction'],
@@ -118,12 +124,18 @@ function normaliseInput(body) {
   const meta = TOOL_META[toolId] || ['utility', 'Task'];
   const count = Math.max(3, Math.min(MAX_ITEMS, parseInt(raw.count || body?.count || 12, 10) || 12));
   const action = ['simplify', 'upgrade', 'keep'].includes(raw.action) ? raw.action : 'simplify';
+  // Reading-text controls (optional): genre + length. Empty string = "let the
+  // engine choose" (length then defaults by CEFR level).
+  const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review'].includes(raw.genre) ? raw.genre : '';
+  const length = ['short', 'medium', 'long'].includes(raw.length) ? raw.length : '';
   return {
     toolId,
     level: clean(raw.level, 'B1').slice(0, 8),
     count,
     topic: clean(raw.topic, 'Practical English').slice(0, 160),
     action,
+    genre,
+    length,
     source: limitText(raw.source, 18000),
     vocab: limitText(raw.vocab, 8000),
     extra: clean(raw.extra, '').slice(0, 600),
@@ -140,6 +152,8 @@ function cacheKey(userId, input) {
     count: input.count,
     topic: input.topic,
     action: input.action,
+    genre: input.genre,
+    length: input.length,
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
@@ -423,19 +437,19 @@ function escapeRegExp(value) {
 }
 
 function boardKindFor(toolId) {
-  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(toolId)) return 'matching';
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families', 'synonyms-antonyms', 'phrasal-verbs', 'idioms'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'rewrite-style', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation', 'conversation-starters'].includes(toolId)) return 'quiz';
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'rewrite-style', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation', 'conversation-starters', 'tf-not-given', 'vocab-in-context', 'reference-questions', 'sentence-insertion'].includes(toolId)) return 'quiz';
   return 'cards';
 }
 
 // Local rule-engine fallback (the original `vps-fast-v1` behaviour).
 function generateLocal(input) {
-  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves'].includes(input.toolId)) return makeMatching(input);
+  if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
-  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation'].includes(input.toolId)) return makeQuiz(input);
+  if (['abcd-text', 'true-false', 'open-questions', 'gap', 'gaps-abcd', 'gaps-brackets', 'two-options', 'rewrite', 'error-correction', 'word-order', 'type-gap', 'word-bank', 'tense-contrast', 'gist-detail', 'odd-one-out', 'discussion', 'question-ladder', 'listening-dictation', 'audio-video-questions', 'three-titles', 'reading-bits', 'summary-gapfill', 'choose-summary', 'warmup-listening', 'sentence-translation', 'tf-not-given', 'vocab-in-context', 'reference-questions', 'sentence-insertion'].includes(input.toolId)) return makeQuiz(input);
   return makeCards(input);
 }
 
