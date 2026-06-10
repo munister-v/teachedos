@@ -333,7 +333,7 @@ function renderCommunity() {
           <div class="board-meta">${esc(p.author||'Teacher')} · ${esc(p.level||'Mixed')}${meta}</div>
         </div>
       </div>
-      <div class="board-desc">${esc(p.desc)}</div>
+      <div class="board-desc">${(p.descHtml && window.ttSanitize) ? window.ttSanitize(p.descHtml) : esc(p.desc)}</div>
       <div class="tags">${(p.tags||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
       <div class="card-actions">
         ${p.snapshot
@@ -720,6 +720,7 @@ loadBoards();
   </div>
 </div>
 
+<script src="scripts/community-ai.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>
 <script src="scripts/mobile-zoom-guard.js" defer></script>
