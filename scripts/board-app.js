@@ -6456,18 +6456,30 @@ function openLessonActivityMenu(frameId, anchor) {
   const frame = state.cards.find(c => c.id === frameId);
   const L = frame && frame.data && frame.data.lesson;
   if (!L) return;
-  const hasVocab = Array.isArray(L.vocab) && L.vocab.length >= 3;
+  const hasVocab = Array.isArray(L.vocab) && L.vocab.filter(v => v.word && v.def).length >= 3;
+  const hasWords = Array.isArray(L.vocab) && L.vocab.filter(v => v.word).length >= 3;
   const hasText = !!String(L.source || '').trim();
-  const items = [];
-  if (hasVocab) items.push({ t: 'match', icon: '🔗', label: 'Match words & meanings', sub: 'Students connect each word to its meaning' });
-  if (hasVocab || hasText) items.push({ t: 'gap', icon: '✍️', label: 'Fill in the words', sub: 'Type the missing word into each sentence' });
-  if (hasText) items.push({ t: 'quiz', icon: '❓', label: 'Comprehension quiz', sub: 'AI multiple-choice questions on the text' });
+
+  // Two groups, mirroring the teacher's mental model: questions ON the text
+  // (pick the format) and activities built FROM the words.
+  const sections = [];
+  const qItems = [];
+  if (hasText) qItems.push({ t: 'quiz', icon: '🔘', label: 'Multiple choice', sub: '4-option questions on the text' });
+  if (hasText) qItems.push({ t: 'truefalse', icon: '⚖️', label: 'True / False', sub: 'Statements to judge against the text' });
+  if (hasText) qItems.push({ t: 'open', icon: '💬', label: 'Open questions', sub: 'Comprehension / discussion prompts' });
+  if (qItems.length) sections.push({ title: 'Questions on the text', items: qItems });
+  const wItems = [];
+  if (hasVocab) wItems.push({ t: 'match', icon: '🔗', label: 'Match word ↔ meaning', sub: 'Connect each word to its meaning' });
+  if (hasWords || hasText) wItems.push({ t: 'gap', icon: '✍️', label: 'Fill in the words', sub: 'Type the missing word into each sentence' });
+  if (hasVocab) wItems.push({ t: 'vocabquiz', icon: '🧠', label: 'Quiz with the words', sub: 'Multiple choice: what does each word mean?' });
+  if (wItems.length) sections.push({ title: 'Word activities', items: wItems });
 
   const menu = document.createElement('div');
   menu.id = 'lesson-activity-menu';
   menu.className = 'lesson-activity-menu';
-  menu.innerHTML = `<div class="lam-head">＋ Add interactive activity</div>` + (items.length
-    ? items.map(it => `<button class="lam-item" data-act="${it.t}"><span class="lam-ic">${it.icon}</span><span class="lam-txt"><strong>${it.label}</strong><small>${esc(it.sub)}</small></span></button>`).join('')
+  const itemHtml = it => `<button class="lam-item" data-act="${it.t}"><span class="lam-ic">${it.icon}</span><span class="lam-txt"><strong>${it.label}</strong><small>${esc(it.sub)}</small></span></button>`;
+  menu.innerHTML = `<div class="lam-head">＋ Add to this lesson</div>` + (sections.length
+    ? sections.map(s => `<div class="lam-section">${esc(s.title)}</div>` + s.items.map(itemHtml).join('')).join('')
     : `<div class="lam-empty">Add target vocabulary or a text to this lesson first.</div>`);
   document.body.appendChild(menu);
   const r = anchor.getBoundingClientRect();
@@ -6500,6 +6512,32 @@ async function addLessonActivity(frameId, type) {
     const qs = _ttLessonGapQuestions(L);
     if (qs.length < 2) { toast('Not enough words for a gap-fill', 'error'); return; }
     data = _ttAssign('Fill in the words', L.level, qs);
+  } else if (type === 'vocabquiz') {
+    const v = (L.vocab || []).filter(x => x.word && x.def);
+    if (v.length < 3) { toast('Not enough words for a quiz', 'error'); return; }
+    const allDefs = v.map(x => x.def);
+    const qs = v.slice(0, 8).map(x => {
+      const distractors = _ttShuffle(allDefs.filter(d => d !== x.def)).slice(0, 3);
+      const options = _ttShuffle([x.def, ...distractors]);
+      return { type: 'mcq', text: `What does “${x.word}” mean?`, options, answer: x.def, points: 1 };
+    });
+    data = _ttAssign('Vocabulary quiz', L.level, qs);
+  } else if (type === 'truefalse') {
+    toast('✨ Generating true/false from the text…');
+    const out = await requestServerTeacherTool(
+      { tool: { id: 'true-false' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: '', extra: '', genre: '', length: '' },
+      20000);
+    const qs = ((out && out.questions) || []).filter(q => q.type === 'truefalse').slice(0, 8);
+    if (!qs.length) { toast('Could not generate true/false right now — try again.', 'error'); return; }
+    data = _ttAssign('True or False', L.level, qs);
+  } else if (type === 'open') {
+    toast('✨ Generating open questions…');
+    const out = await requestServerTeacherTool(
+      { tool: { id: 'open-questions' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: '', extra: '', genre: '', length: '' },
+      20000);
+    const qs = ((out && out.questions) || []).filter(q => q.type === 'open').slice(0, 8);
+    if (!qs.length) { toast('Could not generate open questions right now — try again.', 'error'); return; }
+    data = _ttAssign('Open questions', L.level, qs);
   } else if (type === 'quiz') {
     toast('✨ Generating a quiz from the text…');
     const out = await requestServerTeacherTool(

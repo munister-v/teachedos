@@ -24,6 +24,50 @@ function _ttVisibleAndRest(list, visibleCount) {
   };
 }
 
+// Lesson context for the on-frame "+ Add activity" button. Pulls word↔meaning
+// pairs and any reading text out of ANY tool output, so every generated lesson
+// on the board can be extended with interactive activities. Returns null when
+// there's nothing to build from.
+function _ttDeriveLesson(output) {
+  if (!output) return null;
+  const topic = output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'this lesson';
+  const level = output.level || 'B1';
+  const clean = s => String(s == null ? '' : s).replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/\s+/g, ' ').trim();
+  let vocab = [];
+  let source = '';
+  if (Array.isArray(output.items) && output.items.length) {
+    vocab = output.items.map(i => ({ word: clean(i.word), def: clean(i.definition) || clean(i.example) })).filter(v => v.word && v.def);
+  }
+  if (Array.isArray(output.questions)) {
+    const m = output.questions.find(q => q.type === 'match' && Array.isArray(q.pairs));
+    if (m && !vocab.length) vocab = m.pairs.map(p => ({ word: clean(p.left), def: clean(p.right) })).filter(v => v.word && v.def);
+  }
+  if (Array.isArray(output.cards)) {
+    const gl = output.cards.find(c => /glossary|vocabulary|key words|word list/i.test(c.title || ''));
+    if (gl && !vocab.length) {
+      vocab = String(gl.text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+        const p = l.split(/\s+[—–-]\s+/);
+        return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' — ')) } : null;
+      }).filter(Boolean);
+    }
+    const rt = output.cards.find(c => /reading text|generated text|\btext\b/i.test(c.title || ''));
+    if (rt) source = String(rt.text || '');
+  }
+  if (Array.isArray(output.vocab) && output.vocab.length && !vocab.length) {
+    vocab = output.vocab.map(w => ({ word: clean(w), def: '' })).filter(v => v.word);
+  }
+  if (vocab.length < 2 && !source) return null;
+  return { cat: output.cat || 'utility', topic, level, source, vocab };
+}
+
+// Create a composer frame that carries lesson context (→ "+ Add activity").
+function _ttLessonFrame(meta, output, x, y, w, h) {
+  const data = { title: `${meta.icon}  ${output.title}`, bg: meta.frameBg, border: meta.frameBorder, childIds: [] };
+  const lesson = _ttDeriveLesson(output);
+  if (lesson) data.lesson = lesson;
+  return addCard('frame', x, y, data, w, h);
+}
+
 function _ttBoardComposerMeta(output) {
   const cat = output?.cat || activeTeacherToolBuilder?.cat || 'utility';
   const base = BOARD_TOOL_META[cat] || BOARD_TOOL_META.utility;
@@ -129,12 +173,7 @@ function _ttPlaceMatchingOrSortingBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    frame = addCard('frame', x0, y0, {
-      title: `${meta.icon}  ${output.title}`,
-      bg: meta.frameBg,
-      border: meta.frameBorder,
-      childIds: [],
-    }, FRAME_W, FRAME_H);
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
 
     _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 96,
       `${output.title}\n${output.kind || 'Matching'} · ${output.level || 'B1'} · ${pairPack.total} items\n\nTeacher move: students drag/point from the word bank to the correct definition/category. Keep the answer key locked until feedback.`,
@@ -190,12 +229,7 @@ function _ttPlaceQuizBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    frame = addCard('frame', x0, y0, {
-      title: `${meta.icon}  ${output.title}`,
-      bg: meta.frameBg,
-      border: meta.frameBorder,
-      childIds: [],
-    }, FRAME_W, FRAME_H);
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
 
     _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92,
       `${output.title}\n${output.kind || 'Quiz'} · ${questions.length} questions · ${totalPts} pts\n\nBoard flow: preview task -> student attempt -> pair check -> reveal key -> recycle mistakes.`,
@@ -260,12 +294,7 @@ function _ttPlaceVocabStudioBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    frame = addCard('frame', x0, y0, {
-      title: `${meta.icon}  ${output.title}`,
-      bg: meta.frameBg,
-      border: meta.frameBorder,
-      childIds: [],
-    }, FRAME_W, FRAME_H);
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
     _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92,
       `${output.title}\nVocabulary studio · ${items.length} words\n\nUse this as a live board: reveal meanings, collect examples, then convert hard words into a game.`,
       { textColor: meta.frameBorder, fontSize: 15 });
@@ -326,12 +355,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    frame = addCard('frame', x0, y0, {
-      title: `${meta.icon}  ${output.title}`,
-      bg: meta.frameBg,
-      border: meta.frameBorder,
-      childIds: [],
-    }, FRAME_W, FRAME_H);
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
     _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92,
       `${output.title}\n${output.kind || 'Activity'} · ${output.level || 'B1'}\n\nThis board is arranged as a teachable flow, not a static note: prepare -> perform -> feedback -> reuse.`,
       { textColor: meta.frameBorder, fontSize: 15 });
@@ -469,28 +493,16 @@ function _ttPlaceReadingBoard(output, meta) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    // Lesson context for the on-frame "+ Add activity" button: word↔meaning
-    // pairs (from the glossary) + the reading text, so added activities are
-    // built from this exact lesson.
-    const glossPairs = glossaryCard
-      ? String(glossaryCard.text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-          const p = l.split(/\s+[—–-]\s+/);
-          return p.length >= 2 ? { word: _ttStripMd(p.shift()).trim(), def: _ttStripMd(p.join(' — ')).trim() } : null;
-        }).filter(Boolean)
-      : [];
-    frame = addCard('frame', x0, y0, {
+    // Lesson context for the on-frame "+ Add activity" button.
+    const frameData = {
       title: `${meta.icon}  ${output.title}`,
       bg: meta.frameBg,
       border: meta.frameBorder,
       childIds: [],
-      lesson: {
-        cat: 'reading',
-        topic: output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'this lesson',
-        level: output.level || 'B1',
-        source: readingCard ? String(readingCard.text || '') : '',
-        vocab: glossPairs,
-      },
-    }, FRAME_W, FRAME_H);
+    };
+    const lesson = _ttDeriveLesson(output);
+    if (lesson) frameData.lesson = lesson;
+    frame = addCard('frame', x0, y0, frameData, FRAME_W, FRAME_H);
 
     // Slim context strip (the frame title carries the name).
     _ttAddTextCard(frame, x0 + PAD, y0 + 50, FRAME_W - PAD * 2, 30, null, {
