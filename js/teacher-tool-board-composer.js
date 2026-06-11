@@ -117,10 +117,33 @@ function _ttTextCardHeight(text, w, fontSize = 15, extra = 0) {
   return Math.round(rows * lineH * 1.2 + 64 + extra); // title + padding + 20% safety (editor scrolls if short)
 }
 
+// Map an old pastel sticky colour to a saturated accent, so columns/roles that
+// used colour to differ (matching word vs definition, etc.) stay distinct.
+function _ttStickyAccent(color) {
+  const c = String(color || '').toUpperCase();
+  if (/F9C4|F176|FF59|FDE|FEF3|FFD|FFE0|FFAB|F59/.test(c)) return '#F59E0B'; // yellow/orange
+  if (/C8E6|BBF|86EF|D9F9|DCFCE|10B9|6EE7/.test(c)) return '#10B981';        // green
+  if (/BBDE|BAE6|93C5|3B82|DBEA|67E8/.test(c)) return '#3B82F6';             // blue
+  if (/E8D5|DDD6|C4B5|F8BB|FCE7|F3E8|8B5C|EC2/.test(c)) return '#8B5CF6';    // pink/purple
+  return '#4262FF';
+}
+// Body HTML for a panel: escape + **bold** + newlines, via the shared helper.
+function _ttPanelBody(text) {
+  return (typeof _ttMdToHtml === 'function') ? _ttMdToHtml(text)
+    : String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+}
+// Unified worksheet look: every former sticky note now renders as a clean
+// white panel (accent left-rule, soft shadow, Apple font) keeping the exact
+// same footprint. If the text starts with a short heading + blank line it gets
+// an uppercase section label; otherwise the whole thing is the body.
 function _ttAddStickyCard(frame, x, y, w, h, text, color = '#FFF9C4') {
-  const card = addCard('sticky', x, y, { text, color }, w, h);
-  if (frame && card) setCardParentFrame?.(card, frame);
-  return card;
+  const accent = _ttStickyAccent(color);
+  const raw = String(text || '');
+  const m = raw.match(/^([^\n]{1,56})\n\n([\s\S]+)$/);
+  const html = m
+    ? _ttReadingSection(_ttStripMd(m[1]).trim(), `<div style="font:500 13.5px/1.55 var(--font);color:#232830">${_ttPanelBody(m[2])}</div>`, accent, '#ffffff')
+    : `<div style="box-sizing:border-box;background:#fff;border:1px solid rgba(17,24,39,.09);border-left:4px solid ${accent};border-radius:13px;padding:12px 14px;box-shadow:0 1px 3px rgba(17,24,39,.05);font:500 13.5px/1.5 var(--font);color:#232830">${_ttPanelBody(raw)}</div>`;
+  return _ttAddTextCard(frame, x, y, w, h, null, { html, bgColor: 'transparent' });
 }
 
 function _ttAddChecklistCard(frame, x, y, w, h, title, items) {
