@@ -45,6 +45,23 @@
   ::view-transition-new(*) { animation: none !important; }
 }
 
+/* Shared elements: give the persistent chrome a stable transition name so it
+   stays ANCHORED across navigations (morphs in place) instead of cross-fading
+   with the page body — the top nav no longer flickers, only the content swaps.
+   #nav is the desktop bar; .mp-topbar is the mobile header (only one renders
+   per viewport, so the two names never collide). Names must be unique per page,
+   and both elements appear exactly once, so this is safe. */
+#nav { view-transition-name: te-nav; }
+.mp-topbar { view-transition-name: te-topbar; }
+
+/* The anchored bars shouldn't fade at all — hold them steady through the swap. */
+::view-transition-group(te-nav),
+::view-transition-group(te-topbar) { animation-duration: 200ms; }
+::view-transition-old(te-nav),
+::view-transition-new(te-nav),
+::view-transition-old(te-topbar),
+::view-transition-new(te-topbar) { animation: none; mix-blend-mode: normal; }
+
 :root {
   /* Override the legacy --accent token across all pages.
      harmony.css doesn't consume var(--accent) directly (uses var(--pink) explicitly),
