@@ -14659,6 +14659,7 @@ function openSettings() {
 function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); }
 
 function setTheme(name, save=true) {
+  if (name === 'dark') name = 'pink'; // dark mode removed — never allow it (incl. old saved settings)
   boardSettings.theme = name;
   // Clear any previous theme attribute, then set the new one (unless it's
   // the default "pink" theme, which is keyed by the absence of data-theme).
