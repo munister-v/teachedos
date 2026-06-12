@@ -20,6 +20,31 @@
    display:flex inside its own ≤860px block, so the two never conflict.) */
 @media (min-width: 861px) { .mp-mobile-only { display: none !important; } }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   SMOOTH NAVIGATION — MPA View Transitions
+   This is a multi-page app, so every link is a full document load that flashes
+   / "redraws" between pages. Opting into cross-document view transitions makes
+   same-origin navigations cross-fade instead of hard-cutting, which is what
+   gives that "lightness" on both desktop and mobile. No-op in browsers that
+   don't support it (Safari/Firefox today) — they just navigate as before.
+═══════════════════════════════════════════════════════════════════════ */
+@view-transition { navigation: auto; }
+
+/* Keep the cross-fade fast and light — a slow fade feels heavier, not lighter. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+/* New page fades in a touch later so there's no double-bright flash mid-swap. */
+::view-transition-new(root) { animation-delay: 30ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
 :root {
   /* Override the legacy --accent token across all pages.
      harmony.css doesn't consume var(--accent) directly (uses var(--pink) explicitly),
