@@ -685,8 +685,10 @@ h1,h2,h3,h4,h5,h6 {
 }
 .notes-editor-area {
   flex:1; padding:20px 24px; resize:none; border:none; outline:none;
-  background: #fff; color: var(--text); font-family: var(--font-ui);
+  background: #ffffff !important; color: #1c1c1e !important;
+  font-family: var(--font-ui);
   font-size:14px; font-weight:500; line-height:1.75; overflow-y:auto;
+  color-scheme: light !important;
 }
 .notes-footer {
   height:28px; display:flex; align-items:center; padding:0 16px;

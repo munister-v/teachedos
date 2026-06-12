@@ -309,11 +309,23 @@ function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRende
 schRender();
 
 /* ══════════════════════ NOTES ══════════════════════ */
-const NOTES = [
+const NOTES_DEFAULT = [
   { id:1, title:'Articles: a / an / the', preview:'No articles in RU/UA/PL — the hardest part…', content:'ARTICLES IN ENGLISH\n——————————————————————\nRussian, Ukrainian and Polish have NO articles.\nThis makes them the #1 difficulty for Slavic speakers.\n\nRULES:\n\n① Indefinite article — A / AN\n  Use when mentioning something for the FIRST time\n  or when it\'s ONE of many:\n  "I saw a dog." (any dog, first mention)\n  "She is a teacher." (one of many teachers)\n  → A before consonant sounds: a book, a university\n  → AN before vowel sounds: an apple, an hour\n\n② Definite article — THE\n  Use when both speaker and listener know WHICH one:\n  "The dog I saw was huge." (we both know which dog)\n  "Pass me the salt." (the one on the table)\n  Use with: unique things (the Sun, the President)\n  superlatives (the best, the most)\n\n③ Zero article — Ø (no article)\n  Use with: plural general nouns: "Dogs are loyal."\n  uncountable nouns: "Water is essential."\n  proper names: "Moscow", "Ukraine"\n  languages: "I speak English."\n\nCOMMON MISTAKES:\n  ❌ "I am student" → ✓ "I am a student"\n  ❌ "She went to hospital" (UK) / ✓ "to the hospital" (US)\n  ❌ "The life is beautiful" → ✓ "Life is beautiful"', date:'May 7' },
   { id:2, title:'False Friends: RU/UA/PL → EN', preview:'Магазин ≠ magazine, актуальний ≠ actual…', content:'FALSE FRIENDS — НЕБЕЗПЕЧНІ СЛОВА\n——————————————————————\nWords that LOOK similar but mean something DIFFERENT:\n\nRUSSIAN / UKRAINIAN:\n• магазин → SHOP (not "magazine" = журнал)\n• фабрика → FACTORY (not "fabric" = ткань/тканина)\n• актуальный/актуальний → CURRENT/RELEVANT\n  (not "actual" = настоящий/справжній)\n• симпатичный → NICE-LOOKING, CUTE\n  (not "sympathetic" = сочувствующий)\n• конспект → LECTURE NOTES\n  (not "conspect" — not an English word!)\n• декада → TEN DAYS (not "decade" = десятилетие)\n• аккуратный → NEAT, TIDY (not "accurate" = точный)\n\nPOLISH:\n• aktualny → CURRENT (not "actual" = rzeczywisty)\n• okazja → OPPORTUNITY (not "occasion" = okazja też!)\n• ewentualnie → POSSIBLY / OR ELSE\n  (not "eventually" = w końcu)\n• konkurs → COMPETITION (not "concourse")\n• sympatyczny → NICE, LIKEABLE (not "sympathetic")\n• recepta → PRESCRIPTION (not "receipt" = paragon)\n\n⚠️ RULE: Never assume a similar-looking word means\nthe same thing. Always check!', date:'May 6' },
   { id:3, title:'English Tenses vs. Slavic Aspect', preview:'Why English has 12 tenses…', content:'ENGLISH TENSES vs. SLAVIC VERBAL ASPECT\n——————————————————————\nSlavic languages use ASPECT (вид дієслова):\n  доконаний (perfective) = completed action\n  недоконаний (imperfective) = ongoing/repeated\n\nEnglish uses TENSE + ASPECT combinations:\n\nPRESENT:\n  Simple:     "I work" — general truth / habit\n  Continuous: "I am working" — happening RIGHT NOW\n  Perfect:    "I have worked" — past with present effect\n  Perf.Cont.: "I have been working" — started past, still now\n\nPAST:\n  Simple:     "I worked" — finished past action\n  Continuous: "I was working" — was in progress\n  Perfect:    "I had worked" — before another past event\n  Perf.Cont.: "I had been working" — duration before past\n\nFUTURE:\n  Simple:     "I will work"\n  Continuous: "I will be working"\n  Perfect:    "I will have worked"\n  Perf.Cont.: "I will have been working"\n\nKEY MAPPINGS for Slavic speakers:\n  я працюю (impf.) → I work / I am working\n  я попрацював (pf.) → I have worked / I worked\n  я працював (impf.past) → I was working / I used to work\n\nCOMMON ERROR:\n  ❌ "I am living here since 2020"\n  ✓  "I have been living here since 2020"', date:'May 4' },
 ];
+const NOTES_KEY = 'teachedos_notes_v1';
+function notesPersist() {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+}
+function notesLoad() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(NOTES_KEY));
+    if (Array.isArray(saved) && saved.length) { NOTES.length = 0; saved.forEach(n => NOTES.push(n)); }
+  } catch {}
+}
+const NOTES = NOTES_DEFAULT.slice();
+notesLoad();
 let activeNote = NOTES[0].id;
 let saveTimer = null;
 
@@ -341,8 +353,18 @@ function notesNew() {
   const id = Date.now();
   NOTES.unshift({ id, title:'New Note', preview:'', content:'', date:'Today' });
   activeNote = id;
+  notesPersist();
   notesRender();
   document.getElementById('notes-ta').focus();
+}
+function notesDelete(id) {
+  const idx = NOTES.findIndex(n => n.id === id);
+  if (idx === -1) return;
+  NOTES.splice(idx, 1);
+  if (!NOTES.length) NOTES.push({ id: Date.now(), title:'New Note', preview:'', content:'', date:'Today' });
+  activeNote = NOTES[0].id;
+  notesPersist();
+  notesRender();
 }
 function notesAutoSave() {
   const ta = document.getElementById('notes-ta');
@@ -356,9 +378,10 @@ function notesAutoSave() {
   document.getElementById('notes-save-status').textContent = 'editing…';
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    notesPersist();
     notesRender();
-    document.getElementById('notes-save-status').textContent = 'saved';
-  }, 800);
+    document.getElementById('notes-save-status').textContent = '✓ saved';
+  }, 600);
 }
 function notesUpdateCount() {
   const ta = document.getElementById('notes-ta');
