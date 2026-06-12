@@ -26,7 +26,10 @@
   // ── 2. Register the service worker (idempotent) ────────────────────────────
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then(reg => {
+      // updateViaCache:'none' forces the browser to fetch sw.js from the network
+      // on every load instead of its HTTP cache — so a new deploy's service
+      // worker is detected immediately (no day-long stale-SW window).
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
         reg.update();
         reg.addEventListener('updatefound', () => {
           const nw = reg.installing;

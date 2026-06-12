@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v128';
+const CACHE = 'teachedos-v130';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -102,62 +102,58 @@ self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
+// Network-first: ALWAYS hit the network so a fresh deploy is live on the very
+// next load (no "stale until a second reload"). Only fall back to cache when the
+// network genuinely fails (offline). This is the single fix for the stale
+// service-worker problem — deterministic, no timeout race.
+async function networkFirst(request, offlineFallback = false) {
+  try {
+    const resp = await fetch(request);
+    if (resp && resp.status === 200) {
+      const clone = resp.clone();
+      caches.open(CACHE).then(c => c.put(request, clone)).catch(() => {});
+    }
+    return resp;
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (offlineFallback) {
+      const off = await caches.match(base('offline.html'));
+      if (off) return off;
+    }
+    throw err;
+  }
+}
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  if (e.request.method !== 'GET') return;
 
-  // API — network-first
+  // API — network-first, cache fallback (unchanged).
   if (url.hostname.includes('onrender.com') || url.pathname.startsWith('/api/')) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
 
-  // HTML navigations — stale-while-revalidate (instant from cache, background refresh)
-  if (
-    e.request.mode === 'navigate' ||
-    (e.request.headers.get('accept') || '').includes('text/html')
-  ) {
-    e.respondWith(
-      caches.match(e.request).then(cached => {
-        const fresh = fetch(e.request).then(resp => {
-          if (resp && resp.status === 200 && e.request.method === 'GET') {
-            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-          }
-          return resp;
-        }).catch(() => cached || caches.match(base('offline.html')));
-        return cached || fresh;
-      })
-    );
+  // HTML / CSS / JS — NETWORK-FIRST. These carry the app's code and markup, so
+  // freshness wins: an auto-deploy is live on the next load, no hard-refresh.
+  const isHTML = e.request.mode === 'navigate' ||
+    (e.request.headers.get('accept') || '').includes('text/html');
+  const isCode = url.pathname.endsWith('.css') || url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.json');
+  if (isHTML || isCode) {
+    e.respondWith(networkFirst(e.request, isHTML));
     return;
   }
 
-  // CSS / JS / images — stale-while-revalidate too (fast paint, updates on next visit)
-  if (
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js')  ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.ico')
-  ) {
-    e.respondWith(
-      caches.match(e.request).then(cached => {
-        const fresh = fetch(e.request).then(resp => {
-          if (resp && resp.status === 200 && e.request.method === 'GET') {
-            caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-          }
-          return resp;
-        }).catch(() => cached);
-        return cached || fresh;
-      })
-    );
-    return;
-  }
-
-  // Everything else — stale-while-revalidate
+  // Images / fonts / other static assets — cache-first (they rarely change and
+  // benefit from instant load); refresh in the background when missing.
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(resp => {
-        if (resp && resp.status === 200 && e.request.method === 'GET') {
-          caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+        if (resp && resp.status === 200) {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return resp;
       }).catch(() => cached);
