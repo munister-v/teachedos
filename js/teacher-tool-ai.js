@@ -2,7 +2,13 @@
    Lazy-loads WebLLM only when a pilot tool asks for generation and
    exposes the generator as window._ttAI for the board builder. */
 
-const MODEL_ID = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
+// Local in-browser model. Qwen2.5-3B follows instructions and emits clean JSON
+// far more reliably than the old Llama-3.2-3B at the same ~1.8 GB footprint —
+// which is exactly what the strict JSON-array prompts below depend on.
+// _FALLBACK_MODEL_ID keeps the old model as a safety net if the primary can't
+// load (e.g. not in the runtime's prebuilt list on some browsers).
+const MODEL_ID = 'Qwen2.5-3B-Instruct-q4f16_1-MLC';
+const _FALLBACK_MODEL_ID = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
 let _engine = null, _enginePromise = null;
 const _responseCache = new Map();
 
@@ -12,8 +18,12 @@ async function _loadEngine(onProgress) {
   const { CreateMLCEngine } = await import(
     'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm'
   );
-  _enginePromise = CreateMLCEngine(MODEL_ID, {
+  const build = id => CreateMLCEngine(id, {
     initProgressCallback: p => onProgress?.(p.text, p.progress ?? 0),
+  });
+  _enginePromise = build(MODEL_ID).catch(err => {
+    console.warn('[ttAI] primary model failed, falling back:', MODEL_ID, err);
+    return build(_FALLBACK_MODEL_ID);
   });
   _engine = await _enginePromise;
   return _engine;

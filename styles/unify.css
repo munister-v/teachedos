@@ -586,14 +586,25 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   color-scheme: light !important;
 }
 
-/* 3. All remaining inputs / selects on non-board pages — lock to light.
-      Prevents any browser auto-dark from sneaking in. */
-body:not(.board-page) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
-body:not(.board-page) textarea,
-body:not(.board-page) select {
+/* 3. GLOBAL: every native form control on the ENTIRE site renders light —
+      light field, dark text — regardless of OS dark mode or which page it's on.
+      :root inherits no color-scheme, so native <select>/<textarea>/<input> would
+      otherwise fall back to the OS scheme (dark) and render dark-on-dark. This is
+      the single source of truth; intentionally-dark panels are exempted below and
+      win by higher specificity + later order. Board canvas cards are <div
+      contenteditable>, not form controls, so they're untouched. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+textarea,
+select {
   background-color: #ffffff !important;
   color: #1c1c1e !important;
   color-scheme: light !important;
+}
+/* <option> popups follow the same light scheme (Firefox/Chrome dark-mode dropdowns) */
+select option,
+select optgroup {
+  background-color: #ffffff !important;
+  color: #1c1c1e !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -629,29 +640,10 @@ body:not(.board-page) select {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   POINT FIX — dark ink panels / topic-bar inside game-builder
-   These are intentionally dark and must keep dark inputs.
-═══════════════════════════════════════════════════════════════ */
-
-/* Exempt intentionally dark panels from the global light-input override */
-.topic-bar input,
-.topic-bar select,
-.topic-bar textarea,
-.ink-panel input,
-.ink-panel select,
-.ink-panel textarea,
-[style*="background:#0E0E10"] input,
-[style*="background:#1C1C1E"] input,
-[style*="background: #0E0E10"] input,
-[style*="background: #1C1C1E"] input,
-.topic-ctl input,
-.topic-ctl select {
-  background: rgba(255,255,255,0.08) !important;
-  color: #fff !important;
-  border-color: rgba(255,255,255,0.12) !important;
-  color-scheme: dark !important;
-}
+/* NOTE: the old "dark ink panels / topic-bar" exemption was removed on purpose.
+   The product direction is a single rule: every input field is light with dark
+   text, everywhere, no exceptions. A white field with dark text reads fine even
+   on the dark game-builder panels, and it kills the recurring dark-on-dark bug. */
 
 /* ═══════════════════════════════════════════════════════════════
    POINT FIX — community board cards: reduce top stripe height
@@ -1399,16 +1391,17 @@ body:not(.board-page) select:not([multiple]):not(.module-select):not(.topic-ctl)
   color-scheme: light !important;
 }
 
-/* Re-assert the intentionally-dark game-builder panel selects so they keep the
-   native dark control. Specificity 0,7,2 (5 :not) > the light rule's 0,6,2. */
+/* Game-builder panel selects now follow the same single light rule as the rest
+   of the site (white field, dark text) — the previous dark re-assertion was the
+   source of the recurring dark-on-dark dropdowns and has been retired. */
 body:not(.board-page) .topic-bar select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
 body:not(.board-page) .ink-panel select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
 body:not(.board-page) .topic-ctl select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]) {
   -webkit-appearance: auto !important;
   appearance: auto !important;
   background-image: none !important;
-  background-color: rgba(255,255,255,0.08) !important;
-  color: #fff !important;
-  color-scheme: dark !important;
+  background-color: #ffffff !important;
+  color: #1c1c1e !important;
+  color-scheme: light !important;
   padding-right: 12px !important;
 }
