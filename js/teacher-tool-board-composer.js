@@ -56,6 +56,18 @@ function _ttDeriveLesson(output) {
   if (Array.isArray(output.vocab) && output.vocab.length && !vocab.length) {
     vocab = output.vocab.map(w => ({ word: clean(w), def: '' })).filter(v => v.word);
   }
+  // Builder context (raw inputs the teacher typed/pasted) — fills the gaps when
+  // the visible output doesn't carry the text or the word list itself, so the
+  // "+ Add activity" chain works from ANY generated task.
+  const ctx = output._ctx || {};
+  if (!source && ctx.source) source = String(ctx.source);
+  if (vocab.length < 2 && ctx.vocab) {
+    const parsed = String(ctx.vocab).split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      const p = l.split(/\s+[—–-]\s+/);
+      return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' — ')) } : { word: clean(l), def: '' };
+    }).filter(v => v.word);
+    if (parsed.length >= 2) vocab = parsed;
+  }
   if (vocab.length < 2 && !source) return null;
   return { cat: output.cat || 'utility', topic, level, source, vocab };
 }

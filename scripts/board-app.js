@@ -5284,6 +5284,9 @@ function selectSidebarTab(name) {
   // Primary tabs in the bar: mark active. Secondary (Notes/Course/Games) fall under the "More" tab indicator.
   const primaryNames = ['plans','tools'];
   document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
+  // Keep the rail ✦ button in sync with the Tools tab.
+  document.getElementById('mt-tools')?.classList.toggle('active',
+    name === 'tools' && !!document.getElementById('sidebar')?.classList.contains('open'));
   if (primaryNames.includes(name)) {
     const t = document.querySelector(`.sb-tab[data-tab="${name}"]`);
     t && t.classList.add('active');
@@ -5430,6 +5433,7 @@ function openToolsSidebar() {
     document.getElementById('mt-templates')?.classList.add('active');
     try { localStorage.setItem('sb-open', '1'); } catch {}
   }
+  document.getElementById('mt-tools')?.classList.add('active');
   _positionLibraryPopover?.();
   selectSidebarTab('tools');
 }
@@ -6435,6 +6439,15 @@ function _ttAssign(title, level, questions) {
   };
 }
 
+// Lesson vocabulary as builder-style "word - meaning" lines — passed into the
+// AI follow-up requests so generated questions target the lesson's own words.
+function _ttLessonVocabText(L) {
+  return ((L && L.vocab) || [])
+    .filter(v => v.word)
+    .map(v => (v.def ? `${v.word} - ${v.def}` : v.word))
+    .join('\n');
+}
+
 // Gap-fill questions from the lesson: blank each target word inside a real
 // sentence from the text; fall back to a meaning clue when the word isn't found.
 function _ttLessonGapQuestions(L) {
@@ -6472,6 +6485,7 @@ function openLessonActivityMenu(frameId, anchor) {
   if (hasVocab) wItems.push({ t: 'match', icon: '🔗', label: 'Match word ↔ meaning', sub: 'Connect each word to its meaning' });
   if (hasWords || hasText) wItems.push({ t: 'gap', icon: '✍️', label: 'Fill in the words', sub: 'Type the missing word into each sentence' });
   if (hasVocab) wItems.push({ t: 'vocabquiz', icon: '🧠', label: 'Quiz with the words', sub: 'Multiple choice: what does each word mean?' });
+  if (hasWords) wItems.push({ t: 'sentences', icon: '✏️', label: 'Write sentences', sub: 'Students write their own sentence with each word' });
   if (wItems.length) sections.push({ title: 'Word activities', items: wItems });
 
   const menu = document.createElement('div');
@@ -6522,10 +6536,19 @@ async function addLessonActivity(frameId, type) {
       return { type: 'mcq', text: `What does “${x.word}” mean?`, options, answer: x.def, points: 1 };
     });
     data = _ttAssign('Vocabulary quiz', L.level, qs);
+  } else if (type === 'sentences') {
+    const words = (L.vocab || []).filter(v => v.word).slice(0, 8);
+    if (words.length < 2) { toast('Not enough words', 'error'); return; }
+    const qs = words.map(v => ({
+      type: 'open',
+      text: `Write your own sentence using “${v.word}”${v.def ? ` (= ${v.def})` : ''}.`,
+      points: 2,
+    }));
+    data = _ttAssign('Write sentences with the words', L.level, qs);
   } else if (type === 'truefalse') {
     toast('✨ Generating true/false from the text…');
     const out = await requestServerTeacherTool(
-      { tool: { id: 'true-false' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: '', extra: '', genre: '', length: '' },
+      { tool: { id: 'true-false' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'truefalse').slice(0, 8);
     if (!qs.length) { toast('Could not generate true/false right now — try again.', 'error'); return; }
@@ -6533,7 +6556,7 @@ async function addLessonActivity(frameId, type) {
   } else if (type === 'open') {
     toast('✨ Generating open questions…');
     const out = await requestServerTeacherTool(
-      { tool: { id: 'open-questions' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: '', extra: '', genre: '', length: '' },
+      { tool: { id: 'open-questions' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'open').slice(0, 8);
     if (!qs.length) { toast('Could not generate open questions right now — try again.', 'error'); return; }
@@ -6541,7 +6564,7 @@ async function addLessonActivity(frameId, type) {
   } else if (type === 'quiz') {
     toast('✨ Generating a quiz from the text…');
     const out = await requestServerTeacherTool(
-      { tool: { id: 'abcd-text' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: '', extra: '', genre: '', length: '' },
+      { tool: { id: 'abcd-text' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2).slice(0, 8);
     if (!qs.length) { toast('Could not generate a quiz right now — try again.', 'error'); return; }
@@ -8762,6 +8785,13 @@ async function applyTeacherToolBuilderToBoard(mode) {
   if (!lastTeacherToolBuilderOutput) await generateTeacherToolBuilder('fast');
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
+  // Carry the builder's raw inputs with the placed output so EVERY lesson frame
+  // keeps full context (source text + word list) for the "+ Add activity"
+  // chain — even when the visible result (e.g. a quiz) doesn't include them.
+  try {
+    const _in = readTeacherToolBuilderInput();
+    output._ctx = { source: _in.source || '', vocab: _in.vocab || '', topic: _in.topic || '', level: _in.level || 'B1' };
+  } catch {}
   // Styled read-only worksheet — available for the primitive board kinds.
   if (mode === 'worksheet' &&
       ['quiz','vocab','cards'].includes(output.boardKind)) {

@@ -992,6 +992,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .mt-btn.active:hover{background:color-mix(in srgb,var(--accent,#4262FF) 16%,transparent);color:var(--accent,#4262FF);}
 [data-theme="dark"] .mt-btn.active{background:color-mix(in srgb,var(--accent,#4262FF) 22%,transparent);color:#7B95FF;}
 .mt-btn:active { transform:scale(.92); }
+/* ✦ Teacher Tools — primary entry on the rail (mirrors the sidebar Tools tab) */
+.mt-btn.mt-tools{color:#4F46E5;}
+.mt-btn.mt-tools:hover{background:rgba(79,70,229,.10);color:#4F46E5;}
+.mt-btn.mt-tools.active{
+  background:rgba(79,70,229,.14);color:#4F46E5;
+  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.40);
+}
 /* AI sparkle button — purple Miro accent */
 .mt-btn.mt-ai{color:#7C3AED;}
 .mt-btn.mt-ai:hover{background:rgba(124,58,237,.10);color:#7C3AED;}
