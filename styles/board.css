@@ -10,7 +10,7 @@
   --sb-w:280px;--tb-h:48px;--mt-w:48px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
-  --card-bg:#ffffff;--card-radius:6px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
+  --card-bg:#ffffff;--card-radius:10px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
 }
 /* ── Theme overrides ── */
 [data-theme="dark"]{
@@ -2018,9 +2018,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .layer-popover{
   position:fixed;display:none;align-items:center;gap:2px;z-index:9500;
   padding:5px 6px;border-radius:10px;
-  background:var(--card-bg,#fff);
-  box-shadow:0 8px 24px rgba(5,5,40,.16),0 2px 6px rgba(0,0,0,.06);
-  border:1px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 12px 32px rgba(5,5,40,.18),0 2px 8px rgba(0,0,0,.06),0 0 0 0.5px rgba(0,0,0,.06);
+  border:1px solid rgba(255,255,255,.7);
   font-family:var(--font);
   animation:layer-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
@@ -2065,17 +2066,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* ── Ghost drag from sidebar ── */
 #drag-ghost{
   position:fixed;z-index:9999;pointer-events:none;display:none;
-  opacity:.88;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);
+  opacity:.90;border-radius:12px;
+  box-shadow:0 14px 38px rgba(0,0,0,.20),0 2px 8px rgba(0,0,0,.10);
   background:var(--card-bg,#fff);border:2px solid var(--accent);
   padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);
   min-width:140px;max-width:220px;
+  transform:rotate(-2deg) scale(1.04);
+  transition:opacity .1s;
 }
 
 /* ── Selection box (Miro-style marquee) ── */
 #sel-box{
   position:fixed;z-index:800;pointer-events:none;display:none;
-  border:1px solid #4262FF;
-  background:rgba(66,98,255,.08);border-radius:2px;
+  border:1.5px solid rgba(66,98,255,.70);
+  background:rgba(66,98,255,.06);border-radius:4px;
+  box-shadow:0 0 0 1px rgba(66,98,255,.10);
 }
 
 /* ── Snap alignment guides (Miro-style blue dashed lines) ── */
@@ -2089,6 +2094,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 
 /* ── Empty state ── */
+@keyframes emptyFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
 #empty-state{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   text-align:center;pointer-events:none;color:var(--text-3);
@@ -2098,7 +2104,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 #empty-state.is-visible{opacity:1;visibility:visible;}
 /* Legacy .hidden kept as a no-op so older toggles don't break */
 #empty-state.hidden{opacity:0;visibility:hidden;}
-.empty-icon{font-size:52px;line-height:1;margin-bottom:14px;opacity:.7;}
+.empty-icon{font-size:52px;line-height:1;margin-bottom:14px;opacity:.7;
+  animation:emptyFloat 3.2s ease-in-out infinite;}
 .empty-text{font-size:15px;font-weight:800;color:var(--text-2);margin-bottom:10px;}
 .empty-sub{display:flex;flex-direction:column;gap:6px;align-items:center;}
 .empty-hint{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:7px;}
@@ -2109,10 +2116,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 
 /* ── Context menu (Miro style) ── */
+@keyframes ctx-pop{from{opacity:0;transform:scale(.94) translateY(-4px);}to{opacity:1;transform:none;}}
 #ctx-menu{
   position:fixed;z-index:5000;background:#fff;border:1px solid rgba(0,0,0,.08);
-  border-radius:8px;box-shadow:0 6px 24px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.06);
+  border-radius:12px;box-shadow:0 12px 36px rgba(5,5,23,.18),0 2px 8px rgba(0,0,0,.06);
   padding:6px;min-width:200px;display:none;
+  animation:ctx-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
 [data-theme="dark"] #ctx-menu{background:#252540;border-color:rgba(255,255,255,.10);}
 .ctx-item{
@@ -2295,10 +2304,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .assign-q-preview{display:flex;flex-direction:column;gap:3px;margin-top:2px;}
 .assign-q-chip{
-  font-size:10px;color:var(--text-2);background:#fef3ea;border-radius:6px;
-  padding:3px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  border-left:2px solid #f97316;
+  font-size:10px;color:var(--text-2);
+  background:rgba(249,115,22,.06);
+  border-radius:4px 8px 8px 4px;
+  padding:4px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  border-left:2.5px solid #f97316;
+  transition:background .12s;
 }
+.assign-q-chip:hover{background:rgba(249,115,22,.12);}
 .assign-prog-wrap{margin-top:2px;}
 .assign-prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-bottom:4px;}
 .assign-prog-bar{height:5px;border-radius:3px;background:rgba(249,115,22,.12);overflow:hidden;}
@@ -2533,7 +2546,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* ══════════════ VOCABULARY CARD ══════════════ */
 .card-vocab .card-header{background:linear-gradient(135deg,rgba(234,179,8,.07),rgba(245,158,11,.03));}
 .vocab-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;}
-.vocab-word{font-size:20px;font-weight:900;color:var(--text);line-height:1;}
+.vocab-word{font-size:22px;font-weight:900;color:var(--text);line-height:1;letter-spacing:-.02em;}
 .vocab-phonetic{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:1px;}
 .vocab-trans{font-size:13px;font-weight:700;color:#6366f1;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;}
 .vocab-pos{font-size:10px;font-family:var(--mono);color:var(--text-3);margin-bottom:2px;}
