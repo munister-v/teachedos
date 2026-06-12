@@ -7020,7 +7020,7 @@ function renderTeacherToolBuilderOutput(output) {
     ${output.sections.map(section => `
       <div class="tbuilder-section">
         <h4>${esc(section.title)}</h4>
-        <ul>${(section.items || []).map(item => `<li>${esc(item)}</li>`).join('')}</ul>
+        <ul>${(section.items || []).map(item => `<li>${_ttMdToHtml(item)}</li>`).join('')}</ul>
       </div>
     `).join('')}
   `;
@@ -7253,7 +7253,17 @@ function _ttCountItems(out){
     return out.questions.length;
   }
   if (Array.isArray(out.items)) return out.items.length;
-  if (Array.isArray(out.cards)) return out.cards.length;
+  // Card-based tools (reading text, summary, grammar rules…) wrap a small set of
+  // STRUCTURAL cards (text / glossary / before / after) around a larger set of
+  // teachable items. Report the meaningful count — the glossary/vocab — instead
+  // of the 3–4 wrapper cards, so "12 items" never shows up as "4". Only when the
+  // vocab list is genuinely larger than the card count (i.e. the cards are
+  // wrappers, not the content themselves, as in flashcards).
+  const cards = Array.isArray(out.cards) ? out.cards.length : 0;
+  const vocab = Array.isArray(out.vocab) ? out.vocab.length : 0;
+  if (cards && vocab > cards) return vocab;
+  if (cards) return cards;
+  if (vocab) return vocab;
   return null;
 }
 
@@ -8117,7 +8127,10 @@ function renderTeacherToolLocalPreview(out){
   const chip = document.getElementById('tbuilder-chip');
 
   if (out.boardKind === 'cards') {
-    if (chip) chip.textContent = `${out.cards.length} cards`;
+    // Show the meaningful item count (glossary/vocab) when the cards are just
+    // structural wrappers, so a 12-word reading text doesn't read as "4 cards".
+    const vocabN = Array.isArray(out.vocab) ? out.vocab.length : 0;
+    if (chip) chip.textContent = vocabN > out.cards.length ? `${vocabN} words` : `${out.cards.length} cards`;
     body.innerHTML = _ttPreviewHeader(out, out.cards.length, 'cards') + _ttEditHint + out.cards.map((c,i)=>`
       <div class="tbuilder-section tt-q" style="--i:${i}" data-ci="${i}">
         <button class="tt-del" data-del-card="${i}" title="Remove">×</button>
@@ -8135,7 +8148,7 @@ function renderTeacherToolLocalPreview(out){
       <div class="tbuilder-section tt-q" style="--i:${i}" data-vi="${i}">
         <button class="tt-del" data-del-vocab="${i}" title="Remove">×</button>
         <h4><span class="tt-num">${i+1}</span><span class="tt-edit" contenteditable="true" data-vocab-field="word" data-vi="${i}">${esc(it.word)}</span></h4>
-        <p class="tt-edit" contenteditable="true" data-vocab-field="example" data-vi="${i}" data-ph="Example sentence (optional)…">${esc(it.example||'')}</p>
+        <p class="tt-edit" contenteditable="true" data-vocab-field="example" data-vi="${i}" data-ph="Example sentence (optional)…">${_ttMdToHtml(it.example||'')}</p>
       </div>`).join('');
     _ttWirePreviewEvents(out, body);
     _ttAppendSuggestions(body);

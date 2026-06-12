@@ -329,13 +329,20 @@ notesLoad();
 let activeNote = NOTES[0].id;
 let saveTimer = null;
 
+function notesEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Pinned notes float to the top of the list, newest-first within each group.
+function notesSorted(){
+  return NOTES.slice().sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0));
+}
 function notesRender() {
   const list = document.getElementById('notes-list');
   list.innerHTML = '';
-  NOTES.forEach(n => {
+  notesSorted().forEach(n => {
     const el = document.createElement('div');
-    el.className = 'note-item' + (n.id===activeNote?' active':'');
-    el.innerHTML = `<div class="note-item-title">${n.title}</div><div class="note-item-preview">${n.preview}</div><div class="note-item-date">${n.date}</div>`;
+    el.className = 'note-item' + (n.id===activeNote?' active':'') + (n.pinned?' pinned':'');
+    el.innerHTML = `<div class="note-item-title">${n.pinned?'📌 ':''}${notesEsc(n.title)||'New Note'}</div>`
+      + `<div class="note-item-preview">${notesEsc(n.preview)}</div>`
+      + `<div class="note-item-date">${notesEsc(n.date)}</div>`;
     el.onclick = () => notesOpen(n.id);
     list.appendChild(el);
   });
@@ -344,6 +351,9 @@ function notesRender() {
     document.getElementById('notes-ta').value = active.content;
     notesUpdateCount();
   }
+  // Reflect pin state on the toolbar button.
+  const pinBtn = document.querySelector('.notes-tb-btn[data-note-pin]');
+  if (pinBtn) pinBtn.classList.toggle('active', !!(active && active.pinned));
 }
 function notesOpen(id) {
   activeNote = id;
@@ -365,6 +375,27 @@ function notesDelete(id) {
   activeNote = NOTES[0].id;
   notesPersist();
   notesRender();
+}
+function notesTogglePin() {
+  const note = NOTES.find(n => n.id === activeNote);
+  if (!note) return;
+  note.pinned = !note.pinned;
+  notesPersist();
+  notesRender();
+}
+// Wrap the current textarea selection in markdown markers (** bold, * italic).
+// The app renders **bold** as <strong> everywhere a note's text is reused, so
+// the markers stay meaningful instead of being a dead execCommand call.
+function notesWrap(marker) {
+  const ta = document.getElementById('notes-ta');
+  if (!ta) return;
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e) || 'text';
+  ta.value = ta.value.slice(0, s) + marker + sel + marker + ta.value.slice(e);
+  // Re-select the wrapped text so the user can keep typing / toggle again.
+  ta.focus();
+  ta.setSelectionRange(s + marker.length, s + marker.length + sel.length);
+  notesAutoSave();
 }
 function notesAutoSave() {
   const ta = document.getElementById('notes-ta');

@@ -1849,11 +1849,11 @@ html,body {
         <div class="studio-actions"><button class="studio-chip primary" type="button" onclick="notesNew()">New note →</button><span class="studio-chip">Autosaved locally</span></div>
       </section>
       <div class="notes-toolbar">
-        <button class="notes-tb-btn" onclick="notesTogglePin()" title="Pin note">📌</button>
+        <button class="notes-tb-btn" data-note-pin onclick="notesTogglePin()" title="Pin note">📌</button>
         <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note">🗑</button>
         <div class="notes-tb-sep"></div>
-        <button class="notes-tb-btn" onclick="document.execCommand('bold')" title="Bold"><b>B</b></button>
-        <button class="notes-tb-btn" onclick="document.execCommand('italic')" title="Italic"><i>I</i></button>
+        <button class="notes-tb-btn" onclick="notesWrap('**')" title="Bold (wraps selection in **)"><b>B</b></button>
+        <button class="notes-tb-btn" onclick="notesWrap('*')" title="Italic (wraps selection in *)"><i>I</i></button>
       </div>
       <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
       <div class="notes-footer">

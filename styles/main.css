@@ -679,6 +679,7 @@ h1,h2,h3,h4,h5,h6 {
   transition:background .15s, color .15s;
 }
 .notes-tb-btn:hover { background: rgba(200,230,50,0.10); color: var(--accent); }
+.notes-tb-btn.active { background: rgba(200,230,50,0.20); color: var(--accent); }
 .notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
 .notes-editor {
   flex:1; display:flex; flex-direction:column;
