@@ -754,8 +754,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 .tool-snippet:hover{
   border-color:var(--ts-color,#4262FF);
-  box-shadow:0 4px 16px rgba(94,94,74,.10);
+  box-shadow:0 6px 20px rgba(94,94,74,.12);
   background:#fafbff;
+  transform:translateY(-2px) scale(1.015);
 }
 .tool-snippet:active{opacity:.85;}
 .tool-snippet::before{
@@ -1131,14 +1132,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #board-wrap.placing,
 #board-wrap.placing *{cursor:crosshair!important;}
 /* Floating placement ghost that follows cursor */
+@keyframes ghostPulse{
+  0%,100%{box-shadow:0 6px 20px rgba(66,98,255,.22),0 0 0 0 rgba(66,98,255,0),0 1px 4px rgba(0,0,0,.08);}
+  50%{box-shadow:0 6px 24px rgba(66,98,255,.30),0 0 0 5px rgba(66,98,255,.10),0 1px 4px rgba(0,0,0,.08);}
+}
 #place-ghost{
   position:fixed;pointer-events:none;z-index:9999;
   display:flex;align-items:center;gap:7px;
-  background:#fff;border:2px solid #4262FF;border-radius:9px;
+  background:#fff;border:2px solid #4262FF;border-radius:10px;
   padding:7px 13px;font-size:12px;font-weight:700;
   color:#4262FF;font-family:var(--font);
   box-shadow:0 6px 20px rgba(66,98,255,.22),0 1px 4px rgba(0,0,0,.08);
   white-space:nowrap;
+  animation:ghostPulse 1.6s ease-in-out infinite;
   transition:opacity .1s;
 }
 [data-theme="dark"] #place-ghost{background:#252540;border-color:#5577ff;color:#8899ff;}
@@ -1235,11 +1241,16 @@ body.alt-duplicating *{cursor:copy!important;}
 .card-frame.selected{border-color:transparent!important;}
 .card-frame .frame-body{
   position:absolute;inset:0;border-radius:12px;
-  background:var(--frame-bg,rgba(66,98,255,.05));
-  border:2px solid var(--frame-border,rgba(66,98,255,.30));
+  background:var(--frame-bg,rgba(66,98,255,.04));
+  border:1.5px solid var(--frame-border,rgba(66,98,255,.22));
   display:flex;align-items:flex-start;justify-content:flex-start;
   pointer-events:auto;
-  transition:border-color .15s,background .15s;
+  backdrop-filter:blur(0px);
+  transition:border-color .18s,background .18s,box-shadow .18s;
+}
+.card-frame:hover .frame-body:not(.selected .frame-body){
+  border-color:var(--frame-border,rgba(66,98,255,.35));
+  box-shadow:0 4px 20px rgba(66,98,255,.08);
 }
 /* Frame selection indicator goes on the frame-body border */
 .card-frame.selected .frame-body{
@@ -1411,24 +1422,31 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 .board-card.selected{
   border-color:#4262FF;
-  box-shadow:0 0 0 1px rgba(66,98,255,.20),0 4px 16px rgba(0,0,0,.12);
+  box-shadow:0 0 0 2px rgba(66,98,255,.25),0 6px 22px rgba(0,0,0,.13);
 }
 .board-card:hover:not(.selected):not(.dragging){
-  box-shadow:0 0 0 1px rgba(66,98,255,.22),0 2px 10px rgba(0,0,0,.10);
+  box-shadow:0 0 0 1px rgba(66,98,255,.22),0 4px 18px rgba(0,0,0,.12);
+  transform:translateY(-1px) translateZ(0);
 }
 /* Card spawn / despawn micro-animations (single add/remove, not bulk load) */
-@keyframes cardPopIn{from{opacity:0;transform:scale(.85) translateZ(0);}to{opacity:1;transform:scale(1) translateZ(0);}}
-@keyframes cardPopOut{from{opacity:1;transform:scale(1) translateZ(0);}to{opacity:0;transform:scale(.82) translateZ(0);}}
-.board-card.card-appear{animation:cardPopIn .2s cubic-bezier(.34,1.4,.64,1);}
-.board-card.card-removing{animation:cardPopOut .17s ease forwards;pointer-events:none;}
+@keyframes cardPopIn{
+  0%  {opacity:0;transform:scale(.88) translateY(-6px) translateZ(0);}
+  60% {opacity:1;transform:scale(1.025) translateY(1px) translateZ(0);}
+  100%{opacity:1;transform:scale(1) translateY(0) translateZ(0);}
+}
+@keyframes cardPopOut{from{opacity:1;transform:scale(1) translateZ(0);}to{opacity:0;transform:scale(.84) translateZ(0);}}
+.board-card.card-appear{animation:cardPopIn .24s cubic-bezier(.34,1.3,.64,1);}
+.board-card.card-removing{animation:cardPopOut .18s ease forwards;pointer-events:none;}
 @media (prefers-reduced-motion: reduce){
   .board-card.card-appear,.board-card.card-removing{animation:none!important;}
 }
 /* Cards being dragged */
 .board-card.dragging{
-  opacity:.92;cursor:grabbing!important;
-  box-shadow:0 0 0 1px rgba(66,98,255,.35),0 14px 32px rgba(5,5,23,.18)!important;
-  transition:none!important;
+  opacity:.88;cursor:grabbing!important;
+  transform:rotate(1deg) scale(1.025) translateZ(0)!important;
+  box-shadow:0 0 0 1.5px rgba(66,98,255,.35),0 22px 48px rgba(5,5,23,.22),0 4px 12px rgba(5,5,23,.10)!important;
+  transition:box-shadow .1s ease,opacity .1s ease!important;
+  z-index:9000!important;
 }
 /* Miro-style 8 resize handles — corners (round) + edges (rounded bars) */
 .resize-handle{
@@ -1458,7 +1476,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .resize-handle.h-s{bottom:-4px;cursor:ns-resize;}
 .resize-handle.h-w{left:-4px;cursor:ew-resize;}
 .resize-handle.h-e{right:-4px;cursor:ew-resize;}
-.resize-handle:hover{background:#4262FF;}
+.resize-handle:hover{background:#4262FF;transform:scale(1.3);}
 /* Hide handles when card is locked */
 .board-card.card-locked .resize-handle{display:none!important;}
 .board-card.card-locked{cursor:default;}
@@ -1675,7 +1693,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   cursor:move;
   box-shadow:0 5px 12px rgba(0,0,0,.13)!important;
 }
-.card-sticky.selected{border-color:transparent!important;box-shadow:0 7px 18px rgba(0,0,0,.16)!important;}
+.card-sticky.selected{border-color:transparent!important;box-shadow:0 8px 22px rgba(0,0,0,.18)!important;}
+.card-sticky.dragging{transform:rotate(-1.5deg) scale(1.03) translateZ(0)!important;box-shadow:0 18px 40px rgba(0,0,0,.22)!important;}
 /* Stickies can be resized & connected like Miro — keep handles/anchors
    hidden by default and surface them only on hover/selection. */
 .card-sticky .resize-handle{display:none;}
