@@ -3165,15 +3165,41 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-exporting .tt-edit-hint{display:none!important;}
 
 /* ════════════════ FULL-BOARD PRESENT MODE ════════════════ */
+/* Hide ALL editing chrome so the board reads like a clean slideshow — toolbars,
+   side panels (comments/library/stickers/shapes/frames/AI/share), selection and
+   alignment affordances, and per-card edit buttons. */
 .board-presenting #toolbar,
 .board-presenting #miro-toolbar,
 .board-presenting #zoom-controls,
+.board-presenting #bg-shortcut-btn,
 .board-presenting #minimap,
 .board-presenting #mobile-quickbar,
+.board-presenting #comments-panel,
+.board-presenting #sidebar,
+.board-presenting #sticker-panel,
+.board-presenting #sticky-palette,
+.board-presenting #shape-panel,
+.board-presenting #frame-panel,
+.board-presenting #ai-assistant-panel,
+.board-presenting #share-panel,
+.board-presenting #presence-bar,
+.board-presenting #multi-sel-box,
+.board-presenting #snap-guides,
+.board-presenting .group-outline,
 .board-presenting .resize-handle,
 .board-presenting .anchor-dot,
-.board-presenting .card-comment-badge{display:none!important;}
-.board-presenting #board-wrap{cursor:pointer;}
+.board-presenting .card-comment-badge,
+.board-presenting .card-close,
+.board-presenting .card-priv-toggle,
+.board-presenting .frame-add-activity,
+.board-presenting .text-format-toolbar,
+.board-presenting .sticky-toolbar{display:none!important;}
+/* Dim the editing canvas to a calm neutral so the focused slide pops. */
+.board-presenting #board-wrap{
+  cursor:pointer;
+  background-color:#0E0E14;
+  background-image:radial-gradient(circle,rgba(255,255,255,.05) .8px,transparent .8px);
+}
 .board-presenting .board-card.selected{box-shadow:none!important;}
 /* Active slide gets a soft focus ring + lift */
 .board-card.present-current{

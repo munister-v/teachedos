@@ -73,8 +73,17 @@ function _ttDeriveLesson(output) {
 }
 
 // Create a composer frame that carries lesson context (→ "+ Add activity").
+// Tag it as a Teacher-Tool source (_ttSrc) so "📚 Build Lesson" can collect it —
+// every placement path goes through here, so this is the single point that makes
+// generated activities discoverable to the lesson collector.
 function _ttLessonFrame(meta, output, x, y, w, h) {
-  const data = { title: `${meta.icon}  ${output.title}`, bg: meta.frameBg, border: meta.frameBorder, childIds: [] };
+  const data = {
+    title: `${meta.icon}  ${output.title}`,
+    bg: meta.frameBg, border: meta.frameBorder, childIds: [],
+    _ttSrc: 1,
+    _ttCat: output.cat || meta.cat || 'utility',
+    _ttKind: output.kind || output.boardKind || '',
+  };
   const lesson = _ttDeriveLesson(output);
   if (lesson) data.lesson = lesson;
   return addCard('frame', x, y, data, w, h);

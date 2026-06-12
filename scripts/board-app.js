@@ -2635,6 +2635,16 @@ function startBoardPresent() {
   if (_presentActive) { exitBoardPresent(); return; }
   _presentSlides = _buildPresentSlides();
   if (!_presentSlides.length) { toast('Add a frame or some cards first'); return; }
+  // Close any open editing panels so they don't hover over the presentation.
+  try {
+    if (typeof closeSharePanel === 'function' && _sharePanelOpen) closeSharePanel();
+    document.getElementById('comments-panel')?.remove();
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('sticker-panel')?.classList.remove('open');
+    document.getElementById('sticky-palette')?.classList.remove('open');
+    ['shape-panel','frame-panel','ai-assistant-panel'].forEach(id => document.getElementById(id)?.classList.remove('open'));
+    if (typeof clearSelection === 'function') clearSelection();
+  } catch {}
   _presentReturnView = { pan: { ...state.pan }, scale: state.scale };
   _presentActive = true;
   _presentIdx = 0;
