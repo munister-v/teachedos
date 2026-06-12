@@ -259,8 +259,8 @@ input[type="file"]::file-selector-button {
   font-weight: 500 !important;
 }
 
-#sidebar:has(.sb-tabs) .sb-search input,
-.board-shell #sidebar .sb-search input {
+[data-theme="dark"] #sidebar:has(.sb-tabs) .sb-search input,
+[data-theme="dark"] .board-shell #sidebar .sb-search input {
   background: rgba(255,255,255,.07) !important;
   border-color: rgba(255,255,255,.14) !important;
   color: #fff !important;
