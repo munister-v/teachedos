@@ -2203,3 +2203,91 @@ body { font-family: var(--font) !important; }
     transition: width .5s cubic-bezier(.4,0,.2,1) !important;
   }
 }
+
+/* ── Force light fields with dark text everywhere, in every theme ──
+   Per request: input/textarea/select must always have a light/white
+   background and dark/black text, never grey/dark-on-dark. */
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+),
+html[data-theme="dark"] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+) {
+  background: #fff !important;
+  background-image: none !important;
+  color: #18181c !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+):focus,
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input
+):hover:not(:focus),
+html[data-theme="dark"] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .module-select,
+  .sp-link-input,
+  .sp-email-input
+):focus,
+html[data-theme="dark"] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  select,
+  .form-input
+):hover:not(:focus) {
+  background: #fff !important;
+  background-image: none !important;
+  color: #18181c !important;
+}
+
+:is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea,
+  .form-input,
+  .invite-input,
+  .module-field,
+  .sp-link-input,
+  .sp-email-input
+)::placeholder {
+  color: rgba(24,24,28,.45) !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="dark"] #sidebar:has(.sb-tabs) .sb-search input,
+html[data-theme="dark"] .board-shell #sidebar .sb-search input {
+  background: #fff !important;
+  color: #18181c !important;
+}
