@@ -7260,9 +7260,26 @@ function _ttCountItems(out){
 /* ── vocab-field helper ─────────────────────────────────────────── */
 function _ttVocabLines(input){
   const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
-  if (lines.length) return lines;
-  const fromSource = _ttContentWords(input.source).slice(0, input.count);
-  return fromSource.length ? fromSource : teacherToolTopicSeeds(input.topic, input.count);
+  const count = Math.max(1, input.count || 0);
+  if (lines.length) {
+    // If the teacher's own vocab list is shorter than the requested item
+    // count, top it up with content words from the source text and generic
+    // topic seeds (deduped) so the tool still produces `count` items instead
+    // of silently capping at the vocab list length.
+    if (lines.length >= count) return lines;
+    const seen = new Set(lines.map(w => w.toLowerCase()));
+    const extra = [..._ttContentWords(input.source||''), ...teacherToolTopicSeeds(input.topic, count * 2)];
+    for (const w of extra) {
+      if (lines.length >= count) break;
+      const key = String(w).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push(w);
+    }
+    return lines;
+  }
+  const fromSource = _ttContentWords(input.source).slice(0, count);
+  return fromSource.length ? fromSource : teacherToolTopicSeeds(input.topic, count);
 }
 
 /* ── content pool: target vocabulary ∪ source content words ──────────
