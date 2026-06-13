@@ -1613,8 +1613,50 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .card-image{background:transparent!important;box-shadow:none!important;border-color:transparent!important;}
 .card-image .card-header{display:none!important;}
 .card-image.selected{box-shadow:0 0 0 2px #4262FF!important;}
-.image-body{padding:0;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent;}
-.image-body img{width:100%;height:100%;object-fit:contain;display:block;}
+.image-body{padding:0;flex:1;overflow:hidden;display:flex;flex-direction:column;background:#0E0E14;border-radius:inherit;}
+.image-wrap{position:relative;flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0E0E14;}
+.image-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .25s ease;}
+.image-wrap.is-loading img{opacity:0;}
+/* Shimmer placeholder while the bitmap decodes. */
+.image-wrap.is-loading::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,#15151d 28%,#22222e 50%,#15151d 72%);
+  background-size:220% 100%;animation:imgShimmer 1.15s ease-in-out infinite;
+}
+@keyframes imgShimmer{0%{background-position:180% 0;}100%{background-position:-80% 0;}}
+@media (prefers-reduced-motion:reduce){.image-wrap.is-loading::after{animation:none;}}
+
+/* Graceful error / empty states. */
+.image-state{display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px;text-align:center;color:#9aa0ad;font:600 12px var(--font);}
+.image-state-ic{font-size:26px;opacity:.7;}
+.image-state-btn{margin-top:2px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e6e8ee;border-radius:8px;padding:5px 12px;font:600 11px var(--font);cursor:pointer;transition:.15s;}
+.image-state-btn:hover{background:rgba(255,255,255,.14);}
+
+.image-empty{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  border:1.5px dashed rgba(255,255,255,.16);border-radius:inherit;background:transparent;color:#9aa0ad;cursor:pointer;
+  font-family:var(--font);transition:.18s;padding:16px;text-align:center;}
+.image-empty:hover{border-color:var(--lime,#C8E632);background:rgba(200,230,50,.06);color:#cfd3db;}
+.image-empty-ic{font-size:30px;opacity:.7;line-height:1;}
+.image-empty-title{font:700 13px var(--font);}
+.image-empty-sub{font:500 11px var(--font);opacity:.75;}
+
+/* Fit toggle — fades in on hover of the card. */
+.image-fit-btn{position:absolute;top:7px;right:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border:none;border-radius:8px;background:rgba(14,14,20,.62);color:#fff;font-size:14px;line-height:1;cursor:pointer;
+  opacity:0;transform:translateY(-2px);transition:opacity .15s,transform .15s,background .15s;backdrop-filter:blur(6px);}
+.card-image:hover .image-fit-btn,.card-image.selected .image-fit-btn{opacity:1;transform:none;}
+.image-fit-btn:hover{background:rgba(14,14,20,.85);}
+
+/* Caption strip beneath the image. */
+.image-caption{flex:0 0 auto;padding:7px 11px;background:#0E0E14;color:#e6e8ee;font:500 12px/1.4 var(--font);
+  text-align:center;border-top:1px solid rgba(255,255,255,.08);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Image editor: preview box + upload button. */
+.ed-image-preview{width:100%;height:150px;border-radius:10px;overflow:hidden;background:#0E0E14;display:flex;align-items:center;justify-content:center;margin-bottom:8px;border:1px solid rgba(0,0,0,.1);}
+.ed-image-preview img{width:100%;height:100%;display:block;}
+.ed-image-preview.is-empty{color:#9aa0ad;font:500 12px var(--font);}
+.ed-upload-btn{width:100%;border:1px dashed rgba(0,0,0,.22);background:#fff;color:#1c1c1e;border-radius:9px;padding:9px 12px;font:600 12px var(--font);cursor:pointer;transition:.15s;}
+.ed-upload-btn:hover{border-color:var(--lime,#C8E632);background:rgba(200,230,50,.1);}
 
 /* ══════════════ SETTINGS OVERLAY ══════════════ */
 #settings-overlay{

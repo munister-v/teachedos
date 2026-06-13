@@ -945,14 +945,66 @@ function renderImage(el, card) {
   // live in the floating menu above the selected card (layer-popover).
   const body = document.createElement('div');
   body.className = 'card-body image-body';
+  // Fit: 'cover' fills the card edge-to-edge (default, no ugly letterbox bars);
+  // 'contain' shows the whole image. Toggled per-card via the on-hover button.
+  const fit = card.data.fit === 'contain' ? 'contain' : 'cover';
+  body.dataset.fit = fit;
+
   if (card.data.src) {
+    const wrap = document.createElement('div');
+    wrap.className = 'image-wrap is-loading';
+
     const img = document.createElement('img');
+    img.draggable = false;            // don't ghost-drag the bitmap when moving the card
+    img.decoding = 'async';
+    img.alt = card.data.caption || card.data.title || 'Image';
+    img.style.objectFit = fit;
+    img.addEventListener('load', () => wrap.classList.remove('is-loading'));
+    img.addEventListener('error', () => {
+      wrap.classList.remove('is-loading');
+      wrap.classList.add('is-error');
+      wrap.innerHTML = `<div class="image-state">
+        <span class="image-state-ic">🖼️</span>
+        <span class="image-state-txt">Couldn't load image</span>
+        <button class="image-state-btn" type="button">Fix URL</button></div>`;
+      wrap.querySelector('.image-state-btn')?.addEventListener('click', ev => {
+        ev.stopPropagation(); openCardEditor(card.id);
+      });
+    });
     img.src = card.data.src;
-    img.alt = card.data.title || 'Image';
-    img.onerror = () => { img.src = ''; body.innerHTML = `<div style="padding:12px;font-size:11px;color:var(--text-3);text-align:center;">Could not load image</div>`; };
-    body.appendChild(img);
+    wrap.appendChild(img);
+
+    // Fit toggle — surfaces only on hover (see board.css .image-fit-btn).
+    const fitBtn = document.createElement('button');
+    fitBtn.className = 'image-fit-btn';
+    fitBtn.type = 'button';
+    fitBtn.textContent = fit === 'cover' ? '⤢' : '⛶';
+    fitBtn.title = fit === 'cover' ? 'Showing: fill card — click to fit whole image' : 'Showing: whole image — click to fill card';
+    fitBtn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      card.data.fit = fit === 'cover' ? 'contain' : 'cover';
+      reRenderCard(card);
+      scheduleSave();
+    });
+    wrap.appendChild(fitBtn);
+    body.appendChild(wrap);
+
+    // Caption strip — only when the teacher set one (was captured but never shown).
+    if (card.data.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'image-caption';
+      cap.textContent = card.data.caption;
+      body.appendChild(cap);
+    }
   } else {
-    body.innerHTML = `<div style="padding:16px;font-size:11px;color:var(--text-3);text-align:center;flex:1;display:flex;align-items:center;justify-content:center;">No image URL set</div>`;
+    const drop = document.createElement('button');
+    drop.type = 'button';
+    drop.className = 'image-empty';
+    drop.innerHTML = `<span class="image-empty-ic">🖼️</span>
+      <span class="image-empty-title">Add an image</span>
+      <span class="image-empty-sub">Click to upload, paste, or set a URL</span>`;
+    drop.addEventListener('click', ev => { ev.stopPropagation(); openCardEditor(card.id); });
+    body.appendChild(drop);
   }
   el.appendChild(body);
 }
@@ -2153,11 +2205,23 @@ function openCardEditor(cardId) {
       <button class="ed-save" onclick="saveCardEditor()">Save Plan</button>`;
 
   } else if (card.type === 'image') {
+    const curSrc = card.data.src || card.data.url || '';
+    const fit = card.data.fit === 'contain' ? 'contain' : 'cover';
     body.innerHTML = `
-      <div><div class="ed-label">Caption</div>
-        <input class="ed-input" id="ed-title" value="${esc(card.data.caption||card.data.title||'')}"/></div>
+      <div><div class="ed-label">Image</div>
+        <div class="ed-image-preview${curSrc ? '' : ' is-empty'}" id="ed-image-preview">
+          ${curSrc ? `<img src="${esc(curSrc)}" alt="" style="object-fit:${fit}">` : '<span>No image yet</span>'}
+        </div>
+        <button type="button" class="ed-upload-btn" onclick="edUploadImage()">⬆️ Upload from device</button></div>
       <div><div class="ed-label">Image URL</div>
-        <input class="ed-input" id="ed-link" type="url" placeholder="https://…" value="${esc(card.data.url||card.data.src||'')}"/></div>
+        <input class="ed-input" id="ed-link" type="url" placeholder="https://… or paste a data URL" value="${esc(card.data.url||card.data.src||'')}" oninput="edImagePreview(this.value)"/></div>
+      <div><div class="ed-label">Fit</div>
+        <select class="ed-input" id="ed-fit">
+          <option value="cover"${fit==='cover'?' selected':''}>Fill card (crop edges)</option>
+          <option value="contain"${fit==='contain'?' selected':''}>Whole image (show all)</option>
+        </select></div>
+      <div><div class="ed-label">Caption</div>
+        <input class="ed-input" id="ed-title" value="${esc(card.data.caption||card.data.title||'')}" placeholder="Optional caption shown under the image"/></div>
       <button class="ed-save" onclick="saveCardEditor()">Save Image</button>`;
 
   } else if (card.type === 'video') {
@@ -2413,8 +2477,11 @@ function saveCardEditor() {
   } else if (card.type === 'image') {
     card.data.caption = g('ed-title')?.value.trim() || '';
     card.data.title   = card.data.caption;
-    card.data.url     = g('ed-link')?.value.trim() || '';
-    card.data.src     = card.data.url;
+    // An uploaded data URL is stashed on the card during edUploadImage(); the URL
+    // field wins only when it actually holds a value (so upload isn't clobbered).
+    const urlVal = g('ed-link')?.value.trim() || '';
+    if (urlVal) { card.data.url = urlVal; card.data.src = urlVal; }
+    card.data.fit = g('ed-fit')?.value === 'contain' ? 'contain' : 'cover';
   } else if (card.type === 'video') {
     card.data.title = g('ed-title')?.value.trim() || 'Video';
     card.data.url   = g('ed-link')?.value.trim() || '';
@@ -2431,6 +2498,53 @@ function closeCardEditor() {
   document.getElementById('card-editor').classList.remove('open');
   document.body.classList.remove('editor-open');
   editorCardId = null;
+}
+
+/* Image editor: live preview as the URL field changes. */
+function edImagePreview(val) {
+  const box = document.getElementById('ed-image-preview');
+  if (!box) return;
+  const v = String(val || '').trim();
+  if (v) {
+    const fit = document.getElementById('ed-fit')?.value === 'contain' ? 'contain' : 'cover';
+    box.classList.remove('is-empty');
+    box.innerHTML = `<img src="${esc(v)}" alt="" style="object-fit:${fit}">`;
+  } else {
+    box.classList.add('is-empty');
+    box.innerHTML = '<span>No image yet</span>';
+  }
+}
+
+/* Image editor: upload from device, optimized through the same pipeline as the
+   board's quick-drop so big photos don't bloat the saved board. The uploaded
+   data URL is written straight onto the card and the URL field is cleared, so
+   saveCardEditor keeps the upload instead of an empty URL clobbering it. */
+async function edUploadImage() {
+  if (!editorCardId) return;
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.addEventListener('change', async () => {
+    const file = inp.files && inp.files[0];
+    if (!file) return;
+    const card = state.cards.find(c => c.id === editorCardId);
+    if (!card) return;
+    try {
+      toast && toast('Optimizing image…');
+      const prepared = await prepareBoardImageFile(file);
+      card.data.src = prepared.dataUrl;
+      card.data.url = '';
+      card.data.imageSize = prepared.bytes;
+      card.data.imageOptimized = prepared.optimized;
+      const link = document.getElementById('ed-link');
+      if (link) link.value = '';   // uploaded data URL wins; don't dump the huge string in the field
+      edImagePreview(prepared.dataUrl);
+      (typeof _toastClipboard === 'function' ? _toastClipboard : toast)('🖼 Image ready — click Save');
+    } catch (err) {
+      toast && toast(err.message || 'Could not load image.');
+    }
+  });
+  inp.click();
 }
 
 /* ══════════════════════ LESSON EDITOR HELPERS ════════════════ */
