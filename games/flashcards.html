@@ -69,6 +69,7 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 </div>
 
 <script src="../scripts/vocabulary.js"></script>
+<script src="../scripts/custom-sets.js"></script>
 <script>
 let VOCAB=[
   {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},
@@ -93,10 +94,30 @@ let VOCAB=[
   {word:"fascinating",ph:"/ˈfæsɪneɪtɪŋ/",tr:"fascinating (adj)",ex:"The documentary was absolutely fascinating."}
 ];
 
+// Override VOCAB from a custom set if ?set= is present
+(function loadFromCustomSet(){
+  const p = new URLSearchParams(location.search);
+  const setId = p.get('set');
+  if(!setId || !window.TEACHEDOS_CUSTOM) return false;
+  const set = TEACHEDOS_CUSTOM.get(setId);
+  if(!set || !set.words.length) return false;
+  VOCAB = set.words.map(w => ({
+    word: w.en,
+    ph: '',
+    tr: w.uk + (w.ru ? ' · ' + w.ru : ''),
+    ex: w.ex
+  }));
+  document.title = set.icon + ' ' + set.name + ' Flashcards · TeachEd';
+  const titleEl = document.querySelector('.title, h1, .game-title');
+  if(titleEl) titleEl.textContent = set.icon + ' ' + set.name;
+  return true;
+})();
+
 // Override VOCAB from topic library if URL params present
 (function loadFromUrl(){
   const p = new URLSearchParams(location.search);
   const topicId = p.get('topic'), level = p.get('level') || 'mix';
+  if(p.get('set')) return;
   if(!topicId || !window.TEACHEDOS_VOCAB) return;
   const words = window.TEACHEDOS_VOCAB.getWords(topicId, level);
   if(!words.length) return;

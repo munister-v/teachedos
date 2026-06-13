@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Crossword</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:620px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:14px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.grid{display:inline-grid;gap:2px;background:var(--accent);border-radius:8px;padding:4px;margin-bottom:18px}
+.cell{width:32px;height:32px;position:relative}
+.cell.block{background:transparent}
+.cell.fill{background:#FBF8F3;border-radius:3px}
+.cell input{width:100%;height:100%;border:none;background:transparent;text-align:center;text-transform:uppercase;font-weight:800;font-size:1rem;color:var(--accent);border-radius:3px;font-family:inherit}
+.cell input:focus{outline:2px solid var(--lime)}
+.cell input.correct{background:#e8f5e9;color:#2e7d32}
+.cell input.incorrect{background:#fce4ec;color:#c62828}
+.cell .num{position:absolute;top:1px;left:2px;font-size:.55rem;font-weight:700;color:#aaa;pointer-events:none}
+.clues{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left;margin-bottom:8px}
+.clues h3{font-size:.85rem;color:var(--accent);margin-bottom:6px;font-weight:800}
+.clues ol{font-size:.8rem;color:#555;padding-left:18px;line-height:1.6}
+.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+.actions{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.actions button{padding:12px 22px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:var(--accent);color:#fff}
+.actions button.secondary{background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
+@media (max-width:480px){
+  .cell{width:26px;height:26px}
+  .cell input{font-size:.85rem}
+  .clues{grid-template-columns:1fr}
+}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>📝 Crossword</h1>
+<p class="subtitle">Fill in the words from the clues below</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span>/<span id="total">0</span></div></div>
+  <div id="gridWrap"></div>
+  <div class="clues">
+    <div><h3>Across</h3><ol id="acrossClues"></ol></div>
+    <div><h3>Down</h3><ol id="downClues"></ol></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <div class="actions">
+    <button onclick="check()">Check</button>
+    <button class="secondary" onclick="start()">▶ New Puzzle</button>
+  </div>
+</div>
+
+<script>
+const WORD_BANK=[
+  {word:'ELEPHANT', clue:'The largest land animal, known for its trunk'},
+  {word:'GIRAFFE', clue:'Has the longest neck of any animal'},
+  {word:'MONKEY', clue:'Loves climbing trees and eating bananas'},
+  {word:'RABBIT', clue:'Small animal with long ears that hops'},
+  {word:'TURTLE', clue:'Slow-moving reptile with a hard shell'},
+  {word:'TIGER', clue:'Big cat with orange and black stripes'},
+  {word:'ZEBRA', clue:'Black and white striped relative of the horse'},
+  {word:'EAGLE', clue:'Bird of prey with excellent eyesight'},
+  {word:'PANDA', clue:'Black and white bear that eats bamboo'},
+  {word:'LION', clue:'Known as the king of the jungle'},
+  {word:'SNAKE', clue:'Long reptile that has no legs'},
+  {word:'HORSE', clue:'Animal people ride and use for farm work'},
+  {word:'MOUSE', clue:'Tiny rodent often afraid of cats'},
+  {word:'CAMEL', clue:'Desert animal with humps on its back'},
+  {word:'SHARK', clue:'Large fish with sharp teeth living in the ocean'}
+];
+
+const SIZE=15;
+let solution={}, placements=[], numbers={}, bounds={};
+
+function buildCrossword(){
+  const list=[...WORD_BANK].sort((a,b)=>b.word.length-a.word.length);
+  let grid=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+  placements=[];
+
+  function canPlace(word,row,col,dir){
+    // cell before start and after end must be empty (no run-on words)
+    const beforeR=dir==='down'?row-1:row, beforeC=dir==='across'?col-1:col;
+    const afterR=dir==='down'?row+word.length:row, afterC=dir==='across'?col+word.length:col;
+    if(beforeR>=0&&beforeC>=0&&beforeR<SIZE&&beforeC<SIZE&&grid[beforeR][beforeC]!==null) return false;
+    if(afterR<SIZE&&afterC<SIZE&&grid[afterR][afterC]!==null) return false;
+
+    for(let i=0;i<word.length;i++){
+      const r=dir==='down'?row+i:row;
+      const c=dir==='across'?col+i:col;
+      if(r<0||r>=SIZE||c<0||c>=SIZE) return false;
+      const cell=grid[r][c];
+      if(cell!==null && cell!==word[i]) return false;
+      // for non-crossing cells, perpendicular neighbours must be empty
+      if(cell===null){
+        if(dir==='across'){
+          if(r-1>=0 && grid[r-1][c]!==null) return false;
+          if(r+1<SIZE && grid[r+1][c]!==null) return false;
+        } else {
+          if(c-1>=0 && grid[r][c-1]!==null) return false;
+          if(c+1<SIZE && grid[r][c+1]!==null) return false;
+        }
+      }
+    }
+    return true;
+  }
+  function place(word,clue,row,col,dir){
+    for(let i=0;i<word.length;i++){
+      const r=dir==='down'?row+i:row;
+      const c=dir==='across'?col+i:col;
+      grid[r][c]=word[i];
+    }
+    placements.push({word,clue,row,col,dir});
+  }
+
+  const first=list[0];
+  place(first.word,first.clue,Math.floor(SIZE/2),Math.floor((SIZE-first.word.length)/2),'across');
+
+  for(let k=1;k<list.length;k++){
+    const {word,clue}=list[k];
+    let placed=false;
+    for(let p=0;p<placements.length && !placed;p++){
+      const existing=placements[p];
+      for(let i=0;i<word.length && !placed;i++){
+        for(let j=0;j<existing.word.length && !placed;j++){
+          if(word[i]!==existing.word[j]) continue;
+          const dir=existing.dir==='across'?'down':'across';
+          let row,col;
+          if(existing.dir==='across'){ col=existing.col+j; row=existing.row-i; }
+          else { row=existing.row+j; col=existing.col-i; }
+          if(canPlace(word,row,col,dir)){ place(word,clue,row,col,dir); placed=true; }
+        }
+      }
+    }
+  }
+
+  // bounding box
+  let minR=SIZE,maxR=0,minC=SIZE,maxC=0;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    if(grid[r][c]!==null){ minR=Math.min(minR,r);maxR=Math.max(maxR,r);minC=Math.min(minC,c);maxC=Math.max(maxC,c); }
+  }
+  bounds={minR,maxR,minC,maxC};
+
+  // numbering
+  numbers={};
+  let num=1;
+  for(let r=minR;r<=maxR;r++)for(let c=minC;c<=maxC;c++){
+    if(grid[r][c]===null) continue;
+    const startAcross=(c===minC||grid[r][c-1]===null)&&(c+1<=maxC&&grid[r][c+1]!==null);
+    const startDown=(r===minR||grid[r-1][c]===null)&&(r+1<=maxR&&grid[r+1][c]!==null);
+    if(startAcross||startDown) numbers[r+','+c]=num++;
+  }
+
+  solution=grid;
+}
+
+function render(){
+  const wrap=document.getElementById('gridWrap');
+  const {minR,maxR,minC,maxC}=bounds;
+  const cols=maxC-minC+1, rows=maxR-minR+1;
+  const grid=document.createElement('div');
+  grid.className='grid';
+  grid.style.gridTemplateColumns=`repeat(${cols},32px)`;
+  grid.style.gridTemplateRows=`repeat(${rows},32px)`;
+
+  let filledCount=0;
+  for(let r=minR;r<=maxR;r++){
+    for(let c=minC;c<=maxC;c++){
+      const cell=document.createElement('div');
+      if(solution[r][c]===null){
+        cell.className='cell block';
+      } else {
+        cell.className='cell fill';
+        filledCount++;
+        const n=numbers[r+','+c];
+        if(n) cell.innerHTML=`<span class="num">${n}</span>`;
+        const input=document.createElement('input');
+        input.maxLength=1;
+        input.dataset.r=r; input.dataset.c=c;
+        input.addEventListener('input',e=>{
+          e.target.value=e.target.value.toUpperCase();
+          if(e.target.value && e.target.nextElementSibling===null){
+            // move focus to next cell logic handled below
+          }
+          const inputs=[...document.querySelectorAll('.cell input')];
+          const idx=inputs.indexOf(e.target);
+          if(e.target.value && idx<inputs.length-1) inputs[idx+1].focus();
+        });
+        cell.appendChild(input);
+      }
+      grid.appendChild(cell);
+    }
+  }
+  document.getElementById('total').textContent=filledCount;
+  wrap.innerHTML='';
+  wrap.appendChild(grid);
+
+  // clues
+  const across=document.getElementById('acrossClues');
+  const down=document.getElementById('downClues');
+  across.innerHTML=''; down.innerHTML='';
+  const acrossList=placements.filter(p=>p.dir==='across').sort((a,b)=>numbers[a.row+','+a.col]-numbers[b.row+','+b.col]);
+  const downList=placements.filter(p=>p.dir==='down').sort((a,b)=>numbers[a.row+','+a.col]-numbers[b.row+','+b.col]);
+  acrossList.forEach(p=>{
+    const li=document.createElement('li');
+    li.value=numbers[p.row+','+p.col];
+    li.textContent=p.clue;
+    across.appendChild(li);
+  });
+  downList.forEach(p=>{
+    const li=document.createElement('li');
+    li.value=numbers[p.row+','+p.col];
+    li.textContent=p.clue;
+    down.appendChild(li);
+  });
+}
+
+function check(){
+  const {minR,maxR,minC,maxC}=bounds;
+  let correct=0, total=0;
+  document.querySelectorAll('.cell.fill input').forEach(input=>{
+    const r=+input.dataset.r, c=+input.dataset.c;
+    total++;
+    input.classList.remove('correct','incorrect');
+    if(input.value===solution[r][c]){ input.classList.add('correct'); correct++; }
+    else if(input.value) input.classList.add('incorrect');
+  });
+  document.getElementById('score').textContent=correct;
+  document.getElementById('feedback').textContent= correct===total ? '🎉 Solved! Great job!' : `${correct}/${total} correct so far`;
+  window.parent.postMessage({type:'teachedos-score',score:correct},'*');
+}
+
+function start(){
+  document.getElementById('feedback').textContent='';
+  document.getElementById('score').textContent=0;
+  buildCrossword();
+  render();
+}
+
+start();
+</script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>

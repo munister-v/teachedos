@@ -387,24 +387,23 @@ function _ttPlaceCardFlowBoard(output, meta) {
   if (!cards.length) return false;
   const isSpeaking = output.cat === 'speaking' || /role|debate|dialogue/i.test(output.kind || '');
   const isLessonPack = /lesson|worksheet|homework|pack|builder/i.test(output.kind || '') || activeTeacherToolBuilder?.id === 'lesson-pack';
-  const visibleCards = Math.min(cards.length, isLessonPack ? 8 : 12);
-  const FRAME_W = isLessonPack ? 1420 : 1280;
-  const FRAME_H = isLessonPack ? Math.max(900, 560 + Math.ceil(visibleCards / 4) * 260) : Math.max(820, 260 + Math.ceil(visibleCards / (isSpeaking ? 3 : 2)) * 190 + 210);
   const PAD = 26;
-  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-  const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
-  const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
   const palette = ['#FFF176', '#FFAB91', '#F8BBD9', '#C4B5FD', '#93C5FD', '#67E8F9', '#86EFAC', '#D9F99D'];
+  const titleCard = `${output.title}\n${output.kind || 'Activity'} · ${output.level || 'B1'}\n\nThis board is arranged as a teachable flow, not a static note: prepare -> perform -> feedback -> reuse.`;
 
-  snapshot(); _suppressSnapshot++;
-  let frame;
-  try {
-    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
-    _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92,
-      `${output.title}\n${output.kind || 'Activity'} · ${output.level || 'B1'}\n\nThis board is arranged as a teachable flow, not a static note: prepare -> perform -> feedback -> reuse.`,
-      { textColor: meta.frameBorder, fontSize: 15 });
-
-    if (isLessonPack) {
+  // ── Lesson-pack: fixed 4-wide stage lanes ────────────────────────────────
+  if (isLessonPack) {
+    const visibleCards = Math.min(cards.length, 8);
+    const FRAME_W = 1420;
+    const FRAME_H = Math.max(900, 560 + Math.ceil(visibleCards / 4) * 260);
+    const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+    const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
+    const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
+    snapshot(); _suppressSnapshot++;
+    let frame;
+    try {
+      frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
+      _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92, titleCard, { textColor: meta.frameBorder, fontSize: 15 });
       const laneY = y0 + 180, laneH = 220, colW = 320, gap = 16;
       cards.slice(0, visibleCards).forEach((c, i) => {
         const col = i % 4, row = Math.floor(i / 4);
@@ -429,30 +428,68 @@ function _ttPlaceCardFlowBoard(output, meta) {
       _ttAddStickyCard(frame, x0 + PAD + 586, y0 + FRAME_H - 136, 780, 104,
         'Student handoff\n\nAt the end, copy the strongest student answers here and turn them into homework, journal notes or a game.',
         '#BAE6FD');
-    } else {
-      const COLS = isSpeaking ? 3 : 2;
-      const CARD_W = isSpeaking ? 310 : 395;
-      const CARD_H = isSpeaking ? 180 : 150;
-      const gap = 18;
-      cards.slice(0, visibleCards).forEach((c, i) => {
-        const col = i % COLS, row = Math.floor(i / COLS);
-        _ttAddStickyCard(frame, x0 + PAD + col * (CARD_W + gap), y0 + 178 + row * (CARD_H + gap),
-          CARD_W, CARD_H, `${c.title}\n\n${c.text}`, palette[i % palette.length]);
-      });
-      const sideX = x0 + PAD + COLS * (CARD_W + gap) + 8;
-      _ttAddTimerCard(frame, sideX, y0 + 178, isSpeaking ? 6 : 8);
-      _ttAddStickyCard(frame, sideX, y0 + 366, 250, 190,
-        isSpeaking
-          ? 'Feedback wall\n\nStrong phrase:\nCorrection:\nNext-level phrase:\nFollow-up question:'
-          : 'Teacher note\n\nAsk students to edit, rank, connect or reuse these cards in a final output.',
-        '#E8D5FF');
-      _ttAddChecklistCard(frame, sideX, y0 + 574, 250, 138, 'Run it', [
-        'Give silent prep time',
-        'Pair / group attempt',
-        'Collect one example',
-        'Upgrade with feedback',
-      ]);
+    } finally {
+      _suppressSnapshot--;
     }
+    _ttFinishComposedBoard(frame, '✨ Activity flow added to board');
+    return true;
+  }
+
+  // ── Standard activity flow: content-aware grid ───────────────────────────
+  // Size every card to its own text so long prompts / passages expand IN FULL
+  // (no fixed-height clipping), grow each row to its tallest card, then derive
+  // the frame height from the real layout. **bold** target words render as
+  // <strong> via _ttAddStickyCard → _ttPanelBody → _ttMdToHtml.
+  const visibleCards = Math.min(cards.length, 12);
+  const shown = cards.slice(0, visibleCards);
+  const COLS = isSpeaking ? 3 : 2;
+  const CARD_W = isSpeaking ? 310 : 395;
+  const MIN_H = isSpeaking ? 180 : 150;
+  const GAP = 18, GRID_TOP = 178;
+  const FRAME_W = 1280;
+
+  const cardH = shown.map(c => Math.max(MIN_H, _ttTextCardHeight(`${c.title}\n\n${c.text || ''}`, CARD_W, 13.5, 34)));
+  const rowCount = Math.ceil(shown.length / COLS);
+  const rowTop = [], rowH = [];
+  let acc = GRID_TOP;
+  for (let r = 0; r < rowCount; r++) {
+    rowH[r] = Math.max(...cardH.slice(r * COLS, r * COLS + COLS));
+    rowTop[r] = acc;
+    acc += rowH[r] + GAP;
+  }
+  const gridBottom = acc - GAP;                  // grid's bottom edge (offset from y0)
+  const sideBottom = GRID_TOP + 400 + 138;       // timer → note → checklist stack
+  const FRAME_H = Math.max(820, Math.max(gridBottom, sideBottom) + 40);
+
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
+  const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
+
+  snapshot(); _suppressSnapshot++;
+  let frame;
+  try {
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
+    _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92, titleCard, { textColor: meta.frameBorder, fontSize: 15 });
+
+    shown.forEach((c, i) => {
+      const col = i % COLS, row = Math.floor(i / COLS);
+      _ttAddStickyCard(frame, x0 + PAD + col * (CARD_W + GAP), y0 + rowTop[row],
+        CARD_W, rowH[row], `${c.title}\n\n${c.text || ''}`, palette[i % palette.length]);
+    });
+
+    const sideX = x0 + PAD + COLS * (CARD_W + GAP) + 8;
+    _ttAddTimerCard(frame, sideX, y0 + GRID_TOP, isSpeaking ? 6 : 8);
+    _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 188, 250, 190,
+      isSpeaking
+        ? 'Feedback wall\n\nStrong phrase:\nCorrection:\nNext-level phrase:\nFollow-up question:'
+        : 'Teacher note\n\nAsk students to edit, rank, connect or reuse these cards in a final output.',
+      '#E8D5FF');
+    _ttAddChecklistCard(frame, sideX, y0 + GRID_TOP + 400, 250, 138, 'Run it', [
+      'Give silent prep time',
+      'Pair / group attempt',
+      'Collect one example',
+      'Upgrade with feedback',
+    ]);
   } finally {
     _suppressSnapshot--;
   }
@@ -584,9 +621,20 @@ function _ttPlaceComplexToolOnBoard(output) {
   if (output.boardKind === 'cards') {
     const cards = output.cards || [];
     // Reading-text lessons (generate-text / text-topic-vocab) get the dedicated
-    // pre→text→post + glossary layout; everything else uses the card flow.
+    // pre→text→post + glossary layout (full-height passage + **bold** target words);
+    // everything else uses the generic card flow.
+    // Route here when the category says reading OR when the output carries the
+    // unmistakable reading signature — a long passage card paired with reading
+    // scaffolding — even if `cat` wasn't tagged (e.g. boards built via the lesson
+    // collector). Without this, a real reading lesson falls into the fixed-height
+    // grid and the passage gets clipped with raw ** markers showing.
+    const titled = re => cards.some(c => re.test(String(c.title || '')));
+    const hasPassage = cards.some(c =>
+      /reading text|generated text|listening text|^.{0,6}text$|the text/i.test(String(c.title || '')) &&
+      String(c.text || '').replace(/\s+/g, ' ').trim().length > 120);
+    const hasScaffold = titled(/before reading|after reading|pre-?reading|post-?reading|pre-?listening|post-?listening|glossary|comprehension|discussion|key words|word list/i);
     const isReading = (output.cat === 'reading' || activeTeacherToolBuilder?.cat === 'reading')
-      && cards.some(c => /reading text|generated text|\btext\b/i.test(String(c.title || '')));
+      || (hasPassage && hasScaffold);
     if (isReading) return _ttPlaceReadingBoard(output, meta);
     return _ttPlaceCardFlowBoard(output, meta);
   }

@@ -746,7 +746,13 @@ function renderText(el, card) {
   editor.contentEditable = 'true';
   editor.spellcheck = true;
   editor.dataset.placeholder = 'Text';
-  editor.innerHTML = card.data.html || textToHtml(card.data.text || card.data.title || 'Text');
+  // Heal legacy cards: text generated before the markdown pass stored raw
+  // **target words** in the html. Convert any leftover markers to <strong> at
+  // render (no-op for new cards — _ttMdToHtml already stripped them). The
+  // [^*\n] guard keeps each match inside one word/phrase so it can't gobble.
+  editor.innerHTML = card.data.html
+    ? String(card.data.html).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    : textToHtml(card.data.text || card.data.title || 'Text');
   applyTextStyles(card, editor);
 
   // Single undo entry per edit session: capture original on focus,

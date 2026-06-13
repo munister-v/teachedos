@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Group Sort</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:520px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:18px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:46px;margin-bottom:22px;padding:10px;border:2px dashed #eee2d8;border-radius:14px}
+.chip{padding:8px 14px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;transition:.15s;border:2px solid transparent}
+.chip.selected{background:var(--lime);color:#1C1C1E;border-color:#1C1C1E}
+.bins{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.bin{background:#FBF8F3;border:2px solid #eee2d8;border-radius:14px;padding:12px 8px;min-height:120px;cursor:pointer;transition:.15s}
+.bin:hover{border-color:var(--lime)}
+.bin.flash-err{border-color:#f44336;background:#fce4ec}
+.bin-title{font-weight:800;font-size:.95rem;color:var(--accent);margin-bottom:10px}
+.bin-words{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.bin-words .chip{background:#e8f5e9;color:#2e7d32;cursor:default;font-size:.8rem;padding:5px 10px}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+.play-again{margin-top:18px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff}
+@media (max-width:420px){.bins{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🗂️ Group Sort</h1>
+<p class="subtitle">Tap a word, then tap the category it belongs to</p>
+<div class="card">
+  <div class="top"><div>Correct: <span id="score">0</span>/<span id="total">0</span></div><div id="roundLabel">Round</div></div>
+  <div class="bank" id="bank"></div>
+  <div class="bins" id="bins"></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="play-again" id="again" style="display:none" onclick="start()">▶ Play Again</button>
+</div>
+
+<script>
+const ROUNDS=[
+  {label:'Sort by Topic', cats:{
+    'Fruits':['apple','banana','orange','grape'],
+    'Vegetables':['carrot','potato','onion','broccoli'],
+    'Drinks':['water','coffee','juice','milk']
+  }},
+  {label:'Sort by Topic', cats:{
+    'Jobs':['doctor','teacher','pilot','chef'],
+    'Sports':['football','tennis','golf','boxing'],
+    'Weather':['rain','snow','sunny','windy']
+  }},
+  {label:'Parts of Speech', cats:{
+    'Noun':['river','music','teacher','mountain'],
+    'Verb':['run','sing','build','explain'],
+    'Adjective':['happy','quiet','bright','ancient']
+  }},
+  {label:'Sort by Topic', cats:{
+    'Animals':['tiger','rabbit','eagle','shark'],
+    'Furniture':['chair','sofa','desk','shelf'],
+    'Transport':['train','bicycle','airplane','ship']
+  }}
+];
+
+let words=[], placed=0, score=0, selected=null;
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+
+function start(){
+  document.getElementById('again').style.display='none';
+  document.getElementById('feedback').textContent='';
+  const round=ROUNDS[Math.floor(Math.random()*ROUNDS.length)];
+  document.getElementById('roundLabel').textContent=round.label;
+  words=[];
+  for(const cat in round.cats){
+    round.cats[cat].forEach(w=>words.push({word:w,cat}));
+  }
+  shuffle(words);
+  placed=0; score=0; selected=null;
+  document.getElementById('score').textContent=0;
+  document.getElementById('total').textContent=words.length;
+
+  const bank=document.getElementById('bank');
+  bank.innerHTML='';
+  words.forEach((w,i)=>{
+    const chip=document.createElement('span');
+    chip.className='chip';
+    chip.textContent=w.word;
+    chip.dataset.idx=i;
+    chip.onclick=()=>selectChip(chip,i);
+    bank.appendChild(chip);
+  });
+
+  const bins=document.getElementById('bins');
+  bins.innerHTML='';
+  Object.keys(round.cats).forEach(cat=>{
+    const bin=document.createElement('div');
+    bin.className='bin';
+    bin.dataset.cat=cat;
+    bin.innerHTML=`<div class="bin-title">${cat}</div><div class="bin-words"></div>`;
+    bin.onclick=()=>dropOn(bin);
+    bins.appendChild(bin);
+  });
+}
+
+function selectChip(chip,idx){
+  if(chip.classList.contains('placed'))return;
+  document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
+  if(selected===idx){selected=null;return;}
+  chip.classList.add('selected');
+  selected=idx;
+}
+
+function dropOn(bin){
+  if(selected===null)return;
+  const w=words[selected];
+  const chip=document.querySelector(`#bank .chip[data-idx="${selected}"]`);
+  if(w.cat===bin.dataset.cat){
+    score++;
+    placed++;
+    document.getElementById('score').textContent=score;
+    chip.remove();
+    const target=bin.querySelector('.bin-words');
+    const tag=document.createElement('span');
+    tag.className='chip';
+    tag.textContent=w.word;
+    target.appendChild(tag);
+    selected=null;
+    document.getElementById('feedback').textContent='✓ Correct!';
+    if(placed>=words.length) endGame();
+  } else {
+    bin.classList.add('flash-err');
+    setTimeout(()=>bin.classList.remove('flash-err'),400);
+    chip.classList.remove('selected');
+    selected=null;
+    document.getElementById('feedback').textContent='✗ Try another category';
+  }
+  window.parent.postMessage({type:'teachedos-score',score:score},'*');
+}
+
+function endGame(){
+  document.getElementById('feedback').textContent=`Done! Score: ${score}/${words.length}`;
+  document.getElementById('again').style.display='inline-block';
+}
+
+start();
+</script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>

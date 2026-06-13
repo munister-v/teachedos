@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Create a Word Set</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem;transition:opacity .15s}
+.back:active{opacity:.5}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:640px;text-align:left;margin-bottom:20px}
+.card h2{font-size:1.05rem;font-weight:800;color:var(--accent);margin-bottom:12px}
+label{display:block;font-size:.8rem;font-weight:700;color:#888;margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=number],textarea,select{width:100%;padding:12px 14px;border:2px solid #eee2d8;border-radius:12px;font-family:inherit;font-size:.95rem;color:var(--accent);background:#FBF8F3;transition:border-color .2s,background .2s}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--lime);background:#fff}
+.row{display:flex;gap:10px}
+.row > *{flex:1}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+button{padding:12px 22px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:var(--accent);color:#fff;transition:transform .15s,opacity .15s,border-color .2s,background .2s}
+button.secondary{background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
+button:active{transform:scale(.96);opacity:.85}
+button:disabled{opacity:.5;cursor:default}
+button:disabled:active{transform:none}
+.hint{font-size:.8rem;color:#aaa;margin-top:6px}
+.status{margin-top:12px;font-size:.85rem;font-weight:700;color:#888;min-height:20px;transition:opacity .25s}
+.status.fade{animation:statusIn .25s ease-out}
+@keyframes statusIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.sets{transition:opacity .2s}
+.sets.fade{animation:statusIn .25s ease-out}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.85rem}
+th{text-align:left;color:#888;font-weight:700;padding:6px 8px;font-size:.75rem}
+td{padding:4px}
+td input{padding:8px 10px;font-size:.85rem;width:100%}
+td.rm{width:36px;text-align:center}
+td.rm button{background:none;color:#c62828;padding:4px 8px;font-size:1rem}
+#wordsTable tr{animation:rowIn .25s ease-out}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:640px){
+  #wordsTable thead{display:none}
+  #wordsTable, #wordsTable tbody{display:block;width:100%}
+  #wordsTable tr{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#FBF8F3;border:2px solid #eee2d8;border-radius:12px;padding:10px;margin-bottom:10px}
+  #wordsTable td{padding:0}
+  #wordsTable td:nth-of-type(1),#wordsTable td:nth-of-type(2),#wordsTable td:nth-of-type(3),#wordsTable td:nth-of-type(4){grid-column:span 1}
+  #wordsTable td:nth-of-type(1)::before{content:'English';display:block;font-size:.7rem;color:#aaa;font-weight:700;margin-bottom:2px}
+  #wordsTable td:nth-of-type(2)::before{content:'Українська';display:block;font-size:.7rem;color:#aaa;font-weight:700;margin-bottom:2px}
+  #wordsTable td:nth-of-type(3)::before{content:'Русский';display:block;font-size:.7rem;color:#aaa;font-weight:700;margin-bottom:2px}
+  #wordsTable td:nth-of-type(4)::before{content:'Example';display:block;font-size:.7rem;color:#aaa;font-weight:700;margin-bottom:2px}
+  #wordsTable td:nth-of-type(4){grid-column:1 / -1}
+  #wordsTable td.img-cell{grid-column:1 / span 1;display:flex;align-items:center}
+  #wordsTable td.rm{grid-column:2 / span 1;display:flex;align-items:center;justify-content:flex-end}
+  #wordsTable td.rm button{font-size:1.3rem;border:2px solid #eee2d8;border-radius:10px;padding:6px 14px}
+  .thumb,.img-pick{width:44px;height:44px;font-size:1.3rem}
+  .actions.save-bar{position:sticky;bottom:0;background:#fff;padding:10px 0;margin:14px -20px -24px;padding-left:20px;padding-right:20px;border-top:2px solid #eee2d8;border-radius:0 0 20px 20px;z-index:5}
+}
+.icon-row{display:flex;gap:8px;align-items:center}
+.icon-row input[type=text]{flex:1}
+#iconPicks{display:flex;gap:6px;flex-wrap:wrap}
+.icon-pick{font-size:1.3rem;padding:7px 9px;border:2px solid #eee2d8;border-radius:10px;background:#FBF8F3;cursor:pointer;line-height:1;transition:transform .15s,border-color .2s}
+.icon-pick.active{border-color:var(--lime)}
+.icon-pick:active{transform:scale(.9)}
+.import-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.import-row input[type=file]{display:none}
+.share-box{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.share-box input{flex:1;font-size:.75rem;font-family:var(--mono,monospace);background:#FBF8F3;border:2px solid #eee2d8;border-radius:10px;padding:8px 10px}
+.import-banner{background:rgba(200,230,50,0.15);border:2px solid var(--lime);border-radius:14px;padding:14px;margin-bottom:16px;font-size:.85rem;font-weight:700;color:var(--accent);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;width:100%;max-width:640px}
+.sets{display:flex;flex-direction:column;gap:10px}
+.set-item{border:2px solid #eee2d8;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.set-head{display:flex;align-items:center;gap:10px}
+.set-head .ic{font-size:1.6rem}
+.set-head .name{font-weight:800;color:var(--accent);flex:1}
+.set-head .count{font-size:.78rem;color:#aaa}
+.plays{display:flex;gap:6px;flex-wrap:wrap}
+.plays a{font-size:.78rem;font-weight:700;color:var(--accent);background:#FBF8F3;border:2px solid #eee2d8;border-radius:10px;padding:6px 10px;text-decoration:none;transition:transform .15s,border-color .2s}
+.plays a:hover{border-color:var(--lime)}
+.plays a:active{transform:scale(.95)}
+.del{font-size:.78rem;font-weight:700;color:#c62828;background:none;border:none;cursor:pointer;padding:6px 0;transition:opacity .15s}
+.del:active{opacity:.5}
+.empty{color:#aaa;font-size:.85rem;text-align:center;padding:20px 0}
+.img-cell{text-align:center}
+.thumb{width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #eee2d8;transition:transform .15s,border-color .2s}
+.thumb:hover{border-color:var(--lime)}
+.thumb:active{transform:scale(.92)}
+.img-pick{font-size:1.1rem;padding:6px 10px;border:2px dashed #eee2d8;border-radius:8px;background:#FBF8F3;cursor:pointer;transition:transform .15s,border-color .2s}
+.img-pick:hover{border-color:var(--lime)}
+.img-pick:active{transform:scale(.9)}
+.img-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;animation:fadeIn .18s ease-out}
+.img-modal{background:#fff;border-radius:16px;padding:18px;max-width:480px;width:100%;max-height:80vh;overflow:auto;animation:modalIn .22s cubic-bezier(.34,1.4,.64,1)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.img-modal h3{margin-bottom:10px;font-size:1.05rem;color:var(--accent)}
+.img-modal .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.img-modal .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;border:2px solid #eee2d8;transition:transform .15s,border-color .2s}
+.img-modal .grid img:hover{border-color:var(--lime)}
+.img-modal .grid img:active{transform:scale(.94)}
+.img-modal .row{display:flex;gap:8px;margin-bottom:10px}
+.img-modal .row input{flex:1;font-size:.85rem;border:2px solid #eee2d8;border-radius:10px;padding:8px 10px}
+.img-modal .status{font-size:.8rem;color:#aaa;margin-bottom:8px}
+.img-modal .close{font-size:.8rem;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>✨ Create a Word Set</h1>
+<p class="subtitle">Type your own words or generate them with AI — then play them in any vocab game</p>
+
+<div class="import-banner" id="importBanner" style="display:none">
+  <span id="importBannerText"></span>
+  <div>
+    <button onclick="acceptImport()">💾 Save to my sets</button>
+    <button class="secondary" onclick="dismissImport()">Dismiss</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>1. Words</h2>
+  <label>Set name</label>
+  <input type="text" id="setName" placeholder="e.g. Unit 5 — Phrasal Verbs">
+  <div class="icon-row" style="margin-top:14px">
+    <div>
+      <label style="margin:0">Icon</label>
+      <div id="iconPicks" style="display:flex;gap:6px;margin-top:6px"></div>
+    </div>
+  </div>
+  <label>Your words / phrases (one per line — or "word - translation")</label>
+  <textarea id="wordsInput" placeholder="give up&#10;run out of&#10;look forward to"></textarea>
+  <div class="import-row">
+    <div class="hint" style="margin:0">Leave blank and use the AI generator below to create a set from a topic.</div>
+    <label class="secondary" style="margin:0;display:inline-block;padding:8px 14px;border:2px solid #eee2d8;border-radius:10px;background:#FBF8F3;color:var(--accent);font-weight:700;cursor:pointer;font-size:.78rem">
+      📄 Import CSV
+      <input type="file" id="csvFile" accept=".csv,.tsv,text/csv,text/tab-separated-values" onchange="importCSV(this.files[0])">
+    </label>
+  </div>
+  <div class="hint">CSV columns: english, ukrainian, russian, example (header row optional)</div>
+
+  <h2 style="margin-top:20px">2. AI assist (optional)</h2>
+  <div class="row">
+    <div>
+      <label>Topic (used if word list is empty)</label>
+      <input type="text" id="aiTopic" placeholder="e.g. Job interviews" value="General English">
+    </div>
+    <div>
+      <label>Level</label>
+      <select id="aiLevel">
+        <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option>
+      </select>
+    </div>
+    <div>
+      <label>Count</label>
+      <input type="number" id="aiCount" value="10" min="4" max="20">
+    </div>
+  </div>
+  <label>AI model</label>
+  <select id="aiModel"><option value="">Default (server)</option></select>
+  <div class="actions">
+    <button onclick="generateAI()" id="genBtn">🤖 Generate with AI</button>
+  </div>
+  <div class="status" id="status"></div>
+
+  <h2 style="margin-top:20px">3. Review &amp; save</h2>
+  <table id="wordsTable" style="display:none">
+    <thead><tr><th>English</th><th>Українська</th><th>Русский</th><th>Example</th><th>🖼️</th><th></th></tr></thead>
+    <tbody id="wordsBody"></tbody>
+  </table>
+  <div class="actions save-bar">
+    <button class="secondary" onclick="addRow()">+ Add word</button>
+    <button onclick="saveSet()">💾 Save set</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>My word sets</h2>
+  <div class="sets" id="setsList"></div>
+</div>
+
+<script src="../scripts/vocabulary.js"></script>
+<script src="../scripts/custom-sets.js"></script>
+<script>
+const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+
+const ICONS = ['📚','✨','🗂️','🧩','🌍','💬','🍎','🏖️','💼','🎮','🔬','🎵','⚽','🏥','💻'];
+let selectedIcon = ICONS[0];
+let editingId = null;
+
+function token(){ return localStorage.getItem('teachedos_token') || ''; }
+
+function renderIcons(){
+  const wrap = document.getElementById('iconPicks');
+  wrap.innerHTML = '';
+  ICONS.forEach(ic=>{
+    const b = document.createElement('div');
+    b.className = 'icon-pick' + (ic===selectedIcon ? ' active' : '');
+    b.textContent = ic;
+    b.onclick = ()=>{ selectedIcon = ic; renderIcons(); };
+    wrap.appendChild(b);
+  });
+}
+
+let words = []; // {en,uk,ru,ex}
+
+function renderTable(){
+  const tbl = document.getElementById('wordsTable');
+  const body = document.getElementById('wordsBody');
+  body.innerHTML = '';
+  if(!words.length){ tbl.style.display='none'; return; }
+  tbl.style.display='table';
+  words.forEach((w,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${esc(w.en)}" onchange="words[${i}].en=this.value"></td>
+      <td><input type="text" value="${esc(w.uk)}" onchange="words[${i}].uk=this.value"></td>
+      <td><input type="text" value="${esc(w.ru)}" onchange="words[${i}].ru=this.value"></td>
+      <td><input type="text" value="${esc(w.ex)}" onchange="words[${i}].ex=this.value"></td>
+      <td class="img-cell">${w.img ? `<img class="thumb" src="${esc(w.img)}" onclick="pickImage(${i})">` : `<button class="img-pick" onclick="pickImage(${i})">🔍</button>`}</td>
+      <td class="rm"><button onclick="removeRow(${i})">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+function esc(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function removeRow(i){ words.splice(i,1); renderTable(); }
+function addRow(){ words.push({en:'',uk:'',ru:'',ex:'',img:''}); renderTable(); }
+
+function parseManualWords(){
+  const raw = document.getElementById('wordsInput').value;
+  return raw.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
+    const parts = line.split(/\s+-\s+|\t/);
+    return { en: (parts[0]||'').trim(), uk: (parts[1]||'').trim(), ru: '', ex: '', img: '' };
+  });
+}
+
+function splitCsvLine(line){
+  const delim = line.includes('\t') ? '\t' : ',';
+  return line.split(delim).map(c=>c.trim().replace(/^"(.*)"$/,'$1'));
+}
+function importCSV(file){
+  if(!file) return;
+  const status = document.getElementById('status');
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const lines = String(reader.result).split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if(!lines.length){ setStatus(status, '✗ Empty file'); return; }
+    let rows = lines.map(splitCsvLine);
+    const head = rows[0].map(c=>c.toLowerCase());
+    if(head[0] && /english|word|en/.test(head[0])) rows = rows.slice(1);
+    words = rows.map(c=>({ en:c[0]||'', uk:c[1]||'', ru:c[2]||'', ex:c[3]||'' })).filter(w=>w.en);
+    if(!words.length){ setStatus(status, '✗ No rows found in CSV'); return; }
+    renderTable();
+    setStatus(status, '✓ Imported '+words.length+' words from CSV');
+  };
+  reader.readAsText(file);
+}
+
+async function loadStatus(){
+  const sel = document.getElementById('aiModel');
+  if(!token()){
+    sel.disabled = true;
+    const o = document.createElement('option');
+    o.textContent = 'Log in as a teacher to choose a model';
+    sel.innerHTML = '';
+    sel.appendChild(o);
+    return;
+  }
+  try{
+    const r = await fetch(API+'/api/ai/status', { headers: { Authorization: 'Bearer '+token() } });
+    if(!r.ok) return;
+    const d = await r.json();
+    (d.freeModels||[]).forEach(m=>{
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      sel.appendChild(o);
+    });
+  }catch(e){}
+}
+
+async function generateAI(){
+  const status = document.getElementById('status');
+  const manual = parseManualWords();
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  setStatus(status, '⏳ Generating...');
+  try{
+    const body = {
+      toolId: 'word-set-builder',
+      level: document.getElementById('aiLevel').value,
+      topic: document.getElementById('aiTopic').value || 'General English',
+      count: parseInt(document.getElementById('aiCount').value,10) || 10,
+      vocab: manual.map(w=>w.en).filter(Boolean).join('\n'),
+      model: document.getElementById('aiModel').value,
+    };
+    const hasToken = !!token();
+    const r = await fetch(API+(hasToken ? '/api/ai/teacher-tool' : '/api/ai/wordset-guest'), {
+      method:'POST',
+      headers:{'Content-Type':'application/json', ...(hasToken ? {Authorization:'Bearer '+token()} : {})},
+      body: JSON.stringify(body),
+    });
+    if(!r.ok){
+      const e = await r.json().catch(()=>({}));
+      throw new Error(e.error || ('HTTP '+r.status));
+    }
+    const d = await r.json();
+    const out = (d.output && d.output.words) || [];
+    if(!out.length) throw new Error('No words returned');
+    words = out.map(w=>({en:w.en||'', uk:w.uk||'', ru:w.ru||'', ex:w.ex||''}));
+    if(!document.getElementById('setName').value){
+      document.getElementById('setName').value = document.getElementById('aiTopic').value;
+    }
+    renderTable();
+    setStatus(status, '✓ Generated '+words.length+' words'+(d.output.engine?(' · '+d.output.engine):''));
+  }catch(err){
+    setStatus(status, '✗ '+err.message+(token()? '' : ' (log in as a teacher to use AI generation)'));
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function saveSet(){
+  const status = document.getElementById('status');
+  let list = words;
+  if(!list.length) list = parseManualWords();
+  list = list.filter(w=>w.en);
+  if(!list.length){ setStatus(status, '✗ Add at least one word first'); return; }
+  const name = document.getElementById('setName').value || 'My word set';
+  const rec = TEACHEDOS_CUSTOM.save({ id: editingId, name, icon: selectedIcon, words: list });
+  editingId = null;
+  words = []; renderTable();
+  document.getElementById('setName').value = '';
+  document.getElementById('wordsInput').value = '';
+  setStatus(status, '✓ Saved "'+rec.name+'" ('+rec.words.length+' words)');
+  renderSets();
+}
+
+const GAME_LINKS = [
+  {file:'image-quiz.html', label:'🖼️ Image Quiz'},
+  {file:'vocab-quiz.html', label:'❓ Vocab Quiz'},
+  {file:'find-match.html', label:'🟩 Find the Match'},
+  {file:'flashcards.html', label:'🃏 Flashcards'},
+];
+
+function setStatus(el, text){
+  el.textContent = text;
+  el.classList.remove('fade');
+  void el.offsetWidth;
+  el.classList.add('fade');
+}
+
+function renderSets(){
+  const wrap = document.getElementById('setsList');
+  wrap.classList.remove('fade');
+  void wrap.offsetWidth;
+  wrap.classList.add('fade');
+  const sets = TEACHEDOS_CUSTOM.list();
+  if(!sets.length){ wrap.innerHTML = '<div class="empty">No saved sets yet — create one above.</div>'; return; }
+  wrap.innerHTML = '';
+  sets.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = 'set-item';
+    div.innerHTML = `
+      <div class="set-head">
+        <span class="ic">${s.icon}</span>
+        <span class="name">${esc(s.name)}</span>
+        <span class="count">${s.words.length} words</span>
+      </div>
+      <div class="plays">
+        ${GAME_LINKS.map(g=>`<a href="${g.file}?set=${s.id}">${g.label}</a>`).join('')}
+        <button class="del" onclick="editSet('${s.id}')" style="color:var(--accent)">✏️ Edit</button>
+        <button class="del" onclick="shareSet('${s.id}')" style="color:var(--accent)">🔗 Share</button>
+        <button class="del" onclick="deleteSet('${s.id}')">🗑 Delete</button>
+      </div>
+      <div class="share-box" id="share-${s.id}" style="display:none"></div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+function editSet(id){
+  const s = TEACHEDOS_CUSTOM.get(id);
+  if(!s) return;
+  editingId = id;
+  document.getElementById('setName').value = s.name;
+  selectedIcon = s.icon; renderIcons();
+  words = s.words.map(w=>({...w}));
+  renderTable();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteSet(id){
+  TEACHEDOS_CUSTOM.remove(id);
+  renderSets();
+}
+
+let imgPickIndex = -1;
+function pickImage(i){
+  imgPickIndex = i;
+  const bg = document.createElement('div');
+  bg.className = 'img-modal-bg';
+  bg.id = 'imgModalBg';
+  bg.onclick = (e)=>{ if(e.target===bg) closeImageModal(); };
+  bg.innerHTML = `
+    <div class="img-modal">
+      <h3>🖼️ Pick a picture for "${esc(words[i].en)}"</h3>
+      <div class="row">
+        <input type="text" id="imgQuery" value="${esc(words[i].en)}" placeholder="Search term...">
+        <button onclick="searchImages()">Search</button>
+      </div>
+      <div class="status" id="imgStatus">Searching...</div>
+      <div class="grid" id="imgGrid"></div>
+      <button class="close" onclick="closeImageModal()">Cancel</button>
+    </div>
+  `;
+  document.body.appendChild(bg);
+  searchImages();
+}
+
+function closeImageModal(){
+  const bg = document.getElementById('imgModalBg');
+  if(bg) bg.remove();
+  imgPickIndex = -1;
+}
+
+async function searchImages(){
+  const q = document.getElementById('imgQuery').value.trim();
+  const statusEl = document.getElementById('imgStatus');
+  const grid = document.getElementById('imgGrid');
+  if(!q){ statusEl.textContent = 'Enter a search term.'; return; }
+  statusEl.textContent = 'Searching...';
+  grid.innerHTML = '';
+  try{
+    const r = await fetch('https://api.openverse.org/v1/images/?q='+encodeURIComponent(q)+'&page_size=9&license_type=all-cc');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    const results = (d.results||[]).filter(x=>x.thumbnail || x.url).slice(0,9);
+    if(!results.length){ statusEl.textContent = 'No images found — try a different term.'; return; }
+    statusEl.textContent = 'Click an image to use it:';
+    results.forEach(res=>{
+      const img = document.createElement('img');
+      img.src = res.thumbnail || res.url;
+      img.loading = 'lazy';
+      img.onclick = ()=>selectImage(res.url || res.thumbnail);
+      img.onerror = ()=>img.remove();
+      grid.appendChild(img);
+    });
+  }catch(e){
+    statusEl.textContent = '✗ Image search failed: '+e.message;
+  }
+}
+
+function selectImage(url){
+  if(imgPickIndex<0) return;
+  words[imgPickIndex].img = url;
+  closeImageModal();
+  renderTable();
+}
+
+function shareSet(id){
+  const box = document.getElementById('share-'+id);
+  if(box.style.display==='flex'){ box.style.display='none'; return; }
+  const s = TEACHEDOS_CUSTOM.get(id);
+  if(!s) return;
+  const payload = { name: s.name, icon: s.icon, words: s.words };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const url = location.origin + location.pathname + '?import=' + b64;
+  box.innerHTML = `<input type="text" readonly value="${esc(url)}" onclick="this.select()"><button onclick="copyShareLink('${id}')">📋 Copy</button>`;
+  box.style.display = 'flex';
+}
+
+function copyShareLink(id){
+  const input = document.querySelector('#share-'+id+' input');
+  if(!input) return;
+  input.select();
+  navigator.clipboard?.writeText(input.value);
+  setStatus(document.getElementById('status'), '✓ Link copied to clipboard');
+}
+
+let importedSet = null;
+function checkImport(){
+  const p = new URLSearchParams(location.search);
+  const b64 = p.get('import');
+  if(!b64) return;
+  try{
+    const payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    if(!payload.words || !payload.words.length) return;
+    importedSet = payload;
+    document.getElementById('importBannerText').textContent =
+      '📥 Import shared word set "'+(payload.name||'Untitled')+'" ('+payload.words.length+' words)?';
+    document.getElementById('importBanner').style.display = 'flex';
+  }catch(e){}
+}
+
+function acceptImport(){
+  if(!importedSet) return;
+  TEACHEDOS_CUSTOM.save({ name: importedSet.name || 'Imported set', icon: importedSet.icon || '📚', words: importedSet.words });
+  dismissImport();
+  renderSets();
+  setStatus(document.getElementById('status'), '✓ Imported set saved to your sets');
+}
+
+function dismissImport(){
+  document.getElementById('importBanner').style.display = 'none';
+  importedSet = null;
+  const url = location.origin + location.pathname;
+  history.replaceState(null, '', url);
+}
+
+renderIcons();
+renderSets();
+loadStatus();
+checkImport();
+</script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>

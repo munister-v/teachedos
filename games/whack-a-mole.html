@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Word Pop</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.target{font-size:1.1rem;font-weight:800;color:var(--accent);background:rgba(200,230,50,0.18);border-radius:12px;padding:10px;margin-bottom:18px}
+.target em{font-style:normal;color:#5E6E1A}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hole{position:relative;height:64px;border-radius:14px;background:#FBF8F3;border:2px solid #eee2d8;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+.hole .word{position:absolute;font-weight:800;font-size:.85rem;color:#fff;background:var(--accent);padding:6px 10px;border-radius:10px;transform:scale(0);transition:transform .15s cubic-bezier(.34,1.56,.64,1);text-align:center;max-width:90%}
+.hole .word.up{transform:scale(1)}
+.hole .word.correct-flash{background:#4caf50}
+.hole .word.wrong-flash{background:#f44336}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+.play-again{margin-top:18px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🎈 Word Pop</h1>
+<p class="subtitle">Pop the words that match the category — ignore the rest!</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>❤️ <span id="lives">3</span></div><div>⏱ <span id="time">60</span>s</div></div>
+  <div class="target">Category: <em id="catLabel"></em></div>
+  <div class="grid" id="grid"></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="play-again" id="again" onclick="start()">▶ Play Again</button>
+</div>
+
+<script>
+const CATEGORIES={
+  'Animals': ['lion','tiger','elephant','zebra','monkey','rabbit','eagle','shark'],
+  'Food': ['pizza','banana','bread','cheese','soup','rice','apple','cake'],
+  'Colors': ['red','blue','green','yellow','purple','orange','pink','black'],
+  'Sports': ['football','tennis','boxing','golf','swimming','rugby','hockey','cycling'],
+  'Jobs': ['doctor','teacher','pilot','chef','farmer','lawyer','nurse','artist'],
+  'Weather': ['rain','snow','sunny','windy','cloudy','storm','foggy','frost']
+};
+const ALL_CATS=Object.keys(CATEGORIES);
+const ALL_WORDS=ALL_CATS.flatMap(c=>CATEGORIES[c]);
+
+let score=0, lives=3, timer=60, currentCat='', gInt, sInt, catInt, holes=[], usedTarget=new Set();
+
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function pickWord(){
+  // 65% chance correct-category word not used yet, else random decoy
+  const remaining=CATEGORIES[currentCat].filter(w=>!usedTarget.has(w));
+  if(remaining.length && Math.random()<0.65){
+    const w=remaining[Math.floor(Math.random()*remaining.length)];
+    return {word:w, cat:currentCat};
+  }
+  const w=ALL_WORDS[Math.floor(Math.random()*ALL_WORDS.length)];
+  for(const c of ALL_CATS){ if(CATEGORIES[c].includes(w)) return {word:w, cat:c}; }
+  return {word:w, cat:''};
+}
+
+function setCategory(){
+  currentCat=ALL_CATS[Math.floor(Math.random()*ALL_CATS.length)];
+  usedTarget=new Set();
+  document.getElementById('catLabel').textContent=currentCat;
+}
+
+function spawn(){
+  const empty=holes.map((h,i)=>h.busy?null:i).filter(i=>i!==null);
+  if(!empty.length)return;
+  const idx=empty[Math.floor(Math.random()*empty.length)];
+  const hole=holes[idx];
+  const item=pickWord();
+  hole.busy=true;
+  hole.item=item;
+  hole.el.textContent=item.word;
+  hole.el.className='word';
+  requestAnimationFrame(()=>hole.el.classList.add('up'));
+  hole.timeout=setTimeout(()=>{
+    hole.el.classList.remove('up');
+    setTimeout(()=>{hole.busy=false; hole.item=null;},150);
+  },1500);
+}
+
+function clickHole(i){
+  const hole=holes[i];
+  if(!hole.busy || !hole.item)return;
+  const item=hole.item;
+  if(item.cat===currentCat){
+    score++; usedTarget.add(item.word);
+    hole.el.classList.add('correct-flash');
+    document.getElementById('feedback').textContent='✓ '+item.word+' is '+currentCat.toLowerCase();
+  } else {
+    score--; lives--;
+    hole.el.classList.add('wrong-flash');
+    document.getElementById('feedback').textContent='✗ '+item.word+' is not '+currentCat.toLowerCase();
+    document.getElementById('lives').textContent=lives;
+  }
+  document.getElementById('score').textContent=score;
+  window.parent.postMessage({type:'teachedos-score',score:score},'*');
+  clearTimeout(hole.timeout);
+  setTimeout(()=>{
+    hole.el.classList.remove('up','correct-flash','wrong-flash');
+    setTimeout(()=>{hole.busy=false; hole.item=null;},150);
+  },300);
+  if(lives<=0) endGame();
+}
+
+function start(){
+  document.getElementById('again').style.display='none';
+  document.getElementById('feedback').textContent='';
+  score=0; lives=3; timer=60;
+  document.getElementById('score').textContent=0;
+  document.getElementById('lives').textContent=3;
+  document.getElementById('time').textContent=60;
+
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  holes=[];
+  for(let i=0;i<9;i++){
+    const hole=document.createElement('div');
+    hole.className='hole';
+    const word=document.createElement('div');
+    word.className='word';
+    hole.appendChild(word);
+    hole.onclick=()=>clickHole(i);
+    grid.appendChild(hole);
+    holes.push({el:word, busy:false, item:null, timeout:null});
+  }
+
+  setCategory();
+  clearInterval(gInt); clearInterval(sInt); clearInterval(catInt);
+  gInt=setInterval(spawn,700);
+  catInt=setInterval(setCategory,12000);
+  sInt=setInterval(()=>{
+    timer--;
+    document.getElementById('time').textContent=timer;
+    if(timer<=0) endGame();
+  },1000);
+}
+
+function endGame(){
+  clearInterval(gInt); clearInterval(sInt); clearInterval(catInt);
+  holes.forEach(h=>{clearTimeout(h.timeout); h.busy=true; h.item=null;});
+  document.getElementById('feedback').textContent='Game over! Final score: '+score;
+  document.getElementById('again').style.display='inline-block';
+}
+
+start();
+</script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>

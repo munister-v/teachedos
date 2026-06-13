@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Vocab Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+.progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:22px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
+.prompt{font-size:1.15rem;font-weight:700;color:#333;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.5;margin-bottom:24px;gap:6px}
+.prompt .ex{font-size:.85rem;font-style:italic;color:#aaa}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{padding:16px 8px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:.15s;background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
+.choice:hover{border-color:var(--lime)}
+.choice.correct-flash{background:#e8f5e9;border-color:#4caf50;color:#2e7d32}
+.choice.wrong-flash{background:#fce4ec;border-color:#f44336;color:#c62828}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+.play-again{margin-top:12px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>❓ Vocab Quiz</h1>
+<p class="subtitle" id="topicLabel">Choose the word that matches</p>
+<div class="card">
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/<span id="qt">10</span></div></div>
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="prompt" id="prompt"></div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="play-again" id="again" onclick="start()">▶ Play Again</button>
+</div>
+
+<script src="../scripts/vocabulary.js"></script>
+<script src="../scripts/custom-sets.js"></script>
+<script>
+let words=[], questions=[], idx=0, score=0;
+
+function shuffle(a){return a.slice().sort(()=>Math.random()-.5)}
+
+function loadWords(){
+  const p=new URLSearchParams(location.search);
+  const setId=p.get('set');
+  if(setId && window.TEACHEDOS_CUSTOM){
+    const set=TEACHEDOS_CUSTOM.get(setId);
+    if(set && set.words.length>=4){
+      words=set.words;
+      document.getElementById('topicLabel').textContent=(set.icon||'📚')+' '+set.name+' — choose the matching word';
+      return true;
+    }
+  }
+  let topicId=p.get('topic');
+  const level=p.get('level')||'mix';
+  const V=window.TEACHEDOS_VOCAB;
+  if(!V) return false;
+  if(!topicId || !V.getTopic(topicId)){
+    const ids=V.ids();
+    topicId=ids[Math.floor(Math.random()*ids.length)];
+  }
+  const topic=V.getTopic(topicId);
+  document.getElementById('topicLabel').textContent=topic.icon+' '+topic.name+' — choose the matching word';
+  words=V.getWords(topicId, level);
+  if(words.length<4) words=V.getWords(topicId,'mix');
+  return words.length>=4;
+}
+
+function buildQuestions(){
+  const pool=shuffle(words);
+  const n=Math.min(10, pool.length);
+  questions=pool.slice(0,n).map(w=>{
+    const distractors=shuffle(words.filter(x=>x.en!==w.en)).slice(0,3);
+    const opts=shuffle([w.en, ...distractors.map(d=>d.en)]);
+    // randomize prompt type: translation or example with blank
+    const useExample = w.ex && Math.random()<0.5;
+    let prompt, ex='';
+    if(useExample){
+      const re=new RegExp(w.en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i');
+      prompt='Fill in the blank:';
+      ex=w.ex.replace(re,'_____');
+    } else {
+      prompt='Which word means:';
+      ex='“'+w.uk+(w.ru?' / '+w.ru:'')+'”';
+    }
+    return {answer:w.en, opts, prompt, ex};
+  });
+}
+
+function start(){
+  if(!loadWords()){
+    document.getElementById('prompt').textContent='Vocabulary library not available.';
+    return;
+  }
+  buildQuestions();
+  idx=0; score=0;
+  document.getElementById('score').textContent=0;
+  document.getElementById('qt').textContent=questions.length;
+  document.getElementById('again').style.display='none';
+  document.getElementById('feedback').textContent='';
+  nextQ();
+}
+
+function nextQ(){
+  if(idx>=questions.length){ endGame(); return; }
+  const q=questions[idx];
+  document.getElementById('qn').textContent=idx+1;
+  document.getElementById('prog').style.width=((idx/questions.length)*100)+'%';
+  document.getElementById('prompt').innerHTML=q.prompt+'<div class="ex">'+q.ex+'</div>';
+  document.getElementById('feedback').textContent='';
+  const wrap=document.getElementById('choices');
+  wrap.innerHTML='';
+  q.opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';
+    btn.textContent=opt;
+    btn.onclick=()=>answer(opt,btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function answer(opt,btn){
+  const q=questions[idx];
+  const ok=opt===q.answer;
+  if(ok){
+    score++;
+    btn.classList.add('correct-flash');
+    document.getElementById('feedback').textContent='✓ Correct!';
+  } else {
+    btn.classList.add('wrong-flash');
+    [...document.querySelectorAll('.choice')].forEach(b=>{
+      if(b.textContent===q.answer) b.classList.add('correct-flash');
+    });
+    document.getElementById('feedback').textContent='✗ Correct answer: '+q.answer;
+  }
+  document.getElementById('score').textContent=score;
+  window.parent.postMessage({type:'teachedos-score',score:score},'*');
+  [...document.querySelectorAll('.choice')].forEach(b=>b.onclick=null);
+  idx++;
+  setTimeout(nextQ,1200);
+}
+
+function endGame(){
+  document.getElementById('prog').style.width='100%';
+  document.getElementById('prompt').textContent='Game over!';
+  document.getElementById('choices').innerHTML='';
+  document.getElementById('feedback').textContent='Final score: '+score+'/'+questions.length;
+  document.getElementById('again').style.display='inline-block';
+}
+
+start();
+</script>
+<script src="../scripts/mobile-zoom-guard.js"></script>
+</body>
+</html>
