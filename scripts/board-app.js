@@ -3791,6 +3791,7 @@ document.addEventListener('mouseup', e => {
       }
     }
     ghostEl.style.display = 'none';
+    ghostEl.style.width = ''; ghostEl.style.height = ''; ghostEl.style.borderRadius = ''; ghostEl.style.background = '';
     sidebarDragData = null;
   }
 });
@@ -11928,9 +11929,50 @@ function positionStickyPalette() {
 function buildStickyPalette() {
   const grid = document.getElementById('sticky-color-grid');
   if (!grid || grid.dataset.ready === '1') return;
-  grid.innerHTML = STICKY_PALETTE_COLORS.map(color => `
-    <button class="sticky-color-tile" type="button" style="background:${color}" title="${color}" onclick="addStickyFromPalette('${color}')"></button>
-  `).join('');
+  grid.innerHTML = '';
+  const def = getDefaults('sticky');
+  STICKY_PALETTE_COLORS.forEach(color => {
+    const btn = document.createElement('button');
+    btn.className = 'sticky-color-tile';
+    btn.type = 'button';
+    btn.style.background = color;
+    btn.title = color;
+    // Click: place at board center
+    btn.addEventListener('click', () => addStickyFromPalette(color));
+    // Mousedown: start Miro-style drag onto board
+    btn.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      let dragStarted = false;
+      const onMove = mv => {
+        if (!dragStarted && (Math.abs(mv.clientX - e.clientX) > 4 || Math.abs(mv.clientY - e.clientY) > 4)) {
+          dragStarted = true;
+          isSidebarDrag = true;
+          document.body.classList.add('board-dragging');
+          sidebarDragData = { type: 'sticky', data: { text: '', color }, w: def.w, h: def.h };
+          ghostEl.innerHTML = '';
+          ghostEl.style.background = color;
+          ghostEl.style.width = '80px';
+          ghostEl.style.height = '64px';
+          ghostEl.style.borderRadius = '6px';
+          ghostEl.style.display = 'block';
+        }
+        if (dragStarted) {
+          ghostEl.style.left = (mv.clientX - 40) + 'px';
+          ghostEl.style.top  = (mv.clientY - 32) + 'px';
+          mv.preventDefault();
+        }
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        // Drop is handled by the existing board mouseup → sidebarDragData path
+        if (!dragStarted) return; // pure click — let the click handler run
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+    grid.appendChild(btn);
+  });
   grid.dataset.ready = '1';
 }
 
