@@ -593,14 +593,14 @@ function _ttPlaceReadingBoard(output, meta) {
 
     // Left column: Before → Text → After → extras
     const leftX = x0 + PAD; let ly = y0 + HEADER_H + 12;
-    if (beforeCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, beforeH, null, { html: _ttReadingSection(cleanTitle(beforeCard), _ttReadingQuestionsBody(beforeCard.text), accent, '#F7FBFF'), bgColor: 'transparent' }); ly += beforeH + GAP; }
+    if (beforeCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, beforeH, null, { html: _ttReadingSection(cleanTitle(beforeCard), _ttReadingQuestionsBody(beforeCard.text), accent), bgColor: 'transparent' }); ly += beforeH + GAP; }
     if (readingCard) { _ttAddTextCard(frame, leftX, ly, LEFT_W, textH, null, { html: _ttReadingSection(cleanTitle(readingCard) || 'Reading text', _ttReadingTextBody(readingCard.text), accent), bgColor: 'transparent' }); ly += textH + GAP; }
-    if (afterCard)  { _ttAddTextCard(frame, leftX, ly, LEFT_W, afterH, null, { html: _ttReadingSection(cleanTitle(afterCard), _ttReadingQuestionsBody(afterCard.text), accent, '#F7FBFF'), bgColor: 'transparent' }); ly += afterH + GAP; }
+    if (afterCard)  { _ttAddTextCard(frame, leftX, ly, LEFT_W, afterH, null, { html: _ttReadingSection(cleanTitle(afterCard), _ttReadingQuestionsBody(afterCard.text), accent), bgColor: 'transparent' }); ly += afterH + GAP; }
     extras.forEach(c => { const h = _ttTextCardHeight(c.text, LEFT_W, 14, 30); _ttAddTextCard(frame, leftX, ly, LEFT_W, h, null, { html: _ttReadingSection(cleanTitle(c), _ttReadingQuestionsBody(c.text), accent), bgColor: 'transparent' }); ly += h + GAP; });
 
     // Right column: Glossary → Timer
     const rightX = x0 + PAD + LEFT_W + COL_GAP; let ry = y0 + HEADER_H + 12;
-    if (glossaryCard) { _ttAddTextCard(frame, rightX, ry, RIGHT_W, glossH, null, { html: _ttReadingSection(cleanTitle(glossaryCard) || 'Glossary', _ttReadingGlossaryBody(glossaryCard.text), accent, '#FFFDF4'), bgColor: 'transparent' }); ry += glossH + GAP; }
+    if (glossaryCard) { _ttAddTextCard(frame, rightX, ry, RIGHT_W, glossH, null, { html: _ttReadingSection(cleanTitle(glossaryCard) || 'Glossary', _ttReadingGlossaryBody(glossaryCard.text), accent), bgColor: 'transparent' }); ry += glossH + GAP; }
     _ttAddTimerCard(frame, rightX, ry, 8);
   } finally {
     _suppressSnapshot--;
