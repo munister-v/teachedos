@@ -663,11 +663,13 @@ function renderSticky(el, card) {
 
   const text = document.createElement('div');
   text.className = 'sticky-text';
-  text.textContent = card.data.text || '';
+  text.innerHTML = _ttMdToHtml(card.data.text || '');
   text.setAttribute('contenteditable', 'false');
   let _stickyEditOriginal = null;
   text.addEventListener('dblclick', e => {
     e.stopPropagation();
+    // Switch to raw text for editing so the user sees/edits plain source
+    text.textContent = card.data.text || '';
     // Capture pre-edit text so we can decide on blur whether the edit
     // session was a real change worth undoing.
     _stickyEditOriginal = card.data.text || '';
@@ -702,6 +704,8 @@ function renderSticky(el, card) {
       card.data.text = newText;
     }
     _stickyEditOriginal = null;
+    // Restore rendered HTML (bold markers become <strong>) after editing.
+    text.innerHTML = _ttMdToHtml(card.data.text || '');
     scheduleSave();
   });
   body.appendChild(text);
@@ -5784,16 +5788,12 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
         childIds: []
       }, STAGE_W, STAGE_H);
 
-      // Sticky filling the stage frame body
+      // White panel filling the stage frame body
       const stickyX = sx + 14;
       const stickyY = stagesY + 50;
       const stickyW = STAGE_W - 28;
       const stickyH = STAGE_H - 64;
-      const sticky = addCard('sticky', stickyX, stickyY, {
-        text: stage.text,
-        color: stage.color
-      }, stickyW, stickyH);
-      if (stageFrame && sticky) setCardParentFrame?.(sticky, stageFrame);
+      _ttAddStickyCard(stageFrame, stickyX, stickyY, stickyW, stickyH, stage.text);
       // Nest the stage frame in the outer lesson frame
       if (outer && stageFrame) setCardParentFrame?.(stageFrame, outer);
     });
@@ -5851,19 +5851,12 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
     }), FRAME_W - PAD * 2, headerH);
     if (frame && header) setCardParentFrame?.(header, frame);
 
-    // 2. Five step stickies in a row
+    // 2. Five step panels in a row (white with accent border)
     const stepsY = headerY + headerH + 16;
     const stepsRowH = 200;
     const colW = Math.floor((FRAME_W - PAD * 2 - 14 * 4) / 5);
-    const stepColors = ['#FFE566', '#AFF4C6', '#CFE2FF', '#FFB8D9', '#CDB4F6'];
     flow.forEach((step, i) => {
-      const sx = x0 + PAD + i * (colW + 14);
-      const sy = stepsY;
-      const sticky = addCard('sticky', sx, sy, {
-        text: step,
-        color: stepColors[i % stepColors.length]
-      }, colW, stepsRowH);
-      if (frame && sticky) setCardParentFrame?.(sticky, frame);
+      _ttAddStickyCard(frame, x0 + PAD + i * (colW + 14), stepsY, colW, stepsRowH, step);
     });
 
     // 3. Bottom row: Teacher prompt (wide left) + Sample seed (wide right)
@@ -5877,11 +5870,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
       `__________________________________________\n\n` +
       `Target language:\n__________________________________________\n\n` +
       `Difficulty to target (1-2 things):\n__________________________________________`;
-    const teacherSticky = addCard('sticky', x0 + PAD, bottomY, {
-      text: teacherPromptText,
-      color: '#FFD580'
-    }, halfW, bottomH);
-    if (frame && teacherSticky) setCardParentFrame?.(teacherSticky, frame);
+    _ttAddStickyCard(frame, x0 + PAD, bottomY, halfW, bottomH, teacherPromptText);
 
     const useful = (seed.language && seed.language.length)
       ? `\n\n🗣 Useful language\n• ${seed.language.slice(0, 5).join('\n• ')}` : '';
@@ -5889,11 +5878,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
       `📋 Sample seed (edit me)\n\n` +
       seed.samples.map((s, i) => `${i + 1}. ${s}`).join('\n') +
       useful;
-    const sampleSticky = addCard('sticky', x0 + PAD + halfW + 18, bottomY, {
-      text: sampleText,
-      color: '#B8F0FF'
-    }, halfW, bottomH);
-    if (frame && sampleSticky) setCardParentFrame?.(sampleSticky, frame);
+    _ttAddStickyCard(frame, x0 + PAD + halfW + 18, bottomY, halfW, bottomH, sampleText);
 
     // 4. Re-number frames so this one gets a fresh number
     if (typeof renumberFrames === 'function') renumberFrames();
@@ -8966,10 +8951,15 @@ async function applyTeacherToolBuilderToBoard(mode) {
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
-  // Layout grid for the customised template
-  const FRAME_W = 1180;
-  const FRAME_H = 760;
+  // Layout grid for the customised template — height auto-fits content
   const PAD = 26;
+  const sections = (output.sections || []).slice(0, 3);
+  const sectionsH = Math.max(320, sections.reduce((max, s) => {
+    const lines = (s.items || []).length + 3;
+    return Math.max(max, lines * 22 + 48);
+  }, 320));
+  const FRAME_W = 1180;
+  const FRAME_H = 56 + 100 + 16 + sectionsH + 18 + 220 + PAD;
   const _c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(_c0.x, _c0.y, FRAME_W, FRAME_H);
   const x0 = Math.round(center.x - FRAME_W / 2);
@@ -8998,23 +8988,16 @@ async function applyTeacherToolBuilderToBoard(mode) {
     }), FRAME_W - PAD * 2, headerH);
     if (frame && header) setCardParentFrame?.(header, frame);
 
-    // Main sections — render up to 3 first sections as cards in a row.
+    // Main sections — render up to 3 first sections as white panels in a row.
     const sectionsY = headerY + headerH + 16;
-    const sectionsH = 360;
-    const sections = (output.sections || []).slice(0, 3);
     const colW = Math.floor((FRAME_W - PAD * 2 - 16 * (sections.length - 1)) / Math.max(sections.length, 1));
-    const sectionColors = ['#FFE566', '#AFF4C6', '#CFE2FF'];
     sections.forEach((s, i) => {
       const sx = x0 + PAD + i * (colW + 16);
       const text = `${s.title}\n\n${(s.items || []).map(it => '• ' + it).join('\n')}`;
-      const sticky = addCard('sticky', sx, sectionsY, {
-        text,
-        color: sectionColors[i % sectionColors.length]
-      }, colW, sectionsH);
-      if (frame && sticky) setCardParentFrame?.(sticky, frame);
+      _ttAddStickyCard(frame, sx, sectionsY, colW, sectionsH, text);
     });
 
-    // Bottom row: teacher checklist (left) + target language sticky (right)
+    // Bottom row: teacher checklist (left) + target language panel (right)
     const bottomY = sectionsY + sectionsH + 18;
     const bottomH = 200;
     const halfW = Math.floor((FRAME_W - PAD * 2 - 18) / 2);
@@ -9033,11 +9016,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
     const langText = vocab.length
       ? `🗣 Target language\n\n${vocab.slice(0, 10).map((w, i) => `${i + 1}. ${w}`).join('\n')}`
       : `📋 Teacher prompt\n\nCreate a ${tool.kind.toLowerCase()} for level ${output.level || 'B1'} on:\n${output.topic || '____________'}\n\nFocus: ${output.extra || '____________'}`;
-    const vocabSticky = addCard('sticky', x0 + PAD + halfW + 18, bottomY, {
-      text: langText,
-      color: '#FFD580'
-    }, halfW, bottomH);
-    if (frame && vocabSticky) setCardParentFrame?.(vocabSticky, frame);
+    _ttAddStickyCard(frame, x0 + PAD + halfW + 18, bottomY, halfW, bottomH, langText);
 
     if (typeof renumberFrames === 'function') renumberFrames();
   } finally {
