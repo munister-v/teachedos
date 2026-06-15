@@ -1158,7 +1158,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   box-shadow:0 0 0 3px rgba(66,98,255,.20),0 1px 4px rgba(0,0,0,.20);
 }
 #board-wrap.connecting .board-card:hover .anchor-dot{
-  width:12px;height:12px;
+  width:16px;height:16px;background:#22c55e!important;
+}
+/* Card under cursor while dragging a connection */
+.board-card.connect-target-hover{
+  box-shadow:0 0 0 2.5px #22c55e,0 4px 18px rgba(34,197,94,.20)!important;
+}
+.board-card.connect-target-hover .anchor-dot{
+  background:#22c55e!important;opacity:1!important;
+  box-shadow:0 0 0 4px rgba(34,197,94,.22)!important;
 }
 /* Hide other interactive elements while in connect mode */
 #board-wrap.connecting .resize-handle,
@@ -1491,26 +1499,31 @@ body.alt-duplicating *{cursor:copy!important;}
 
 /* Anchor dots (Miro-style — small blue squares with cross arrows on hover) */
 .anchor-dot{
-  position:absolute;width:8px;height:8px;border-radius:50%;
-  background:#4262FF;border:1.5px solid #fff;z-index:20;
-  cursor:crosshair;opacity:0;transition:opacity .15s,transform .12s,width .12s,height .12s;
-  box-shadow:0 0 0 1px rgba(66,98,255,.20);
+  position:absolute;width:12px;height:12px;border-radius:50%;
+  background:#4262FF;border:2px solid #fff;z-index:20;
+  cursor:crosshair;opacity:0;transition:opacity .12s,transform .1s,width .1s,height .1s,background .1s;
+  box-shadow:0 0 0 1.5px rgba(66,98,255,.25),0 1px 4px rgba(66,98,255,.20);
+}
+/* Larger invisible hit-area so the dot is easy to grab */
+.anchor-dot::after{
+  content:'';position:absolute;inset:-8px;border-radius:50%;
 }
 .anchor-dot:hover{
-  width:12px!important;height:12px!important;opacity:1!important;
-  box-shadow:0 0 0 3px rgba(66,98,255,.20),0 1px 4px rgba(66,98,255,.30);
+  width:16px!important;height:16px!important;opacity:1!important;
+  background:#22c55e!important;
+  box-shadow:0 0 0 4px rgba(34,197,94,.22),0 1px 6px rgba(34,197,94,.30);
 }
 .board-card:hover .anchor-dot,
 .board-card.anchors-visible .anchor-dot,
 .board-card.selected .anchor-dot{opacity:1;}
-.anchor-dot[data-anchor=top]   {top:-5px;   left:50%;   transform:translateX(-50%);}
-.anchor-dot[data-anchor=bottom]{bottom:-5px; left:50%;   transform:translateX(-50%);}
-.anchor-dot[data-anchor=left]  {left:-5px;   top:50%;    transform:translateY(-50%);}
-.anchor-dot[data-anchor=right] {right:-5px;  top:50%;    transform:translateY(-50%);}
-.anchor-dot[data-anchor=top]:hover   {transform:translateX(-50%) translateY(-1px);}
-.anchor-dot[data-anchor=bottom]:hover{transform:translateX(-50%) translateY(1px);}
-.anchor-dot[data-anchor=left]:hover  {transform:translateY(-50%) translateX(-1px);}
-.anchor-dot[data-anchor=right]:hover {transform:translateY(-50%) translateX(1px);}
+.anchor-dot[data-anchor=top]   {top:-7px;   left:50%;   transform:translateX(-50%);}
+.anchor-dot[data-anchor=bottom]{bottom:-7px; left:50%;   transform:translateX(-50%);}
+.anchor-dot[data-anchor=left]  {left:-7px;   top:50%;    transform:translateY(-50%);}
+.anchor-dot[data-anchor=right] {right:-7px;  top:50%;    transform:translateY(-50%);}
+.anchor-dot[data-anchor=top]:hover   {transform:translateX(-50%) translateY(-2px);}
+.anchor-dot[data-anchor=bottom]:hover{transform:translateX(-50%) translateY(2px);}
+.anchor-dot[data-anchor=left]:hover  {transform:translateY(-50%) translateX(-2px);}
+.anchor-dot[data-anchor=right]:hover {transform:translateY(-50%) translateX(2px);}
 
 .card-header{
   display:flex;align-items:center;gap:6px;padding:8px 12px 6px;
@@ -1861,6 +1874,14 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   border-radius:7px;background:#fff;color:#1c1c1e;font:700 11px var(--font);
   outline:none;padding:0 6px;
 }
+.text-size-input{
+  height:24px;width:44px;border:1px solid rgba(20,20,22,.12);
+  border-radius:7px;background:#fff;color:#1c1c1e;font:700 11px var(--font);
+  outline:none;padding:0 6px;text-align:center;
+  -moz-appearance:textfield;
+}
+.text-size-input::-webkit-outer-spin-button,
+.text-size-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .text-color-control{
   width:28px;height:24px;padding:2px;border:1px solid rgba(20,20,22,.12);
   border-radius:7px;background:#fff;cursor:pointer;

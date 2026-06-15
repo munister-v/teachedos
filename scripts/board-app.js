@@ -765,6 +765,8 @@ function renderText(el, card) {
     <select class="text-format-select" data-act="font" title="Font">
       ${textFontOptions().map(f => `<option value="${esc(f.value)}"${(card.data.fontFamily||'var(--font)')===f.value?' selected':''}>${esc(f.label)}</option>`).join('')}
     </select>
+    <input class="text-size-input" data-act="font-size" type="number" min="8" max="96" step="1"
+      value="${card.data.fontSize || 14}" title="Font size">
     <button class="text-format-btn" data-cmd="bold" title="Bold">B</button>
     <button class="text-format-btn" data-cmd="italic" title="Italic"><i>I</i></button>
     <button class="text-format-btn" data-cmd="underline" title="Underline"><u>U</u></button>
@@ -2064,6 +2066,20 @@ function bindTextToolbar(toolbar, editor, card, el) {
     applyTextStyles(card, editor);
     scheduleSave();
   });
+  const sizeInput = toolbar.querySelector('[data-act="font-size"]');
+  if (sizeInput) {
+    const applySize = () => {
+      const v = Math.max(8, Math.min(96, parseInt(sizeInput.value) || 14));
+      sizeInput.value = v;
+      snapshot();
+      card.data.fontSize = v;
+      applyTextStyles(card, editor);
+      scheduleSave();
+    };
+    sizeInput.addEventListener('change', applySize);
+    sizeInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applySize(); editor.focus(); } });
+    sizeInput.addEventListener('mousedown', e => e.stopPropagation());
+  }
   toolbar.querySelector('[data-act="text-color"]')?.addEventListener('input', e => {
     card.data.textColor = e.target.value;
     applyTextStyles(card, editor);
@@ -3722,6 +3738,17 @@ document.addEventListener('mousemove', e => {
     updatePendingArrow(e.clientX, e.clientY);
     // Track whether the user actually dragged after auto-entering connect.
     if (window._autoConnectMode) window._anchorDragMoved = true;
+    // Highlight potential target cards under cursor while dragging a connection.
+    const fromId = connectPending?.from?.card?.id;
+    board.querySelectorAll('.board-card.connect-target-hover').forEach(el => el.classList.remove('connect-target-hover'));
+    const stack = document.elementsFromPoint(e.clientX, e.clientY);
+    for (const el of stack) {
+      const bc = el.closest?.('.board-card');
+      if (bc && bc.dataset.id && bc.dataset.id !== fromId) {
+        bc.classList.add('connect-target-hover', 'anchors-visible');
+        break;
+      }
+    }
   }
 });
 
@@ -3736,21 +3763,29 @@ document.addEventListener('mouseup', e => {
     const moved = window._anchorDragMoved;
     window._anchorDragMoved = false;
     if (moved) {
-      // Prefer landing on an anchor dot, else on a card body (use nearest anchor),
-      // else free endpoint at cursor.
+      // Prefer landing on an anchor dot, then any card under/near the cursor.
+      // Use elementsFromPoint for reliable card detection (handles overlapping/
+      // inner elements that wouldn't bubble correctly via closest()).
       const dot = e.target.closest('.anchor-dot');
-      const cardEl = e.target.closest('.board-card');
-      if (dot && cardEl) {
-        const toCard = state.cards.find(c => c.id === cardEl.dataset.id);
+      if (dot) {
+        const cardEl = dot.closest('.board-card');
+        const toCard = cardEl && state.cards.find(c => c.id === cardEl.dataset.id);
         if (toCard) { finishConnection({ card: toCard, anchor: dot.dataset.anchor }); return; }
       }
-      if (cardEl) {
-        const toCard = state.cards.find(c => c.id === cardEl.dataset.id);
+      // Walk element stack at cursor — pick first real board-card that isn't the source
+      const fromId = connectPending?.from?.card?.id;
+      const stack = document.elementsFromPoint(e.clientX, e.clientY);
+      let targetCardEl = null;
+      for (const el of stack) {
+        const bc = el.closest?.('.board-card');
+        if (bc && bc.dataset.id && bc.dataset.id !== fromId) { targetCardEl = bc; break; }
+      }
+      if (targetCardEl) {
+        const toCard = state.cards.find(c => c.id === targetCardEl.dataset.id);
         if (toCard) {
-          // Pick the anchor closest to the cursor on this card.
-          const r = cardEl.getBoundingClientRect();
-          const dx = e.clientX - (r.left + r.width/2);
-          const dy = e.clientY - (r.top + r.height/2);
+          const r = targetCardEl.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width / 2);
+          const dy = e.clientY - (r.top + r.height / 2);
           const anchor = Math.abs(dx) > Math.abs(dy)
             ? (dx > 0 ? 'right' : 'left')
             : (dy > 0 ? 'bottom' : 'top');
@@ -4767,7 +4802,7 @@ function finishConnection(to) {
   }
   pathEl.remove();
   connectPending = null;
-  board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible'));
+  board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible','connect-target-hover'));
   renderAllArrows();
   // If we auto-entered connect mode via an anchor drag, drop back to Select.
   if (window._autoConnectMode) {
@@ -4782,7 +4817,7 @@ function cancelConnection() {
   if (!connectPending) return;
   connectPending.pathEl?.remove();
   connectPending = null;
-  board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible'));
+  board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible','connect-target-hover'));
   if (window._autoConnectMode) {
     window._autoConnectMode = false;
     setMode('select');
