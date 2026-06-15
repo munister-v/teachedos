@@ -609,9 +609,64 @@ function _ttPlaceReadingBoard(output, meta) {
   return true;
 }
 
+function _ttPlaceWorksheetBoard(output, meta) {
+  const parts = (output.parts || []).filter(Boolean);
+  if (!parts.length) return false;
+
+  const COLS = 2, CARD_W = 560, CARD_H_PER_ITEM = 88, CARD_H_BASE = 110;
+  const GAP = 20, PAD = 28, HEADER_H = 70;
+  const colW = CARD_W, colGap = GAP;
+  const FRAME_W = PAD * 2 + COLS * colW + (COLS - 1) * colGap;
+
+  // Calculate heights: each part card height depends on item count
+  const heights = parts.map(p => Math.max(280, CARD_H_BASE + (p.items || []).length * CARD_H_PER_ITEM));
+  const rowCount = Math.ceil(parts.length / COLS);
+  const rowHeights = [];
+  for (let r = 0; r < rowCount; r++) {
+    rowHeights[r] = Math.max(...heights.slice(r * COLS, r * COLS + COLS).filter(Boolean));
+  }
+  const gridH = rowHeights.reduce((s, h) => s + h + GAP, 0);
+  const FRAME_H = HEADER_H + gridH + PAD;
+
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
+  const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
+
+  snapshot(); _suppressSnapshot++;
+  let frame;
+  try {
+    frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
+    // Subtitle strip
+    _ttAddTextCard(frame, x0 + PAD, y0 + 52, FRAME_W - PAD * 2, 26, null, {
+      html: `<div style="font:800 10px var(--font);letter-spacing:.07em;color:${meta.frameBorder}">ESL WORKSHEET · ${_wsEsc ? _wsEsc(output.level||'B1') : (output.level||'B1')} · ${parts.length} PARTS · INTERACTIVE</div>`,
+      bgColor: 'transparent',
+    });
+
+    parts.forEach((part, i) => {
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const x = x0 + PAD + col * (colW + colGap);
+      const rowY = y0 + HEADER_H + rowHeights.slice(0, row).reduce((s, h) => s + h + GAP, 0);
+      const h = rowHeights[row];
+      const html = (typeof buildWorksheetHtml === 'function') ? buildWorksheetHtml(part) : '';
+      const card = addCard('text', x, rowY, {
+        text: part.title || part.type || 'Task',
+        html,
+        bgColor: '#ffffff',
+        interactive: true,
+      }, colW, h);
+      if (frame && card) setCardParentFrame?.(card, frame);
+    });
+  } finally {
+    _suppressSnapshot--;
+  }
+  _ttFinishComposedBoard(frame, `✨ Interactive worksheet ready — ${parts.length} task parts on board`);
+  return true;
+}
+
 function _ttPlaceComplexToolOnBoard(output) {
   if (!output || !output.boardKind) return false;
   const meta = _ttBoardComposerMeta(output);
+  if (output.boardKind === 'worksheet') return _ttPlaceWorksheetBoard(output, meta);
   if (output.boardKind === 'quiz') {
     const hasMatching = (output.questions || []).some(q => q.type === 'match' && (q.pairs || []).length);
     if (hasMatching) return _ttPlaceMatchingOrSortingBoard(output, meta);

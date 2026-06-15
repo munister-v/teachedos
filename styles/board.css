@@ -1875,6 +1875,9 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-rich-editor a{color:#2563eb;text-decoration:underline;text-underline-offset:2px;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
+/* Interactive worksheet card — iframe fills the card, no editing toolbar */
+.text-interactive-wrap{padding:0;height:100%;overflow:hidden;display:flex;flex-direction:column;}
+.text-interactive-wrap iframe{flex:1;width:100%;border:none;display:block;min-height:0;}
 
 /* ── Miro-style pen palette (vertical column flyout) ── */
 .draw-palette{

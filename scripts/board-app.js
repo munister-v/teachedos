@@ -720,6 +720,26 @@ function renderSticky(el, card) {
 
 function renderText(el, card) {
   card.data = defaultTextData(card.data || {});
+
+  // Interactive worksheet: render as sandboxed iframe, no editable toolbar
+  if (card.data.interactive && card.data.html) {
+    const tc = document.createElement('div');
+    tc.className = 'card-close text-close'; tc.textContent = '×';
+    tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+    const wrap = document.createElement('div');
+    wrap.className = 'card-body text-interactive-wrap';
+    const iframe = document.createElement('iframe');
+    iframe.srcdoc = card.data.html;
+    iframe.sandbox = 'allow-scripts';
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
+    // Block board drag/select from propagating inside the iframe area
+    wrap.addEventListener('mousedown', e => e.stopPropagation());
+    wrap.appendChild(iframe);
+    el.appendChild(tc);
+    el.appendChild(wrap);
+    return;
+  }
+
   const tc = document.createElement('div');
   tc.className = 'card-close text-close'; tc.textContent = '×';
   tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
@@ -1905,6 +1925,69 @@ function _ttMdInline(s){
   return esc(s || '')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__(.+?)__/g, '<strong>$1</strong>');
+}
+
+/* ══════════════════════════════════════════════════════
+   Interactive Worksheet Card — HTML builder
+   Takes a structured part JSON and returns a full srcdoc
+   HTML string that renders inside an iframe on the board.
+   ══════════════════════════════════════════════════════ */
+function _wsEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function _wsCSS(){
+  const G='#447C6F';
+  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#1a1a2e}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#666;margin:0 0 12px;font-style:italic}.wb{background:#f0fdf4;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:700;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#1a1a2e;padding:1px 3px}select{border:1px solid #d1d5db;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#f0fdf4;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:700}`;
+}
+
+function _wsMCItems(items){
+  return (items||[]).map(it=>{
+    const opts=(it.options||[]).map((o,i)=>
+      `<label class="opt"><input type="radio" name="q${it.id}" value="${i}"> ${_wsEsc(o)}</label>`
+    ).join('');
+    return `<div class="item"><span class="item-n">${it.id}.</span><span> ${_wsEsc(it.stem)}</span>${opts}</div>`;
+  }).join('');
+}
+
+function _wsFillItems(items){
+  return (items||[]).map(it=>{
+    const stem=_wsEsc(it.stem||'').replace(/_{2,}/,'<input type="text" size="10">');
+    return `<div class="item"><span class="item-n">${it.id}.</span> ${stem}</div>`;
+  }).join('');
+}
+
+function _wsMatchItems(items){
+  return (items||[]).map(it=>{
+    const opts=(it.options||[]).map((o,i)=>`<option value="${i}">${_wsEsc(o)}</option>`).join('');
+    return `<div class="item"><span class="item-n">${it.id}.</span> ${_wsEsc(it.stem)} <select><option value="">— choose —</option>${opts}</select></div>`;
+  }).join('');
+}
+
+function _wsEssayItems(items){
+  return (items||[]).map(it=>
+    `<div class="item"><span class="item-n">${it.id}.</span> ${_wsEsc(it.prompt||it.stem||'')}<br><textarea placeholder="Write your response..."></textarea></div>`
+  ).join('');
+}
+
+function buildWorksheetHtml(part){
+  let body=`<div class="ph">${_wsEsc(part.title||part.type||'Task')}</div>`;
+  if(part.instruction) body+=`<div class="inst">${_wsEsc(part.instruction)}</div>`;
+  if(part.word_bank&&part.word_bank.length)
+    body+=`<div class="wb"><b>Word bank:</b> ${part.word_bank.map(_wsEsc).join(' · ')}</div>`;
+  if(part.type==='multiple_choice') body+=_wsMCItems(part.items);
+  else if(part.type==='fill_blank')  body+=_wsFillItems(part.items);
+  else if(part.type==='matching')    body+=_wsMatchItems(part.items);
+  else if(part.type==='essay')       body+=_wsEssayItems(part.items);
+  else body+=_wsFillItems(part.items); // generic fallback
+  // Answer key
+  const keyed=(part.items||[]).filter(i=>i.answer!==undefined);
+  if(keyed.length){
+    const lines=keyed.map(i=>{
+      const a=Array.isArray(i.options)?i.options[i.answer]:i.answer;
+      return `<div><span class="ka">${i.id}.</span> ${_wsEsc(String(a??''))}</div>`;
+    }).join('');
+    body+=`<button class="reveal-btn" onclick="const k=this.nextElementSibling;k.classList.toggle('open');this.textContent=k.classList.contains('open')?'Hide Answers ▲':'Reveal Answers ▼'">Reveal Answers ▼</button><div class="key">${lines}</div>`;
+  }
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${_wsCSS()}</style></head><body>${body}</body></html>`;
 }
 
 function textFontOptions() {

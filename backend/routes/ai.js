@@ -454,6 +454,7 @@ function escapeRegExp(value) {
 
 function boardKindFor(toolId) {
   if (toolId === 'word-set-builder') return 'wordset';
+  if (toolId === 'worksheet-builder') return 'worksheet';
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families', 'synonyms-antonyms', 'phrasal-verbs', 'idioms'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
@@ -462,8 +463,52 @@ function boardKindFor(toolId) {
 }
 
 // Local rule-engine fallback (the original `vps-fast-v1` behaviour).
+function makeWorksheet(input) {
+  const { topic, level } = input;
+  const b = base(input, 'worksheet');
+  const words = vocabList(input, 8);
+  const wb = words.length >= 6 ? words.slice(0, 8) : ['expand','develop','improve','reduce','increase','maintain','support','create'];
+  return {
+    ...b,
+    parts: [
+      { type: 'multiple_choice', title: 'Part 1: Multiple Choice', instruction: 'Select the best option to complete each sentence.',
+        items: [
+          { id:1, stem:`The city centre has become very busy and ___ in recent years.`, options:['vibrant','silent','empty','cold'], answer:0 },
+          { id:2, stem:`Many old buildings are being ___ to create modern spaces.`, options:['renovated','ignored','painted','forgotten'], answer:0 },
+          { id:3, stem:`Local businesses are ___ thanks to the new investment.`, options:['thriving','closing','failing','sleeping'], answer:0 },
+          { id:4, stem:`Traffic is very ___ during rush hour in this area.`, options:['congested','quiet','light','clear'], answer:0 },
+          { id:5, stem:`The neighbourhood was ___ for years before the project began.`, options:['neglected','celebrated','renovated','expanded'], answer:0 },
+          { id:6, stem:`New housing developments are ___ all over the outskirts.`, options:['springing up','falling down','moving out','breaking in'], answer:0 },
+        ]
+      },
+      { type: 'fill_blank', title: 'Part 2: Sentence Completion', instruction: `Fill in the blank using a word from the word bank.`,
+        word_bank: wb,
+        items: [
+          { id:7,  stem:`We need to ___ our vocabulary to communicate more effectively.`, answer: wb[0] || 'expand' },
+          { id:8,  stem:`The city plans to ___ a new transport network by 2030.`, answer: wb[1] || 'develop' },
+          { id:9,  stem:`Residents want to ___ air quality in their neighbourhood.`, answer: wb[2] || 'improve' },
+          { id:10, stem:`The council is trying to ___ traffic in the city centre.`, answer: wb[3] || 'reduce' },
+          { id:11, stem:`Local shops hope to ___ their customer base next year.`, answer: wb[4] || 'increase' },
+          { id:12, stem:`It is important to ___ green spaces for future generations.`, answer: wb[5] || 'maintain' },
+        ]
+      },
+      { type: 'matching', title: 'Part 3: Matching Contexts', instruction: 'Choose the most logical sentence ending.',
+        items: [
+          { id:13, stem:`The area has been regenerated,`, options:['so property prices have risen significantly','but the weather remains cold','and the library closed'], answer:0 },
+          { id:14, stem:`Public transport improved,`, options:['so fewer people drive to work now','but parking became cheaper','and traffic got much worse'], answer:0 },
+          { id:15, stem:`The old factory was demolished,`, options:['and a modern park was built in its place','so production increased last year','but workers stayed on site'], answer:0 },
+          { id:16, stem:`Green spaces were added to the neighbourhood,`, options:['which improved residents\' wellbeing','so noise levels increased','but the shops moved out'], answer:0 },
+          { id:17, stem:`New shops and cafes opened downtown,`, options:['attracting more visitors to the area','causing residents to leave','making parking easier'], answer:0 },
+          { id:18, stem:`Housing became unaffordable,`, options:['so many young families moved to the suburbs','and the city centre thrived','but rents stayed the same'], answer:0 },
+        ]
+      },
+    ]
+  };
+}
+
 function generateLocal(input) {
   if (input.toolId === 'word-set-builder') return makeWordSet(input);
+  if (input.toolId === 'worksheet-builder') return makeWorksheet(input);
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
@@ -546,6 +591,23 @@ function assembleFromLLM(input, data) {
     ...base(input, kind === 'matching' ? 'quiz' : kind),
     engine: `llm:${aiEngine.getLastModel() || aiEngine.MODEL}`,
   };
+
+  if (kind === 'worksheet') {
+    const parts = (data.parts || []).filter(p => p && p.type && Array.isArray(p.items) && p.items.length);
+    if (!parts.length) throw new Error('LLM returned no worksheet parts');
+    // Normalise item ids and answers
+    parts.forEach(p => {
+      p.items = p.items.map((it, idx) => ({
+        id: it.id ?? idx + 1,
+        stem: block(it.stem || it.sentence || it.question || ''),
+        options: Array.isArray(it.options) ? it.options.map(line) : undefined,
+        answer: it.answer,
+        prompt: it.prompt ? block(it.prompt) : undefined,
+      }));
+      if (p.word_bank) p.word_bank = p.word_bank.map(line).filter(Boolean);
+    });
+    return { ...env, parts };
+  }
 
   if (kind === 'wordset') {
     const words = dedupeBy(
