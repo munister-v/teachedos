@@ -2412,7 +2412,7 @@ function openCardEditor(cardId) {
     </div>
     <div style="display:flex;gap:6px;">
       <textarea id="card-comment-input" placeholder="Add a comment…"
-        style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(0,0,0,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#f5f5f7;color:#1c1c1e;"
+        style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(0,0,0,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fff;color:#1c1c1e;"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCardComment();}"></textarea>
       <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">Send</button>
     </div>`;
