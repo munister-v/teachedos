@@ -613,13 +613,20 @@ function _ttPlaceWorksheetBoard(output, meta) {
   const parts = (output.parts || []).filter(Boolean);
   if (!parts.length) return false;
 
-  const COLS = 2, CARD_W = 560, CARD_H_PER_ITEM = 88, CARD_H_BASE = 110;
+  const COLS = 2, CARD_W = 560, CARD_H_BASE = 110;
   const GAP = 20, PAD = 28, HEADER_H = 70;
   const colW = CARD_W, colGap = GAP;
   const FRAME_W = PAD * 2 + COLS * colW + (COLS - 1) * colGap;
 
-  // Calculate heights: each part card height depends on item count
-  const heights = parts.map(p => Math.max(280, CARD_H_BASE + (p.items || []).length * CARD_H_PER_ITEM));
+  // Calculate heights per part type: MC items (4 options) are much taller
+  const heights = parts.map(p => {
+    const n = (p.items || []).length;
+    const wbExtra = (p.word_bank && p.word_bank.length) ? 52 : 0;
+    const perItem = p.type === 'multiple_choice' ? 106
+                  : p.type === 'essay'           ? 118
+                  : 52; // fill_blank, matching
+    return Math.max(240, CARD_H_BASE + wbExtra + n * perItem);
+  });
   const rowCount = Math.ceil(parts.length / COLS);
   const rowHeights = [];
   for (let r = 0; r < rowCount; r++) {

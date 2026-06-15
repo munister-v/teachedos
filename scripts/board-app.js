@@ -723,19 +723,32 @@ function renderText(el, card) {
 
   // Interactive worksheet: render as sandboxed iframe, no editable toolbar
   if (card.data.interactive && card.data.html) {
+    el.dataset.interactive = '1';
     const tc = document.createElement('div');
     tc.className = 'card-close text-close'; tc.textContent = '×';
     tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
+    // Drag strip — visible handle so user can grab & move the card
+    const strip = document.createElement('div');
+    strip.className = 'ws-drag-strip';
+    strip.textContent = card.data.text || 'Worksheet';
+    strip.title = 'Drag to move';
+    // Strip mousedown selects the card but lets board handle the drag
+    strip.addEventListener('mousedown', e => {
+      if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+    });
+
     const wrap = document.createElement('div');
     wrap.className = 'card-body text-interactive-wrap';
     const iframe = document.createElement('iframe');
     iframe.srcdoc = card.data.html;
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
-    // Block board drag/select from propagating inside the iframe area
     wrap.addEventListener('mousedown', e => e.stopPropagation());
     wrap.appendChild(iframe);
+
     el.appendChild(tc);
+    el.appendChild(strip);
     el.appendChild(wrap);
     return;
   }
