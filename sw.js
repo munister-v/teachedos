@@ -1,71 +1,20 @@
-const CACHE = 'teachedos-v139';
+const CACHE = 'teachedos-v140';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
-const SHELL = [
-  '',
-  'index.html',
-  'schedule.html',
-  'gradebook.html',
-  'journal.html',
-  'profile.html',
-  'student.html',
-  'courses.html',
-  'homework.html',
-  'homework-do.html',
-  'teacher-tools.html',
-  'lesson-builder.html',
-  'quiz-builder.html',
-  'game-builder.html',
-  'community.html',
-  'portal.html',
-  'admin.html',
-  'analytics.html',
-  'board.html',
-  'invite.html',
-  'lesson-packs.html',
-  'landing.html',
-  'billing-success.html',
-  'offline.html',
-  'manifest.json',
-  'styles/tokens.css',
-  'styles/main.css',
-  'styles/games-base.css',
-  'styles/mobile-pro.css',
-  'styles/mobile-guard.css',
-  'styles/mobile-unified.css',
-  'styles/harmony.css',
-  'styles/unify.css',
-  'pwa.js',
-  'pwa-boot.js',
-  'theme.js',
-  'scripts/app-core.js',
-  'scripts/board-app.js',
-  'scripts/desktop-app.js',
-  'scripts/teacher-tools-app.js',
-  'scripts/game-builder-app.js',
-  'scripts/admin-app.js',
-  'scripts/lesson-packs-app.js',
-  'scripts/profile-app.js',
-  'scripts/mobile-nav.js',
-  'scripts/nav-boost.js',
-  'scripts/mobile-perf.js',
-  'scripts/mobile-zoom-guard.js',
-  'scripts/teachedos-app.js',
-  'scripts/teachedos-data.js',
-  'scripts/teachedos-curriculum.js',
-  'scripts/vocab-loader.js',
-  'scripts/vocabulary.js',
-  'scripts/games-data.js',
-  'icons/icon-192.png',
-  'icons/icon-512.png',
-  'logo-sm.png',
-].map(base);
-
+// Install: skip pre-caching the full shell.
+// addAll(60+ files) was the root cause of silent install failures:
+// any single 4xx/5xx/network error aborts the install promise chain so
+// skipWaiting never runs and the new SW is discarded — users stay on the
+// old version indefinitely. Resources are built up organically in the
+// fetch handler (network-first runtime caching) which is enough for
+// offline fallback after the first full visit.
+// Only the offline fallback page is pre-cached (failure is swallowed
+// so it can't block the install either).
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(SHELL))
+      .then(c => c.add(base('offline.html')).catch(() => {}))
       .then(() => self.skipWaiting())
   );
 });
