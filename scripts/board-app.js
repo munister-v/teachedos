@@ -11937,15 +11937,16 @@ function buildStickyPalette() {
     btn.type = 'button';
     btn.style.background = color;
     btn.title = color;
-    // Click: place at board center
-    btn.addEventListener('click', () => addStickyFromPalette(color));
-    // Mousedown: start Miro-style drag onto board
+    let _wasDrag = false;
+    btn.addEventListener('click', () => { if (_wasDrag) { _wasDrag = false; return; } addStickyFromPalette(color); });
     btn.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
+      _wasDrag = false;
       let dragStarted = false;
       const onMove = mv => {
         if (!dragStarted && (Math.abs(mv.clientX - e.clientX) > 4 || Math.abs(mv.clientY - e.clientY) > 4)) {
           dragStarted = true;
+          _wasDrag = true;
           isSidebarDrag = true;
           document.body.classList.add('board-dragging');
           sidebarDragData = { type: 'sticky', data: { text: '', color }, w: def.w, h: def.h };
@@ -11965,8 +11966,6 @@ function buildStickyPalette() {
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
-        // Drop is handled by the existing board mouseup → sidebarDragData path
-        if (!dragStarted) return; // pure click — let the click handler run
       };
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
