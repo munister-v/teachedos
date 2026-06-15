@@ -48,6 +48,21 @@ PROVIDERS.push({
 });
 const CHAIN = PROVIDERS.filter(p => p.key);
 
+// OpenRouter provider used as the override target when the caller picks a
+// specific free model (games/create.html model switcher). Reuses whichever
+// configured key already points at OpenRouter.
+const OPENROUTER_PROVIDER = CHAIN.find(p => p.baseUrl.includes('openrouter')) || null;
+
+// Curated list of free OpenRouter models offered in the games/create.html
+// "AI model" switcher. Any of these can be requested via input.model.
+const FREE_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemini-2.0-flash-exp:free',
+  'deepseek/deepseek-chat:free',
+  'qwen/qwen-2.5-72b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
+];
+
 // Primary descriptors kept for status reporting / the engine label.
 const MODEL = CHAIN[0]?.model || PRIMARY_MODEL;
 const BASE_URL = CHAIN[0]?.baseUrl || PRIMARY_URL;
@@ -129,6 +144,22 @@ const SYSTEM = [
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
   const { boardKind, toolId, level, topic, count } = input;
+
+  // ── games/create.html: build a custom vocab set (en/uk/ru/example) ────────
+  if (toolId === 'word-set-builder') {
+    const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+    if (wordsList.length) {
+      return {
+        task: `For ESL students at ${level} level, produce a vocab entry for EACH of these words/phrases (one entry per word, same order, do not add or skip any): ${wordsList.join(', ')}. For each: "en" = the word/phrase as given; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural ${level}-level English example sentence using it.`,
+        schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
+      };
+    }
+    return {
+      task: `For ESL students at ${level} level, build a vocabulary set of exactly ${count} useful words/phrases on the topic "${topic}". For each: "en" = the English word/phrase; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural ${level}-level English example sentence using it.`,
+      schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
+    };
+  }
+
   const ctx = [];
   if (input.source) ctx.push(`Source text / transcript:\n"""${input.source}"""`);
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
@@ -662,8 +693,15 @@ async function generate(input) {
   const { task, schema } = shapeSpec(input);
   const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
 
+  // Caller picked a specific free model (games/create.html switcher) — try it
+  // first via OpenRouter, then fall through to the normal chain on failure.
+  let chain = orderedChain(input);
+  if (input.model && FREE_MODELS.includes(input.model) && OPENROUTER_PROVIDER) {
+    chain = [{ ...OPENROUTER_PROVIDER, name: 'chosen', model: input.model }, ...chain];
+  }
+
   let lastErr;
-  for (const provider of orderedChain(input)) {
+  for (const provider of chain) {
     // Up to 2 attempts per provider: one retry on a transient (429/5xx/timeout)
     // error after a short jittered back-off.
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -685,4 +723,4 @@ async function generate(input) {
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, MODEL, BASE_URL, getLastModel, listModels };
+module.exports = { enabled, generate, MODEL, BASE_URL, getLastModel, listModels, FREE_MODELS };

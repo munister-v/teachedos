@@ -101,6 +101,7 @@ const TOOL_META = {
   'transcript-helper': ['listening', 'Transcript'],
   'warmup-listening': ['listening', 'Warm-up'],
   'listening-dictation': ['listening', 'Pronunciation'],
+  'word-set-builder': ['vocabulary', 'Word Set'],
 };
 
 const TOPIC_WORDS = [
@@ -139,6 +140,7 @@ function normaliseInput(body) {
     source: limitText(raw.source, 18000),
     vocab: limitText(raw.vocab, 8000),
     extra: clean(raw.extra, '').slice(0, 600),
+    model: clean(raw.model, '').slice(0, 80),
     cat: meta[0],
     kind: meta[1],
   };
@@ -157,6 +159,7 @@ function cacheKey(userId, input) {
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
+    model: input.model,
   });
 }
 
@@ -220,6 +223,19 @@ function base(input, boardKind) {
     topic: input.topic,
     title: title(input),
     generatedAt: new Date().toISOString(),
+  };
+}
+
+function makeWordSet(input) {
+  const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const source = wordsList.length ? wordsList : vocabList(input, input.count);
+  return {
+    ...base(input, 'wordset'),
+    engine: 'vps-fast-v1',
+    words: source.map(en => ({
+      en, uk: '', ru: '',
+      ex: `Try using "${en}" in a sentence about ${input.topic}.`,
+    })),
   };
 }
 
@@ -437,6 +453,7 @@ function escapeRegExp(value) {
 }
 
 function boardKindFor(toolId) {
+  if (toolId === 'word-set-builder') return 'wordset';
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(toolId)) return 'matching';
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families', 'synonyms-antonyms', 'phrasal-verbs', 'idioms'].includes(toolId)) return 'vocab';
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(toolId)) return 'cards'; // text-style cards
@@ -446,6 +463,7 @@ function boardKindFor(toolId) {
 
 // Local rule-engine fallback (the original `vps-fast-v1` behaviour).
 function generateLocal(input) {
+  if (input.toolId === 'word-set-builder') return makeWordSet(input);
   if (['word-definition-match', 'word-image-match', 'word-translation-match', 'word-sorting', 'matching-halves', 'match-headings'].includes(input.toolId)) return makeMatching(input);
   if (['extract-vocab', 'essential-vocab', 'flashcards', 'collocations', 'word-families'].includes(input.toolId)) return makeVocab(input);
   if (['text-topic-vocab', 'simplify-text', 'summary-task'].includes(input.toolId)) return makeText(input);
@@ -528,6 +546,17 @@ function assembleFromLLM(input, data) {
     ...base(input, kind === 'matching' ? 'quiz' : kind),
     engine: `llm:${aiEngine.getLastModel() || aiEngine.MODEL}`,
   };
+
+  if (kind === 'wordset') {
+    const words = dedupeBy(
+      (data.words || [])
+        .map(x => ({ en: line(x.en), uk: line(x.uk), ru: line(x.ru), ex: block(x.ex) }))
+        .filter(x => x.en),
+      x => x.en.toLowerCase(),
+    );
+    if (!words.length) throw new Error('LLM returned no words');
+    return { ...env, words };
+  }
 
   if (kind === 'vocab') {
     const items = dedupeBy(
@@ -680,6 +709,7 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
     cacheSize: cache.size,
     maxItems: MAX_ITEMS,
     ratePerMin: Number(process.env.AI_RATE_PER_MIN || 15),
+    freeModels: aiEngine.FREE_MODELS || [],
     metrics: { ...METRICS },
   });
 });
@@ -768,6 +798,31 @@ router.get('/youtube-transcript', async (req, res) => {
   } catch (err) {
     console.error('[ai/youtube-transcript]', err.message);
     res.status(502).json({ error: 'Could not fetch the transcript right now' });
+  }
+});
+
+// ── POST /api/ai/wordset-guest — no login required ──────────────────────────
+// Powers the "AI assist" box on games/create.html for visitors without a
+// teacher account. IP-limited and capped to keep free-tier usage in check.
+const guestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_GUEST_PER_HOUR || 8),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Free AI generation limit reached for now. Try again later, or log in as a teacher.' },
+});
+
+router.post('/wordset-guest', guestLimiter, async (req, res) => {
+  try {
+    const input = normaliseInput({ ...req.body, toolId: 'word-set-builder' });
+    input.count = Math.max(4, Math.min(10, input.count));
+    input.vocab = input.vocab.slice(0, 600);
+    input.model = ''; // guests can't pick a model — use the server default chain
+    const output = await generate(input);
+    res.json({ output });
+  } catch (err) {
+    console.error('[ai/wordset-guest]', err.message);
+    res.status(500).json({ error: err.message || 'AI engine error' });
   }
 });
 
