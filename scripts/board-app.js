@@ -10434,7 +10434,7 @@ function buildLessonFlowCards(lesson) {
   }, 320, 210);
   const vocab = addCard('text', baseX, baseY + 480, defaultTextData({
     text:'Useful language\n\n' + (vocabItems.length ? vocabItems.join('\n') : 'Add target vocabulary here'),
-    bgColor:'#fffdf2', textColor:'#111111', align:'left'
+    bgColor:'#ffffff', textColor:'#111111', align:'left'
   }), 320, 240);
   stages.forEach((stage, i) => {
     const col = i % 3;
@@ -12947,7 +12947,7 @@ function applyAiAssistantToBoard() {
     const y = center.y - 220 + Math.floor(idx / 2) * 145;
     addCard('text', x, y, defaultTextData({
       text: `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
-      bgColor: idx % 2 ? 'rgba(202,255,50,.16)' : 'rgba(236,72,153,.12)',
+      bgColor: '#ffffff',
       textColor: '#15131d',
       fontFamily: 'var(--font)',
       align: 'left',
@@ -12972,10 +12972,8 @@ function applyAiAssistantToBoard() {
     }, 220, 170);
   }
   if (result.warmupPrompts?.length) {
-    addCard('sticky', center.x + 465, center.y - 20, {
-      text: result.warmupPrompts.join('\n'),
-      color: STICKY_COLORS[1] || '#d9f99d',
-    }, 220, 190);
+    _ttAddStickyCard(null, center.x + 465, center.y - 20, 220, 190,
+      'Warm-up\n\n' + result.warmupPrompts.join('\n'));
   }
   if (result.assessmentCriteria?.length) {
     addCard('checklist', center.x + 465, center.y + 195, {
@@ -12990,10 +12988,8 @@ function applyAiAssistantToBoard() {
     }, 300, 190);
   }
   if (result.challenge) {
-    addCard('sticky', center.x - 90, center.y + 330, {
-      text: 'Challenge:\n' + result.challenge,
-      color: STICKY_COLORS[2] || '#fde68a',
-    }, 240, 160);
+    _ttAddStickyCard(null, center.x - 90, center.y + 330, 240, 160,
+      'Challenge\n\n' + result.challenge);
   }
   if (result.homework) {
     addCard('assignment', center.x + 170, center.y + 75, {
