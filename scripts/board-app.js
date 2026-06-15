@@ -13063,16 +13063,19 @@ function applyAiAssistantToBoard() {
   if (!result) return;
   snapshot();
   const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
+  const _aiSkill = document.getElementById('ai-skill')?.value || 'Writing';
+  const _aiAccent = { Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
+    Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899' }[_aiSkill] || '#4262FF';
   const frame = addCard('frame', center.x - 460, center.y - 260, {
     title: result.title || 'AI Lesson Flow',
-    bg: 'rgba(202,255,50,.08)',
-    border: 'rgba(236,72,153,.32)',
+    bg: '#ffffff',
+    border: _aiAccent,
   }, 920, 560);
   const lesson = addCard('lesson', center.x - 430, center.y - 220, {
     title: result.title || 'AI Lesson',
     status: 'available',
     level: document.getElementById('ai-level')?.value || 'B1',
-    skill: document.getElementById('ai-skill')?.value || 'Writing',
+    skill: _aiSkill,
     duration: document.getElementById('ai-duration')?.value || '45 min',
     desc: result.summary || '',
     objectives: (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
