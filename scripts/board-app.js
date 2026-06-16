@@ -13176,151 +13176,213 @@ Time totals must add up to ${input.duration}. All activities must be practical a
   return { provider: model, mode: input.mode, ...parsed };
 }
 
+/* ── Find an empty region on the board for a new cluster ─────────── */
+function _aiFindEmptyOrigin(wantedW, wantedH) {
+  const existing = state.cards.filter(c => c.type !== 'frame');
+  if (!existing.length) {
+    const vp = screenToBoard(window.innerWidth * .5, window.innerHeight * .5) || { x: 0, y: 0 };
+    return { x: vp.x - wantedW / 2, y: vp.y - wantedH / 2 };
+  }
+  const M = 80; // margin around new cluster
+  const maxX = Math.max(...existing.map(c => c.x + (c.w || 200)));
+  const minY = Math.min(...existing.map(c => c.y));
+  const maxY = Math.max(...existing.map(c => c.y + (c.h || 150)));
+
+  const overlaps = (px, py) => existing.some(c =>
+    px < c.x + (c.w||200) + M && px + wantedW + M > c.x &&
+    py < c.y + (c.h||150) + M && py + wantedH + M > c.y
+  );
+
+  // Try: right of all content, vertically centered
+  const cx1 = maxX + M;
+  const cy1 = (minY + maxY) / 2 - wantedH / 2;
+  if (!overlaps(cx1, cy1)) return { x: cx1, y: cy1 };
+
+  // Try: below all content, centered on x
+  const allX  = existing.map(c => c.x);
+  const avgX  = allX.reduce((s, x) => s + x, 0) / allX.length;
+  const cx2   = avgX - wantedW / 2;
+  const cy2   = maxY + M;
+  if (!overlaps(cx2, cy2)) return { x: cx2, y: cy2 };
+
+  // Fallback: far bottom-right
+  return { x: maxX + M * 3, y: maxY + M * 3 };
+}
+
 function applyAiAssistantToBoard() {
   if (!boardHasFeature('ai')) { showUpgradeModal('ai'); return; }
   if (!_lastAiAssistantResult) { runAiAssistant().then(applyAiAssistantToBoard); return; }
   const result = _lastAiAssistantResult;
   if (!result) return;
-  snapshot();
 
-  const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
+  // ── Layout constants ────────────────────────────────────────────
+  const PAD  = 22;   // frame inner padding
+  const GAP  = 16;   // gap between cards
+  const FW   = 1040; // frame outer width
+  const IW   = FW - PAD * 2; // inner content width = 996
+
   const _aiSkill = document.getElementById('ai-skill')?.value || 'Writing';
-  const accent = { Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
-    Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899' }[_aiSkill] || '#4262FF';
+  const accent = {
+    Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
+    Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899',
+  }[_aiSkill] || '#4262FF';
+  const accentLight = accent + '18'; // very light tint for note accent
+  const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
+  const stageColors = ['#7C3AED','#0891B2','#059669','#D97706','#6366F1'];
 
-  // ── Grid constants ──────────────────────────────────────────────
-  const PAD   = 20;   // frame inner padding
-  const GAP   = 14;   // gap between cards
-  const FW    = 1000; // frame total width
-  const IW    = FW - PAD * 2; // inner content width = 960
+  // ── Estimate total height before placing ────────────────────────
+  const stages      = (result.stages || []).slice(0, 5);
+  const row3Count   = [result.vocabulary?.length, result.mistakeItems?.length || result.memoryHints?.length, result.homework].filter(Boolean).length;
+  const row4Items   = [result.warmupPrompts?.length, result.assessmentCriteria?.length, result.modeAddons?.length, result.challenge, result.teacherScript?.length].filter(Boolean);
+  const row4Rows    = Math.ceil(row4Items.length / 3);
+  const estH = 46 + PAD +                          // frame title
+    (stages.length ? 130 + GAP : 0) +              // lesson card
+    (stages.length ? 134 + GAP : 0) +              // stages row
+    (row3Count     ? 172 + GAP : 0) +              // support row
+    (row4Items.length ? row4Rows * (154 + GAP) : 0) +
+    PAD;
 
-  // Top-left of content area (will wrap with frame below)
-  const ox = center.x - FW / 2 + PAD;
-  let   oy = center.y - 240;   // content top
-  let   cy = oy;                // y-cursor
+  // ── Find empty spot on canvas ──────────────────────────────────
+  const origin = _aiFindEmptyOrigin(FW, estH);
+  const ox = origin.x + PAD;  // content left
+  let   cy = origin.y + PAD;  // content y-cursor (starts at frame top + padding)
 
-  // ── Row 1: Lesson header card (full inner width, 130px) ─────────
-  const lesson = addCard('lesson', ox, cy, {
-    title:       result.title || 'AI Lesson',
-    status:      'available',
-    level:       document.getElementById('ai-level')?.value    || 'B1',
-    skill:       _aiSkill,
-    duration:    document.getElementById('ai-duration')?.value || '45 min',
-    desc:        result.summary || '',
-    objectives:  (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
-    attachments: [],
-    notes:       ['AI-generated. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
-  }, IW, 130);
-  cy += 130 + GAP;
+  // Suppress per-addCard snapshots; take one at the start
+  snapshot();
+  _suppressSnapshot++;
 
-  // ── Row 2: Stage cards (horizontal, equal widths) ───────────────
-  const stages = (result.stages || []).slice(0, 5);
-  if (stages.length) {
-    const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
-    stages.forEach((stage, idx) => {
-      addCard('text', ox + idx * (sw + GAP), cy, defaultTextData({
-        text:       `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
-        bgColor:    '#ffffff',
-        textColor:  '#15131d',
-        align:      'left',
-      }), sw, 110);
-    });
-    cy += 110 + GAP;
+  try {
+    // ── Row 1: Lesson header card (full inner width) ────────────
+    const lesson = addCard('lesson', ox, cy, {
+      title:       result.title || 'AI Lesson',
+      status:      'available',
+      level:       document.getElementById('ai-level')?.value    || 'B1',
+      skill:       _aiSkill,
+      duration:    document.getElementById('ai-duration')?.value || '45 min',
+      desc:        result.summary || '',
+      objectives:  (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
+      attachments: [],
+      notes:       ['AI-generated. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
+    }, IW, 130);
+    cy += 130 + GAP;
+
+    // ── Row 2: Stage note cards (horizontal, equal widths) ──────
+    if (stages.length) {
+      const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
+      stages.forEach((stage, idx) => {
+        addCard('note', ox + idx * (sw + GAP), cy, {
+          icon:   stageEmojis[idx] || '📌',
+          title:  `${stage.time || ''} · ${stage.title || 'Stage'}`,
+          body:   stage.activity || '',
+          accent: stageColors[idx] || accent,
+        }, sw, 134);
+      });
+      cy += 134 + GAP;
+    }
+
+    // ── Row 3: Support cards (vocab | memory notes | homework) ──
+    const r3keys = [];
+    if (result.vocabulary?.length)                                    r3keys.push('vocab');
+    if (result.mistakeItems?.length || result.memoryHints?.length)    r3keys.push('memory');
+    if (result.homework)                                              r3keys.push('homework');
+    if (r3keys.length) {
+      const rw = Math.floor((IW - GAP * (r3keys.length - 1)) / r3keys.length);
+      let rx = ox;
+      r3keys.forEach(key => {
+        if (key === 'vocab') {
+          addCard('checklist', rx, cy, {
+            title: '🗂 Target language',
+            items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
+          }, rw, 172);
+        } else if (key === 'memory') {
+          addCard('note', rx, cy, {
+            icon:   '🧠',
+            title:  'Memory notes',
+            body:   [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
+            accent: '#64748B',
+          }, rw, 172);
+        } else if (key === 'homework') {
+          addCard('assignment', rx, cy, {
+            title: 'Homework', type: 'Mixed', maxScore: 100, deadline: '',
+            desc: result.homework, submitted: 0, total: 0,
+          }, rw, 172);
+        }
+        rx += rw + GAP;
+      });
+      cy += 172 + GAP;
+    }
+
+    // ── Row 4: Extras in groups of 3 ───────────────────────────
+    const r4 = [];
+    if (result.warmupPrompts?.length)       r4.push({ key:'warmup' });
+    if (result.assessmentCriteria?.length)  r4.push({ key:'criteria' });
+    if (result.modeAddons?.length)          r4.push({ key:'extras' });
+    if (result.challenge)                   r4.push({ key:'challenge' });
+    if (result.teacherScript?.length)       r4.push({ key:'script' });
+
+    for (let i = 0; i < r4.length; i += 3) {
+      const slice = r4.slice(i, i + 3);
+      const ew = Math.floor((IW - GAP * (slice.length - 1)) / slice.length);
+      let ex = ox;
+      slice.forEach(({ key }) => {
+        if (key === 'warmup') {
+          addCard('checklist', ex, cy, {
+            title: '☀️ Warm-up prompts',
+            items: result.warmupPrompts.map(text => ({ text, done: false })),
+          }, ew, 154);
+        } else if (key === 'criteria') {
+          addCard('checklist', ex, cy, {
+            title: '✅ Success criteria',
+            items: result.assessmentCriteria.map(text => ({ text, done: false })),
+          }, ew, 154);
+        } else if (key === 'extras') {
+          addCard('checklist', ex, cy, {
+            title: '⚡ Smart extras',
+            items: result.modeAddons.map(text => ({ text, done: false })),
+          }, ew, 154);
+        } else if (key === 'challenge') {
+          addCard('note', ex, cy, {
+            icon: '🚀', title: 'Challenge',
+            body: result.challenge, accent: '#DC2626',
+          }, ew, 154);
+        } else if (key === 'script') {
+          addCard('note', ex, cy, {
+            icon: '🎤', title: 'Teacher script',
+            body: result.teacherScript.join('\n'), accent: '#0284C7',
+          }, ew, 154);
+        }
+        ex += ew + GAP;
+      });
+      cy += 154 + GAP;
+    }
+
+    // ── Frame wrapping all content ──────────────────────────────
+    const frameH = (cy - origin.y - PAD) + PAD;
+    const frame = addCard('frame', origin.x, origin.y, {
+      title:  result.title || 'AI Lesson Flow',
+      bg:     '#ffffff',
+      border: accent,
+    }, FW, frameH);
+
+    if (frame?.id && frame.data) {
+      frame.data.childIds = state.cards
+        .filter(c => c.id !== frame.id &&
+          c.x >= frame.x && c.y >= frame.y &&
+          c.x + (c.w || 0) <= frame.x + frame.w + 4 &&
+          c.y + (c.h || 0) <= frame.y + frame.h + 4)
+        .map(c => c.id);
+    }
+
+    clearSelection();
+    if (lesson?.id) selectCard(lesson.id);
+    renderAllArrows?.();
+    scheduleSave(); saveLocal?.();
+    closeAiAssistantPanel();
+    toast('AI lesson flow added to board');
+
+  } finally {
+    _suppressSnapshot--;
   }
-
-  // ── Row 3: Support cards (vocab | memory notes | homework) ──────
-  const row3 = [];
-  if (result.vocabulary?.length)                               row3.push('vocab');
-  if (result.mistakeItems?.length || result.memoryHints?.length) row3.push('memory');
-  if (result.homework)                                          row3.push('homework');
-  if (row3.length) {
-    const rw = Math.floor((IW - GAP * (row3.length - 1)) / row3.length);
-    let rx = ox;
-    row3.forEach(key => {
-      if (key === 'vocab') {
-        addCard('checklist', rx, cy, {
-          title: 'Target language',
-          items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
-        }, rw, 160);
-      } else if (key === 'memory') {
-        addCard('note', rx, cy, {
-          title: 'Memory notes',
-          text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake: ' + x)].join('\n'),
-        }, rw, 160);
-      } else if (key === 'homework') {
-        addCard('assignment', rx, cy, {
-          title: 'Homework', type: 'Mixed', maxScore: 100, deadline: '',
-          desc: result.homework, submitted: 0, total: 0,
-        }, rw, 160);
-      }
-      rx += rw + GAP;
-    });
-    cy += 160 + GAP;
-  }
-
-  // ── Row 4: Extras (warm-up | success criteria | smart extras | challenge | script) ──
-  const row4 = [];
-  if (result.warmupPrompts?.length)    row4.push('warmup');
-  if (result.assessmentCriteria?.length) row4.push('criteria');
-  if (result.modeAddons?.length)       row4.push('extras');
-  if (result.challenge)                row4.push('challenge');
-  if (result.teacherScript?.length)    row4.push('script');
-  if (row4.length) {
-    const cols = Math.min(row4.length, 3);
-    const ew   = Math.floor((IW - GAP * (cols - 1)) / cols);
-    let ex = ox, rowStart = cy;
-    row4.forEach((key, idx) => {
-      if (idx > 0 && idx % 3 === 0) { cy += 150 + GAP; ex = ox; }
-      const ey = (idx % 3 === 0) ? cy : rowStart;
-      if (key === 'warmup') {
-        _ttAddStickyCard(null, ex, ey, ew, 140,
-          'Warm-up\n\n' + result.warmupPrompts.join('\n'));
-      } else if (key === 'criteria') {
-        addCard('checklist', ex, ey, {
-          title: 'Success criteria',
-          items: result.assessmentCriteria.map(text => ({ text, done: false })),
-        }, ew, 140);
-      } else if (key === 'extras') {
-        addCard('checklist', ex, ey, {
-          title: 'Smart extras',
-          items: result.modeAddons.map(text => ({ text, done: false })),
-        }, ew, 140);
-      } else if (key === 'challenge') {
-        _ttAddStickyCard(null, ex, ey, ew, 140, 'Challenge\n\n' + result.challenge);
-      } else if (key === 'script') {
-        addCard('note', ex, ey, {
-          title: 'Teacher script',
-          text: result.teacherScript.join('\n'),
-        }, ew, 140);
-      }
-      ex += ew + GAP;
-    });
-    cy += 140 + GAP;
-  }
-
-  // ── Frame wrapping all content ──────────────────────────────────
-  const frameH = (cy - oy) + PAD;
-  const frame = addCard('frame', ox - PAD, oy - 46, {
-    title:  result.title || 'AI Lesson Flow',
-    bg:     '#ffffff',
-    border: accent,
-  }, FW, frameH + 46);
-
-  if (frame?.id && frame.data) {
-    frame.data.childIds = state.cards
-      .filter(c => c.id !== frame.id &&
-        c.x >= frame.x && c.y >= frame.y &&
-        c.x + (c.w||0) <= frame.x + frame.w &&
-        c.y + (c.h||0) <= frame.y + frame.h)
-      .map(c => c.id);
-  }
-
-  clearSelection();
-  if (lesson?.id) selectCard(lesson.id);
-  renderAllArrows?.();
-  scheduleSave(); saveLocal?.();
-  closeAiAssistantPanel();
-  toast('AI lesson flow added to board');
 }
 
 function aiAssistantPreviewText() {
