@@ -767,17 +767,20 @@ function renderText(el, card) {
     </select>
     <input class="text-size-input" data-act="font-size" type="number" min="8" max="96" step="1"
       value="${card.data.fontSize || 14}" title="Font size">
-    <button class="text-format-btn" data-cmd="bold" title="Bold">B</button>
+    <span class="tb-sep"></span>
+    <button class="text-format-btn" data-cmd="bold" title="Bold"><b>B</b></button>
     <button class="text-format-btn" data-cmd="italic" title="Italic"><i>I</i></button>
     <button class="text-format-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <span class="tb-sep"></span>
     <button class="text-format-btn" data-align="left" title="Align left">⇤</button>
     <button class="text-format-btn" data-align="center" title="Center">↔</button>
     <button class="text-format-btn" data-align="right" title="Align right">⇥</button>
-    <button class="text-format-btn" data-align="justify" title="Justify">☰</button>
+    <span class="tb-sep"></span>
     <button class="text-link-btn" title="Insert link">🔗</button>
     <input class="text-color-control" type="color" data-act="text-color" title="Text color" value="${cssColorToHex(card.data.textColor || '#111111')}">
-    <input class="text-color-control" type="color" data-act="bg-color" title="Background color" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
+    <input class="text-color-control" type="color" data-act="bg-color" title="Card background" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
     <button class="text-bg-clear" title="Transparent background">⊘</button>
+    <span class="tb-sep"></span>
     <button class="text-lock-btn${card.data.locked?' active':''}" title="Lock position">${card.data.locked?'🔒':'📌'}</button>`;
 
   const editor = document.createElement('div');
@@ -2068,17 +2071,23 @@ function bindTextToolbar(toolbar, editor, card, el) {
   });
   const sizeInput = toolbar.querySelector('[data-act="font-size"]');
   if (sizeInput) {
-    const applySize = () => {
+    const applySize = (snap = false) => {
       const v = Math.max(8, Math.min(96, parseInt(sizeInput.value) || 14));
       sizeInput.value = v;
-      snapshot();
+      if (snap) snapshot();
       card.data.fontSize = v;
       applyTextStyles(card, editor);
       scheduleSave();
     };
-    sizeInput.addEventListener('change', applySize);
-    sizeInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applySize(); editor.focus(); } });
+    // input fires on every spinner step; change fires on blur — snapshot only on change
+    sizeInput.addEventListener('input',   () => applySize(false));
+    sizeInput.addEventListener('change',  () => applySize(true));
+    sizeInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); applySize(true); editor.focus(); }
+      e.stopPropagation();
+    });
     sizeInput.addEventListener('mousedown', e => e.stopPropagation());
+    sizeInput.addEventListener('click',     e => e.stopPropagation());
   }
   toolbar.querySelector('[data-act="text-color"]')?.addEventListener('input', e => {
     card.data.textColor = e.target.value;

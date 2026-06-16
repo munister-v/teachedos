@@ -1909,42 +1909,68 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 .card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;overflow:visible;}
 .text-format-toolbar{
-  display:none;align-items:center;gap:4px;flex-wrap:wrap;
-  padding:4px;border-radius:10px;background:rgba(255,255,255,.94);
-  border:1px solid rgba(20,20,22,.09);box-shadow:0 8px 24px rgba(0,0,0,.10);
-  backdrop-filter:blur(8px);z-index:24;
+  display:none;align-items:center;gap:2px;flex-wrap:nowrap;
+  padding:5px 6px;border-radius:12px;
+  background:#fff;color-scheme:light;
+  border:1px solid rgba(20,20,22,.08);
+  box-shadow:0 4px 6px rgba(0,0,0,.04),0 10px 28px rgba(0,0,0,.12);
+  z-index:24;
 }
 /* Float text format toolbar ABOVE the card — Miro style */
 .card-text .text-format-toolbar{
-  position:absolute;bottom:calc(100% + 7px);left:0;
-  width:max-content;max-width:520px;flex-wrap:nowrap;
+  position:absolute;bottom:calc(100% + 8px);left:0;
+  width:max-content;max-width:560px;
   z-index:200;
 }
 .card-text.selected .text-format-toolbar,.card-text:hover .text-format-toolbar{display:flex;}
+
+/* Thin separator between groups */
+.text-format-toolbar .tb-sep{
+  width:1px;height:18px;background:rgba(20,20,22,.10);
+  border-radius:1px;flex-shrink:0;margin:0 3px;
+}
+
 .text-format-btn,.text-link-btn,.text-lock-btn,.text-bg-clear{
-  min-width:26px;height:24px;padding:0 7px;border:1px solid rgba(20,20,22,.12);
-  border-radius:7px;background:#fff;color:#1c1c1e;font:800 11px/1 var(--font);
+  min-width:28px;height:26px;padding:0 7px;border:none;
+  border-radius:7px;background:transparent;color:#1c1c1e;
+  font:700 12px/1 var(--font);
   cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .1s,color .1s;
+  flex-shrink:0;
 }
-.text-format-btn:hover,.text-link-btn:hover,.text-lock-btn:hover,.text-bg-clear:hover{border-color:var(--accent);background:rgba(200,230,50,.10);}
-.text-format-btn.active,.text-lock-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.text-format-btn:hover,.text-link-btn:hover,.text-lock-btn:hover,.text-bg-clear:hover{
+  background:rgba(20,20,22,.08);
+}
+.text-format-btn.active,.text-lock-btn.active{
+  background:#0a0a28;color:#fff;
+}
+/* Font selector — no border, matches toolbar bg */
 .text-format-select{
-  height:24px;max-width:116px;border:1px solid rgba(20,20,22,.12);
-  border-radius:7px;background:#fff;color:#1c1c1e;font:700 11px var(--font);
-  outline:none;padding:0 6px;
+  height:26px;max-width:100px;border:none;border-radius:7px;
+  background:rgba(20,20,22,.06);color:#1c1c1e;
+  font:600 11px var(--font);outline:none;padding:0 6px;
+  cursor:pointer;color-scheme:light;
+  transition:background .1s;
 }
+.text-format-select:hover{background:rgba(20,20,22,.11);}
+/* Size input */
 .text-size-input{
-  height:24px;width:44px;border:1px solid rgba(20,20,22,.12);
-  border-radius:7px;background:#fff;color:#1c1c1e;font:700 11px var(--font);
-  outline:none;padding:0 6px;text-align:center;
-  -moz-appearance:textfield;
+  height:26px;width:40px;border:none;border-radius:7px;
+  background:rgba(20,20,22,.06);color:#1c1c1e;
+  font:600 11px var(--font);outline:none;padding:0;text-align:center;
+  -moz-appearance:textfield;color-scheme:light;
+  transition:background .1s;
 }
+.text-size-input:hover,.text-size-input:focus{background:rgba(20,20,22,.11);}
 .text-size-input::-webkit-outer-spin-button,
 .text-size-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+/* Color pickers */
 .text-color-control{
-  width:28px;height:24px;padding:2px;border:1px solid rgba(20,20,22,.12);
-  border-radius:7px;background:#fff;cursor:pointer;
+  width:26px;height:26px;padding:3px;border:none;border-radius:7px;
+  background:rgba(20,20,22,.06);cursor:pointer;color-scheme:light;
+  transition:background .1s;
 }
+.text-color-control:hover{background:rgba(20,20,22,.12);}
 .text-rich-editor{
   flex:1;min-height:30px;outline:none;resize:none;background:transparent;
   font-family:var(--font);font-size:16px;font-weight:400;color:#111;
