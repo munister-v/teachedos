@@ -2784,6 +2784,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ai-mini-list{margin:10px 0 0;padding-left:18px;color:rgba(255,255,255,.78);font-size:12px;line-height:1.5;}
 .ai-empty{height:260px;display:flex;align-items:center;justify-content:center;text-align:center;color:rgba(255,255,255,.58);font-weight:750;line-height:1.5;}
 .ai-status{font-size:12px;color:var(--text-3);font-weight:750;margin-top:10px;min-height:18px;}
+.ai-api-block{margin-top:14px;padding:14px;border-radius:14px;border:1.5px solid rgba(17,24,39,.10);background:#f9f9fb;color-scheme:light;}
+.ai-api-block label{margin-top:10px;}
+.ai-api-block label:first-child{margin-top:0;}
 
 /* ══════════════ TEACHER TOOL BUILDER ══════════════ */
 #tool-builder-panel{

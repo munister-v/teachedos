@@ -889,6 +889,19 @@ polite request</textarea>
           <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Use games, movement, visuals and short task cycles.')">Game energy</button>
         </div>
         <div class="ai-memory-note" id="ai-memory-note">Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.</div>
+        <div class="ai-api-block">
+          <label for="ai-api-model">AI Model (OpenRouter)</label>
+          <select id="ai-api-model">
+            <option value="">Local mode — no API key needed</option>
+            <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — fast &amp; cheap</option>
+            <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
+            <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+            <option value="mistralai/mistral-nemo:free">Mistral Nemo — free</option>
+            <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — free</option>
+          </select>
+          <label for="ai-api-key">OpenRouter API Key</label>
+          <input type="password" id="ai-api-key" placeholder="sk-or-v1-..." autocomplete="off">
+        </div>
         <div class="ai-action-row">
           <button class="ai-action" onclick="runAiAssistant()">Generate preview</button>
           <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>

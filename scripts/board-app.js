@@ -12800,6 +12800,8 @@ function loadAiAssistantSettings() {
     if (saved.mode) document.getElementById('ai-mode').value = saved.mode;
     if (saved.goal) document.getElementById('ai-goal').value = saved.goal;
     if (saved.tone) document.getElementById('ai-tone').value = saved.tone;
+    if (saved.apiModel) { const el = document.getElementById('ai-api-model'); if (el) el.value = saved.apiModel; }
+    if (saved.apiKey)   { const el = document.getElementById('ai-api-key');   if (el) el.value = saved.apiKey; }
   } catch {}
 }
 
@@ -12811,6 +12813,8 @@ function saveAiAssistantSettings() {
     mode: document.getElementById('ai-mode')?.value || 'lesson-board',
     goal: document.getElementById('ai-goal')?.value || 'confidence',
     tone: document.getElementById('ai-tone')?.value || 'supportive',
+    apiModel: document.getElementById('ai-api-model')?.value || '',
+    apiKey: document.getElementById('ai-api-key')?.value || '',
   };
   localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify(payload));
   updateAiProviderNote();
@@ -13093,104 +13097,224 @@ function renderAiAssistantPreview(result) {
 async function runAiAssistant() {
   const status = document.getElementById('ai-status');
   const input = getAiAssistantInput();
-  if (status) status.textContent = 'Generating from local memory...';
+  const apiKey = (document.getElementById('ai-api-key')?.value || '').trim();
+  const model  = (document.getElementById('ai-api-model')?.value || '').trim();
   saveAiAssistantSettings();
-  const result = generateLocalAiLesson(input);
-  renderAiAssistantPreview(result);
-  if (status) status.textContent = 'Preview ready. No API key needed.';
+  if (apiKey && model) {
+    if (status) status.textContent = `Calling ${model.split('/')[1] || model}...`;
+    try {
+      const result = await callOpenRouterLesson(input, apiKey, model);
+      renderAiAssistantPreview(result);
+      if (status) status.textContent = `Ready (${model.split('/').pop()}).`;
+    } catch (err) {
+      if (status) status.textContent = 'API error — falling back to local. ' + err.message;
+      renderAiAssistantPreview(generateLocalAiLesson(input));
+    }
+  } else {
+    if (status) status.textContent = 'Generating from local memory...';
+    renderAiAssistantPreview(generateLocalAiLesson(input));
+    if (status) status.textContent = 'Preview ready. Add an OpenRouter key above for AI generation.';
+  }
+}
+
+async function callOpenRouterLesson(input, apiKey, model) {
+  const prompt = `You are an ESL lesson planner. Return ONLY a JSON object (no markdown) with this exact shape:
+{
+  "title": "B1 Writing: Essay Structure",
+  "summary": "45 min lesson for teens...",
+  "stages": [
+    {"time":"5 min","title":"Hook","goal":"...", "activity":"..."},
+    {"time":"10 min","title":"Input","goal":"...","activity":"..."},
+    {"time":"12 min","title":"Practice","goal":"...","activity":"..."},
+    {"time":"10 min","title":"Task","goal":"...","activity":"..."},
+    {"time":"8 min","title":"Reflect","goal":"...","activity":"..."}
+  ],
+  "vocabulary":["word1","word2","word3","word4","word5","word6","word7","word8"],
+  "warmupPrompts":["question1","question2","question3"],
+  "assessmentCriteria":["criterion1","criterion2","criterion3"],
+  "modeAddons":["extra1","extra2","extra3"],
+  "memoryHints":["hint1","hint2"],
+  "mistakeItems":["mistake1","mistake2"],
+  "homework":"one clear homework task",
+  "challenge":"one extension task for fast finishers",
+  "teacherScript":["line1","line2","line3"]
+}
+
+Lesson parameters:
+- Level: ${input.level}
+- Skill: ${input.skill}
+- Duration: ${input.duration}
+- Audience: ${input.audience}
+- Goal: ${input.goal}
+- Tone: ${input.tone}
+- Mode: ${input.mode}
+- Topic: ${input.topic}
+${input.teacherMemory ? `- Teacher style: ${input.teacherMemory}` : ''}
+${input.studentMemory ? `- Student profile: ${input.studentMemory}` : ''}
+${input.mistakes ? `- Common mistakes to target: ${input.mistakes}` : ''}
+${input.source ? `- Source material: ${input.source}` : ''}
+
+Time totals must add up to ${input.duration}. All activities must be practical and classroom-ready.`;
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://teached.tech',
+      'X-Title': 'TeachEd AI Lesson Builder',
+    },
+    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.7, max_tokens: 1600 }),
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`${res.status}: ${t.slice(0,120)}`); }
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || '';
+  const jsonStr = raw.replace(/```(?:json)?/g,'').replace(/```/g,'').trim();
+  let parsed;
+  try { parsed = JSON.parse(jsonStr); } catch { const m = jsonStr.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; }
+  if (!parsed) throw new Error('Could not parse model response as JSON');
+  return { provider: model, mode: input.mode, ...parsed };
 }
 
 function applyAiAssistantToBoard() {
   if (!boardHasFeature('ai')) { showUpgradeModal('ai'); return; }
-  if (!_lastAiAssistantResult) runAiAssistant().then(applyAiAssistantToBoard);
+  if (!_lastAiAssistantResult) { runAiAssistant().then(applyAiAssistantToBoard); return; }
   const result = _lastAiAssistantResult;
   if (!result) return;
   snapshot();
+
   const center = screenToBoard(window.innerWidth * .52, window.innerHeight * .48) || { x: 300, y: 220 };
   const _aiSkill = document.getElementById('ai-skill')?.value || 'Writing';
-  const _aiAccent = { Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
+  const accent = { Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
     Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899' }[_aiSkill] || '#4262FF';
-  const frame = addCard('frame', center.x - 460, center.y - 260, {
-    title: result.title || 'AI Lesson Flow',
-    bg: '#ffffff',
-    border: _aiAccent,
-  }, 920, 560);
-  const lesson = addCard('lesson', center.x - 430, center.y - 220, {
-    title: result.title || 'AI Lesson',
-    status: 'available',
-    level: document.getElementById('ai-level')?.value || 'B1',
-    skill: _aiSkill,
-    duration: document.getElementById('ai-duration')?.value || '45 min',
-    desc: result.summary || '',
-    objectives: (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
+
+  // ── Grid constants ──────────────────────────────────────────────
+  const PAD   = 20;   // frame inner padding
+  const GAP   = 14;   // gap between cards
+  const FW    = 1000; // frame total width
+  const IW    = FW - PAD * 2; // inner content width = 960
+
+  // Top-left of content area (will wrap with frame below)
+  const ox = center.x - FW / 2 + PAD;
+  let   oy = center.y - 240;   // content top
+  let   cy = oy;                // y-cursor
+
+  // ── Row 1: Lesson header card (full inner width, 130px) ─────────
+  const lesson = addCard('lesson', ox, cy, {
+    title:       result.title || 'AI Lesson',
+    status:      'available',
+    level:       document.getElementById('ai-level')?.value    || 'B1',
+    skill:       _aiSkill,
+    duration:    document.getElementById('ai-duration')?.value || '45 min',
+    desc:        result.summary || '',
+    objectives:  (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
     attachments: [],
-    notes: ['Generated by TeachEd AI Assistant local memory mode. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
-  });
-  (result.stages || []).slice(0, 5).forEach((stage, idx) => {
-    const x = center.x - 130 + (idx % 2) * 300;
-    const y = center.y - 220 + Math.floor(idx / 2) * 145;
-    addCard('text', x, y, defaultTextData({
-      text: `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
-      bgColor: '#ffffff',
-      textColor: '#15131d',
-      fontFamily: 'var(--font)',
-      align: 'left',
-    }), 260, 112);
-  });
-  if (result.vocabulary?.length) {
-    addCard('checklist', center.x - 430, center.y + 80, {
-      title: 'Target language',
-      items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
-    }, 250, 230);
+    notes:       ['AI-generated. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
+  }, IW, 130);
+  cy += 130 + GAP;
+
+  // ── Row 2: Stage cards (horizontal, equal widths) ───────────────
+  const stages = (result.stages || []).slice(0, 5);
+  if (stages.length) {
+    const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
+    stages.forEach((stage, idx) => {
+      addCard('text', ox + idx * (sw + GAP), cy, defaultTextData({
+        text:       `${stage.time || ''} · ${stage.title || 'Stage'}\n${stage.activity || ''}`,
+        bgColor:    '#ffffff',
+        textColor:  '#15131d',
+        align:      'left',
+      }), sw, 110);
+    });
+    cy += 110 + GAP;
   }
-  if (result.mistakeItems?.length || result.memoryHints?.length) {
-    addCard('note', center.x - 130, center.y + 75, {
-      title: 'AI Memory Notes',
-      text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake focus: ' + x)].join('\n'),
-    }, 270, 190);
+
+  // ── Row 3: Support cards (vocab | memory notes | homework) ──────
+  const row3 = [];
+  if (result.vocabulary?.length)                               row3.push('vocab');
+  if (result.mistakeItems?.length || result.memoryHints?.length) row3.push('memory');
+  if (result.homework)                                          row3.push('homework');
+  if (row3.length) {
+    const rw = Math.floor((IW - GAP * (row3.length - 1)) / row3.length);
+    let rx = ox;
+    row3.forEach(key => {
+      if (key === 'vocab') {
+        addCard('checklist', rx, cy, {
+          title: 'Target language',
+          items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
+        }, rw, 160);
+      } else if (key === 'memory') {
+        addCard('note', rx, cy, {
+          title: 'Memory notes',
+          text: [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => 'Mistake: ' + x)].join('\n'),
+        }, rw, 160);
+      } else if (key === 'homework') {
+        addCard('assignment', rx, cy, {
+          title: 'Homework', type: 'Mixed', maxScore: 100, deadline: '',
+          desc: result.homework, submitted: 0, total: 0,
+        }, rw, 160);
+      }
+      rx += rw + GAP;
+    });
+    cy += 160 + GAP;
   }
-  if (result.modeAddons?.length) {
-    addCard('checklist', center.x + 460, center.y - 220, {
-      title: 'Smart extras',
-      items: result.modeAddons.map(text => ({ text, done: false })),
-    }, 220, 170);
+
+  // ── Row 4: Extras (warm-up | success criteria | smart extras | challenge | script) ──
+  const row4 = [];
+  if (result.warmupPrompts?.length)    row4.push('warmup');
+  if (result.assessmentCriteria?.length) row4.push('criteria');
+  if (result.modeAddons?.length)       row4.push('extras');
+  if (result.challenge)                row4.push('challenge');
+  if (result.teacherScript?.length)    row4.push('script');
+  if (row4.length) {
+    const cols = Math.min(row4.length, 3);
+    const ew   = Math.floor((IW - GAP * (cols - 1)) / cols);
+    let ex = ox, rowStart = cy;
+    row4.forEach((key, idx) => {
+      if (idx > 0 && idx % 3 === 0) { cy += 150 + GAP; ex = ox; }
+      const ey = (idx % 3 === 0) ? cy : rowStart;
+      if (key === 'warmup') {
+        _ttAddStickyCard(null, ex, ey, ew, 140,
+          'Warm-up\n\n' + result.warmupPrompts.join('\n'));
+      } else if (key === 'criteria') {
+        addCard('checklist', ex, ey, {
+          title: 'Success criteria',
+          items: result.assessmentCriteria.map(text => ({ text, done: false })),
+        }, ew, 140);
+      } else if (key === 'extras') {
+        addCard('checklist', ex, ey, {
+          title: 'Smart extras',
+          items: result.modeAddons.map(text => ({ text, done: false })),
+        }, ew, 140);
+      } else if (key === 'challenge') {
+        _ttAddStickyCard(null, ex, ey, ew, 140, 'Challenge\n\n' + result.challenge);
+      } else if (key === 'script') {
+        addCard('note', ex, ey, {
+          title: 'Teacher script',
+          text: result.teacherScript.join('\n'),
+        }, ew, 140);
+      }
+      ex += ew + GAP;
+    });
+    cy += 140 + GAP;
   }
-  if (result.warmupPrompts?.length) {
-    _ttAddStickyCard(null, center.x + 465, center.y - 20, 220, 190,
-      'Warm-up\n\n' + result.warmupPrompts.join('\n'));
-  }
-  if (result.assessmentCriteria?.length) {
-    addCard('checklist', center.x + 465, center.y + 195, {
-      title: 'Success criteria',
-      items: result.assessmentCriteria.map(text => ({ text, done: false })),
-    }, 230, 180);
-  }
-  if (result.teacherScript?.length) {
-    addCard('note', center.x - 430, center.y + 330, {
-      title: 'Teacher script',
-      text: result.teacherScript.join('\n'),
-    }, 300, 190);
-  }
-  if (result.challenge) {
-    _ttAddStickyCard(null, center.x - 90, center.y + 330, 240, 160,
-      'Challenge\n\n' + result.challenge);
-  }
-  if (result.homework) {
-    addCard('assignment', center.x + 170, center.y + 75, {
-      title: 'AI Homework',
-      type: 'Mixed',
-      maxScore: 100,
-      deadline: '',
-      desc: result.homework,
-      submitted: 0,
-      total: 0,
-    }, 260, 190);
-  }
+
+  // ── Frame wrapping all content ──────────────────────────────────
+  const frameH = (cy - oy) + PAD;
+  const frame = addCard('frame', ox - PAD, oy - 46, {
+    title:  result.title || 'AI Lesson Flow',
+    bg:     '#ffffff',
+    border: accent,
+  }, FW, frameH + 46);
+
   if (frame?.id && frame.data) {
     frame.data.childIds = state.cards
-      .filter(c => c.id !== frame.id && c.x >= frame.x && c.y >= frame.y && c.x <= frame.x + frame.w && c.y <= frame.y + frame.h)
+      .filter(c => c.id !== frame.id &&
+        c.x >= frame.x && c.y >= frame.y &&
+        c.x + (c.w||0) <= frame.x + frame.w &&
+        c.y + (c.h||0) <= frame.y + frame.h)
       .map(c => c.id);
   }
+
   clearSelection();
   if (lesson?.id) selectCard(lesson.id);
   renderAllArrows?.();
