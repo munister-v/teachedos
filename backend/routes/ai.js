@@ -863,6 +863,55 @@ router.get('/youtube-transcript', async (req, res) => {
   }
 });
 
+// ── POST /api/ai/lesson-board — AI Memory Studio board generation ────────────
+// No login required (teachers use it freely). Rate-limited per IP.
+const lessonBoardLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_LESSON_PER_HOUR || 20),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Lesson generation limit reached. Try again in an hour.' },
+});
+
+router.post('/lesson-board', lessonBoardLimiter, async (req, res) => {
+  try {
+    const { level='B1', skill='Writing', duration='45 min', audience='Teens',
+            goal='confidence', tone='supportive', mode='lesson-board',
+            topic='A practical English lesson',
+            teacherMemory='', studentMemory='', mistakes='', source='' } = req.body || {};
+
+    if (!aiEngine.enabled()) {
+      return res.status(503).json({ error: 'AI not configured on this server' });
+    }
+
+    const prompt = `You are an expert ESL lesson planner. Return ONLY a JSON object (no markdown, no prose) with this exact shape:
+{"title":"...","summary":"...","stages":[{"time":"...","title":"...","goal":"...","activity":"..."}],"vocabulary":["..."],"warmupPrompts":["..."],"assessmentCriteria":["..."],"modeAddons":["..."],"memoryHints":["..."],"mistakeItems":["..."],"homework":"...","challenge":"...","teacherScript":["..."]}
+
+Lesson parameters:
+- Level: ${level}
+- Skill: ${skill}
+- Duration: ${duration}
+- Audience: ${audience}
+- Goal: ${goal}
+- Tone: ${tone}
+- Mode: ${mode}
+- Topic: ${topic}
+${teacherMemory ? `- Teacher style: ${teacherMemory}` : ''}
+${studentMemory ? `- Student profile: ${studentMemory}` : ''}
+${mistakes ? `- Common mistakes to target: ${mistakes}` : ''}
+${source ? `- Source material: ${source}` : ''}
+
+Rules: 5 stages that sum to ${duration}. All activities must be practical and ready to use in class. vocabulary: 6-8 words. warmupPrompts: 3 items. assessmentCriteria: 3 items. modeAddons: 4-6 items. teacherScript: 3 lines.`;
+
+    const result = await aiEngine.rawGenerate(prompt);
+    result.provider = 'backend-ai';
+    result.mode = mode;
+    res.json({ result });
+  } catch (err) {
+    console.error('[ai/lesson-board]', err.message);
+    res.status(500).json({ error: err.message || 'AI engine error' });
+  }
+});
+
 // ── POST /api/ai/wordset-guest — no login required ──────────────────────────
 // Powers the "AI assist" box on games/create.html for visitors without a
 // teacher account. IP-limited and capped to keep free-tier usage in check.

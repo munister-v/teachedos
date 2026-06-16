@@ -723,4 +723,28 @@ async function generate(input) {
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, MODEL, BASE_URL, getLastModel, listModels, FREE_MODELS };
+// Call the provider chain with a fully-formed user prompt (no shapeSpec wrapping).
+async function rawGenerate(userPrompt) {
+  if (!CHAIN.length) throw new Error('No AI provider configured');
+  let lastErr;
+  for (const provider of CHAIN) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const out = await callProvider(provider, userPrompt);
+        lastUsedModel = provider.model;
+        return out;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[ai/raw/${provider.name}] attempt ${attempt + 1} failed: ${err.message}`);
+        if (err.retryable && attempt === 0) {
+          await sleep(500 + Math.floor(Math.random() * 400));
+          continue;
+        }
+        break;
+      }
+    }
+  }
+  throw lastErr || new Error('All AI providers failed');
+}
+
+module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, listModels, FREE_MODELS };

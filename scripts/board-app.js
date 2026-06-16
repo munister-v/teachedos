@@ -12800,8 +12800,6 @@ function loadAiAssistantSettings() {
     if (saved.mode) document.getElementById('ai-mode').value = saved.mode;
     if (saved.goal) document.getElementById('ai-goal').value = saved.goal;
     if (saved.tone) document.getElementById('ai-tone').value = saved.tone;
-    if (saved.apiModel) { const el = document.getElementById('ai-api-model'); if (el) el.value = saved.apiModel; }
-    if (saved.apiKey)   { const el = document.getElementById('ai-api-key');   if (el) el.value = saved.apiKey; }
   } catch {}
 }
 
@@ -12813,8 +12811,6 @@ function saveAiAssistantSettings() {
     mode: document.getElementById('ai-mode')?.value || 'lesson-board',
     goal: document.getElementById('ai-goal')?.value || 'confidence',
     tone: document.getElementById('ai-tone')?.value || 'supportive',
-    apiModel: document.getElementById('ai-api-model')?.value || '',
-    apiKey: document.getElementById('ai-api-key')?.value || '',
   };
   localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify(payload));
   updateAiProviderNote();
@@ -13097,83 +13093,27 @@ function renderAiAssistantPreview(result) {
 async function runAiAssistant() {
   const status = document.getElementById('ai-status');
   const input = getAiAssistantInput();
-  const apiKey = (document.getElementById('ai-api-key')?.value || '').trim();
-  const model  = (document.getElementById('ai-api-model')?.value || '').trim();
   saveAiAssistantSettings();
-  if (apiKey && model) {
-    if (status) status.textContent = `Calling ${model.split('/')[1] || model}...`;
-    try {
-      const result = await callOpenRouterLesson(input, apiKey, model);
-      renderAiAssistantPreview(result);
-      if (status) status.textContent = `Ready (${model.split('/').pop()}).`;
-    } catch (err) {
-      if (status) status.textContent = 'API error — falling back to local. ' + err.message;
-      renderAiAssistantPreview(generateLocalAiLesson(input));
+  if (status) status.textContent = 'Generating with AI...';
+  try {
+    const res = await fetch(`${API}/api/ai/lesson-board`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.result) {
+        renderAiAssistantPreview({ ...data.result, mode: input.mode });
+        if (status) status.textContent = 'AI lesson ready.';
+        return;
+      }
     }
-  } else {
-    if (status) status.textContent = 'Generating from local memory...';
-    renderAiAssistantPreview(generateLocalAiLesson(input));
-    if (status) status.textContent = 'Preview ready. Add an OpenRouter key above for AI generation.';
-  }
-}
-
-async function callOpenRouterLesson(input, apiKey, model) {
-  const prompt = `You are an ESL lesson planner. Return ONLY a JSON object (no markdown) with this exact shape:
-{
-  "title": "B1 Writing: Essay Structure",
-  "summary": "45 min lesson for teens...",
-  "stages": [
-    {"time":"5 min","title":"Hook","goal":"...", "activity":"..."},
-    {"time":"10 min","title":"Input","goal":"...","activity":"..."},
-    {"time":"12 min","title":"Practice","goal":"...","activity":"..."},
-    {"time":"10 min","title":"Task","goal":"...","activity":"..."},
-    {"time":"8 min","title":"Reflect","goal":"...","activity":"..."}
-  ],
-  "vocabulary":["word1","word2","word3","word4","word5","word6","word7","word8"],
-  "warmupPrompts":["question1","question2","question3"],
-  "assessmentCriteria":["criterion1","criterion2","criterion3"],
-  "modeAddons":["extra1","extra2","extra3"],
-  "memoryHints":["hint1","hint2"],
-  "mistakeItems":["mistake1","mistake2"],
-  "homework":"one clear homework task",
-  "challenge":"one extension task for fast finishers",
-  "teacherScript":["line1","line2","line3"]
-}
-
-Lesson parameters:
-- Level: ${input.level}
-- Skill: ${input.skill}
-- Duration: ${input.duration}
-- Audience: ${input.audience}
-- Goal: ${input.goal}
-- Tone: ${input.tone}
-- Mode: ${input.mode}
-- Topic: ${input.topic}
-${input.teacherMemory ? `- Teacher style: ${input.teacherMemory}` : ''}
-${input.studentMemory ? `- Student profile: ${input.studentMemory}` : ''}
-${input.mistakes ? `- Common mistakes to target: ${input.mistakes}` : ''}
-${input.source ? `- Source material: ${input.source}` : ''}
-
-Time totals must add up to ${input.duration}. All activities must be practical and classroom-ready.`;
-
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://teached.tech',
-      'X-Title': 'TeachEd AI Lesson Builder',
-    },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.7, max_tokens: 1600 }),
-  });
-  if (!res.ok) { const t = await res.text(); throw new Error(`${res.status}: ${t.slice(0,120)}`); }
-  const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content || '';
-  const jsonStr = raw.replace(/```(?:json)?/g,'').replace(/```/g,'').trim();
-  let parsed;
-  try { parsed = JSON.parse(jsonStr); } catch { const m = jsonStr.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; }
-  if (!parsed) throw new Error('Could not parse model response as JSON');
-  return { provider: model, mode: input.mode, ...parsed };
+  } catch (_) {}
+  // Fallback: local rule engine
+  if (status) status.textContent = 'Generating from local memory...';
+  renderAiAssistantPreview(generateLocalAiLesson(input));
+  if (status) status.textContent = 'Preview ready (local mode).';
 }
 
 /* ── Find an empty region on the board for a new cluster ─────────── */
@@ -13226,9 +13166,7 @@ function applyAiAssistantToBoard() {
     Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
     Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899',
   }[_aiSkill] || '#4262FF';
-  const accentLight = accent + '18'; // very light tint for note accent
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
-  const stageColors = ['#7C3AED','#0891B2','#059669','#D97706','#6366F1'];
 
   // ── Estimate total height before placing ────────────────────────
   const stages      = (result.stages || []).slice(0, 5);
@@ -13271,10 +13209,10 @@ function applyAiAssistantToBoard() {
       const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
       stages.forEach((stage, idx) => {
         addCard('note', ox + idx * (sw + GAP), cy, {
-          icon:   stageEmojis[idx] || '📌',
-          title:  `${stage.time || ''} · ${stage.title || 'Stage'}`,
-          body:   stage.activity || '',
-          accent: stageColors[idx] || accent,
+          icon:  stageEmojis[idx] || '📌',
+          title: `${stage.time || ''} · ${stage.title || 'Stage'}`,
+          body:  stage.activity || '',
+          // no accent → plain white card, no color bleed
         }, sw, 134);
       });
       cy += 134 + GAP;
@@ -13296,10 +13234,9 @@ function applyAiAssistantToBoard() {
           }, rw, 172);
         } else if (key === 'memory') {
           addCard('note', rx, cy, {
-            icon:   '🧠',
-            title:  'Memory notes',
-            body:   [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
-            accent: '#64748B',
+            icon:  '🧠',
+            title: 'Memory notes',
+            body:  [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
           }, rw, 172);
         } else if (key === 'homework') {
           addCard('assignment', rx, cy, {
@@ -13326,9 +13263,9 @@ function applyAiAssistantToBoard() {
       let ex = ox;
       slice.forEach(({ key }) => {
         if (key === 'warmup') {
-          addCard('checklist', ex, cy, {
-            title: '☀️ Warm-up prompts',
-            items: result.warmupPrompts.map(text => ({ text, done: false })),
+          addCard('note', ex, cy, {
+            icon: '☀️', title: 'Warm-up prompts',
+            body: result.warmupPrompts.join('\n'),
           }, ew, 154);
         } else if (key === 'criteria') {
           addCard('checklist', ex, cy, {
@@ -13343,12 +13280,12 @@ function applyAiAssistantToBoard() {
         } else if (key === 'challenge') {
           addCard('note', ex, cy, {
             icon: '🚀', title: 'Challenge',
-            body: result.challenge, accent: '#DC2626',
+            body: result.challenge,
           }, ew, 154);
         } else if (key === 'script') {
           addCard('note', ex, cy, {
             icon: '🎤', title: 'Teacher script',
-            body: result.teacherScript.join('\n'), accent: '#0284C7',
+            body: result.teacherScript.join('\n'),
           }, ew, 154);
         }
         ex += ew + GAP;
