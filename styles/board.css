@@ -7,7 +7,7 @@
   --bg:#F5F5F5;--accent:#4262FF;--accent-2:rgba(66,98,255,.10);
   --text:#050038;--text-2:#444466;--text-3:#9999AA;
   --border:rgba(0,0,0,.12);--border-2:rgba(0,0,0,.22);
-  --sb-w:280px;--tb-h:48px;--mt-w:48px;
+  --sb-w:280px;--tb-h:48px;--mt-w:56px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
   --card-bg:#ffffff;--card-radius:10px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
@@ -406,7 +406,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #sticky-palette{
   position:fixed;
   top:calc(var(--tb-h) + 12px);
-  left:calc(var(--mt-w,48px) + 8px);
+  left:calc(var(--mt-w,56px) + 8px);
   width:156px;
   z-index:920;
   background:#fff;
@@ -473,7 +473,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #sticker-panel{
   position:fixed;
   top:calc(var(--tb-h) + 12px);
-  left:calc(var(--mt-w,48px) + 8px);
+  left:calc(var(--mt-w,56px) + 8px);
   width:300px;
   height:auto;max-height:min(540px, calc(100vh - var(--tb-h) - 24px));
   z-index:900;
@@ -552,7 +552,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   /* JS positions top dynamically (anchored next to the icon).
      Fall back to a sensible spot if JS hasn't run yet. */
   top:calc(var(--tb-h) + 12px);
-  left:calc(var(--mt-w,48px) + 8px);
+  left:calc(var(--mt-w,56px) + 8px);
   width:var(--sb-w);
   height:auto;max-height:min(560px, calc(100vh - var(--tb-h) - 24px));
   z-index:900;
@@ -567,7 +567,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   transition:transform .18s cubic-bezier(.34,1.2,.6,1),opacity .15s ease;
 }
 #sidebar.open{transform:none;opacity:1;pointer-events:auto;}
-#sidebar.tools-mode{width:min(390px, calc(100vw - var(--mt-w,48px) - 18px));}
+#sidebar.tools-mode{width:min(390px, calc(100vw - var(--mt-w,56px) - 18px));}
 [data-theme="dark"] #sidebar{background:#1E1E35;border-color:rgba(255,255,255,.08);}
 /* Old re-open handle: removed permanently */
 #sb-reopen{display:none!important;}
@@ -950,100 +950,159 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .el-label{font-size:11px;font-weight:700;color:var(--text-2);}
 
 /* ── MIRO-STYLE LEFT FLOATING TOOLBAR ── */
+/* ══════════════ LEFT TOOLBAR ══════════════ */
 #miro-toolbar {
   position:fixed;
-  left:0;
-  top:var(--tb-h);
-  bottom:0;
-  width:var(--mt-w,48px);
+  left:0; top:var(--tb-h); bottom:0;
+  width:var(--mt-w,56px);
   z-index:950;
   background:#fff;
-  border-right:1px solid rgba(0,0,0,.06);
+  border-right:1px solid rgba(0,0,0,.055);
+  box-shadow:2px 0 12px rgba(5,5,40,.06);
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:8px 0;
-  gap:2px;
+  padding:8px 0 12px;
+  gap:1px;
   overflow-y:auto;
   overflow-x:hidden;
   scrollbar-width:none;
 }
 #miro-toolbar::-webkit-scrollbar{display:none;}
-[data-theme="dark"] #miro-toolbar{background:#1E1E35;border-right-color:rgba(255,255,255,.08);}
+[data-theme="dark"] #miro-toolbar{
+  background:#16162A;
+  border-right-color:rgba(255,255,255,.07);
+  box-shadow:2px 0 16px rgba(0,0,0,.25);
+}
+
+/* ── Base button ── */
 .mt-btn {
-  width:36px;height:36px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
   cursor:pointer;
-  color:#3a3a47;
-  transition:background .12s,color .12s,transform .08s;
+  color:#444458;
+  transition:background .12s, color .12s, transform .09s, box-shadow .12s;
   position:relative;
-  border:none;background:transparent;
+  border:none; background:transparent;
   -webkit-tap-highlight-color:transparent;
   flex-shrink:0;
+  outline:none;
 }
-.mt-btn svg{width:20px;height:20px;}
-[data-theme="dark"] .mt-btn{color:#AAAABB;}
-.mt-btn:hover { background:rgba(74,82,107,.08); color:#050038; }
-[data-theme="dark"] .mt-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.mt-btn svg { width:20px; height:20px; }
+[data-theme="dark"] .mt-btn { color:#9494AA; }
+
+.mt-btn:hover {
+  background:rgba(60,60,90,.07);
+  color:#0a0a28;
+}
+[data-theme="dark"] .mt-btn:hover { background:rgba(255,255,255,.09); color:#fff; }
+
+.mt-btn:active { transform:scale(.9); }
+
+/* Active state — filled accent pill */
 .mt-btn.active {
-  background:color-mix(in srgb,var(--accent,#4262FF) 12%,transparent);
+  background:color-mix(in srgb,var(--accent,#4262FF) 13%,transparent);
   color:var(--accent,#4262FF);
-  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent,#4262FF) 35%,transparent);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent,#4262FF) 38%,transparent);
 }
-.mt-btn.active:hover{background:color-mix(in srgb,var(--accent,#4262FF) 16%,transparent);color:var(--accent,#4262FF);}
-[data-theme="dark"] .mt-btn.active{background:color-mix(in srgb,var(--accent,#4262FF) 22%,transparent);color:#7B95FF;}
-.mt-btn:active { transform:scale(.92); }
-/* ✦ Teacher Tools — primary entry on the rail (mirrors the sidebar Tools tab) */
-.mt-btn.mt-tools{color:#4F46E5;}
-.mt-btn.mt-tools:hover{background:rgba(79,70,229,.10);color:#4F46E5;}
-.mt-btn.mt-tools.active{
-  background:rgba(79,70,229,.14);color:#4F46E5;
-  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.40);
+.mt-btn.active:hover {
+  background:color-mix(in srgb,var(--accent,#4262FF) 18%,transparent);
 }
-/* AI sparkle button — purple Miro accent */
-.mt-btn.mt-ai{color:#7C3AED;}
-.mt-btn.mt-ai:hover{background:rgba(124,58,237,.10);color:#7C3AED;}
-.mt-btn.mt-ai.active{
-  background:rgba(124,58,237,.14);color:#7C3AED;
-  box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.40);
+[data-theme="dark"] .mt-btn.active {
+  background:color-mix(in srgb,var(--accent,#4262FF) 24%,transparent);
+  color:#7B9FFF;
+  box-shadow:inset 0 0 0 1.5px rgba(123,159,255,.30);
 }
-/* + (Add) button — solid blue pill */
-.mt-btn.mt-add{color:#fff;background:#4262FF;border-radius:8px;}
-.mt-btn.mt-add:hover{background:#2D4EE8;color:#fff;}
-.mt-btn.mt-add.active{background:#2D4EE8;color:#fff;box-shadow:none;}
+
+/* ── AI sparkle — gradient pill ── */
+.mt-btn.mt-ai {
+  background:linear-gradient(145deg,rgba(139,92,246,.12),rgba(99,102,241,.08));
+  color:#7C3AED;
+  box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.18);
+}
+.mt-btn.mt-ai:hover {
+  background:linear-gradient(145deg,rgba(139,92,246,.20),rgba(99,102,241,.14));
+  color:#6D28D9;
+}
+.mt-btn.mt-ai.active {
+  background:linear-gradient(145deg,rgba(139,92,246,.26),rgba(99,102,241,.20));
+  color:#5B21B6;
+  box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.42);
+}
+[data-theme="dark"] .mt-btn.mt-ai {
+  background:linear-gradient(145deg,rgba(139,92,246,.18),rgba(99,102,241,.12));
+  color:#A78BFA;
+}
+
+/* ── Teacher Tools — indigo ── */
+.mt-btn.mt-tools {
+  color:#4F46E5;
+  background:rgba(79,70,229,.07);
+  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.15);
+}
+.mt-btn.mt-tools:hover { background:rgba(79,70,229,.13); color:#3730A3; }
+.mt-btn.mt-tools.active {
+  background:rgba(79,70,229,.18); color:#3730A3;
+  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.42);
+}
+[data-theme="dark"] .mt-btn.mt-tools { color:#818CF8; background:rgba(79,70,229,.14); }
+
+/* ── + More button — indigo outlined ── */
+.mt-btn.mt-add {
+  color:#4262FF;
+  border:1.5px solid rgba(66,98,255,.28);
+  border-radius:10px;
+  background:rgba(66,98,255,.06);
+}
+.mt-btn.mt-add:hover {
+  background:rgba(66,98,255,.13);
+  border-color:rgba(66,98,255,.50);
+  color:#2D4EE8;
+}
+.mt-btn.mt-add.active { background:rgba(66,98,255,.18); }
+
+/* ── Separator ── */
 .mt-sep {
-  height:1px;background:rgba(0,0,0,.06);margin:6px 8px;width:32px;flex-shrink:0;
+  height:1px;
+  background:rgba(0,0,0,.06);
+  margin:5px 0;
+  width:32px;
+  flex-shrink:0;
+  border-radius:1px;
 }
-[data-theme="dark"] .mt-sep{background:rgba(255,255,255,.08);}
-/* Tooltip (Miro-style: dark pill with arrow pointing back at icon) */
+[data-theme="dark"] .mt-sep { background:rgba(255,255,255,.07); }
+
+/* ── Tooltip (right-side dark pill) ── */
 .mt-btn::after {
   content:attr(data-tip);
-  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
-  background:#050038;color:#fff;
-  font-size:12px;font-weight:500;font-family:var(--font);letter-spacing:-.005em;
-  padding:6px 10px;border-radius:6px;white-space:nowrap;
-  opacity:0;pointer-events:none;
-  transition:opacity .12s .15s;
+  position:absolute; left:calc(100% + 13px); top:50%;
+  transform:translateY(-50%);
+  background:#0e0e2a; color:#fff;
+  font-size:11.5px; font-weight:550; font-family:var(--font);
+  letter-spacing:-.01em;
+  padding:5px 10px; border-radius:7px; white-space:nowrap;
+  opacity:0; pointer-events:none;
+  transition:opacity .1s .3s;
   z-index:9999;
-  box-shadow:0 4px 12px rgba(5,5,23,.18);
+  box-shadow:0 4px 14px rgba(5,5,40,.20);
 }
-/* Arrow indicator pointing back to the icon */
-.mt-btn::before{
-  content:'';position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%) rotate(45deg);
-  width:8px;height:8px;background:#050038;
-  opacity:0;pointer-events:none;
-  transition:opacity .12s .15s;z-index:9998;
+/* Arrow */
+.mt-btn::before {
+  content:''; position:absolute;
+  left:calc(100% + 7px); top:50%;
+  transform:translateY(-50%) rotate(45deg);
+  width:7px; height:7px;
+  background:#0e0e2a;
+  opacity:0; pointer-events:none;
+  transition:opacity .1s .3s; z-index:9998;
 }
-.mt-btn:hover::after,
-.mt-btn:hover::before{ opacity:1; }
-/* Tooltip stays hidden during click, after click, on focus loss, and on touch */
-.mt-btn:active::after,.mt-btn:active::before,
-.mt-btn:focus:not(:hover)::after,.mt-btn:focus:not(:hover)::before{
-  opacity:0!important;transition:none;
+.mt-btn:hover::after, .mt-btn:hover::before { opacity:1; }
+.mt-btn:active::after, .mt-btn:active::before,
+.mt-btn:focus:not(:hover)::after, .mt-btn:focus:not(:hover)::before {
+  opacity:0!important; transition:none;
 }
-/* On touch devices, suppress hover-tooltips entirely (they linger on iOS) */
 @media (hover: none) {
-  .mt-btn::after,.mt-btn::before{display:none!important;}
+  .mt-btn::after, .mt-btn::before { display:none!important; }
 }
 
 /* ── ZOOM CONTROLS (bottom-right, Miro horizontal) ── */
@@ -1105,7 +1164,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .zc-sep { width:1px;height:16px;background:rgba(0,0,0,.10);margin:0 2px; }
 [data-theme="dark"] .zc-sep{background:rgba(255,255,255,.10);}
 #board-wrap{
-  position:fixed;top:var(--tb-h);left:var(--mt-w,48px);right:0;bottom:0;
+  position:fixed;top:var(--tb-h);left:var(--mt-w,56px);right:0;bottom:0;
   overflow:hidden;
   background:
     radial-gradient(circle,var(--board-dot1) .8px,transparent .8px);
@@ -1987,7 +2046,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 /* More-tools popover anchored to the + button in the left tray */
 #mt-more-pop{
   display:none;position:fixed;z-index:1100;
-  left:calc(var(--mt-w,48px) + 8px);
+  left:calc(var(--mt-w,56px) + 8px);
   bottom:8px;
   min-width:220px;padding:6px;
   background:var(--card-bg,#fff);border:1px solid rgba(0,0,0,.06);
@@ -2234,7 +2293,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ── Zoom hint ── */
 #zoom-hint{
-  position:fixed;bottom:16px;left:calc(var(--mt-w,48px) + 12px);
+  position:fixed;bottom:16px;left:calc(var(--mt-w,56px) + 12px);
   font-size:11px;font-family:var(--font);color:#9999AA;font-weight:500;
   background:rgba(255,255,255,.90);padding:5px 11px;border-radius:18px;
   border:1px solid rgba(0,0,0,.08);pointer-events:none;z-index:900;
@@ -3105,7 +3164,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ══════════════ SNAP INDICATOR ══════════════ */
 #snap-indicator{
-  position:fixed;bottom:16px;left:calc(var(--mt-w,48px) + 12px);
+  position:fixed;bottom:16px;left:calc(var(--mt-w,56px) + 12px);
   font-size:10px;font-family:var(--mono);color:var(--text-3);
   background:rgba(255,255,255,.82);padding:4px 10px;border-radius:20px;
   border:1px solid var(--border);pointer-events:none;z-index:900;display:none;
