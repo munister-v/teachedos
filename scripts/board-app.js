@@ -4832,13 +4832,22 @@ function makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor) {
   const len = Math.max(60, Math.min(Math.sqrt(dx*dx+dy*dy)*0.45, 220));
   let c1x=x1,c1y=y1, c2x=x2,c2y=y2;
   switch(fromAnchor) {
-    case 'right':  c1x=x1+len; break; case 'left':   c1x=x1-len; break;
-    case 'bottom': c1y=y1+len; break; case 'top':    c1y=y1-len; break;
+    case 'right':  c1x=x1+len; break;
+    case 'left':   c1x=x1-len; break;
+    case 'bottom': c1y=y1+len; break;
+    case 'top':    c1y=y1-len; break;
+    default: // auto: push control point away from destination
+      if (Math.abs(dx) >= Math.abs(dy)) { c1x = x1 - (dx > 0 ? len : -len); }
+      else                               { c1y = y1 - (dy > 0 ? len : -len); }
   }
   switch(toAnchor) {
-    case 'left':   c2x=x2-len; break; case 'right':  c2x=x2+len; break;
-    case 'top':    c2y=y2-len; break; case 'bottom':  c2y=y2+len; break;
-    default: c2x=x2-len*0.5*(dx>0?1:-1); c2y=y2;
+    case 'left':   c2x=x2-len; break;
+    case 'right':  c2x=x2+len; break;
+    case 'top':    c2y=y2-len; break;
+    case 'bottom': c2y=y2+len; break;
+    default: // auto: approach from the direction the line arrives from
+      if (Math.abs(dx) >= Math.abs(dy)) { c2x = x2 + (dx > 0 ? len : -len); }
+      else                               { c2y = y2 + (dy > 0 ? len : -len); }
   }
   return `M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}`;
 }
