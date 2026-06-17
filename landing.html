@@ -94,9 +94,9 @@ nav.ln{
   font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
 }
 .nav-logo img{width:26px;height:26px;border-radius:8px;}
-.nav-links{display:flex;gap:2px;margin-left:20px;}
+.nav-links{display:flex;gap:2px;margin-left:20px;flex-wrap:nowrap;}
 .nav-lnk{
-  font-size:13px;font-weight:700;color:var(--ink3);
+  font-size:13px;font-weight:700;color:var(--ink3);white-space:nowrap;
   padding:7px 12px;border-radius:10px;transition:.14s;
 }
 .nav-lnk:hover{color:var(--ink);background:rgba(14,14,16,.05);}
@@ -304,6 +304,30 @@ nav.ln{
 .game-ic{aspect-ratio:1;border-radius:11px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:20px;}
 .bc.ink .game-ic{background:rgba(255,255,255,.10);}
 
+/* ── TOOLS BY CATEGORY ── */
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.cat{
+  background:var(--card);border:1px solid rgba(14,14,16,.07);
+  border-radius:var(--radius);padding:22px;
+  box-shadow:0 2px 8px rgba(14,14,16,.05);
+  transition:transform .2s, box-shadow .2s;
+}
+.cat:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(14,14,16,.09);}
+.cat-top{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.cat-ic{
+  width:42px;height:42px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:rgba(205,242,79,.22);
+}
+.cat-name{font-size:16px;font-weight:800;letter-spacing:-.02em;color:var(--ink);}
+.cat-count{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink3);}
+.cat-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.cat-tag{
+  font-size:11.5px;font-weight:700;color:var(--ink2);
+  background:rgba(14,14,16,.045);border:1px solid rgba(14,14,16,.07);
+  padding:5px 10px;border-radius:999px;
+}
+
 /* ── STEPS ── */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .step{
@@ -494,6 +518,8 @@ footer{
   .preview-body{grid-template-columns:180px 1fr 1fr;}
 }
 @media(max-width:860px){
+  .nav-links{display:none!important;}
+  .cats{grid-template-columns:1fr;}
   .bento{grid-template-columns:1fr 1fr;grid-auto-rows:auto;}
   .span2,.span3,.span4{grid-column:span 2;}
   .steps{grid-template-columns:1fr;}
@@ -530,6 +556,7 @@ footer{
     </a>
     <div class="nav-links">
       <a class="nav-lnk" href="#features">Features</a>
+      <a class="nav-lnk" href="#tools">Tools</a>
       <a class="nav-lnk" href="#how">How it works</a>
       <a class="nav-lnk" href="#pricing">Pricing</a>
       <a class="nav-lnk" href="#faq">FAQ</a>
@@ -554,15 +581,15 @@ footer{
       Your whole<br>classroom,<br><em>in your pocket</em>
     </h1>
     <p class="hero-sub">
-      TeachEd is the operating system for language teachers — lesson boards, schedule, gradebook, 20+ games and analytics, all in one app. Install in 10 seconds.
+      The all-in-one workspace for language teachers. Generate worksheets and quizzes with AI, turn any YouTube video into a full lesson, build interactive boards, and run 30+ classroom games — online or offline.
     </p>
     <div class="hero-ctas">
       <button class="btn btn-pink btn-lg" type="button" onclick="openAuth('register')">Start for free →</button>
       <a class="btn btn-glass btn-lg" href="#features">See what's inside</a>
     </div>
     <div class="hero-trust">
+      <span><span class="dot2"></span>50+ AI tools</span>
       <span><span class="dot2"></span>No download needed</span>
-      <span><span class="dot2"></span>Works on any device</span>
       <span><span class="dot2"></span>Offline-ready</span>
       <span><span class="dot2"></span>Free forever plan</span>
     </div>
@@ -616,16 +643,16 @@ footer{
   <div class="container">
     <div class="stats-grid">
       <div class="stat-c">
-        <div class="stat-n">20<em>+</em></div>
-        <div class="stat-l">Built-in games</div>
+        <div class="stat-n">50<em>+</em></div>
+        <div class="stat-l">AI teaching tools</div>
       </div>
       <div class="stat-c">
-        <div class="stat-n">10<em>s</em></div>
-        <div class="stat-l">To install</div>
+        <div class="stat-n">30<em>+</em></div>
+        <div class="stat-l">Classroom games</div>
       </div>
       <div class="stat-c">
-        <div class="stat-n">100<em>%</em></div>
-        <div class="stat-l">Offline-ready</div>
+        <div class="stat-n">7</div>
+        <div class="stat-l">Skill areas covered</div>
       </div>
       <div class="stat-c">
         <div class="stat-n">0<em>$</em></div>
@@ -639,28 +666,28 @@ footer{
 <section id="features">
   <div class="container">
     <div class="sec-eye">✦ Everything in one place</div>
-    <h2 class="sec-h">Every tool a language<br>teacher actually <em>needs</em></h2>
-    <p class="sec-sub">No more juggling 6 apps. TeachEd puts your boards, schedule, students and games under one roof — accessible offline, from any device.</p>
+    <h2 class="sec-h">From a blank page to a<br>full lesson — in <em>minutes</em></h2>
+    <p class="sec-sub">Stop stitching together six apps and a stack of PDFs. TeachEd generates your materials with AI, lets you build and share interactive lessons, and keeps your whole studio organised — all from one place, online or offline.</p>
 
     <div class="bento">
 
-      <!-- Lesson Board — big -->
+      <!-- AI generator — big hero card -->
       <div class="bc span3 row2 ink">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;">
           <div>
-            <div class="bento-tag">Core feature</div>
-            <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:700;">Infinite<br>lesson boards</div>
-            <div class="bc-p" style="margin-top:8px;">Sticky notes, vocab cards, plan cards, timers, checklists — drag, connect with arrows, share live with students.</div>
+            <div class="bento-tag">★ Most loved</div>
+            <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:700;">AI worksheet &amp;<br>exercise generator</div>
+            <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link — AI builds reading comprehensions, gap-fills, vocab tasks, quizzes and full worksheets at the CEFR level you choose. Export to PDF, print A4, or play interactively.</div>
           </div>
-          <div class="ic ic-ink" style="font-size:26px;">📌</div>
+          <div class="ic ic-ink" style="font-size:26px;">✨</div>
         </div>
         <div class="games-mini" style="grid-template-columns:repeat(3,1fr);">
-          <div class="game-ic">📝</div>
-          <div class="game-ic">🎯</div>
-          <div class="game-ic">🔗</div>
-          <div class="game-ic">⏱️</div>
-          <div class="game-ic">📊</div>
-          <div class="game-ic">🖼️</div>
+          <div class="game-ic">📖</div>
+          <div class="game-ic">✏️</div>
+          <div class="game-ic">🔤</div>
+          <div class="game-ic">❓</div>
+          <div class="game-ic">🧩</div>
+          <div class="game-ic">🖨️</div>
         </div>
       </div>
 
@@ -668,88 +695,239 @@ footer{
       <div class="bc span3 lime">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;">
           <div>
-            <div class="bento-tag" style="background:rgba(14,14,16,.10);border-color:rgba(14,14,16,.20);color:var(--lime-text);">20+ games</div>
-            <div class="bc-h" style="margin-top:10px;font-family:var(--serif);font-size:20px;font-weight:700;color:var(--lime-text);">Built-in teaching games</div>
+            <div class="bento-tag" style="background:rgba(14,14,16,.10);border-color:rgba(14,14,16,.20);color:var(--lime-text);">30+ games</div>
+            <div class="bc-h" style="margin-top:10px;font-family:var(--serif);font-size:20px;font-weight:700;color:var(--lime-text);">Interactive classroom games</div>
+            <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Crossword, Hangman, Word Scramble, Maze Chase, Whack-a-Mole, Spin Wheel — auto-built from your vocabulary.</div>
           </div>
           <div class="ic" style="font-size:26px;">🎮</div>
         </div>
-        <div class="games-mini">
-          <div class="game-ic">🔤</div>
-          <div class="game-ic">🃏</div>
-          <div class="game-ic">💬</div>
-          <div class="game-ic">🧠</div>
-          <div class="game-ic">⚡</div>
-          <div class="game-ic">🎲</div>
-          <div class="game-ic">🔍</div>
-          <div class="game-ic">📖</div>
-        </div>
       </div>
 
-      <!-- Schedule -->
+      <!-- Reading -->
       <div class="bc span2">
-        <div class="ic ic-lime">📅</div>
+        <div class="ic ic-lime">📖</div>
         <div>
-          <div class="bc-h">Schedule</div>
-          <div class="bc-p">Weekly timetable, class reminders, live class countdown.</div>
+          <div class="bc-h">Reading &amp; comprehension</div>
+          <div class="bc-p">Generate graded texts plus ABCD, true/false, open questions, gist &amp; detail tasks — IELTS-style options included.</div>
         </div>
       </div>
 
-      <!-- Gradebook -->
+      <!-- Vocabulary -->
       <div class="bc span2 peach">
-        <div class="ic" style="font-size:22px;">📒</div>
+        <div class="ic" style="font-size:22px;">🔤</div>
         <div>
-          <div class="bc-h">Gradebook</div>
-          <div class="bc-p">Track every student, attendance, progress and scores in one place.</div>
+          <div class="bc-h">Vocabulary builder</div>
+          <div class="bc-p">Word–definition match, odd-one-out, word sorting, translations, collocations and sentence practice in one click.</div>
         </div>
       </div>
 
-      <!-- Analytics -->
+      <!-- Grammar -->
       <div class="bc span2 lav">
+        <div class="ic" style="font-size:22px;">✏️</div>
+        <div>
+          <div class="bc-h">Grammar drills</div>
+          <div class="bc-p">Gap-fills, error correction, word order, rewrites and clear rule cards — targeted to the structure you're teaching.</div>
+        </div>
+      </div>
+
+      <!-- YouTube to lesson -->
+      <div class="bc span2 pink-soft">
+        <div class="ic ic-pink" style="background:rgba(236,45,140,.15);">▶️</div>
+        <div>
+          <div class="bento-tag">AI</div>
+          <div class="bc-h" style="margin-top:8px;">YouTube → Lesson</div>
+          <div class="bc-p" style="color:var(--ink2);">Paste any video link. AI pulls the transcript and builds a ready set of exercises around it.</div>
+        </div>
+      </div>
+
+      <!-- Lesson board -->
+      <div class="bc span2">
+        <div class="ic ic-pink">📌</div>
+        <div>
+          <div class="bc-h">Lesson boards</div>
+          <div class="bc-p">A Miro-style canvas: vocab cards, tasks, timers, images — connect with arrows and share live with students.</div>
+        </div>
+      </div>
+
+      <!-- Worksheets / export -->
+      <div class="bc span2 ink">
+        <div class="ic" style="font-size:22px;">🖨️</div>
+        <div>
+          <div class="bento-tag">Export</div>
+          <div class="bc-h" style="color:#F5F0E8;margin-top:8px;">Print, PDF &amp; share links</div>
+          <div class="bc-p">A4-ready worksheets, PDF/Word export, Google Forms, and share links students open with no account.</div>
+        </div>
+      </div>
+
+      <!-- Speaking & writing -->
+      <div class="bc span2">
+        <div class="ic ic-lime">💬</div>
+        <div>
+          <div class="bc-h">Speaking &amp; writing</div>
+          <div class="bc-p">Discussion questions, debates, dialogues, warm-ups, essay topics and writing prompts on any theme.</div>
+        </div>
+      </div>
+
+      <!-- Manage studio -->
+      <div class="bc span2 peach">
         <div class="ic" style="font-size:22px;">📊</div>
         <div>
-          <div class="bc-h">Analytics</div>
-          <div class="bc-p">See where students struggle. Visual progress charts, session stats.</div>
-        </div>
-      </div>
-
-      <!-- Homework -->
-      <div class="bc span2">
-        <div class="ic ic-pink">📝</div>
-        <div>
-          <div class="bc-h">Homework portal</div>
-          <div class="bc-p">Assign, track and review homework without any extra app.</div>
-        </div>
-      </div>
-
-      <!-- Journal -->
-      <div class="bc span2 pink-soft">
-        <div class="ic ic-pink" style="background:rgba(236,45,140,.15);">📓</div>
-        <div>
-          <div class="bento-tag">Private</div>
-          <div class="bc-h" style="margin-top:8px;">Lesson journal</div>
-          <div class="bc-p" style="color:var(--ink2);">Rich-text notes after every class. Never forget what worked.</div>
-        </div>
-      </div>
-
-      <!-- Lesson packs -->
-      <div class="bc span2">
-        <div class="ic ic-lime">📚</div>
-        <div>
-          <div class="bc-h">Ready-made packs</div>
-          <div class="bc-p">25+ complete lesson packs — grammar, vocab, IELTS, Business English, pronunciation and more. Open and teach.</div>
+          <div class="bc-h">Run your studio</div>
+          <div class="bc-p">Schedule, gradebook, attendance, homework portal, analytics and a private lesson journal — all built in.</div>
         </div>
       </div>
 
       <!-- PWA / offline -->
-      <div class="bc span2 ink">
+      <div class="bc span2 lav">
         <div class="ic" style="font-size:22px;">⚡</div>
         <div>
-          <div class="bento-tag">PWA</div>
-          <div class="bc-h" style="color:#F5F0E8;margin-top:8px;">Offline first</div>
-          <div class="bc-p">Works fully without internet. Add to home screen, it feels native.</div>
+          <div class="bento-tag" style="background:rgba(14,14,16,.08);border-color:rgba(14,14,16,.18);color:var(--ink2);">PWA</div>
+          <div class="bc-h" style="margin-top:8px;">Works offline</div>
+          <div class="bc-p">Install to your home screen and teach with patchy or no Wi-Fi. Everything syncs when you're back.</div>
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ TOOLS BY CATEGORY ═══════════════════════════════════════ -->
+<section id="tools">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:44px;">
+      <div class="sec-eye" style="margin-left:auto;margin-right:auto;">The toolkit</div>
+      <h2 class="sec-h">50+ tools across every<br><em>skill you teach</em></h2>
+      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every tool is AI-powered: feed it a topic or text and get classroom-ready material in seconds. Use them standalone, drop them on a board, or print them as worksheets.</p>
+    </div>
+    <div class="cats">
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic">📖</div>
+          <div>
+            <div class="cat-name">Reading</div>
+            <div class="cat-count">7 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Multiple choice (ABCD)</span>
+          <span class="cat-tag">True / False</span>
+          <span class="cat-tag">Open questions</span>
+          <span class="cat-tag">Gist &amp; detail</span>
+          <span class="cat-tag">Simplify / upgrade text</span>
+          <span class="cat-tag">Three titles</span>
+          <span class="cat-tag">Text from vocab</span>
+        </div>
+      </div>
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic" style="background:rgba(255,181,174,.30);">🔤</div>
+          <div>
+            <div class="cat-name">Vocabulary</div>
+            <div class="cat-count">10 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Word–definition match</span>
+          <span class="cat-tag">Word–image</span>
+          <span class="cat-tag">Translations</span>
+          <span class="cat-tag">Odd one out</span>
+          <span class="cat-tag">Word sorting</span>
+          <span class="cat-tag">Sentences from words</span>
+          <span class="cat-tag">Collocations</span>
+          <span class="cat-tag">Extract &amp; essential vocab</span>
+        </div>
+      </div>
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic" style="background:rgba(216,197,251,.40);">✏️</div>
+          <div>
+            <div class="cat-name">Grammar</div>
+            <div class="cat-count">11 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Fill the gap</span>
+          <span class="cat-tag">Gaps + ABCD</span>
+          <span class="cat-tag">Two options</span>
+          <span class="cat-tag">Error correction</span>
+          <span class="cat-tag">Rewrite</span>
+          <span class="cat-tag">Word order</span>
+          <span class="cat-tag">Matching halves</span>
+          <span class="cat-tag">Rule cards</span>
+        </div>
+      </div>
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic" style="background:rgba(143,230,230,.35);">💬</div>
+          <div>
+            <div class="cat-name">Speaking</div>
+            <div class="cat-count">6 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Discussion questions</span>
+          <span class="cat-tag">Dialogues</span>
+          <span class="cat-tag">Warm-ups</span>
+          <span class="cat-tag">Lead-ins</span>
+          <span class="cat-tag">Interesting facts</span>
+          <span class="cat-tag">Pros &amp; cons</span>
+        </div>
+      </div>
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic" style="background:rgba(255,201,74,.30);">✍️</div>
+          <div>
+            <div class="cat-name">Writing</div>
+            <div class="cat-count">6 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Essay topics</span>
+          <span class="cat-tag">Creative writing</span>
+          <span class="cat-tag">Linking words</span>
+          <span class="cat-tag">Sentence translation</span>
+          <span class="cat-tag">Four opinions</span>
+          <span class="cat-tag">Find quotes</span>
+        </div>
+      </div>
+
+      <div class="cat">
+        <div class="cat-top">
+          <div class="cat-ic" style="background:rgba(236,45,140,.12);">🎧</div>
+          <div>
+            <div class="cat-name">Listening</div>
+            <div class="cat-count">4 tools</div>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Audio / video questions</span>
+          <span class="cat-tag">YouTube transcript helper</span>
+          <span class="cat-tag">Summary gap-fill</span>
+          <span class="cat-tag">Choose the right summary</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Utility row -->
+    <div style="margin-top:14px;background:var(--ink);color:#F5F0E8;border-radius:var(--radius);padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;">
+      <div style="max-width:520px;">
+        <div class="bento-tag" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#F5F0E8;">Lesson builders</div>
+        <div style="font-family:var(--serif);font-size:22px;font-weight:700;margin-top:10px;">Assemble a whole lesson, then export it</div>
+        <p style="font-size:13.5px;line-height:1.65;color:rgba(245,240,232,.72);margin-top:8px;">Lesson Pack, Worksheet and Homework builders turn any topic into a complete, printable lesson — with a CEFR level checker, plus blocks for your own text, images and video.</p>
+      </div>
+      <div class="cat-tags" style="max-width:340px;">
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Lesson pack</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Worksheet builder</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Homework builder</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">CEFR checker</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Add text / images / video</span>
+      </div>
     </div>
   </div>
 </section>
@@ -764,20 +942,20 @@ footer{
     <div class="steps">
       <div class="step">
         <div class="step-pill">1</div>
-        <div class="step-h">Open in your browser</div>
-        <p class="step-p">No App Store, no download. Visit the link and TeachEd loads instantly. Works on iOS, Android, Mac and Windows.</p>
+        <div class="step-h">Create your free account</div>
+        <p class="step-p">Sign up with email or Google in seconds — no card, no download. It runs in any browser and installs to your home screen on iOS, Android, Mac and Windows.</p>
         <div class="step-connector">→</div>
       </div>
       <div class="step">
         <div class="step-pill">2</div>
-        <div class="step-h">Add to Home Screen</div>
-        <p class="step-p">Tap "Share → Add to Home Screen" (iOS) or the install prompt (Android/Chrome). Now it looks and feels like a native app.</p>
+        <div class="step-h">Generate your materials</div>
+        <p class="step-p">Type a topic, paste a text or drop a YouTube link, pick the CEFR level, and let AI build the worksheet, quiz or full lesson. Or open a board and assemble it yourself.</p>
         <div class="step-connector">→</div>
       </div>
       <div class="step">
         <div class="step-pill">3</div>
-        <div class="step-h">Build your first board</div>
-        <p class="step-p">Create a board, add lesson cards, vocab stickies and a timer. Or start from a ready-made lesson pack and customise in 2 minutes.</p>
+        <div class="step-h">Teach, share &amp; track</div>
+        <p class="step-p">Present live, play it as a game, print an A4 worksheet, or send a share link. Then assign homework and follow progress in the gradebook and analytics.</p>
       </div>
     </div>
   </div>
@@ -832,22 +1010,24 @@ footer{
 <section id="pricing" style="background:rgba(255,255,255,.45);">
   <div class="container">
     <div style="text-align:center;margin-bottom:48px;">
-      <div class="sec-eye">Pricing</div>
-      <h2 class="sec-h">Simple, honest <em>pricing</em></h2>
-      <p class="sec-sub" style="margin:0 auto;">Start free. Upgrade when you need more students or boards. No hidden fees.</p>
+      <div class="sec-eye" style="margin-left:auto;margin-right:auto;">Pricing</div>
+      <h2 class="sec-h">Start free. Upgrade<br>only when you <em>grow</em></h2>
+      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every plan includes all 50+ AI tools, 30+ games and offline mode. No credit card to start, no hidden fees — cancel anytime.</p>
     </div>
     <div class="pricing-grid">
 
       <div class="plan">
         <div class="plan-name">Free</div>
         <div class="plan-price">$0 <span class="per">/ forever</span></div>
-        <p class="plan-desc">Everything you need to get started and teach your first classes.</p>
+        <p class="plan-desc">Everything you need to plan and teach your first classes.</p>
         <ul class="plan-features">
+          <li>All 50+ AI teaching tools</li>
+          <li>30+ classroom games</li>
+          <li>~20 AI generations / day</li>
           <li>Up to 3 lesson boards</li>
           <li>Up to 10 students</li>
-          <li>Full schedule & gradebook</li>
-          <li>20+ built-in games</li>
-          <li>25 ready-made lesson packs</li>
+          <li>Schedule, gradebook &amp; journal</li>
+          <li>Worksheet &amp; PDF export</li>
           <li>Offline PWA</li>
         </ul>
         <button class="btn btn-glass plan-btn" type="button" onclick="openAuth('register')">Get started free</button>
@@ -857,13 +1037,14 @@ footer{
         <div class="plan-badge">Most popular</div>
         <div class="plan-name">Pro</div>
         <div class="plan-price">$9 <span class="per">/ month</span></div>
-        <p class="plan-desc">Everything in Free, plus unlimited boards and advanced features.</p>
+        <p class="plan-desc">For active tutors who teach every day and want no limits.</p>
         <ul class="plan-features">
-          <li>Unlimited lesson boards</li>
-          <li>Unlimited students</li>
+          <li>Everything in Free, plus:</li>
+          <li>Unlimited AI generations</li>
+          <li>Unlimited boards &amp; students</li>
+          <li>YouTube → Lesson</li>
           <li>Live board sharing with students</li>
-          <li>Analytics & progress reports</li>
-          <li>Homework portal</li>
+          <li>Homework portal &amp; analytics</li>
           <li>Cloud sync across devices</li>
           <li>Priority support</li>
         </ul>
@@ -873,12 +1054,12 @@ footer{
       <div class="plan">
         <div class="plan-name">School</div>
         <div class="plan-price">$29 <span class="per">/ month</span></div>
-        <p class="plan-desc">For a team of teachers sharing boards, students and reports.</p>
+        <p class="plan-desc">For language schools and teams sharing students and reports.</p>
         <ul class="plan-features">
-          <li>Everything in Pro</li>
+          <li>Everything in Pro, plus:</li>
           <li>Up to 10 teacher accounts</li>
           <li>Shared student roster</li>
-          <li>Admin dashboard</li>
+          <li>Admin dashboard &amp; roles</li>
           <li>School branding</li>
           <li>Dedicated onboarding</li>
           <li>SLA support</li>
@@ -887,6 +1068,9 @@ footer{
       </div>
 
     </div>
+    <p style="text-align:center;margin-top:28px;font-size:13px;color:var(--ink3);font-weight:600;">
+      Pro free for 14 days · No card required · Cancel anytime · Student accounts are always free
+    </p>
   </div>
 </section>
 
@@ -898,6 +1082,27 @@ footer{
       <h2 class="sec-h">Common <em>questions</em></h2>
     </div>
     <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          How does the AI generation work?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise — reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet — that you can edit, print, play as a game or drop on a board.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Do I need my own API key? Does AI cost extra?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">No. AI is built in — no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Can I edit what the AI produces?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Always. Every generated item is fully editable before you export it — fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem.</div>
+      </div>
       <div class="faq-item">
         <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
           Do I need to download anything?
@@ -948,13 +1153,13 @@ footer{
 <section class="final">
   <div class="final-blob a"></div>
   <div class="final-blob b"></div>
-  <h2 class="final-h">Ready to teach<br><em>smarter</em>?</h2>
-  <p class="final-p">Join thousands of language teachers who run their whole classroom from one beautiful app. Free to start. No credit card needed.</p>
+  <h2 class="final-h">Plan less.<br>Teach <em>more</em>.</h2>
+  <p class="final-p">Let AI build your worksheets and lessons while you focus on the classroom. 50+ tools, 30+ games and your whole studio — free to start, no card needed.</p>
   <div class="final-ctas">
-    <button class="btn btn-lime btn-xl" type="button" onclick="openAuth('register')">Open TeachEd free →</button>
-    <a class="btn btn-cream btn-xl" href="#features">See all features</a>
+    <button class="btn btn-lime btn-xl" type="button" onclick="openAuth('register')">Start free →</button>
+    <button class="btn btn-cream btn-xl" type="button" onclick="openAuth('login')">Sign in</button>
   </div>
-  <p style="margin-top:24px;font-size:12px;color:rgba(245,240,232,.35);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;">Install in 10 seconds · No App Store needed · Works offline</p>
+  <p style="margin-top:24px;font-size:12px;color:rgba(245,240,232,.35);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;">Free forever plan · No App Store needed · Works offline</p>
 </section>
 
 <!-- ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
@@ -963,13 +1168,13 @@ footer{
     <div class="footer-grid">
       <div>
         <div class="footer-brand">Teach<em>Ed</em></div>
-        <p class="footer-desc">The classroom operating system for language teachers. Boards, schedule, gradebook, 20+ games — one offline-ready PWA.</p>
+        <p class="footer-desc">The AI workspace for language teachers. 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
       </div>
       <div class="footer-col">
         <h4>Product</h4>
         <a href="#features">Features</a>
+        <a href="#tools">AI tools</a>
         <a href="lesson-packs.html">Lesson Packs</a>
-        <a href="index.html">Board</a>
         <a href="#pricing">Pricing</a>
       </div>
       <div class="footer-col">
