@@ -43,10 +43,6 @@ a{text-decoration:none;color:inherit;}
   display:flex;align-items:center;padding:0 14px;gap:0;
   box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
 }
-[data-theme="dark"] #nav{
-  background:rgba(28,28,30,0.85);
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 1px 10px rgba(0,0,0,.2);
-}
 .nav-logo{
   display:flex;align-items:center;margin-right:6px;flex-shrink:0;
   text-decoration:none;
@@ -197,6 +193,30 @@ a{text-decoration:none;color:inherit;}
 .cb-title{font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cb-meta{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.7);margin-top:1px;}
+
+/* ── Up Next focus card (sidebar) ── */
+.up-next-wrap{padding:14px 14px 4px;}
+.up-next{
+  border-radius:16px;padding:14px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1C1C1E,#2A2A2D);color:#fff;
+  box-shadow:0 8px 24px rgba(28,28,30,.18);
+}
+.up-next.is-live{background:linear-gradient(135deg,#3a0d0d,#7a1414);box-shadow:0 8px 24px rgba(239,68,68,.30);}
+.up-next.empty{background:var(--card);color:var(--text2);border:1px dashed var(--border2);box-shadow:none;}
+.un-eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);opacity:.72;display:flex;align-items:center;gap:6px;}
+.un-live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse-dot 1.2s infinite;}
+.un-title{font-size:15px;font-weight:850;margin-top:6px;line-height:1.25;}
+.un-when{font-size:12.5px;font-weight:800;margin-top:4px;}
+.un-meta{font-size:11px;opacity:.72;margin-top:3px;}
+.un-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.un-btn{flex:1 1 auto;min-width:0;padding:8px;border-radius:9px;border:none;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:800;white-space:nowrap;transition:.15s;}
+.un-btn.primary{background:#C8E632;color:#1C1C1E;}
+.un-btn.primary:hover{filter:brightness(1.06);}
+.un-btn.danger{background:rgba(255,255,255,.92);color:#b91c1c;}
+.un-btn.ghost{background:rgba(255,255,255,.14);color:#fff;}
+.un-btn.ghost:hover{background:rgba(255,255,255,.26);}
+.up-next.empty .un-btn.ghost{background:rgba(94,94,74,.08);color:var(--text2);}
+.un-countbar{position:absolute;left:0;bottom:0;height:3px;background:rgba(255,255,255,.55);}
 
 /* ── Modal ── */
 .modal-overlay{
@@ -394,6 +414,9 @@ a{text-decoration:none;color:inherit;}
       <button class="wn-btn" onclick="shiftWeek(1)">›</button>
       <button class="wn-today" onclick="goToday()">Today</button>
     </div>
+
+    <!-- Up Next focus card -->
+    <div class="up-next-wrap" id="up-next-wrap"></div>
 
     <div class="side-section side-section-actions" style="display:flex;flex-direction:column;gap:8px;">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
@@ -901,6 +924,7 @@ async function init() {
   renderScheduleTimeZoneCard();
   updateWeekHeader();
   await loadSchedule();
+  if (weekOffset === 0) scrollToNow();
   loadStudentZones();
   document.getElementById('f-start').addEventListener('change', renderModalTzPreview);
   document.getElementById('f-end').addEventListener('change', renderModalTzPreview);
@@ -935,6 +959,7 @@ async function loadSchedule() {
     renderGrid();
     renderSideList();
     renderStats();
+    renderUpNext();
     renderScheduleTimeZoneCard();
     updateMobileScheduleSummary();
   } catch (e) {
@@ -943,6 +968,7 @@ async function loadSchedule() {
       renderGrid();
       renderSideList();
       renderStats();
+      renderUpNext();
       renderScheduleTimeZoneCard();
       updateMobileScheduleSummary({ offline: true });
       toast('Offline mode enabled', 'ok');
@@ -997,7 +1023,119 @@ function updateNowLine() {
 }
 
 function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); }
-function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); }
+function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); scrollToNow(); }
+
+// ── Up Next focus card ────────────────────────────────────────────────
+// Next datetime a slot occurs at or after `now` (recurring weekly or one-off).
+function _nextOccurrence(slot, now) {
+  const [h, m] = String(slot.start_time).split(':').map(Number);
+  if (slot.specific_date) {
+    const d = new Date(slot.specific_date.slice(0, 10) + 'T00:00:00');
+    d.setHours(h || 0, m || 0, 0, 0);
+    return d >= now ? d : null;
+  }
+  const todayDow = (now.getDay() + 6) % 7;
+  let delta = ((Number(slot.day) || 0) - todayDow + 7) % 7;
+  const d = new Date(now); d.setDate(now.getDate() + delta); d.setHours(h || 0, m || 0, 0, 0);
+  if (d < now) d.setDate(d.getDate() + 7);
+  return d;
+}
+
+function _fmtCountdown(ms) {
+  const mins = Math.round(ms / 60000);
+  if (mins < 1) return 'now';
+  if (mins < 60) return `in ${mins} min`;
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return m ? `in ${h}h ${m}m` : `in ${h}h`;
+}
+
+function renderUpNext() {
+  const host = document.getElementById('up-next-wrap');
+  if (!host) return;
+  const now = new Date();
+  const todayDow = (now.getDay() + 6) % 7;
+  const todayStr = (() => { const t = new Date(); t.setHours(0,0,0,0); return t.toISOString().slice(0,10); })();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  // Class happening right now (today only).
+  const current = (schedule || []).find(s => {
+    if (Number(s.day) !== todayDow) return false;
+    if (s.specific_date && s.specific_date.slice(0,10) !== todayStr) return false;
+    return nowMin >= toMin(s.start_time) && nowMin < toMin(s.end_time);
+  });
+
+  // Otherwise the soonest upcoming class across the coming days.
+  let next = null;
+  if (!current) {
+    let best = Infinity;
+    (schedule || []).forEach(s => {
+      const occ = _nextOccurrence(s, now);
+      if (occ && occ - now < best) { best = occ - now; next = s; next._occ = occ; }
+    });
+  }
+
+  const slot = current || next;
+  if (!slot) {
+    host.innerHTML = `<div class="up-next empty">
+      <div class="un-eyebrow">No upcoming classes</div>
+      <div class="un-title" style="font-size:13px;font-weight:800;margin-top:5px;">Your week is clear</div>
+      <div class="un-actions"><button class="un-btn ghost" onclick="openModal()">＋ Add a class</button></div>
+    </div>`;
+    return;
+  }
+
+  const live = !!slot.is_live;
+  const isNow = !!current;
+  const time = `${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}`;
+  let when, eyebrow, pct = 0;
+  if (isNow) {
+    const startM = toMin(slot.start_time), endM = toMin(slot.end_time);
+    pct = Math.max(0, Math.min(100, ((nowMin - startM) / Math.max(1, endM - startM)) * 100));
+    const left = endM - nowMin;
+    eyebrow = live ? '<span class="un-live-dot"></span> Live now' : 'In progress';
+    when = `Ends ${_fmtCountdown(left * 60000)} · ${time}`;
+  } else {
+    const occ = slot._occ || _nextOccurrence(slot, now);
+    const dayLbl = occ.toDateString() === now.toDateString() ? 'Today'
+      : occ.getTime() - new Date(now).setHours(0,0,0,0) < 2 * 86400000 ? 'Tomorrow'
+      : DAY_NAMES[(occ.getDay() + 6) % 7];
+    eyebrow = 'Up next';
+    when = `${dayLbl} · ${time} · ${_fmtCountdown(occ - now)}`;
+  }
+
+  const meta = [slot.group_name, slot.level, slot.room && '📍 ' + slot.room].filter(Boolean).join(' · ');
+  const acts = [];
+  if (slot.meeting_url) acts.push(`<button class="un-btn primary" onclick="joinMeeting('${esc(slot.meeting_url)}')">📹 Join</button>`);
+  if (slot.meeting_url || live) acts.push(`<button class="un-btn ${live ? 'danger' : 'ghost'}" onclick="toggleLiveSlot('${slot.id}',${!live})">${live ? '⏹ End live' : '🔴 Go Live'}</button>`);
+  acts.push(`<button class="un-btn ghost" onclick="openModal(schedule.find(s=>String(s.id)===String('${slot.id}')))">Edit</button>`);
+
+  host.innerHTML = `<div class="up-next ${live ? 'is-live' : ''}">
+    <div class="un-eyebrow">${eyebrow}</div>
+    <div class="un-title">${esc(slot.title || 'Class')}</div>
+    <div class="un-when">${when}</div>
+    ${meta ? `<div class="un-meta">${esc(meta)}</div>` : ''}
+    <div class="un-actions">${acts.join('')}</div>
+    ${isNow ? `<div class="un-countbar" style="width:${pct}%"></div>` : ''}
+  </div>`;
+}
+
+function joinMeeting(url) {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener');
+}
+
+// Scroll the week grid so the current time sits in the upper third on load.
+let _didScrollToNow = false;
+function scrollToNow() {
+  const main = document.getElementById('main');
+  if (!main) return;
+  const now = new Date();
+  const minutes = (now.getHours() - HOUR_START) * 60 + now.getMinutes();
+  if (minutes < 0) return;
+  const y = minutes / 60 * PX_PER_HOUR;
+  main.scrollTo({ top: Math.max(0, y - main.clientHeight / 3), behavior: _didScrollToNow ? 'smooth' : 'auto' });
+  _didScrollToNow = true;
+}
 
 // ── Grid rendering ────────────────────────────────────────────────────
 function buildTimeCol() {
@@ -1036,9 +1174,39 @@ function renderGrid() {
       // Recurring: always show
       return true;
     });
-    slots.forEach(slot => col.appendChild(buildBlock(slot)));
+    const laidOut = _layoutDaySlots(slots);
+    slots.forEach(slot => col.appendChild(buildBlock(slot, laidOut[String(slot.id)])));
   }
   updateNowLine();
+}
+
+// Google-Calendar-style overlap layout: split a day's overlapping classes into
+// side-by-side lanes so they never cover each other. Returns id → {leftPct,widthPct,cols}.
+function _layoutDaySlots(slots) {
+  const out = {};
+  if (!slots.length) return out;
+  const items = slots.map(s => ({ id: String(s.id), start: toMin(s.start_time), end: toMin(s.end_time) }))
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+  let cluster = [], clusterEnd = -1;
+  const flush = () => {
+    if (!cluster.length) return;
+    const laneEnds = [];
+    cluster.forEach(it => {
+      let lane = laneEnds.findIndex(end => it.start >= end);
+      if (lane < 0) { lane = laneEnds.length; laneEnds.push(it.end); } else { laneEnds[lane] = it.end; }
+      it.lane = lane;
+    });
+    const cols = laneEnds.length;
+    cluster.forEach(it => { out[it.id] = { leftPct: (it.lane / cols) * 100, widthPct: (1 / cols) * 100, cols }; });
+    cluster = []; clusterEnd = -1;
+  };
+  items.forEach(it => {
+    if (cluster.length && it.start >= clusterEnd) flush();
+    cluster.push(it);
+    clusterEnd = Math.max(clusterEnd, it.end);
+  });
+  flush();
+  return out;
 }
 
 function timeToMinutes(t) {
@@ -1084,7 +1252,7 @@ function openPlannerAt(day, startMin) {
   });
 }
 
-function buildBlock(slot) {
+function buildBlock(slot, layout) {
   const startMin = timeToMinutes(slot.start_time) - HOUR_START * 60;
   const endMin   = timeToMinutes(slot.end_time)   - HOUR_START * 60;
   const top    = startMin / 60 * PX_PER_HOUR;
@@ -1093,6 +1261,12 @@ function buildBlock(slot) {
   const el = document.createElement('div');
   el.className = 'cls-block';
   el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#C8E632'};`;
+  // Side-by-side lane when this class overlaps others on the same day.
+  if (layout && layout.cols > 1) {
+    el.style.left  = `calc(${layout.leftPct}% + 2px)`;
+    el.style.right = 'auto';
+    el.style.width = `calc(${layout.widthPct}% - 4px)`;
+  }
   el.dataset.slotId = slot.id;
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #ef4444, 0 4px 14px rgba(239,68,68,.3)';
   el.innerHTML = `
@@ -1460,7 +1634,7 @@ async function toggleLiveSlot(id, goLive) {
 }
 
 // Update now-line and timezone card every minute
-setInterval(() => { updateNowLine(); renderScheduleTimeZoneCard(); }, 60000);
+setInterval(() => { updateNowLine(); renderUpNext(); renderScheduleTimeZoneCard(); }, 60000);
 
 init();
 
