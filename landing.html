@@ -568,6 +568,26 @@ footer{
 /* Subtle film grain — premium, tactile surface */
 body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.022;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+/* ── PREMIUM ++ : living accents ── */
+/* Headline accent: slow gradient shimmer instead of flat pink */
+.hero-h em{
+  background:linear-gradient(100deg,#EC2D8C 0%,#ff7ab5 32%,#EC2D8C 64%);
+  background-size:220% auto;-webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent;
+  animation:shimmerText 6s linear infinite;
+}
+@keyframes shimmerText{to{background-position:220% center;}}
+/* Hero product mockup gently floats (on the shell, so it never fights the
+   reveal transform applied to .preview-stage) */
+.preview-shell{animation:floatY 7s ease-in-out infinite;}
+@keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+/* Primary CTA: a soft light sheen sweeps across on hover */
+.btn-pink{position:relative;overflow:hidden;}
+.btn-pink::after{content:'';position:absolute;top:0;left:-65%;width:45%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.40),transparent);
+  transform:skewX(-18deg);pointer-events:none;}
+.btn-pink:hover::after{animation:sheen .75s ease;}
+@keyframes sheen{from{left:-65%;}to{left:130%;}}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">

@@ -1414,9 +1414,16 @@ function showAuthOverlay() {
         </div>
       </div>`;
     document.body.appendChild(overlay);
-    renderOsAuthFields();
     setupGoogleSignIn();
   }
+  // Always reset to a clean Sign-in state on every show. A returning user
+  // (re-auth after logout / token expiry) should land on Login — not the
+  // Register/Forgot state, role picker and half-filled fields left over from
+  // the last time the overlay was opened.
+  _osAuthMode = 'login';
+  const _oErr = document.getElementById('os-auth-err'); if (_oErr) _oErr.style.display = 'none';
+  const _oTog = document.getElementById('os-toggle-link'); if (_oTog) _oTog.onclick = toggleOsAuth;
+  renderOsAuthFields();
   overlay.style.display = 'flex';
 }
 
