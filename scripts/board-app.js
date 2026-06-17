@@ -12793,9 +12793,21 @@ function openAiAssistantPanel() {
 function closeAiAssistantPanel() {
   document.getElementById('ai-assistant-panel')?.classList.remove('open');
 }
-document.getElementById('ai-assistant-panel')?.addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeAiAssistantPanel();
+// Close AI panel on Escape (when no text editor is active)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const panel = document.getElementById('ai-assistant-panel');
+  if (!panel?.classList.contains('open')) return;
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+  closeAiAssistantPanel();
 });
+// Close AI panel on click outside (mousedown on board area)
+document.addEventListener('mousedown', e => {
+  const panel = document.getElementById('ai-assistant-panel');
+  if (!panel?.classList.contains('open')) return;
+  if (panel.contains(e.target)) return;
+  closeAiAssistantPanel();
+}, true);
 
 const AI_ASSISTANT_STORAGE = 'teached.aiAssistant.settings.v1';
 let _lastAiAssistantResult = null;
@@ -13127,35 +13139,11 @@ async function runAiAssistant() {
 
 /* ── Find an empty region on the board for a new cluster ─────────── */
 function _aiFindEmptyOrigin(wantedW, wantedH) {
-  const existing = state.cards.filter(c => c.type !== 'frame');
-  if (!existing.length) {
-    const vp = screenToBoard(window.innerWidth * .5, window.innerHeight * .5) || { x: 0, y: 0 };
-    return { x: vp.x - wantedW / 2, y: vp.y - wantedH / 2 };
-  }
-  const M = 80; // margin around new cluster
-  const maxX = Math.max(...existing.map(c => c.x + (c.w || 200)));
-  const minY = Math.min(...existing.map(c => c.y));
-  const maxY = Math.max(...existing.map(c => c.y + (c.h || 150)));
-
-  const overlaps = (px, py) => existing.some(c =>
-    px < c.x + (c.w||200) + M && px + wantedW + M > c.x &&
-    py < c.y + (c.h||150) + M && py + wantedH + M > c.y
-  );
-
-  // Try: right of all content, vertically centered
-  const cx1 = maxX + M;
-  const cy1 = (minY + maxY) / 2 - wantedH / 2;
-  if (!overlaps(cx1, cy1)) return { x: cx1, y: cy1 };
-
-  // Try: below all content, centered on x
-  const allX  = existing.map(c => c.x);
-  const avgX  = allX.reduce((s, x) => s + x, 0) / allX.length;
-  const cx2   = avgX - wantedW / 2;
-  const cy2   = maxY + M;
-  if (!overlaps(cx2, cy2)) return { x: cx2, y: cy2 };
-
-  // Fallback: far bottom-right
-  return { x: maxX + M * 3, y: maxY + M * 3 };
+  // Use viewport center (accounts for open sidebars/AI panel via getBoardViewportCenter)
+  // then delegate to findFreePlacement which spiral-searches for a collision-free spot.
+  const vp = getBoardViewportCenter();
+  const center = findFreePlacement(vp.x, vp.y, wantedW, wantedH);
+  return { x: center.x - wantedW / 2, y: center.y - wantedH / 2 };
 }
 
 function applyAiAssistantToBoard() {
@@ -13323,11 +13311,15 @@ function applyAiAssistantToBoard() {
         .map(c => c.id);
     }
 
-    clearSelection();
-    if (lesson?.id) selectCard(lesson.id);
     renderAllArrows?.();
     scheduleSave(); saveLocal?.();
     closeAiAssistantPanel();
+    // Zoom to the new frame after panel slide-out (300ms)
+    const _frameId = frame?.id;
+    setTimeout(() => {
+      clearSelection?.();
+      if (_frameId) { selectCard?.(_frameId); zoomToCard?.(_frameId, true); }
+    }, 340);
     toast('AI lesson flow added to board');
 
   } finally {

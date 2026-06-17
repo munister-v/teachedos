@@ -792,126 +792,129 @@ polite request</textarea>
 <!-- AI assistant panel -->
 <div id="ai-assistant-panel">
   <div class="ai-box">
-    <button class="ai-close" onclick="closeAiAssistantPanel()" aria-label="Close AI assistant">×</button>
-    <div class="ai-hero">
-      <div class="ai-kicker">AI memory studio</div>
-      <h2>Generate lesson boards from your <em>teaching memory.</em></h2>
-      <p>No keys, no payments, no external calls. The assistant remembers teacher style, class profile, common mistakes and preferred activities directly in this browser.</p>
-      <div class="ai-chip-row">
-        <span class="ai-chip">100% local</span>
-        <span class="ai-chip">Teacher memory</span>
-        <span class="ai-chip">Student profile</span>
-        <span class="ai-chip">Mistake-aware</span>
-        <span class="ai-chip">Apply to board</span>
-      </div>
+    <!-- Sticky header -->
+    <div class="ai-topbar">
+      <span class="ai-topbar-title">AI Memory Studio</span>
+      <button class="ai-close" onclick="closeAiAssistantPanel()" aria-label="Close">×</button>
     </div>
-    <div class="ai-builder">
-      <div class="ai-form">
-        <div class="ai-form-row">
-          <div>
-            <label for="ai-level">Level</label>
-            <select id="ai-level">
-              <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option>
-            </select>
-          </div>
-          <div>
-            <label for="ai-duration">Duration</label>
-            <select id="ai-duration">
-              <option>30 min</option><option selected>45 min</option><option>60 min</option><option>90 min</option>
-            </select>
-          </div>
-        </div>
-        <div class="ai-form-row">
-          <div>
-            <label for="ai-skill">Skill</label>
-            <select id="ai-skill">
-              <option>Speaking</option><option>Vocabulary</option><option selected>Writing</option><option>Grammar</option><option>Reading</option><option>Listening</option>
-            </select>
-          </div>
-          <div>
-            <label for="ai-audience">Audience</label>
-            <select id="ai-audience">
-              <option>Adults</option><option selected>Teens</option><option>Kids</option><option>Business</option><option>Exam prep</option>
-            </select>
-          </div>
-        </div>
-        <div class="ai-form-row">
-          <div>
-            <label for="ai-goal">Lesson goal</label>
-            <select id="ai-goal">
-              <option value="confidence" selected>Build confidence</option>
-              <option value="accuracy">Improve accuracy</option>
-              <option value="fluency">Boost fluency</option>
-              <option value="exam">Exam readiness</option>
-              <option value="revision">Revision & retention</option>
-            </select>
-          </div>
-          <div>
-            <label for="ai-tone">Teaching tone</label>
-            <select id="ai-tone">
-              <option value="supportive" selected>Supportive</option>
-              <option value="playful">Playful</option>
-              <option value="focused">Focused</option>
-              <option value="challenging">Challenging</option>
-              <option value="calm">Calm</option>
-            </select>
-          </div>
-        </div>
-        <label for="ai-mode">Output mode</label>
-        <select id="ai-mode">
-          <option value="lesson-board" selected>Full lesson board</option>
-          <option value="quick-activities">Quick activities only</option>
-          <option value="homework-pack">Homework pack</option>
-          <option value="mistake-clinic">Mistake clinic</option>
-          <option value="game-pack">Game pack</option>
-        </select>
-        <label>Quick templates</label>
-        <div class="ai-template-grid">
-          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('ielts-writing')">IELTS writing <span>argument, examples, rubric</span></button>
-          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('speaking-club')">Speaking club <span>warm-up, debate, reflection</span></button>
-          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('grammar-clinic')">Grammar clinic <span>notice, drill, repair</span></button>
-          <button class="ai-template-btn" type="button" onclick="applyAiTemplate('vocab-game')">Vocabulary game <span>matching, sorting, challenge</span></button>
-        </div>
-        <label for="ai-topic">Topic / goal</label>
-        <input id="ai-topic" value="Writing lesson: essay structure and strong arguments">
-        <label for="ai-teacher-memory">Teacher memory</label>
-        <textarea id="ai-teacher-memory" placeholder="Your style: strict/fun, correction style, preferred flow, favorite activities..."></textarea>
-        <label for="ai-student-memory">Student / class memory</label>
-        <textarea id="ai-student-memory" placeholder="Student interests, weak spots, goals, age, motivation, timezone/context..."></textarea>
-        <label for="ai-mistakes">Common mistakes to target</label>
-        <textarea id="ai-mistakes" placeholder="e.g. articles, word order, weak arguments, past tenses, pronunciation..."></textarea>
-        <label for="ai-source">Source text / teacher notes</label>
-        <textarea id="ai-source" placeholder="Paste text, vocabulary, student mistakes, exam task, article or lesson idea..."></textarea>
-        <div class="ai-memory-row" id="ai-memory-presets">
-          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'More speaking time, less teacher talk. Add pair work and reflection.')">Speaking-heavy</button>
-          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Student needs gentle correction and confidence-building tasks.')">Gentle correction</button>
-          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Add exam-style timing, rubrics and self-check criteria.')">Exam mode</button>
-          <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Use games, movement, visuals and short task cycles.')">Game energy</button>
-        </div>
-        <div class="ai-memory-note" id="ai-memory-note">Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.</div>
-        <div class="ai-action-row">
-          <button class="ai-action" onclick="runAiAssistant()">Generate preview</button>
-          <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>
-          <button class="ai-action ghost" onclick="useSelectedCardsForAi()">Use selected</button>
-          <button class="ai-action ghost" onclick="addAiMemoryFromBoard()">Learn board</button>
-          <button class="ai-action ghost" onclick="saveAiAssistantSettings()">Save memory</button>
-          <button class="ai-action ghost" onclick="clearAiAssistantMemory()">Clear memory</button>
-        </div>
-        <div class="ai-status" id="ai-status"></div>
-      </div>
-      <div class="ai-preview">
-        <div class="ai-preview-head">
-          <div class="ai-preview-title">Lesson preview</div>
-          <button class="ai-action ghost" onclick="copyAiAssistantPreview()">Copy</button>
-        </div>
-        <div class="ai-preview-body" id="ai-preview-body">
-          <div class="ai-empty">Set topic, level and skill, then generate a teacher-ready flow. Local mode already works without API.</div>
+    <div class="ai-inner">
+      <div class="ai-hero">
+        <div class="ai-kicker">Lesson generator</div>
+        <h2>Boards from your <em>teaching memory.</em></h2>
+        <div class="ai-chip-row">
+          <span class="ai-chip">Memory-aware</span>
+          <span class="ai-chip">Backend AI</span>
+          <span class="ai-chip">One click</span>
         </div>
       </div>
-    </div>
-    <div class="ai-grid">
-      <div class="ai-card"><h3>Memory-first approach</h3><p>The assistant becomes better when you save teacher style, class profile, target mistakes and preferred activity rhythm.</p></div>
-      <div class="ai-card"><h3>No-key principle</h3><p>Everything here runs locally. Later we can add server AI, but the product should stay useful even without paid APIs.</p></div>
+      <div class="ai-builder">
+        <div class="ai-form">
+          <div class="ai-form-row">
+            <div>
+              <label for="ai-level">Level</label>
+              <select id="ai-level">
+                <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option>
+              </select>
+            </div>
+            <div>
+              <label for="ai-duration">Duration</label>
+              <select id="ai-duration">
+                <option>30 min</option><option selected>45 min</option><option>60 min</option><option>90 min</option>
+              </select>
+            </div>
+          </div>
+          <div class="ai-form-row">
+            <div>
+              <label for="ai-skill">Skill</label>
+              <select id="ai-skill">
+                <option>Speaking</option><option>Vocabulary</option><option selected>Writing</option><option>Grammar</option><option>Reading</option><option>Listening</option>
+              </select>
+            </div>
+            <div>
+              <label for="ai-audience">Audience</label>
+              <select id="ai-audience">
+                <option>Adults</option><option selected>Teens</option><option>Kids</option><option>Business</option><option>Exam prep</option>
+              </select>
+            </div>
+          </div>
+          <div class="ai-form-row">
+            <div>
+              <label for="ai-goal">Lesson goal</label>
+              <select id="ai-goal">
+                <option value="confidence" selected>Build confidence</option>
+                <option value="accuracy">Improve accuracy</option>
+                <option value="fluency">Boost fluency</option>
+                <option value="exam">Exam readiness</option>
+                <option value="revision">Revision & retention</option>
+              </select>
+            </div>
+            <div>
+              <label for="ai-tone">Teaching tone</label>
+              <select id="ai-tone">
+                <option value="supportive" selected>Supportive</option>
+                <option value="playful">Playful</option>
+                <option value="focused">Focused</option>
+                <option value="challenging">Challenging</option>
+                <option value="calm">Calm</option>
+              </select>
+            </div>
+          </div>
+          <label for="ai-mode">Output mode</label>
+          <select id="ai-mode">
+            <option value="lesson-board" selected>Full lesson board</option>
+            <option value="quick-activities">Quick activities only</option>
+            <option value="homework-pack">Homework pack</option>
+            <option value="mistake-clinic">Mistake clinic</option>
+            <option value="game-pack">Game pack</option>
+          </select>
+          <label>Quick templates</label>
+          <div class="ai-template-grid">
+            <button class="ai-template-btn" type="button" onclick="applyAiTemplate('ielts-writing')">IELTS writing <span>argument, examples, rubric</span></button>
+            <button class="ai-template-btn" type="button" onclick="applyAiTemplate('speaking-club')">Speaking club <span>warm-up, debate, reflection</span></button>
+            <button class="ai-template-btn" type="button" onclick="applyAiTemplate('grammar-clinic')">Grammar clinic <span>notice, drill, repair</span></button>
+            <button class="ai-template-btn" type="button" onclick="applyAiTemplate('vocab-game')">Vocabulary game <span>matching, sorting, challenge</span></button>
+          </div>
+          <label for="ai-topic">Topic / goal</label>
+          <input id="ai-topic" value="Writing lesson: essay structure and strong arguments">
+          <label for="ai-teacher-memory">Teacher memory</label>
+          <textarea id="ai-teacher-memory" placeholder="Your style: strict/fun, correction style, preferred flow, favorite activities..."></textarea>
+          <label for="ai-student-memory">Student / class memory</label>
+          <textarea id="ai-student-memory" placeholder="Student interests, weak spots, goals, age, motivation, timezone/context..."></textarea>
+          <label for="ai-mistakes">Common mistakes to target</label>
+          <textarea id="ai-mistakes" placeholder="e.g. articles, word order, weak arguments, past tenses, pronunciation..."></textarea>
+          <label for="ai-source">Source text / teacher notes</label>
+          <textarea id="ai-source" placeholder="Paste text, vocabulary, student mistakes, exam task, article or lesson idea..."></textarea>
+          <div class="ai-memory-row" id="ai-memory-presets">
+            <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'More speaking time, less teacher talk. Add pair work and reflection.')">Speaking-heavy</button>
+            <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Student needs gentle correction and confidence-building tasks.')">Gentle correction</button>
+            <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Add exam-style timing, rubrics and self-check criteria.')">Exam mode</button>
+            <button class="ai-memory-chip" type="button" onclick="toggleAiMemoryPreset(this,'Use games, movement, visuals and short task cycles.')">Game energy</button>
+          </div>
+          <div class="ai-memory-note" id="ai-memory-note">Memory is saved on this device. The next board will adapt to your notes, mistakes and mode.</div>
+          <!-- Primary actions -->
+          <div class="ai-action-row" style="grid-template-columns:1fr 1fr;margin-top:14px;">
+            <button class="ai-action" onclick="runAiAssistant()">✦ Generate</button>
+            <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>
+          </div>
+          <!-- Secondary actions -->
+          <div class="ai-action-row" style="grid-template-columns:repeat(4,1fr);margin-top:8px;">
+            <button class="ai-action ghost" onclick="useSelectedCardsForAi()">Use selected</button>
+            <button class="ai-action ghost" onclick="addAiMemoryFromBoard()">Learn</button>
+            <button class="ai-action ghost" onclick="saveAiAssistantSettings()">Save</button>
+            <button class="ai-action ghost" onclick="clearAiAssistantMemory()">Clear</button>
+          </div>
+          <div class="ai-status" id="ai-status"></div>
+        </div>
+        <div class="ai-preview">
+          <div class="ai-preview-head">
+            <div class="ai-preview-title">Lesson preview</div>
+            <button class="ai-action ghost" onclick="copyAiAssistantPreview()">Copy</button>
+          </div>
+          <div class="ai-preview-body" id="ai-preview-body">
+            <div class="ai-empty">Set topic, level and skill, then hit Generate.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
