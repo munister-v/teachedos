@@ -13165,10 +13165,10 @@ function applyAiAssistantToBoard() {
   if (!result) return;
 
   // ── Layout constants ────────────────────────────────────────────
-  const PAD  = 22;   // frame inner padding
-  const GAP  = 16;   // gap between cards
-  const FW   = 1040; // frame outer width
-  const IW   = FW - PAD * 2; // inner content width = 996
+  const PAD  = 26;   // frame inner padding
+  const GAP  = 18;   // gap between cards
+  const FW   = 1380; // frame outer width
+  const IW   = FW - PAD * 2; // inner content width = 1328
 
   const _aiSkill = document.getElementById('ai-skill')?.value || 'Writing';
   const accent = {
@@ -13177,16 +13177,21 @@ function applyAiAssistantToBoard() {
   }[_aiSkill] || '#4262FF';
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
 
+  const ROW_LESSON = 140;
+  const ROW_STAGE  = 200;
+  const ROW3_H     = 240;
+  const ROW4_H     = 210;
+
   // ── Estimate total height before placing ────────────────────────
   const stages      = (result.stages || []).slice(0, 5);
   const row3Count   = [result.vocabulary?.length, result.mistakeItems?.length || result.memoryHints?.length, result.homework].filter(Boolean).length;
   const row4Items   = [result.warmupPrompts?.length, result.assessmentCriteria?.length, result.modeAddons?.length, result.challenge, result.teacherScript?.length].filter(Boolean);
   const row4Rows    = Math.ceil(row4Items.length / 3);
-  const estH = 46 + PAD +                          // frame title
-    (stages.length ? 130 + GAP : 0) +              // lesson card
-    (stages.length ? 134 + GAP : 0) +              // stages row
-    (row3Count     ? 172 + GAP : 0) +              // support row
-    (row4Items.length ? row4Rows * (154 + GAP) : 0) +
+  const estH = 46 + PAD +
+    (stages.length ? ROW_LESSON + GAP : 0) +
+    (stages.length ? ROW_STAGE  + GAP : 0) +
+    (row3Count     ? ROW3_H     + GAP : 0) +
+    (row4Items.length ? row4Rows * (ROW4_H + GAP) : 0) +
     PAD;
 
   // ── Find empty spot on canvas ──────────────────────────────────
@@ -13210,8 +13215,8 @@ function applyAiAssistantToBoard() {
       objectives:  (result.stages || []).slice(0, 3).map(s => s.goal || s.title).filter(Boolean),
       attachments: [],
       notes:       ['AI-generated. Review before teaching.', ...(result.memoryHints || [])].join('\n'),
-    }, IW, 130);
-    cy += 130 + GAP;
+    }, IW, ROW_LESSON);
+    cy += ROW_LESSON + GAP;
 
     // ── Row 2: Stage note cards (horizontal, equal widths) ──────
     if (stages.length) {
@@ -13221,10 +13226,9 @@ function applyAiAssistantToBoard() {
           icon:  stageEmojis[idx] || '📌',
           title: `${stage.time || ''} · ${stage.title || 'Stage'}`,
           body:  stage.activity || '',
-          // no accent → plain white card, no color bleed
-        }, sw, 134);
+        }, sw, ROW_STAGE);
       });
-      cy += 134 + GAP;
+      cy += ROW_STAGE + GAP;
     }
 
     // ── Row 3: Support cards (vocab | memory notes | homework) ──
@@ -13239,23 +13243,23 @@ function applyAiAssistantToBoard() {
         if (key === 'vocab') {
           addCard('checklist', rx, cy, {
             title: '🗂 Target language',
-            items: result.vocabulary.slice(0, 8).map(text => ({ text, done: false })),
-          }, rw, 172);
+            items: result.vocabulary.slice(0, 10).map(text => ({ text, done: false })),
+          }, rw, ROW3_H);
         } else if (key === 'memory') {
           addCard('note', rx, cy, {
             icon:  '🧠',
             title: 'Memory notes',
             body:  [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
-          }, rw, 172);
+          }, rw, ROW3_H);
         } else if (key === 'homework') {
           addCard('assignment', rx, cy, {
             title: 'Homework', type: 'Mixed', maxScore: 100, deadline: '',
             desc: result.homework, submitted: 0, total: 0,
-          }, rw, 172);
+          }, rw, ROW3_H);
         }
         rx += rw + GAP;
       });
-      cy += 172 + GAP;
+      cy += ROW3_H + GAP;
     }
 
     // ── Row 4: Extras in groups of 3 ───────────────────────────
@@ -13275,31 +13279,31 @@ function applyAiAssistantToBoard() {
           addCard('note', ex, cy, {
             icon: '☀️', title: 'Warm-up prompts',
             body: result.warmupPrompts.join('\n'),
-          }, ew, 154);
+          }, ew, ROW4_H);
         } else if (key === 'criteria') {
           addCard('checklist', ex, cy, {
             title: '✅ Success criteria',
             items: result.assessmentCriteria.map(text => ({ text, done: false })),
-          }, ew, 154);
+          }, ew, ROW4_H);
         } else if (key === 'extras') {
           addCard('checklist', ex, cy, {
             title: '⚡ Smart extras',
             items: result.modeAddons.map(text => ({ text, done: false })),
-          }, ew, 154);
+          }, ew, ROW4_H);
         } else if (key === 'challenge') {
           addCard('note', ex, cy, {
             icon: '🚀', title: 'Challenge',
             body: result.challenge,
-          }, ew, 154);
+          }, ew, ROW4_H);
         } else if (key === 'script') {
           addCard('note', ex, cy, {
             icon: '🎤', title: 'Teacher script',
             body: result.teacherScript.join('\n'),
-          }, ew, 154);
+          }, ew, ROW4_H);
         }
         ex += ew + GAP;
       });
-      cy += 154 + GAP;
+      cy += ROW4_H + GAP;
     }
 
     // ── Frame wrapping all content ──────────────────────────────
