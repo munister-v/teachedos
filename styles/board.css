@@ -3403,14 +3403,24 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Dim the editing canvas to a calm neutral so the focused slide pops. */
 .board-presenting #board-wrap{
   cursor:pointer;
-  background-color:#0E0E14;
-  background-image:radial-gradient(circle,rgba(255,255,255,.05) .8px,transparent .8px);
+  /* Soft light studio backdrop (the app is light-only) so cards — including
+     transparent-background text cards — stay readable during a presentation. */
+  background-color:#E7E3DA;
+  background-image:radial-gradient(circle,rgba(0,0,0,.05) .8px,transparent .8px);
 }
 .board-presenting .board-card.selected{box-shadow:none!important;}
+/* Dim everything except the active slide (and, for a frame slide, its children)
+   so the current step clearly stands out. */
+.board-presenting .board-card{
+  opacity:.26;
+  transition:opacity .35s ease, box-shadow .3s ease;
+}
+.board-presenting .board-card.present-current,
+.board-presenting .board-card.present-child{opacity:1;}
 /* Active slide gets a soft focus ring + lift */
 .board-card.present-current{
   box-shadow:0 0 0 3px rgba(66,98,255,.55), 0 16px 50px rgba(0,0,0,.20)!important;
-  transition:box-shadow .3s ease;
+  transition:box-shadow .3s ease, opacity .35s ease;
 }
 
 #board-present-bar{

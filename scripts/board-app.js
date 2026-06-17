@@ -2909,9 +2909,18 @@ function presentGoTo(i) {
   _presentIdx = Math.max(0, Math.min(_presentSlides.length - 1, i));
   const id = _presentSlides[_presentIdx];
   // Highlight the active slide, clear others.
-  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  document.querySelectorAll('.board-card.present-current, .board-card.present-child')
+    .forEach(el => el.classList.remove('present-current', 'present-child'));
   const el = document.querySelector('[data-id="' + id + '"]');
   if (el) el.classList.add('present-current');
+  // When the slide is a frame, keep its child cards fully visible (un-dimmed) too.
+  const slideCard = state.cards.find(c => c.id === id);
+  if (slideCard && slideCard.type === 'frame') {
+    state.cards.filter(c => c.data && c.data.parentFrame === id).forEach(c => {
+      const ce = document.querySelector('[data-id="' + c.id + '"]');
+      if (ce) ce.classList.add('present-child');
+    });
+  }
   zoomToCard(id, true);
   const prog = document.getElementById('bp-progress');
   if (prog) prog.textContent = (_presentIdx + 1) + ' / ' + _presentSlides.length;
@@ -2945,7 +2954,8 @@ function exitBoardPresent() {
   document.body.classList.remove('board-presenting');
   const bar = document.getElementById('board-present-bar');
   if (bar) bar.setAttribute('aria-hidden', 'true');
-  document.querySelectorAll('.board-card.present-current').forEach(el => el.classList.remove('present-current'));
+  document.querySelectorAll('.board-card.present-current, .board-card.present-child')
+    .forEach(el => el.classList.remove('present-current', 'present-child'));
   // Tween back to the pre-present view.
   if (_presentReturnView) {
     const start = { pan: { ...state.pan }, scale: state.scale };
