@@ -1377,7 +1377,7 @@ function showAuthOverlay() {
             <img src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
           </div>
           <div style="font-size:2rem;font-weight:900;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:6px;">
-            <span style="color:#0E0E10;">Teach</span><span style="color:#5C8500;font-weight:900;">Ed</span>
+            <span style="color:#0E0E10;">Teach</span><span style="color:#EC2D8C;font-weight:900;">Ed</span>
           </div>
           <div id="os-auth-sub" style="font-size:13px;color:#5A5A4A;margin-top:0;font-weight:600;letter-spacing:.005em;">Sign in to your workspace</div>
         </div>
