@@ -552,6 +552,22 @@ footer{
   .bento{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr;}
 }
+/* ── PREMIUM MOTION + DEPTH ── (the .reveal class is added by JS; with no JS or
+   reduced-motion the markup stays fully visible) */
+.reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1);
+  will-change:opacity,transform;}
+.reveal.in{opacity:1;transform:none;}
+/* Hero glow blobs slowly drift for living depth */
+.hero-bg{animation:heroGlow 20s ease-in-out infinite alternate;}
+@keyframes heroGlow{from{transform:scale(1) translate(0,0);}to{transform:scale(1.07) translate(-1.4%,1.1%);}}
+/* Richer, layered hover lift on the product-style cards */
+.bc:hover,.cat:hover{box-shadow:0 18px 44px rgba(14,14,16,.12),0 4px 14px rgba(14,14,16,.06);}
+/* Tabular figures so count-up doesn't jitter */
+.stat-n,.pc-sn{font-variant-numeric:tabular-nums;}
+/* Subtle film grain — premium, tactile surface */
+body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.022;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
@@ -1505,6 +1521,85 @@ footer{
 })();
 </script>
 
+<script>
+/* Premium motion: scroll-reveal (staggered) + number count-up.
+   Fully progressive — if this never runs, nothing is hidden. */
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+
+  // 1) Reveal-on-scroll
+  var sels = ['.hero-badge', '.hero-h', '.hero-sub', '.hero-ctas', '.hero-trust', '.preview-stage',
+    '.stats-strip .stat-c', '.sec-eye', '.sec-h', '.sec-sub',
+    '#features .bc', '#tools .cat', '#how .step', '.testi', '.plan', '.faq-item',
+    '.final-h', '.final-sub', '.final-ctas'];
+  var els = [];
+  sels.forEach(function (s) { document.querySelectorAll(s).forEach(function (el) { els.push(el); }); });
+  var perParent = new Map();
+  els.forEach(function (el) {
+    el.classList.add('reveal');
+    var p = el.parentElement, i = perParent.get(p) || 0;
+    perParent.set(p, i + 1);
+    el.style.transitionDelay = Math.min(i * 60, 300) + 'ms';
+  });
+  // Position-based reveal (deterministic — never leaves content hidden, even on
+  // anchor jumps or fast flicks, unlike IntersectionObserver which can coalesce).
+  var pending = els.slice();
+  function revealCheck() {
+    var trigger = window.innerHeight * 0.94;
+    for (var i = pending.length - 1; i >= 0; i--) {
+      if (pending[i].getBoundingClientRect().top < trigger) {
+        pending[i].classList.add('in');
+        pending.splice(i, 1);
+      }
+    }
+  }
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { revealCheck(); ticking = false; }); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  window.addEventListener('load', onScroll);
+  // Re-check after fonts/images settle (layout can shift element positions).
+  setTimeout(function () { onScroll(); }, 500);
+  revealCheck();
+
+  // 2) Count-up for headline numbers
+  function countUp(el) {
+    if (el.dataset.counted) return;
+    var hasChildEl = el.children.length > 0;
+    var lead = hasChildEl ? (el.childNodes[0] ? el.childNodes[0].nodeValue : '') : el.textContent;
+    var m = String(lead).trim().match(/^(\d[\d,]*)(.*)$/);
+    if (!m) return;
+    var target = parseInt(m[1].replace(/,/g, ''), 10);
+    var suffix = hasChildEl ? '' : (m[2] || '');
+    if (!(target > 0)) return;
+    el.dataset.counted = '1';
+    var dur = 1100, t0 = null;
+    function set(v) { if (hasChildEl) { el.childNodes[0].nodeValue = String(v); } else { el.textContent = v + suffix; } }
+    set(0);
+    requestAnimationFrame(function tick(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      set(Math.round((1 - Math.pow(1 - p, 3)) * target));
+      if (p < 1) requestAnimationFrame(tick);
+    });
+  }
+  // Drive count-up from the same deterministic scroll check.
+  var countPending = [].slice.call(document.querySelectorAll('.stat-n, .pc-sn'));
+  function countCheck() {
+    var trigger = window.innerHeight * 0.85;
+    for (var i = countPending.length - 1; i >= 0; i--) {
+      var r = countPending[i].getBoundingClientRect();
+      if (r.top < trigger && r.bottom > 0) { countUp(countPending[i]); countPending.splice(i, 1); }
+    }
+  }
+  var origReveal = revealCheck;
+  revealCheck = function () { origReveal(); countCheck(); };
+  countCheck();
+})();
+</script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="pwa-boot.js" defer></script>
 </body>
