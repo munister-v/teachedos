@@ -3997,6 +3997,7 @@ document.addEventListener('mouseup', e => {
           ctxPos = (typeof screenToBoard === 'function') ? screenToBoard(sx, sy) : { x:sx, y:sy };
           const ctxMenuEl = document.getElementById('ctx-menu');
           if (ctxMenuEl) {
+            ctxMenuEl.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = '');
             document.getElementById('ctx-delete-arrow').style.display = 'none';
             document.getElementById('ctx-toggle-prereq').style.display = 'none';
             document.getElementById('ctx-label-arrow').style.display = 'none';
@@ -4963,6 +4964,13 @@ function renderAllArrows() {
     hit.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
       ctxArrowId = arrow.id;
+      // Compact arrow menu: hide every board-creation item + image clipboard
+      // items so only the arrow actions show, right at the cursor (otherwise the
+      // tall add-card list pushes "Delete Arrow" below the viewport).
+      ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = 'none');
+      ['ctx-paste-image','ctx-copy-image','ctx-image-sep'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+      });
       document.getElementById('ctx-delete-arrow').style.display = '';
       document.getElementById('ctx-toggle-prereq').style.display = '';
       document.getElementById('ctx-label-arrow').style.display = '';
@@ -4981,8 +4989,11 @@ function renderAllArrows() {
         ['curve','straight','elbow'].forEach(r => document.getElementById('car-'+r)?.classList.toggle('active', r===cr));
         document.querySelectorAll('.cac-swatch').forEach(sw => sw.classList.toggle('active', sw.dataset.c === cc));
       }
-      ctxMenu.style.left = e.clientX+'px'; ctxMenu.style.top = e.clientY+'px';
+      // Show first (so we can measure), then clamp inside the viewport.
       ctxMenu.style.display = 'block';
+      const mw = ctxMenu.offsetWidth || 230, mh = ctxMenu.offsetHeight || 320;
+      ctxMenu.style.left = Math.max(8, Math.min(e.clientX, window.innerWidth  - mw - 12)) + 'px';
+      ctxMenu.style.top  = Math.max(8, Math.min(e.clientY, window.innerHeight - mh - 12)) + 'px';
     });
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -5233,6 +5244,8 @@ boardWrap.addEventListener('contextmenu', e => {
   e.preventDefault();
   if (_didPan) { _didPan = false; return; }
   ctxPos = screenToBoard(e.clientX, e.clientY);
+  // Restore board-creation items (a prior arrow right-click hides them).
+  ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = '');
   document.getElementById('ctx-delete-arrow').style.display = 'none';
   document.getElementById('ctx-toggle-prereq').style.display = 'none';
   document.getElementById('ctx-label-arrow').style.display = 'none';
