@@ -25,23 +25,31 @@
 <!-- Prevent flash of unstyled content before auth check -->
 <style>html { opacity: 0; } html.auth-ready { opacity: 1; transition: opacity 0.22s ease; }</style>
 <script>
-  // Synchronous token check — if no token, we'll show overlay immediately
+  // Synchronous token check. teached.tech is marketing-first: a logged-out
+  // visitor at the app root is sent to the landing page (which hosts the
+  // sign-in / register flow). A logged-in user stays here on the dashboard.
   (function() {
     const t = localStorage.getItem('teachedos_token');
     if (!t) {
-      // No token: reveal page immediately (overlay will cover it)
+      // Allow an explicit escape hatch (?app=1) to reach the in-app login
+      // overlay directly without bouncing to the landing page.
+      if (!/[?&]app=1\b/.test(location.search)) {
+        location.replace('landing.html');
+        return;
+      }
+      // No token but staying: reveal page (in-app overlay will cover it)
       document.documentElement.classList.add('auth-ready');
     }
     // Has token: keep hidden until auth resolves (avoids placeholder flash)
   })();
 </script>
 <meta name="description" content="TeachEd is a classroom operating system for language teachers: lesson boards, courses, schedule, journal, gradebook, analytics and learning games in one PWA."/>
-<link rel="canonical" href="https://munister.com.ua/teachedos/"/>
+<link rel="canonical" href="https://teached.tech/"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="TeachEd — Language Learning Platform"/>
 <meta property="og:description" content="Boards, courses, schedule, journal, gradebook, analytics and games for language teachers."/>
-<meta property="og:url" content="https://munister.com.ua/teachedos/"/>
-<meta property="og:image" content="https://munister.com.ua/teachedos/icons/icon-512.png"/>
+<meta property="og:url" content="https://teached.tech/"/>
+<meta property="og:image" content="https://teached.tech/icons/icon-512.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/main.css">
