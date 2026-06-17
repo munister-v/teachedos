@@ -538,6 +538,11 @@ a{text-decoration:none;color:inherit;}
       <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…">
     </div>
 
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">📌 Lesson board <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional — open this board from the class)</span></label>
+      <select class="form-select" id="f-board"><option value="">— None —</option></select>
+    </div>
+
     <div class="form-group" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
       <input type="checkbox" id="f-recurring" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" onchange="toggleRecurring(this.checked)">
       <label for="f-recurring" style="font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;">Recurring (repeats weekly)</label>
@@ -926,8 +931,31 @@ async function init() {
   await loadSchedule();
   if (weekOffset === 0) scrollToNow();
   loadStudentZones();
+  loadBoardsForPicker();
   document.getElementById('f-start').addEventListener('change', renderModalTzPreview);
   document.getElementById('f-end').addEventListener('change', renderModalTzPreview);
+}
+
+// Boards for the "Lesson board" picker in the class modal.
+let _scheduleBoards = [];
+async function loadBoardsForPicker() {
+  try {
+    const d = await apiFetch('/api/boards');
+    _scheduleBoards = d.boards || [];
+  } catch { _scheduleBoards = []; }
+  const sel = document.getElementById('f-board');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— None —</option>' +
+    _scheduleBoards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name)}</option>`).join('');
+  sel.value = cur;
+}
+function boardNameFor(id) {
+  const b = _scheduleBoards.find(x => String(x.id) === String(id));
+  return b ? b.name : '';
+}
+function openClassBoard(id) {
+  if (id) location.href = `board.html?id=${encodeURIComponent(id)}`;
 }
 
 function setNavUser(user) {
@@ -1107,6 +1135,7 @@ function renderUpNext() {
   const acts = [];
   if (slot.meeting_url) acts.push(`<button class="un-btn primary" onclick="joinMeeting('${esc(slot.meeting_url)}')">📹 Join</button>`);
   if (slot.meeting_url || live) acts.push(`<button class="un-btn ${live ? 'danger' : 'ghost'}" onclick="toggleLiveSlot('${slot.id}',${!live})">${live ? '⏹ End live' : '🔴 Go Live'}</button>`);
+  if (slot.board_id) acts.push(`<button class="un-btn ghost" onclick="openClassBoard('${esc(String(slot.board_id))}')">📌 Board</button>`);
   acts.push(`<button class="un-btn ghost" onclick="openModal(schedule.find(s=>String(s.id)===String('${slot.id}')))">Edit</button>`);
 
   host.innerHTML = `<div class="up-next ${live ? 'is-live' : ''}">
@@ -1276,7 +1305,8 @@ function buildBlock(slot, layout) {
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
     ${slot.room ? `<div class="cb-meta">📍 ${esc(slot.room)}</div>` : ''}
     <div class="cb-time">${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}</div>
-    ${slot.meeting_url||slot.is_live ? `<button onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.6);background:${slot.is_live?'rgba(239,68,68,.25)':'rgba(255,255,255,.2)'};color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">${slot.is_live?'⏹ End live':'🔴 Go Live'}</button>` : ''}`;
+    ${slot.meeting_url||slot.is_live ? `<button onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.6);background:${slot.is_live?'rgba(239,68,68,.25)':'rgba(255,255,255,.2)'};color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">${slot.is_live?'⏹ End live':'🔴 Go Live'}</button>` : ''}
+    ${slot.board_id ? `<button onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.55);background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">📌 Open board</button>` : ''}`;
   el.style.position = 'absolute';
   el.addEventListener('mousedown', e => startSlotDrag(e, slot, el));
   el.addEventListener('click', () => {
@@ -1389,6 +1419,7 @@ function schedulePayload(slot, patch = {}) {
     level: slot.level || null,
     room: slot.room || null,
     meeting_url: slot.meeting_url || null,
+    board_id: slot.board_id || null,
     color: slot.color || '#C8E632',
     recurring: slot.recurring !== false && !slot.specific_date,
     specific_date: slot.specific_date ? slot.specific_date.slice(0,10) : null,
@@ -1516,6 +1547,7 @@ function openModal(slot = null, preset = null) {
   document.getElementById('f-level').value = data.level || '';
   document.getElementById('f-room').value        = data.room  || '';
   document.getElementById('f-meeting-url').value = data.meeting_url || '';
+  document.getElementById('f-board').value       = data.board_id || '';
 
   const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : (data.recurring !== false);
   document.getElementById('f-recurring').checked = isRecurring;
@@ -1581,6 +1613,7 @@ async function saveClass() {
     level:         document.getElementById('f-level').value || null,
     room:          document.getElementById('f-room').value.trim() || null,
     meeting_url:   meetUrl || null,
+    board_id:      document.getElementById('f-board').value || null,
     color:         selectedColor,
     recurring:     isRecurring,
     specific_date: specificDate,
