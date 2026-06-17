@@ -98,6 +98,20 @@ a{text-decoration:none;color:inherit;}
 .stat-val{font-size:28px;font-weight:900;letter-spacing:-.03em;line-height:1;}
 .stat-lbl{font-size:12px;color:var(--text3);font-weight:700;margin-top:2px;}
 
+/* All-boards overview */
+.ov-board-row{
+  display:grid;grid-template-columns:minmax(120px,1.4fr) 2fr 46px;grid-auto-rows:auto;
+  align-items:center;gap:6px 12px;padding:10px 12px;border-radius:12px;
+  border:1px solid var(--border);background:var(--card);cursor:pointer;transition:.15s;
+}
+.ov-board-row:hover{border-color:var(--accent2);box-shadow:0 4px 14px rgba(94,94,74,.08);transform:translateY(-1px);}
+.ovb-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ovb-bar{height:8px;border-radius:6px;background:rgba(94,94,74,.12);overflow:hidden;}
+.ovb-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .5s cubic-bezier(.34,1.1,.6,1);}
+.ovb-pct{font-size:12px;font-weight:800;font-family:var(--mono);text-align:right;color:var(--text2);}
+.ovb-meta{grid-column:1/-1;font-size:11px;color:var(--text3);font-weight:600;}
+@media(max-width:560px){.ov-board-row{grid-template-columns:1fr 40px;}.ovb-bar{grid-column:1/-1;}}
+
 /* Section */
 .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
 .sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
@@ -287,6 +301,24 @@ a{text-decoration:none;color:inherit;}
   </div>
   <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:700;margin-bottom:18px;"></div>
 
+  <!-- All-boards overview -->
+  <div class="section" id="overview-section" style="display:none">
+    <div class="sec-head">
+      <div class="sec-title">🗂 All Boards Overview</div>
+      <span id="overview-sub" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+    </div>
+    <div class="sec-body">
+      <div class="stats-row" id="overview-stats">
+        <div class="stat-card"><div class="stat-icon si-blue">🗂</div><div><div class="stat-val" id="ov-boards">—</div><div class="stat-lbl">Boards</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">📚</div><div><div class="stat-val" id="ov-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-purple">✅</div><div><div class="stat-val" id="ov-done">—</div><div class="stat-lbl">Completed</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-orange">📈</div><div><div class="stat-val" id="ov-pct">—</div><div class="stat-lbl">Avg completion</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-pink">📝</div><div><div class="stat-val" id="ov-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+      </div>
+      <div id="ov-board-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Board selector -->
   <div class="section">
     <div class="sec-head">
@@ -475,9 +507,66 @@ async function loadData() {
       if (activeBoardId) localStorage.setItem('teachedos_board_id', activeBoardId);
     }
     renderBoardPills();
+    _boardDetailCache = {};       // refresh re-fetches board details
+    renderOverview();             // whole-account snapshot (non-blocking)
     if (activeBoardId) await loadBoardAnalytics(activeBoardId);
   } catch(e) { toast('Failed: '+e.message); }
   finally { _setRefreshBusy(false); }
+}
+
+// ── All-boards overview ───────────────────────────────────────────────
+let _boardDetailCache = {};
+async function _fetchBoardDetail(id) {
+  if (_boardDetailCache[id]) return _boardDetailCache[id];
+  const { board } = await apiFetch(`/api/boards/${id}`);
+  _boardDetailCache[id] = board;
+  return board;
+}
+async function renderOverview() {
+  const sec = document.getElementById('overview-section');
+  if (!sec) return;
+  if (!boards.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  document.getElementById('overview-sub').textContent = 'Loading…';
+  const results = [];
+  const queue = boards.slice();
+  const worker = async () => {
+    while (queue.length) {
+      const b = queue.shift();
+      try {
+        const board = await _fetchBoardDetail(b.id);
+        const cards = (board.data && board.data.cards) || [];
+        const lessons = cards.filter(c => c.type === 'lesson');
+        const done = lessons.filter(c => c.data && c.data.status === 'done').length;
+        const assignments = cards.filter(c => c.type === 'assignment').length;
+        results.push({ id: b.id, name: b.name, lessons: lessons.length, done, assignments });
+      } catch { results.push({ id: b.id, name: b.name, lessons: 0, done: 0, assignments: 0 }); }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, boards.length) }, worker));
+
+  const tLessons = results.reduce((s, r) => s + r.lessons, 0);
+  const tDone    = results.reduce((s, r) => s + r.done, 0);
+  const tAssign  = results.reduce((s, r) => s + r.assignments, 0);
+  const pct = tLessons ? Math.round(tDone / tLessons * 100) : 0;
+  document.getElementById('ov-boards').textContent  = results.length;
+  document.getElementById('ov-lessons').textContent = tLessons;
+  document.getElementById('ov-done').textContent    = tDone;
+  document.getElementById('ov-pct').textContent     = pct + '%';
+  document.getElementById('ov-assign').textContent  = tAssign;
+  document.getElementById('overview-sub').textContent = `${results.length} board${results.length !== 1 ? 's' : ''} · ${pct}% complete`;
+
+  results.sort((a, b) =>
+    (b.lessons ? b.done / b.lessons : 0) - (a.lessons ? a.done / a.lessons : 0) || b.lessons - a.lessons);
+  document.getElementById('ov-board-list').innerHTML = results.map(r => {
+    const p = r.lessons ? Math.round(r.done / r.lessons * 100) : 0;
+    return `<div class="ov-board-row" onclick="selectBoard('${r.id}')">
+      <div class="ovb-name">${esc(r.name)}</div>
+      <div class="ovb-bar"><div class="ovb-fill" style="width:${p}%"></div></div>
+      <div class="ovb-pct">${r.lessons ? p + '%' : '—'}</div>
+      <div class="ovb-meta">${r.lessons} lesson${r.lessons !== 1 ? 's' : ''}${r.done ? ` · ${r.done} done` : ''}${r.assignments ? ` · ${r.assignments} assignment${r.assignments !== 1 ? 's' : ''}` : ''}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderBoardPills() {
@@ -573,7 +662,7 @@ function selectBoard(id) {
 
 async function loadBoardAnalytics(id) {
   try {
-    const { board } = await apiFetch(`/api/boards/${id}`);
+    const board = await _fetchBoardDetail(id);
     const data = board.data || {};
     const cards = data.cards || [];
     analyzeBoard(id, cards, board.name);
