@@ -588,6 +588,64 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
   transform:skewX(-18deg);pointer-events:none;}
 .btn-pink:hover::after{animation:sheen .75s ease;}
 @keyframes sheen{from{left:-65%;}to{left:130%;}}
+
+/* ════════ IMMERSIVE HERO ════════ */
+/* Living aurora — morphing colour blobs that mix into the cream surface */
+.hero-aurora{position:absolute;inset:-12% -6%;z-index:0;pointer-events:none;
+  filter:blur(64px);opacity:.72;}
+.hero-aurora .ab{position:absolute;border-radius:50%;mix-blend-mode:multiply;will-change:transform;}
+.ab1{width:48vw;height:48vw;left:-6%;top:26%;
+  background:radial-gradient(circle at 30% 30%,rgba(205,242,79,.55),transparent 70%);
+  animation:ab1 19s ease-in-out infinite alternate;}
+.ab2{width:42vw;height:42vw;right:-8%;top:4%;
+  background:radial-gradient(circle at 60% 40%,rgba(236,45,140,.40),transparent 70%);
+  animation:ab2 23s ease-in-out infinite alternate;}
+.ab3{width:38vw;height:38vw;left:33%;bottom:-16%;
+  background:radial-gradient(circle at 50% 50%,rgba(216,197,251,.50),transparent 70%);
+  animation:ab3 27s ease-in-out infinite alternate;}
+@keyframes ab1{from{transform:translate(0,0) scale(1);}to{transform:translate(8%,-6%) scale(1.16);}}
+@keyframes ab2{from{transform:translate(0,0) scale(1);}to{transform:translate(-7%,9%) scale(1.22);}}
+@keyframes ab3{from{transform:translate(0,0) scale(1);}to{transform:translate(5%,-10%) scale(1.12);}}
+/* Cursor spotlight — a soft light that tracks the pointer */
+.hero-spot{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;
+  transition:opacity .6s ease;
+  background:radial-gradient(440px circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.55),rgba(255,255,255,0) 62%);}
+.hero.spot-on .hero-spot{opacity:1;}
+
+/* 3D parallax mockup (float stays on the shell, tilt on this wrapper) */
+.preview-stage{perspective:1400px;}
+.preview-parallax{transform-style:preserve-3d;will-change:transform;
+  transition:transform .35s cubic-bezier(.22,.61,.36,1);}
+
+/* Floating glass feature chips around the mockup */
+.hero-chips{position:absolute;inset:0;z-index:3;pointer-events:none;
+  transition:transform .35s cubic-bezier(.22,.61,.36,1);will-change:transform;}
+.hchip{position:absolute;display:inline-flex;align-items:center;gap:7px;
+  padding:9px 13px;border-radius:14px;
+  background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 14px 32px rgba(14,14,16,.13),0 2px 6px rgba(14,14,16,.06);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  font-family:var(--font);font-size:12px;font-weight:800;color:var(--ink);
+  white-space:nowrap;will-change:transform;animation:chipFloat 6s ease-in-out infinite;}
+.hchip .ic{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:6px;font-size:11px;}
+.hchip.c1{top:3%;left:-2%;animation-delay:0s;}        .hchip.c1 .ic{background:rgba(205,242,79,.45);}
+.hchip.c2{top:12%;right:-1%;animation-delay:-2s;}     .hchip.c2 .ic{background:var(--pink-soft);}
+.hchip.c3{bottom:18%;left:0;animation-delay:-3.4s;}   .hchip.c3 .ic{background:rgba(216,197,251,.55);}
+.hchip.c4{bottom:5%;right:2%;animation-delay:-1.2s;}  .hchip.c4 .ic{background:rgba(143,230,230,.5);}
+@keyframes chipFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+@media(max-width:860px){.hero-chips{display:none;}}
+
+/* Kinetic headline — line-by-line mask reveal (only when motion is welcome) */
+.hero-h .line{display:block;overflow:hidden;padding:.04em .12em;margin:-.04em -.12em;}
+.hero-h .line > span{display:block;}
+@media (prefers-reduced-motion: no-preference){
+  .hero-h .line > span{transform:translateY(108%);animation:lineUp .95s cubic-bezier(.22,.61,.36,1) forwards;}
+  .hero-h .line:nth-child(1) > span{animation-delay:.10s;}
+  .hero-h .line:nth-child(2) > span{animation-delay:.22s;}
+  .hero-h .line:nth-child(3) > span{animation-delay:.34s;}
+}
+@keyframes lineUp{from{transform:translateY(108%);}to{transform:translateY(0);}}
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
@@ -620,13 +678,17 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 <!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
 <section class="hero">
   <div class="hero-bg"></div>
+  <div class="hero-aurora" aria-hidden="true"><span class="ab ab1"></span><span class="ab ab2"></span><span class="ab ab3"></span></div>
+  <div class="hero-spot" aria-hidden="true"></div>
   <div class="container" style="position:relative;z-index:1;">
     <div class="hero-badge">
       <span class="dot"></span>
       PWA · Works offline · Free to start
     </div>
     <h1 class="hero-h">
-      Your whole<br>classroom,<br><em>in your pocket</em>
+      <span class="line"><span>Your whole</span></span>
+      <span class="line"><span>classroom,</span></span>
+      <span class="line"><span><em>in your pocket</em></span></span>
     </h1>
     <p class="hero-sub">
       The all-in-one workspace for language teachers. Generate worksheets and quizzes with AI, turn any YouTube video into a full lesson, build interactive boards, and run 30+ classroom games — online or offline.
@@ -644,6 +706,13 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 
     <!-- App preview -->
     <div class="preview-stage">
+      <div class="hero-chips" aria-hidden="true">
+        <span class="hchip c1"><span class="ic">✦</span>AI worksheets</span>
+        <span class="hchip c2"><span class="ic">▶</span>YouTube → Lesson</span>
+        <span class="hchip c3"><span class="ic">✎</span>Interactive board</span>
+        <span class="hchip c4"><span class="ic">♟</span>30+ games</span>
+      </div>
+      <div class="preview-parallax">
       <div class="preview-shell">
         <div class="preview-bar">
           <div class="tb r"></div><div class="tb y"></div><div class="tb g"></div>
@@ -681,6 +750,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
             <div class="pc-stat"><div class="pc-sn">94%</div><div class="pc-sl">Attendance</div></div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -1549,7 +1619,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
   if (reduce || !('IntersectionObserver' in window)) return;
 
   // 1) Reveal-on-scroll
-  var sels = ['.hero-badge', '.hero-h', '.hero-sub', '.hero-ctas', '.hero-trust', '.preview-stage',
+  var sels = ['.hero-badge', '.hero-sub', '.hero-ctas', '.hero-trust', '.preview-stage',
     '.stats-strip .stat-c', '.sec-eye', '.sec-h', '.sec-sub',
     '#features .bc', '#tools .cat', '#how .step', '.testi', '.plan', '.faq-item',
     '.final-h', '.final-sub', '.final-ctas'];
@@ -1618,6 +1688,41 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
   var origReveal = revealCheck;
   revealCheck = function () { origReveal(); countCheck(); };
   countCheck();
+})();
+</script>
+<script>
+/* Immersive hero: cursor spotlight + 3D parallax (desktop / fine pointer only).
+   Progressive — does nothing under reduced-motion or on touch. */
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var hero = document.querySelector('.hero');
+  if (!hero) return;
+  var spot  = hero.querySelector('.hero-spot');
+  var para  = hero.querySelector('.preview-parallax');
+  var chips = hero.querySelector('.hero-chips');
+  var fine  = window.matchMedia && window.matchMedia('(pointer:fine)').matches;
+  var raf = 0, px = 0, py = 0;
+  function apply() {
+    raf = 0;
+    if (para)  para.style.transform  = 'rotateX(' + (-py * 5).toFixed(2) + 'deg) rotateY(' + (px * 7).toFixed(2) + 'deg) translate3d(' + (px * 14).toFixed(1) + 'px,' + (py * 10).toFixed(1) + 'px,0)';
+    if (chips) chips.style.transform = 'translate3d(' + (-px * 26).toFixed(1) + 'px,' + (-py * 18).toFixed(1) + 'px,0)';
+  }
+  function onMove(e) {
+    var r = hero.getBoundingClientRect();
+    var mx = (e.clientX - r.left) / r.width, my = (e.clientY - r.top) / r.height;
+    if (spot) { hero.classList.add('spot-on'); hero.style.setProperty('--mx', (mx * 100).toFixed(1) + '%'); hero.style.setProperty('--my', (my * 100).toFixed(1) + '%'); }
+    px = mx - 0.5; py = my - 0.5;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }
+  function onLeave() {
+    if (spot) hero.classList.remove('spot-on');
+    if (para) para.style.transform = '';
+    if (chips) chips.style.transform = '';
+  }
+  if (fine) {
+    hero.addEventListener('pointermove', onMove, { passive: true });
+    hero.addEventListener('pointerleave', onLeave);
+  }
 })();
 </script>
 <script src="scripts/nav-boost.js" defer></script>
