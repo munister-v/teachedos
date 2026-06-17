@@ -12,7 +12,9 @@
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#EC2D8C">
-<link rel="icon" type="image/png" href="logo-sm.png">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,13 +46,18 @@
   })();
 </script>
 <meta name="description" content="TeachEd is a classroom operating system for language teachers: lesson boards, courses, schedule, journal, gradebook, analytics and learning games in one PWA."/>
-<link rel="canonical" href="https://teached.tech/"/>
+<!-- App dashboard: not the public marketing page. Don't index — teached.tech/ (landing) is the canonical entry. -->
+<meta name="robots" content="noindex,follow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="TeachEd — Language Learning Platform"/>
+<meta property="og:site_name" content="TeachEd"/>
+<meta property="og:title" content="TeachEd — Workspace for language teachers"/>
 <meta property="og:description" content="Boards, courses, schedule, journal, gradebook, analytics and games for language teachers."/>
 <meta property="og:url" content="https://teached.tech/"/>
-<meta property="og:image" content="https://teached.tech/icons/icon-512.png"/>
+<meta property="og:image" content="https://teached.tech/og-cover.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
 <link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/main.css">
 <style>
@@ -2132,7 +2139,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=140',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=141',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

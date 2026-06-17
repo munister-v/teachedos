@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo-sm.png">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#CDF24F">
 <meta name="mobile-web-app-capable" content="yes">
@@ -988,36 +990,36 @@ polite request</textarea>
 <div id="undo-toast"></div>
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
-<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;display:none;align-items:center;justify-content:center;">
-  <div id="auth-modal" style="background:#fff;border-radius:12px;padding:28px 26px 24px;width:100%;max-width:400px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:3000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;color-scheme:light;background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%,rgba(205,242,79,.20) 0%,transparent 60%),rgba(20,16,24,.50);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);">
+  <div id="auth-modal" style="background:rgba(247,243,234,.96);backdrop-filter:blur(36px) saturate(1.6);-webkit-backdrop-filter:blur(36px) saturate(1.6);border-radius:26px;padding:34px 30px 26px;width:100%;max-width:400px;margin:auto;box-shadow:0 44px 110px rgba(5,5,23,.40),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;border:1px solid rgba(255,255,255,.6);">
     <div style="text-align:center;margin-bottom:22px;">
-      <div style="font-size:2.4rem;line-height:1;">📌</div>
-      <div style="font-size:1.35rem;font-weight:900;color:var(--text);margin-top:8px;letter-spacing:-.02em;">Teached<em style="color:var(--accent);font-style:normal;">Board</em></div>
-      <div id="auth-subtitle" style="font-size:.85rem;color:var(--text-3);margin-top:5px;">Sign in to sync your boards</div>
+      <img src="logo-sm.png" alt="TeachEd" width="60" height="60" style="border-radius:15px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
+      <div style="font-size:1.9rem;font-weight:800;color:#0E0E10;margin-top:11px;letter-spacing:-.035em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;">Teach<em style="color:#EC2D8C;font-style:normal;">Ed</em></div>
+      <div id="auth-subtitle" style="font-size:.85rem;color:#5A5A4A;font-weight:600;margin-top:6px;">Sign in to sync your boards</div>
     </div>
-    <div id="auth-err" style="display:none;background:#fff0f0;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;font-size:.85rem;color:#c62828;margin-bottom:14px;"></div>
+    <div id="auth-err" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 13px;font-size:.85rem;color:#c62828;font-weight:600;margin-bottom:14px;"></div>
     <div id="auth-role-row" style="display:none;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="font-size:10px;font-weight:800;color:#7A7A6A;font-family:var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')">
-          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
-          <div style="font-size:12px;font-weight:800;color:var(--text);">Teacher</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Create boards & courses</div>
+          <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
+          <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
+          <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create boards &amp; courses</div>
         </div>
         <div class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')">
-          <div style="font-size:1.8rem;line-height:1;margin-bottom:4px;">🎓</div>
-          <div style="font-size:12px;font-weight:800;color:var(--text);">Student</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Follow & collaborate</div>
+          <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🎓</div>
+          <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
+          <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Follow &amp; collaborate</div>
         </div>
       </div>
     </div>
     <div id="auth-fields"></div>
-    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:4px;transition:background .15s;letter-spacing:-.01em;">Sign in</button>
-    <div style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--text-3);">
+    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:6px;transition:filter .15s,transform .12s;letter-spacing:-.01em;box-shadow:0 6px 26px rgba(14,14,16,.26),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+    <div style="text-align:center;margin-top:16px;font-size:.85rem;color:#5A5A4A;font-weight:500;">
       <span id="auth-toggle-text">Don't have an account?</span>
-      <span onclick="toggleAuthMode()" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:4px;" id="auth-toggle-link">Register</span>
+      <span onclick="toggleAuthMode()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;text-decoration:underline;text-underline-offset:2px;" id="auth-toggle-link">Register</span>
     </div>
-    <div onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);line-height:1;transition:background .12s;">×</div>
+    <div onclick="closeAuthModal()" style="position:absolute;top:16px;right:16px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</div>
   </div>
 </div>
 
@@ -1612,7 +1614,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=140',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=141',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

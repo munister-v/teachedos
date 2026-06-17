@@ -1606,11 +1606,12 @@ body.alt-duplicating *{cursor:copy!important;}
 .user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:#050038;transition:background .1s;border-radius:6px;font-size:13px;}
 .user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
 .auth-input{
-  width:100%;padding:10px 14px;border:1px solid rgba(0,0,0,.12);border-radius:8px;
-  font-family:var(--font);font-size:14px;color:#050038;outline:none;margin-bottom:10px;
-  transition:border-color .12s,box-shadow .12s;background:#fff;
+  width:100%;padding:13px 15px;border:1.5px solid rgba(94,94,74,.16);border-radius:13px;
+  font-family:var(--font);font-size:14px;font-weight:600;color:#1C1C1E;outline:none;margin-bottom:11px;
+  transition:border-color .15s,box-shadow .15s;background:rgba(255,255,255,.7);box-sizing:border-box;
 }
-.auth-input:focus{border-color:#4262FF;box-shadow:0 0 0 3px rgba(66,98,255,.10);}
+.auth-input::placeholder{color:#8f8797;font-weight:500;}
+.auth-input:focus{border-color:#A8D02B;box-shadow:0 0 0 3px rgba(205,242,79,.28);}
 .board-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;}
 .board-list-item:hover{border-color:var(--accent);background:var(--accent-2);}
 
@@ -3276,11 +3277,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 #follow-banner button:hover{background:rgba(255,255,255,.3);}
 /* ── Auth role picker ── */
 .auth-role-btn{
-  padding:14px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.10);
-  background:#fff;cursor:pointer;text-align:center;transition:.12s;
+  padding:13px 9px;border-radius:14px;border:2px solid rgba(94,94,74,.14);
+  background:rgba(255,255,255,.6);cursor:pointer;text-align:center;transition:.15s;
 }
-.auth-role-btn:hover{border-color:#4262FF;background:rgba(66,98,255,.04);}
-.auth-role-btn.active{border-color:#4262FF;background:rgba(66,98,255,.08);border-width:2px;padding:13px 9px;}
+.auth-role-btn:hover{border-color:rgba(168,208,43,.6);background:rgba(205,242,79,.07);}
+.auth-role-btn.active{border-color:#A8D02B;background:rgba(205,242,79,.16);}
 /* ══════════════ VERSION HISTORY PANEL ══════════════ */
 #vh-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);

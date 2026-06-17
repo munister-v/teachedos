@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Private / authenticated app pages — no SEO value
+Disallow: /admin.html
+Disallow: /profile.html
+Disallow: /billing.html
+Disallow: /billing-success.html
+Disallow: /homework-do.html
+Disallow: /reset-password.html
+Disallow: /invite.html
+Disallow: /share.html
+Disallow: /portal.html
+
+Sitemap: https://teached.tech/sitemap.xml

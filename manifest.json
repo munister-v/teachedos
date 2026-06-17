@@ -1,10 +1,10 @@
 {
   "name": "TeachEd",
   "short_name": "TeachEd",
-  "description": "The OS for language teachers",
-  "id": "/teachedos/",
-  "start_url": "/teachedos/index.html?pwa=1",
-  "scope": "/teachedos/",
+  "description": "AI worksheets, lessons and 30+ games for language teachers",
+  "id": "/",
+  "start_url": "/index.html?pwa=1",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "background_color": "#1C1C1E",
@@ -19,8 +19,8 @@
   "screenshots": [],
   "categories": ["education", "productivity"],
   "shortcuts": [
-    { "name": "Schedule",  "url": "/teachedos/schedule.html",  "description": "View class schedule",  "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Gradebook", "url": "/teachedos/gradebook.html", "description": "Open gradebook",      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Journal",   "url": "/teachedos/journal.html",   "description": "Open lesson journal", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Schedule",  "url": "/schedule.html",  "description": "View class schedule",  "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Gradebook", "url": "/gradebook.html", "description": "Open gradebook",      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Journal",   "url": "/journal.html",   "description": "Open lesson journal", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
