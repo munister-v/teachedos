@@ -8556,6 +8556,13 @@ function _ttPlaceWorksheetOnBoard(output){
     _ttSrc: 1,  // marks this card as Teacher Tool generated
   }, W, H);
   if (card) {
+    // Send to back so the white worksheet sits behind any existing board cards
+    const ordered = state.cards
+      .map((c, i) => ({ c: normalizeCardLayer(c, i + 1), i }))
+      .sort((a, b) => getCardZ(a.c) - getCardZ(b.c) || a.i - b.i)
+      .map(x => x.c);
+    const bIdx = ordered.findIndex(c => c.id === card.id);
+    if (bIdx > 0) { ordered.unshift(ordered.splice(bIdx, 1)[0]); ordered.forEach((c, i) => { c.z = i + 1; applyCardLayer(c); }); }
     clearSelection && clearSelection();
     selectCard(card.id);
     setTimeout(() => { try { zoomToCard && zoomToCard(card.id, true); } catch (e) {} }, 80);
