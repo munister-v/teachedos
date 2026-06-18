@@ -33,11 +33,9 @@
 /* Keep the cross-fade fast and light — a slow fade feels heavier, not lighter. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 200ms;
+  animation-duration: 150ms;
   animation-timing-function: cubic-bezier(.4, 0, .2, 1);
 }
-/* New page fades in a touch later so there's no double-bright flash mid-swap. */
-::view-transition-new(root) { animation-delay: 30ms; }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
@@ -56,7 +54,7 @@
 
 /* The anchored bars shouldn't fade at all — hold them steady through the swap. */
 ::view-transition-group(te-nav),
-::view-transition-group(te-topbar) { animation-duration: 200ms; }
+::view-transition-group(te-topbar) { animation-duration: 150ms; }
 ::view-transition-old(te-nav),
 ::view-transition-new(te-nav),
 ::view-transition-old(te-topbar),
@@ -1748,5 +1746,429 @@ label.hw-search {
     flex: 1 1 auto !important;
     width: 100% !important;
     min-width: 0 !important;
+  }
+}
+
+/* Data suite: Analytics / Journal / Gradebook.
+   These pages are used as one workflow, so keep them visually lighter and make
+   their internal navigation immediate on desktop and mobile. */
+.suite-page #page {
+  max-width: min(1220px, calc(100vw - 32px)) !important;
+}
+
+.suite-page .page-head {
+  margin-bottom: 12px !important;
+}
+
+.suite-page .page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(24px, 2.1vw, 30px) !important;
+  line-height: 1.08;
+}
+
+.suite-page .page-sub,
+.suite-page .page-head [style*="font-size:13px"] {
+  color: var(--text-3, #7A7A6A) !important;
+  line-height: 1.45;
+}
+
+.suite-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  margin: -2px 0 8px;
+  border: 1px solid var(--border, rgba(14,14,16,.08));
+  border-radius: 999px;
+  background: rgba(255,255,255,.76);
+  box-shadow: 0 6px 18px rgba(14,14,16,.05);
+}
+
+.suite-tab {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--text-2, #3A3A2E);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.suite-tab:hover {
+  background: rgba(14,14,16,.06);
+  color: var(--text, #0E0E10);
+}
+
+.suite-tab.active {
+  background: var(--u-ink, #0E0E10);
+  color: var(--u-lime, #C8E632);
+  box-shadow: 0 4px 12px rgba(14,14,16,.16);
+}
+
+.suite-page .section,
+.suite-page .table-wrap,
+.suite-page .stat-card,
+.suite-page .assign-card,
+.suite-page .qr-card {
+  border: 1px solid var(--border, rgba(14,14,16,.08)) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 24px rgba(14,14,16,.045) !important;
+}
+
+.suite-page .section,
+.suite-page .table-wrap {
+  border-radius: 18px !important;
+  overflow: clip;
+}
+
+.suite-page .sec-head {
+  min-height: 54px;
+  background: rgba(255,255,255,.54);
+}
+
+.suite-page .sec-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text, #0E0E10);
+  letter-spacing: -.01em;
+}
+
+.suite-page .btn,
+.suite-page button.btn,
+.suite-page .board-switcher-trigger,
+.suite-page .attend-btn,
+.suite-page .action-btn,
+.suite-page .board-pill {
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.suite-page .btn:hover,
+.suite-page .board-pill:hover,
+.suite-page .ov-board-row:hover {
+  transform: translate3d(0,-1px,0) !important;
+}
+
+.suite-page .btn:active,
+.suite-page .suite-tab:active,
+.suite-page .board-pill:active {
+  transform: scale(.985) !important;
+}
+
+.suite-page .board-switcher-pop {
+  width: min(340px, calc(100vw - 24px)) !important;
+  max-height: min(430px, calc(100dvh - 110px)) !important;
+  border-radius: 16px !important;
+}
+
+.suite-page .bs-search,
+.suite-page .bs-search:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]) {
+  width: auto !important;
+  max-width: none !important;
+  min-height: 42px !important;
+  box-shadow: none !important;
+}
+
+.suite-page .lesson-table th,
+.suite-page .lesson-table td,
+.suite-page .gb-table th,
+.suite-page .gb-table td {
+  line-height: 1.35;
+}
+
+.suite-page .lesson-table tr:hover td,
+.suite-page .gb-table tr:hover td,
+.suite-page .gb-table tr:hover td.td-name,
+.suite-page .table-row:hover {
+  background: rgba(200,230,50,.055) !important;
+}
+
+.suite-page .empty {
+  color: var(--text-3, #7A7A6A) !important;
+}
+
+@media (min-width: 861px) {
+  .suite-page.analytics-suite #page,
+  .suite-page.journal-suite #page,
+  .suite-page.gradebook-suite #page {
+    padding-top: 30px !important;
+  }
+
+  .suite-page.journal-suite #page {
+    max-width: min(1120px, calc(100vw - 32px)) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .suite-page #nav {
+    height: 42px !important;
+    overflow: hidden !important;
+  }
+
+  .suite-page #page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 14px 12px calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 12px !important;
+  }
+
+  .suite-page .page-head {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .suite-page .page-title {
+    font-size: 25px !important;
+  }
+
+  .suite-page .head-spacer {
+    display: none !important;
+  }
+
+  .suite-page .page-head .btn,
+  .suite-page .page-head .board-switcher,
+  .suite-page .page-head .board-switcher-trigger {
+    width: 100% !important;
+  }
+
+  .suite-page .page-head .btn,
+  .suite-page .board-switcher-trigger {
+    justify-content: center !important;
+    min-height: 44px !important;
+    border-radius: 14px !important;
+  }
+
+  .suite-switcher {
+    position: sticky;
+    top: calc(42px + env(safe-area-inset-top, 0px));
+    z-index: 180;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin: 0 0 2px;
+    padding: 4px;
+    border-radius: 16px;
+    background: #FAFAF8;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 8px 18px rgba(14,14,16,.06);
+  }
+
+  .suite-tab {
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .suite-page .section,
+  .suite-page .table-wrap,
+  .suite-page .stat-card,
+  .suite-page .assign-card,
+  .suite-page .qr-card {
+    box-shadow: none !important;
+    border-radius: 15px !important;
+  }
+
+  .suite-page .sec-head,
+  .suite-page .sec-body {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .suite-page .stats-row,
+  .suite-page .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .suite-page .stat-card {
+    min-width: 0;
+    padding: 14px !important;
+  }
+
+  .suite-page .stat-val,
+  .suite-page .stat-num {
+    font-size: 24px !important;
+  }
+
+  .suite-page .board-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .suite-page .board-pill {
+    flex: 0 0 auto;
+    min-height: 38px;
+  }
+
+  .suite-page .board-switcher-pop {
+    position: fixed !important;
+    top: auto !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-height: min(430px, calc(100dvh - 128px)) !important;
+  }
+
+  .suite-page .bs-item,
+  .suite-page .bs-tab {
+    min-height: 42px;
+  }
+
+  .analytics-suite .grid2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .analytics-suite .pie-wrap {
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+
+  .analytics-suite .assign-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .journal-suite .table-wrap {
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  .journal-suite .table-head {
+    display: none !important;
+  }
+
+  .journal-suite #journal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .journal-suite .table-row {
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 8px 10px !important;
+    align-items: center !important;
+    padding: 13px !important;
+    border: 1px solid var(--border, rgba(14,14,16,.08)) !important;
+    border-radius: 15px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .journal-suite .table-row > div:nth-child(1) {
+    grid-row: 1 / span 2;
+  }
+
+  .journal-suite .student-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .journal-suite .table-row > div:nth-child(3),
+  .journal-suite .table-row > div:nth-child(5),
+  .journal-suite .table-row > div:nth-child(6),
+  .journal-suite .table-row > div:nth-child(7) {
+    grid-column: 2;
+  }
+
+  .journal-suite .table-row > div:nth-child(3),
+  .journal-suite .table-row > div:nth-child(6),
+  .journal-suite .table-row > div:nth-child(7) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .journal-suite .table-row > div:nth-child(7) {
+    justify-content: flex-start;
+  }
+
+  .journal-suite .attend-btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .journal-suite .action-btn {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .journal-suite .modal-overlay {
+    padding: 12px;
+    align-items: flex-end !important;
+  }
+
+  .journal-suite .modal {
+    max-width: none !important;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+    padding: 20px !important;
+    border-radius: 18px !important;
+  }
+
+  .gradebook-suite .mp-topbar {
+    margin-bottom: 0 !important;
+  }
+
+  .gradebook-suite .invite-form {
+    gap: 10px !important;
+  }
+
+  .gradebook-suite .invite-form > * {
+    width: 100% !important;
+  }
+
+  .gradebook-suite .member-row {
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 8px 10px !important;
+  }
+
+  .gradebook-suite .member-row .m-prog,
+  .gradebook-suite .member-row .m-pct {
+    grid-column: 2 / -1;
+  }
+
+  .gradebook-suite .gb-mobile-card {
+    background: #fff;
+  }
+}
+
+@media (max-width: 420px) {
+  .suite-page #page {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .suite-page .stats-row,
+  .suite-page .stats-grid {
+    gap: 8px !important;
+  }
+
+  .suite-page .stat-card {
+    padding: 12px !important;
+  }
+
+  .suite-tab {
+    font-size: 11px;
   }
 }

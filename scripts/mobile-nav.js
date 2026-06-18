@@ -17,8 +17,8 @@
     'student.html': 'students',
     'gradebook.html': 'students',
     'profile.html': 'profile',
-    'analytics.html': 'home',
-    'journal.html': 'home',
+    'analytics.html': 'students',
+    'journal.html': 'students',
   };
   // board.html has its own bottom quickbar — skip the global mob-nav there.
   // Accept both /board and /board.html (some hosts strip extension).

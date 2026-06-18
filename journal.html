@@ -162,7 +162,7 @@ a{text-decoration:none;color:inherit;}
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
 <link rel="stylesheet" href="styles/unify.css">
 </head>
-<body>
+<body class="suite-page journal-suite">
 
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
@@ -193,6 +193,11 @@ a{text-decoration:none;color:inherit;}
     <button class="btn btn-ghost" onclick="exportCSV()">📥 Export CSV</button>
     <button class="btn btn-primary" onclick="openAddModal()">＋ Add Student</button>
   </div>
+  <nav class="suite-switcher" aria-label="Progress sections">
+    <a class="suite-tab" href="analytics.html">Analytics</a>
+    <a class="suite-tab active" href="journal.html">Journal</a>
+    <a class="suite-tab" href="gradebook.html">Gradebook</a>
+  </nav>
 
   <div class="stats-row" id="stats-row">
     <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Students</div></div>
