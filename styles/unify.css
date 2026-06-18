@@ -1640,3 +1640,113 @@ img, svg, video, canvas{ }
     transition-duration: .001ms !important;
   }
 }
+
+/* Component fixes that must win over the global form styling above. */
+.hw-toolbar {
+  align-items: center;
+}
+
+.hw-search,
+label.hw-search {
+  flex: 1 1 340px !important;
+  max-width: 360px !important;
+  min-width: 260px !important;
+  height: 46px;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  overflow: hidden;
+}
+
+.hw-search > input#hw-search,
+.hw-search input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]) {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--text, #1C1C1E) !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+
+.hw-search > input#hw-search:focus,
+.hw-search > input#hw-search:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+#board-search-bar {
+  align-items: center;
+}
+
+#board-search-bar input,
+#board-search-bar input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]) {
+  width: 280px !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--text, #050038) !important;
+  font-size: 14px !important;
+}
+
+#board-search-bar input:focus,
+#board-search-bar input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media (max-width: 860px) {
+  .hw-toolbar {
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    gap: 10px !important;
+  }
+
+  .hw-filters {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hw-search,
+  label.hw-search {
+    flex-basis: 100% !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  #board-search-bar {
+    top: calc(60px + env(safe-area-inset-top, 0px)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  #board-search-bar input,
+  #board-search-bar input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]) {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
