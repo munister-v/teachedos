@@ -1447,3 +1447,50 @@ body:not(.board-page) .topic-ctl select:not([data-a]):not([data-b]):not([data-c]
   color-scheme: light !important;
   padding-right: 12px !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   POLISH LAYER — app-wide smoothness & finish (2026)
+   Non-destructive: scoped with :where() (0 specificity) so any page rule
+   still wins. Respects prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference){
+  html{ scroll-behavior:smooth; scroll-padding-top:72px; }
+}
+html{ -webkit-text-size-adjust:100%; }
+body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
+
+/* Smooth, consistent micro-transitions on interactive elements (default only). */
+@media (prefers-reduced-motion: no-preference){
+  :where(a, button, .btn, input, select, textarea, [role="button"], .card, .tool-card, .nav-item, .chip, .tag){
+    transition: background-color .18s cubic-bezier(.22,.61,.36,1),
+                border-color .18s cubic-bezier(.22,.61,.36,1),
+                color .18s cubic-bezier(.22,.61,.36,1),
+                box-shadow .18s cubic-bezier(.22,.61,.36,1),
+                transform .12s cubic-bezier(.22,.61,.36,1),
+                opacity .18s ease;
+  }
+  /* Gentle press feedback for buttons that don't already define a transform. */
+  :where(button, .btn, [role="button"]):active{ transform: translateY(.5px) scale(.992); }
+}
+
+/* Crisper keyboard focus everywhere (accessibility + finish). */
+:where(a, button, .btn, input, select, textarea, [role="button"], [tabindex]):focus-visible{
+  outline: 2px solid #1C1C1E;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Tasteful thin scrollbars matching the sand/ink theme. */
+@media (pointer:fine){
+  *{ scrollbar-width: thin; scrollbar-color: rgba(28,28,30,.32) transparent; }
+  *::-webkit-scrollbar{ width:10px; height:10px; }
+  *::-webkit-scrollbar-thumb{ background:rgba(28,28,30,.26); border-radius:8px; border:2px solid transparent; background-clip:content-box; }
+  *::-webkit-scrollbar-thumb:hover{ background:rgba(28,28,30,.42); background-clip:content-box; }
+  *::-webkit-scrollbar-track{ background:transparent; }
+}
+
+/* Kill the blue tap flash on touch for a native-app feel. */
+a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-highlight-color: transparent; }
+
+/* Images/media render smoothly. */
+img, svg, video, canvas{ }
