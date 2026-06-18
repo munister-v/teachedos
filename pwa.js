@@ -9,10 +9,13 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    :root.pwa-standalone{
+      --teached-pwa-safe-top:env(safe-area-inset-top, 0px);
+      --teached-pwa-safe-bottom:env(safe-area-inset-bottom, 0px);
+    }
     body.pwa-standalone{
       min-height:100vh;
-      padding-top:calc(env(safe-area-inset-top, 0px) + 0px);
-      padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 0px);
+      padding-bottom:var(--teached-pwa-safe-bottom);
     }
     .teachedos-install{
       position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9998;
@@ -67,6 +70,7 @@
   document.head.appendChild(style);
 
   if (isStandalone) {
+    document.documentElement.classList.add('pwa-standalone');
     document.body.classList.add('pwa-standalone');
     return;
   }

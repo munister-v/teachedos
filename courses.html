@@ -356,6 +356,62 @@ button{font-family:var(--font);cursor:pointer;}
 <link rel="stylesheet" href="styles/harmony.css">
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
 <link rel="stylesheet" href="styles/unify.css">
+<style>
+.course-skeleton{
+  display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
+  background:rgba(255,255,255,.55);border:1px solid rgba(94,94,74,.08);
+}
+.course-skeleton-dot,.course-skeleton-line,.course-skeleton-count{
+  border-radius:999px;background:linear-gradient(90deg,rgba(94,94,74,.08),rgba(255,255,255,.72),rgba(94,94,74,.08));
+  background-size:220% 100%;animation:coursePulse 1.25s ease-in-out infinite;
+}
+.course-skeleton-dot{width:9px;height:9px;flex-shrink:0;}
+.course-skeleton-line{height:12px;flex:1;min-width:86px;}
+.course-skeleton-count{width:24px;height:12px;flex-shrink:0;}
+.course-empty-state{padding:16px 12px;font-size:12px;color:var(--text3);line-height:1.6;}
+@keyframes coursePulse{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+@media(max-width:860px){
+  .mp-topbar{
+    position:sticky;top:0;z-index:220;
+    padding-top:env(safe-area-inset-top,0px);
+    background:rgba(245,240,232,.96);
+    border-bottom:1px solid rgba(94,94,74,.10);
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  #layout{gap:10px;}
+  #sidebar{
+    position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:180;
+    border:1px solid rgba(94,94,74,.10);border-left:none;border-right:none;
+    border-radius:0 0 18px 18px;box-shadow:0 12px 24px rgba(94,94,74,.07);
+  }
+  #course-plan-note{padding:8px 12px 0!important;}
+  #course-list{
+    display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;
+    padding:8px 12px 12px!important;scrollbar-width:none;
+  }
+  #course-list::-webkit-scrollbar{display:none;}
+  #course-list .course-item{
+    flex:0 0 auto;min-width:178px;max-width:230px;min-height:44px;margin:0;
+    background:#fff;border:1px solid rgba(94,94,74,.12);
+    box-shadow:0 2px 10px rgba(94,94,74,.05);
+  }
+  #course-list .course-item.active{background:#1C1C1E;color:#C8E632;border-color:#1C1C1E;}
+  #course-list .course-item.active .ci-name,
+  #course-list .course-item.active .ci-count{color:#C8E632;}
+  #course-list .course-empty-state{min-width:100%;background:#fff;border-radius:14px;border:1px solid rgba(94,94,74,.10);}
+  .course-skeleton{flex:0 0 178px;margin:0;background:#fff;}
+  #sb-shared-head,#shared-list{display:none!important;}
+  #welcome{padding:28px 16px;min-height:44vh;}
+  .ready-library{margin:12px 16px 0!important;grid-template-columns:1fr!important;}
+  #course-header{border-radius:18px;margin:0 12px 0;padding:14px!important;}
+  .course-insights{margin:10px 12px 0!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  #modules-area{padding:12px!important;}
+  .module-block{border-radius:16px;}
+  .lessons-grid{grid-template-columns:1fr!important;padding:10px!important;}
+  .lesson-card:hover{transform:none;box-shadow:none;}
+}
+</style>
 </head>
 <body class="mp-shell">
 
@@ -494,6 +550,7 @@ let pickerSelected = new Set();
 let formMode = null; // 'course' | 'module' | 'editCourse'
 let formTargetId = null;
 let currentUser = null;
+const COURSES_CACHE_KEY = 'teachedos_courses_cache_v2';
 const COURSE_TEMPLATES = {
   A1: {
     level: 'A1',
@@ -589,6 +646,51 @@ async function api(path, opts = {}) {
   return d;
 }
 
+function readCoursesCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(COURSES_CACHE_KEY) || 'null');
+    if (!cached || !Array.isArray(cached.courses)) return null;
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+function writeCoursesCache(patch) {
+  try {
+    const current = readCoursesCache() || {};
+    localStorage.setItem(COURSES_CACHE_KEY, JSON.stringify({
+      ...current,
+      ...patch,
+      cachedAt: new Date().toISOString(),
+    }));
+  } catch {}
+}
+
+function renderCourseSkeleton() {
+  const list = document.getElementById('course-list');
+  if (!list || list.children.length) return;
+  list.innerHTML = Array.from({ length: 3 }, () => `
+    <div class="course-skeleton" aria-hidden="true">
+      <div class="course-skeleton-dot"></div>
+      <div class="course-skeleton-line"></div>
+      <div class="course-skeleton-count"></div>
+    </div>`).join('');
+}
+
+function restoreCoursesShellFromCache() {
+  const cached = readCoursesCache();
+  if (cached?.courses?.length) {
+    courses = cached.courses;
+    allBoards = Array.isArray(cached.boards) ? cached.boards : allBoards;
+    applyCoursePlanUI();
+    renderSidebar();
+    return true;
+  }
+  renderCourseSkeleton();
+  return false;
+}
+
 /* ── INIT ────────────────────────────────────────────────────── */
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
@@ -607,6 +709,7 @@ async function init() {
 
   buildColorRow();
   renderReadyLibrary();
+  restoreCoursesShellFromCache();
   await loadAll();
 }
 
@@ -648,28 +751,38 @@ function initials(name) {
 }
 
 async function loadAll() {
-  const [cd, bd] = await Promise.all([
-    api('/api/courses').catch(() => ({ courses: [] })),
-    api('/api/boards').catch(() => ({ boards: [] })),
+  const cached = readCoursesCache();
+  const [cd, bd] = await Promise.allSettled([
+    api('/api/courses'),
+    api('/api/boards'),
   ]);
-  courses   = cd.courses;
-  allBoards = bd.boards;
+  const nextCourses = cd.status === 'fulfilled' ? cd.value.courses : (cached?.courses || courses);
+  const nextBoards = bd.status === 'fulfilled' ? bd.value.boards : (cached?.boards || allBoards);
+  courses = Array.isArray(nextCourses) ? nextCourses : [];
+  allBoards = Array.isArray(nextBoards) ? nextBoards : [];
+  if (cd.status === 'fulfilled' || bd.status === 'fulfilled') {
+    writeCoursesCache({ courses, boards: allBoards });
+  }
   applyCoursePlanUI();
   renderSidebar();
-  if (activeCourse) await openCourse(activeCourse.id);
+  if (activeCourse && cd.status === 'fulfilled') await openCourse(activeCourse.id);
 
   try {
     const sd = await api('/api/courses/shared/list');
     sharedCourses = sd.courses;
   } catch { sharedCourses = []; }
   renderShared();
+
+  if (cd.status === 'rejected' && cached?.courses?.length) {
+    toast('Showing saved courses while the server wakes up');
+  }
 }
 
 /* ── SIDEBAR ─────────────────────────────────────────────────── */
 function renderSidebar() {
   const list = document.getElementById('course-list');
   if (!courses.length) {
-    list.innerHTML = '<div style="padding:16px 12px;font-size:12px;color:var(--text3);line-height:1.6;">No courses yet.<br>Click <strong>+ New</strong> to create one.</div>';
+    list.innerHTML = '<div class="course-empty-state">No courses yet.<br>Click <strong>+ New</strong> to create one.</div>';
     return;
   }
   list.innerHTML = courses.map(c => `
