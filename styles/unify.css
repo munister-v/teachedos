@@ -1494,3 +1494,149 @@ a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-hi
 
 /* Images/media render smoothly. */
 img, svg, video, canvas{ }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PERFORMANCE + MOTION PASS — desktop smoothness, mobile resilience
+   Keeps the existing visual language, but cuts the expensive parts:
+   huge live blurs, permanent will-change layers, layout-shifting hover
+   effects, and grids/tables that overflow small screens.
+═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --motion-fast: 140ms;
+  --motion-med: 220ms;
+  --motion-ease: cubic-bezier(.22,.61,.36,1);
+  --glass-blur-desktop: 18px;
+}
+
+@media (min-width: 861px) {
+  /* Large blur radii repaint heavily on desktop when windows, panels or the
+     board move. Keep the glass feel, but cap the live filter cost. */
+  :where(#menubar, #dock, .widget, .win, .modal, .hero-card, .panel, .share-card, .wp-card) {
+    -webkit-backdrop-filter: blur(var(--glass-blur-desktop)) saturate(1.25) !important;
+    backdrop-filter: blur(var(--glass-blur-desktop)) saturate(1.25) !important;
+  }
+
+  /* Permanent will-change creates too many compositor layers on rich pages.
+     Promote only the things that are actually being interacted with. */
+  :where(.widget, .win, #dock, #menubar, .hero-card, .panel, .share-card, .card, .tool-card, .lesson-card, .pack-card, .bc, .cat, .plan, .reveal) {
+    will-change: auto !important;
+  }
+  :where(.win.dragging, .win.resizing, .di:hover, .btn:hover, .tool-card:hover, .lesson-card:hover, .pack-card:hover, .bc:hover, .cat:hover, .plan.pop:hover) {
+    will-change: transform !important;
+  }
+
+  /* Desktop motion: quick, interruptible, transform/opacity only. */
+  @media (prefers-reduced-motion: no-preference) {
+    :where(.btn, button, [role="button"], .chip, .nav-link, .tool-card, .lesson-card, .pack-card, .bc, .cat, .plan, .card, .panel, .share-card) {
+      transition-property: transform, opacity, background-color, border-color, color, box-shadow !important;
+      transition-duration: var(--motion-fast) !important;
+      transition-timing-function: var(--motion-ease) !important;
+    }
+    :where(.btn, button, [role="button"], .chip):hover {
+      transform: translate3d(0,-1px,0);
+    }
+    :where(.btn, button, [role="button"], .chip):active {
+      transform: translate3d(0,0,0) scale(.985);
+    }
+    :where(.bc, .cat, .plan, .tool-card, .lesson-card, .pack-card):hover {
+      transform: translate3d(0,-2px,0) !important;
+    }
+    .reveal.in {
+      will-change: auto !important;
+    }
+  }
+
+  /* Heavy dashboard sections below the first viewport can wait for paint
+     without changing layout because contain-intrinsic-size reserves space. */
+  @supports (content-visibility: auto) {
+    :where(.library, .activity-grid, .analytics-grid, .settings-grid, .queue-grid, .ops-grid, .section-block, .pricing, .faq, .footer) {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 720px;
+    }
+  }
+}
+
+@media (max-width: 860px) {
+  html {
+    overflow-x: clip;
+  }
+
+  body {
+    min-width: 0;
+    overflow-x: clip !important;
+  }
+
+  /* Flexible grids that appeared in inline page CSS. This keeps cards from
+     squeezing text or causing horizontal scroll on narrow devices. */
+  :where(.grid, .stats-grid, .settings-grid, .activity-grid, .analytics-grid, .ops-grid, .queue-grid, .plan-control-grid, .plan-card-grid, .brief-card, .spotlight-results, .library-grid, .chart-stack, .hero, .workspace, .form-grid) {
+    grid-template-columns: 1fr !important;
+  }
+
+  @media (min-width: 560px) and (max-width: 860px) {
+    :where(.stats-grid, .plan-card-grid, .library-grid, .chart-stack, .grid) {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+
+  :where(.wrap, .page, .page-wrap, .container, main, .main, #main, .shell, .mp-shell) {
+    width: 100%;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+
+  :where(.hero, .hero-card, .panel, .share-card, .modal, .modal-panel, .drawer, .shortcuts-box, .login-box, .auth-card) {
+    max-width: calc(100vw - 20px) !important;
+    border-radius: min(22px, 6vw) !important;
+  }
+
+  :where(.bar, .hero-actions, .section-head, .worksheet-head, .sp-link-row, .sp-invite-row, .grant-row, .action-strip, .lib-actions) {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  :where(.bar > *, .hero-actions > *, .section-head > *, .sp-link-row > *, .sp-invite-row > *, .grant-row > *) {
+    min-width: 0;
+  }
+
+  :where(.sp-link-input, .sp-email-input, .search-box, .search input, input, select, textarea) {
+    max-width: 100% !important;
+  }
+
+  :where(table, .policy-table) {
+    min-width: 620px;
+  }
+
+  :where(.table-wrap, [style*="overflow-x:auto"], [style*="overflow-x: auto"]) {
+    width: 100%;
+    max-width: calc(100vw - 20px) !important;
+    overflow-x: auto !important;
+  }
+
+  :where(h1, .page-title) {
+    text-wrap: balance;
+  }
+
+  :where(p, .hero-copy, .section-sub, .panel-sub, .tool p, .library-item p) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Mobile motion: keep press feedback, remove hover lifts and live glass. */
+  :where(.btn, button, [role="button"], .chip, .tool, .card, .panel, .hero-card, .share-card) {
+    transition-property: background-color, border-color, color, opacity, transform !important;
+    transition-duration: var(--motion-fast) !important;
+  }
+  :where(.tool:hover, .card:hover, .panel:hover, .hero-card:hover, .share-card:hover, .bc:hover, .cat:hover, .plan:hover) {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}

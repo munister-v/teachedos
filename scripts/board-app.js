@@ -7732,6 +7732,23 @@ function _ensureGenLoaded() {
   return _genLoadPromise;
 }
 
+// WebLLM is large enough that even the module graph should stay off the initial
+// board load. Pull it in only when the teacher explicitly chooses local AI.
+let _ttAiLoadPromise = null;
+function _ensureTTAILoaded() {
+  if (window._ttAI) return Promise.resolve(window._ttAI);
+  if (_ttAiLoadPromise) return _ttAiLoadPromise;
+  const aiUrl = new URL('js/teacher-tool-ai.js', document.baseURI).href;
+  _ttAiLoadPromise = import(aiUrl)
+    .then(() => window._ttAI)
+    .catch(err => {
+      console.warn('[tt-ai] module load failed:', err);
+      _ttAiLoadPromise = null;
+      return null;
+    });
+  return _ttAiLoadPromise;
+}
+
 async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
   await _ensureGenLoaded();   // pull in board-gen.js on first generation
@@ -7855,6 +7872,10 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       }
     });
     return;
+  }
+
+  if (isPilot && wantsWebLLM) {
+    await _ensureTTAILoaded();
   }
 
   // ── Optional WebLLM path: slower, but better wording when available ──

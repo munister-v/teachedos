@@ -1674,10 +1674,6 @@ if('serviceWorker'in navigator){
 <script src="scripts/mobile-zoom-guard.js" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
-<!-- ══════════════ WEBLLM — in-browser LLM for Teacher Tools ══════════════
-     Lazy-loads only when teacher first clicks Generate on a pilot tool.
-     Model (~700 MB) is cached in IndexedDB after the first download.
-     Writes to window._ttAI; classic scripts poll window._ttAI?.ready.      -->
-<script type="module" id="tt-ai-module" src="js/teacher-tool-ai.js"></script>
+<!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
 </body>
 </html>
