@@ -507,6 +507,14 @@ footer{
   font-size:12px;color:var(--ink3);font-weight:600;
 }
 
+/* ── Footer col as <details> — accordion on mobile, static on desktop ── */
+.footer-col{display:block;}
+/* Remove browser disclosure triangle everywhere */
+.footer-col > summary{list-style:none;cursor:default;pointer-events:none;display:block;}
+.footer-col > summary::-webkit-details-marker{display:none;}
+.footer-col > summary::marker{display:none;}
+.footer-col > summary h4{margin-bottom:14px;}
+
 /* ── STICKY CTA mobile ── */
 .sticky-mob{
   display:none;position:fixed;left:12px;right:12px;
@@ -961,6 +969,30 @@ body.pwa-standalone .sticky-mob{display:none!important;}
   .preview-stage{margin-top:22px;}
   .support-val{font-size:13px;}
   .support-val.mono-sm{font-size:11px;}
+
+  /* ── Footer accordion on mobile ── */
+  .footer-grid{grid-template-columns:1fr!important;gap:0!important;}
+  /* Brand block gets a bottom border to separate from nav */
+  .footer-grid > div:first-child{padding-bottom:20px;margin-bottom:4px;border-bottom:1px solid rgba(14,14,16,.07);}
+  /* Each footer-col: full-width with top divider */
+  .footer-col{border-top:1px solid rgba(14,14,16,.07);}
+  /* summary becomes tappable row */
+  .footer-col > summary{
+    cursor:pointer;pointer-events:auto;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 0;
+  }
+  .footer-col > summary h4{margin-bottom:0;}
+  /* chevron */
+  .footer-col > summary::after{
+    content:'+';font-size:18px;font-weight:400;color:var(--ink3);
+    line-height:1;flex-shrink:0;transition:transform .2s;
+  }
+  .footer-col[open] > summary::after{content:'−';}
+  /* links inside: extra padding when expanded */
+  .footer-col > a{padding:7px 0;}
+  /* footer-bottom: stack on mobile */
+  .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px;margin-top:20px;padding-top:16px;}
 }
 </style>
 </head>
@@ -1630,26 +1662,26 @@ body.pwa-standalone .sticky-mob{display:none!important;}
         <div class="footer-brand">Teach<em>Ed</em></div>
         <p class="footer-desc">The AI workspace for language teachers. 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
       </div>
-      <div class="footer-col">
-        <h4>Product</h4>
+      <details class="footer-col" open>
+        <summary><h4>Product</h4></summary>
         <a href="#features">Features</a>
         <a href="#tools">AI tools</a>
         <a href="lesson-packs.html">Lesson Packs</a>
         <a href="#pricing">Pricing</a>
-      </div>
-      <div class="footer-col">
-        <h4>Teacher</h4>
+      </details>
+      <details class="footer-col" open>
+        <summary><h4>Teacher</h4></summary>
         <a href="schedule.html">Schedule</a>
         <a href="gradebook.html">Gradebook</a>
         <a href="journal.html">Journal</a>
         <a href="analytics.html">Analytics</a>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
+      </details>
+      <details class="footer-col" open>
+        <summary><h4>Company</h4></summary>
         <a href="community.html">Community</a>
         <a href="profile.html#plans">Pricing</a>
         <a href="mailto:hello@teachedos.app">Contact</a>
-      </div>
+      </details>
     </div>
     <div class="footer-bottom">
       <span>© 2025 TeachEd. All rights reserved.</span>
@@ -2058,5 +2090,22 @@ body.pwa-standalone .sticky-mob{display:none!important;}
 </script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="pwa-boot.js" defer></script>
+<script>
+/* Footer accordion — collapse on mobile, always-open on desktop */
+(function () {
+  var mq = window.matchMedia('(max-width:540px)');
+  function initFooterAccordion(isMobile) {
+    document.querySelectorAll('.footer-col').forEach(function (d) {
+      if (isMobile) {
+        d.removeAttribute('open');
+      } else {
+        d.setAttribute('open', '');
+      }
+    });
+  }
+  initFooterAccordion(mq.matches);
+  mq.addEventListener('change', function (e) { initFooterAccordion(e.matches); });
+})();
+</script>
 </body>
 </html>
