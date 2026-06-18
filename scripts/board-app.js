@@ -9319,7 +9319,9 @@ renderMinimap();
 })();
 
 /* ════════════════════════ TEACHER TOOL MATERIAL IMPORT ════════════════════════ */
-(function checkTeacherToolMaterialImport() {
+window.__pendingToolMaterialImport = null;
+
+(function captureToolMaterialImport() {
   const params = new URLSearchParams(location.search);
   if (!params.has('addToolMaterial')) return;
   try {
@@ -9328,25 +9330,42 @@ renderMinimap();
     const material = JSON.parse(raw);
     sessionStorage.removeItem('teachedos_pending_tool_material');
     if (!material || !material.text) return;
-    setTimeout(() => {
-      const r = boardWrap.getBoundingClientRect();
-      const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
-      const title = material.title || 'Teacher Tool Material';
-      const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
-      const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
-      addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
-        text,
-        fontFamily: 'var(--font)',
-        textColor: '#111111',
-        bgColor: '#ffffff',
-        align: 'left',
-      }), 520, 420);
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
-      toast && toast('✦ Teacher tool material added to board');
-      history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]addToolMaterial=[^&]*/, '') || ''));
-    }, 300);
-  } catch {}
+    window.__pendingToolMaterialImport = material;
+  } catch (err) {
+    console.warn('Tool material capture failed', err);
+  }
 })();
+
+function runPendingToolMaterialImport() {
+  const material = window.__pendingToolMaterialImport;
+  if (!material) return false;
+  window.__pendingToolMaterialImport = null;
+  try {
+    const r = boardWrap.getBoundingClientRect();
+    const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
+    const title = material.title || 'Teacher Tool Material';
+    const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
+    const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
+    addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
+      text,
+      fontFamily: 'var(--font)',
+      textColor: '#111111',
+      bgColor: '#ffffff',
+      align: 'left',
+    }), 520, 420);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    toast && toast('✦ Teacher tool material added to board');
+    const params = new URLSearchParams(location.search);
+    params.delete('addToolMaterial');
+    const q = params.toString();
+    history.replaceState({}, '', location.pathname + (q ? '?' + q : ''));
+    return true;
+  } catch (err) {
+    console.warn('Tool material import failed', err);
+    toast && toast('Could not add material to board');
+    return false;
+  }
+}
 
 /* ════════════════════════ LESSON BUILDER FLOW IMPORT ════════════════════════ */
 window.__pendingLessonFlowImport = null;
@@ -9700,6 +9719,7 @@ async function submitAuth() {
     } else {
       await initUserBoard();
     }
+    if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';
@@ -9904,6 +9924,7 @@ async function initUserBoard() {
         saveStatus.textContent = '☁ cloud';
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         updateBreadcrumb(board);
+        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         return;
       } else if (URL_BOARD_ID) {
         toast('Board not found');
@@ -9929,6 +9950,7 @@ async function initUserBoard() {
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
           saveStatus.textContent = '☁ cloud';
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
+          if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         }
       } else if (currentUser.role === 'student') {
         // Student with no owned boards — redirect to student dashboard
@@ -12397,6 +12419,7 @@ function startReconnectLoop() {
         } else if (!currentBoardId) {
           await initUserBoard();
         }
+        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         wsConnect();
         toast('✓ Connected');
         return;
@@ -12433,6 +12456,7 @@ function startReconnectLoop() {
         } else {
           await initUserBoard();
         }
+        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         wsConnect();
         return;
       }
@@ -12448,6 +12472,7 @@ function startReconnectLoop() {
       updateAuthUI();
       loadBoard();
       if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
+      if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
       showOfflineBanner();
       toast('⚠️ Server starting up — reconnecting…');
       startReconnectLoop();
@@ -12463,6 +12488,9 @@ function startReconnectLoop() {
   }
   if (!authToken && window.__pendingLessonFlowImport) {
     toast('Sign in to create a shareable lesson board');
+  }
+  if (!authToken && window.__pendingToolMaterialImport) {
+    toast('Sign in to add teacher tool material to your board');
   }
   updateAuthUI();
 })();
