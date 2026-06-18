@@ -117,6 +117,22 @@ function planHasFeature(planKey, flagKey) {
   return !!getPlanDefinition(planKey)?.flags?.[flagKey];
 }
 
+function hasActivePlanAccess(user) {
+  const plan = normalizePlanKey(user?.plan);
+  if (plan === 'free') return false;
+  const status = user?.plan_status || 'active';
+  if (!['active', 'grace'].includes(status)) return false;
+  if (!user?.plan_expires_at) return true;
+  const expiresAt = new Date(user.plan_expires_at).getTime();
+  return Number.isNaN(expiresAt) || expiresAt > Date.now();
+}
+
+function effectivePlanKey(user) {
+  const plan = normalizePlanKey(user?.plan);
+  if (plan === 'free') return 'free';
+  return hasActivePlanAccess(user) ? plan : 'free';
+}
+
 function normalizeCycleKey(value) {
   return BILLING_CYCLES[value] ? value : 'monthly';
 }
@@ -201,16 +217,19 @@ function usageRow(used, limit) {
 }
 
 function derivePlanState(user) {
-  const plan = normalizePlanKey(user?.plan);
+  const billingPlan = normalizePlanKey(user?.plan);
+  const plan = effectivePlanKey(user);
   const cycle = normalizeCycleKey(user?.billing_cycle);
-  const status = user?.plan_status || (plan === 'free' ? 'free' : 'active');
+  const status = user?.plan_status || (billingPlan === 'free' ? 'free' : 'active');
   return {
     plan,
+    billing_plan: billingPlan,
     cycle,
     status,
+    access_active: hasActivePlanAccess(user),
     plan_started_at: user?.plan_started_at || null,
     plan_expires_at: user?.plan_expires_at || null,
-    plan_source: user?.plan_source || (plan === 'free' ? 'free' : 'manual'),
+    plan_source: user?.plan_source || (billingPlan === 'free' ? 'free' : 'manual'),
     status_meta: PLAN_STATUS_META[status] || PLAN_STATUS_META.free,
   };
 }
@@ -280,6 +299,8 @@ module.exports = {
   getPlanDefinition,
   getPlanLimit,
   planHasFeature,
+  hasActivePlanAccess,
+  effectivePlanKey,
   normalizeCycleKey,
   monthsForCycle,
   computePlanQuote,

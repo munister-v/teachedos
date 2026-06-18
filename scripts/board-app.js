@@ -9631,7 +9631,13 @@ const BOARD_PACKAGE_FLAGS = {
 };
 
 function currentPlanKey() {
-  return BOARD_PACKAGE_FLAGS[currentUser?.plan] ? currentUser.plan : 'free';
+  const plan = BOARD_PACKAGE_FLAGS[currentUser?.plan] ? currentUser.plan : 'free';
+  if (plan === 'free') return 'free';
+  const status = currentUser?.plan_status || 'active';
+  if (!['active', 'grace'].includes(status)) return 'free';
+  if (!currentUser?.plan_expires_at) return plan;
+  const expiresAt = new Date(currentUser.plan_expires_at).getTime();
+  return Number.isNaN(expiresAt) || expiresAt > Date.now() ? plan : 'free';
 }
 
 function boardHasFeature(flag) {
@@ -9655,7 +9661,10 @@ const UPGRADE_COPY = {
 let _upgradeReason = 'default';
 function showUpgradeModal(flag) {
   _upgradeReason = UPGRADE_COPY[flag] ? flag : 'default';
-  const c = UPGRADE_COPY[_upgradeReason];
+  const pendingAccess = currentUser?.plan && currentUser.plan !== 'free' && currentUser.plan_status === 'pending';
+  const c = pendingAccess
+    ? { emoji:'⏳', badge:'Payment pending', title:'Payment is under review', sub:'Your paid access will unlock automatically after the transfer is approved. You can keep using Free features meanwhile.' }
+    : UPGRADE_COPY[_upgradeReason];
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('upgrade-emoji', c.emoji);
   set('upgrade-flag-badge', c.badge);

@@ -38,8 +38,24 @@
     return !!planDefinition(plan).flags[key];
   }
 
+  function isPlanAccessActive(user) {
+    const plan = normalizePlanKey(user?.plan);
+    if (plan === 'free') return false;
+    const status = user?.plan_status || 'active';
+    if (!['active', 'grace'].includes(status)) return false;
+    if (!user?.plan_expires_at) return true;
+    const expiresAt = new Date(user.plan_expires_at).getTime();
+    return Number.isNaN(expiresAt) || expiresAt > Date.now();
+  }
+
+  function effectiveUserPlan(user) {
+    const plan = normalizePlanKey(user?.plan);
+    if (plan === 'free') return 'free';
+    return isPlanAccessActive(user) ? plan : 'free';
+  }
+
   function userPlan(user) {
-    return normalizePlanKey(user?.plan);
+    return effectiveUserPlan(user);
   }
 
   function upgradeMessage(featureKey) {
@@ -171,6 +187,8 @@
     planDefinition,
     planLimit,
     planHasFeature,
+    isPlanAccessActive,
+    effectiveUserPlan,
     userPlan,
     upgradeMessage,
   };

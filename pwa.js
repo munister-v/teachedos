@@ -48,8 +48,6 @@
     .teachedos-status.show{transform:translateY(0);opacity:1;pointer-events:auto}
     .teachedos-status.offline{background:rgba(28,28,30,.94);color:#fff}
     .teachedos-status.online{background:rgba(22,163,74,.94);color:#fff}
-    /* Update toast uses brand green — dark text for AA contrast */
-    .teachedos-status.update{background:#CDF24F;color:#050038}
     .teachedos-status-copy{flex:1;min-width:0}
     .teachedos-status-title{font-size:13px;font-weight:900;line-height:1.25}
     .teachedos-status-sub{font-size:11px;line-height:1.5;opacity:.84;margin-top:3px}
@@ -59,13 +57,6 @@
       background:rgba(255,255,255,.14);color:inherit;
     }
     .teachedos-status-btn.primary{background:#fff;color:#1C1C1E}
-    /* Override button palette on dark-text-on-green so they stay legible */
-    .teachedos-status.update .teachedos-status-btn{background:rgba(5,0,56,.10);color:#050038}
-    .teachedos-status.update .teachedos-status-btn:hover{background:rgba(5,0,56,.18)}
-    .teachedos-status.update .teachedos-status-btn.primary{background:#050038;color:#CDF24F}
-    .teachedos-status.update .teachedos-status-btn.primary:hover{background:#0d0850}
-    .teachedos-status.update .teachedos-status-sub{opacity:.78}
-    .teachedos-status.update .teachedos-status-close{background:rgba(5,0,56,.10)}
     .teachedos-status-close{
       width:28px;height:28px;border:none;border-radius:999px;background:rgba(255,255,255,.12);color:inherit;cursor:pointer;flex-shrink:0;
     }
@@ -187,29 +178,11 @@
         if (!worker) return;
         worker.addEventListener('statechange', () => {
           if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-            showStatus(
-              'update',
-              'Update ready',
-              'A fresher version of TeachEd is ready. Reload when you want the newest changes.',
-              [
-                { label: 'Reload now', primary: true, onClick: () => location.reload() },
-                { label: 'Later', onClick: () => ensureStatusBanner().classList.remove('show') }
-              ],
-              {}
-            );
+            worker.postMessage('skipWaiting');
           }
         });
       });
     }).catch(() => {});
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      showStatus(
-        'update',
-        'TeachEd updated',
-        'Reloading into the newest version now.',
-        [],
-        {}
-      );
-    });
   }
 
   function showIosHint() {

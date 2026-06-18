@@ -724,11 +724,14 @@ function renderPlanStatusBanner(current, pendingPayment) {
   const root = document.getElementById('plan-status-banner');
   if (!root) return;
   const tone = billingToneStyle(current?.status_meta?.tone);
+  const billedPlan = current?.billing_plan || current?.plan || 'free';
   let message = '';
   if (pendingPayment) {
     message = `Invoice ${esc(pendingPayment.invoice_no || '#' + pendingPayment.id)} is waiting for admin review. Package: ${esc(PLAN_NAMES[pendingPayment.plan] || pendingPayment.plan)} · ${billingCycleLabel(pendingPayment.billing_cycle)} · ${formatMoney(pendingPayment.amount, pendingPayment.currency)}.`;
   } else if ((current?.status || 'free') === 'free') {
     message = 'You are on the free tier. Upgrade to unlock more boards, more students, analytics, and stronger admin controls.';
+  } else if ((current?.plan || 'free') === 'free') {
+    message = `${esc(current?.status_meta?.label || 'Plan inactive')}: ${esc(PLAN_NAMES[billedPlan] || billedPlan)} access is not active, so Free limits are applied.`;
   } else {
     const expires = current?.plan_expires_at ? ` Access runs until ${formatBillingDate(current.plan_expires_at)}.` : '';
     const source = current?.plan_source ? ` Source: ${esc(current.plan_source)}.` : '';
@@ -762,13 +765,16 @@ function updatePlanOptionPrices() {
 function renderPlanCardFromOverview(overview) {
   const current = overview?.current || {};
   const plan = current.plan || me?.plan || 'free';
+  const billedPlan = current.billing_plan || plan;
   const planIcons = { free: '⭐', pro: '🚀', school: '🏫' };
   const planName = current.name || PLAN_NAMES[plan] || 'Free';
   const badge = current.badge ? ` · ${current.badge}` : '';
   const expiry = current.plan_expires_at ? ` · active until ${formatBillingDate(current.plan_expires_at)}` : '';
   document.getElementById('plan-icon').textContent = planIcons[plan] || '⭐';
   document.getElementById('plan-name-display').textContent = planName;
-  document.getElementById('plan-desc-display').textContent = `${billingCycleLabel(current.cycle || 'monthly')} billing${badge}${expiry}`;
+  document.getElementById('plan-desc-display').textContent = plan === billedPlan
+    ? `${billingCycleLabel(current.cycle || 'monthly')} billing${badge}${expiry}`
+    : `${PLAN_NAMES[billedPlan] || billedPlan} inactive · Free limits applied`;
   renderPlanStatusBanner(current, overview?.pending_payment || null);
   renderBillingUsage(overview?.usage || {});
   renderBillingFeatures(current.features || [], current.flags || {});
@@ -791,6 +797,7 @@ async function initPlanCard() {
   const fallbackOverview = {
     current: {
       plan: me?.plan || 'free',
+      billing_plan: me?.plan || 'free',
       cycle: me?.billing_cycle || 'monthly',
       status: me?.plan_status || (me?.plan === 'free' ? 'free' : 'active'),
       status_meta: { label: me?.plan_status || 'free', tone: me?.plan === 'free' ? 'muted' : 'good' },

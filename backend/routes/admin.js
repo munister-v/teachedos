@@ -164,8 +164,8 @@ router.get('/billing/summary', async (req, res) => {
 
 // ── POST /api/admin/billing/payments/:id/approve ─────────────────────────
 router.post('/billing/payments/:id/approve', async (req, res) => {
-  const { note = '', months = 1 } = req.body || {};
-  const safeMonths = Math.min(Math.max(parseInt(months, 10) || 1, 1), 24);
+  const { note = '', months } = req.body || {};
+  const requestedMonths = months == null || months === '' ? null : parseInt(months, 10);
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid payment id' });
   const client = await pool.connect();
@@ -192,7 +192,10 @@ router.post('/billing/payments/:id/approve', async (req, res) => {
        WHERE id=$1`,
       [id, String(note || '').trim().slice(0, 1000), req.user.id]
     );
-    const appliedMonths = safeMonths || Math.max(1, parseInt(payment.months, 10) || 1);
+    const invoiceMonths = Math.max(1, parseInt(payment.months, 10) || 1);
+    const appliedMonths = Number.isFinite(requestedMonths)
+      ? Math.min(Math.max(requestedMonths, 1), 24)
+      : Math.min(invoiceMonths, 24);
     await client.query(
       `UPDATE users
        SET plan=$1,
