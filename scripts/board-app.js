@@ -33,6 +33,36 @@ const STICKY_COLORS = [
   '#FFE566','#AFF4C6','#CFE2FF','#FFB8D9','#CDB4F6','#FFD580',
   '#FF8B8B','#9BDDCC','#FFC680','#B8F0FF','#FFB3BA','#D4F1A0',
 ];
+const SHARED_NOTES_KEY = 'teachedos_notes_v1';
+
+function readSharedTeacherNotes() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SHARED_NOTES_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter(n => n && (n.body || n.content || n.title))
+      .map(n => {
+        const body = String(n.body || n.content || '');
+        const title = String(n.title || body.split('\n')[0] || 'Teacher note').trim() || 'Teacher note';
+        const preview = String(n.preview || body.split('\n').slice(1).join(' ').trim() || body).slice(0, 70);
+        return {
+          title,
+          preview,
+          body: body || title,
+          pinned: !!n.pinned,
+          updated_at: n.updated_at || n.date || '',
+        };
+      })
+      .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  } catch {
+    return [];
+  }
+}
+
+function openTeacherNotesApp() {
+  try { window.location.href = 'index.html#notes'; }
+  catch { window.location.href = 'index.html'; }
+}
 
 /* ════════════════════════ STATE ════════════════════════ */
 const state = {
@@ -8579,10 +8609,34 @@ function renderStudentsTab(sec) {
 }
 
 function renderNotesTab(sec) {
-  sec.appendChild(makeLegend('Teacher notes'));
+  const shared = readSharedTeacherNotes();
+  sec.appendChild(makeLegend('Notebook notes'));
+  if (shared.length) {
+    shared.forEach(d => {
+      const el = makeSnippet(d.pinned ? 'Pinned note' : 'Note', d.title,
+        `<span style="font-size:10px;color:var(--text-3);">${esc(d.preview)}</span>`,
+        'note', { title:d.title, body:d.body, accent:d.pinned ? '#C8E632' : '' }, 300, 240);
+      if (el) sec.appendChild(el);
+    });
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'snippet notes-open-notebook';
+    open.innerHTML = '<div class="sn-label">Notebook</div><div class="sn-title">Open / edit notes</div><div class="sn-meta">Autosaved notes from the TeachEd desktop workspace</div>';
+    open.addEventListener('click', openTeacherNotesApp);
+    sec.appendChild(open);
+  } else {
+    const empty = document.createElement('div');
+    empty.className = 'notes-empty-state';
+    empty.innerHTML = '<div class="notes-empty-title">No saved notebook notes yet</div><div class="notes-empty-copy">Create notes in the TeachEd desktop workspace, then drag them into Board as teacher cards.</div><button type="button">Open notes</button>';
+    empty.querySelector('button')?.addEventListener('click', openTeacherNotesApp);
+    sec.appendChild(empty);
+  }
+
+  sec.appendChild(makeSep());
+  sec.appendChild(makeLegend('Starter note templates'));
   NOTES.forEach(d => {
-    const el = makeSnippet('✍️ Note', d.title,
-      `<span style="font-size:10px;color:var(--text-3);">${d.preview}</span>`,
+    const el = makeSnippet('Template', d.title,
+      `<span style="font-size:10px;color:var(--text-3);">${esc(d.preview)}</span>`,
       'note', {...d}, 300, 240);
     if (el) sec.appendChild(el);
   });

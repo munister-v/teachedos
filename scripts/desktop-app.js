@@ -507,10 +507,16 @@ const WM = (function () {
   return { open, close, minimize, maximize, focus, attachHandles };
 })();
 
-function openApp(id)   { WM.open(id); }
+function openApp(id) {
+  WM.open(id);
+  if (id === 'notes' && typeof notesLoad === 'function' && !_notesLoaded) notesLoad();
+}
 function openPricingFromHash() { if (['#pricing','#plans','#billing'].includes(location.hash)) setTimeout(() => openApp('pricing'), 120); }
 window.addEventListener('hashchange', openPricingFromHash);
 openPricingFromHash();
+function openNotesFromHash() { if (location.hash === '#notes') setTimeout(() => openApp('notes'), 120); }
+window.addEventListener('hashchange', openNotesFromHash);
+openNotesFromHash();
 function closeWin(id)  { WM.close(id); }
 function minWin(id)    { WM.minimize(id); }
 function maxWin(id)    { WM.maximize(id); }
@@ -713,16 +719,20 @@ async function notesLoad() {
   if (_notesLoaded) return;
   _notesLoaded = true;
   try {
+    if (!_authToken) throw new Error('local notes mode');
     const r = await fetch(API_BASE + '/api/notes', { headers: { Authorization: 'Bearer ' + _authToken } });
     if (r.ok) {
       const { notes } = await r.json();
-      NOTES = notes;
+      NOTES = Array.isArray(notes) ? notes : [];
       if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
       notesRender();
+      return;
     }
+    throw new Error('notes api unavailable');
   } catch {
     // fallback to localStorage
     try { const s = localStorage.getItem(NOTES_KEY); if (s) NOTES = JSON.parse(s); } catch {}
+    if (!Array.isArray(NOTES)) NOTES = [];
     if (!activeNote && NOTES.length) activeNote = NOTES[0].id;
     notesRender();
   }
@@ -732,6 +742,15 @@ function notesRender() {
   const list = document.getElementById('notes-list');
   if (!list) return;
   list.innerHTML = '';
+  if (!NOTES.length) {
+    list.innerHTML = '<div class="note-item" style="cursor:default;"><div class="note-item-title">No notes yet</div><div class="note-item-preview">Create a note and it will autosave locally if sync is unavailable.</div></div>';
+    const ta = document.getElementById('notes-ta');
+    if (ta) ta.value = '';
+    notesUpdateCount();
+    const statusEl = document.getElementById('notes-save-status');
+    if (statusEl) statusEl.textContent = 'ready';
+    return;
+  }
   NOTES.forEach(n => {
     const el = document.createElement('div');
     el.className = 'note-item' + (n.id===activeNote?' active':'');
@@ -762,6 +781,7 @@ function notesOpen(id) {
 
 async function notesNew() {
   try {
+    if (!_authToken) throw new Error('local notes mode');
     const r = await fetch(API_BASE + '/api/notes', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
@@ -778,20 +798,25 @@ async function notesNew() {
     const id = 'local_' + Date.now();
     NOTES.unshift({ id, title:'New Note', body:'', updated_at: new Date().toISOString() });
     activeNote = id;
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
     notesRender();
+    document.getElementById('notes-ta')?.focus();
   }
 }
 
 async function notesDelete(id) {
   if (!confirm('Delete this note?')) return;
   try {
-    await fetch(API_BASE + '/api/notes/' + id, {
-      method: 'DELETE',
-      headers: { Authorization: 'Bearer ' + _authToken }
-    });
+    if (_authToken && !String(id).startsWith('local_')) {
+      await fetch(API_BASE + '/api/notes/' + id, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + _authToken }
+      });
+    }
   } catch {}
   NOTES = NOTES.filter(n => n.id !== id);
   if (activeNote === id) activeNote = NOTES[0]?.id || null;
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
   notesRender();
 }
 
@@ -800,13 +825,16 @@ async function notesTogglePin() {
   if (!note) return;
   note.pinned = !note.pinned;
   try {
-    await fetch(API_BASE + '/api/notes/' + note.id, {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pinned: note.pinned })
-    });
+    if (_authToken && !String(note.id).startsWith('local_')) {
+      await fetch(API_BASE + '/api/notes/' + note.id, {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinned: note.pinned })
+      });
+    }
   } catch {}
   NOTES.sort((a,b) => (b.pinned?1:0)-(a.pinned?1:0));
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
   notesRender();
 }
 
@@ -823,12 +851,16 @@ function notesAutoSave() {
   clearTimeout(_notesSaveTimer);
   _notesSaveTimer = setTimeout(async () => {
     try {
-      await fetch(API_BASE + '/api/notes/' + note.id, {
+      note.updated_at = new Date().toISOString();
+      if (!_authToken || String(note.id).startsWith('local_')) throw new Error('local notes mode');
+      const r = await fetch(API_BASE + '/api/notes/' + note.id, {
         method: 'PATCH',
         headers: { Authorization: 'Bearer ' + _authToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: note.title, body: note.body })
+        body: JSON.stringify({ title: note.title, body: note.body, pinned: !!note.pinned })
       });
-      if (statusEl) statusEl.textContent = '✓ saved';
+      if (!r.ok) throw new Error('notes save failed');
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+      if (statusEl) statusEl.textContent = '✓ synced';
     } catch {
       try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
       if (statusEl) statusEl.textContent = '✓ local';
