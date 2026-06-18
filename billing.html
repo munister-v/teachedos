@@ -18,6 +18,7 @@
 :root{
   --lime:#C8E632;--ink:#1C1C1E;--muted:#7A7A6A;--bg:#F5F0E8;
   --card:#ffffff;--border:rgba(23,23,25,.10);--shadow:0 8px 32px rgba(5,5,23,.09);
+  --good:#3a9d5d;--warn:#b45309;--bad:#c62828;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100dvh;-webkit-font-smoothing:antialiased}
@@ -26,67 +27,100 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .nav-logo em{color:var(--lime);font-style:normal}
 .nav-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:10px;border:1.5px solid var(--border);transition:.15s}
 .nav-back:hover{background:rgba(0,0,0,.04)}
-.wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px}
-.hero{text-align:center;margin-bottom:40px}
+.wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+.hero{text-align:center;margin-bottom:28px}
 .hero h1{font-size:clamp(28px,5vw,46px);font-weight:900;letter-spacing:-.04em;line-height:1.05;margin-bottom:10px}
-.hero p{font-size:15px;color:var(--muted);line-height:1.6;max-width:480px;margin:0 auto}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:36px}
-.plan{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 20px;cursor:pointer;transition:.2s;position:relative}
+.hero p{font-size:15px;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto}
+
+/* Loading / states */
+.state-msg{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px;font-weight:600}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+[hidden]{display:none!important}
+
+/* Current plan banner */
+.current{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:24px}
+.current-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.current-icon{font-size:30px}
+.current-name{font-size:18px;font-weight:900;letter-spacing:-.02em}
+.current-sub{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.pill{margin-left:auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.pill.good{color:var(--good);background:rgba(58,157,93,.10);border-color:rgba(58,157,93,.25)}
+.pill.warn{color:var(--warn);background:rgba(180,83,9,.10);border-color:rgba(180,83,9,.25)}
+.pill.bad{color:var(--bad);background:rgba(198,40,40,.10);border-color:rgba(198,40,40,.25)}
+.pill.muted{color:var(--muted)}
+.usage{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+.usage-row{background:rgba(28,28,30,.03);border-radius:12px;padding:10px 12px}
+.usage-row .u-top{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.usage-row .u-bar{height:6px;border-radius:99px;background:rgba(28,28,30,.08);overflow:hidden}
+.usage-row .u-fill{height:100%;background:var(--lime);border-radius:99px;transition:width .4s}
+.usage-row .u-fill.hot{background:var(--warn)}
+
+/* Cycle toggle */
+.cycle-toggle{display:inline-flex;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:4px;gap:4px;margin:0 auto 22px;box-shadow:var(--shadow)}
+.cycle-toggle button{border:none;background:transparent;font-family:var(--font);font-weight:800;font-size:13px;color:var(--muted);padding:8px 16px;border-radius:10px;cursor:pointer;transition:.15s;position:relative}
+.cycle-toggle button.on{background:var(--ink);color:#fff}
+.cycle-toggle .save{display:block;font-size:9px;font-weight:800;color:var(--good);margin-top:1px;letter-spacing:.02em}
+.cycle-toggle button.on .save{color:var(--lime)}
+.toggle-row{display:flex;justify-content:center}
+
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:30px}
+.plan{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 20px;cursor:pointer;transition:.2s;position:relative;text-align:left}
 .plan:hover{border-color:rgba(200,230,50,.5);transform:translateY(-2px);box-shadow:var(--shadow)}
 .plan.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.18)}
+.plan.current-plan{opacity:.7;cursor:default;transform:none}
+.plan.current-plan:hover{transform:none;box-shadow:none;border-color:var(--border)}
 .plan.popular::before{content:'Most popular';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--ink);font-size:11px;font-weight:800;padding:3px 12px;border-radius:0 0 10px 10px;letter-spacing:.04em;text-transform:uppercase}
-.plan-name{font-size:18px;font-weight:900;margin-bottom:4px}
-.plan-price{font-size:28px;font-weight:900;letter-spacing:-.04em;margin-bottom:2px}
+.plan-name{font-size:18px;font-weight:900;margin-bottom:6px}
+.plan-price{font-size:30px;font-weight:900;letter-spacing:-.04em;margin-bottom:2px}
 .plan-price span{font-size:14px;font-weight:600;color:var(--muted)}
-.plan-period{font-size:12px;color:var(--muted);margin-bottom:14px}
+.plan-period{font-size:12px;color:var(--muted);margin-bottom:14px;min-height:16px}
 .plan-feat{list-style:none;display:grid;gap:6px;font-size:13px}
-.plan-feat li{display:flex;align-items:center;gap:6px;color:#2a2a2a}
-.plan-feat li::before{content:'✓';font-weight:900;color:#6A8A0A;font-size:12px}
+.plan-feat li{display:flex;align-items:flex-start;gap:6px;color:#2a2a2a;line-height:1.4}
+.plan-feat li::before{content:'✓';font-weight:900;color:#6A8A0A;font-size:12px;margin-top:1px}
+.plan-current-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--good);background:rgba(58,157,93,.1);padding:3px 10px;border-radius:999px;margin-bottom:10px}
 
 /* Payment box */
-.pay-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:28px;box-shadow:var(--shadow);display:none}
-.pay-box.visible{display:block}
+.pay-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:28px;box-shadow:var(--shadow)}
 .pay-box h2{font-size:20px;font-weight:900;letter-spacing:-.03em;margin-bottom:6px}
 .pay-box .sub{font-size:13px;color:var(--muted);margin-bottom:24px}
-
 .pay-step{display:flex;gap:14px;margin-bottom:20px;align-items:flex-start}
 .step-num{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body{flex:1;min-width:0}
 .step-body h3{font-size:14px;font-weight:800;margin-bottom:6px}
 .step-body p{font-size:13px;color:var(--muted);line-height:1.5}
-
-.card-display{background:linear-gradient(135deg,#1C1C1E,#2C2C2E);border-radius:16px;padding:20px 22px;color:#F5F0E8;margin:10px 0}
-.card-number{font-size:22px;font-weight:900;letter-spacing:.2em;font-family:monospace;margin-bottom:12px}
-.card-meta{display:flex;gap:20px;flex-wrap:wrap}
-.card-meta-item{font-size:11px}
-.card-meta-item .label{color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
-.card-meta-item .val{font-weight:800;font-size:13px}
+.iban-display{background:linear-gradient(135deg,#1C1C1E,#2C2C2E);border-radius:16px;padding:20px 22px;color:#F5F0E8;margin:10px 0}
+.iban-number{font-size:18px;font-weight:900;letter-spacing:.08em;font-family:monospace;margin-bottom:12px;word-break:break-all}
+.iban-meta{display:flex;gap:20px;flex-wrap:wrap}
+.iban-meta-item .label{color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
+.iban-meta-item .val{font-weight:800;font-size:13px}
 .copy-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(200,230,50,.18);color:#C8E64A;border:1.5px solid rgba(200,230,50,.28);border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;transition:.15s}
 .copy-btn:hover{background:rgba(200,230,50,.28)}
-
 .form-field{margin-bottom:14px}
 .form-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.form-field input,.form-field select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font);font-size:14px;color:var(--ink);background:#fff;outline:none;transition:.15s}
-.form-field input:focus,.form-field select:focus{border-color:rgba(200,230,50,.6);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
-
+.form-field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font);font-size:14px;color:var(--ink);background:#fff;outline:none;transition:.15s}
+.form-field input:focus{border-color:rgba(200,230,50,.6);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
 .submit-btn{width:100%;padding:15px;background:var(--ink);color:#fff;border:none;border-radius:14px;font-family:var(--font);font-weight:900;font-size:16px;cursor:pointer;transition:.18s;margin-top:8px}
 .submit-btn:hover{background:#2C2C2E;transform:translateY(-1px)}
 .submit-btn:disabled{opacity:.5;transform:none;cursor:not-allowed}
-.submit-btn.lime{background:var(--lime);color:var(--ink)}
 
-/* Pending state */
-.pending-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:40px 28px;text-align:center;box-shadow:var(--shadow);display:none}
-.pending-box.visible{display:block}
+/* Pending box */
+.pending-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:40px 28px;text-align:center;box-shadow:var(--shadow)}
 .pending-icon{font-size:52px;margin-bottom:16px;animation:pendingPulse 2s ease-in-out infinite}
 @keyframes pendingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .pending-box h2{font-size:22px;font-weight:900;letter-spacing:-.03em;margin-bottom:8px}
-.pending-box p{font-size:14px;color:var(--muted);line-height:1.6;max-width:380px;margin:0 auto 24px}
+.pending-box p{font-size:14px;color:var(--muted);line-height:1.6;max-width:420px;margin:0 auto 20px}
 .invoice-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(200,230,50,.12);border:1.5px solid rgba(200,230,50,.28);border-radius:12px;font-family:monospace;font-weight:800;font-size:14px;color:#5A7A00;margin-bottom:24px}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.btn-row a{padding:12px 24px;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-soft{background:rgba(23,23,25,.06);color:var(--ink);border:1.5px solid var(--border)}
 
-.err{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.2);color:#c62828;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px;display:none}
+.err{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.2);color:#c62828;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px}
 
 @media(max-width:600px){
   .wrap{padding:20px 14px 80px}
-  .card-number{font-size:18px;letter-spacing:.14em}
+  .iban-number{font-size:15px;letter-spacing:.04em}
 }
 </style>
 <link rel="stylesheet" href="styles/harmony.css">
@@ -103,211 +137,339 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 </nav>
 
 <div class="wrap">
-  <!-- Hero -->
   <div class="hero">
     <h1>Upgrade your workspace</h1>
-    <p>Choose a plan and transfer payment by card. Your account activates within minutes after confirmation.</p>
+    <p>Pick a plan, transfer by bank (IBAN), and confirm. We activate your account as soon as the payment is verified.</p>
   </div>
 
-  <!-- Plan cards -->
-  <div class="plans" id="plan-cards">
-    <div class="plan" onclick="selectPlan('pro')" id="plan-pro">
-      <div class="plan-name">🚀 Pro</div>
-      <div class="plan-price">$12 <span>/month</span></div>
-      <div class="plan-period">or $99/year — save 31%</div>
-      <ul class="plan-feat">
-        <li>Unlimited boards</li>
-        <li>30 students per board</li>
-        <li>Analytics & gradebook</li>
-        <li>Export to PDF/HTML</li>
-        <li>Priority support</li>
-      </ul>
-    </div>
-    <div class="plan popular" onclick="selectPlan('school')" id="plan-school">
-      <div class="plan-name">🏫 School</div>
-      <div class="plan-price">$39 <span>/month</span></div>
-      <div class="plan-period">or $349/year — save 25%</div>
-      <ul class="plan-feat">
-        <li>Everything in Pro</li>
-        <li>Unlimited students</li>
-        <li>Team management</li>
-        <li>API access</li>
-        <li>Custom branding</li>
-        <li>Dedicated support</li>
-      </ul>
-    </div>
+  <!-- Loading -->
+  <div id="loading" class="state-msg"><div class="spinner"></div>Loading your plan…</div>
+
+  <!-- Signed-out -->
+  <div id="signed-out" class="state-msg" hidden>
+    <p style="margin-bottom:16px;font-size:15px;color:var(--ink);font-weight:700">Please sign in to manage your plan.</p>
+    <a href="index.html" class="submit-btn" style="display:inline-block;width:auto;padding:13px 28px;text-decoration:none">Sign in →</a>
   </div>
 
-  <!-- Payment box -->
-  <div class="pay-box" id="pay-box">
-    <h2>💳 Payment instructions</h2>
-    <p class="sub" id="pay-sub">Transfer to the card below and confirm below.</p>
+  <!-- Main -->
+  <div id="main" hidden>
+    <!-- Current plan -->
+    <div class="current" id="current-banner" hidden>
+      <div class="current-head">
+        <div class="current-icon" id="cur-icon">⭐</div>
+        <div>
+          <div class="current-name" id="cur-name">Free</div>
+          <div class="current-sub" id="cur-sub"></div>
+        </div>
+        <div class="pill muted" id="cur-pill">Free tier</div>
+      </div>
+      <div class="usage" id="cur-usage"></div>
+    </div>
 
-    <!-- Step 1: Transfer -->
-    <div class="pay-step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <h3>Transfer to card</h3>
-        <p>Use your bank app or online banking to transfer the exact amount.</p>
-        <div class="card-display">
-          <div class="card-number" id="pay-card-number">5375 4141 1234 5678</div>
-          <div class="card-meta">
-            <div class="card-meta-item"><div class="label">Cardholder</div><div class="val">TeachEd Ltd</div></div>
-            <div class="card-meta-item"><div class="label">Bank</div><div class="val">PrivatBank</div></div>
-            <div class="card-meta-item"><div class="label">Amount</div><div class="val" id="pay-amount">—</div></div>
-            <div class="card-meta-item"><div class="label">Comment</div><div class="val" id="pay-comment-hint">Invoice number</div></div>
+    <!-- Cycle toggle -->
+    <div class="toggle-row">
+      <div class="cycle-toggle" id="cycle-toggle"></div>
+    </div>
+
+    <!-- Plan cards -->
+    <div class="plans" id="plan-cards"></div>
+
+    <!-- Payment box -->
+    <div class="pay-box" id="pay-box" hidden>
+      <h2>🏦 Payment instructions</h2>
+      <p class="sub" id="pay-sub">Transfer to the IBAN below, then confirm.</p>
+
+      <div class="pay-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Transfer by bank (IBAN)</h3>
+          <p>Use your bank app to send the exact amount. Add the invoice number to the payment note if you have one.</p>
+          <div class="iban-display">
+            <div class="iban-number" id="pay-iban">UA62 3052 9902 6205 6400 9907 00807</div>
+            <div class="iban-meta">
+              <div class="iban-meta-item"><div class="label">Recipient</div><div class="val">TeachEd</div></div>
+              <div class="iban-meta-item"><div class="label">Amount</div><div class="val" id="pay-amount">—</div></div>
+              <div class="iban-meta-item"><div class="label">Reference</div><div class="val">Your email</div></div>
+            </div>
+            <button class="copy-btn" onclick="copyIban()">📋 Copy IBAN</button>
           </div>
-          <button class="copy-btn" onclick="copyCardNumber()">📋 Copy card number</button>
+        </div>
+      </div>
+
+      <div class="pay-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Confirm your transfer</h3>
+          <p>Fill in the details — we'll activate your plan once the payment is verified.</p>
+          <div style="margin-top:14px">
+            <div id="pay-err" class="err" hidden></div>
+            <div class="form-field">
+              <label>Your full name (as in the transfer)</label>
+              <input type="text" id="pay-name" placeholder="John Smith" autocomplete="name">
+            </div>
+            <div class="form-field">
+              <label>Date of transfer</label>
+              <input type="date" id="pay-date">
+            </div>
+            <div class="form-field">
+              <label>Transfer note / comment (optional)</label>
+              <input type="text" id="pay-note" placeholder="Invoice number or any note you added">
+            </div>
+            <button class="submit-btn" id="pay-submit-btn" onclick="submitPayment()">I've transferred — confirm ✓</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Step 2: Confirm -->
-    <div class="pay-step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <h3>Confirm your transfer</h3>
-        <p>Fill in the details below — we'll activate your plan as soon as we confirm the payment.</p>
-        <div style="margin-top:14px">
-          <div id="pay-err" class="err"></div>
-          <div class="form-field">
-            <label>Your full name (as in the transfer)</label>
-            <input type="text" id="pay-name" placeholder="John Smith" autocomplete="name">
-          </div>
-          <div class="form-field">
-            <label>Billing period</label>
-            <select id="pay-cycle" onchange="updatePayAmount()">
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly (3 months)</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label>Transfer note / comment you added</label>
-            <input type="text" id="pay-note" placeholder="Optional — invoice number or any note you added">
-          </div>
-          <button class="submit-btn" id="pay-submit-btn" onclick="submitPayment()">I've transferred — confirm ✓</button>
-        </div>
+    <!-- Pending box -->
+    <div class="pending-box" id="pending-box" hidden>
+      <div class="pending-icon">⏳</div>
+      <h2>Payment under review</h2>
+      <p id="pending-text">We've registered your transfer request. Your plan activates once we verify the payment — usually within a few hours.</p>
+      <div class="invoice-badge" id="pending-invoice">📄 Invoice: —</div>
+      <p style="font-size:13px;color:var(--muted)">You'll get an in-app notification when your plan is activated.</p>
+      <div class="btn-row">
+        <a href="index.html" class="btn-dark">Back to TeachEd</a>
+        <a href="profile.html#plans" class="btn-soft">My Profile</a>
       </div>
-    </div>
-  </div>
-
-  <!-- Pending confirmation box -->
-  <div class="pending-box" id="pending-box">
-    <div class="pending-icon">⏳</div>
-    <h2>Payment received!</h2>
-    <p>We've registered your transfer request. Your account will be upgraded within a few minutes once we verify the payment.</p>
-    <div class="invoice-badge" id="pending-invoice">📄 Invoice: —</div>
-    <p style="font-size:13px;color:var(--muted)">You'll get a notification in the app when your plan is activated.<br>You can close this page — we'll send you a confirmation.</p>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap">
-      <a href="index.html" style="padding:12px 24px;background:var(--ink);color:#fff;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none">Back to TeachEd</a>
-      <a href="profile.html" style="padding:12px 24px;background:rgba(23,23,25,.06);color:var(--ink);border:1.5px solid var(--border);border-radius:12px;font-weight:800;font-size:14px;text-decoration:none">My Profile</a>
     </div>
   </div>
 </div>
 
 <script>
 const API_BASE = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
-const _token = localStorage.getItem('teachedos_token');
+const TOKEN = localStorage.getItem('teachedos_token');
+const IBAN = 'UA623052990262056400990700807';
+const PLAN_ICONS = { free:'⭐', pro:'🚀', school:'🏫' };
 
-const PLANS = {
-  pro:    { label: 'Pro', prices: { monthly: 12, quarterly: 32, yearly: 99 }, currency: 'USD' },
-  school: { label: 'School', prices: { monthly: 39, quarterly: 105, yearly: 349 }, currency: 'USD' }
-};
-const MONTHS = { monthly: 1, quarterly: 3, yearly: 12 };
-// Card to display
-const CARD_NUMBER = '5375 4141 1234 5678';
+let OVERVIEW = null;       // /api/billing/overview payload
+let selectedCycle = 'monthly';
+let selectedPlan = null;
 
-let _selectedPlan = null;
+const $ = id => document.getElementById(id);
+
+function apiFetch(path, opts = {}) {
+  return fetch(API_BASE + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}), ...(opts.headers || {}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+}
+
+function fmtMoney(amount, currency) {
+  const n = Number(amount) || 0;
+  const cur = (currency || 'usd').toUpperCase();
+  const sym = cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '';
+  const val = Number.isInteger(n) ? n : n.toFixed(2);
+  return sym ? `${sym}${val}` : `${val} ${cur}`;
+}
+
+function cycleLabel(key) {
+  return { monthly:'Monthly', quarterly:'Quarterly', yearly:'Yearly' }[key] || key;
+}
+
+// ── Load ──────────────────────────────────────────────────────
+async function init() {
+  if (!TOKEN) { $('loading').hidden = true; $('signed-out').hidden = false; return; }
+  try {
+    const r = await apiFetch('/api/billing/overview');
+    if (r.status === 401) { $('loading').hidden = true; $('signed-out').hidden = false; return; }
+    if (!r.ok) throw new Error('overview-failed');
+    OVERVIEW = await r.json();
+  } catch (e) {
+    // Graceful fallback — still let them request an upgrade with default catalog
+    OVERVIEW = null;
+  }
+  $('loading').hidden = true;
+  $('main').hidden = false;
+  renderCurrent();
+  renderCycleToggle();
+  renderPlans();
+
+  // If there's a pending payment, surface it up front
+  if (OVERVIEW?.pending_payment) showPending(OVERVIEW.pending_payment);
+
+  // Preselect from URL / board paywall
+  const q = new URLSearchParams(location.search);
+  const wanted = q.get('plan');
+  if (wanted && OVERVIEW?.plans?.[wanted] && wanted !== 'free') selectPlan(wanted);
+  else if (q.get('from') === 'board' && !OVERVIEW?.pending_payment) selectPlan('pro');
+}
+
+function renderCurrent() {
+  const cur = OVERVIEW?.current;
+  if (!cur) return;
+  const banner = $('current-banner');
+  banner.hidden = false;
+  $('cur-icon').textContent = PLAN_ICONS[cur.plan] || '⭐';
+  $('cur-name').textContent = cur.name || cur.plan;
+  const meta = cur.status_meta || {};
+  const pill = $('cur-pill');
+  pill.textContent = meta.label || cur.status || '';
+  pill.className = 'pill ' + (meta.tone || 'muted');
+  let sub = '';
+  if (cur.plan === 'free') sub = 'You are on the Free tier.';
+  else {
+    sub = cycleLabel(cur.cycle) + ' billing';
+    if (cur.plan_expires_at) {
+      const d = new Date(cur.plan_expires_at);
+      if (!isNaN(d)) sub += ' · renews ' + d.toLocaleDateString();
+    }
+  }
+  $('cur-sub').textContent = sub;
+  renderUsage();
+}
+
+function renderUsage() {
+  const usage = OVERVIEW?.usage;
+  const wrap = $('cur-usage');
+  if (!usage) { wrap.innerHTML = ''; return; }
+  const rows = [
+    ['Boards', usage.boards],
+    ['Students / board', usage.students_per_board],
+    ['Courses', usage.courses],
+    ['Storage (MB)', usage.storage_mb],
+  ];
+  wrap.innerHTML = rows.filter(([, v]) => v).map(([label, v]) => {
+    const used = v.used ?? 0;
+    const limit = v.unlimited ? '∞' : v.limit;
+    const pct = v.unlimited || !v.limit ? 0 : Math.min(100, Math.round((used / v.limit) * 100));
+    const hot = pct >= 80 ? ' hot' : '';
+    return `<div class="usage-row">
+      <div class="u-top"><span>${label}</span><span>${used} / ${limit}</span></div>
+      <div class="u-bar"><div class="u-fill${hot}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderCycleToggle() {
+  const cycles = OVERVIEW?.plans?.pro?.cycles || [
+    { key:'monthly', discount:0 }, { key:'quarterly', discount:0.08 }, { key:'yearly', discount:0.18 }
+  ];
+  $('cycle-toggle').innerHTML = cycles.map(c => {
+    const save = c.discount ? `<span class="save">save ${Math.round(c.discount * 100)}%</span>` : '';
+    return `<button data-cycle="${c.key}" class="${c.key === selectedCycle ? 'on' : ''}" onclick="setCycle('${c.key}')">${cycleLabel(c.key)}${save}</button>`;
+  }).join('');
+}
+
+function setCycle(key) {
+  selectedCycle = key;
+  document.querySelectorAll('#cycle-toggle button').forEach(b => b.classList.toggle('on', b.dataset.cycle === key));
+  renderPlans();
+  if (selectedPlan) updatePayBox();
+}
+
+function planQuote(planKey, cycleKey) {
+  return OVERVIEW?.plans?.[planKey]?.cycles?.find(c => c.key === cycleKey) || null;
+}
+
+function renderPlans() {
+  const plans = OVERVIEW?.plans;
+  const curPlan = OVERVIEW?.current?.plan || 'free';
+  const order = ['pro', 'school'];
+  $('plan-cards').innerHTML = order.map(key => {
+    const p = plans?.[key];
+    const name = p?.name || (key === 'pro' ? 'Teacher Pro' : 'School');
+    const features = p?.features || [];
+    const q = planQuote(key, selectedCycle);
+    const monthly = q ? q.monthly_equivalent : (key === 'pro' ? 9.9 : 29);
+    const total = q ? q.total : null;
+    const cur = q ? q.currency : 'usd';
+    const isCurrent = curPlan === key && OVERVIEW?.current?.status === 'active';
+    const period = selectedCycle === 'monthly'
+      ? 'billed monthly'
+      : (total != null ? `${fmtMoney(total, cur)} billed ${selectedCycle}${q && q.savings > 0 ? ` · save ${fmtMoney(q.savings, cur)}` : ''}` : '');
+    return `<div class="plan ${key === 'school' ? 'popular' : ''} ${isCurrent ? 'current-plan' : ''} ${selectedPlan === key ? 'selected' : ''}"
+                 id="plan-${key}" ${isCurrent ? '' : `onclick="selectPlan('${key}')"`}>
+      ${isCurrent ? '<div class="plan-current-tag">✓ Your current plan</div>' : ''}
+      <div class="plan-name">${PLAN_ICONS[key]} ${name}</div>
+      <div class="plan-price">${fmtMoney(monthly, cur)} <span>/mo</span></div>
+      <div class="plan-period">${period}</div>
+      <ul class="plan-feat">${features.map(f => `<li>${f}</li>`).join('')}</ul>
+    </div>`;
+  }).join('');
+}
 
 function selectPlan(plan) {
-  _selectedPlan = plan;
-  document.querySelectorAll('.plan').forEach(el => el.classList.remove('selected'));
-  document.getElementById('plan-' + plan)?.classList.add('selected');
+  if (OVERVIEW?.pending_payment) return; // can't start a new request while one is pending
+  selectedPlan = plan;
+  renderPlans();
   updatePayBox();
 }
 
-function updatePayAmount() {
-  if (!_selectedPlan) return;
-  const cycle = document.getElementById('pay-cycle').value;
-  const p = PLANS[_selectedPlan];
-  const amount = p.prices[cycle];
-  const months = MONTHS[cycle];
-  document.getElementById('pay-amount').textContent = `$${amount} USD`;
-  document.getElementById('pay-sub').textContent = `${p.label} · $${amount} / ${cycle} · ${months} month(s)`;
-}
-
 function updatePayBox() {
-  const box = document.getElementById('pay-box');
-  box.classList.add('visible');
-  updatePayAmount();
-  // Scroll to payment box
+  const box = $('pay-box');
+  box.hidden = false;
+  const q = planQuote(selectedPlan, selectedCycle);
+  const name = OVERVIEW?.plans?.[selectedPlan]?.name || selectedPlan;
+  const total = q ? fmtMoney(q.total, q.currency) : '—';
+  $('pay-amount').textContent = total;
+  $('pay-sub').textContent = `${name} · ${cycleLabel(selectedCycle)} · ${total}`;
+  if (!$('pay-date').value) $('pay-date').value = new Date().toISOString().slice(0, 10);
   setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
-function copyCardNumber() {
-  navigator.clipboard?.writeText(CARD_NUMBER.replace(/\s/g, '')).then(() => {
+function copyIban() {
+  navigator.clipboard?.writeText(IBAN).then(() => {
     const btn = document.querySelector('.copy-btn');
-    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = orig, 2000); }
+    if (btn) { const o = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = o, 2000); }
   });
 }
 
 async function submitPayment() {
-  const name = document.getElementById('pay-name').value.trim();
-  const cycle = document.getElementById('pay-cycle').value;
-  const note = document.getElementById('pay-note').value.trim();
-  const errEl = document.getElementById('pay-err');
-  const btn = document.getElementById('pay-submit-btn');
-  errEl.style.display = 'none';
+  const name = $('pay-name').value.trim();
+  const txDate = $('pay-date').value;
+  const note = $('pay-note').value.trim();
+  const err = $('pay-err');
+  const btn = $('pay-submit-btn');
+  err.hidden = true;
 
-  if (!_selectedPlan) { errEl.textContent = 'Please select a plan first.'; errEl.style.display='block'; return; }
-  if (!name) { errEl.textContent = 'Please enter your full name.'; errEl.style.display='block'; return; }
-  if (!_token) { errEl.textContent = 'You are not logged in. Please sign in first.'; errEl.style.display='block'; return; }
-
-  const p = PLANS[_selectedPlan];
-  const amount = p.prices[cycle];
-  const months = MONTHS[cycle];
+  if (!selectedPlan) { err.textContent = 'Please select a plan first.'; err.hidden = false; return; }
+  if (!name) { err.textContent = 'Please enter your full name.'; err.hidden = false; return; }
+  if (!txDate) { err.textContent = 'Please enter the date of your transfer.'; err.hidden = false; return; }
+  if (!TOKEN) { err.textContent = 'You are not signed in. Please sign in first.'; err.hidden = false; return; }
 
   btn.disabled = true;
   btn.textContent = 'Submitting…';
-
   try {
-    const r = await fetch(API_BASE + '/api/billing/payment-request', {
+    const r = await apiFetch('/api/billing/iban-activate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token },
-      body: JSON.stringify({
-        plan: _selectedPlan,
-        months,
-        amount,
-        currency: 'usd',
+      body: {
+        plan: selectedPlan,
+        billing_cycle: selectedCycle,
         payer_name: name,
-        tx_note: note || '',
-        billing_cycle: cycle
-      })
+        tx_date: txDate,
+        tx_note: note,
+      },
     });
-    const d = await r.json();
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 409 && d.payment) { showPending(d.payment); return; }
     if (!r.ok) throw new Error(d.error || 'Request failed');
-
-    // Show pending state
-    document.getElementById('pay-box').classList.remove('visible');
-    const pendingBox = document.getElementById('pending-box');
-    pendingBox.classList.add('visible');
-    if (d.invoice_no) document.getElementById('pending-invoice').textContent = '📄 Invoice: ' + d.invoice_no;
-    pendingBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch(e) {
-    errEl.textContent = e.message || 'Something went wrong. Please try again.';
-    errEl.style.display = 'block';
+    showPending(d.payment || {});
+  } catch (e) {
+    err.textContent = e.message || 'Something went wrong. Please try again.';
+    err.hidden = false;
     btn.disabled = false;
     btn.textContent = "I've transferred — confirm ✓";
   }
 }
 
-// Pre-select plan from URL param
-const _q = new URLSearchParams(location.search);
-const urlPlan = _q.get('plan');
-if (urlPlan && PLANS[urlPlan]) selectPlan(urlPlan);
-// Arriving from the in-board paywall → default to Pro and scroll to plans
-else if (_q.get('from') === 'board') selectPlan('pro');
+function showPending(payment) {
+  $('pay-box').hidden = true;
+  $('plan-cards').hidden = true;
+  $('cycle-toggle').parentElement.hidden = true;
+  const box = $('pending-box');
+  box.hidden = false;
+  const inv = payment?.invoice_no || (payment?.id ? '#' + payment.id : null);
+  $('pending-invoice').textContent = '📄 Invoice: ' + (inv || '—');
+  if (payment?.plan) {
+    const nm = OVERVIEW?.plans?.[payment.plan]?.name || payment.plan;
+    $('pending-text').textContent = `Your ${nm} request (${cycleLabel(payment.billing_cycle || 'monthly')}) is awaiting verification. Your plan activates once we confirm the payment — usually within a few hours.`;
+  }
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+init();
 </script>
 <script src="scripts/whatsapp-feedback.js" defer></script>
 <script src="pwa-boot.js" defer></script>

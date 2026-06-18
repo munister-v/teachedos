@@ -300,11 +300,13 @@ router.post('/upgrade', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/iban-activate', requireAuth, async (req, res) => {
+async function ibanActivateHandler(req, res) {
   const plan = normalizePlanKey(req.body?.plan);
-  const billingCycle = normalizeCycleKey(req.body?.billing_cycle);
+  const billingCycle = normalizeCycleKey(req.body?.billing_cycle || req.body?.cycle);
   const payerName = String(req.body?.payer_name || '').trim();
-  const txDate = req.body?.tx_date;
+  // Default the transfer date to today when the client omits it (e.g. the
+  // streamlined upgrade page where the user confirms "I've transferred").
+  const txDate = req.body?.tx_date || new Date().toISOString().slice(0, 10);
   const txNote = String(req.body?.tx_note || '').trim();
   const companyName = String(req.body?.company_name || '').trim();
   const contactEmail = String(req.body?.contact_email || req.user.email || '').trim().toLowerCase();
@@ -370,7 +372,12 @@ router.post('/iban-activate', requireAuth, async (req, res) => {
     console.error('[billing] iban-activate:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
-});
+}
+
+// Canonical manual-payment endpoint, plus a back-compat alias used by the
+// standalone upgrade page. Both share one handler so the flow can never diverge.
+router.post('/iban-activate', requireAuth, ibanActivateHandler);
+router.post('/payment-request', requireAuth, ibanActivateHandler);
 
 router.get('/payments', requireAuth, async (req, res) => {
   try {
