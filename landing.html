@@ -813,6 +813,30 @@ footer{background:transparent;border-top:1px solid var(--line);}
 /* ── Sticky mobile CTA ── */
 .sticky-mob{background:rgba(11,11,12,.92);border:1px solid rgba(255,255,255,.08);border-radius:16px;}
 
+/* ── Global smoothness ── */
+html{scroll-behavior:smooth;scroll-padding-top:84px;-webkit-text-size-adjust:100%;}
+body{-webkit-overflow-scrolling:touch;}
+section[id], .hero{scroll-margin-top:80px;}
+a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-function:cubic-bezier(.22,.61,.36,1);}
+.faq-a{overflow:hidden;}
+
+/* ── Hero polish: stronger title, tidy trust row ── */
+.hero .container{position:relative;z-index:1;}
+.hero-badge{padding:7px 15px;font-size:11px;}
+.hero-h{margin-bottom:24px;}
+.hero-sub{margin:0 auto 32px;}
+.hero-ctas{gap:12px;margin-bottom:30px;}
+.hero-trust{
+  display:inline-flex;flex-wrap:wrap;justify-content:center;gap:8px;
+}
+.hero-trust span{
+  background:#fff;border:1px solid var(--line-2);border-radius:999px;
+  padding:7px 13px;font-size:10.5px;font-weight:700;color:var(--ink2);
+  letter-spacing:.06em;
+}
+.hero-trust .dot2{width:5px;height:5px;}
+.preview-stage{margin-top:clamp(40px,6vw,68px);}
+
 /* ── Reveal: never leave content invisible ── */
 @media (prefers-reduced-motion: reduce){
   .reveal{opacity:1!important;transform:none!important;}
@@ -1488,8 +1512,8 @@ footer{background:transparent;border-top:1px solid var(--line);}
     <div class="footer-bottom">
       <span>© 2025 TeachEd. All rights reserved.</span>
       <span style="display:flex;gap:16px;">
-        <a href="mailto:hello@teachedos.app?subject=TeachEd%20privacy%20request" style="color:var(--ink3);">Privacy</a>
-        <a href="mailto:hello@teachedos.app?subject=TeachEd%20terms%20request" style="color:var(--ink3);">Terms</a>
+        <a href="privacy.html" style="color:var(--ink3);">Privacy</a>
+        <a href="terms.html" style="color:var(--ink3);">Terms</a>
       </span>
     </div>
   </div>
