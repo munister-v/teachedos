@@ -2200,7 +2200,7 @@ label.hw-search {
     z-index: 220 !important;
     min-height: calc(58px + env(safe-area-inset-top, 0px)) !important;
     padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
-    background: rgba(245,240,232,.96) !important;
+    background: #F5F0E8 !important;
     border-bottom: 1px solid rgba(94,94,74,.08) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
