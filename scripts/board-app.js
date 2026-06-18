@@ -65,6 +65,20 @@ const saveStatus = document.getElementById('save-status');
 const undoToast  = document.getElementById('undo-toast');
 const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas.getContext('2d');
+const BOARD_PHONE_MQL = window.matchMedia ? window.matchMedia('(max-width:860px)') : null;
+
+function isBoardPhone() {
+  return !!(BOARD_PHONE_MQL && BOARD_PHONE_MQL.matches);
+}
+
+function syncBoardPhoneMode() {
+  document.body.classList.toggle('board-phone-shell', isBoardPhone());
+}
+syncBoardPhoneMode();
+if (BOARD_PHONE_MQL) {
+  if (BOARD_PHONE_MQL.addEventListener) BOARD_PHONE_MQL.addEventListener('change', syncBoardPhoneMode);
+  else if (BOARD_PHONE_MQL.addListener) BOARD_PHONE_MQL.addListener(syncBoardPhoneMode);
+}
 
 /* ════════════════════════ TRANSFORM ════════════════════════ */
 
@@ -209,9 +223,11 @@ function zoomToCard(cardId, animate) {
   const c = state.cards.find(x => x.id === cardId);
   if (!c) return;
   if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
-  const PAD = 80;
+  const phone = isBoardPhone();
+  const PAD = phone ? 28 : 80;
   const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
-  const targetScale = Math.min(2, Math.max(0.10, Math.min((pw-PAD*2)/c.w, (ph-PAD*2)/c.h)));
+  const maxScale = phone ? 1.25 : 2;
+  const targetScale = Math.min(maxScale, Math.max(0.10, Math.min((pw-PAD*2)/c.w, (ph-PAD*2)/c.h)));
   const targetPanX = (pw - c.w*targetScale)/2 - c.x*targetScale;
   const targetPanY = (ph - c.h*targetScale)/2 - c.y*targetScale;
   if (animate !== false) {
@@ -245,11 +261,13 @@ function fitAll(animate) {
     minX=Math.min(minX,c.x); minY=Math.min(minY,c.y);
     maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h);
   });
-  const PAD = 60;
+  const phone = isBoardPhone();
+  const PAD = phone ? 26 : 60;
   const pw=boardWrap.clientWidth, ph=boardWrap.clientHeight;
   const cw=maxX-minX, ch=maxY-minY;
   if (cw <= 0 || ch <= 0) return;
-  const targetScale = Math.min(2, Math.max(0.08, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
+  const maxScale = phone ? 1.18 : 2;
+  const targetScale = Math.min(maxScale, Math.max(0.08, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
   const targetPanX = (pw-cw*targetScale)/2 - minX*targetScale;
   const targetPanY = (ph-ch*targetScale)/2 - minY*targetScale;
   if (animate !== false) {
@@ -460,6 +478,7 @@ function renderCard(card) {
   normalizeCardLayer(card, state.cards.indexOf(card) + 1);
   const el = document.createElement('div');
   el.className = 'board-card card-' + card.type;
+  if (card.type === 'frame' && card.data?.mobileFormat) el.classList.add('frame-mobile-format');
   if (card.data && card.data.locked) el.classList.add('card-locked');
   if (card.data && card.data.private) {
     // If the card is private to someone else, render an empty placeholder so layout
@@ -1327,6 +1346,30 @@ function renderTable(el, card) {
 }
 
 function quickAddFrame() {
+  if (isBoardPhone()) {
+    const pos = getBoardViewportCenter() || { x: 240, y: 480 };
+    const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
+    const newCard = addCard('frame', pos.x - 195, pos.y - 422, {
+      title: n === 1 ? 'Phone board' : 'Phone board ' + n,
+      num: n,
+      bg: 'rgba(255,255,255,1)',
+      border: 'rgba(28,28,30,.24)',
+      childIds: [],
+      mobileFormat: true,
+    }, 390, 844);
+    if (newCard) {
+      newCard.z = 0;
+      applyCardLayer && applyCardLayer(newCard);
+      clearSelection && clearSelection();
+      state.selected = new Set([newCard.id]);
+      getCardEl(newCard.id)?.classList.add('selected');
+      setTimeout(() => { try { zoomToCard(newCard.id, true); } catch {} }, 60);
+      toast && toast('Phone board frame');
+    }
+    setMiroTool('select');
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    return;
+  }
   const pos = getBoardViewportCenter() || { x: 100, y: 100 };
   const def = getDefaults('frame');
   const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
@@ -9267,17 +9310,73 @@ const loaded = loadBoard();
 const WELCOME_KEY = 'teachedos_welcome_shown_v1';
 let _welcomeSeen = false;
 try { _welcomeSeen = localStorage.getItem(WELCOME_KEY) === '1'; } catch {}
-if (!loaded && !_welcomeSeen) {
-  // Welcome board — only on a fresh user, never re-seeded after "Clear board"
-  addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
-  addCard('plan',   380,  40, { ...PLANS[0] });
-  addCard('student',380, 280, { ...STUDENTS[0] });
-  addCard('note',   680,  40, { ...NOTES[0] });
-  // Auto-connect plan → student
-  const pid = state.cards[1].id, sid = state.cards[2].id;
-  state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
+function seedMobileWelcomeBoard() {
+  const fx = 40, fy = 40, fw = 390, fh = 844;
+  const frame = addCard('frame', fx, fy, {
+    title: 'Phone lesson board',
+    num: 1,
+    bg: 'rgba(255,255,255,1)',
+    border: 'rgba(28,28,30,.22)',
+    childIds: [],
+    mobileFormat: true,
+  }, fw, fh);
+  const children = [
+    addCard('sticky', fx + 24, fy + 74, {
+      text: 'Welcome to Board on phone.\n\nUse Add below, keep one lesson flow inside this frame, and tap Fit anytime.',
+      color: '#FFF4B8',
+    }, 342, 142),
+    addCard('plan', fx + 24, fy + 246, {
+      ...PLANS[0],
+      title: 'Today\'s lesson flow',
+      desc: 'Warm-up, presentation, practice, speaking and homework in one phone-sized board.',
+    }, 342, 204),
+    addCard('checklist', fx + 24, fy + 480, {
+      title: 'Class checklist',
+      items: [
+        { text: 'Open with a quick speaking prompt', done: false },
+        { text: 'Add examples or images as cards', done: false },
+        { text: 'Send board as homework when ready', done: false },
+      ],
+    }, 342, 188),
+    addCard('text', fx + 24, fy + 702, {
+      text: 'Tip: Phone boards work best as a focused vertical lesson strip. Use desktop for huge mind maps.',
+      bgColor: 'rgba(200,230,50,.16)',
+      textColor: '#1C1C1E',
+      fontSize: 18,
+    }, 342, 92),
+  ].filter(Boolean);
+  if (frame) {
+    frame.z = 0;
+    frame.data.childIds = children.map(c => c.id);
+    applyCardLayer && applyCardLayer(frame);
+    children.forEach((child, index) => {
+      child.data.parentFrame = frame.id;
+      child.z = index + 2;
+      applyCardLayer && applyCardLayer(child);
+    });
+  }
+  if (children[0] && children[1]) {
+    state.arrows.push({ id:'a'+(state.nextId++), fromCard:children[0].id, fromAnchor:'bottom', toCard:children[1].id, toAnchor:'top' });
+  }
   renderAllArrows();
   scheduleSave();
+  setTimeout(() => { try { zoomToCard(frame?.id || children[0]?.id, false); } catch {} }, 70);
+}
+if (!loaded && !_welcomeSeen) {
+  // Welcome board — only on a fresh user, never re-seeded after "Clear board"
+  if (isBoardPhone()) {
+    seedMobileWelcomeBoard();
+  } else {
+    addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
+    addCard('plan',   380,  40, { ...PLANS[0] });
+    addCard('student',380, 280, { ...STUDENTS[0] });
+    addCard('note',   680,  40, { ...NOTES[0] });
+    // Auto-connect plan → student
+    const pid = state.cards[1].id, sid = state.cards[2].id;
+    state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
+    renderAllArrows();
+    scheduleSave();
+  }
   try { localStorage.setItem(WELCOME_KEY, '1'); } catch {}
 }
 // On phones, auto-fit all cards into view on first paint so users see content
@@ -11466,7 +11565,12 @@ function _addFramePreset(key) {
   if (typeof addCard !== 'function') return;
   const card = addCard('frame',
     center.x - preset.w/2, center.y - preset.h/2,
-    { title: preset.label, bg: 'rgba(255,255,255,1)', border: 'rgba(0,0,0,.18)' },
+    {
+      title: key === 'mobile' ? 'Phone board' : preset.label,
+      bg: 'rgba(255,255,255,1)',
+      border: key === 'mobile' ? 'rgba(28,28,30,.24)' : 'rgba(0,0,0,.18)',
+      mobileFormat: key === 'mobile',
+    },
     preset.w, preset.h
   );
   if (card) {
@@ -11474,6 +11578,7 @@ function _addFramePreset(key) {
     state.selected = new Set([card.id]);
     getCardEl(card.id)?.classList.add('selected');
     showLayerPopover && showLayerPopover(card.id);
+    if (key === 'mobile') setTimeout(() => { try { zoomToCard(card.id, true); } catch {} }, 60);
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
   }
 }
