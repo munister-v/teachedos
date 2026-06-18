@@ -904,23 +904,34 @@ function openSlot(id) {
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────
+function useLocalScheduleMode(cached) {
+  currentUser = cached?.user || {
+    name: 'Teacher',
+    avatar: 'T',
+    timezone: browserTimeZone(),
+    timezone_mode: 'auto',
+    plan: 'free'
+  };
+  if (cached?.schedule && Array.isArray(cached.schedule)) schedule = cached.schedule;
+  setNavUser(currentUser);
+  applySchedulePackageGateUI();
+}
+
 async function init() {
-  if (!token) { location.href = 'index.html'; return; }
   const cached = readScheduleCache();
-  try {
-    const r = await apiFetch('/api/auth/me');
-    currentUser = r.user;
-    await syncAutoTimeZone();
-    setNavUser(currentUser);
-    applySchedulePackageGateUI();
-    writeScheduleCache({ user: currentUser });
-  } catch {
-    if (cached?.user) {
-      currentUser = cached.user;
-      setNavUser(cached.user);
+  if (!token) {
+    useLocalScheduleMode(cached);
+  } else {
+    try {
+      const r = await apiFetch('/api/auth/me');
+      currentUser = r.user;
+      await syncAutoTimeZone();
+      setNavUser(currentUser);
       applySchedulePackageGateUI();
-    } else {
-      location.href = 'index.html'; return;
+      writeScheduleCache({ user: currentUser });
+    } catch {
+      useLocalScheduleMode(cached);
+      toast('Schedule opened in local mode', 'ok');
     }
   }
   buildColorGrid();
