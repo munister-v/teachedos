@@ -4510,8 +4510,33 @@ function toggleConnectMode() {
   // Sync toolbar buttons explicitly
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
+  updateMobilePointerControls();
   // Quick hint so users know what to do
-  if (enabling) toast && toast('Connect mode: drag from one card\'s anchor to another · Esc to exit');
+  if (enabling) toast && toast('Connect mode: tap Select to exit');
+}
+
+function updateMobilePointerControls() {
+  const placing = typeof _pendingPlace !== 'undefined' && !!_pendingPlace;
+  const commenting = typeof _miroTool !== 'undefined' && _miroTool === 'comment';
+  const isSelect = !_drawTool && !placing && state.mode !== 'connect' && !commenting;
+  document.getElementById('mq-select')?.classList.toggle('active', isSelect);
+  document.getElementById('mq-pen')?.classList.toggle('active', !!_drawTool);
+  document.body.classList.toggle('mobile-tool-active', !isSelect);
+}
+
+function resetBoardPointer(announce = false) {
+  closeMobileAddSheet?.();
+  if (typeof connectPending !== 'undefined' && connectPending) cancelConnection?.();
+  if (_drawTool) disableDrawTool();
+  if (typeof _pendingPlace !== 'undefined' && _pendingPlace) cancelPlaceMode?.();
+  if (state.mode === 'connect') setMode('select');
+  if (typeof disableCommentMode === 'function') disableCommentMode();
+  if (typeof _handMode !== 'undefined' && _handMode) toggleHandTool?.();
+  closeShapePanel?.();
+  _closeMoreShapes?.();
+  setMiroTool('select');
+  updateMobilePointerControls();
+  if (announce && toast) toast('Select mode');
 }
 
 /* ─── Mobile Add action sheet ─── */
@@ -4546,6 +4571,7 @@ function _mqAdd(action) {
     } else if (action === 'comment') {
       toggleCommentMode && toggleCommentMode();
     }
+    updateMobilePointerControls?.();
   }, 180);
 }
 // Click on backdrop closes the sheet
@@ -11337,6 +11363,7 @@ function setMiroTool(tool) {
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('mt-' + tool);
   if (btn) btn.classList.add('active');
+  updateMobilePointerControls?.();
 }
 
 // Sidebar is now an overlay flyout; #board-wrap always sits next to the left tray.
@@ -13597,6 +13624,7 @@ function disableDrawTool() {
     _miroTool = 'select';
     document.getElementById('mt-select')?.classList.add('active');
   }
+  updateMobilePointerControls?.();
 }
 
 function openUnifiedDrawMenu(ev) {
@@ -13622,6 +13650,7 @@ function chooseDrawTool(tool) {
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('mt-pen')?.classList.add('active');
   openDrawPalette(document.getElementById('mt-pen'), tool);
+  updateMobilePointerControls?.();
 }
 
 function toggleDrawTool(tool, ev) {
@@ -13645,6 +13674,7 @@ function toggleDrawTool(tool, ev) {
   const btn = document.getElementById(tool === 'marker' || tool === 'eraser' ? 'mt-pen' : 'mt-' + tool);
   if (btn) btn.classList.add('active');
   closeDrawPalette();
+  updateMobilePointerControls?.();
 }
 function eraseDrawing() {
   if (!(state.strokes && state.strokes.length)) return;

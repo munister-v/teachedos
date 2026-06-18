@@ -3579,7 +3579,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
     padding:7px!important;border-radius:18px!important;
   }
-  .mq-btn{height:46px;min-width:48px;font-size:10.5px;}
+  .mq-btn{height:46px;min-width:44px;font-size:10.5px;}
   .mq-status{bottom:calc(100% + 8px);}
   /* "More" popover → bottom sheet anchored above the quickbar, full width,
      with finger-sized rows (was a tiny top-right popover off-screen). */
