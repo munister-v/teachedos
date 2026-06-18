@@ -407,6 +407,22 @@ function applyCardLayer(card) {
   if (el) el.style.zIndex = getCardZ(card);
 }
 
+// Send a card to the very back of the z-stack (lowest z), re-layering every
+// card so stacking is explicit. Used after generating a lesson/worksheet so the
+// white "substrate" frame ALWAYS sits behind existing board cards (and its own
+// children). Lean — no snapshot/save/popover — safe to call mid-generation.
+function _sendCardToBack(card) {
+  if (!card) return;
+  const ordered = state.cards
+    .map((c, i) => ({ c: normalizeCardLayer(c, i + 1), i }))
+    .sort((a, b) => getCardZ(a.c) - getCardZ(b.c) || a.i - b.i)
+    .map(x => x.c);
+  const idx = ordered.findIndex(c => c.id === card.id);
+  if (idx === -1) return;
+  ordered.unshift(ordered.splice(idx, 1)[0]);
+  ordered.forEach((c, i) => { c.z = i + 1; applyCardLayer(c); });
+}
+
 function defaultTextData(data={}) {
   return {
     textColor: '#111111',
@@ -5976,6 +5992,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
     _suppressSnapshot--;
   }
 
+  _sendCardToBack(outer);   // keep the white lesson substrate behind everything
   scheduleSave?.(); saveLocal?.();
   return outer ? outer.id : null;
 }
@@ -6058,6 +6075,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
   } finally {
     _suppressSnapshot--;
   }
+  _sendCardToBack(frame);   // substrate frame always behind existing cards
   scheduleSave?.(); saveLocal?.();
   return frame ? frame.id : null;
 }
@@ -6468,6 +6486,7 @@ function _placeLessonOnBoard(results, videoTitle) {
       if (frame && card) setCardParentFrame?.(card, frame);
     });
     if (typeof renumberFrames === 'function') renumberFrames();
+    _sendCardToBack(frame);   // substrate frame always behind existing cards
     if (frame?.id) { clearSelection?.(); selectCard?.(frame.id); setTimeout(() => { try { zoomToCard?.(frame.id, true); } catch (e) {} }, 80); }
   } finally { _suppressSnapshot--; }
   scheduleSave?.(); saveLocal?.();
@@ -8667,6 +8686,7 @@ function _ttPlaceCardsOnBoard(output){
       if (frame && card) setCardParentFrame?.(card, frame);
     });
     if (typeof renumberFrames === 'function') renumberFrames();
+    _sendCardToBack(frame);   // substrate frame always behind existing cards
     if (frame?.id) { clearSelection?.(); selectCard?.(frame.id); setTimeout(()=>{ try{ zoomToCard?.(frame.id,true); }catch{} },80); }
   } finally { _suppressSnapshot--; }
   scheduleSave?.(); saveLocal?.();
@@ -8709,6 +8729,7 @@ function _ttPlaceVocabOnBoard(output){
   } finally {
     _suppressSnapshot--;
   }
+  _sendCardToBack(frame);   // substrate frame always behind existing cards
   if (frame && frame.id) {
     clearSelection && clearSelection();
     selectCard(frame.id);
@@ -9203,6 +9224,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
     _suppressSnapshot--;
   }
 
+  _sendCardToBack(frame);   // substrate frame always behind existing cards
   if (frame?.id) {
     clearSelection?.();
     selectCard?.(frame.id);
@@ -10603,7 +10625,7 @@ function buildLessonFlowCards(lesson) {
   const created = [];
   const frameW = Math.max(1180, Math.min(1600, 380 + Math.min(stages.length, 3) * 300));
   const frameH = 850 + Math.max(0, Math.ceil((stages.length - 6) / 3)) * 230;
-  addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'#ffffff', border:'rgba(200,230,50,.42)' }, frameW, frameH);
+  const _flowFrame = addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'#ffffff', border:'rgba(200,230,50,.42)' }, frameW, frameH);
   const overview = addCard('text', baseX, baseY, defaultTextData({
     text: (lesson.title || 'Lesson') + '\n' + [lesson.level, lesson.skill, lesson.format, (lesson.duration || '') + ' min'].filter(Boolean).join(' / ') + '\n\n' + (lesson.brief || ''),
     bgColor:'#ffffff', textColor:'#111111', align:'left'
@@ -10655,6 +10677,7 @@ function buildLessonFlowCards(lesson) {
   if (created.length) {
     state.arrows.push({ id:'a' + (state.nextId++), fromCard:created[created.length - 1].id, fromAnchor:'bottom', toCard:homework.id, toAnchor:'top' });
   }
+  _sendCardToBack(_flowFrame);   // substrate frame always behind existing cards
   renderAllArrows && renderAllArrows();
   updateEmpty && updateEmpty();
   fitAll && fitAll(false);
@@ -13341,6 +13364,7 @@ function applyAiAssistantToBoard() {
         .map(c => c.id);
     }
 
+    _sendCardToBack(frame);   // frame is created last here → send behind its children + existing cards
     renderAllArrows?.();
     scheduleSave(); saveLocal?.();
     closeAiAssistantPanel();
