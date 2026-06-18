@@ -378,3 +378,225 @@ button, a, [role="button"], summary {
   animation: tx-spin .7s linear infinite;
 }
 @keyframes tx-spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE APP POLISH PASS
+   A final shared layer for mobile web and installed PWA surfaces:
+   calmer safe areas, nicer loading states, softer cards, and fewer
+   tap/scroll surprises across legacy pages.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --te-mobile-bg: #F5F0E8;
+  --te-mobile-surface: #FFFFFF;
+  --te-mobile-surface-2: #FAF7F1;
+  --te-mobile-ink: #1C1C1E;
+  --te-mobile-muted: #6E6E5C;
+  --te-mobile-faint: #A2A28C;
+  --te-mobile-line: rgba(94,94,74,.12);
+  --te-mobile-line-2: rgba(94,94,74,.20);
+  --te-mobile-lime: #C8E632;
+  --te-mobile-radius: 16px;
+  --te-mobile-shadow: 0 10px 26px rgba(94,94,74,.075);
+}
+
+@keyframes teMobileShimmer {
+  0% { background-position: 140% 0; }
+  100% { background-position: -140% 0; }
+}
+
+@keyframes teMobileFloatIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 860px) {
+  html {
+    background: var(--te-mobile-bg);
+    color-scheme: light;
+  }
+
+  body:not(.board-page) {
+    background:
+      radial-gradient(circle at 50% -10%, rgba(200,230,50,.10), transparent 34%),
+      var(--te-mobile-bg);
+    min-height: 100dvh;
+  }
+
+  html.pwa-standalone body,
+  body.pwa-standalone {
+    padding-top: 0 !important;
+  }
+
+  @media all and (display-mode: standalone) {
+    body {
+      min-height: 100dvh;
+    }
+
+    .mp-topbar,
+    #nav,
+    .topbar,
+    .mobile-topbar {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+    }
+  }
+
+  .mp-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 220;
+    min-height: calc(58px + env(safe-area-inset-top, 0px));
+    background: rgba(245,240,232,.96);
+    border-bottom: 1px solid rgba(94,94,74,.08);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .mp-topbar-title,
+  .mp-greeting-name {
+    letter-spacing: -.025em;
+  }
+
+  body:not(.board-page) :where(.card, .panel, .tile, .module-block, .ready-card, .lesson-card, .board-card, .gb-mobile-card, .table-row, .stat-card, .insight-card, .plan, .current, .pay-box) {
+    border-radius: var(--te-mobile-radius) !important;
+    border-color: var(--te-mobile-line) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 4px 18px rgba(94,94,74,.055) !important;
+  }
+
+  body:not(.board-page) :where(.card, .panel, .tile, .module-block, .ready-card, .lesson-card, .board-card, .gb-mobile-card, .table-row, .stat-card, .insight-card):active {
+    transform: scale(.992);
+  }
+
+  body:not(.board-page) :where(button, .btn, .setting-btn, .new-board-btn, .mp-btn, .mini-btn, .bc-btn, .action-btn, .attend-btn, .filter-btn, .chip, .pill) {
+    min-height: 44px;
+    border-radius: 13px;
+    touch-action: manipulation;
+  }
+
+  body:not(.board-page) :where(input, textarea, select, .setting-input, .form-input, .cfg-input) {
+    min-height: 44px;
+    border-radius: 13px !important;
+    border-color: var(--te-mobile-line-2) !important;
+    background-color: #fff !important;
+  }
+
+  body:not(.board-page) :where(input, textarea, select, .setting-input, .form-input, .cfg-input):focus {
+    border-color: var(--te-mobile-lime) !important;
+    box-shadow: 0 0 0 4px rgba(200,230,50,.18) !important;
+  }
+
+  .mob-nav {
+    height: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)) !important;
+    background: rgba(250,250,248,.98) !important;
+    border-top-color: rgba(14,14,16,.08) !important;
+    box-shadow: 0 -10px 30px rgba(14,14,16,.08) !important;
+  }
+
+  .mob-nav-tab {
+    height: 56px !important;
+    border-radius: 16px !important;
+  }
+
+  .skeleton,
+  .tx-skel,
+  .course-skeleton-dot,
+  .course-skeleton-line,
+  .course-skeleton-count,
+  .stat-val.is-loading,
+  .hw-metric b.is-loading,
+  .hero-score b.is-loading {
+    color: transparent !important;
+    background:
+      linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.70) 38%,
+        rgba(255,255,255,0) 72%),
+      linear-gradient(90deg,
+        rgba(94,94,74,.065),
+        rgba(94,94,74,.115),
+        rgba(94,94,74,.065)) !important;
+    background-size: 220% 100%, 100% 100% !important;
+    animation: teMobileShimmer 1.35s cubic-bezier(.4,0,.2,1) infinite !important;
+    border-radius: 10px !important;
+  }
+
+  .course-skeleton {
+    position: relative;
+    overflow: hidden;
+    min-height: 46px;
+    background: rgba(255,255,255,.78) !important;
+    border-color: rgba(94,94,74,.10) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.82) inset, 0 5px 16px rgba(94,94,74,.055);
+  }
+
+  .course-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(200,230,50,.12), transparent);
+    transform: translateX(-100%);
+    animation: teMobileShimmer 1.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  #page-loading,
+  #loading.state-msg {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(200,230,50,.18), transparent 34%),
+      var(--te-mobile-bg) !important;
+  }
+
+  #page-loading {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  #page-loading::after {
+    content: "Loading workspace";
+    font: 800 12px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--te-mobile-muted);
+  }
+
+  .spinner {
+    width: 42px !important;
+    height: 42px !important;
+    border-width: 3px !important;
+    border-color: rgba(94,94,74,.13) !important;
+    border-top-color: var(--te-mobile-ink) !important;
+  }
+
+  .ready-card,
+  .mobile-profile-hero,
+  .mp-featured,
+  .mp-next-card,
+  .course-insights,
+  .stats-grid,
+  .boards-grid {
+    animation: teMobileFloatIn .22s ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton,
+    .tx-skel,
+    .course-skeleton,
+    .course-skeleton::after,
+    .stat-val.is-loading,
+    .hw-metric b.is-loading,
+    .hero-score b.is-loading {
+      animation: none !important;
+    }
+
+    .ready-card,
+    .mobile-profile-hero,
+    .mp-featured,
+    .mp-next-card,
+    .course-insights,
+    .stats-grid,
+    .boards-grid {
+      animation: none !important;
+    }
+  }
+}

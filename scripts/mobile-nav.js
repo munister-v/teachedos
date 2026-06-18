@@ -11,14 +11,17 @@
 
   var PAGE_MAP = {
     'index.html': 'home',
-    'schedule.html': 'schedule',
+    'board.html': 'board',
+    'board': 'board',
+    'schedule.html': 'home',
     'courses.html': 'courses',
-    'community.html': 'community',
-    'student.html': 'students',
-    'gradebook.html': 'students',
+    'community.html': 'home',
+    'homework.html': 'courses',
+    'student.html': 'progress',
+    'gradebook.html': 'progress',
     'profile.html': 'profile',
-    'analytics.html': 'students',
-    'journal.html': 'students',
+    'analytics.html': 'progress',
+    'journal.html': 'progress',
   };
   // board.html has its own bottom quickbar — skip the global mob-nav there.
   // Accept both /board and /board.html (some hosts strip extension).
@@ -31,19 +34,15 @@
       icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
     },
     {
-      id: 'schedule', href: 'schedule.html', label: 'Schedule',
-      icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+      id: 'board', href: 'board.html', label: 'Board',
+      icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h8"/><path d="M8 12h5"/><path d="M8 16h7"/></svg>',
     },
     {
       id: 'courses', href: 'courses.html', label: 'Courses',
       icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>',
     },
     {
-      id: 'community', href: 'community.html', label: 'Community',
-      icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>',
-    },
-    {
-      id: 'students', href: 'gradebook.html', label: 'Students',
+      id: 'progress', href: 'gradebook.html', label: 'Progress',
       icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     },
     {
@@ -57,34 +56,37 @@
   style.textContent = [
     '.mob-nav{',
     '  position:fixed;bottom:0;left:0;right:0;z-index:9990;',
-    '  height:calc(60px + env(safe-area-inset-bottom,0px));',
-    '  padding-bottom:env(safe-area-inset-bottom,0px);',
+    '  height:calc(72px + env(safe-area-inset-bottom,0px));',
+    '  padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));',
     /* solid bg: no backdrop-filter — saves GPU on every scroll frame */
-    '  background:#FAFAF8;',
+    '  background:rgba(250,250,248,0.98);',
     '  border-top:1px solid rgba(14,14,16,0.08);',
-    '  display:flex;align-items:stretch;',
+    '  display:flex;align-items:stretch;gap:4px;',
     /* GPU-promote to own layer so scrolling content never triggers nav repaint */
     '  transform:translateZ(0);',
     '  will-change:transform;',
+    '  box-shadow:0 -10px 30px rgba(14,14,16,0.08);',
     '}',
     '.mob-nav-tab{',
     '  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;',
-    '  height:60px;gap:3px;text-decoration:none;',
-    '  color:rgba(94,94,74,0.45);',
-    '  transition:color 0.15s, opacity 0.15s;',
+    '  height:56px;gap:4px;text-decoration:none;border-radius:16px;',
+    '  color:rgba(94,94,74,0.58);',
+    '  transition:color 0.15s, opacity 0.15s, background 0.15s, transform 0.15s;',
     '  -webkit-tap-highlight-color:transparent;',
     '  cursor:pointer;border:none;background:none;font-family:inherit;',
     '  position:relative;',
     '}',
-    '.mob-nav-tab:active{opacity:0.6;}',
-    '.mob-nav-tab.active{color:#1C1C1E;}',
+    '.mob-nav-tab:active{opacity:0.82;transform:scale(0.96);}',
+    '.mob-nav-tab.active{color:#1C1C1E;background:rgba(200,230,50,0.22);}',
+    '.mob-nav-tab.active::before{content:"";position:absolute;top:7px;width:18px;height:3px;border-radius:99px;background:#1C1C1E;}',
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
+    '.mob-nav-icon svg{width:21px;height:21px;stroke-width:2.15;}',
     '.mob-nav-label{',
-    '  font-size:10px;font-weight:700;letter-spacing:0.02em;',
+    '  font-size:10px;font-weight:800;letter-spacing:0;',
     '  font-family:inherit;line-height:1;',
     '}',
     /* body padding so content isn't hidden behind nav */
-    'body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important;}',
+    'body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)) !important;}',
   ].join('');
   document.head.appendChild(style);
 

@@ -2172,3 +2172,152 @@ label.hw-search {
     font-size: 11px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FINAL MOBILE / PWA QUALITY LAYER
+   Loaded last on app pages. Keeps the mobile shell calm, compact and
+   touch-friendly after page-specific CSS has had its say.
+═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 860px) {
+  body:not(.board-page) {
+    background:
+      radial-gradient(circle at 50% -12%, rgba(200,230,50,.12), transparent 34%),
+      #F5F0E8 !important;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body:not(.board-page) .mp-shell,
+  body:not(.board-page) #page,
+  body:not(.board-page) main {
+    background: transparent !important;
+  }
+
+  .mp-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 220 !important;
+    min-height: calc(58px + env(safe-area-inset-top, 0px)) !important;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+    background: rgba(245,240,232,.96) !important;
+    border-bottom: 1px solid rgba(94,94,74,.08) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .mp-topbar-title,
+  .mp-greeting-name {
+    color: #1C1C1E !important;
+    letter-spacing: -.025em !important;
+  }
+
+  body:not(.board-page) :is(.suite-page .card, .suite-page .stat-card, .suite-page .panel, .card, .stat-card, .ready-card, .lesson-card, .module-block, .insight-card, .gb-mobile-card, .mobile-profile-action, .recent-board-item) {
+    border-radius: 16px !important;
+    border-color: rgba(94,94,74,.12) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(94,94,74,.055) !important;
+  }
+
+  body:not(.board-page) :is(.card:hover, .stat-card:hover, .board-card:hover, .recent-board-item:hover, .lesson-card:hover) {
+    transform: none !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(94,94,74,.055) !important;
+  }
+
+  body:not(.board-page) :is(button, .btn, .setting-btn, .new-board-btn, .mp-btn, .action-btn, .filter-btn, .suite-tab, .board-pill) {
+    min-height: 44px !important;
+    touch-action: manipulation;
+  }
+
+  body:not(.board-page) :is(input, textarea, select, .setting-input, .form-input) {
+    min-height: 44px !important;
+    border-radius: 13px !important;
+    border-color: rgba(94,94,74,.20) !important;
+    background: #fff !important;
+  }
+
+  body:not(.board-page) :is(input, textarea, select, .setting-input, .form-input):focus {
+    border-color: #C8E632 !important;
+    box-shadow: 0 0 0 4px rgba(200,230,50,.18) !important;
+  }
+
+  .mob-nav {
+    height: calc(72px + env(safe-area-inset-bottom,0px)) !important;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)) !important;
+    gap: 4px !important;
+    background: rgba(250,250,248,.98) !important;
+    border-top: 1px solid rgba(14,14,16,.08) !important;
+    box-shadow: 0 -10px 30px rgba(14,14,16,.08) !important;
+  }
+
+  .mob-nav-tab {
+    height: 56px !important;
+    border-radius: 16px !important;
+    color: rgba(94,94,74,.58) !important;
+  }
+
+  .mob-nav-tab.active {
+    color: #1C1C1E !important;
+    background: rgba(200,230,50,.22) !important;
+  }
+
+  .mob-nav-label {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .stat-val.is-loading,
+  .hw-metric b.is-loading,
+  .hero-score b.is-loading,
+  .tx-skel,
+  .skeleton,
+  .course-skeleton-dot,
+  .course-skeleton-line,
+  .course-skeleton-count {
+    color: transparent !important;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.72), rgba(255,255,255,0)),
+      linear-gradient(90deg, rgba(94,94,74,.065), rgba(94,94,74,.12), rgba(94,94,74,.065)) !important;
+    background-size: 220% 100%, 100% 100% !important;
+    animation: techedAppShimmer 1.35s cubic-bezier(.4,0,.2,1) infinite !important;
+    border-radius: 10px !important;
+  }
+
+  #page-loading,
+  #loading.state-msg {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(200,230,50,.18), transparent 35%),
+      #F5F0E8 !important;
+  }
+
+  #page-loading {
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  #page-loading::after {
+    content: "Loading workspace";
+    font: 800 12px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6E6E5C;
+  }
+}
+
+@keyframes techedAppShimmer {
+  0% { background-position: 140% 0, 0 0; }
+  100% { background-position: -140% 0, 0 0; }
+}
+
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .stat-val.is-loading,
+  .hw-metric b.is-loading,
+  .hero-score b.is-loading,
+  .tx-skel,
+  .skeleton,
+  .course-skeleton-dot,
+  .course-skeleton-line,
+  .course-skeleton-count {
+    animation: none !important;
+  }
+}
