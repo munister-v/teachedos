@@ -953,7 +953,11 @@ body.pwa-standalone .sticky-mob{display:none!important;}
   .sec-sub{margin-bottom:22px;line-height:1.55;}
   .stats-strip{padding:24px 0;}
   .stat-n{font-size:30px;}
-  .hero-ctas .btn{min-height:50px;}
+  /* Clean equal-width stack instead of two centred buttons of different widths */
+  .hero-ctas{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:10px;width:100%;max-width:330px;margin-left:auto;margin-right:auto;}
+  .hero-ctas .btn{width:100%;min-height:52px;justify-content:center;font-size:16px;}
+  .hero-ctas .btn-glass{background:transparent;border-color:rgba(11,11,12,.18);color:var(--ink2);font-weight:700;}
+  .hero-ctas .btn-glass:hover{background:#fff;border-color:var(--ink);color:var(--ink);}
   .preview-stage{margin-top:22px;}
   .support-val{font-size:13px;}
   .support-val.mono-sm{font-size:11px;}
