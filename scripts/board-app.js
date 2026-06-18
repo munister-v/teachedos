@@ -9243,6 +9243,11 @@ updateEmpty();
 renderMinimap();
 
 /* ════════ COMMUNITY IMPORT — ?communityImport=<base64> ════════ */
+// Parsed early; applied only after the user confirms AND after initUserBoard() has settled,
+// preventing the race where initUserBoard()'s loadBoardData overwrites the import.
+window.__pendingCommunityImport = null;
+let _communityImportApplied = false;
+
 (function checkCommunityImport() {
   const params = new URLSearchParams(location.search);
   const raw = params.get('communityImport');
@@ -9251,13 +9256,27 @@ renderMinimap();
   try { snapshot = JSON.parse(decodeURIComponent(escape(atob(raw)))); } catch { return; }
   if (!snapshot?.cards?.length) return;
 
+  // Pre-process IDs now so the click handler is instant
+  const idMap = {};
+  const newCards = (snapshot.cards || []).map(c => {
+    const newId = 'ci' + Math.random().toString(36).slice(2,10);
+    idMap[c.id] = newId;
+    return { ...c, id: newId };
+  });
+  const newArrows = (snapshot.links || snapshot.arrows || []).map(a => ({
+    ...a, id:'ai'+Math.random().toString(36).slice(2,10),
+    fromCard: idMap[a.fromCard||a.from] || (a.fromCard||a.from),
+    toCard:   idMap[a.toCard||a.to]     || (a.toCard||a.to),
+  }));
+  window.__pendingCommunityImport = { newCards, newArrows, name: snapshot.name || 'Community board', count: newCards.length };
+
   // Show confirmation banner
   const banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
       <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
-      <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${snapshot.cards.length} cards — import to a new board?</div>
+      <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards — import to a new board?</div>
     </div>
     <button id="comm-import-btn" style="background:#4262FF;color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
@@ -9265,32 +9284,26 @@ renderMinimap();
   document.body.appendChild(banner);
 
   document.getElementById('comm-import-btn').addEventListener('click', () => {
-    // Re-assign fresh IDs to avoid collisions
-    const idMap = {};
-    const newCards = (snapshot.cards || []).map(c => {
-      const newId = 'ci' + Math.random().toString(36).slice(2,10);
-      idMap[c.id] = newId;
-      return { ...c, id: newId };
-    });
-    const newArrows = (snapshot.links || snapshot.arrows || []).map(a => ({
-      ...a, id:'ai'+Math.random().toString(36).slice(2,10),
-      fromCard: idMap[a.fromCard||a.from] || (a.fromCard||a.from),
-      toCard:   idMap[a.toCard||a.to]     || (a.toCard||a.to),
-    }));
-
-    // Clear board and load
-    loadBoardData({
-      pan: { x:100, y:60 }, scale:1, nextId: state.nextId + newCards.length + 10,
-      cards: newCards, arrows: newArrows,
-    });
-    if (typeof updateBoardNameDisplay === 'function') updateBoardNameDisplay(snapshot.name || 'Community board');
-    scheduleSave && scheduleSave(); saveLocal && saveLocal();
     banner.remove();
-    // Clean URL
-    history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]communityImport=[^&]*/,'') || ''));
-    toast && toast('✓ ' + newCards.length + ' cards imported from community board');
+    runPendingCommunityImport();
   });
 })();
+
+function runPendingCommunityImport() {
+  const imp = window.__pendingCommunityImport;
+  if (!imp) return false;
+  window.__pendingCommunityImport = null;
+  _communityImportApplied = true;
+  loadBoardData({
+    pan: { x:100, y:60 }, scale:1, nextId: state.nextId + imp.newCards.length + 10,
+    cards: imp.newCards, arrows: imp.newArrows,
+  });
+  if (typeof updateBoardNameDisplay === 'function') updateBoardNameDisplay(imp.name);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]communityImport=[^&]*/,'') || ''));
+  toast && toast('✓ ' + imp.count + ' cards imported from community board');
+  return true;
+}
 
 /* ════════════════════════ CUSTOM GAME FROM GAME BUILDER ════════════════════════ */
 (function checkCustomGameImport() {
@@ -9589,6 +9602,7 @@ let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'teacher';
+let _cachedBoardCount = null;
 const BOARD_PACKAGE_FLAGS = {
   free:   { exports: false, ai: false, follow: false, maxBoards: 3 },
   pro:    { exports: true,  ai: true,  follow: true,  maxBoards: Infinity },
@@ -9917,14 +9931,15 @@ async function initUserBoard() {
         updateFollowUI();
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
-        loadBoardData(board.data);
+        if (!_communityImportApplied) loadBoardData(board.data);
         document.title = board.name + ' · TeachEd';
         document.getElementById('board-name-display').textContent = board.name;
         const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
         saveStatus.textContent = '☁ cloud';
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         updateBreadcrumb(board);
-        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+        if (window.__pendingCommunityImport) runPendingCommunityImport();
+        else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         return;
       } else if (URL_BOARD_ID) {
         toast('Board not found');
@@ -9934,6 +9949,7 @@ async function initUserBoard() {
     const r2 = await apiFetch('/api/boards');
     if (r2.ok) {
       const { boards } = await r2.json();
+      _cachedBoardCount = boards.length;
       if (boards.length) {
         currentBoardId = boards[0].id;
         localStorage.setItem('teachedos_board_id', currentBoardId);
@@ -9944,13 +9960,15 @@ async function initUserBoard() {
           isOwner = board.user_id === currentUser.id;
           updateFollowUI();
           applyRoleUI();
-          loadBoardData(board.data);
+          if (!_communityImportApplied) loadBoardData(board.data);
           document.title = board.name + ' · TeachEd';
           document.getElementById('board-name-display').textContent = board.name;
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
           saveStatus.textContent = '☁ cloud';
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
-          if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+          _cachedBoardCount = boards.length;
+          if (window.__pendingCommunityImport) runPendingCommunityImport();
+          else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         }
       } else if (currentUser.role === 'student') {
         // Student with no owned boards — redirect to student dashboard
@@ -10270,12 +10288,27 @@ async function switchBoard(id, name) {
 
 async function newBoard() {
   document.getElementById('user-menu').style.display = 'none';
+  // Gate: check board limit before prompting, to give a clear upgrade message
+  const maxBoards = BOARD_PACKAGE_FLAGS[currentPlanKey()]?.maxBoards ?? 3;
+  if (maxBoards !== Infinity) {
+    let count = _cachedBoardCount;
+    if (count === null) {
+      try { const r = await apiFetch('/api/boards'); count = (await r.json()).boards?.length ?? 0; _cachedBoardCount = count; } catch { count = 0; }
+    }
+    if (count >= maxBoards) { showUpgradeModal('boards'); return; }
+  }
   const name = prompt('Board name:', 'New Board');
   if (!name) return;
   try {
     const r = await apiFetch('/api/boards', { method: 'POST', body: { name } });
-    const { board: b } = await r.json();
+    const payload = await r.json();
+    if (!r.ok) {
+      if (/limit|board/i.test(payload?.error || '')) { showUpgradeModal('boards'); return; }
+      throw new Error(payload?.error || 'Could not create board');
+    }
+    const b = payload.board;
     currentBoardId = b.id;
+    if (_cachedBoardCount !== null) _cachedBoardCount++;
     localStorage.setItem('teachedos_board_id', currentBoardId);
     loadBoardData(b.data || emptyBoardData());
     document.title = name + ' · TeachEd';
