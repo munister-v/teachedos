@@ -774,6 +774,18 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
 }
 .bc.ink .bento-tag{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:#F5F0E8;}
 .bc.pink-soft .bento-tag{background:#fff;border-color:rgba(225,29,116,.25);color:var(--pink);}
+/* richer cards: allow growth + concrete detail chips */
+.bento{grid-auto-rows:minmax(190px,auto);}
+.bc{overflow:visible;}
+.bc-points{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.bc-points span{
+  font-size:11px;font-weight:600;color:var(--ink2);white-space:nowrap;
+  background:#FAFAF9;border:1px solid var(--line-2);padding:4px 9px;border-radius:999px;
+}
+.bc.ink .bc-points span{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#E9E4DC;}
+.bc.lime .bc-points span,.bc.peach .bc-points span,.bc.lav .bc-points span,.bc.pink-soft .bc-points span{
+  background:rgba(255,255,255,.62);border-color:rgba(11,11,12,.07);color:var(--ink2);
+}
 
 /* ── Tools ── */
 .cat-ic{background:rgba(11,11,12,.045);border-radius:11px;}
@@ -881,10 +893,6 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
   <div class="hero-aurora" aria-hidden="true"><span class="ab ab1"></span><span class="ab ab2"></span><span class="ab ab3"></span></div>
   <div class="hero-spot" aria-hidden="true"></div>
   <div class="container" style="position:relative;z-index:1;">
-    <div class="hero-badge">
-      <span class="dot"></span>
-      PWA · Works offline · Free to start
-    </div>
     <h1 class="hero-h">
       <span class="line"><span>Your whole</span></span>
       <span class="line"><span>classroom,</span></span>
@@ -896,12 +904,6 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
     <div class="hero-ctas">
       <button class="btn btn-pink btn-lg" type="button" onclick="openAuth('register')">Start for free →</button>
       <a class="btn btn-glass btn-lg" href="#features">See what's inside</a>
-    </div>
-    <div class="hero-trust">
-      <span><span class="dot2"></span>50+ AI tools</span>
-      <span><span class="dot2"></span>No download needed</span>
-      <span><span class="dot2"></span>Offline-ready</span>
-      <span><span class="dot2"></span>Free forever plan</span>
     </div>
 
     <!-- App preview -->
@@ -996,6 +998,9 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
             <div class="bento-tag">★ Most loved</div>
             <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:700;">AI worksheet &amp;<br>exercise generator</div>
             <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link — AI builds reading comprehensions, gap-fills, vocab tasks, quizzes and full worksheets at the CEFR level you choose. Export to PDF, print A4, or play interactively.</div>
+            <div class="bc-points">
+              <span>CEFR A1–C2</span><span>Answer keys</span><span>PDF &amp; A4 print</span><span>Editable</span><span>Interactive mode</span>
+            </div>
           </div>
           <div class="ic ic-ink" style="font-size:26px;">✨</div>
         </div>
@@ -1016,6 +1021,9 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
             <div class="bento-tag" style="background:rgba(14,14,16,.10);border-color:rgba(14,14,16,.20);color:var(--lime-text);">30+ games</div>
             <div class="bc-h" style="margin-top:10px;font-family:var(--serif);font-size:20px;font-weight:700;color:var(--lime-text);">Interactive classroom games</div>
             <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Crossword, Hangman, Word Scramble, Maze Chase, Whack-a-Mole, Spin Wheel — auto-built from your vocabulary.</div>
+            <div class="bc-points">
+              <span>Auto from vocab</span><span>Team mode</span><span>Projector-ready</span><span>Score tracking</span>
+            </div>
           </div>
           <div class="ic" style="font-size:26px;">🎮</div>
         </div>
@@ -1027,6 +1035,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Reading &amp; comprehension</div>
           <div class="bc-p">Generate graded texts plus ABCD, true/false, open questions, gist &amp; detail tasks — IELTS-style options included.</div>
+          <div class="bc-points"><span>ABCD</span><span>True / False</span><span>Open questions</span><span>IELTS-style</span></div>
         </div>
       </div>
 
@@ -1036,6 +1045,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Vocabulary builder</div>
           <div class="bc-p">Word–definition match, odd-one-out, word sorting, translations, collocations and sentence practice in one click.</div>
+          <div class="bc-points"><span>Match</span><span>Odd one out</span><span>Collocations</span><span>Translations</span></div>
         </div>
       </div>
 
@@ -1045,6 +1055,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Grammar drills</div>
           <div class="bc-p">Gap-fills, error correction, word order, rewrites and clear rule cards — targeted to the structure you're teaching.</div>
+          <div class="bc-points"><span>Gap-fill</span><span>Error correction</span><span>Word order</span><span>Rule cards</span></div>
         </div>
       </div>
 
@@ -1055,6 +1066,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
           <div class="bento-tag">AI</div>
           <div class="bc-h" style="margin-top:8px;">YouTube → Lesson</div>
           <div class="bc-p" style="color:var(--ink2);">Paste any video link. AI pulls the transcript and builds a ready set of exercises around it.</div>
+          <div class="bc-points"><span>Auto transcript</span><span>Comprehension Qs</span><span>Key vocab</span></div>
         </div>
       </div>
 
@@ -1064,6 +1076,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Lesson boards</div>
           <div class="bc-p">A Miro-style canvas: vocab cards, tasks, timers, images — connect with arrows and share live with students.</div>
+          <div class="bc-points"><span>Arrows</span><span>Timers</span><span>Live share</span><span>Images</span></div>
         </div>
       </div>
 
@@ -1074,6 +1087,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
           <div class="bento-tag">Export</div>
           <div class="bc-h" style="color:#F5F0E8;margin-top:8px;">Print, PDF &amp; share links</div>
           <div class="bc-p">A4-ready worksheets, PDF/Word export, Google Forms, and share links students open with no account.</div>
+          <div class="bc-points"><span>PDF / Word</span><span>Google Forms</span><span>No-account links</span></div>
         </div>
       </div>
 
@@ -1083,6 +1097,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Speaking &amp; writing</div>
           <div class="bc-p">Discussion questions, debates, dialogues, warm-ups, essay topics and writing prompts on any theme.</div>
+          <div class="bc-points"><span>Debates</span><span>Dialogues</span><span>Essay topics</span><span>Warm-ups</span></div>
         </div>
       </div>
 
@@ -1092,6 +1107,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
         <div>
           <div class="bc-h">Run your studio</div>
           <div class="bc-p">Schedule, gradebook, attendance, homework portal, analytics and a private lesson journal — all built in.</div>
+          <div class="bc-points"><span>Schedule</span><span>Gradebook</span><span>Attendance</span><span>Analytics</span></div>
         </div>
       </div>
 
@@ -1102,6 +1118,7 @@ a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-fun
           <div class="bento-tag" style="background:rgba(14,14,16,.08);border-color:rgba(14,14,16,.18);color:var(--ink2);">PWA</div>
           <div class="bc-h" style="margin-top:8px;">Works offline</div>
           <div class="bc-p">Install to your home screen and teach with patchy or no Wi-Fi. Everything syncs when you're back.</div>
+          <div class="bc-points"><span>Install as app</span><span>Cache-first</span><span>Auto-sync</span></div>
         </div>
       </div>
 
