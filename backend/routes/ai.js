@@ -705,6 +705,7 @@ const METRICS = {
   cacheHits: 0,    // served from cache
   lastError: null, // last LLM error message
   lastModel: null, // model that produced the last LLM generation
+  lastTrace: null, // provider/model attempts from the last LLM request
   lastAt: null,    // ISO timestamp of last request
   byModel: {},     // per-model success counts
   startedAt: new Date().toISOString(),
@@ -719,12 +720,14 @@ async function generate(input) {
       METRICS.llmOk++;
       const m = aiEngine.getLastModel() || aiEngine.MODEL;
       METRICS.lastModel = m;
+      METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
       METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
       recordUsage('llm_ok');
       return out;
     } catch (err) {
       METRICS.fallback++;
       METRICS.lastError = err.message;
+      METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
       recordUsage('fallback');
       console.error('[ai/llm] falling back to rule engine:', err.message);
     }
@@ -766,6 +769,7 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
     model: llm ? aiEngine.MODEL : null,
     baseUrl: llm ? aiEngine.BASE_URL : null,
     chain: llm ? aiEngine.listModels() : [],
+    lastTrace: llm && aiEngine.getLastTrace ? aiEngine.getLastTrace() : null,
     mode: llm ? 'cloud-llm-with-rule-fallback' : 'server-cache-rule-engine',
     llmEnabled: llm,
     cacheSize: cache.size,

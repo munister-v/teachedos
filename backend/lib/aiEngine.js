@@ -13,11 +13,33 @@
 //   Groq    : AI_BASE_URL=https://api.groq.com/openai/v1            AI_MODEL=llama-3.3-70b-versatile
 //   Gemini  : AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai  AI_MODEL=gemini-2.0-flash
 //   OpenRouter: AI_BASE_URL=https://openrouter.ai/api/v1            AI_MODEL=meta-llama/llama-3.3-70b-instruct:free
+//   OpenRouter native fallback chain:
+//     AI_OPENROUTER_MODELS=model-a,model-b,model-c
+//     AI_OPENROUTER_SORT=throughput|latency|price
 //
 // Without AI_API_KEY, or on any error, the caller falls back to the local rule
 // engine — nothing breaks, generation just degrades to the old templates.
 
 const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 12000);
+const MAX_ATTEMPTS = Math.max(1, Math.min(4, Number(process.env.AI_MAX_ATTEMPTS || 2)));
+
+function listEnv(name, fallback = []) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === null || raw === '') return fallback;
+  return String(raw).split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function uniq(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+const OPENROUTER_DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+const OPENROUTER_FALLBACK_MODELS = listEnv('AI_OPENROUTER_MODELS', [
+  OPENROUTER_DEFAULT_MODEL,
+  'google/gemini-2.0-flash-exp:free',
+  'qwen/qwen-2.5-72b-instruct:free',
+  'deepseek/deepseek-chat:free',
+]);
 
 const PRIMARY_KEY = process.env.AI_API_KEY || '';
 const PRIMARY_URL = (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
@@ -44,7 +66,7 @@ PROVIDERS.push({
   name: 'secondary',
   key: process.env.AI_API_KEY_2 || '',
   baseUrl: (process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
-  model: process.env.AI_MODEL_2 || 'meta-llama/llama-3.3-70b-instruct:free',
+  model: process.env.AI_MODEL_2 || OPENROUTER_FALLBACK_MODELS[0] || OPENROUTER_DEFAULT_MODEL,
 });
 const CHAIN = PROVIDERS.filter(p => p.key);
 
@@ -69,8 +91,12 @@ const BASE_URL = CHAIN[0]?.baseUrl || PRIMARY_URL;
 
 // The model that actually produced the last successful generation.
 let lastUsedModel = null;
+let lastTrace = null;
 function getLastModel() { return lastUsedModel; }
-function listModels() { return CHAIN.map(p => p.model); }
+function getLastTrace() { return lastTrace; }
+function listModels() {
+  return uniq(CHAIN.flatMap(p => isOpenRouter(p) ? [p.model, ...OPENROUTER_FALLBACK_MODELS] : [p.model]));
+}
 
 // Complexity routing. "Heavy" work (full lesson cards, essays, reading
 // comprehension, gist) genuinely benefits from the big model, so it stays
@@ -634,6 +660,68 @@ function shapeSpec(input) {
   };
 }
 
+function isOpenRouter(provider) {
+  return provider.baseUrl.includes('openrouter');
+}
+
+function retryDelayMs(attempt, retryAfter) {
+  const parsed = Number(retryAfter);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.min(8000, parsed * 1000);
+  }
+  const date = retryAfter ? Date.parse(retryAfter) : NaN;
+  if (Number.isFinite(date)) {
+    return Math.min(8000, Math.max(0, date - Date.now()));
+  }
+  return Math.min(8000, 450 * Math.pow(2, attempt) + Math.floor(Math.random() * 350));
+}
+
+function parseProviderError(status, body) {
+  const e = new Error(`LLM ${status}: ${String(body || '').slice(0, 240)}`);
+  e.status = status;
+  e.retryable = status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
+  return e;
+}
+
+function buildRequestBody(provider, user) {
+  const openrouter = isOpenRouter(provider);
+  const body = {
+    model: provider.model,
+    temperature: 0.55,
+    max_tokens: 4096,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: SYSTEM },
+      { role: 'user', content: user },
+    ],
+  };
+
+  if (openrouter) {
+    body.max_completion_tokens = body.max_tokens;
+    delete body.max_tokens;
+    const models = uniq([provider.model, ...OPENROUTER_FALLBACK_MODELS]);
+    if (models.length > 1) {
+      body.models = models;
+      delete body.model;
+      body.provider = {
+        allow_fallbacks: true,
+        sort: { by: process.env.AI_OPENROUTER_SORT || 'throughput', partition: 'none' },
+      };
+    } else {
+      body.provider = { allow_fallbacks: true };
+    }
+    if (process.env.AI_OPENROUTER_RESPONSE_HEALING !== '0') {
+      body.plugins = [{ id: 'response-healing' }];
+    }
+    body.metadata = {
+      app: 'teached',
+      purpose: 'teacher-tool-generation',
+    };
+  }
+
+  return body;
+}
+
 // Call one provider's chat-completions endpoint and parse its JSON reply.
 async function callProvider(provider, user) {
   const ctrl = new AbortController();
@@ -643,25 +731,17 @@ async function callProvider(provider, user) {
     Authorization: `Bearer ${provider.key}`,
   };
   // OpenRouter asks for these attribution headers; harmless elsewhere.
-  if (provider.baseUrl.includes('openrouter')) {
+  if (isOpenRouter(provider)) {
     headers['HTTP-Referer'] = process.env.SITE_URL || 'https://teached.tech';
-    headers['X-Title'] = 'TeachEd';
+    headers['X-OpenRouter-Title'] = 'TeachEd';
+    headers['X-OpenRouter-Metadata'] = 'enabled';
   }
   let resp;
   try {
     resp = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        model: provider.model,
-        temperature: 0.6,
-        max_tokens: 4096,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM },
-          { role: 'user', content: user },
-        ],
-      }),
+      body: JSON.stringify(buildRequestBody(provider, user)),
       signal: ctrl.signal,
     });
   } catch (err) {
@@ -675,15 +755,32 @@ async function callProvider(provider, user) {
 
   if (!resp.ok) {
     const detail = await resp.text().catch(() => '');
-    const e = new Error(`LLM ${resp.status}: ${detail.slice(0, 200)}`);
-    e.status = resp.status;
-    // 429 (rate limit) and 5xx (server) are worth a quick retry; 4xx are not.
-    e.retryable = resp.status === 429 || resp.status >= 500;
+    const e = parseProviderError(resp.status, detail);
+    e.retryAfter = resp.headers.get('retry-after') || '';
     throw e;
   }
   const data = await resp.json();
-  const text = data?.choices?.[0]?.message?.content || '';
-  return extractJson(text);
+  const choice = data?.choices?.[0];
+  if (choice?.error) {
+    const e = new Error(choice.error.message || 'model returned a choice error');
+    e.status = choice.error.code;
+    e.retryable = !e.status || e.status === 408 || e.status === 429 || e.status >= 500;
+    e.metadata = choice.error.metadata;
+    throw e;
+  }
+  if (choice?.finish_reason === 'error') {
+    const e = new Error(`model finish_reason=error (${choice.native_finish_reason || 'unknown'})`);
+    e.retryable = true;
+    throw e;
+  }
+  const text = choice?.message?.content || '';
+  return {
+    payload: extractJson(text),
+    model: data?.model || provider.model,
+    generationId: data?.id || null,
+    usage: data?.usage || null,
+    metadata: data?.openrouter_metadata || null,
+  };
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -700,51 +797,90 @@ async function generate(input) {
     chain = [{ ...OPENROUTER_PROVIDER, name: 'chosen', model: input.model }, ...chain];
   }
 
+  const trace = { at: new Date().toISOString(), kind: 'teacher-tool', attempts: [] };
   let lastErr;
   for (const provider of chain) {
-    // Up to 2 attempts per provider: one retry on a transient (429/5xx/timeout)
-    // error after a short jittered back-off.
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Retry transient provider/network failures with jittered exponential
+    // back-off, then fall through to the next provider in the local chain.
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const attemptInfo = { provider: provider.name, model: provider.model, attempt: attempt + 1, ok: false };
+      const started = Date.now();
       try {
-        const out = await callProvider(provider, user);
-        lastUsedModel = provider.model;
-        return out;
+        const result = await callProvider(provider, user);
+        lastUsedModel = result.model || provider.model;
+        attemptInfo.ok = true;
+        attemptInfo.model = lastUsedModel;
+        attemptInfo.generationId = result.generationId;
+        attemptInfo.ms = Date.now() - started;
+        trace.attempts.push(attemptInfo);
+        trace.usedModel = lastUsedModel;
+        trace.usage = result.usage || null;
+        lastTrace = trace;
+        return result.payload;
       } catch (err) {
         lastErr = err;
+        attemptInfo.ok = false;
+        attemptInfo.status = err.status || null;
+        attemptInfo.retryable = !!err.retryable;
+        attemptInfo.error = err.message;
+        attemptInfo.ms = Date.now() - started;
+        trace.attempts.push(attemptInfo);
         console.warn(`[ai/${provider.name}] ${provider.model} attempt ${attempt + 1} failed: ${err.message}`);
-        if (err.retryable && attempt === 0) {
-          await sleep(500 + Math.floor(Math.random() * 400));
+        if (err.retryable && attempt < MAX_ATTEMPTS - 1) {
+          await sleep(retryDelayMs(attempt, err.retryAfter));
           continue;
         }
         break; // non-retryable, or retry already used → next provider
       }
     }
   }
+  trace.failed = true;
+  trace.error = lastErr?.message || 'All AI providers failed';
+  lastTrace = trace;
   throw lastErr || new Error('All AI providers failed');
 }
 
 // Call the provider chain with a fully-formed user prompt (no shapeSpec wrapping).
 async function rawGenerate(userPrompt) {
   if (!CHAIN.length) throw new Error('No AI provider configured');
+  const trace = { at: new Date().toISOString(), kind: 'raw', attempts: [] };
   let lastErr;
   for (const provider of CHAIN) {
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const attemptInfo = { provider: provider.name, model: provider.model, attempt: attempt + 1, ok: false };
+      const started = Date.now();
       try {
-        const out = await callProvider(provider, userPrompt);
-        lastUsedModel = provider.model;
-        return out;
+        const result = await callProvider(provider, userPrompt);
+        lastUsedModel = result.model || provider.model;
+        attemptInfo.ok = true;
+        attemptInfo.model = lastUsedModel;
+        attemptInfo.generationId = result.generationId;
+        attemptInfo.ms = Date.now() - started;
+        trace.attempts.push(attemptInfo);
+        trace.usedModel = lastUsedModel;
+        trace.usage = result.usage || null;
+        lastTrace = trace;
+        return result.payload;
       } catch (err) {
         lastErr = err;
+        attemptInfo.status = err.status || null;
+        attemptInfo.retryable = !!err.retryable;
+        attemptInfo.error = err.message;
+        attemptInfo.ms = Date.now() - started;
+        trace.attempts.push(attemptInfo);
         console.warn(`[ai/raw/${provider.name}] attempt ${attempt + 1} failed: ${err.message}`);
-        if (err.retryable && attempt === 0) {
-          await sleep(500 + Math.floor(Math.random() * 400));
+        if (err.retryable && attempt < MAX_ATTEMPTS - 1) {
+          await sleep(retryDelayMs(attempt, err.retryAfter));
           continue;
         }
         break;
       }
     }
   }
+  trace.failed = true;
+  trace.error = lastErr?.message || 'All AI providers failed';
+  lastTrace = trace;
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, listModels, FREE_MODELS };
+module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, listModels, FREE_MODELS };
