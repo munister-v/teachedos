@@ -1936,6 +1936,54 @@ function _ttWorksheetStageMeta(title = '', index = 0) {
   if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'⚙', label:'Focus' };
   return { cls:'ws-stage-default', icon:String(index + 1), label:'Stage' };
 }
+
+function _ttWorksheetStageBodyHtml(card, stageMeta) {
+  const raw = String(card?.text || '').trim();
+  if (!raw) return '';
+  const lines = raw.split(/\n+/).map(line => line.trim()).filter(Boolean);
+
+  if (stageMeta.cls === 'ws-stage-vocab') {
+    const rows = lines.map(line => {
+      const clean = line.replace(/^\s*[-•]\s*/, '');
+      const m = clean.match(/^(.+?)\s*(?:—|–|-|:)\s*(.+)$/);
+      const term = _ttStripMd(m ? m[1] : clean).trim();
+      const def = (m ? m[2] : '').trim();
+      return `<div class="ws-vocab-row">
+        <span class="ws-vocab-term">${esc(term)}</span>
+        <span class="ws-vocab-def">${def ? _ttMdInline(def) : ''}</span>
+      </div>`;
+    }).join('');
+    return `<div class="ws-vocab-grid">${rows}</div>`;
+  }
+
+  if (stageMeta.cls === 'ws-stage-before' || stageMeta.cls === 'ws-stage-after') {
+    const prompts = lines.map((line, i) => {
+      const m = line.match(/^\s*(\d+)[.)]\s*(.+)$/);
+      const num = m ? m[1] : String(i + 1);
+      const text = m ? m[2] : line;
+      return `<div class="ws-prompt">
+        <span class="ws-prompt-num">${esc(num)}</span>
+        <span class="ws-prompt-text">${_ttMdInline(text)}</span>
+      </div>`;
+    }).join('');
+    return `<div class="ws-prompt-list">${prompts}</div>`;
+  }
+
+  if (stageMeta.cls === 'ws-stage-reading') {
+    const first = lines[0] || '';
+    const hasTitle = /^\*\*.+\*\*$/.test(first) || (lines.length > 1 && first.length < 72);
+    const title = hasTitle ? first : '';
+    const bodyLines = hasTitle ? lines.slice(1) : lines;
+    const copy = bodyLines.join(' ');
+    return `<div class="ws-reading-block">
+      ${title ? `<div class="ws-reading-title">${_ttMdInline(title)}</div>` : ''}
+      <div class="ws-reading-copy">${_ttMdInline(copy)}</div>
+    </div>`;
+  }
+
+  return _ttMdToHtml(raw);
+}
+
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -1969,6 +2017,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
   if (cards) {
     return cards.map((c, i) => {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
+      const bodyHtml = _ttWorksheetStageBodyHtml(c, sm);
       return `<div class="ws-q ws-q-card ${sm.cls}" style="--q-accent:${accent};--stage:${i+1}">
         <div class="ws-stage-rail"><span>${i + 1}</span></div>
         <div class="ws-qh ws-card-head">
@@ -1976,7 +2025,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           <span class="ws-card-title">${esc(c.title || '')}</span>
           <span class="ws-stage-label">${esc(sm.label)}</span>
         </div>
-        <div class="ws-card-txt">${_ttMdToHtml(c.text)}</div>
+        <div class="ws-card-txt">${bodyHtml}</div>
       </div>`;
     }).join('');
   }
@@ -7925,7 +7974,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '169';
+const TEACHEDOS_ASSET_VERSION = '170';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
