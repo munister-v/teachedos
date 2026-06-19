@@ -454,6 +454,7 @@ async function submitPayment() {
   }
 }
 
+let _pendingPollTimer = null;
 function showPending(payment) {
   $('pay-box').hidden = true;
   $('plan-cards').hidden = true;
@@ -467,6 +468,25 @@ function showPending(payment) {
     $('pending-text').textContent = `Your ${nm} request (${cycleLabel(payment.billing_cycle || 'monthly')}) is awaiting verification. Your plan activates once we confirm the payment — usually within a few hours.`;
   }
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!_pendingPollTimer) _pendingPollTimer = setInterval(pollPendingStatus, 30000);
+}
+
+async function pollPendingStatus() {
+  try {
+    const r = await apiFetch('/api/billing/overview');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.pending_payment) return;
+    clearInterval(_pendingPollTimer);
+    _pendingPollTimer = null;
+    const box = $('pending-box');
+    box.querySelector('.pending-icon').textContent = '🎉';
+    box.querySelector('h2').textContent = 'Plan activated!';
+    $('pending-text').textContent = 'Your payment has been approved and your plan is now active. Enjoy!';
+    $('pending-invoice').hidden = true;
+    OVERVIEW = data;
+    renderCurrent();
+  } catch {}
 }
 
 init();
