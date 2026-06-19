@@ -109,8 +109,27 @@ function boardCanAuthor() {
   return !isBoardPhone();
 }
 
+let _wasBoardPhone = null;
 function syncBoardPhoneMode() {
-  document.body.classList.toggle('board-phone-shell', isBoardPhone());
+  const phone = isBoardPhone();
+  document.body.classList.toggle('board-phone-shell', phone);
+  // Only run transition cleanup when the mode actually flips (not on first call).
+  if (_wasBoardPhone !== null && _wasBoardPhone !== phone) {
+    // Close any panel/menu that belongs to the other mode so nothing is left
+    // floating in a half-open state across the desktop⇄phone boundary.
+    ['more-menu', 'ctx-menu', 'user-menu'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    if (typeof _moreOpen !== 'undefined') _moreOpen = false;
+    try { closeMobileAddSheet && closeMobileAddSheet(); } catch {}
+    try { closeStickyPalette && closeStickyPalette(); } catch {}
+    try { _closeMoreShapes && _closeMoreShapes(); } catch {}
+    if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
+    // Re-fit so content is framed correctly for the new viewport.
+    try { if (state && state.cards && state.cards.length) setTimeout(() => fitAll(false), 80); } catch {}
+  }
+  _wasBoardPhone = phone;
 }
 syncBoardPhoneMode();
 if (BOARD_PHONE_MQL) {
@@ -4151,36 +4170,8 @@ document.addEventListener('mouseup', e => {
       t0 = ts[0]; t1 = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
       pinchOrigin = null;
-      // Long-press on empty board area → open create context menu (mobile-only).
-      // Suppressed in read+light-edit tier — no canvas authoring on phones.
-      const onBg = e.target === boardWrap || e.target === board || e.target.id === 'empty-state';
-      if (onBg && window.matchMedia('(max-width:860px)').matches && boardCanAuthor()) {
-        const sx = t0.clientX, sy = t0.clientY;
-        longPressStart = { x:sx, y:sy };
-        longPressTimer = setTimeout(() => {
-          longPressTimer = null;
-          if (navigator.vibrate) navigator.vibrate(12);
-          ctxPos = (typeof screenToBoard === 'function') ? screenToBoard(sx, sy) : { x:sx, y:sy };
-          const ctxMenuEl = document.getElementById('ctx-menu');
-          if (ctxMenuEl) {
-            ctxMenuEl.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = '');
-            document.getElementById('ctx-delete-arrow').style.display = 'none';
-            document.getElementById('ctx-toggle-prereq').style.display = 'none';
-            document.getElementById('ctx-label-arrow').style.display = 'none';
-            document.getElementById('ctx-arrow-sep').style.display = 'none';
-            const sw = document.getElementById('ctx-arrow-style-wrap');
-            if (sw) sw.style.display = 'none';
-            const r = boardWrap.getBoundingClientRect();
-            // Position so it stays on-screen
-            const mw = 220, mh = 320;
-            ctxMenuEl.style.left = Math.min(sx, r.right - mw - 12) + 'px';
-            ctxMenuEl.style.top  = Math.min(sy, r.bottom - mh - 12) + 'px';
-            ctxMenuEl.style.display = 'block';
-            if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
-          }
-          panOrigin = null;
-        }, 480);
-      }
+      // Phones are read + light-edit only: no long-press-to-create on the
+      // canvas. Single-touch is pure pan; authoring lives on desktop.
     } else if (ts.length === 2) {
       cancelLongPress();
       touchDriving = false;
@@ -5956,7 +5947,7 @@ function _positionLibraryPopover() {
   const sb = document.getElementById('sidebar');
   const btn = document.getElementById('mt-templates');
   if (!sb || !btn) return;
-  if (window.matchMedia('(max-width:860px)').matches) {
+  if (isBoardPhone()) {
     // mobile: bottom-sheet — let the @media rules win, clear inline overrides
     sb.style.top = ''; sb.style.left = '';
     return;
@@ -9529,7 +9520,7 @@ if (!loaded && !_welcomeSeen) {
 }
 // On phones, auto-fit all cards into view on first paint so users see content
 // instead of an off-canvas blank corner.
-if (window.matchMedia('(max-width:860px)').matches && state.cards.length) {
+if (isBoardPhone() && state.cards.length) {
   setTimeout(() => { try { fitAll(false); } catch {} }, 60);
 }
 
@@ -11277,7 +11268,7 @@ function positionStickyPalette() {
   const panel = document.getElementById('sticky-palette');
   const btn = document.getElementById('mt-sticky');
   if (!panel || !btn) return;
-  if (window.matchMedia('(max-width:860px)').matches) {
+  if (isBoardPhone()) {
     panel.style.top = ''; panel.style.left = '';
     return;
   }
@@ -13285,7 +13276,7 @@ function _positionStickerPanel() {
   const panel = document.getElementById('sticker-panel');
   const btn = document.getElementById('mt-sticker');
   if (!panel || !btn) return;
-  if (window.matchMedia('(max-width:860px)').matches) {
+  if (isBoardPhone()) {
     // mobile bottom-sheet — clear inline so @media wins
     panel.style.top = ''; panel.style.left = '';
     return;

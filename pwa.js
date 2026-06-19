@@ -200,22 +200,11 @@
     );
   }
 
+  // Capture the install prompt silently — no auto-popping banner.
+  // Pages that want to offer install call TeachedosPWA.promptInstall() from a button.
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     installEvent = e;
-    if (localStorage.getItem(storageKey) === '1') return;
-    createBanner(
-      'Install TeachEd',
-      'Add TeachEd to your home screen for faster launch, a cleaner full-screen shell, and better mobile feel.',
-      'Install',
-      async () => {
-        if (!installEvent) return;
-        installEvent.prompt();
-        const result = await installEvent.userChoice.catch(() => null);
-        if (result?.outcome === 'accepted') localStorage.setItem(storageKey, '1');
-      },
-      storageKey
-    );
   });
 
   window.addEventListener('appinstalled', () => {
@@ -240,7 +229,7 @@
   };
 
   window.addEventListener('load', () => {
-    if (!installEvent) showIosHint();
+    // No auto iOS install hint — it's available via TeachedosPWA.showIosHint() on demand.
     wireServiceWorkerStatus();
     if (!navigator.onLine) setOfflineState(true);
   });
