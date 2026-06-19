@@ -6036,6 +6036,7 @@ function getToolSeed(tool) {
    content for the chosen topic.
    Returns the outer frame id so the caller can select / zoom. */
 function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
+  if (!boardCanAuthor()) { toast && toast('Open on a computer to drop lesson packs'); return null; }
   if (!pack || !Array.isArray(pack.stages) || !pack.stages.length) return null;
 
   // Outer frame holds the whole lesson; sub-frames per stage sit inside.
