@@ -7903,13 +7903,15 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
+const TEACHEDOS_ASSET_VERSION = '165';
+const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
   if (typeof generateTeacherToolLocal === 'function') return Promise.resolve();
   if (_genLoadPromise) return _genLoadPromise;
   _genLoadPromise = new Promise(resolve => {
     const s = document.createElement('script');
-    s.src = 'scripts/board-gen.js';
+    s.src = versionedLocalAsset('scripts/board-gen.js');
     s.onload = () => resolve();
     s.onerror = () => { _genLoadPromise = null; resolve(); }; // allow a retry next time
     document.head.appendChild(s);
@@ -7923,7 +7925,7 @@ let _ttAiLoadPromise = null;
 function _ensureTTAILoaded() {
   if (window._ttAI) return Promise.resolve(window._ttAI);
   if (_ttAiLoadPromise) return _ttAiLoadPromise;
-  const aiUrl = new URL('js/teacher-tool-ai.js', document.baseURI).href;
+  const aiUrl = new URL(versionedLocalAsset('js/teacher-tool-ai.js'), document.baseURI).href;
   _ttAiLoadPromise = import(aiUrl)
     .then(() => window._ttAI)
     .catch(err => {
@@ -9442,7 +9444,7 @@ renderSidebar();
 (window.requestIdleCallback || (cb => setTimeout(cb, 2500)))(() => {
   if (typeof generateTeacherToolLocal === 'function') return;
   const l = document.createElement('link');
-  l.rel = 'prefetch'; l.as = 'script'; l.href = 'scripts/board-gen.js';
+  l.rel = 'prefetch'; l.as = 'script'; l.href = versionedLocalAsset('scripts/board-gen.js');
   document.head.appendChild(l);
 });
 

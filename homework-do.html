@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#C8E632">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css">
+<link rel="stylesheet" href="styles/fonts.css?v=165">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -107,11 +107,11 @@ a{text-decoration:none;color:inherit;}
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css">
-<link rel="stylesheet" href="styles/harmony.css">
-<link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css">
+<script src="theme.js?v=165" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=165">
+<link rel="stylesheet" href="styles/harmony.css?v=165">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=165" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=165">
 </head>
 <body>
 
@@ -467,11 +467,11 @@ function toast(msg){
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>reg.update());
+  navigator.serviceWorker.register('sw.js?v=165',{updateViaCache:'none'}).then(reg=>reg.update());
 }
 </script>
-<script src="scripts/nav-boost.js" defer></script>
-<script src="scripts/mobile-zoom-guard.js" defer></script>
-<script src="pwa-boot.js" defer></script>
+<script src="scripts/nav-boost.js?v=165" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=165" defer></script>
+<script src="pwa-boot.js?v=165" defer></script>
 </body>
 </html>

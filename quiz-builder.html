@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json?v=165">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -163,8 +163,8 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 .auto-gen-go:active{transform:scale(.97)}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
-<link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/mobile-unified.css">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=165" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/mobile-unified.css?v=165">
 </head>
 <body>
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -304,7 +304,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js"></script>
+<script src="scripts/vocab-loader.js?v=165"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -739,6 +739,6 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="pwa-boot.js" defer></script>
+<script src="pwa-boot.js?v=165" defer></script>
 </body>
 </html>

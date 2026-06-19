@@ -7,12 +7,13 @@
  * Idempotent: the script is fetched at most once per page. */
 window.ensureVocab = (function () {
   let pending = null;
+  const versionedVocabSrc = 'scripts/vocabulary.js?v=165';
   return function ensureVocab() {
     if (window.TEACHEDOS_VOCAB) return Promise.resolve(window.TEACHEDOS_VOCAB);
     if (pending) return pending;
     pending = new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'scripts/vocabulary.js';
+      s.src = versionedVocabSrc;
       s.async = true;
       s.onload = () => resolve(window.TEACHEDOS_VOCAB);
       s.onerror = () => { pending = null; reject(new Error('Failed to load vocabulary library')); };

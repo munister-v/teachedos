@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json?v=165">
 <meta name="theme-color" content="#C8E632"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css">
-<link rel="preload" as="style" href="styles/unify.css">
+<link rel="preload" as="style" href="styles/harmony.css?v=165">
+<link rel="preload" as="style" href="styles/unify.css?v=165">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -328,12 +328,12 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css" media="(max-width: 860px)">
-<script src="theme.js" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css">
-<link rel="stylesheet" href="styles/harmony.css">
-<link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css">
+<link rel="stylesheet" href="styles/mobile-pro.css?v=165" media="(max-width: 860px)">
+<script src="theme.js?v=165" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=165">
+<link rel="stylesheet" href="styles/harmony.css?v=165">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=165" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=165">
 </head>
 <body class="suite-page gradebook-suite">
 
@@ -496,7 +496,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js"></script>
+<script src="scripts/app-core.js?v=165"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -1149,13 +1149,13 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=164"></script>
-<script src="scripts/nav-boost.js" defer></script>
-<script src="scripts/mobile-perf.js" defer></script>
-<script src="scripts/mobile-nav.js"></script>
+<script src="pwa.js?v=165"></script>
+<script src="scripts/nav-boost.js?v=165" defer></script>
+<script src="scripts/mobile-perf.js?v=165" defer></script>
+<script src="scripts/mobile-nav.js?v=165"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=165',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1168,6 +1168,6 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="scripts/mobile-zoom-guard.js" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=165" defer></script>
 </body>
 </html>
