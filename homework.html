@@ -449,7 +449,7 @@ function loadLocal(){
 }
 
 async function init() {
-  document.getElementById('hw-list').innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⏳</div><div class="empty-title">Loading homework…</div><div class="empty-sub">Preparing assignments, boards and student progress.</div></div>';
+  document.getElementById('hw-list').innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">Loading homework…</div><div class="empty-sub">Preparing assignments, boards and student progress.</div></div>';
   if (!token) { loadLocal(); maybeImportToolMaterial(); return; }
   try {
     const r = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
@@ -582,7 +582,7 @@ function renderList() {
   const el = document.getElementById('hw-list');
   const list = filteredHomework();
   if (!list.length) {
-    el.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📝</div><div class="empty-title">No homework in this view</div><div class="empty-sub">Create a task, change the filter, or search by board/student name. This page now works locally too.</div></div>';
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">No homework in this view</div><div class="empty-sub">Create a task, change the filter, or search by board/student name. This page now works locally too.</div></div>';
     return;
   }
   el.innerHTML = list.map(h => {
@@ -593,8 +593,8 @@ function renderList() {
       '<div class="hw-topline"><span class="hw-kind">'+(offlineMode || h.local ? 'local' : 'live')+' · '+status+'</span><span class="pill '+(status==='overdue'?'in_progress':status)+'">'+status.replace('_',' ')+'</span></div>'+
       '<div class="hw-title">'+esc(h.title)+'</div>'+
       '<div class="hw-sub">'+esc(h.board_name || boardName(h.board_id) || 'Board')+(h.course_name ? ' · ' + esc(h.course_name) : '')+'</div>'+
-      (due ? '<div class="hw-sub">📅 Due: '+esc(due)+'</div>' : '')+
-      '<div class="hw-stats"><div class="hw-stat">👥 '+(h.assigned_count || 0)+'</div><div class="hw-stat">✅ '+(h.submitted_count || 0)+'</div><div class="hw-stat">🎯 '+required+' card'+(required!==1?'s':'')+'</div></div></div>';
+      (due ? '<div class="hw-sub">Due: '+esc(due)+'</div>' : '')+
+      '<div class="hw-stats"><div class="hw-stat">'+(h.assigned_count || 0)+' assigned</div><div class="hw-stat">'+(h.submitted_count || 0)+' submitted</div><div class="hw-stat">'+required+' card'+(required!==1?'s':'')+'</div></div></div>';
   }).join('');
 }
 
@@ -609,7 +609,7 @@ async function openDetail(id) {
     const required = Array.isArray(hw.required_cards) ? hw.required_cards : [];
     const det = document.getElementById('hw-detail');
     det.classList.add('open');
-    det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+esc(hw.title)+'</div><div class="detail-meta">'+required.length+' required card'+(required.length!==1?'s':'')+' · Pass threshold '+(hw.pass_threshold || 60)+'% · '+(offlineMode || hw.local ? 'local mode' : 'live')+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost" onclick=\'openBoard("'+esc(hw.board_id)+'")\'>Open board ↗</button><button class="btn btn-danger" onclick=\'deleteHomework("'+esc(hw.id)+'")\'>🗑 Delete</button></div></div>'+
+    det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+esc(hw.title)+'</div><div class="detail-meta">'+required.length+' required card'+(required.length!==1?'s':'')+' · Pass threshold '+(hw.pass_threshold || 60)+'% · '+(offlineMode || hw.local ? 'local mode' : 'live')+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost" onclick=\'openBoard("'+esc(hw.board_id)+'")\'>Open board</button><button class="btn btn-danger" onclick=\'deleteHomework("'+esc(hw.id)+'")\'>Delete</button></div></div>'+
       (hw.instructions ? '<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:12px 14px;border-radius:14px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">'+esc(hw.instructions)+'</div>' : '')+
       '<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students ('+assignments.length+')</div>'+
       (assignments.length ? assignments.map(a => {
@@ -699,7 +699,7 @@ async function onBoardChange() {
 function filterCompletable(cards){ const ALLOWED = new Set(['game','assignment','checklist','lesson','voting','timer']); return cards.filter(c => ALLOWED.has(c.type)); }
 function renderCardList() {
   const el = document.getElementById('f-cards');
-  const ICONS = { game:'🎮', lesson:'📚', assignment:'📝', checklist:'✅', voting:'🗳', timer:'⏱' };
+  const ICONS = { game:'Game', lesson:'Lesson', assignment:'Task', checklist:'List', voting:'Vote', timer:'Timer' };
   el.innerHTML = currentBoardCards.map(c => { const name = c.data?.title || c.data?.question || c.data?.name || (c.type[0].toUpperCase()+c.type.slice(1)); const sel = selectedCardIds.has(c.id); return '<div class="card-pick-item '+(sel?'selected':'')+'" onclick=\'toggleCard("'+esc(c.id)+'")\'><div class="cpi-check">'+(sel ? '✓' : '')+'</div><span class="cpi-icon">'+(ICONS[c.type] || '🔖')+'</span><div class="cpi-body"><div class="cpi-name">'+esc(name)+'</div><div class="cpi-meta">'+c.type+' · '+c.id+'</div></div></div>'; }).join('');
   document.getElementById('f-cards-count').textContent = selectedCardIds.size ? '('+selectedCardIds.size+' selected)' : '';
 }
@@ -720,10 +720,10 @@ async function submitHomework() {
   try {
     if (!offlineMode && token) {
       await api('/api/homework', { method: 'POST', body: { title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids } });
-      closeCreateModal(); await loadAll(); toast('✅ Homework created'); return;
+      closeCreateModal(); await loadAll(); toast('Homework created'); return;
     }
     createLocalHomework({ title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids });
-    closeCreateModal(); renderList(); toast('✅ Homework created locally');
+    closeCreateModal(); renderList(); toast('Homework created locally');
   } catch (e) {
     createLocalHomework({ title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids });
     closeCreateModal(); renderList(); toast('Server unavailable — saved locally');

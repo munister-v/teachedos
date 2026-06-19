@@ -454,7 +454,7 @@ button{font-family:var(--font);cursor:pointer;}
   <!-- SIDEBAR -->
   <div id="sidebar">
     <div id="sb-head">
-      <div id="sb-head-title">📚 My Courses</div>
+      <div id="sb-head-title">My Courses</div>
       <button class="btn-new-course" onclick="openCourseForm()">+ New</button>
     </div>
     <div id="course-plan-note" style="padding:0 16px 10px;font-size:11px;line-height:1.5;color:var(--text3);"></div>
@@ -466,7 +466,7 @@ button{font-family:var(--font);cursor:pointer;}
   <!-- MAIN -->
   <div id="main">
     <div id="welcome">
-      <div class="w-icon">📚</div>
+      <div class="w-icon" aria-hidden="true"></div>
       <div class="w-title">Organize your lessons into courses</div>
       <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module — no more chaos.</div>
       <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
@@ -850,9 +850,9 @@ function renderCourseView({ course, modules, unassigned }) {
     </div>
     <div class="ch-actions">
       <button class="btn btn-ghost" onclick="openModuleForm('${course.id}')">+ Module</button>
-      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">⚡ Import ready lessons</button>
-      <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">✏️ Edit</button>
-      <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">🗑 Delete</button>
+      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">Import ready lessons</button>
+      <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">Edit</button>
+      <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">Delete</button>
     </div>`;
   renderCourseInsights(modules, unassigned);
   renderReadyLibrary(course.level);
@@ -861,7 +861,7 @@ function renderCourseView({ course, modules, unassigned }) {
   const area = document.getElementById('modules-area');
   if (!modules.length) {
     area.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">
-      <div style="font-size:36px;margin-bottom:12px;">🗂</div>
+      <div class="course-empty-dot" aria-hidden="true"></div>
       <div style="font-size:14px;font-weight:700;margin-bottom:6px;">No modules yet</div>
       <div style="font-size:13px;margin-bottom:16px;">Add a module (topic/unit) and assign lesson boards to it.</div>
       <button class="btn btn-primary" onclick="openModuleForm('${course.id}')">+ Add first module</button>
@@ -893,11 +893,11 @@ function renderModuleBlock(course, m, mi) {
   const bCards = boards.map((b,bi) => lessonCardHTML(b, course.id, m.id, bi)).join('');
   return `<div class="module-block" id="mb-${m.id}">
     <div class="module-head" onclick="toggleModule('${m.id}')">
-      <span class="module-chevron open" id="chev-${m.id}">▶</span>
+      <span class="module-chevron open" id="chev-${m.id}" aria-hidden="true"></span>
       <span class="module-title">${esc(m.name)}</span>
       <span class="module-count">${boards.length} lesson${boards.length!==1?'s':''}</span>
       <div class="module-actions" onclick="event.stopPropagation()">
-        <button class="mod-btn" onclick="renameModule('${course.id}','${m.id}','${esc(m.name)}')">✏️</button>
+        <button class="mod-btn" onclick="renameModule('${course.id}','${m.id}','${esc(m.name)}')" aria-label="Rename module">Edit</button>
         <button class="mod-btn red" onclick="deleteModule('${course.id}','${m.id}')">✕</button>
       </div>
     </div>
@@ -979,7 +979,7 @@ async function createTemplateModules(courseId) {
     }
     await openCourse(courseId);
     await loadAll();
-    toast(`✅ Imported ${createdLessons} ready lessons`);
+    toast(`Imported ${createdLessons} ready lessons`);
   } catch (e) {
     toast(e.message.includes('limit') ? 'Board limit reached. Upgrade or remove old boards.' : 'Error: ' + e.message);
   }
@@ -1146,7 +1146,7 @@ async function openSharedCourse(id) {
       '<div style="font-size:13px;color:#A2A28C;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
       (boards.length ? boards.map(b =>
         '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F0E8;">' +
-        '<span style="font-size:20px;">📌</span>' +
+        '<span class="course-board-dot" aria-hidden="true"></span>' +
         '<div><div style="font-size:14px;font-weight:800;color:#1C1C1E;">' + esc2(b.name) + '</div>' +
         '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
         '<span style="margin-left:auto;color:#C8E632;font-weight:700;font-size:13px;">Open →</span></a>'
@@ -1180,7 +1180,7 @@ function openPicker(moduleId) {
   el.innerHTML = available.length
     ? available.map(b => `
         <div class="picker-item" id="pi-${b.id}" onclick="togglePickerItem('${b.id}')">
-          <div style="font-size:20px;width:36px;height:36px;border-radius:10px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;">📌</div>
+          <div class="course-board-dot" aria-hidden="true"></div>
           <div style="flex:1">
             <div class="pi-name">${esc(b.name)}</div>
             <div class="pi-meta">${b.card_count||0} cards · ${timeSince(b.updated_at)}</div>
@@ -1220,7 +1220,7 @@ async function confirmPicker() {
     ));
     closePicker();
     await openCourse(courseId);
-    toast('✅ Lessons added!');
+    toast('Lessons added');
   } catch(e) { toast('Error: ' + e.message); }
 }
 
@@ -1328,7 +1328,7 @@ async function submitForm() {
       closeForm();
       await loadAll();
       await openCourse(course.id);
-      toast('✅ Course created!');
+      toast('Course created');
     } else if (formMode === 'editCourse') {
       const desc  = document.getElementById('f-desc').value.trim();
       const level = document.getElementById('f-level').value.trim();
@@ -1338,12 +1338,12 @@ async function submitForm() {
       closeForm();
       await loadAll();
       if (activeCourse?.id === formTargetId) await openCourse(formTargetId);
-      toast('✅ Course updated!');
+      toast('Course updated');
     } else if (formMode === 'module') {
       await api(`/api/courses/${formTargetId}/modules`, { method:'POST', body:{ name } });
       closeForm();
       await openCourse(formTargetId);
-      toast('✅ Module added!');
+      toast('Module added');
     }
   } catch(e) {
     if (/course limit/i.test(e.message)) toast('Course limit reached for your package. Upgrade to add more courses.');

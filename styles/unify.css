@@ -2499,6 +2499,42 @@ label.hw-search {
     display: none !important;
   }
 
+  body.mp-shell :is(.w-icon, .course-empty-dot) {
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    min-height: 10px !important;
+    margin: 0 auto 12px !important;
+    border-radius: 999px !important;
+    background: var(--m2-lime) !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+  }
+
+  body.mp-shell .course-board-dot {
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    border-radius: 999px !important;
+    background: var(--m2-lime) !important;
+    display: inline-block !important;
+  }
+
+  body.mp-shell .module-chevron {
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+    border-radius: 999px !important;
+    background: rgba(28,28,30,.24) !important;
+    display: inline-block !important;
+    transform: none !important;
+  }
+
+  body.mp-shell .module-chevron.open {
+    background: var(--m2-lime) !important;
+  }
+
   body:not(.board-page) :is(.course-skeleton, .tx-skel, .skeleton) {
     border-radius: var(--m2-radius-sm) !important;
   }
