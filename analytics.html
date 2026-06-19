@@ -278,21 +278,21 @@ a{text-decoration:none;color:inherit;}
   <!-- Header -->
   <div class="page-head">
     <div>
-      <div class="page-title">📊 Analytics</div>
+      <div class="page-title">Analytics</div>
       <div class="page-sub">Course progress across your boards</div>
     </div>
     <div class="head-spacer"></div>
-    <button class="btn btn-ghost" onclick="loadData()">🔄 Refresh</button>
-    <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">📥 Export CSV</button>
+    <button class="btn btn-ghost" onclick="loadData()">Refresh</button>
+    <button class="btn btn-ghost" id="btn-export" onclick="exportCSV()" style="display:none">Export CSV</button>
     <div class="board-switcher" id="board-switcher">
       <button class="btn btn-primary board-switcher-trigger" type="button" onclick="toggleBoardSwitcher(event)">
-        <span class="bs-icon">📋</span><span class="bs-label" id="bs-current">All boards</span>
+        <span class="bs-icon" aria-hidden="true"></span><span class="bs-label" id="bs-current">All boards</span>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
       </button>
       <div class="board-switcher-pop" id="bs-pop" role="menu" aria-hidden="true">
         <div class="bs-tabs">
-          <button class="bs-tab active" data-tab="boards" onclick="bsSelectTab('boards')">📋 Boards</button>
-          <button class="bs-tab" data-tab="students" onclick="bsSelectTab('students')">👥 Students</button>
+          <button class="bs-tab active" data-tab="boards" onclick="bsSelectTab('boards')">Boards</button>
+          <button class="bs-tab" data-tab="students" onclick="bsSelectTab('students')">Students</button>
         </div>
         <input class="bs-search" id="bs-search" placeholder="Search…" oninput="bsRenderList()">
         <div class="bs-list" id="bs-list"></div>
@@ -309,16 +309,16 @@ a{text-decoration:none;color:inherit;}
   <!-- All-boards overview -->
   <div class="section" id="overview-section" style="display:none">
     <div class="sec-head">
-      <div class="sec-title">🗂 All Boards Overview</div>
+      <div class="sec-title">All Boards Overview</div>
       <span id="overview-sub" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
     </div>
     <div class="sec-body">
       <div class="stats-row" id="overview-stats">
-        <div class="stat-card"><div class="stat-icon si-blue">🗂</div><div><div class="stat-val" id="ov-boards">—</div><div class="stat-lbl">Boards</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-green">📚</div><div><div class="stat-val" id="ov-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-purple">✅</div><div><div class="stat-val" id="ov-done">—</div><div class="stat-lbl">Completed</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-orange">📈</div><div><div class="stat-val" id="ov-pct">—</div><div class="stat-lbl">Avg completion</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-pink">📝</div><div><div class="stat-val" id="ov-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-blue" aria-hidden="true"></div><div><div class="stat-val" id="ov-boards">—</div><div class="stat-lbl">Boards</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green" aria-hidden="true"></div><div><div class="stat-val" id="ov-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-purple" aria-hidden="true"></div><div><div class="stat-val" id="ov-done">—</div><div class="stat-lbl">Completed</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-orange" aria-hidden="true"></div><div><div class="stat-val" id="ov-pct">—</div><div class="stat-lbl">Avg completion</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-pink" aria-hidden="true"></div><div><div class="stat-val" id="ov-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
       </div>
       <div id="ov-board-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
@@ -327,8 +327,8 @@ a{text-decoration:none;color:inherit;}
   <!-- Board selector -->
   <div class="section">
     <div class="sec-head">
-      <div class="sec-title">📋 Select Board</div>
-      <button class="btn btn-ghost btn-sm" onclick="exportAllCSV()" title="Export all data">📥 Export All</button>
+      <div class="sec-title">Select Board</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportAllCSV()" title="Export all data">Export All</button>
     </div>
     <div class="sec-body">
       <div class="board-pills" id="board-pills">Loading boards…</div>
@@ -337,31 +337,31 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Stats row -->
   <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="stat-icon si-blue">📚</div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-green">✅</div><div><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-orange">📝</div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-pink">🏁</div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-purple">📈</div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-blue" aria-hidden="true"></div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green" aria-hidden="true"></div><div><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange" aria-hidden="true"></div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-pink" aria-hidden="true"></div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-purple" aria-hidden="true"></div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
   </div>
 
   <!-- Insights -->
   <div class="section" id="insight-section" style="display:none">
-    <div class="sec-head"><div class="sec-title">💡 Insights</div></div>
+    <div class="sec-head"><div class="sec-title">Insights</div></div>
     <div class="sec-body" id="insight-body"></div>
   </div>
 
   <!-- Progress + Pie -->
   <div class="grid2">
     <div class="section">
-      <div class="sec-head"><div class="sec-title">📈 Course Progress</div></div>
+      <div class="sec-head"><div class="sec-title">Course Progress</div></div>
       <div class="sec-body" id="progress-section">
-        <div class="empty"><div class="empty-icon">📋</div>Select a board above</div>
+        <div class="empty"><div class="empty-icon" aria-hidden="true"></div>Select a board above</div>
       </div>
     </div>
     <div class="section">
-      <div class="sec-head"><div class="sec-title">🍩 Status Breakdown</div></div>
+      <div class="sec-head"><div class="sec-title">Status Breakdown</div></div>
       <div class="sec-body" id="pie-section">
-        <div class="empty"><div class="empty-icon">📊</div>No data yet</div>
+        <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No data yet</div>
       </div>
     </div>
   </div>
@@ -369,7 +369,7 @@ a{text-decoration:none;color:inherit;}
   <!-- Lessons table -->
   <div class="section">
     <div class="sec-head">
-      <div class="sec-title">📚 Lessons</div>
+      <div class="sec-title">Lessons</div>
       <span id="lessons-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
     </div>
     <div style="overflow-x:auto">
@@ -382,10 +382,10 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Assignments -->
   <div class="section">
-    <div class="sec-head"><div class="sec-title">📝 Assignments</div></div>
+    <div class="sec-head"><div class="sec-title">Assignments</div></div>
     <div class="sec-body">
       <div class="assign-grid" id="assign-grid">
-        <div class="empty" style="grid-column:1/-1"><div class="empty-icon">📝</div>No assignments found</div>
+        <div class="empty" style="grid-column:1/-1"><div class="empty-icon" aria-hidden="true"></div>No assignments found</div>
       </div>
     </div>
   </div>
@@ -393,22 +393,22 @@ a{text-decoration:none;color:inherit;}
   <!-- Student progress -->
   <div class="section" id="students-section" style="display:none">
     <div class="sec-head">
-      <div class="sec-title">👥 Student Progress</div>
+      <div class="sec-title">Student Progress</div>
       <span id="students-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
     </div>
     <div class="sec-body" id="students-body">
-      <div class="empty"><div class="empty-icon">👥</div>No students yet</div>
+      <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No students yet</div>
     </div>
   </div>
 
   <!-- Quiz Results Analytics -->
   <div class="section" id="quiz-analytics-section" style="display:none">
     <div class="sec-head">
-      <div class="sec-title">📝 Quiz Results</div>
+      <div class="sec-title">Quiz Results</div>
       <span id="quiz-analytics-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
     </div>
     <div class="sec-body" id="quiz-analytics-body">
-      <div class="empty"><div class="empty-icon">📝</div>No quiz submissions yet</div>
+      <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No quiz submissions yet</div>
     </div>
   </div>
 
@@ -770,7 +770,7 @@ function analyzeBoard(boardId, cards, boardName) {
 
   const progSec = document.getElementById('progress-section');
   if (!total) {
-    progSec.innerHTML = '<div class="empty"><div class="empty-icon">📚</div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:700;">Go to board →</a></div>';
+    progSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:700;">Go to board →</a></div>';
   } else {
     const skillColors = {Grammar:'#ef4444',Vocabulary:'#f59e0b',Speaking:'#8b5cf6',Reading:'#06b6d4',Writing:'#10b981',Listening:'#6366f1'};
     progSec.innerHTML = `
@@ -788,7 +788,7 @@ function analyzeBoard(boardId, cards, boardName) {
   // Pie
   const pieSec = document.getElementById('pie-section');
   if (!total) {
-    pieSec.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>No data</div>';
+    pieSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No data</div>';
   } else {
     const items = [
       { label:'Done',        n:done,       color:'#22c55e' },
@@ -823,15 +823,15 @@ function analyzeBoard(boardId, cards, boardName) {
   if (!total) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">No lessons on this board</td></tr>';
   } else {
-    const statusMap = { done:'sp-done ✅ Done', 'in-progress':'sp-progress ⏳ In Progress', available:'sp-available ▶️ Available', locked:'sp-locked 🔒 Locked' };
+    const statusMap = { done:['sp-done', 'Done'], 'in-progress':['sp-progress', 'In Progress'], available:['sp-available', 'Available'], locked:['sp-locked', 'Locked'] };
     tbody.innerHTML = lessons.map(l => {
-      const [cls, ...rest] = (statusMap[l.data.status||'available']||'sp-available ▶️ Available').split(' ');
+      const [cls, label] = statusMap[l.data.status||'available'] || statusMap.available;
       return `<tr>
         <td><strong>${esc(l.data.title||'Lesson')}</strong></td>
         <td><span class="status-pill" style="background:rgba(99,102,241,.12);color:#6366f1;">${esc(l.data.level||'—')}</span></td>
         <td>${esc(l.data.skill||'—')}</td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(l.data.duration||'—')}</td>
-        <td><span class="status-pill ${cls}">${rest.join(' ')}</span></td>
+        <td><span class="status-pill ${cls}">${label}</span></td>
       </tr>`;
     }).join('');
   }
@@ -843,7 +843,7 @@ function analyzeBoard(boardId, cards, boardName) {
   // Assignments
   const grid = document.getElementById('assign-grid');
   if (!assignments.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📝</div>No assignments on this board</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon" aria-hidden="true"></div>No assignments on this board</div>';
   } else {
     const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981' };
     grid.innerHTML = assignments.map(a => {
@@ -881,18 +881,18 @@ function buildInsights(cards, lessons, done, inProgress, assignments) {
   const insights = [];
 
   if (total === 0) {
-    insights.push({ icon:'📌', color:'#6366f1', msg:'No lesson cards on this board yet. Add Lesson cards from the board to start tracking progress.' });
+    insights.push({ color:'#6366f1', msg:'No lesson cards on this board yet. Add Lesson cards from the board to start tracking progress.' });
   } else {
-    if (pct === 100) insights.push({ icon:'🏆', color:'#22c55e', msg:`Outstanding! All ${total} lessons completed. Time to create new challenges!` });
-    else if (pct >= 75)  insights.push({ icon:'🔥', color:'#f97316', msg:`Great momentum — ${pct}% complete. Just ${total-done} lessons to go!` });
-    else if (pct >= 40)  insights.push({ icon:'📈', color:'#3b82f6', msg:`Good progress at ${pct}%. ${inProgress} lesson(s) currently in progress.` });
-    else if (pct > 0)    insights.push({ icon:'🚀', color:'#8b5cf6', msg:`Started! ${done}/${total} lessons done (${pct}%). Keep the momentum going.` });
-    else                 insights.push({ icon:'📖', color:'#6366f1', msg:`${total} lessons planned — none completed yet. Click the first available lesson to begin!` });
+    if (pct === 100) insights.push({ color:'#22c55e', msg:`Outstanding! All ${total} lessons completed. Time to create new challenges!` });
+    else if (pct >= 75)  insights.push({ color:'#f97316', msg:`Great momentum — ${pct}% complete. Just ${total-done} lessons to go!` });
+    else if (pct >= 40)  insights.push({ color:'#3b82f6', msg:`Good progress at ${pct}%. ${inProgress} lesson(s) currently in progress.` });
+    else if (pct > 0)    insights.push({ color:'#8b5cf6', msg:`Started! ${done}/${total} lessons done (${pct}%). Keep the momentum going.` });
+    else                 insights.push({ color:'#6366f1', msg:`${total} lessons planned — none completed yet. Click the first available lesson to begin!` });
   }
 
   // Overdue assignments
   const overdue = assignments.filter(a => a.data.deadline && new Date(a.data.deadline) < new Date());
-  if (overdue.length) insights.push({ icon:'⚠️', color:'#ef4444', msg:`${overdue.length} assignment(s) past deadline: ${overdue.map(a=>a.data.title||'Untitled').join(', ')}.` });
+  if (overdue.length) insights.push({ color:'#ef4444', msg:`${overdue.length} assignment(s) past deadline: ${overdue.map(a=>a.data.title||'Untitled').join(', ')}.` });
 
   // Skills gap
   const bySkill = {};
@@ -905,7 +905,7 @@ function buildInsights(cards, lessons, done, inProgress, assignments) {
   const weakest = Object.entries(bySkill).sort((a,b)=>(a[1].done/a[1].total)-(b[1].done/b[1].total))[0];
   if (weakest && weakest[1].total > 1) {
     const pct2 = Math.round(weakest[1].done/weakest[1].total*100);
-    insights.push({ icon:'🎯', color:'#f59e0b', msg:`Focus area: <strong>${weakest[0]}</strong> has the lowest completion rate (${pct2}%). Consider allocating more time.` });
+    insights.push({ color:'#f59e0b', msg:`Focus area: <strong>${weakest[0]}</strong> has the lowest completion rate (${pct2}%). Consider allocating more time.` });
   }
 
   const sec = document.getElementById('insight-section');
@@ -913,7 +913,7 @@ function buildInsights(cards, lessons, done, inProgress, assignments) {
   sec.style.display = '';
   body.innerHTML = insights.map(i => `
     <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
-      <div style="font-size:20px;width:32px;height:32px;border-radius:10px;background:${i.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i.icon}</div>
+      <div style="width:9px;height:9px;border-radius:999px;background:${i.color};flex-shrink:0;margin-top:10px;"></div>
       <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;padding-top:5px;">${i.msg}</div>
     </div>`).join('');
 }
@@ -1024,7 +1024,7 @@ function exportAllCSV() {
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = `analytics-${boardId}.csv`;
     a.click();
-    toast('📥 Exported!');
+    toast('Exported');
   }).catch(() => toast('Export failed'));
 }
 

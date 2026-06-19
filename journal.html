@@ -186,11 +186,11 @@ a{text-decoration:none;color:inherit;}
 <div id="page">
   <div class="page-head">
     <div>
-      <div class="page-title">📓 Student Journal</div>
+      <div class="page-title">Student Journal</div>
       <div style="font-size:13px;color:var(--text3);margin-top:3px;">Track lessons, attendance and balance</div>
     </div>
     <div class="head-spacer"></div>
-    <button class="btn btn-ghost" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
     <button class="btn btn-primary" onclick="openAddModal()">＋ Add Student</button>
   </div>
   <nav class="suite-switcher" aria-label="Progress sections">
@@ -217,7 +217,7 @@ a{text-decoration:none;color:inherit;}
       <div aria-hidden="true">&nbsp;</div>
     </div>
     <div id="journal-body">
-      <div class="empty"><div class="empty-icon">📓</div><div class="empty-title">No students yet</div><div class="empty-sub">Add your first student to start tracking lessons and attendance.</div></div>
+      <div class="empty"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">No students yet</div><div class="empty-sub">Add your first student to start tracking lessons and attendance.</div></div>
     </div>
   </div>
 </div>
@@ -225,7 +225,7 @@ a{text-decoration:none;color:inherit;}
 <!-- Add/Edit Modal -->
 <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-title" id="modal-title">➕ Add Student</div>
+    <div class="modal-title" id="modal-title">Add Student</div>
     <div class="form-group">
       <label class="form-label">Full Name *</label>
       <input class="form-input" id="f-name" placeholder="e.g. Anna Smith">
@@ -261,7 +261,7 @@ a{text-decoration:none;color:inherit;}
 <!-- Attendance Modal -->
 <div class="modal-overlay" id="attend-modal" onclick="if(event.target===this)closeAttendModal()">
   <div class="modal">
-    <div class="modal-title">📅 Mark Attendance</div>
+    <div class="modal-title">Mark Attendance</div>
     <div id="attend-student-name" style="font-size:15px;font-weight:700;color:var(--text2);margin-bottom:16px;"></div>
     <div class="form-group">
       <label class="form-label">Date</label>
@@ -270,10 +270,10 @@ a{text-decoration:none;color:inherit;}
     <div class="form-group">
       <label class="form-label">Status</label>
       <select class="form-select" id="a-status">
-        <option value="present">✅ Present (deducts 1 lesson)</option>
-        <option value="absent">❌ Absent</option>
-        <option value="late">⏰ Late</option>
-        <option value="cancelled">🚫 Cancelled</option>
+        <option value="present">Present (deducts 1 lesson)</option>
+        <option value="absent">Absent</option>
+        <option value="late">Late</option>
+        <option value="cancelled">Cancelled</option>
       </select>
     </div>
     <div class="form-group">
@@ -415,7 +415,7 @@ function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2
 function renderTable() {
   const body = document.getElementById('journal-body');
   if (!students.length) {
-    body.innerHTML = '<div class="empty"><div class="empty-icon">📓</div><div class="empty-title">No students yet</div><div class="empty-sub">Add your first student to start tracking.</div></div>';
+    body.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">No students yet</div><div class="empty-sub">Add your first student to start tracking.</div></div>';
     return;
   }
   body.innerHTML = students.map(s => {
@@ -434,8 +434,8 @@ function renderTable() {
       <div><button class="attend-btn" onclick="openAttendModal('${s.id}','${esc(s.name)}')">Attendance</button></div>
       <div><span class="balance-badge ${balClass}">${balText}</span></div>
       <div style="display:flex;gap:4px;">
-        <button class="action-btn" onclick="openEditModal('${s.id}')" title="Edit">✏️</button>
-        <button class="action-btn" onclick="deleteStudent('${s.id}')" title="Delete">🗑</button>
+        <button class="action-btn" onclick="openEditModal('${s.id}')" title="Edit" aria-label="Edit">Edit</button>
+        <button class="action-btn" onclick="deleteStudent('${s.id}')" title="Delete" aria-label="Delete">Del</button>
       </div>
     </div>`;
   }).join('');
@@ -443,7 +443,7 @@ function renderTable() {
 
 function openAddModal() {
   editingId = null;
-  document.getElementById('modal-title').textContent = '➕ Add Student';
+  document.getElementById('modal-title').textContent = 'Add Student';
   document.getElementById('f-name').value = '';
   document.getElementById('f-email').value = '';
   document.getElementById('f-level').value = 'B1';
@@ -457,7 +457,7 @@ function openEditModal(id) {
   const s = students.find(x => x.id === id);
   if (!s) return;
   editingId = id;
-  document.getElementById('modal-title').textContent = '✏️ Edit Student';
+  document.getElementById('modal-title').textContent = 'Edit Student';
   document.getElementById('f-name').value = s.name;
   document.getElementById('f-email').value = s.email || '';
   document.getElementById('f-level').value = s.level || 'B1';
@@ -481,10 +481,10 @@ async function saveStudent() {
   try {
     if (editingId) {
       await fetch(API + '/api/journal/' + editingId, { method:'PATCH', ...auth, body: JSON.stringify(body) });
-      toast('Updated ✅', 'ok');
+      toast('Updated', 'ok');
     } else {
       await fetch(API + '/api/journal', { method:'POST', ...auth, body: JSON.stringify(body) });
-      toast('Student added ✅', 'ok');
+      toast('Student added', 'ok');
     }
     closeModal();
     await loadJournal();
@@ -516,7 +516,7 @@ async function saveAttendance() {
   };
   try {
     await fetch(API + '/api/journal/' + attendingId + '/attendance', { method:'POST', ...auth, body: JSON.stringify(body) });
-    toast(body.status === 'present' ? '✅ Marked present — 1 lesson deducted' : '✅ Attendance saved', 'ok');
+    toast(body.status === 'present' ? 'Marked present — 1 lesson deducted' : 'Attendance saved', 'ok');
     closeAttendModal();
     await loadJournal();
   } catch { toast('Error', 'err'); }
@@ -532,7 +532,7 @@ function exportCSV() {
   a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
   a.download = 'student-journal.csv';
   a.click();
-  toast('📥 Exported!', 'ok');
+  toast('Exported', 'ok');
 }
 
 let toastT;
