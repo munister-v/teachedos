@@ -63,14 +63,16 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 <link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
 <link rel="stylesheet" href="styles/unify.css">
 <style>
+  body .comm-tab{
+    color:#5E5E4A!important;
+    letter-spacing:-.01em;
+  }
+  body .comm-tab:hover{color:#1C1C1E!important;}
   body .comm-tab.active{
     color:#1C1C1E!important;
     border-bottom-color:#C8E632!important;
     background:rgba(200,230,50,.16)!important;
   }
-  body .comm-tab.active .tab-ic{filter:none;}
-  body .comm-tab{color:#5E5E4A!important;}
-  body .comm-tab:hover{color:#1C1C1E!important;}
   @media(max-width:860px){
     body .wrap{padding-top:14px!important;}
     body .hero{gap:12px;margin-bottom:14px!important;}
@@ -86,6 +88,33 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .stat-num{font-size:20px!important;}
     body .stat-label{font-size:8.5px!important;letter-spacing:.09em!important;}
     body .share-card{padding:20px!important;border-radius:22px!important;}
+    body .comm-tabs{
+      display:grid!important;
+      grid-template-columns:repeat(3,minmax(0,1fr))!important;
+      gap:4px!important;
+      margin:0 0 14px!important;
+      padding:4px!important;
+      overflow:visible!important;
+      border:1px solid rgba(28,28,30,.10)!important;
+      border-radius:18px!important;
+      background:#fff!important;
+    }
+    body .comm-tab{
+      min-height:42px!important;
+      padding:0 8px!important;
+      margin:0!important;
+      border:0!important;
+      border-radius:14px!important;
+      font-size:13px!important;
+      font-weight:850!important;
+      background:transparent!important;
+      color:#626252!important;
+    }
+    body .comm-tab.active{
+      background:rgba(200,230,50,.24)!important;
+      color:#111113!important;
+      box-shadow:0 1px 0 rgba(255,255,255,.9) inset!important;
+    }
   }
 </style>
 </head>
@@ -147,9 +176,9 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 
   <!-- ══════ TABS: Boards / Games ══════ -->
   <div class="comm-tabs">
-    <button class="comm-tab active" data-tab="boards" onclick="switchCommTab('boards')">📌 Boards</button>
-    <button class="comm-tab" data-tab="library" onclick="switchCommTab('library')">📚 Library</button>
-    <button class="comm-tab" data-tab="games" onclick="switchCommTab('games')">🎮 Games</button>
+    <button class="comm-tab active" data-tab="boards" onclick="switchCommTab('boards')">Boards</button>
+    <button class="comm-tab" data-tab="library" onclick="switchCommTab('library')">Library</button>
+    <button class="comm-tab" data-tab="games" onclick="switchCommTab('games')">Games</button>
   </div>
 
   <!-- ══════ BOARDS SECTION ══════ -->

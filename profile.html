@@ -405,29 +405,25 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-copy{color:#5E5E4A;}
   .mobile-profile-actions{grid-template-columns:1fr 1fr;gap:8px;}
   .mobile-profile-action{
-    min-height:78px;
-    align-items:flex-start;
-    padding:12px;
+    min-height:64px;
+    align-items:center;
+    padding:12px 13px;
     border-radius:14px;
     background:#fff;
     border:1px solid rgba(94,94,74,.12);
     box-shadow:none;
   }
   .mobile-profile-action-ic{
-    width:30px;height:30px;border-radius:10px;
-    background:rgba(200,230,50,.18);
-    font-size:15px;
+    display:none!important;
   }
-  .mobile-profile-action-title{font-size:12.5px;}
-  .mobile-profile-action-sub{font-size:10.5px;line-height:1.3;}
+  .mobile-profile-action-title{font-size:13px;line-height:1.15;}
+  .mobile-profile-action-sub{font-size:11px;line-height:1.35;margin-top:4px;}
   .mobile-profile-action.logout{
+    grid-column:1/-1;
+    min-height:52px;
     border-color:rgba(239,68,68,.18)!important;
     color:#b91c1c!important;
     background:rgba(255,255,255,.82)!important;
-  }
-  .mobile-profile-action.logout .mobile-profile-action-ic{
-    background:rgba(239,68,68,.10)!important;
-    color:#b91c1c!important;
   }
   .card{
     padding:16px!important;
@@ -457,7 +453,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 @media (max-width: 420px) {
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .mobile-profile-actions{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .mobile-profile-action{padding:10px;gap:8px;}
+  .mobile-profile-action{padding:10px 11px;gap:8px;}
   .mobile-profile-action-ic{display:none;}
 }
 </style>
@@ -537,29 +533,29 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
           <div class="mobile-profile-action" onclick="switchTab('boards')">
             <div class="mobile-profile-action-ic">📋</div>
             <div>
-              <div class="mobile-profile-action-title">My Boards</div>
-              <div class="mobile-profile-action-sub">Open and manage lesson boards</div>
+              <div class="mobile-profile-action-title">Boards</div>
+              <div class="mobile-profile-action-sub">Open lesson boards</div>
             </div>
           </div>
           <div class="mobile-profile-action" onclick="switchTab('settings')">
             <div class="mobile-profile-action-ic">⚙️</div>
             <div>
               <div class="mobile-profile-action-title">Settings</div>
-              <div class="mobile-profile-action-sub">Update account and rooms</div>
+              <div class="mobile-profile-action-sub">Account and rooms</div>
             </div>
           </div>
           <a class="mobile-profile-action" href="gradebook.html">
             <div class="mobile-profile-action-ic">📒</div>
             <div>
               <div class="mobile-profile-action-title">Gradebook</div>
-              <div class="mobile-profile-action-sub">Check roster and progress</div>
+              <div class="mobile-profile-action-sub">Roster and progress</div>
             </div>
           </a>
           <div class="mobile-profile-action" onclick="switchTab('shared')">
             <div class="mobile-profile-action-ic">🎓</div>
             <div>
-              <div class="mobile-profile-action-title">Shared Boards</div>
-              <div class="mobile-profile-action-sub">See boards shared with you</div>
+              <div class="mobile-profile-action-title">Shared</div>
+              <div class="mobile-profile-action-sub">Boards shared with you</div>
             </div>
           </div>
           <button class="mobile-profile-action logout" type="button" onclick="doLogout()">
