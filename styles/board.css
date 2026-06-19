@@ -3145,24 +3145,48 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-retry-btn{display:inline-flex;align-items:center;border:0;background:rgba(66,98,255,.12);color:#4262FF;font-size:11px;font-weight:850;padding:3px 10px;border-radius:8px;cursor:pointer;margin-left:6px;vertical-align:middle;}
 .yt-retry-btn:hover{background:rgba(66,98,255,.2);}
 
-/* ── Worksheet board card — vivid, structured, kid & adult friendly ── */
-.ws-body{padding:0 12px 12px;display:flex;flex-direction:column;height:calc(100% - 40px);}
-.ws-strip{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:9px 0 11px;margin-bottom:2px;border-bottom:1px dashed rgba(17,24,39,.1);}
-.ws-tools{display:flex;gap:5px;margin-left:auto;}
-.ws-btn{border:1px solid rgba(17,24,39,.12);background:#fff;border-radius:8px;padding:3px 9px;font-size:10.5px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap;}
-.ws-btn:hover{background:rgba(66,98,255,.08);border-color:rgba(66,98,255,.3);color:#4262FF;}
-.ws-pill{font-size:9.5px;font-weight:900;border-radius:999px;padding:4px 11px;font-family:var(--mono);letter-spacing:.03em;text-transform:uppercase;box-shadow:0 1px 3px rgba(17,24,39,.08);}
-.ws-pill.ghost{background:rgba(17,24,39,.06);color:#6b7280;box-shadow:none;}
-.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:10px 4px 4px 0;}
-.ws-q{position:relative;border:1px solid rgba(17,24,39,.07);background:#fff;border-radius:14px;padding:12px 13px 12px 14px;box-shadow:0 1px 3px rgba(17,24,39,.05);transition:box-shadow .16s ease,transform .16s ease;overflow:hidden;}
-.ws-q::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--q-accent,#4262FF);border-radius:14px 0 0 14px;opacity:.85;}
-.ws-q:hover{box-shadow:0 4px 14px rgba(17,24,39,.1);transform:translateY(-1px);}
-.ws-qh{display:flex;align-items:flex-start;gap:9px;font-size:13px;font-weight:750;color:#1d1a28;line-height:1.5;}
-.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:#fff;font-size:11.5px;font-weight:900;font-family:var(--mono);box-shadow:0 2px 5px rgba(17,24,39,.18);margin-top:1px;}
-.ws-qtext{flex:1;min-width:0;}
-.ws-word{font-size:14px;font-weight:850;color:#1d1a28;}
-.ws-opts{display:flex;flex-direction:column;gap:5px;margin-top:9px;padding-left:31px;}
-.ws-opt{display:flex;align-items:center;gap:9px;font-size:12px;color:#4b4d5e;font-weight:600;padding:6px 11px;border-radius:10px;background:rgba(17,24,39,.035);border:1px solid transparent;transition:.12s;}
+	/* ── Worksheet board card — vivid lesson strip, not a flat PDF ── */
+	.ws-body{
+	  padding:0 14px 14px;display:flex;flex-direction:column;height:calc(100% - 40px);
+	  background:
+	    radial-gradient(circle at 0 0,color-mix(in srgb,var(--tt-accent,#4262FF) 9%,transparent),transparent 38%),
+	    linear-gradient(180deg,#fbfbff 0%,#f3f5fb 100%);
+	  border-radius:0 0 14px 14px;
+	}
+	.ws-strip{
+	  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:center;
+	  padding:14px 14px;margin:0 -2px 10px;border-radius:18px;
+	  background:
+	    linear-gradient(135deg,color-mix(in srgb,var(--q-accent,#4262FF) 14%,#fff),#fff 58%),
+	    radial-gradient(circle at 100% 0,color-mix(in srgb,var(--q-accent,#4262FF) 18%,transparent),transparent 44%);
+	  border:1px solid color-mix(in srgb,var(--q-accent,#4262FF) 18%,rgba(17,24,39,.08));
+	  box-shadow:0 12px 28px color-mix(in srgb,var(--q-accent,#4262FF) 10%,transparent),inset 0 1px 0 rgba(255,255,255,.8);
+	}
+	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:3px;}
+	.ws-strip-kicker{font:950 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--q-accent,#4262FF);}
+	.ws-strip-title{font-size:16px;font-weight:950;letter-spacing:-.035em;color:#171420;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+	.ws-strip-side{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
+	.ws-tools{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end;}
+	.ws-btn{border:1px solid rgba(17,24,39,.11);background:rgba(255,255,255,.88);border-radius:10px;padding:5px 10px;font-size:10.5px;font-weight:900;color:#374151;cursor:pointer;white-space:nowrap;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;}
+	.ws-btn:hover{background:#111827;border-color:#111827;color:#fff;}
+	.ws-pill{font-size:9.5px;font-weight:950;border-radius:999px;padding:5px 10px;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;background:rgba(17,24,39,.07);color:#5f6575;box-shadow:none;}
+	.ws-pill.level{background:#111827;color:#CDF24F;}
+	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 3px 4px 0;}
+	.ws-q{
+	  position:relative;border:1px solid rgba(17,24,39,.075);background:rgba(255,255,255,.92);
+	  border-radius:18px;padding:14px 14px 14px 18px;box-shadow:0 1px 2px rgba(17,24,39,.04),0 10px 24px rgba(17,24,39,.055);
+	  transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease;overflow:hidden;
+	}
+	.ws-q::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--q-accent,#4262FF);border-radius:18px 0 0 18px;opacity:.9;}
+	.ws-q::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent,#4262FF) 5%,transparent),transparent 46%);pointer-events:none;}
+	.ws-q>*{position:relative;z-index:1;}
+	.ws-q:hover{box-shadow:0 5px 18px rgba(17,24,39,.1),0 16px 34px color-mix(in srgb,var(--q-accent,#4262FF) 8%,transparent);transform:translateY(-1px);border-color:color-mix(in srgb,var(--q-accent,#4262FF) 20%,rgba(17,24,39,.08));}
+	.ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:800;color:#1d1a28;line-height:1.45;}
+	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9px;color:#fff;font-size:11px;font-weight:950;font-family:var(--mono);box-shadow:0 3px 8px rgba(17,24,39,.18);margin-top:0;}
+	.ws-qtext{flex:1;min-width:0;}
+	.ws-word{font-size:14px;font-weight:900;color:#1d1a28;}
+	.ws-opts{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-left:34px;}
+	.ws-opt{display:flex;align-items:center;gap:9px;font-size:12px;color:#4b4d5e;font-weight:650;padding:7px 11px;border-radius:11px;background:rgba(17,24,39,.04);border:1px solid transparent;transition:.12s;}
 .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:800;border-color:rgba(22,163,74,.3);}
 .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#fff;border:1.5px solid rgba(17,24,39,.16);font-size:10.5px;font-weight:900;color:#9499a8;}
 .ws-opt.correct .ws-mark{background:#16a34a;border-color:#16a34a;color:#fff;}
@@ -3172,16 +3196,28 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ws-ans{display:flex;align-items:center;gap:7px;font-size:12px;margin-top:9px;margin-left:31px;color:#15803d;font-weight:700;background:rgba(22,163,74,.08);border-radius:9px;padding:6px 11px;}
 .ws-ans-label{font-size:8.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:#16a34a;color:#fff;padding:2px 7px;border-radius:999px;}
 .ws-ans b{color:#15803d;font-weight:850;}
-.ws-open{height:0;margin:11px 0 3px 31px;border-bottom:2px dashed rgba(17,24,39,.2);}
+	.ws-open{height:0;margin:11px 0 3px 34px;border-bottom:2px dashed rgba(17,24,39,.18);}
 .ws-open + .ws-open{margin-top:18px;}
 .ws-match{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;margin-top:9px;padding-left:31px;align-items:center;}
 .ws-l{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:8px;background:color-mix(in srgb,var(--q-accent,#4262FF) 12%,transparent);color:var(--q-accent,#4262FF);}
 .ws-r{font-size:11.5px;color:#4b4d5e;font-weight:600;}
-/* Stage / lesson-plan cards (cards[] kind) */
-.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:850;letter-spacing:-.01em;}
-.ws-card-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb,var(--q-accent,#4262FF) 18%,transparent);}
-.ws-card-txt{font-size:12px;line-height:1.6;color:#4b4d5e;font-weight:550;margin-top:8px;padding-left:17px;white-space:pre-wrap;}
-.ws-card-txt strong{color:#1d1a28;font-weight:800;}
+	/* Stage / lesson-plan cards (cards[] kind) */
+	.ws-q-card{padding-left:50px;min-height:96px;}
+	.ws-q-card::before{width:0;}
+	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:22px;border-radius:999px;background:color-mix(in srgb,var(--q-accent,#4262FF) 12%,#eef1ff);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--q-accent,#4262FF);font:950 10px var(--mono);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--q-accent,#4262FF) 14%,transparent);}
+	.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:950;letter-spacing:-.025em;color:#171420;}
+	.ws-card-dot{flex-shrink:0;width:28px;height:28px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--q-accent,#4262FF) 13%,rgba(17,24,39,.08)),inset 0 0 0 1px color-mix(in srgb,var(--q-accent,#4262FF) 17%,transparent);font-size:14px;}
+	.ws-card-title{flex:1;min-width:0;}
+	.ws-stage-label{font:950 8.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--q-accent,#4262FF);background:color-mix(in srgb,var(--q-accent,#4262FF) 11%,#fff);border-radius:999px;padding:4px 8px;white-space:nowrap;}
+	.ws-card-txt{font-size:12.5px;line-height:1.64;color:#444857;font-weight:650;margin-top:10px;white-space:pre-wrap;}
+	.ws-card-txt strong{color:#171420;font-weight:950;}
+	.ws-stage-reading{background:linear-gradient(135deg,#fff,#f8fbff);}
+	.ws-stage-reading .ws-card-txt{font-size:13px;line-height:1.72;color:#303341;}
+	.ws-stage-vocab{background:linear-gradient(135deg,#fffef7,#fff);}
+	.ws-stage-vocab .ws-card-txt{display:grid;gap:4px;}
+	.ws-stage-before{background:linear-gradient(135deg,#f7fbff,#fff);}
+	.ws-stage-after{background:linear-gradient(135deg,#fff7fb,#fff);}
+	.ws-stage-grammar{background:linear-gradient(135deg,#f8f7ff,#fff);}
 
 /* ── Teacher-tool note cards — category accent (cohesive board set) ── */
 .board-card.tt-note{box-shadow:inset 4px 0 0 var(--tt-accent,#4262FF),0 1px 2px rgba(17,24,39,.05),0 10px 26px rgba(17,24,39,.08)!important;}

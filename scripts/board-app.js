@@ -1927,6 +1927,15 @@ function renderAssignment(el, card) {
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
 // revealed answers) — when true it's the teacher key.
+function _ttWorksheetStageMeta(title = '', index = 0) {
+  const t = String(title).toLowerCase();
+  if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'🔑', label:'Language bank' };
+  if (/before|lead|warm/.test(t)) return { cls:'ws-stage-before', icon:'💬', label:'Before task' };
+  if (/after|discussion|follow/.test(t)) return { cls:'ws-stage-after', icon:'↗', label:'After task' };
+  if (/reading|text|article|story/.test(t)) return { cls:'ws-stage-reading', icon:'📖', label:'Input text' };
+  if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'⚙', label:'Focus' };
+  return { cls:'ws-stage-default', icon:String(index + 1), label:'Stage' };
+}
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -1958,7 +1967,18 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     }).join('');
   }
   if (cards) {
-    return cards.map(c => `<div class="ws-q ws-q-card" style="--q-accent:${accent}"><div class="ws-qh ws-card-head" style="color:${accent}"><span class="ws-card-dot" style="background:${accent}"></span>${esc(c.title || '')}</div><div class="ws-card-txt">${_ttMdToHtml(c.text)}</div></div>`).join('');
+    return cards.map((c, i) => {
+      const sm = _ttWorksheetStageMeta(c.title || '', i);
+      return `<div class="ws-q ws-q-card ${sm.cls}" style="--q-accent:${accent};--stage:${i+1}">
+        <div class="ws-stage-rail"><span>${i + 1}</span></div>
+        <div class="ws-qh ws-card-head">
+          <span class="ws-card-dot">${esc(sm.icon)}</span>
+          <span class="ws-card-title">${esc(c.title || '')}</span>
+          <span class="ws-stage-label">${esc(sm.label)}</span>
+        </div>
+        <div class="ws-card-txt">${_ttMdToHtml(c.text)}</div>
+      </div>`;
+    }).join('');
   }
   return '';
 }
@@ -1982,13 +2002,18 @@ function renderWorksheet(el, card) {
   const n = (qs || items || cards || []).length;
   const unit = qs ? 'questions' : items ? 'words' : 'cards';
   const hasKey = !!qs && qs.some(q => q.type === 'mcq' || q.type === 'truefalse' || (q.type === 'gap-fill' && q.answer));
-  const strip = `<div class="ws-strip">
-      <span class="ws-pill" style="background:${accent}18;color:${accent}">${esc(d.kind || 'Worksheet')}</span>
-      ${d.level ? `<span class="ws-pill ghost">${esc(d.level)}</span>` : ''}
-      <span class="ws-pill ghost">${n} ${unit}</span>
+  const strip = `<div class="ws-strip" style="--q-accent:${accent}">
+      <div class="ws-strip-main">
+        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}</span>
+        <span class="ws-strip-title">${esc(d.topic || d.title || 'Lesson activity')}</span>
+      </div>
+      <div class="ws-strip-side">
+        ${d.level ? `<span class="ws-pill level">${esc(d.level)}</span>` : ''}
+        <span class="ws-pill">${n} ${unit}</span>
+      </div>
       <span class="ws-tools">
-        ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Answers: on' : '👁 Answers: off'}</button>` : ''}
-        <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">🖨 Print</button>
+        ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
+        <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
       </span>
     </div>`;
 
@@ -7535,10 +7560,10 @@ function _ttEstWorksheetHeight(output){
   // Size to fit ALL content (generous ceiling + headroom): the card then has no
   // inner scroll for realistic worksheets, so the whole sheet shows on the board
   // and exports/prints in full (html2canvas clips scrolled-away overflow).
-  return Math.max(300, Math.min(1700, 110 + sum + 24));
+  return Math.max(360, Math.min(1850, 170 + sum + 36));
 }
 function _ttPlaceWorksheetOnBoard(output){
-  const W = 440, H = _ttEstWorksheetHeight(output);
+  const W = 520, H = _ttEstWorksheetHeight(output);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
   const pos = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
@@ -7900,7 +7925,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '168';
+const TEACHEDOS_ASSET_VERSION = '169';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
