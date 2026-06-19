@@ -419,11 +419,42 @@ a{text-decoration:none;color:inherit;}
 <script src="scripts/app-core.js"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
 let token = localStorage.getItem('teachedos_token');
 let boards = [];
 let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
 let currentUser = null;
 const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
+
+function readAnalyticsCache() {
+  try {
+    return JSON.parse(localStorage.getItem(ANALYTICS_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeAnalyticsCache(patch) {
+  try {
+    const current = readAnalyticsCache() || {};
+    localStorage.setItem(ANALYTICS_CACHE_KEY, JSON.stringify({
+      ...current,
+      ...patch,
+      cachedAt: new Date().toISOString(),
+    }));
+  } catch {}
+}
+
+function cacheAnalyticsBoard(id, board) {
+  if (!id || !board) return;
+  const cache = readAnalyticsCache() || {};
+  writeAnalyticsCache({
+    boardDetails: {
+      ...(cache.boardDetails || {}),
+      [id]: board,
+    },
+  });
+}
 
 async function apiFetch(path, opts={}) {
   const r = await fetch(API+path, {
@@ -437,12 +468,23 @@ async function apiFetch(path, opts={}) {
 
 async function init() {
   if (!token) { location.href='index.html'; return; }
+  const cached = readAnalyticsCache();
   try {
     const { user } = await apiFetch('/api/auth/me');
     currentUser = user;
     setNavUser(user);
     applyAnalyticsGateUI();
-  } catch { location.href='index.html'; return; }
+    writeAnalyticsCache({ user });
+  } catch {
+    if (cached?.user) {
+      currentUser = cached.user;
+      setNavUser(cached.user);
+      applyAnalyticsGateUI();
+      toast('Showing saved analytics while the server wakes up');
+    } else {
+      location.href='index.html'; return;
+    }
+  }
   if (!hasAnalyticsAccess()) return;
   await loadData();
 }
@@ -503,6 +545,7 @@ function _setRefreshBusy(busy) {
 }
 async function loadData() {
   _setRefreshBusy(true);
+  const cached = readAnalyticsCache();
   try {
     const d = await apiFetch('/api/boards');
     boards = d.boards;
@@ -512,10 +555,22 @@ async function loadData() {
       if (activeBoardId) localStorage.setItem('teachedos_board_id', activeBoardId);
     }
     renderBoardPills();
+    writeAnalyticsCache({ boards, activeBoardId });
     _boardDetailCache = {};       // refresh re-fetches board details
     renderOverview();             // whole-account snapshot (non-blocking)
     if (activeBoardId) await loadBoardAnalytics(activeBoardId);
-  } catch(e) { toast('Failed: '+e.message); }
+  } catch(e) {
+    if (cached?.boards?.length) {
+      boards = cached.boards;
+      activeBoardId = cached.activeBoardId || activeBoardId || boards[0]?.id || null;
+      renderBoardPills();
+      renderOverview();
+      if (activeBoardId) await loadBoardAnalytics(activeBoardId);
+      toast('Showing saved analytics while the server wakes up');
+    } else {
+      toast('Failed: '+e.message);
+    }
+  }
   finally { _setRefreshBusy(false); }
 }
 
@@ -523,9 +578,20 @@ async function loadData() {
 let _boardDetailCache = {};
 async function _fetchBoardDetail(id) {
   if (_boardDetailCache[id]) return _boardDetailCache[id];
-  const { board } = await apiFetch(`/api/boards/${id}`);
-  _boardDetailCache[id] = board;
-  return board;
+  try {
+    const { board } = await apiFetch(`/api/boards/${id}`);
+    _boardDetailCache[id] = board;
+    cacheAnalyticsBoard(id, board);
+    return board;
+  } catch (err) {
+    const cached = readAnalyticsCache();
+    const board = cached?.boardDetails?.[id];
+    if (board) {
+      _boardDetailCache[id] = board;
+      return board;
+    }
+    throw err;
+  }
 }
 async function renderOverview() {
   const sec = document.getElementById('overview-section');

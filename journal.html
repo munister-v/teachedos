@@ -292,6 +292,7 @@ a{text-decoration:none;color:inherit;}
 <script src="scripts/app-core.js"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
 const token = localStorage.getItem('teachedos_token');
 const auth = { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } };
 
@@ -301,16 +302,56 @@ let attendingId = null;
 let currentUser = null;
 const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
 
+function readJournalCache() {
+  try {
+    return JSON.parse(localStorage.getItem(JOURNAL_CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeJournalCache(patch) {
+  try {
+    const current = readJournalCache() || {};
+    localStorage.setItem(JOURNAL_CACHE_KEY, JSON.stringify({
+      ...current,
+      ...patch,
+      cachedAt: new Date().toISOString(),
+    }));
+  } catch {}
+}
+
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
+  const cached = readJournalCache();
   try {
     const me = await fetch(API + '/api/auth/me', { headers: auth.headers }).then(r => r.json());
-    if (!me.user) { location.href = 'index.html'; return; }
-    if (me.user.role === 'student') { location.href = 'student.html'; return; }
-    currentUser = me.user;
-    setNavUser(me.user);
-    applyJournalGateUI();
-  } catch { location.href = 'index.html'; return; }
+    if (!me.user) {
+      if (cached?.user) {
+        currentUser = cached.user;
+        setNavUser(cached.user);
+        applyJournalGateUI();
+        toast('Showing saved journal while the server wakes up');
+      } else {
+        location.href = 'index.html'; return;
+      }
+    } else {
+      if (me.user.role === 'student') { location.href = 'student.html'; return; }
+      currentUser = me.user;
+      setNavUser(me.user);
+      applyJournalGateUI();
+      writeJournalCache({ user: me.user });
+    }
+  } catch {
+    if (cached?.user) {
+      currentUser = cached.user;
+      setNavUser(cached.user);
+      applyJournalGateUI();
+      toast('Showing saved journal while the server wakes up');
+    } else {
+      location.href = 'index.html'; return;
+    }
+  }
   await loadJournal();
 }
 
@@ -339,12 +380,25 @@ function applyJournalGateUI() {
 }
 
 async function loadJournal() {
+  const cached = readJournalCache();
   try {
-    const d = await fetch(API + '/api/journal', { headers: auth.headers }).then(r => r.json());
+    const res = await fetch(API + '/api/journal', { headers: auth.headers });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed to load journal');
     students = d.students || [];
+    writeJournalCache({ students });
     renderTable();
     renderStats();
-  } catch { toast('Failed to load journal', 'err'); }
+  } catch {
+    if (cached?.students?.length) {
+      students = cached.students;
+      renderTable();
+      renderStats();
+      toast('Showing saved journal while the server wakes up');
+    } else {
+      toast('Failed to load journal', 'err');
+    }
+  }
 }
 
 function renderStats() {

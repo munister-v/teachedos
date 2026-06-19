@@ -692,21 +692,33 @@ function restoreCoursesShellFromCache() {
   return false;
 }
 
+function applyCourseUser(user) {
+  currentUser = user;
+  setNavUser(user);
+  if (window.innerWidth <= 860) {
+    const tb = document.getElementById('mp-topbar');
+    if (tb) tb.style.display = '';
+    const av = document.getElementById('mp-avatar-courses');
+    if (av) av.textContent = (user.name || 'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  }
+}
+
 /* ── INIT ────────────────────────────────────────────────────── */
 async function init() {
   if (!token) { location.href = 'index.html'; return; }
+  const cached = readCoursesCache();
   try {
     const { user } = await api('/api/auth/me');
-    currentUser = user;
-    setNavUser(user);
-    // Mobile topbar
-    if (window.innerWidth <= 860) {
-      const tb = document.getElementById('mp-topbar');
-      if (tb) tb.style.display = '';
-      const av = document.getElementById('mp-avatar-courses');
-      if (av) av.textContent = (user.name || 'DT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    applyCourseUser(user);
+    writeCoursesCache({ user });
+  } catch {
+    if (cached?.user) {
+      applyCourseUser(cached.user);
+      toast('Showing saved courses while the server wakes up');
+    } else {
+      location.href = 'index.html'; return;
     }
-  } catch { location.href = 'index.html'; return; }
+  }
 
   buildColorRow();
   renderReadyLibrary();
