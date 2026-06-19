@@ -120,6 +120,10 @@ function _ttAddTextCard(frame, x, y, w, h, text, opts = {}) {
   });
   // Rich HTML (e.g. **bold** target words rendered as <strong>) when provided.
   if (opts.html != null) data.html = opts.html;
+  if (opts.generatedPanel !== false) {
+    data.generatedPanel = true;
+    data._ttPanel = 1;
+  }
   const card = addCard('text', x, y, data, w, h);
   if (frame && card) setCardParentFrame?.(card, frame);
   return card;

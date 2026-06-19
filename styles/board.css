@@ -2012,6 +2012,48 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-rich-editor a{color:#2563eb;text-decoration:underline;text-underline-offset:2px;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
 .card-text:hover .text-close,.card-text.selected .text-close{opacity:1;}
+.card-text.generated-panel-card:hover:not(.selected){
+  border-color:transparent;
+  box-shadow:none;
+  transform:none;
+}
+.card-text.generated-panel-card:focus-within{
+  background:transparent;
+}
+.card-text.generated-panel-card .text-close{top:-2px;right:-2px;}
+.card-text.generated-panel-card .card-body.text-generated-panel-wrap{
+  padding:0;overflow:hidden;display:block;min-height:0;height:100%;
+}
+.generated-panel-content{
+  height:100%;box-sizing:border-box;overflow:auto;
+  border-radius:inherit;
+}
+.generated-panel-actionbar{
+  position:absolute;top:-38px;right:0;z-index:210;
+  display:flex;align-items:center;gap:5px;
+  padding:5px;border-radius:12px;
+  background:#fff;border:1px solid rgba(15,23,42,.10);
+  box-shadow:0 10px 28px rgba(15,23,42,.14),0 2px 6px rgba(15,23,42,.06);
+  opacity:0;pointer-events:none;transform:translateY(4px);
+  transition:opacity .14s ease,transform .14s ease;
+}
+.generated-panel-card:hover .generated-panel-actionbar,
+.generated-panel-card.selected .generated-panel-actionbar{
+  opacity:1;pointer-events:auto;transform:translateY(0);
+}
+.generated-panel-btn{
+  height:26px;padding:0 10px;border:none;border-radius:8px;
+  background:rgba(15,23,42,.06);color:#0f172a;
+  font:850 11px/1 var(--font);cursor:pointer;
+}
+.generated-panel-btn:hover{background:#0f172a;color:#fff;}
+[data-theme="dark"] .generated-panel-actionbar{
+  background:#252540;border-color:rgba(255,255,255,.10);
+}
+[data-theme="dark"] .generated-panel-btn{
+  background:rgba(255,255,255,.08);color:#fff;
+}
+[data-theme="dark"] .generated-panel-btn:hover{background:#fff;color:#111827;}
 /* Interactive worksheet card — iframe fills the card, no editing toolbar */
 .card-text .card-body.text-interactive-wrap{padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
 .text-interactive-wrap iframe{flex:1;width:100%;border:none;display:block;min-height:0;}

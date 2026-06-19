@@ -518,6 +518,7 @@ function renderCard(card) {
   el.className = 'board-card card-' + card.type;
   if (card.type === 'frame' && card.data?.mobileFormat) el.classList.add('frame-mobile-format');
   if (card.data && card.data.locked) el.classList.add('card-locked');
+  if (card.type === 'text' && card.data?.generatedPanel) el.classList.add('generated-panel-card');
   if (card.data && card.data.private) {
     // If the card is private to someone else, render an empty placeholder so layout
     // is preserved but content stays hidden. The owner sees normal content + outline.
@@ -591,7 +592,7 @@ function renderCard(card) {
     if (e.target.classList.contains('resize-handle')) return;
     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.target.closest('[contenteditable="true"],.text-format-toolbar,.layer-popover')) return;
-    if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot,.ws-btn')) return;
+    if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot,.ws-btn,.generated-panel-actionbar,.generated-panel-btn')) return;
 
     if (state.mode === 'connect') {
       // In connect mode, clicking the card body uses the nearest anchor
@@ -791,8 +792,56 @@ function renderSticky(el, card) {
   });
 }
 
+const _generatedPanelEditingIds = new Set();
+
 function renderText(el, card) {
   card.data = defaultTextData(card.data || {});
+
+  if (card.data.generatedPanel && !_generatedPanelEditingIds.has(card.id)) {
+    const tc = document.createElement('div');
+    tc.className = 'card-close text-close'; tc.textContent = '×';
+    tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
+    const actions = document.createElement('div');
+    actions.className = 'generated-panel-actionbar';
+    actions.innerHTML = `
+      <button class="generated-panel-btn" data-act="edit" title="Edit this generated card">Edit</button>
+      <button class="generated-panel-btn" data-act="lock" title="${card.data.locked ? 'Unlock movement' : 'Lock movement'}">${card.data.locked ? 'Locked' : 'Lock'}</button>`;
+    actions.addEventListener('mousedown', e => e.stopPropagation());
+    actions.addEventListener('click', e => {
+      e.stopPropagation();
+      const btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      if (btn.dataset.act === 'edit') {
+        _generatedPanelEditingIds.add(card.id);
+        reRenderCard(card);
+        selectCard(card.id);
+        setTimeout(() => getCardEl(card.id)?.querySelector('.text-rich-editor')?.focus(), 0);
+      } else if (btn.dataset.act === 'lock') {
+        toggleCardLocked(card.id);
+      }
+    });
+
+    const body = document.createElement('div');
+    body.className = 'card-body text-generated-panel-wrap';
+    const content = document.createElement('div');
+    content.className = 'generated-panel-content';
+    content.innerHTML = card.data.html
+      ? String(card.data.html).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+      : textToHtml(card.data.text || card.data.title || '');
+    content.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      _generatedPanelEditingIds.add(card.id);
+      reRenderCard(card);
+      selectCard(card.id);
+      setTimeout(() => getCardEl(card.id)?.querySelector('.text-rich-editor')?.focus(), 0);
+    });
+    body.appendChild(content);
+    el.appendChild(tc);
+    el.appendChild(actions);
+    el.appendChild(body);
+    return;
+  }
 
   // Interactive worksheet: render as sandboxed iframe, no editable toolbar
   if (card.data.interactive && card.data.html) {
@@ -891,6 +940,14 @@ function renderText(el, card) {
       card.data.html = newHtml; card.data.text = newText;
     }
     _textEditOrigHtml = _textEditOrigText = null;
+    if (card.data.generatedPanel) {
+      setTimeout(() => {
+        if (document.activeElement?.closest?.('.text-format-toolbar')) return;
+        _generatedPanelEditingIds.delete(card.id);
+        reRenderCard(card);
+        if (state.selected.has(card.id)) getCardEl(card.id)?.classList.add('selected');
+      }, 120);
+    }
   });
   editor.addEventListener('mousedown', e => {
     if (!state.selected.has(card.id)) {
@@ -3543,18 +3600,12 @@ function startCardDrag(e, card) {
   // Miro-style Alt-drag = duplicate
   if (e.altKey) {
     snapshot();
-    const newIds = [];
-    [...state.selected].forEach(id => {
-      const c = state.cards.find(x => x.id === id);
-      if (!c || (c.data && c.data.locked)) return;
-      const nc = { id:'c'+(state.nextId++), type:c.type, x:c.x, y:c.y,
-                   w:c.w, h:c.h, data:JSON.parse(JSON.stringify(c.data||{})), color:c.color };
-      if (nc.type === 'frame' && nc.data) { nc.data.childIds = []; delete nc.data.num; }
-      if (nc.data) delete nc.data.parentFrame;
-      state.cards.push(nc);
-      board.appendChild(renderCard(nc));
-      newIds.push(nc.id);
-    });
+    const sourceIds = expandIdsWithFrameChildren([...state.selected]);
+    const sourceCards = sourceIds.map(id => state.cards.find(x => x.id === id))
+      .filter(c => c && !(c.data && c.data.locked));
+    const cloned = cloneCardsWithRelationships(sourceCards, 0, 0);
+    const newIds = cloned.map(c => c.id);
+    if (cloned.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
     clearSelection();
     newIds.forEach(id => selectCard(id));
     // Now drag the new duplicates
@@ -4417,12 +4468,61 @@ function cycleSelection(direction) {
 /* ════════════════════════ CLIPBOARD: COPY / PASTE CARDS ════════════════════════ */
 let _cardClipboard = [];
 
+function expandIdsWithFrameChildren(ids) {
+  const expanded = new Set(ids);
+  ids.forEach(id => {
+    const c = state.cards.find(x => x.id === id);
+    if (c?.type === 'frame' && Array.isArray(c.data?.childIds)) {
+      c.data.childIds.forEach(cid => expanded.add(cid));
+    }
+  });
+  return [...expanded];
+}
+
+function cloneCardsWithRelationships(sourceCards, offsetX, offsetY) {
+  const idMap = new Map();
+  const cloned = [];
+  _suppressSnapshot++;
+  try {
+    sourceCards.forEach(src => {
+      const data = JSON.parse(JSON.stringify(src.data || {}));
+      const oldId = src.id || src.origId;
+      if (src.type === 'frame') {
+        data.childIds = [];
+        delete data.num;
+      }
+      if (data.parentFrame && !sourceCards.some(c => (c.id || c.origId) === data.parentFrame)) {
+        delete data.parentFrame;
+      }
+      const nc = addCard(src.type, src.x + offsetX, src.y + offsetY, data, src.w, src.h);
+      if (src.color) nc.color = src.color;
+      if (oldId) idMap.set(oldId, nc.id);
+      cloned.push({ source: src, card: nc });
+    });
+    cloned.forEach(({ source, card }) => {
+      const oldChildIds = source.data?.childIds || [];
+      if (card.type === 'frame' && oldChildIds.length) {
+        card.data.childIds = oldChildIds.map(id => idMap.get(id)).filter(Boolean);
+      }
+      const oldParent = source.data?.parentFrame;
+      if (oldParent && idMap.has(oldParent)) {
+        card.data.parentFrame = idMap.get(oldParent);
+      }
+    });
+  } finally {
+    _suppressSnapshot--;
+  }
+  return cloned.map(x => x.card);
+}
+
 function copySelectedCards() {
   if (!state.selected.size) { toast && toast('Select cards first'); return; }
-  _cardClipboard = [...state.selected].map(id => {
+  const selectedIds = [...state.selected];
+  const ids = expandIdsWithFrameChildren(selectedIds);
+  _cardClipboard = ids.map(id => {
     const c = state.cards.find(x => x.id === id);
     if (!c) return null;
-    return { type: c.type, x: c.x, y: c.y, w: c.w, h: c.h, data: JSON.parse(JSON.stringify(c.data)), color: c.color };
+    return { origId: c.id, type: c.type, x: c.x, y: c.y, w: c.w, h: c.h, data: JSON.parse(JSON.stringify(c.data)), color: c.color };
   }).filter(Boolean);
   // If exactly one image card is selected, ALSO push it to the system clipboard.
   // Uses the shared helper so the behaviour matches ctx-menu Copy.
@@ -4452,20 +4552,9 @@ function pasteCards() {
   const center = getBoardViewportCenter();
   const dx = center.x - cx + 30;
   const dy = center.y - cy + 30;
-  const newIds = [];
-  let hasFrame = false;
-  _suppressSnapshot++;
-  try {
-    _cardClipboard.forEach(c => {
-      const data = JSON.parse(JSON.stringify(c.data));
-      if (c.type === 'frame') { data.childIds = []; delete data.num; hasFrame = true; }
-      delete data.parentFrame; // pasted card doesn't belong to old frame
-      const nc = addCard(c.type, c.x + dx, c.y + dy, data, c.w, c.h);
-      if (c.color) nc.color = c.color;
-      newIds.push(nc.id);
-    });
-  } finally { _suppressSnapshot--; }
-  if (hasFrame && typeof renumberFrames === 'function') renumberFrames();
+  const pasted = cloneCardsWithRelationships(_cardClipboard.map(c => ({ ...c, id: c.origId })), dx, dy);
+  const newIds = pasted.map(c => c.id);
+  if (pasted.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
   updateEmpty();
@@ -4543,26 +4632,11 @@ function _scheduleGroupOutlines() {
 function duplicateSelected() {
   if (!state.selected.size) return;
   snapshot();
-  const newIds = [];
-  [...state.selected].forEach(id => {
-    const c = state.cards.find(x => x.id === id);
-    if (!c) return;
-    // Deep clone data so nested arrays/objects (checklist items, mindmap
-    // children refs, frame childIds) don't share references with the source.
-    const nc = { id:'c'+(state.nextId++), type:c.type, x:c.x+30, y:c.y+30,
-                 w:c.w, h:c.h, data:JSON.parse(JSON.stringify(c.data||{})), color:c.color };
-    // Frames: clone keeps a stale childIds list pointing at the *original*
-    // children. That's wrong — drop it so the new frame starts empty.
-    if (nc.type === 'frame' && nc.data) {
-      nc.data.childIds = [];
-      delete nc.data.num; // renumber assigns a fresh number
-    }
-    if (nc.data) delete nc.data.parentFrame; // duplicate isn't inside the source's frame
-    state.cards.push(nc);
-    board.appendChild(renderCard(nc));
-    newIds.push(nc.id);
-  });
-  if (state.cards.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
+  const ids = expandIdsWithFrameChildren([...state.selected]);
+  const sourceCards = ids.map(id => state.cards.find(x => x.id === id)).filter(Boolean);
+  const cloned = cloneCardsWithRelationships(sourceCards, 30, 30);
+  const newIds = cloned.map(c => c.id);
+  if (cloned.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
   updateEmpty();
