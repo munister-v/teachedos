@@ -55,30 +55,30 @@
   var style = document.createElement('style');
   style.textContent = [
     '.mob-nav{',
-    '  position:fixed;bottom:max(8px,env(safe-area-inset-bottom,0px));left:10px;right:10px;z-index:9990;',
-    '  height:66px;',
-    '  padding:6px;',
+    '  position:fixed;bottom:max(8px,env(safe-area-inset-bottom,0px));left:12px;right:12px;z-index:9990;',
+    '  height:64px;',
+    '  padding:5px;',
     /* solid bg: no backdrop-filter — saves GPU on every scroll frame */
-    '  background:#111113;',
-    '  border:1px solid rgba(255,255,255,0.08);',
-    '  border-radius:24px;',
+    '  background:rgba(255,255,255,0.96);',
+    '  border:1px solid rgba(28,28,30,0.10);',
+    '  border-radius:22px;',
     '  display:flex;align-items:stretch;gap:4px;',
     /* GPU-promote to own layer so scrolling content never triggers nav repaint */
     '  transform:translateZ(0);',
     '  will-change:transform;',
-    '  box-shadow:0 18px 42px rgba(14,14,16,0.28),0 2px 0 rgba(255,255,255,0.06) inset;',
+    '  box-shadow:0 10px 24px rgba(28,28,30,0.10),0 1px 0 rgba(255,255,255,0.86) inset;',
     '}',
     '.mob-nav-tab{',
     '  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;',
-    '  height:52px;gap:4px;text-decoration:none;border-radius:18px;',
-    '  color:rgba(255,255,255,0.52);',
+    '  height:52px;gap:4px;text-decoration:none;border-radius:17px;',
+    '  color:rgba(28,28,30,0.46);',
     '  transition:color 0.15s, opacity 0.15s, background 0.15s, transform 0.15s;',
     '  -webkit-tap-highlight-color:transparent;',
     '  cursor:pointer;border:none;background:none;font-family:inherit;',
     '  position:relative;',
     '}',
     '.mob-nav-tab:active{opacity:0.82;transform:scale(0.96);}',
-    '.mob-nav-tab.active{color:#C8E632;background:rgba(200,230,50,0.14);}',
+    '.mob-nav-tab.active{color:#111113;background:rgba(200,230,50,0.24);}',
     '.mob-nav-tab.active::before{content:"";position:absolute;top:6px;width:16px;height:3px;border-radius:99px;background:#C8E632;}',
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-icon svg{width:20px;height:20px;stroke-width:2.1;}',
@@ -87,7 +87,7 @@
     '  font-family:inherit;line-height:1;',
     '}',
     /* body padding so content isn't hidden behind nav */
-    'body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px)) !important;}',
+    'body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important;}',
   ].join('');
   document.head.appendChild(style);
 
