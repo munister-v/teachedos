@@ -913,6 +913,87 @@ html.pwa-standalone body,
 body.pwa-standalone{padding-top:0!important;}
 body.pwa-standalone .sticky-mob{display:none!important;}
 
+/* ════════ MOBILE LANDING APP POLISH — cleaner PWA first screen ════════ */
+@media(max-width:860px){
+  body{
+    background:
+      radial-gradient(circle at 50% -90px, rgba(200,230,50,.22), transparent 270px),
+      linear-gradient(180deg,#fffefa 0%,#f8f5ef 42%,#f2ece3 100%)!important;
+  }
+  nav.ln{
+    border-bottom:1px solid rgba(11,11,12,.06);
+    box-shadow:0 1px 0 rgba(255,255,255,.78) inset;
+  }
+  .nav-inner{
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));
+  }
+  .hero{
+    min-height:auto;
+    padding-bottom:30px;
+  }
+  .hero-badge{
+    background:rgba(255,255,255,.74);
+    border-color:rgba(11,11,12,.08);
+    box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 10px 24px rgba(44,40,31,.06);
+  }
+  .hero-h{
+    letter-spacing:-.055em;
+    text-wrap:balance;
+  }
+  .hero-sub{
+    color:#444437;
+    text-wrap:pretty;
+  }
+  .hero-ctas .btn{
+    border-radius:18px;
+    box-shadow:0 12px 26px rgba(11,11,12,.12);
+  }
+  .hero-ctas .btn-glass{
+    background:rgba(255,255,255,.78);
+    box-shadow:0 1px 0 rgba(255,255,255,.76) inset,0 8px 20px rgba(44,40,31,.055);
+  }
+  .preview-stage{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .pc-shell{
+    border-radius:24px;
+    border-color:rgba(11,11,12,.08);
+    background:rgba(255,255,255,.82);
+    box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 18px 42px rgba(44,40,31,.09);
+  }
+  .sticky-mob{
+    left:10px;
+    right:10px;
+    bottom:max(8px,env(safe-area-inset-bottom,0px));
+    border-radius:24px;
+    background:#111113;
+    box-shadow:0 18px 42px rgba(14,14,16,.30),0 2px 0 rgba(255,255,255,.06) inset;
+  }
+}
+
+@media(max-width:540px){
+  .hero{
+    padding-top:calc(86px + env(safe-area-inset-top,0px));
+  }
+  .hero-h{
+    font-size:clamp(38px,11.4vw,48px);
+    line-height:.96;
+  }
+  .hero-sub{
+    font-size:16px;
+    max-width:31ch;
+  }
+  .preview-stage{
+    margin-top:22px;
+  }
+}
+
+body.pwa-standalone .hero{
+  padding-top:calc(94px + env(safe-area-inset-top,0px))!important;
+}
+
 /* ════════ SUPPORT (coffee) — quiet, two-column card above the footer ════════ */
 #support{padding:clamp(40px,7vw,72px) 0;background:transparent;}
 .support-card{
