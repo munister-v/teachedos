@@ -1916,30 +1916,30 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     return qs.map((q, i) => {
       let ans = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
-        ans = `<div class="ws-opts">${q.options.map(o => {
+        ans = `<div class="ws-opts">${q.options.map((o, oi) => {
           const ok = showAns && o === q.answer;
-          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : '○'}</span><span>${esc(o)}</span></div>`;
+          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></div>`;
         }).join('')}</div>`;
       } else if (q.type === 'truefalse') {
         ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">✅ True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">❌ False</span></div>`;
       } else if (q.type === 'gap-fill') {
-        ans = (showAns && q.answer) ? `<div class="ws-ans">Answer: <b>${esc(q.answer)}</b></div>` : '';
+        ans = (showAns && q.answer) ? `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>` : '<div class="ws-open"></div>';
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
         ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
-        ans = `<div class="ws-open">______________________________</div>`;
+        ans = `<div class="ws-open"></div>`;
       }
-      return `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span>${esc(q.text || '')}</div>${ans}</div>`;
+      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" style="background:${accent}">${i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
   }
   if (items) {
     return items.map((it, i) => {
       const def = it.example || it.definition || '';
-      return `<div class="ws-q"><div class="ws-qh"><span class="ws-num" style="color:${accent}">${i + 1}.</span><b>${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open">______________________________</div>'}</div>`;
+      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" style="background:${accent}">${i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
     }).join('');
   }
   if (cards) {
-    return cards.map(c => `<div class="ws-q"><div class="ws-qh" style="color:${accent}">${esc(c.title || '')}</div><div class="ws-card-txt">${_ttMdToHtml(c.text)}</div></div>`).join('');
+    return cards.map(c => `<div class="ws-q ws-q-card" style="--q-accent:${accent}"><div class="ws-qh ws-card-head" style="color:${accent}"><span class="ws-card-dot" style="background:${accent}"></span>${esc(c.title || '')}</div><div class="ws-card-txt">${_ttMdToHtml(c.text)}</div></div>`).join('');
   }
   return '';
 }
@@ -2003,23 +2003,29 @@ function printWorksheet(cardId) {
     body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
     h1{font-size:22px;margin:0 0 2px;letter-spacing:-.02em}
     .meta{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7b7282;margin-bottom:18px}
-    .ws-q{border:1px solid #e6e7ee;border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
-    .ws-qh{font-size:14px;font-weight:700;line-height:1.45}
-    .ws-num{font-weight:800;margin-right:6px}
-    .ws-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}
-    .ws-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;padding:4px 9px;border-radius:7px;background:#f5f6fa}
+    .ws-q{position:relative;border:1px solid #e6e7ee;border-left:4px solid ${accent};border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
+    .ws-qh{display:flex;align-items:flex-start;gap:9px;font-size:14px;font-weight:700;line-height:1.5}
+    .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${accent};color:#fff;font-size:11.5px;font-weight:800}
+    .ws-qtext{flex:1}.ws-word{font-weight:800}
+    .ws-opts{display:flex;flex-direction:column;gap:5px;margin-top:9px;padding-left:31px}
+    .ws-opt{display:flex;align-items:center;gap:9px;font-size:13px;color:#444;padding:5px 10px;border-radius:8px;background:#f5f6fa}
     .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}
-    .ws-mark{width:14px;text-align:center;opacity:.6}
-    .ws-opt.correct .ws-mark{opacity:1}
-    .ws-tf{display:flex;gap:10px;margin-top:8px}
-    .ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}
+    .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#fff;border:1.5px solid #d4d7e0;font-size:10.5px;font-weight:800;color:#9499a8}
+    .ws-opt.correct .ws-mark{background:#16a34a;border-color:#16a34a;color:#fff}
+    .ws-tf{display:flex;gap:10px;margin-top:9px;padding-left:31px}
+    .ws-tf-b{font-size:12px;font-weight:700;padding:5px 14px;border-radius:8px;background:#f0f1f4;color:#9ca3af}
     .ws-tf-b.on{background:#dcfce7;color:#15803d}
-    .ws-ans{font-size:13px;margin-top:7px;color:#15803d}
+    .ws-ans{display:inline-flex;align-items:center;gap:7px;font-size:13px;margin-top:8px;margin-left:31px;color:#15803d;background:#eafbf0;border-radius:8px;padding:5px 10px}
+    .ws-ans-label{font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#16a34a;color:#fff;padding:2px 7px;border-radius:999px}
     .ws-ans b{color:#15803d}
-    .ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
-    .ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}
+    .ws-open{height:0;margin:14px 0 6px 31px;border-bottom:2px solid #d4d7e0}
+    .ws-open + .ws-open{margin-top:22px}
+    .ws-match{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:9px;padding-left:31px;align-items:center}
     .ws-l{font-weight:700;color:${accent}}
-    .ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    .ws-card-head{display:flex;align-items:center;gap:8px;color:${accent};font-weight:800}
+    .ws-card-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${accent}}
+    .ws-card-txt{font-size:13px;line-height:1.6;color:#444;margin-top:7px;padding-left:17px;white-space:pre-wrap}
+    .ws-card-txt strong{color:#171420;font-weight:800}
     @media print{body{padding:0}@page{margin:1.6cm}}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
     <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
