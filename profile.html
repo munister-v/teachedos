@@ -364,9 +364,12 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:12px 12px calc(78px + env(safe-area-inset-bottom,0px));
     gap:12px;
   }
+  /* #layout.mp-shell is an overflow/contain container that does NOT scroll
+     (the window scrolls). That trapped this sticky strip so its top:52px
+     offset applied at scroll=0, overlapping the hero by ~40px. The sticky
+     never actually engaged, so use static — clean layout, no false offset. */
   #sidebar-tabs{
-    position:sticky;
-    top:calc(52px + env(safe-area-inset-top,0px));
+    position:static;
     z-index:160;
     padding:4px 0 8px;
     margin:0 -2px;
