@@ -1391,7 +1391,7 @@ init();
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

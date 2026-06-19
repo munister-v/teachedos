@@ -5,6 +5,7 @@
  * Safe to include on any page: it detects what's already present and
  * never double-registers or double-loads. */
 (function () {
+  const ASSET_VERSION = '164';
   // ── 1. Backfill essential PWA meta / link tags ─────────────────────────────
   const head = document.head;
   const mk = (tag, attrs) => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
@@ -29,7 +30,7 @@
       // updateViaCache:'none' forces the browser to fetch sw.js from the network
       // on every load instead of its HTTP cache — so a new deploy's service
       // worker is detected immediately (no day-long stale-SW window).
-      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      navigator.serviceWorker.register('sw.js?v=' + ASSET_VERSION, { updateViaCache: 'none' }).then(reg => {
         reg.update();
         reg.addEventListener('updatefound', () => {
           const nw = reg.installing;
@@ -50,7 +51,7 @@
 
   // ── 3. Load the pwa.js UX layer once (skip if the page already includes it) ─
   if (!window.TeachedosPWA && !document.querySelector('script[src*="pwa.js"]')) {
-    const s = mk('script', { src: 'pwa.js', defer: 'defer' });
+    const s = mk('script', { src: 'pwa.js?v=' + ASSET_VERSION, defer: 'defer' });
     head.appendChild(s);
   }
 })();

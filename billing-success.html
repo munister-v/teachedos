@@ -86,7 +86,7 @@ verifyAndApply();
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -99,7 +99,7 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="pwa.js"></script>
+<script src="pwa.js?v=164"></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-zoom-guard.js" defer></script>
 </body>

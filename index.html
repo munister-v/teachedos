@@ -2149,7 +2149,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=154',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -2380,7 +2380,7 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js" defer></script>
+<script src="pwa.js?v=164" defer></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js" defer></script>

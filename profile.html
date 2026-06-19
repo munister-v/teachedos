@@ -859,7 +859,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 <script src="scripts/profile-app.js"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -891,7 +891,7 @@ if('serviceWorker'in navigator){
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js"></script>
+<script src="pwa.js?v=164"></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>

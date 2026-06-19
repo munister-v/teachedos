@@ -16,11 +16,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css">
-<link rel="stylesheet" href="styles/mobile-unified.css">
-<link rel="stylesheet" href="styles/harmony.css">
-<link rel="stylesheet" href="styles/mobile-guard.css" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css">
+<link rel="stylesheet" href="styles/board.css?v=164">
+<link rel="stylesheet" href="styles/mobile-unified.css?v=164">
+<link rel="stylesheet" href="styles/harmony.css?v=164">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=164" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=164">
 </head>
 <body class="board-page">
 
@@ -1606,9 +1606,9 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js"></script>
-<script src="scripts/board-app.js"></script>
-<script src="js/teacher-tool-board-composer.js"></script>
+<script src="js/teacher-tools-data.js?v=164"></script>
+<script src="scripts/board-app.js?v=164"></script>
+<script src="js/teacher-tool-board-composer.js?v=164"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1618,7 +1618,7 @@ polite request</textarea>
 
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=154',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1671,7 +1671,7 @@ if('serviceWorker'in navigator){
     </div>
   </div>
 </div>
-<script src="pwa.js"></script>
+<script src="pwa.js?v=164"></script>
 <script src="scripts/nav-boost.js" defer></script>
 <script src="scripts/mobile-perf.js" defer></script>
 <script src="scripts/mobile-nav.js"></script>

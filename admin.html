@@ -1746,10 +1746,10 @@ html{scroll-behavior:smooth}
 <div id="toast"></div>
 
 <script src="scripts/admin-app.js"></script>
-<script src="pwa.js"></script>
+<script src="pwa.js?v=164"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;

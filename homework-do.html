@@ -467,7 +467,7 @@ function toast(msg){
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>reg.update());
+  navigator.serviceWorker.register('sw.js?v=164',{updateViaCache:'none'}).then(reg=>reg.update());
 }
 </script>
 <script src="scripts/nav-boost.js" defer></script>
