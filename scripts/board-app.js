@@ -1929,11 +1929,11 @@ function renderAssignment(el, card) {
 // revealed answers) — when true it's the teacher key.
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
-  if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'🔑', label:'Language bank' };
-  if (/before|lead|warm/.test(t)) return { cls:'ws-stage-before', icon:'💬', label:'Before task' };
-  if (/after|discussion|follow/.test(t)) return { cls:'ws-stage-after', icon:'↗', label:'After task' };
-  if (/reading|text|article|story/.test(t)) return { cls:'ws-stage-reading', icon:'📖', label:'Input text' };
-  if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'⚙', label:'Focus' };
+  if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'VOC', label:'Language bank' };
+  if (/before|lead|warm/.test(t)) return { cls:'ws-stage-before', icon:'Q', label:'Before task' };
+  if (/after|discussion|follow/.test(t)) return { cls:'ws-stage-after', icon:'GO', label:'After task' };
+  if (/reading|text|article|story/.test(t)) return { cls:'ws-stage-reading', icon:'IN', label:'Input text' };
+  if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'FX', label:'Focus' };
   return { cls:'ws-stage-default', icon:String(index + 1), label:'Stage' };
 }
 
@@ -2051,6 +2051,10 @@ function renderWorksheet(el, card) {
   const n = (qs || items || cards || []).length;
   const unit = qs ? 'questions' : items ? 'words' : 'cards';
   const hasKey = !!qs && qs.some(q => q.type === 'mcq' || q.type === 'truefalse' || (q.type === 'gap-fill' && q.answer));
+  const stepper = cards ? `<div class="ws-stepper">${cards.slice(0, 5).map((c, i) => {
+      const sm = _ttWorksheetStageMeta(c.title || '', i);
+      return `<span class="ws-step ${sm.cls}"><i>${i + 1}</i><b>${esc(sm.label)}</b></span>`;
+    }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
   const strip = `<div class="ws-strip" style="--q-accent:${accent}">
       <div class="ws-strip-main">
         <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}</span>
@@ -2060,6 +2064,7 @@ function renderWorksheet(el, card) {
         ${d.level ? `<span class="ws-pill level">${esc(d.level)}</span>` : ''}
         <span class="ws-pill">${n} ${unit}</span>
       </div>
+      ${stepper}
       <span class="ws-tools">
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
@@ -7612,7 +7617,7 @@ function _ttEstWorksheetHeight(output){
   return Math.max(360, Math.min(1850, 170 + sum + 36));
 }
 function _ttPlaceWorksheetOnBoard(output){
-  const W = 520, H = _ttEstWorksheetHeight(output);
+  const W = 640, H = _ttEstWorksheetHeight(output);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
   const pos = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
@@ -7974,7 +7979,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '170';
+const TEACHEDOS_ASSET_VERSION = '171';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

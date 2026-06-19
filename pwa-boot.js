@@ -5,7 +5,7 @@
  * Safe to include on any page: it detects what's already present and
  * never double-registers or double-loads. */
 (function () {
-  const ASSET_VERSION = '170';
+  const ASSET_VERSION = '171';
   // ── 1. Backfill essential PWA meta / link tags ─────────────────────────────
   const head = document.head;
   const mk = (tag, attrs) => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
