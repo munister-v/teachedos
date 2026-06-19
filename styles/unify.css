@@ -2535,6 +2535,30 @@ label.hw-search {
     background: var(--m2-lime) !important;
   }
 
+  body.os-desktop .mp-quick-ic {
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    border-radius: 999px !important;
+    align-self: center !important;
+    background: var(--m2-lime) !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.os-desktop #spotlight-input-wrap .sp-ic,
+  body.os-desktop .pricing-note > span {
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+    border-radius: 999px !important;
+    background: var(--m2-lime) !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    display: inline-block !important;
+  }
+
   body:not(.board-page) :is(.course-skeleton, .tx-skel, .skeleton) {
     border-radius: var(--m2-radius-sm) !important;
   }

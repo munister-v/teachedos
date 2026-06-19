@@ -1822,7 +1822,7 @@ body.pwa-standalone .hero{
 .lp-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .lp-role{padding:13px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(255,255,255,.6);cursor:pointer;text-align:center;transition:.18s;}
 .lp-role.sel{border-color:var(--lime-dark);background:rgba(205,242,79,.18);}
-.lp-role-emoji{font-size:1.5rem;line-height:1;margin-bottom:3px;}
+.lp-role-emoji{width:8px;height:8px;border-radius:999px;background:var(--lime-dark);margin:0 auto 7px;font-size:0;line-height:0;}
 .lp-role-name{font-size:12px;font-weight:800;color:var(--ink);}
 .lp-role-desc{font-size:10px;color:var(--ink3);margin-top:1px;}
 .lp-inp{width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.16);border-radius:13px;font-family:var(--font);
@@ -1858,10 +1858,10 @@ body.pwa-standalone .hero{
       <div class="lp-role-lbl">I am a…</div>
       <div class="lp-role-grid">
         <div class="lp-role sel" id="lp-role-teacher" onclick="selectRole('teacher')">
-          <div class="lp-role-emoji">🧑‍🏫</div><div class="lp-role-name">Teacher</div><div class="lp-role-desc">Create &amp; manage</div>
+          <div class="lp-role-emoji" aria-hidden="true"></div><div class="lp-role-name">Teacher</div><div class="lp-role-desc">Create &amp; manage</div>
         </div>
         <div class="lp-role" id="lp-role-student" onclick="selectRole('student')">
-          <div class="lp-role-emoji">🎓</div><div class="lp-role-name">Student</div><div class="lp-role-desc">Learn &amp; progress</div>
+          <div class="lp-role-emoji" aria-hidden="true"></div><div class="lp-role-name">Student</div><div class="lp-role-desc">Learn &amp; progress</div>
         </div>
       </div>
     </div>

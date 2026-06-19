@@ -572,7 +572,7 @@ function checkImportParam() {
   banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:16px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Board shared with you</div>
+      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">Board shared with you</div>
       <div style="font-size:12px;opacity:.7;">"${esc(snapshot.name||'Community board')}" · ${(snapshot.cards||[]).length} cards</div>
     </div>
     <button onclick="doImportFromUrl('${imp}')" style="background:var(--lime);color:#1C1C1E;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
@@ -607,7 +607,7 @@ function switchCommTab(tab) {
 /* ══════════════════════ ASSIGNMENTS LIBRARY ══════════════════════ */
 let _myLibrary = [];
 let _communityLibrary = [];
-const KIND_ICON = { lesson:'📘', quiz:'❓', game:'🎮', board:'📌', other:'📄' };
+const KIND_ICON = { lesson:'Lesson', quiz:'Quiz', game:'Game', board:'Board', other:'Item' };
 
 async function loadLibrary() {
   // My Library (requires login)
@@ -782,7 +782,7 @@ function renderCommunityGames() {
   const q = (document.getElementById('game-search')?.value || '').trim().toLowerCase();
   const custom = (function() { try { return JSON.parse(localStorage.getItem('teachedos_custom_games') || '[]'); } catch { return []; } })();
   const all = [...COMMUNITY_GAMES, ...custom.map(g => ({
-    id: g.id, icon: g.icon || '🎮', title: g.title, type: g.gameType,
+    id: g.id, icon: g.icon || 'Game', title: g.title, type: g.gameType,
     level: g.level || 'Mixed', topic: g.typeName || 'Custom', desc: g.title,
     tags: g.tags || ['custom'], src: g.gameSrc || 'games/flashcards.html', isCustom: true
   }))];
