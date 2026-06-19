@@ -7900,7 +7900,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '165';
+const TEACHEDOS_ASSET_VERSION = '168';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -9461,7 +9461,7 @@ function seedMobileWelcomeBoard() {
   }, fw, fh);
   const children = [
     addCard('sticky', fx + 24, fy + 74, {
-      text: 'Welcome to Board on phone.\n\nUse Add below, keep one lesson flow inside this frame, and tap Fit anytime.',
+      text: 'Welcome to Board on phone.\n\nThis is a focused read + light-edit view. Pan, zoom, move cards, edit text, and tap Fit anytime.',
       color: '#FFF4B8',
     }, 342, 142),
     addCard('plan', fx + 24, fy + 246, {
@@ -9473,7 +9473,7 @@ function seedMobileWelcomeBoard() {
       title: 'Class checklist',
       items: [
         { text: 'Open with a quick speaking prompt', done: false },
-        { text: 'Add examples or images as cards', done: false },
+        { text: 'Use desktop when you need to add new cards', done: false },
         { text: 'Send board as homework when ready', done: false },
       ],
     }, 342, 188),

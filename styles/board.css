@@ -209,6 +209,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   border-radius:6px;letter-spacing:-.005em;
 }
 .user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+.mobile-board-action{display:none;}
 #btn-follow-me{
   padding:4px 12px;border-radius:8px;border:none;
   background:#CDF24F;font-family:var(--font);font-size:11px;
@@ -3884,7 +3885,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell #board-wrap::after{
-    content:"Phone board";
+    content:"Read + light edit";
     position:fixed;
     left:50%;
     top:calc(var(--phone-toolbar-h) + env(safe-area-inset-top,0px) + 10px);
@@ -3965,7 +3966,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     font-size:15px!important;
     -webkit-overflow-scrolling:touch;
   }
+  body.board-phone-shell .mobile-board-action{
+    display:flex;
+  }
+  body.board-phone-shell .mobile-board-action + .mobile-board-action{
+    margin-top:2px;
+  }
+
   /* Hide authoring / desktop-only items on phone */
+  body.board-phone-shell #more-ai-assistant,
+  body.board-phone-shell #more-teacher-tools,
   body.board-phone-shell #more-export-board,
   body.board-phone-shell #more-bg,
   body.board-phone-shell #more-shortcuts,
@@ -4076,7 +4086,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     justify-content:center;
   }
   body.board-phone-shell .empty-sub::after{
-    content:"Tap Add below to start a phone-sized lesson board";
+    content:"Phone mode is for reading, fitting, moving cards, and quick text edits. Open on desktop to build new boards.";
     display:flex;
     align-items:center;
     justify-content:center;

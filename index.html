@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=165">
-<link rel="preload" as="style" href="styles/unify.css?v=165">
+<link rel="preload" as="style" href="styles/harmony.css?v=168">
+<link rel="preload" as="style" href="styles/unify.css?v=168">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=165">
+<link rel="manifest" href="manifest.json?v=168">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -58,8 +58,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=165">
-<link rel="stylesheet" href="styles/main.css?v=165">
+<link rel="stylesheet" href="styles/tokens.css?v=168">
+<link rel="stylesheet" href="styles/main.css?v=168">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1444,12 +1444,12 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css?v=165" media="(max-width: 860px)">
-<script src="theme.js?v=165" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css?v=165">
-<link rel="stylesheet" href="styles/harmony.css?v=165">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=165" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=165">
+<link rel="stylesheet" href="styles/mobile-pro.css?v=168" media="(max-width: 860px)">
+<script src="theme.js?v=168" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=168">
+<link rel="stylesheet" href="styles/harmony.css?v=168">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=168" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=168">
 </head>
 <body class="os-desktop">
 <h1 class="sr-only">TeachEd language learning platform for teachers</h1>
@@ -2130,7 +2130,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=165"></script>
+<script src="scripts/desktop-app.js?v=168"></script>
 
 <script>
 
@@ -2152,7 +2152,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=165',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=168',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -2383,10 +2383,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=165" defer></script>
-<script src="scripts/nav-boost.js?v=165" defer></script>
-<script src="scripts/mobile-perf.js?v=165" defer></script>
-<script src="scripts/mobile-nav.js?v=165" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=165" defer></script>
+<script src="pwa.js?v=168" defer></script>
+<script src="scripts/nav-boost.js?v=168" defer></script>
+<script src="scripts/mobile-perf.js?v=168" defer></script>
+<script src="scripts/mobile-nav.js?v=168" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=168" defer></script>
 </body>
 </html>
