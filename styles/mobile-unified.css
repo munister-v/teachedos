@@ -160,9 +160,15 @@
   }
 
   /* ── Prevent horizontal overflow ── */
+  /* Use clip, not hidden: overflow-x:hidden forces overflow-y to compute to
+     `auto`, turning these shells into scroll containers that DON'T scroll (the
+     window does) but DO trap sticky descendants (mp-topbar, tab strips) —
+     offsetting them at rest and breaking stick-on-scroll. clip prevents the
+     horizontal bleed without creating that context, so sticky anchors to the
+     window. (overflow:clip — all modern browsers; iOS<16 ignores it gracefully.) */
   .mp-shell, .wrap, .page, .page-wrap, main, #page {
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* ── Pull-to-refresh guard ── */

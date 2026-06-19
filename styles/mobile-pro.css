@@ -63,6 +63,7 @@
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     /* prevent overscroll rubber-band jank */
     overscroll-behavior: none;
+    /* horizontal-overflow guard (overflow-x:clip) lives in mobile-unified.css */
   }
 
   /* Tappable stat tile */
