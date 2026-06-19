@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <link rel="manifest" href="manifest.json?v=165">
-<meta name="theme-color" content="#0E0E10"/>
+<meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -149,9 +149,21 @@ a{text-decoration:none;color:inherit;}
 .empty-t{font-size:15px;font-weight:700;color:var(--text2);}
 
 /* ── MOBILE ── */
-@media(max-width:700px){
+.lp-mob-top{display:none;}
+@media(max-width:860px){
+  #nav{display:none!important;}
   #sidebar{display:none;}
-  #main{padding:16px;}
+  #page{flex-direction:column;height:auto!important;overflow:visible!important;}
+  #main{padding:0 14px 100px;overflow:visible!important;height:auto!important;}
+  .lp-mob-top{
+    display:flex;align-items:center;gap:10px;
+    padding:max(env(safe-area-inset-top,0px),12px) 14px 12px;
+  }
+  .lp-mob-top img{width:28px;height:28px;border-radius:7px;}
+  .lp-mob-top-title{font-size:17px;font-weight:850;letter-spacing:-.01em;color:var(--text);}
+  .page-eyebrow,.page-title,.page-sub{display:none;}
+  .search-wrap{margin-bottom:12px;}
+  .level-tabs{margin-bottom:14px;}
   #packs-grid{grid-template-columns:1fr;}
   #modal{width:100vw;max-height:95vh;border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;}
   #modal-overlay.open{align-items:flex-end;}
@@ -205,6 +217,10 @@ a{text-decoration:none;color:inherit;}
   </div>
 
   <div id="main">
+    <div class="lp-mob-top">
+      <a href="index.html"><img src="logo-sm.png" alt="TeachEd"></a>
+      <span class="lp-mob-top-title">Lesson Packs</span>
+    </div>
     <div class="page-eyebrow">§ TeachEd · Ready-to-use</div>
     <div class="page-title">Lesson <em>Packs</em></div>
     <div class="page-sub">Ready-made lessons with materials, examples and exercises — open, copy, use.</div>
@@ -250,6 +266,7 @@ a{text-decoration:none;color:inherit;}
 </div>
 
 <script src="scripts/lesson-packs-app.js?v=165"></script>
+<script src="scripts/mobile-nav.js?v=165"></script>
 <script src="pwa.js?v=165"></script>
 <script src="scripts/nav-boost.js?v=165" defer></script>
 <script src="scripts/mobile-zoom-guard.js?v=165" defer></script>

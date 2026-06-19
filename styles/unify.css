@@ -655,26 +655,26 @@ select optgroup {
 
 @media (min-width: 861px) {
   /* Non-board pages: sidebar sits on cream --bg, needs dark text */
-  body:not(.board-page) #sidebar .sb-item,
-  body:not(.board-page) .sb-item {
+  body:not(.board-page):not(.admin-page) #sidebar .sb-item,
+  body:not(.board-page):not(.admin-page) .sb-item {
     color: var(--text-2, #3A3A2E) !important;
   }
-  body:not(.board-page) #sidebar .sb-item:hover,
-  body:not(.board-page) .sb-item:hover {
+  body:not(.board-page):not(.admin-page) #sidebar .sb-item:hover,
+  body:not(.board-page):not(.admin-page) .sb-item:hover {
     background: rgba(200, 230, 50, 0.10) !important;
     color: var(--ink, #0E0E10) !important;
   }
-  body:not(.board-page) #sidebar .sb-item.active,
-  body:not(.board-page) .sb-item.active {
+  body:not(.board-page):not(.admin-page) #sidebar .sb-item.active,
+  body:not(.board-page):not(.admin-page) .sb-item.active {
     background: rgba(200, 230, 50, 0.16) !important;
     color: var(--ink, #0E0E10) !important;
     font-weight: 800 !important;
   }
-  body:not(.board-page) #sidebar .sb-label,
-  body:not(.board-page) .sb-section-label {
+  body:not(.board-page):not(.admin-page) #sidebar .sb-label,
+  body:not(.board-page):not(.admin-page) .sb-section-label {
     color: var(--text-3, #7A7A6A) !important;
   }
-  body:not(.board-page) #sidebar {
+  body:not(.board-page):not(.admin-page) #sidebar {
     background: var(--bg, #F5F0E8) !important;
     border-right-color: rgba(14,14,16,.08) !important;
   }

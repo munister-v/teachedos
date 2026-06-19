@@ -154,12 +154,14 @@ function toast(msg, type='') {
 }
 
 // ── Confirm ───────────────────────────────────────────────────────────────
-function confirm(title, desc, icon, onOk) {
+function confirm(title, desc, icon, onOk, opts) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-desc').textContent  = desc;
   document.getElementById('confirm-icon').textContent  = icon || '⚠️';
   document.getElementById('modal-confirm').classList.add('open');
   const btn = document.getElementById('confirm-ok');
+  btn.textContent = (opts && opts.label) || 'Delete';
+  btn.style.background = (opts && opts.color) || 'var(--red)';
   btn.onclick = () => {
     document.getElementById('modal-confirm').classList.remove('open');
     onOk();
@@ -1149,7 +1151,7 @@ function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', in
       loadBillingPayments();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  });
+  }, {label: 'Approve', color: '#007B55'});
 }
 
 function copyAdminCard() {

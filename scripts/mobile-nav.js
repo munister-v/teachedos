@@ -19,6 +19,7 @@
     'homework.html': 'courses',
     'student.html': 'progress',
     'gradebook.html': 'progress',
+    'lesson-packs.html': 'courses',
     'profile.html': 'profile',
     'analytics.html': 'progress',
     'journal.html': 'progress',

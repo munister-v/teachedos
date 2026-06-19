@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#CDF24F">
+<meta name="theme-color" content="#F5F0E8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -184,11 +184,11 @@
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()">🔍 Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item">⊞ Snap to grid</div>
-    <div class="user-menu-item" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
+    <div class="user-menu-item" id="more-bg" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
     <div class="user-menu-item" id="more-export-board" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
-    <div class="user-menu-item" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
+    <div class="user-menu-item" id="more-shortcuts" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <div class="user-menu-item" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
+    <div class="user-menu-item" id="more-settings" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
     <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="clearAll();toggleMoreMenu()">🗑 Clear board</div>
   </div>
 </div>
