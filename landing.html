@@ -103,6 +103,12 @@ nav.ln{
   font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
 }
 .nav-logo img{width:26px;height:26px;border-radius:8px;}
+.brand-wordmark{
+  display:inline-block;
+  font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1;
+  color:var(--ink);
+}
+.brand-wordmark em{font-style:normal;color:var(--pink);}
 .nav-links{display:flex;gap:2px;margin-left:20px;flex-wrap:nowrap;}
 .nav-lnk{
   font-size:13px;font-weight:700;color:var(--ink3);white-space:nowrap;
@@ -1093,7 +1099,7 @@ body.pwa-standalone .hero{
   <div class="nav-inner">
     <a class="nav-logo" href="landing.html">
       <img src="logo-sm.png" alt="TeachEd">
-      Teach<em style="color:var(--pink)">Ed</em>
+      <span class="brand-wordmark">Teach<em>Ed</em></span>
     </a>
     <div class="nav-links">
       <a class="nav-lnk" href="#features">Features</a>
@@ -1749,7 +1755,7 @@ body.pwa-standalone .hero{
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand">Teach<em>Ed</em></div>
+        <div class="footer-brand brand-wordmark">Teach<em>Ed</em></div>
         <p class="footer-desc">The AI workspace for language teachers. 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
       </div>
       <details class="footer-col" open>
