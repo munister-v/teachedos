@@ -101,6 +101,14 @@ function isBoardPhone() {
   return !!(BOARD_PHONE_MQL && BOARD_PHONE_MQL.matches);
 }
 
+// Mobile capability tier: phones get "read + light edits" — pan/zoom, tap a card
+// to read, edit its text inline, and move existing cards. Canvas authoring
+// (creating new cards/types, pen/drawing, long-press & double-tap create) is
+// reserved for desktop where the gestures actually work well.
+function boardCanAuthor() {
+  return !isBoardPhone();
+}
+
 function syncBoardPhoneMode() {
   document.body.classList.toggle('board-phone-shell', isBoardPhone());
 }
@@ -3656,6 +3664,7 @@ boardWrap.addEventListener('mousedown', e => {
 boardWrap.addEventListener('dblclick', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
+  if (!boardCanAuthor()) return; // phones: read + light edits, no double-tap create
   if (state.mode !== 'select' && state.mode !== 'text') return;
   const bp = screenToBoard(e.clientX, e.clientY);
   const def = (typeof getDefaults === 'function') ? getDefaults('text') : {w:160,h:50};
@@ -4085,9 +4094,10 @@ document.addEventListener('mouseup', e => {
       t0 = ts[0]; t1 = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
       pinchOrigin = null;
-      // Long-press on empty board area → open context menu (mobile-only behavior)
+      // Long-press on empty board area → open create context menu (mobile-only).
+      // Suppressed in read+light-edit tier — no canvas authoring on phones.
       const onBg = e.target === boardWrap || e.target === board || e.target.id === 'empty-state';
-      if (onBg && window.matchMedia('(max-width:860px)').matches) {
+      if (onBg && window.matchMedia('(max-width:860px)').matches && boardCanAuthor()) {
         const sx = t0.clientX, sy = t0.clientY;
         longPressStart = { x:sx, y:sy };
         longPressTimer = setTimeout(() => {
@@ -4614,6 +4624,7 @@ function resetBoardPointer(announce = false) {
 
 /* ─── Mobile Add action sheet ─── */
 function openMobileAddSheet() {
+  if (!boardCanAuthor()) { toast && toast('Open on a computer to add cards'); return; }
   const sheet = document.getElementById('mq-add-sheet');
   if (!sheet) return;
   sheet.classList.add('open');
@@ -13813,6 +13824,7 @@ function chooseDrawTool(tool) {
 }
 
 function toggleDrawTool(tool, ev) {
+  if (!boardCanAuthor()) { toast && toast('Drawing is available on a computer'); return; }
   if (_drawTool === tool) {
     // Second click on the same tool → open palette (pen / marker only)
     if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {
