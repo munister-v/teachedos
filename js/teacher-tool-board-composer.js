@@ -167,6 +167,97 @@ function _ttAddStickyCard(frame, x, y, w, h, text, color = '#FFF9C4') {
   return _ttAddTextCard(frame, x, y, w, h, null, { html, bgColor: 'transparent' });
 }
 
+function _ttClamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function _ttLessonStageMeta(card, index) {
+  const title = String(card?.title || '');
+  const body = String(card?.text || '');
+  const hay = `${title}\n${body}`.toLowerCase();
+  if (/glossary|vocab|word bank|key words|lexis|collocation/.test(hay)) {
+    return { label: 'Vocabulary', accent: '#65A30D', bg: '#F7FEE7' };
+  }
+  if (/before|warm|lead[- ]?in|pre[- ]?task|starter|hook/.test(hay)) {
+    return { label: 'Warm-up', accent: '#D97706', bg: '#FFFBEB' };
+  }
+  if (/reading|listening|input|text|article|dialogue|transcript/.test(hay) && body.length > 120) {
+    return { label: 'Input', accent: '#2563EB', bg: '#EFF6FF' };
+  }
+  if (/question|comprehension|check|quiz|true|false|multiple choice/.test(hay)) {
+    return { label: 'Check', accent: '#4F46E5', bg: '#EEF2FF' };
+  }
+  if (/after|discussion|speaking|role|pair|group|debate|conversation/.test(hay)) {
+    return { label: 'Speaking', accent: '#7C3AED', bg: '#F5F3FF' };
+  }
+  if (/write|writing|homework|journal|reflect|output|assignment/.test(hay)) {
+    return { label: 'Output', accent: '#DB2777', bg: '#FDF2F8' };
+  }
+  if (/answer|key|teacher|note|feedback|solution/.test(hay)) {
+    return { label: 'Teacher', accent: '#475569', bg: '#F8FAFC' };
+  }
+  return { label: `Stage ${index + 1}`, accent: '#4262FF', bg: '#F8FAFC' };
+}
+
+function _ttLessonStageHtml(card, index, stageMeta) {
+  const rawTitle = _ttStripMd(card?.title || `Stage ${index + 1}`).trim();
+  const title = esc(rawTitle || `Stage ${index + 1}`);
+  const body = _ttPanelBody(card?.text || '');
+  return `
+    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(15,23,42,.09);border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.07);overflow:hidden;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid rgba(15,23,42,.06);background:linear-gradient(180deg,${stageMeta.bg},#fff)">
+        <div style="width:30px;height:30px;border-radius:11px;background:${stageMeta.accent};color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px/1 var(--font);box-shadow:0 6px 14px rgba(15,23,42,.14)">${index + 1}</div>
+        <div style="min-width:0;flex:1">
+          <div style="font:900 9.5px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:${stageMeta.accent};margin-bottom:5px">${esc(stageMeta.label)}</div>
+          <div style="font:900 16px/1.18 var(--font);letter-spacing:-.02em;color:#0F172A;white-space:normal">${title}</div>
+        </div>
+      </div>
+      <div style="padding:12px 15px 14px;font:500 13.5px/1.55 var(--font);color:#263241;overflow:auto;min-height:0;flex:1">
+        ${body}
+      </div>
+    </div>`;
+}
+
+function _ttLessonOverviewHtml(output, cards, meta) {
+  const level = output.level || 'B1';
+  const kind = output.kind || output.boardKind || 'Lesson pack';
+  const topic = output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'Classroom lesson';
+  const stages = cards.length;
+  return `
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:20px 22px;background:linear-gradient(135deg,#111827 0%,#1F2937 52%,${meta.frameBorder || '#4262FF'} 170%);color:#fff;box-shadow:0 18px 44px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden">
+      <div style="min-width:0;max-width:820px">
+        <div style="font:900 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.56);margin-bottom:10px">Generated lesson flow</div>
+        <div style="font:950 30px/1.04 var(--font);letter-spacing:-.04em;color:#fff;white-space:normal">${esc(output.title || 'Lesson pack')}</div>
+        <div style="font:500 14px/1.45 var(--font);color:rgba(255,255,255,.72);margin-top:10px;max-width:760px">A ready-to-teach board layout: run it from left to right, keep teacher notes in the side rail, and open any card to edit details.</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;max-width:360px">
+        <span style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);border-radius:999px;padding:8px 11px;font:900 11px/1 var(--font);letter-spacing:.04em;color:#fff">${esc(level)}</span>
+        <span style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);border-radius:999px;padding:8px 11px;font:900 11px/1 var(--font);letter-spacing:.04em;color:#fff">${esc(kind)}</span>
+        <span style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);border-radius:999px;padding:8px 11px;font:900 11px/1 var(--font);letter-spacing:.04em;color:#fff">${stages} stages</span>
+        <span style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);border-radius:999px;padding:8px 11px;font:900 11px/1 var(--font);letter-spacing:.04em;color:#fff">${esc(_ttCardSnippet(topic, 34))}</span>
+      </div>
+    </div>`;
+}
+
+function _ttLessonMapHtml(cards) {
+  const items = cards.slice(0, 10).map((c, i) => {
+    const stage = _ttLessonStageMeta(c, i);
+    const title = esc(_ttCardSnippet(_ttStripMd(c?.title || `Stage ${i + 1}`), 38));
+    return `<div style="display:flex;gap:9px;align-items:flex-start;margin:0 0 9px">
+      <span style="width:22px;height:22px;border-radius:8px;background:${stage.bg};border:1px solid rgba(15,23,42,.08);color:${stage.accent};display:flex;align-items:center;justify-content:center;font:900 10px/1 var(--font);flex:0 0 auto">${i + 1}</span>
+      <span style="font:800 12px/1.25 var(--font);color:#172033">${title}</span>
+    </div>`;
+  }).join('');
+  const extra = cards.length > 10
+    ? `<div style="margin-top:4px;font:800 11px/1.4 var(--font);color:#64748B">+ ${cards.length - 10} more generated stages</div>`
+    : '';
+  return `
+    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(15,23,42,.09);border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.06);padding:15px 16px;overflow:auto">
+      <div style="font:950 16px/1.15 var(--font);letter-spacing:-.02em;color:#0F172A;margin-bottom:10px">Lesson map</div>
+      ${items}${extra}
+    </div>`;
+}
+
 function _ttAddChecklistCard(frame, x, y, w, h, title, items) {
   const card = addCard('checklist', x, y, {
     title,
@@ -391,11 +482,33 @@ function _ttPlaceCardFlowBoard(output, meta) {
   const palette = ['#FFF176', '#FFAB91', '#F8BBD9', '#C4B5FD', '#93C5FD', '#67E8F9', '#86EFAC', '#D9F99D'];
   const titleCard = `${output.title}\n${output.kind || 'Activity'} · ${output.level || 'B1'}\n\nThis board is arranged as a teachable flow, not a static note: prepare -> perform -> feedback -> reuse.`;
 
-  // ── Lesson-pack: fixed 4-wide stage lanes ────────────────────────────────
+  // Lesson-pack: compact lesson-control frame instead of loose worksheet pages.
   if (isLessonPack) {
-    const visibleCards = Math.min(cards.length, 8);
-    const FRAME_W = 1420;
-    const FRAME_H = Math.max(900, 560 + Math.ceil(visibleCards / 4) * 260);
+    const visibleCards = Math.min(cards.length, 10);
+    const shown = cards.slice(0, visibleCards);
+    const COLS = 2;
+    const CARD_W = 468;
+    const RAIL_W = 286;
+    const GAP = 18;
+    const HEADER_H = 126;
+    const GRID_TOP = 208;
+    const FRAME_W = PAD * 2 + COLS * CARD_W + GAP + 26 + RAIL_W;
+
+    const cardH = shown.map((c, i) => {
+      const textForSizing = `${c.title || `Stage ${i + 1}`}\n\n${c.text || ''}`;
+      return _ttClamp(_ttTextCardHeight(textForSizing, CARD_W, 13.5, 74), 178, 354);
+    });
+    const rowCount = Math.max(1, Math.ceil(shown.length / COLS));
+    const rowTop = [], rowH = [];
+    let acc = GRID_TOP;
+    for (let r = 0; r < rowCount; r++) {
+      rowH[r] = Math.max(...cardH.slice(r * COLS, r * COLS + COLS));
+      rowTop[r] = acc;
+      acc += rowH[r] + GAP;
+    }
+
+    const sideStackH = 330 + 18 + 170 + 18 + 150 + (cards.length > visibleCards ? 18 + 130 : 0);
+    const FRAME_H = Math.max(820, Math.max(acc - GAP, GRID_TOP + sideStackH) + 38);
     const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
     const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
     const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
@@ -403,35 +516,46 @@ function _ttPlaceCardFlowBoard(output, meta) {
     let frame;
     try {
       frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
-      _ttAddTextCard(frame, x0 + PAD, y0 + 56, FRAME_W - PAD * 2, 92, titleCard, { textColor: meta.frameBorder, fontSize: 15 });
-      const laneY = y0 + 180, laneH = 220, colW = 320, gap = 16;
-      cards.slice(0, visibleCards).forEach((c, i) => {
-        const col = i % 4, row = Math.floor(i / 4);
-        const sx = x0 + PAD + col * (colW + gap);
-        const sy = laneY + row * (laneH + 76);
-        _ttAddTextCard(frame, sx, sy, colW, 48,
-          `Stage ${i + 1}\n${c.title}`, { bgColor: '#F8FAFC', fontSize: 12, textColor: meta.frameBorder });
-        _ttAddStickyCard(frame, sx, sy + 62, colW, laneH - 62,
-          c.text || c.title, palette[i % palette.length]);
+      _ttAddTextCard(frame, x0 + PAD, y0 + 52, FRAME_W - PAD * 2, HEADER_H, null, {
+        html: _ttLessonOverviewHtml(output, cards, meta),
+        bgColor: 'transparent',
       });
+
+      shown.forEach((c, i) => {
+        const col = i % COLS, row = Math.floor(i / COLS);
+        const sx = x0 + PAD + col * (CARD_W + GAP);
+        const sy = y0 + rowTop[row];
+        const stageMeta = _ttLessonStageMeta(c, i);
+        _ttAddTextCard(frame, sx, sy, CARD_W, rowH[row], null, {
+          html: _ttLessonStageHtml(c, i, stageMeta),
+          bgColor: 'transparent',
+        });
+      });
+
+      const sideX = x0 + PAD + COLS * CARD_W + GAP + 26;
+      _ttAddTextCard(frame, sideX, y0 + GRID_TOP, RAIL_W, 330, null, {
+        html: _ttLessonMapHtml(cards),
+        bgColor: 'transparent',
+      });
+      _ttAddChecklistCard(frame, sideX, y0 + GRID_TOP + 348, RAIL_W, 170, 'Run order', [
+        'Open warm-up first',
+        'Keep input visible',
+        'Do one check stage',
+        'Collect final output',
+        'Save best answers',
+      ]);
+      _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 536, RAIL_W, 150,
+        'Teacher rail\n\nUse this side area for timing, feedback notes and student examples while the lesson runs.',
+        '#BAE6FD');
       if (cards.length > visibleCards) {
-        _ttAddStickyCard(frame, x0 + PAD, y0 + FRAME_H - 260, 560, 110,
-          `More generated stages (${cards.length - visibleCards})\n\n${cards.slice(visibleCards).map((c, i) => `${visibleCards + i + 1}. ${c.title}`).join('\n')}`,
+        _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 704, RAIL_W, 130,
+          `More stages\n\n${cards.slice(visibleCards).map((c, i) => `${visibleCards + i + 1}. ${c.title}`).join('\n')}`,
           '#FCE7F3');
       }
-      _ttAddChecklistCard(frame, x0 + PAD, y0 + FRAME_H - 136, 560, 104, 'Before class', [
-        'Check timing',
-        'Mark teacher-only notes',
-        'Prepare example answer',
-        'Add homework / game extension',
-      ]);
-      _ttAddStickyCard(frame, x0 + PAD + 586, y0 + FRAME_H - 136, 780, 104,
-        'Student handoff\n\nAt the end, copy the strongest student answers here and turn them into homework, journal notes or a game.',
-        '#BAE6FD');
     } finally {
       _suppressSnapshot--;
     }
-    _ttFinishComposedBoard(frame, '✨ Activity flow added to board');
+    _ttFinishComposedBoard(frame, 'Lesson flow added to board');
     return true;
   }
 
