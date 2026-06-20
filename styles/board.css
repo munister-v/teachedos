@@ -3961,6 +3961,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:inset 0 18px 34px rgba(14,14,16,.04);
   }
 
+  body.board-phone-shell #board{
+    contain:layout style paint;
+    will-change:transform;
+  }
+
   body.board-phone-shell #board-wrap::after{
     content:"Read + light edit";
     position:fixed;
@@ -4028,6 +4033,38 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:0 8px 18px rgba(14,14,16,.16);
   }
   body.board-phone-shell .mq-status.warn{color:#FFD580;}
+
+  /* Phone canvas should feel calm: no desktop hover lift, giant resize handles,
+     or connect dots fighting the finger while the user is just reading/panning. */
+  body.board-phone-shell .board-card{
+    border-radius:10px!important;
+    box-shadow:0 1px 0 rgba(255,255,255,.82) inset,0 2px 10px rgba(14,14,16,.08)!important;
+    transition:border-color .08s ease,box-shadow .08s ease!important;
+    will-change:auto!important;
+    touch-action:none;
+  }
+
+  body.board-phone-shell .board-card:hover:not(.selected):not(.dragging){
+    transform:none!important;
+    box-shadow:0 1px 0 rgba(255,255,255,.82) inset,0 2px 10px rgba(14,14,16,.08)!important;
+  }
+
+  body.board-phone-shell .board-card.selected{
+    box-shadow:0 0 0 2px rgba(66,98,255,.22),0 4px 16px rgba(14,14,16,.13)!important;
+  }
+
+  body.board-phone-shell .board-card.dragging{
+    opacity:.96!important;
+    transform:scale(1.01) translateZ(0)!important;
+    box-shadow:0 0 0 2px rgba(66,98,255,.24),0 12px 26px rgba(14,14,16,.18)!important;
+  }
+
+  body.board-phone-shell .resize-handle,
+  body.board-phone-shell .anchor-dot,
+  body.board-phone-shell .card-close,
+  body.board-phone-shell .card-priv-toggle{
+    display:none!important;
+  }
 
   /* More menu → bottom-sheet on phone */
   body.board-phone-shell #more-menu{
@@ -4146,6 +4183,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell #empty-state{
+    position:absolute;
+    left:50%;
+    top:calc(48% - 18px);
+    transform:translate(-50%,-50%);
     width:min(300px,calc(100vw - 48px));
     padding:18px;
     border-radius:22px;

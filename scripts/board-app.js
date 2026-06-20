@@ -4234,6 +4234,7 @@ document.addEventListener('mouseup', e => {
       const editing = tt.closest && tt.closest('[contenteditable="true"],textarea,input,select,.text-format-toolbar,.layer-popover');
       const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card');
       if (hit) {
+        e.preventDefault();
         touchDriving = true;
         const t = e.touches[0];
         tt.dispatchEvent(new MouseEvent('mousedown', {
@@ -4261,7 +4262,7 @@ document.addEventListener('mouseup', e => {
       pinchOrigin = { mx:mid.x, my:mid.y, px:state.pan.x, py:state.pan.y };
       panOrigin = null;
     }
-  }, { passive: true });
+  }, { passive: false });
 
   boardWrap.addEventListener('touchmove', e => {
     if (touchDriving) {
@@ -4285,6 +4286,7 @@ document.addEventListener('mouseup', e => {
       const dy = ts[0].clientY - panOrigin.my;
       if (_raf) cancelAnimationFrame(_raf);
       _raf = requestAnimationFrame(() => {
+        _raf = null;
         state.pan.x = panOrigin.px + dx;
         state.pan.y = panOrigin.py + dy;
         applyTransform();
@@ -4299,6 +4301,7 @@ document.addEventListener('mouseup', e => {
       const panDx = mid.x - pinchOrigin.mx, panDy = mid.y - pinchOrigin.my;
       if (_raf) cancelAnimationFrame(_raf);
       _raf = requestAnimationFrame(() => {
+        _raf = null;
         state.pan.x = cx - (cx - pinchOrigin.px) * (newScale / lastPinchScale) + panDx;
         state.pan.y = cy - (cy - pinchOrigin.py) * (newScale / lastPinchScale) + panDy;
         state.scale = newScale;
@@ -4326,7 +4329,16 @@ document.addEventListener('mouseup', e => {
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
     }
   }, { passive: true });
-  boardWrap.addEventListener('touchcancel', () => { touchDriving = false; cancelLongPress(); }, { passive: true });
+  boardWrap.addEventListener('touchcancel', e => {
+    if (touchDriving) {
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        clientX: 0, clientY: 0, bubbles: true, cancelable: true, button: 0
+      }));
+    }
+    touchDriving = false;
+    if (_raf) { cancelAnimationFrame(_raf); _raf = null; }
+    cancelLongPress();
+  }, { passive: true });
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
@@ -7979,7 +7991,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '174';
+const TEACHEDOS_ASSET_VERSION = '175';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14244,8 +14256,12 @@ if (window.PointerEvent) {
   document.addEventListener('mousedown', _beginDraw);
   document.addEventListener('mousemove', _moveDraw);
   document.addEventListener('mouseup', _endDraw);
-  document.addEventListener('touchstart', e => { if (e.touches[0]) _beginDraw(e.touches[0]); }, { passive: false });
-  document.addEventListener('touchmove', e => { if (e.touches[0]) { _moveDraw(e.touches[0]); e.preventDefault(); } }, { passive: false });
+  document.addEventListener('touchstart', e => { if (_drawTool && e.touches[0]) _beginDraw(e.touches[0]); }, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (!_drawing || !e.touches[0]) return;
+    _moveDraw(e.touches[0]);
+    e.preventDefault();
+  }, { passive: false });
   document.addEventListener('touchend', () => _endDraw());
 }
 
