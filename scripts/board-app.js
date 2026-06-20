@@ -758,6 +758,7 @@ function renderSticky(el, card) {
   const text = document.createElement('div');
   text.className = 'sticky-text';
   text.innerHTML = _ttMdToHtml(card.data.text || '');
+  if (card.data.fontSize) text.style.fontSize = card.data.fontSize + 'px';
   text.setAttribute('contenteditable', 'false');
   let _stickyEditOriginal = null;
   text.addEventListener('dblclick', e => {
@@ -2349,7 +2350,9 @@ function applyTextStyles(card, editor) {
 }
 
 function shouldScaleTextOnResize(card) {
-  return !!(card && card.type === 'text' && !card.data?.generatedPanel && !card.data?.interactive);
+  if (!card) return false;
+  if (card.type === 'sticky') return true;
+  return !!(card.type === 'text' && !card.data?.generatedPanel && !card.data?.interactive);
 }
 
 function textResizeScaleForDir(dir, sw, sh, nw, nh) {
@@ -2369,17 +2372,23 @@ function applyTextResizeScale(card, el, resizeInfo, nw, nh) {
   const base = resizeInfo.textFontSize || 16;
   const ratio = textResizeScaleForDir(resizeInfo.dir || 'se', resizeInfo.sw, resizeInfo.sh, nw, nh);
   const next = Math.max(8, Math.min(96, Math.round(base * ratio)));
-  card.data = defaultTextData(card.data || {});
+  card.data = card.data || {};
   card.data.fontSize = next;
-  const editor = el?.querySelector('.text-rich-editor');
-  if (editor) editor.style.fontSize = next + 'px';
-  const input = el?.querySelector('.text-size-input');
-  if (input) input.value = next;
+  if (card.type === 'sticky') {
+    const stickyText = el?.querySelector('.sticky-text');
+    if (stickyText) stickyText.style.fontSize = next + 'px';
+  } else {
+    const editor = el?.querySelector('.text-rich-editor');
+    if (editor) editor.style.fontSize = next + 'px';
+    const input = el?.querySelector('.text-size-input');
+    if (input) input.value = next;
+  }
 }
 
 function currentTextFontSize(card, el) {
   const stored = parseInt(card?.data?.fontSize, 10);
   if (stored) return stored;
+  if (card?.type === 'sticky') return 17;
   const editor = el?.querySelector?.('.text-rich-editor');
   if (editor) {
     const computed = parseInt(getComputedStyle(editor).fontSize, 10);
