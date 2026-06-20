@@ -1,5 +1,5 @@
 (function () {
-  const ASSET_VERSION = '181';
+  const ASSET_VERSION = '182';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -49,6 +49,409 @@
     }
     setInterval(checkRemoteVersion, 60000);
     setTimeout(checkRemoteVersion, 2500);
+  }
+
+  wireInteractionLayer();
+
+  function wireInteractionLayer() {
+    if (window.__teInteractionLayerWired) return;
+    window.__teInteractionLayerWired = true;
+
+    const root = document.documentElement;
+    const reduceMotion = () => window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isBoardPage = () => /(^|\/)board\.html$/.test(location.pathname) ||
+      document.body?.classList.contains('board-page');
+    const isTypingTarget = target => {
+      const el = target instanceof Element ? target : null;
+      if (!el) return false;
+      return Boolean(el.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'));
+    };
+
+    const ui = document.createElement('style');
+    ui.textContent = `
+      :root {
+        --te-scroll-pad-top: 72px;
+        scroll-padding-top: var(--te-scroll-pad-top);
+      }
+
+      html.te-scroll-active body:not(.board-page) :is(
+        .card,.section,.panel,.stat-card,.board-card,.lesson-card,.course-card,
+        .course-item,.recent-board-item,.pack-card,.tool-card,.community-card,
+        .assign-card,.qr-card,.gb-mobile-card,.hw-card,.hero-card,.share-card
+      ) {
+        box-shadow: none !important;
+        filter: none !important;
+      }
+
+      html.te-scroll-active body:not(.board-page) :is(.floaty,.orb,.glow,.mp-pulse,.dot-live,.mp-next-dot) {
+        animation-play-state: paused !important;
+      }
+
+      html.te-keyboard-nav :focus-visible {
+        outline: 3px solid rgba(200,230,50,.75) !important;
+        outline-offset: 3px !important;
+        border-radius: 10px;
+      }
+
+      .te-kbd-help {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(10,10,12,.38);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .16s ease;
+      }
+      .te-kbd-help.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .te-kbd-box {
+        width: min(620px, 100%);
+        max-height: min(720px, calc(100dvh - 36px));
+        overflow: auto;
+        border-radius: 22px;
+        background: rgba(255,255,255,.96);
+        border: 1px solid rgba(14,14,16,.10);
+        box-shadow: 0 24px 70px rgba(5,5,23,.24);
+        padding: 22px;
+        color: #0E0E10;
+        font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+      }
+      .te-kbd-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .te-kbd-title {
+        flex: 1;
+        font-size: 19px;
+        line-height: 1.1;
+        font-weight: 900;
+        letter-spacing: -.03em;
+      }
+      .te-kbd-close {
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(14,14,16,.07);
+        color: #0E0E10;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .te-kbd-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .te-kbd-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 42px;
+        padding: 9px 11px;
+        border-radius: 13px;
+        background: rgba(245,240,232,.74);
+        border: 1px solid rgba(94,94,74,.10);
+      }
+      .te-kbd-desc {
+        min-width: 0;
+        color: #303026;
+        font-size: 13px;
+        font-weight: 750;
+      }
+      .te-kbd-key {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 0 9px;
+        border-radius: 8px;
+        background: #111113;
+        color: #C8E632;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .04em;
+        font-family: 'SFMono-Regular','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+        white-space: nowrap;
+      }
+      .te-kbd-sub {
+        margin-top: 14px;
+        color: #6A6A5A;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      @media (max-width: 620px) {
+        .te-kbd-help { align-items: flex-end; padding: 10px; }
+        .te-kbd-box { border-radius: 20px; padding: 18px; }
+        .te-kbd-grid { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .te-kbd-help { transition: none !important; }
+      }
+    `;
+    document.head.appendChild(ui);
+
+    let scrollRaf = 0;
+    let scrollTimer = 0;
+    function markScroll() {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = 0;
+        root.classList.add('te-scroll-active');
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => root.classList.remove('te-scroll-active'), 140);
+      });
+    }
+
+    function setScrollPadding() {
+      const candidates = [
+        document.getElementById('nav'),
+        document.querySelector('.mp-topbar'),
+        document.querySelector('.mobile-topbar'),
+        document.querySelector('.topbar'),
+        document.querySelector('nav')
+      ].filter(Boolean);
+      const sticky = candidates.find(el => {
+        const cs = getComputedStyle(el);
+        return cs.position === 'sticky' || cs.position === 'fixed';
+      }) || candidates[0];
+      const h = sticky ? Math.min(96, Math.max(48, Math.round(sticky.getBoundingClientRect().height + 14))) : 72;
+      root.style.setProperty('--te-scroll-pad-top', h + 'px');
+    }
+
+    function scrollToHash(hash) {
+      if (!hash || hash === '#') return false;
+      let target = null;
+      try {
+        target = document.getElementById(decodeURIComponent(hash.slice(1))) || document.querySelector(hash);
+      } catch {
+        target = document.getElementById(hash.slice(1));
+      }
+      if (!target) return false;
+      target.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      try { target.focus({ preventScroll: true }); } catch {}
+      return true;
+    }
+
+    function focusBestSearch() {
+      const selectors = [
+        '#spotlight-input',
+        '#board-search-input',
+        '#search-input',
+        '#course-search',
+        '#community-search',
+        '#homework-search',
+        'input[type="search"]',
+        'input[placeholder*="Search" i]',
+        'input[placeholder*="search" i]',
+        '.bs-search',
+        '.hw-search input'
+      ];
+      const input = selectors.map(sel => document.querySelector(sel)).find(el => el && !el.disabled && el.offsetParent !== null);
+      if (!input) return false;
+      input.focus({ preventScroll: false });
+      if (input.select) input.select();
+      return true;
+    }
+
+    function openSearch() {
+      if (typeof window.openSpotlight === 'function') {
+        window.openSpotlight();
+        return true;
+      }
+      return focusBestSearch();
+    }
+
+    const routes = {
+      h: 'index.html',
+      b: 'board.html',
+      c: 'courses.html',
+      m: 'community.html',
+      w: 'homework.html',
+      s: 'schedule.html',
+      a: 'analytics.html',
+      j: 'journal.html',
+      r: 'gradebook.html',
+      p: 'profile.html',
+      t: 'teacher-tools.html',
+      l: 'lesson-packs.html'
+    };
+    let pendingG = false;
+    let pendingTimer = 0;
+
+    function go(route) {
+      if (!route) return;
+      const next = new URL(route, location.href);
+      if (next.pathname === location.pathname && next.hash === location.hash) return;
+      location.href = next.href;
+    }
+
+    function ensureShortcutOverlay() {
+      let overlay = document.getElementById('te-kbd-help');
+      if (overlay) return overlay;
+      overlay = document.createElement('div');
+      overlay.id = 'te-kbd-help';
+      overlay.className = 'te-kbd-help';
+      overlay.innerHTML = `
+        <div class="te-kbd-box" role="dialog" aria-modal="true" aria-labelledby="te-kbd-title">
+          <div class="te-kbd-head">
+            <div class="te-kbd-title" id="te-kbd-title">Keyboard shortcuts</div>
+            <button class="te-kbd-close" type="button" aria-label="Close shortcuts">×</button>
+          </div>
+          <div class="te-kbd-grid">
+            <div class="te-kbd-row"><span class="te-kbd-desc">Search / Spotlight</span><span class="te-kbd-key">⌘/Ctrl K</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Focus page search</span><span class="te-kbd-key">/</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Home</span><span class="te-kbd-key">G H</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Board</span><span class="te-kbd-key">G B</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Courses</span><span class="te-kbd-key">G C</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Community</span><span class="te-kbd-key">G M</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Homework</span><span class="te-kbd-key">G W</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Schedule</span><span class="te-kbd-key">G S</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Analytics</span><span class="te-kbd-key">G A</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Journal</span><span class="te-kbd-key">G J</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Gradebook</span><span class="te-kbd-key">G R</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Profile</span><span class="te-kbd-key">G P</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Teaching tools</span><span class="te-kbd-key">G T</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Close dialog / menu</span><span class="te-kbd-key">Esc</span></div>
+          </div>
+          <div class="te-kbd-sub">Shortcuts are disabled while typing. Board keeps its own tool shortcuts.</div>
+        </div>
+      `;
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay) closeShortcutOverlay();
+      });
+      overlay.querySelector('.te-kbd-close').addEventListener('click', closeShortcutOverlay);
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function openShortcutOverlay() {
+      const overlay = ensureShortcutOverlay();
+      overlay.classList.add('open');
+      overlay.querySelector('.te-kbd-close')?.focus({ preventScroll: true });
+    }
+
+    function closeShortcutOverlay() {
+      document.getElementById('te-kbd-help')?.classList.remove('open');
+    }
+
+    function handleKeydown(e) {
+      if (e.defaultPrevented) return;
+      if (e.__teInteractionHandled) return;
+      e.__teInteractionHandled = true;
+      if (e.key === 'Tab') root.classList.add('te-keyboard-nav');
+      if (isTypingTarget(e.target)) {
+        if (e.key === 'Escape') {
+          const overlay = document.getElementById('te-kbd-help');
+          if (overlay?.classList.contains('open')) {
+            e.preventDefault();
+            closeShortcutOverlay();
+            return;
+          }
+          if (e.target instanceof HTMLElement && !e.target.matches('textarea, [contenteditable="true"]')) {
+            e.preventDefault();
+            e.target.blur();
+          }
+        }
+        return;
+      }
+
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const mod = e.metaKey || e.ctrlKey;
+
+      if (e.key === 'Escape') {
+        const overlay = document.getElementById('te-kbd-help');
+        if (overlay?.classList.contains('open')) {
+          e.preventDefault();
+          closeShortcutOverlay();
+          return;
+        }
+        pendingG = false;
+        return;
+      }
+
+      if (mod && key === 'k') {
+        e.preventDefault();
+        openSearch();
+        return;
+      }
+
+      if ((e.shiftKey && e.key === '?') || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        if (isBoardPage()) {
+          if (typeof window.openShortcuts === 'function') window.openShortcuts();
+          else document.getElementById('shortcuts-panel')?.classList.add('open');
+        } else {
+          openShortcutOverlay();
+        }
+        return;
+      }
+
+      if (isBoardPage() && !mod) return;
+
+      if (key === '/') {
+        if (openSearch()) e.preventDefault();
+        return;
+      }
+
+      if (pendingG) {
+        pendingG = false;
+        clearTimeout(pendingTimer);
+        if (routes[key]) {
+          e.preventDefault();
+          go(routes[key]);
+        }
+        return;
+      }
+
+      if (key === 'g' && !e.altKey && !e.shiftKey && !mod) {
+        pendingG = true;
+        clearTimeout(pendingTimer);
+        pendingTimer = setTimeout(() => { pendingG = false; }, 900);
+      }
+    }
+
+    function initInteractionLayer() {
+      setScrollPadding();
+      if (location.hash) setTimeout(() => scrollToHash(location.hash), 80);
+    }
+
+    window.addEventListener('scroll', markScroll, { passive: true, capture: true });
+    document.addEventListener('scroll', markScroll, { passive: true, capture: true });
+    window.addEventListener('resize', setScrollPadding, { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(setScrollPadding, 180), { passive: true });
+    window.addEventListener('keydown', handleKeydown, true);
+    document.addEventListener('keydown', handleKeydown, true);
+    window.addEventListener('mousedown', () => root.classList.remove('te-keyboard-nav'), { passive: true });
+    document.addEventListener('click', e => {
+      const a = e.target.closest?.('a[href^="#"], a[href*=".html#"]');
+      if (!a || a.target || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const url = new URL(a.href, location.href);
+      if (url.pathname !== location.pathname || url.search !== location.search || !url.hash) return;
+      if (scrollToHash(url.hash)) {
+        e.preventDefault();
+        history.pushState(null, '', url.hash);
+      }
+    });
+    window.addEventListener('hashchange', () => scrollToHash(location.hash));
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initInteractionLayer, { once: true });
+    } else {
+      initInteractionLayer();
+    }
   }
 
   const storageKey = 'teachedos_pwa_prompt_hidden';
