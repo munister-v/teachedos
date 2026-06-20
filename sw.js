@@ -1,4 +1,4 @@
-const CACHE = 'teachedos-v172';
+const CACHE = 'teachedos-v173';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -22,7 +22,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && /^teachedos-v/.test(k)).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -51,13 +51,21 @@ self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
-// Network-first: ALWAYS hit the network so a fresh deploy is live on the very
-// next load (no "stale until a second reload"). Only fall back to cache when the
-// network genuinely fails (offline). This is the single fix for the stale
-// service-worker problem — deterministic, no timeout race.
+function freshRequest(request) {
+  try {
+    return new Request(request, { cache: 'reload' });
+  } catch {
+    return request;
+  }
+}
+
+// Fresh-first: ALWAYS hit the network and bypass the browser HTTP cache so a
+// fresh deploy is live on the very next load. Only fall back to Cache Storage
+// when the network genuinely fails. Keep this strict: stale PWA caches were the
+// source of “I cleared cache and nothing changed” reports.
 async function networkFirst(request, offlineFallback = false) {
   try {
-    const resp = await fetch(request);
+    const resp = await fetch(freshRequest(request));
     if (resp && resp.status === 200) {
       const clone = resp.clone();
       caches.open(CACHE).then(c => c.put(request, clone)).catch(() => {});
@@ -78,35 +86,20 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
 
-  // API — network-first, cache fallback (unchanged).
+  // API — always network. Returning stale auth/billing data is worse than a
+  // visible offline error.
   if (url.hostname.includes('onrender.com') || url.pathname.startsWith('/api/')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    e.respondWith(fetch(freshRequest(e.request)));
     return;
   }
 
-  // HTML / CSS / JS — NETWORK-FIRST. These carry the app's code and markup, so
-  // freshness wins: an auto-deploy is live on the next load, no hard-refresh.
+  if (url.origin !== self.location.origin) return;
+
   const isHTML = e.request.mode === 'navigate' ||
     (e.request.headers.get('accept') || '').includes('text/html');
-  const isCode = url.pathname.endsWith('.css') || url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.json');
-  if (isHTML || isCode) {
-    e.respondWith(networkFirst(e.request, isHTML));
-    return;
-  }
 
-  // Images / fonts / other static assets — cache-first (they rarely change and
-  // benefit from instant load); refresh in the background when missing.
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fetched = fetch(e.request).then(resp => {
-        if (resp && resp.status === 200) {
-          const clone = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return resp;
-      }).catch(() => cached);
-      return cached || fetched;
-    })
-  );
+  // Same-origin static assets — fresh-first for everything, including images
+  // and fonts. The server already sends no-store on HTML; this makes SW behavior
+  // match that contract across browsers and installed PWA shells.
+  e.respondWith(networkFirst(e.request, isHTML));
 });

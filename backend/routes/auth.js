@@ -35,6 +35,12 @@ ensureBillingSchema(pool).catch(() => {});
 const DEFAULT_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+const SIGNUP_BONUS_PLAN = {
+  plan: 'pro',
+  status: 'active',
+  cycle: 'yearly',
+  source: 'signup_bonus',
+};
 
 // Throttle credential-guessing: 20 attempts / 15 min per IP on auth endpoints.
 const authLimiter = rateLimit({
@@ -198,10 +204,20 @@ router.post('/register', authLimiter, async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 12);
     const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash, name, role, avatar)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)
        RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
-      [email.toLowerCase().trim(), hash, name.trim(), safeRole, avatar]
+      [
+        email.toLowerCase().trim(),
+        hash,
+        name.trim(),
+        safeRole,
+        avatar,
+        SIGNUP_BONUS_PLAN.plan,
+        SIGNUP_BONUS_PLAN.status,
+        SIGNUP_BONUS_PLAN.cycle,
+        SIGNUP_BONUS_PLAN.source,
+      ]
     );
     const user  = rows[0];
     const token = signToken(user.id);
@@ -302,10 +318,20 @@ router.post('/invites/:token/accept', async (req, res) => {
     const safeAvatar = String(avatar || defaultAvatarForRole(invite.role)).trim();
     const hash = await bcrypt.hash(password, 12);
     const created = await client.query(
-      `INSERT INTO users (email, password_hash, name, role, avatar)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)
        RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, created_at`,
-      [normalizedEmail, hash, name.trim(), invite.role, safeAvatar]
+      [
+        normalizedEmail,
+        hash,
+        name.trim(),
+        invite.role,
+        safeAvatar,
+        SIGNUP_BONUS_PLAN.plan,
+        SIGNUP_BONUS_PLAN.status,
+        SIGNUP_BONUS_PLAN.cycle,
+        SIGNUP_BONUS_PLAN.source,
+      ]
     );
     const user = created.rows[0];
     const token = signToken(user.id);
@@ -412,10 +438,20 @@ router.post('/google', authLimiter, async (req, res) => {
       }
     } else {
       const inserted = await pool.query(
-        `INSERT INTO users (email, name, role, avatar, google_id, oauth_provider, plan_source)
-         VALUES ($1, $2, $3, $4, $5, 'google', 'free')
+        `INSERT INTO users (email, name, role, avatar, google_id, oauth_provider, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
+         VALUES ($1, $2, $3, $4, $5, 'google', $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)
          RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
-        [email, name, safeRole, avatar, googleId]
+        [
+          email,
+          name,
+          safeRole,
+          avatar,
+          googleId,
+          SIGNUP_BONUS_PLAN.plan,
+          SIGNUP_BONUS_PLAN.status,
+          SIGNUP_BONUS_PLAN.cycle,
+          SIGNUP_BONUS_PLAN.source,
+        ]
       );
       user = inserted.rows[0];
       isNewUser = true;

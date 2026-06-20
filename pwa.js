@@ -1,4 +1,18 @@
 (function () {
+  const ASSET_VERSION = '173';
+  try {
+    const key = 'teachedos_asset_version';
+    const previous = localStorage.getItem(key);
+    if (previous !== ASSET_VERSION) {
+      localStorage.setItem(key, ASSET_VERSION);
+      if ('caches' in window) {
+        caches.keys()
+          .then(keys => Promise.all(keys.filter(k => /^teachedos-v/.test(k)).map(k => caches.delete(k))))
+          .catch(() => {});
+      }
+    }
+  } catch {}
+
   const storageKey = 'teachedos_pwa_prompt_hidden';
   const iosHintKey = 'teachedos_ios_pwa_hint_hidden';
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;

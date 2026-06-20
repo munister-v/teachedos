@@ -5,7 +5,21 @@
  * Safe to include on any page: it detects what's already present and
  * never double-registers or double-loads. */
 (function () {
-  const ASSET_VERSION = '172';
+  const ASSET_VERSION = '173';
+  const CACHE_VERSION_KEY = 'teachedos_asset_version';
+  const purgeOldRuntimeCaches = () => {
+    try {
+      const previous = localStorage.getItem(CACHE_VERSION_KEY);
+      if (previous === ASSET_VERSION) return;
+      localStorage.setItem(CACHE_VERSION_KEY, ASSET_VERSION);
+      if ('caches' in window) {
+        caches.keys()
+          .then(keys => Promise.all(keys.filter(k => /^teachedos-v/.test(k)).map(k => caches.delete(k))))
+          .catch(() => {});
+      }
+    } catch {}
+  };
+  purgeOldRuntimeCaches();
   // ── 1. Backfill essential PWA meta / link tags ─────────────────────────────
   const head = document.head;
   const mk = (tag, attrs) => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
