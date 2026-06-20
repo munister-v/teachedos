@@ -112,7 +112,9 @@ function updateMobileTeacherOverview() {
     setText('mp-avatar', (initials + lastInitial) || 'T');
     setText('mp-greeting-meta', dayStr);
     setText('mp-greeting-name', `Hi, ${firstName}`);
+    const weekCount = Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW.length : 0;
     setText('mp-stat-lessons', String(todays.length || 0));
+    setText('mp-stat-week', String(weekCount));
     setText('mp-stat-students', String(studentCount));
     setText('mp-stat-boards', String(boardCount));
 
@@ -157,6 +159,36 @@ function updateMobileTeacherOverview() {
           </div>
         </a>`;
       }).join('');
+    }
+
+    /* Today's schedule timeline — the at-a-glance day-control view */
+    const todayEl = document.getElementById('mp-today-list');
+    if (todayEl) {
+      if (todays.length) {
+        const _m = t => { const p = String(t || '0:0').split(':'); return (+p[0] || 0) * 60 + (+p[1] || 0); };
+        const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+        todayEl.innerHTML = todays.map(s => {
+          const start = String(s.start_time || '').slice(0, 5);
+          const end   = String(s.end_time || '').slice(0, 5);
+          const isNext = !!next && s === next;
+          const done   = _m(s.end_time) <= nowM;
+          const meta = [s.level, s.room].filter(Boolean).join(' · ');
+          const name = String(s.group_name || s.title || 'Class').replace(/</g, '&lt;');
+          const tag = isNext ? '<span class="mp-today-badge">NEXT</span>'
+                    : done   ? '<span class="mp-today-check">✓</span>'
+                             : '<span class="mp-today-arrow">→</span>';
+          return `<a class="mp-today-item${isNext ? ' next' : ''}${done ? ' done' : ''}" href="schedule.html">
+            <div class="mp-today-time"><b>${start || '—'}</b>${end ? `<span>${end}</span>` : ''}</div>
+            <div class="mp-today-info">
+              <div class="mp-today-name">${name}</div>
+              ${meta ? `<div class="mp-today-sub">${meta.replace(/</g, '&lt;')}</div>` : ''}
+            </div>
+            ${tag}
+          </a>`;
+        }).join('');
+      } else {
+        todayEl.innerHTML = '<div class="mp-today-empty">No classes today. Tap <b>Schedule</b> below to plan your week.</div>';
+      }
     }
   } catch (err) { console.warn('mp-fill error', err); }
 }

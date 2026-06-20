@@ -1630,30 +1630,30 @@ html,body {
           </div>
         </header>
 
-        <!-- Fraunces hero heading -->
-        <div class="mp-hero-head">
-          <div class="mp-hero-serif">Ready to<br>teach something<br><em>great</em>?</div>
-        </div>
-
-        <!-- Premium featured: next lesson -->
+        <!-- Next lesson — the control focus of the day -->
         <div class="mp-featured" id="mp-next-lesson">
           <div class="mp-featured-head">
             <div class="mp-eyebrow-dark" id="mp-next-eyebrow">Next lesson</div>
             <span class="mp-pulse"></span>
           </div>
-          <div class="mp-featured-title" id="mp-next-title">No upcoming class</div>
-          <div class="mp-featured-meta" id="mp-next-meta">Add a class in Schedule to see it here.</div>
+          <div class="mp-featured-title" id="mp-next-title">No class scheduled</div>
+          <div class="mp-featured-meta" id="mp-next-meta">Plan your week to see your next class here.</div>
           <div class="mp-featured-cta">
-            <a class="mp-btn mp-btn-lime" href="board.html">Open board</a>
-            <a class="mp-btn mp-btn-ghost-dark" href="schedule.html">Reschedule</a>
+            <a class="mp-btn mp-btn-lime" href="schedule.html">View schedule</a>
+            <a class="mp-btn mp-btn-ghost-dark" href="board.html">Lesson plan</a>
           </div>
         </div>
 
-        <!-- Stat tiles (tappable shortcuts) -->
+        <!-- Control stats — schedule & people, not board inventory -->
         <div class="mp-stats">
           <a class="mp-stat mp-stat-lavender" href="schedule.html">
-            <div class="mp-stat-label">THIS WEEK</div>
+            <div class="mp-stat-label">TODAY</div>
             <div class="mp-stat-n" id="mp-stat-lessons">0</div>
+            <div class="mp-stat-sub">classes</div>
+          </a>
+          <a class="mp-stat mp-stat-cyan" href="schedule.html">
+            <div class="mp-stat-label">THIS WEEK</div>
+            <div class="mp-stat-n" id="mp-stat-week">0</div>
             <div class="mp-stat-sub">lessons</div>
           </a>
           <a class="mp-stat mp-stat-peach" href="gradebook.html">
@@ -1661,69 +1661,30 @@ html,body {
             <div class="mp-stat-n" id="mp-stat-students">0</div>
             <div class="mp-stat-sub">active</div>
           </a>
-          <a class="mp-stat mp-stat-cyan" href="courses.html">
-            <div class="mp-stat-label">BOARDS</div>
-            <div class="mp-stat-n" id="mp-stat-boards">0</div>
-            <div class="mp-stat-sub">in library</div>
-          </a>
         </div>
 
-        <!-- My Boards horizontal scroll -->
-        <div class="mp-section-head" id="my-boards">
-          <div class="mp-section-h">My Boards</div>
-          <a class="mp-see-all" href="#my-boards" onclick="document.querySelector('.curr-header')?.scrollIntoView({behavior:'smooth'});return false;">See all</a>
-        </div>
-        <div class="mp-hscroll" id="mp-boards-scroll">
-          <a class="mp-board-card" href="board.html">
-            <div class="mp-board-eyebrow">B1 · GRAMMAR</div>
-            <div class="mp-board-title">Past Perfect vs. Past Simple</div>
-            <div class="mp-board-foot">
-              <span class="mp-board-meta">45 MIN</span>
-              <span class="mp-board-status">Active</span>
-            </div>
-          </a>
-          <a class="mp-board-card lime" href="courses.html">
-            <div class="mp-board-eyebrow">A2 · VOCAB</div>
-            <div class="mp-board-title">False Friends · RU/UA/PL</div>
-            <div class="mp-board-foot">
-              <span class="mp-board-meta">30 MIN</span>
-              <span class="mp-board-status">Ready</span>
-            </div>
-          </a>
-          <a class="mp-board-card dark" href="courses.html">
-            <div class="mp-board-eyebrow">C1 · SPEAKING</div>
-            <div class="mp-board-title">Future Tech Debate</div>
-            <div class="mp-board-foot">
-              <span class="mp-board-meta">60 MIN</span>
-              <span class="mp-board-status">→</span>
-            </div>
-          </a>
+        <!-- Today's schedule — quick day-control timeline -->
+        <div class="mp-section-head"><div class="mp-section-h">Today's schedule</div></div>
+        <div class="mp-today-list" id="mp-today-list">
+          <div class="mp-today-empty">No classes today. Tap <b>Schedule</b> below to plan your week.</div>
         </div>
 
-        <!-- Quick start -->
-        <div class="mp-section-head"><div class="mp-section-h">Quick start</div></div>
+        <!-- Quick controls — oversight, not creation -->
+        <div class="mp-section-head"><div class="mp-section-h">Quick controls</div></div>
         <div class="mp-quick-list">
-          <a class="mp-quick" href="board.html">
+          <a class="mp-quick" href="schedule.html">
             <div class="mp-quick-ic" aria-hidden="true"></div>
             <div class="mp-quick-info">
-              <div class="mp-quick-t">New board</div>
-              <div class="mp-quick-s">Start from blank or template</div>
+              <div class="mp-quick-t">Schedule</div>
+              <div class="mp-quick-s">Plan, move & reschedule classes</div>
             </div>
             <span class="mp-quick-arrow">→</span>
           </a>
           <a class="mp-quick" href="gradebook.html">
             <div class="mp-quick-ic" aria-hidden="true"></div>
             <div class="mp-quick-info">
-              <div class="mp-quick-t">Invite a student</div>
-              <div class="mp-quick-s">Send an invite link by email</div>
-            </div>
-            <span class="mp-quick-arrow">→</span>
-          </a>
-          <a class="mp-quick" href="courses.html">
-            <div class="mp-quick-ic" aria-hidden="true"></div>
-            <div class="mp-quick-info">
-              <div class="mp-quick-t">Lesson library</div>
-              <div class="mp-quick-s">50+ ready packs, A1 to C1</div>
+              <div class="mp-quick-t">Gradebook</div>
+              <div class="mp-quick-s">Scores, attendance & progress</div>
             </div>
             <span class="mp-quick-arrow">→</span>
           </a>
@@ -1731,15 +1692,15 @@ html,body {
             <div class="mp-quick-ic" aria-hidden="true"></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Homework</div>
-              <div class="mp-quick-s">Send graded tasks to students</div>
+              <div class="mp-quick-s">Review what students sent in</div>
             </div>
             <span class="mp-quick-arrow">→</span>
           </a>
           <a class="mp-quick" href="analytics.html">
             <div class="mp-quick-ic" aria-hidden="true"></div>
             <div class="mp-quick-info">
-              <div class="mp-quick-t">Analytics</div>
-              <div class="mp-quick-s">Weekly recap & student progress</div>
+              <div class="mp-quick-t">Weekly recap</div>
+              <div class="mp-quick-s">Class & student progress at a glance</div>
             </div>
             <span class="mp-quick-arrow">→</span>
           </a>
@@ -2152,7 +2113,7 @@ function showOsToast(msg) {
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=177',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=178',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
