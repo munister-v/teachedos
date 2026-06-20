@@ -7991,7 +7991,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '175';
+const TEACHEDOS_ASSET_VERSION = '176';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -9046,41 +9046,57 @@ function boardHash() {
 }
 
 /* ── Update the save-status chip ── */
+let _mobileSaveStatusHideTimer = null;
+function showMobileSaveStatus(mobile, tone, text, autoHide = false) {
+  if (!mobile) return;
+  if (_mobileSaveStatusHideTimer) {
+    clearTimeout(_mobileSaveStatusHideTimer);
+    _mobileSaveStatusHideTimer = null;
+  }
+  mobile.className = `mq-status ${tone || ''}`.trim();
+  mobile.textContent = text;
+  if (autoHide) {
+    _mobileSaveStatusHideTimer = setTimeout(() => {
+      mobile.classList.add('is-hidden');
+      _mobileSaveStatusHideTimer = null;
+    }, 1600);
+  }
+}
+
 function setSaveUI(state, detail) {
   const dot    = document.getElementById('save-dot');
   const status = document.getElementById('save-status');
   const mobile = document.getElementById('mobile-save-status');
   if (!dot || !status) return;
   dot.className = '';
-  if (mobile) mobile.className = 'mq-status';
   if (state === 'saving') {
     dot.style.background = '#f59e0b'; dot.classList.add('save-dot-saving');
     status.textContent = 'saving…';
-    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Saving'; }
+    showMobileSaveStatus(mobile, 'warn', 'Saving');
   } else if (state === 'saved') {
     dot.style.background = '#22c55e';
     status.textContent = detail || '✓ saved';
     const md = document.getElementById('board-meta-dot'); if (md) md.style.background = '#22c55e';
     lastSavedAt = new Date();
-    if (mobile) { mobile.classList.add('good'); mobile.textContent = 'Saved'; }
+    showMobileSaveStatus(mobile, 'good', 'Saved', true);
   } else if (state === 'cloud') {
     dot.style.background = '#6366f1';
     const now = new Date();
     status.textContent = `☁ synced ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
     lastSavedAt = now;
-    if (mobile) { mobile.classList.add('good'); mobile.textContent = 'Synced'; }
+    showMobileSaveStatus(mobile, 'good', 'Synced', true);
   } else if (state === 'offline') {
     dot.style.background = '#f97316';
     status.textContent = '📡 offline';
-    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Offline'; }
+    showMobileSaveStatus(mobile, 'warn', 'Offline');
   } else if (state === 'error') {
     dot.style.background = '#ef4444';
     status.textContent = '⚠ error';
-    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Error'; }
+    showMobileSaveStatus(mobile, 'warn', 'Error');
   } else if (state === 'conflict') {
     dot.style.background = '#ef4444';
     status.textContent = '⚡ conflict';
-    if (mobile) { mobile.classList.add('warn'); mobile.textContent = 'Conflict'; }
+    showMobileSaveStatus(mobile, 'warn', 'Conflict');
   }
 }
 

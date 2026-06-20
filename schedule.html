@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=175">
+<link rel="manifest" href="manifest.json?v=176">
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <meta name="theme-color" content="#F5F0E8"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=175">
-<link rel="preload" as="style" href="styles/unify.css?v=175">
+<link rel="preload" as="style" href="styles/harmony.css?v=176">
+<link rel="preload" as="style" href="styles/unify.css?v=176">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -327,12 +327,12 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css?v=175" media="(max-width: 860px)">
-<script src="theme.js?v=175" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css?v=175">
-<link rel="stylesheet" href="styles/harmony.css?v=175">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=175" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=175">
+<link rel="stylesheet" href="styles/mobile-pro.css?v=176" media="(max-width: 860px)">
+<script src="theme.js?v=176" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=176">
+<link rel="stylesheet" href="styles/harmony.css?v=176">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=176" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=176">
 </head>
 <body>
 
@@ -577,7 +577,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=175"></script>
+<script src="scripts/app-core.js?v=176"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1755,13 +1755,13 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=175"></script>
-<script src="scripts/nav-boost.js?v=175" defer></script>
-<script src="scripts/mobile-perf.js?v=175" defer></script>
-<script src="scripts/mobile-nav.js?v=175"></script>
+<script src="pwa.js?v=176"></script>
+<script src="scripts/nav-boost.js?v=176" defer></script>
+<script src="scripts/mobile-perf.js?v=176" defer></script>
+<script src="scripts/mobile-nav.js?v=176"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=175',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=176',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1774,6 +1774,6 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="scripts/mobile-zoom-guard.js?v=175" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=176" defer></script>
 </body>
 </html>
