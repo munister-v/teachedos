@@ -1011,12 +1011,11 @@ h1,h2,h3,h4,h5,h6 {
   }
   .win {
     position:fixed !important;
-    top:52px !important; left:0 !important; right:0 !important;
+    top:env(safe-area-inset-top,0px) !important; left:0 !important; right:0 !important;
     bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important;
     width:100% !important; height:auto !important;
     min-width:0 !important; border-radius:0 !important;
     border:none !important;
-    border-top:1px solid rgba(94,94,74,0.08) !important;
     box-shadow:none !important;
     display:none; flex-direction:column;
     background:#fff !important;
@@ -1110,10 +1109,10 @@ h1,h2,h3,h4,h5,h6 {
   }
   .mobile-spotlight-title { font-size:18px; }
   .win {
-    top:156px !important;
-    left:10px !important;
-    right:10px !important;
-    bottom:84px !important;
+    top:env(safe-area-inset-top,0px) !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:calc(60px + env(safe-area-inset-bottom,0px)) !important;
   }
   .fc-scene { height:190px; }
   .prog-stats { grid-template-columns:1fr 1fr; }
