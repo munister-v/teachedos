@@ -212,7 +212,7 @@ router.post('/register', authLimiter, async (req, res) => {
       [user.id, 'My First Board']
     );
 
-    res.status(201).json({ token, user: {
+    res.status(201).json({ token, isNewUser: true, user: {
       id: user.id,
       email: user.email,
       name: user.name,
@@ -327,7 +327,7 @@ router.post('/invites/:token/accept', async (req, res) => {
     );
 
     await client.query('COMMIT');
-    res.status(201).json({ token, user });
+    res.status(201).json({ token, isNewUser: true, user });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('[auth/invite-accept]', err.message);
@@ -401,6 +401,7 @@ router.post('/google', authLimiter, async (req, res) => {
       [googleId, email]
     );
     let user = rows[0];
+    let isNewUser = false;
 
     if (user) {
       if (!user.google_id) {
@@ -417,6 +418,7 @@ router.post('/google', authLimiter, async (req, res) => {
         [email, name, safeRole, avatar, googleId]
       );
       user = inserted.rows[0];
+      isNewUser = true;
       await pool.query(
         `INSERT INTO boards (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
         [user.id, 'My First Board']
@@ -424,6 +426,7 @@ router.post('/google', authLimiter, async (req, res) => {
     }
 
     const payload = await issueLoginSession(req, user);
+    payload.isNewUser = isNewUser;
     res.json(payload);
   } catch (err) {
     console.error('[auth/google]', err.message);

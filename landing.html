@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=171">
+<link rel="manifest" href="manifest.json?v=172">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd — AI lesson &amp; worksheet maker for language teachers</title>
 <meta name="description" content="TeachEd generates worksheets, quizzes and full lessons with AI, turns any YouTube video into a lesson, and runs 30+ classroom games. 50+ tools for ESL teachers — online or offline. Free to start.">
@@ -29,7 +29,7 @@
 <meta name="twitter:description" content="Generate worksheets, quizzes and lessons with AI, turn YouTube into a lesson, run 30+ games. 50+ tools for ESL teachers.">
 <meta name="twitter:image" content="https://teached.tech/og-cover.png">
 
-<link rel="stylesheet" href="styles/fonts.css?v=171">
+<link rel="stylesheet" href="styles/fonts.css?v=172">
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -659,8 +659,8 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
-<link rel="stylesheet" href="styles/mobile-guard.css?v=171" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/mobile-unified.css?v=171">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=172" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/mobile-unified.css?v=172">
 
 <!-- ═══════════════════ REDESIGN 2026 · light minimal (overrides above) ═══════════════════ -->
 <style>
@@ -1895,10 +1895,19 @@ body.pwa-standalone .hero{
   const $ = id => document.getElementById(id);
   const goApp = r => { location.href = (r === 'student') ? 'student.html' : 'index.html'; };
 
+  function markOnboardingPending(user){
+    try {
+      const email = user?.email || 'anon';
+      localStorage.setItem('teachedos_onboarding_pending', '1');
+      localStorage.setItem('teachedos_onboarding_pending_' + email, '1');
+    } catch {}
+  }
+
   function applySuccess(d){
     localStorage.setItem('teachedos_token', d.token);
     localStorage.setItem('teachedos_role', d.user.role);
     if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
+    if (d.isNewUser) markOnboardingPending(d.user);
     goApp(d.user.role);
   }
 
@@ -1966,6 +1975,7 @@ body.pwa-standalone .hero{
       const r = await fetch(API + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Something went wrong');
+      if (isReg) d.isNewUser = true;
       applySuccess(d);
     }catch(e){
       err.textContent = e.message; err.style.display='block';
@@ -2184,8 +2194,9 @@ body.pwa-standalone .hero{
   }
 })();
 </script>
-<script src="scripts/nav-boost.js?v=171" defer></script>
-<script src="pwa-boot.js?v=171" defer></script>
+<script src="scripts/nav-boost.js?v=172" defer></script>
+<script src="scripts/mobile-perf.js?v=172" defer></script>
+<script src="pwa-boot.js?v=172" defer></script>
 <script>
 /* Footer accordion — collapse on mobile, always-open on desktop */
 (function () {

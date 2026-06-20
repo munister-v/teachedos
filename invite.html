@@ -69,10 +69,10 @@ body{
   .hero-title{font-size:30px}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-unified.css?v=171">
-<link rel="stylesheet" href="styles/harmony.css?v=171">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=171" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=171">
+<link rel="stylesheet" href="styles/mobile-unified.css?v=172">
+<link rel="stylesheet" href="styles/harmony.css?v=172">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=172" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=172">
 </head>
 <body>
   <div class="shell">
@@ -205,8 +205,14 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Could not accept invite');
+    if (d.isNewUser) {
+      const email = d.user?.email || 'anon';
+      localStorage.setItem('teachedos_onboarding_pending', '1');
+      localStorage.setItem('teachedos_onboarding_pending_' + email, '1');
+    }
     localStorage.setItem('teachedos_token', d.token);
     localStorage.setItem('teachedos_role', d.user.role);
+    if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
     localStorage.setItem('teachedos_user', JSON.stringify(d.user));
     setStatus('Account created. Redirecting…', 'success');
     setTimeout(() => { location.href = redirectForRole(d.user.role); }, 900);
@@ -219,7 +225,7 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=171" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=171" defer></script>
+<script src="scripts/nav-boost.js?v=172" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=172" defer></script>
 </body>
 </html>

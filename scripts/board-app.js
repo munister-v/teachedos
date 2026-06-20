@@ -7979,7 +7979,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '171';
+const TEACHEDOS_ASSET_VERSION = '172';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -10054,6 +10054,14 @@ function openAuthModal(mode = 'login') {
 function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
 
+function markOnboardingPendingFromBoard(user) {
+  try {
+    const email = user?.email || 'anon';
+    localStorage.setItem('teachedos_onboarding_pending', '1');
+    localStorage.setItem('teachedos_onboarding_pending_' + email, '1');
+  } catch {}
+}
+
 function renderAuthFields() {
   const isLogin = authMode === 'login';
   document.getElementById('auth-subtitle').textContent = isLogin ? 'Welcome back 👋' : 'Create your account';
@@ -10090,6 +10098,7 @@ async function submitAuth() {
     const r = await apiFetch(endpoint, { method: 'POST', body });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Error');
+    if (authMode === 'register' || d.isNewUser) markOnboardingPendingFromBoard(d.user);
     setToken(d.token);
     currentUser = d.user;
     try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}

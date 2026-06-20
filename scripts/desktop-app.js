@@ -1212,6 +1212,30 @@ function writeTeacherDashboardCache(patch) {
   } catch {}
 }
 
+function markOnboardingPending(user) {
+  try {
+    const email = user?.email || localStorage.getItem('teachedos_user_email') || 'anon';
+    localStorage.setItem('teachedos_onboarding_pending', '1');
+    localStorage.setItem('teachedos_onboarding_pending_' + email, '1');
+  } catch {}
+}
+
+function consumeOnboardingPending(user) {
+  try {
+    const email = user?.email || localStorage.getItem('teachedos_user_email') || 'anon';
+    const legacyKey = 'teachedos_onboarded_' + email;
+    const globalPending = localStorage.getItem('teachedos_onboarding_pending') === '1';
+    const accountPending = localStorage.getItem('teachedos_onboarding_pending_' + email) === '1';
+    localStorage.removeItem('teachedos_onboarding_pending');
+    localStorage.removeItem('teachedos_onboarding_pending_' + email);
+    localStorage.removeItem('teachedos_onboarded');
+    localStorage.setItem(legacyKey, '1');
+    return accountPending || (!user?.email && globalPending);
+  } catch {
+    return false;
+  }
+}
+
 function applyTeacherDashboardCache(cache, options = {}) {
   if (!cache) return false;
   if (cache.user) {
@@ -1293,16 +1317,7 @@ async function checkAuthAndRoute() {
     // Teacher / Admin: show desktop + update UI
     applyUserToDesktop(user);
     revealPage();
-    // Onboarding is per-account, so switching teachers on the same browser shows
-    // it to the new user. One-time migration: an already-onboarded teacher keeps
-    // their state, then the legacy global flag is dropped so other accounts on
-    // this browser still get onboarded.
-    const _obKey = 'teachedos_onboarded_' + (user.email || 'anon');
-    if (localStorage.getItem('teachedos_onboarded') === '1') {
-      localStorage.setItem(_obKey, '1');
-      localStorage.removeItem('teachedos_onboarded');
-    }
-    if (!localStorage.getItem(_obKey)) setTimeout(() => showOnboarding(user), 800);
+    if (consumeOnboardingPending(user)) setTimeout(() => showOnboarding(user), 800);
 
   } catch {
     // On the VPS domain the API is same-origin and should be immediate. If auth
@@ -1568,6 +1583,7 @@ function _applyOsAuthSuccess(d) {
   localStorage.setItem('teachedos_token', d.token);
   localStorage.setItem('teachedos_role', d.user.role);
   if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
+  if (d.isNewUser) markOnboardingPending(d.user);
   // Reload so checkAuthAndRoute + live-widgets IIFE run fresh with the new token.
   // Students go straight to student.html; teachers reload index.html.
   location.href = d.user.role === 'student' ? 'student.html' : 'index.html';
@@ -1696,6 +1712,7 @@ async function submitOsAuth() {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error||'Error');
     succeeded = true;
+    if (isReg) d.isNewUser = true;
     _applyOsAuthSuccess(d);
   } catch(err) {
     errEl.textContent = err.message; errEl.style.display='block';

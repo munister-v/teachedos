@@ -18,10 +18,12 @@
   if (!isMobile && !isStandalone) return;
 
   const root = document.documentElement;
+  root.classList.add('te-mobile-lite');
   let scrolling = false;
   let scrollTimer = null;
   let scrollRaf = 0;
   let resizeRaf = 0;
+  let imageTuneRaf = 0;
 
   // ── Inject perf CSS ──────────────────────────────────────────
   const css = document.createElement('style');
@@ -54,6 +56,12 @@
     /* iOS Safari repaints backdrop-filter on every scroll frame. Keep mobile
        nav and sheets visually solid while the finger is moving. */
     @media (max-width: 860px) {
+      html.te-mobile-lite *,
+      html.te-mobile-lite *::before,
+      html.te-mobile-lite *::after {
+        scroll-behavior: auto !important;
+      }
+
       #nav,
       nav,
       .topbar,
@@ -99,6 +107,61 @@
       #modules-area {
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
+      }
+
+      html.te-mobile-lite .mp-topbar,
+      html.te-mobile-lite .mp-hero-head,
+      html.te-mobile-lite .mp-next-card,
+      html.te-mobile-lite .mp-stats,
+      html.te-mobile-lite .mp-section-head,
+      html.te-mobile-lite .mp-hscroll,
+      html.te-mobile-lite .mp-quick-list,
+      html.te-mobile-lite .mp-daypicker,
+      html.te-mobile-lite .mp-timeline,
+      html.te-mobile-lite .tbuilder-output .tt-q {
+        animation: none !important;
+      }
+
+      html.te-mobile-lite .mp-board-card,
+      html.te-mobile-lite .mp-board-card2,
+      html.te-mobile-lite .mp-stat,
+      html.te-mobile-lite .mp-next-card,
+      html.te-mobile-lite .mp-quick,
+      html.te-mobile-lite .mp-tl-card,
+      html.te-mobile-lite .lesson-card,
+      html.te-mobile-lite .stat-card,
+      html.te-mobile-lite .course-card,
+      html.te-mobile-lite .course-item,
+      html.te-mobile-lite .recent-board-item,
+      html.te-mobile-lite .cls-item,
+      html.te-mobile-lite .cls-block,
+      html.te-mobile-lite .hw-card,
+      html.te-mobile-lite .panel,
+      html.te-mobile-lite .share-card,
+      html.te-mobile-lite .hero-card,
+      html.te-mobile-lite .board-card:not(.selected):not(.dragging) {
+        box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 1px 6px rgba(14,14,16,.055) !important;
+        filter: none !important;
+      }
+
+      html.te-mobile-lite #user-menu,
+      html.te-mobile-lite #more-menu,
+      html.te-mobile-lite #ctx-menu,
+      html.te-mobile-lite #sidebar,
+      html.te-mobile-lite #card-editor,
+      html.te-mobile-lite .mq-add-sheet,
+      html.te-mobile-lite #share-panel {
+        box-shadow: 0 -8px 22px rgba(5,5,23,.14) !important;
+      }
+
+      html.te-mobile-lite .mp-pulse,
+      html.te-mobile-lite .dot-live,
+      html.te-mobile-lite .mp-next-dot,
+      html.te-mobile-lite .save-dot-saving,
+      html.te-mobile-lite .floaty,
+      html.te-mobile-lite .orb,
+      html.te-mobile-lite .glow {
+        animation: none !important;
       }
     }
 
@@ -176,7 +239,7 @@
   }
 
   window.addEventListener('scroll', markScrolling, { passive: true, capture: true });
-  document.addEventListener('touchmove', markScrolling, { passive: true, capture: true });
+  document.addEventListener('scroll', markScrolling, { passive: true, capture: true });
   window.addEventListener('resize', setViewportHeight, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(setViewportHeight, 180), { passive: true });
 
@@ -193,6 +256,7 @@
 
   // ── Lazy-load + async-decode non-priority images ─────────────
   function tuneImages() {
+    imageTuneRaf = 0;
     document.querySelectorAll('img').forEach(img => {
       if (!img.hasAttribute('loading') && img.getAttribute('fetchpriority') !== 'high') {
         img.setAttribute('loading', 'lazy');
@@ -221,7 +285,7 @@
       muts.forEach(m => m.addedNodes.forEach(n => {
         if (n.nodeType === 1 && (n.tagName === 'IMG' || n.querySelector?.('img'))) need = true;
       }));
-      if (need) requestAnimationFrame(tuneImages);
+      if (need && !imageTuneRaf) imageTuneRaf = requestAnimationFrame(tuneImages);
     });
     const startObserver = () => mo.observe(document.body, { childList: true, subtree: true });
     if (document.body) startObserver();
