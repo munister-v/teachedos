@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=173">
-<link rel="preload" as="style" href="styles/unify.css?v=173">
-<link rel="manifest" href="manifest.json?v=173">
+<link rel="preload" as="style" href="styles/harmony.css?v=174">
+<link rel="preload" as="style" href="styles/unify.css?v=174">
+<link rel="manifest" href="manifest.json?v=174">
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <meta name="theme-color" content="#F5F0E8">
@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=173">
+<link rel="stylesheet" href="styles/fonts.css?v=174">
 <title>TeachEd — Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -502,11 +502,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css?v=173" media="(max-width: 860px)">
-<link rel="stylesheet" href="styles/mobile-unified.css?v=173">
-<link rel="stylesheet" href="styles/harmony.css?v=173">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=173" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=173">
+<link rel="stylesheet" href="styles/mobile-pro.css?v=174" media="(max-width: 860px)">
+<link rel="stylesheet" href="styles/mobile-unified.css?v=174">
+<link rel="stylesheet" href="styles/harmony.css?v=174">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=174" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=174">
 </head>
 <body>
 
@@ -771,7 +771,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=173"></script>
+<script src="scripts/app-core.js?v=174"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1321,7 +1321,7 @@ setTimeout(loadVocab, 1000);
 </script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=173',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=174',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1334,10 +1334,10 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="pwa.js?v=173"></script>
-<script src="scripts/nav-boost.js?v=173" defer></script>
-<script src="scripts/mobile-perf.js?v=173" defer></script>
-<script src="scripts/mobile-nav.js?v=173"></script>
-<script src="scripts/mobile-zoom-guard.js?v=173" defer></script>
+<script src="pwa.js?v=174"></script>
+<script src="scripts/nav-boost.js?v=174" defer></script>
+<script src="scripts/mobile-perf.js?v=174" defer></script>
+<script src="scripts/mobile-nav.js?v=174"></script>
+<script src="scripts/mobile-zoom-guard.js?v=174" defer></script>
 </body>
 </html>

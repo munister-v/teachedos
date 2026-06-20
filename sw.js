@@ -1,4 +1,5 @@
-const CACHE = 'teachedos-v173';
+const CACHE = 'teachedos-v174';
+const VERSION = '174';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -24,6 +25,8 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE && /^teachedos-v/.test(k)).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(() => clients.matchAll({ type: 'window' }))
+      .then(list => list.forEach(client => client.postMessage({ type: 'teachedos-version-ready', version: VERSION })))
   );
 });
 

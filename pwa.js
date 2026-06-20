@@ -1,5 +1,5 @@
 (function () {
-  const ASSET_VERSION = '173';
+  const ASSET_VERSION = '174';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -12,6 +12,44 @@
       }
     }
   } catch {}
+
+  function checkRemoteVersion() {
+    if (!navigator.onLine) return;
+    fetch('version.json?ts=' + Date.now(), { cache: 'reload' })
+      .then(r => r.ok ? r.json() : null)
+      .then(info => {
+        const next = String(info?.version || '').trim();
+        reloadForVersion(next);
+      })
+      .catch(() => {});
+  }
+
+  function reloadForVersion(next) {
+    next = String(next || '').trim();
+    if (!next || next === ASSET_VERSION) return;
+    const key = 'teachedos_reload_for_version';
+    const raw = localStorage.getItem(key) || '';
+    const [seen, at] = raw.split(':');
+    if (seen === next && Date.now() - (Number(at) || 0) < 600000) return;
+    localStorage.setItem(key, next + ':' + Date.now());
+    location.reload();
+  }
+
+  if (!window.__teVersionHeartbeatWired) {
+    window.__teVersionHeartbeatWired = true;
+    window.addEventListener('focus', checkRemoteVersion, { passive: true });
+    window.addEventListener('pageshow', checkRemoteVersion, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) checkRemoteVersion();
+    }, { passive: true });
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data?.type === 'teachedos-version-ready') reloadForVersion(e.data.version);
+      });
+    }
+    setInterval(checkRemoteVersion, 60000);
+    setTimeout(checkRemoteVersion, 2500);
+  }
 
   const storageKey = 'teachedos_pwa_prompt_hidden';
   const iosHintKey = 'teachedos_ios_pwa_hint_hidden';
