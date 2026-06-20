@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=183">
+<link rel="manifest" href="manifest.json?v=184">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=183">
-<link rel="preload" as="style" href="styles/unify.css?v=183">
+<link rel="preload" as="style" href="styles/harmony.css?v=184">
+<link rel="preload" as="style" href="styles/unify.css?v=184">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -585,11 +585,11 @@ html{scroll-behavior:smooth}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 </style>
-<script src="theme.js?v=183" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css?v=183">
-<link rel="stylesheet" href="styles/harmony.css?v=183">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=183" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=183">
+<script src="theme.js?v=184" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=184">
+<link rel="stylesheet" href="styles/harmony.css?v=184">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=184" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=184">
 </head>
 <body class="admin-page">
 
@@ -1745,11 +1745,11 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=183"></script>
-<script src="pwa.js?v=183"></script>
+<script src="scripts/admin-app.js?v=184"></script>
+<script src="pwa.js?v=184"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=183',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=184',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -1762,8 +1762,8 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
 }
 </script>
-<script src="scripts/nav-boost.js?v=183" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=183" defer></script>
-<script src="scripts/mobile-perf.js?v=183" defer></script>
+<script src="scripts/nav-boost.js?v=184" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=184" defer></script>
+<script src="scripts/mobile-perf.js?v=184" defer></script>
 </body>
 </html>

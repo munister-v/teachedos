@@ -5,7 +5,7 @@
  * Safe to include on any page: it detects what's already present and
  * never double-registers or double-loads. */
 (function () {
-  const ASSET_VERSION = '183';
+  const ASSET_VERSION = '184';
   const CACHE_VERSION_KEY = 'teachedos_asset_version';
   const purgeOldRuntimeCaches = () => {
     try {
