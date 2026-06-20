@@ -608,6 +608,91 @@ button, a, [role="button"], summary {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Lean mobile sections — final lightweight pass.
+   Keep app pages quick to scroll: fewer shadows, smaller vertical gaps,
+   no section entrance animations, and cheaper loading placeholders. Board
+   canvas is excluded because it has its own gesture/perf layer. ── */
+@media (max-width: 860px) {
+  body:not(.board-page) {
+    background: var(--te-mobile-bg) !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:not(.board-page) :where(main, .main, .app-main, .page, .page-shell, .mp-shell, .content, .container) {
+    scroll-behavior: auto !important;
+  }
+
+  body:not(.board-page) :where(section, .section, .mp-section, .gradebook-section, .analytics-section, .journal-section, .settings-section) {
+    margin-top: 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  body:not(.board-page) :where(.mp-section-head, .section-head, .page-head, .hero-head, .gb-head, .analytics-head) {
+    margin-bottom: 10px !important;
+    gap: 8px !important;
+  }
+
+  body:not(.board-page) :where(h1, .mp-h1, .page-title) {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  body:not(.board-page) :where(h2, .mp-section-h, .section-h, .section-title) {
+    font-size: 17px !important;
+    line-height: 1.12 !important;
+  }
+
+  body:not(.board-page) :where(.card, .panel, .tile, .module-block, .ready-card, .lesson-card, .board-card, .gb-mobile-card, .table-row, .stat-card, .insight-card, .plan, .current, .pay-box, .mp-board-card, .mp-board-card2, .mp-quick, .mp-tl-card, .mp-next-card, .mp-featured) {
+    border-radius: 14px !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.76) inset, 0 1px 8px rgba(94,94,74,.045) !important;
+    transform: none !important;
+    transition: border-color .12s ease, background-color .12s ease, color .12s ease !important;
+    will-change: auto !important;
+  }
+
+  body:not(.board-page) :where(.card, .panel, .tile, .module-block, .ready-card, .lesson-card, .board-card, .gb-mobile-card, .table-row, .stat-card, .insight-card, .mp-board-card, .mp-board-card2, .mp-quick, .mp-tl-card):active {
+    transform: none !important;
+  }
+
+  body:not(.board-page) :where(.cards-grid, .grid, .stats-grid, .boards-grid, .course-grid, .tools-grid, .packs-grid, .homework-list, .analytics-grid, .gradebook-grid) {
+    gap: 10px !important;
+  }
+
+  body:not(.board-page) :where(.mp-featured, .mp-next-card, .hero-card, .featured-card) {
+    min-height: 0 !important;
+    padding: 16px !important;
+    box-shadow: 0 2px 12px rgba(14,14,16,.10) !important;
+  }
+
+  body:not(.board-page) :where(.ready-card, .mobile-profile-hero, .mp-featured, .mp-next-card, .course-insights, .stats-grid, .boards-grid, .analytics-grid, .gradebook-grid) {
+    animation: none !important;
+  }
+
+  body:not(.board-page) :where(.skeleton, .tx-skel, .course-skeleton-dot, .course-skeleton-line, .course-skeleton-count, .stat-val.is-loading, .hw-metric b.is-loading, .hero-score b.is-loading),
+  body:not(.board-page) .course-skeleton::after {
+    animation: none !important;
+    background-image: none !important;
+  }
+
+  body:not(.board-page) :where(.mob-nav, .mobile-bottom-nav) {
+    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-top: 6px !important;
+    box-shadow: 0 -4px 16px rgba(14,14,16,.065) !important;
+  }
+
+  body:not(.board-page) :where(.mob-nav-tab, .mobile-nav-item) {
+    height: 48px !important;
+    border-radius: 13px !important;
+  }
+
+  body:not(.board-page) :where(button, .btn, .setting-btn, .new-board-btn, .mp-btn, .mini-btn, .bc-btn, .action-btn, .attend-btn, .filter-btn, .chip, .pill) {
+    transition: background-color .12s ease, color .12s ease, border-color .12s ease !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Desktop-only feature gate — full-screen "open on a computer" stub.
    Pages that are authoring-heavy (Game/Quiz Builder) drop this block in;
    it's hidden on desktop and covers the screen on phones. ── */

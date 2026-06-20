@@ -43,6 +43,14 @@
   ::view-transition-new(*) { animation: none !important; }
 }
 
+@media (max-width: 860px) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Shared elements: give the persistent chrome a stable transition name so it
    stays ANCHORED across navigations (morphs in place) instead of cross-fading
    with the page body — the top nav no longer flickers, only the content swaps.

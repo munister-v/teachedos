@@ -1,5 +1,5 @@
 (function () {
-  const ASSET_VERSION = '184';
+  const ASSET_VERSION = '185';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
