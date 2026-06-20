@@ -2001,9 +2001,9 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       } else if (q.type === 'gap-fill') {
         ans = (showAns && q.answer) ? `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>` : '<div class="ws-open"></div>';
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
-        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
+        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
-        ans = `<div class="ws-open"></div>`;
+        ans = `<div class="ws-write"><i></i><i></i><i></i></div>`;
       }
       return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" style="background:${accent}">${i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
@@ -2098,33 +2098,63 @@ function printWorksheet(cardId) {
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
-    body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
-    h1{font-size:22px;margin:0 0 2px;letter-spacing:-.02em}
-    .meta{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7b7282;margin-bottom:18px}
-    .ws-q{position:relative;border:1px solid #e6e7ee;border-left:4px solid ${accent};border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
-    .ws-qh{display:flex;align-items:flex-start;gap:9px;font-size:14px;font-weight:700;line-height:1.5}
-    .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${accent};color:#fff;font-size:11.5px;font-weight:800}
-    .ws-qtext{flex:1}.ws-word{font-weight:800}
-    .ws-opts{display:flex;flex-direction:column;gap:5px;margin-top:9px;padding-left:31px}
-    .ws-opt{display:flex;align-items:center;gap:9px;font-size:13px;color:#444;padding:5px 10px;border-radius:8px;background:#f5f6fa}
-    .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}
-    .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#fff;border:1.5px solid #d4d7e0;font-size:10.5px;font-weight:800;color:#9499a8}
+    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1a1722;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h1{font-size:25px;margin:0 0 3px;letter-spacing:-.025em;font-weight:850}
+    .meta{font:800 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#8a8594;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #f0f0f4}
+    /* question / stage card shell */
+    .ws-q{position:relative;border:1px solid #e8e9f0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
+    .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
+    .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:750;line-height:1.5}
+    .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:${accent};color:#fff;font:800 12px ui-monospace,monospace}
+    .ws-qtext{flex:1}.ws-word{font-weight:850}
+    /* MCQ */
+    .ws-opts{display:flex;flex-direction:column;gap:6px;margin-top:11px;padding-left:34px}
+    .ws-opt{display:flex;align-items:center;gap:10px;font-size:13px;color:#3f3a4a;padding:8px 13px;border-radius:11px;background:#fff;border:1.5px solid #ececf2}
+    .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:800;border-color:#a7e3bd}
+    .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;background:#f4f4f8;border:1.5px solid #d4d7e0;font:800 11px ui-monospace,monospace;color:#9499a8}
     .ws-opt.correct .ws-mark{background:#16a34a;border-color:#16a34a;color:#fff}
-    .ws-tf{display:flex;gap:10px;margin-top:9px;padding-left:31px}
-    .ws-tf-b{font-size:12px;font-weight:700;padding:5px 14px;border-radius:8px;background:#f0f1f4;color:#9ca3af}
-    .ws-tf-b.on{background:#dcfce7;color:#15803d}
-    .ws-ans{display:inline-flex;align-items:center;gap:7px;font-size:13px;margin-top:8px;margin-left:31px;color:#15803d;background:#eafbf0;border-radius:8px;padding:5px 10px}
-    .ws-ans-label{font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#16a34a;color:#fff;padding:2px 7px;border-radius:999px}
-    .ws-ans b{color:#15803d}
-    .ws-open{height:0;margin:14px 0 6px 31px;border-bottom:2px solid #d4d7e0}
+    /* True / False */
+    .ws-tf{display:flex;gap:10px;margin-top:11px;padding-left:34px}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:7px 18px;border-radius:11px;background:#fff;border:1.5px solid #ececf2;color:#9ca3af}
+    .ws-tf-b.on{background:#dcfce7;color:#15803d;border-color:#a7e3bd}
+    /* answer chip + writing lines */
+    .ws-ans{display:inline-flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;margin-left:34px;color:#15803d;background:#eafbf0;border:1px solid #bfe9cd;border-radius:10px;padding:6px 12px;font-weight:750}
+    .ws-ans-label{font:900 8.5px ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;background:#16a34a;color:#fff;padding:3px 8px;border-radius:999px}
+    .ws-ans b{color:#15803d;font-weight:900}
+    .ws-open{height:0;margin:14px 0 6px 34px;border-bottom:1.5px solid #cfd2db}
     .ws-open + .ws-open{margin-top:22px}
-    .ws-match{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:9px;padding-left:31px;align-items:center}
-    .ws-l{font-weight:700;color:${accent}}
-    .ws-card-head{display:flex;align-items:center;gap:8px;color:${accent};font-weight:800}
-    .ws-card-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${accent}}
-    .ws-card-txt{font-size:13px;line-height:1.6;color:#444;margin-top:7px;padding-left:17px;white-space:pre-wrap}
-    .ws-card-txt strong{color:#171420;font-weight:800}
-    @media print{body{padding:0}@page{margin:1.6cm}}`;
+    .ws-write{margin:12px 0 6px 34px;display:flex;flex-direction:column;gap:20px}
+    .ws-write i{display:block;height:0;border-bottom:1.5px solid #cfd2db}
+    /* match */
+    .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:9px;margin-top:11px;padding-left:34px;align-items:center}
+    .ws-l{font-size:12.5px;font-weight:800;color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);border:1px solid color-mix(in srgb,${accent} 22%,transparent);padding:5px 12px;border-radius:9px;justify-self:start}
+    .ws-mlink{width:22px;height:0;border-top:2px dotted color-mix(in srgb,${accent} 50%,#bbb)}
+    .ws-r{font-size:12.5px;color:#3f3a4a}
+    /* stage cards (reading / glossary / tasks / grammar) */
+    .ws-q-card{--stage-accent:${accent};border:1px solid color-mix(in srgb,var(--stage-accent) 22%,#e8e9f0);border-top:3px solid var(--stage-accent)}
+    .ws-stage-reading{--stage-accent:#4262FF}.ws-stage-vocab{--stage-accent:#D97706}.ws-stage-before{--stage-accent:#0891B2}.ws-stage-after{--stage-accent:#DB2777}.ws-stage-grammar{--stage-accent:#7C3AED}.ws-stage-default{--stage-accent:${accent}}
+    .ws-stage-rail{display:none}
+    .ws-card-head{display:flex;align-items:center;gap:9px;color:#171420;font-weight:850;font-size:15px}
+    .ws-card-dot{flex-shrink:0;min-width:26px;height:24px;padding:0 8px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--stage-accent) 13%,#fff);color:var(--stage-accent);font:900 9px ui-monospace,monospace;border:1px solid color-mix(in srgb,var(--stage-accent) 24%,transparent)}
+    .ws-card-title{flex:1}
+    .ws-stage-label{font:900 8.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--stage-accent);background:color-mix(in srgb,var(--stage-accent) 11%,#fff);border:1px solid color-mix(in srgb,var(--stage-accent) 20%,transparent);border-radius:999px;padding:3px 9px}
+    .ws-card-txt{font-size:13px;line-height:1.65;color:#3f3a4a;margin-top:9px;white-space:normal}
+    .ws-card-txt strong{color:#171420;font-weight:850}
+    /* reading block + drop cap */
+    .ws-reading-title{font-size:14px;font-weight:850;color:#171420;margin-bottom:7px}
+    .ws-reading-copy{font-size:13px;line-height:1.78;color:#2c2f3c;padding:14px 16px;border:1px solid color-mix(in srgb,var(--stage-accent,${accent}) 16%,#e8e9f0);border-radius:12px;background:#fff}
+    .ws-reading-copy::first-letter{float:left;font-size:42px;line-height:.8;font-weight:850;margin:4px 10px 0 0;color:var(--stage-accent,${accent})}
+    /* glossary */
+    .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
+    .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 18%,#eee);border-radius:11px;page-break-inside:avoid}
+    .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:color-mix(in srgb,var(--stage-accent,#D97706) 86%,#111);background:color-mix(in srgb,var(--stage-accent,#D97706) 12%,#fff);border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 24%,transparent);padding:4px 11px;border-radius:999px}
+    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#3f3a4a}
+    /* before / after prompts */
+    .ws-prompt-list{display:grid;gap:7px;margin-top:4px}
+    .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid color-mix(in srgb,var(--stage-accent,${accent}) 16%,#eee);border-radius:11px;page-break-inside:avoid}
+    .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--stage-accent,${accent});color:#fff;font:900 11px ui-monospace,monospace}
+    .ws-prompt-text{font-size:13px;line-height:1.5;color:#2c2f3c}
+    @media print{body{padding:0}@page{margin:1.5cm}}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
     <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
   const w = window.open('', '_blank');
