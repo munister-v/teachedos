@@ -4,6 +4,16 @@
    (perf: smaller HTML payload, independently cached across visits)
    ════════════════════════════════════════════════════════════════ */
 /* ══════════════════════ CLOCK ══════════════════════ */
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[ch]));
+}
+
 function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
@@ -747,6 +757,23 @@ let activeNote = null;
 let _notesSaveTimer = null;
 let _notesLoaded = false;
 
+function notesPersistLocal() {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+}
+
+function notesCreateLocal() {
+  const id = 'local_' + Date.now();
+  const note = { id, title:'New Note', body:'', pinned:false, updated_at: new Date().toISOString() };
+  NOTES.unshift(note);
+  activeNote = id;
+  notesPersistLocal();
+  notesRender();
+  document.getElementById('notes-ta')?.focus();
+  const statusEl = document.getElementById('notes-save-status');
+  if (statusEl) statusEl.textContent = '✓ local';
+  return note;
+}
+
 async function notesLoad() {
   if (_notesLoaded) return;
   _notesLoaded = true;
@@ -825,14 +852,12 @@ async function notesNew() {
       activeNote = note.id;
       notesRender();
       document.getElementById('notes-ta')?.focus();
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+      return;
     }
+    throw new Error('notes create failed');
   } catch {
-    const id = 'local_' + Date.now();
-    NOTES.unshift({ id, title:'New Note', body:'', updated_at: new Date().toISOString() });
-    activeNote = id;
-    try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
-    notesRender();
-    document.getElementById('notes-ta')?.focus();
+    notesCreateLocal();
   }
 }
 
@@ -848,7 +873,7 @@ async function notesDelete(id) {
   } catch {}
   NOTES = NOTES.filter(n => n.id !== id);
   if (activeNote === id) activeNote = NOTES[0]?.id || null;
-  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+  notesPersistLocal();
   notesRender();
 }
 
@@ -866,7 +891,7 @@ async function notesTogglePin() {
     }
   } catch {}
   NOTES.sort((a,b) => (b.pinned?1:0)-(a.pinned?1:0));
-  try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+  notesPersistLocal();
   notesRender();
 }
 
@@ -891,14 +916,42 @@ function notesAutoSave() {
         body: JSON.stringify({ title: note.title, body: note.body, pinned: !!note.pinned })
       });
       if (!r.ok) throw new Error('notes save failed');
-      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+      notesPersistLocal();
       if (statusEl) statusEl.textContent = '✓ synced';
     } catch {
-      try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {}
+      notesPersistLocal();
       if (statusEl) statusEl.textContent = '✓ local';
     }
-    notesRender();
+    notesRenderListOnly();
   }, 900);
+}
+
+function notesRenderListOnly() {
+  const active = document.activeElement;
+  const ta = document.getElementById('notes-ta');
+  if (active === ta) {
+    const list = document.getElementById('notes-list');
+    if (!list) return;
+    const currentScroll = list.scrollTop;
+    list.innerHTML = '';
+    NOTES.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'note-item' + (n.id===activeNote?' active':'');
+      const date = n.updated_at ? new Date(n.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${n.pinned ? '<span style="font-size:10px;color:var(--accent);">📌</span>' : ''}
+          <div class="note-item-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(n.title||'Untitled')}</div>
+        </div>
+        <div class="note-item-preview">${esc((n.body||'').slice(0,60))}</div>
+        <div class="note-item-date">${date}</div>`;
+      el.onclick = () => notesOpen(n.id);
+      list.appendChild(el);
+    });
+    list.scrollTop = currentScroll;
+    return;
+  }
+  notesRender();
 }
 
 function notesUpdateCount() {
@@ -1391,22 +1444,23 @@ function applyUserToDesktop(user) {
   nameEls.forEach(el => el.textContent = user.name.split(' ')[0]);
   const avatarEls = document.querySelectorAll('.user-display-avatar');
   avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
-  // Show admin badge if admin
-  if (user.role === 'admin') {
-    const badge = document.getElementById('desktop-admin-badge') || document.createElement('div');
-    badge.id = 'desktop-admin-badge';
-    badge.style.cssText = 'position:fixed;bottom:12px;right:16px;background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;z-index:9999;cursor:pointer;font-family:monospace;';
-    badge.textContent = '⚡ Admin';
-    badge.onclick = () => location.href = 'admin.html';
-    if (!badge.parentNode) document.body.appendChild(badge);
-  }
+  document.getElementById('desktop-admin-badge')?.remove();
   // Show plan badge in menubar
   const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
   const planBadge = document.getElementById('mb-plan-badge') || (() => {
     const b = document.createElement('span');
     b.id = 'mb-plan-badge';
     b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
-    b.onclick = () => {};
+    b.title = 'Open subscription settings';
+    b.setAttribute('role', 'button');
+    b.tabIndex = 0;
+    b.onclick = () => { window.location.href = 'profile.html#plans'; };
+    b.onkeydown = e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        window.location.href = 'profile.html#plans';
+      }
+    };
     const mbRight = document.querySelector('.mb-right');
     if (mbRight) mbRight.prepend(b);
     return b;

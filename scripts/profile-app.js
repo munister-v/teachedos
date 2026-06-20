@@ -40,6 +40,16 @@ function toast(msg, dur = 2500) {
   toastTimer = setTimeout(() => el.classList.remove('show'), dur);
 }
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function setDisplay(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = value;
+}
+
 function readProfileCache() {
   try {
     return JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || 'null');
@@ -165,7 +175,15 @@ function switchTab(name) {
 
 function openPlansSection() {
   switchTab('settings');
-  setTimeout(() => document.getElementById('plan-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  const target = location.hash === '#billing' ? 'iban-payment-section' : 'plan-card';
+  setTimeout(() => {
+    const el = document.getElementById(target) || document.getElementById('plan-card');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (location.hash === '#billing') {
+      selectPlan('pro');
+      document.getElementById('iban-payment-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 80);
 }
 
 // ── Auth & Init ───────────────────────────────────────────────
@@ -198,12 +216,12 @@ async function init() {
     // Preload boards & shared lists so tabs don't sit on "Loading..."
     loadBoards().catch(() => {});
     loadSharedBoards().catch(() => {});
-    document.getElementById('page-loading').style.display = 'none';
-    if (me.role === 'admin') document.getElementById('nb-admin-link').style.display = '';
-    document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
-    document.getElementById('nb-user-info').style.display = '';
+    setDisplay('page-loading', 'none');
+    if (me.role === 'admin') setDisplay('nb-admin-link', '');
+    setText('nb-user-info', me.name.split(' ')[0]);
+    setDisplay('nb-user-info', '');
     updateMobileProfileSummary({ offline: !r.ok });
-    if (location.hash === '#plans') openPlansSection();
+    if (location.hash === '#plans' || location.hash === '#billing') openPlansSection();
   } catch (e) {
     if (cached?.me) {
       me = cached.me;
@@ -211,11 +229,11 @@ async function init() {
       renderOverview(true);
       loadBoards(true).catch(() => {});
       loadSharedBoards(true).catch(() => {});
-      document.getElementById('page-loading').style.display = 'none';
-      document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
-      document.getElementById('nb-user-info').style.display = '';
+      setDisplay('page-loading', 'none');
+      setText('nb-user-info', me.name.split(' ')[0]);
+      setDisplay('nb-user-info', '');
       updateMobileProfileSummary({ offline: true });
-      if (location.hash === '#plans') openPlansSection();
+      if (location.hash === '#plans' || location.hash === '#billing') openPlansSection();
       toast('Offline mode enabled');
       return;
     }
