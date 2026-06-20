@@ -30,7 +30,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .choice.flash-err{background:#f44336;color:#fff}
 .feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=187">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -48,7 +48,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 </div>
 
 <script>
-const QS=[
+let QS=[
   {s:'"She don\'t like coffee" is correct.',a:false,exp:'Should be: She doesn\'t like coffee'},
   {s:'"He has went home" is correct.',a:false,exp:'Should be: He has gone home'},
   {s:'"I am agree" is correct.',a:false,exp:'Should be: I agree'},
@@ -110,8 +110,22 @@ function endGame(){
   document.querySelector('.choices').innerHTML=`<button onclick="start()" style="grid-column:span 2;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').textContent='Final score: '+score+'/'+q.length;
 }
+function applyCustomContent(content,title){
+  const qs=(content&&content.statements||[]).map(s=>({
+    s:String(s.text||s.s||s.statement||'').trim(),
+    a:s.answer===true||String(s.answer).toLowerCase()==='true',
+    exp:String(s.exp||s.explanation||'').trim()
+  })).filter(s=>s.s);
+  if(qs.length<1)return;
+  QS=qs;
+  if(title){document.title=title+' · True or False';const h=document.querySelector('h1');if(h)h.textContent='✅ '+title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=187"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=188"></script>
 </body>
 </html>

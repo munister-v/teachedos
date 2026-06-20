@@ -55,7 +55,7 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 </div>
 
 <script>
-const QUESTIONS=[
+let QUESTIONS=[
   {q:"What does 'sustainable' mean?",opts:["Able to continue without causing damage","Very expensive","Quickly made","Dangerous"],ans:0},
   {q:"Choose the correct definition of 'negotiate':",opts:["To ignore problems","To try to reach an agreement by discussion","To make things worse","To write a letter"],ans:1},
   {q:"'Perspective' means:",opts:["A type of food","A particular way of thinking about something","A kind of sport","A legal document"],ans:1},
@@ -163,6 +163,22 @@ function endGame(){
   document.getElementById('finalMsg').textContent=pct+'% — '+QUESTIONS.length+' questions answered';
   window.parent.postMessage({type:'gameScore',score:score,max:max,game:'Speed Quiz'},'*');
 }
+
+function applyCustomContent(content,title){
+  const qs=(content&&content.questions||[]).map(q=>{
+    const opts=(q.opts||q.options||[]).map(x=>String(x||'').trim()).filter(Boolean);
+    let ans=Number.isFinite(q.ans)?q.ans:Number.isFinite(q.correct)?q.correct:opts.indexOf(String(q.answer||'').trim());
+    if(ans<0)ans=0;
+    return {q:String(q.q||q.text||q.prompt||'').trim(),opts,ans};
+  }).filter(q=>q.q&&q.opts.length>=2);
+  if(qs.length<1)return;
+  QUESTIONS=qs.map(q=>{while(q.opts.length<4)q.opts.push(['Not mentioned','Another option','All of these','None of these'][q.opts.length]);q.opts=q.opts.slice(0,4);q.ans=Math.min(q.ans,3);return q;});
+  if(title){document.title=title+' · Speed Quiz';const h=document.querySelector('h1');if(h)h.textContent='⚡ '+title;}
+  restart();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
 
 restart();
 </script>

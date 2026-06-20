@@ -29,7 +29,7 @@ svg.gallows{width:160px;height:140px}
 .key.right{background:#d4f7e0;color:#2e7d32}
 .msg{margin-top:16px;font-size:1.1rem;font-weight:700;min-height:24px;color:var(--accent)}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=187">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -55,7 +55,7 @@ svg.gallows{width:160px;height:140px}
   <div class="msg" id="msg"></div>
 </div>
 
-<script src="../scripts/vocabulary.js?v=187"></script>
+<script src="../scripts/vocabulary.js?v=188"></script>
 <script>
 let WORDS=[
   {w:'apple',h:'a fruit (яблуко)'},
@@ -165,8 +165,21 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+function applyCustomContent(content,title){
+  const words=((content&&content.words)||[]).map(w=>({w:String(w||'').trim().toLowerCase(),h:''}))
+    .concat(((content&&content.pairs)||[]).map(p=>({w:String(p.a||'').trim().toLowerCase(),h:String(p.b||'').trim()})))
+    .filter(x=>/^[a-z]+$/i.test(x.w));
+  if(words.length<1)return;
+  WORDS=words;
+  if(title){document.title=title+' · Hangman';const h=document.querySelector('h1');if(h)h.textContent='🎯 '+title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=187"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=188"></script>
 </body>
 </html>

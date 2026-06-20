@@ -444,6 +444,111 @@ function setNavUser() {
   } catch {}
 }
 
+function importClean(v) {
+  return String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+}
+
+function importArray(v) {
+  if (Array.isArray(v)) return v;
+  if (typeof v === 'string') return v.split(/\n|,/).map(importClean).filter(Boolean);
+  return [];
+}
+
+function importPairFromAny(item) {
+  if (Array.isArray(item)) return { a: importClean(item[0]), b: importClean(item[1]) };
+  if (!item || typeof item !== 'object') return null;
+  return {
+    a: importClean(item.a || item.left || item.word || item.term || item.text || item.question),
+    b: importClean(item.b || item.right || item.definition || item.meaning || item.def || item.answer || item.translation),
+  };
+}
+
+function importPairs(content) {
+  const sources = []
+    .concat(importArray(content.pairs))
+    .concat(importArray(content.items))
+    .concat(importArray(content.vocab))
+    .concat(importArray(content.glossary));
+  if (!sources.length && Array.isArray(content.questions)) {
+    content.questions.forEach(q => {
+      if (Array.isArray(q?.pairs)) sources.push(...q.pairs);
+      else if ((q?.type === 'match' || q?.answer) && (q?.text || q?.question)) sources.push(q);
+    });
+  }
+  return sources.map(importPairFromAny).filter(p => p && p.a && p.b);
+}
+
+function importWords(content) {
+  const direct = importArray(content.words);
+  if (direct.length) return direct.map(w => typeof w === 'object' ? importClean(w.word || w.en || w.a || w.text) : importClean(w)).filter(Boolean);
+  const pairs = importPairs(content);
+  if (pairs.length) return pairs.map(p => p.a).filter(Boolean);
+  return importArray(content.questions).map(q => importClean(q.text || q.q || q.prompt || q.question || q)).filter(Boolean);
+}
+
+function importSentences(content) {
+  const direct = importArray(content.sentences).map(importClean).filter(Boolean);
+  const gapQuestions = importArray(content.questions).filter(q => q && (q.type === 'gap-fill' || /_{2,}/.test(q.text || q.q || '')));
+  const fromQuestions = gapQuestions.map(q => {
+    const text = importClean(q.text || q.q || q.prompt);
+    const answer = importClean(q.answer);
+    if (!text) return '';
+    if (!answer) return text;
+    return /_{2,}/.test(text) ? text.replace(/_{2,}/, `___ (${answer})`) : `${text} | ${answer}`;
+  }).filter(Boolean);
+  return direct.concat(fromQuestions);
+}
+
+function importStatements(content) {
+  const direct = importArray(content.statements).map(s => ({
+    text: importClean(s.text || s.q || s.prompt || s.statement || s),
+    answer: s.answer === true || String(s.answer).toLowerCase() === 'true',
+  })).filter(s => s.text);
+  const fromQuestions = importArray(content.questions)
+    .filter(q => q && (q.type === 'truefalse' || typeof q.answer === 'boolean'))
+    .map(q => ({ text: importClean(q.text || q.q || q.prompt), answer: q.answer === true || String(q.answer).toLowerCase() === 'true' }))
+    .filter(s => s.text);
+  return direct.concat(fromQuestions);
+}
+
+function importMCQ(content) {
+  return importArray(content.questions).map(q => {
+    if (!q || typeof q !== 'object') return null;
+    const opts = importArray(q.opts || q.options || q.choices).map(importClean).filter(Boolean);
+    let correct = Number.isFinite(q.correct) ? q.correct : opts.indexOf(importClean(q.answer));
+    if (correct < 0) correct = 0;
+    return { q: importClean(q.q || q.text || q.prompt || q.question), opts, correct };
+  }).filter(q => q && q.q && q.opts.length >= 2).map(q => {
+    const opts = q.opts.slice(0, 4);
+    while (opts.length < 4) opts.push(['Not mentioned', 'Another option', 'All of these', 'None of these'][opts.length]);
+    return { q: q.q, opts, correct: Math.min(q.correct, opts.length - 1) };
+  });
+}
+
+function importCategories(content) {
+  const cats = importArray(content.categories).map(cat => ({
+    name: importClean(cat.name || cat.category || cat.title),
+    words: importArray(cat.words || cat.items).map(importClean).filter(Boolean),
+  })).filter(cat => cat.name && cat.words.length);
+  if (cats.length) return cats;
+  const byRight = {};
+  importPairs(content).forEach(p => { (byRight[p.b] = byRight[p.b] || []).push(p.a); });
+  return Object.entries(byRight).map(([name, words]) => ({ name, words })).filter(cat => cat.words.length >= 2);
+}
+
+function normalizeImportedContent(content, type) {
+  const c = content || {};
+  switch (type.fields) {
+    case 'pairs': return { pairs: importPairs(c) };
+    case 'words': return { words: importWords(c) };
+    case 'sentences': return { sentences: importSentences(c) };
+    case 'statements': return { statements: importStatements(c) };
+    case 'mcq': return { questions: importMCQ(c) };
+    case 'categories': return { categories: importCategories(c) };
+    default: return c;
+  }
+}
+
 function importTeacherToolPayload() {
   const raw = sessionStorage.getItem('teachedos_tools_to_game');
   if (!raw) return;
@@ -459,7 +564,8 @@ function importTeacherToolPayload() {
   document.getElementById('game-title').value = payload.title || ('Tool import: ' + selectedType.name);
   document.getElementById('game-level').value = payload.level || 'B1';
   document.getElementById('game-tags').value = (payload.tags || ['teacher-tools']).join(', ');
-  populateContent({ content: payload.content });
+  const normalized = normalizeImportedContent(payload.content, selectedType);
+  populateContent({ content: normalized });
   updateItemCounter();
   renderGameQuality();
   document.getElementById('smart-row').style.display = 'flex';
@@ -1585,6 +1691,7 @@ function addToBoard(id) {
   const customData = {
     customGameId: game.id, title: game.title, src: type.gameSrc,
     customContent: game.content, level: game.level,
+    naturalW: type.w, naturalH: type.h,
   };
   sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify(customData));
   window.location.href = 'board.html?addCustomGame=1';
@@ -1766,4 +1873,3 @@ async function migrateLocalGames() {
 
 init();
 setTimeout(() => migrateLocalGames().catch(() => {}), 1200);
-

@@ -151,6 +151,22 @@ function saveWords(){
   document.getElementById('editor').style.display='none';
 }
 
+function applyCustomContent(content,title){
+  const next=((content&&content.words)||[]).map(w=>String(w||'').trim())
+    .concat(((content&&content.pairs)||[]).map(p=>String(p.a||'').trim()))
+    .filter(Boolean).slice(0,24);
+  if(next.length<2)return;
+  words=next;
+  currentAngle=0;
+  if(title){document.title=title+' · Spin Wheel';const h=document.querySelector('h1');if(h)h.textContent='🎡 '+title;}
+  draw(currentAngle);
+  const res=document.getElementById('result');
+  if(res){res.textContent='Custom words loaded. Press SPIN.';res.className='result';}
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+
 draw(currentAngle);
 </script>
 </body>

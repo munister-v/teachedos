@@ -68,8 +68,8 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
   <button class="btn-play" onclick="restart()">Play Again</button>
 </div>
 
-<script src="../scripts/vocabulary.js?v=187"></script>
-<script src="../scripts/custom-sets.js?v=187"></script>
+<script src="../scripts/vocabulary.js?v=188"></script>
+<script src="../scripts/custom-sets.js?v=188"></script>
 <script>
 let VOCAB=[
   {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},
@@ -141,6 +141,7 @@ let deck=[],known=0,total=VOCAB.length,flipped=false;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 function restart(){
+  total=VOCAB.length;
   deck=shuffle([...VOCAB]);
   known=0;flipped=false;
   document.getElementById('final').style.display='none';
@@ -193,6 +194,22 @@ function endGame(){
     (known===total?'Perfect! 🏆':known>=total*0.7?'Great job! 💪':'Keep practising! 📚');
   window.parent.postMessage({type:'gameScore',score:known,max:total,game:'Flashcards'},'*');
 }
+
+function applyCustomContent(content,title){
+  const pairs=(content&&content.pairs||[]).map(p=>({
+    word:String(p.a||p.word||p.w||'').trim(),
+    ph:'',
+    tr:String(p.b||p.definition||p.d||'').trim(),
+    ex:String(p.example||'').trim()
+  })).filter(p=>p.word&&p.tr);
+  if(pairs.length<1)return;
+  VOCAB=pairs;
+  if(title){document.title=title+' · Flashcards';const h=document.querySelector('h1,.title,.game-title');if(h)h.textContent='🗂 '+title;}
+  restart();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
 
 restart();
 </script>

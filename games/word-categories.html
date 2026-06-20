@@ -35,7 +35,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .btn-clear{background:#f5f5f5;color:#999}
 .feedback{margin-top:12px;font-size:.95rem;font-weight:700;color:var(--accent);text-align:center;min-height:20px}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=187">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -52,7 +52,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 <div class="feedback" id="feedback"></div>
 
 <script>
-const ROUNDS=[
+let ROUNDS=[
   {cats:['🍎 Fruit','🥦 Vegetable'],words:{
     '🍎 Fruit':['apple','mango','grape','plum','peach'],
     '🥦 Vegetable':['carrot','onion','spinach','celery','turnip']
@@ -191,12 +191,13 @@ function checkRound(){
       if(round.words[cat].includes(w))correct++;
     });
   });
-  const allPlaced=Object.values(placements).reduce((s,a)=>s+a.length,0)===10;
-  if(!allPlaced){document.getElementById('feedback').textContent='Place all 10 words first!';return;}
+  const needed=Object.values(round.words).reduce((s,a)=>s+a.length,0);
+  const allPlaced=Object.values(placements).reduce((s,a)=>s+a.length,0)===needed;
+  if(!allPlaced){document.getElementById('feedback').textContent='Place all '+needed+' words first!';return;}
   score+=correct;
   document.getElementById('score').textContent=score;
     window.parent.postMessage({type:'teachedos-score',score:score},'*');
-  document.getElementById('feedback').textContent=`${correct}/10 correct`;
+  document.getElementById('feedback').textContent=`${correct}/${needed} correct`;
   document.getElementById('btn-check').style.display='none';
   document.getElementById('btn-next').style.display='';
   document.getElementById('btn-clear').style.display='none';
@@ -210,14 +211,31 @@ function nextRound(){
 }
 
 function endGame(){
+  const max=rounds.reduce((sum,r)=>sum+Object.values(r.words).reduce((s,a)=>s+a.length,0),0);
   document.getElementById('pool').innerHTML='';
   document.getElementById('columns').innerHTML='';
   document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
-  document.getElementById('feedback').textContent='Total score: '+score+'/80';
+  document.getElementById('feedback').textContent='Total score: '+score+'/'+max;
 }
+
+function applyCustomContent(content,title){
+  const cats=(content&&content.categories||[]).map(c=>({
+    name:String(c.name||c.category||'').trim(),
+    words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean)
+  })).filter(c=>c.name&&c.words.length);
+  if(cats.length<2)return;
+  const words={};
+  cats.forEach(c=>{words[c.name]=c.words.slice(0,8);});
+  ROUNDS=[{cats:cats.map(c=>c.name),words}];
+  if(title){document.title=title+' · Word Categories';const h=document.querySelector('h1');if(h)h.textContent='🗂 '+title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=187"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=188"></script>
 </body>
 </html>

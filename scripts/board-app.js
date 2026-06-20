@@ -1761,6 +1761,16 @@ function renderGame(el, card) {
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
+  iframe.addEventListener('load', () => {
+    if (!card.data.customContent) return;
+    try {
+      iframe.contentWindow.postMessage({
+        type: 'teachedos-custom-game-content',
+        title: card.data.title || 'Custom game',
+        content: card.data.customContent,
+      }, '*');
+    } catch {}
+  });
   body.appendChild(iframe);
 
   const overlay = document.createElement('div');
@@ -1916,7 +1926,7 @@ function renderAssignment(el, card) {
 
   const actionsHtml = isOwner
     ? `<button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
-       <button class="assign-build-btn" onclick="openTaskBuilder('${card.id}')">🛠 Builder</button>`
+       <button class="assign-build-btn" onclick="openAssignmentGameBuilderMenu('${card.id}', event)">🛠 Builder</button>`
     : (qs.length
         ? (prevResult
           ? `<div class="assign-prev-score">
@@ -7078,6 +7088,113 @@ function _ttGamePayloads(out) {
 // Kept for the enable check — true when at least one game fits.
 function _ttToGamePayload(out) { return _ttGamePayloads(out)[0] || null; }
 
+function _assignmentGamePayloads(data) {
+  const d = data || {};
+  const qs = Array.isArray(d.questions) ? d.questions : [];
+  if (!qs.length) return [];
+  const games = [];
+  const push = (gameType, label, icon, content) => games.push({ gameType, label, icon, content });
+
+  const matchPairs = qs.flatMap(q => Array.isArray(q.pairs)
+    ? q.pairs.map(p => ({ a: _ttG(p.a || p.left || p[0] || q.text), b: _ttG(p.b || p.right || p[1] || q.answer) }))
+    : (q.type === 'match' && q.text && q.answer ? [{ a: _ttG(q.text), b: _ttG(q.answer) }] : []))
+    .filter(p => p.a && p.b);
+  if (matchPairs.length >= 2) {
+    push('memory-match', 'Memory Match', '🃏', { pairs: matchPairs });
+    push('flashcards', 'Flashcards', '📇', { pairs: matchPairs });
+  }
+
+  const mcqs = qs.filter(q => Array.isArray(q.options) && q.options.length >= 2);
+  if (mcqs.length >= 2) {
+    push('speed-quiz', 'Speed Quiz', '⚡', {
+      questions: mcqs.map(q => ({
+        q: _ttG(q.q || q.text || q.prompt),
+        opts: q.options.map(_ttG).filter(Boolean),
+        correct: Math.max(0, q.options.map(_ttG).indexOf(_ttG(q.answer))),
+      })).filter(q => q.q && q.opts.length >= 2),
+    });
+  }
+
+  const tf = qs.filter(q => q.type === 'truefalse' || typeof q.answer === 'boolean');
+  if (tf.length >= 2) {
+    push('true-false', 'True or False', '✅', {
+      statements: tf.map(q => ({ text: _ttG(q.text || q.q || q.prompt), answer: q.answer === true || String(q.answer).toLowerCase() === 'true' }))
+        .filter(s => s.text),
+    });
+  }
+
+  const gaps = qs.filter(q => q.type === 'gap-fill' || /_{2,}/.test(q.text || ''));
+  if (gaps.length >= 2) {
+    push('fill-blank', 'Fill the Blank', '␣', {
+      sentences: gaps.map(q => {
+        const text = _ttG(q.text || q.q || q.prompt);
+        const answer = _ttG(q.answer);
+        if (!text) return '';
+        if (!answer) return text;
+        return /_{2,}/.test(text) ? text.replace(/_{2,}/, `___ (${answer})`) : `${text} | ${answer}`;
+      }).filter(Boolean),
+    });
+  }
+
+  const open = qs.filter(q => q.type === 'open' || (!q.options && !q.pairs && q.text));
+  if (open.length >= 2) {
+    push('spin-wheel', 'Spin the Wheel', '🎡', { words: open.map(q => _ttG(q.text || q.q || q.prompt)).filter(Boolean) });
+  }
+  return games.filter(g => {
+    const c = g.content || {};
+    return (c.pairs && c.pairs.length) || (c.questions && c.questions.length) || (c.statements && c.statements.length) || (c.sentences && c.sentences.length) || (c.words && c.words.length);
+  });
+}
+
+function openAssignmentGameBuilderMenu(cardId, ev) {
+  if (ev) ev.stopPropagation();
+  document.getElementById('assignment-game-menu')?.remove();
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const games = _assignmentGamePayloads(card.data);
+  const menu = document.createElement('div');
+  menu.id = 'assignment-game-menu';
+  menu.className = 'lesson-activity-menu assignment-game-menu';
+  const gameHtml = games.length
+    ? games.map(g => `<button class="lam-item" data-game="${g.gameType}"><span class="lam-ic">${g.icon}</span><span class="lam-txt"><strong>${esc(g.label)}</strong><small>Build from this activity</small></span></button>`).join('')
+    : `<div class="lam-empty">No playable game yet. Add match, MCQ, true/false, gap-fill or open questions.</div>`;
+  menu.innerHTML = `<div class="lam-head">🛠 Builder</div>
+    <button class="lam-item" data-edit="1"><span class="lam-ic">✏️</span><span class="lam-txt"><strong>Edit task questions</strong><small>Open the assignment builder</small></span></button>
+    ${games.length ? '<div class="lam-section">Create a game</div>' : ''}
+    ${gameHtml}`;
+  document.body.appendChild(menu);
+  const anchor = ev && ev.currentTarget ? ev.currentTarget : getCardEl(cardId);
+  const r = anchor.getBoundingClientRect();
+  const mw = 286;
+  menu.style.left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8)) + 'px';
+  menu.style.top = Math.max(8, Math.min(r.bottom + 6, window.innerHeight - menu.offsetHeight - 8)) + 'px';
+  menu.querySelector('[data-edit]')?.addEventListener('click', () => { menu.remove(); openTaskBuilder(cardId); });
+  menu.querySelectorAll('[data-game]').forEach(btn => btn.addEventListener('click', () => {
+    menu.remove();
+    sendAssignmentToGameType(cardId, btn.dataset.game);
+  }));
+  setTimeout(() => document.addEventListener('click', function outside(e) {
+    if (!e.target.closest('#assignment-game-menu')) menu.remove();
+  }, { once: true }), 0);
+}
+
+function sendAssignmentToGameType(cardId, gameType) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const games = _assignmentGamePayloads(card.data);
+  const g = games.find(x => x.gameType === gameType) || games[0];
+  if (!g) { toast('This activity can\'t become a game yet.', 'error'); return; }
+  const payload = {
+    gameType: g.gameType,
+    title: card.data.title || 'Board activity',
+    level: card.data.level || 'B1',
+    tags: ['board', 'activity'],
+    content: g.content,
+  };
+  try { sessionStorage.setItem('teachedos_tools_to_game', JSON.stringify(payload)); } catch (e) {}
+  window.location.href = 'game-builder.html';
+}
+
 function sendTeacherToolToGameType(gameType) {
   const games = _ttGamePayloads(lastTeacherToolBuilderOutput);
   const g = games.find(x => x.gameType === gameType) || games[0];
@@ -8083,7 +8200,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '187';
+const TEACHEDOS_ASSET_VERSION = '188';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -9802,12 +9919,16 @@ function runPendingCommunityImport() {
     setTimeout(() => {
       const r = boardWrap.getBoundingClientRect();
       const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
-      addCard('game', pos.x - 230, pos.y - 260, {
+      const gw = g.naturalW || 460;
+      const gh = g.naturalH || 520;
+      addCard('game', pos.x - gw/2, pos.y - gh/2, {
         title: g.title || 'Custom Game',
         src: g.src,
         customGameId: g.customGameId,
         customContent: g.customContent,
-      }, 460, 520);
+        naturalW: g.naturalW || 460,
+        naturalH: g.naturalH || 520,
+      }, gw, gh);
       scheduleSave && scheduleSave(); saveLocal && saveLocal();
       toast && toast('🎮 Custom game added: ' + (g.title || 'Game'));
       history.replaceState({}, '', location.pathname + (location.search.replace(/[?&]addCustomGame=[^&]*/,'') || ''));
@@ -10073,7 +10194,12 @@ renderGamesGrid = function(filter) {
     tile.addEventListener('mouseenter', () => { tile.style.borderColor = 'var(--accent)'; tile.style.transform = 'translateY(-2px)'; tile.style.boxShadow = '0 8px 24px rgba(200,230,50,.12)'; });
     tile.addEventListener('mouseleave', () => { tile.style.borderColor = 'var(--border)'; tile.style.transform = ''; tile.style.boxShadow = ''; });
     tile.addEventListener('click', () => {
-      addGameCard(g.gameSrc || 'games/flashcards.html', g.title, g.w || 460, g.h || 520);
+      addGameCard(g.gameSrc || 'games/flashcards.html', g.title, g.w || 460, g.h || 520, {
+        customGameId: g.id,
+        customContent: g.content,
+        naturalW: g.w,
+        naturalH: g.h,
+      });
     });
     grid.appendChild(tile);
   });
@@ -13669,7 +13795,7 @@ function renderGamesGrid(filter) {
 }
 function filterGames(q) { renderGamesGrid(q); }
 
-function addGameCard(src, title, w, h) {
+function addGameCard(src, title, w, h, extraData) {
   const r = boardWrap.getBoundingClientRect();
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
   // Cap to 80% of the visible board area so the card fits without scrolling
@@ -13679,7 +13805,7 @@ function addGameCard(src, title, w, h) {
   const cardH = Math.min(maxH, h);
   const fp = findFreePlacement(pos.x, pos.y, cardW, cardH);
   addCard('game', fp.x - cardW/2, fp.y - cardH/2,
-    { title, src, naturalW: w, naturalH: h }, cardW, cardH);
+    { title, src, naturalW: w, naturalH: h, ...(extraData || {}) }, cardW, cardH);
   closeGamesModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }

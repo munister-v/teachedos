@@ -63,7 +63,7 @@ input[type=text].wrong{border-color:#EC2D8C;background:#fdf0f5;animation:shake .
 </div>
 
 <script>
-const QUESTIONS=[
+let QUESTIONS=[
   {sentence:"The new sofa is really _____ to sit on.",answer:"comfortable"},
   {sentence:"We need more _____ energy sources for the planet.",answer:"sustainable"},
   {sentence:"They had to _____ the terms of the contract carefully.",answer:"negotiate"},
@@ -154,6 +154,26 @@ function endGame(){
   document.getElementById('finalMsg').textContent='You scored '+score+' out of '+QUESTIONS.length+' ('+pct+'%)';
   window.parent.postMessage({type:'gameScore',score:score,max:QUESTIONS.length,game:'Fill in the Blank'},'*');
 }
+
+function parseCustomSentence(raw){
+  const text=String(raw||'').trim();
+  if(!text)return null;
+  const pipe=text.split('|');
+  if(pipe.length>1)return {sentence:pipe[0].trim(),answer:pipe.slice(1).join('|').trim()};
+  const paren=text.match(/___\s*\(([^)]+)\)/);
+  if(paren)return {sentence:text.replace(/\s*\([^)]+\)/,'').trim(),answer:paren[1].trim()};
+  return null;
+}
+function applyCustomContent(content,title){
+  const qs=(content&&content.sentences||[]).map(parseCustomSentence).filter(Boolean);
+  if(qs.length<1)return;
+  QUESTIONS=qs;
+  if(title){document.title=title+' · Fill in the Blank';const h=document.querySelector('h1');if(h)h.textContent='✏️ '+title;}
+  restart();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
 
 restart();
 </script>

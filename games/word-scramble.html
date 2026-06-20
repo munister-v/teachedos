@@ -35,7 +35,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=187">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
 </head>
 <body>
 <a class="back" id="back-link" href="../index.html">← Games</a>
@@ -55,7 +55,7 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 </div>
 
 <script>
-const WORDS=[
+let WORDS=[
   {w:'journey',h:'a long trip (подорож)'},
   {w:'freedom',h:'being free (свобода)'},
   {w:'knowledge',h:'what you know (знання)'},
@@ -159,11 +159,24 @@ function endGame(){
   window.parent.postMessage({type:'game-finished', score:score, max: queue.length*2, time: 60 - timer, status:'done'}, '*');
 }
 
+function applyCustomContent(content,title){
+  const words=((content&&content.words)||[]).map(w=>({w:String(w||'').trim().toLowerCase(),h:''}))
+    .concat(((content&&content.pairs)||[]).map(p=>({w:String(p.a||'').trim().toLowerCase(),h:String(p.b||'').trim()})))
+    .filter(x=>/^[a-z][a-z -]{1,}$/i.test(x.w));
+  if(words.length<1)return;
+  WORDS=words;
+  if(title){document.title=title+' · Word Scramble';const h=document.querySelector('h1');if(h)h.textContent='🔀 '+title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+
 document.getElementById('ans').addEventListener('input',check);
 start();
 // Hide back-link when embedded in an iframe (board card or homework runner)
 if (window.top !== window) document.getElementById('back-link').style.display = 'none';
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=187"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=188"></script>
 </body>
 </html>
