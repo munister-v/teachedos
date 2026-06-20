@@ -503,6 +503,7 @@ function defaultTextData(data={}) {
     textColor: '#111111',
     bgColor: 'transparent',
     fontFamily: 'var(--font)',
+    fontSize: 16,
     align: 'left',
     ...data,
   };
@@ -848,6 +849,10 @@ function renderText(el, card) {
     content.innerHTML = card.data.html
       ? String(card.data.html).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
       : textToHtml(card.data.text || card.data.title || '');
+    content.addEventListener('mousedown', e => {
+      if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+      e.stopPropagation();
+    });
     content.addEventListener('dblclick', e => {
       e.stopPropagation();
       _generatedPanelEditingIds.add(card.id);
@@ -897,6 +902,14 @@ function renderText(el, card) {
   const tc = document.createElement('div');
   tc.className = 'card-close text-close'; tc.textContent = '×';
   tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
+  const dragStrip = document.createElement('div');
+  dragStrip.className = 'text-drag-strip';
+  dragStrip.textContent = 'Drag text';
+  dragStrip.title = 'Drag to move this text box';
+  dragStrip.addEventListener('mousedown', () => {
+    if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+  });
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -985,6 +998,7 @@ function renderText(el, card) {
     document.execCommand('insertText', false, text);
   });
   bindTextToolbar(toolbar, editor, card, el);
+  el.appendChild(dragStrip);
   body.appendChild(toolbar);
   body.appendChild(editor);
   el.appendChild(tc);
@@ -2322,6 +2336,46 @@ function applyTextStyles(card, editor) {
   editor.style.fontFamily = d.fontFamily || 'var(--font)';
   editor.style.textAlign = d.align || 'left';
   if (d.fontSize) editor.style.fontSize = d.fontSize + 'px';
+}
+
+function shouldScaleTextOnResize(card) {
+  return !!(card && card.type === 'text' && !card.data?.generatedPanel && !card.data?.interactive);
+}
+
+function textResizeScaleForDir(dir, sw, sh, nw, nh) {
+  const hasE = dir.includes('e');
+  const hasW = dir.includes('w');
+  const hasN = dir.includes('n');
+  const hasS = dir.includes('s');
+  const wRatio = sw > 0 ? nw / sw : 1;
+  const hRatio = sh > 0 ? nh / sh : 1;
+  if ((hasE || hasW) && !(hasN || hasS)) return wRatio;
+  if ((hasN || hasS) && !(hasE || hasW)) return hRatio;
+  return Math.sqrt(Math.max(0.01, wRatio * hRatio));
+}
+
+function applyTextResizeScale(card, el, resizeInfo, nw, nh) {
+  if (!shouldScaleTextOnResize(card) || !resizeInfo) return;
+  const base = resizeInfo.textFontSize || 16;
+  const ratio = textResizeScaleForDir(resizeInfo.dir || 'se', resizeInfo.sw, resizeInfo.sh, nw, nh);
+  const next = Math.max(8, Math.min(96, Math.round(base * ratio)));
+  card.data = defaultTextData(card.data || {});
+  card.data.fontSize = next;
+  const editor = el?.querySelector('.text-rich-editor');
+  if (editor) editor.style.fontSize = next + 'px';
+  const input = el?.querySelector('.text-size-input');
+  if (input) input.value = next;
+}
+
+function currentTextFontSize(card, el) {
+  const stored = parseInt(card?.data?.fontSize, 10);
+  if (stored) return stored;
+  const editor = el?.querySelector?.('.text-rich-editor');
+  if (editor) {
+    const computed = parseInt(getComputedStyle(editor).fontSize, 10);
+    if (computed) return computed;
+  }
+  return 16;
 }
 
 function bindTextToolbar(toolbar, editor, card, el) {
@@ -3785,7 +3839,10 @@ function startResize(e, card, el, dir) {
   resizeStart = {
     card, el, dir: dir || 'se',
     sw: card.w, sh: card.h, sx: card.x, sy: card.y,
-    mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey
+    mx: e.clientX, my: e.clientY, shiftHeld: e.shiftKey,
+    textFontSize: shouldScaleTextOnResize(card)
+      ? currentTextFontSize(card, el)
+      : null
   };
   // Lock body cursor to the handle's cursor so it doesn't flicker
   document.body.style.cursor = (
@@ -4021,6 +4078,7 @@ document.addEventListener('mousemove', e => {
     el.style.width = nw + 'px';
     el.style.height = nh + 'px';
     if (hasN || hasW) updateCardPos(card);
+    applyTextResizeScale(card, el, resizeStart, nw, nh);
     if (card.type === 'game') applyGameScale(el, card);
     _scheduleArrows(); _scheduleMinimap(); return;
   }
@@ -8025,7 +8083,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '186';
+const TEACHEDOS_ASSET_VERSION = '187';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14148,10 +14206,20 @@ function setDrawColor(c) {
 }
 function setDrawSize(v) {
   if (!_drawTool) return;
-  _drawState[_drawTool].size = parseInt(v, 10) || 1;
+  const sizeInput = document.getElementById('draw-size');
+  const min = parseInt(sizeInput?.min, 10) || 1;
+  const max = parseInt(sizeInput?.max, 10) || (_drawTool === 'eraser' ? 60 : _drawTool === 'marker' ? 40 : 20);
+  _drawState[_drawTool].size = Math.max(min, Math.min(max, parseInt(v, 10) || min));
   _saveDrawState();
+  if (sizeInput) sizeInput.value = _drawState[_drawTool].size;
   const sv = document.getElementById('draw-size-val');
   if (sv) sv.textContent = _drawState[_drawTool].size;
+}
+function adjustDrawSize(delta) {
+  if (!_drawTool) return;
+  const current = _drawState[_drawTool]?.size || parseInt(document.getElementById('draw-size')?.value, 10) || 1;
+  setDrawSize(current + delta);
+  _updateDpSizeDot();
 }
 // Click-outside closes palette
 document.addEventListener('mousedown', e => {
