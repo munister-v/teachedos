@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=180">
-<link rel="preload" as="style" href="styles/unify.css?v=180">
-<link rel="manifest" href="manifest.json?v=180">
+<link rel="preload" as="style" href="styles/harmony.css?v=181">
+<link rel="preload" as="style" href="styles/unify.css?v=181">
+<link rel="manifest" href="manifest.json?v=181">
 <link rel="preconnect" href="https://teachedos-api.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="//teachedos-api.onrender.com">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -214,6 +214,44 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .setting-btn.danger { background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.25); color: #ef4444; }
 .setting-btn.danger:hover { background: rgba(239,68,68,.15); }
 
+#plan-card .plan-option {
+  background: #fff;
+  border-color: rgba(94,94,74,.18);
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 8px 24px rgba(5,5,23,.035);
+  color: #1C1C1E;
+}
+#plan-card .plan-option:hover {
+  border-color: rgba(28,28,30,.28);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 30px rgba(5,5,23,.07);
+  transform: translateY(-1px);
+}
+#plan-card .plan-option.is-selected {
+  border-color: #1C1C1E !important;
+  background: linear-gradient(135deg, rgba(200,230,50,.18), rgba(255,255,255,.96)) !important;
+  box-shadow: 0 0 0 3px rgba(200,230,50,.16), 0 14px 34px rgba(5,5,23,.08);
+}
+#plan-card .plan-option-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: rgba(28,28,30,.055);
+}
+#plan-card .plan-option-title {
+  color: #1C1C1E;
+  opacity: 1;
+}
+#plan-card .plan-option-meta {
+  color: #5F5F50;
+  opacity: 1;
+}
+#plan-card .plan-option-price {
+  color: #050517 !important;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Emoji picker ── */
 .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .emoji-opt {
@@ -351,12 +389,12 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile-pro.css?v=180" media="(max-width: 860px)">
-<script src="theme.js?v=180" defer></script>
-<link rel="stylesheet" href="styles/mobile-unified.css?v=180">
-<link rel="stylesheet" href="styles/harmony.css?v=180">
-<link rel="stylesheet" href="styles/mobile-guard.css?v=180" media="(max-width: 860px), (display-mode: standalone)">
-<link rel="stylesheet" href="styles/unify.css?v=180">
+<link rel="stylesheet" href="styles/mobile-pro.css?v=181" media="(max-width: 860px)">
+<script src="theme.js?v=181" defer></script>
+<link rel="stylesheet" href="styles/mobile-unified.css?v=181">
+<link rel="stylesheet" href="styles/harmony.css?v=181">
+<link rel="stylesheet" href="styles/mobile-guard.css?v=181" media="(max-width: 860px), (display-mode: standalone)">
+<link rel="stylesheet" href="styles/unify.css?v=181">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -770,21 +808,21 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
           <div style="display:grid;gap:10px;">
             <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
-              <div style="font-size:1.5rem;">🚀</div>
+              <div class="plan-option-icon" style="font-size:1.35rem;">🚀</div>
               <div style="flex:1;">
-                <div style="font-size:14px;font-weight:800;">Teacher Pro</div>
-                <div style="font-size:11px;color:var(--text-3);">Unlimited boards · 30 students · Analytics</div>
+                <div class="plan-option-title" style="font-size:14px;font-weight:800;">Teacher Pro</div>
+                <div class="plan-option-meta" style="font-size:11px;">Unlimited boards · 30 students · Analytics</div>
               </div>
-              <div id="plan-price-pro" style="font-size:14px;font-weight:900;color:var(--accent);">$9.90/mo</div>
+              <div class="plan-option-price" id="plan-price-pro" style="font-size:14px;font-weight:900;">$9.90/mo</div>
             </div>
             <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
-              <div style="font-size:1.5rem;">🏫</div>
+              <div class="plan-option-icon" style="font-size:1.35rem;">🏫</div>
               <div style="flex:1;">
-                <div style="font-size:14px;font-weight:800;">School</div>
-                <div style="font-size:11px;color:var(--text-3);">Unlimited everything · Admin panel</div>
+                <div class="plan-option-title" style="font-size:14px;font-weight:800;">School</div>
+                <div class="plan-option-meta" style="font-size:11px;">Unlimited everything · Admin panel</div>
               </div>
-              <div id="plan-price-school" style="font-size:14px;font-weight:900;color:var(--accent);">$29/mo</div>
+              <div class="plan-option-price" id="plan-price-school" style="font-size:14px;font-weight:900;">$29/mo</div>
             </div>
           </div>
         </div>
@@ -855,11 +893,11 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=180"></script>
-<script src="scripts/profile-app.js?v=180"></script>
+<script src="scripts/app-core.js?v=181"></script>
+<script src="scripts/profile-app.js?v=181"></script>
 <script>
 if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=180',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=181',{updateViaCache:'none'}).then(reg=>{
     reg.update();
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing;
@@ -891,11 +929,11 @@ if('serviceWorker'in navigator){
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js?v=180"></script>
-<script src="scripts/nav-boost.js?v=180" defer></script>
-<script src="scripts/mobile-perf.js?v=180" defer></script>
-<script src="scripts/mobile-nav.js?v=180"></script>
-<script src="scripts/mobile-zoom-guard.js?v=180" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=180" defer></script>
+<script src="pwa.js?v=181"></script>
+<script src="scripts/nav-boost.js?v=181" defer></script>
+<script src="scripts/mobile-perf.js?v=181" defer></script>
+<script src="scripts/mobile-nav.js?v=181"></script>
+<script src="scripts/mobile-zoom-guard.js?v=181" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=181" defer></script>
 </body>
 </html>

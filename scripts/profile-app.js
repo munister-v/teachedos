@@ -1140,14 +1140,8 @@ function updateSelectedPlanPrice() {
 function selectPlan(plan) {
   _selectedPlan = plan;
   document.querySelectorAll('.plan-option').forEach(el => {
-    el.style.borderColor = 'var(--border)';
-    el.style.background = 'transparent';
+    el.classList.toggle('is-selected', el.id === 'plan-opt-' + plan);
   });
-  const opt = document.getElementById('plan-opt-' + plan);
-  if (opt) {
-    opt.style.borderColor = 'var(--accent)';
-    opt.style.background = 'rgba(200,230,50,.05)';
-  }
   document.getElementById('iban-payment-section').style.display = 'block';
   updateSelectedPlanPrice();
 }
