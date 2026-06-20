@@ -1,5 +1,5 @@
 (function () {
-  const ASSET_VERSION = '182';
+  const ASSET_VERSION = '183';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -192,13 +192,55 @@
         font-size: 12px;
         line-height: 1.5;
       }
+      .te-kbd-toast {
+        position: fixed;
+        left: 50%;
+        bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+        z-index: 100001;
+        transform: translate3d(-50%, 10px, 0);
+        opacity: 0;
+        pointer-events: none;
+        max-width: min(520px, calc(100vw - 24px));
+        padding: 10px 13px;
+        border-radius: 999px;
+        background: rgba(14,14,16,.94);
+        color: #F5F0E8;
+        box-shadow: 0 16px 42px rgba(5,5,23,.24);
+        font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+        font-size: 12px;
+        font-weight: 850;
+        letter-spacing: -.01em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: opacity .14s ease, transform .14s ease;
+      }
+      .te-kbd-toast.show {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0);
+      }
+      .te-kbd-toast kbd {
+        display: inline-flex;
+        align-items: center;
+        min-height: 20px;
+        padding: 0 7px;
+        margin: 0 2px;
+        border-radius: 7px;
+        background: rgba(200,230,50,.16);
+        color: #C8E632;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 950;
+        font-family: 'SFMono-Regular','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+      }
       @media (max-width: 620px) {
         .te-kbd-help { align-items: flex-end; padding: 10px; }
         .te-kbd-box { border-radius: 20px; padding: 18px; }
         .te-kbd-grid { grid-template-columns: 1fr; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .te-kbd-help { transition: none !important; }
+        .te-kbd-help,
+        .te-kbd-toast { transition: none !important; }
       }
     `;
     document.head.appendChild(ui);
@@ -291,12 +333,55 @@
     };
     let pendingG = false;
     let pendingTimer = 0;
+    let shortcutToastTimer = 0;
+    const scrollStoreKey = () => 'teachedos_scroll:' + location.pathname + location.search;
 
     function go(route) {
       if (!route) return;
       const next = new URL(route, location.href);
       if (next.pathname === location.pathname && next.hash === location.hash) return;
       location.href = next.href;
+    }
+
+    function showShortcutToast(html, timeout = 1200) {
+      let toast = document.getElementById('te-kbd-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'te-kbd-toast';
+        toast.className = 'te-kbd-toast';
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = html;
+      requestAnimationFrame(() => toast.classList.add('show'));
+      clearTimeout(shortcutToastTimer);
+      shortcutToastTimer = setTimeout(() => toast.classList.remove('show'), timeout);
+    }
+
+    function saveScrollPosition() {
+      if (isBoardPage()) return;
+      try {
+        sessionStorage.setItem(scrollStoreKey(), JSON.stringify({
+          x: Math.round(window.scrollX || 0),
+          y: Math.round(window.scrollY || 0),
+          t: Date.now()
+        }));
+      } catch {}
+    }
+
+    function restoreScrollPosition() {
+      if (isBoardPage() || location.hash) return;
+      let raw = null;
+      try { raw = sessionStorage.getItem(scrollStoreKey()); } catch {}
+      if (!raw) return;
+      let pos = null;
+      try { pos = JSON.parse(raw); } catch {}
+      if (!pos || Date.now() - (Number(pos.t) || 0) > 30 * 60 * 1000) return;
+      const behavior = reduceMotion() ? 'auto' : 'instant';
+      requestAnimationFrame(() => {
+        try { window.scrollTo({ left: pos.x || 0, top: pos.y || 0, behavior }); }
+        catch { window.scrollTo(pos.x || 0, pos.y || 0); }
+      });
     }
 
     function ensureShortcutOverlay() {
@@ -410,9 +495,17 @@
       if (pendingG) {
         pendingG = false;
         clearTimeout(pendingTimer);
+        if (key === '?' || key === '/') {
+          e.preventDefault();
+          openShortcutOverlay();
+          return;
+        }
         if (routes[key]) {
           e.preventDefault();
+          showShortcutToast(`Opening <kbd>G ${key.toUpperCase()}</kbd>`);
           go(routes[key]);
+        } else if (key.length === 1) {
+          showShortcutToast(`No route for <kbd>G ${key.toUpperCase()}</kbd>`);
         }
         return;
       }
@@ -420,12 +513,14 @@
       if (key === 'g' && !e.altKey && !e.shiftKey && !mod) {
         pendingG = true;
         clearTimeout(pendingTimer);
-        pendingTimer = setTimeout(() => { pendingG = false; }, 900);
+        showShortcutToast('Go to: <kbd>H</kbd> Home <kbd>B</kbd> Board <kbd>P</kbd> Profile <kbd>?</kbd> Help', 1400);
+        pendingTimer = setTimeout(() => { pendingG = false; }, 1200);
       }
     }
 
     function initInteractionLayer() {
       setScrollPadding();
+      restoreScrollPosition();
       if (location.hash) setTimeout(() => scrollToHash(location.hash), 80);
     }
 
@@ -433,6 +528,10 @@
     document.addEventListener('scroll', markScroll, { passive: true, capture: true });
     window.addEventListener('resize', setScrollPadding, { passive: true });
     window.addEventListener('orientationchange', () => setTimeout(setScrollPadding, 180), { passive: true });
+    window.addEventListener('pagehide', saveScrollPosition, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) saveScrollPosition();
+    }, { passive: true });
     window.addEventListener('keydown', handleKeydown, true);
     document.addEventListener('keydown', handleKeydown, true);
     window.addEventListener('mousedown', () => root.classList.remove('te-keyboard-nav'), { passive: true });
