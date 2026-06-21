@@ -2180,11 +2180,23 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
   window.__iwStateListener = true;
   window.addEventListener('message', e => {
     const m = e.data;
-    if (!m || m.type !== 'iw-state' || !m.cardId) return;
-    const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
-    if (!card || !card.data) return;
-    card.data._state = m.state;
-    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    if (!m) return;
+    if (m.type === 'iw-state' && m.cardId) {
+      const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
+      if (!card || !card.data) return;
+      card.data._state = m.state;
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
+    if (m.type === 'iw-progress' && m.cardId) {
+      try {
+        if (typeof currentBoardId !== 'undefined' && currentBoardId && typeof apiFetch === 'function') {
+          apiFetch('/api/boards/' + currentBoardId + '/progress', {
+            method: 'POST', body: { cardId: m.cardId, score: m.score, maxScore: m.maxScore, pct: m.pct }
+          }).catch(() => {});
+        }
+        try { sessionStorage.setItem('quiz_result_' + m.cardId, JSON.stringify({ score: m.score, maxScore: m.maxScore, pct: m.pct })); } catch {}
+      } catch {}
+    }
   });
 }
 
@@ -2303,7 +2315,9 @@ function checkAll(silent){
   el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) — Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) — Good job!':'📚 '+score+'/'+total+' ('+pct+'%) — Keep practicing!';
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='none';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='inline-block';
-  if(!silent){ el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop'); iwBeep(pct>=50); if(pct>=80) iwConfetti(); iwSave(); }
+  if(!silent){ el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop'); iwBeep(pct>=50); if(pct>=80) iwConfetti(); iwSave();
+    try{ if(window.__IW_CARD__) parent.postMessage({type:'iw-progress',cardId:window.__IW_CARD__,score:score,maxScore:total,pct:pct},'*'); }catch(e){}
+  }
 }
 function iwBeep(good){
   try{
