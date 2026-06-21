@@ -12937,6 +12937,7 @@ function quickPracticeVocab(cardId) {
 function renderChecklist(el, card) {
   const d = card.data;
   if (!d.items) d.items = [];
+  if (d.accent) { el.classList.add('tt-note'); el.style.setProperty('--tt-accent', d.accent); }
   el.appendChild(makeHeader('✅', d.title || 'Checklist', card.id));
   const body = document.createElement('div');
   body.className = 'card-body checklist-body';
@@ -13482,10 +13483,13 @@ function applyAiAssistantToBoard() {
   }[_aiSkill] || '#4262FF';
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
 
-  const ROW_LESSON = 140;
-  const ROW_STAGE  = 200;
-  const ROW3_H     = 240;
-  const ROW4_H     = 210;
+  const ROW_LESSON = 150;
+  const ROW_STAGE  = 230;
+  const ROW3_H     = 250;
+  const ROW4_H     = 220;
+
+  // Per-stage accent palette (warm → cool → warm progression)
+  const stageAccents = ['#F97316','#3B82F6','#8B5CF6','#10B981','#EC4899'];
 
   // ── Estimate total height before placing ────────────────────────
   const stages      = (result.stages || []).slice(0, 5);
@@ -13523,14 +13527,15 @@ function applyAiAssistantToBoard() {
     }, IW, ROW_LESSON);
     cy += ROW_LESSON + GAP;
 
-    // ── Row 2: Stage note cards (horizontal, equal widths) ──────
+    // ── Row 2: Stage note cards — each gets a unique accent stripe ──
     if (stages.length) {
       const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
       stages.forEach((stage, idx) => {
         addCard('note', ox + idx * (sw + GAP), cy, {
-          icon:  stageEmojis[idx] || '📌',
-          title: `${stage.time || ''} · ${stage.title || 'Stage'}`,
-          body:  stage.activity || '',
+          icon:   stageEmojis[idx] || '📌',
+          title:  `${stage.time || ''} · ${stage.title || 'Stage'}`,
+          body:   stage.activity || '',
+          accent: stageAccents[idx % stageAccents.length],
         }, sw, ROW_STAGE);
       });
       cy += ROW_STAGE + GAP;
@@ -13547,14 +13552,16 @@ function applyAiAssistantToBoard() {
       r3keys.forEach(key => {
         if (key === 'vocab') {
           addCard('checklist', rx, cy, {
-            title: '🗂 Target language',
-            items: result.vocabulary.slice(0, 10).map(text => ({ text, done: false })),
+            title:  '🗂 Target language',
+            items:  result.vocabulary.slice(0, 10).map(text => ({ text, done: false })),
+            accent: '#22C55E',
           }, rw, ROW3_H);
         } else if (key === 'memory') {
           addCard('note', rx, cy, {
-            icon:  '🧠',
-            title: 'Memory notes',
-            body:  [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
+            icon:   '🧠',
+            title:  'Memory notes',
+            body:   [...(result.memoryHints || []), ...(result.mistakeItems || []).map(x => '⚠ ' + x)].join('\n'),
+            accent: accent,
           }, rw, ROW3_H);
         } else if (key === 'homework') {
           addCard('assignment', rx, cy, {
@@ -13584,26 +13591,31 @@ function applyAiAssistantToBoard() {
           addCard('note', ex, cy, {
             icon: '☀️', title: 'Warm-up prompts',
             body: result.warmupPrompts.join('\n'),
+            accent: '#F97316',
           }, ew, ROW4_H);
         } else if (key === 'criteria') {
           addCard('checklist', ex, cy, {
             title: '✅ Success criteria',
             items: result.assessmentCriteria.map(text => ({ text, done: false })),
+            accent: '#10B981',
           }, ew, ROW4_H);
         } else if (key === 'extras') {
           addCard('checklist', ex, cy, {
             title: '⚡ Smart extras',
             items: result.modeAddons.map(text => ({ text, done: false })),
+            accent: accent,
           }, ew, ROW4_H);
         } else if (key === 'challenge') {
           addCard('note', ex, cy, {
             icon: '🚀', title: 'Challenge',
             body: result.challenge,
+            accent: '#EF4444',
           }, ew, ROW4_H);
         } else if (key === 'script') {
           addCard('note', ex, cy, {
             icon: '🎤', title: 'Teacher script',
             body: result.teacherScript.join('\n'),
+            accent: '#6366F1',
           }, ew, ROW4_H);
         }
         ex += ew + GAP;
