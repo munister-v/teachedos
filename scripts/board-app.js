@@ -2093,7 +2093,7 @@ function renderWorksheet(el, card) {
     const wrap = document.createElement('div');
     wrap.className = 'card-body text-interactive-wrap';
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = _buildInteractiveWSHtml(d);
+    iframe.srcdoc = _buildInteractiveWSHtml(d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner);
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
@@ -2174,12 +2174,30 @@ function deactivateWorksheet(cardId) {
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
-function _buildInteractiveWSHtml(d) {
+// Receive student answer-state posted by interactive worksheet iframes and
+// persist it on the card so it survives re-render / reload / move.
+if (typeof window !== 'undefined' && !window.__iwStateListener) {
+  window.__iwStateListener = true;
+  window.addEventListener('message', e => {
+    const m = e.data;
+    if (!m || m.type !== 'iw-state' || !m.cardId) return;
+    const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
+    if (!card || !card.data) return;
+    card.data._state = m.state;
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  });
+}
+
+function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
   const accent = d.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]?.color) || '#4262FF';
   const kind = String(d.kind || '').toLowerCase();
+  // Teacher key is only shown to the board owner (students just get correct/wrong
+  // feedback after Check). Persisted student state is injected for restore.
+  if (ownerView === undefined) ownerView = true;
+  const savedState = d._state || null;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
   let contentHtml = '';
@@ -2242,13 +2260,13 @@ function _buildInteractiveWSHtml(d) {
           inner = `<textarea class="iw-open-input" placeholder="Write your answer…" rows="2"></textarea>`;
         }
       } else if (q.type === 'open') {
-        inner = `<textarea class="iw-open-input" placeholder="Write your answer…" rows="2"></textarea>`;
+        inner = `<textarea class="iw-open-input" data-qi="${qi}" placeholder="Write your answer…" rows="2"></textarea>`;
       }
       return `<div class="iw-q"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${inner}</div></div>`;
     }).join('');
     contentHtml = qBlocks + `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
 
-    const hasKey = qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
+    const hasKey = ownerView && qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
     if (hasKey) {
       contentHtml += `<div class="iw-key-wrap">
         <button class="iw-key-toggle" onclick="toggleKey(this)">🔑 Show Answer Key</button>
@@ -2265,14 +2283,14 @@ function _buildInteractiveWSHtml(d) {
     }
 
     scriptHtml = `
-function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
-function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
-function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
+function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
+function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
+function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
 function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} }
 function toggleKey(btn){ const k=btn.nextElementSibling; const o=k.style.display!=='none'; k.style.display=o?'none':'block'; btn.textContent=o?'🔑 Show Answer Key':'🔑 Hide Answer Key'; }
 ${_iwDragScript(accent)}
 ${_iwSortScript(accent)}
-function checkAll(){
+function checkAll(silent){
   let score=0,total=0;
   document.querySelectorAll('.iw-opts').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-opt.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
   document.querySelectorAll('.iw-tf').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-tf-btn.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
@@ -2283,10 +2301,9 @@ function checkAll(){
   const el=document.getElementById('iw-score'); if(!el) return;
   const pct=total?Math.round(score/total*100):0; el.style.display='block';
   el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) — Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) — Good job!':'📚 '+score+'/'+total+' ('+pct+'%) — Keep practicing!';
-  el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop');
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='none';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='inline-block';
-  iwBeep(pct>=50); if(pct>=80) iwConfetti();
+  if(!silent){ el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop'); iwBeep(pct>=50); if(pct>=80) iwConfetti(); iwSave(); }
 }
 function iwBeep(good){
   try{
@@ -2322,7 +2339,40 @@ function iwReset(){
   const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='inline-block';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
-}`;
+  iwSave();
+}
+/* ── State persistence: snapshot DOM → object, post to parent; restore on load ── */
+function iwSnapshot(){
+  const s={ mcq:{}, tf:{}, gap:{}, open:{}, match:{}, sort:{}, odd:{}, checked:false };
+  document.querySelectorAll('.iw-opts').forEach(w=>{ const sel=w.querySelector('.iw-opt.selected'); if(sel) s.mcq[w.dataset.qi]=sel.dataset.val; });
+  document.querySelectorAll('.iw-tf').forEach(w=>{ const sel=w.querySelector('.iw-tf-btn.selected'); if(sel) s.tf[w.dataset.qi]=sel.dataset.val; });
+  document.querySelectorAll('.iw-gap').forEach(w=>{ const inp=w.querySelector('.iw-gap-input'); if(inp&&inp.value) s.gap[w.dataset.qi]=inp.value; });
+  document.querySelectorAll('.iw-open-input').forEach(t=>{ if(t.value) s.open[t.dataset.qi]=t.value; });
+  document.querySelectorAll('.iw-ooo').forEach(w=>{ const sel=w.querySelector('.iw-ooo-btn.selected'); if(sel) s.odd[w.dataset.qi]=sel.dataset.word; });
+  document.querySelectorAll('.iw-match').forEach(m=>{ const qi=m.dataset.qi, o={}; m.querySelectorAll('.iw-target').forEach((t,i)=>{ const v=t.querySelector('.iw-slot').textContent.trim(); if(v) o[i]=v; }); if(Object.keys(o).length) s.match[qi]=o; });
+  document.querySelectorAll('.iw-sort').forEach(w=>{ const qi=w.dataset.qi, o={}; w.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col) o[d.dataset.left]=col.dataset.cat; }); if(Object.keys(o).length) s.sort[qi]=o; });
+  s.checked=!!document.querySelector('.iw-opts[data-locked], .iw-tf[data-locked]') || (document.getElementById('iw-score')||{}).style && document.getElementById('iw-score').style.display==='block';
+  return s;
+}
+let _iwSaveT=null;
+function iwSave(){ try{ clearTimeout(_iwSaveT); _iwSaveT=setTimeout(()=>{ if(window.__IW_CARD__) parent.postMessage({ type:'iw-state', cardId:window.__IW_CARD__, state:iwSnapshot() }, '*'); }, 250); }catch(e){} }
+function iwRestore(s){
+  if(!s) return;
+  try{
+    Object.keys(s.mcq||{}).forEach(qi=>{ const w=document.querySelector('.iw-opts[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-opt[data-val="'+CSS.escape(s.mcq[qi])+'"]'); if(b) b.classList.add('selected'); });
+    Object.keys(s.tf||{}).forEach(qi=>{ const w=document.querySelector('.iw-tf[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-tf-btn[data-val="'+s.tf[qi]+'"]'); if(b) b.classList.add('selected'); });
+    Object.keys(s.gap||{}).forEach(qi=>{ const w=document.querySelector('.iw-gap[data-qi="'+qi+'"]'); if(w){ const inp=w.querySelector('.iw-gap-input'); if(inp) inp.value=s.gap[qi]; } });
+    Object.keys(s.open||{}).forEach(qi=>{ const t=document.querySelector('.iw-open-input[data-qi="'+qi+'"]'); if(t) t.value=s.open[qi]; });
+    Object.keys(s.odd||{}).forEach(qi=>{ const w=document.querySelector('.iw-ooo[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-ooo-btn[data-word="'+CSS.escape(s.odd[qi])+'"]'); if(b) b.classList.add('selected'); });
+    Object.keys(s.match||{}).forEach(qi=>{ const m=document.querySelector('.iw-match[data-qi="'+qi+'"]'); if(!m) return; const targets=m.querySelectorAll('.iw-target'); const o=s.match[qi]; Object.keys(o).forEach(i=>{ const t=targets[i]; if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=o[i]; slot.classList.add('filled'); const chip=m.querySelector('.iw-drag[data-left="'+CSS.escape(o[i])+'"]'); if(chip) chip.classList.add('placed'); }); });
+    Object.keys(s.sort||{}).forEach(qi=>{ const w=document.querySelector('.iw-sort[data-qi="'+qi+'"]'); if(!w) return; const o=s.sort[qi]; Object.keys(o).forEach(left=>{ const chip=w.querySelector('.iw-drag[data-left="'+CSS.escape(left)+'"]'); const col=w.querySelector('.iw-sort-col[data-cat="'+CSS.escape(o[left])+'"]'); if(chip&&col) col.querySelector('.iw-sort-drop').appendChild(chip); }); });
+    if(s.checked) checkAll(true);
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.iw-gap-input,.iw-open-input').forEach(el=>el.addEventListener('input',iwSave));
+  if(window.__IW_STATE__) iwRestore(window.__IW_STATE__);
+});`;
   }
 
   // ─── MODE: Vocab items (flashcards / essential vocab) ───
@@ -2459,6 +2509,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 </style></head><body>
 <div class="iw-title">${esc(d.title || d.kind || 'Interactive Activity')}</div>
 ${contentHtml}
+<script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};<\/script>
 <script>${scriptHtml}<\/script>
 </body></html>`;
 }
@@ -2473,35 +2524,36 @@ document.addEventListener('dragleave',e=>{ const tgt=e.target.closest('.iw-targe
 document.addEventListener('drop',e=>{
   e.preventDefault();
   const sortDrop=e.target.closest('.iw-sort-drop');
-  if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; dragEl=null; return; }
+  if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; dragEl=null; _iwS(); return; }
   const tgt=e.target.closest('.iw-target');
   if(!tgt||!dragEl) return;
   tgt.classList.remove('dragover');
   const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
   if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); slot.classList.remove('filled'); }
-  slot.textContent=dragEl.dataset.left; slot.classList.add('filled'); dragEl.classList.add('placed'); tgt.classList.remove('correct','wrong');
+  slot.textContent=dragEl.dataset.left; slot.classList.add('filled'); dragEl.classList.add('placed'); tgt.classList.remove('correct','wrong'); _iwS();
 });
+function _iwS(){ if(typeof iwSave==='function') iwSave(); }
 // Touch drag
 let touchDrag=null,touchClone=null;
 document.addEventListener('touchstart',e=>{ const d=e.target.closest('.iw-drag'); if(!d||d.classList.contains('placed')) return; touchDrag=d; touchClone=d.cloneNode(true); touchClone.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.08)'; document.body.appendChild(touchClone); const t=e.touches[0]; touchClone.style.left=(t.clientX-30)+'px'; touchClone.style.top=(t.clientY-16)+'px'; e.preventDefault(); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(!touchDrag) return; const t=e.touches[0]; if(touchClone){touchClone.style.left=(t.clientX-30)+'px';touchClone.style.top=(t.clientY-16)+'px';} document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(tgt=>{ const r=tgt.getBoundingClientRect(); tgt.classList.toggle('dragover',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom); }); e.preventDefault(); },{passive:false});
-document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); } else { const over=document.querySelector('.iw-target.dragover'); if(over){ const slot=over.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=over.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=touchDrag.dataset.left; slot.classList.add('filled'); touchDrag.classList.add('placed'); over.classList.remove('correct','wrong','dragover'); } } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; });
+document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); } else { const over=document.querySelector('.iw-target.dragover'); if(over){ const slot=over.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=over.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=touchDrag.dataset.left; slot.classList.add('filled'); touchDrag.classList.add('placed'); over.classList.remove('correct','wrong','dragover'); } } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; _iwS(); });
 // Click-to-place
 let clickSelected=null;
 document.addEventListener('click',e=>{
   const d=e.target.closest('.iw-drag');
   if(d&&!d.classList.contains('placed')){ document.querySelectorAll('.iw-drag').forEach(x=>{x.style.outline='';x.style.boxShadow='';}); d.style.outline='2.5px solid #fff';d.style.outlineOffset='2px';d.style.boxShadow='0 0 0 4px ${accent}'; clickSelected=d; return; }
   const sortDrop=e.target.closest('.iw-sort-drop');
-  if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; clickSelected=null; return; }
+  if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; clickSelected=null; _iwS(); return; }
   const tgt=e.target.closest('.iw-target');
-  if(tgt&&clickSelected){ const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=clickSelected.dataset.left; slot.classList.add('filled'); clickSelected.classList.add('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; tgt.classList.remove('correct','wrong'); clickSelected=null; }
+  if(tgt&&clickSelected){ const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=clickSelected.dataset.left; slot.classList.add('filled'); clickSelected.classList.add('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; tgt.classList.remove('correct','wrong'); clickSelected=null; _iwS(); }
 });`;
 }
 
 function _iwSortScript(accent) {
   return `
 // Return a drag chip back to the sort bank on double-click
-document.addEventListener('dblclick',e=>{ const d=e.target.closest('.iw-sort-drop .iw-drag'); if(d){ const bank=d.closest('.iw-sort').querySelector('.iw-sort-bank'); if(bank) bank.appendChild(d); } });`;
+document.addEventListener('dblclick',e=>{ const d=e.target.closest('.iw-sort-drop .iw-drag'); if(d){ const bank=d.closest('.iw-sort').querySelector('.iw-sort-bank'); if(bank) bank.appendChild(d); if(typeof iwSave==='function') iwSave(); } });`;
 }
 
 /* Flip the answer-key visibility on a worksheet card and re-render it. */
