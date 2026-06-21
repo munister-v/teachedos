@@ -391,7 +391,7 @@ router.get('/payments', requireAuth, async (req, res) => {
 });
 
 async function handleWebhook(req, res) {
-  if (!stripe) return res.status(400).json({ error: 'Stripe not configured' });
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) return res.status(400).json({ error: 'Stripe webhook not configured' });
   const sig = req.headers['stripe-signature'];
   let event;
   try {

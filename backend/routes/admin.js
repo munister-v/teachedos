@@ -131,14 +131,17 @@ router.get('/billing/summary', async (req, res) => {
          WHERE status='approved' AND created_at >= NOW() - INTERVAL '30 days'`
       ),
       pool.query(
-        `SELECT id, name, email, plan, plan_status, billing_cycle, plan_expires_at
+        `SELECT id, name, email, plan, plan_status, billing_cycle, plan_expires_at,
+           CASE WHEN plan_expires_at < NOW() THEN 'overdue'
+                WHEN plan_status = 'grace' THEN 'grace'
+                ELSE 'expiring' END AS urgency
          FROM users
          WHERE plan <> 'free'
            AND plan_status IN ('active', 'grace')
            AND plan_expires_at IS NOT NULL
            AND plan_expires_at <= NOW() + INTERVAL '7 days'
          ORDER BY plan_expires_at ASC
-         LIMIT 8`
+         LIMIT 12`
       ),
     ]);
     const statuses = Object.fromEntries(statusRows.rows.map(row => [row.status, row.count]));
@@ -847,6 +850,7 @@ router.patch('/users/:id', async (req, res) => {
       }
       sets.push(`plan=$${i++}`);
       vals.push(normalizePlanKey(plan));
+      changes.push(`plan→${plan}`);
     }
     if (plan_status !== undefined) {
       if (!['free', 'active', 'pending', 'grace', 'expired', 'canceled', 'rejected'].includes(plan_status)) {
@@ -854,14 +858,17 @@ router.patch('/users/:id', async (req, res) => {
       }
       sets.push(`plan_status=$${i++}`);
       vals.push(plan_status);
+      changes.push(`status→${plan_status}`);
     }
     if (billing_cycle !== undefined) {
       sets.push(`billing_cycle=$${i++}`);
       vals.push(normalizeCycleKey(billing_cycle));
+      changes.push(`cycle→${billing_cycle}`);
     }
     if (plan_expires_at !== undefined) {
       sets.push(`plan_expires_at=$${i++}`);
       vals.push(plan_expires_at || null);
+      changes.push(`expires→${plan_expires_at || 'null'}`);
     }
     if (password) {
       if (password.length < 8) {
@@ -880,13 +887,11 @@ router.patch('/users/:id', async (req, res) => {
       vals
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
-    if (changes.length) {
-      logAdminAction(req, 'user.update', {
-        targetId: rows[0].id,
-        targetLabel: rows[0].email,
-        detail: changes.join(', '),
-      });
-    }
+    logAdminAction(req, 'user.update', {
+      targetId: rows[0].id,
+      targetLabel: rows[0].email,
+      detail: changes.length ? changes.join(', ') : 'fields updated',
+    });
     res.json({ user: rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });

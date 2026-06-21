@@ -812,7 +812,9 @@ function openEditUser(u) {
   document.getElementById('mu-name').value   = u.name;
   document.getElementById('mu-email').value  = u.email;
   document.getElementById('mu-role').value   = u.role;
-  document.getElementById('mu-plan').value   = u.plan || 'free';
+  const planEl = document.getElementById('mu-plan');
+  planEl.value = u.plan || 'free';
+  planEl.dataset.original = u.plan || 'free';
   document.getElementById('mu-plan-status').value = u.plan_status || (u.plan === 'free' ? 'free' : 'active');
   document.getElementById('mu-billing-cycle').value = u.billing_cycle || 'monthly';
   document.getElementById('mu-plan-expires').value = u.plan_expires_at ? new Date(u.plan_expires_at).toISOString().slice(0, 10) : '';
@@ -841,6 +843,12 @@ async function saveUser() {
   if (newEmail && newEmail !== editingUserEmail) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { toast('Invalid email','error'); return; }
     body.email = newEmail;
+  }
+  // Warn on downgrade from paid plan to free
+  const currentPlan = document.getElementById('mu-plan').dataset.original || '';
+  if (currentPlan && currentPlan !== 'free' && body.plan === 'free') {
+    const ok = await new Promise(r => confirm('Downgrade to Free?', 'User will lose Pro/School features immediately. This cannot be undone without a new payment.', '⚠️', () => r(true), { label: 'Downgrade', color: '#dc2626' }));
+    if (!ok) return;
   }
   try {
     await api('PATCH', `/api/admin/users/${editingUserId}`, body);
@@ -967,6 +975,7 @@ async function grantSubscription() {
   const email = document.getElementById('grant-email').value.trim();
   if (!email) { toast('Enter user email', 'error'); return; }
   const payload = grantPayloadFromForm();
+  if (payload.plan !== 'free' && payload.months <= 0) { toast('Set months (1–24) for a paid plan', 'error'); return; }
   confirm(
     `Apply ${PLAN_CATALOG[payload.plan]?.label || payload.plan} to ${email}?`,
     payload.plan_expires_at ? `Subscription will expire on ${fmtDate(payload.plan_expires_at)}.` : 'This plan will be applied without an expiration date.',
@@ -1084,10 +1093,15 @@ async function loadBillingSummary() {
       root.innerHTML = `<div class="activity-item"><div><div class="activity-title">No paid plans expiring soon</div><div class="activity-sub">The next 7 days look clear.</div></div></div>`;
       return;
     }
+    const urgencyBadge = u => {
+      if (u.urgency === 'overdue') return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#fee2e2;color:#991b1b;margin-left:6px">OVERDUE</span>';
+      if (u.urgency === 'grace')   return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;margin-left:6px">GRACE</span>';
+      return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1e40af;margin-left:6px">EXPIRING</span>';
+    };
     root.innerHTML = rows.map(user => `
       <div class="activity-item">
         <div>
-          <div class="activity-title">${esc(user.name)} <span class="badge badge-${user.plan === 'school' ? 'admin' : 'teacher'}">${esc(user.plan)}</span></div>
+          <div class="activity-title">${esc(user.name)} <span class="badge badge-${user.plan === 'school' ? 'admin' : 'teacher'}">${esc(user.plan)}</span>${urgencyBadge(user)}</div>
           <div class="activity-sub">${esc(user.email)} · ${esc(user.plan_status || 'active')} · ${esc(user.billing_cycle || 'monthly')}</div>
         </div>
         <div class="activity-meta">${fmtDate(user.plan_expires_at)}</div>
@@ -1123,7 +1137,7 @@ async function loadBillingPayments() {
           <td data-label="Plan"><span class="badge badge-${p.plan === 'school' ? 'admin' : 'teacher'}">${esc(p.plan)}</span><div class="time-text">Current: ${currentState}</div>${p.current_plan_expires_at ? `<div class="time-text">Expires: ${fmtDate(p.current_plan_expires_at)}</div>` : ''}</td>
           <td data-label="Amount"><strong>${amount}</strong><div class="time-text">${esc(p.payer_name || '')}</div><div class="time-text">${Number(p.months || 1)} month(s)</div></td>
           <td data-label="Billing">${billingCycleLabel(p.billing_cycle || 'monthly')} · ${fmtDate(p.tx_date)}${p.company_name ? `<div class="time-text">${esc(p.company_name)}</div>` : ''}${note}${adminNote}</td>
-          <td data-label="Status"><span class="badge badge-${p.status === 'approved' ? 'admin' : p.status === 'rejected' ? 'student' : 'teacher'}">${esc(p.status)}</span></td>
+          <td data-label="Status"><span class="badge" style="background:${p.status==='approved'?'#dcfce7':p.status==='rejected'?'#fee2e2':p.status==='pending'?'#fef3c7':'#f3f4f6'};color:${p.status==='approved'?'#166534':p.status==='rejected'?'#991b1b':p.status==='pending'?'#92400e':'#374151'};font-weight:800">${esc(p.status.toUpperCase())}</span>${p.reviewed_at ? `<div class="time-text">${fmtDate(p.reviewed_at)}</div>` : ''}</td>
           <td data-label="Actions">
             ${pending ? `<div class="action-group">
               <button class="btn-sm btn-green" onclick="approvePayment(${p.id}, '${escAttr(p.user_name || 'user')}', '${escAttr(p.plan)}', ${Number(p.months || 1)}, '${escAttr(p.billing_cycle || 'monthly')}', '${escAttr(p.invoice_no || '')}')">Approve</button>
