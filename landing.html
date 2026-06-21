@@ -191,8 +191,15 @@ nav.ln{
   border-bottom:1px solid rgba(14,14,16,.06);
   display:flex;align-items:center;padding:0 14px;gap:7px;
 }
-.tb{width:11px;height:11px;border-radius:50%;}
-.tb.r{background:#ff5f57;} .tb.y{background:#febc2e;} .tb.g{background:#28c840;}
+/* Window chrome — TeachEd brand chips, not Apple traffic lights */
+.tb{
+  height:22px;border-radius:999px;display:inline-flex;align-items:center;
+  padding:0 9px;font-size:10px;font-weight:800;letter-spacing:.03em;
+  font-family:var(--mono,-apple-system,monospace);
+}
+.tb.r{background:rgba(236,45,140,.12);color:#EC2D8C;}
+.tb.y{background:rgba(200,230,50,.16);color:#6b8800;}
+.tb.g{background:rgba(14,14,16,.07);color:var(--ink3,#6a6a7a);}
 .preview-bar-title{
   flex:1;text-align:center;font-size:12px;font-weight:700;color:var(--ink3);
   letter-spacing:-.01em;
@@ -1146,7 +1153,7 @@ body.pwa-standalone .hero{
       <div class="preview-parallax">
       <div class="preview-shell">
         <div class="preview-bar">
-          <div class="tb r"></div><div class="tb y"></div><div class="tb g"></div>
+          <div class="tb r">Live</div><div class="tb y">Synced</div><div class="tb g">B1</div>
           <div class="preview-bar-title">TeachEd — Teacher Workspace</div>
         </div>
         <div class="preview-body">
