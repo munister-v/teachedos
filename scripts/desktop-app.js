@@ -1537,7 +1537,8 @@ function showAuthOverlay() {
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
+        <style>@keyframes _osSpin{to{transform:rotate(360deg)}}</style>
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
           <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
         </div>
@@ -1701,16 +1702,39 @@ function renderOsAuthFields() {
   const togText = document.getElementById('os-toggle-text');
   const togLink = document.getElementById('os-toggle-link');
   if (sub) sub.textContent = isLogin ? 'Sign in to your workspace' : 'Create your account';
-  if (btn) btn.textContent = isLogin ? 'Sign in' : 'Create account';
+  const btnLbl = document.getElementById('os-btn-lbl');
+  if (btnLbl) btnLbl.textContent = isLogin ? 'Sign in' : 'Create account';
+  const btnSpin = document.getElementById('os-btn-spinner');
+  if (btnSpin) btnSpin.style.display = 'none';
+  if (btn) { btn.disabled = false; }
   if (roleRow) roleRow.style.display = isLogin ? 'none' : 'block';
   if (togText) togText.textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
   if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
-  const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = (!isLogin ? `<input id="os-af-name" type="text" placeholder="Your full name" aria-label="Your full name" autocomplete="name" style="${INP}"   onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">` : '') +
-      `<input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">
-       <input id="os-af-pass" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" aria-label="${isLogin?'Password':'Password, minimum 8 characters'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP}margin-bottom:4px;" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.55);box-sizing:border-box;';
+  const INP_PLAIN = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.55);box-sizing:border-box;';
+  const WRAP_S = 'position:relative;margin-bottom:12px;';
+  const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#9A9AAA;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
+  const EYE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path class="eo" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eo" cx="12" cy="12" r="3"/>
+    <line class="ec" x1="1" y1="1" x2="23" y2="23" style="display:none"/><path class="ec" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" style="display:none"/></svg>`;
+  function _osEyeToggle(btn){
+    const inp = btn.previousElementSibling;
+    if (!inp) return;
+    const show = inp.type==='text';
+    inp.type = show?'password':'text';
+    btn.querySelectorAll('.eo').forEach(e=>e.style.display=show?'':'none');
+    btn.querySelectorAll('.ec').forEach(e=>e.style.display=show?'none':'');
+  }
+  const focusFn = "this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'";
+  const blurFn  = "this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'";
+  f.innerHTML =
+    (!isLogin ? `<div style="${WRAP_S}"><input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
+    `<div style="${WRAP_S}"><input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
+     <div style="${WRAP_S}"><input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP_S}" onfocus="${focusFn}" onblur="${blurFn}">
+       <button type="button" style="${EYE_S}" onclick="_osEyeToggle(this)" aria-label="Show password">${EYE_SVG}</button></div>`;
+  window._osEyeToggle = _osEyeToggle;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
 }
 
@@ -1787,7 +1811,10 @@ async function submitOsAuth() {
     errEl.style.display = 'block'; return;
   }
   errEl.style.display = 'none';
-  btn.disabled = true; btn.textContent = '…';
+  const spinEl = document.getElementById('os-btn-spinner');
+  const lblEl  = document.getElementById('os-btn-lbl');
+  btn.disabled = true;
+  if (spinEl) spinEl.style.display = 'block';
   let succeeded = false;
   try {
     const endpoint = isReg ? '/api/auth/register' : '/api/auth/login';
@@ -1803,7 +1830,11 @@ async function submitOsAuth() {
   } catch(err) {
     errEl.textContent = err.message; errEl.style.display='block';
   }
-  if (!succeeded) { btn.disabled = false; btn.textContent = isReg ? 'Create account' : 'Sign in'; }
+  if (!succeeded) {
+    btn.disabled = false;
+    if (spinEl) spinEl.style.display = 'none';
+    if (lblEl) lblEl.textContent = isReg ? 'Create account' : 'Sign in';
+  }
 }
 
 

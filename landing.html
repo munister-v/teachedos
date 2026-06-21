@@ -1799,82 +1799,57 @@ body.pwa-standalone .hero{
 </div>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
+<link rel="stylesheet" href="styles/auth.css">
 <style>
-#lp-auth{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
-  padding:20px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%,rgba(216,197,251,.22) 0%,transparent 60%),rgba(20,16,24,.42);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-#lp-auth.open{display:flex;}
-.lp-auth-card{background:rgba(247,243,234,.95);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);
-  border-radius:26px;padding:34px 32px 26px;width:min(404px,calc(100vw - 32px));margin:auto;position:relative;
-  box-shadow:0 48px 120px rgba(14,14,16,.40),0 0 0 1px rgba(255,255,255,.55),inset 0 1px 0 rgba(255,255,255,.8);
-  border:1px solid rgba(255,255,255,.6);}
-.lp-auth-x{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  background:rgba(14,14,16,.06);color:#3A3A40;font-size:18px;font-weight:800;line-height:1;transition:background .15s;}
-.lp-auth-x:hover{background:rgba(14,14,16,.12);}
-.lp-auth-head{text-align:center;margin-bottom:22px;}
-.lp-auth-logo{width:60px;height:60px;border-radius:14px;margin:0 auto 12px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.40));}
-.lp-auth-title{font-family:var(--serif);font-size:1.9rem;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--ink);}
-.lp-auth-title em{font-style:normal;color:var(--pink);}
-.lp-auth-sub{font-size:13px;color:var(--ink2);font-weight:600;margin-top:7px;}
-.lp-auth-err{display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;
-  padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;}
-.lp-google-area{display:none;margin-bottom:16px;}
-.lp-google-btn{display:flex;justify-content:center;min-height:44px;}
-.lp-or{display:flex;align-items:center;gap:10px;margin:14px 0 2px;color:var(--ink3);font-size:11px;font-weight:800;letter-spacing:.08em;font-family:var(--mono);}
-.lp-or span.line{flex:1;height:1px;background:rgba(94,94,74,.18);}
-.lp-role-row{display:none;margin-bottom:14px;}
-.lp-role-lbl{font-size:10px;font-weight:800;color:var(--ink3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
-.lp-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.lp-role{padding:13px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(255,255,255,.6);cursor:pointer;text-align:center;transition:.18s;}
-.lp-role.sel{border-color:var(--lime-dark);background:rgba(205,242,79,.18);}
-.lp-role-emoji{width:8px;height:8px;border-radius:999px;background:var(--lime-dark);margin:0 auto 7px;font-size:0;line-height:0;}
-.lp-role-name{font-size:12px;font-weight:800;color:var(--ink);}
-.lp-role-desc{font-size:10px;color:var(--ink3);margin-top:1px;}
-.lp-inp{width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.16);border-radius:13px;font-family:var(--font);
-  font-size:.95rem;font-weight:600;color:var(--ink);outline:none;margin-bottom:11px;background:rgba(255,255,255,.65);
-  transition:border-color .18s,box-shadow .18s;box-sizing:border-box;}
-.lp-inp:focus{border-color:var(--lime-dark);box-shadow:0 0 0 3px rgba(205,242,79,.28);}
-.lp-inp::placeholder{color:var(--ink3);font-weight:500;}
-.lp-auth-submit{width:100%;padding:14px;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);
-  color:var(--lime);font-family:var(--font);font-weight:800;font-size:15px;cursor:pointer;margin-top:6px;
-  box-shadow:0 6px 28px rgba(14,14,16,.28),inset 0 1px 0 rgba(255,255,255,.08);transition:filter .15s,transform .12s;}
-.lp-auth-submit:hover{filter:brightness(1.12);}
-.lp-auth-submit:active{transform:scale(.98);}
-.lp-auth-submit:disabled{opacity:.6;cursor:default;}
-.lp-forgot{text-align:right;margin-top:4px;}
-.lp-forgot button{color:var(--ink3);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
-.lp-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--ink2);font-weight:500;}
-.lp-toggle button{color:var(--ink);font-weight:800;margin-left:4px;text-decoration:underline;text-underline-offset:2px;}
+/* Landing-page auth: map old lp-* classes → auth.css tokens */
+#lp-auth { position:fixed;inset:0;z-index:9999;display:none; }
+#lp-auth.open { display:flex; }
+/* Reuse auth-overlay backdrop on the #lp-auth element itself */
+#lp-auth { align-items:center;justify-content:center;padding:20px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),
+    radial-gradient(ellipse 58% 46% at 86% 78%,rgba(216,197,251,.22) 0%,transparent 60%),rgba(20,16,24,.44);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
+/* lp-inp wraps are injected by JS — override padding-right for non-password */
+.lp-inp-wrap { position:relative;margin-bottom:11px; }
+.lp-inp-wrap .auth-inp:not([type="password"]) { padding-right:16px; }
 </style>
 <div id="lp-auth" role="dialog" aria-modal="true" aria-label="Sign in to TeachEd">
-  <div class="lp-auth-card">
-    <button class="lp-auth-x" type="button" onclick="closeAuth()" aria-label="Close">×</button>
-    <div class="lp-auth-head">
-      <img class="lp-auth-logo" src="logo-sm.png" alt="TeachEd">
-      <div class="lp-auth-title">Teach<em>Ed</em></div>
-      <div class="lp-auth-sub" id="lp-auth-sub">Sign in to your workspace</div>
+  <div class="auth-card">
+    <button class="auth-close" type="button" onclick="closeAuth()" aria-label="Close">×</button>
+    <div class="auth-head">
+      <img class="auth-logo" src="logo-sm.png" alt="TeachEd">
+      <div class="auth-title">Teach<em>Ed</em></div>
+      <div class="auth-sub" id="lp-auth-sub">Sign in to your workspace</div>
     </div>
-    <div class="lp-auth-err" id="lp-auth-err"></div>
-    <div class="lp-google-area" id="lp-google-area">
-      <div class="lp-google-btn" id="lp-google-btn"></div>
-      <div class="lp-or"><span class="line"></span>OR<span class="line"></span></div>
+    <div class="auth-err" id="lp-auth-err"></div>
+    <div class="auth-google-area" id="lp-google-area">
+      <div class="auth-google-btn" id="lp-google-btn"></div>
+      <div class="auth-or"><span class="auth-or-line"></span>OR<span class="auth-or-line"></span></div>
     </div>
-    <div class="lp-role-row" id="lp-role-row">
-      <div class="lp-role-lbl">I am a…</div>
-      <div class="lp-role-grid">
-        <div class="lp-role sel" id="lp-role-teacher" onclick="selectRole('teacher')">
-          <div class="lp-role-emoji" aria-hidden="true"></div><div class="lp-role-name">Teacher</div><div class="lp-role-desc">Create &amp; manage</div>
+    <div id="lp-role-row" style="display:none;margin-bottom:16px;">
+      <div class="auth-role-lbl">I am a…</div>
+      <div class="auth-role-grid">
+        <div class="auth-role sel" id="lp-role-teacher" onclick="selectRole('teacher')">
+          <div class="auth-role-ic">🧑‍🏫</div>
+          <div class="auth-role-name">Teacher</div>
+          <div class="auth-role-desc">Create &amp; manage</div>
         </div>
-        <div class="lp-role" id="lp-role-student" onclick="selectRole('student')">
-          <div class="lp-role-emoji" aria-hidden="true"></div><div class="lp-role-name">Student</div><div class="lp-role-desc">Learn &amp; progress</div>
+        <div class="auth-role" id="lp-role-student" onclick="selectRole('student')">
+          <div class="auth-role-ic">🎓</div>
+          <div class="auth-role-name">Student</div>
+          <div class="auth-role-desc">Learn &amp; progress</div>
         </div>
       </div>
     </div>
     <div id="lp-auth-fields"></div>
-    <button class="lp-auth-submit" id="lp-auth-submit" type="button" onclick="submitAuth()">Sign in</button>
-    <div class="lp-forgot" id="lp-forgot-row"><button type="button" onclick="startForgot()">Forgot password?</button></div>
-    <div class="lp-toggle">
+    <button class="auth-btn" id="lp-auth-submit" type="button" onclick="submitAuth()">
+      <span class="auth-btn-spinner"></span>
+      <span class="auth-btn-lbl">Sign in</span>
+    </button>
+    <div class="auth-forgot" id="lp-forgot-row">
+      <button type="button" onclick="startForgot()">Forgot password?</button>
+    </div>
+    <div class="auth-toggle">
       <span id="lp-toggle-text">Don't have an account?</span>
       <button type="button" id="lp-toggle-link" onclick="toggleAuthMode()">Register</button>
     </div>
@@ -1931,6 +1906,29 @@ body.pwa-standalone .hero{
     $('lp-role-teacher').classList.toggle('sel', r==='teacher');
     $('lp-role-student').classList.toggle('sel', r==='student');
   };
+
+  // Eye toggle for password fields
+  window._lpToggleEye = function(inputId, btn){
+    const inp = $(inputId);
+    const showing = inp.type === 'text';
+    inp.type = showing ? 'password' : 'text';
+    btn.querySelectorAll('.eye-open').forEach(el => el.style.display = showing ? '' : 'none');
+    btn.querySelectorAll('.eye-closed').forEach(el => el.style.display = showing ? 'none' : '');
+  };
+
+  const EYE_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eye-open" cx="12" cy="12" r="3"/>
+    <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display:none"/>
+    <path class="eye-closed" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" style="display:none"/>
+  </svg>`;
+
+  function makeField(id, type, placeholder, autocomplete){
+    const isPass = type === 'password';
+    return `<div class="lp-inp-wrap${isPass?' has-toggle':''}">
+      <input class="auth-inp" id="${id}" type="${type}" inputmode="${type==='email'?'email':''}" autocapitalize="${type==='email'?'none':''}" autocorrect="${type==='email'?'off':''}" spellcheck="false" placeholder="${placeholder}" autocomplete="${autocomplete}">
+      ${isPass ? `<button type="button" class="auth-eye" onclick="_lpToggleEye('${id}',this)" aria-label="Show password">${EYE_SVG}</button>` : ''}
+    </div>`;
+  }
   window.toggleAuthMode = function(){
     mode = (mode === 'login') ? 'register' : 'login';
     const err = $('lp-auth-err'); if (err) err.style.display='none';
@@ -1941,7 +1939,9 @@ body.pwa-standalone .hero{
     const isLogin = mode === 'login';
     $('lp-auth-sub').textContent = isLogin ? 'Sign in to your workspace' : 'Create your account';
     const btn = $('lp-auth-submit');
-    btn.textContent = isLogin ? 'Sign in' : 'Create account';
+    const lbl = btn.querySelector('.auth-btn-lbl');
+    if (lbl) lbl.textContent = isLogin ? 'Sign in' : 'Create account';
+    btn.classList.remove('loading'); btn.disabled = false;
     btn.onclick = submitAuth;
     $('lp-role-row').style.display   = isLogin ? 'none' : 'block';
     $('lp-forgot-row').style.display = isLogin ? '' : 'none';
@@ -1950,10 +1950,11 @@ body.pwa-standalone .hero{
     $('lp-toggle-link').onclick = toggleAuthMode;
     const f = $('lp-auth-fields');
     f.innerHTML =
-      (!isLogin ? `<input class="lp-inp" id="lp-af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
-      `<input class="lp-inp" id="lp-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email">
-       <input class="lp-inp" id="lp-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">`;
+      (!isLogin ? makeField('lp-af-name', 'text', 'Your full name', 'name') : '') +
+      makeField('lp-af-email', 'email', 'Email address', 'email') +
+      makeField('lp-af-pass', 'password', isLogin ? 'Password' : 'Password (min 8 chars)', isLogin ? 'current-password' : 'new-password');
     f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); }));
+    if (!isLogin) $('lp-af-name')?.focus(); else $('lp-af-email')?.focus();
   }
 
   window.submitAuth = async function(){
@@ -1968,7 +1969,7 @@ body.pwa-standalone .hero{
     if (isReg && !name){ err.textContent='Please enter your full name.'; err.style.display='block'; return; }
     if (isReg && pass.length < 8){ err.textContent='Password must be at least 8 characters.'; err.style.display='block'; return; }
     err.style.display='none';
-    btn.disabled = true; btn.textContent = '…';
+    btn.classList.add('loading'); btn.disabled = true;
     try{
       const endpoint = isReg ? '/api/auth/register' : '/api/auth/login';
       const body = isReg ? {email,password:pass,name,role} : {email,password:pass};
@@ -1979,7 +1980,7 @@ body.pwa-standalone .hero{
       applySuccess(d);
     }catch(e){
       err.textContent = e.message; err.style.display='block';
-      btn.disabled = false; btn.textContent = isReg ? 'Create account' : 'Sign in';
+      btn.classList.remove('loading'); btn.disabled = false;
     }
   };
 
@@ -1993,25 +1994,34 @@ body.pwa-standalone .hero{
     $('lp-toggle-text').textContent = 'Remember your password?';
     const link = $('lp-toggle-link'); link.textContent = 'Sign in';
     link.onclick = () => { mode='login'; renderFields(); setupGoogle(); };
-    const btn = $('lp-auth-submit'); btn.textContent = 'Send reset link'; btn.onclick = submitForgot;
-    $('lp-auth-fields').innerHTML = `<input class="lp-inp" id="lp-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" autocomplete="email">`;
+    const btn = $('lp-auth-submit');
+    const lbl = btn.querySelector('.auth-btn-lbl');
+    if(lbl) lbl.textContent = 'Send reset link';
+    btn.classList.remove('loading'); btn.disabled = false;
+    btn.onclick = submitForgot;
+    $('lp-auth-fields').innerHTML = makeField('lp-af-email','email','Your email address','email');
     $('lp-af-email').addEventListener('keydown', e => { if (e.key==='Enter') submitForgot(); });
+    $('lp-af-email')?.focus();
   };
 
   async function submitForgot(){
     const email = $('lp-af-email')?.value.trim();
     const err = $('lp-auth-err'); const btn = $('lp-auth-submit');
     if (!email) return;
-    err.style.display='none'; btn.disabled=true; btn.textContent='Sending…';
+    err.style.display='none';
+    btn.classList.add('loading'); btn.disabled=true;
+    const lbl = btn.querySelector('.auth-btn-lbl');
     try{
       await fetch(API + '/api/auth/forgot-password', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email}) });
-      err.style.color = '#179955';
+      err.style.background='rgba(240,255,245,.97)'; err.style.borderColor='rgba(22,163,74,.24)'; err.style.color='#166534';
       err.textContent = '✓ If that email is registered, a reset link is on its way.';
-      err.style.display='block'; btn.textContent='Sent';
+      err.style.display='block';
+      if(lbl) lbl.textContent='Sent ✓';
+      btn.classList.remove('loading');
       $('lp-auth-fields').innerHTML='';
     }catch{
-      err.style.color='#d73333'; err.textContent='Something went wrong. Please try again.';
-      err.style.display='block'; btn.disabled=false; btn.textContent='Send reset link';
+      err.style.color='#c62828'; err.textContent='Something went wrong. Please try again.';
+      err.style.display='block'; btn.classList.remove('loading'); btn.disabled=false;
     }
   }
 

@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd shared auth styles — used by:
+   • landing.html  (#lp-auth modal)
+   • reset-password.html (.auth-page)
+   • os-auth-overlay (desktop-app.js, injected via .os-auth-*)
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --auth-lime:      #C8E632;
+  --auth-lime-dark: #8DB800;
+  --auth-ink:       #1C1C1E;
+  --auth-ink2:      #5A5A6A;
+  --auth-ink3:      #9A9AAA;
+  --auth-border:    rgba(94,94,74,.16);
+  --auth-bg-field:  rgba(255,255,255,.70);
+  --auth-card-bg:   rgba(247,244,238,.96);
+  --auth-radius:    14px;
+}
+
+/* ── Overlay / backdrop ──────────────────────────────────────── */
+.auth-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(216,197,251,.20) 0%, transparent 60%),
+    rgba(16,14,22,.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.auth-card {
+  background: var(--auth-card-bg);
+  backdrop-filter: blur(44px) saturate(1.9);
+  -webkit-backdrop-filter: blur(44px) saturate(1.9);
+  border-radius: 28px;
+  padding: 36px 36px 28px;
+  width: min(420px, calc(100vw - 32px));
+  position: relative; margin: auto;
+  box-shadow:
+    0 52px 120px rgba(14,14,16,.44),
+    0 0 0 1px rgba(255,255,255,.55),
+    inset 0 1.5px 0 rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.62);
+}
+
+/* ── Close button ────────────────────────────────────────────── */
+.auth-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 10px;
+  background: rgba(14,14,16,.06); color: var(--auth-ink2);
+  font-size: 18px; font-weight: 800; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; transition: background .15s;
+}
+.auth-close:hover { background: rgba(14,14,16,.13); }
+
+/* ── Header ──────────────────────────────────────────────────── */
+.auth-head { text-align: center; margin-bottom: 26px; }
+.auth-logo {
+  width: 64px; height: 64px; border-radius: 16px;
+  margin: 0 auto 14px; display: block;
+  filter: drop-shadow(0 4px 18px rgba(160,200,20,.42));
+}
+.auth-title {
+  font-size: 2rem; font-weight: 900; letter-spacing: -.055em; line-height: 1;
+  color: var(--auth-ink); margin-bottom: 5px;
+}
+.auth-title em { font-style: normal; color: #EC2D8C; }
+.auth-sub {
+  font-size: 13px; color: var(--auth-ink2); font-weight: 600; margin-top: 0;
+  letter-spacing: .005em;
+}
+
+/* ── Error / success banners ─────────────────────────────────── */
+.auth-err {
+  display: none; background: rgba(255,245,245,.97); border: 1.5px solid rgba(239,68,68,.24);
+  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #c62828;
+  margin-bottom: 14px; font-weight: 600; line-height: 1.4;
+}
+.auth-ok {
+  display: none; background: rgba(240,255,245,.97); border: 1.5px solid rgba(22,163,74,.24);
+  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #166534;
+  margin-bottom: 14px; font-weight: 600; line-height: 1.4;
+}
+
+/* ── Role selector ───────────────────────────────────────────── */
+.auth-role-lbl {
+  font-size: 10px; font-weight: 800; color: var(--auth-ink3);
+  font-family: monospace; letter-spacing: .09em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.auth-role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.auth-role {
+  padding: 14px 10px 12px; border-radius: 14px;
+  border: 2px solid var(--auth-border); background: rgba(255,255,255,.62);
+  cursor: pointer; text-align: center; transition: border-color .18s, background .18s, transform .12s;
+  user-select: none;
+}
+.auth-role:hover { border-color: rgba(141,184,0,.4); background: rgba(205,242,79,.10); transform: translateY(-1px); }
+.auth-role.sel {
+  border-color: var(--auth-lime-dark);
+  background: rgba(205,242,79,.18);
+  box-shadow: 0 2px 12px rgba(141,184,0,.18);
+}
+.auth-role-ic { font-size: 1.7rem; line-height: 1; margin-bottom: 5px; }
+.auth-role-name { font-size: 12px; font-weight: 800; color: var(--auth-ink); }
+.auth-role-desc { font-size: 10px; color: var(--auth-ink3); margin-top: 2px; line-height: 1.3; }
+
+/* ── Input fields ────────────────────────────────────────────── */
+.auth-field-wrap { position: relative; margin-bottom: 11px; }
+.auth-inp {
+  width: 100%; padding: 13px 16px; padding-right: 44px;
+  border: 1.5px solid var(--auth-border); border-radius: var(--auth-radius);
+  font-family: inherit; font-size: .95rem; font-weight: 600; color: var(--auth-ink);
+  outline: none; background: var(--auth-bg-field);
+  transition: border-color .18s, box-shadow .18s;
+  box-sizing: border-box; -webkit-appearance: none;
+}
+.auth-inp:focus {
+  border-color: var(--auth-lime-dark);
+  box-shadow: 0 0 0 3px rgba(205,242,79,.28);
+}
+.auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
+/* No eye button for non-password fields */
+.auth-field-wrap:not(.has-toggle) .auth-inp { padding-right: 16px; }
+
+/* ── Password eye toggle ─────────────────────────────────────── */
+.auth-eye {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px; border: none; background: none; cursor: pointer;
+  color: var(--auth-ink3); display: flex; align-items: center; justify-content: center;
+  border-radius: 7px; transition: color .14s, background .14s;
+}
+.auth-eye:hover { color: var(--auth-ink2); background: rgba(14,14,16,.06); }
+.auth-eye svg { width: 18px; height: 18px; pointer-events: none; }
+
+/* ── Submit button ───────────────────────────────────────────── */
+.auth-btn {
+  width: 100%; padding: 14px; border: none; border-radius: var(--auth-radius);
+  background: linear-gradient(140deg, #1C1C1E 0%, #2D2D30 100%);
+  color: var(--auth-lime); font-family: inherit; font-weight: 800; font-size: 15px;
+  cursor: pointer; margin-top: 6px; letter-spacing: -.01em;
+  box-shadow: 0 6px 28px rgba(14,14,16,.28), inset 0 1px 0 rgba(255,255,255,.08);
+  transition: filter .15s, transform .12s, box-shadow .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  position: relative; overflow: hidden;
+}
+.auth-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 10px 36px rgba(14,14,16,.34), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.auth-btn:active:not(:disabled) { transform: scale(.98); }
+.auth-btn:disabled { opacity: .55; cursor: default; }
+
+/* Spinner inside button */
+.auth-btn-spinner {
+  display: none; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(200,230,50,.3); border-top-color: var(--auth-lime);
+  animation: auth-spin .55s linear infinite; flex-shrink: 0;
+}
+.auth-btn.loading .auth-btn-spinner { display: block; }
+.auth-btn.loading .auth-btn-lbl { opacity: .7; }
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+
+/* ── Or divider ──────────────────────────────────────────────── */
+.auth-or {
+  display: flex; align-items: center; gap: 10px;
+  margin: 14px 0 2px; color: var(--auth-ink3);
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; font-family: monospace;
+}
+.auth-or-line { flex: 1; height: 1px; background: var(--auth-border); }
+
+/* ── Forgot / toggle row ─────────────────────────────────────── */
+.auth-forgot { text-align: right; margin-top: 4px; }
+.auth-forgot button {
+  color: var(--auth-ink3); font-size: 12px; font-weight: 700;
+  text-decoration: underline; text-underline-offset: 2px;
+  background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
+  transition: color .14s;
+}
+.auth-forgot button:hover { color: var(--auth-ink2); }
+.auth-toggle {
+  text-align: center; margin-top: 18px;
+  font-size: 13px; color: var(--auth-ink2); font-weight: 500;
+}
+.auth-toggle button {
+  color: var(--auth-ink); font-weight: 800; margin-left: 4px;
+  text-decoration: underline; text-underline-offset: 2px;
+  background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
+  transition: color .14s;
+}
+.auth-toggle button:hover { color: #EC2D8C; }
+
+/* ── Google button area ──────────────────────────────────────── */
+.auth-google-area { display: none; margin-bottom: 16px; }
+.auth-google-btn { display: flex; justify-content: center; min-height: 44px; }
+
+/* ── Standalone page (reset-password.html) ───────────────────── */
+.auth-page {
+  min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 15%, rgba(200,230,50,.12) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 45% at 84% 80%, rgba(236,45,140,.08) 0%, transparent 56%),
+    #F5F1EB;
+  padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+.auth-page .auth-card {
+  box-shadow: 0 24px 64px rgba(14,14,16,.14), 0 0 0 1px rgba(255,255,255,.55), inset 0 1.5px 0 rgba(255,255,255,.85);
+}
+.auth-back {
+  display: block; text-align: center; margin-top: 18px;
+  font-size: 13px; color: var(--auth-ink3); text-decoration: none; font-weight: 600;
+  transition: color .14s;
+}
+.auth-back:hover { color: var(--auth-ink2); }
+.auth-spinner-wrap { display: flex; align-items: center; gap: 10px; color: var(--auth-ink3); font-size: 14px; font-weight: 600; }
+.auth-spinner {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  border: 2.5px solid rgba(94,94,74,.18); border-top-color: var(--auth-lime-dark);
+  animation: auth-spin .6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-btn-spinner, .auth-spinner { animation: none; }
+}
+
+/* ── Mobile adjustments ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .auth-card { padding: 28px 22px 22px; border-radius: 22px; }
+  .auth-title { font-size: 1.75rem; }
+  .auth-logo { width: 54px; height: 54px; }
+}
