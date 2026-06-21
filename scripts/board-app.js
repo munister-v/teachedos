@@ -2246,7 +2246,7 @@ function _buildInteractiveWSHtml(d) {
       }
       return `<div class="iw-q"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${inner}</div></div>`;
     }).join('');
-    contentHtml = qBlocks + `<div class="iw-bottom"><button class="iw-submit" onclick="checkAll()">✓ Check Answers</button></div><div class="iw-score" id="iw-score"></div>`;
+    contentHtml = qBlocks + `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
 
     const hasKey = qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
     if (hasKey) {
@@ -2283,6 +2283,45 @@ function checkAll(){
   const el=document.getElementById('iw-score'); if(!el) return;
   const pct=total?Math.round(score/total*100):0; el.style.display='block';
   el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) — Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) — Good job!':'📚 '+score+'/'+total+' ('+pct+'%) — Keep practicing!';
+  el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop');
+  const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='none';
+  const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='inline-block';
+  iwBeep(pct>=50); if(pct>=80) iwConfetti();
+}
+function iwBeep(good){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    const ctx=new AC(); const now=ctx.currentTime;
+    const notes=good?[523.25,659.25,783.99]:[330,247];
+    notes.forEach((f,i)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(ctx.destination); const t=now+i*0.12; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.18,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22); o.start(t); o.stop(t+0.24); });
+    setTimeout(()=>{try{ctx.close();}catch(e){}},1200);
+  }catch(e){}
+}
+function iwConfetti(){
+  const cols=['#ef4444','#f59e0b','#16a34a','#4262ff','#8b5cf6','#ec4899'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div'); c.className='iw-conf';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=cols[i%cols.length];
+    c.style.animationDelay=(Math.random()*0.25)+'s';
+    c.style.transform='rotate('+(Math.random()*360)+'deg)';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2200);
+  }
+}
+function iwReset(){
+  document.querySelectorAll('.iw-opts').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
+  document.querySelectorAll('.iw-tf').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
+  document.querySelectorAll('.iw-gap-input').forEach(inp=>{ inp.value=''; inp.classList.remove('correct','wrong'); });
+  document.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.iw-open-input').forEach(t=>t.value='');
+  // Matching: free every slot + chip
+  document.querySelectorAll('.iw-match').forEach(m=>{ m.querySelectorAll('.iw-slot').forEach(s=>{ s.textContent=''; s.classList.remove('filled'); }); m.querySelectorAll('.iw-target').forEach(t=>t.classList.remove('correct','wrong','dragover')); m.querySelectorAll('.iw-drag').forEach(d=>{ d.classList.remove('placed'); d.style.outline=''; d.style.boxShadow=''; }); });
+  // Sorting: return chips to bank
+  document.querySelectorAll('.iw-sort').forEach(s=>{ const bank=s.querySelector('.iw-sort-bank'); s.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ d.classList.remove('sort-correct','sort-wrong','placed'); d.style.outline=''; d.style.boxShadow=''; if(bank) bank.appendChild(d); }); });
+  const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
+  const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='inline-block';
+  const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
 }`;
   }
 
@@ -2407,6 +2446,10 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-submit:hover{opacity:.88}
 .iw-reset{background:#888}
 .iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${accent};display:none}
+.iw-score.iw-pop{animation:iwpop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes iwpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.iw-conf{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;z-index:99999;pointer-events:none;animation:iwfall 1.9s linear forwards}
+@keyframes iwfall{0%{transform:translateY(-12px) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
 /* ── Key ── */
 .iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
 .iw-key-toggle{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font:700 11px system-ui;cursor:pointer;color:#888}
@@ -12670,6 +12713,7 @@ function renderVocab(el, card) {
   const d = card.data;
   const accent = d.accent || '#EC2D8C';
   el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent);
+  el.classList.toggle('vocab-fav', !!d.fav);
   el.appendChild(makeHeader('📖', d.word || 'Word', card.id));
   const body = document.createElement('div');
   body.className = 'card-body vocab-body';
@@ -12697,10 +12741,69 @@ function renderVocab(el, card) {
     <div class="vocab-pron">${pron}</div>
     ${d.translation ? `<div class="vocab-trans">${esc(d.translation)}</div>` : ''}
     ${d.example ? `<div class="vocab-example">${highlight(d.example)}</div>` : ''}
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
-      <button style="font-size:10px;padding:3px 9px;border:1px solid rgba(234,179,8,.3);border-radius:6px;background:rgba(234,179,8,.08);color:#92400e;cursor:pointer;font-family:var(--font);font-weight:700;" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+    <div class="vocab-actions">
+      <button class="vocab-act-btn primary" onclick="event.stopPropagation();quickPracticeVocab('${card.id}')">⚡ Quick Practice</button>
+      <button class="vocab-act-btn fav${d.fav ? ' on' : ''}" title="Favourite" onclick="event.stopPropagation();toggleVocabFav('${card.id}')">${d.fav ? '★' : '☆'}</button>
+      <button class="vocab-act-btn" title="Edit" onclick="event.stopPropagation();openCardEditor('${card.id}')">✏️</button>
     </div>`;
   el.appendChild(body);
+}
+
+/* Toggle a vocab card's favourite flag (golden ring highlight). */
+function toggleVocabFav(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  card.data.fav = !card.data.fav;
+  reRenderCard(card);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* Build a short interactive practice (meaning MCQ + gap-fill + reverse MCQ)
+   from a single vocab card, using sibling vocab cards as distractors, and drop
+   it next to the card so the student can practise the word right away. */
+function quickPracticeVocab(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const d = card.data;
+  const word = (d.word || '').trim();
+  const def = (d.translation || '').trim();
+  if (!word) { toast('Add a word to this card first', 'error'); return; }
+  const others = state.cards.filter(c => c.type === 'vocab' && c.id !== cardId && c.data && c.data.word);
+  const otherDefs = others.map(c => (c.data.translation || '').trim()).filter(Boolean);
+  const otherWords = others.map(c => (c.data.word || '').trim()).filter(Boolean);
+  const qs = [];
+  if (def && otherDefs.length >= 1) {
+    const opts = _ttShuffle([def, ..._ttShuffle(otherDefs.filter(x => x !== def)).slice(0, 3)]);
+    qs.push({ type: 'mcq', text: `What does “${word}” mean?`, options: opts, answer: def, points: 1 });
+  }
+  if (d.example) {
+    let ex = String(d.example);
+    const re = new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    if (!/___/.test(ex) && re.test(ex)) ex = ex.replace(re, '___');
+    if (/___/.test(ex)) qs.push({ type: 'gap-fill', text: ex.replace(/_{3,}/, '_____'), answer: word, points: 1 });
+  }
+  if (def && otherWords.length >= 1) {
+    const opts = _ttShuffle([word, ..._ttShuffle(otherWords.filter(x => x !== word)).slice(0, 3)]);
+    qs.push({ type: 'mcq', text: `Which word means: “${def}”?`, options: opts, answer: word, points: 1 });
+  }
+  if (!qs.length) {
+    qs.push({ type: 'gap-fill', text: `Type the word that means: “${def || '…'}”: _____`, answer: word, points: 1 });
+  }
+  const data = {
+    title: `Quick practice: ${word}`, kind: 'Practice', cat: d.cat || 'vocabulary',
+    level: d.level || 'B1', boardKind: 'quiz', accent: d.accent, _ttSrc: 1, _interactive: true, questions: qs,
+  };
+  const W = 440, H = Math.max(300, Math.min(620, _ttEstWorksheetHeight({ questions: qs })));
+  snapshot();
+  const pos = findFreePlacement(card.x + card.w + 40 + W / 2, card.y + H / 2, W, H);
+  const nc = addCard('worksheet', Math.round(pos.x - W / 2), Math.round(pos.y - H / 2), data, W, H);
+  if (nc) {
+    clearSelection && clearSelection();
+    selectCard(nc.id);
+    setTimeout(() => { try { zoomToCard && zoomToCard(nc.id, true); } catch (e) {} }, 80);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  toast(`⚡ Quick practice created — ${qs.length} question${qs.length > 1 ? 's' : ''}`);
 }
 
 /* ════════════════════════ CHECKLIST CARD ════════════════════════ */
