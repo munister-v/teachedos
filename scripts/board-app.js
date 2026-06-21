@@ -2015,7 +2015,7 @@ function renderGame(el, card) {
   // Body: iframe scaled to fit card
   const body = document.createElement('div');
   body.className = 'card-body';
-  body.style.cssText = 'padding:0;overflow:hidden;flex:1;display:flex;align-items:center;justify-content:center;background:#F5F0E8;border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);';
+  body.style.cssText = 'padding:0;overflow:hidden;flex:1;display:flex;align-items:center;justify-content:center;background:transparent;border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);';
 
   const naturalW = card.data.naturalW || 460;
   const naturalH = card.data.naturalH || 560;
@@ -2054,7 +2054,9 @@ function applyGameScale(el, card) {
   const naturalH = card.data.naturalH || 560;
   const bw = body.clientWidth  || card.w;
   const bh = body.clientHeight || (card.h - 42);
-  const scale = Math.min(bw / naturalW, bh / naturalH);
+  // Cover: scale to fill the entire body (no empty background visible).
+  // Overflow is clipped by the body's overflow:hidden + border-radius.
+  const scale = Math.max(bw / naturalW, bh / naturalH);
   iframe.style.width  = naturalW + 'px';
   iframe.style.height = naturalH + 'px';
   iframe.style.transform = `scale(${scale})`;

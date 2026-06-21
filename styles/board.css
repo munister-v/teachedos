@@ -1680,6 +1680,9 @@ body.alt-duplicating *{cursor:copy!important;}
   display:none;background:transparent;cursor:move;
 }
 body.board-dragging .game-iframe-overlay{display:block;}
+/* Game cards: iframe fills the card, no beige background visible */
+.board-card.card-game{background:transparent!important;box-shadow:0 4px 18px rgba(5,5,23,.13),0 0 0 1px rgba(0,0,0,.06);}
+.board-card.card-game > .card-body{background:transparent!important;}
 body.board-dragging .board-card{will-change:transform,left,top;}
 
 /* Miro-style comment indicator badge — yellow speech bubble top-right */
