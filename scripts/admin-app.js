@@ -137,7 +137,7 @@ function showPage(name) {
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
   if (name === 'audit')     loadAudit();
-  if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); }
+  if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); loadBillingMetrics(); }
   if (name === 'packages')  loadPackageControl();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); }
   if (name === 'api-tester') initApiTester();
@@ -821,6 +821,29 @@ function openEditUser(u) {
   document.getElementById('mu-avatar').value = u.avatar;
   document.getElementById('mu-pass').value   = '';
   document.getElementById('modal-user').classList.add('open');
+  loadUserHistory(u.id);
+}
+
+async function loadUserHistory(userId) {
+  const el = document.getElementById('mu-history');
+  if (!el) return;
+  el.innerHTML = '<div style="font-size:12px;color:var(--muted)">Loading history…</div>';
+  try {
+    const d = await api('GET', `/api/admin/users/${userId}/history`);
+    const items = [];
+    (d.payments || []).forEach(p => {
+      const badge = p.status === 'approved' ? '🟢' : p.status === 'rejected' ? '🔴' : p.status === 'pending' ? '🟡' : '⚪';
+      items.push({ t: new Date(p.created_at), html: `${badge} <strong>${esc(p.invoice_no || '#'+p.id)}</strong> · ${esc(p.plan)} · ${Number(p.amount||0).toFixed(2)} ${esc(p.currency||'usd')} · <em>${esc(p.status)}</em>${p.admin_note ? ' · '+esc(p.admin_note) : ''}` });
+    });
+    (d.audit || []).forEach(a => {
+      items.push({ t: new Date(a.created_at), html: `📋 <strong>${esc(a.action)}</strong> · ${esc(a.detail || '')} ${a.admin_email ? '· by '+esc(a.admin_email) : ''}` });
+    });
+    items.sort((a,b) => b.t - a.t);
+    if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted)">No plan changes or payments recorded yet.</div>'; return; }
+    el.innerHTML = items.slice(0, 15).map(i => `<div style="font-size:11.5px;line-height:1.6;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05)">${i.html} <span style="color:var(--muted);font-size:10px;float:right">${fmtDate(i.t)}</span></div>`).join('');
+  } catch (e) {
+    el.innerHTML = `<div style="font-size:12px;color:#991b1b">${esc(e.message)}</div>`;
+  }
 }
 
 function closeUserModal() {
@@ -1110,6 +1133,24 @@ async function loadBillingSummary() {
   } catch(e) {
     document.getElementById('billing-expiring-list').innerHTML =
       `<div class="activity-item"><div><div class="activity-title">Billing summary unavailable</div><div class="activity-sub">${esc(e.message)}</div></div></div>`;
+  }
+}
+
+async function loadBillingMetrics() {
+  try {
+    const d = await api('GET', '/api/admin/billing/metrics');
+    const totalRev = Number(d.totalRevenue || 0);
+    document.getElementById('bill-total-rev').textContent = '$' + totalRev.toFixed(0);
+    const conv = d.conversion || {};
+    const pct = conv.total ? Math.round((conv.paid / conv.total) * 100) : 0;
+    document.getElementById('bill-conversion').textContent = pct + '%';
+    document.getElementById('bill-conversion').title = `${conv.paid} paid / ${conv.total} total`;
+    document.getElementById('bill-churn').textContent = d.churned90d || 0;
+    const months = d.monthlyRevenue || [];
+    const lastMonth = months.length ? Number(months[0].revenue || 0) : 0;
+    document.getElementById('bill-last-month').textContent = '$' + lastMonth.toFixed(0);
+  } catch {
+    document.getElementById('bill-total-rev').textContent = '—';
   }
 }
 

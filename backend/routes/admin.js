@@ -823,6 +823,73 @@ router.post('/users', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/users/:id/history ───────────────────────────────────────
+// Returns the plan change audit trail + payment history for a specific user.
+router.get('/users/:id/history', async (req, res) => {
+  try {
+    const [auditRes, paymentsRes] = await Promise.all([
+      pool.query(
+        `SELECT action, detail, admin_email, created_at
+         FROM admin_audit
+         WHERE target_id=$1 AND action IN ('user.update','billing.approve','billing.reject','user.create')
+         ORDER BY created_at DESC LIMIT 30`,
+        [req.params.id]
+      ),
+      pool.query(
+        `SELECT id, plan, status, amount, currency, invoice_no, billing_cycle, months,
+                payer_name, tx_date, admin_note, reviewed_at, created_at
+         FROM iban_payments
+         WHERE user_id=$1
+         ORDER BY created_at DESC LIMIT 20`,
+        [req.params.id]
+      ),
+    ]);
+    res.json({ audit: auditRes.rows, payments: paymentsRes.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/billing/metrics ────────────────────────────────────────
+// Revenue and conversion metrics for the billing dashboard.
+router.get('/billing/metrics', async (req, res) => {
+  try {
+    const [mrrRes, convRes, churnRes, totalRevRes] = await Promise.all([
+      pool.query(
+        `SELECT DATE_TRUNC('month', reviewed_at) AS month,
+                SUM(amount) AS revenue, COUNT(*) AS count
+         FROM iban_payments
+         WHERE status='approved' AND reviewed_at IS NOT NULL
+         GROUP BY DATE_TRUNC('month', reviewed_at)
+         ORDER BY month DESC LIMIT 6`
+      ),
+      pool.query(
+        `SELECT
+           (SELECT COUNT(*) FROM users WHERE plan<>'free' AND plan_status IN ('active','grace')) AS paid,
+           (SELECT COUNT(*) FROM users WHERE plan='free' OR plan IS NULL) AS free,
+           (SELECT COUNT(*) FROM users) AS total`
+      ),
+      pool.query(
+        `SELECT COUNT(*) AS churned FROM users
+         WHERE plan='free' AND plan_source='system'
+           AND plan_started_at IS NOT NULL
+           AND plan_started_at > NOW() - INTERVAL '90 days'`
+      ),
+      pool.query(
+        `SELECT COALESCE(SUM(amount),0) AS total FROM iban_payments WHERE status='approved'`
+      ),
+    ]);
+    res.json({
+      monthlyRevenue: mrrRes.rows,
+      conversion: convRes.rows[0] || { paid:0, free:0, total:0 },
+      churned90d: churnRes.rows[0]?.churned || 0,
+      totalRevenue: totalRevRes.rows[0]?.total || 0,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── PATCH /api/admin/users/:id ─────────────────────────────────────────────
 router.patch('/users/:id', async (req, res) => {
   const { name, email, role, avatar, password, plan, plan_status, billing_cycle, plan_expires_at } = req.body;

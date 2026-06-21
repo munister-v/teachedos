@@ -1193,6 +1193,25 @@ html{scroll-behavior:smooth}
       </div>
     </div>
 
+    <div class="stats-grid" id="billing-metrics-grid" style="margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(22,163,74,.12);color:#16a34a">💰</div>
+        <div><div class="stat-num" id="bill-total-rev">—</div><div class="stat-label">Total Revenue</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(66,98,255,.12);color:#4262FF">📊</div>
+        <div><div class="stat-num" id="bill-conversion">—</div><div class="stat-label">Conversion Rate</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,68,68,.12);color:#ef4444">📉</div>
+        <div><div class="stat-num" id="bill-churn">—</div><div class="stat-label">Churned (90d)</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6">📅</div>
+        <div><div class="stat-num" id="bill-last-month">—</div><div class="stat-label">Last Month Rev</div></div>
+      </div>
+    </div>
+
     <div class="table-card" style="padding:22px;margin-bottom:24px">
       <div class="table-header" style="padding:0 0 14px;border-bottom:none">
         <div class="table-header-title">Expiring Soon</div>
@@ -1627,6 +1646,10 @@ html{scroll-behavior:smooth}
     <div class="form-group">
       <label class="form-label">New Password <span style="color:var(--muted);font-weight:400">(leave blank to keep)</span></label>
       <input class="form-input" id="mu-pass" type="password" placeholder="Min 8 characters"/>
+    </div>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)">
+      <div style="font:700 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Plan & Payment History</div>
+      <div id="mu-history" style="max-height:180px;overflow-y:auto;font-size:12px"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeUserModal()">Cancel</button>
