@@ -10912,6 +10912,7 @@ function openAuthModal(mode = 'login') {
 function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
 
+
 function markOnboardingPendingFromBoard(user) {
   try {
     const email = user?.email || 'anon';
@@ -10922,18 +10923,35 @@ function markOnboardingPendingFromBoard(user) {
 
 function renderAuthFields() {
   const isLogin = authMode === 'login';
-  document.getElementById('auth-subtitle').textContent = isLogin ? 'Welcome back 👋' : 'Create your account';
-  document.getElementById('auth-submit').textContent = isLogin ? 'Sign in' : 'Create account';
-  document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-  document.getElementById('auth-toggle-link').textContent = isLogin ? 'Register' : 'Sign in';
-  document.getElementById('auth-role-row').style.display = isLogin ? 'none' : 'block';
+  const isForgot = authMode === 'forgot';
+  document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back 👋' : 'Create your account');
+  document.getElementById('auth-submit').textContent = isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account');
+  document.getElementById('auth-toggle-text').textContent = isForgot ? 'Remember your password?' : (isLogin ? "Don't have an account?" : 'Already have an account?');
+  document.getElementById('auth-toggle-link').textContent = isForgot ? 'Sign in' : (isLogin ? 'Register' : 'Sign in');
+  document.getElementById('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
   const f = document.getElementById('auth-fields');
-  f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
-    `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
-     <input class="auth-input" id="af-pass"  type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">`;
-  document.getElementById('auth-fields').querySelectorAll('.auth-input').forEach(i => {
+  if (isForgot) {
+    f.innerHTML = `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" autocomplete="email">`;
+  } else {
+    f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
+      `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
+       <div class="auth-pass-wrap">
+         <input class="auth-input" id="af-pass" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">
+         <button type="button" class="auth-eye" onclick="togglePassVis()" title="Show/hide password" tabindex="-1">👁</button>
+       </div>
+       ${isLogin ? `<div class="auth-forgot-row"><button type="button" class="auth-forgot-link" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
+  }
+  f.querySelectorAll('.auth-input').forEach(i => {
     i.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
   });
+}
+
+function togglePassVis() {
+  const inp = document.getElementById('af-pass');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  const eye = inp.parentElement?.querySelector('.auth-eye');
+  if (eye) eye.textContent = inp.type === 'password' ? '👁' : '🙈';
 }
 
 function selectAuthRole(role) {
@@ -10948,6 +10966,49 @@ async function submitAuth() {
   const errEl = document.getElementById('auth-err');
   errEl.style.display = 'none';
   const btn = document.getElementById('auth-submit');
+
+  // ── Client-side validation ──
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block'; errEl.style.color = '';
+    document.getElementById('af-email')?.focus();
+    return;
+  }
+  if (authMode === 'forgot') {
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      await apiFetch('/api/auth/forgot-password', { method: 'POST', body: { email } });
+      errEl.style.color = '#179955';
+      errEl.textContent = '✓ If that email is registered, a reset link is on its way.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Sent ✓';
+      document.getElementById('auth-fields').innerHTML = '';
+    } catch {
+      errEl.style.color = '';
+      errEl.textContent = 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+    } finally { btn.disabled = false; }
+    return;
+  }
+  if (!pass) {
+    errEl.textContent = 'Please enter your password.';
+    errEl.style.display = 'block'; errEl.style.color = '';
+    document.getElementById('af-pass')?.focus();
+    return;
+  }
+  if (authMode === 'register' && pass.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block'; errEl.style.color = '';
+    document.getElementById('af-pass')?.focus();
+    return;
+  }
+  if (authMode === 'register' && !name) {
+    errEl.textContent = 'Please enter your name.';
+    errEl.style.display = 'block'; errEl.style.color = '';
+    document.getElementById('af-name')?.focus();
+    return;
+  }
+
   btn.disabled = true; btn.textContent = '…';
 
   try {
@@ -10962,7 +11023,6 @@ async function submitAuth() {
     try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
     closeAuthModal();
     updateAuthUI();
-    // Students opening board.html directly → send to their dashboard
     if (d.user.role === 'student' && !URL_BOARD_ID) {
       location.href = 'student.html';
       return;
@@ -10975,6 +11035,7 @@ async function submitAuth() {
     }
     if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
   } catch (err) {
+    errEl.style.color = '';
     errEl.textContent = err.message;
     errEl.style.display = 'block';
   } finally {

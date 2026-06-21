@@ -1650,6 +1650,15 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 .auth-input::placeholder{color:#8f8797;font-weight:500;}
 .auth-input:focus{border-color:#A8D02B;box-shadow:0 0 0 3px rgba(205,242,79,.28);}
+/* Password field wrapper with eye toggle */
+.auth-pass-wrap{position:relative;margin-bottom:11px;}
+.auth-pass-wrap .auth-input{margin-bottom:0;padding-right:44px;}
+.auth-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:6px;border-radius:8px;opacity:.6;transition:opacity .12s;}
+.auth-eye:hover{opacity:1;}
+/* Forgot password link */
+.auth-forgot-row{text-align:right;margin:-4px 0 10px;}
+.auth-forgot-link{background:none;border:none;color:#7A7A6A;font:600 12px var(--font);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;transition:color .12s;}
+.auth-forgot-link:hover{color:#1C1C1E;}
 .board-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;}
 .board-list-item:hover{border-color:var(--accent);background:var(--accent-2);}
 
