@@ -584,6 +584,16 @@ html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+/* Skeleton loading pulse */
+.skel{display:inline-block;background:linear-gradient(90deg,rgba(0,0,0,.06) 25%,rgba(0,0,0,.12) 50%,rgba(0,0,0,.06) 75%);background-size:200% 100%;animation:skelPulse 1.4s ease-in-out infinite;border-radius:6px;color:transparent!important}
+.skel-line{height:13px;width:100%;max-width:160px;margin:4px 0}
+.skel-block{height:40px;width:100%}
+@keyframes skelPulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state-icon{font-size:36px;margin-bottom:10px;opacity:.5}
+.empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
+.empty-state-sub{font-size:13px}
 </style>
 <script src="theme.js?v=188" defer></script>
 <link rel="stylesheet" href="styles/mobile-unified.css?v=188">
@@ -1011,7 +1021,7 @@ html{scroll-behavior:smooth}
               <th>Plan</th><th>Boards</th><th>Joined</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="users-tbody"><tr class="empty-row"><td colspan="9">Loading…</td></tr></tbody>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="9"><div class="skel skel-line" style="width:220px"></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -1031,6 +1041,9 @@ html{scroll-behavior:smooth}
       <div class="table-header">
         <div class="table-header-title">All Boards</div>
         <input class="search-box" id="boards-search" placeholder="🔍 Search by name or owner…" oninput="debounceBoardsSearch()"/>
+        <select class="search-box" id="boards-owner-filter" onchange="boardsOffset=0;loadBoards()" style="width:auto;min-width:140px">
+          <option value="">All owners</option>
+        </select>
         <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="exportAdminData('boards')">Export CSV</button>
       </div>
       <div style="overflow-x:auto">
@@ -1041,7 +1054,7 @@ html{scroll-behavior:smooth}
               <th>Updated</th><th>Created</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="boards-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+          <tbody id="boards-tbody"><tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:200px"></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -1060,6 +1073,7 @@ html{scroll-behavior:smooth}
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">Sessions</div>
+        <input class="search-box" id="sessions-search" placeholder="🔍 Filter by user or IP…" oninput="filterSessions()" style="max-width:220px"/>
         <label id="sessions-autorefresh"><input type="checkbox" id="sessions-ar-check" onchange="toggleSessionsAutoRefresh(this.checked)"> Auto-refresh 30s</label>
         <button class="btn-sm btn-danger" style="padding:8px 16px" onclick="revokeAllSessions()">🗑 Revoke All</button>
         <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadSessions()">🔄 Refresh</button>
@@ -1069,7 +1083,7 @@ html{scroll-behavior:smooth}
           <thead>
             <tr><th>User</th><th>Device / UA</th><th>IP</th><th>Started</th><th>Expires</th><th>Action</th></tr>
           </thead>
-          <tbody id="sessions-tbody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
+          <tbody id="sessions-tbody"><tr class="empty-row"><td colspan="6"><div class="skel skel-line" style="width:180px"></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1162,9 +1176,10 @@ html{scroll-behavior:smooth}
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(200,230,50,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Payment card for transfers</div>
-          <div style="font-size:22px;font-weight:900;letter-spacing:.18em;font-family:monospace" id="admin-card-number">5375 4141 1234 5678</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:.18em;font-family:monospace" id="admin-card-number">•••• •••• •••• ••••</div>
         </div>
-        <button onclick="copyAdminCard()" style="padding:9px 16px;background:rgba(200,230,50,.15);color:#C8E64A;border:1.5px solid rgba(200,230,50,.25);border-radius:10px;font-weight:800;font-size:12px;cursor:pointer">📋 Copy number</button>
+        <button onclick="toggleAdminCard()" id="admin-card-toggle" style="padding:9px 16px;background:rgba(200,230,50,.15);color:#C8E64A;border:1.5px solid rgba(200,230,50,.25);border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;margin-right:6px">👁 Show</button>
+        <button onclick="copyAdminCard()" style="padding:9px 16px;background:rgba(200,230,50,.15);color:#C8E64A;border:1.5px solid rgba(200,230,50,.25);border-radius:10px;font-weight:800;font-size:12px;cursor:pointer">📋 Copy</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
         <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cardholder</div><div style="font-weight:800;font-size:14px">TeachEd Ltd</div></div>
@@ -1255,7 +1270,7 @@ html{scroll-behavior:smooth}
       <div class="plan-card free">
         <div class="plan-kicker">Starter</div>
         <div class="plan-name">Free</div>
-        <div class="plan-price">$0 · для теста продукта</div>
+        <div class="plan-price">$0 · product trial</div>
         <div class="plan-limits">
           <div class="plan-limit"><span>Boards</span><span>3</span></div>
           <div class="plan-limit"><span>Students</span><span>5</span></div>
@@ -1269,7 +1284,7 @@ html{scroll-behavior:smooth}
       <div class="plan-card pro">
         <div class="plan-kicker">Teacher</div>
         <div class="plan-name">Pro</div>
-        <div class="plan-price">$19/mo · для активного преподавателя</div>
+        <div class="plan-price">$19/mo · for active teachers</div>
         <div class="plan-limits">
           <div class="plan-limit"><span>Boards</span><span>Unlimited</span></div>
           <div class="plan-limit"><span>Students</span><span>80</span></div>
@@ -1284,7 +1299,7 @@ html{scroll-behavior:smooth}
       <div class="plan-card school">
         <div class="plan-kicker">Team</div>
         <div class="plan-name">School</div>
-        <div class="plan-price">$79/mo · школа или мини-команда</div>
+        <div class="plan-price">$79/mo · schools &amp; teams</div>
         <div class="plan-limits">
           <div class="plan-limit"><span>Teachers</span><span>10</span></div>
           <div class="plan-limit"><span>Students</span><span>500</span></div>
@@ -1301,7 +1316,7 @@ html{scroll-behavior:smooth}
     <div class="plan-control-grid">
       <div class="grant-panel">
         <div class="setting-title" style="color:#fff">Manual Subscription Grant</div>
-        <div class="setting-desc" style="color:rgba(255,255,255,.62)">Выдай пакет вручную после оплаты, теста, промокода или договоренности.</div>
+        <div class="setting-desc" style="color:rgba(255,255,255,.62)">Grant a plan manually after payment, trial, promo code or agreement.</div>
         <div class="form-group">
           <label class="form-label">User Email</label>
           <input class="form-input" id="grant-email" type="email" placeholder="teacher@example.com"/>

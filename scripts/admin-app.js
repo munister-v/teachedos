@@ -732,6 +732,13 @@ function renderAuditList(listId, countId, items, mapper) {
 
 // ── Users ─────────────────────────────────────────────────────────────────
 let usersOffset = 0, usersTotal = 0, usersLimit = 20, usersRoleFilter = '';
+const _userCache = {};
+function _openCachedUser(id, mode) {
+  const u = _userCache[id];
+  if (!u) return;
+  if (mode === 'edit') openEditUser(u);
+  else openUserDrawer(u);
+}
 let usersSearchTimer;
 
 function debounceUsersSearch() {
@@ -757,28 +764,30 @@ function setUsersRoleFilter(role, el) {
 async function loadUsers() {
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="9"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
     const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
-    document.getElementById('users-page-info').textContent =
-      `${usersOffset+1}–${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`;
+    document.getElementById('users-page-info').textContent = usersTotal
+      ? `${usersOffset+1}–${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`
+      : 'No results';
     document.getElementById('users-prev').disabled = usersOffset === 0;
     document.getElementById('users-next').disabled = usersOffset + usersLimit >= usersTotal;
     const saEl = document.getElementById('bulk-select-all');
     if (saEl) saEl.checked = false;
 
     if (!d.users.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No users found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No users found</div><div class="empty-state-sub">Try adjusting your search or filter</div></div></td></tr>';
       return;
     }
+    // Cache user objects by ID so we don't need JSON in HTML attributes
+    d.users.forEach(u => { _userCache[u.id] = u; });
     tbody.innerHTML = d.users.map(u => {
-      const qU = JSON.stringify(u).replace(/"/g,'&quot;');
       const isSelected = selectedUserIds.has(u.id);
       return `<tr>
         <td><input type="checkbox" class="row-check" data-id="${u.id}" onchange="toggleRowCheck(this)" ${isSelected?'checked':''} style="accent-color:var(--lime);cursor:pointer"></td>
-        <td class="avatar-cell" data-label="Avatar" style="cursor:pointer" onclick="openUserDrawer(${qU})">${u.avatar}</td>
-        <td data-label="Name" style="cursor:pointer" onclick="openUserDrawer(${qU})"><strong>${esc(u.name)}</strong></td>
+        <td class="avatar-cell" data-label="Avatar" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')">${u.avatar}</td>
+        <td data-label="Name" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')"><strong>${esc(u.name)}</strong></td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
         <td data-label="Plan">
@@ -790,8 +799,8 @@ async function loadUsers() {
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
-            <button class="btn-sm btn-edit" onclick="openUserDrawer(${qU})">👤 View</button>
-            <button class="btn-sm btn-edit" onclick="openEditUser(${qU})">✏️ Edit</button>
+            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">👤 View</button>
+            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">✏️ Edit</button>
             <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">🔑 Kick</button>
             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">🗑</button>
           </div>
@@ -909,7 +918,7 @@ function deleteUser(id, name) {
       loadUsers();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  });
+  }, { label: 'Delete user', color: '#dc2626' });
 }
 
 function kickUser(userId, name) {
@@ -918,7 +927,7 @@ function kickUser(userId, name) {
       await api('DELETE', `/api/admin/sessions/user/${userId}`);
       toast('Sessions revoked ✅', 'success');
     } catch(e) { toast(e.message, 'error'); }
-  });
+  }, { label: 'Revoke sessions', color: '#f97316' });
 }
 
 // ── Package Control ──────────────────────────────────────────────────────
@@ -1158,11 +1167,11 @@ async function loadBillingPayments() {
   const tbody = document.getElementById('billing-tbody');
   if (!tbody) return;
   const status = document.getElementById('billing-status-filter')?.value || '';
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
     const d = await api('GET', `/api/admin/billing/payments?status=${encodeURIComponent(status)}`);
     if (!d.payments.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No payment requests found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="empty-state"><div class="empty-state-icon">💳</div><div class="empty-state-title">No payment requests</div><div class="empty-state-sub">Payment requests will appear here when users submit bank transfers</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = d.payments.map(p => {
@@ -1209,9 +1218,25 @@ function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', in
   }, {label: 'Approve', color: '#007B55'});
 }
 
+const ADMIN_PAYMENT_CARD = '5375 4141 1234 5678';
+let _cardRevealed = false;
+
+function toggleAdminCard() {
+  _cardRevealed = !_cardRevealed;
+  const el = document.getElementById('admin-card-number');
+  const btn = document.getElementById('admin-card-toggle');
+  if (_cardRevealed) {
+    el.textContent = ADMIN_PAYMENT_CARD;
+    btn.textContent = '🙈 Hide';
+    setTimeout(() => { if (_cardRevealed) { _cardRevealed = false; el.textContent = '•••• •••• •••• ••••'; btn.textContent = '👁 Show'; } }, 15000);
+  } else {
+    el.textContent = '•••• •••• •••• ••••';
+    btn.textContent = '👁 Show';
+  }
+}
+
 function copyAdminCard() {
-  const num = document.getElementById('admin-card-number')?.textContent;
-  navigator.clipboard?.writeText(num?.replace(/\s/g,'')||'').then(() => toast('Card number copied', 'success'));
+  navigator.clipboard?.writeText(ADMIN_PAYMENT_CARD.replace(/\s/g,'')).then(() => toast('Card number copied', 'success'));
 }
 
 function rejectPayment(id, name) {
@@ -1244,18 +1269,20 @@ function boardsPage(dir) {
 
 async function loadBoards() {
   const search = document.getElementById('boards-search').value;
+  const owner = document.getElementById('boards-owner-filter')?.value || '';
   const tbody  = document.getElementById('boards-tbody');
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
-    const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(search)}&limit=${boardsLimit}&offset=${boardsOffset}`);
+    const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(search)}&owner=${encodeURIComponent(owner)}&limit=${boardsLimit}&offset=${boardsOffset}`);
     boardsTotal = d.total;
-    document.getElementById('boards-page-info').textContent =
-      `${boardsOffset+1}–${Math.min(boardsOffset+boardsLimit,boardsTotal)} of ${boardsTotal}`;
+    document.getElementById('boards-page-info').textContent = boardsTotal
+      ? `${boardsOffset+1}–${Math.min(boardsOffset+boardsLimit,boardsTotal)} of ${boardsTotal}`
+      : 'No results';
     document.getElementById('boards-prev').disabled = boardsOffset === 0;
     document.getElementById('boards-next').disabled = boardsOffset + boardsLimit >= boardsTotal;
 
     if (!d.boards.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No boards found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No boards found</div><div class="empty-state-sub">Try adjusting your search</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = d.boards.map(b => `
@@ -1277,6 +1304,20 @@ async function loadBoards() {
         </td>
       </tr>
     `).join('');
+    // Populate owner filter (dedupe)
+    const ownerSel = document.getElementById('boards-owner-filter');
+    if (ownerSel && ownerSel.options.length <= 1) {
+      const seen = new Set();
+      d.boards.forEach(b => {
+        if (b.owner_email && !seen.has(b.owner_email)) {
+          seen.add(b.owner_email);
+          const o = document.createElement('option');
+          o.value = b.owner_email;
+          o.textContent = b.owner_name || b.owner_email;
+          ownerSel.appendChild(o);
+        }
+      });
+    }
   } catch(e) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Error: ${e.message}</td></tr>`;
   }
@@ -1294,17 +1335,17 @@ function deleteBoard(id, name) {
       loadBoards();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  });
+  }, { label: 'Delete board', color: '#dc2626' });
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────
 async function loadSessions() {
   const tbody = document.getElementById('sessions-tbody');
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Loading…</td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
     const d = await api('GET', '/api/admin/sessions');
     if (!d.sessions.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No active sessions</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🔑</div><div class="empty-state-title">No active sessions</div><div class="empty-state-sub">All sessions have expired or been revoked</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = d.sessions.map(s => `
@@ -1337,8 +1378,17 @@ async function revokeSession(id) {
   } catch(e) { toast(e.message,'error'); }
 }
 
+function filterSessions() {
+  const q = (document.getElementById('sessions-search')?.value || '').toLowerCase();
+  const rows = document.querySelectorAll('#sessions-tbody tr:not(.empty-row)');
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    r.style.display = !q || text.includes(q) ? '' : 'none';
+  });
+}
+
 function revokeAllSessions() {
-  confirm('Revoke ALL sessions?', 'This will log out every user (including you).', '🔑', async () => {
+  confirm('Revoke ALL sessions?', 'This will log out every user (including you). You will need to log in again.', '🔑', async () => {
     try {
       // revoke all by listing and deleting each
       const d = await api('GET', '/api/admin/sessions');
@@ -1892,7 +1942,7 @@ function bulkDelete() {
     clearBulk();
     loadUsers();
     refreshStats();
-  });
+  }, { label: `Delete ${ids.length} users`, color: '#dc2626' });
 }
 
 function bulkKick() {
@@ -1905,7 +1955,7 @@ function bulkKick() {
     }
     toast(`Kicked ${ok} user(s)`, 'success');
     clearBulk();
-  });
+  }, { label: `Kick ${ids.length} users`, color: '#f97316' });
 }
 
 async function bulkGrantPlan(plan, months) {

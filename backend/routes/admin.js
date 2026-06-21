@@ -1000,8 +1000,9 @@ router.delete('/users/:id', async (req, res) => {
 // ── GET /api/admin/boards ──────────────────────────────────────────────────
 router.get('/boards', async (req, res) => {
   try {
-    const { search = '', limit = 50, offset = 0 } = req.query;
+    const { search = '', owner = '', limit = 50, offset = 0 } = req.query;
     const like = `%${search}%`;
+    const ownerFilter = owner ? `%${owner}%` : '%';
     const { rows } = await pool.query(
       `SELECT b.id, b.name, b.updated_at, b.created_at,
               u.name AS owner_name, u.email AS owner_email,
@@ -1009,15 +1010,17 @@ router.get('/boards', async (req, res) => {
               jsonb_array_length(b.data->'cards') AS cards_count
        FROM boards b
        JOIN users u ON u.id = b.user_id
-       WHERE b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1
+       WHERE (b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)
+         AND u.email ILIKE $4
        ORDER BY b.updated_at DESC
        LIMIT $2 OFFSET $3`,
-      [like, parseInt(limit), parseInt(offset)]
+      [like, parseInt(limit), parseInt(offset), ownerFilter]
     );
     const { rows: total } = await pool.query(
       `SELECT COUNT(*) FROM boards b JOIN users u ON u.id=b.user_id
-       WHERE b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1`,
-      [like]
+       WHERE (b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)
+         AND u.email ILIKE $2`,
+      [like, ownerFilter]
     );
     res.json({ boards: rows, total: parseInt(total[0].count) });
   } catch (err) {
