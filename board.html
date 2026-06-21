@@ -369,6 +369,7 @@
   <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic">◉</span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic">⊞</span><span class="mtm-lbl">Table</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('image')"><span class="mtm-ic">🖼</span><span class="mtm-lbl">Image</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('gif')"><span class="mtm-ic">🎞️</span><span class="mtm-lbl">GIF</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('video')"><span class="mtm-ic">▶</span><span class="mtm-lbl">Video</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('voting')"><span class="mtm-ic">📊</span><span class="mtm-lbl">Voting</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('games')"><span class="mtm-ic">🎮</span><span class="mtm-lbl">Games</span></button>
@@ -1685,5 +1686,31 @@ if('serviceWorker'in navigator){
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
+
+<!-- GIF SEARCH PANEL -->
+<div id="gif-panel" role="dialog" aria-label="Add GIF" aria-modal="true">
+  <div id="gif-panel-inner">
+    <div id="gif-panel-head">
+      <span id="gif-panel-title">🎞️ Add a GIF</span>
+      <button type="button" id="gif-panel-close" onclick="closeGifPanel()" aria-label="Close">×</button>
+    </div>
+    <div id="gif-search-row">
+      <input id="gif-search-input" type="search" placeholder="Search Tenor… (e.g. celebration, thinking)" autocomplete="off"
+        oninput="_gifSearchDebounced(this.value)"
+        onkeydown="if(event.key==='Enter'){clearTimeout(_gifSearchTimer);_loadGifGrid(this.value.trim());}if(event.key==='Escape')closeGifPanel()">
+    </div>
+    <div id="gif-spinner">Loading GIFs…</div>
+    <div id="gif-grid"></div>
+    <div id="gif-url-row">
+      <span class="gif-url-label">Or paste a GIF URL</span>
+      <input id="gif-url-input" type="url" placeholder="https://media.tenor.com/…gif"
+        onkeydown="if(event.key==='Enter')_gifPasteUrl()">
+      <button type="button" class="gif-url-btn" onclick="_gifPasteUrl()">Add</button>
+    </div>
+    <div id="gif-tenor-credit"><a href="https://tenor.com" target="_blank" rel="noopener">Powered by Tenor</a></div>
+  </div>
+</div>
+<div id="gif-backdrop" onclick="closeGifPanel()"></div>
+
 </body>
 </html>

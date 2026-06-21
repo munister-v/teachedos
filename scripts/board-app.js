@@ -582,6 +582,7 @@ function renderCard(card) {
   else if (card.type === 'shape')      renderShape(el, card);
   else if (card.type === 'mindmap')    renderMindmap(el, card);
   else if (card.type === 'table')      renderTable(el, card);
+  else if (card.type === 'gif')        renderGif(el, card);
 
   // Apply stored accent color
   if (card.data._accent) el.classList.add(card.data._accent);
@@ -1219,6 +1220,212 @@ function renderImage(el, card) {
     body.appendChild(drop);
   }
   el.appendChild(body);
+}
+
+/* ══════════════════════ GIF CARD ══════════════════════
+   Animated GIF card — Tenor search + direct URL input.
+   Stores: { src, tenorId, query, caption }              */
+function renderGif(el, card) {
+  const d = card.data;
+  const body = document.createElement('div');
+  body.className = 'card-body gif-body';
+
+  if (d.src) {
+    const wrap = document.createElement('div');
+    wrap.className = 'gif-wrap';
+
+    const img = document.createElement('img');
+    img.draggable = false;
+    img.decoding = 'async';
+    img.alt = d.query || d.caption || 'GIF';
+    img.addEventListener('load', () => wrap.classList.remove('is-loading'));
+    img.addEventListener('error', () => {
+      wrap.innerHTML = `<div class="image-state"><span class="image-state-ic">🎞️</span><span class="image-state-txt">Couldn't load GIF</span><button class="image-state-btn" onclick="openGifPanel('${card.id}')">Change</button></div>`;
+    });
+    img.src = d.src;
+    wrap.classList.add('is-loading');
+    wrap.appendChild(img);
+
+    const badge = document.createElement('span');
+    badge.className = 'gif-badge';
+    badge.textContent = 'GIF';
+    wrap.appendChild(badge);
+
+    const changeBtn = document.createElement('button');
+    changeBtn.className = 'gif-change-btn';
+    changeBtn.type = 'button';
+    changeBtn.textContent = '🔄';
+    changeBtn.title = 'Find another GIF';
+    changeBtn.addEventListener('click', ev => { ev.stopPropagation(); openGifPanel(card.id); });
+    wrap.appendChild(changeBtn);
+
+    body.appendChild(wrap);
+
+    if (d.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'gif-caption';
+      cap.textContent = d.caption;
+      body.appendChild(cap);
+    }
+  } else {
+    const empty = document.createElement('button');
+    empty.type = 'button';
+    empty.className = 'gif-empty';
+    empty.innerHTML = `<span class="gif-empty-ic">🎞️</span><span class="gif-empty-title">Add a GIF</span><span class="gif-empty-sub">Search Tenor or paste a URL</span>`;
+    empty.addEventListener('click', ev => { ev.stopPropagation(); openGifPanel(card.id); });
+    body.appendChild(empty);
+  }
+
+  el.appendChild(body);
+}
+
+/* ══════════════════════ GIF PANEL (Tenor search) ══════════════════════ */
+// Tenor API v1 — free public key (official Tenor test key, rate-limited but no registration needed)
+const TENOR_KEY = 'LIVDSRZULELA';
+const TENOR_BASE = 'https://api.tenor.com/v1';
+
+async function _tenorSearch(q, limit = 16) {
+  const url = `${TENOR_BASE}/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=${limit}&media_filter=minimal&contentfilter=low`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.results || []).map(r => {
+      const gif  = r.media?.[0]?.gif;
+      const tiny = r.media?.[0]?.tinygif || r.media?.[0]?.nanogif;
+      return {
+        id:      r.id,
+        url:     gif?.url  || '',
+        preview: tiny?.url || gif?.url || '',
+        title:   r.title  || q,
+        dims:    gif?.dims || [320, 240],
+      };
+    }).filter(r => r.url);
+  } catch { return []; }
+}
+
+async function _tenorFeatured(limit = 16) {
+  const url = `${TENOR_BASE}/trending?key=${TENOR_KEY}&limit=${limit}&media_filter=minimal&contentfilter=low&q=teaching+classroom`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.results || []).map(r => {
+      const gif  = r.media?.[0]?.gif;
+      const tiny = r.media?.[0]?.tinygif || r.media?.[0]?.nanogif;
+      return {
+        id:      r.id,
+        url:     gif?.url  || '',
+        preview: tiny?.url || gif?.url || '',
+        title:   r.title  || 'GIF',
+        dims:    gif?.dims || [320, 240],
+      };
+    }).filter(r => r.url);
+  } catch { return []; }
+}
+
+let _gifTargetCardId = null;
+let _gifSearchTimer = null;
+
+function openGifPanel(cardId) {
+  _gifTargetCardId = cardId || null;
+  const panel = document.getElementById('gif-panel');
+  if (!panel) return;
+  panel.classList.add('open');
+  const input = document.getElementById('gif-search-input');
+  if (input) { input.value = ''; input.focus(); }
+  _loadGifGrid('teaching celebration classroom');
+}
+
+function closeGifPanel() {
+  const panel = document.getElementById('gif-panel');
+  panel?.classList.remove('open');
+  _gifTargetCardId = null;
+}
+
+async function _loadGifGrid(q) {
+  const grid = document.getElementById('gif-grid');
+  const spinner = document.getElementById('gif-spinner');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (spinner) spinner.style.display = 'flex';
+  const results = q ? await _tenorSearch(q) : await _tenorFeatured();
+  if (spinner) spinner.style.display = 'none';
+  if (!results.length) {
+    grid.innerHTML = '<div class="gif-no-results">No GIFs found. Try a different search.</div>';
+    return;
+  }
+  results.forEach(gif => {
+    const item = document.createElement('div');
+    item.className = 'gif-item';
+    item.title = gif.title;
+    const img = document.createElement('img');
+    img.src = gif.preview;
+    img.alt = gif.title;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    item.appendChild(img);
+    item.addEventListener('click', () => _selectGif(gif));
+    grid.appendChild(item);
+  });
+}
+
+function _selectGif(gif) {
+  closeGifPanel();
+  if (_gifTargetCardId) {
+    const card = state.cards.find(c => c.id === _gifTargetCardId);
+    if (card) {
+      snapshot();
+      card.data.src      = gif.url;
+      card.data.tenorId  = gif.id;
+      card.data.query    = gif.title;
+      card.data.caption  = '';
+      reRenderCard(card);
+      scheduleSave(); saveLocal?.();
+      return;
+    }
+  }
+  const vp = getBoardViewportCenter?.() || { x: 400, y: 300 };
+  const w = Math.min(gif.dims[0] || 320, 480);
+  const h = Math.min(gif.dims[1] || 240, 360);
+  addCard('gif', vp.x - w / 2, vp.y - h / 2, {
+    src:     gif.url,
+    tenorId: gif.id,
+    query:   gif.title,
+    caption: '',
+  }, w, h);
+  scheduleSave(); saveLocal?.();
+}
+
+function _gifSearchDebounced(q) {
+  clearTimeout(_gifSearchTimer);
+  _gifSearchTimer = setTimeout(() => { if (q.trim().length > 1) _loadGifGrid(q.trim()); }, 450);
+}
+
+function _gifPasteUrl() {
+  const input = document.getElementById('gif-url-input');
+  const val = (input?.value || '').trim();
+  if (!val) return;
+  const gif = { id: null, url: val, preview: val, title: 'Custom GIF', dims: [320, 240] };
+  _selectGif(gif);
+  if (input) input.value = '';
+}
+
+function toolbarAddGif() {
+  closeMtMore?.();
+  openGifPanel(null);
+}
+
+function _mtMoreDo(action) {
+  closeMtMore();
+  if      (action === 'mindmap')       toolbarQuickAdd('mindmap');
+  else if (action === 'table')         toolbarQuickAdd('table');
+  else if (action === 'image')         toolbarOpenModal('image');
+  else if (action === 'gif')           toolbarAddGif();
+  else if (action === 'video')         toolbarOpenModal('video');
+  else if (action === 'voting')        toolbarQuickAdd('voting');
+  else if (action === 'games')         openGamesModal?.();
+  else if (action === 'clear-strokes') eraseDrawing?.();
 }
 
 function renderFrame(el, card) {
@@ -5493,18 +5700,7 @@ function toggleMtMore(ev) {
     }
   }
 }
-function _mtMoreDo(action) {
-  toggleMtMore();
-  switch (action) {
-    case 'mindmap': toolbarQuickAdd && toolbarQuickAdd('mindmap'); break;
-    case 'table':   toolbarQuickAdd && toolbarQuickAdd('table'); break;
-    case 'image':   toolbarOpenModal && toolbarOpenModal('image'); break;
-    case 'video':   toolbarOpenModal && toolbarOpenModal('video'); break;
-    case 'voting':  quickAddVoting && quickAddVoting(); break;
-    case 'games':   openGamesModal && openGamesModal(); break;
-    case 'clear-strokes': eraseDrawing && eraseDrawing(); break;
-  }
-}
+// _mtMoreDo defined near renderGif (above)
 // Close on outside click / Esc
 document.addEventListener('mousedown', e => {
   const pop = document.getElementById('mt-more-pop');
