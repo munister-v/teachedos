@@ -709,12 +709,32 @@ let imageRows = [];
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return fallback;}}
 function writeJson(key,val){localStorage.setItem(key,JSON.stringify(val));}
-function favs(){return readJson(FAV_STORE,[])}
-function isFav(id){return favs().includes(id)}
+
+// ── Perf: in-memory favorites Set — avoids 51× localStorage reads per renderTools ──
+let _favSet = new Set(readJson(FAV_STORE, []));
+function favs(){return [..._favSet];}
+function isFav(id){return _favSet.has(id);}
+function _syncFavs(){writeJson(FAV_STORE,[..._favSet]);}
+
+// ── Perf: toolPreview cache — deterministic per tool, compute once ──
+const _toolPreviewCache = new Map();
+const _toolPreviewOrig = typeof toolPreview === 'function' ? toolPreview : null;
+
 function toggleSide(){document.getElementById('side').classList.toggle('open')}
 function setCategory(cat,el){currentCat=cat;document.querySelectorAll('.side-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('side').classList.remove('open');renderChips();renderTools()}
-function toggleFav(id,e){e.stopPropagation();const list=favs();const next=list.includes(id)?list.filter(x=>x!==id):[...list,id];writeJson(FAV_STORE,next);renderCounts();renderTools();toast(next.includes(id)?'Added to favorites':'Removed from favorites')}
-function renderCounts(){const counts={all:TOOLS.length,favorites:favs().length};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
+function toggleFav(id,e){
+  e.stopPropagation();
+  const adding=!_favSet.has(id);
+  if(adding) _favSet.add(id); else _favSet.delete(id);
+  _syncFavs();
+  // Update just the star button, not the whole grid
+  const btn=document.querySelector(`.tool[data-id="${id}"] .star`);
+  if(btn) btn.classList.toggle('on',adding);
+  renderCounts();
+  if(currentCat==='favorites') renderTools(); // need full re-render only in favorites view
+  toast(adding?'Added to favorites':'Removed from favorites');
+}
+function renderCounts(){const counts={all:TOOLS.length,favorites:_favSet.size};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
 function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
 let activePresetLevel = 'All';
 const PRESET_LEVELS = ['All','A1','A2','B1','B2','C1','Exam','Biz','Kids'];
@@ -763,10 +783,69 @@ function renderPresetPacks(){
   }).join('');
 }
 function applyPresetPack(i){const p=PRESET_PACKS[i];if(!p)return;selectTool(p.tool);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');const voc=document.getElementById('vocab');const src=document.getElementById('source');if(lvl)lvl.value=p.level;if(top)top.value=p.topic;if(voc)voc.value=p.vocab;if(src)src.value=p.source||src.value;toast('Preset loaded: '+p.title)},40)}
-function getVisibleTools(){const q=(document.getElementById('search').value||'').toLowerCase().trim();let list=TOOLS;if(currentCat==='favorites')list=list.filter(t=>isFav(t.id));else if(currentCat!=='all')list=list.filter(t=>t.cat===currentCat);if(q)list=list.filter(t=>(t.title+' '+t.desc+' '+t.cat+' '+(t.badge||'')).toLowerCase().includes(q));return list}
-function renderTools(){const grid=document.getElementById('tools-grid');const list=getVisibleTools();if(!list.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:30px;text-align:center;color:var(--muted);">No tools match this filter.</div>';return}grid.innerHTML=list.map(t=>`<div class="tool ${activeTool&&activeTool.id===t.id?'active':''}" role="button" tabindex="0" onclick="selectTool('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' ')selectTool('${t.id}')"><button class="star ${isFav(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}">★</button><div class="tool-visual" data-cat="${esc(CAT_NAMES[t.cat])}">${esc(t.icon)}</div><div><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p><div class="tool-meta"><span class="tag">${esc(CAT_NAMES[t.cat])}</span>${t.badge?`<span class="tag ${t.badge.toLowerCase()}">${esc(t.badge)}</span>`:''}</div></div><div class="tool-tip">${esc(toolPreview(t))}</div></div>`).join('')}
-function openFirstTool(){selectTool((getVisibleTools()[0]||TOOLS[0]).id)}
-function selectTool(id){activeTool=TOOLS.find(t=>t.id===id);lastOutput=null;imageRows=[];renderTools();renderForm();document.getElementById('workspace').classList.add('show');document.getElementById('active-icon').textContent=activeTool.icon;document.getElementById('active-title').textContent=activeTool.title;document.getElementById('active-desc').textContent=activeTool.desc;document.getElementById('result-body').innerHTML='<div class="result-empty"><div><b>Ready when you are</b><span>Fill the fields and generate the task.</span></div></div>';document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}
+// ── Perf: search debounce ──
+let _searchTimer = null;
+function scheduleSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderTools,150);}
+
+function getVisibleTools(){
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  let list=TOOLS;
+  if(currentCat==='favorites') list=list.filter(t=>_favSet.has(t.id));
+  else if(currentCat!=='all')  list=list.filter(t=>t.cat===currentCat);
+  if(q) list=list.filter(t=>(t.title+' '+t.desc+' '+t.cat+' '+(t.badge||'')).toLowerCase().includes(q));
+  return list;
+}
+
+function _cachedToolPreview(t){
+  if(!_toolPreviewCache.has(t.id)) _toolPreviewCache.set(t.id, toolPreview(t));
+  return _toolPreviewCache.get(t.id);
+}
+
+function renderTools(){
+  const grid=document.getElementById('tools-grid');
+  const list=getVisibleTools();
+  if(!list.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:30px;text-align:center;color:var(--muted);">No tools match this filter.</div>';return;}
+  // Use DocumentFragment to batch DOM insertion — avoids per-card reflow
+  const frag=document.createDocumentFragment();
+  list.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='tool'+(activeTool&&activeTool.id===t.id?' active':'');
+    div.setAttribute('role','button');
+    div.setAttribute('tabindex','0');
+    div.dataset.id=t.id;
+    div.innerHTML=`<button class="star ${_favSet.has(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}">★</button><div class="tool-visual" data-cat="${esc(CAT_NAMES[t.cat])}">${esc(t.icon)}</div><div><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p><div class="tool-meta"><span class="tag">${esc(CAT_NAMES[t.cat])}</span>${t.badge?`<span class="tag ${t.badge.toLowerCase()}">${esc(t.badge)}</span>`:''}</div></div><div class="tool-tip">${esc(_cachedToolPreview(t))}</div>`;
+    div.addEventListener('click',()=>selectTool(t.id));
+    div.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')selectTool(t.id);});
+    frag.appendChild(div);
+  });
+  grid.innerHTML='';
+  grid.appendChild(frag);
+}
+
+function openFirstTool(){selectTool((getVisibleTools()[0]||TOOLS[0]).id);}
+
+function selectTool(id){
+  const prev=activeTool;
+  activeTool=TOOLS.find(t=>t.id===id);
+  if(!activeTool) return;
+  lastOutput=null; imageRows=[];
+  // Perf: swap .active class on existing cards without rebuilding the grid
+  if(prev&&prev.id!==id){
+    const oldEl=document.querySelector(`.tool[data-id="${prev.id}"]`);
+    const newEl=document.querySelector(`.tool[data-id="${id}"]`);
+    if(oldEl&&newEl){oldEl.classList.remove('active');newEl.classList.add('active');}
+    else renderTools(); // grid has changed (different category) — full rebuild needed
+  } else if(!prev){
+    renderTools();
+  }
+  renderForm();
+  document.getElementById('workspace').classList.add('show');
+  document.getElementById('active-icon').textContent=activeTool.icon;
+  document.getElementById('active-title').textContent=activeTool.title;
+  document.getElementById('active-desc').textContent=activeTool.desc;
+  document.getElementById('result-body').innerHTML='<div class="result-empty"><div><b>Ready when you are</b><span>Fill the fields and generate the task.</span></div></div>';
+  document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
+}
 function baseFields(extra=''){return `<div class="form-grid"><div class="field"><label class="label" for="level">Level</label><select id="level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div><div class="field"><label class="label" for="count">How many items</label><input id="count" type="number" min="3" max="50" value="12"><div class="hint">3-50 items. Bigger packs use fast local generation.</div></div><div class="field full"><label class="label" for="topic">Topic / grammar focus</label><input id="topic" placeholder="e.g. travel problems, present perfect, job interview"></div>${extra}</div>`}
 function textArea(id,label,value,help){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}">${esc(value||'')}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
 function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload local images or paste image URLs. Local images are converted to data URLs, so saved materials keep the preview in this browser.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(m==='translation-match'){html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','apple\nbook\nhouse\nfriend\nwater\nschool\nhappy\nwork','One word per line. Add your own translation after " - " (e.g. apple - яблуко), or leave just the word and TeachEd fills common ones.')}`)}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['lesson-pack','worksheet','homework'].includes(m)){html=baseFields(`${textArea('source','Source text / lesson brief',SAMPLE_TEXT,'Optional. Paste a text, class goal, or short lesson idea.')}${textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. One word or word - definition pair per line.')}`)}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. Add words or word - meaning pairs, one per line.'))}else if(m==='word-order'){html=baseFields(textArea('source','Sentences to scramble',SAMPLE_TEXT,'Paste sentences — one per line or a full text. TeachEd will split and shuffle each one.'))}else if(m==='matching-halves'){html=baseFields(textArea('vocab','Collocations or sentences',`make a decision\ntake an exam\ndo homework\ngive advice\nhave a conversation\nkeep in touch\nrun a business\nbreak a record`,'One collocation or sentence per line. Split point is the middle word.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link and TeachEd pulls the transcript into the field below — then Generate questions or tasks.</div></div><div class="field full"><label class="label" for="media-file">…or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file and TeachEd transcribes it locally in your browser (nothing is sent to a server) and fills the transcript below.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Generate</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}}
