@@ -2827,9 +2827,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .vocab-word{font-size:22px;font-weight:900;color:var(--text);line-height:1;letter-spacing:-.02em;}
 .vocab-phonetic{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:1px;}
 .vocab-trans{font-size:13px;font-weight:700;color:#6366f1;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;}
-.vocab-pos{font-size:10px;font-family:var(--mono);color:var(--text-3);margin-bottom:2px;}
+.vocab-pos{display:inline-block;font-size:10px;font-family:var(--mono);color:var(--tt-accent,#6366f1);background:color-mix(in srgb,var(--tt-accent,#6366f1) 12%,transparent);padding:1px 7px;border-radius:999px;margin-top:4px;}
 .vocab-example{font-size:11px;color:var(--text-2);line-height:1.5;font-style:italic;}
 .vocab-example em{font-style:normal;font-weight:800;color:var(--accent);}
+/* US/UK pronunciation rows with tap-to-hear speaker */
+.vocab-pron{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;}
+.vocab-pron-row{display:flex;align-items:center;gap:7px;}
+.vocab-say{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:1px solid color-mix(in srgb,var(--tt-accent,#EC2D8C) 30%,transparent);background:color-mix(in srgb,var(--tt-accent,#EC2D8C) 10%,#fff);cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .12s;}
+.vocab-say:hover{transform:scale(1.12);background:color-mix(in srgb,var(--tt-accent,#EC2D8C) 20%,#fff);}
+.vocab-say:active{transform:scale(.94);}
+.vocab-pron-flag{flex-shrink:0;font:800 9px var(--mono);letter-spacing:.05em;color:#fff;background:var(--tt-accent,#EC2D8C);padding:2px 6px;border-radius:5px;}
+.vocab-pron-ipa{font-size:12px;color:var(--text-2);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 /* ══════════════ CHECKLIST CARD ══════════════ */
 .card-checklist .card-header{background:linear-gradient(135deg,rgba(20,184,166,.07),rgba(5,150,105,.03));}

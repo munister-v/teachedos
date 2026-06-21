@@ -33,6 +33,12 @@ const STICKY_COLORS = [
   '#FFE566','#AFF4C6','#CFE2FF','#FFB8D9','#CDB4F6','#FFD580',
   '#FF8B8B','#9BDDCC','#FFC680','#B8F0FF','#FFB3BA','#D4F1A0',
 ];
+// Vivid accent palette for worksheet / activity / vocab cards (used as the
+// card's accent line, headers, interactive controls).
+const WS_ACCENT_COLORS = [
+  '#4262FF','#6366F1','#8B5CF6','#D946EF','#EC4899','#EF4444',
+  '#F97316','#F59E0B','#16A34A','#14B8A6','#06B6D4','#64748B',
+];
 const SHARED_NOTES_KEY = 'teachedos_notes_v1';
 
 function readSharedTeacherNotes() {
@@ -2061,7 +2067,7 @@ function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
              || { icon:'📄', color:'#4262FF' };
-  const accent = meta.color || '#4262FF';
+  const accent = d.accent || meta.color || '#4262FF';
 
   // Interactive mode: render inside an iframe with drag strip
   if (d._interactive && _wsHasInteractive(d)) {
@@ -2172,7 +2178,7 @@ function _buildInteractiveWSHtml(d) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
-  const accent = '#4262FF';
+  const accent = d.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]?.color) || '#4262FF';
   const kind = String(d.kind || '').toLowerCase();
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
@@ -2979,8 +2985,12 @@ function openCardEditor(cardId) {
     body.innerHTML = `
       <div><div class="ed-label">Word</div>
         <input class="ed-input" id="ed-word" value="${esc(card.data.word||'')}"/></div>
-      <div><div class="ed-label">Phonetic (IPA)</div>
-        <input class="ed-input" id="ed-phonetic" placeholder="/wɜːrd/" value="${esc(card.data.phonetic||'')}"/></div>
+      <div class="ed-row">
+        <div style="flex:1"><div class="ed-label">🇺🇸 US (IPA)</div>
+          <input class="ed-input" id="ed-phonetic-us" placeholder="/wɜrd/" value="${esc(card.data.phoneticUS||card.data.phonetic||'')}"/></div>
+        <div style="flex:1"><div class="ed-label">🇬🇧 UK (IPA)</div>
+          <input class="ed-input" id="ed-phonetic-uk" placeholder="/wɜːd/" value="${esc(card.data.phoneticUK||'')}"/></div>
+      </div>
       <div><div class="ed-label">Part of Speech</div>
         <select class="ed-input ed-select" id="ed-pos">
           ${['noun','verb','adjective','adverb','phrase','idiom'].map(p=>`<option${card.data.pos===p?' selected':''}>${p}</option>`).join('')}
@@ -3272,7 +3282,9 @@ function saveCardEditor() {
     card.data.desc  = g('ed-desc').value.trim();
   } else if (card.type === 'vocab') {
     card.data.word        = g('ed-word')?.value.trim() || 'Word';
-    card.data.phonetic    = g('ed-phonetic')?.value.trim();
+    card.data.phoneticUS  = g('ed-phonetic-us')?.value.trim();
+    card.data.phoneticUK  = g('ed-phonetic-uk')?.value.trim();
+    card.data.phonetic    = card.data.phoneticUS || card.data.phoneticUK || '';
     card.data.pos         = g('ed-pos')?.value;
     card.data.translation = g('ed-translation')?.value.trim();
     card.data.example     = g('ed-example')?.value.trim();
@@ -4021,6 +4033,48 @@ function showLayerPopover(cardId) {
     cardColorRow.remove();
     if (next && next.classList?.contains('layer-sep')) {
       // Keep only if not directly after another sep
+      const prev = next.previousSibling;
+      if (!prev || prev.classList?.contains('layer-sep')) next.remove();
+    }
+  }
+
+  // Accent color row — worksheet / activity / vocab cards get a vivid accent
+  // palette that drives the card's accent line, headers and interactive controls.
+  let accentRow = pop.querySelector('.accent-color-row');
+  if (card && (card.type === 'worksheet' || card.type === 'vocab')) {
+    if (!accentRow) {
+      accentRow = document.createElement('div');
+      accentRow.className = 'card-color-row accent-color-row';
+      const firstSep = pop.querySelector('.layer-sep');
+      pop.insertBefore(accentRow, firstSep);
+      if (accentRow.nextSibling && !accentRow.nextSibling.classList?.contains('layer-sep')) {
+        const sep = document.createElement('div'); sep.className = 'layer-sep';
+        pop.insertBefore(sep, accentRow.nextSibling);
+      }
+    }
+    accentRow.innerHTML = '';
+    const current = (card.data.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[card.data.cat]?.color) || '#4262FF').toLowerCase();
+    WS_ACCENT_COLORS.forEach(c => {
+      const sw = document.createElement('button');
+      sw.className = 'card-color-swatch';
+      sw.style.background = c;
+      sw.title = c;
+      if (current === c.toLowerCase()) sw.classList.add('active');
+      sw.addEventListener('click', e => {
+        e.stopPropagation();
+        snapshot();
+        card.data.accent = c;
+        reRenderCard(card);
+        accentRow.querySelectorAll('.card-color-swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      });
+      accentRow.appendChild(sw);
+    });
+  } else if (accentRow) {
+    const next = accentRow.nextSibling;
+    accentRow.remove();
+    if (next && next.classList?.contains('layer-sep')) {
       const prev = next.previousSibling;
       if (!prev || prev.classList?.contains('layer-sep')) next.remove();
     }
@@ -7580,17 +7634,6 @@ function sendTeacherToolToGame() { sendTeacherToolToGameType(); }
    button builds INTERACTIVE assignment cards (taken on the board, auto-scored)
    from that same lesson and drops them inside the frame. */
 
-// Assignment data shell — an interactive, auto-scored quiz card.
-function _ttAssign(title, level, questions) {
-  const totalPts = questions.reduce((s, q) => s + (q.points || 1), 0);
-  return {
-    title, type: 'Quiz', level: level || 'B1', maxScore: totalPts,
-    deadline: '', timeLimit: 0,
-    desc: `Interactive · ${questions.length} ${questions.length === 1 ? 'task' : 'questions'}.`,
-    questions, submitted: 0, total: 0,
-  };
-}
-
 // Lesson vocabulary as builder-style "word - meaning" lines — passed into the
 // AI follow-up requests so generated questions target the lesson's own words.
 function _ttLessonVocabText(L) {
@@ -7664,20 +7707,115 @@ function _lamOutside(e) {
 }
 function closeLessonActivityMenu() { document.getElementById('lesson-activity-menu')?.remove(); }
 
+/* Strip HTML → plain text via a detached element (browser only). */
+function _ttHtmlToText(html) {
+  const div = document.createElement('div');
+  div.innerHTML = String(html || '');
+  return div;
+}
+
+/* Parse a rendered glossary panel's HTML back into {word, def} pairs. The
+   composer renders each entry as a <div> holding a bold word span + a "— def"
+   span; the wrapper and the uppercase label have no em-dash so they're dropped. */
+function _ttParseGlossaryHtml(html) {
+  const root = _ttHtmlToText(html);
+  const out = [];
+  root.querySelectorAll('div').forEach(d => {
+    if (d.querySelector('div')) return;            // skip wrappers
+    const t = (d.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    const p = t.split(/\s+[—–-]\s+/);
+    if (p.length >= 2) out.push({ word: p.shift().trim(), def: p.join(' — ').trim() });
+  });
+  return out;
+}
+
+/* Pull the body text out of a rendered reading-text panel (paragraphs first,
+   else whole text content minus the uppercase section label). */
+function _ttExtractSourceFromHtml(html) {
+  const root = _ttHtmlToText(html);
+  const ps = [...root.querySelectorAll('p')].map(p => (p.textContent || '').trim()).filter(Boolean);
+  if (ps.length) return ps.join('\n\n');
+  // Drop the first short label-ish line, keep the rest.
+  const lines = (root.textContent || '').split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.join('\n');
+}
+
+/* Fallback lesson capture: when a frame has no (or empty) data.lesson, rebuild
+   the glossary word list + reading source straight from the frame's child text
+   cards. Makes "+ Add activity" work on ANY lesson frame, even old ones. */
+function _ttLessonFromFrameChildren(frame) {
+  const kids = (frame.data.childIds || []).map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  let vocab = [], source = '';
+  for (const k of kids) {
+    if (k.type !== 'text' || !k.data) continue;
+    const html = k.data.html || '';
+    const plain = k.data.text || '';
+    const up = (html + ' ' + plain).toUpperCase();
+    if (!vocab.length && /GLOSSARY|VOCABULARY|KEY WORDS|WORD LIST/.test(up)) {
+      vocab = html ? _ttParseGlossaryHtml(html) : [];
+    }
+    if (/READING TEXT|GENERATED TEXT|READING ·|\bTHE TEXT\b/.test(up)) {
+      const s = html ? _ttExtractSourceFromHtml(html) : plain;
+      if (s.length > source.length) source = s;
+    }
+  }
+  // Last resort for source: the longest text card that isn't the glossary.
+  if (!source) {
+    let best = '';
+    for (const k of kids) {
+      if (k.type !== 'text' || !k.data) continue;
+      const up = ((k.data.html || '') + (k.data.text || '')).toUpperCase();
+      if (/GLOSSARY|VOCABULARY|KEY WORDS/.test(up)) continue;
+      const s = k.data.html ? _ttExtractSourceFromHtml(k.data.html) : (k.data.text || '');
+      if (s.length > best.length) best = s;
+    }
+    source = best;
+  }
+  return { vocab, source };
+}
+
+/* Build the effective lesson context for activity generation: start from
+   frame.data.lesson, then top up vocab/source from the child cards. */
+function _ttEffectiveLesson(frame) {
+  const base = (frame.data && frame.data.lesson) || {};
+  const needVocab = !(Array.isArray(base.vocab) && base.vocab.length >= 2);
+  const needSource = !String(base.source || '').trim();
+  let extra = { vocab: [], source: '' };
+  if (needVocab || needSource) extra = _ttLessonFromFrameChildren(frame);
+  return {
+    cat: base.cat || frame.data._ttCat || 'utility',
+    topic: base.topic || String(frame.data.title || '').replace(/^[^\w]+\s*/, '').trim() || 'this lesson',
+    level: base.level || 'B1',
+    source: String(base.source || '').trim() || extra.source || '',
+    vocab: (Array.isArray(base.vocab) && base.vocab.length) ? base.vocab : extra.vocab,
+  };
+}
+
+/* Place a generated activity as an INTERACTIVE worksheet card (drag-drop /
+   click / type + Check) inside the lesson frame, ready for the student to do. */
+function _ttPlaceActivityWorksheet(frame, title, kind, cat, level, questions) {
+  const data = {
+    title, kind, cat: cat || 'vocabulary', level: level || 'B1',
+    boardKind: 'quiz', questions, _ttSrc: 1, _interactive: true,
+  };
+  const H = Math.max(300, Math.min(720, _ttEstWorksheetHeight({ questions })));
+  _ttAppendActivityCard(frame, 'worksheet', data, 560, H);
+}
+
 async function addLessonActivity(frameId, type) {
   const frame = state.cards.find(c => c.id === frameId);
-  const L = frame && frame.data && frame.data.lesson;
-  if (!L) return;
-  let data = null;
-  const W = 380, H = 250;
+  if (!frame) return;
+  const L = _ttEffectiveLesson(frame);
   if (type === 'match') {
     const pairs = (L.vocab || []).slice(0, 10).map(v => ({ left: v.word, right: v.def })).filter(p => p.left && p.right);
-    if (pairs.length < 2) { toast('Not enough words to match', 'error'); return; }
-    data = _ttAssign('Match: words & meanings', L.level, [{ type: 'match', text: 'Match each word to its meaning.', pairs, points: pairs.length }]);
+    if (pairs.length < 2) { toast('Not enough words to match — add a glossary to this lesson', 'error'); return; }
+    _ttPlaceActivityWorksheet(frame, 'Match: words & meanings', 'Matching', 'vocabulary', L.level,
+      [{ type: 'match', text: 'Match each word to its meaning.', pairs, points: pairs.length }]);
   } else if (type === 'gap') {
     const qs = _ttLessonGapQuestions(L);
     if (qs.length < 2) { toast('Not enough words for a gap-fill', 'error'); return; }
-    data = _ttAssign('Fill in the words', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Fill in the words', 'Gap Fill', 'vocabulary', L.level, qs);
   } else if (type === 'vocabquiz') {
     const v = (L.vocab || []).filter(x => x.word && x.def);
     if (v.length < 3) { toast('Not enough words for a quiz', 'error'); return; }
@@ -7687,7 +7825,7 @@ async function addLessonActivity(frameId, type) {
       const options = _ttShuffle([x.def, ...distractors]);
       return { type: 'mcq', text: `What does “${x.word}” mean?`, options, answer: x.def, points: 1 };
     });
-    data = _ttAssign('Vocabulary quiz', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Vocabulary quiz', 'MCQ', 'vocabulary', L.level, qs);
   } else if (type === 'sentences') {
     const words = (L.vocab || []).filter(v => v.word).slice(0, 8);
     if (words.length < 2) { toast('Not enough words', 'error'); return; }
@@ -7696,7 +7834,7 @@ async function addLessonActivity(frameId, type) {
       text: `Write your own sentence using “${v.word}”${v.def ? ` (= ${v.def})` : ''}.`,
       points: 2,
     }));
-    data = _ttAssign('Write sentences with the words', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Write sentences with the words', 'Sentence Set', 'vocabulary', L.level, qs);
   } else if (type === 'truefalse') {
     toast('✨ Generating true/false from the text…');
     const out = await requestServerTeacherTool(
@@ -7704,7 +7842,7 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'truefalse').slice(0, 8);
     if (!qs.length) { toast('Could not generate true/false right now — try again.', 'error'); return; }
-    data = _ttAssign('True or False', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'True or False', 'Check', 'reading', L.level, qs);
   } else if (type === 'open') {
     toast('✨ Generating open questions…');
     const out = await requestServerTeacherTool(
@@ -7712,7 +7850,7 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'open').slice(0, 8);
     if (!qs.length) { toast('Could not generate open questions right now — try again.', 'error'); return; }
-    data = _ttAssign('Open questions', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Open questions', 'Questions', 'reading', L.level, qs);
   } else if (type === 'quiz') {
     toast('✨ Generating a quiz from the text…');
     const out = await requestServerTeacherTool(
@@ -7720,10 +7858,8 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2).slice(0, 8);
     if (!qs.length) { toast('Could not generate a quiz right now — try again.', 'error'); return; }
-    data = _ttAssign('Comprehension quiz', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Comprehension quiz', 'MCQ', 'reading', L.level, qs);
   }
-  if (!data) return;
-  _ttAppendActivityCard(frame, 'assignment', data, W, H);
 }
 
 // Drop a new card inside the lesson frame, below the existing content, and grow
@@ -8340,7 +8476,11 @@ function _ttPlaceVocabOnBoard(output){
       const r = Math.floor(i / COLS), c = i % COLS;
       const x = x0 + PAD + c*(VW+GAP), y = y0 + HEAD + r*(VH+GAP);
       const vc = addCard('vocab', x, y, {
-        word: it.word, phonetic:'', translation: it.definition || '', pos:'', example: it.example || '', tags:[], accent: _vmeta.color,
+        word: it.word,
+        phoneticUS: it.phoneticUS || it.us || it.ipa || it.phonetic || '',
+        phoneticUK: it.phoneticUK || it.uk || '',
+        phonetic: it.phonetic || it.ipa || '',
+        translation: it.definition || '', pos: it.pos || '', example: it.example || '', tags:[], accent: _vmeta.color,
       }, VW, VH);
       if (frame && vc) setCardParentFrame && setCardParentFrame(vc, frame);
     });
@@ -12504,19 +12644,57 @@ function quickAddCard(type, bx, by) {
 }
 
 /* ════════════════════════ VOCABULARY CARD ════════════════════════ */
+// Speak a word aloud via the browser's built-in TTS, picking a US or UK voice.
+// No backend / audio files — works offline once voices are loaded.
+function speakWord(word, lang) {
+  try {
+    if (!('speechSynthesis' in window) || !word) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(word));
+    u.lang = lang === 'uk' ? 'en-GB' : 'en-US';
+    u.rate = 0.92;
+    const voices = speechSynthesis.getVoices() || [];
+    const want = u.lang.toLowerCase();
+    const v = voices.find(x => (x.lang || '').toLowerCase() === want)
+          || voices.find(x => (x.lang || '').toLowerCase().startsWith(want.slice(0, 2)));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  } catch {}
+}
+// Warm up the voice list (some browsers populate it asynchronously).
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); } catch {}
+}
+
 function renderVocab(el, card) {
   const d = card.data;
-  if (d.accent) { el.classList.add('tt-note'); el.style.setProperty('--tt-accent', d.accent); }
+  const accent = d.accent || '#EC2D8C';
+  el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent);
   el.appendChild(makeHeader('📖', d.word || 'Word', card.id));
   const body = document.createElement('div');
   body.className = 'card-body vocab-body';
   const highlight = w => String(w||'').replace(/___/g, `<em>${d.word||'___'}</em>`);
+  const wEsc = esc(d.word || 'Word').replace(/'/g, "\\'");
+  const usIpa = d.phoneticUS || d.phonetic || '';
+  const ukIpa = d.phoneticUK || '';
+  // Two pronunciation rows: accent flag + IPA (if known) + tap-to-hear speaker.
+  const pron = `
+    <div class="vocab-pron-row">
+      <button class="vocab-say" title="Hear US pronunciation" onclick="event.stopPropagation();speakWord('${wEsc}','us')">🔊</button>
+      <span class="vocab-pron-flag">US</span>
+      <span class="vocab-pron-ipa">${usIpa ? esc(usIpa) : '—'}</span>
+    </div>
+    <div class="vocab-pron-row">
+      <button class="vocab-say" title="Hear UK pronunciation" onclick="event.stopPropagation();speakWord('${wEsc}','uk')">🔊</button>
+      <span class="vocab-pron-flag">UK</span>
+      <span class="vocab-pron-ipa">${ukIpa ? esc(ukIpa) : '—'}</span>
+    </div>`;
   body.innerHTML = `
     <div>
       <div class="vocab-word">${esc(d.word || 'Word')}</div>
-      ${d.phonetic ? `<div class="vocab-phonetic">${esc(d.phonetic)}</div>` : ''}
+      ${d.pos ? `<span class="vocab-pos">${esc(d.pos)}</span>` : ''}
     </div>
-    ${d.pos ? `<div class="vocab-pos">${esc(d.pos)}</div>` : ''}
+    <div class="vocab-pron">${pron}</div>
     ${d.translation ? `<div class="vocab-trans">${esc(d.translation)}</div>` : ''}
     ${d.example ? `<div class="vocab-example">${highlight(d.example)}</div>` : ''}
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
