@@ -211,6 +211,11 @@ router.post('/billing/payments/:id/approve', async (req, res) => {
       [normalizePlanKey(payment.plan), normalizeCycleKey(payment.billing_cycle), appliedMonths, payment.user_id]
     );
     await client.query('COMMIT');
+    logAdminAction(req, 'billing.approve', {
+      targetId: payment.user_id,
+      targetLabel: `payment #${id}`,
+      detail: `${payment.plan} for ${appliedMonths}mo${note ? ': ' + note : ''}`,
+    });
     res.json({ ok: true, plan: payment.plan, months: appliedMonths });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
@@ -235,6 +240,19 @@ router.post('/billing/payments/:id/reject', async (req, res) => {
       [id, String(note || '').trim().slice(0, 1000), req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Pending payment request not found' });
+    logAdminAction(req, 'billing.reject', {
+      targetId: rows[0].id,
+      targetLabel: `payment #${id}`,
+      detail: note || 'rejected',
+    });
+    // If user's plan_status is 'pending' (set when they submitted the IBAN request),
+    // revert it so they don't stay in limbo.
+    await pool.query(
+      `UPDATE users SET plan_status='free'
+       WHERE id=(SELECT user_id FROM iban_payments WHERE id=$1)
+         AND plan_status='pending'`,
+      [id]
+    ).catch(() => {});
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

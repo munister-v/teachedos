@@ -27,9 +27,13 @@ async function requireAuth(req, res, next) {
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found' });
     req.user = rows[0];
+    // Auto-revert expired plans — but NOT if plan_status='pending' (IBAN
+    // payment awaiting admin review: plan may still be 'free' but user should
+    // see the pending badge, not get silently reverted).
     if (
       req.user.plan &&
       req.user.plan !== 'free' &&
+      req.user.plan_status !== 'pending' &&
       req.user.plan_expires_at &&
       new Date(req.user.plan_expires_at).getTime() <= Date.now()
     ) {

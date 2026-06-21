@@ -66,8 +66,7 @@ async function loadLatestPendingPayment(userId) {
             billing_cycle, months, company_name, contact_email, package_snapshot, created_at
      FROM iban_payments
      WHERE user_id=$1 AND status='pending'
-     ORDER BY created_at DESC
-     LIMIT 1`,
+     ORDER BY created_at DESC`,
     [userId]
   );
   return rows[0] || null;
@@ -367,6 +366,14 @@ async function ibanActivateHandler(req, res) {
       ]
     );
 
+    // Mark user plan_status as 'pending' so the UI immediately reflects the
+    // pending state (the auth middleware won't auto-revert because plan is still
+    // 'free' or the current plan — only plan_status changes).
+    await pool.query(
+      `UPDATE users SET plan_status='pending' WHERE id=$1 AND plan_status IN ('free','expired','canceled','rejected')`,
+      [req.user.id]
+    ).catch(() => {});
+
     res.status(202).json({ ok: true, payment: rows[0] });
   } catch (err) {
     console.error('[billing] iban-activate:', err.message);
@@ -378,6 +385,30 @@ async function ibanActivateHandler(req, res) {
 // standalone upgrade page. Both share one handler so the flow can never diverge.
 router.post('/iban-activate', requireAuth, ibanActivateHandler);
 router.post('/payment-request', requireAuth, ibanActivateHandler);
+
+// User cancels their own pending payment request
+router.post('/cancel-pending', requireAuth, async (req, res) => {
+  try {
+    await ensureBillingSchema(pool);
+    const { rows } = await pool.query(
+      `UPDATE iban_payments
+       SET status='canceled', admin_note='Canceled by user'
+       WHERE user_id=$1 AND status='pending'
+       RETURNING id`,
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No pending payment to cancel' });
+    // Revert plan_status if it was set to 'pending'
+    await pool.query(
+      `UPDATE users SET plan_status='free' WHERE id=$1 AND plan_status='pending'`,
+      [req.user.id]
+    ).catch(() => {});
+    res.json({ ok: true, canceled: rows.length });
+  } catch (err) {
+    console.error('[billing] cancel-pending:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 router.get('/payments', requireAuth, async (req, res) => {
   try {

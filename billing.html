@@ -230,7 +230,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
       <p style="font-size:13px;color:var(--muted)">You'll get an in-app notification when your plan is activated.</p>
       <div class="btn-row">
         <a href="index.html" class="btn-dark">Back to TeachEd</a>
-        <a href="profile.html#plans" class="btn-soft">My Profile</a>
+        <button class="btn-soft" onclick="cancelPendingPayment()" style="color:#991b1b;border-color:rgba(153,27,27,.2)">Cancel request</button>
       </div>
     </div>
   </div>
@@ -487,6 +487,21 @@ async function pollPendingStatus() {
     OVERVIEW = data;
     renderCurrent();
   } catch {}
+}
+
+async function cancelPendingPayment() {
+  if (!window.confirm('Cancel your pending payment request? You can submit a new one later.')) return;
+  try {
+    const r = await apiFetch('/api/billing/cancel-pending', { method: 'POST' });
+    if (!r.ok) { const d = await r.json(); alert(d.error || 'Error'); return; }
+    clearInterval(_pendingPollTimer);
+    _pendingPollTimer = null;
+    $('pending-box').hidden = true;
+    $('plan-cards').hidden = false;
+    $('cycle-toggle').parentElement.hidden = false;
+    const ov = await apiFetch('/api/billing/overview');
+    if (ov.ok) { OVERVIEW = await ov.json(); renderCurrent(); }
+  } catch (e) { alert(e.message); }
 }
 
 init();
