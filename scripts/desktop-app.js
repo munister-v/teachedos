@@ -1283,7 +1283,15 @@ function fetchMe() {
 
 function readTeacherDashboardCache() {
   try {
-    return JSON.parse(localStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY) || 'null');
+    const raw = localStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw);
+    // Invalidate cache older than 4 hours — prevents stale data from appearing
+    if (entry?.cachedAt && Date.now() - new Date(entry.cachedAt).getTime() > 4 * 60 * 60 * 1000) {
+      localStorage.removeItem(TEACHER_DASHBOARD_CACHE_KEY);
+      return null;
+    }
+    return entry;
   } catch {
     return null;
   }

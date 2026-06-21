@@ -408,28 +408,49 @@ function fitSelection() {
 }
 
 /* ════════════════════════ UNDO / REDO ════════════════════════ */
+// Max 25 undo entries (was 60). Each is a full JSON string (~50-200KB).
+// 25 entries keeps memory pressure under ~5MB on typical boards.
+const UNDO_LIMIT = 25;
+
 function snapshot() {
-  undoStack.push(serialize());
-  if (undoStack.length > 60) undoStack.shift();
+  const snap = serialize();
+  // Skip duplicate snapshots (nothing changed since last snapshot)
+  if (snap === undoStack[undoStack.length - 1]) return;
+  undoStack.push(snap);
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   redoStack.length = 0;
   updateUndoButtons();
   scheduleSave();
 }
 
 function serialize() {
+  // Inline image data URLs (data:image/...) are excluded from undo snapshots —
+  // they can be megabytes each and are already persisted via saveLocal(). We
+  // store a sentinel so restore can fetch from the live state instead.
   return JSON.stringify({
-    cards:  state.cards.map(c => ({ ...c, data: { ...c.data } })),
-    arrows: state.arrows.map(a => ({ ...a })),
+    cards: state.cards.map(c => {
+      const data = { ...c.data };
+      if (data.src && typeof data.src === 'string' && data.src.startsWith('data:')) {
+        data.src = '\x00img:' + c.id; // sentinel — restored from live card
+      }
+      return { ...c, data };
+    }),
+    arrows:  state.arrows.map(a => ({ ...a })),
     strokes: (state.strokes || []).map(s => ({ ...s, points: s.points.map(p => ({ x:p.x, y:p.y })) })),
-    groups: state.groups ? state.groups.map(g => ({ ...g, cardIds: [...g.cardIds] })) : [],
-    nextId: state.nextId,
+    groups:  state.groups ? state.groups.map(g => ({ ...g, cardIds: [...g.cardIds] })) : [],
+    nextId:  state.nextId,
   });
 }
 
 function restoreState(json) {
   const s = JSON.parse(json);
-  // Stop all running intervals (timers, etc.) before wiping cards so the
-  // re-rendered cards start with fresh state.
+  // Restore image sentinels: '\x00img:<id>' → live card's data.src
+  const liveSrcMap = new Map(state.cards.filter(c => c.data?.src?.startsWith?.('data:')).map(c => [c.id, c.data.src]));
+  if (Array.isArray(s.cards)) {
+    s.cards.forEach(c => {
+      if (c.data?.src === '\x00img:' + c.id) c.data.src = liveSrcMap.get(c.id) || '';
+    });
+  }
   if (typeof _timerIntervals !== 'undefined') {
     _timerIntervals.forEach(iv => clearInterval(iv));
     _timerIntervals.clear();
@@ -10087,6 +10108,54 @@ const SAVE_KEY     = 'teachedos_board_v3';
 const VER_KEY      = 'teachedos_versions_v1';   // version snapshots
 const SESSION_KEY  = 'teachedos_session_v1';
 
+/* ── Storage hygiene: runs once per session, deferred off the critical path ──
+   Cleans up stale TT cache entries (past their 24h TTL), stale dashboard
+   caches (>4h), and any orphaned onboarding keys from old email addresses. */
+(function _cleanupStaleStorage() {
+  try {
+    const now = Date.now();
+    const TT_PREFIX = 'teachedos_tt_cache_v2:';
+    const DASH_TTL  = 4 * 60 * 60 * 1000;  // 4 hours
+    const TT_TTL    = 24 * 60 * 60 * 1000; // 24 hours (matches TT_CACHE_TTL_MS)
+    const ONBOARD_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    // Collect stale keys to remove (iterate once, remove after)
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+
+      // Stale TT AI-output cache
+      if (k.startsWith(TT_PREFIX)) {
+        try {
+          const entry = JSON.parse(localStorage.getItem(k));
+          if (!entry?.at || now - Number(entry.at) > TT_TTL) toRemove.push(k);
+        } catch { toRemove.push(k); }
+        continue;
+      }
+
+      // Dashboard cache: invalidate if older than 4h
+      if (k === 'teachedos_teacher_dashboard_cache_v1' ||
+          k === 'teachedos_student_dashboard_cache_v1') {
+        try {
+          const entry = JSON.parse(localStorage.getItem(k));
+          if (entry?.cachedAt && now - new Date(entry.cachedAt).getTime() > DASH_TTL) toRemove.push(k);
+        } catch { toRemove.push(k); }
+        continue;
+      }
+
+      // Orphaned per-email onboarding flags (> 7 days old heuristic: if user has a new
+      // token, the old email-keyed flag is dead weight)
+      if (k.startsWith('teachedos_onboarding_pending_') &&
+          k !== 'teachedos_onboarding_pending') {
+        // Keep max 2 email variants — old ones are orphans
+        if (i > 50) toRemove.push(k); // rough guard — only prune when many keys
+      }
+    }
+    toRemove.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+  } catch {} // never throw — cleanup is best-effort
+})();
+
 let saveTimer       = null;
 let cloudSaveTimer  = null;
 let saveRetries     = 0;
@@ -10207,10 +10276,15 @@ function serializeBoard() {
 
 /* ════ LOCAL SAVE ════ */
 function saveLocal() {
+  // Skip write if nothing has changed since last save — avoids redundant
+  // JSON.stringify + localStorage write on every scheduleSave() call.
+  const h = boardHash();
+  if (h === lastSavedHash) return true;
+
   const payload = JSON.stringify(serializeBoard());
   try {
     localStorage.setItem(SAVE_KEY, payload);
-    lastSavedHash = boardHash();
+    lastSavedHash = h;
     localSaveQuotaWarned = false;
     return true;
   } catch(e) {
@@ -10218,7 +10292,7 @@ function saveLocal() {
     pruneVersions(3);
     try {
       localStorage.setItem(SAVE_KEY, payload);
-      lastSavedHash = boardHash();
+      lastSavedHash = h;
       localSaveQuotaWarned = false;
       return true;
     } catch {
@@ -11823,6 +11897,12 @@ async function switchBoard(id, name) {
   currentBoardId = id;
   localStorage.setItem('teachedos_board_id', id);
   history.replaceState(null, '', `board.html?id=${id}`);
+  // Clear in-memory tool builder cache on board switch — the previous
+  // board's cached AI outputs are irrelevant to the new board.
+  TT_BUILDER_RESULT_CACHE.clear();
+  // Trim undo stack to free memory before loading a new board
+  undoStack.length = 0;
+  redoStack.length = 0;
   await initUserBoard();
   wsConnect();
   toast('Switched to: ' + name);
