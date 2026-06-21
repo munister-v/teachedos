@@ -2062,6 +2062,43 @@ function renderWorksheet(el, card) {
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
              || { icon:'📄', color:'#4262FF' };
   const accent = meta.color || '#4262FF';
+
+  // Interactive mode: render inside an iframe with drag strip
+  if (d._interactive && _wsHasInteractive(d)) {
+    el.dataset.interactive = '1';
+    el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent);
+    const tc = document.createElement('div');
+    tc.className = 'card-close text-close'; tc.textContent = '×';
+    tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
+    const strip = document.createElement('div');
+    strip.className = 'ws-drag-strip';
+    strip.innerHTML = `<span>${esc(d.title || 'Interactive Activity')}</span><button class="ws-back-btn" title="Back to static view">✕ Exit</button>`;
+    strip.title = 'Drag to move';
+    strip.addEventListener('mousedown', e => {
+      if (e.target.closest('.ws-back-btn')) return;
+      if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+    });
+    strip.querySelector('.ws-back-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      deactivateWorksheet(card.id);
+    });
+
+    const wrap = document.createElement('div');
+    wrap.className = 'card-body text-interactive-wrap';
+    const iframe = document.createElement('iframe');
+    iframe.srcdoc = _buildInteractiveWSHtml(d);
+    iframe.sandbox = 'allow-scripts';
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
+    wrap.addEventListener('mousedown', e => e.stopPropagation());
+    wrap.appendChild(iframe);
+
+    el.appendChild(tc);
+    el.appendChild(strip);
+    el.appendChild(wrap);
+    return;
+  }
+
   const showAns = d.showAnswers !== false; // default: show the key
   el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent); // category accent edge
   const hdr = makeHeader(meta.icon || '📄', d.title || 'Worksheet', card.id);
@@ -2091,6 +2128,7 @@ function renderWorksheet(el, card) {
       </div>
       ${stepper}
       <span class="ws-tools">
+        ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
       </span>
@@ -2099,6 +2137,322 @@ function renderWorksheet(el, card) {
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
+}
+
+/* ══════════ INTERACTIVE WORKSHEET MODE ══════════
+   Transforms a static worksheet into a live activity: matching = drag-and-drop,
+   MCQ = click-to-select, gap-fill = type-in, true/false = click buttons.
+   Rendered inside a sandboxed iframe so mouse events don't conflict with board drag. */
+
+function _wsHasInteractive(d) {
+  const qs = Array.isArray(d.questions) ? d.questions : null;
+  if (qs && qs.some(q => q.type === 'mcq' || q.type === 'match' || q.type === 'truefalse' || q.type === 'gap-fill' || q.type === 'open')) return true;
+  if (Array.isArray(d.items) && d.items.length) return true;
+  if (Array.isArray(d.cards) && d.cards.length) return true;
+  return false;
+}
+
+function activateWorksheet(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || !card.data) return;
+  card.data._interactive = true;
+  reRenderCard(card);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+function deactivateWorksheet(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || !card.data) return;
+  card.data._interactive = false;
+  reRenderCard(card);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+function _buildInteractiveWSHtml(d) {
+  const qs = Array.isArray(d.questions) ? d.questions : [];
+  const items = Array.isArray(d.items) ? d.items : [];
+  const cards = Array.isArray(d.cards) ? d.cards : [];
+  const accent = '#4262FF';
+  const kind = String(d.kind || '').toLowerCase();
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  let contentHtml = '';
+  let scriptHtml = '';
+
+  // ─── MODE: Questions (quiz-based tools) ───
+  if (qs.length) {
+    const isOddOneOut = kind.includes('odd');
+    const qBlocks = qs.map((q, qi) => {
+      let inner = '';
+      if (q.type === 'mcq' && Array.isArray(q.options)) {
+        inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
+          q.options.map((o, oi) => `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')
+        }</div>`;
+      } else if (q.type === 'truefalse') {
+        const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
+        inner = `<div class="iw-tf" data-qi="${qi}" data-answer="${correct}">
+          <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">✅ True</button>
+          <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">❌ False</button>
+        </div>`;
+      } else if (q.type === 'gap-fill') {
+        inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
+          <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off">
+          <button class="iw-check-btn" onclick="checkGap(this.parentNode)">Check</button>
+        </div>`;
+      } else if (q.type === 'match' && Array.isArray(q.pairs)) {
+        const cats = [...new Set(q.pairs.map(p => p.right))];
+        const isSorting = cats.length <= 5 && cats.length < q.pairs.length;
+        const shuffled = q.pairs.map((p,i)=>({...p,_i:i})).sort(()=>Math.random()-.5);
+        if (isSorting) {
+          inner = `<div class="iw-sort" data-qi="${qi}">
+            <div class="iw-sort-bank" id="sbank-${qi}">
+              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}" data-expect="${esc(p.right)}">${esc(p.left)}</div>`).join('')}
+            </div>
+            <div class="iw-sort-cols">${cats.map(cat => `<div class="iw-sort-col" data-cat="${esc(cat)}">
+              <div class="iw-sort-header">${esc(cat)}</div>
+              <div class="iw-sort-drop"></div>
+            </div>`).join('')}</div>
+          </div>`;
+        } else {
+          inner = `<div class="iw-match" data-qi="${qi}">
+            <div class="iw-match-bank" id="bank-${qi}">
+              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}">${esc(p.left)}</div>`).join('')}
+            </div>
+            <div class="iw-match-targets">
+              ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}" data-expect="${esc(p.left)}">
+                <span class="iw-slot"></span>
+                <span class="iw-def">${esc(p.right)}</span>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }
+      } else if (q.type === 'open' && isOddOneOut) {
+        const words = String(q.text||'').split('\n').pop().split(/\s*\/\s*/).filter(w => w.trim());
+        if (words.length >= 3) {
+          inner = `<div class="iw-ooo" data-qi="${qi}">
+            ${words.map(w => `<button class="iw-ooo-btn" data-word="${esc(w.trim())}" onclick="pickOdd(this)">${esc(w.trim())}</button>`).join('')}
+          </div>`;
+        } else {
+          inner = `<textarea class="iw-open-input" placeholder="Write your answer…" rows="2"></textarea>`;
+        }
+      } else if (q.type === 'open') {
+        inner = `<textarea class="iw-open-input" placeholder="Write your answer…" rows="2"></textarea>`;
+      }
+      return `<div class="iw-q"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${inner}</div></div>`;
+    }).join('');
+    contentHtml = qBlocks + `<div class="iw-bottom"><button class="iw-submit" onclick="checkAll()">✓ Check Answers</button></div><div class="iw-score" id="iw-score"></div>`;
+
+    const hasKey = qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
+    if (hasKey) {
+      contentHtml += `<div class="iw-key-wrap">
+        <button class="iw-key-toggle" onclick="toggleKey(this)">🔑 Show Answer Key</button>
+        <div class="iw-key" style="display:none">${qs.map((q,i) => {
+          let a = '';
+          if (q.type === 'mcq') a = q.answer || '';
+          else if (q.type === 'truefalse') a = (q.answer === true || q.answer === 'true' || q.answer === 'True') ? 'True' : 'False';
+          else if (q.type === 'gap-fill') a = q.answer || '';
+          else if (q.type === 'match') a = (q.pairs||[]).map(p => p.left + ' → ' + p.right).join('; ');
+          else return '';
+          return a ? `<div><b>${i+1}.</b> ${esc(a)}</div>` : '';
+        }).join('')}</div>
+      </div>`;
+    }
+
+    scriptHtml = `
+function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
+function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
+function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
+function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} }
+function toggleKey(btn){ const k=btn.nextElementSibling; const o=k.style.display!=='none'; k.style.display=o?'none':'block'; btn.textContent=o?'🔑 Show Answer Key':'🔑 Hide Answer Key'; }
+${_iwDragScript(accent)}
+${_iwSortScript(accent)}
+function checkAll(){
+  let score=0,total=0;
+  document.querySelectorAll('.iw-opts').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-opt.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
+  document.querySelectorAll('.iw-tf').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-tf-btn.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
+  document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
+  document.querySelectorAll('.iw-target').forEach(t=>{ total++; const slot=t.querySelector('.iw-slot'),placed=slot.textContent.trim(); if(placed===t.dataset.expect){t.classList.add('correct');score++;}else if(placed) t.classList.add('wrong'); });
+  // Sorting
+  document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ total++; const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){d.classList.add('sort-correct');score++;}else d.classList.add('sort-wrong'); });
+  const el=document.getElementById('iw-score'); if(!el) return;
+  const pct=total?Math.round(score/total*100):0; el.style.display='block';
+  el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) — Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) — Good job!':'📚 '+score+'/'+total+' ('+pct+'%) — Keep practicing!';
+}`;
+  }
+
+  // ─── MODE: Vocab items (flashcards / essential vocab) ───
+  else if (items.length) {
+    contentHtml = `<div class="iw-flash-grid">${items.map((it, i) => `<div class="iw-flash" onclick="this.classList.toggle('flipped')">
+      <div class="iw-flash-inner">
+        <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${esc(it.word||'')}</span></div>
+        <div class="iw-flash-back"><span class="iw-flash-def">${esc(it.example || it.definition || '—')}</span></div>
+      </div>
+    </div>`).join('')}</div>
+    <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
+    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.remove('flipped'))">↺ Reset</button></div>`;
+    scriptHtml = '';
+  }
+
+  // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
+  else if (cards.length) {
+    contentHtml = `<div class="iw-card-grid">${cards.map((c, i) => `<div class="iw-card-flip" onclick="this.classList.toggle('flipped')">
+      <div class="iw-card-inner">
+        <div class="iw-card-front"><span class="iw-card-num">${i+1}</span><span class="iw-card-title">${esc(c.title||'')}</span><span class="iw-card-hint">tap to reveal</span></div>
+        <div class="iw-card-back"><div class="iw-card-back-title">${esc(c.title||'')}</div><div class="iw-card-back-text">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>
+      </div>
+    </div>`).join('')}</div>
+    <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
+    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.remove('flipped'))">↺ Reset</button></div>`;
+    scriptHtml = '';
+  }
+
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16px 18px 24px;background:#fff;overflow-x:hidden}
+.iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${accent};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
+/* ── Questions ── */
+.iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
+.iw-q:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.iw-qnum{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:${accent};color:#fff;display:flex;align-items:center;justify-content:center;font:800 12px monospace}
+.iw-qbody{flex:1;min-width:0}
+.iw-qtext{font-size:13.5px;font-weight:650;margin-bottom:8px;line-height:1.5;white-space:pre-line}
+/* MCQ */
+.iw-opts{display:flex;flex-direction:column;gap:5px}
+.iw-opt{display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
+.iw-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 6%,#fff)}
+.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent};font-weight:700}
+.iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:700}
+.iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
+.iw-opt[disabled]{pointer-events:none}
+/* T/F */
+.iw-tf{display:flex;gap:10px}
+.iw-tf-btn{padding:8px 22px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:700 13px system-ui;cursor:pointer;transition:all .15s}
+.iw-tf-btn:hover{border-color:${accent}}
+.iw-tf-btn.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent}}
+.iw-tf-btn.correct{border-color:#16a34a;background:#dcfce7;color:#15803d}
+.iw-tf-btn.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+.iw-tf-btn[disabled]{pointer-events:none}
+/* Gap-fill */
+.iw-gap{display:flex;gap:8px;align-items:center}
+.iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
+.iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:700}
+.iw-gap-input.wrong{border-color:#dc2626;color:#991b1b}
+.iw-check-btn{padding:5px 14px;border:none;border-radius:8px;background:${accent};color:#fff;font:700 11px system-ui;cursor:pointer}
+.iw-check-btn:hover{opacity:.85}
+/* Matching D&D */
+.iw-match{display:flex;gap:16px;flex-wrap:wrap}
+.iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1}
+.iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:#fff;font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
+.iw-drag:active{cursor:grabbing;transform:scale(1.06)}
+.iw-drag.placed{opacity:.35;pointer-events:none}
+.iw-drag.sort-correct{background:#16a34a!important;opacity:1!important}
+.iw-drag.sort-wrong{background:#dc2626!important;opacity:1!important}
+.iw-match-targets{flex:1.2;display:flex;flex-direction:column;gap:6px}
+.iw-target{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
+.iw-target.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,${accent} 20%,transparent)}
+.iw-target.correct{border-color:#16a34a;background:#dcfce7}
+.iw-target.wrong{border-color:#dc2626;background:#fee2e2}
+.iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${accent};padding:3px 8px;transition:all .15s}
+.iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
+.iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
+/* Sorting */
+.iw-sort{display:flex;flex-direction:column;gap:12px}
+.iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;min-height:40px}
+.iw-sort-cols{display:flex;gap:10px;flex-wrap:wrap}
+.iw-sort-col{flex:1;min-width:100px}
+.iw-sort-header{font:800 12px system-ui;text-transform:uppercase;letter-spacing:.05em;color:${accent};padding:6px 10px;border-bottom:2px solid ${accent};margin-bottom:6px}
+.iw-sort-drop{min-height:60px;padding:6px;border:1.5px dashed #d4d6e0;border-radius:10px;display:flex;flex-direction:column;gap:4px;transition:all .2s}
+.iw-sort-drop.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
+/* Odd one out */
+.iw-ooo{display:flex;flex-wrap:wrap;gap:8px}
+.iw-ooo-btn{padding:10px 20px;border:1.5px solid #e4e5ec;border-radius:12px;background:#fff;font:700 14px system-ui;cursor:pointer;transition:all .15s}
+.iw-ooo-btn:hover{border-color:${accent};transform:scale(1.04)}
+.iw-ooo-btn.selected{border-color:#dc2626;background:#fee2e2;color:#991b1b;text-decoration:line-through;transform:scale(.96)}
+/* open */
+.iw-open-input{width:100%;border:1px solid #d4d6e0;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none}
+.iw-open-input:focus{border-color:${accent}}
+/* ── Flashcards ── */
+.iw-flash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.iw-flash{perspective:600px;cursor:pointer;height:120px}
+.iw-flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.iw-flash.flipped .iw-flash-inner{transform:rotateY(180deg)}
+.iw-flash-front,.iw-flash-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
+.iw-flash-front{background:linear-gradient(135deg,${accent},#6366f1);color:#fff;border:none}
+.iw-flash-num{font:800 10px monospace;opacity:.6;margin-bottom:4px}
+.iw-flash-word{font:800 16px system-ui;letter-spacing:-.02em}
+.iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
+.iw-flash-def{font:600 12.5px system-ui;color:#15803d;line-height:1.5}
+/* ── Card-flip (collocations, phrasal, idioms) ── */
+.iw-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
+.iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
+.iw-card-flip.flipped .iw-card-inner{transform:rotateY(180deg)}
+.iw-card-front,.iw-card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.iw-card-front{background:linear-gradient(135deg,#f97316,#f59e0b);color:#fff}
+.iw-card-num{font:800 10px monospace;opacity:.5;margin-bottom:4px}
+.iw-card-title{font:800 15px system-ui}
+.iw-card-hint{font:11px system-ui;opacity:.6;margin-top:6px}
+.iw-card-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);justify-content:flex-start;text-align:left;overflow-y:auto}
+.iw-card-back-title{font:800 13px system-ui;color:${accent};margin-bottom:6px;width:100%}
+.iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
+/* ── Bottom buttons ── */
+.iw-bottom{display:flex;gap:10px;margin-top:18px;justify-content:center;flex-wrap:wrap}
+.iw-submit{padding:10px 28px;border:none;border-radius:10px;background:${accent};color:#fff;font:700 13px system-ui;cursor:pointer;transition:opacity .15s}
+.iw-submit:hover{opacity:.88}
+.iw-reset{background:#888}
+.iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${accent};display:none}
+/* ── Key ── */
+.iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
+.iw-key-toggle{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font:700 11px system-ui;cursor:pointer;color:#888}
+.iw-key-toggle:hover{border-color:${accent};color:${accent}}
+.iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
+.iw-key b{color:#16a34a}
+</style></head><body>
+<div class="iw-title">${esc(d.title || d.kind || 'Interactive Activity')}</div>
+${contentHtml}
+<script>${scriptHtml}<\/script>
+</body></html>`;
+}
+
+function _iwDragScript(accent) {
+  return `
+let dragEl=null;
+document.addEventListener('dragstart',e=>{ if(!e.target.classList.contains('iw-drag')) return; dragEl=e.target; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',e.target.dataset.left); setTimeout(()=>e.target.style.opacity='.4',0); });
+document.addEventListener('dragend',e=>{ if(dragEl) dragEl.style.opacity=''; dragEl=null; document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); });
+document.addEventListener('dragover',e=>{ const tgt=e.target.closest('.iw-target')||e.target.closest('.iw-sort-drop'); if(tgt){e.preventDefault();tgt.classList.add('dragover');} });
+document.addEventListener('dragleave',e=>{ const tgt=e.target.closest('.iw-target')||e.target.closest('.iw-sort-drop'); if(tgt) tgt.classList.remove('dragover'); });
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const sortDrop=e.target.closest('.iw-sort-drop');
+  if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; dragEl=null; return; }
+  const tgt=e.target.closest('.iw-target');
+  if(!tgt||!dragEl) return;
+  tgt.classList.remove('dragover');
+  const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
+  if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); slot.classList.remove('filled'); }
+  slot.textContent=dragEl.dataset.left; slot.classList.add('filled'); dragEl.classList.add('placed'); tgt.classList.remove('correct','wrong');
+});
+// Touch drag
+let touchDrag=null,touchClone=null;
+document.addEventListener('touchstart',e=>{ const d=e.target.closest('.iw-drag'); if(!d||d.classList.contains('placed')) return; touchDrag=d; touchClone=d.cloneNode(true); touchClone.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.08)'; document.body.appendChild(touchClone); const t=e.touches[0]; touchClone.style.left=(t.clientX-30)+'px'; touchClone.style.top=(t.clientY-16)+'px'; e.preventDefault(); },{passive:false});
+document.addEventListener('touchmove',e=>{ if(!touchDrag) return; const t=e.touches[0]; if(touchClone){touchClone.style.left=(t.clientX-30)+'px';touchClone.style.top=(t.clientY-16)+'px';} document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(tgt=>{ const r=tgt.getBoundingClientRect(); tgt.classList.toggle('dragover',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom); }); e.preventDefault(); },{passive:false});
+document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); } else { const over=document.querySelector('.iw-target.dragover'); if(over){ const slot=over.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=over.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=touchDrag.dataset.left; slot.classList.add('filled'); touchDrag.classList.add('placed'); over.classList.remove('correct','wrong','dragover'); } } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; });
+// Click-to-place
+let clickSelected=null;
+document.addEventListener('click',e=>{
+  const d=e.target.closest('.iw-drag');
+  if(d&&!d.classList.contains('placed')){ document.querySelectorAll('.iw-drag').forEach(x=>{x.style.outline='';x.style.boxShadow='';}); d.style.outline='2.5px solid #fff';d.style.outlineOffset='2px';d.style.boxShadow='0 0 0 4px ${accent}'; clickSelected=d; return; }
+  const sortDrop=e.target.closest('.iw-sort-drop');
+  if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; clickSelected=null; return; }
+  const tgt=e.target.closest('.iw-target');
+  if(tgt&&clickSelected){ const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=clickSelected.dataset.left; slot.classList.add('filled'); clickSelected.classList.add('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; tgt.classList.remove('correct','wrong'); clickSelected=null; }
+});`;
+}
+
+function _iwSortScript(accent) {
+  return `
+// Return a drag chip back to the sort bank on double-click
+document.addEventListener('dblclick',e=>{ const d=e.target.closest('.iw-sort-drop .iw-drag'); if(d){ const bank=d.closest('.iw-sort').querySelector('.iw-sort-bank'); if(bank) bank.appendChild(d); } });`;
 }
 
 /* Flip the answer-key visibility on a worksheet card and re-render it. */

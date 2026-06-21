@@ -2078,10 +2078,12 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 [data-theme="dark"] .generated-panel-btn:hover{background:#fff;color:#111827;}
 /* Interactive worksheet card — iframe fills the card, no editing toolbar */
-.card-text .card-body.text-interactive-wrap{padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
+.card-text .card-body.text-interactive-wrap,
+.card-worksheet .card-body.text-interactive-wrap{padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
 .text-interactive-wrap iframe{flex:1;width:100%;border:none;display:block;min-height:0;}
 /* Interactive card: green left accent border */
-.card-text[data-interactive]{border:1.5px solid #447C6F !important;border-radius:14px;}
+.card-text[data-interactive],
+.card-worksheet[data-interactive]{border:1.5px solid #447C6F !important;border-radius:14px;}
 /* Drag strip — the only grabbable area on an interactive card */
 .ws-drag-strip{
   height:26px;padding:0 10px 0 12px;flex-shrink:0;
@@ -2092,6 +2094,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   cursor:grab;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .ws-drag-strip::before{content:'⠿';margin-right:6px;opacity:.7;font-size:12px;}
+.ws-drag-strip span{flex:1;overflow:hidden;text-overflow:ellipsis}
+.ws-back-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:2px 8px;font:700 9px var(--font);cursor:pointer;margin-left:8px;flex-shrink:0}
+.ws-back-btn:hover{background:rgba(255,255,255,.35)}
+.ws-play-btn{background:#4262FF!important;color:#fff!important;border-color:#4262FF!important}
+.ws-play-btn:hover{opacity:.88}
 
 /* ── Miro-style pen palette (vertical column flyout) ── */
 .draw-palette{
