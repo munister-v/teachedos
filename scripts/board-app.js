@@ -147,7 +147,16 @@ if (BOARD_PHONE_MQL) {
 
 /* ── RAF-guarded rendering helpers ── */
 let _arrowRaf = null, _minimapRaf = null;
+let _arrowsDirtyDuringDrag = false;
 function _scheduleArrows() {
+  // During active card drag, defer arrow rendering to drag-end to avoid
+  // repainting the full SVG on every mousemove frame.
+  // (typeof guard: isDraggingCard/dragStarted declared later in file)
+  if (typeof isDraggingCard !== 'undefined' && isDraggingCard &&
+      typeof dragStarted !== 'undefined' && dragStarted) {
+    _arrowsDirtyDuringDrag = true;
+    return;
+  }
   if (_arrowRaf) return;
   _arrowRaf = requestAnimationFrame(() => { _arrowRaf = null; renderAllArrows(); });
 }
@@ -157,20 +166,40 @@ function _scheduleMinimap() {
 }
 let _zcPct = null;
 let _isMomentum = false;
+let _lastZoomPct = '';
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
   const pct = Math.round(state.scale * 100) + '%';
-  if (zoomDisp) zoomDisp.textContent = pct;
-  if (!_zcPct) _zcPct = document.getElementById('zc-pct');
-  if (_zcPct) _zcPct.textContent = pct;
+  if (pct !== _lastZoomPct) {
+    _lastZoomPct = pct;
+    if (zoomDisp) zoomDisp.textContent = pct;
+    if (!_zcPct) _zcPct = document.getElementById('zc-pct');
+    if (_zcPct) _zcPct.textContent = pct;
+  }
   _scheduleArrows();
   _scheduleMinimap();
-  positionLayerPopover();
+  // Skip getBoundingClientRect during active pan/drag — defer to RAF end
+  // (guard typeof: these vars are declared later in the file, safe after init)
+  if (!(typeof isPanning !== 'undefined' && isPanning) &&
+      !(typeof isDraggingCard !== 'undefined' && isDraggingCard) &&
+      !(typeof isResizing !== 'undefined' && isResizing)) positionLayerPopover();
   if (!_isMomentum) wsSendViewport();
 }
 
+// Per-frame cache for boardWrap.getBoundingClientRect() — avoids forced layout
+// in hot paths like screenToBoard / boardToScreen during mousemove.
+let _cachedBoardWrapRect = null;
+let _cachedBoardWrapRectStamp = -1;
+function _getBoardWrapRect() {
+  const now = performance.now() | 0; // integer ms — same within a single sync task
+  if (now !== _cachedBoardWrapRectStamp) {
+    _cachedBoardWrapRect = boardWrap.getBoundingClientRect();
+    _cachedBoardWrapRectStamp = now;
+  }
+  return _cachedBoardWrapRect;
+}
 function screenToBoard(sx, sy) {
-  const r = boardWrap.getBoundingClientRect();
+  const r = _getBoardWrapRect();
   return { x: (sx - r.left - state.pan.x) / state.scale,
            y: (sy - r.top  - state.pan.y) / state.scale };
 }
@@ -259,7 +288,7 @@ function findFreePlacement(cx, cy, w, h) {
   return { x: maxRight + GAP + w / 2, y: cy };
 }
 function boardToScreen(bx, by) {
-  const r = boardWrap.getBoundingClientRect();
+  const r = _getBoardWrapRect();
   return { x: bx * state.scale + state.pan.x + r.left,
            y: by * state.scale + state.pan.y + r.top };
 }
@@ -4724,8 +4753,19 @@ document.addEventListener('mousemove', e => {
         {y:ny0,x:'T'}, {y:ny0+c.h,x:'B'}, {y:ny0+c.h/2,x:'M'},
       ];
       let bestX = null, bestY = null;
-      state.cards.forEach(o => {
-        if (o.id === dragId) return;
+      // Only check cards plausibly close (within 2× viewport in board coords)
+      const _vw = (boardWrap.offsetWidth || window.innerWidth) / state.scale;
+      const _vh = (boardWrap.offsetHeight || window.innerHeight) / state.scale;
+      const _vpLeft   = -state.pan.x / state.scale - _vw * 0.5;
+      const _vpTop    = -state.pan.y / state.scale - _vh * 0.5;
+      const _vpRight  = _vpLeft + _vw * 2;
+      const _vpBottom = _vpTop  + _vh * 2;
+      const nearbyCards = state.cards.filter(o =>
+        o.id !== dragId &&
+        o.x < _vpRight && o.x + (o.w || 0) > _vpLeft &&
+        o.y < _vpBottom && o.y + (o.h || 0) > _vpTop
+      );
+      nearbyCards.forEach(o => {
         const oxs = [o.x, o.x+o.w, o.x+o.w/2];
         const oys = [o.y, o.y+o.h, o.y+o.h/2];
         myLines.filter(l=>l.x!==undefined && typeof l.x==='number').forEach(l => {
@@ -4947,6 +4987,11 @@ document.addEventListener('mouseup', e => {
       scheduleSave();
     }
     setTimeout(() => { dragStarted = false; }, 0);
+    // Flush any arrows that were deferred during the drag
+    if (_arrowsDirtyDuringDrag) {
+      _arrowsDirtyDuringDrag = false;
+      renderAllArrows();
+    }
   }
 
   if (isResizing) {

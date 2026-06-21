@@ -1209,6 +1209,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #board-wrap{
   position:fixed;top:var(--tb-h);left:var(--mt-w,56px);right:0;bottom:0;
   overflow:hidden;
+  will-change:contents;
   background:
     radial-gradient(circle,var(--board-dot1) .8px,transparent .8px);
   background-size:24px 24px;
