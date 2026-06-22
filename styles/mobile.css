@@ -179,7 +179,10 @@
   body:has(.mp-shell) #nav { display: none !important; }
   body:has(.mp-shell) #page { padding-top: 0 !important; }
   .mp-mobile-only { display: flex; }
-  .page-head { display: none !important; }
+  /* Hide the legacy .page-head ONLY on screens that ship an mp-* header
+     replacement — otherwise pages like analytics.html (which have a
+     .page-head but no mp- header) would lose their heading on mobile. */
+  body:has(.mp-topbar, .mp-hero-head, .mp-page-head, .mp-greeting) .page-head { display: none !important; }
 
   /* ── Shell ── */
   .mp-shell {
