@@ -116,9 +116,24 @@ function boardCanAuthor() {
 }
 
 let _wasBoardPhone = null;
+let _boardHintTimer = null;
+// Show the "Read · double-tap to zoom" hint, then auto-fade it after a few
+// seconds (or immediately on the first pan/zoom). Re-armed whenever phone mode
+// (re)engages so it's helpful but never permanently in the way.
+function armBoardHint() {
+  if (!isBoardPhone()) return;
+  document.body.classList.remove('board-hint-off');
+  clearTimeout(_boardHintTimer);
+  _boardHintTimer = setTimeout(() => document.body.classList.add('board-hint-off'), 4500);
+}
+function dismissBoardHint() {
+  if (_boardHintTimer) { clearTimeout(_boardHintTimer); _boardHintTimer = null; }
+  document.body.classList.add('board-hint-off');
+}
 function syncBoardPhoneMode() {
   const phone = isBoardPhone();
   document.body.classList.toggle('board-phone-shell', phone);
+  if (phone) armBoardHint(); else dismissBoardHint();
   // Only run transition cleanup when the mode actually flips (not on first call).
   if (_wasBoardPhone !== null && _wasBoardPhone !== phone) {
     // Close any panel/menu that belongs to the other mode so nothing is left
@@ -5158,6 +5173,7 @@ document.addEventListener('mouseup', e => {
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       cardEl = el && el.closest && el.closest('.board-card');
     }
+    dismissBoardHint();
     if (cardEl && cardEl.dataset.id) {
       try { zoomToCard(cardEl.dataset.id, true); } catch {}
     } else {
@@ -5238,6 +5254,7 @@ document.addEventListener('mouseup', e => {
     if (ts.length === 1 && panOrigin && !isDraggingCard) {
       const dx = ts[0].clientX - panOrigin.mx;
       const dy = ts[0].clientY - panOrigin.my;
+      if ((dx*dx + dy*dy) > 100) dismissBoardHint();   // moved >10px → hide the hint
       if (_raf) cancelAnimationFrame(_raf);
       _raf = requestAnimationFrame(() => {
         _raf = null;
@@ -5246,6 +5263,7 @@ document.addEventListener('mouseup', e => {
         applyTransform();
       });
     } else if (ts.length === 2 && pinchOrigin) {
+      dismissBoardHint();
       const a = ts[0], b = ts[1];
       const d = tdist(a, b);
       const mid = midpoint(a, b);

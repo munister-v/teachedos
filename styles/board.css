@@ -4189,23 +4189,31 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell #board-wrap::after{
-    content:"Read + light edit";
+    content:"Read · double-tap a card to zoom";
     position:fixed;
     left:50%;
     top:calc(var(--phone-toolbar-h) + env(safe-area-inset-top,0px) + 10px);
     transform:translateX(-50%);
     z-index:20;
     pointer-events:none;
-    padding:4px 9px;
+    padding:5px 11px;
     border-radius:999px;
-    background:rgba(255,255,255,.84);
+    background:rgba(255,255,255,.92);
     border:1px solid rgba(94,94,74,.10);
     color:#6E6E5C;
     font:800 10px/1 var(--mono);
-    letter-spacing:.08em;
+    letter-spacing:.06em;
     text-transform:uppercase;
     box-shadow:0 4px 14px rgba(94,94,74,.08);
-    opacity:.82;
+    opacity:.92;
+    /* Auto-dismissing hint: fades out a few seconds after the board opens
+       (or after the first pan/zoom). Re-shown on mode switch. */
+    transition:opacity .55s ease, transform .55s ease;
+    will-change:opacity;
+  }
+  body.board-phone-shell.board-hint-off #board-wrap::after{
+    opacity:0;
+    transform:translateX(-50%) translateY(-6px);
   }
 
   body.board-phone-shell #mobile-quickbar{
@@ -4370,7 +4378,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   body.board-phone-shell #ctx-menu,
   body.board-phone-shell #share-panel,
   body.board-phone-shell #card-editor{
-    border-radius:26px 26px 0 0!important;
+    border-radius:22px 22px 0 0!important;
+    padding-top:22px!important;
+  }
+  /* Drag-handle pill on every phone bottom-sheet (matches mobile.css .mp-sheet) */
+  body.board-phone-shell #more-menu::before,
+  body.board-phone-shell #user-menu::before,
+  body.board-phone-shell #ctx-menu::before,
+  body.board-phone-shell #share-panel::before,
+  body.board-phone-shell #card-editor::before{
+    content:"";
+    position:absolute;
+    top:9px;left:50%;transform:translateX(-50%);
+    width:38px;height:4px;border-radius:99px;
+    background:rgba(14,14,16,.16);
+    pointer-events:none;
   }
 
   body.board-phone-shell .card-frame.frame-mobile-format .frame-body{
