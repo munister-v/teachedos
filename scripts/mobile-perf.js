@@ -30,10 +30,24 @@
   css.textContent = `
     * { -webkit-tap-highlight-color: transparent; }
 
+    /* Kill EVERY live backdrop-filter on mobile — iOS repaints blurred regions
+       on every scroll frame (the #1 scroll-jank source). Targeted rules below
+       only covered nav/overlays; this also catches .widget (which on mobile
+       gets blur(34px) via body.os-desktop), glass cards, sheets, etc.
+       Surfaces already have solid/translucent fallback backgrounds. */
+    html.te-mobile-lite *,
+    html.te-mobile-lite *::before,
+    html.te-mobile-lite *::after {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
     html {
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
       scroll-behavior: auto;
+      /* In-page anchor jumps / scrollIntoView clear the sticky top bar. */
+      scroll-padding-top: 72px;
     }
 
     body {
