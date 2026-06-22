@@ -1126,7 +1126,7 @@ html,body {
 
 /* ═══════════════════════════ MOBILE RESPONSIVE ═══════════════════════════ */
 @media (max-width: 860px) {
-  body { background: #fff !important; }
+  body { background: #fff; }
 
   /* Hide desktop-only elements */
   .win-rz-n,.win-rz-s,.win-rz-e,.win-rz-w,
@@ -1134,7 +1134,7 @@ html,body {
   .widget, .di-sep, .mb-menu, .mb-apple,
   .mb-icon, .blob1, .blob2, .blob3, .blob4,
   #wallpaper-deco,
-  .mp-topbar-actions, .mp-see-all { display:none !important; }
+  .mp-see-all { display:none !important; }
 
   /* Menubar → compact mobile header */
   #menubar {
@@ -1218,7 +1218,24 @@ html,body {
   #win-plans .curr-header,
   #win-plans .curr-search,
   #win-plans .curr-grid { display:none !important; }
-  .mob-home-shell { display:block; padding:14px 14px 0; }
+  .mob-home-shell { display:block; padding:0; }
+  /* Topbar: sticky white header, flush to top, no gap */
+  .mob-home-shell .mp-topbar {
+    position:sticky!important; top:0!important; z-index:80;
+    background:#FFFFFF!important;
+    border-bottom:1px solid rgba(14,14,16,.06);
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px!important;
+    margin:0;
+    box-shadow:0 2px 12px rgba(14,14,16,.04);
+  }
+  .mob-home-shell { background:#fff; }
+  /* Content sections need horizontal padding since shell has 0 */
+  .mob-home-shell .mp-featured { margin:14px 18px 14px; }
+  .mob-home-shell .mp-stats { padding:0 18px 14px; }
+  .mob-home-shell .mp-section-head { padding:8px 18px 10px; }
+  .mob-home-shell .mp-today-list { padding:0 18px 6px; }
+  .mob-home-shell .mp-today-empty { margin:0; }
+  .mob-home-shell .mp-quick-list { padding:0 18px 18px; }
   .mob-home-hero {
     padding:18px;
     border-radius:22px;
@@ -1448,6 +1465,13 @@ html,body {
 <link rel="stylesheet" href="styles/mobile.css?v=197">
 <link rel="stylesheet" href="styles/harmony.css?v=197">
 <link rel="stylesheet" href="styles/unify.css?v=197">
+<style id="mobile-home-overrides">
+@media (max-width:860px) {
+  html, body, body:not(.board-page) { background:#fff!important; }
+  #win-plans, #win-plans .win-main { background:#fff!important; }
+  .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
+}
+</style>
 </head>
 <body class="os-desktop">
 <h1 class="sr-only">TeachEd language learning platform for teachers</h1>
