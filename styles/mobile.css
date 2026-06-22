@@ -26,8 +26,14 @@
 @media (max-width: 860px) {
   @view-transition { navigation: auto; }
 }
-::view-transition-old(root),
-::view-transition-new(root) { animation-duration: .26s; }
+/* App-shell feel: the persistent chrome (top bar te-topbar, bottom bar
+   te-mobnav) is held steady; only the page CONTENT (root) animates. The new
+   content lifts in + fades, the old content fades out — reads like a native
+   screen push rather than a website cross-fade. */
+@keyframes te-content-in  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+@keyframes te-content-out { from { opacity:1; } to { opacity:0; } }
+::view-transition-old(root) { animation: te-content-out .18s cubic-bezier(.4,0,1,1) both; }
+::view-transition-new(root) { animation: te-content-in  .26s cubic-bezier(.2,.7,.2,1) both; }
 
 /* ─────────────────────────────────────────────────────────────────────────
    1 · TOKENS — the one and only definition of the mobile design language.

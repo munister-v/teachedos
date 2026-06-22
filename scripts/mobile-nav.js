@@ -68,7 +68,14 @@
     '  transform:translateZ(0);',
     '  will-change:transform;',
     '  box-shadow:0 10px 24px rgba(28,28,30,0.10),0 1px 0 rgba(255,255,255,0.86) inset;',
+    /* SPA shell: anchor the tab bar across page navigations so it stays put
+       (native app-bar feel) instead of cross-fading with the page body. */
+    '  view-transition-name:te-mobnav;',
     '}',
+    /* Hold the bar steady through the swap — no fade flicker. */
+    '::view-transition-group(te-mobnav){animation-duration:220ms;}',
+    '::view-transition-old(te-mobnav),',
+    '::view-transition-new(te-mobnav){animation:none;}',
     '.mob-nav-tab{',
     '  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;',
     '  height:52px;gap:4px;text-decoration:none;border-radius:17px;',
@@ -80,7 +87,11 @@
     '}',
     '.mob-nav-tab:active{opacity:0.82;transform:scale(0.96);}',
     '.mob-nav-tab.active{color:#111113;background:rgba(200,230,50,0.24);}',
-    '.mob-nav-tab.active::before{content:"";position:absolute;top:6px;width:16px;height:3px;border-radius:99px;background:#C8E632;}',
+    // Active indicator is uniquely named (only one .active exists at a time), so
+    // the browser MORPHS it from the old tab to the new tab on navigation — the
+    // lime pill slides across the bar like a native tab indicator.
+    '.mob-nav-tab.active::before{content:"";position:absolute;top:6px;width:16px;height:3px;border-radius:99px;background:#C8E632;view-transition-name:te-tab-pill;}',
+    '::view-transition-group(te-tab-pill){animation-duration:280ms;animation-timing-function:cubic-bezier(.4,1.3,.5,1);}',
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-icon svg{width:20px;height:20px;stroke-width:2.1;}',
     '.mob-nav-label{',
