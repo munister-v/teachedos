@@ -1096,6 +1096,120 @@ body.pwa-standalone .hero{
   /* footer-bottom: stack on mobile */
   .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px;margin-top:20px;padding-top:16px;}
 }
+
+/* ═══════════ HERO MOCKUP → realistic live lesson-board canvas ═══════════ */
+/* collaborator avatars in the window chrome */
+.pv-avatars{display:flex;align-items:center;margin-left:8px;}
+.pv-avatars span{
+  width:22px;height:22px;border-radius:50%;margin-left:-6px;
+  display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;
+  border:2px solid #FAFAF9;font-family:var(--font);letter-spacing:0;
+}
+.pv-avatars span:nth-child(1){background:var(--pink);}
+.pv-avatars span:nth-child(2){background:var(--lime-dark);}
+.pv-avatars span:nth-child(3){background:var(--ink);font-size:8px;}
+
+/* the canvas itself — sizing system is container-query px so it scales fluidly */
+.pv-board{
+  position:relative;container-type:inline-size;
+  aspect-ratio:16/9.7;width:100%;overflow:hidden;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(11,11,12,.06) 1px, transparent 1.4px) 0 0/24px 24px,
+    linear-gradient(180deg,#FCFCFB 0%,#F5F5F3 100%);
+}
+@container (min-width:0px){
+  .pv-board{ --u:1cqw; }
+}
+.pv-board *{box-sizing:border-box;}
+
+/* vertical mini toolbar (the real board's left rail) */
+.pv-tools{
+  position:absolute;left:2.4%;top:50%;transform:translateY(-50%);z-index:6;
+  display:flex;flex-direction:column;gap:1.1cqw;padding:1.4cqw 1cqw;
+  background:rgba(255,255,255,.92);border:1px solid var(--line);
+  border-radius:3cqw;box-shadow:0 1.6cqw 3.6cqw rgba(11,11,12,.10);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+.pv-tool{
+  width:3.4cqw;height:3.4cqw;border-radius:1.8cqw;display:grid;place-items:center;
+  font-size:1.7cqw;color:var(--ink2);background:transparent;font-weight:800;
+}
+.pv-tool.sel{background:var(--ink);color:#fff;box-shadow:0 .8cqw 2cqw rgba(11,11,12,.22);}
+
+/* connector lines drawn under the cards */
+.pv-links{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+
+/* generic card on the canvas */
+.pv-card{
+  position:absolute;z-index:3;background:#fff;border:1px solid var(--line);
+  border-radius:2.4cqw;padding:1.9cqw;
+  box-shadow:0 2.4cqw 5cqw rgba(11,11,12,.10),0 .5cqw 1.4cqw rgba(11,11,12,.05);
+}
+.pv-eye{
+  display:inline-block;font-family:var(--mono,monospace);font-size:1.05cqw;font-weight:800;
+  letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;
+}
+
+/* — AI worksheet card (the star, with selection handles) — */
+.pv-ws{left:10.5%;top:8%;width:41cqw;}
+.pv-ws.sel{border-color:var(--pink);box-shadow:0 0 0 .35cqw rgba(225,29,116,.16),0 2.4cqw 5.4cqw rgba(11,11,12,.13);}
+.pv-ws .hndl{position:absolute;width:1.5cqw;height:1.5cqw;background:#fff;border:.28cqw solid var(--pink);border-radius:50%;z-index:5;}
+.pv-ws .hndl.tl{top:-.75cqw;left:-.75cqw;} .pv-ws .hndl.tr{top:-.75cqw;right:-.75cqw;}
+.pv-ws .hndl.bl{bottom:-.75cqw;left:-.75cqw;} .pv-ws .hndl.br{bottom:-.75cqw;right:-.75cqw;}
+.pv-ws-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1cqw;}
+.pv-ai{
+  display:inline-flex;align-items:center;gap:.5cqw;font-size:1.15cqw;font-weight:800;
+  color:var(--pink);background:var(--pink-soft);border:1px solid rgba(225,29,116,.22);
+  padding:.5cqw 1cqw;border-radius:99px;
+}
+.pv-ai .sp{width:1cqw;height:1cqw;border-radius:50%;background:var(--pink);
+  animation:pvPulse 1.4s ease-in-out infinite;}
+@keyframes pvPulse{0%,100%{opacity:.35;transform:scale(.7);}50%{opacity:1;transform:scale(1);}}
+.pv-ws-title{font-family:var(--font);font-size:2.3cqw;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin-bottom:1.4cqw;}
+.pv-line{font-size:1.6cqw;color:var(--ink2);line-height:1;margin-bottom:1.25cqw;font-weight:500;display:flex;align-items:center;gap:.7cqw;}
+.pv-line b{color:var(--ink);font-weight:800;}
+.pv-gap{display:inline-block;min-width:6cqw;height:0;border-bottom:.28cqw solid var(--ink3);margin:0 .3cqw;transform:translateY(-.3cqw);}
+.pv-gap.fill{border:none;color:var(--lime-dark);font-weight:800;border-bottom:.28cqw solid rgba(138,174,18,.5);}
+.pv-ws-foot{display:flex;gap:.7cqw;margin-top:1.7cqw;}
+.pv-chip{font-size:1.15cqw;font-weight:700;color:var(--ink2);background:#FAFAF9;border:1px solid var(--line-2);padding:.55cqw 1.1cqw;border-radius:99px;}
+.pv-chip.go{background:var(--lime);border-color:rgba(138,174,18,.25);color:var(--lime-text);}
+
+/* — sticky note — */
+.pv-sticky{
+  position:absolute;z-index:4;left:67%;top:9%;width:23cqw;padding:2cqw;
+  background:linear-gradient(165deg,#F4F8DE,#E9F2C6);
+  border-radius:1cqw;transform:rotate(-3.5deg);
+  box-shadow:0 2.6cqw 5cqw rgba(80,100,10,.18),0 .5cqw 1.4cqw rgba(11,11,12,.06);
+  font-size:1.85cqw;line-height:1.5;color:#33420a;font-weight:600;
+}
+.pv-sticky-h{font-family:var(--font);font-weight:800;font-size:1.5cqw;letter-spacing:.04em;text-transform:uppercase;color:#5b7011;margin-bottom:.9cqw;}
+
+/* — vocab match card — */
+.pv-match{left:13.5%;top:54%;width:35cqw;}
+.pv-mrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.8cqw;margin-top:1.2cqw;}
+.pv-mrow:first-of-type{margin-top:1.1cqw;}
+.pv-mrow span{font-size:1.4cqw;font-weight:700;color:var(--ink);background:#FAFAF9;border:1px solid var(--line-2);border-radius:1.2cqw;padding:.7cqw 1cqw;text-align:center;}
+.pv-mrow span:last-child{color:var(--ink2);font-weight:600;}
+.pv-mrow i{width:3cqw;height:0;border-top:.3cqw dotted var(--pink);opacity:.7;}
+
+/* — speaking timer card — */
+.pv-timer{left:72%;top:55%;width:21cqw;text-align:center;}
+.pv-time{font-family:var(--mono,monospace);font-size:5.2cqw;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1;margin:.7cqw 0 1cqw;}
+.pv-timer-bar{height:1cqw;border-radius:99px;background:rgba(11,11,12,.08);overflow:hidden;}
+.pv-timer-bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--pink),#f25fa3);border-radius:99px;}
+
+/* — live collaborator cursor — */
+.pv-cursor{position:absolute;z-index:7;left:58%;top:41%;animation:pvCursor 7s ease-in-out infinite;}
+.pv-cursor svg{width:3cqw;height:3cqw;filter:drop-shadow(0 .5cqw 1cqw rgba(11,11,12,.25));display:block;}
+.pv-cursor span{position:absolute;left:2.6cqw;top:2.4cqw;white-space:nowrap;background:var(--pink);color:#fff;font-size:1.2cqw;font-weight:800;padding:.4cqw 1cqw;border-radius:99px;font-family:var(--font);}
+@keyframes pvCursor{0%,100%{transform:translate(0,0);}25%{transform:translate(-4cqw,3cqw);}50%{transform:translate(2cqw,6cqw);}75%{transform:translate(-2cqw,1cqw);}}
+
+@media(max-width:540px){
+  .pv-board{aspect-ratio:16/13;}
+  .pv-ws{width:50cqw;top:6%;left:8%;}
+  .pv-sticky{width:30cqw;}
+  .pv-cursor{display:none;}
+}
 </style>
 </head>
 <body>
@@ -1152,39 +1266,68 @@ body.pwa-standalone .hero{
       <div class="preview-parallax">
       <div class="preview-shell">
         <div class="preview-bar">
-          <div class="tb r">Live</div><div class="tb y">Synced</div><div class="tb g">B1</div>
-          <div class="preview-bar-title">TeachEd — Teacher Workspace</div>
+          <div class="tb r">Live</div><div class="tb y">Synced</div><div class="tb g">B2</div>
+          <div class="preview-bar-title">Present Perfect — lesson board</div>
+          <div class="pv-avatars"><span>A</span><span>M</span><span>+3</span></div>
         </div>
-        <div class="preview-body">
-          <div class="preview-sidebar">
-            <div class="ps-label">Quick links</div>
-            <div class="ps-item active"><span class="ps-dot" style="background:var(--lime-dark);"></span>All Courses</div>
-            <div class="ps-item"><span class="ps-dot" style="background:var(--ink3);"></span>Open Board</div>
-            <div class="ps-item"><span class="ps-dot" style="background:var(--ink3);"></span>Gradebook</div>
-            <div class="ps-item"><span class="ps-dot" style="background:var(--ink3);"></span>Analytics</div>
-            <div class="ps-label" style="margin-top:8px;">Boards</div>
-            <div class="ps-item"><span class="ps-dot" style="background:var(--ink3);"></span>All boards</div>
-            <div class="ps-item"><span class="ps-dot" style="background:var(--ink3);"></span>Recent</div>
+        <div class="pv-board">
+          <!-- left mini toolbar -->
+          <div class="pv-tools">
+            <span class="pv-tool sel">✦</span>
+            <span class="pv-tool">▦</span>
+            <span class="pv-tool">T</span>
+            <span class="pv-tool">◳</span>
+            <span class="pv-tool">▶</span>
+            <span class="pv-tool">♟</span>
           </div>
-          <div class="pc-lesson">
-            <div class="pc-eyebrow">Current lesson</div>
-            <div class="pc-title">Present Perfect vs Simple Past</div>
-            <div class="pc-bar"></div>
-            <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;">B2 · 60 min · 12 students</div>
-            <div class="pc-row">
-              <span class="pc-chip lime">In progress</span>
-              <span class="pc-chip pink">Live</span>
+
+          <!-- connectors under the cards -->
+          <svg class="pv-links" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M50,15 C60,12 62,11 67,14" fill="none" stroke="rgba(225,29,116,.45)" stroke-width=".5" stroke-dasharray="1.6 1.4" stroke-linecap="round"/>
+            <path d="M30,30 C28,40 26,42 28,49" fill="none" stroke="rgba(11,11,12,.22)" stroke-width=".5" stroke-dasharray="1.6 1.4" stroke-linecap="round"/>
+          </svg>
+
+          <!-- AI worksheet card (selected) -->
+          <div class="pv-card pv-ws sel">
+            <span class="hndl tl"></span><span class="hndl tr"></span><span class="hndl bl"></span><span class="hndl br"></span>
+            <div class="pv-ws-top">
+              <span class="pv-eye">AI worksheet</span>
+              <span class="pv-ai"><span class="sp"></span>Generated</span>
             </div>
-            <div style="margin-top:16px;display:flex;flex-direction:column;gap:6px;">
-              <div style="height:6px;border-radius:3px;background:rgba(14,14,16,.08);overflow:hidden;"><div style="height:100%;width:62%;background:var(--pink);border-radius:3px;"></div></div>
-              <div style="font-size:10px;font-weight:700;color:var(--ink3);font-family:var(--mono);">62% complete · 23 min remaining</div>
+            <div class="pv-ws-title">Present Perfect — gap-fill</div>
+            <div class="pv-line"><b>1.</b> I have <span class="pv-gap fill">just</span> finished my homework.</div>
+            <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-gap"></span> .</div>
+            <div class="pv-line"><b>3.</b> We've known them <span class="pv-gap"></span> 2019.</div>
+            <div class="pv-ws-foot">
+              <span class="pv-chip go">B2</span><span class="pv-chip">Answer key</span><span class="pv-chip">A4 / PDF</span>
             </div>
           </div>
-          <div class="pc-stats">
-            <div class="pc-stat"><div class="pc-sn">4</div><div class="pc-sl">Classes today</div></div>
-            <div class="pc-stat"><div class="pc-sn">28</div><div class="pc-sl">Students</div></div>
-            <div class="pc-stat"><div class="pc-sn">12</div><div class="pc-sl">Boards</div></div>
-            <div class="pc-stat"><div class="pc-sn">94%</div><div class="pc-sl">Attendance</div></div>
+
+          <!-- sticky note -->
+          <div class="pv-sticky">
+            <div class="pv-sticky-h">Key adverbs</div>
+            already · yet · just<br>since · for · ever
+          </div>
+
+          <!-- vocab match card -->
+          <div class="pv-card pv-match">
+            <span class="pv-eye">Match the use</span>
+            <div class="pv-mrow"><span>since</span><i></i><span>point in time</span></div>
+            <div class="pv-mrow"><span>for</span><i></i><span>a duration</span></div>
+            <div class="pv-mrow"><span>yet</span><i></i><span>up to now</span></div>
+          </div>
+
+          <!-- speaking timer card -->
+          <div class="pv-card pv-timer">
+            <span class="pv-eye">Speaking task</span>
+            <div class="pv-time">04:32</div>
+            <div class="pv-timer-bar"><i></i></div>
+          </div>
+
+          <!-- live collaborator cursor -->
+          <div class="pv-cursor">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 2l6.5 16 2.2-6.3L19 9.4 4 2z" fill="#E11D74" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Anna</span>
           </div>
         </div>
       </div>
