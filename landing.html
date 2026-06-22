@@ -1503,7 +1503,7 @@ body.pwa-standalone .hero{
       <div class="hp-avatars"><span>SK</span><span>MR</span><span>OP</span><span>+</span></div>
       <div class="hp-text">
         <div class="hp-stars">★★★★★</div>
-        Loved by <b>2,000+</b> language teachers
+        Loved by <b>30+</b> language teachers
       </div>
     </div>
 
@@ -2684,6 +2684,55 @@ body.pwa-standalone .hero{
     });
   }, 1600);
   window.addEventListener('load', function () { setTimeout(revealCheck, 200); });
+})();
+</script>
+<script>
+/* Hero board — subtle "live app" micro-motion. Fully progressive: if this
+   never runs (reduced-motion, no JS), the board stays in its valid static
+   state (timer 04:32, "yet" filled, "Synced"). */
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var hidden = function () { return document.hidden; };
+
+  // 1) Ticking countdown on the speaking-task timer
+  var timeEl = document.querySelector('.pv-time');
+  if (timeEl) {
+    var secs = 4 * 60 + 32;
+    setInterval(function () {
+      if (hidden()) return;
+      secs = secs > 0 ? secs - 1 : 5 * 60;            // loop back to 05:00
+      var m = Math.floor(secs / 60), s = secs % 60;
+      timeEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+  }
+
+  // 2) Gap-fill word types/erases (mostly settled on "yet")
+  var typeEl = document.querySelector('.pv-type');
+  if (typeEl) {
+    var caret = typeEl.querySelector('.car');
+    var seq = ['yet', 'yet', 'yet', 'yet', 'yet', 'yet', 'yet', 'yet',
+               'ye', 'y', '', 'y', 'ye', 'yet'];        // long hold, then re-type
+    var k = 0;
+    function setLead(txt) {
+      if (typeEl.firstChild && typeEl.firstChild.nodeType === 3) typeEl.firstChild.nodeValue = txt;
+      else typeEl.insertBefore(document.createTextNode(txt), caret || null);
+    }
+    setInterval(function () {
+      if (hidden()) return;
+      k = (k + 1) % seq.length;
+      setLead(seq[k]);
+    }, 360);
+  }
+
+  // 3) Autosave chip flickers "Saving…" → "Synced"
+  var sync = document.querySelector('.preview-bar .tb.y');
+  if (sync) {
+    setInterval(function () {
+      if (hidden()) return;
+      sync.textContent = 'Saving…';
+      setTimeout(function () { sync.textContent = 'Synced'; }, 1100);
+    }, 9000);
+  }
 })();
 </script>
 <script>
