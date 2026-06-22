@@ -4698,8 +4698,15 @@ boardWrap.addEventListener('mousedown', e => {
   if (state.mode === 'connect') {
     const pos = screenToBoard(e.clientX, e.clientY);
     if (connectPending) {
-      // Second click on empty area → finish as a FREE endpoint.
-      finishConnection({ point: pos });
+      if (connectPending.from?.card) {
+        // Started from a card anchor → clicking empty canvas cancels.
+        // Creating a floating endpoint here is surprising and hard to undo.
+        cancelConnection();
+        setMode('select'); setMiroTool('select');
+      } else {
+        // Started from a free point → finish as a FREE endpoint (sketch mode).
+        finishConnection({ point: pos });
+      }
     } else {
       // First click on empty area → start a FREE-origin connection.
       startConnection({ point: pos });
@@ -6502,6 +6509,8 @@ let ctxPos = { x:0, y:0 };
 boardWrap.addEventListener('contextmenu', e => {
   e.preventDefault();
   if (_didPan) { _didPan = false; return; }
+  // Right-click always cancels a pending connection — intuitive escape hatch.
+  if (connectPending) { cancelConnection(); setMode('select'); setMiroTool('select'); return; }
   ctxPos = screenToBoard(e.clientX, e.clientY);
   // Restore board-creation items (a prior arrow right-click hides them).
   ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = '');
@@ -15719,13 +15728,12 @@ document.addEventListener('keydown', e => {
   // Past this point, single-letter tool shortcuts. Skip if any modifier is held.
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') {
-    // Cancel pending arrow FIRST (even if connect mode is still on, the
-    // dangling preview line should drop on the first Esc).
+    // Single Escape: cancel pending arrow AND exit connect mode in one step.
+    // Two-press was confusing — the user expects Esc to fully reset.
     if (typeof connectPending !== 'undefined' && connectPending) {
       e.preventDefault();
       cancelConnection?.();
-      // Stay in connect mode so the user can start over without clicking the
-      // toolbar again. Second Esc exits connect mode entirely (handled below).
+      if (state.mode === 'connect') { setMode('select'); setMiroTool('select'); }
       return;
     }
     if (_drawTool) { e.preventDefault(); disableDrawTool(); setMiroTool('select'); return; }
@@ -15736,7 +15744,7 @@ document.addEventListener('keydown', e => {
       return;
     }
     if (_pendingPlace) { e.preventDefault(); cancelPlaceMode(); setMiroTool('select'); return; }
-    if (state.mode === 'connect') { e.preventDefault(); cancelConnection?.(); setMode('select'); return; }
+    if (state.mode === 'connect') { e.preventDefault(); cancelConnection?.(); setMode('select'); setMiroTool('select'); return; }
   }
   if (e.key === 'v' || e.key === 'V') {
     e.preventDefault();
