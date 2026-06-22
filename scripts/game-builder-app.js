@@ -407,7 +407,7 @@ const GAME_TYPES = [
   {id:'fill-blank',icon:'\u270d',name:'Fill in the Blank',desc:'Type the missing word to complete each sentence',tag:'Grammar',fields:'sentences',gameSrc:'games/fill-blank.html',w:460,h:560},
   {id:'true-false',icon:'\u2705',name:'True or False',desc:'Rapid-fire statements \u2014 decide if each is true or false',tag:'Grammar',fields:'statements',gameSrc:'games/true-false.html',w:460,h:520},
   {id:'speed-quiz',icon:'\u26a1',name:'Speed Quiz',desc:'4-option MCQ with countdown timer',tag:'Speed',fields:'mcq',gameSrc:'games/speed-quiz.html',w:480,h:560},
-  {id:'word-categories',icon:'\ud83d\uddc2',name:'Word Categories',desc:'Sort words into the correct topic groups',tag:'Vocabulary',fields:'categories',gameSrc:'games/word-categories.html',w:560,h:640},
+  {id:'word-categories',icon:'\ud83d\uddc3\ufe0f',name:'Word Categories',desc:'Sort words into the correct topic groups',tag:'Vocabulary',fields:'categories',gameSrc:'games/word-categories.html',w:560,h:640},
   {id:'spin-wheel',icon:'\ud83c\udfa1',name:'Spin the Wheel',desc:'Editable word wheel \u2014 great for hot-seat vocabulary drills',tag:'Speaking',fields:'words',gameSrc:'games/spin-wheel.html',w:460,h:560},
   {id:'hangman',icon:'\ud83c\udfaf',name:'Hangman',desc:'Guess the hidden word letter by letter',tag:'Spelling',fields:'words',gameSrc:'games/hangman.html',w:460,h:560},
 ];
@@ -1182,7 +1182,7 @@ function addPair() {
     <div class="pair-row-num">${num}</div>
     <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}" oninput="updateItemCounter()">
     <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}" oninput="updateItemCounter()">
-    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">x</button>`;
+    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">×</button>`;
   list.appendChild(row);
 }
 
@@ -1204,7 +1204,7 @@ function addStatement() {
     <div class="pair-row-num">${num}</div>
     <input class="pair-a" placeholder="Statement text" oninput="updateItemCounter()">
     <select class="pair-b" style="width:80px"><option value="true">True</option><option value="false">False</option></select>
-    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">x</button>`;
+    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">×</button>`;
   list.appendChild(row);
 }
 
@@ -1213,6 +1213,7 @@ function addMCQ() {
   if (!list) return;
   const idx = list.children.length + 1;
   const block = document.createElement('div');
+  block.className = 'mcq-item';
   block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
   block.innerHTML = `
     <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:8px;">Question ${idx}</div>
@@ -1226,7 +1227,7 @@ function addMCQ() {
     <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
       <span style="font-size:11px;color:var(--text3);">Correct:</span>
       <select class="mcq-correct"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
-      <button class="pair-remove" onclick="this.closest('[style]').remove();updateItemCounter()" style="margin-left:auto;">x</button>
+      <button class="pair-remove" onclick="this.closest('.mcq-item').remove();updateItemCounter()" style="margin-left:auto;">×</button>
     </div>`;
   list.appendChild(block);
 }
@@ -1236,11 +1237,12 @@ function addCategory() {
   if (!list) return;
   const idx = list.children.length + 1;
   const block = document.createElement('div');
+  block.className = 'cat-item';
   block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
   block.innerHTML = `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
       <input class="cat-name" placeholder="Category name (e.g. Animals)" style="flex:1;" oninput="updateItemCounter()">
-      <button class="pair-remove" onclick="this.closest('[style]').remove();updateItemCounter()">x</button>
+      <button class="pair-remove" onclick="this.closest('.cat-item').remove();updateItemCounter()">×</button>
     </div>
     <textarea class="cat-words" rows="3" placeholder="word1, word2, word3, ..." oninput="updateItemCounter()"></textarea>`;
   list.appendChild(block);
@@ -1495,9 +1497,11 @@ function saveAndAddToBoard() {
   const games = readGames();
   if (editingId) {
     const idx = games.findIndex(g => g.id === editingId);
-    if (idx >= 0) games[idx] = game; else games.unshift(game);
+    if (idx >= 0) { game.cloudId = games[idx].cloudId; games[idx] = game; } else games.unshift(game);
   } else { games.unshift(game); }
   writeGames(games);
+  // Keep the cloud library in sync (fire-and-forget) before navigating to the board.
+  cloudSyncGame(game).then(a => { if (a && a.id) attachCloudId(game.id, a.id); });
   addToBoard(game.id);
 }
 
@@ -1756,7 +1760,7 @@ function previewGame() {
   } else if (content.statements) {
     html += content.statements.map(s => `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span class="tag ${s.answer?'lime':''}">${s.answer?'TRUE':'FALSE'}</span><span>${esc(s.text)}</span></div>`).join('');
   } else if (content.questions) {
-    html += content.questions.map((q,i) => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-weight:800;font-size:13px;margin-bottom:4px;">${i+1}. ${esc(q.q)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">${q.opts.map((o,j) => `<div style="padding:4px 8px;border-radius:6px;background:${j===q.correct?'rgba(200,230,50,.2)':'var(--bg)'};${j===q.correct?'font-weight:700;':''}}">${'ABCD'[j]}. ${esc(o)}</div>`).join('')}</div></div>`).join('');
+    html += content.questions.map((q,i) => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-weight:800;font-size:13px;margin-bottom:4px;">${i+1}. ${esc(q.q)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">${q.opts.map((o,j) => `<div style="padding:4px 8px;border-radius:6px;background:${j===q.correct?'rgba(200,230,50,.2)':'var(--bg)'};${j===q.correct?'font-weight:700;':''}">${'ABCD'[j]}. ${esc(o)}</div>`).join('')}</div></div>`).join('');
   } else if (content.categories) {
     html += content.categories.map(c => `<div style="margin-bottom:12px;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">${esc(c.name)}</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${c.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div></div>`).join('');
   }
