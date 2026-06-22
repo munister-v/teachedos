@@ -1487,6 +1487,36 @@ body.pwa-standalone .hero{
 .pv-flash .w{font-family:var(--font);font-weight:800;font-size:2cqw;color:var(--ink);letter-spacing:-.01em;}
 .pv-flash .ph{font-size:1.25cqw;color:var(--ink3);font-family:var(--mono,monospace);}
 @media(max-width:540px){.pv-flash{display:none;}.pv-seltb{display:none;}}
+
+/* ═══════════ PRODUCTION POLISH: real depth, light & content ═══════════ */
+:root{
+  /* layered elevation — ambient + key light, consistent top-down source */
+  --elev-1:0 1px 1px rgba(11,11,12,.04),0 2px 4px rgba(11,11,12,.04),0 6px 12px rgba(11,11,12,.045);
+  --elev-2:0 1px 2px rgba(11,11,12,.05),0 6px 14px rgba(11,11,12,.07),0 18px 36px rgba(11,11,12,.06);
+  --elev-3:0 2px 4px rgba(11,11,12,.05),0 10px 22px rgba(11,11,12,.08),0 30px 56px rgba(11,11,12,.10),0 64px 100px rgba(11,11,12,.07);
+}
+/* hero device reads as a real, floating glass panel */
+.preview-shell{border-radius:20px;box-shadow:var(--elev-3),0 0 0 1px rgba(11,11,12,.05),inset 0 1px 0 rgba(255,255,255,.92);}
+.preview-bar{height:42px;}
+/* canvas gains depth: top light + edge falloff */
+.pv-board{box-shadow:inset 0 1px 0 rgba(255,255,255,.6);}
+.pv-board::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(135% 80% at 50% -12%,transparent 60%,rgba(11,11,12,.045));}
+/* canvas cards: graduated soft shadow, crisper hairline */
+.pv-card{box-shadow:0 .3cqw .8cqw rgba(11,11,12,.05),0 1.6cqw 3.4cqw rgba(11,11,12,.07),0 3.6cqw 7cqw rgba(11,11,12,.05);border-color:rgba(11,11,12,.085);}
+/* content cards were flat — give them subtle, crafted elevation */
+.bc,.cat,.plan,.testi,.step{box-shadow:var(--elev-1);}
+.bc:hover,.cat:hover,.testi:hover,.step:hover{box-shadow:var(--elev-2);}
+.plan.pop{box-shadow:var(--elev-3);}
+.fp-shot,.cat-prev,.step-shot{box-shadow:0 1px 2px rgba(11,11,12,.04),0 3px 8px rgba(11,11,12,.035);}
+/* real reading content instead of placeholder bars */
+.fp-read .fp-passage{font-size:10.5px;line-height:1.5;color:var(--ink2);margin:0 0 9px;}
+.fp-read .fp-passage b{color:var(--ink);font-weight:700;background:linear-gradient(transparent 62%,rgba(225,29,116,.18) 0);padding:0 1px;}
+.fp-read .fp-q2{font-size:11px;font-weight:800;color:var(--ink);margin-bottom:8px;}
+.fp-read .fp-opts2{display:flex;gap:6px;}
+.fp-read .fp-opts2 span{flex:1;font-size:10px;font-weight:700;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:7px;padding:6px 7px;text-align:center;display:flex;align-items:center;gap:5px;justify-content:center;}
+.fp-read .fp-opts2 span::before{content:'';width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink3);flex-shrink:0;}
+.fp-read .fp-opts2 span.on{border-color:var(--pink);background:var(--pink-soft);color:var(--pink);}
+.fp-read .fp-opts2 span.on::before{border-color:var(--pink);background:var(--pink);}
 </style>
 </head>
 <body>
@@ -1742,8 +1772,9 @@ body.pwa-standalone .hero{
         </div>
         <div class="fp-shot fp-read">
           <div class="fp-cap">Reading · gist &amp; detail</div>
-          <div class="ln w90"></div><div class="ln hl"></div><div class="ln w70"></div>
-          <div class="fp-abcd"><i class="on"></i><i></i><i></i><i></i></div>
+          <p class="fp-passage">The city's first electric tram ran in <b>1881</b>, years ahead of most of Europe.</p>
+          <div class="fp-q2">When did the first tram run?</div>
+          <div class="fp-opts2"><span class="on">1881</span><span>1901</span><span>1920</span></div>
         </div>
       </div>
 
