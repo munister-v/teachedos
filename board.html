@@ -177,6 +177,14 @@
 
   <!-- ⋯ More menu -->
   <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:240px;font-size:13px;">
+    <!-- Account header (phone: identity context for the sheet) -->
+    <div class="more-phone-nav more-account" id="more-account">
+      <span class="more-account-av" id="more-account-av">🧑‍🏫</span>
+      <span class="more-account-info">
+        <span class="more-account-name" id="more-account-name">—</span>
+        <span class="more-account-email" id="more-account-email"></span>
+      </span>
+    </div>
     <div class="user-menu-item" id="more-ai-assistant" onclick="openAiAssistantPanel();toggleMoreMenu()">✦ AI Assistant</div>
     <div class="user-menu-item" id="more-teacher-tools" onclick="openToolsSidebar();toggleMoreMenu()">🧰 Teacher Tools</div>
     <div class="user-menu-item" onclick="openSharePanel();toggleMoreMenu()">🔗 Share board</div>
@@ -188,9 +196,16 @@
     <div class="user-menu-item" id="more-bg" onclick="openBgModal();toggleMoreMenu()">🎨 Background color / image</div>
     <div class="user-menu-item" id="more-export-board" onclick="openExportMenu(event);toggleMoreMenu()">⬇ Export board</div>
     <div class="user-menu-item" id="more-shortcuts" onclick="openShortcuts();toggleMoreMenu()">⌨ Keyboard shortcuts</div>
+    <!-- Phone-only navigation (desktop reaches these via the avatar menu) -->
+    <div class="more-phone-nav more-sep"></div>
+    <a class="user-menu-item more-phone-nav" href="index.html">🏠 Home</a>
+    <div class="user-menu-item more-phone-nav" onclick="showBoardList();toggleMoreMenu()">📋 My Boards</div>
+    <a class="user-menu-item more-phone-nav" href="profile.html">👤 Profile</a>
+    <a class="user-menu-item more-phone-nav" href="gradebook.html">📒 Progress</a>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item" id="more-settings" onclick="openSettings();toggleMoreMenu()">⚙️ Board settings</div>
     <div class="user-menu-item" style="color:#ef4444;" id="btn-clear-menu" onclick="clearAll();toggleMoreMenu()">🗑 Clear board</div>
+    <div class="user-menu-item more-signout" id="more-signout" onclick="logout();toggleMoreMenu()">🚪 Sign out</div>
   </div>
 </div>
 

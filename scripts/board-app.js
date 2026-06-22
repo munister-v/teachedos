@@ -11448,6 +11448,10 @@ function updateAuthUI() {
     document.getElementById('auth-avatar').textContent = currentUser.avatar || '🧑‍🏫';
     document.getElementById('auth-name').textContent = currentUser.name.split(' ')[0];
     document.getElementById('user-menu-email').textContent = currentUser.email;
+    // More-menu account header (mobile sign-out path)
+    const _av = document.getElementById('more-account-av'); if (_av) _av.textContent = currentUser.avatar || '🧑‍🏫';
+    const _nm = document.getElementById('more-account-name'); if (_nm) _nm.textContent = currentUser.name || 'Account';
+    const _em = document.getElementById('more-account-email'); if (_em) _em.textContent = currentUser.email || '';
     document.getElementById('btn-members').style.display = '';
     // Show call button if user has a saved meeting room
     const callBtn = document.getElementById('btn-call');
@@ -11597,14 +11601,17 @@ document.addEventListener('click', e => {
 });
 
 async function logout() {
-  document.getElementById('user-menu').style.display = 'none';
+  const um = document.getElementById('user-menu'); if (um) um.style.display = 'none';
+  const mm = document.getElementById('more-menu'); if (mm) mm.style.display = 'none';
   try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
   setToken(null);
   currentUser = null;
   currentBoardId = null;
   localStorage.removeItem('teachedos_board_id');
-  updateAuthUI();
+  try { localStorage.removeItem('teachedos_user'); } catch {}
   toast('Signed out');
+  // Return to home — a board with no account is a dead end.
+  setTimeout(() => { location.href = 'index.html'; }, 350);
 }
 
 // ── Board API ────────────────────────────────────────────────

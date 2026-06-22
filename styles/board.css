@@ -1653,8 +1653,18 @@ body.alt-duplicating *{cursor:copy!important;}
 .card-priv-toggle.is-private{opacity:1!important;}
 .card-close:hover{background:rgba(239,68,68,.12);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
-.user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:#050038;transition:background .1s;border-radius:6px;font-size:13px;}
+.user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:#050038;transition:background .1s;border-radius:6px;font-size:13px;text-decoration:none;display:block;}
 .user-menu-item:hover{background:rgba(66,98,255,.08);color:#4262FF;}
+/* More-menu account header + phone-only nav + sign-out */
+.more-phone-nav{display:none;}            /* desktop: avatar menu covers these */
+.more-sep{height:1px;background:var(--border);margin:4px 0;}
+.more-account{align-items:center;gap:10px;padding:8px 10px 10px;}
+.more-account-av{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#CDF24F,#A8D02B);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.more-account-info{display:flex;flex-direction:column;min-width:0;line-height:1.2;}
+.more-account-name{font-weight:900;font-size:14px;color:#0E0E10;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.more-account-email{font:600 11px var(--mono,monospace);color:#86868F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.more-signout{color:#ef4444;font-weight:800;}
+.more-signout:hover{background:rgba(239,68,68,.08);color:#ef4444;}
 .auth-input{
   width:100%;padding:13px 15px;border:1.5px solid rgba(94,94,74,.16);border-radius:13px;
   font-family:var(--font);font-size:14px;font-weight:600;color:#1C1C1E;outline:none;margin-bottom:11px;
@@ -4318,6 +4328,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
   body.board-phone-shell .mobile-board-action + .mobile-board-action{
     margin-top:2px;
+  }
+  /* Phone-only nav + account header inside the More sheet */
+  body.board-phone-shell .more-phone-nav{
+    display:flex;align-items:center;
+  }
+  body.board-phone-shell #more-menu .user-menu-item{
+    padding:13px 12px;font-size:15px;border-radius:12px;
+  }
+  body.board-phone-shell #more-menu .more-account{
+    padding:6px 10px 12px;
   }
 
   /* Hide authoring / desktop-only items on phone */
