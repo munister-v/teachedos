@@ -91,7 +91,7 @@ self.addEventListener('fetch', e => {
 
   // API — always network. Returning stale auth/billing data is worse than a
   // visible offline error.
-  if (url.hostname.includes('onrender.com') || url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/api/')) {
     e.respondWith(fetch(freshRequest(e.request)));
     return;
   }
