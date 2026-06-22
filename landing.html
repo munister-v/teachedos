@@ -1210,6 +1210,111 @@ body.pwa-standalone .hero{
   .pv-sticky{width:30cqw;}
   .pv-cursor{display:none;}
 }
+
+/* ═══════════ Bento feature cards → realistic component mini-previews ═══════════ */
+/* each card gets an inset "screenshot" panel of the real tool */
+.fp-shot{
+  margin-top:15px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 13px;box-shadow:0 1px 3px rgba(11,11,12,.04);
+}
+.bc.ink .fp-shot{background:rgba(255,255,255,.96);border-color:rgba(255,255,255,.22);box-shadow:0 6px 22px rgba(0,0,0,.22);}
+.bc.lime .fp-shot,.bc.peach .fp-shot,.bc.lav .fp-shot,.bc.pink-soft .fp-shot{background:rgba(255,255,255,.94);}
+.fp-cap{font-family:var(--mono,monospace);font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.fp-cap .gen{margin-left:auto;color:var(--pink);background:var(--pink-soft);border-radius:99px;padding:3px 8px;display:inline-flex;align-items:center;gap:5px;letter-spacing:.04em;}
+.fp-cap .gen i,.fp-dot{width:6px;height:6px;border-radius:50%;background:var(--pink);animation:pvPulse 1.4s ease-in-out infinite;}
+.fp-bar{height:6px;border-radius:3px;background:rgba(11,11,12,.10);}
+
+/* 1 · reading: passage + ABCD options */
+.fp-read .ln{height:6px;border-radius:3px;background:rgba(11,11,12,.10);margin-bottom:5px;}
+.fp-read .ln.hl{background:rgba(225,29,116,.30);}
+.fp-read .ln.w90{width:90%;} .fp-read .ln.w70{width:70%;}
+.fp-abcd{display:flex;gap:6px;margin-top:10px;}
+.fp-abcd i{flex:1;height:17px;border-radius:6px;background:#FAFAF9;border:1px solid var(--line);position:relative;}
+.fp-abcd i::before{content:'';position:absolute;left:5px;top:4px;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink3);}
+.fp-abcd i.on{border-color:var(--pink);background:var(--pink-soft);}
+.fp-abcd i.on::before{border-color:var(--pink);background:var(--pink);}
+
+/* 2 · vocab match with connectors */
+.fp-match .row{display:grid;grid-template-columns:1fr 22px 1fr;align-items:center;gap:6px;margin-bottom:6px;}
+.fp-match .row:last-child{margin-bottom:0;}
+.fp-match .row b,.fp-match .row s{font-size:11px;font-weight:800;color:var(--ink);background:#FAFAF9;border:1px solid var(--line);border-radius:7px;padding:5px 0;text-align:center;text-decoration:none;}
+.fp-match .row s{font-weight:600;color:var(--ink2);}
+.fp-match .row i{height:0;border-top:2px dotted var(--pink);opacity:.65;}
+
+/* 3 · grammar gap-fill + correction */
+.fp-gram .sent{font-size:12px;font-weight:600;color:var(--ink2);line-height:2;}
+.fp-gram .bl{display:inline-block;min-width:42px;text-align:center;color:var(--lime-dark);font-weight:800;border-bottom:2px solid rgba(138,174,18,.5);}
+.fp-gram .er{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--pink);}
+.fp-gram .fx{color:var(--pink);font-weight:800;}
+
+/* 4 · youtube thumb + transcript→questions */
+.fp-yt{display:flex;gap:11px;align-items:stretch;}
+.fp-yt .thumb{width:78px;flex-shrink:0;border-radius:9px;background:linear-gradient(135deg,#2a2a2e,#54545c);position:relative;overflow:hidden;}
+.fp-yt .thumb::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-40%,-50%);border-style:solid;border-width:8px 0 8px 13px;border-color:transparent transparent transparent #fff;}
+.fp-yt .thumb b{position:absolute;right:5px;bottom:5px;font-size:8px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:4px;padding:1px 4px;}
+.fp-yt .meta{flex:1;display:flex;flex-direction:column;justify-content:center;gap:7px;}
+.fp-yt .meta .q{font-size:11px;font-weight:700;color:var(--ink);display:flex;gap:6px;align-items:center;}
+.fp-yt .meta .q::before{content:'?';width:14px;height:14px;flex-shrink:0;border-radius:50%;background:var(--pink-soft);color:var(--pink);font-size:9px;font-weight:800;display:grid;place-items:center;}
+
+/* 5 · mini lesson board */
+.fp-board{position:relative;height:78px;}
+.fp-board .n{position:absolute;border-radius:7px;padding:6px 8px;font-size:9px;font-weight:800;box-shadow:0 5px 14px rgba(11,11,12,.12);z-index:2;}
+.fp-board .n1{left:0;top:6px;background:linear-gradient(165deg,#F4F8DE,#E9F2C6);color:#5b7011;transform:rotate(-4deg);}
+.fp-board .n2{right:2px;top:0;background:#fff;border:1px solid var(--line);color:var(--ink);}
+.fp-board .n3{left:32%;bottom:0;background:var(--pink-soft);color:var(--pink);}
+.fp-board svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+
+/* 6 · export buttons */
+.fp-exp{display:flex;gap:8px;flex-wrap:wrap;}
+.fp-exp b{font-size:11px;font-weight:800;color:var(--ink);background:#FAFAF9;border:1px solid var(--line);border-radius:9px;padding:8px 11px;display:inline-flex;align-items:center;gap:6px;}
+.fp-exp b .sw{width:8px;height:8px;border-radius:2px;}
+
+/* 7 · speaking chat bubbles */
+.fp-talk{overflow:hidden;}
+.fp-talk .b{display:inline-block;font-size:11px;font-weight:600;border-radius:13px;padding:7px 11px;margin-bottom:7px;max-width:88%;line-height:1.4;}
+.fp-talk .b.l{background:#FAFAF9;border:1px solid var(--line);color:var(--ink2);border-bottom-left-radius:3px;}
+.fp-talk .b.r{background:var(--pink);color:#fff;border-bottom-right-radius:3px;float:right;clear:both;}
+
+/* 8 · studio: roster table + bar chart */
+.fp-studio{display:flex;gap:14px;align-items:flex-end;}
+.fp-studio .tbl{flex:1;}
+.fp-studio .tr{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--ink2);padding:5px 0;border-bottom:1px solid var(--line-2);}
+.fp-studio .tr:last-child{border-bottom:none;}
+.fp-studio .tr em{font-style:normal;font-weight:800;color:var(--lime-dark);}
+.fp-studio .chart{display:flex;gap:5px;align-items:flex-end;height:50px;}
+.fp-studio .chart i{width:9px;border-radius:3px 3px 0 0;background:var(--pink);opacity:.85;}
+
+/* 9 · pwa phone + offline badge */
+.fp-pwa{display:flex;gap:14px;align-items:center;}
+.fp-pwa .ph{width:44px;height:66px;border-radius:10px;border:2px solid var(--ink);background:#fff;position:relative;flex-shrink:0;}
+.fp-pwa .ph::before{content:'';position:absolute;left:50%;top:5px;transform:translateX(-50%);width:13px;height:2px;border-radius:2px;background:var(--ink);}
+.fp-pwa .ph i{position:absolute;left:6px;right:6px;height:6px;border-radius:2px;background:var(--lime);}
+.fp-pwa .ph i:nth-child(1){top:15px;} .fp-pwa .ph i:nth-child(2){top:26px;width:60%;background:var(--pink-soft);} .fp-pwa .ph i:nth-child(3){top:37px;}
+.fp-pwa .info{display:flex;flex-direction:column;gap:7px;}
+.fp-pwa .off{font-size:10px;font-weight:800;color:var(--lime-dark);background:rgba(138,174,18,.14);border:1px solid rgba(138,174,18,.3);border-radius:99px;padding:4px 10px;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;}
+
+/* 10 · games tiles (real mini renders) */
+.fp-gtiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.fp-gtile{height:50px;border-radius:9px;background:#FAFAF9;border:1px solid rgba(11,11,12,.07);display:grid;place-items:center;position:relative;overflow:hidden;font-size:11px;font-weight:800;color:var(--ink2);letter-spacing:.02em;}
+.fp-gtile .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5px;width:62%;}
+.fp-gtile .g3 b{aspect-ratio:1;background:rgba(11,11,12,.18);border-radius:1px;}
+.fp-gtile .g3 b.k{background:var(--pink);}
+.fp-gtile.wheel{background:conic-gradient(var(--pink) 0 25%,var(--lime-dark) 0 50%,#6DD5FA 0 75%,#FCD34D 0 100%);}
+.fp-gtile.wheel::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;}
+
+/* 11 · AI worksheet paper (big dark card) */
+.fp-paper{margin-top:18px;background:#fff;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.28);padding:16px 18px;color:var(--ink);}
+.fp-paper .pt{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.fp-paper .pt b{font-family:var(--font);font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.fp-paper .gen{font-size:10px;font-weight:800;color:var(--pink);background:var(--pink-soft);border-radius:99px;padding:4px 9px;display:inline-flex;gap:5px;align-items:center;}
+.fp-paper .pq{font-size:13px;font-weight:700;color:var(--ink);margin:12px 0 9px;display:flex;gap:8px;}
+.fp-paper .pq b{color:var(--pink);}
+.fp-paper .pgap{display:inline-block;min-width:54px;border-bottom:2px solid var(--ink3);margin:0 4px;transform:translateY(-3px);}
+.fp-paper .pgap.f{border-color:rgba(138,174,18,.55);color:var(--lime-dark);font-weight:800;transform:none;}
+
+@media(max-width:540px){
+  .fp-gtiles{grid-template-columns:repeat(4,1fr);}
+}
 </style>
 </head>
 <body>
@@ -1382,13 +1487,11 @@ body.pwa-standalone .hero{
           </div>
           <div class="ic ic-ink" style="font-size:26px;">✨</div>
         </div>
-        <div class="games-mini" style="grid-template-columns:repeat(3,1fr);">
-          <div class="game-ic">📖</div>
-          <div class="game-ic">✏️</div>
-          <div class="game-ic">🔤</div>
-          <div class="game-ic">❓</div>
-          <div class="game-ic">🧩</div>
-          <div class="game-ic">🖨️</div>
+        <div class="fp-paper">
+          <div class="pt"><b>Used to — habits</b><span class="gen"><i></i>Generated in 4s</span></div>
+          <div class="pq"><b>1.</b> When I was a kid, I <span class="pgap f">used to</span> play outside every day.</div>
+          <div class="pq"><b>2.</b> They <span class="pgap"></span> live in Rome before moving here.</div>
+          <div class="pq"><b>3.</b> Did you <span class="pgap"></span> have long hair at school?</div>
         </div>
       </div>
 
@@ -1398,12 +1501,20 @@ body.pwa-standalone .hero{
           <div>
             <div class="bento-tag" style="background:rgba(14,14,16,.10);border-color:rgba(14,14,16,.20);color:var(--lime-text);">30+ games</div>
             <div class="bc-h" style="margin-top:10px;font-family:var(--serif);font-size:20px;font-weight:700;color:var(--lime-text);">Interactive classroom games</div>
-            <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Crossword, Hangman, Word Scramble, Maze Chase, Whack-a-Mole, Spin Wheel — auto-built from your vocabulary.</div>
-            <div class="bc-points">
-              <span>Auto from vocab</span><span>Team mode</span><span>Projector-ready</span><span>Score tracking</span>
-            </div>
+            <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Auto-built from your vocabulary — projector-ready, team mode, live scoring.</div>
           </div>
           <div class="ic" style="font-size:26px;">🎮</div>
+        </div>
+        <div class="fp-shot fp-games">
+          <div class="fp-cap">Auto-built from “Travel · B1”<span class="gen"><i></i>Ready</span></div>
+          <div class="fp-gtiles">
+            <div class="fp-gtile"><div class="g3"><b></b><b class="k"></b><b></b><b class="k"></b><b></b><b></b><b></b><b></b><b class="k"></b></div></div>
+            <div class="fp-gtile wheel"></div>
+            <div class="fp-gtile">_ _ _</div>
+            <div class="fp-gtile">TCA</div>
+            <div class="fp-gtile">🔨</div>
+            <div class="fp-gtile">🎯</div>
+          </div>
         </div>
       </div>
 
@@ -1412,8 +1523,12 @@ body.pwa-standalone .hero{
         <div class="ic ic-lime">📖</div>
         <div>
           <div class="bc-h">Reading &amp; comprehension</div>
-          <div class="bc-p">Generate graded texts plus ABCD, true/false, open questions, gist &amp; detail tasks — IELTS-style options included.</div>
-          <div class="bc-points"><span>ABCD</span><span>True / False</span><span>Open questions</span><span>IELTS-style</span></div>
+          <div class="bc-p">Graded texts with ABCD, true/false &amp; open questions — IELTS-style included.</div>
+        </div>
+        <div class="fp-shot fp-read">
+          <div class="fp-cap">Reading · gist &amp; detail</div>
+          <div class="ln w90"></div><div class="ln hl"></div><div class="ln w70"></div>
+          <div class="fp-abcd"><i class="on"></i><i></i><i></i><i></i></div>
         </div>
       </div>
 
@@ -1422,8 +1537,13 @@ body.pwa-standalone .hero{
         <div class="ic" style="font-size:22px;">🔤</div>
         <div>
           <div class="bc-h">Vocabulary builder</div>
-          <div class="bc-p">Word–definition match, odd-one-out, word sorting, translations, collocations and sentence practice in one click.</div>
-          <div class="bc-points"><span>Match</span><span>Odd one out</span><span>Collocations</span><span>Translations</span></div>
+          <div class="bc-p">Match, odd-one-out, collocations &amp; translations in one click.</div>
+        </div>
+        <div class="fp-shot fp-match">
+          <div class="fp-cap">Match word → meaning</div>
+          <div class="row"><b>journey</b><i></i><s>a trip</s></div>
+          <div class="row"><b>luggage</b><i></i><s>your bags</s></div>
+          <div class="row"><b>abroad</b><i></i><s>another country</s></div>
         </div>
       </div>
 
@@ -1432,8 +1552,12 @@ body.pwa-standalone .hero{
         <div class="ic" style="font-size:22px;">✏️</div>
         <div>
           <div class="bc-h">Grammar drills</div>
-          <div class="bc-p">Gap-fills, error correction, word order, rewrites and clear rule cards — targeted to the structure you're teaching.</div>
-          <div class="bc-points"><span>Gap-fill</span><span>Error correction</span><span>Word order</span><span>Rule cards</span></div>
+          <div class="bc-p">Gap-fills, error correction, word order &amp; rule cards.</div>
+        </div>
+        <div class="fp-shot fp-gram">
+          <div class="fp-cap">Gap-fill &amp; correction</div>
+          <div class="sent">She has lived here <span class="bl">since</span> 2019.</div>
+          <div class="sent">He <span class="er">go</span> <span class="fx">goes</span> to school by bus.</div>
         </div>
       </div>
 
@@ -1443,8 +1567,14 @@ body.pwa-standalone .hero{
         <div>
           <div class="bento-tag">AI</div>
           <div class="bc-h" style="margin-top:8px;">YouTube → Lesson</div>
-          <div class="bc-p" style="color:var(--ink2);">Paste any video link. AI pulls the transcript and builds a ready set of exercises around it.</div>
-          <div class="bc-points"><span>Auto transcript</span><span>Comprehension Qs</span><span>Key vocab</span></div>
+          <div class="bc-p" style="color:var(--ink2);">Paste a link — AI pulls the transcript and builds exercises around it.</div>
+        </div>
+        <div class="fp-shot fp-yt">
+          <div class="thumb"><b>5:21</b></div>
+          <div class="meta">
+            <div class="q">What is the main idea?</div>
+            <div class="q">Find 3 phrasal verbs</div>
+          </div>
         </div>
       </div>
 
@@ -1453,8 +1583,16 @@ body.pwa-standalone .hero{
         <div class="ic ic-pink">📌</div>
         <div>
           <div class="bc-h">Lesson boards</div>
-          <div class="bc-p">A Miro-style canvas: vocab cards, tasks, timers, images — connect with arrows and share live with students.</div>
-          <div class="bc-points"><span>Arrows</span><span>Timers</span><span>Live share</span><span>Images</span></div>
+          <div class="bc-p">A Miro-style canvas — cards, tasks &amp; timers, shared live.</div>
+        </div>
+        <div class="fp-shot">
+          <div class="fp-cap">Live board · 4 online</div>
+          <div class="fp-board">
+            <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M20,16 C40,8 55,8 70,12" fill="none" stroke="rgba(225,29,116,.45)" stroke-width="1" stroke-dasharray="3 2.5" stroke-linecap="round"/></svg>
+            <div class="n n1">vocab</div>
+            <div class="n n2">task ✓</div>
+            <div class="n n3">timer</div>
+          </div>
         </div>
       </div>
 
@@ -1464,8 +1602,16 @@ body.pwa-standalone .hero{
         <div>
           <div class="bento-tag">Export</div>
           <div class="bc-h" style="color:#F5F0E8;margin-top:8px;">Print, PDF &amp; share links</div>
-          <div class="bc-p">A4-ready worksheets, PDF/Word export, Google Forms, and share links students open with no account.</div>
-          <div class="bc-points"><span>PDF / Word</span><span>Google Forms</span><span>No-account links</span></div>
+          <div class="bc-p">A4 worksheets, PDF/Word, Google Forms &amp; no-account share links.</div>
+        </div>
+        <div class="fp-shot">
+          <div class="fp-cap">Export “Present Perfect”</div>
+          <div class="fp-exp">
+            <b><span class="sw" style="background:var(--pink);"></span>PDF</b>
+            <b><span class="sw" style="background:#2B6CB0;"></span>Word</b>
+            <b><span class="sw" style="background:var(--lime-dark);"></span>Forms</b>
+            <b>🔗 Link</b>
+          </div>
         </div>
       </div>
 
@@ -1474,8 +1620,12 @@ body.pwa-standalone .hero{
         <div class="ic ic-lime">💬</div>
         <div>
           <div class="bc-h">Speaking &amp; writing</div>
-          <div class="bc-p">Discussion questions, debates, dialogues, warm-ups, essay topics and writing prompts on any theme.</div>
-          <div class="bc-points"><span>Debates</span><span>Dialogues</span><span>Essay topics</span><span>Warm-ups</span></div>
+          <div class="bc-p">Debates, dialogues, essay topics &amp; warm-ups on any theme.</div>
+        </div>
+        <div class="fp-shot fp-talk">
+          <div class="fp-cap">Discussion · warm-up</div>
+          <span class="b l">Should school start later?</span>
+          <span class="b r">I agree because…</span>
         </div>
       </div>
 
@@ -1484,8 +1634,15 @@ body.pwa-standalone .hero{
         <div class="ic" style="font-size:22px;">📊</div>
         <div>
           <div class="bc-h">Run your studio</div>
-          <div class="bc-p">Schedule, gradebook, attendance, homework portal, analytics and a private lesson journal — all built in.</div>
-          <div class="bc-points"><span>Schedule</span><span>Gradebook</span><span>Attendance</span><span>Analytics</span></div>
+          <div class="bc-p">Schedule, gradebook, attendance &amp; analytics — all built in.</div>
+        </div>
+        <div class="fp-shot fp-studio">
+          <div class="tbl">
+            <div class="tr">Anna K. <em>92%</em></div>
+            <div class="tr">Mark P. <em>88%</em></div>
+            <div class="tr">Lena S. <em>95%</em></div>
+          </div>
+          <div class="chart"><i style="height:55%"></i><i style="height:72%"></i><i style="height:48%"></i><i style="height:88%"></i><i style="height:66%"></i></div>
         </div>
       </div>
 
@@ -1495,8 +1652,14 @@ body.pwa-standalone .hero{
         <div>
           <div class="bento-tag" style="background:rgba(14,14,16,.08);border-color:rgba(14,14,16,.18);color:var(--ink2);">PWA</div>
           <div class="bc-h" style="margin-top:8px;">Works offline</div>
-          <div class="bc-p">Install to your home screen and teach with patchy or no Wi-Fi. Everything syncs when you're back.</div>
-          <div class="bc-points"><span>Install as app</span><span>Cache-first</span><span>Auto-sync</span></div>
+          <div class="bc-p">Install to your home screen and teach with no Wi-Fi.</div>
+        </div>
+        <div class="fp-shot fp-pwa">
+          <div class="ph"><i></i><i></i><i></i></div>
+          <div class="info">
+            <span class="off">● Offline ready</span>
+            <span class="off" style="color:var(--ink2);background:rgba(11,11,12,.05);border-color:var(--line);">↻ Auto-sync</span>
+          </div>
         </div>
       </div>
 
