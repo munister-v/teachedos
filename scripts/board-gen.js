@@ -251,14 +251,13 @@ function _ttVocabLines(input){
   const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
   const count = Math.max(1, input.count || 0);
   if (lines.length) {
-    // If the teacher's own vocab list is shorter than the requested item
-    // count, top it up with content words from the source text and generic
-    // topic seeds (deduped) so the tool still produces `count` items instead
-    // of silently capping at the vocab list length.
+    // If the teacher's own vocab list is shorter than the requested count, top
+    // it up ONLY with real content words from the pasted source text (deduped).
+    // We deliberately do NOT pad with generic topic seeds: a short list of real
+    // words beats inflating it with off-topic filler like "problem", "reason".
     if (lines.length >= count) return lines;
     const seen = new Set(lines.map(w => w.toLowerCase()));
-    const extra = [..._ttContentWords(input.source||''), ...teacherToolTopicSeeds(input.topic, count * 2)];
-    for (const w of extra) {
+    for (const w of _ttContentWords(input.source||'')) {
       if (lines.length >= count) break;
       const key = String(w).toLowerCase();
       if (seen.has(key)) continue;
@@ -500,19 +499,20 @@ function _ttGenGistDetail(input){
 
 /* ── discussion questions (speaking) ────────────────────────────── */
 function _ttGenDiscussion(input){
+  // The "word" here is a vocabulary item (lexis), not a discussion subject —
+  // so frame each question around the TOPIC and ask students to USE the word,
+  // shown lowercased and quoted. This avoids clumsy, mis-capitalised phrasing
+  // like "Have you ever experienced anything related to Complaint?".
+  const lex = w => `"${String(w).toLowerCase()}"`;
   const wordTemplates = [
-    w => `What do you think about ${w}? Give two reasons.`,
-    w => `Have you ever experienced anything related to ${w}? Tell your partner.`,
-    w => `Do you agree that ${w} is important? Why / why not?`,
-    w => `How does ${w} affect everyday life in your country?`,
-    w => `What would happen if ${w} didn't exist? Discuss with a partner.`,
-    w => `How has ${w} changed over the last ten years?`,
-    w => `What are the advantages and disadvantages of ${w}?`,
-    w => `Describe a time when ${w} was a problem for you.`,
-    w => `Who is most affected by ${w}, and why?`,
-    w => `How could ${w} be improved?`,
-    (w, topic) => `How is ${w} connected to ${topic}?`,
-    w => `Would you like to learn more about ${w}? What exactly?`,
+    (w, topic) => `Talk about ${topic}. Try to use the word ${lex(w)} naturally.`,
+    (w, topic) => `Describe a personal experience with ${topic}. Include the word ${lex(w)}.`,
+    (w, topic) => `When we talk about ${topic}, how important is ${lex(w)}? Why?`,
+    (w, topic) => `Give a real example of ${lex(w)} connected to ${topic}.`,
+    (w, topic) => `How would you explain ${lex(w)} to someone new to ${topic}?`,
+    (w, topic) => `Tell your partner about a time ${lex(w)} mattered for ${topic}.`,
+    (w, topic) => `Do you agree that ${lex(w)} is a key idea in ${topic}? Why / why not?`,
+    (w, topic) => `What advice would you give about ${lex(w)} when dealing with ${topic}?`,
   ];
   const topicTemplates = [
     t => `What is your personal experience with ${t}?`,

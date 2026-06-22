@@ -8567,8 +8567,10 @@ function prewarmTeacherAiEngine() {
     .finally(() => clearTimeout(timer));
 }
 
-function teacherToolTopicSeeds(topic, count = 50) {
-  const clean = String(topic || 'lesson topic').trim().toLowerCase();
+function teacherToolTopicSeeds(_topic, count = 50) {
+  // Generic last-resort filler words (used only when there is no real vocab and
+  // no source text). Returned as clean headwords — never with a "(topic)"
+  // suffix, which read as junk (e.g. "problem (travel problems)") on flashcards.
   const words = [
     'problem','reason','example','solution','opinion','evidence','summary','question','answer','detail','choice','result',
     'benefit','challenge','risk','change','habit','goal','plan','step','mistake','feedback','context','connection',
@@ -8576,7 +8578,7 @@ function teacherToolTopicSeeds(topic, count = 50) {
     'reaction','preference','advice','request','offer','complaint','agreement','disagreement','priority','routine',
     'process','feature','pattern','rule','exception','keyword','phrase','collocation','revision'
   ];
-  return words.slice(0, count).map(w => `${w} (${clean})`);
+  return words.slice(0, count);
 }
 
 function teacherToolVocabList(text, fallbackTopic, count = 6) {
