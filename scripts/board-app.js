@@ -14858,14 +14858,22 @@ function renderStickerGrid(cat, filter) {
   if (!grid) return;
   let list = cat === 'Recent' ? getRecentStickers() : (STICKER_CATEGORIES[cat] || []);
   if (filter && filter.trim()) {
-    // Search across all categories
-    const f = filter.trim();
+    const f = filter.trim().toLowerCase();
+    const seen = new Set();
     list = [];
-    Object.values(STICKER_CATEGORIES).forEach(arr => arr.forEach(g => { if (g.includes(f)) list.push(g); }));
-    if (!list.length) {
-      // Fall back to showing the category
-      list = STICKER_CATEGORIES[cat] || [];
-    }
+    // exact keyword match
+    (STICKER_KEYWORDS[f] || []).forEach(g => { if (!seen.has(g)) { seen.add(g); list.push(g); } });
+    // partial keyword match (e.g. "hea" → "heart")
+    Object.entries(STICKER_KEYWORDS).forEach(([kw, glyphs]) => {
+      if (kw !== f && kw.includes(f)) glyphs.forEach(g => { if (!seen.has(g)) { seen.add(g); list.push(g); } });
+    });
+    // category name match (e.g. "animals")
+    Object.entries(STICKER_CATEGORIES).forEach(([catName, arr]) => {
+      if (catName.toLowerCase().includes(f)) arr.forEach(g => { if (!seen.has(g)) { seen.add(g); list.push(g); } });
+    });
+    // emoji character match (user typed an actual emoji)
+    const raw = filter.trim();
+    Object.values(STICKER_CATEGORIES).forEach(arr => arr.forEach(g => { if (g.includes(raw) && !seen.has(g)) { seen.add(g); list.push(g); } }));
   }
   if (!list.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-3);font-size:12px;font-weight:700;">No recent stickers yet. Pick any emoji to start.</div>';
