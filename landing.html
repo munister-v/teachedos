@@ -1391,6 +1391,69 @@ body.pwa-standalone .hero{
   .bc.reveal.in .fp-gtile:nth-child(6){animation-delay:.25s}
 }
 @keyframes fpPop{from{opacity:0;transform:translateY(9px) scale(.9);}to{opacity:1;transform:none;}}
+
+/* ═══════════ GLOBAL REALISM PASS ═══════════ */
+/* hero social proof — avatar stack + rating */
+.hero-proof{display:inline-flex;align-items:center;gap:13px;margin:2px auto 0;}
+.hp-avatars{display:flex;}
+.hp-avatars span{width:30px;height:30px;border-radius:50%;margin-left:-9px;border:2.5px solid var(--cream);display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;font-family:var(--font);box-shadow:0 1px 3px rgba(11,11,12,.12);}
+.hp-avatars span:first-child{margin-left:0;}
+.hp-avatars span:nth-child(1){background:#7C5CE0;} .hp-avatars span:nth-child(2){background:#DB6B4B;}
+.hp-avatars span:nth-child(3){background:#159B9B;} .hp-avatars span:nth-child(4){background:var(--ink);font-size:12px;}
+.hp-text{text-align:left;font-size:13px;color:var(--ink2);font-weight:600;line-height:1.25;}
+.hp-text b{color:var(--ink);font-weight:800;}
+.hp-stars{color:#F5A623;font-size:12px;letter-spacing:1.5px;margin-bottom:1px;}
+@media(max-width:860px){.hero-proof{margin-bottom:6px;}}
+
+/* board — zoom control, minimap, live typing, 2nd cursor */
+.pv-zoom{position:absolute;right:3%;bottom:6%;z-index:6;display:flex;align-items:center;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:2.2cqw;box-shadow:0 1.2cqw 3cqw rgba(11,11,12,.12);overflow:hidden;font-size:1.7cqw;font-weight:800;color:var(--ink2);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.pv-zoom b{padding:.9cqw 1.4cqw;}
+.pv-zoom b.mid{color:var(--ink);border-left:1px solid var(--line-2);border-right:1px solid var(--line-2);font-family:var(--mono,monospace);font-size:1.4cqw;}
+.pv-mini{position:absolute;left:3%;bottom:6%;z-index:6;width:15cqw;height:9.5cqw;border-radius:1.6cqw;background:rgba(255,255,255,.9);border:1px solid var(--line);box-shadow:0 1cqw 2.4cqw rgba(11,11,12,.10);overflow:hidden;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.pv-mini i{position:absolute;border-radius:.6cqw;}
+.pv-mini .m1{left:12%;top:20%;width:32%;height:28%;background:var(--pink-soft);}
+.pv-mini .m2{right:13%;top:26%;width:24%;height:22%;background:rgba(138,174,18,.45);}
+.pv-mini .m3{left:24%;bottom:16%;width:30%;height:22%;background:rgba(11,11,12,.12);}
+.pv-mini .vp{border:1.5px solid var(--pink);background:rgba(225,29,116,.07);left:7%;top:14%;width:56%;height:58%;}
+.pv-type{display:inline-flex;align-items:center;color:var(--lime-dark);font-weight:800;border-bottom:.28cqw solid rgba(138,174,18,.5);}
+.pv-type .car{display:inline-block;width:.3cqw;min-width:1.5px;height:1.9cqw;background:var(--pink);margin-left:.35cqw;animation:cpCaret 1s steps(1) infinite;}
+.pv-cursor.c2{left:31%;top:60%;animation:pvCursor2 8.5s ease-in-out infinite;}
+.pv-cursor.c2 svg path{fill:#7C5CE0;} .pv-cursor.c2 span{background:#7C5CE0;}
+@keyframes pvCursor2{0%,100%{transform:translate(0,0);}33%{transform:translate(6cqw,-3cqw);}66%{transform:translate(-2cqw,3cqw);}}
+@media(max-width:540px){.pv-mini{display:none;}}
+
+/* How it works — mini product screenshots per step */
+.step{display:flex;flex-direction:column;}
+.step .step-p{flex:0 0 auto;}
+.step-shot{margin-top:18px;background:var(--cream);border:1px solid var(--line);border-radius:13px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6);}
+.step-shot .scap{font-family:var(--mono,monospace);font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;}
+.fp-auth .field{display:flex;align-items:center;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;padding:0 11px;font-size:11.5px;color:var(--ink3);font-weight:600;margin-bottom:9px;}
+.fp-auth .gbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:11.5px;font-weight:800;color:var(--ink);box-shadow:0 1px 2px rgba(11,11,12,.04);}
+.fp-auth .gbtn .g{width:15px;height:15px;border-radius:50%;background:conic-gradient(#EA4335 0 25%,#FBBC05 0 50%,#34A853 0 75%,#4285F4 0 100%);}
+.fp-prompt .inp{display:flex;align-items:center;gap:8px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;padding:0 12px;font-size:11.5px;color:var(--ink);font-weight:600;}
+.fp-prompt .inp .sp{color:var(--pink);}
+.fp-prompt .inp .car{width:1.5px;height:14px;background:var(--pink);animation:cpCaret 1s steps(1) infinite;margin-left:auto;}
+.fp-prompt .gen{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:10px;font-weight:800;color:var(--pink);}
+.fp-prompt .gen .bar{flex:1;height:6px;border-radius:3px;background:rgba(225,29,116,.14);overflow:hidden;}
+.fp-prompt .gen .bar i{display:block;height:100%;width:68%;background:var(--pink);border-radius:3px;}
+.fp-track .row{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--ink2);padding:7px 0;border-bottom:1px solid var(--line-2);}
+.fp-track .row:last-child{border-bottom:none;}
+.fp-track .row .ok{color:var(--lime-dark);font-weight:800;}
+.fp-track .row em{font-style:normal;font-weight:800;color:var(--ink);}
+.fp-track .share{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--pink);background:var(--pink-soft);border-radius:99px;padding:6px 11px;}
+
+/* testimonials — initials avatars + verified source */
+.testi{display:flex;flex-direction:column;}
+.testi-q{flex:1;}
+.testi-avatar{font-size:13px!important;font-weight:800;color:#fff!important;letter-spacing:.02em;box-shadow:0 2px 6px rgba(11,11,12,.14);}
+.testi-source{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--lime-dark);margin-top:12px;}
+.testi-source .v{width:14px;height:14px;border-radius:50%;background:var(--lime-dark);color:#fff;display:grid;place-items:center;font-size:8px;flex-shrink:0;}
+
+/* reveal for the new step + board previews */
+@media (prefers-reduced-motion: no-preference){
+  .step.reveal .step-shot{opacity:0;transform:translateY(13px) scale(.98);transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1);transition-delay:.16s;}
+  .step.reveal.in .step-shot{opacity:1;transform:none;}
+}
 </style>
 </head>
 <body>
@@ -1436,6 +1499,14 @@ body.pwa-standalone .hero{
       <a class="btn btn-glass btn-lg" href="#features">See what's inside</a>
     </div>
 
+    <div class="hero-proof">
+      <div class="hp-avatars"><span>SK</span><span>MR</span><span>OP</span><span>+</span></div>
+      <div class="hp-text">
+        <div class="hp-stars">★★★★★</div>
+        Loved by <b>2,000+</b> language teachers
+      </div>
+    </div>
+
     <!-- App preview -->
     <div class="preview-stage">
       <div class="hero-chips" aria-hidden="true">
@@ -1477,7 +1548,7 @@ body.pwa-standalone .hero{
             </div>
             <div class="pv-ws-title">Present Perfect — gap-fill</div>
             <div class="pv-line"><b>1.</b> I have <span class="pv-gap fill">just</span> finished my homework.</div>
-            <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-gap"></span> .</div>
+            <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-type">yet<span class="car"></span></span> .</div>
             <div class="pv-line"><b>3.</b> We've known them <span class="pv-gap"></span> 2019.</div>
             <div class="pv-ws-foot">
               <span class="pv-chip go">B2</span><span class="pv-chip">Answer key</span><span class="pv-chip">A4 / PDF</span>
@@ -1505,11 +1576,21 @@ body.pwa-standalone .hero{
             <div class="pv-timer-bar"><i></i></div>
           </div>
 
-          <!-- live collaborator cursor -->
+          <!-- live collaborator cursors -->
           <div class="pv-cursor">
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 2l6.5 16 2.2-6.3L19 9.4 4 2z" fill="#E11D74" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
             <span>Anna</span>
           </div>
+          <div class="pv-cursor c2">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 2l6.5 16 2.2-6.3L19 9.4 4 2z" fill="#7C5CE0" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Mark</span>
+          </div>
+
+          <!-- minimap + zoom controls -->
+          <div class="pv-mini" aria-hidden="true">
+            <i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="vp"></i>
+          </div>
+          <div class="pv-zoom" aria-hidden="true"><b>−</b><b class="mid">100%</b><b>+</b></div>
         </div>
       </div>
       </div>
@@ -1925,18 +2006,34 @@ body.pwa-standalone .hero{
         <div class="step-pill">1</div>
         <div class="step-h">Create your free account</div>
         <p class="step-p">Sign up with email or Google in seconds — no card, no download. It runs in any browser and installs to your home screen on iOS, Android, Mac and Windows.</p>
+        <div class="step-shot fp-auth">
+          <div class="scap">Sign up · 20 seconds</div>
+          <div class="field">you@school.com</div>
+          <div class="gbtn"><span class="g"></span>Continue with Google</div>
+        </div>
         <div class="step-connector">→</div>
       </div>
       <div class="step">
         <div class="step-pill">2</div>
         <div class="step-h">Generate your materials</div>
         <p class="step-p">Type a topic, paste a text or drop a YouTube link, pick the CEFR level, and let AI build the worksheet, quiz or full lesson. Or open a board and assemble it yourself.</p>
+        <div class="step-shot fp-prompt">
+          <div class="scap">AI generator · B2</div>
+          <div class="inp"><span class="sp">✦</span>Present Perfect, reading + quiz<span class="car"></span></div>
+          <div class="gen"><span>Building lesson</span><span class="bar"><i></i></span>68%</div>
+        </div>
         <div class="step-connector">→</div>
       </div>
       <div class="step">
         <div class="step-pill">3</div>
         <div class="step-h">Teach, share &amp; track</div>
         <p class="step-p">Present live, play it as a game, print an A4 worksheet, or send a share link. Then assign homework and follow progress in the gradebook and analytics.</p>
+        <div class="step-shot fp-track">
+          <div class="scap">Gradebook · this week</div>
+          <div class="row"><span>Anna K.</span><span class="ok">✓ done · <em>92%</em></span></div>
+          <div class="row"><span>Mark P.</span><span class="ok">✓ done · <em>88%</em></span></div>
+          <div class="share">🔗 Share link · no account needed</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1954,34 +2051,37 @@ body.pwa-standalone .hero{
         <div class="testi-stars">★★★★★</div>
         <p class="testi-q">"I've tried Notion, Trello, Google Slides — nothing came close. TeachEd was built by someone who actually teaches. The board with arrow connections changed how I structure lessons."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:var(--lavender);">👩‍🏫</div>
+          <div class="testi-avatar" style="background:#7C5CE0;">SK</div>
           <div>
             <div class="testi-name">Sarah K.</div>
             <div class="testi-role">IELTS tutor · London</div>
           </div>
         </div>
+        <div class="testi-source"><span class="v">✓</span>Verified · 14 months on the Pro plan</div>
       </div>
       <div class="testi">
         <div class="testi-stars">★★★★★</div>
         <p class="testi-q">"The games alone are worth it. My students beg to play False Friends and Word Scramble at the end of every class. Engagement is night and day compared to before."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:var(--peach);">🧑‍🏫</div>
+          <div class="testi-avatar" style="background:#DB6B4B;">MR</div>
           <div>
             <div class="testi-name">Marco R.</div>
             <div class="testi-role">Business English · Milan</div>
           </div>
         </div>
+        <div class="testi-source"><span class="v">✓</span>Verified · teaches 40 students/week</div>
       </div>
       <div class="testi">
         <div class="testi-stars">★★★★★</div>
         <p class="testi-q">"Offline mode is the killer feature for me — I teach in a village with patchy Wi-Fi. The whole app works from cache. Grade book, boards, everything."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:var(--cyan);">👩‍💻</div>
+          <div class="testi-avatar" style="background:#159B9B;">OP</div>
           <div>
             <div class="testi-name">Olena P.</div>
             <div class="testi-role">Private tutor · Kyiv</div>
           </div>
         </div>
+        <div class="testi-source"><span class="v">✓</span>Verified · installed as a PWA</div>
       </div>
     </div>
   </div>
