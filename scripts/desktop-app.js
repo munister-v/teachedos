@@ -1496,9 +1496,9 @@ function showAuthOverlay() {
     overlay.id = 'os-auth-overlay';
     overlay.style.cssText = `
       position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;
-      display:flex;align-items:center;justify-content:center;
+      display:flex;align-items:flex-start;justify-content:center;
       background:radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%, rgba(255,182,213,.18) 0%, transparent 60%),linear-gradient(160deg,#FFFFFF 0%,#FFF7FB 48%,#FDEBF4 100%);
-      overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(20px,calc((100dvh - 620px)/2)) 16px max(20px,env(safe-area-inset-bottom,0px));
     `;
     overlay.innerHTML = `
       <div style="
