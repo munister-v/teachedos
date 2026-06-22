@@ -464,11 +464,7 @@ function toast(msg){
   clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800);
 }
 </script>
-<script>
-if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=197',{updateViaCache:'none'}).then(reg=>reg.update());
-}
-</script>
+
 <script src="scripts/nav-boost.js?v=197" defer></script>
 <script src="scripts/mobile-zoom-guard.js?v=197" defer></script>
 <script src="pwa-boot.js?v=197" defer></script>

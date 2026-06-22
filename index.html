@@ -2106,21 +2106,7 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script>
-if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=197',{updateViaCache:'none'}).then(reg=>{
-    reg.update();
-    reg.addEventListener('updatefound',()=>{
-      const nw=reg.installing;
-      if(nw)nw.addEventListener('statechange',()=>{
-        if(nw.state==='installed'&&navigator.serviceWorker.controller)nw.postMessage('skipWaiting');
-      });
-    });
-  });
-  let refreshing=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
-}
-</script>
+<script src="pwa-boot.js?v=197" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">

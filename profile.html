@@ -893,21 +893,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 <script src="scripts/app-core.js?v=197"></script>
 <script src="scripts/profile-app.js?v=197"></script>
-<script>
-if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('sw.js?v=197',{updateViaCache:'none'}).then(reg=>{
-    reg.update();
-    reg.addEventListener('updatefound',()=>{
-      const nw=reg.installing;
-      if(nw)nw.addEventListener('statechange',()=>{
-        if(nw.state==='installed'&&navigator.serviceWorker.controller)nw.postMessage('skipWaiting');
-      });
-    });
-  });
-  let refreshing=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
-}
-</script>
+<script src="pwa-boot.js?v=197" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
