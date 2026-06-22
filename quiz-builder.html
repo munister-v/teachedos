@@ -583,7 +583,7 @@ function showToast(msg){
 }
 
 // ── Cloud library (My Library + Community) ──
-const LIB_API=(window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const LIB_API=(window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 function libToken(){return localStorage.getItem('teachedos_token')||''}
 function libFetch(path,opts){const o=opts||{};const t=libToken();return fetch(LIB_API+path,{...o,headers:{'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{}),...(o.headers||{})},body:o.body?JSON.stringify(o.body):undefined})}
 let _quizCloudId=null;

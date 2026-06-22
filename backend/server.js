@@ -17,6 +17,9 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
     'http://127.0.0.1:5500',
     'https://munister-v.github.io',
     'https://munister.com.ua',
+    'http://munister.com.ua',
+    'https://www.munister.com.ua',
+    'http://www.munister.com.ua',
     'https://teached.tech',
     'https://www.teached.tech',
   ]);

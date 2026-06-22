@@ -2273,7 +2273,7 @@ function obSelectTpl(id) {
 async function obCreateBoard() {
   const name = document.getElementById('ob-board-name').value.trim() || 'My First Board';
   try {
-    const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+    const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
     const token = localStorage.getItem('teachedos_token');
     // Create board
     const r = await fetch(API + '/api/boards', {
@@ -2322,7 +2322,7 @@ async function obSaveAndFinish() {
   const zoom = document.getElementById('ob-zoom-url')?.value.trim();
   if (meet || zoom) {
     try {
-      const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+      const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
       const token = localStorage.getItem('teachedos_token');
       await fetch(API + '/api/users/me', {
         method: 'PATCH',

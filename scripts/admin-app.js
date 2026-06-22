@@ -2,7 +2,7 @@
    admin-app.js — TeachEd Admin panel logic
    Extracted from the inline <script> block for HTTP/SW cacheability
    ════════════════════════════════════════════════════════════════ */
-const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 let token = localStorage.getItem('teachedos_admin_token') || null;
 let currentAdminUser = null;
 let analyticsDays = 14;

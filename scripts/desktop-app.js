@@ -1253,7 +1253,7 @@ mobInit();
 /* ════════════════════════════════════════════════════
    AUTH + ROLE ROUTING
    ════════════════════════════════════════════════════ */
-const API_BASE = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const API_BASE = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const TEACHER_DASHBOARD_CACHE_KEY = 'teachedos_teacher_dashboard_cache_v1';
 let _authToken = localStorage.getItem('teachedos_token');
 let _currentUser = null;
@@ -1957,7 +1957,7 @@ setInterval(loadNotifications, 120000);
    LIVE WIDGETS (teacher/admin only — students are redirected above)
    ════════════════════════════════════════════════════ */
 (function() {
-  const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+  const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
   const token = localStorage.getItem('teachedos_token');
   const cachedDash = readTeacherDashboardCache();
   if (!token) return;

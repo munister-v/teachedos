@@ -11213,7 +11213,7 @@ renderGamesGrid = function(filter) {
 };
 
 /* ════════════════════════ API + AUTH ════════════════════════ */
-const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;

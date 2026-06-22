@@ -1789,7 +1789,7 @@ function toast(msg) {
 }
 
 // ── Cloud library sync ──────────────────────────────────────────────────────
-const LIB_API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
+const LIB_API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 function libToken() { return localStorage.getItem('teachedos_token') || ''; }
 async function libFetch(path, opts = {}) {
   const tok = libToken();
