@@ -5122,12 +5122,63 @@ document.addEventListener('mouseup', e => {
     longPressStart = null;
   }
 
+  // Double-tap-to-zoom (phones): tap-tap a card → zoom to read/interact with it;
+  // tap-tap empty canvas → zoom back out to fit. Cards live at ~0.6 scale on a
+  // phone so this is how you actually read a card or play an interactive worksheet.
+  let _lastTapAt = 0, _lastTapX = 0, _lastTapY = 0;
+  // Animate pan+scale so the board-space point under (sx,sy) stays put.
+  function _zoomToPoint(sx, sy, target) {
+    const r = boardWrap.getBoundingClientRect();
+    const cx = sx - r.left, cy = sy - r.top;
+    const bx = (cx - state.pan.x) / state.scale, by = (cy - state.pan.y) / state.scale;
+    const tScale = Math.min(2, Math.max(0.1, target));
+    const tPanX = cx - bx * tScale, tPanY = cy - by * tScale;
+    const s0 = state.scale, px0 = state.pan.x, py0 = state.pan.y, t0 = performance.now();
+    (function tick(now){
+      const p = Math.min(1, (now - t0) / 320), e = 1 - Math.pow(1 - p, 3);
+      state.scale = s0 + (tScale - s0) * e;
+      state.pan.x = px0 + (tPanX - px0) * e;
+      state.pan.y = py0 + (tPanY - py0) * e;
+      applyTransform();
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+  function _handleDoubleTap(touch, target) {
+    const now = Date.now();
+    const dx = Math.abs(touch.clientX - _lastTapX);
+    const dy = Math.abs(touch.clientY - _lastTapY);
+    const isDouble = (now - _lastTapAt) < 300 && dx < 28 && dy < 28;
+    _lastTapAt = isDouble ? 0 : now;   // consume on match so a 3rd tap starts fresh
+    _lastTapX = touch.clientX; _lastTapY = touch.clientY;
+    if (!isDouble) return false;
+    // Prefer the event target (matches the rest of the touch pipeline); fall
+    // back to hit-testing the point.
+    let cardEl = target && target.closest && target.closest('.board-card');
+    if (!cardEl) {
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      cardEl = el && el.closest && el.closest('.board-card');
+    }
+    if (cardEl && cardEl.dataset.id) {
+      try { zoomToCard(cardEl.dataset.id, true); } catch {}
+    } else {
+      // Empty space: toggle between fit-all (zoomed in) and a reading zoom.
+      try { state.scale > 0.85 ? fitAll(true) : _zoomToPoint(touch.clientX, touch.clientY, 1.4); } catch {}
+    }
+    if (navigator.vibrate) { try { navigator.vibrate(10); } catch {} }
+    return true;
+  }
+
   boardWrap.addEventListener('touchstart', e => {
     // Placement mode: touch places element exactly where tapped
     if (_pendingPlace && e.touches.length === 1) {
       e.preventDefault();
       _doPlace(e.touches[0].clientX, e.touches[0].clientY);
       return;
+    }
+    // Phone double-tap → zoom to card / fit. Runs before the drag pipeline so a
+    // quick tap-tap zooms instead of nudging the card.
+    if (isBoardPhone() && e.touches.length === 1) {
+      if (_handleDoubleTap(e.touches[0], e.target)) { e.preventDefault(); touchDriving = false; return; }
     }
     // Single-finger touch on an interactive object (resize handle, anchor dot,
     // or a card body) → drive the existing mouse pipeline so resize / connect /
