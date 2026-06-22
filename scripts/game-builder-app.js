@@ -1394,20 +1394,63 @@ function shuffleArray(items) {
   return [...items].sort(() => Math.random() - .5);
 }
 
-function autoFillGame() {
+function _gbRegEscape(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+async function autoFillGame() {
   if (!selectedType) { toast('Choose a game type first'); return; }
-  const title = document.getElementById('game-title').value.trim() || selectedType.name;
-  const topic = (document.getElementById('game-tags').value || title).split(',')[0].trim() || 'English practice';
-  const words = ['challenge','solution','feedback','practice','confidence','routine','progress','mistake','example','conversation'];
+  const levelSel = document.getElementById('game-level').value;
+  const lvl = ['A1','A2','B1','B2','C1'].includes(levelSel) ? levelSel : 'B1';
+  const hint = (document.getElementById('game-title').value + ' ' + document.getElementById('game-tags').value).toLowerCase();
+
+  // Prefer REAL vocabulary from the topic library so smart-fill produces
+  // teachable content (word + genuine translation + example sentence) instead
+  // of meaningless filler like "topic: useful classroom meaning for X".
+  let vocab = null;
+  try {
+    if (window.ensureVocab) await window.ensureVocab();
+    if (window.TEACHEDOS_VOCAB) {
+      const topics = window.TEACHEDOS_VOCAB.listTopics();
+      const match = topics.find(t => hint.includes(t.id) || hint.includes(String(t.name).toLowerCase())) || topics[0];
+      if (match) {
+        vocab = window.TEACHEDOS_VOCAB.pick(match.id, lvl, 10);
+        if (!vocab || !vocab.length) vocab = window.TEACHEDOS_VOCAB.pick(match.id, 'mix', 10);
+      }
+    }
+  } catch {}
+
   let content = null;
-  if (selectedType.fields === 'pairs') content = { pairs: words.slice(0,8).map(w => ({ a:w, b:`${topic}: useful classroom meaning for ${w}` })) };
-  else if (selectedType.fields === 'words') content = { words: words.slice(0,10) };
-  else if (selectedType.fields === 'sentences') content = { sentences: words.slice(0,6).map(w => `Students need regular ___ to improve their ${topic.toLowerCase()}.|${w}`) };
-  else if (selectedType.fields === 'statements') content = { statements: words.slice(0,6).map((w,i) => ({ text:`${w} is useful when learning ${topic.toLowerCase()}.`, answer:i % 2 === 0 })) };
-  else if (selectedType.fields === 'mcq') content = { questions: words.slice(0,5).map((w,i) => ({ q:`Which word best completes the idea about ${topic.toLowerCase()}?`, opts:[w, words[(i+1)%words.length], words[(i+2)%words.length], words[(i+3)%words.length]], correct:0 })) };
-  else if (selectedType.fields === 'categories') content = { categories:[{name:'Learning',words:['practice','feedback','progress','mistake']},{name:'Communication',words:['conversation','example','confidence','solution']},{name:'Mindset',words:['challenge','routine','focus','goal']}] };
-  if (!content) return;
-  renderContentFields(); populateContent({ content }); updateItemCounter(); toast('Smart content generated');
+  if (vocab && vocab.length) {
+    if (selectedType.fields === 'pairs') content = { pairs: vocab.map(w => ({ a: w.en, b: w.uk })) };
+    else if (selectedType.fields === 'words') content = { words: vocab.map(w => w.en) };
+    else if (selectedType.fields === 'sentences') {
+      const items = vocab
+        .filter(w => w.ex && new RegExp('\\b' + _gbRegEscape(w.en) + '\\b', 'i').test(w.ex))
+        .map(w => w.ex.replace(new RegExp('\\b' + _gbRegEscape(w.en) + '\\b', 'i'), '___') + '|' + w.en);
+      if (items.length >= 2) content = { sentences: items };
+    }
+    else if (selectedType.fields === 'mcq') content = { questions: vocab.map((w, i) => {
+      const distractors = shuffleArray(vocab.filter((_, j) => j !== i).map(d => d.uk)).slice(0, 3);
+      const opts = shuffleArray([w.uk, ...distractors]);
+      return { q: `What does "${w.en}" mean?`, opts, correct: opts.indexOf(w.uk) };
+    }) };
+  }
+
+  // Fallback (no library, or a field the library can't fill): clean scaffold.
+  if (!content) {
+    const topic = (document.getElementById('game-tags').value || document.getElementById('game-title').value || 'English practice').split(',')[0].trim();
+    const tl = topic.toLowerCase();
+    const words = ['challenge','solution','feedback','practice','confidence','routine','progress','mistake','example','conversation'];
+    const cap = w => w.charAt(0).toUpperCase() + w.slice(1);
+    if (selectedType.fields === 'pairs') content = { pairs: words.slice(0,8).map(w => ({ a:w, b:`a key idea when discussing ${tl}` })) };
+    else if (selectedType.fields === 'words') content = { words: words.slice(0,10) };
+    else if (selectedType.fields === 'sentences') content = { sentences: words.slice(0,6).map(w => `Students need regular ___ to improve their ${tl}.|${w}`) };
+    else if (selectedType.fields === 'statements') content = { statements: words.slice(0,6).map((w,i) => ({ text:`${cap(w)} is useful when learning ${tl}.`, answer:i % 2 === 0 })) };
+    else if (selectedType.fields === 'mcq') content = { questions: words.slice(0,5).map((w,i) => ({ q:`Which word best fits the topic of ${tl}?`, opts:[w, words[(i+1)%words.length], words[(i+2)%words.length], words[(i+3)%words.length]], correct:0 })) };
+    else if (selectedType.fields === 'categories') content = { categories:[{name:'Learning',words:['practice','feedback','progress','mistake']},{name:'Communication',words:['conversation','example','confidence','solution']},{name:'Mindset',words:['challenge','routine','focus','goal']}] };
+  }
+  if (!content) { toast('Smart fill is not available for this game type'); return; }
+  renderContentFields(); populateContent({ content }); updateItemCounter();
+  toast(vocab && vocab.length ? '✨ Filled with real vocabulary' : 'Smart content generated');
 }
 function upgradeDifficulty() {
   transformCurrentContent(content => {
@@ -1421,7 +1464,7 @@ function upgradeDifficulty() {
 }
 function makeStudentFriendly() {
   transformCurrentContent(content => {
-    const clean = s => String(s||'').replace(/utilize/gi,'use').replace(/approximately/gi,'about').replace(/demonstrate/gi,'show').replace(/s+/g,' ').trim();
+    const clean = s => String(s||'').replace(/utilize/gi,'use').replace(/approximately/gi,'about').replace(/demonstrate/gi,'show').replace(/\s+/g,' ').trim();
     if (content.pairs) content.pairs = content.pairs.map(p => ({ a:clean(p.a), b:clean(p.b) }));
     if (content.words) content.words = content.words.map(clean);
     if (content.sentences) content.sentences = content.sentences.map(clean);
@@ -1433,11 +1476,21 @@ function makeStudentFriendly() {
 function generateDistractors() {
   if (!selectedType || selectedType.fields !== 'mcq') { toast('Distractors are for MCQ games'); return; }
   transformCurrentContent(content => {
-    if (!content.questions) return content;
+    if (!content.questions || !content.questions.length) return content;
+    // Real, plausible distractors: pull from the OTHER questions' correct
+    // answers in this set (e.g. other translations) rather than fake strings.
+    const pool = content.questions.map(q => q.opts && q.opts[q.correct]).filter(Boolean);
     content.questions = content.questions.map(q => {
-      const correct = q.opts[q.correct] || q.opts[0] || 'Correct answer';
-      const base = String(correct).split(/\s+/)[0] || 'answer';
-      return { ...q, opts:[correct, base + ' mistake', 'close but wrong', 'not mentioned'], correct:0 };
+      const correct = (q.opts && q.opts[q.correct]) || (q.opts && q.opts[0]) || 'Correct answer';
+      const distractors = [];
+      for (const o of shuffleArray(pool)) {
+        if (distractors.length >= 3) break;
+        if (o && o.toLowerCase() !== String(correct).toLowerCase() && !distractors.includes(o)) distractors.push(o);
+      }
+      const filler = ['none of these', 'not mentioned', 'all of the above'];
+      while (distractors.length < 3) distractors.push(filler[distractors.length] || 'other');
+      const opts = shuffleArray([correct, ...distractors.slice(0, 3)]);
+      return { ...q, opts, correct: opts.indexOf(correct) };
     });
     return content;
   }, 'Distractors generated');
