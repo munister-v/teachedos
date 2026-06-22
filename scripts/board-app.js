@@ -2019,7 +2019,17 @@ function renderGame(el, card) {
   const scoreBadge = document.createElement('span');
   scoreBadge.className = 'game-score-badge';
   scoreBadge.dataset.cardId = card.id;
-  scoreBadge.textContent = '…';
+  // Owner view: show the class aggregate of student attempts if any have come in.
+  const agg = (typeof isOwner !== 'undefined' && isOwner && typeof _quizResultsByCard !== 'undefined') ? _quizResultsByCard[card.id] : null;
+  if (agg && agg.count) {
+    scoreBadge.textContent = `👥 ${agg.count} · ${Math.round(agg.totalPct / agg.count)}%`;
+    scoreBadge.title = `${agg.count} student attempt(s) · average ${Math.round(agg.totalPct / agg.count)}%`;
+  } else if (card.data.result && typeof card.data.result.score === 'number') {
+    const r = card.data.result;
+    scoreBadge.textContent = r.max != null ? `${r.score}/${r.max}` : `${r.score} pts`;
+  } else {
+    scoreBadge.textContent = '…';
+  }
   hdr.appendChild(scoreBadge);
   const closeBtn = document.createElement('button');
   closeBtn.className = 'card-close'; closeBtn.textContent = '×';
@@ -15095,6 +15105,29 @@ window.addEventListener('message', e => {
     if (typeof reportGameAttempt === 'function') reportGameAttempt(card, card.data.result);
   }
 });
+
+// Record a finished game as a student attempt, reusing the same quiz-results
+// pipeline that interactive worksheets use. The board owner's results view
+// (_quizResultsByCard) then surfaces it on the card automatically. Teachers
+// playing their own board are skipped so the gradebook stays clean.
+function reportGameAttempt(card, result) {
+  try {
+    if (!card || !result) return;
+    if (typeof isOwner !== 'undefined' && isOwner) return;
+    if (typeof currentBoardId === 'undefined' || !currentBoardId) return;
+    if (typeof apiFetch !== 'function') return;
+    const score = typeof result.score === 'number' ? result.score : 0;
+    const max   = typeof result.max === 'number' && result.max > 0 ? result.max : 0;
+    const pct   = max ? Math.round((score / max) * 100) : (result.status === 'done' ? 100 : 0);
+    apiFetch('/api/boards/' + currentBoardId + '/progress', {
+      method: 'POST',
+      body: {
+        cardId: card.id, score, maxScore: max, pct,
+        answers: { game: result.game || card.data?.title || 'Game', time: result.time, mistakes: result.mistakes },
+      },
+    }).catch(() => {});
+  } catch {}
+}
 
 // G shortcut to open Games Hub
 document.addEventListener('keydown', e => {

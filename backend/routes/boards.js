@@ -194,8 +194,12 @@ router.post('/:id/progress', async (req, res) => {
         max_score INTEGER DEFAULT 0,
         pct INTEGER DEFAULT 0,
         answers JSONB,
-        submitted_at TIMESTAMPTZ DEFAULT NOW()
+        submitted_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(board_id, card_id, user_id)
       )`);
+    // The ON CONFLICT upsert below needs the unique constraint; add it for
+    // legacy tables created before it existed (no-op if already present).
+    await pool.query(`ALTER TABLE quiz_results ADD CONSTRAINT quiz_results_board_card_user_key UNIQUE (board_id, card_id, user_id)`).catch(() => {});
     // upsert — one result per student per card
     await pool.query(`
       INSERT INTO quiz_results (board_id, card_id, user_id, score, max_score, pct, answers)
