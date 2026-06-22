@@ -4393,6 +4393,18 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     display:none!important;
   }
 
+  /* CRITICAL: #more-menu / #user-menu are DOM children of #toolbar (z-index:1000).
+     The sheet backdrop (body::after) is z-index:1980 in the root stacking
+     context, so it painted ON TOP of the trapped menu — dimming it and eating
+     every tap (menu looked greyish + unclickable). Lift the toolbar above the
+     backdrop while a sheet is open so its descendant sheet becomes the real top
+     hit-target. (Toolbar has no transform/filter on mobile, so its fixed-
+     position sheet children are not clipped by its overflow:hidden.) */
+  body.board-phone-shell.mobile-sheet-open #toolbar{
+    z-index:2200!important;
+    overflow:visible!important;
+  }
+
   body.board-phone-shell #more-menu,
   body.board-phone-shell #user-menu,
   body.board-phone-shell #ctx-menu,
