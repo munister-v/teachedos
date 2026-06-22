@@ -1454,6 +1454,39 @@ body.pwa-standalone .hero{
   .step.reveal .step-shot{opacity:0;transform:translateY(13px) scale(.98);transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1);transition-delay:.16s;}
   .step.reveal.in .step-shot{opacity:1;transform:none;}
 }
+
+/* ═══════════ MORE DETAIL: board chrome + canvas density ═══════════ */
+/* avatar presence dots */
+.pv-avatars span{position:relative;}
+.pv-avatars span:nth-child(1)::after,.pv-avatars span:nth-child(2)::after{content:'';position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:#34C759;border:2px solid #FAFAF9;}
+/* live dot on the status chip */
+.tb.r .ld{display:inline-block;width:5px;height:5px;border-radius:50%;background:#EC2D8C;margin-right:5px;animation:pvPulse 1.4s ease-in-out infinite;vertical-align:middle;}
+/* breadcrumb + share button in the bar */
+.pv-crumb{flex:1;text-align:center;font-size:11.5px;font-weight:600;color:var(--ink3);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pv-crumb b{color:var(--ink2);font-weight:800;}
+.pv-crumb .sep{margin:0 5px;opacity:.6;}
+.pv-share{margin-left:8px;flex-shrink:0;font-size:11px;font-weight:800;color:#fff;background:var(--ink);border-radius:8px;padding:5px 11px;display:inline-flex;align-items:center;gap:5px;}
+@media(max-width:540px){.pv-crumb{display:none;}.pv-share{display:none;}}
+
+/* floating selection toolbar above the worksheet */
+.pv-seltb{position:absolute;left:11.5%;top:8%;transform:translateY(-118%);z-index:6;display:flex;align-items:center;gap:.4cqw;background:#fff;border:1px solid var(--line);border-radius:1.7cqw;padding:.7cqw .9cqw;box-shadow:0 1.4cqw 3.6cqw rgba(11,11,12,.18);}
+.pv-seltb i{width:2.7cqw;height:2.7cqw;border-radius:.8cqw;display:grid;place-items:center;font-size:1.55cqw;font-weight:800;color:var(--ink2);font-style:normal;}
+.pv-seltb i.it{font-style:italic;font-family:Georgia,serif;}
+.pv-seltb i.sw{background:var(--pink);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5);}
+.pv-seltb .dv{width:1px;height:2.6cqw;background:var(--line);margin:0 .25cqw;}
+.pv-seltb .cnt{font-size:1.15cqw;font-weight:800;color:var(--ink3);font-family:var(--mono,monospace);padding:0 .5cqw 0 .2cqw;}
+
+/* worksheet instruction line */
+.pv-ws-meta{font-size:1.3cqw;color:var(--ink3);font-style:italic;margin:-.7cqw 0 1.2cqw;font-weight:500;}
+
+/* image flashcard on the canvas */
+.pv-flash{left:50.5%;top:59%;width:18cqw;padding:0;overflow:hidden;z-index:3;}
+.pv-flash .img{height:8.5cqw;background:linear-gradient(135deg,#FBE9F2 0%,#F0ECFB 55%,#F4F8DE 100%);display:grid;place-items:center;border-bottom:1px solid var(--line-2);}
+.pv-flash .img svg{width:8cqw;height:6cqw;}
+.pv-flash .cap{padding:1.1cqw 1.3cqw;display:flex;align-items:baseline;justify-content:space-between;gap:.6cqw;}
+.pv-flash .w{font-family:var(--font);font-weight:800;font-size:2cqw;color:var(--ink);letter-spacing:-.01em;}
+.pv-flash .ph{font-size:1.25cqw;color:var(--ink3);font-family:var(--mono,monospace);}
+@media(max-width:540px){.pv-flash{display:none;}.pv-seltb{display:none;}}
 </style>
 </head>
 <body>
@@ -1518,9 +1551,10 @@ body.pwa-standalone .hero{
       <div class="preview-parallax">
       <div class="preview-shell">
         <div class="preview-bar">
-          <div class="tb r">Live</div><div class="tb y">Synced</div><div class="tb g">B2</div>
-          <div class="preview-bar-title">Present Perfect — lesson board</div>
+          <div class="tb r"><span class="ld"></span>Live</div><div class="tb y">Synced</div><div class="tb g">B2</div>
+          <div class="pv-crumb">My boards <span class="sep">›</span> <b>Present Perfect</b></div>
           <div class="pv-avatars"><span>A</span><span>M</span><span>+3</span></div>
+          <div class="pv-share">↗ Share</div>
         </div>
         <div class="pv-board">
           <!-- left mini toolbar -->
@@ -1537,7 +1571,17 @@ body.pwa-standalone .hero{
           <svg class="pv-links" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
             <path d="M50,15 C60,12 62,11 67,14" fill="none" stroke="rgba(225,29,116,.45)" stroke-width=".5" stroke-dasharray="1.6 1.4" stroke-linecap="round"/>
             <path d="M30,30 C28,40 26,42 28,49" fill="none" stroke="rgba(11,11,12,.22)" stroke-width=".5" stroke-dasharray="1.6 1.4" stroke-linecap="round"/>
+            <circle cx="50" cy="15" r=".85" fill="#E11D74"/><circle cx="67" cy="14" r=".85" fill="#E11D74"/>
+            <circle cx="30" cy="30" r=".85" fill="rgba(11,11,12,.4)"/><circle cx="28" cy="49" r=".85" fill="rgba(11,11,12,.4)"/>
           </svg>
+
+          <!-- floating selection toolbar -->
+          <div class="pv-seltb">
+            <span class="cnt">1</span>
+            <i class="sw"></i><i>B</i><i class="it">I</i>
+            <span class="dv"></span>
+            <i>🔗</i><i>🔒</i><i>⋯</i>
+          </div>
 
           <!-- AI worksheet card (selected) -->
           <div class="pv-card pv-ws sel">
@@ -1547,6 +1591,7 @@ body.pwa-standalone .hero{
               <span class="pv-ai"><span class="sp"></span>Generated</span>
             </div>
             <div class="pv-ws-title">Present Perfect — gap-fill</div>
+            <div class="pv-ws-meta">Fill each gap with the correct adverb · 7 questions</div>
             <div class="pv-line"><b>1.</b> I have <span class="pv-gap fill">just</span> finished my homework.</div>
             <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-type">yet<span class="car"></span></span> .</div>
             <div class="pv-line"><b>3.</b> We've known them <span class="pv-gap"></span> 2019.</div>
@@ -1574,6 +1619,19 @@ body.pwa-standalone .hero{
             <span class="pv-eye">Speaking task</span>
             <div class="pv-time">04:32</div>
             <div class="pv-timer-bar"><i></i></div>
+          </div>
+
+          <!-- image flashcard -->
+          <div class="pv-card pv-flash">
+            <div class="img">
+              <svg viewBox="0 0 48 36" fill="none" aria-hidden="true">
+                <rect x="10" y="11" width="28" height="20" rx="3" fill="#fff" stroke="#E11D74" stroke-width="2"/>
+                <path d="M19 11V8a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v3" stroke="#E11D74" stroke-width="2" fill="none"/>
+                <line x1="24" y1="11" x2="24" y2="31" stroke="#E11D74" stroke-width="1.6"/>
+                <circle cx="24" cy="21" r="2" fill="#8AAE12"/>
+              </svg>
+            </div>
+            <div class="cap"><span class="w">journey</span><span class="ph">/ˈdʒɜːni/</span></div>
           </div>
 
           <!-- live collaborator cursors -->
