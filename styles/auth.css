@@ -226,9 +226,59 @@
   .auth-btn-spinner, .auth-spinner { animation: none; }
 }
 
-/* ── Mobile adjustments ──────────────────────────────────────── */
-@media (max-width: 480px) {
-  .auth-card { padding: 28px 22px 22px; border-radius: 22px; }
-  .auth-title { font-size: 1.75rem; }
-  .auth-logo { width: 54px; height: 54px; }
+/* ── Mobile SPA: full-screen native-app feel on phones ──────── */
+@media (max-width: 540px) {
+  /* Overlay becomes a plain scroll container, no blur/backdrop */
+  .auth-overlay,
+  #lp-auth {
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    background: var(--auth-card-bg, #F5F0E8) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Card fills the whole screen — no card frame visible */
+  .auth-card {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: calc(env(safe-area-inset-top, 16px) + 28px) 24px
+             calc(env(safe-area-inset-bottom, 16px) + 32px) !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Close button styled as a back/dismiss row at the very top */
+  .auth-close {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+    right: 16px !important;
+    z-index: 10;
+    background: rgba(14,14,16,.07) !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Push toggle + forgot to the bottom naturally */
+  .auth-btn { margin-top: 12px !important; }
+  .auth-toggle { margin-top: auto; padding-top: 24px; }
+  .auth-forgot { margin-top: 8px; }
+
+  /* Input fields: iOS-safe 16px to prevent auto-zoom */
+  .auth-inp { font-size: 16px !important; }
+
+  /* Taller role cards on phones */
+  .auth-role { padding: 16px 10px 14px !important; }
+  .auth-role-ic { font-size: 2rem !important; margin-bottom: 6px !important; }
+  .auth-role-name { font-size: 13px !important; }
 }
