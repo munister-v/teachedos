@@ -14,6 +14,7 @@ const pageMeta = {
   users: ['Users', 'Manage all registered users'],
   boards: ['Boards', 'View and manage all user boards'],
   sessions: ['Active Sessions', 'Review live login activity'],
+  security: ['Security', 'Auth log, suspended & locked accounts'],
   audit: ['System Audit', 'Operational signals and hygiene checks'],
   billing: ['Billing', 'Manual payments and tariff approvals'],
   packages: ['Package Control', 'Plans, limits and manual subscription grants'],
@@ -136,6 +137,7 @@ function showPage(name) {
   if (name === 'users')     loadUsers();
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
+  if (name === 'security')  loadSecurityPage();
   if (name === 'audit')     loadAudit();
   if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); loadBillingMetrics(); }
   if (name === 'packages')  loadPackageControl();
@@ -191,6 +193,20 @@ async function refreshStats() {
     document.getElementById('stat-health').textContent   = health?.ok ? '✅ OK' : '❌ Down';
     document.getElementById('stat-invites').textContent  = system?.invites?.active ?? 0;
     document.getElementById('stat-payments').textContent = stats.pendingPayments ?? 0;
+
+    // Security sidebar badge
+    const secAlert = (stats.suspended || 0) + (stats.locked || 0);
+    const secBadge = document.getElementById('sb-security-badge');
+    if (secBadge) {
+      secBadge.style.display = secAlert > 0 ? '' : 'none';
+      secBadge.textContent = secAlert;
+    }
+    // Update security stats if page is visible
+    if (document.getElementById('page-security')?.classList.contains('active')) {
+      document.getElementById('sec-stat-suspended').textContent = stats.suspended ?? 0;
+      document.getElementById('sec-stat-locked').textContent    = stats.locked ?? 0;
+      document.getElementById('sec-stat-failed24h').textContent = stats.failedLogins24h ?? 0;
+    }
 
     const rl = document.getElementById('roles-list');
     rl.innerHTML = stats.roles.map(r =>
@@ -777,17 +793,22 @@ async function loadUsers() {
     if (saEl) saEl.checked = false;
 
     if (!d.users.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="9"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No users found</div><div class="empty-state-sub">Try adjusting your search or filter</div></div></td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No users found</div><div class="empty-state-sub">Try adjusting your search or filter</div></div></td></tr>';
       return;
     }
     // Cache user objects by ID so we don't need JSON in HTML attributes
     d.users.forEach(u => { _userCache[u.id] = u; });
     tbody.innerHTML = d.users.map(u => {
       const isSelected = selectedUserIds.has(u.id);
-      return `<tr>
+      const statusBadge = u.is_suspended
+        ? '<span class="badge" style="background:#dc2626;color:#fff;font-size:10px">SUSPENDED</span>'
+        : u.locked_at
+          ? '<span class="badge" style="background:#ea580c;color:#fff;font-size:10px">LOCKED</span>'
+          : '';
+      return `<tr${u.is_suspended ? ' style="opacity:.65"' : ''}>
         <td><input type="checkbox" class="row-check" data-id="${u.id}" onchange="toggleRowCheck(this)" ${isSelected?'checked':''} style="accent-color:var(--lime);cursor:pointer"></td>
         <td class="avatar-cell" data-label="Avatar" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')">${u.avatar}</td>
-        <td data-label="Name" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')"><strong>${esc(u.name)}</strong></td>
+        <td data-label="Name" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')"><strong>${esc(u.name)}</strong>${statusBadge ? '<br>' + statusBadge : ''}</td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
         <td data-label="Plan">
@@ -796,12 +817,14 @@ async function loadUsers() {
           ${u.plan_expires_at?`<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>`:''}
         </td>
         <td data-label="Boards" style="text-align:center">${u.boards_count}</td>
+        <td data-label="Last Login" class="time-text">${u.last_login_at ? fmtRelative(u.last_login_at) : '—'}</td>
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">👤 View</button>
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">✏️ Edit</button>
             <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">🔑 Kick</button>
+            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${esc(u.name)}')">🔓</button>` : ''}
             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">🗑</button>
           </div>
         </td>
@@ -1823,7 +1846,15 @@ async function openUserDrawer(u) {
     <span class="badge badge-${u.role}">${u.role}</span>
     <span class="badge badge-${u.plan==='school'?'admin':u.plan==='pro'?'teacher':'student'}">${u.plan||'free'}</span>
     ${u.plan_status && u.plan_status!=='free' ? `<span class="badge" style="background:rgba(200,230,50,.18);color:#5a6b00">${u.plan_status}</span>` : ''}
+    ${u.is_suspended ? '<span class="badge" style="background:#dc2626;color:#fff">SUSPENDED</span>' : ''}
+    ${u.locked_at ? '<span class="badge" style="background:#ea580c;color:#fff">LOCKED</span>' : ''}
   `;
+  // Suspend button label
+  const suspBtn = document.getElementById('drawer-suspend-btn');
+  if (suspBtn) {
+    suspBtn.textContent = u.is_suspended ? '✅ Unsuspend' : '🚫 Suspend';
+    suspBtn.style.background = u.is_suspended ? 'var(--green)' : 'var(--orange)';
+  }
   document.getElementById('drawer-plan-detail').innerHTML = `
     Plan: <strong>${u.plan||'free'}</strong> · Status: <strong>${u.plan_status||'free'}</strong><br>
     Cycle: <strong>${u.billing_cycle||'monthly'}</strong>${u.plan_expires_at ? ` · Expires: <strong>${fmtDate(u.plan_expires_at)}</strong>` : ' · No expiry'}
@@ -1852,6 +1883,29 @@ async function openUserDrawer(u) {
   } catch(e) {
     document.getElementById('drawer-boards-list').innerHTML = `<div style="color:var(--red);font-size:13px">Failed to load boards: ${esc(e.message)}</div>`;
   }
+
+  // Load auth events for this user
+  loadUserAuthEventsDrawer(u.id);
+}
+
+async function loadUserAuthEventsDrawer(userId) {
+  const el = document.getElementById('drawer-auth-events');
+  if (!el) return;
+  try {
+    const d = await api('GET', `/api/admin/users/${userId}/auth-events`);
+    if (!d.events?.length) { el.innerHTML = '<div style="color:var(--muted)">No auth events recorded yet.</div>'; return; }
+    const icons = { 'login.ok':'🟢','login.fail':'🔴','login.blocked':'🚫','logout':'👋','password.reset':'🔑','google.login':'🔵','google.signup':'🔵' };
+    el.innerHTML = d.events.slice(0, 12).map(e => `
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:11.5px">
+        <span>${icons[e.event] || '⚪'}</span>
+        <span style="font-weight:700;min-width:100px">${esc(e.event)}</span>
+        <span style="color:var(--muted);flex:1">${esc(e.ip || '—')}</span>
+        ${e.detail ? `<span style="color:var(--muted)">${esc(e.detail)}</span>` : ''}
+        <span style="color:var(--muted);white-space:nowrap">${fmtRelative(e.created_at)}</span>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:12px">${esc(e.message)}</div>`;
+  }
 }
 
 function closeUserDrawer() {
@@ -1875,6 +1929,139 @@ function drawerDelete() {
   if (!drawerUser) return;
   closeUserDrawer();
   deleteUser(drawerUser.id, drawerUser.name);
+}
+
+async function drawerToggleSuspend() {
+  if (!drawerUser) return;
+  if (drawerUser.is_suspended) {
+    await unsuspendUser(drawerUser.id, drawerUser.name);
+  } else {
+    const reason = window.prompt(`Reason for suspending ${drawerUser.name}:`, 'Suspended by admin');
+    if (reason === null) return;
+    await suspendUser(drawerUser.id, drawerUser.name, reason || 'Suspended by admin');
+  }
+  closeUserDrawer();
+  loadUsers();
+}
+
+async function suspendUser(id, name, reason) {
+  try {
+    await api('POST', `/api/admin/users/${id}/suspend`, { reason });
+    toast(`${name} suspended`, 'success');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function unsuspendUser(id, name) {
+  try {
+    await api('POST', `/api/admin/users/${id}/unsuspend`);
+    toast(`${name} unsuspended`, 'success');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function unlockUser(id, name) {
+  try {
+    await api('POST', `/api/admin/users/${id}/unlock`);
+    toast(`${name} unlocked`, 'success');
+    loadUsers();
+    loadSecurityPage();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ── Security Page ─────────────────────────────────────────────────────────
+let secOffset = 0;
+const secLimit = 50;
+let secTotal = 0;
+let secSearchTimer;
+
+async function loadSecurityPage() {
+  // Load stats first
+  try {
+    const stats = await api('GET', '/api/admin/stats');
+    document.getElementById('sec-stat-suspended').textContent = stats.suspended ?? 0;
+    document.getElementById('sec-stat-locked').textContent    = stats.locked ?? 0;
+    document.getElementById('sec-stat-failed24h').textContent = stats.failedLogins24h ?? 0;
+  } catch {}
+  loadAuthEvents();
+  loadSuspendedUsers();
+  loadLockedAccounts();
+}
+
+function debounceSecSearch() {
+  clearTimeout(secSearchTimer);
+  secSearchTimer = setTimeout(() => { secOffset = 0; loadAuthEvents(); }, 350);
+}
+
+function secPage(dir) {
+  secOffset = Math.max(0, secOffset + dir * secLimit);
+  loadAuthEvents();
+}
+
+async function loadAuthEvents() {
+  const search = document.getElementById('sec-search')?.value || '';
+  const event  = document.getElementById('sec-event-filter')?.value || '';
+  const tbody  = document.getElementById('sec-events-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="skel skel-line" style="width:200px"></div></td></tr>';
+  try {
+    const d = await api('GET', `/api/admin/auth-events?search=${encodeURIComponent(search)}&event=${encodeURIComponent(event)}&limit=${secLimit}&offset=${secOffset}`);
+    secTotal = d.total || 0;
+    const info = document.getElementById('sec-page-info');
+    if (info) info.textContent = secTotal ? `${secOffset+1}–${Math.min(secOffset+secLimit,secTotal)} of ${secTotal}` : 'No results';
+    const prev = document.getElementById('sec-prev'); if (prev) prev.disabled = secOffset === 0;
+    const next = document.getElementById('sec-next'); if (next) next.disabled = secOffset + secLimit >= secTotal;
+    if (!d.events?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="empty-note">No auth events found.</div></td></tr>'; return; }
+    const icons = { 'login.ok':'🟢','login.fail':'🔴','login.blocked':'🚫','logout':'👋','password.reset':'🔑','google.login':'🔵','google.signup':'🔵' };
+    tbody.innerHTML = d.events.map(e => `<tr>
+      <td class="time-text">${fmtRelative(e.created_at)}</td>
+      <td><span style="font-weight:700">${icons[e.event]||'⚪'} ${esc(e.event)}</span></td>
+      <td style="font-size:12px">${esc(e.user_name || e.email || '—')}<br><span style="color:var(--muted);font-size:11px">${esc(e.email||'')}</span></td>
+      <td style="font-size:12px;font-family:monospace">${esc(e.ip||'—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(e.detail||'—')}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(e.user_agent||'')}">${esc((e.user_agent||'').slice(0,40)||'—')}</td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+async function loadSuspendedUsers() {
+  const el = document.getElementById('sec-suspended-list');
+  if (!el) return;
+  try {
+    const d = await api('GET', '/api/admin/users?limit=50&offset=0&search=');
+    const suspended = (d.users || []).filter(u => u.is_suspended);
+    if (!suspended.length) { el.innerHTML = '<div class="empty-note" style="padding:12px;font-size:13px;color:var(--muted)">No suspended accounts.</div>'; return; }
+    el.innerHTML = suspended.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:22px">${u.avatar}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13px">${esc(u.name)}</div>
+          <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
+          ${u.suspended_reason ? `<div style="font-size:11px;color:#dc2626">${esc(u.suspended_reason)}</div>` : ''}
+        </div>
+        <button class="btn-sm btn-green" onclick="unsuspendUser('${u.id}','${esc(u.name)}').then(loadSecurityPage).then(loadUsers)">Unsuspend</button>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:12px">${esc(e.message)}</div>`; }
+}
+
+async function loadLockedAccounts() {
+  const el = document.getElementById('sec-locked-list');
+  if (!el) return;
+  try {
+    const d = await api('GET', '/api/admin/users?limit=50&offset=0&search=');
+    const locked = (d.users || []).filter(u => u.locked_at);
+    if (!locked.length) { el.innerHTML = '<div class="empty-note" style="padding:12px;font-size:13px;color:var(--muted)">No locked accounts.</div>'; return; }
+    el.innerHTML = locked.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:22px">${u.avatar}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13px">${esc(u.name)}</div>
+          <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
+          <div style="font-size:11px;color:#ea580c">${u.failed_login_count||0} failed attempts · locked ${fmtRelative(u.locked_at)}</div>
+        </div>
+        <button class="btn-sm btn-orange" onclick="unlockUser('${u.id}','${esc(u.name)}')">Unlock</button>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:12px">${esc(e.message)}</div>`; }
 }
 
 // ── Bulk Actions ──────────────────────────────────────────────────────────

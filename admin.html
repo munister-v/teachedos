@@ -644,6 +644,9 @@ html{scroll-behavior:smooth}
     <div class="sb-item" onclick="showPage('sessions')">
       <span class="sb-icon">🔑</span>Sessions<span class="sb-notif yellow" id="sb-sessions-badge" style="display:none"></span>
     </div>
+    <div class="sb-item" onclick="showPage('security')">
+      <span class="sb-icon">🛡️</span>Security<span class="sb-notif red" id="sb-security-badge" style="display:none"></span>
+    </div>
     <div class="sb-item" onclick="showPage('audit')">
       <span class="sb-icon">🧭</span>Audit
     </div>
@@ -1017,10 +1020,10 @@ html{scroll-behavior:smooth}
             <tr>
               <th style="width:36px"><input type="checkbox" id="bulk-select-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--lime);cursor:pointer"></th>
               <th>Avatar</th><th>Name</th><th>Email</th><th>Role</th>
-              <th>Plan</th><th>Boards</th><th>Joined</th><th>Actions</th>
+              <th>Plan</th><th>Boards</th><th>Last Login</th><th>Joined</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="users-tbody"><tr class="empty-row"><td colspan="9"><div class="skel skel-line" style="width:220px"></div></td></tr></tbody>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="10"><div class="skel skel-line" style="width:220px"></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -1084,6 +1087,58 @@ html{scroll-behavior:smooth}
           </thead>
           <tbody id="sessions-tbody"><tr class="empty-row"><td colspan="6"><div class="skel skel-line" style="width:180px"></div></td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Security ─────────────────────────────────────────────────────── -->
+  <div id="page-security" class="page">
+    <div class="page-title">Security</div>
+    <div class="page-sub">Auth event log, suspended accounts, and locked users</div>
+
+    <div class="stats-grid" style="margin-bottom:22px">
+      <div class="stat-card"><div class="stat-num" id="sec-stat-suspended">—</div><div class="stat-lbl">Suspended</div></div>
+      <div class="stat-card"><div class="stat-num" id="sec-stat-locked">—</div><div class="stat-lbl">Locked</div></div>
+      <div class="stat-card"><div class="stat-num" id="sec-stat-failed24h">—</div><div class="stat-lbl">Failed logins 24h</div></div>
+    </div>
+
+    <div class="table-card" style="margin-bottom:18px">
+      <div class="table-header">
+        <div class="table-header-title">🔐 Auth Event Log</div>
+        <input class="search-box" id="sec-search" placeholder="🔍 email or IP…" oninput="debounceSecSearch()" style="max-width:200px"/>
+        <select class="search-box" id="sec-event-filter" onchange="secOffset=0;loadAuthEvents()" style="width:auto;min-width:160px">
+          <option value="">All events</option>
+          <option value="login.ok">login.ok</option>
+          <option value="login.fail">login.fail</option>
+          <option value="login.blocked">login.blocked</option>
+          <option value="logout">logout</option>
+          <option value="password.reset">password.reset</option>
+          <option value="google.login">google.login</option>
+          <option value="google.signup">google.signup</option>
+        </select>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAuthEvents()">🔄 Refresh</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="responsive-mobile">
+          <thead><tr><th>When</th><th>Event</th><th>User</th><th>IP</th><th>Detail</th><th>UA</th></tr></thead>
+          <tbody id="sec-events-tbody"><tr class="empty-row"><td colspan="6"><div class="skel skel-line" style="width:200px"></div></td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span class="page-info" id="sec-page-info"></span>
+        <button class="page-btn" id="sec-prev" onclick="secPage(-1)">← Prev</button>
+        <button class="page-btn" id="sec-next" onclick="secPage(+1)">Next →</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div class="table-card">
+        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">🚫 Suspended Accounts</div></div>
+        <div id="sec-suspended-list" style="padding:0 18px 16px"><div class="empty-note">Loading…</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">🔒 Locked Accounts</div></div>
+        <div id="sec-locked-list" style="padding:0 18px 16px"><div class="empty-note">Loading…</div></div>
       </div>
     </div>
   </div>
@@ -1738,10 +1793,13 @@ html{scroll-behavior:smooth}
     <div id="drawer-plan-detail" style="font-size:13px;color:var(--muted);line-height:1.8">Loading…</div>
     <div class="drawer-section-title">Boards</div>
     <div id="drawer-boards-list">Loading…</div>
+    <div class="drawer-section-title" style="margin-top:16px">Auth Events</div>
+    <div id="drawer-auth-events" style="font-size:12px;color:var(--muted)">Loading…</div>
   </div>
   <div class="drawer-foot" id="drawer-foot">
     <button class="btn-sm btn-edit" style="flex:1" onclick="drawerEdit()">✏️ Edit</button>
     <button class="btn-sm btn-orange" style="flex:1" onclick="drawerKick()">🔑 Kick</button>
+    <button class="btn-sm" id="drawer-suspend-btn" style="flex:1;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer" onclick="drawerToggleSuspend()">🚫 Suspend</button>
     <button class="btn-sm btn-danger" style="flex:1" onclick="drawerDelete()">🗑 Delete</button>
   </div>
 </div>

@@ -53,7 +53,7 @@ function logAdminAction(req, action, opts = {}) {
 router.get('/stats', async (req, res) => {
   try {
     await ensureIbanPaymentsTable().catch(() => {});
-    const [users, boards, sessions, roles, courses, cards, newUsers, storage, pendingPayments] = await Promise.all([
+    const [users, boards, sessions, roles, courses, cards, newUsers, storage, pendingPayments, suspended, locked, failedLogins24h] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM users'),
       pool.query('SELECT COUNT(*) FROM boards'),
       pool.query("SELECT COUNT(*) FROM sessions WHERE expires_at > NOW()"),
@@ -65,6 +65,9 @@ router.get('/stats', async (req, res) => {
       pool.query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '7 days'"),
       pool.query('SELECT COALESCE(SUM(pg_column_size(data)), 0) AS bytes FROM boards'),
       pool.query("SELECT COUNT(*) FROM iban_payments WHERE status = 'pending'").catch(() => ({ rows: [{ count: 0 }] })),
+      pool.query("SELECT COUNT(*) FROM users WHERE is_suspended=TRUE").catch(() => ({ rows: [{ count: 0 }] })),
+      pool.query("SELECT COUNT(*) FROM users WHERE locked_at IS NOT NULL").catch(() => ({ rows: [{ count: 0 }] })),
+      pool.query("SELECT COUNT(*) FROM auth_events WHERE event='login.fail' AND created_at >= NOW() - INTERVAL '24 hours'").catch(() => ({ rows: [{ count: 0 }] })),
     ]);
     res.json({
       users:    parseInt(users.rows[0].count),
@@ -76,6 +79,9 @@ router.get('/stats', async (req, res) => {
       newUsers7d: parseInt(newUsers.rows[0].count),
       storageBytes: parseInt(storage.rows[0].bytes),
       pendingPayments: parseInt(pendingPayments.rows[0].count, 10),
+      suspended: parseInt(suspended.rows[0].count, 10),
+      locked:    parseInt(locked.rows[0].count, 10),
+      failedLogins24h: parseInt(failedLogins24h.rows[0].count, 10),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -762,7 +768,9 @@ router.get('/users', async (req, res) => {
     const like = `%${search}%`;
     const roleFilter = role ? role : null;
     const { rows } = await pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at, u.plan_source, u.created_at,
+      `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_status, u.billing_cycle,
+              u.plan_started_at, u.plan_expires_at, u.plan_source, u.created_at,
+              u.last_login_at, u.is_suspended, u.suspended_reason, u.locked_at, u.failed_login_count,
               COUNT(b.id) AS boards_count
        FROM users u
        LEFT JOIN boards b ON b.user_id = u.id
@@ -1101,6 +1109,91 @@ router.delete('/invites/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── POST /api/admin/users/:id/suspend ─────────────────────────────────────
+router.post('/users/:id/suspend', async (req, res) => {
+  if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot suspend yourself' });
+  const reason = String(req.body?.reason || 'Suspended by admin').trim().slice(0, 300);
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET is_suspended=TRUE, suspended_at=NOW(), suspended_reason=$2
+       WHERE id=$1 RETURNING id, email, name`,
+      [req.params.id, reason]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    // Revoke all sessions
+    await pool.query('DELETE FROM sessions WHERE user_id=$1', [req.params.id]);
+    logAdminAction(req, 'user.suspend', { targetId: rows[0].id, targetLabel: rows[0].email, detail: reason });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /api/admin/users/:id/unsuspend ───────────────────────────────────
+router.post('/users/:id/unsuspend', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET is_suspended=FALSE, suspended_at=NULL, suspended_reason=NULL
+       WHERE id=$1 RETURNING id, email, name`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    logAdminAction(req, 'user.unsuspend', { targetId: rows[0].id, targetLabel: rows[0].email });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /api/admin/users/:id/unlock ──────────────────────────────────────
+router.post('/users/:id/unlock', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET locked_at=NULL, failed_login_count=0
+       WHERE id=$1 RETURNING id, email, name`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    logAdminAction(req, 'user.unlock', { targetId: rows[0].id, targetLabel: rows[0].email });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /api/admin/users/:id/auth-events ──────────────────────────────────
+router.get('/users/:id/auth-events', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, event, ip, user_agent, detail, created_at
+       FROM auth_events WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50`,
+      [req.params.id]
+    );
+    res.json({ events: rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /api/admin/auth-events ────────────────────────────────────────────
+router.get('/auth-events', async (req, res) => {
+  const limit  = Math.min(100, parseInt(req.query.limit, 10) || 50);
+  const offset = parseInt(req.query.offset, 10) || 0;
+  const event  = req.query.event || '';
+  const search = req.query.search || '';
+  try {
+    const like = `%${search}%`;
+    const { rows } = await pool.query(
+      `SELECT ae.id, ae.event, ae.email, ae.ip, ae.user_agent, ae.detail, ae.created_at,
+              u.name AS user_name, u.is_suspended, u.locked_at
+       FROM auth_events ae
+       LEFT JOIN users u ON u.id = ae.user_id
+       WHERE ($1='' OR ae.event ILIKE $1)
+         AND ($2='' OR ae.email ILIKE $2 OR ae.ip ILIKE $2)
+       ORDER BY ae.created_at DESC
+       LIMIT $3 OFFSET $4`,
+      [event ? `%${event}%` : '', like, limit, offset]
+    );
+    const { rows: total } = await pool.query(
+      `SELECT COUNT(*) FROM auth_events WHERE ($1='' OR event ILIKE $1) AND ($2='' OR email ILIKE $2 OR ip ILIKE $2)`,
+      [event ? `%${event}%` : '', like]
+    );
+    res.json({ events: rows, total: parseInt(total[0].count, 10) });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

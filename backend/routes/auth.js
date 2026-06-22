@@ -9,6 +9,36 @@ const { ensureBillingSchema } = require('../lib/billing');
 const { sendEmail, resetPasswordEmail } = require('../lib/email');
 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
+// Auth monitoring columns
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN NOT NULL DEFAULT FALSE`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_reason TEXT`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INT NOT NULL DEFAULT 0`).catch(() => {});
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ`).catch(() => {});
+pool.query(`
+  CREATE TABLE IF NOT EXISTS auth_events (
+    id           BIGSERIAL    PRIMARY KEY,
+    user_id      UUID         REFERENCES users(id) ON DELETE SET NULL,
+    email        TEXT,
+    event        TEXT         NOT NULL,
+    ip           TEXT,
+    user_agent   TEXT,
+    detail       TEXT,
+    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  )
+`).catch(() => {});
+pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_user    ON auth_events(user_id, created_at DESC)`).catch(() => {});
+pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_created ON auth_events(created_at DESC)`).catch(() => {});
+pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_email   ON auth_events(email, created_at DESC)`).catch(() => {});
+
+function logAuthEvent(userId, email, event, req, detail) {
+  pool.query(
+    `INSERT INTO auth_events (user_id, email, event, ip, user_agent, detail) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [userId || null, email || null, String(event).slice(0,40), req?.ip || null, String(req?.headers?.['user-agent'] || '').slice(0,300), detail ? String(detail).slice(0,200) : null]
+  ).catch(() => {});
+}
+
 pool.query(`
   CREATE TABLE IF NOT EXISTS email_tokens (
     id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -371,21 +401,53 @@ router.post('/login', authLimiter, async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at FROM users WHERE email = $1',
+      `SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle,
+              plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at,
+              is_suspended, suspended_reason, locked_at, failed_login_count
+       FROM users WHERE email = $1`,
       [email.toLowerCase().trim()]
     );
     if (!rows.length) {
+      logAuthEvent(null, email.toLowerCase().trim(), 'login.fail', req, 'user not found');
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     const user = rows[0];
+
+    // Suspended account check
+    if (user.is_suspended) {
+      logAuthEvent(user.id, user.email, 'login.blocked', req, 'account suspended');
+      return res.status(403).json({ error: user.suspended_reason || 'Account suspended. Contact support.' });
+    }
+
+    // Locked account check (too many failed attempts)
+    if (user.locked_at) {
+      logAuthEvent(user.id, user.email, 'login.blocked', req, 'account locked');
+      return res.status(403).json({ error: 'Account locked after too many failed attempts. Contact an administrator.' });
+    }
+
     if (!user.password_hash) {
       return res.status(401).json({ error: 'This account uses Google sign-in. Please continue with Google.' });
     }
-    const ok   = await bcrypt.compare(password, user.password_hash);
+    const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
+      // Increment failure counter; lock after 10 consecutive failures
+      const newCount = (user.failed_login_count || 0) + 1;
+      const lockNow = newCount >= 10;
+      await pool.query(
+        `UPDATE users SET failed_login_count=$1 ${lockNow ? ', locked_at=NOW()' : ''} WHERE id=$2`,
+        [newCount, user.id]
+      );
+      logAuthEvent(user.id, user.email, 'login.fail', req, `attempt ${newCount}${lockNow ? ' → locked' : ''}`);
+      if (lockNow) return res.status(403).json({ error: 'Account locked after too many failed attempts. Contact an administrator.' });
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Success — reset counter, update last_login_at
+    await pool.query(
+      `UPDATE users SET failed_login_count=0, locked_at=NULL, last_login_at=NOW() WHERE id=$1`,
+      [user.id]
+    );
+    logAuthEvent(user.id, user.email, 'login.ok', req);
     const payload = await issueLoginSession(req, user);
     res.json(payload);
   } catch (err) {
@@ -461,6 +523,8 @@ router.post('/google', authLimiter, async (req, res) => {
       );
     }
 
+    await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});
+    logAuthEvent(user.id, user.email, isNewUser ? 'google.signup' : 'google.login', req);
     const payload = await issueLoginSession(req, user);
     payload.isNewUser = isNewUser;
     res.json(payload);
@@ -534,6 +598,7 @@ router.post('/logout', requireAuth, async (req, res) => {
   if (token) {
     await pool.query('DELETE FROM sessions WHERE token = $1', [token]).catch(() => {});
   }
+  logAuthEvent(req.user.id, req.user.email, 'logout', req);
   res.json({ ok: true });
 });
 
@@ -688,6 +753,7 @@ router.post('/reset-password', forgotLimiter, async (req, res) => {
     await client.query('DELETE FROM sessions WHERE user_id = $1', [rows[0].user_id]);
 
     await client.query('COMMIT');
+    logAuthEvent(rows[0].user_id, rows[0].email, 'password.reset', req);
     res.json({ ok: true, message: 'Password updated. You can now sign in.' });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
