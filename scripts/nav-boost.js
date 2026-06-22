@@ -160,4 +160,35 @@
     // When restoring from bfcache, finish any leftover bar
     if (e.persisted) finishBar();
   });
+
+  // ── Directional page transitions (native stack semantics) ───
+  // Tag each cross-document view transition with a direction TYPE so CSS can
+  // slide content: forward (push / deeper) = old slides left + new from right;
+  // back (history traverse backward) = the reverse. Needs the Navigation API
+  // (Chrome) + cross-document view transitions; degrades to the default
+  // lift/fade everywhere else.
+  function _navDirection(act) {
+    if (!act) return null;
+    const t = act.navigationType;
+    if (t === 'push') return 'te-fwd';
+    if (t === 'traverse') {
+      const f = act.from && act.from.index;
+      const e2 = act.entry && act.entry.index;
+      if (typeof f === 'number' && typeof e2 === 'number') return e2 < f ? 'te-back' : 'te-fwd';
+      return 'te-back'; // unknown index on traverse → assume back
+    }
+    return null; // replace / reload → neutral (keep lift+fade)
+  }
+  // pageswap fires on the OUTGOING page; e.activation describes the nav ahead.
+  window.addEventListener('pageswap', e => {
+    if (!e.viewTransition) return;
+    const dir = _navDirection(e.activation);
+    if (dir) e.viewTransition.types.add(dir);
+  });
+  // pagereveal fires on the INCOMING page; navigation.activation describes it.
+  window.addEventListener('pagereveal', e => {
+    if (!e.viewTransition || !('navigation' in window)) return;
+    const dir = _navDirection(navigation.activation);
+    if (dir) e.viewTransition.types.add(dir);
+  });
 })();

@@ -35,6 +35,22 @@
 ::view-transition-old(root) { animation: te-content-out .18s cubic-bezier(.4,0,1,1) both; }
 ::view-transition-new(root) { animation: te-content-in  .26s cubic-bezier(.2,.7,.2,1) both; }
 
+/* Directional slides (native stack feel) — driven by the te-fwd / te-back
+   transition types that nav-boost.js adds on pageswap/pagereveal. Mobile only;
+   the persistent shell (te-mobnav / te-topbar) holds still while CONTENT slides.
+   Forward = content exits left, new arrives from the right; back = the reverse. */
+@media (max-width: 860px) {
+  @keyframes te-slide-out-left  { to   { transform: translateX(-16%); opacity:.35; } }
+  @keyframes te-slide-in-right  { from { transform: translateX(16%);  opacity:0;   } }
+  @keyframes te-slide-out-right { to   { transform: translateX(16%);  opacity:.35; } }
+  @keyframes te-slide-in-left   { from { transform: translateX(-16%); opacity:0;   } }
+
+  :root:active-view-transition-type(te-fwd)::view-transition-old(root)  { animation: te-slide-out-left  .27s cubic-bezier(.4,0,.2,1) both; }
+  :root:active-view-transition-type(te-fwd)::view-transition-new(root)  { animation: te-slide-in-right  .27s cubic-bezier(.2,.7,.2,1) both; }
+  :root:active-view-transition-type(te-back)::view-transition-old(root) { animation: te-slide-out-right .27s cubic-bezier(.4,0,.2,1) both; }
+  :root:active-view-transition-type(te-back)::view-transition-new(root) { animation: te-slide-in-left  .27s cubic-bezier(.2,.7,.2,1) both; }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
    1 · TOKENS — the one and only definition of the mobile design language.
 ───────────────────────────────────────────────────────────────────────── */
