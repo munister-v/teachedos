@@ -1477,12 +1477,12 @@ function _gifPasteUrl() {
 }
 
 function toolbarAddGif() {
-  closeMtMore?.();
+  if (document.getElementById('mt-more-pop')?.classList.contains('open')) toggleMtMore?.();
   openGifPanel(null);
 }
 
 function _mtMoreDo(action) {
-  closeMtMore();
+  if (document.getElementById('mt-more-pop')?.classList.contains('open')) toggleMtMore?.();
   if      (action === 'mindmap')       toolbarQuickAdd('mindmap');
   else if (action === 'table')         toolbarQuickAdd('table');
   else if (action === 'image')         toolbarOpenModal('image');
