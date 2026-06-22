@@ -323,7 +323,7 @@
     border: 1px solid var(--mp-border); color: inherit; text-decoration: none;
     text-align: left; display: block; font-family: var(--mp-font);
   }
-  a.mp-stat, button.mp-stat { cursor: pointer; transition: transform .12s var(--mp-spring), border-color .18s ease; will-change: transform; }
+  a.mp-stat, button.mp-stat { cursor: pointer; transition: transform .12s var(--mp-spring), border-color .18s ease; }
   a.mp-stat:active, button.mp-stat:active { transform: scale(.97); }
   a.mp-stat:hover, button.mp-stat:hover { border-color: var(--mp-border-2); }
   .mp-stat-label { font: 700 10px/1 var(--mp-mono); color: var(--mp-text-3); letter-spacing: .10em; text-transform: uppercase; margin-bottom: 10px; }
@@ -357,7 +357,7 @@
     flex: 0 0 auto; scroll-snap-align: start; scroll-snap-stop: always;
     cursor: pointer; text-decoration: none; color: inherit;
     transition: transform .14s var(--mp-spring), border-color .18s ease;
-    will-change: transform; contain: layout paint;
+    contain: layout paint;
   }
   .mp-board-card:active, .mp-board-card2:active { transform: scale(.97); }
   .mp-board-card {
