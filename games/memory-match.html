@@ -62,7 +62,7 @@ let PAIRS=[
     document.title = topic.icon + ' ' + topic.name + ' Memory Match · TeachEd';
   }
 })();
-let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt;
+let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt,pairsInPlay=8;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
@@ -76,6 +76,7 @@ function start(){
   tInt=setInterval(()=>{timerSec++;document.getElementById('timer').textContent=timerSec;},1000);
 
   const chosen=shuffle([...PAIRS]).slice(0,8);
+  pairsInPlay=chosen.length;
   const cards=[];
   chosen.forEach(p=>{
     cards.push({id:p.w,text:p.w,type:'word'});
@@ -114,9 +115,10 @@ function check(){
     a.classList.add('matched');b.classList.add('matched');
     matched++;
     document.getElementById('pairs').textContent=matched;
-    if(matched===8){
+    if(matched===pairsInPlay){
       clearInterval(tInt);
       document.getElementById('msg').innerHTML=`🎉 Done in ${timerSec}s & ${moves} moves! <button onclick="start()" style="margin-left:12px;padding:6px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
+      try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:timerSec,mistakes:Math.max(0,moves-pairsInPlay),game:'Memory Match',status:'done'},'*');}catch(e){}
     }
   } else {
     a.classList.remove('flipped');b.classList.remove('flipped');
@@ -134,6 +136,9 @@ function applyCustomContent(content,title){
 window.addEventListener('message',e=>{
   if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
 });
+/* Tell the board we are wired up and ready to receive custom content;
+   the board replies with a single content post (idempotent). */
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

@@ -216,6 +216,7 @@ function endGame(){
   document.getElementById('columns').innerHTML='';
   document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').textContent='Total score: '+score+'/'+max;
+  try{window.parent.postMessage({type:'game-finished',score:score,max:max,game:'Word Categories',status:'done'},'*');}catch(e){}
 }
 
 function applyCustomContent(content,title){
@@ -233,6 +234,9 @@ function applyCustomContent(content,title){
 window.addEventListener('message',e=>{
   if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
 });
+/* Tell the board we are wired up and ready to receive custom content;
+   the board replies with a single content post (idempotent). */
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

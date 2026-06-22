@@ -2040,15 +2040,29 @@ function renderGame(el, card) {
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
-  iframe.addEventListener('load', () => {
-    if (!card.data.customContent) return;
+  // Robust custom-content handoff. A single post on `load` is fragile: if the
+  // game registers its message listener slightly late, the content is lost.
+  // So we (a) deliver when the game announces `game-ready`, and (b) fall back to
+  // the load event + two short retries. `_delivered` keeps it idempotent so the
+  // game never restarts more than once.
+  iframe._deliverGameContent = function () {
+    if (iframe._delivered || !card.data.customContent) return;
     try {
       iframe.contentWindow.postMessage({
         type: 'teachedos-custom-game-content',
         title: card.data.title || 'Custom game',
+        level: card.data.level || '',
         content: card.data.customContent,
       }, '*');
+      iframe._delivered = true;
     } catch {}
+  };
+  iframe.addEventListener('load', () => {
+    if (!card.data.customContent) return;
+    iframe._deliverGameContent();
+    // Fallback retries for games that finish wiring up just after load.
+    setTimeout(() => iframe._deliverGameContent(), 200);
+    setTimeout(() => iframe._deliverGameContent(), 600);
   });
   body.appendChild(iframe);
 
@@ -12359,20 +12373,15 @@ boardWrap.addEventListener('mousemove', e => {
 }, { passive: true });
 
 // ── Game Score postMessage ───────────────────────────────────
+// Listen for the game-ready handshake and deliver custom content immediately
+// (the iframe load handler is only a fallback). See renderGameCard.
 window.addEventListener('message', e => {
-  if (!e.data || e.data.type !== 'teachedos-score') return;
-  const iframes = document.querySelectorAll('iframe[data-card-id]');
-  for (const iframe of iframes) {
-    if (iframe.contentWindow === e.source) {
-      const cardId = iframe.dataset.cardId;
-      const badge  = document.querySelector(`.game-score-badge[data-card-id="${cardId}"]`);
-      if (badge) badge.textContent = `⭐ ${e.data.score}`;
-      // Persist score in card data
-      const card = state.cards.find(c => c.id === cardId);
-      if (card) { card.data.lastScore = e.data.score; scheduleSave(); }
-      break;
+  if (!e.data || e.data.type !== 'game-ready') return;
+  document.querySelectorAll('iframe[data-card-id]').forEach(iframe => {
+    if (iframe.contentWindow === e.source && typeof iframe._deliverGameContent === 'function') {
+      iframe._deliverGameContent();
     }
-  }
+  });
 });
 
 /* ════════════════════════ SNAP TO GRID ════════════════════════ */
@@ -15032,51 +15041,58 @@ document.addEventListener('drop', e => {
 });
 
 /* ════════════ POSTMESSAGE BRIDGE: games → board card ════════════ */
+// ── Unified game score channel ──────────────────────────────────────────────
+// All games report through here, regardless of which message dialect they speak:
+//   teachedos-score  { score }                       (legacy, mid-game)
+//   gameScore        { score, max, game }             (final score)
+//   game-progress    { score?, max?, status }         (mid-game)
+//   game-result      { score, max, ... }              (final)
+//   game-finished    { score?, max?, ... }            (final)
+// Previously `gameScore` was not handled at all, so flashcards / fill-blank /
+// speed-quiz / spin-wheel scores were silently dropped — fixed here.
+const GAME_SCORE_TYPES = new Set(['teachedos-score', 'gameScore', 'game-progress', 'game-result', 'game-finished']);
+const GAME_FINAL_TYPES = new Set(['gameScore', 'game-result', 'game-finished']);
 window.addEventListener('message', e => {
   const data = e.data;
-  if (!data || typeof data !== 'object') return;
-  // Accepted schemas:
-  //   Legacy: { type:'teachedos-score', score }
-  //   New:    { type:'game-progress' | 'game-result' | 'game-finished', score?, max?, time?, mistakes?, status? }
-  const isLegacy = data.type === 'teachedos-score';
-  const isNew = data.type === 'game-result' || data.type === 'game-finished' || data.type === 'game-progress';
-  if (!isLegacy && !isNew) return;
-  if (isLegacy) data.status = 'in-progress';
+  if (!data || typeof data !== 'object' || !GAME_SCORE_TYPES.has(data.type)) return;
   // Find the iframe that sent this, then the card it belongs to
-  const iframes = document.querySelectorAll('iframe[data-card-id]');
   let cardId = null;
-  for (const f of iframes) {
-    if (f.contentWindow === e.source) { cardId = f.dataset.cardId; break; }
-  }
+  document.querySelectorAll('iframe[data-card-id]').forEach(f => {
+    if (f.contentWindow === e.source) cardId = f.dataset.cardId;
+  });
   if (!cardId) return;
   const card = (state && state.cards) ? state.cards.find(c => c.id === cardId) : null;
   if (!card) return;
-  // Update card data with the latest result
+
+  const isFinal = GAME_FINAL_TYPES.has(data.type);
+  const status  = data.status || (isFinal ? 'done' : 'in-progress');
+  const score   = typeof data.score === 'number' ? data.score : undefined;
+  const max     = typeof data.max === 'number' ? data.max : undefined;
+
   card.data.result = {
-    score: data.score,
-    max: data.max,
-    time: data.time,
-    mistakes: data.mistakes,
-    status: data.status || (data.type === 'game-finished' ? 'done' : 'in-progress'),
-    at: Date.now(),
+    score, max, time: data.time, mistakes: data.mistakes,
+    status, game: data.game || card.data.title, at: Date.now(),
   };
-  // Update the score badge UI on the card
+  card.data.lastScore = score; // back-compat
+
   const badge = document.querySelector(`.game-score-badge[data-card-id="${cardId}"]`);
   if (badge) {
-    let txt = '';
-    if (typeof data.score === 'number') {
-      txt = data.max ? `${data.score}/${data.max}` : `${data.score} pts`;
-    } else if (data.status === 'done') txt = '✅';
-    else txt = '…';
+    let txt = '…';
+    if (score != null) txt = max != null ? `${score}/${max}` : `${score} pts`;
+    else if (status === 'done') txt = '✅';
     badge.textContent = txt;
-    badge.style.background = data.status === 'done' ? '#10b981' : '';
-    badge.style.color = data.status === 'done' ? '#fff' : '';
+    const done = status === 'done';
+    badge.style.background = done ? '#10b981' : '';
+    badge.style.color = done ? '#fff' : '';
   }
-  // Persist + broadcast to collaborators via existing channel
+
   scheduleSave && scheduleSave();
   saveLocal && saveLocal();
-  if (data.type === 'game-finished') {
-    toast && toast(`🎮 ${card.data.title || 'Game'} finished${typeof data.score === 'number' ? `: ${data.score}` : ''}`);
+
+  if (isFinal) {
+    toast && toast(`🎮 ${card.data.title || 'Game'} finished${score != null ? `: ${score}${max != null ? '/' + max : ''}` : ''}`);
+    // Report the attempt to homework tracking when this card is an assignment.
+    if (typeof reportGameAttempt === 'function') reportGameAttempt(card, card.data.result);
   }
 });
 

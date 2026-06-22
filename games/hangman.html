@@ -98,7 +98,12 @@ function start(){
 }
 
 function nextWord(){
-  if(idx>=queue.length){idx=0;queue=shuffle([...WORDS]);}
+  if(idx>=queue.length){
+    // One full pass through every word completed — report it as a finished
+    // round, then reshuffle for endless practice.
+    try{window.parent.postMessage({type:'game-finished',score:score,max:queue.length*6,game:'Hangman',status:'done'},'*');}catch(e){}
+    idx=0;queue=shuffle([...WORDS]);
+  }
   const item=queue[idx];
   word=item.w;
   guessed=new Set();
@@ -177,6 +182,9 @@ function applyCustomContent(content,title){
 window.addEventListener('message',e=>{
   if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
 });
+/* Tell the board we are wired up and ready to receive custom content;
+   the board replies with a single content post (idempotent). */
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

@@ -109,6 +109,7 @@ function endGame(){
   document.getElementById('statement').textContent='Game over!';
   document.querySelector('.choices').innerHTML=`<button onclick="start()" style="grid-column:span 2;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').textContent='Final score: '+score+'/'+q.length;
+  try{window.parent.postMessage({type:'game-finished',score:score,max:q.length,game:'True or False',status:'done'},'*');}catch(e){}
 }
 function applyCustomContent(content,title){
   const qs=(content&&content.statements||[]).map(s=>({
@@ -124,6 +125,9 @@ function applyCustomContent(content,title){
 window.addEventListener('message',e=>{
   if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
 });
+/* Tell the board we are wired up and ready to receive custom content;
+   the board replies with a single content post (idempotent). */
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
 <script src="../scripts/mobile-zoom-guard.js?v=188"></script>
