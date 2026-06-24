@@ -888,6 +888,7 @@ function openBuilder() {
   document.getElementById('save-btn').textContent = 'Save Game to Library';
   bulkMode = false;
   renderTopicBar();
+  renderTemplateSwitcher();
   renderPresetBar();
   renderContentFields();
   updateItemCounter();
@@ -1590,6 +1591,7 @@ function editGame(id) {
   document.getElementById('game-level').value = game.level || 'B1';
   document.getElementById('game-tags').value = (game.tags || []).join(', ');
   document.getElementById('save-btn').textContent = 'Update Game';
+  renderTemplateSwitcher();
   renderPresetBar();
   renderContentFields();
   populateContent(game);
@@ -1801,32 +1803,80 @@ function importGames(event) {
   event.target.value = '';
 }
 
-/* ---- PREVIEW ---- */
+/* ---- PREVIEW (live, playable) ---- */
+let _previewMsgHandler = null;
+
 function previewGame() {
+  if (!selectedType) { toast('Choose a game type first'); return; }
   const content = collectContent();
   if (!content) { toast('Not enough content to preview. Add more items.'); return; }
-  const title = document.getElementById('game-title').value.trim() || 'Preview';
+  const title = document.getElementById('game-title').value.trim() || selectedType.name;
   const pv = document.getElementById('preview-content');
-  let html = `<div style="font-size:18px;font-weight:900;margin-bottom:6px;">${selectedType.icon} ${esc(title)}</div>`;
-  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:16px;">${esc(selectedType.name)} \u00b7 ${getPreviewItemCount(content)} items</div>`;
-  if (content.pairs) {
-    html += `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <tr style="background:var(--bg);font-weight:800;"><td style="padding:8px 12px;border-radius:8px 0 0 0;">${esc(selectedType.pairLabels[0])}</td><td style="padding:8px 12px;border-radius:0 8px 0 0;">${esc(selectedType.pairLabels[1])}</td></tr>
-      ${content.pairs.map(p => `<tr><td style="padding:6px 12px;border-bottom:1px solid var(--border);">${esc(p.a)}</td><td style="padding:6px 12px;border-bottom:1px solid var(--border);">${esc(p.b)}</td></tr>`).join('')}
-    </table>`;
-  } else if (content.words) {
-    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">${content.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div>`;
-  } else if (content.sentences) {
-    html += content.sentences.map((s,i) => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">${i+1}. ${esc(s)}</div>`).join('');
-  } else if (content.statements) {
-    html += content.statements.map(s => `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span class="tag ${s.answer?'lime':''}">${s.answer?'TRUE':'FALSE'}</span><span>${esc(s.text)}</span></div>`).join('');
-  } else if (content.questions) {
-    html += content.questions.map((q,i) => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-weight:800;font-size:13px;margin-bottom:4px;">${i+1}. ${esc(q.q)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">${q.opts.map((o,j) => `<div style="padding:4px 8px;border-radius:6px;background:${j===q.correct?'rgba(200,230,50,.2)':'var(--bg)'};${j===q.correct?'font-weight:700;':''}">${'ABCD'[j]}. ${esc(o)}</div>`).join('')}</div></div>`).join('');
-  } else if (content.categories) {
-    html += content.categories.map(c => `<div style="margin-bottom:12px;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">${esc(c.name)}</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${c.words.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div></div>`).join('');
-  }
-  pv.innerHTML = html;
+
+  // Wordwall-style "switch template": any template sharing this content shape
+  // can play the same items \u2014 one click re-renders the live preview in it.
+  const compatible = GAME_TYPES.filter(t => t.fields === selectedType.fields);
+  const switcher = compatible.length > 1 ? `
+    <div class="pv-switcher" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px;">
+      ${compatible.map(t => `<button class="preset-chip${t.id===selectedType.id?' active':''}" type="button" onclick="switchPreviewTemplate('${t.id}')">${t.icon} ${esc(t.name)}</button>`).join('')}
+    </div>` : '';
+
+  pv.innerHTML = `
+    <div style="font-size:16px;font-weight:900;">${selectedType.icon} ${esc(title)}</div>
+    <div style="font-size:12px;color:var(--text3);">${esc(selectedType.name)} \u00b7 ${getPreviewItemCount(content)} items \u00b7 live preview</div>
+    ${switcher}
+    <div id="pv-stage" style="position:relative;width:100%;border-radius:14px;overflow:hidden;background:#0E0E14;border:1px solid var(--border);"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">This is the real game \u2014 try it before adding to a board.</div>`;
+
+  mountPreviewGame(selectedType, content, title);
   document.getElementById('preview-overlay').classList.add('show');
+}
+
+function mountPreviewGame(type, content, title) {
+  const stage = document.getElementById('pv-stage');
+  if (!stage) return;
+  const w = type.w || 460, h = type.h || 560;
+  stage.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = type.gameSrc;
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+  iframe.style.cssText = `width:${w}px;height:${h}px;border:none;display:block;transform-origin:top left;`;
+
+  let delivered = false;
+  const deliver = () => {
+    if (delivered) return;
+    try {
+      iframe.contentWindow.postMessage({
+        type: 'teachedos-custom-game-content',
+        title,
+        level: document.getElementById('game-level').value || '',
+        content,
+      }, '*');
+      delivered = true;
+    } catch {}
+  };
+  iframe.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); setTimeout(deliver, 600); });
+
+  // game-ready handshake (scoped to this iframe; replaces any prior preview handler)
+  if (_previewMsgHandler) window.removeEventListener('message', _previewMsgHandler);
+  _previewMsgHandler = (e) => {
+    if (e.data && e.data.type === 'game-ready' && e.source === iframe.contentWindow) deliver();
+  };
+  window.addEventListener('message', _previewMsgHandler);
+
+  stage.appendChild(iframe);
+  // Scale the game down to fit the preview width (never up past 1:1).
+  requestAnimationFrame(() => {
+    const avail = stage.clientWidth || w;
+    const scale = Math.min(1, avail / w);
+    iframe.style.transform = `scale(${scale})`;
+    stage.style.height = Math.round(h * scale) + 'px';
+  });
+}
+
+// Switch the builder to a compatible template (keeping the content) and re-preview.
+function switchPreviewTemplate(typeId) {
+  if (switchTemplate(typeId)) previewGame();
 }
 
 function getPreviewItemCount(content) {
@@ -1841,6 +1891,44 @@ function getPreviewItemCount(content) {
 
 function closePreview() {
   document.getElementById('preview-overlay').classList.remove('show');
+  // Stop the embedded game and detach its handshake listener.
+  if (_previewMsgHandler) { window.removeEventListener('message', _previewMsgHandler); _previewMsgHandler = null; }
+  const stage = document.getElementById('pv-stage');
+  if (stage) stage.innerHTML = '';
+}
+
+/* Switch the builder to a template that shares the current content shape,
+   preserving everything the teacher already entered. Returns true on success. */
+function switchTemplate(typeId) {
+  const t = GAME_TYPES.find(x => x.id === typeId);
+  if (!t || !selectedType) return false;
+  if (t.id === selectedType.id) return true;
+  if (t.fields !== selectedType.fields) { toast('That template needs a different kind of content'); return false; }
+  const content = collectContent(true);
+  selectedType = t;
+  document.getElementById('builder-title').textContent = (editingId ? '✎ Edit: ' : '') + t.icon + ' ' + t.name;
+  document.getElementById('builder-sub').textContent = t.desc;
+  const tagsEl = document.getElementById('game-tags');
+  if (tagsEl && (!tagsEl.value.trim())) tagsEl.value = t.tag;
+  renderTypeGrid();
+  renderTemplateSwitcher();
+  renderPresetBar();
+  renderContentFields();
+  if (content) populateContent({ content });
+  updateItemCounter();
+  return true;
+}
+
+/* "Also playable as" strip inside the builder — the same content, any template. */
+function renderTemplateSwitcher() {
+  const host = document.getElementById('template-switcher');
+  if (!host) return;
+  if (!selectedType) { host.style.display = 'none'; host.innerHTML = ''; return; }
+  const compatible = GAME_TYPES.filter(t => t.fields === selectedType.fields);
+  if (compatible.length < 2) { host.style.display = 'none'; host.innerHTML = ''; return; }
+  host.style.display = 'flex';
+  host.innerHTML = `<span class="preset-bar-label" style="white-space:nowrap;">Also play as:</span>` +
+    compatible.map(t => `<button class="preset-chip${t.id===selectedType.id?' active':''}" type="button" title="${esc(t.desc)}" onclick="switchTemplate('${t.id}')">${t.icon} ${esc(t.name)}</button>`).join('');
 }
 
 /* ---- TOAST ---- */
