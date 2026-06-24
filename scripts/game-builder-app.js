@@ -418,6 +418,9 @@ const GAME_TYPES = [
   {id:'synonym-snap',icon:'\u26a1',name:'Synonym Snap',desc:'Snap matching pairs (great for synonyms, opposites, word+meaning)',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Match'],gameSrc:'games/synonym-snap.html',w:520,h:600},
   {id:'group-sort',icon:'\ud83d\uddc3\ufe0f',name:'Group Sort',desc:'Drag words into the correct category bins',tag:'Vocabulary',fields:'categories',gameSrc:'games/group-sort.html',w:600,h:560},
   {id:'maze-chase',icon:'\ud83d\udc7e',name:'Maze Chase',desc:'Run the maze and grab only the words from the target category',tag:'Vocabulary',fields:'categories',gameSrc:'games/maze-chase.html',w:520,h:600},
+  {id:'word-search',icon:'\ud83d\udd0d',name:'Word Search',desc:'Hide your words in a letter grid to find',tag:'Vocabulary',fields:'words',gameSrc:'games/word-search.html',w:520,h:620},
+  {id:'spelling-bee',icon:'\ud83d\udc1d',name:'Spelling Bee',desc:'Type each word from its definition clue',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Definition / clue'],gameSrc:'games/spelling-bee.html',w:460,h:560},
+  {id:'whack-a-mole',icon:'\ud83d\udd28',name:'Whack-a-Mole',desc:'Whack only the words from the target category',tag:'Vocabulary',fields:'categories',gameSrc:'games/whack-a-mole.html',w:560,h:560},
 ];
 
 const STORAGE_KEY = 'teachedos_custom_games';

@@ -200,6 +200,20 @@ function renderWords(){
   });
 }
 
+function applyCustomContent(content,title){
+  const src=((content&&content.words)||[]).concat(((content&&content.pairs)||[]).map(p=>p.a||p.word||p.en||''));
+  const words=src.map(w=>String(w||'').trim().toUpperCase()).filter(w=>/^[A-Z]+$/.test(w)&&w.length>=3&&w.length<=11);
+  const uniq=[...new Set(words)];
+  if(uniq.length<2)return;
+  WORDS=uniq.slice(0,10);
+  if(title){document.title=title+' · Word Search';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  init();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
+
 init();
 </script>
 </body>

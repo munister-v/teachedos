@@ -43,7 +43,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 </div>
 
 <script>
-const CATEGORIES={
+let CATEGORIES={
   'Animals': ['lion','tiger','elephant','zebra','monkey','rabbit','eagle','shark'],
   'Food': ['pizza','banana','bread','cheese','soup','rice','apple','cake'],
   'Colors': ['red','blue','green','yellow','purple','orange','pink','black'],
@@ -51,8 +51,8 @@ const CATEGORIES={
   'Jobs': ['doctor','teacher','pilot','chef','farmer','lawyer','nurse','artist'],
   'Weather': ['rain','snow','sunny','windy','cloudy','storm','foggy','frost']
 };
-const ALL_CATS=Object.keys(CATEGORIES);
-const ALL_WORDS=ALL_CATS.flatMap(c=>CATEGORIES[c]);
+let ALL_CATS=Object.keys(CATEGORIES);
+let ALL_WORDS=ALL_CATS.flatMap(c=>CATEGORIES[c]);
 
 let score=0, lives=3, timer=60, currentCat='', gInt, sInt, catInt, holes=[], usedTarget=new Set();
 
@@ -154,7 +154,25 @@ function endGame(){
   holes.forEach(h=>{clearTimeout(h.timeout); h.busy=true; h.item=null;});
   document.getElementById('feedback').textContent='Game over! Final score: '+score;
   document.getElementById('again').style.display='inline-block';
+  try{window.parent.postMessage({type:'game-finished',score:Math.max(0,score),game:'Whack-a-Mole',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  const cats=((content&&content.categories)||[]).map(c=>({
+    name:String(c.name||c.category||'').trim(),
+    words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean)
+  })).filter(c=>c.name&&c.words.length);
+  if(cats.length<2)return; // need a target category + decoys
+  CATEGORIES={}; cats.forEach(c=>{CATEGORIES[c.name]=c.words;});
+  ALL_CATS=Object.keys(CATEGORIES);
+  ALL_WORDS=ALL_CATS.flatMap(c=>CATEGORIES[c]);
+  if(title){document.title=title+' · Whack-a-Mole';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

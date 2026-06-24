@@ -74,10 +74,10 @@ const WORDS=[
   {w:'immediately',d:'at once; without delay',t:'негайно'},
   {w:'approximately',d:'close to but not exactly',t:'приблизно'},
 ];
-let q=[],idx=0,score=0,revealed=0,hintsUsed=false;
+let q=[],idx=0,score=0,revealed=0,hintsUsed=false,customWords=null;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
-function start(){q=shuffle([...WORDS]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;nextWord();}
+function start(){q=shuffle([...(customWords||WORDS)]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;nextWord();}
 
 function nextWord(){
   if(idx>=q.length){endGame();return;}
@@ -139,7 +139,24 @@ function endGame(){
   document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').className='feedback ok';
   document.getElementById('feedback').textContent='Score: '+score;
+  try{window.parent.postMessage({type:'game-finished',score:score,max:q.length*3,game:'Spelling Bee',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  const words=((content&&content.pairs)||[]).map(p=>({
+    w:String(p.a||p.word||p.en||'').trim(),
+    d:String(p.b||p.definition||p.d||'').trim(),
+    t:String(p.b||p.translation||p.uk||'').trim()
+  })).filter(x=>/^[a-zA-Z][a-zA-Z'-]*$/.test(x.w)&&x.d);
+  if(words.length<2)return;
+  customWords=words.slice(0,15);
+  if(title){document.title=title+' · Spelling Bee';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 document.getElementById('ans').addEventListener('input',check);
 start();

@@ -1438,6 +1438,7 @@ const GAMES = [
   { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword — your words, your clues',        src:'games/crossword.html',             w:600, h:620 },
   { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:560 },
   { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
+  { icon:'🔨', title:'Whack-a-Mole',       tag:'Vocabulary', desc:'Whack only the words from the target category',           src:'games/whack-a-mole.html',          w:560, h:560 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */
