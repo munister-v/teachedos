@@ -1433,6 +1433,11 @@ const GAMES = [
   { icon:'🔍', title:'Word Search',        tag:'Spelling',   desc:'Find hidden words in a 12×12 letter grid',                src:'games/word-search.html',           w:520, h:620 },
   { icon:'⚡', title:'Speed Quiz',         tag:'Speed',      desc:'4-option MCQ with 6-second countdown — how fast are you?', src:'games/speed-quiz.html',            w:480, h:560 },
   { icon:'🎡', title:'Spin the Wheel',     tag:'Speaking',   desc:'Editable word wheel — great for hot-seat vocabulary drills', src:'games/spin-wheel.html',          w:460, h:560 },
+  { icon:'🃏', title:'Find the Match',     tag:'Vocabulary', desc:'Tap matching word + translation tiles before time runs out', src:'games/find-match.html',          w:560, h:600 },
+  { icon:'❓', title:'Vocabulary Quiz',    tag:'Vocabulary', desc:'Multiple-choice quiz built from your word pairs',         src:'games/vocab-quiz.html',            w:480, h:560 },
+  { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword — your words, your clues',        src:'games/crossword.html',             w:600, h:620 },
+  { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:560 },
+  { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */
