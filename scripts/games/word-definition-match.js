@@ -155,6 +155,7 @@ function showResult(isWin) {
   document.getElementById("modal-pairs").textContent = state.matches + " / " + getTheme().pairs.length;
   modalEl.classList.add("open");
   modalEl.setAttribute("aria-hidden", "false");
+  try { window.parent.postMessage({ type: "game-finished", score: state.matches, max: getTheme().pairs.length, time: state.elapsed, game: "Match up", status: "done" }, "*"); } catch (e) {}
 }
 
 function closeModal() {
@@ -223,3 +224,23 @@ cardsEl.addEventListener("click", (event) => {
 });
 
 resetGame();
+
+// ── Custom content + board integration (Wordwall-style: one word list) ──────
+function applyCustomContent(content, title) {
+  const pairs = ((content && content.pairs) || [])
+    .map((p, i) => ({ id: "c" + i, term: String(p.a || p.term || p.word || "").trim(), definition: String(p.b || p.definition || p.d || "").trim() }))
+    .filter((p) => p.term && p.definition);
+  if (pairs.length < 2) return;
+  const theme = { id: "custom", name: title || "Custom set", pairs: pairs.slice(0, 8) };
+  const idx = THEMES.findIndex((t) => t.id === "custom");
+  if (idx >= 0) THEMES[idx] = theme; else THEMES.push(theme);
+  state.themeId = "custom";
+  fillThemeOptions();
+  themeSelect.value = "custom";
+  if (title) { document.title = title + " · Match up"; const h = document.querySelector("h1"); if (h) h.textContent = title; }
+  resetGame();
+}
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "teachedos-custom-game-content") applyCustomContent(e.data.content, e.data.title);
+});
+try { window.parent.postMessage({ type: "game-ready" }, "*"); } catch (e) {}

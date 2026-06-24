@@ -45,7 +45,7 @@ const PAIRS=[
   ['old','ancient'],['simple','easy'],['dark','gloomy'],['rich','wealthy'],
   ['loud','noisy'],['sad','miserable'],['pretty','beautiful'],['scared','afraid'],
 ];
-let selected=[],matched=0,errors=0,timer=90,tInt,locked=false;
+let selected=[],matched=0,errors=0,timer=90,tInt,locked=false,customPairs=null,pairsInPlay=8;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
@@ -64,7 +64,8 @@ function start(){
     if(timer<=0){clearInterval(tInt);endGame();}
   },1000);
 
-  const chosen=shuffle([...PAIRS]).slice(0,8);
+  const chosen=shuffle([...(customPairs||PAIRS)]).slice(0,8);
+  pairsInPlay=chosen.length;
   const cards=[];
   chosen.forEach(([a,b])=>{cards.push({word:a,group:a+'|'+b});cards.push({word:b,group:a+'|'+b});});
   shuffle(cards);
@@ -98,7 +99,7 @@ function check(){
     a.classList.add('matched');b.classList.add('matched');
     matched++;
     document.getElementById('pairs').textContent=matched;
-    if(matched===8){clearInterval(tInt);document.getElementById('msg').innerHTML=`🎉 Done! Errors: ${errors} | Time: ${90-timer}s <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;}
+    if(matched===pairsInPlay){clearInterval(tInt);document.getElementById('msg').innerHTML=`🎉 Done! Errors: ${errors} | Time: ${90-timer}s <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:90-timer,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}}
   } else {
     errors++;
     document.getElementById('errors').textContent=errors;
@@ -109,11 +110,24 @@ function check(){
 }
 
 function endGame(){
-  if(matched<8){
-    document.getElementById('msg').innerHTML=`Time up! ${matched}/8 pairs <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
+  if(matched<pairsInPlay){
+    document.getElementById('msg').innerHTML=`Time up! ${matched}/${pairsInPlay} pairs <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
     document.getElementById('grid').querySelectorAll('.word-card:not(.matched)').forEach(c=>c.onclick=null);
+    try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:90,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}
   }
 }
+
+function applyCustomContent(content,title){
+  const pairs=((content&&content.pairs)||[]).map(p=>[String(p.a||p.word||'').trim(),String(p.b||p.definition||p.d||'').trim()]).filter(x=>x[0]&&x[1]);
+  if(pairs.length<2)return;
+  customPairs=pairs.slice(0,8);
+  if(title){document.title=title+' · Synonym Snap';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
 <script src="../scripts/mobile-zoom-guard.js?v=188"></script>

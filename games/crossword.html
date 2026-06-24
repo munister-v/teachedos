@@ -79,10 +79,10 @@ const WORD_BANK=[
 ];
 
 const SIZE=15;
-let solution={}, placements=[], numbers={}, bounds={};
+let solution={}, placements=[], numbers={}, bounds={}, customBank=null;
 
 function buildCrossword(){
-  const list=[...WORD_BANK].sort((a,b)=>b.word.length-a.word.length);
+  const list=[...(customBank||WORD_BANK)].sort((a,b)=>b.word.length-a.word.length);
   let grid=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
   placements=[];
 
@@ -234,8 +234,10 @@ function check(){
     else if(input.value) input.classList.add('incorrect');
   });
   document.getElementById('score').textContent=correct;
-  document.getElementById('feedback').textContent= correct===total ? '🎉 Solved! Great job!' : `${correct}/${total} correct so far`;
-  window.parent.postMessage({type:'teachedos-score',score:correct},'*');
+  const solved = correct===total;
+  document.getElementById('feedback').textContent= solved ? '🎉 Solved! Great job!' : `${correct}/${total} correct so far`;
+  if(solved) try{window.parent.postMessage({type:'game-finished',score:correct,max:total,game:'Crossword',status:'done'},'*');}catch(e){}
+  else try{window.parent.postMessage({type:'teachedos-score',score:correct},'*');}catch(e){}
 }
 
 function start(){
@@ -244,6 +246,21 @@ function start(){
   buildCrossword();
   render();
 }
+
+function applyCustomContent(content,title){
+  const bank=((content&&content.pairs)||[]).map(p=>({
+    word:String(p.a||p.word||p.en||'').trim().toUpperCase(),
+    clue:String(p.b||p.definition||p.clue||p.uk||'').trim()
+  })).filter(x=>/^[A-Z]{2,}$/.test(x.word)&&x.clue);
+  if(bank.length<2)return;
+  customBank=bank.slice(0,10);
+  if(title){document.title=title+' · Crossword';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

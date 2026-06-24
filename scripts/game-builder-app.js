@@ -410,6 +410,14 @@ const GAME_TYPES = [
   {id:'word-categories',icon:'\ud83d\uddc3\ufe0f',name:'Word Categories',desc:'Sort words into the correct topic groups',tag:'Vocabulary',fields:'categories',gameSrc:'games/word-categories.html',w:560,h:640},
   {id:'spin-wheel',icon:'\ud83c\udfa1',name:'Spin the Wheel',desc:'Editable word wheel \u2014 great for hot-seat vocabulary drills',tag:'Speaking',fields:'words',gameSrc:'games/spin-wheel.html',w:460,h:560},
   {id:'hangman',icon:'\ud83c\udfaf',name:'Hangman',desc:'Guess the hidden word letter by letter',tag:'Spelling',fields:'words',gameSrc:'games/hangman.html',w:460,h:560},
+  // \u2500\u2500 Wordwall-style: the same pair/category content plays across all of these \u2500\u2500
+  {id:'word-definition-match',icon:'\ud83d\udd17',name:'Match Up',desc:'Match each term to its definition against the clock',tag:'Vocabulary',fields:'pairs',pairLabels:['Term','Definition'],gameSrc:'games/word-definition-match.html',w:640,h:580},
+  {id:'find-match',icon:'\ud83c\udccf',name:'Find the Match',desc:'Tap matching word + translation tiles before time runs out',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Translation / Definition'],gameSrc:'games/find-match.html',w:560,h:600},
+  {id:'vocab-quiz',icon:'\u2753',name:'Vocabulary Quiz',desc:'Multiple-choice quiz built automatically from your word pairs',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Translation / Definition'],gameSrc:'games/vocab-quiz.html',w:480,h:560},
+  {id:'crossword',icon:'\ud83e\udde9',name:'Crossword',desc:'Auto-generated crossword \u2014 answers are your words, clues your definitions',tag:'Vocabulary',fields:'pairs',pairLabels:['Answer (one word)','Clue'],gameSrc:'games/crossword.html',w:600,h:620},
+  {id:'synonym-snap',icon:'\u26a1',name:'Synonym Snap',desc:'Snap matching pairs (great for synonyms, opposites, word+meaning)',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Match'],gameSrc:'games/synonym-snap.html',w:520,h:600},
+  {id:'group-sort',icon:'\ud83d\uddc3\ufe0f',name:'Group Sort',desc:'Drag words into the correct category bins',tag:'Vocabulary',fields:'categories',gameSrc:'games/group-sort.html',w:600,h:560},
+  {id:'maze-chase',icon:'\ud83d\udc7e',name:'Maze Chase',desc:'Run the maze and grab only the words from the target category',tag:'Vocabulary',fields:'categories',gameSrc:'games/maze-chase.html',w:520,h:600},
 ];
 
 const STORAGE_KEY = 'teachedos_custom_games';

@@ -69,14 +69,14 @@ const ROUNDS=[
   }}
 ];
 
-let words=[], placed=0, score=0, selected=null;
+let words=[], placed=0, score=0, selected=null, customRound=null;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
 function start(){
   document.getElementById('again').style.display='none';
   document.getElementById('feedback').textContent='';
-  const round=ROUNDS[Math.floor(Math.random()*ROUNDS.length)];
+  const round=customRound||ROUNDS[Math.floor(Math.random()*ROUNDS.length)];
   document.getElementById('roundLabel').textContent=round.label;
   words=[];
   for(const cat in round.cats){
@@ -148,7 +148,24 @@ function dropOn(bin){
 function endGame(){
   document.getElementById('feedback').textContent=`Done! Score: ${score}/${words.length}`;
   document.getElementById('again').style.display='inline-block';
+  try{window.parent.postMessage({type:'game-finished',score:score,max:words.length,game:'Group Sort',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  const cats=((content&&content.categories)||[]).map(c=>({
+    name:String(c.name||c.category||'').trim(),
+    words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean).slice(0,6)
+  })).filter(c=>c.name&&c.words.length);
+  if(cats.length<2)return;
+  const obj={}; cats.forEach(c=>{obj[c.name]=c.words;});
+  customRound={label:title||'Sort into groups',cats:obj};
+  if(title){document.title=title+' · Group Sort';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

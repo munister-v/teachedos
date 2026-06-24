@@ -94,7 +94,9 @@ function endGame(){
   document.getElementById('meaning').textContent='';
   document.getElementById('choices').innerHTML=`<button onclick="start()" style="grid-column:span 2;padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').textContent='Score: '+score+'/'+q.length;
+  try{window.parent.postMessage({type:'game-finished',score:score,max:q.length,game:'Phrasal Verbs',status:'done'},'*');}catch(e){}
 }
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
 <script src="../scripts/mobile-zoom-guard.js?v=188"></script>

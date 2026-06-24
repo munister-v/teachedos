@@ -69,7 +69,7 @@ const ROUNDS={
   'Food': {correct:['pizza','bread','cheese','apple','rice','soup','cake','banana'], wrong:['tiger','run','happy','chair','blue','sing','rain','desk']}
 };
 
-let player={r:1,c:1}, score=0, timer=60, sInt, pellets={}, totalCorrect=0, collectedCorrect=0;
+let player={r:1,c:1}, score=0, timer=60, sInt, pellets={}, totalCorrect=0, collectedCorrect=0, customRound=null;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
@@ -80,10 +80,10 @@ function start(){
   document.getElementById('score').textContent=0;
   document.getElementById('time').textContent=60;
 
-  const cats=Object.keys(ROUNDS);
-  const catName=cats[Math.floor(Math.random()*cats.length)];
+  let catName, pool;
+  if(customRound){ catName=customRound.name; pool={correct:customRound.correct,wrong:customRound.wrong}; }
+  else { const cats=Object.keys(ROUNDS); catName=cats[Math.floor(Math.random()*cats.length)]; pool=ROUNDS[catName]; }
   document.getElementById('catLabel').textContent=catName;
-  const pool=ROUNDS[catName];
 
   // gather open cells excluding player start
   const openCells=[];
@@ -159,7 +159,25 @@ function endGame(){
   clearInterval(sInt);
   document.getElementById('feedback').textContent='Game over! Final score: '+score;
   document.getElementById('again').style.display='inline-block';
+  try{window.parent.postMessage({type:'game-finished',score:Math.max(0,score),max:totalCorrect,game:'Maze Chase',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  // Use the first category as the target ("correct"); pool the rest as distractors.
+  let correct=[], wrong=[], name=title||'Find the words';
+  const cats=((content&&content.categories)||[]).map(c=>({name:String(c.name||'').trim(),words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean)})).filter(c=>c.words.length);
+  if(cats.length>=2){ name=cats[0].name; correct=cats[0].words; wrong=cats.slice(1).flatMap(c=>c.words); }
+  else { return; } // need a target + distractor set to be meaningful
+  correct=correct.slice(0,8); wrong=wrong.slice(0,8);
+  if(correct.length<2||wrong.length<2)return;
+  customRound={name,correct,wrong};
+  if(title){document.title=title+' · Maze Chase';const h=document.querySelector('h1');if(h)h.textContent=title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>

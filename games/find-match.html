@@ -47,7 +47,9 @@ let tiles=[], selected=[], pairsLeft=0, timer=90, sInt;
 
 function shuffle(a){return a.slice().sort(()=>Math.random()-.5)}
 
+var customWords=null,totalPairs=0;
 function loadWords(){
+  if(customWords) return customWords;
   const p=new URLSearchParams(location.search);
   const setId=p.get('set');
   if(setId && window.TEACHEDOS_CUSTOM){
@@ -87,6 +89,7 @@ function start(){
   });
   tiles=shuffle(tiles);
   pairsLeft=words.length;
+  totalPairs=words.length;
   document.getElementById('left').textContent=pairsLeft;
 
   render();
@@ -139,9 +142,24 @@ function clickTile(i,el){
 
 function endGame(won){
   clearInterval(sInt);
-  document.getElementById('feedback').textContent= won ? '🎉 All pairs matched!' : '⏱ Time up! '+(8-pairsLeft)+'/8 pairs found';
+  const found=totalPairs-pairsLeft;
+  document.getElementById('feedback').textContent= won ? '🎉 All pairs matched!' : '⏱ Time up! '+found+'/'+totalPairs+' pairs found';
   document.getElementById('again').style.display='inline-block';
+  try{window.parent.postMessage({type:'game-finished',score:found,max:totalPairs,game:'Find the match',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  const pairs=((content&&content.pairs)||[]).map(p=>({en:String(p.a||p.word||p.en||'').trim(),uk:String(p.b||p.definition||p.uk||'').trim()})).filter(p=>p.en&&p.uk);
+  if(pairs.length<2)return;
+  customWords=pairs.slice(0,8);
+  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?('📚 '+title):'Custom set')+' — match each word to its translation';
+  if(title){document.title=title+' · Find the match';}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
