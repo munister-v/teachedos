@@ -264,7 +264,7 @@ function shapeSpec(input) {
     if (toolId === 'word-sorting') {
       const cats = Math.max(2, Math.min(4, Math.round(count / 4)));
       return {
-        task: `${head} Choose ${cats} clear categories related to the topic, then produce exactly ${count} words to sort. For each word, "left" = the word and "right" = the EXACT category label it belongs to. Spread words roughly evenly across the categories.${context}`,
+        task: `${head} Build a word-sorting task. First invent ${cats} DISTINCT categories that group words by a GENUINE shared property — by part of speech, by function, or by sub-theme. STRICT RULES: (1) NEVER use the topic name "${topic}" as a category label; (2) no vague catch-alls such as "Other", "Misc", "Language skills" or "General"; (3) the categories must be clearly different from each other; (4) every category must receive at least 2 words; (5) assign each word to the ONE category it genuinely belongs to (do not spread randomly). Produce exactly ${count} words. "left" = the word, "right" = its category label.${context}`,
         schema: '{"pairs":[{"left":"word","right":"Category label"}]}',
       };
     }

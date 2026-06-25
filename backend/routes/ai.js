@@ -646,13 +646,30 @@ function assembleFromLLM(input, data) {
       p => p.left.toLowerCase(),
     ).slice(0, input.count);
     if (!pairs.length) throw new Error('LLM returned no pairs');
-    const matchText = input.toolId === 'word-sorting'
+    let matchText = input.toolId === 'word-sorting'
       ? `Sort the words into the correct categories for ${input.topic}.`
       : input.toolId === 'word-translation-match'
         ? `Match each word with its translation (${input.topic}).`
         : input.toolId === 'matching-halves'
           ? `Match the two halves to make complete sentences (${input.topic}).`
           : `Match the words with student-friendly definitions for ${input.topic}.`;
+    // Sorting safety net: reject degenerate categories (label == topic, a vague
+    // catch-all, fewer than 2 groups, or everything dumped in one) and fall back
+    // to an honest open-ended sort where students name the groups themselves.
+    if (input.toolId === 'word-sorting') {
+      const norm = s => String(s || '').trim().toLowerCase();
+      const topicN = norm(input.topic);
+      const counts = {};
+      pairs.forEach(p => { const k = norm(p.right); counts[k] = (counts[k] || 0) + 1; });
+      const cats = Object.keys(counts);
+      const maxShare = pairs.length ? Math.max(...Object.values(counts)) / pairs.length : 1;
+      const badLabel = cats.some(c => c === topicN || /^(other|misc|general|various|n\/?a|language skills?|words?|vocabulary)$/.test(c));
+      if (cats.length < 2 || badLabel || maxShare > 0.7) {
+        const half = Math.ceil(pairs.length / 2);
+        pairs.forEach((p, i) => { p.right = i < half ? 'Group 1' : 'Group 2'; });
+        matchText = 'Sort these words into two groups, then give each group a name.';
+      }
+    }
     return {
       ...env,
       questions: [{

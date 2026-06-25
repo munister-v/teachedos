@@ -2415,7 +2415,8 @@ function renderWorksheet(el, card) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
   const n = (qs || items || cards || []).length;
-  const unit = qs ? 'questions' : items ? 'words' : 'cards';
+  const unitBase = qs ? 'question' : items ? 'word' : 'card';
+  const unit = unitBase + (n === 1 ? '' : 's'); // singular when there is exactly one
   const hasKey = !!qs && qs.some(q => q.type === 'mcq' || q.type === 'truefalse' || (q.type === 'gap-fill' && q.answer));
   const stepper = cards ? `<div class="ws-stepper">${cards.slice(0, 5).map((c, i) => {
       const sm = _ttWorksheetStageMeta(c.title || '', i);

@@ -456,8 +456,12 @@ function _ttGenTenseContrast(input){
   const questions = [];
   for (const s of sents){
     if (questions.length >= input.count) break;
-    questions.push({ type:'mcq', text:`Choose the correct tense:\n"${s}"`,
-      options:[tA, tB, 'either is correct'], answer:tA, points:1 });
+    // The rule engine can't reliably detect which tense a source sentence uses,
+    // so we ask students to identify it (open) instead of asserting a fixed,
+    // often-wrong MCQ answer. The AI upgrade produces graded gap MCQs.
+    questions.push({ type:'open',
+      text:`Which tense is used here — ${tA} or ${tB}? Underline the verb and explain why.\n"${s}"`,
+      points:1 });
   }
   if (!questions.length){
     // No source text — open writing prompt
@@ -1084,6 +1088,7 @@ function switchTeacherToolAndGenerate(toolId) {
 function _ttPreviewHeader(out, n, unit){
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[out.cat]) || { icon:'✦', color:'#4262FF' };
   const accent = meta.color || '#4262FF';
+  const unitLabel = n === 1 ? String(unit).replace(/s$/, '') : unit; // "1 question", not "1 questions"
   return `<div class="tt-result-head" style="--accent:${accent}">
     <div class="tt-result-icon">${meta.icon || '✦'}</div>
     <div class="tt-result-meta">
@@ -1091,7 +1096,7 @@ function _ttPreviewHeader(out, n, unit){
       <div class="tt-result-chips">
         <span class="tt-rc accent">${esc(out.kind || 'Task')}</span>
         ${out.level ? `<span class="tt-rc">${esc(out.level)}</span>` : ''}
-        <span class="tt-rc">${n} ${unit}</span>
+        <span class="tt-rc">${n} ${unitLabel}</span>
       </div>
     </div>
   </div>`;
@@ -1133,9 +1138,14 @@ function renderTeacherToolLocalPreview(out){
     return;
   }
 
-  // quiz
-  if (chip) chip.textContent = `${out.questions.length} q · ${out.kind}`;
-  body.innerHTML = _ttPreviewHeader(out, out.questions.length, 'questions') + _ttEditHint + out.questions.map((q, i) => {
+  // quiz — for match/sort tasks the meaningful count is the number of pairs
+  // (a sort is one "question" holding many words), not the question count.
+  const isMatchSet = out.questions.length > 0 && out.questions.every(q => q.type === 'match');
+  const pairCount = out.questions.reduce((s, q) => s + (Array.isArray(q.pairs) ? q.pairs.length : 0), 0);
+  const previewN = isMatchSet ? pairCount : out.questions.length;
+  const previewUnit = isMatchSet ? 'items' : 'questions';
+  if (chip) chip.textContent = `${previewN} ${isMatchSet ? 'items' : 'q'} · ${out.kind}`;
+  body.innerHTML = _ttPreviewHeader(out, previewN, previewUnit) + _ttEditHint + out.questions.map((q, i) => {
     let ans = '';
     if (q.type === 'mcq') {
       ans = `<div class="tt-opts">${
