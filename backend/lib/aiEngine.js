@@ -280,6 +280,12 @@ function shapeSpec(input) {
         schema: '{"pairs":[{"left":"word","right":"😀 short visual description"}]}',
       };
     }
+    if (toolId === 'word-definition-match') {
+      return {
+        task: `${head} Use the EXACT target vocabulary the teacher provided below. For each word/phrase: "left" = the word exactly as given; "right" = a clear, short, student-friendly definition at ${level} level (max 12 words; do NOT just repeat or translate the word). Keep the teacher's words and order; only invent extra words if fewer than ${count} were given.${context}`,
+        schema: '{"pairs":[{"left":"word","right":"short definition"}]}',
+      };
+    }
     if (toolId === 'match-headings') {
       return {
         task: `${head} Read the source text and divide it into its natural paragraphs (or, if it is one block, into 4–6 logical sections). For EACH paragraph write ONE short, accurate heading that captures its main idea. "left" = "Paragraph N: <first 6–8 words…>" so the student can identify the paragraph; "right" = the heading. Keep headings parallel in style and at ${level} level. Do NOT reuse a heading.${context}`,

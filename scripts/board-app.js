@@ -7418,7 +7418,7 @@ function addTeacherToolToBoard(toolId) {
 /* ── field configs per tool ──────────────────────────────────────── */
 const TT_NEEDS_SOURCE_SET = new Set([
   'abcd-text','true-false','extract-vocab','gap','open-questions',
-  'gaps-abcd','word-definition-match','error-correction',
+  'gaps-abcd','error-correction',
   'gaps-brackets','two-options','gist-detail',
   'listening-dictation','simplify-text','transcript-helper',
   // tools whose whole purpose is to process a pasted text / transcript
@@ -7439,6 +7439,9 @@ const TT_NEEDS_VOCAB_SET = new Set([
 const TT_REQUIRE_VOCAB_SET = new Set([
   'text-topic-vocab','link-words','sentence-translation',
   'sentences-vocab','odd-one-out','word-sorting',
+  // word-definition-match works from a word list — definitions are auto-filled,
+  // no source text needed; block only until the words are given.
+  'word-definition-match',
 ]);
 // Listening / video tools — offer a YouTube link that auto-fills the transcript.
 const TT_MEDIA_SET = new Set([
@@ -7789,7 +7792,6 @@ const TT_SOURCE_PLACEHOLDERS = {
   'gap':'Paste a text — we\'ll make gap-fill sentences from it.',
   'gaps-abcd':'Paste a text — we\'ll create MCQ gap-fill grammar sentences.',
   'open-questions':'Paste a text — we\'ll generate open discussion questions.',
-  'word-definition-match':'Paste a text — we\'ll pair words with sentences from it.',
   'error-correction':'Paste a text — we\'ll introduce mistakes to find and fix.',
   'gaps-brackets':'Paste a text — we\'ll create word-form exercises from it.',
   'two-options':'Paste a text — we\'ll make two-option grammar sentences.',

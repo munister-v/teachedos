@@ -184,22 +184,49 @@ function _ttGenGapsAbcd(input){
     : null;
 }
 
-function _ttGenWordDefinitionMatch(input){
-  const sents = teacherToolSourceSentences(input.source, input.topic, 80);
-  const pool = _ttContentWords(input.source).sort((a,b)=>b.length-a.length).slice(0,input.count*2);
-  if (!pool.length) return null;
-  const pairs = [];
-  for (const word of pool) {
-    if (pairs.length >= input.count) break;
-    const ex = sents.find(s => new RegExp('\\b'+word+'\\b','i').test(s));
-    if (!ex) continue;
-    const snippet = ex.length > 100 ? ex.slice(0,100)+'…' : ex;
-    pairs.push({ left: _ttCap(word), right: snippet });
+// Reverse index of the topic vocabulary library: word → { uk, ex }. Lets the
+// fast (offline) path auto-fill a definition/example for common words without
+// any source text. Built once and cached.
+let _ttVocabIndexCache = null;
+function _ttVocabLibIndex(){
+  if (_ttVocabIndexCache) return _ttVocabIndexCache;
+  const idx = {};
+  const V = (typeof window !== 'undefined') && window.TEACHEDOS_VOCAB;
+  if (V && typeof V.listTopics === 'function' && typeof V.getWords === 'function') {
+    try {
+      for (const t of V.listTopics()) {
+        for (const w of (V.getWords(t.id, 'mix') || [])) {
+          const k = String(w.en || '').trim().toLowerCase();
+          if (k && !idx[k]) idx[k] = { uk: w.uk || '', ex: w.ex || '' };
+        }
+      }
+    } catch {}
   }
-  if (!pairs.length) return null;
+  _ttVocabIndexCache = idx;
+  return idx;
+}
+
+// Word-Definition Match works from the teacher's WORD LIST (no source text
+// needed). The definition is auto-filled from a source sentence when text is
+// pasted, otherwise from the vocab library; the AI path writes real definitions.
+function _ttGenWordDefinitionMatch(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (words.length < 2) return null;
+  const sents = input.source ? teacherToolSourceSentences(input.source, input.topic, 80) : [];
+  const lib = _ttVocabLibIndex();
+  const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pairs = words.map(w => {
+    let right = '';
+    if (sents.length) {
+      const ex = sents.find(s => new RegExp('\\b' + reEsc(w) + '\\b', 'i').test(s));
+      if (ex) right = ex.length > 100 ? ex.slice(0, 100) + '…' : ex;
+    }
+    if (!right) { const hit = lib[String(w).toLowerCase()]; if (hit) right = hit.ex || hit.uk || ''; }
+    return { left: _ttCap(w), right };
+  });
   return { boardKind:'quiz', kind:'Matching', cat:'vocabulary', level:input.level, topic:input.topic,
     title:`${input.level} · Word-Definition Match: ${input.topic}`,
-    questions: [{ type:'match', text:'Match each word to its sentence from the text.', pairs, points: pairs.length }] };
+    questions: [{ type:'match', text:'Match each word to its definition.', pairs, points: pairs.length }] };
 }
 
 function _ttGenErrorCorrection(input){
