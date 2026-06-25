@@ -8070,35 +8070,43 @@ function openAssignmentGameBuilderMenu(cardId, ev) {
   }, { once: true }), 0);
 }
 
+// Resolve a gameType id (e.g. 'memory-match') to its game file + natural size.
+// gameType ids map 1:1 to games/<id>.html; we read exact sizes from the GAMES
+// catalog when available, with a safe fallback.
+function _gameMetaFor(gameType) {
+  const src = 'games/' + gameType + '.html';
+  const entry = (typeof GAMES !== 'undefined' && Array.isArray(GAMES)) ? GAMES.find(g => g.src === src) : null;
+  return { src, w: entry?.w || 480, h: entry?.h || 560 };
+}
+
+// Drop the activity straight onto the board AS A PLAYABLE GAME (never navigate
+// away to the standalone builder). The custom content rides on the card and is
+// delivered to the game iframe by renderGame's handoff.
+function placeGameOnBoard(gameType, title, level, content) {
+  const meta = _gameMetaFor(gameType);
+  addGameCard(meta.src, title || 'Game', meta.w, meta.h, { customContent: content, level: level || 'B1' });
+  toast('🎮 Added to your board');
+}
+
 function sendAssignmentToGameType(cardId, gameType) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
   const games = _assignmentGamePayloads(card.data);
   const g = games.find(x => x.gameType === gameType) || games[0];
   if (!g) { toast('This activity can\'t become a game yet.', 'error'); return; }
-  const payload = {
-    gameType: g.gameType,
-    title: card.data.title || 'Board activity',
-    level: card.data.level || 'B1',
-    tags: ['board', 'activity'],
-    content: g.content,
-  };
-  try { sessionStorage.setItem('teachedos_tools_to_game', JSON.stringify(payload)); } catch (e) {}
-  window.location.href = 'game-builder.html';
+  placeGameOnBoard(g.gameType, card.data.title || 'Board activity', card.data.level || 'B1', g.content);
 }
 
 function sendTeacherToolToGameType(gameType) {
   const games = _ttGamePayloads(lastTeacherToolBuilderOutput);
   const g = games.find(x => x.gameType === gameType) || games[0];
   if (!g) { toast('This result can\'t become a game — try a vocabulary, matching or quiz tool.', 'error'); return; }
-  const payload = {
-    gameType: g.gameType, content: g.content,
-    title: lastTeacherToolBuilderOutput.title || 'From Teacher Tools',
-    level: lastTeacherToolBuilderOutput.level || 'B1',
-    tags: ['teacher-tools', activeTeacherToolBuilder?.cat || 'vocabulary'],
-  };
-  try { sessionStorage.setItem('teachedos_tools_to_game', JSON.stringify(payload)); } catch (e) {}
-  window.location.href = 'game-builder.html';
+  placeGameOnBoard(
+    g.gameType,
+    lastTeacherToolBuilderOutput.title || 'From Teacher Tools',
+    lastTeacherToolBuilderOutput.level || 'B1',
+    g.content
+  );
 }
 // Back-compat: default to the best-fit game.
 function sendTeacherToolToGame() { sendTeacherToolToGameType(); }
