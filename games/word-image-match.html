@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Word-Image Match</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1C1C1E;--lime:#C8E632}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:20px 16px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:560px}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.top span{color:var(--accent)}
+
+/* Grid of mixed image + word tiles */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:440px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+.tile{border-radius:12px;border:2px solid #eee2d8;cursor:pointer;transition:border-color .15s,transform .1s;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center}
+/* Word tiles */
+.tile-word{background:#FBF8F3;padding:12px 6px;min-height:56px;font-weight:800;font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
+/* Image tiles — square aspect ratio */
+.tile-img{aspect-ratio:1/1}
+.tile-img img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.tile-img .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff}
+
+.tile:hover{border-color:var(--lime);transform:translateY(-1px)}
+.tile.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(28,28,30,.25)}
+.tile.matched{opacity:0;pointer-events:none;transition:opacity .3s}
+.tile.wrong{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.feedback{margin-top:14px;text-align:center;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
+.play-again{margin-top:12px;width:100%;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
+.loading{text-align:center;padding:32px;color:#aaa;font-size:.9rem}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1>🖼️ Word-Image Match</h1>
+<p class="subtitle" id="topicLabel">Match each word to the correct photo</p>
+<div class="card">
+  <div class="top">
+    <div>Pairs left: <span id="left">–</span></div>
+    <div>⏱ <span id="time">90</span>s</div>
+  </div>
+  <div id="gridWrap"><div class="loading">Loading photos…</div></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="play-again" id="again" onclick="restart()">▶ Play Again</button>
+</div>
+
+<script>
+var tiles=[], selected=[], pairsLeft=0, pairsInPlay=0, timerVal=90, sInt;
+var customPairs=null;
+
+/* ── Palette for placeholder tiles ─────────────────────────────── */
+var PALETTES=[['#7B8CDE','#5B6CBE'],['#E07B5A','#C05A3A'],['#5AAE7B','#3A8E5B'],
+              ['#C9A84C','#A9882C'],['#B05AB0','#903A90'],['#5AAEB0','#3A8E90']];
+
+/* ── Wikipedia thumbnail fetch (no API key needed) ─────────────── */
+var imgCache={};
+async function fetchThumb(query){
+  var q=(query||'').trim();
+  if(!q) return null;
+  if(imgCache[q]!==undefined) return imgCache[q];
+  try{
+    var url='https://en.wikipedia.org/w/api.php?action=query&titles='+encodeURIComponent(q)
+            +'&prop=pageimages&format=json&pithumbsize=300&origin=*';
+    var d=await(await fetch(url)).json();
+    var page=Object.values(d?.query?.pages||{})[0];
+    imgCache[q]=page?.thumbnail?.source||null;
+  }catch(e){imgCache[q]=null;}
+  return imgCache[q];
+}
+
+/* ── applyCustomContent ─────────────────────────────────────────── */
+function applyCustomContent(data){
+  if(!data) return;
+  if(Array.isArray(data.pairs)&&data.pairs.length>=2){
+    customPairs=data.pairs.map(function(p){
+      return{word:String(p.left||''),query:String(p.right||p.left||'')};
+    });
+  }
+  window.parent.postMessage({type:'game-ready'},'*');
+  restart();
+}
+
+/* ── Shuffle ────────────────────────────────────────────────────── */
+function shuffle(a){return a.slice().sort(function(){return Math.random()-.5})}
+
+/* ── Load pairs ─────────────────────────────────────────────────── */
+function loadPairs(){
+  if(customPairs) return customPairs.slice(0,8);
+  var p=new URLSearchParams(location.search);
+  try{
+    var raw=p.get('pairs');
+    if(raw) return JSON.parse(decodeURIComponent(raw)).slice(0,8);
+  }catch(e){}
+  return[
+    {word:'mountain',query:'mountain peak'},
+    {word:'ocean',query:'ocean waves'},
+    {word:'forest',query:'forest trees'},
+    {word:'desert',query:'desert sand'},
+    {word:'volcano',query:'volcano eruption'},
+    {word:'glacier',query:'glacier ice'}
+  ];
+}
+
+/* ── Start / restart ────────────────────────────────────────────── */
+async function restart(){
+  clearInterval(sInt);
+  document.getElementById('again').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('gridWrap').innerHTML='<div class="loading">Loading photos…</div>';
+  selected=[];
+
+  var pairs=shuffle(loadPairs()).slice(0,6); // max 6 pairs = 12 tiles
+  pairsInPlay=pairs.length;
+
+  // Fetch all images in parallel
+  var urls=await Promise.all(pairs.map(function(pr){return fetchThumb(pr.query);}));
+
+  // Build tiles
+  tiles=[];
+  pairs.forEach(function(pr,i){
+    tiles.push({id:'w'+i,kind:'word',text:pr.word,pair:i,matched:false,_el:null});
+    tiles.push({id:'i'+i,kind:'img',url:urls[i],word:pr.word,palette:PALETTES[i%PALETTES.length],pair:i,matched:false,_el:null});
+  });
+  tiles=shuffle(tiles);
+  pairsLeft=pairsInPlay;
+  document.getElementById('left').textContent=pairsLeft;
+
+  renderGrid();
+
+  timerVal=90;
+  document.getElementById('time').textContent=timerVal;
+  sInt=setInterval(function(){
+    timerVal--;
+    document.getElementById('time').textContent=timerVal;
+    if(timerVal<=0) endGame(false);
+  },1000);
+}
+
+/* ── Render ─────────────────────────────────────────────────────── */
+function renderGrid(){
+  var grid=document.createElement('div');
+  grid.className='grid';
+  tiles.forEach(function(t,idx){
+    var el=document.createElement('div');
+    t._el=el;
+    if(t.kind==='word'){
+      el.className='tile tile-word'+(t.matched?' matched':'');
+      el.textContent=t.text;
+    } else {
+      el.className='tile tile-img'+(t.matched?' matched':'');
+      if(t.url){
+        var img=document.createElement('img');
+        img.src=t.url; img.alt=t.word; img.loading='lazy';
+        el.appendChild(img);
+      } else {
+        var ph=document.createElement('div');
+        ph.className='ph';
+        ph.style.background='linear-gradient(135deg,'+t.palette[0]+','+t.palette[1]+')';
+        ph.textContent=(t.word||'?')[0].toUpperCase();
+        el.appendChild(ph);
+      }
+    }
+    el.addEventListener('click',function(){clickTile(idx);});
+    grid.appendChild(el);
+  });
+  var wrap=document.getElementById('gridWrap');
+  wrap.innerHTML='';
+  wrap.appendChild(grid);
+}
+
+/* ── Click logic ────────────────────────────────────────────────── */
+function clickTile(idx){
+  var t=tiles[idx];
+  if(t.matched) return;
+  // Deselect if already selected
+  if(selected.length===1&&selected[0].idx===idx){
+    t._el.classList.remove('selected');
+    selected=[];
+    return;
+  }
+  // Enforce: first click word or img, second must be the other kind
+  if(selected.length===1&&selected[0].t.kind===t.kind){
+    // Replace selection with new one of same kind
+    selected[0].t._el.classList.remove('selected');
+    selected=[];
+  }
+  t._el.classList.add('selected');
+  selected.push({idx:idx,t:t});
+
+  if(selected.length<2) return;
+
+  var a=selected[0], b=selected[1];
+  selected=[];
+
+  if(a.t.pair===b.t.pair){
+    // Correct match
+    [a,b].forEach(function(s){
+      s.t._el.classList.remove('selected');
+      s.t._el.classList.add('correct');
+      s.t.matched=true;
+      setTimeout(function(){s.t._el.classList.add('matched');},300);
+    });
+    pairsLeft--;
+    document.getElementById('left').textContent=pairsLeft;
+    document.getElementById('feedback').textContent='✅ Correct!';
+    if(pairsLeft===0) setTimeout(function(){endGame(true);},600);
+  } else {
+    // Wrong
+    [a,b].forEach(function(s){
+      s.t._el.classList.remove('selected');
+      s.t._el.classList.add('wrong');
+      setTimeout(function(){s.t._el.classList.remove('wrong');},400);
+    });
+    document.getElementById('feedback').textContent='❌ Try again!';
+  }
+}
+
+/* ── End game ───────────────────────────────────────────────────── */
+function endGame(won){
+  clearInterval(sInt);
+  var total=pairsInPlay, matched=total-pairsLeft;
+  var pct=Math.round(matched/total*100);
+  document.getElementById('feedback').textContent=
+    won?'🎉 All matched — well done!':'⏰ Time\'s up! '+matched+'/'+total+' matched.';
+  document.getElementById('again').style.display='';
+  var payload={score:pct,label:matched+'/'+total+' pairs'};
+  window.parent.postMessage(Object.assign({type:'game-finished'},payload),'*');
+  window.parent.postMessage(Object.assign({type:'teachedos-score'},payload),'*');
+}
+
+/* ── Message listener ───────────────────────────────────────────── */
+window.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='teachedos-custom-game-content')
+    applyCustomContent(e.data.content);
+});
+
+/* ── Boot ───────────────────────────────────────────────────────── */
+window.parent.postMessage({type:'game-ready'},'*');
+restart();
+</script>
+</body>
+</html>

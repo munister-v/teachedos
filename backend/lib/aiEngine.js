@@ -276,8 +276,8 @@ function shapeSpec(input) {
     }
     if (toolId === 'word-image-match') {
       return {
-        task: `${head} Produce exactly ${count} concrete, picturable words for this topic. "left" = the word; "right" = a relevant emoji followed by a short vivid visual description students could match to an image (e.g. "✈️ a plane taking off from a runway"). Choose words that have clear visual referents.${context}`,
-        schema: '{"pairs":[{"left":"word","right":"😀 short visual description"}]}',
+        task: `${head} Produce exactly ${count} concrete, picturable vocabulary items for this topic. Choose words that have a clear visual referent — nouns and concrete objects work best. "left" = the English word at ${level} level; "right" = a short Wikipedia-style search query (2–4 words, no articles, specific enough to find a clear photo — e.g. "volcano eruption", "hospital operating room", "wheat field harvest"). If the teacher provided target words, use exactly those words.${context}`,
+        schema: '{"pairs":[{"left":"word","right":"wikipedia search query"}]}',
       };
     }
     if (toolId === 'word-definition-match') {

@@ -1439,6 +1439,7 @@ const GAMES = [
   { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:560 },
   { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
   { icon:'🔨', title:'Whack-a-Mole',       tag:'Vocabulary', desc:'Whack only the words from the target category',           src:'games/whack-a-mole.html',          w:560, h:560 },
+  { icon:'🖼️', title:'Photo Match',        tag:'Vocabulary', desc:'Match each word to its photo — images fetched automatically', src:'games/word-image-match.html',      w:560, h:620 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */

@@ -421,6 +421,7 @@ const GAME_TYPES = [
   {id:'word-search',icon:'\ud83d\udd0d',name:'Word Search',desc:'Hide your words in a letter grid to find',tag:'Vocabulary',fields:'words',gameSrc:'games/word-search.html',w:520,h:620},
   {id:'spelling-bee',icon:'\ud83d\udc1d',name:'Spelling Bee',desc:'Type each word from its definition clue',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Definition / clue'],gameSrc:'games/spelling-bee.html',w:460,h:560},
   {id:'whack-a-mole',icon:'\ud83d\udd28',name:'Whack-a-Mole',desc:'Whack only the words from the target category',tag:'Vocabulary',fields:'categories',gameSrc:'games/whack-a-mole.html',w:560,h:560},
+  {id:'word-image-match',icon:'\ud83d\uddbc\ufe0f',name:'Photo Match',desc:'Match each word to the correct photo \u2014 images fetched automatically',tag:'Vocabulary',fields:'pairs',pairLabels:['Word','Image search query'],gameSrc:'games/word-image-match.html',w:560,h:620},
 ];
 
 const STORAGE_KEY = 'teachedos_custom_games';

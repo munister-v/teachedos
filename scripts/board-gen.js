@@ -294,6 +294,18 @@ function _ttGenIdioms(input){
     title:`${input.level} · Idioms: ${input.topic}`, questions };
 }
 
+/* ── word-image-match ────────────────────────────────────────────── */
+// Generates pairs where left=word, right=image search query.
+// The game fetches Wikipedia thumbnails at play time; AI upgrade supplies richer queries.
+function _ttGenWordImageMatch(input){
+  const words = _ttVocabLines(input).slice(0, Math.min(input.count, 6));
+  if (words.length < 2) return null;
+  const pairs = words.map(w => ({ left: _ttCap(w), right: w.toLowerCase() }));
+  return { boardKind:'quiz', kind:'Matching', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Word-Image Match: ${input.topic}`,
+    questions:[{ type:'match', text:'Match each word to its photo.', pairs, points:pairs.length }] };
+}
+
 /* ── link-words ──────────────────────────────────────────────────── */
 function _ttGenLinkWords(input){
   const words = _ttVocabLines(input).slice(0, input.count);
@@ -1107,6 +1119,7 @@ function generateTeacherToolLocal(input){
   if (id === 'idioms')                return _ttGenIdioms(input);
   if (id === 'link-words')            return _ttGenLinkWords(input);
   if (id === 'sentence-translation')  return _ttGenSentenceTranslation(input);
+  if (id === 'word-image-match')      return _ttGenWordImageMatch(input);
   if (id === 'error-correction')      return _ttGenErrorCorrection(input);
   if (id === 'essential-vocab')       return _ttGenEssentialVocab(input);
   if (id === 'flashcards')            return _ttGenFlashcards(input);
