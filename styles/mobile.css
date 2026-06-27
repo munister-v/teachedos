@@ -18,6 +18,9 @@
    View Transitions API, GPU-friendly opacity-only animations.
 ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Hide mobile-only overlay on desktop; mobile.css shows it on ≤860px */
+.mobile-desktop-only { display: none; }
+
 /* ─────────────────────────────────────────────────────────────────────────
    0 · VIEW TRANSITIONS — smooth, native-feeling page navigation.
    Opt-in per page via <html data-vt> (set by mobile-shell.js) so we never
@@ -539,7 +542,7 @@
   /* ───────────────────────────────────────────────────────────────────────
      6 · UTILITIES
   ─────────────────────────────────────────────────────────────────────── */
-  .mobile-desktop-only { display: none !important; }
+  .mobile-desktop-only { display: flex !important; }
   .mp-hide-mobile { display: none !important; }
   .scroll-y { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 

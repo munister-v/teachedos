@@ -491,11 +491,12 @@ function _setHwLoading(loading){
 async function loadAll() {
   _setHwLoading(true);
   try {
-    const [hw, br] = await Promise.all([api('/api/homework'), api('/api/boards')]);
+    const [hw, br] = await Promise.allSettled([api('/api/homework'), api('/api/boards')]);
     offlineMode = false;
-    homeworkList = hw.homework || [];
-    boards = br.boards || [];
-    if (!homeworkList.length && !boards.length) loadLocal(); else renderList();
+    homeworkList = hw.status === 'fulfilled' ? (hw.value.homework || []) : [];
+    boards = br.status === 'fulfilled' ? (br.value.boards || []) : [];
+    if (hw.status === 'rejected' && br.status === 'rejected') { loadLocal(); return; }
+    renderList();
   } catch (e) { loadLocal(); }
   finally { _setHwLoading(false); }
 }
