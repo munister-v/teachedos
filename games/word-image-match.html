@@ -64,18 +64,20 @@ var customPairs=null;
 var PALETTES=[['#7B8CDE','#5B6CBE'],['#E07B5A','#C05A3A'],['#5AAE7B','#3A8E5B'],
               ['#C9A84C','#A9882C'],['#B05AB0','#903A90'],['#5AAEB0','#3A8E90']];
 
-/* ── Wikipedia thumbnail fetch (no API key needed) ─────────────── */
+/* ── Image fetch via backend proxy (3-strategy: Wiki summary → search → Commons) */
 var imgCache={};
 async function fetchThumb(query){
-  var q=(query||'').trim();
+  var q=(query||'').trim().toLowerCase();
   if(!q) return null;
   if(imgCache[q]!==undefined) return imgCache[q];
   try{
-    var url='https://en.wikipedia.org/w/api.php?action=query&titles='+encodeURIComponent(q)
-            +'&prop=pageimages&format=json&pithumbsize=300&origin=*';
-    var d=await(await fetch(url)).json();
-    var page=Object.values(d?.query?.pages||{})[0];
-    imgCache[q]=page?.thumbnail?.source||null;
+    // Backend proxy: tries Wikipedia REST → OpenSearch+pageimages → Commons
+    var base=window.TEACHED_API_BASE||(
+      (location.hostname==='localhost'||location.hostname==='127.0.0.1')
+        ?'http://localhost:4000':location.origin);
+    var d=await(await fetch(base+'/api/images/search?q='+encodeURIComponent(q),
+      {signal:AbortSignal.timeout(6000)})).json();
+    imgCache[q]=d?.url||null;
   }catch(e){imgCache[q]=null;}
   return imgCache[q];
 }
