@@ -294,6 +294,34 @@ function _ttGenIdioms(input){
     title:`${input.level} · Idioms: ${input.topic}`, questions };
 }
 
+/* ── link-words ──────────────────────────────────────────────────── */
+function _ttGenLinkWords(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const wordList = words.map(w => `• ${_ttCap(w)}`).join('\n');
+  return { boardKind:'cards', kind:'Link Words', cat:'writing', level:input.level, topic:input.topic,
+    title:`${input.level} · Link Words: ${input.topic}`,
+    cards:[
+      { title:'Task', text:`Write a short paragraph (50–80 words) about "${input.topic||'the topic'}" using ALL the words in the list. Underline each word when you use it.` },
+      { title:'Word list', text:wordList },
+      { title:'Model answer', text:'[AI will fill a model paragraph using all the words above]' },
+    ] };
+}
+
+/* ── sentence-translation ────────────────────────────────────────── */
+function _ttGenSentenceTranslation(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Translate into English: "${_ttCap(w)}"`,
+    answer:'',
+    points:1,
+  }));
+  return { boardKind:'quiz', kind:'Translation', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Sentence Translation: ${input.topic}`, questions };
+}
+
 function _ttGenErrorCorrection(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length >= 2);
@@ -1077,6 +1105,8 @@ function generateTeacherToolLocal(input){
   if (id === 'word-families')         return _ttGenWordFamilies(input);
   if (id === 'phrasal-verbs')         return _ttGenPhrasalVerbs(input);
   if (id === 'idioms')                return _ttGenIdioms(input);
+  if (id === 'link-words')            return _ttGenLinkWords(input);
+  if (id === 'sentence-translation')  return _ttGenSentenceTranslation(input);
   if (id === 'error-correction')      return _ttGenErrorCorrection(input);
   if (id === 'essential-vocab')       return _ttGenEssentialVocab(input);
   if (id === 'flashcards')            return _ttGenFlashcards(input);
