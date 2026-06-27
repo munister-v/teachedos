@@ -87,7 +87,11 @@ function applyCustomContent(data){
   if(!data) return;
   if(Array.isArray(data.pairs)&&data.pairs.length>=2){
     customPairs=data.pairs.map(function(p){
-      return{word:String(p.left||''),query:String(p.right||p.left||'')};
+      return{
+        word: String(p.left||p.a||''),
+        query: String(p.right||p.b||p.left||p.a||''),
+        imageUrl: p.imageUrl||null,  // pre-picked URL from photo picker — skip fetch
+      };
     });
   }
   window.parent.postMessage({type:'game-ready'},'*');
@@ -126,8 +130,10 @@ async function restart(){
   var pairs=shuffle(loadPairs()).slice(0,6); // max 6 pairs = 12 tiles
   pairsInPlay=pairs.length;
 
-  // Fetch all images in parallel
-  var urls=await Promise.all(pairs.map(function(pr){return fetchThumb(pr.query);}));
+  // Use pre-picked URL if available; otherwise fetch from backend
+  var urls=await Promise.all(pairs.map(function(pr){
+    return pr.imageUrl ? Promise.resolve(pr.imageUrl) : fetchThumb(pr.query);
+  }));
 
   // Build tiles
   tiles=[];

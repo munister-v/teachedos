@@ -1189,14 +1189,107 @@ function addPair() {
   const list = document.getElementById('pair-list');
   if (!list) return;
   const row = document.createElement('div');
-  row.className = 'pair-row';
   const num = list.querySelectorAll('.pair-row').length + 1;
-  row.innerHTML = `
-    <div class="pair-row-num">${num}</div>
-    <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}" oninput="updateItemCounter()">
-    <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}" oninput="updateItemCounter()">
-    <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">×</button>`;
+
+  if (selectedType && selectedType.id === 'word-image-match') {
+    row.className = 'pair-row wim-row';
+    row.innerHTML = `
+      <div class="pair-row-num">${num}</div>
+      <input class="pair-a" placeholder="Word" oninput="updateItemCounter()" style="margin:0">
+      <div class="wim-cell">
+        <div class="wim-preview"><span class="wim-ph">🖼️</span></div>
+        <div class="wim-query-row">
+          <input class="pair-b wim-query" placeholder="Image search query" oninput="wimDebounce(this);updateItemCounter()">
+          <button class="wim-pick" onclick="openPhotoPicker(this.closest('.pair-row'))">🔍 Pick</button>
+        </div>
+      </div>
+      <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">×</button>`;
+  } else {
+    row.className = 'pair-row';
+    row.innerHTML = `
+      <div class="pair-row-num">${num}</div>
+      <input class="pair-a" placeholder="${esc(selectedType.pairLabels[0])}" oninput="updateItemCounter()">
+      <input class="pair-b" placeholder="${esc(selectedType.pairLabels[1])}" oninput="updateItemCounter()">
+      <button class="pair-remove" onclick="this.parentElement.remove();renumberRows();updateItemCounter()">×</button>`;
+  }
   list.appendChild(row);
+}
+
+/* ── Photo picker ──────────────────────────────────────────────────────────── */
+var _wimTimers = new WeakMap();
+var _pmTargetRow = null;
+var _pmSelectedUrl = null;
+
+const IMG_API_BASE = (function(){
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:4000';
+  return location.origin;
+})();
+
+function wimDebounce(inputEl) {
+  clearTimeout(_wimTimers.get(inputEl));
+  _wimTimers.set(inputEl, setTimeout(() => wimFetchPreview(inputEl.closest('.pair-row')), 700));
+}
+
+async function wimFetchPreview(row) {
+  const q = (row.querySelector('.wim-query')?.value || '').trim();
+  const preview = row.querySelector('.wim-preview');
+  if (!preview) return;
+  if (!q) { preview.innerHTML = '<span class="wim-ph">🖼️</span>'; row._wimUrl = null; return; }
+  preview.innerHTML = '<span class="wim-loading">loading…</span>';
+  try {
+    const d = await fetch(`${IMG_API_BASE}/api/images/search?q=${encodeURIComponent(q)}`).then(r => r.json());
+    const url = d?.url || null;
+    row._wimUrl = url;
+    if (url) {
+      preview.innerHTML = `<img src="${url}" alt="${esc(q)}" onerror="this.style.display='none'">`;
+    } else {
+      preview.innerHTML = '<span class="wim-ph">🖼️</span>';
+    }
+  } catch { preview.innerHTML = '<span class="wim-ph">🖼️</span>'; }
+}
+
+function openPhotoPicker(row) {
+  _pmTargetRow = row;
+  _pmSelectedUrl = row._wimUrl || null;
+  const q = (row.querySelector('.wim-query')?.value || '').trim();
+  document.getElementById('pmQuery').value = q;
+  document.getElementById('pmOverlay').style.display = 'flex';
+  if (q) runPhotoSearch();
+  else document.getElementById('pmGrid').innerHTML = '<div class="pm-empty">Type a search query above</div>';
+}
+
+function closePhotoPicker() {
+  document.getElementById('pmOverlay').style.display = 'none';
+  _pmTargetRow = null;
+}
+
+async function runPhotoSearch() {
+  const q = document.getElementById('pmQuery').value.trim();
+  if (!q) return;
+  const grid = document.getElementById('pmGrid');
+  grid.innerHTML = '<div class="pm-spinner">Searching Unsplash…</div>';
+  try {
+    const d = await fetch(`${IMG_API_BASE}/api/images/search?q=${encodeURIComponent(q)}&limit=9`).then(r => r.json());
+    const results = d?.urls || (d?.url ? [{ url: d.url, thumb: d.url, credit: '' }] : []);
+    if (!results.length) { grid.innerHTML = '<div class="pm-empty">No photos found. Try another query.</div>'; return; }
+    grid.innerHTML = results.map((r, i) =>
+      `<div class="pm-thumb" onclick="selectPhoto('${r.url}','${r.thumb||r.url}','${esc(r.credit||'')}',${i})" title="${esc(r.credit||'')}">
+        <img src="${r.thumb||r.url}" alt="" loading="lazy">
+       </div>`
+    ).join('');
+  } catch { grid.innerHTML = '<div class="pm-empty">Error loading photos.</div>'; }
+}
+
+function selectPhoto(url, thumb, credit, idx) {
+  document.querySelectorAll('.pm-thumb').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  _pmSelectedUrl = url;
+  if (!_pmTargetRow) return;
+  _pmTargetRow._wimUrl = url;
+  const preview = _pmTargetRow.querySelector('.wim-preview');
+  if (preview) preview.innerHTML = `<img src="${thumb}" alt="" onerror="this.style.display='none'">`;
+  // Auto-update query field with the search term that found this photo
+  setTimeout(closePhotoPicker, 280);
 }
 
 function renumberRows() {
@@ -1268,11 +1361,19 @@ function collectContent(lenient) {
     case 'pairs': {
       const rows = document.querySelectorAll('#pair-list .pair-row');
       const pairs = [];
+      const isWIM = selectedType.id === 'word-image-match';
       rows.forEach(r => {
         const a = r.querySelector('.pair-a').value.trim();
         const b = r.querySelector('.pair-b').value.trim();
-        if (a && b) pairs.push({ a, b });
-        else if (lenient && (a || b)) pairs.push({ a: a||'', b: b||'' });
+        if (isWIM) {
+          // For photo match: store stored image URL separately
+          const url = r._wimUrl || null;
+          if (a) pairs.push({ a, b: b || a, imageUrl: url });
+          else if (lenient) pairs.push({ a: '', b: b || '', imageUrl: url });
+        } else {
+          if (a && b) pairs.push({ a, b });
+          else if (lenient && (a || b)) pairs.push({ a: a||'', b: b||'' });
+        }
       });
       return (lenient || pairs.length >= 2) ? { pairs } : null;
     }
