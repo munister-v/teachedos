@@ -1865,7 +1865,14 @@ function addToBoard(id) {
     customContent: game.content, level: game.level,
     naturalW: type.w, naturalH: type.h,
   };
-  sessionStorage.setItem('teachedos_pending_custom_game', JSON.stringify(customData));
+  const payload = JSON.stringify(customData);
+  try {
+    sessionStorage.setItem('teachedos_pending_custom_game', payload);
+  } catch {
+    try { localStorage.setItem('teachedos_pending_custom_game', payload); } catch (e2) {
+      toast('Could not pass game data: ' + e2.message); return;
+    }
+  }
   window.location.href = 'board.html?addCustomGame=1';
 }
 

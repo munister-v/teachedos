@@ -10961,10 +10961,12 @@ function runPendingCommunityImport() {
   const params = new URLSearchParams(location.search);
   if (!params.has('addCustomGame')) return;
   try {
-    const raw = sessionStorage.getItem('teachedos_pending_custom_game');
+    const raw = sessionStorage.getItem('teachedos_pending_custom_game')
+              || localStorage.getItem('teachedos_pending_custom_game');
     if (!raw) return;
     const g = JSON.parse(raw);
     sessionStorage.removeItem('teachedos_pending_custom_game');
+    localStorage.removeItem('teachedos_pending_custom_game');
     if (!g || !g.src) return;
     setTimeout(() => {
       const r = boardWrap.getBoundingClientRect();

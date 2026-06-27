@@ -35,7 +35,23 @@ async function unsplashSearch(query, limit = 1) {
   })).filter(r => r.url);
 }
 
-// ── Wikipedia fallback chain ───────────────────────────────────────────────────
+// ── Pixabay fallback (free key, no approval needed) ──────────────────────────
+const PIXABAY_KEY = process.env.PIXABAY_API_KEY || '';
+
+async function pixabaySearch(query, limit = 1) {
+  if (!PIXABAY_KEY) return [];
+  const d = await safeFetch(
+    `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(query)}&image_type=photo&safesearch=true&per_page=${Math.max(3, limit)}&min_width=400&min_height=400`
+  );
+  if (!Array.isArray(d?.hits)) return [];
+  return d.hits.slice(0, limit).map(h => ({
+    url:    h.webformatURL || h.largeImageURL || null,
+    thumb:  h.previewURL   || h.webformatURL  || null,
+    credit: `Photo by ${h.user} on Pixabay`,
+  })).filter(r => r.url);
+}
+
+// ── Wikipedia fallback chain (last resort — often gives unrelated images) ─────
 async function wikiSummary(query) {
   const d = await safeFetch(
     `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`
@@ -100,8 +116,9 @@ router.get('/search', async (req, res) => {
     return res.json({ url: cached[0]?.url || null, urls: cached });
   }
 
-  // Primary: Unsplash; fallback: Wikipedia chain
+  // Primary: Unsplash → Pixabay → Wikipedia (last resort, often unrelated)
   let results = await unsplashSearch(q, limit);
+  if (!results.length) results = await pixabaySearch(q, limit);
   if (!results.length) results = await wikiResolve(q);
 
   const url = results[0]?.url || null;
