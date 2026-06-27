@@ -229,6 +229,71 @@ function _ttGenWordDefinitionMatch(input){
     questions: [{ type:'match', text:'Match each word to its definition.', pairs, points: pairs.length }] };
 }
 
+/* ── collocations ────────────────────────────────────────────────── */
+function _ttGenCollocations(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Write 2 collocations with "${_ttCap(w)}" and use each in a sentence.`,
+    points:2,
+  }));
+  return { boardKind:'quiz', kind:'Collocations', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Collocations: ${input.topic}`, questions };
+}
+
+/* ── synonyms-antonyms ───────────────────────────────────────────── */
+function _ttGenSynonymsAntonyms(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Give one synonym and one antonym for "${_ttCap(w)}". Use the synonym in a sentence.`,
+    points:2,
+  }));
+  return { boardKind:'quiz', kind:'Synonyms & Antonyms', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Synonyms & Antonyms: ${input.topic}`, questions };
+}
+
+/* ── word-families ───────────────────────────────────────────────── */
+function _ttGenWordFamilies(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Complete the word family for "${_ttCap(w)}":\nNoun: ___  Verb: ___  Adjective: ___  Adverb: ___`,
+    points:3,
+  }));
+  return { boardKind:'quiz', kind:'Word Families', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Word Families: ${input.topic}`, questions };
+}
+
+/* ── phrasal-verbs ───────────────────────────────────────────────── */
+function _ttGenPhrasalVerbs(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Complete the sentence using "${_ttCap(w)}":\n"Yesterday, I _______________."\nThen explain what it means.`,
+    points:2,
+  }));
+  return { boardKind:'quiz', kind:'Phrasal Verbs', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Phrasal Verbs: ${input.topic}`, questions };
+}
+
+/* ── idioms ─────────────────────────────────────────────────────── */
+function _ttGenIdioms(input){
+  const words = _ttVocabLines(input).slice(0, input.count);
+  if (!words.length) return null;
+  const questions = words.map(w => ({
+    type:'open',
+    text:`Explain the meaning of "${_ttCap(w)}" and write a sentence using it in context.`,
+    points:2,
+  }));
+  return { boardKind:'quiz', kind:'Idioms', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Idioms: ${input.topic}`, questions };
+}
+
 function _ttGenErrorCorrection(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length >= 2);
@@ -1007,6 +1072,11 @@ function generateTeacherToolLocal(input){
   if (id === 'open-questions')        return _ttGenOpenQuestions(input);
   if (id === 'gaps-abcd')             return _ttGenGapsAbcd(input);
   if (id === 'word-definition-match') return _ttGenWordDefinitionMatch(input);
+  if (id === 'collocations')          return _ttGenCollocations(input);
+  if (id === 'synonyms-antonyms')     return _ttGenSynonymsAntonyms(input);
+  if (id === 'word-families')         return _ttGenWordFamilies(input);
+  if (id === 'phrasal-verbs')         return _ttGenPhrasalVerbs(input);
+  if (id === 'idioms')                return _ttGenIdioms(input);
   if (id === 'error-correction')      return _ttGenErrorCorrection(input);
   if (id === 'essential-vocab')       return _ttGenEssentialVocab(input);
   if (id === 'flashcards')            return _ttGenFlashcards(input);
