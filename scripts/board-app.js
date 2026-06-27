@@ -7966,7 +7966,12 @@ function _ttGamePayloads(out) {
         push('word-categories', 'Sort into Categories', '🗂', { categories: Object.entries(cats).map(([name, words]) => ({ name, words })) });
       }
       const pairs = raw.map(p => ({ a: p.left, b: p.right }));
-      if (pairs.length >= 3) { push('memory-match', 'Memory Match', '🃏', { pairs }); push('flashcards', 'Flashcards', '📇', { pairs }); }
+      if (pairs.length >= 3) {
+        push('memory-match', 'Memory Match', '🃏', { pairs });
+        push('flashcards', 'Flashcards', '📇', { pairs });
+        // Photo Match: use the left-side word as the Unsplash search query
+        push('word-image-match', 'Photo Match', '🖼️', { pairs: raw.map(p => ({ left: p.left, right: p.left })) });
+      }
     }
     const mcqs = qs.filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2);
     if (mcqs.length >= 3) push('speed-quiz', 'Speed Quiz', '⚡', { questions: mcqs.map(q => ({ q: _ttG(q.text), opts: q.options.map(_ttG), correct: Math.max(0, q.options.indexOf(q.answer)) })) });
@@ -7997,6 +8002,7 @@ function _assignmentGamePayloads(data) {
   if (matchPairs.length >= 2) {
     push('memory-match', 'Memory Match', '🃏', { pairs: matchPairs });
     push('flashcards', 'Flashcards', '📇', { pairs: matchPairs });
+    push('word-image-match', 'Photo Match', '🖼️', { pairs: matchPairs.map(p => ({ left: p.a, right: p.a })) });
   }
 
   const mcqs = qs.filter(q => Array.isArray(q.options) && q.options.length >= 2);
