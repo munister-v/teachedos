@@ -915,6 +915,15 @@ function _ttBuildFromAI(toolId, input, items) {
     return questions.length ? { ...base, boardKind:'quiz', kind:'Check', cat:'reading',
       title:`${input.level} · True / False: ${input.topic}`, questions } : null;
   }
+  if (toolId === 'word-image-match') {
+    const pairs = items.map(it => ({
+      left: _ttCap(String(it.left || it.word || '')),
+      right: String(it.right || it.query || '')
+    })).filter(p => p.left && p.right);
+    return pairs.length >= 2 ? { ...base, boardKind:'quiz', kind:'Matching', cat:'vocabulary',
+      title:`${input.level} · Word-Image Match: ${input.topic}`,
+      questions:[{ type:'match', text:'Match each word to its photo.', pairs, points:pairs.length }] } : null;
+  }
   if (toolId === 'extract-vocab') {
     const vItems = items.map(it => ({
       word: _ttCap(it.word || ''),

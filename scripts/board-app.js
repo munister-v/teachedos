@@ -15919,6 +15919,9 @@ function updateSettingsUI() {
   if (sw) sw.value = boardSettings.sidebarWidth;
   const mt = document.getElementById('toggle-motion');
   if (mt) mt.classList.toggle('on', boardSettings.reduceMotion);
+  
+  const orKey = document.getElementById('openrouter-key');
+  if (orKey) orKey.value = localStorage.getItem('openRouterKey') || '';
 }
 
 function openSettings() {

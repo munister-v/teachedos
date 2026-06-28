@@ -140,6 +140,8 @@ const _PROMPTS = {
     `You are an EFL teacher. Write a short ${i.level}-level summary of the transcript, then turn it into exactly ${i.count} gap-fill sentences with "_____" for a key word. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"summary sentence with _____","answer":"missing word"}]\n\nTranscript:\n"""${i.source}"""`,
   'choose-summary': (i) =>
     `You are an EFL teacher. Based on the transcript/text, write one "choose the correct summary" multiple-choice question at ${i.level} level with 3 options (one correct). Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"Which summary best matches the text?","options":["correct summary","wrong summary","wrong summary"],"answer":"correct summary"}]\n\nText:\n"""${i.source}"""`,
+  'word-image-match': (i) =>
+    `You are an EFL teacher. The game "Word-Image Match" needs highly visual search queries to fetch correct photos for words. Generate exactly ${Math.min(i.count, 6)} pairs for the vocabulary: ${i.vocab||i.topic}. The "left" is the exact word. The "right" is a short, vivid, descriptive visual search query (e.g. "person sleeping on office desk" for "exhausted", or "student raising hand" for "ask").\nReturn ONLY a JSON array:\n[{"left":"word","right":"visual search query"}]`,
 };
 
 function _parseJSON(raw) {
@@ -149,7 +151,7 @@ function _parseJSON(raw) {
 }
 
 window._ttAI = {
-  supported: () => !!navigator.gpu,
+  supported: () => !!navigator.gpu || !!localStorage.getItem('openRouterKey'),
   generate: async function(toolId, input, onProgress) {
     const mkPrompt = _PROMPTS[toolId];
     if (!mkPrompt) return null;
@@ -166,14 +168,53 @@ window._ttAI = {
       onProgress?.('Using cached AI result…', 1);
       return JSON.parse(JSON.stringify(_responseCache.get(cacheKey)));
     }
-    const engine = await _loadEngine(onProgress);
+    
     const maxTokens = Math.min(4200, Math.max(1400, Number(input.count || 6) * 120));
-    const resp = await engine.chat.completions.create({
-      messages: [{ role: 'user', content: mkPrompt(input) }],
-      temperature: 0.35,
-      max_tokens: maxTokens,
-    });
-    const parsed = _parseJSON(resp.choices[0].message.content);
+    const openRouterKey = localStorage.getItem('openRouterKey');
+    let respContent = '';
+
+    if (openRouterKey) {
+      onProgress?.('Generating via OpenRouter API…', 0.5);
+      const model = localStorage.getItem('openRouterModel') || 'meta-llama/llama-3-8b-instruct:free';
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openRouterKey}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'TeachEd'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: 'user', content: mkPrompt(input) }],
+            temperature: 0.35,
+            max_tokens: maxTokens,
+          })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+          respContent = data.choices[0].message.content;
+        } else {
+          throw new Error('OpenRouter API returned an empty response or error.');
+        }
+      } catch (err) {
+        console.error('[ttAI] OpenRouter error:', err);
+        return null;
+      }
+    } else {
+      onProgress?.('Loading local AI model (may take a moment)…', 0);
+      const engine = await _loadEngine(onProgress);
+      onProgress?.('Generating locally…', 0.5);
+      const resp = await engine.chat.completions.create({
+        messages: [{ role: 'user', content: mkPrompt(input) }],
+        temperature: 0.35,
+        max_tokens: maxTokens,
+      });
+      respContent = resp.choices[0].message.content;
+    }
+
+    const parsed = _parseJSON(respContent);
     if (parsed) {
       _responseCache.set(cacheKey, parsed);
       if (_responseCache.size > 16) _responseCache.delete(_responseCache.keys().next().value);

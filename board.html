@@ -1343,6 +1343,15 @@ polite request</textarea>
         </div>
       </div>
 
+      <!-- AI Settings -->
+      <div>
+        <div class="stp-section-title">🤖 AI Model Settings</div>
+        <div class="stp-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <div><div class="stp-label">OpenRouter API Key</div><div class="stp-sub">Use high-quality AI instead of local WebLLM</div></div>
+          <input type="password" id="openrouter-key" class="tbuilder-inp" style="width:100%" placeholder="sk-or-v1-..." onchange="localStorage.setItem('openRouterKey', this.value.trim())">
+        </div>
+      </div>
+
       <!-- Reset -->
       <div style="padding-top:4px;border-top:1px solid var(--border);">
         <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef4444;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
