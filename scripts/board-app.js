@@ -13458,34 +13458,53 @@ function quickPracticeAllVocab() {
   if (terms.length === 1) { toast('Only one term found — use ⚡ Quick Practice on the card'); }
   const allMeanings = terms.map(t => t.meaning).filter(Boolean);
   const allTerms = terms.map(t => t.term);
-  const meaningMcq = t => {
+  // ── Question builders (return null when a phrase can't support the type) ──
+  const meaningMcq = t => {                       // recognition: phrase → meaning
     if (!t.meaning || allMeanings.length < 2) return null;
     const opts = _ttShuffle([t.meaning, ..._ttShuffle(allMeanings.filter(m => m !== t.meaning)).slice(0, 3)]);
     return { type: 'mcq', text: `What does “${t.term}” mean?`, options: opts, answer: t.meaning, points: 1 };
   };
-  const reverseMcq = t => {
+  const reverseMcq = t => {                        // recognition: meaning → phrase
     if (!t.meaning || allTerms.length < 2) return null;
     const opts = _ttShuffle([t.term, ..._ttShuffle(allTerms.filter(x => x !== t.term)).slice(0, 3)]);
     return { type: 'mcq', text: `Which phrase means: “${t.meaning}”?`, options: opts, answer: t.term, points: 1 };
   };
-  const gapFill = t => {
+  const trueFalse = t => {                         // recognition: judge a pairing
+    if (!t.meaning) return null;
+    const wrong = _ttShuffle(allMeanings.filter(m => m !== t.meaning));
+    // ~50/50 show the correct meaning (True) or a decoy (False).
+    const showTrue = !wrong.length || Math.random() < 0.5;
+    const shown = showTrue ? t.meaning : wrong[0];
+    return { type: 'truefalse', text: `“${t.term}” means: “${shown}”.`, answer: showTrue, points: 1 };
+  };
+  const exampleGap = t => {                         // production: cloze from example
     const gapped = _blankTermInExample(t.example, t.term);
-    if (gapped) return { type: 'gap-fill', text: gapped, answer: t.term, points: 1 };
+    return gapped ? { type: 'gap-fill', text: gapped, answer: t.term, points: 1 } : null;
+  };
+  const typePhrase = t => {                         // production: recall from meaning
     if (!t.meaning) return null;
     return { type: 'gap-fill', text: `Type the phrase that means: “${t.meaning}”: _____`, answer: t.term, points: 1 };
   };
-  // Rotate the primary type per phrase; fall back through the others so every
-  // phrase still yields exactly one question.
-  const wheels = [
-    [gapFill, meaningMcq, reverseMcq],
-    [meaningMcq, reverseMcq, gapFill],
-    [reverseMcq, gapFill, meaningMcq],
-  ];
+  // ── CEFR-aware difficulty: lower levels lean on recognition, higher levels on
+  //    production. Each phrase rotates within its level's type set, and falls
+  //    through the remaining builders so every phrase still yields one question. ──
+  const band = String(level).toUpperCase().charAt(0) === 'A' ? 'low'
+             : /^(B2|C1|C2)/i.test(String(level))          ? 'high'
+             : 'mid';
+  const wheelsByBand = {
+    low:  [[meaningMcq, reverseMcq, trueFalse], [trueFalse, meaningMcq, reverseMcq], [reverseMcq, trueFalse, meaningMcq]],
+    mid:  [[meaningMcq, exampleGap, reverseMcq], [reverseMcq, trueFalse, meaningMcq], [exampleGap, meaningMcq, reverseMcq]],
+    high: [[exampleGap, typePhrase, reverseMcq], [typePhrase, exampleGap, meaningMcq], [reverseMcq, exampleGap, typePhrase]],
+  };
+  const wheels = wheelsByBand[band];
+  // Every builder is a last-resort fallback so no phrase is silently dropped.
+  const fallbacks = [meaningMcq, reverseMcq, exampleGap, typePhrase, trueFalse];
   const qs = [];
   terms.forEach((t, i) => {
     const order = wheels[i % wheels.length];
     let q = null;
     for (const build of order) { q = build(t); if (q) break; }
+    if (!q) { for (const build of fallbacks) { q = build(t); if (q) break; } }
     if (q) qs.push(q);
   });
   const data = {
@@ -13503,7 +13522,7 @@ function quickPracticeAllVocab() {
     setTimeout(() => { try { zoomToCard && zoomToCard(nc.id, true); } catch (e) {} }, 80);
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
-  toast(`⚡ Practice built — ${qs.length} question${qs.length > 1 ? 's' : ''} from your board`);
+  toast(`⚡ Practice built — ${qs.length} ${level} question${qs.length > 1 ? 's' : ''} from your board`);
 }
 
 /* ════════════════════════ CHECKLIST CARD ════════════════════════ */
