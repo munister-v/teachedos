@@ -8948,6 +8948,10 @@ function _ttPlaceCardsOnBoard(output){
       const cy = y0 + rowY[row];
       const card = addCard('note', cx, cy, {
         icon: meta.icon, title: c.title || `Card ${i+1}`, body: c.text || '', accent: meta.color,
+        // Tag vocabulary-category cards (idioms / collocations / phrasal verbs)
+        // so "⚡ Practice all vocab" can find them — the frame's _ttCat lives on
+        // the frame, not on these child note cards.
+        _vocabTerm: output.cat === 'vocabulary', _ttCat: output.cat || 'utility', _ttKind: output.kind || '',
       }, CARD_W, rowHeights[row]);
       if (frame && card) setCardParentFrame?.(card, frame);
     });
@@ -13408,7 +13412,7 @@ function _collectBoardVocabTerms() {
     if (c.type === 'vocab') {
       const term = String(c.data.word || '').trim();
       if (term) out.push({ term, meaning: String(c.data.translation || '').trim(), example: String(c.data.example || '').trim() });
-    } else if (c.type === 'note' && c.data._ttSrc && c.data._ttCat === 'vocabulary') {
+    } else if (c.type === 'note' && (c.data._vocabTerm || c.data._ttCat === 'vocabulary')) {
       // Idioms / expressions / collocations: title is the phrase, body is
       // "meaning" and often an example line. Take the first line as the meaning.
       const term = String(c.data.title || '').replace(/^\d+[.)]\s*/, '').trim();
