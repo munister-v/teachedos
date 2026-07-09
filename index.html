@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=197">
+<link rel="preload" as="style" href="styles/harmony.css?v=199">
 <link rel="preload" as="style" href="styles/unify.css?v=197">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
@@ -1462,8 +1462,8 @@ html,body {
 }
 </style>
 <script src="theme.js?v=197" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=197">
-<link rel="stylesheet" href="styles/harmony.css?v=197">
+<link rel="stylesheet" href="styles/mobile.css?v=199">
+<link rel="stylesheet" href="styles/harmony.css?v=199">
 <link rel="stylesheet" href="styles/unify.css?v=197">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
@@ -1659,10 +1659,10 @@ html,body {
             <span class="mp-pulse"></span>
           </div>
           <div class="mp-featured-title" id="mp-next-title">No class scheduled</div>
-          <div class="mp-featured-meta" id="mp-next-meta">Plan your week to see your next class here.</div>
+          <div class="mp-featured-meta" id="mp-next-meta">Your next class, board and student notes will appear here when the week is planned.</div>
           <div class="mp-featured-cta">
             <a class="mp-btn mp-btn-lime" href="schedule.html">View schedule</a>
-            <a class="mp-btn mp-btn-ghost-dark" href="board.html">Lesson plan</a>
+            <a class="mp-btn mp-btn-ghost-dark" href="board.html">Open board</a>
           </div>
         </div>
 
@@ -1686,19 +1686,19 @@ html,body {
         </div>
 
         <!-- Today's schedule — quick day-control timeline -->
-        <div class="mp-section-head"><div class="mp-section-h">Today's schedule</div></div>
+        <div class="mp-section-head"><div class="mp-section-h">Today in class</div></div>
         <div class="mp-today-list" id="mp-today-list">
-          <div class="mp-today-empty">No classes today. Tap <b>Schedule</b> below to plan your week.</div>
+          <div class="mp-today-empty">No classes today. Plan the week, or open a board and prepare tomorrow's lesson.</div>
         </div>
 
         <!-- Quick controls — oversight, not creation -->
-        <div class="mp-section-head"><div class="mp-section-h">Quick controls</div></div>
+        <div class="mp-section-head"><div class="mp-section-h">Teacher controls</div></div>
         <div class="mp-quick-list">
           <a class="mp-quick" href="schedule.html">
             <div class="mp-quick-ic2" style="background:rgba(205,242,79,.22)" aria-hidden="true">📅</div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Schedule</div>
-              <div class="mp-quick-s">Plan, move & reschedule classes</div>
+              <div class="mp-quick-s">Plan, move and reschedule classes</div>
             </div>
             <span class="mp-quick-arr">→</span>
           </a>
@@ -1706,15 +1706,15 @@ html,body {
             <div class="mp-quick-ic2" style="background:rgba(143,230,230,.28)" aria-hidden="true">📒</div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Gradebook</div>
-              <div class="mp-quick-s">Scores, attendance & progress</div>
+              <div class="mp-quick-s">Scores, attendance and progress</div>
             </div>
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="homework.html">
             <div class="mp-quick-ic2" style="background:rgba(255,181,174,.30)" aria-hidden="true">📝</div>
             <div class="mp-quick-info">
-              <div class="mp-quick-t">Homework</div>
-              <div class="mp-quick-s">Review what students sent in</div>
+              <div class="mp-quick-t">Homework inbox</div>
+              <div class="mp-quick-s">Review submitted tasks and follow up</div>
             </div>
             <span class="mp-quick-arr">→</span>
           </a>
@@ -1722,7 +1722,7 @@ html,body {
             <div class="mp-quick-ic2" style="background:rgba(236,45,140,.16)" aria-hidden="true">📊</div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Weekly recap</div>
-              <div class="mp-quick-s">Class & student progress at a glance</div>
+              <div class="mp-quick-s">Class and student progress at a glance</div>
             </div>
             <span class="mp-quick-arr">→</span>
           </a>
@@ -1741,7 +1741,7 @@ html,body {
       <section class="studio-hero mix">
         <div class="studio-eyebrow">Teacher workspace</div>
         <div class="studio-title">Build, find and reuse your <em>lesson boards</em>.</div>
-        <p class="studio-copy">Your saved boards, shared lessons and ready teaching flows live here. Search by class, topic or student and jump back into teaching fast.</p>
+        <p class="studio-copy">Saved boards, shared lessons and classroom flows live here. Search by class, topic or student and return to teaching without digging through files.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip" href="lesson-builder.html">Lesson builder</a><a class="studio-chip" href="community.html">Community boards</a></div>
       </section>
       <div class="curr-search">
@@ -1751,8 +1751,8 @@ html,body {
       <div class="curr-grid" id="plans-grid">
         <div class="plans-empty-state" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:12px;">
           <div style="font-size:36px;opacity:.5;">📋</div>
-          <div style="font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:-.01em;">Loading your boards…</div>
-          <div style="font-size:12px;color:var(--text-3);font-weight:500;">Your lesson plans will appear here</div>
+          <div style="font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:-.01em;">Preparing your boards…</div>
+          <div style="font-size:12px;color:var(--text-3);font-weight:500;">Saved lessons, shared boards and drafts will appear here</div>
         </div>
       </div>
     </div>
