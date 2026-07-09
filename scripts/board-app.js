@@ -10601,7 +10601,9 @@ function loadBoard() {
     state.pan    = data.pan    || { x:100, y:60 };
     state.scale  = data.scale  || 1;
     state.nextId = data.nextId || 1;
-    (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
+    const _cardFrag = document.createDocumentFragment();
+    (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
+    board.appendChild(_cardFrag);
     state.arrows = data.arrows || [];
     state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
     state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
@@ -11293,6 +11295,11 @@ const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || l
 let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
+// Board fetch kicked off in parallel with the /api/auth/me check on boot
+// (see the init IIFE near the bottom) — initUserBoard() consumes it instead
+// of issuing a second sequential request, saving one full round trip.
+let _boardPrefetch = null;
+function _settleP(p) { return p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e })); }
 let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'teacher';
 let _cachedBoardCount = null;
@@ -11699,7 +11706,15 @@ async function initUserBoard() {
     // If URL has a specific board id, try to load it
     const targetId = URL_BOARD_ID || currentBoardId;
     if (targetId) {
-      const r = await apiFetch('/api/boards/' + targetId);
+      let r;
+      if (_boardPrefetch && _boardPrefetch.id === targetId) {
+        const settled = await _boardPrefetch.promise;
+        _boardPrefetch = null;
+        if (!settled.ok) throw settled.e;   // same error path as a direct fetch() throw below
+        r = settled.v;
+      } else {
+        r = await apiFetch('/api/boards/' + targetId);
+      }
       if (r.ok) {
         const { board } = await r.json();
         currentBoardId = board.id;
@@ -11808,7 +11823,11 @@ function loadBoardData(data) {
   state.pan    = data.pan    || { x:100, y:60 };
   state.scale  = data.scale  || 1;
   state.nextId = data.nextId || 1;
-  (data.cards  || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
+  // Build all card elements off-DOM first, then insert in a single append —
+  // avoids one reflow/style-recalc per card on boards with many cards.
+  const _cardFrag = document.createDocumentFragment();
+  (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
+  board.appendChild(_cardFrag);
   state.arrows = data.arrows || [];
   state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
@@ -14496,6 +14515,13 @@ function startReconnectLoop() {
   if (authToken) {
     const loginBtn = document.getElementById('auth-login-btn');
     if (loginBtn) { loginBtn.textContent = '⟳'; loginBtn.style.pointerEvents = 'none'; }
+    // Fire the board fetch in parallel with the auth check — both use the
+    // same JWT, so if the token is invalid both fail together; if it's
+    // valid we save a full round trip instead of waiting for auth/me first.
+    const _prefetchTargetId = URL_BOARD_ID || currentBoardId;
+    if (_prefetchTargetId) {
+      _boardPrefetch = { id: _prefetchTargetId, promise: _settleP(apiFetch('/api/boards/' + _prefetchTargetId)) };
+    }
     try {
       const r = await apiFetchTimeout('/api/auth/me', {}, 10000);
       const d = await r.json();
