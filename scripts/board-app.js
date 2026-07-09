@@ -7694,6 +7694,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
         `<button type="button" class="yt-retry-btn" onclick="_ytRetryFailed()">↻ Retry failed</button>`);
       toast(`🎬 ${results.length}/${picks.length} exercises on the board`);
     } else {
+      _ytRunning = false;   // closeYtLesson() would otherwise treat this as "Stop while building"
       closeYtLesson();
       toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board`);
     }
