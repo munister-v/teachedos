@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=197">
+<link rel="manifest" href="manifest.json?v=200">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=197">
-<link rel="stylesheet" href="styles/mobile.css?v=197">
-<link rel="stylesheet" href="styles/harmony.css?v=197">
-<link rel="stylesheet" href="styles/unify.css?v=197">
+<link rel="stylesheet" href="styles/board.css?v=200">
+<link rel="stylesheet" href="styles/mobile.css?v=200">
+<link rel="stylesheet" href="styles/harmony.css?v=200">
+<link rel="stylesheet" href="styles/unify.css?v=200">
 </head>
 <body class="board-page">
 
@@ -541,12 +541,12 @@
     <div id="multi-sel-box"><span class="ms-h-sw"></span><span class="ms-h-se"></span></div>
   </div>
   <div id="empty-state">
-    <div class="empty-icon">✨</div>
-    <div class="empty-text">Start building your lesson</div>
+    <div class="empty-icon">✦</div>
+    <div class="empty-text">Start with one teaching move</div>
     <div class="empty-sub">
-      <div class="empty-hint"><span class="empty-key">double-click</span> anywhere to add a card</div>
-      <div class="empty-hint"><span class="empty-key">drag</span> items from the panel on the left</div>
-      <div class="empty-hint"><span class="empty-key">C</span> to connect cards with arrows</div>
+      <div class="empty-hint"><span class="empty-key">double-click</span> to add the first card</div>
+      <div class="empty-hint"><span class="empty-key">Tools</span> to draft a task from topic or text</div>
+      <div class="empty-hint"><span class="empty-key">C</span> to connect cards into a lesson flow</div>
     </div>
   </div>
 </div>
@@ -665,7 +665,7 @@
       <div>
         <div class="tbuilder-kicker" id="tbuilder-kicker">Teacher tool constructor</div>
         <div class="tbuilder-title" id="tbuilder-title">Build a classroom task</div>
-        <div class="tbuilder-sub" id="tbuilder-sub">Choose a tool, add your topic/source/vocabulary, generate a teacher-ready activity, then place it on the board as structured cards.</div>
+        <div class="tbuilder-sub" id="tbuilder-sub">Choose a tool, add your topic, source or vocabulary, then place an editable classroom activity on the board.</div>
       </div>
       <button class="tbuilder-close" onclick="closeTeacherToolBuilder()" aria-label="Close teacher tool builder">×</button>
     </div>
@@ -745,8 +745,8 @@ polite request</textarea>
           <textarea id="tbuilder-extra" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
         </div>
         <div class="tbuilder-actions">
-          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Generate fast</button>
-          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Fast smart rewrite. Heavy local WebLLM is opt-in only.">AI enhance</button>
+          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Create draft</button>
+          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Optional smart rewrite. Heavy local WebLLM is opt-in only.">Polish draft</button>
           <div class="tbuilder-add-wrap" id="tbuilder-add-wrap">
             <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="toggleAddToBoardMenu()" disabled>＋ Add to board ▾</button>
             <div class="tbuilder-add-menu" id="tbuilder-add-menu" role="menu">
@@ -767,7 +767,7 @@ polite request</textarea>
           <div class="tbuilder-chip" id="tbuilder-chip">not generated</div>
         </div>
         <div class="tbuilder-output" id="tbuilder-output">
-          <div class="tbuilder-empty">Choose a tool from the left panel.<br>Then generate a real classroom task here.</div>
+          <div class="tbuilder-empty">Choose a tool from the left panel.<br>Then create a real classroom task here.</div>
         </div>
       </div>
     </div>
@@ -918,7 +918,7 @@ polite request</textarea>
           <div class="ai-memory-note" id="ai-memory-note">Memory is saved on this device. The next board will adapt to your notes, mistakes and mode.</div>
           <!-- Primary actions -->
           <div class="ai-action-row" style="grid-template-columns:1fr 1fr;margin-top:14px;">
-            <button class="ai-action" onclick="runAiAssistant()">✦ Generate</button>
+            <button class="ai-action" onclick="runAiAssistant()">✦ Create draft</button>
             <button class="ai-action secondary" onclick="applyAiAssistantToBoard()">Apply to board</button>
           </div>
           <!-- Secondary actions -->
@@ -936,7 +936,7 @@ polite request</textarea>
             <button class="ai-action ghost" onclick="copyAiAssistantPreview()">Copy</button>
           </div>
           <div class="ai-preview-body" id="ai-preview-body">
-            <div class="ai-empty">Set topic, level and skill, then hit Generate.</div>
+            <div class="ai-empty">Set topic, level and skill, then create a first editable draft.</div>
           </div>
         </div>
       </div>
@@ -1193,7 +1193,7 @@ polite request</textarea>
             <div class="cfg-label" style="margin-bottom:3px;">Number of questions</div>
             <input class="cfg-input" id="tb-gen-count" type="number" min="3" max="20" value="8">
           </div>
-          <button class="gen-btn" onclick="generateTaskSet()">⚡ Generate set</button>
+          <button class="gen-btn" onclick="generateTaskSet()">✦ Create set</button>
           <button class="gen-btn secondary" style="margin-top:6px;" onclick="addBlankQuestion()">＋ Add blank question</button>
         </div>
       </div>
@@ -1202,7 +1202,7 @@ polite request</textarea>
         <div class="tb-empty" id="tb-empty-state">
           <div class="tb-empty-icon">📋</div>
           <div class="tb-empty-text">No questions yet</div>
-          <div class="tb-empty-sub">Pick a topic and click <strong>Generate set</strong><br>or add questions manually.</div>
+          <div class="tb-empty-sub">Pick a topic and click <strong>Create set</strong><br>or add questions manually.</div>
         </div>
       </div>
     </div>
@@ -1638,9 +1638,9 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=197"></script>
+<script src="js/teacher-tools-data.js?v=200"></script>
 <script src="scripts/board-app.js?v=198"></script>
-<script src="js/teacher-tool-board-composer.js?v=197"></script>
+<script src="js/teacher-tool-board-composer.js?v=200"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1648,7 +1648,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=197" defer></script>
+<script src="pwa-boot.js?v=200" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1689,11 +1689,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=197"></script>
-<script src="scripts/nav-boost.js?v=197" defer></script>
-<script src="scripts/mobile-perf.js?v=197" defer></script>
-<script src="scripts/mobile-nav.js?v=197"></script>
-<script src="scripts/mobile-zoom-guard.js?v=197" defer></script>
+<script src="pwa.js?v=200"></script>
+<script src="scripts/nav-boost.js?v=200" defer></script>
+<script src="scripts/mobile-perf.js?v=200" defer></script>
+<script src="scripts/mobile-nav.js?v=200"></script>
+<script src="scripts/mobile-zoom-guard.js?v=200" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

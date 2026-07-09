@@ -4831,3 +4831,56 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   transition:background .15s,transform .12s;white-space:nowrap;}
 #btn-build-lesson:hover{background:#e0dff4;transform:translateY(-1px);}
 #btn-build-lesson.show{display:inline-flex;}
+
+/* TeachEd identity polish 200: board workspace details */
+#empty-state{
+  background:
+    linear-gradient(rgba(28,28,30,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(28,28,30,.026) 1px,transparent 1px),
+    rgba(255,255,255,.82) !important;
+  background-size:28px 28px !important;
+  border:1px solid rgba(94,94,74,.14) !important;
+  box-shadow:0 18px 54px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.88) inset !important;
+  backdrop-filter:blur(18px) saturate(1.35) !important;
+}
+#empty-state::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:inherit;
+  background:linear-gradient(180deg,#C8E632,#EC2D8C);
+}
+.empty-icon{font-family:var(--font-mono,ui-monospace,monospace) !important;color:#EC2D8C !important;background:rgba(236,45,140,.08) !important;border:1px solid rgba(236,45,140,.16) !important;box-shadow:0 1px 0 rgba(255,255,255,.8) inset !important;}
+.empty-text{letter-spacing:-.035em !important;}
+.empty-sub{gap:8px !important;}
+.empty-hint{background:#fff !important;border:1px solid rgba(94,94,74,.12) !important;border-radius:999px !important;padding:7px 10px !important;box-shadow:0 4px 14px rgba(28,28,30,.045) !important;}
+.empty-key{background:#1C1C1E !important;color:#F5F0E8 !important;border-color:rgba(28,28,30,.16) !important;}
+#toolbar,.tb-board-chip,#miro-toolbar,.zoom-controls,#ai-assistant-panel,.tbuilder-panel,#teacher-tool-builder{
+  box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 12px 34px rgba(28,28,30,.09) !important;
+}
+.tb-builder,.tbuilder-panel,#teacher-tool-builder{border-color:rgba(94,94,74,.14) !important;}
+.tbuilder-empty,.ai-empty,.tb-empty{
+  background:
+    linear-gradient(rgba(28,28,30,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(28,28,30,.022) 1px,transparent 1px),
+    rgba(245,240,232,.58) !important;
+  background-size:22px 22px !important;
+  border:1px dashed rgba(94,94,74,.22) !important;
+  border-radius:18px !important;
+  color:rgba(58,58,46,.72) !important;
+}
+.tbuilder-btn.lime,.gen-btn,.ai-action:not(.ghost):not(.secondary){
+  background:#C8E632 !important;color:#111214 !important;border-color:rgba(28,28,30,.10) !important;
+  box-shadow:0 8px 20px rgba(200,230,50,.24),0 1px 0 rgba(255,255,255,.65) inset !important;
+}
+.tbuilder-btn.ghost,.ai-action.ghost,.gen-btn.secondary{
+  background:#fff !important;color:#1C1C1E !important;border-color:rgba(94,94,74,.14) !important;
+}
+.tbuilder-btn:focus-visible,.ai-action:focus-visible,.gen-btn:focus-visible,.mt-btn:focus-visible,.tb-icon-btn:focus-visible{
+  outline:3px solid rgba(236,45,140,.25) !important;outline-offset:3px !important;
+}
+.card,.board-card,.lesson-card{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 10px 28px rgba(28,28,30,.06) !important;}
+@media(max-width:720px){
+  #empty-state{max-width:calc(100vw - 30px) !important;padding:22px 18px !important;border-radius:22px !important;}
+  .empty-hint{width:100% !important;justify-content:flex-start !important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .tbuilder-btn,.ai-action,.gen-btn,.mt-btn,.tb-icon-btn{transition:none !important;}
+}

@@ -192,9 +192,9 @@ const PRESET_PACKS = [
     sub: "argument + nuance",
     tool: "discussion",
     level: "C1",
-    topic: "Should universities use AI tools?",
+    topic: "Should universities allow writing assistants?",
     vocab: "ethical - connected with right and wrong\naccountability - responsibility for decisions\nplagiarism - using someone else s work as your own\ncritical thinking - careful independent judgement\nimplementation - putting a plan into action",
-    source: "Universities are debating how AI tools should be used in academic work. Some teachers see them as useful assistants, while others worry about plagiarism and shallow thinking."
+    source: "Universities are debating how writing assistants should be used in academic work. Some teachers see them as useful support, while others worry about plagiarism and shallow thinking."
   },
   {
     title: "C1 Climate Policy",
@@ -449,10 +449,10 @@ const PRESET_PACKS = [
 
   // ─── B2 UPPER INTERMEDIATE ────────────────────────────────────────
   {
-    title: "B2 AI & Future of Work", sub: "automation debate", tool: "discussion", level: "B2",
-    topic: "How AI will change work",
+    title: "B2 Future of Work", sub: "automation debate", tool: "discussion", level: "B2",
+    topic: "How automation will change work",
     vocab: "automation - machines doing human jobs\ndisplaced - replaced or pushed out\nupskilling - learning new skills\nrepetitive - the same again and again\nproductivity boost - getting more done\noversight - human supervision\nhybrid role - a job that combines human and AI\nhallucinate - when AI invents wrong information\nbias - unfair preference in decisions\nstreamline - make a process simpler",
-    source: "Most economists agree that AI will not eliminate work — it will reshape it. The jobs at greatest risk are not low-skilled but repetitive. Many roles will become hybrid, where humans focus on judgment, creativity and ethics while AI handles routine analysis. Upskilling will matter more than job title."
+    source: "Most economists agree that automation will not eliminate work entirely; it will reshape it. The jobs at greatest risk are not low-skilled but repetitive. Many roles will become hybrid, where humans focus on judgment, creativity and ethics while software handles routine analysis. Upskilling will matter more than job title."
   },
   {
     title: "B2 Mental Health Talk", sub: "stress + support", tool: "discussion", level: "B2",
@@ -517,8 +517,8 @@ const PRESET_PACKS = [
 
   // ─── C1 ADVANCED ──────────────────────────────────────────────────
   {
-    title: "C1 Ethical AI", sub: "bias + accountability", tool: "essential-vocab", level: "C1",
-    topic: "Ethics, bias and AI",
+    title: "C1 Tech Ethics", sub: "bias + accountability", tool: "essential-vocab", level: "C1",
+    topic: "Technology ethics and bias",
     vocab: "algorithmic bias - unfair patterns in AI decisions\naccountability - clear responsibility\nopacity - lack of transparency\nblack box - system whose decisions can't be inspected\nfair use - balanced and just\ndata provenance - where data came from\ndue diligence - careful checking\nautomated decision - choice made without humans\nstakeholder - person affected by decisions\nregulatory framework - the system of rules",
     source: "AI systems trained on biased data inherit and amplify that bias. Even when models are technically accurate, automated decisions can cause real harm in hiring, lending and criminal justice. Calls for regulation are rising, but enforcement is hard when the systems themselves are opaque."
   },
