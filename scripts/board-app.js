@@ -5347,21 +5347,30 @@ document.addEventListener('mouseup', e => {
 })();
 
 /* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
+// Normalize wheel deltas across browsers/devices: Chrome/Safari report
+// pixel deltas (deltaMode 0, ~100/notch); Firefox with a physical mouse
+// reports line deltas (deltaMode 1, ~3/notch) — without this, pan/zoom
+// is ~30x too slow in Firefox.
+function _wheelDelta(e) {
+  const mult = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? window.innerHeight : 1;
+  return { dx: e.deltaX * mult, dy: e.deltaY * mult };
+}
 boardWrap.addEventListener('wheel', e => {
   e.preventDefault();
   if (isFollowingTeacher) return;
+  const { dx: wdx, dy: wdy } = _wheelDelta(e);
 
   // Ctrl/Cmd+scroll or trackpad pinch = zoom
   if (e.ctrlKey || e.metaKey) {
-    const intensity = Math.min(Math.abs(e.deltaY), 20);
-    const factor = e.deltaY < 0 ? (1 + intensity * 0.008) : (1 / (1 + intensity * 0.008));
+    const intensity = Math.min(Math.abs(wdy), 20);
+    const factor = wdy < 0 ? (1 + intensity * 0.008) : (1 / (1 + intensity * 0.008));
     zoomAt(e.clientX, e.clientY, factor);
     return;
   }
 
   // Plain scroll = pan (Miro default)
-  const dx = e.shiftKey ? e.deltaY : e.deltaX;
-  const dy = e.shiftKey ? 0        : e.deltaY;
+  const dx = e.shiftKey ? wdy : wdx;
+  const dy = e.shiftKey ? 0   : wdy;
   state.pan.x -= dx;
   state.pan.y -= dy;
   applyTransform();
