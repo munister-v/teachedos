@@ -705,7 +705,7 @@ function buildRequestBody(provider, user) {
   if (openrouter) {
     body.max_completion_tokens = body.max_tokens;
     delete body.max_tokens;
-    const models = uniq([provider.model, ...OPENROUTER_FALLBACK_MODELS]);
+    const models = uniq([provider.model, ...OPENROUTER_FALLBACK_MODELS]).slice(0, 3);
     if (models.length > 1) {
       body.models = models;
       delete body.model;
