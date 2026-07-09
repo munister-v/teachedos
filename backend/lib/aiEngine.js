@@ -751,9 +751,15 @@ async function callProvider(provider, user) {
       signal: ctrl.signal,
     });
   } catch (err) {
-    // Network error or aborted by our timeout — treat as retryable.
+    // Network error or aborted by our timeout — treat as retryable, but flag
+    // timeouts so the caller skips the same-provider retry (see generate()):
+    // a hung connection is very likely to hang again, so retrying it in place
+    // just burns the client's whole wait budget before ever reaching a
+    // healthy fallback provider. Fast HTTP errors (429/5xx) still get their
+    // normal same-provider retry below.
     const e = new Error(ctrl.signal.aborted ? `timeout after ${TIMEOUT_MS}ms` : err.message);
     e.retryable = true;
+    e.isTimeout = ctrl.signal.aborted;
     throw e;
   } finally {
     clearTimeout(timer);
@@ -832,11 +838,15 @@ async function generate(input) {
         attemptInfo.ms = Date.now() - started;
         trace.attempts.push(attemptInfo);
         console.warn(`[ai/${provider.name}] ${provider.model} attempt ${attempt + 1} failed: ${err.message}`);
-        if (err.retryable && attempt < MAX_ATTEMPTS - 1) {
+        // A hung/timed-out connection is likely to hang again — don't burn a
+        // second full TIMEOUT_MS retrying it in place; move to the next
+        // provider immediately instead. Fast HTTP errors (429/5xx) still get
+        // their normal same-provider retry with back-off.
+        if (err.retryable && !err.isTimeout && attempt < MAX_ATTEMPTS - 1) {
           await sleep(retryDelayMs(attempt, err.retryAfter));
           continue;
         }
-        break; // non-retryable, or retry already used → next provider
+        break; // non-retryable, timed out, or retry already used → next provider
       }
     }
   }
@@ -875,7 +885,7 @@ async function rawGenerate(userPrompt) {
         attemptInfo.ms = Date.now() - started;
         trace.attempts.push(attemptInfo);
         console.warn(`[ai/raw/${provider.name}] attempt ${attempt + 1} failed: ${err.message}`);
-        if (err.retryable && attempt < MAX_ATTEMPTS - 1) {
+        if (err.retryable && !err.isTimeout && attempt < MAX_ATTEMPTS - 1) {
           await sleep(retryDelayMs(attempt, err.retryAfter));
           continue;
         }
