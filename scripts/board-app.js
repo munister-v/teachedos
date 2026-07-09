@@ -1204,6 +1204,7 @@ function renderVideo(el, card) {
   if (card.data.embedUrl) {
     const iframe = document.createElement('iframe');
     iframe.src = card.data.embedUrl;
+    iframe.loading = 'lazy';   // defer heavy YouTube/Vimeo player boot until the card is near the viewport
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
@@ -2048,6 +2049,7 @@ function renderGame(el, card) {
 
   const iframe = document.createElement('iframe');
   iframe.src = card.data.src;
+  iframe.loading = 'lazy';   // defer the game's own JS/network load until its card is near the viewport
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
