@@ -6,6 +6,7 @@
 const TOOL_STORE = 'teachedos_teacher_tools_library';
 const FAV_STORE = 'teachedos_teacher_tools_favorites';
 const DRAFT_STORE = 'teachedos_teacher_tools_drafts';
+const RECENT_TOOL_STORE = 'teachedos_teacher_tools_recent';
 const SAMPLE_TEXT = 'Many students want to improve their English, but they often need short daily routines. A good routine includes reading, speaking practice, useful vocabulary, and quick feedback from a teacher.';
 const SAMPLE_VOCAB = 'routine - a regular way of doing things\nfeedback - advice about how well you did\nimprove - to become better\npractice - repeated work to get better\nuseful - helpful in a real situation';
 const TOOLS = [
@@ -737,6 +738,24 @@ function toggleFav(id,e){
 }
 function renderCounts(){const counts={all:TOOLS.length,favorites:_favSet.size};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
 function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
+function readRecentTools(){return readJson(RECENT_TOOL_STORE,[]).filter(id=>TOOLS.some(t=>t.id===id)).slice(0,6)}
+function rememberRecentTool(id){
+  const next=[id,...readRecentTools().filter(x=>x!==id)].slice(0,6);
+  writeJson(RECENT_TOOL_STORE,next);
+  renderRecentTools();
+}
+function renderRecentTools(){
+  const wrap=document.getElementById('recent-tools-strip');
+  const section=document.getElementById('recent-tools-section');
+  if(!wrap||!section)return;
+  const ids=readRecentTools();
+  section.style.display=ids.length?'block':'none';
+  wrap.innerHTML=ids.map(id=>{
+    const t=TOOLS.find(x=>x.id===id);
+    if(!t)return '';
+    return `<button class="recent-tool" type="button" onclick="selectTool('${t.id}')"><span>${esc(t.icon)}</span><b>${esc(t.title)}</b><small>${esc(CAT_NAMES[t.cat])}</small></button>`;
+  }).join('');
+}
 let activePresetLevel = 'All';
 const PRESET_LEVELS = ['All','A1','A2','B1','B2','C1','Exam','Biz','Kids'];
 function presetMatchesLevel(p,filter){
@@ -829,6 +848,7 @@ function selectTool(id){
   const prev=activeTool;
   activeTool=TOOLS.find(t=>t.id===id);
   if(!activeTool) return;
+  rememberRecentTool(id);
   lastOutput=null; imageRows=[];
   // Perf: swap .active class on existing cards without rebuilding the grid
   if(prev&&prev.id!==id){
@@ -1150,7 +1170,7 @@ function richWorksheetHtml(out,showAns){
   return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}${ttHubHasKey(out)?` · ${showAns?'Answer key':'Student copy'}`:''}</div></div><div class="tag">TeachEd</div></header><div class="tt-ws-list">${list}</div></article>`;
 }
 function toggleHubAnswers(){if(!lastOutput)return;lastOutput.showAnswers=lastOutput.showAnswers===false?true:false;renderResult(lastOutput);}
-function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button><button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${sheet}`}
+function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button>${out.gameType?'<button class="btn sm lime" type="button" onclick="openPracticeGame()">Open practice game</button>':''}<button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${sheet}`}
 function worksheetHtml(out){const meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;const cardHtml=(out.cards&&out.cards.length&&!out.edited)?`<div class="worksheet-list">${out.cards.slice(0,60).map(c=>`<div class="worksheet-task"><b>${esc(c.a||c.word||c.name||'Item')}</b><br><span>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</span></div>`).join('')}</div>`:`<div class="worksheet-body">${esc(out.text||'')}</div>`;return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}</div></div><div class="tag">TeachEd</div></header>${cardHtml}</article>`}
 function editOutput(){if(!lastOutput){toast('Generate something first');return;}const current=lastOutput.text||((lastOutput.cards||[]).map(c=>`${c.a||c.word||c.name||''} — ${c.b||c.def||c.note||''}`).join('\n'));const body=document.getElementById('result-body');const strip=body.querySelector('.action-strip');const ws=body.querySelector('.worksheet');if(ws)ws.remove();const existing=document.getElementById('tt-editor');if(existing)existing.remove();const editor=document.createElement('div');editor.id='tt-editor';editor.innerHTML=`<textarea id="tt-edit-area" style="width:100%;min-height:340px;padding:16px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">${esc(current)}</textarea><div class="hero-actions" style="margin-top:10px;"><button class="btn lime" type="button" onclick="saveEdit()">Save changes</button><button class="btn ghost" type="button" onclick="renderResult(lastOutput)">Cancel</button></div>`;body.appendChild(editor);document.getElementById('tt-edit-area').focus();}
 function saveEdit(){const ta=document.getElementById('tt-edit-area');if(!ta||!lastOutput)return;lastOutput.text=ta.value;lastOutput.edited=true;renderResult(lastOutput);toast('Changes saved — export or assign the edited version');}
@@ -1193,6 +1213,31 @@ function downloadText(name,text){const blob=new Blob([text||''],{type:'text/plai
 function slug(s){return String(s||'teachedos-material').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'teachedos-material'}
 function copyInputs(){const text=[get('topic'),get('source'),get('vocab')].filter(Boolean).join('\n\n');navigator.clipboard?.writeText(text).then(()=>toast('Inputs copied'))}
 function saveOutput(){if(!lastOutput)return;const lib=readJson(TOOL_STORE,[]);lib.unshift({...lastOutput,id:'tool-'+Date.now(),savedAt:new Date().toISOString(),toolId:activeTool.id});writeJson(TOOL_STORE,lib.slice(0,80));renderLibrary();toast('Saved to library')}
+
+
+function practiceGameUrl(type){
+  const map={
+    'memory-match':'games/memory-match.html',
+    'fill-blank':'games/fill-blank.html',
+    'speed-quiz':'games/speed-quiz.html',
+    'true-false':'games/true-false.html',
+    'word-categories':'games/word-categories.html',
+    'flashcards':'games/flashcards.html'
+  };
+  return map[type]||'games/index.html';
+}
+function openPracticeGame(){
+  if(!lastOutput||!lastOutput.gameType){toast('This draft does not have a linked game yet');return;}
+  sessionStorage.setItem('teachedos_pending_game_material',JSON.stringify({
+    title:lastOutput.title,
+    gameType:lastOutput.gameType,
+    gameContent:lastOutput.gameContent,
+    level:lastOutput.level,
+    tags:lastOutput.tags,
+    createdAt:new Date().toISOString()
+  }));
+  location.href=practiceGameUrl(lastOutput.gameType)+'?from=tools';
+}
 
 function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const text=lastOutput.text||ttOutputPlainText(lastOutput);if(!text){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text,level:lastOutput.level,tags:lastOutput.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
 function renderLibrary(){const grid=document.getElementById('library-grid');const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();const lib=readJson(TOOL_STORE,[]);const filtered=q?lib.filter(item=>`${item.title||''} ${item.text||''} ${(item.tags||[]).join(' ')}`.toLowerCase().includes(q)):lib;if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Create a draft and press Save.</div>';return}if(!filtered.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials match this search.</div>';return}grid.innerHTML=filtered.slice(0,32).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="reuseSaved('${item.id}')">Use again</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button><button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
@@ -1444,4 +1489,4 @@ function showShareBanner(url){
   body.insertBefore(div,body.firstChild);
 }
 
-renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderTools();renderLibrary();
+renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();

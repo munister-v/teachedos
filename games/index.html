@@ -240,7 +240,7 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=201">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=202">
 </head>
 <body>
 
@@ -568,10 +568,11 @@ function filterCards(tag, btn) {
   activeGameTag = tag;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  localStorage.setItem('teachedos_games_filter', tag);
   applyGameFilters();
 }
 
-function applyGameFilters() {
+function applyGameFilters(skipUrl) {
   const q = (document.getElementById('game-search')?.value || '').toLowerCase().trim();
   let visible = 0;
   document.querySelectorAll('.card').forEach(card => {
@@ -584,10 +585,33 @@ function applyGameFilters() {
   });
   document.getElementById('empty-games')?.classList.toggle('show', visible === 0);
   document.querySelector('.nav-count').textContent = visible + ' / ' + document.querySelectorAll('.card').length + ' games';
+  if (!skipUrl) {
+    const params = new URLSearchParams();
+    if (activeGameTag !== 'all') params.set('tag', activeGameTag);
+    if (q) params.set('q', q);
+    const next = location.pathname + (params.toString() ? '?' + params.toString() : '');
+    history.replaceState(null, '', next);
+  }
+}
+
+function initGameFilters(){
+  const params = new URLSearchParams(location.search);
+  activeGameTag = params.get('tag') || localStorage.getItem('teachedos_games_filter') || 'all';
+  const q = params.get('q') || '';
+  const input = document.getElementById('game-search');
+  if (input) input.value = q;
+  const activeBtn = [...document.querySelectorAll('.filter-btn')].find(btn => {
+    const match = btn.getAttribute('onclick')?.match(/filterCards\('([^']+)'/);
+    return match && match[1] === activeGameTag;
+  }) || document.querySelector('.filter-btn');
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  activeBtn?.classList.add('active');
+  applyGameFilters(true);
 }
 
 enhanceGameCards();
+initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=201"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=202"></script>
 </body>
 </html>
