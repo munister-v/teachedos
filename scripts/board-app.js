@@ -2557,19 +2557,44 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // Play mode always renders one card at a time (stepper) instead of a long
   // stacked list — big font, tap-to-reveal/advance. See iwGoto/iwCardTap/
   // iwFlipOrNext in the shared script appended below.
-  const stepTotal = qs.length || items.length || cards.length || 0;
+  // Worksheets made entirely of single-blank gap-fill sentences collapse into
+  // one combined step (a numbered sentence list + a grid of answer tiles)
+  // instead of one stepper card per blank — see the isAllGapFill branch below.
+  const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill');
+  const stepTotal = isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
     : '';
+  // Vivid gradient pairs for MCQ/gap-fill answer tiles — a dedicated set
+  // (not the pastel STICKY_PALETTE_COLORS, which is built for sticky notes
+  // with dark text) matching the gradient look already used by
+  // .iw-flash-front/.iw-card-front below.
+  const TILE_GRADIENTS = [['#7B8CDE','#5B6CBE'],['#E07B5A','#C05A3A'],['#5AAE7B','#3A8E5B'],
+    ['#C9A84C','#A9882C'],['#B05AB0','#903A90'],['#5AAEB0','#3A8E90'],
+    ['#EC7FA9','#C65D87'],['#4FA8A8','#2F8888'],['#D4A574','#B4855C']];
 
   // ─── MODE: Questions (quiz-based tools) ───
-  if (qs.length) {
+  if (qs.length && isAllGapFill) {
+    const sentencesHtml = qs.map((q, qi) => `<div class="iw-gs-item"><b>${qi+1}.</b> ${esc(q.text||'')}</div>`).join('');
+    const tilesHtml = qs.map((q, qi) => {
+      const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
+      return `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}" onclick="this.querySelector('input').focus()">
+        <span class="iw-gap-num">${qi+1}</span>
+        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">
+      </div>`;
+    }).join('');
+    contentHtml = `<div class="iw-stepper"><div class="iw-step-track"><div class="iw-gapgrid-card">
+      <div class="iw-gapgrid-sentences">${sentencesHtml}</div>
+      <div class="iw-gap-grid">${tilesHtml}</div>
+    </div></div></div>` +
+      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+  } else if (qs.length) {
     const isOddOneOut = kind.includes('odd');
     const qBlocks = qs.map((q, qi) => {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
-          q.options.map((o, oi) => `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')
+          q.options.map((o, oi) => { const [t1, t2] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--t1:${t1};--t2:${t2}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`; }).join('')
         }</div>`;
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
@@ -2629,7 +2654,13 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
     }).join('');
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+  }
 
+  // Answer key + scoring/state script apply to either Questions branch above
+  // (grouped gap-fill grid or the per-question stepper) — both produce the
+  // same .iw-opts/.iw-tf/.iw-gap/.iw-match/.iw-sort markup that checkAll()/
+  // iwSnapshot()/iwRestore() already query by class+attribute.
+  if (qs.length) {
     const hasKey = ownerView && qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
     if (hasKey) {
       contentHtml += `<div class="iw-key-wrap">
@@ -2928,7 +2959,12 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 @keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .iw-tap-hint{text-align:center;font:700 12px system-ui;color:#aaa;margin-top:6px}
 .iw-q.iw-revealed .iw-tap-hint{display:none}
-.iw-stepper .iw-opt{font-size:15.5px;padding:12px 18px}
+.iw-stepper .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
+.iw-stepper .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
+.iw-stepper .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
+.iw-stepper .iw-opt.correct{background:#16a34a!important;color:#fff}
+.iw-stepper .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
 .iw-stepper .iw-tf{justify-content:center}
 .iw-stepper .iw-tf-btn{font-size:15px;padding:12px 30px}
 .iw-stepper .iw-gap-input{font-size:16px}
@@ -2937,6 +2973,18 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-stepper .iw-flash-word{font-size:28px}
 .iw-stepper .iw-card-title{font-size:22px}
 .iw-stepper .iw-card-back-text{font-size:14.5px}
+/* ── Grouped gap-fill grid (one step for all single-word blanks) ── */
+.iw-gapgrid-card{width:100%}
+.iw-gapgrid-sentences{margin-bottom:20px;max-height:180px;overflow-y:auto}
+.iw-gs-item{font-size:14px;line-height:1.6;margin-bottom:10px;color:#3a3644}
+.iw-gs-item b{color:${accent}}
+.iw-gap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.iw-gap-grid .iw-gap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,var(--t1),var(--t2));cursor:text;padding:8px}
+.iw-gap-grid .iw-gap:focus-within{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.iw-gap-num{font:800 11px monospace;color:rgba(255,255,255,.75)}
+.iw-gap-grid .iw-gap-input{width:100%;text-align:center;background:rgba(255,255,255,.92);border:none;border-radius:8px;padding:8px 4px;font:800 15px system-ui;color:#1a1722}
+.iw-gap-grid .iw-gap-input.correct{background:#dcfce7;color:#15803d}
+.iw-gap-grid .iw-gap-input.wrong{background:#fee2e2;color:#991b1b}
 </style></head><body>
 <div class="iw-title">${esc(d.title || d.kind || 'Interactive Activity')}</div>
 ${contentHtml}
