@@ -388,9 +388,13 @@ function fitAll(animate) {
       state.pan.x = startPanX + (targetPanX - startPanX) * ease;
       state.pan.y = startPanY + (targetPanY - startPanY) * ease;
       applyTransform();
-      if (p < 1) requestAnimationFrame(tick);
+      // Reuse _panRaf as the shared "current view animation" handle so a
+      // second fitAll/fitSelection/_zoomToPoint (or pan momentum) started
+      // mid-flight cancels this one instead of both fighting over
+      // state.pan/state.scale every frame.
+      _panRaf = p < 1 ? requestAnimationFrame(tick) : null;
     }
-    requestAnimationFrame(tick);
+    _panRaf = requestAnimationFrame(tick);
   } else {
     state.scale = targetScale;
     state.pan.x = targetPanX;
@@ -417,9 +421,9 @@ function fitSelection() {
     state.pan.x=startPanX+(px-startPanX)*ease;
     state.pan.y=startPanY+(py-startPanY)*ease;
     applyTransform();
-    if (p<1) requestAnimationFrame(tick);
+    _panRaf = p<1 ? requestAnimationFrame(tick) : null;
   }
-  requestAnimationFrame(tick);
+  _panRaf = requestAnimationFrame(tick);
 }
 
 /* ════════════════════════ UNDO / REDO ════════════════════════ */
@@ -5374,13 +5378,17 @@ document.addEventListener('mouseup', e => {
     const tScale = Math.min(2, Math.max(0.1, target));
     const tPanX = cx - bx * tScale, tPanY = cy - by * tScale;
     const s0 = state.scale, px0 = state.pan.x, py0 = state.pan.y, t0 = performance.now();
+    // Cancel any other in-flight view animation (pan momentum, fitAll,
+    // fitSelection, or a previous double-tap zoom) so a fast second
+    // double-tap doesn't run two competing tick loops on state.pan/scale.
+    if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
     (function tick(now){
       const p = Math.min(1, (now - t0) / 320), e = 1 - Math.pow(1 - p, 3);
       state.scale = s0 + (tScale - s0) * e;
       state.pan.x = px0 + (tPanX - px0) * e;
       state.pan.y = py0 + (tPanY - py0) * e;
       applyTransform();
-      if (p < 1) requestAnimationFrame(tick);
+      _panRaf = p < 1 ? requestAnimationFrame(tick) : null;
     })(t0);
   }
   function _handleDoubleTap(touch, target) {
