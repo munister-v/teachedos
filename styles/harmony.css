@@ -2291,3 +2291,87 @@ html[data-theme="dark"] .board-shell #sidebar .sb-search input {
   background: #fff !important;
   color: #18181c !important;
 }
+
+/* ═══════════ TeachEd identity polish 198: dashboard after sign-in ═══════════ */
+.mp-shell{
+  background:
+    linear-gradient(rgba(245,240,232,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,240,232,.026) 1px,transparent 1px),
+    #101014 !important;
+  background-size:24px 24px !important;
+}
+.mp-topbar{
+  border-bottom:1px solid rgba(245,240,232,.08) !important;
+  background:linear-gradient(180deg,rgba(245,240,232,.06),rgba(245,240,232,0)) !important;
+}
+.mp-avatar{
+  box-shadow:0 0 0 3px rgba(205,242,79,.13),0 10px 24px rgba(0,0,0,.24) !important;
+}
+.mp-featured{
+  position:relative !important;
+  overflow:hidden !important;
+  border:1px solid rgba(205,242,79,.15) !important;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(205,242,79,.22),transparent 34%),
+    linear-gradient(135deg,#111214 0%,#171817 100%) !important;
+}
+.mp-featured::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,#CDF24F,#EC2D8C);
+}
+.mp-featured-title{max-width:82% !important;}
+.mp-featured-meta{max-width:92% !important;line-height:1.55 !important;}
+.mp-stat,.mp-quick,.mp-board-card{
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 24px rgba(0,0,0,.18) !important;
+}
+.mp-stat:hover,.mp-quick:hover,.mp-board-card:hover{
+  transform:translateY(-2px) !important;
+}
+.mp-stat-label::before,.mp-board-eyebrow::before,.mp-eyebrow-dark::before{
+  content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:#CDF24F;margin-right:7px;vertical-align:1px;
+}
+.mp-stat-cyan .mp-stat-label::before{background:#8FE6E6;}
+.mp-stat-peach .mp-stat-label::before{background:#FFB5AE;}
+.mp-quick{
+  min-height:62px !important;
+  transition:transform .16s ease,border-color .16s ease,background .16s ease !important;
+}
+.mp-quick-ic2{
+  width:38px !important;height:38px !important;border-radius:12px !important;
+  display:grid !important;place-items:center !important;flex:0 0 auto !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset !important;
+}
+.mp-quick-arr{
+  color:#CDF24F !important;font-weight:900 !important;
+}
+.mp-today-empty,.plans-empty-state{
+  border:1px dashed rgba(205,242,79,.20) !important;
+  border-radius:18px !important;
+  background:rgba(245,240,232,.045) !important;
+  color:rgba(245,240,232,.62) !important;
+}
+.studio-hero{
+  border:1px solid rgba(245,240,232,.10) !important;
+}
+.studio-hero::before{
+  content:'';position:absolute;left:24px;right:24px;bottom:18px;height:1px;
+  background:linear-gradient(90deg,rgba(205,242,79,.45),transparent);
+}
+.studio-copy{line-height:1.62 !important;}
+.curr-search{
+  box-shadow:0 1px 0 rgba(255,255,255,.65) inset,0 8px 24px rgba(5,5,23,.06) !important;
+}
+.curr-search:focus-within{
+  border-color:rgba(236,45,140,.28) !important;
+  box-shadow:0 0 0 4px rgba(236,45,140,.08),0 8px 24px rgba(5,5,23,.06) !important;
+}
+@media(max-width:700px){
+  .mp-featured-title{max-width:100% !important;}
+  .mp-featured-meta{max-width:100% !important;}
+  .mp-quick{min-height:58px !important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .mp-stat,.mp-quick,.mp-board-card{transition:none !important;}
+  .mp-stat:hover,.mp-quick:hover,.mp-board-card:hover{transform:none !important;}
+}

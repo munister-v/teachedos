@@ -1196,6 +1196,35 @@ function renderEvent(el, card) {
 }
 
 /* ══════════════════════ VIDEO RENDERER ══════════════════════ */
+function lazyBoardMediaSrc(el, src) {
+  if (!el || !src) return;
+  el.dataset.src = src;
+  el.loading = 'lazy';
+
+  const load = () => {
+    if (el.dataset.src && !el.src) {
+      el.src = el.dataset.src;
+      delete el.dataset.src;
+    }
+  };
+
+  if ('IntersectionObserver' in window) {
+    const observer = lazyBoardMediaSrc._observer || (lazyBoardMediaSrc._observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
+        lazyBoardMediaSrc._observer.unobserve(entry.target);
+        if (entry.target.dataset.src && !entry.target.src) {
+          entry.target.src = entry.target.dataset.src;
+          delete entry.target.dataset.src;
+        }
+      });
+    }, { root: null, rootMargin: '420px 0px', threshold: 0.01 }));
+    observer.observe(el);
+  } else {
+    setTimeout(load, 900);
+  }
+}
+
 function renderVideo(el, card) {
   const hdr = makeHeader('🎬', card.data.title || 'Video', card.id);
   el.appendChild(hdr);
@@ -1203,8 +1232,7 @@ function renderVideo(el, card) {
   body.className = 'card-body video-body';
   if (card.data.embedUrl) {
     const iframe = document.createElement('iframe');
-    iframe.src = card.data.embedUrl;
-    iframe.loading = 'lazy';   // defer heavy YouTube/Vimeo player boot until the card is near the viewport
+    lazyBoardMediaSrc(iframe, card.data.embedUrl);
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
@@ -1250,7 +1278,7 @@ function renderImage(el, card) {
         ev.stopPropagation(); openCardEditor(card.id);
       });
     });
-    img.src = card.data.src;
+    lazyBoardMediaSrc(img, card.data.src);
     wrap.appendChild(img);
 
     // Fit toggle — surfaces only on hover (see board.css .image-fit-btn).
@@ -1308,8 +1336,8 @@ function renderGif(el, card) {
     img.addEventListener('error', () => {
       wrap.innerHTML = `<div class="image-state"><span class="image-state-ic">🎞️</span><span class="image-state-txt">Couldn't load GIF</span><button class="image-state-btn" onclick="openGifPanel('${card.id}')">Change</button></div>`;
     });
-    img.src = d.src;
     wrap.classList.add('is-loading');
+    lazyBoardMediaSrc(img, d.src);
     wrap.appendChild(img);
 
     const badge = document.createElement('span');
@@ -2048,8 +2076,7 @@ function renderGame(el, card) {
   const naturalH = card.data.naturalH || 560;
 
   const iframe = document.createElement('iframe');
-  iframe.src = card.data.src;
-  iframe.loading = 'lazy';   // defer the game's own JS/network load until its card is near the viewport
+  lazyBoardMediaSrc(iframe, card.data.src);
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
@@ -7701,7 +7728,8 @@ async function runYtLesson() {
 }
 
 // Core build: fetch transcript (cached per-URL) → generate exercises in a
-// concurrency-limited pool with one retry each → place them on the board.
+// concurrency-limited pool → place them on the board. The server already owns
+// provider retries/fallbacks, so the client does not retry the same exercise.
 async function _ytGenerate(url, level, picks, transcriptOverride) {
   const runBtn = document.getElementById('yt-lesson-run');
   const cancelBtn = document.getElementById('yt-lesson-cancel');
@@ -7748,13 +7776,10 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       if (signal.aborted) return null;
       statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
       let out = null;
-      for (let attempt = 0; attempt < 2 && !signal.aborted; attempt++) {
-        out = await requestServerTeacherTool(
-          { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source: transcript },
-          30000, signal);
-        if (out && (out.questions?.length || out.items?.length || out.cards?.length)) break;
-        out = null;
-      }
+      out = await requestServerTeacherTool(
+        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source: transcript },
+        35000, signal);
+      if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
       done++;
       _ytSetProgress(10 + Math.round((done / picks.length) * 88));
       if (out) { statusMap[toolId] = 'done'; }

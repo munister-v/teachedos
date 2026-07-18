@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -107,7 +107,7 @@ body {
 /* ── FILTER TABS ── */
 .filters {
   display: flex; gap: 6px; justify-content: center;
-  flex-wrap: wrap; padding: 0 24px 40px;
+  flex-wrap: wrap; padding: 0 24px 16px;
 }
 .filter-btn {
   font-size: 12px; font-family: var(--font); font-weight: 700;
@@ -117,6 +117,13 @@ body {
 }
 .filter-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,230,50,0.05); }
 .filter-btn.active { background: var(--lime); border-color: var(--lime); color: #1C1C1E; }
+.game-search-wrap{max-width:760px;margin:0 auto 26px;padding:0 24px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.game-search{height:48px;border:1.5px solid var(--border-2);border-radius:16px;background:#fff;padding:0 16px;font:700 14px var(--font);color:var(--text);outline:none;box-shadow:0 8px 22px rgba(5,5,23,.045);}
+.game-search:focus{border-color:rgba(236,45,140,.34);box-shadow:0 0 0 4px rgba(236,45,140,.08),0 8px 22px rgba(5,5,23,.045);}
+.last-game{min-height:48px;border:1.5px solid rgba(200,230,50,.32);border-radius:16px;background:rgba(200,230,50,.16);color:#1C1C1E;padding:0 14px;display:none;align-items:center;gap:8px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;}
+.last-game.show{display:inline-flex;}
+.empty-games{display:none;grid-column:1/-1;padding:34px 20px;text-align:center;border:1.5px dashed var(--border-2);border-radius:20px;background:rgba(255,255,255,.62);color:var(--text-3);font-size:14px;}
+.empty-games.show{display:block;}
 
 /* ── GRID ── */
 .grid-wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
@@ -138,6 +145,7 @@ body {
   transition: transform .18s cubic-bezier(.34,1.3,.64,1),
               box-shadow .18s, border-color .18s;
   box-shadow: 0 2px 8px rgba(5,5,23,0.05);
+  min-height: 210px;
 }
 .card::before {
   content: '';
@@ -180,6 +188,8 @@ body {
 .card-tag.spelling { background: rgba(200,230,50,0.18); color: #5E6E1A; border-color: rgba(200,230,50,0.40); }
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
 .card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
+.card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
 
 .card-arrow {
   width: 28px; height: 28px; border-radius: 8px;
@@ -216,18 +226,21 @@ body {
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   .hero { padding: 40px 16px 28px; }
+  .game-search-wrap{grid-template-columns:1fr;padding:0 16px;margin-bottom:18px;}
   .grid-wrap { padding: 0 16px 60px; }
   .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .card { padding: 16px 14px 14px; }
+  .card { padding: 16px 14px 14px; min-height:156px; }
   .card-icon { font-size: 1.6rem; margin-bottom: 10px; }
   .card-title { font-size: 13px; }
   .card-desc { display: none; }
+  .card-meta{margin:0 0 10px;}
+  .last-game{justify-content:center;}
 }
 @media (max-width: 380px) {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=202">
 </head>
 <body>
 
@@ -258,8 +271,14 @@ body {
   <button class="filter-btn" onclick="filterCards('ai', this)">AI-Powered</button>
 </div>
 
+<div class="game-search-wrap">
+  <input class="game-search" id="game-search" type="search" placeholder="Search by game, skill or classroom goal..." oninput="applyGameFilters()">
+  <a class="last-game" id="last-game" href="#">Continue last game →</a>
+</div>
+
 <div class="grid-wrap">
   <div class="grid" id="games-grid">
+    <div class="empty-games" id="empty-games">No games match this search. Try Vocabulary, Grammar, Spelling or Speed.</div>
 
     <a class="card" href="create.html" data-tag="ai">
       <span class="card-icon">✨</span>
@@ -509,15 +528,90 @@ body {
 </footer>
 
 <script>
-function filterCards(tag, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.card').forEach(card => {
-    const show = tag === 'all' || card.dataset.tag === tag;
-    card.style.display = show ? '' : 'none';
+let activeGameTag = 'all';
+const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', ai:'Creator'};
+const tagPace = {vocab:'5-8 min', grammar:'4-7 min', spelling:'3-6 min', speed:'2-4 min', ai:'setup'};
+
+function enhanceGameCards(){
+  const cards = [...document.querySelectorAll('.card')];
+  cards.forEach(card => {
+    if (!card.querySelector('.card-meta')) {
+      const tag = card.dataset.tag || 'vocab';
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      meta.innerHTML = `<span class="card-pill">${tagLabels[tag] || tag}</span><span class="card-pill">${tagPace[tag] || '5 min'}</span>`;
+      card.insertBefore(meta, card.querySelector('.card-desc'));
+    }
+    card.addEventListener('click', () => {
+      localStorage.setItem('teachedos_last_game', JSON.stringify({
+        title: card.querySelector('.card-title')?.textContent || 'Game',
+        href: card.getAttribute('href'),
+        at: Date.now()
+      }));
+    }, { once: true });
   });
+  document.querySelector('.nav-count').textContent = cards.length + ' games';
+  updateLastGame();
 }
+
+function updateLastGame(){
+  const link = document.getElementById('last-game');
+  let item = null;
+  try { item = JSON.parse(localStorage.getItem('teachedos_last_game') || 'null'); } catch {}
+  if (!item || !item.href) return;
+  link.href = item.href;
+  link.textContent = 'Continue: ' + item.title + ' →';
+  link.classList.add('show');
+}
+
+function filterCards(tag, btn) {
+  activeGameTag = tag;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  localStorage.setItem('teachedos_games_filter', tag);
+  applyGameFilters();
+}
+
+function applyGameFilters(skipUrl) {
+  const q = (document.getElementById('game-search')?.value || '').toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const tagOk = activeGameTag === 'all' || card.dataset.tag === activeGameTag;
+    const qOk = !q || text.includes(q) || (card.dataset.tag || '').includes(q);
+    const show = tagOk && qOk;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('empty-games')?.classList.toggle('show', visible === 0);
+  document.querySelector('.nav-count').textContent = visible + ' / ' + document.querySelectorAll('.card').length + ' games';
+  if (!skipUrl) {
+    const params = new URLSearchParams();
+    if (activeGameTag !== 'all') params.set('tag', activeGameTag);
+    if (q) params.set('q', q);
+    const next = location.pathname + (params.toString() ? '?' + params.toString() : '');
+    history.replaceState(null, '', next);
+  }
+}
+
+function initGameFilters(){
+  const params = new URLSearchParams(location.search);
+  activeGameTag = params.get('tag') || localStorage.getItem('teachedos_games_filter') || 'all';
+  const q = params.get('q') || '';
+  const input = document.getElementById('game-search');
+  if (input) input.value = q;
+  const activeBtn = [...document.querySelectorAll('.filter-btn')].find(btn => {
+    const match = btn.getAttribute('onclick')?.match(/filterCards\('([^']+)'/);
+    return match && match[1] === activeGameTag;
+  }) || document.querySelector('.filter-btn');
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  activeBtn?.classList.add('active');
+  applyGameFilters(true);
+}
+
+enhanceGameCards();
+initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=188"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=202"></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
    ════════════════════════════════════════════════════════════════ */
 const TOOL_STORE = 'teachedos_teacher_tools_library';
 const FAV_STORE = 'teachedos_teacher_tools_favorites';
+const DRAFT_STORE = 'teachedos_teacher_tools_drafts';
+const RECENT_TOOL_STORE = 'teachedos_teacher_tools_recent';
 const SAMPLE_TEXT = 'Many students want to improve their English, but they often need short daily routines. A good routine includes reading, speaking practice, useful vocabulary, and quick feedback from a teacher.';
 const SAMPLE_VOCAB = 'routine - a regular way of doing things\nfeedback - advice about how well you did\nimprove - to become better\npractice - repeated work to get better\nuseful - helpful in a real situation';
 const TOOLS = [
@@ -192,9 +194,9 @@ const PRESET_PACKS = [
     sub: "argument + nuance",
     tool: "discussion",
     level: "C1",
-    topic: "Should universities use AI tools?",
+    topic: "Should universities allow writing assistants?",
     vocab: "ethical - connected with right and wrong\naccountability - responsibility for decisions\nplagiarism - using someone else s work as your own\ncritical thinking - careful independent judgement\nimplementation - putting a plan into action",
-    source: "Universities are debating how AI tools should be used in academic work. Some teachers see them as useful assistants, while others worry about plagiarism and shallow thinking."
+    source: "Universities are debating how writing assistants should be used in academic work. Some teachers see them as useful support, while others worry about plagiarism and shallow thinking."
   },
   {
     title: "C1 Climate Policy",
@@ -449,10 +451,10 @@ const PRESET_PACKS = [
 
   // ─── B2 UPPER INTERMEDIATE ────────────────────────────────────────
   {
-    title: "B2 AI & Future of Work", sub: "automation debate", tool: "discussion", level: "B2",
-    topic: "How AI will change work",
+    title: "B2 Future of Work", sub: "automation debate", tool: "discussion", level: "B2",
+    topic: "How automation will change work",
     vocab: "automation - machines doing human jobs\ndisplaced - replaced or pushed out\nupskilling - learning new skills\nrepetitive - the same again and again\nproductivity boost - getting more done\noversight - human supervision\nhybrid role - a job that combines human and AI\nhallucinate - when AI invents wrong information\nbias - unfair preference in decisions\nstreamline - make a process simpler",
-    source: "Most economists agree that AI will not eliminate work — it will reshape it. The jobs at greatest risk are not low-skilled but repetitive. Many roles will become hybrid, where humans focus on judgment, creativity and ethics while AI handles routine analysis. Upskilling will matter more than job title."
+    source: "Most economists agree that automation will not eliminate work entirely; it will reshape it. The jobs at greatest risk are not low-skilled but repetitive. Many roles will become hybrid, where humans focus on judgment, creativity and ethics while software handles routine analysis. Upskilling will matter more than job title."
   },
   {
     title: "B2 Mental Health Talk", sub: "stress + support", tool: "discussion", level: "B2",
@@ -517,8 +519,8 @@ const PRESET_PACKS = [
 
   // ─── C1 ADVANCED ──────────────────────────────────────────────────
   {
-    title: "C1 Ethical AI", sub: "bias + accountability", tool: "essential-vocab", level: "C1",
-    topic: "Ethics, bias and AI",
+    title: "C1 Tech Ethics", sub: "bias + accountability", tool: "essential-vocab", level: "C1",
+    topic: "Technology ethics and bias",
     vocab: "algorithmic bias - unfair patterns in AI decisions\naccountability - clear responsibility\nopacity - lack of transparency\nblack box - system whose decisions can't be inspected\nfair use - balanced and just\ndata provenance - where data came from\ndue diligence - careful checking\nautomated decision - choice made without humans\nstakeholder - person affected by decisions\nregulatory framework - the system of rules",
     source: "AI systems trained on biased data inherit and amplify that bias. Even when models are technically accurate, automated decisions can cause real harm in hiring, lending and criminal justice. Calls for regulation are rising, but enforcement is hard when the systems themselves are opaque."
   },
@@ -736,6 +738,24 @@ function toggleFav(id,e){
 }
 function renderCounts(){const counts={all:TOOLS.length,favorites:_favSet.size};TOOLS.forEach(t=>counts[t.cat]=(counts[t.cat]||0)+1);document.querySelectorAll('[data-count]').forEach(el=>el.textContent=counts[el.dataset.count]||0);document.getElementById('tool-count-pill').textContent=TOOLS.length}
 function renderChips(){document.getElementById('top-chips').innerHTML=CATS.map(c=>`<button class="chip ${c===currentCat?'active':''}" type="button" onclick="setCategory('${c}', document.querySelector('[data-count=${c}]').closest('.side-btn'))">${CAT_NAMES[c]}</button>`).join('')}
+function readRecentTools(){return readJson(RECENT_TOOL_STORE,[]).filter(id=>TOOLS.some(t=>t.id===id)).slice(0,6)}
+function rememberRecentTool(id){
+  const next=[id,...readRecentTools().filter(x=>x!==id)].slice(0,6);
+  writeJson(RECENT_TOOL_STORE,next);
+  renderRecentTools();
+}
+function renderRecentTools(){
+  const wrap=document.getElementById('recent-tools-strip');
+  const section=document.getElementById('recent-tools-section');
+  if(!wrap||!section)return;
+  const ids=readRecentTools();
+  section.style.display=ids.length?'block':'none';
+  wrap.innerHTML=ids.map(id=>{
+    const t=TOOLS.find(x=>x.id===id);
+    if(!t)return '';
+    return `<button class="recent-tool" type="button" onclick="selectTool('${t.id}')"><span>${esc(t.icon)}</span><b>${esc(t.title)}</b><small>${esc(CAT_NAMES[t.cat])}</small></button>`;
+  }).join('');
+}
 let activePresetLevel = 'All';
 const PRESET_LEVELS = ['All','A1','A2','B1','B2','C1','Exam','Biz','Kids'];
 function presetMatchesLevel(p,filter){
@@ -782,7 +802,7 @@ function renderPresetPacks(){
     </button>`;
   }).join('');
 }
-function applyPresetPack(i){const p=PRESET_PACKS[i];if(!p)return;selectTool(p.tool);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');const voc=document.getElementById('vocab');const src=document.getElementById('source');if(lvl)lvl.value=p.level;if(top)top.value=p.topic;if(voc)voc.value=p.vocab;if(src)src.value=p.source||src.value;toast('Preset loaded: '+p.title)},40)}
+function applyPresetPack(i){const p=PRESET_PACKS[i];if(!p)return;selectTool(p.tool);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');const voc=document.getElementById('vocab');const src=document.getElementById('source');if(lvl)lvl.value=p.level;if(top)top.value=p.topic;if(voc)voc.value=p.vocab;if(src)src.value=p.source||src.value;saveActiveDraft();toast('Preset loaded: '+p.title)},40)}
 // ── Perf: search debounce ──
 let _searchTimer = null;
 function scheduleSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderTools,150);}
@@ -828,6 +848,7 @@ function selectTool(id){
   const prev=activeTool;
   activeTool=TOOLS.find(t=>t.id===id);
   if(!activeTool) return;
+  rememberRecentTool(id);
   lastOutput=null; imageRows=[];
   // Perf: swap .active class on existing cards without rebuilding the grid
   if(prev&&prev.id!==id){
@@ -848,7 +869,46 @@ function selectTool(id){
 }
 function baseFields(extra=''){return `<div class="form-grid"><div class="field"><label class="label" for="level">Level</label><select id="level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div><div class="field"><label class="label" for="count">How many items</label><input id="count" type="number" min="3" max="50" value="12"><div class="hint">3-50 items. Bigger packs use fast local generation.</div></div><div class="field full"><label class="label" for="topic">Topic / grammar focus</label><input id="topic" placeholder="e.g. travel problems, present perfect, job interview"></div>${extra}</div>`}
 function textArea(id,label,value,help){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}">${esc(value||'')}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
-function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload local images or paste image URLs. Local images are converted to data URLs, so saved materials keep the preview in this browser.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(m==='translation-match'){html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','apple\nbook\nhouse\nfriend\nwater\nschool\nhappy\nwork','One word per line. Add your own translation after " - " (e.g. apple - яблуко), or leave just the word and TeachEd fills common ones.')}`)}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['lesson-pack','worksheet','homework'].includes(m)){html=baseFields(`${textArea('source','Source text / lesson brief',SAMPLE_TEXT,'Optional. Paste a text, class goal, or short lesson idea.')}${textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. One word or word - definition pair per line.')}`)}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. Add words or word - meaning pairs, one per line.'))}else if(m==='word-order'){html=baseFields(textArea('source','Sentences to scramble',SAMPLE_TEXT,'Paste sentences — one per line or a full text. TeachEd will split and shuffle each one.'))}else if(m==='matching-halves'){html=baseFields(textArea('vocab','Collocations or sentences',`make a decision\ntake an exam\ndo homework\ngive advice\nhave a conversation\nkeep in touch\nrun a business\nbreak a record`,'One collocation or sentence per line. Split point is the middle word.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link and TeachEd pulls the transcript into the field below — then Generate questions or tasks.</div></div><div class="field full"><label class="label" for="media-file">…or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file and TeachEd transcribes it locally in your browser (nothing is sent to a server) and fills the transcript below.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Generate</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}}
+function readDrafts(){return readJson(DRAFT_STORE,{})||{}}
+function saveActiveDraft(){
+  if(!activeTool)return;
+  const form=document.getElementById('tool-form');
+  if(!form)return;
+  const data={updatedAt:new Date().toISOString(),fields:{}};
+  form.querySelectorAll('input, textarea, select').forEach(el=>{
+    if(!el.id||el.type==='file')return;
+    data.fields[el.id]=el.value;
+  });
+  const drafts=readDrafts();
+  drafts[activeTool.id]=data;
+  writeJson(DRAFT_STORE,drafts);
+}
+let _draftTimer=null;
+function scheduleDraftSave(){
+  clearTimeout(_draftTimer);
+  _draftTimer=setTimeout(saveActiveDraft,220);
+}
+function restoreToolDraft(){
+  if(!activeTool)return;
+  const draft=readDrafts()[activeTool.id];
+  if(!draft||!draft.fields)return;
+  Object.entries(draft.fields).forEach(([id,value])=>{
+    const el=document.getElementById(id);
+    if(el&&el.type!=='file')el.value=value;
+  });
+  const hint=document.createElement('div');
+  hint.className='hint tt-draft-note';
+  hint.textContent='Draft restored from this browser.';
+  const form=document.getElementById('tool-form');
+  if(form&&!form.querySelector('.tt-draft-note'))form.prepend(hint);
+}
+function bindToolDraftAutosave(){
+  const form=document.getElementById('tool-form');
+  if(!form)return;
+  form.addEventListener('input',scheduleDraftSave);
+  form.addEventListener('change',scheduleDraftSave);
+}
+function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload local images or paste image URLs. Local images are converted to data URLs, so saved materials keep the preview in this browser.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(m==='translation-match'){html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','apple\nbook\nhouse\nfriend\nwater\nschool\nhappy\nwork','One word per line. Add your own translation after " - " (e.g. apple - яблуко), or leave just the word and TeachEd fills common ones.')}`)}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['lesson-pack','worksheet','homework'].includes(m)){html=baseFields(`${textArea('source','Source text / lesson brief',SAMPLE_TEXT,'Optional. Paste a text, class goal, or short lesson idea.')}${textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. One word or word - definition pair per line.')}`)}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'Optional. Add words or word - meaning pairs, one per line.'))}else if(m==='word-order'){html=baseFields(textArea('source','Sentences to scramble',SAMPLE_TEXT,'Paste sentences — one per line or a full text. TeachEd will split and shuffle each one.'))}else if(m==='matching-halves'){html=baseFields(textArea('vocab','Collocations or sentences',`make a decision\ntake an exam\ndo homework\ngive advice\nhave a conversation\nkeep in touch\nrun a business\nbreak a record`,'One collocation or sentence per line. Split point is the middle word.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link and TeachEd pulls the transcript into the field below — then create questions or tasks.</div></div><div class="field full"><label class="label" for="media-file">…or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file and TeachEd transcribes it locally in your browser (nothing is sent to a server) and fills the transcript below.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}restoreToolDraft();bindToolDraftAutosave();}
 function get(id){return document.getElementById(id)?.value?.trim()||''}
 function lines(text){return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean)}
 function vocabItems(text){return lines(text).flatMap(line=>line.split(/[,;]/).map(s=>s.trim()).filter(Boolean)).map(raw=>{const parts=raw.split(/\s[-–—:]\s/);return {word:(parts[0]||raw).trim(),def:(parts[1]||'teacher definition / translation').trim()}}).filter(x=>x.word)}
@@ -971,9 +1031,26 @@ const QUOTE_BANK=[{q:'The only way to do great work is to love what you do.',a:'
 // Primary "Generate" button: signed-in teachers get the real cloud engine
 // (which falls back to local on any failure); signed-out users get instant
 // local templates. Mirrors the board's AI-first behaviour.
-function generateSmart(){
-  if(localStorage.getItem('teachedos_token'))return generateWithAI();
-  return generate();
+let ttGenerating=false;
+function setToolBusy(on,label){
+  ttGenerating=!!on;
+  document.querySelectorAll('#tool-form button').forEach(btn=>{
+    if(btn.textContent&&/Generate|Create|Draft/i.test(btn.textContent)){
+      btn.disabled=!!on;
+      btn.dataset.idleText=btn.dataset.idleText||btn.textContent;
+      btn.textContent=on?(label||'Preparing draft…'):btn.dataset.idleText;
+    }
+  });
+}
+async function generateSmart(){
+  if(ttGenerating){toast('Already preparing this draft…');return;}
+  setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating draft…':'Creating local draft…');
+  try{
+    if(localStorage.getItem('teachedos_token')) return await generateWithAI();
+    return generate();
+  }finally{
+    setToolBusy(false);
+  }
 }
 function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()]};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
@@ -1093,7 +1170,7 @@ function richWorksheetHtml(out,showAns){
   return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}${ttHubHasKey(out)?` · ${showAns?'Answer key':'Student copy'}`:''}</div></div><div class="tag">TeachEd</div></header><div class="tt-ws-list">${list}</div></article>`;
 }
 function toggleHubAnswers(){if(!lastOutput)return;lastOutput.showAnswers=lastOutput.showAnswers===false?true:false;renderResult(lastOutput);}
-function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button><button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${sheet}`}
+function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button>${out.gameType?'<button class="btn sm lime" type="button" onclick="openPracticeGame()">Open practice game</button>':''}<button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${sheet}`}
 function worksheetHtml(out){const meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;const cardHtml=(out.cards&&out.cards.length&&!out.edited)?`<div class="worksheet-list">${out.cards.slice(0,60).map(c=>`<div class="worksheet-task"><b>${esc(c.a||c.word||c.name||'Item')}</b><br><span>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</span></div>`).join('')}</div>`:`<div class="worksheet-body">${esc(out.text||'')}</div>`;return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}</div></div><div class="tag">TeachEd</div></header>${cardHtml}</article>`}
 function editOutput(){if(!lastOutput){toast('Generate something first');return;}const current=lastOutput.text||((lastOutput.cards||[]).map(c=>`${c.a||c.word||c.name||''} — ${c.b||c.def||c.note||''}`).join('\n'));const body=document.getElementById('result-body');const strip=body.querySelector('.action-strip');const ws=body.querySelector('.worksheet');if(ws)ws.remove();const existing=document.getElementById('tt-editor');if(existing)existing.remove();const editor=document.createElement('div');editor.id='tt-editor';editor.innerHTML=`<textarea id="tt-edit-area" style="width:100%;min-height:340px;padding:16px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">${esc(current)}</textarea><div class="hero-actions" style="margin-top:10px;"><button class="btn lime" type="button" onclick="saveEdit()">Save changes</button><button class="btn ghost" type="button" onclick="renderResult(lastOutput)">Cancel</button></div>`;body.appendChild(editor);document.getElementById('tt-edit-area').focus();}
 function saveEdit(){const ta=document.getElementById('tt-edit-area');if(!ta||!lastOutput)return;lastOutput.text=ta.value;lastOutput.edited=true;renderResult(lastOutput);toast('Changes saved — export or assign the edited version');}
@@ -1137,10 +1214,36 @@ function slug(s){return String(s||'teachedos-material').toLowerCase().replace(/[
 function copyInputs(){const text=[get('topic'),get('source'),get('vocab')].filter(Boolean).join('\n\n');navigator.clipboard?.writeText(text).then(()=>toast('Inputs copied'))}
 function saveOutput(){if(!lastOutput)return;const lib=readJson(TOOL_STORE,[]);lib.unshift({...lastOutput,id:'tool-'+Date.now(),savedAt:new Date().toISOString(),toolId:activeTool.id});writeJson(TOOL_STORE,lib.slice(0,80));renderLibrary();toast('Saved to library')}
 
+
+function practiceGameUrl(type){
+  const map={
+    'memory-match':'games/memory-match.html',
+    'fill-blank':'games/fill-blank.html',
+    'speed-quiz':'games/speed-quiz.html',
+    'true-false':'games/true-false.html',
+    'word-categories':'games/word-categories.html',
+    'flashcards':'games/flashcards.html'
+  };
+  return map[type]||'games/index.html';
+}
+function openPracticeGame(){
+  if(!lastOutput||!lastOutput.gameType){toast('This draft does not have a linked game yet');return;}
+  sessionStorage.setItem('teachedos_pending_game_material',JSON.stringify({
+    title:lastOutput.title,
+    gameType:lastOutput.gameType,
+    gameContent:lastOutput.gameContent,
+    level:lastOutput.level,
+    tags:lastOutput.tags,
+    createdAt:new Date().toISOString()
+  }));
+  location.href=practiceGameUrl(lastOutput.gameType)+'?from=tools';
+}
+
 function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const text=lastOutput.text||ttOutputPlainText(lastOutput);if(!text){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text,level:lastOutput.level,tags:lastOutput.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
-function renderLibrary(){const grid=document.getElementById('library-grid');const lib=readJson(TOOL_STORE,[]);if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Generate something and press Save.</div>';return}grid.innerHTML=lib.slice(0,24).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button><button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
+function renderLibrary(){const grid=document.getElementById('library-grid');const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();const lib=readJson(TOOL_STORE,[]);const filtered=q?lib.filter(item=>`${item.title||''} ${item.text||''} ${(item.tags||[]).join(' ')}`.toLowerCase().includes(q)):lib;if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Create a draft and press Save.</div>';return}if(!filtered.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials match this search.</div>';return}grid.innerHTML=filtered.slice(0,32).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="reuseSaved('${item.id}')">Use again</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button><button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
 function viewSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;lastOutput=item;document.getElementById('workspace').classList.add('show');document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">Download .txt</button><button class="btn sm ghost" type="button" onclick="downloadHtmlOutput()">Download HTML</button><button class="btn sm pink" type="button" onclick="sendSavedToBoard('${item.id}')">Add to Board</button></div>${worksheetHtml(item)}`;document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}
 function copySaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)navigator.clipboard?.writeText(item.text||'').then(()=>toast('Copied'))}
+function reuseSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;if(item.toolId)selectTool(item.toolId);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');if(lvl&&item.level)lvl.value=item.level;if(top&&item.tags&&item.tags[1])top.value=item.tags[1];saveActiveDraft();toast('Loaded saved material setup')},40)}
 function downloadSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)downloadText(`${slug(item.title)}.txt`,item.text||'')}
 function deleteSaved(id){writeJson(TOOL_STORE,readJson(TOOL_STORE,[]).filter(x=>x.id!==id));renderLibrary();toast('Deleted')}
 function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:item.title,text:item.text,level:item.level,tags:item.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
@@ -1386,4 +1489,4 @@ function showShareBanner(url){
   body.insertBefore(div,body.firstChild);
 }
 
-renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderTools();renderLibrary();
+renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();

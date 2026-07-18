@@ -9,27 +9,27 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=197">
+<link rel="manifest" href="manifest.json?v=199">
 <meta name="theme-color" content="#F7F3EA">
-<title>TeachEd — AI lesson &amp; worksheet maker for language teachers</title>
-<meta name="description" content="TeachEd generates worksheets, quizzes and full lessons with AI, turns any YouTube video into a lesson, and runs 30+ classroom games. 50+ tools for ESL teachers — online or offline. Free to start.">
+<title>TeachEd — lesson boards, worksheets and games for language teachers</title>
+<meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
 <link rel="canonical" href="https://teached.tech/landing.html">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TeachEd">
-<meta property="og:title" content="TeachEd — AI lesson &amp; worksheet maker for language teachers">
-<meta property="og:description" content="Generate worksheets, quizzes and full lessons with AI, turn any YouTube video into a lesson, and run 30+ classroom games. 50+ tools — online or offline.">
+<meta property="og:title" content="TeachEd — lesson boards, worksheets and games for language teachers">
+<meta property="og:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games — online or offline.">
 <meta property="og:url" content="https://teached.tech/landing.html">
 <meta property="og:image" content="https://teached.tech/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="TeachEd — Plan less. Teach more.">
+<meta property="og:image:alt" content="TeachEd — a classroom workspace for language teachers">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TeachEd — AI lesson &amp; worksheet maker for language teachers">
-<meta name="twitter:description" content="Generate worksheets, quizzes and lessons with AI, turn YouTube into a lesson, run 30+ games. 50+ tools for ESL teachers.">
+<meta name="twitter:title" content="TeachEd — lesson boards, worksheets and games for language teachers">
+<meta name="twitter:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ games.">
 <meta name="twitter:image" content="https://teached.tech/og-cover.png">
 
-<link rel="stylesheet" href="styles/fonts.css?v=197">
+<link rel="stylesheet" href="styles/fonts.css?v=199">
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -1517,6 +1517,62 @@ body.pwa-standalone .hero{
 .fp-read .fp-opts2 span::before{content:'';width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink3);flex-shrink:0;}
 .fp-read .fp-opts2 span.on{border-color:var(--pink);background:var(--pink-soft);color:var(--pink);}
 .fp-read .fp-opts2 span.on::before{border-color:var(--pink);background:var(--pink);}
+
+/* ═══════════ Identity pass 198: teacher-made, not template-made ═══════════ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.28;
+  background-image:
+    linear-gradient(rgba(14,14,16,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(14,14,16,.028) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:linear-gradient(to bottom,black 0,transparent 820px);
+}
+.hero-badge{box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 8px 24px rgba(14,14,16,.06);}
+.hero-h{max-width:940px;}
+.hero-sub{max-width:620px;color:#2f3034;}
+.hero-trust{gap:14px;}
+.hero-trust span{
+  background:rgba(255,255,255,.58);border:1px solid rgba(14,14,16,.08);
+  border-radius:999px;padding:7px 11px;box-shadow:0 1px 0 rgba(255,255,255,.86) inset;
+}
+.hchip{
+  border-color:rgba(14,14,16,.11)!important;background:rgba(255,255,255,.82)!important;
+  box-shadow:0 10px 26px rgba(14,14,16,.08),0 1px 0 rgba(255,255,255,.9) inset;
+}
+.preview-shell{background:rgba(255,255,255,.82);}
+.preview-body{
+  background:
+    linear-gradient(rgba(14,14,16,.024) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(14,14,16,.018) 1px,transparent 1px),
+    #fff;
+  background-size:22px 22px;
+}
+.preview-bar-title::before{content:'Live lesson board';font-weight:800;color:var(--ink);margin-right:8px;}
+.pv-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:inherit;
+  background:linear-gradient(180deg,var(--pink),var(--lime));opacity:.78;
+}
+.pv-card,.bc,.cat,.plan,.testi,.step{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
+.bc,.cat,.plan,.testi,.step{border-color:rgba(14,14,16,.09)!important;}
+.bc:hover,.cat:hover,.testi:hover,.step:hover{transform:translateY(-3px);}
+.cat-tag,.plan-badge,.hero-badge{
+  letter-spacing:.055em;
+}
+.btn{min-height:48px;}
+.btn:focus-visible,.nav-lnk:focus-visible,.faq-q:focus-visible{
+  outline:3px solid rgba(236,45,140,.30);outline-offset:3px;
+}
+.final{background:
+  radial-gradient(ellipse 50% 60% at 18% 8%,rgba(205,242,79,.22),transparent 64%),
+  linear-gradient(180deg,#fff,#F7F3EA);}
+@media(max-width:640px){
+  .hero-trust span{width:100%;justify-content:center;}
+  .preview-bar-title::before{display:none;}
+  .btn{width:100%;}
+}
+@media(prefers-reduced-motion:reduce){
+  .preview-shell,.hchip,.pv-card,.bc,.cat,.plan,.testi,.step{animation:none!important;transition:none!important;}
+}
 </style>
 </head>
 <body>
@@ -1555,7 +1611,7 @@ body.pwa-standalone .hero{
       <span class="line"><span><em>in your pocket</em></span></span>
     </h1>
     <p class="hero-sub">
-      The all-in-one workspace for language teachers. Generate worksheets and quizzes with AI, turn any YouTube video into a full lesson, build interactive boards, and run 30+ classroom games — online or offline.
+      A focused workspace for language teachers: build lesson boards, shape worksheets, turn YouTube into class material, and run 30+ games — online or offline.
     </p>
     <div class="hero-ctas">
       <button class="btn btn-pink btn-lg" type="button" onclick="openAuth('register')">Start for free →</button>
@@ -1573,7 +1629,7 @@ body.pwa-standalone .hero{
     <!-- App preview -->
     <div class="preview-stage">
       <div class="hero-chips" aria-hidden="true">
-        <span class="hchip c1"><span class="ic">✦</span>AI worksheets</span>
+        <span class="hchip c1"><span class="ic">✦</span>Worksheet studio</span>
         <span class="hchip c2"><span class="ic">▶</span>YouTube → Lesson</span>
         <span class="hchip c3"><span class="ic">✎</span>Interactive board</span>
         <span class="hchip c4"><span class="ic">♟</span>30+ games</span>
@@ -1617,8 +1673,8 @@ body.pwa-standalone .hero{
           <div class="pv-card pv-ws sel">
             <span class="hndl tl"></span><span class="hndl tr"></span><span class="hndl bl"></span><span class="hndl br"></span>
             <div class="pv-ws-top">
-              <span class="pv-eye">AI worksheet</span>
-              <span class="pv-ai"><span class="sp"></span>Generated</span>
+              <span class="pv-eye">Worksheet draft</span>
+              <span class="pv-ai"><span class="sp"></span>Ready to edit</span>
             </div>
             <div class="pv-ws-title">Present Perfect — gap-fill</div>
             <div class="pv-ws-meta">Fill each gap with the correct adverb · 7 questions</div>
@@ -1724,8 +1780,8 @@ body.pwa-standalone .hero{
         <div style="display:flex;align-items:flex-start;justify-content:space-between;">
           <div>
             <div class="bento-tag">★ Most loved</div>
-            <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:700;">AI worksheet &amp;<br>exercise generator</div>
-            <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link — AI builds reading comprehensions, gap-fills, vocab tasks, quizzes and full worksheets at the CEFR level you choose. Export to PDF, print A4, or play interactively.</div>
+            <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:700;">Worksheet &amp;<br>exercise studio</div>
+            <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link. TeachEd drafts reading tasks, gap-fills, vocabulary sets, quizzes and A4 worksheets at the CEFR level you choose. Edit, print, or play interactively.</div>
             <div class="bc-points">
               <span>CEFR A1–C2</span><span>Answer keys</span><span>PDF &amp; A4 print</span><span>Editable</span><span>Interactive mode</span>
             </div>
@@ -1919,7 +1975,7 @@ body.pwa-standalone .hero{
     <div style="text-align:center;margin-bottom:44px;">
       <div class="sec-eye" style="margin-left:auto;margin-right:auto;">The toolkit</div>
       <h2 class="sec-h">50+ tools across every<br><em>skill you teach</em></h2>
-      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every tool is AI-powered: feed it a topic or text and get classroom-ready material in seconds. Use them standalone, drop them on a board, or print them as worksheets.</p>
+      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Each tool starts from a topic, text or video and returns material you can actually edit: use it standalone, drop it on a board, or print it as a worksheet.</p>
     </div>
     <div class="cats">
 
@@ -2057,7 +2113,7 @@ body.pwa-standalone .hero{
         </div>
         <div class="cat-tags">
           <span class="cat-tag">Audio / video questions</span>
-          <span class="cat-tag">YouTube transcript helper</span>
+          <span class="cat-tag">YouTube lesson builder</span>
           <span class="cat-tag">Summary gap-fill</span>
           <span class="cat-tag">Choose the right summary</span>
         </div>
@@ -2104,8 +2160,8 @@ body.pwa-standalone .hero{
       </div>
       <div class="step">
         <div class="step-pill">2</div>
-        <div class="step-h">Generate your materials</div>
-        <p class="step-p">Type a topic, paste a text or drop a YouTube link, pick the CEFR level, and let AI build the worksheet, quiz or full lesson. Or open a board and assemble it yourself.</p>
+        <div class="step-h">Shape your materials</div>
+        <p class="step-p">Type a topic, paste a text or drop a YouTube link, pick the CEFR level, and start from a clean draft. Or open a board and assemble the lesson yourself.</p>
         <div class="step-shot fp-prompt">
           <div class="scap">AI generator · B2</div>
           <div class="inp"><span class="sp">✦</span>Present Perfect, reading + quiz<span class="car"></span></div>
@@ -2182,7 +2238,7 @@ body.pwa-standalone .hero{
     <div style="text-align:center;margin-bottom:48px;">
       <div class="sec-eye" style="margin-left:auto;margin-right:auto;">Pricing</div>
       <h2 class="sec-h">Start free. Upgrade<br>only when you <em>grow</em></h2>
-      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every plan includes all 50+ AI tools, 30+ games and offline mode. No credit card to start, no hidden fees — cancel anytime.</p>
+      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every plan includes the full teaching toolkit, 30+ games and offline mode. No credit card to start, no hidden fees — cancel anytime.</p>
     </div>
     <div class="pricing-grid">
 
@@ -2191,7 +2247,7 @@ body.pwa-standalone .hero{
         <div class="plan-price">$0 <span class="per">/ forever</span></div>
         <p class="plan-desc">Everything you need to plan and teach your first classes.</p>
         <ul class="plan-features">
-          <li>All 50+ AI teaching tools</li>
+          <li>All 50+ teaching tools</li>
           <li>30+ classroom games</li>
           <li>~20 AI generations / day</li>
           <li>Up to 3 lesson boards</li>
@@ -2323,8 +2379,8 @@ body.pwa-standalone .hero{
 <section class="final">
   <div class="final-blob a"></div>
   <div class="final-blob b"></div>
-  <h2 class="final-h">Plan less.<br>Teach <em>more</em>.</h2>
-  <p class="final-p">Let AI build your worksheets and lessons while you focus on the classroom. 50+ tools, 30+ games and your whole studio — free to start, no card needed.</p>
+  <h2 class="final-h">Plan with less friction.<br>Teach with <em>more rhythm</em>.</h2>
+  <p class="final-p">Keep worksheets, boards, games and student follow-up in one calm workspace — free to start, no card needed.</p>
   <div class="final-ctas">
     <button class="btn btn-lime btn-xl" type="button" onclick="openAuth('register')">Start free →</button>
     <button class="btn btn-cream btn-xl" type="button" onclick="openAuth('login')">Sign in</button>
@@ -2362,7 +2418,7 @@ body.pwa-standalone .hero{
     <div class="footer-grid">
       <div>
         <div class="footer-brand brand-wordmark">Teach<em>Ed</em></div>
-        <p class="footer-desc">The AI workspace for language teachers. 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
+        <p class="footer-desc">A practical workspace for language teachers: 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
       </div>
       <details class="footer-col" open>
         <summary><h4>Product</h4></summary>

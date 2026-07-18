@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=197">
+<link rel="manifest" href="manifest.json?v=202">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -62,10 +62,58 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 @media(max-width:820px){.nav{height:54px}.nav-menu{display:grid;place-items:center}.nav-link{display:none}.shell{display:block}.side{position:fixed;z-index:70;left:0;top:54px;bottom:0;width:min(310px,86vw);height:auto;transform:translateX(-105%);transition:transform .22s ease;box-shadow:20px 0 60px rgba(24,24,24,.14)}.side.open{transform:translateX(0)}.main{padding:18px 13px 48px}.hero{border-radius:26px;padding:22px}.hero h1{font-size:42px}.bar{align-items:stretch}.search{min-width:100%;order:-1}.grid,.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tool{min-height:auto;padding:12px}.tool p{display:none}.tool h3{font-size:14px;margin-bottom:4px}.tool-visual{width:52px;height:64px;border-radius:11px;font-size:20px}.form-grid{grid-template-columns:1fr}.match-row{grid-template-columns:32px 1fr}.match-row .mini{grid-column:2}.img-row{grid-template-columns:76px 1fr}.img-row .mini{grid-column:2}.nav-pill{display:none}}
 @media(max-width:480px){.grid,.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tool{min-height:auto;padding:10px 8px;gap:8px}.tool-visual{width:44px;height:54px;font-size:16px}.tool h3{font-size:12px;line-height:1.2}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* TeachEd identity polish 200: teacher tools as a prep desk */
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(24,24,24,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(24,24,24,.02) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(to bottom,black,transparent 760px)}
+.side{box-shadow:8px 0 34px rgba(24,24,24,.045);}
+.side-btn{position:relative;}
+.side-btn.active::before{content:'';position:absolute;left:7px;top:50%;width:5px;height:22px;border-radius:99px;background:linear-gradient(180deg,var(--lime),var(--pink));transform:translateY(-50%)}
+.side-ic{font-family:var(--mono);font-weight:950;background:#fff;border:1px solid rgba(24,24,24,.08);box-shadow:0 1px 0 rgba(255,255,255,.85) inset;}
+.unlock{background:linear-gradient(145deg,#fff,rgba(247,245,237,.92));border-color:rgba(200,230,50,.28);}
+.hero{background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(250,250,244,.82)),radial-gradient(circle at 92% 18%,rgba(200,230,50,.22),transparent 30%),radial-gradient(circle at 14% 16%,rgba(236,45,140,.10),transparent 32%);}
+.hero::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,var(--lime),var(--pink));z-index:1;}
+.hero h1{max-width:820px;}
+.hero-card{background:linear-gradient(145deg,#151515,#20211f);border:1px solid rgba(255,255,255,.08);}
+.hero-card li span:first-child{font:950 10px var(--mono);color:var(--lime);background:rgba(200,230,50,.10);border:1px solid rgba(200,230,50,.18);border-radius:9px;padding:3px 6px;}
+.preset-card,.tool,.panel,.library-item{box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 10px 28px rgba(24,24,24,.055);}
+.preset-card{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(250,250,244,.78));}
+.tool{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(250,250,244,.80));border-radius:22px;}
+.tool::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--lime),transparent 42%,var(--pink));opacity:.62;}
+.tool-visual{background:linear-gradient(160deg,#fff,#f5f2e8);border:1px solid rgba(24,24,24,.08);box-shadow:inset 0 -16px 26px rgba(24,24,24,.035);}
+.tool-visual::after{background:rgba(24,24,24,.78);letter-spacing:.06em;}
+.tool h3{letter-spacing:-.035em;}
+.tool p{color:#565862;}
+.tag{border:1px solid rgba(24,24,24,.055);}
+.search input{height:50px;background:#fff;border-color:rgba(24,24,24,.11);}
+.search input:focus{border-color:rgba(236,45,140,.34);box-shadow:0 0 0 4px rgba(236,45,140,.08),0 8px 24px rgba(24,24,24,.04);}
+.panel-head{background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(247,245,237,.86));}
+.panel-icon{font-family:var(--mono);font-weight:950;box-shadow:0 1px 0 rgba(255,255,255,.85) inset;}
+.result-empty{min-height:320px;background:linear-gradient(rgba(24,24,24,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(24,24,24,.022) 1px,transparent 1px),rgba(247,245,237,.52);background-size:22px 22px;border:1px dashed rgba(24,24,24,.14);border-radius:20px;margin:2px;}
+.result-empty b{font-size:19px;letter-spacing:-.025em;}
+.result-empty span{display:block;max-width:310px;line-height:1.5;margin:auto;}
+.output{background:#111214;border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.045);}
+.worksheet{border-radius:22px;background:linear-gradient(180deg,#fff,#fffdf8);}
+.worksheet-task{background:#fffdf8;}
+.btn:focus-visible,.side-btn:focus-visible,.chip:focus-visible,.preset-card:focus-visible,.tool:focus-visible{outline:3px solid rgba(236,45,140,.24);outline-offset:3px;}
+.library-search{min-height:36px;border:1px solid rgba(24,24,24,.12);border-radius:12px;background:#fff;padding:0 12px;font:750 12px var(--font);color:#1b1c22;min-width:210px;outline:none;}
+.library-search:focus{border-color:rgba(236,45,140,.34);box-shadow:0 0 0 4px rgba(236,45,140,.08);}
+.tt-draft-note{margin:0 0 12px;background:rgba(200,230,50,.14);border:1px solid rgba(200,230,50,.24);padding:9px 12px;border-radius:13px;color:#3A3A2E!important;font-weight:750;}
+.recent-tools-section{display:none;margin:16px 0 2px;}
+.recent-tools-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.recent-tool{min-height:58px;border:1px solid rgba(24,24,24,.10);border-radius:18px;background:rgba(255,255,255,.86);padding:10px 12px;text-align:left;display:grid;grid-template-columns:34px minmax(0,1fr);gap:8px;align-items:center;box-shadow:0 8px 22px rgba(24,24,24,.045);cursor:pointer;}
+.recent-tool span{width:34px;height:34px;border-radius:12px;background:rgba(200,230,50,.18);display:grid;place-items:center;font:950 10px var(--mono);color:#1C1C1E;}
+.recent-tool b{font-size:12.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.recent-tool small{grid-column:2;font:800 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:-7px;}
+.recent-tool:hover{border-color:rgba(236,45,140,.28);transform:translateY(-1px);}
+button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!important;}
+@media(max-width:820px){.hero{padding:24px 18px}.hero-card{border-radius:20px}.tool{grid-template-columns:54px minmax(0,1fr);border-radius:18px}.tool::before{height:2px}.side{background:rgba(255,255,255,.96)}}
+@media(max-width:480px){.tool{display:flex;flex-direction:column}.tool-visual{width:100%;height:48px}.tool-visual::after{font-size:9px}.result-empty{min-height:240px}.recent-tools-strip{grid-template-columns:1fr}.recent-tool{min-height:52px}}
+@media(prefers-reduced-motion:reduce){.tool,.preset-card,.btn,.chip{transition:none!important}.tool:hover,.preset-card:hover,.btn:hover{transform:none!important}}
+
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=197">
-<link rel="stylesheet" href="styles/unify.css?v=197">
-<link rel="stylesheet" href="styles/mobile.css?v=197">
+<link rel="stylesheet" href="styles/harmony.css?v=202">
+<link rel="stylesheet" href="styles/unify.css?v=202">
+<link rel="stylesheet" href="styles/mobile.css?v=202">
 </head>
 <body>
 <nav class="nav">
@@ -105,7 +153,7 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
     <button class="side-btn" type="button" onclick="setCategory('utility', this)"><span class="side-ic">U</span>Utility<span class="side-count" data-count="utility">0</span></button>
     <div class="unlock">
       <b>Teacher production mode</b>
-      <p>Generate worksheets, games, discussion cards and vocabulary packs, then send them into your TeachEd lesson flow.</p>
+      <p>Draft worksheets, games, discussion cards and vocabulary packs, then send the useful parts into your TeachEd lesson flow.</p>
       <button class="btn sm lime" type="button" onclick="openFirstTool()">Start creating</button>
     </div>
   </aside>
@@ -115,7 +163,7 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
         <div>
           <div class="eyebrow">Independent TeachEd tool studio</div>
           <h1>Build lesson materials <span class="mark">fast</span>, then turn them into games.</h1>
-          <p>This hub brings the teacher-tool workflow into TeachEd: reading tasks, vocabulary builders, grammar drills, speaking prompts, listening scaffolds, worksheet blocks, media placeholders and exports to the Game Builder.</p>
+          <p>A practical prep desk for language teachers: reading tasks, vocabulary builders, grammar drills, speaking prompts, listening scaffolds, worksheet blocks and exports to the Game Builder.</p>
           <div class="hero-actions">
             <button class="btn lime" type="button" onclick="openFirstTool()">Create an exercise</button>
             <a class="btn ghost" href="game-builder.html">Open Game Builder</a>
@@ -126,12 +174,21 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
         <div class="hero-card">
           <div class="small">What is inside</div>
           <ul>
-            <li><span>01</span><span>30+ tool templates across vocabulary, reading, writing, speaking, grammar, listening and utility.</span></li>
+            <li><span>01</span><span>30+ classroom templates across vocabulary, reading, writing, speaking, grammar, listening and utility.</span></li>
             <li><span>02</span><span>Local generators for printable tasks and reusable game content.</span></li>
             <li><span>03</span><span>Saved teacher library with one-click copy and Game Builder handoff.</span></li>
           </ul>
         </div>
       </div>
+    </section>
+    <section class="recent-tools-section" id="recent-tools-section" aria-label="Recent tools">
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:8px;">
+        <div>
+          <div class="eyebrow" style="margin-bottom:4px;">Recently used</div>
+          <h2 style="font-size:20px;letter-spacing:-.03em;">Pick up where you left off</h2>
+        </div>
+      </div>
+      <div class="recent-tools-strip" id="recent-tools-strip"></div>
     </section>
     <section aria-label="Ready preset lessons" style="margin:18px 0 4px;">
       <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
@@ -150,7 +207,7 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
       <div class="preset-strip" id="preset-strip"></div>
     </section>
     <div class="bar">
-      <div class="search"><input id="search" placeholder="Search tools, skills, exercises..." oninput="scheduleSearch()"><span>⌕</span></div>
+      <div class="search"><input id="search" placeholder="Search by lesson goal, skill or exercise..." oninput="scheduleSearch()"><span>⌕</span></div>
       <div class="chips" id="top-chips"></div>
     </div>
     <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
@@ -160,7 +217,7 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
           <div class="panel-icon" id="active-icon">T</div>
           <div>
             <h2 id="active-title">Select a tool</h2>
-            <div class="panel-sub" id="active-desc">Pick a tool from the library to begin.</div>
+            <div class="panel-sub" id="active-desc">Pick a tool from the library and shape it for your class.</div>
           </div>
         </div>
         <div class="panel-body" id="tool-form"></div>
@@ -173,23 +230,23 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
           </div>
         </div>
         <div class="panel-body" id="result-body">
-          <div class="result-empty"><div><b>No result yet</b><span>Fill the form and click Generate.</span></div></div>
+          <div class="result-empty"><div><b>Your classroom draft will appear here</b><span>Choose a tool, add a topic or source text, then create a first version you can edit.</span></div></div>
         </div>
       </div>
     </section>
     <section class="library" id="library-section">
       <div class="section-head">
         <div><h2>Saved Tool Library</h2><p>Materials generated here are stored locally in this browser.</p></div>
-        <div class="lib-actions"><button class="btn sm ghost" type="button" onclick="exportLibrary()">Export JSON</button><button class="btn sm ghost" type="button" onclick="document.getElementById('library-import').click()">Import</button><button class="btn sm ghost" type="button" onclick="clearLibrary()">Clear library</button><input id="library-import" type="file" accept="application/json,.json" style="display:none" onchange="importLibrary(event)"></div>
+        <div class="lib-actions"><input id="library-search" class="library-search" type="search" placeholder="Search saved materials..." oninput="renderLibrary()"><button class="btn sm ghost" type="button" onclick="exportLibrary()">Export JSON</button><button class="btn sm ghost" type="button" onclick="document.getElementById('library-import').click()">Import</button><button class="btn sm ghost" type="button" onclick="clearLibrary()">Clear library</button><input id="library-import" type="file" accept="application/json,.json" style="display:none" onchange="importLibrary(event)"></div>
       </div>
       <div class="library-grid" id="library-grid"></div>
     </section>
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/teacher-tools-app.js?v=197"></script>
-<script src="js/teacher-tool-ai.js?v=197" defer></script>
-<script src="js/teacher-tool-stt.js?v=197" defer></script>
-<script src="pwa-boot.js?v=197" defer></script>
+<script src="scripts/teacher-tools-app.js?v=202"></script>
+<script src="js/teacher-tool-ai.js?v=202" defer></script>
+<script src="js/teacher-tool-stt.js?v=202" defer></script>
+<script src="pwa-boot.js?v=202" defer></script>
 </body>
 </html>
