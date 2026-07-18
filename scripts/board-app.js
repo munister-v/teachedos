@@ -2464,6 +2464,11 @@ function activateWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || !card.data) return;
   card.data._interactive = true;
+  // The static list is sized tall to fit every question at once; the Play-mode
+  // stepper only ever shows one card, so give it a compact, fixed footprint
+  // and restore the original size on exit instead of staying oversized.
+  if (!card.data._preInteractiveSize) card.data._preInteractiveSize = { w: card.w, h: card.h };
+  card.w = 480; card.h = 460;
   reRenderCard(card);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
@@ -2472,6 +2477,11 @@ function deactivateWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || !card.data) return;
   card.data._interactive = false;
+  if (card.data._preInteractiveSize) {
+    card.w = card.data._preInteractiveSize.w;
+    card.h = card.data._preInteractiveSize.h;
+    delete card.data._preInteractiveSize;
+  }
   reRenderCard(card);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
@@ -2516,6 +2526,14 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
 
   let contentHtml = '';
   let scriptHtml = '';
+
+  // Play mode always renders one card at a time (stepper) instead of a long
+  // stacked list — big font, tap-to-reveal/advance. See iwGoto/iwCardTap/
+  // iwFlipOrNext in the shared script appended below.
+  const stepTotal = qs.length || items.length || cards.length || 0;
+  const stepHud = stepTotal > 1
+    ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
+    : '';
 
   // ─── MODE: Questions (quiz-based tools) ───
   if (qs.length) {
@@ -2576,9 +2594,14 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       } else if (q.type === 'open') {
         inner = `<textarea class="iw-open-input" data-qi="${qi}" placeholder="Write your answer…" rows="2"></textarea>`;
       }
-      return `<div class="iw-q"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${inner}</div></div>`;
+      const hasInner = !!inner;
+      // Card starts showing only the question; tapping it either reveals the
+      // answer controls (interactive types) or advances straight to the next
+      // card (a bare prompt with nothing to answer) — see iwCardTap.
+      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div><div class="iw-tap-hint">👆 tap to reveal</div>` : ''}</div></div>`;
     }).join('');
-    contentHtml = qBlocks + `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+    contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
+      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
 
     const hasKey = ownerView && qs.some(q => q.answer !== undefined || (q.pairs && q.pairs.length));
     if (hasKey) {
@@ -2597,8 +2620,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
     }
 
     scriptHtml = `
-function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
-function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
+function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
+function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
 function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} }
 function toggleKey(btn){ const k=btn.nextElementSibling; const o=k.style.display!=='none'; k.style.display=o?'none':'block'; btn.textContent=o?'🔑 Show Answer Key':'🔑 Hide Answer Key'; }
@@ -2655,6 +2678,8 @@ function iwReset(){
   const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='inline-block';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
+  document.querySelectorAll('.iw-q.iw-revealed').forEach(q=>q.classList.remove('iw-revealed'));
+  if(typeof iwGoto==='function') iwGoto(0);
   iwSave();
 }
 /* ── State persistence: snapshot DOM → object, post to parent; restore on load ── */
@@ -2682,6 +2707,13 @@ function iwRestore(s){
     Object.keys(s.odd||{}).forEach(qi=>{ const w=document.querySelector('.iw-ooo[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-ooo-btn[data-word="'+CSS.escape(s.odd[qi])+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.match||{}).forEach(qi=>{ const m=document.querySelector('.iw-match[data-qi="'+qi+'"]'); if(!m) return; const targets=m.querySelectorAll('.iw-target'); const o=s.match[qi]; Object.keys(o).forEach(i=>{ const t=targets[i]; if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=o[i]; slot.classList.add('filled'); const chip=m.querySelector('.iw-drag[data-left="'+CSS.escape(o[i])+'"]'); if(chip) chip.classList.add('placed'); }); });
     Object.keys(s.sort||{}).forEach(qi=>{ const w=document.querySelector('.iw-sort[data-qi="'+qi+'"]'); if(!w) return; const o=s.sort[qi]; Object.keys(o).forEach(left=>{ const chip=w.querySelector('.iw-drag[data-left="'+CSS.escape(left)+'"]'); const col=w.querySelector('.iw-sort-col[data-cat="'+CSS.escape(o[left])+'"]'); if(chip&&col) col.querySelector('.iw-sort-drop').appendChild(chip); }); });
+    // Re-reveal any stepper card that already has a saved answer, so
+    // reopening a worksheet doesn't hide work behind an unrevealed tap.
+    document.querySelectorAll('.iw-q').forEach(q=>{
+      const hasAnswer = q.querySelector('.iw-opt.selected,.iw-tf-btn.selected,.iw-ooo-btn.selected,.iw-slot.filled,.iw-sort-drop .iw-drag')
+        || Array.from(q.querySelectorAll('.iw-gap-input,.iw-open-input')).some(inp=>inp.value);
+      if(hasAnswer) q.classList.add('iw-revealed');
+    });
     if(s.checked) checkAll(true);
   }catch(e){}
 }
@@ -2693,28 +2725,61 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // ─── MODE: Vocab items (flashcards / essential vocab) ───
   else if (items.length) {
-    contentHtml = `<div class="iw-flash-grid">${items.map((it, i) => `<div class="iw-flash" onclick="this.classList.toggle('flipped')">
+    contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
       <div class="iw-flash-inner">
         <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${esc(it.word||'')}</span></div>
         <div class="iw-flash-back"><span class="iw-flash-def">${esc(it.example || it.definition || '—')}</span></div>
       </div>
-    </div>`).join('')}</div>
+    </div>`).join('')}</div></div>
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
-    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.remove('flipped'))">↺ Reset</button></div>`;
+    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.remove('flipped'));if(typeof iwGoto==='function')iwGoto(0)">↺ Reset</button></div>`;
     scriptHtml = '';
   }
 
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
   else if (cards.length) {
-    contentHtml = `<div class="iw-card-grid">${cards.map((c, i) => `<div class="iw-card-flip" onclick="this.classList.toggle('flipped')">
+    contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${cards.map((c, i) => `<div class="iw-card-flip" onclick="iwFlipOrNext(this)">
       <div class="iw-card-inner">
         <div class="iw-card-front"><span class="iw-card-num">${i+1}</span><span class="iw-card-title">${esc(c.title||'')}</span><span class="iw-card-hint">tap to reveal</span></div>
         <div class="iw-card-back"><div class="iw-card-back-title">${esc(c.title||'')}</div><div class="iw-card-back-text">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>
       </div>
-    </div>`).join('')}</div>
+    </div>`).join('')}</div></div>
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
-    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.remove('flipped'))">↺ Reset</button></div>`;
+    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.remove('flipped'));if(typeof iwGoto==='function')iwGoto(0)">↺ Reset</button></div>`;
     scriptHtml = '';
+  }
+
+  // ── Shared stepper navigation (one card at a time, all content modes) ──
+  if (stepTotal > 0) {
+    scriptHtml += `
+var iwCur=0, iwTotal=${Math.max(1, stepTotal)};
+function iwGoto(i){
+  i=Math.max(0,Math.min(iwTotal-1,i));
+  iwCur=i;
+  document.querySelectorAll('.iw-step-track > *').forEach(function(el,idx){ el.classList.toggle('iw-step-hidden', idx!==i); });
+  var lbl=document.getElementById('iw-step-count'); if(lbl) lbl.textContent=(i+1)+' / '+iwTotal;
+  var pb=document.querySelector('.iw-prev'); if(pb) pb.disabled = i===0;
+  var nb=document.querySelector('.iw-next'); if(nb) nb.disabled = i===iwTotal-1;
+}
+function iwNext(){ iwGoto(iwCur+1); }
+function iwPrev(){ iwGoto(iwCur-1); }
+function iwCardTap(el){
+  if(el.classList.contains('iw-revealed')) return;
+  if(el.querySelector('.iw-qreveal')){ el.classList.add('iw-revealed'); }
+  else { iwNext(); }
+}
+function iwFlipOrNext(el){
+  if(el.classList.contains('flipped')){ iwNext(); }
+  else { el.classList.add('flipped'); }
+}
+document.addEventListener('keydown', function(e){
+  var t=e.target;
+  if(t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA')) return;
+  if(e.key==='ArrowRight') iwNext();
+  else if(e.key==='ArrowLeft') iwPrev();
+});
+document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='function') iwGoto(0); });
+`;
   }
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -2783,7 +2848,6 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-open-input{width:100%;border:1px solid #d4d6e0;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none}
 .iw-open-input:focus{border-color:${accent}}
 /* ── Flashcards ── */
-.iw-flash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .iw-flash{perspective:600px;cursor:pointer;height:120px}
 .iw-flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
 .iw-flash.flipped .iw-flash-inner{transform:rotateY(180deg)}
@@ -2794,7 +2858,6 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
 .iw-flash-def{font:600 12.5px system-ui;color:#15803d;line-height:1.5}
 /* ── Card-flip (collocations, phrasal, idioms) ── */
-.iw-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
 .iw-card-flip.flipped .iw-card-inner{transform:rotateY(180deg)}
@@ -2822,6 +2885,31 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-key-toggle:hover{border-color:${accent};color:${accent}}
 .iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
 .iw-key b{color:#16a34a}
+/* ── Stepper (Play mode: one card at a time) ── */
+.iw-stepper{display:flex;flex-direction:column}
+.iw-step-hud{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px}
+.iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${accent};cursor:pointer;transition:all .15s;line-height:1}
+.iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
+.iw-step-nav:disabled{opacity:.3;cursor:default}
+.iw-step-count{font:800 12px monospace;color:#888;min-width:56px;text-align:center}
+.iw-step-hidden{display:none!important}
+.iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+.iw-stepper .iw-qnum{display:none}
+.iw-stepper .iw-qtext{font-size:23px;font-weight:800;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
+.iw-qreveal{display:none;animation:iwreveal .25s ease}
+.iw-q.iw-revealed .iw-qreveal{display:block}
+@keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.iw-tap-hint{text-align:center;font:700 12px system-ui;color:#aaa;margin-top:6px}
+.iw-q.iw-revealed .iw-tap-hint{display:none}
+.iw-stepper .iw-opt{font-size:15.5px;padding:12px 18px}
+.iw-stepper .iw-tf{justify-content:center}
+.iw-stepper .iw-tf-btn{font-size:15px;padding:12px 30px}
+.iw-stepper .iw-gap-input{font-size:16px}
+.iw-stepper .iw-flash,.iw-stepper .iw-card-flip{height:auto;min-height:240px;cursor:pointer}
+.iw-stepper .iw-flash-inner,.iw-stepper .iw-card-inner{min-height:240px}
+.iw-stepper .iw-flash-word{font-size:28px}
+.iw-stepper .iw-card-title{font-size:22px}
+.iw-stepper .iw-card-back-text{font-size:14.5px}
 </style></head><body>
 <div class="iw-title">${esc(d.title || d.kind || 'Interactive Activity')}</div>
 ${contentHtml}
