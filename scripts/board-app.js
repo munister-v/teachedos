@@ -2580,7 +2580,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
       return `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}" onclick="this.querySelector('input').focus()">
         <span class="iw-gap-num">${qi+1}</span>
-        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">
+        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()" onkeydown="iwGapEnter(event,this)">
       </div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper"><div class="iw-step-track"><div class="iw-gapgrid-card">
@@ -2604,7 +2604,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
         </div>`;
       } else if (q.type === 'gap-fill') {
         inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
-          <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off">
+          <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off" onkeydown="iwGapEnter(event,this)">
           <button class="iw-check-btn" onclick="checkGap(this.parentNode)">Check</button>
         </div>`;
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
@@ -2681,7 +2681,22 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
 function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
 function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
-function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} }
+function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} iwSave(); }
+function iwGapEnter(e, inp){
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  const grid=inp.closest('.iw-gap-grid');
+  if(grid){
+    // Combined gap-fill grid: jump to the next empty tile, or blur if all filled.
+    const inputs=[...grid.querySelectorAll('.iw-gap-input')];
+    const next=inputs.find((el,idx)=>idx>inputs.indexOf(inp)&&!el.value) || inputs.find(el=>!el.value&&el!==inp);
+    if(next) next.focus(); else inp.blur();
+    return;
+  }
+  // Standalone gap-fill question: Enter submits the same as clicking Check.
+  const btn=inp.parentNode.querySelector('.iw-check-btn');
+  if(btn) btn.click();
+}
 function toggleKey(btn){ const k=btn.nextElementSibling; const o=k.style.display!=='none'; k.style.display=o?'none':'block'; btn.textContent=o?'🔑 Show Answer Key':'🔑 Hide Answer Key'; }
 ${_iwDragScript(accent)}
 ${_iwSortScript(accent)}
@@ -2689,7 +2704,7 @@ function checkAll(silent){
   let score=0,total=0;
   document.querySelectorAll('.iw-opts').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-opt.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
   document.querySelectorAll('.iw-tf').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-tf-btn.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
-  document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
+  document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
   document.querySelectorAll('.iw-target').forEach(t=>{ total++; const slot=t.querySelector('.iw-slot'),placed=slot.textContent.trim(); if(placed===t.dataset.expect){t.classList.add('correct');score++;}else if(placed) t.classList.add('wrong'); });
   // Sorting
   document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ total++; const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){d.classList.add('sort-correct');score++;}else d.classList.add('sort-wrong'); });
@@ -2726,7 +2741,7 @@ function iwConfetti(){
 function iwReset(){
   document.querySelectorAll('.iw-opts').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
   document.querySelectorAll('.iw-tf').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
-  document.querySelectorAll('.iw-gap-input').forEach(inp=>{ inp.value=''; inp.classList.remove('correct','wrong'); });
+  document.querySelectorAll('.iw-gap-input').forEach(inp=>{ inp.value=''; inp.readOnly=false; inp.classList.remove('correct','wrong'); });
   document.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('.iw-open-input').forEach(t=>t.value='');
   // Matching: free every slot + chip
