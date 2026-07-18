@@ -4881,6 +4881,24 @@ let _panVelX = 0, _panVelY = 0, _panRaf = null;
 let _lastPanTime = 0, _lastPanX = 0, _lastPanY = 0;
 let _didPan = false; // track whether a real pan happened (suppress context menu)
 
+// Shared inertia kick-off for whatever gesture just ended a pan (desktop
+// mouse-drag or single-finger touch) — both track velocity into
+// _panVelX/_panVelY the same way, so they can share the same decay loop.
+function _startPanMomentum() {
+  if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
+  if (Math.abs(_panVelX) <= 0.5 && Math.abs(_panVelY) <= 0.5) return;
+  const decay = 0.88;
+  function momentum() {
+    _panVelX *= decay; _panVelY *= decay;
+    state.pan.x += _panVelX; state.pan.y += _panVelY;
+    _isMomentum = true; applyTransform(); _isMomentum = false;
+    if (Math.abs(_panVelX) > 0.3 || Math.abs(_panVelY) > 0.3) {
+      _panRaf = requestAnimationFrame(momentum);
+    } else { _panRaf = null; }
+  }
+  _panRaf = requestAnimationFrame(momentum);
+}
+
 boardWrap.addEventListener('mousedown', e => {
   if (e.button === 1 || e.button === 2) { // middle or right mouse = pan
     isPanning = true;
@@ -5206,19 +5224,7 @@ document.addEventListener('mouseup', e => {
     isPanning = false;
     boardWrap.classList.remove('panning');
     _lastPanTime = 0;
-    // Momentum / inertia
-    if (Math.abs(_panVelX) > 0.5 || Math.abs(_panVelY) > 0.5) {
-      const decay = 0.88;
-      function momentum() {
-        _panVelX *= decay; _panVelY *= decay;
-        state.pan.x += _panVelX; state.pan.y += _panVelY;
-        _isMomentum = true; applyTransform(); _isMomentum = false;
-        if (Math.abs(_panVelX) > 0.3 || Math.abs(_panVelY) > 0.3) {
-          _panRaf = requestAnimationFrame(momentum);
-        } else { _panRaf = null; }
-      }
-      _panRaf = requestAnimationFrame(momentum);
-    }
+    _startPanMomentum();
   }
 
   if (isDraggingCard) {
@@ -5474,11 +5480,22 @@ document.addEventListener('mouseup', e => {
       const dx = ts[0].clientX - panOrigin.mx;
       const dy = ts[0].clientY - panOrigin.my;
       if ((dx*dx + dy*dy) > 100) dismissBoardHint();   // moved >10px → hide the hint
+      // Track velocity the same way desktop mousemove-pan does, so lifting
+      // the finger can hand off into the same momentum/inertia glide
+      // (_startPanMomentum) instead of stopping dead.
+      const nx = panOrigin.px + dx, ny = panOrigin.py + dy;
+      const now = performance.now();
+      if (_lastPanTime) {
+        const dt = Math.max(1, now - _lastPanTime);
+        _panVelX = (nx - _lastPanX) / dt * 16;
+        _panVelY = (ny - _lastPanY) / dt * 16;
+      }
+      _lastPanX = nx; _lastPanY = ny; _lastPanTime = now;
       if (_raf) cancelAnimationFrame(_raf);
       _raf = requestAnimationFrame(() => {
         _raf = null;
-        state.pan.x = panOrigin.px + dx;
-        state.pan.y = panOrigin.py + dy;
+        state.pan.x = nx;
+        state.pan.y = ny;
         applyTransform();
       });
     } else if (ts.length === 2 && pinchOrigin) {
@@ -5514,10 +5531,16 @@ document.addEventListener('mouseup', e => {
     }
     cancelLongPress();
     const ts = Array.from(e.touches);
-    if (ts.length === 0) { panOrigin = null; pinchOrigin = null; t0 = null; t1 = null; }
+    if (ts.length === 0) {
+      // Lifting the last finger after a single-finger pan hands off into the
+      // same momentum glide desktop mouse-pan uses (see touchmove above).
+      if (panOrigin && !isDraggingCard) { _lastPanTime = 0; if (_raf) { cancelAnimationFrame(_raf); _raf = null; } _startPanMomentum(); }
+      panOrigin = null; pinchOrigin = null; t0 = null; t1 = null;
+    }
     else if (ts.length === 1) {
       t0 = ts[0]; t1 = null; pinchOrigin = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
+      _lastPanTime = 0; // fresh gesture (e.g. after a 2-finger pinch) — don't carry a stale velocity sample
     }
   }, { passive: true });
   boardWrap.addEventListener('touchcancel', e => {
