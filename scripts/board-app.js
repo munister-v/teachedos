@@ -7950,10 +7950,17 @@ function _ytRetryFailed() {
 }
 
 // Lay the generated worksheets out in a grid (≤3 per row) inside one titled frame.
+// Lesson Pack results (boardKind:'cards' — a multi-stage pack, not a linear
+// question list) are placed SEPARATELY, below the frame, at their own
+// landscape width — cramming them into the same fixed CARD_W as the other
+// exercises is exactly what forced a 9-stage pack into one narrow scrolling
+// column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
 function _placeLessonOnBoard(results, videoTitle) {
+  const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
+  const gridResults = results.filter(out => !cardsResults.includes(out));
   const CARD_W = 440, GAP = 26, PAD = 30, HEAD = 64;
-  const n = results.length;
-  const heights = results.map(_ttEstWorksheetHeight);
+  const n = gridResults.length;
+  const heights = gridResults.map(_ttEstWorksheetHeight);
   const cols = n <= 2 ? n : 3;
   const rows = Math.ceil(n / cols);
   // Each grid row is as tall as its tallest card.
@@ -7963,10 +7970,10 @@ function _placeLessonOnBoard(results, videoTitle) {
     for (let c = 0; c < cols; c++) { const i = r * cols + c; if (i < n) mh = Math.max(mh, heights[i]); }
     rowH.push(mh);
   }
-  const FW = PAD * 2 + cols * CARD_W + (cols - 1) * GAP;
-  const FH = HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD;
+  const FW = n ? PAD * 2 + cols * CARD_W + (cols - 1) * GAP : 0;
+  const FH = n ? HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD : 0;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-  const center = findFreePlacement(c0.x, c0.y, FW, FH);
+  const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640), FH || 400);
   const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
   // Title the frame after the actual video when we have it.
   let title = '🎬  Lesson from YouTube';
@@ -7977,22 +7984,39 @@ function _placeLessonOnBoard(results, videoTitle) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
-    frame = addCard('frame', x0, y0, {
-      title, bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
-    }, FW, FH);
-    results.forEach((out, i) => {
-      const r = Math.floor(i / cols), c = i % cols;
-      const x = x0 + PAD + c * (CARD_W + GAP);
-      const y = y0 + HEAD + rowH.slice(0, r).reduce((s, h) => s + h + GAP, 0);
-      const card = addCard('worksheet', x, y, {
+    if (n) {
+      frame = addCard('frame', x0, y0, {
+        title, bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
+      }, FW, FH);
+      gridResults.forEach((out, i) => {
+        const r = Math.floor(i / cols), c = i % cols;
+        const x = x0 + PAD + c * (CARD_W + GAP);
+        const y = y0 + HEAD + rowH.slice(0, r).reduce((s, h) => s + h + GAP, 0);
+        const card = addCard('worksheet', x, y, {
+          title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
+          boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
+        }, CARD_W, heights[i]);
+        if (frame && card) setCardParentFrame?.(card, frame);
+      });
+    }
+    // Lesson Pack(s): landscape, stacked below the frame (or centered if there
+    // was nothing else to grid).
+    let stackY = n ? y0 + FH + GAP : (Math.round(center.y - 200));
+    cardsResults.forEach(out => {
+      const cols2 = _ttLessonPackCols(out.cards.length);
+      const W2 = Math.min(1180, 210 + cols2 * 300);
+      const H2 = _ttEstWorksheetHeight(out);
+      const cx = n ? x0 + FW / 2 : center.x;
+      const card = addCard('worksheet', Math.round(cx - W2 / 2), stackY, {
         title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
-        boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
-      }, CARD_W, heights[i]);
-      if (frame && card) setCardParentFrame?.(card, frame);
+        boardKind: out.boardKind, cards: out.cards, _ttSrc: 1,
+      }, W2, H2);
+      if (card) stackY += H2 + GAP;
     });
     if (typeof renumberFrames === 'function') renumberFrames();
-    _sendCardToBack(frame);   // substrate frame always behind existing cards
-    if (frame?.id) { clearSelection?.(); selectCard?.(frame.id); setTimeout(() => { try { zoomToCard?.(frame.id, true); } catch (e) {} }, 80); }
+    if (frame) _sendCardToBack(frame);   // substrate frame always behind existing cards
+    const zoomTarget = frame?.id || (state.cards[state.cards.length - 1]?.id);
+    if (zoomTarget) { clearSelection?.(); selectCard?.(zoomTarget); setTimeout(() => { try { zoomToCard?.(zoomTarget, true); } catch (e) {} }, 80); }
   } finally { _suppressSnapshot--; }
   scheduleSave?.(); saveLocal?.();
 }
