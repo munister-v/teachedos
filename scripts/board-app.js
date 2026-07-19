@@ -2346,11 +2346,20 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
   }
 
   if (stageMeta.cls === 'ws-stage-vocab') {
-    const rows = lines.map(line => {
+    const parsed = lines.map(line => {
       const clean = line.replace(/^\s*[-•]\s*/, '');
-      const m = clean.match(/^(.+?)\s*(?:—|–|-|:)\s*(.+)$/);
-      const term = _ttStripMd(m ? m[1] : clean).trim();
-      const def = (m ? m[2] : '').trim();
+      const m = clean.match(/^(.{1,40}?)\s*(?:—|–|-|:)\s*(.+)$/);
+      return m ? { term: _ttStripMd(m[1]).trim(), def: m[2].trim() } : null;
+    });
+    // Only render the term/definition pill grid if the content actually LOOKS
+    // like vocab pairs (a title matching "vocab/glossary/word" doesn't
+    // guarantee it — e.g. AI prose fallback). Otherwise a whole sentence gets
+    // jammed into a pill meant for one short word, producing an oversized,
+    // misshapen blob instead of a paragraph. Fall back to plain text instead.
+    if (!parsed.some(Boolean)) return _ttMdToHtml(raw);
+    const rows = parsed.map((p, i) => {
+      const term = p ? p.term : _ttStripMd(lines[i]).trim();
+      const def = p ? p.def : '';
       return `<div class="ws-vocab-row">
         <span class="ws-vocab-term">${esc(term)}</span>
         <span class="ws-vocab-def">${def ? _ttMdInline(def) : ''}</span>
