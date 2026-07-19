@@ -1713,6 +1713,19 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 /* ══════════════ VIDEO CARD ══════════════ */
 .card-video .card-header{background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(220,38,38,.03));}
+/* "Source video" flavour (YouTube→Lesson): same blue accent as the exercise
+   frame it sits beside, so the pair reads as one set instead of a generic
+   red video embed next to an unrelated blue frame. */
+.card-video.yt-source{border-color:rgba(66,98,255,.28)!important;}
+.card-video.yt-source .card-header{background:linear-gradient(135deg,rgba(66,98,255,.09),rgba(66,98,255,.03));gap:8px;}
+.video-eyebrow{font:800 9px var(--mono);letter-spacing:.08em;color:#4262FF;flex-shrink:0;}
+.card-video.yt-source .card-title-text{text-transform:none;font-weight:700;}
+.video-open-link{
+  flex-shrink:0;width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  color:#4262FF;text-decoration:none;font-size:12px;opacity:0;transition:opacity .12s,background .12s;
+}
+.video-open-link:hover{background:rgba(66,98,255,.12);}
+.board-card:hover .video-open-link,.board-card.selected .video-open-link{opacity:1;}
 .video-body{padding:0;position:relative;overflow:hidden;flex:1;background:#000;border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);}
 .video-body iframe{width:100%;height:100%;border:none;display:block;}
 .video-body video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}

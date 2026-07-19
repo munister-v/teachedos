@@ -1230,13 +1230,32 @@ function lazyBoardMediaSrc(el, src) {
 }
 
 function renderVideo(el, card) {
-  const hdr = makeHeader('🎬', card.data.title || 'Video', card.id);
+  const d = card.data;
+  // "Source video" flavour — set by _placeLessonOnBoard so the clip a Lesson
+  // Pack was generated from reads as paired with its exercises (same accent
+  // as the frame border) instead of a generic red video-card.
+  if (d._ytSource) el.classList.add('yt-source');
+  const hdr = makeHeader('▶', d.title || 'Video', card.id);
+  if (d._ytSource) {
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'video-eyebrow';
+    eyebrow.textContent = 'SOURCE VIDEO';
+    hdr.insertBefore(eyebrow, hdr.firstChild);
+    if (d.url) {
+      const link = document.createElement('a');
+      link.className = 'video-open-link';
+      link.href = d.url; link.target = '_blank'; link.rel = 'noopener';
+      link.title = 'Open on YouTube'; link.textContent = '↗';
+      link.addEventListener('mousedown', e => e.stopPropagation());
+      hdr.appendChild(link);
+    }
+  }
   el.appendChild(hdr);
   const body = document.createElement('div');
   body.className = 'card-body video-body';
-  if (card.data.embedUrl) {
+  if (d.embedUrl) {
     const iframe = document.createElement('iframe');
-    lazyBoardMediaSrc(iframe, card.data.embedUrl);
+    lazyBoardMediaSrc(iframe, d.embedUrl);
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
@@ -8039,7 +8058,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   // Sits to the left of the exercise frame so the teacher can play it and
   // reference the tasks side by side.
   const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
-  const VIDEO_W = 400, VIDEO_H = 225;
+  // True 16:9 for the player area itself, plus the card header's own height —
+  // sizing the WHOLE card to 16:9 (as before) left the actual video letterboxed.
+  const VIDEO_W = 400, VIDEO_HEADER_H = 34, VIDEO_H = Math.round(VIDEO_W * 9 / 16) + VIDEO_HEADER_H;
   const videoSlotW = embedUrl ? VIDEO_W + GAP : 0;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640) + videoSlotW, Math.max(FH || 400, embedUrl ? VIDEO_H : 0));
@@ -8054,7 +8075,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   let frame;
   try {
     if (embedUrl) {
-      addCard('video', x0 - videoSlotW, y0, { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl }, VIDEO_W, VIDEO_H);
+      addCard('video', x0 - videoSlotW, y0, { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true }, VIDEO_W, VIDEO_H);
     }
     if (n) {
       frame = addCard('frame', x0, y0, {
