@@ -7980,7 +7980,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     }
 
     _ytSetProgress(100);
-    _placeLessonOnBoard(results, videoTitle);
+    _placeLessonOnBoard(results, videoTitle, url);
 
     if (failed.length) {
       // Partial success — keep the modal open and let the user retry the misses.
@@ -8018,7 +8018,7 @@ function _ytRetryFailed() {
 // landscape width — cramming them into the same fixed CARD_W as the other
 // exercises is exactly what forced a 9-stage pack into one narrow scrolling
 // column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
-function _placeLessonOnBoard(results, videoTitle) {
+function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   const gridResults = results.filter(out => !cardsResults.includes(out));
   const CARD_W = 440, GAP = 26, PAD = 30, HEAD = 64;
@@ -8035,9 +8035,15 @@ function _placeLessonOnBoard(results, videoTitle) {
   }
   const FW = n ? PAD * 2 + cols * CARD_W + (cols - 1) * GAP : 0;
   const FH = n ? HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD : 0;
+  // The actual video, embedded — not just the exercises generated FROM it.
+  // Sits to the left of the exercise frame so the teacher can play it and
+  // reference the tasks side by side.
+  const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
+  const VIDEO_W = 400, VIDEO_H = 225;
+  const videoSlotW = embedUrl ? VIDEO_W + GAP : 0;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-  const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640), FH || 400);
-  const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
+  const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640) + videoSlotW, Math.max(FH || 400, embedUrl ? VIDEO_H : 0));
+  const x0 = Math.round(center.x - FW / 2 + videoSlotW / 2), y0 = Math.round(center.y - FH / 2);
   // Title the frame after the actual video when we have it.
   let title = '🎬  Lesson from YouTube';
   if (videoTitle) {
@@ -8047,6 +8053,9 @@ function _placeLessonOnBoard(results, videoTitle) {
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
+    if (embedUrl) {
+      addCard('video', x0 - videoSlotW, y0, { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl }, VIDEO_W, VIDEO_H);
+    }
     if (n) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
