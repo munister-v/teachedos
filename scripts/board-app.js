@@ -2392,9 +2392,14 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
     const title = hasTitle ? first : '';
     const bodyLines = hasTitle ? lines.slice(1) : lines;
     const copy = bodyLines.join(' ');
+    // The drop-cap only reads well on an actual passage (a real paragraph a
+    // student is meant to read). On short/placeholder text it floats a huge
+    // letter next to almost nothing, leaving a visibly broken-looking gap —
+    // gate it behind a length check instead of applying it unconditionally.
+    const dropCapCls = copy.length >= 90 ? ' has-dropcap' : '';
     return `<div class="ws-reading-block">
       ${title ? `<div class="ws-reading-title">${_ttMdInline(title)}</div>` : ''}
-      <div class="ws-reading-copy">${_ttMdInline(copy)}</div>
+      <div class="ws-reading-copy${dropCapCls}">${_ttMdInline(copy)}</div>
     </div>`;
   }
 
@@ -3212,7 +3217,7 @@ function printWorksheet(cardId) {
     /* reading block + drop cap */
     .ws-reading-title{font-size:14px;font-weight:850;color:#171420;margin-bottom:7px}
     .ws-reading-copy{font-size:13px;line-height:1.78;color:#2c2f3c;padding:14px 16px;border:1px solid #e8e9f0;border-radius:12px;background:#fff}
-    .ws-reading-copy::first-letter{float:left;font-size:42px;line-height:.8;font-weight:850;margin:4px 10px 0 0;color:var(--stage-accent,${accent})}
+    .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:850;margin:4px 10px 0 0;color:var(--stage-accent,${accent})}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
     .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}

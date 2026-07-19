@@ -3492,7 +3492,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  border:1px solid color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 13%,rgba(17,24,39,.06));
 	  box-shadow:0 1px 2px rgba(17,24,39,.04),inset 0 1px 0 rgba(255,255,255,.9);
 	}
-	.ws-reading-copy::first-letter{
+	/* Drop-cap is opt-in (.has-dropcap, added by JS only for long-enough
+	   passages) — on a short one-liner it floats a huge letter next to almost
+	   nothing and looks broken rather than editorial. */
+	.ws-reading-copy.has-dropcap::first-letter{
 	  float:left;font-size:42px;line-height:.82;font-weight:950;margin:3px 9px 0 0;
 	  color:var(--stage-accent,var(--q-accent,#4262FF));
 	  text-shadow:0 3px 10px color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 24%,transparent);
