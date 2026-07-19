@@ -90,12 +90,6 @@ a{text-decoration:none;color:inherit;}
 .btn-primary:hover{background:var(--accent2);}
 .btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1px solid var(--border2);}
 .btn-ghost:hover{background:rgba(200,230,50,.15);}
-/* .btn-ghost's near-black text (var(--accent)) assumes a light page — but the
-   page-head sits directly on .mp-shell's dark dashboard background (see
-   harmony.css "identity polish 198"), where it was unreadable. Light variant
-   for anything inside the dark shell, matching .page-title's light-cream text. */
-.mp-shell .page-head .btn-ghost{background:rgba(245,240,232,.08);color:var(--bg);border-color:rgba(245,240,232,.20);}
-.mp-shell .page-head .btn-ghost:hover{background:rgba(245,240,232,.16);}
 .btn-sm{padding:5px 12px;font-size:12px;}
 .btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:var(--red);color:#fff;}
@@ -338,6 +332,15 @@ a{text-decoration:none;color:inherit;}
 <link rel="stylesheet" href="styles/mobile.css?v=197">
 <link rel="stylesheet" href="styles/harmony.css?v=197">
 <link rel="stylesheet" href="styles/unify.css?v=197">
+<style>
+/* harmony.css's .mp-shell dark dashboard background + light text ("identity
+   polish 198") load after this page's own <style> block, so they win with
+   !important — override both back here, after all three stylesheets, so
+   Gradebook stays on the site's normal light theme instead of the dark shell.
+   (Two paired rules: background at all widths, color inside a desktop-only
+   media query — both come back here regardless of viewport.) */
+#page.mp-shell{background:var(--bg) !important;color:var(--text) !important;}
+</style>
 </head>
 <body class="suite-page gradebook-suite">
 

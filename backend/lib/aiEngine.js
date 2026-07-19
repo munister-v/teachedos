@@ -372,7 +372,7 @@ function shapeSpec(input) {
     }
     if (isTf) {
       return {
-        task: `${head} Produce exactly ${count} True/False statements at ${level} level. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
+        task: `${head} Produce exactly ${count} True/False statements at ${level} level. Each "text" must be ONE short original sentence (max ~20 words) that YOU write to test a single fact from the source — never copy or quote a whole sentence, paragraph or the transcript itself. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
         schema: '{"questions":[{"type":"truefalse","text":"statement","answer":true,"points":1}]}',
       };
     }
@@ -396,8 +396,8 @@ function shapeSpec(input) {
     }
     if (toolId === 'audio-video-questions') {
       return {
-        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq", 4 options, "answer" = correct option text) and the rest open detail questions (type "open").${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"question","options":["A","B","C","D"],"answer":"A","points":1},{"type":"open","text":"detail question?","points":1}]}',
+        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq") and the rest open detail questions (type "open"). Each MCQ must test a DIFFERENT specific moment or fact from the transcript — do not write generic template questions ("What can we understand from this part?") and do not reuse the same 4 options (or same option pattern) across questions. Every MCQ has 4 full, meaningful answer phrases as options (never a copy-pasted chunk of the transcript, never a meta-comment about the question itself like "an unrelated detail" or "the opposite of the main idea") — exactly one is correct and "answer" must equal that option's text verbatim. Open questions ask about a detail or opinion, not the transcript verbatim.${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"Why did the speaker visit the museum?","options":["To see a specific exhibit","To meet a friend for lunch","To attend a work meeting","To get out of the rain"],"answer":"To see a specific exhibit","points":1},{"type":"open","text":"What surprised the speaker most, and why?","points":1}]}',
       };
     }
     if (toolId === 'rewrite-style') {
@@ -443,8 +443,8 @@ function shapeSpec(input) {
     }
     if (toolId === 'choose-summary') {
       return {
-        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate summary of the source text / topic. "options" = 3 summaries: one accurate, one too vague, one with an incorrect detail. "answer" = text of the accurate summary exactly. Use type "mcq".${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"Which summary best describes the text?","options":["Accurate summary","Vague but not wrong","Contains incorrect detail"],"answer":"Accurate summary","points":1}]}',
+        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate SUMMARY of the source text / topic — a summary is a short original paraphrase in your own words (2-3 sentences), never the transcript/source text copied or quoted directly. "options" = 3 such summaries, each 2-3 sentences: one accurate, one that sounds plausible but is too vague/generic to show real understanding, one that states a specific wrong detail (a name, number, place or event that contradicts the source). Do NOT write meta-descriptions of the options (never "the speaker lists unrelated details" or "the opposite of the main idea") — write the actual summary sentences a student would read and judge for themselves. "answer" = the accurate summary's text exactly. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"Which summary best describes the video?","options":["Two-to-three sentence paraphrase that accurately covers the main points of the video.","Two-to-three sentence paraphrase that is technically true but too generic to show the video was watched.","Two-to-three sentence paraphrase that gets one concrete fact wrong."],"answer":"Two-to-three sentence paraphrase that accurately covers the main points of the video.","points":1}]}',
       };
     }
     if (toolId === 'sentence-translation') {

@@ -9154,6 +9154,50 @@ function _ttPlaceQuizOnBoard(output){
   toast('✨ Quiz added — open it to preview the key; students can take it');
 }
 
+/* Warm-up / icebreaker prompts (kind:'Warm-up') as a loose cluster of small
+   sticky notes instead of a tall stacked worksheet — order doesn't matter for
+   these (they're picked freely in class), so a scattered cluster reads better
+   than a numbered list with unused writing lines. Keeps the app's existing
+   .tt-note accent-stripe look (same system as every other note card) — only
+   the SHAPE changes: small squares, one per prompt, each a different accent. */
+function _ttPlaceWarmupStickers(output){
+  const qs = (output.questions || []).filter(q => q && q.text);
+  if (!qs.length) { toast('No warm-up questions to place'); return; }
+  const palette = ['#A8D02B','#EC2D8C','#8B5CF6','#F97316','#0891B2','#D97706'];
+  const W = 210, H = 175, GAP = 20;
+  const COLS = qs.length <= 3 ? qs.length : (qs.length <= 8 ? 3 : 4);
+  const ROWS = Math.ceil(qs.length / COLS);
+  const totalW = COLS * W + (COLS - 1) * GAP;
+  const totalH = ROWS * H + (ROWS - 1) * GAP;
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const x0 = Math.round(c0.x - totalW / 2), y0 = Math.round(c0.y - totalH / 2);
+  // Deterministic pseudo-random jitter (no Math.random — stays put across re-renders).
+  const jitter = i => { const s = Math.sin(i * 12.9898) * 43758.5453; return ((s - Math.floor(s)) - 0.5) * 16; };
+  snapshot(); _suppressSnapshot++;
+  const created = [];
+  try {
+    qs.forEach((q, i) => {
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const cx = x0 + col * (W + GAP) + jitter(i);
+      const cy = y0 + row * (H + GAP) + jitter(i + 99);
+      const card = addCard('note', Math.round(cx), Math.round(cy), {
+        icon: '💬', title: 'Warm-up', body: q.text, accent: palette[i % palette.length],
+        _ttSrc: 1, _ttCat: output.cat || 'speaking', _ttKind: 'Warm-up',
+      }, W, H);
+      if (card) created.push(card);
+    });
+    if (typeof renumberFrames === 'function') renumberFrames();
+  } finally { _suppressSnapshot--; }
+  if (created.length) {
+    clearSelection && clearSelection();
+    created.forEach(c => state.selected.add(c.id));
+    setTimeout(() => { try { zoomToCard && zoomToCard(created[0].id, true); } catch (e) {} }, 80);
+  }
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  closeTeacherToolBuilder();
+  toast(`✨ ${created.length} warm-up sticky note${created.length > 1 ? 's' : ''} added`);
+}
+
 function _ttPlaceCardsOnBoard(output){
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#4262FF' };
   const cards = output.cards;
@@ -9710,6 +9754,12 @@ async function applyTeacherToolBuilderToBoard(mode) {
     const _in = readTeacherToolBuilderInput();
     output._ctx = { source: _in.source || '', vocab: _in.vocab || '', topic: _in.topic || '', level: _in.level || 'B1' };
   } catch {}
+  // Warm-up / icebreaker prompts: sticky-note cluster, regardless of mode —
+  // a stacked numbered worksheet never fit these (order doesn't matter, no
+  // writing lines needed).
+  if (output.kind === 'Warm-up' && output.boardKind === 'quiz' && Array.isArray(output.questions)) {
+    _ttPlaceWarmupStickers(output); return;
+  }
   // Styled read-only worksheet — available for the primitive board kinds.
   if (mode === 'worksheet' &&
       ['quiz','vocab','cards'].includes(output.boardKind)) {
