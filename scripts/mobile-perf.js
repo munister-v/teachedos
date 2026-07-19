@@ -12,13 +12,25 @@
 (function () {
   'use strict';
 
-  const isMobile = window.matchMedia('(max-width: 860px)').matches;
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  const mqMobile = window.matchMedia('(max-width: 860px)');
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
-  if (!isMobile && !isStandalone) return;
-
   const root = document.documentElement;
-  root.classList.add('te-mobile-lite');
+
+  // Re-evaluate on every viewport change instead of deciding once at script
+  // load: a page that first paints at a transient narrow width (window not
+  // yet maximized, PWA window resize, split-view) would otherwise get stuck
+  // in "lite" mode — no blur, no animations — even after growing to desktop
+  // size, since nothing ever removed the class.
+  function syncMobileLite() {
+    root.classList.toggle('te-mobile-lite', mqMobile.matches || isStandalone());
+  }
+  syncMobileLite();
+  mqMobile.addEventListener ? mqMobile.addEventListener('change', syncMobileLite) : mqMobile.addListener(syncMobileLite);
+  window.addEventListener('resize', syncMobileLite, { passive: true });
+
+  if (!mqMobile.matches && !isStandalone()) return;
+
   let scrolling = false;
   let scrollTimer = null;
   let scrollRaf = 0;
