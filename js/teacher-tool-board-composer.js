@@ -507,29 +507,22 @@ function _ttPlaceCardFlowBoard(output, meta) {
   if (isLessonPack) {
     const visibleCards = Math.min(cards.length, 10);
     const shown = cards.slice(0, visibleCards);
-    const COLS = 2;
-    const CARD_W = 468;
     const RAIL_W = 286;
     const GAP = 18;
     const HEADER_H = 126;
     const GRID_TOP = 208;
-    const FRAME_W = PAD * 2 + COLS * CARD_W + GAP + 26 + RAIL_W;
-
-    const cardH = shown.map((c, i) => {
-      const textForSizing = `${c.title || `Stage ${i + 1}`}\n\n${c.text || ''}`;
-      return _ttClamp(_ttTextCardHeight(textForSizing, CARD_W, 13.5, 74), 178, 354);
-    });
-    const rowCount = Math.max(1, Math.ceil(shown.length / COLS));
-    const rowTop = [], rowH = [];
-    let acc = GRID_TOP;
-    for (let r = 0; r < rowCount; r++) {
-      rowH[r] = Math.max(...cardH.slice(r * COLS, r * COLS + COLS));
-      rowTop[r] = acc;
-      acc += rowH[r] + GAP;
-    }
+    // Stage grid: the SAME landscape Lesson Pack card used everywhere else on
+    // the board (structured aims/practice/grammar formatting, single accent,
+    // row-height clamp, anchors, timing badges) — not a separate custom
+    // layout, so "Add to board" always looks the same regardless of which
+    // button the teacher clicked to place it.
+    const lpCols = _ttLessonPackCols(shown.length);
+    const GRID_W = Math.min(1180, 210 + lpCols * 300);
+    const GRID_H = _ttEstWorksheetHeight({ cards: shown });
+    const FRAME_W = PAD * 2 + GRID_W + GAP + 26 + RAIL_W;
 
     const sideStackH = 330 + 18 + 170 + 18 + 150 + (cards.length > visibleCards ? 18 + 130 : 0);
-    const FRAME_H = Math.max(820, Math.max(acc - GAP, GRID_TOP + sideStackH) + 38);
+    const FRAME_H = Math.max(820, Math.max(GRID_TOP + GRID_H, GRID_TOP + sideStackH) + 38);
     const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
     const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
     const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
@@ -542,18 +535,13 @@ function _ttPlaceCardFlowBoard(output, meta) {
         bgColor: 'transparent',
       });
 
-      shown.forEach((c, i) => {
-        const col = i % COLS, row = Math.floor(i / COLS);
-        const sx = x0 + PAD + col * (CARD_W + GAP);
-        const sy = y0 + rowTop[row];
-        const stageMeta = _ttLessonStageMeta(c, i);
-        _ttAddTextCard(frame, sx, sy, CARD_W, rowH[row], null, {
-          html: _ttLessonStageHtml(c, i, stageMeta),
-          bgColor: 'transparent',
-        });
-      });
+      const stageCard = addCard('worksheet', x0 + PAD, y0 + GRID_TOP, {
+        title: output.title, kind: output.kind, cat: output.cat, level: output.level || 'B1',
+        boardKind: 'cards', cards: shown, _ttSrc: 1,
+      }, GRID_W, GRID_H);
+      if (frame && stageCard) setCardParentFrame?.(stageCard, frame);
 
-      const sideX = x0 + PAD + COLS * CARD_W + GAP + 26;
+      const sideX = x0 + PAD + GRID_W + GAP + 26;
       _ttAddTextCard(frame, sideX, y0 + GRID_TOP, RAIL_W, 330, null, {
         html: _ttLessonMapHtml(cards),
         bgColor: 'transparent',
