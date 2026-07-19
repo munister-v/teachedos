@@ -576,9 +576,14 @@ footer{
 /* ── PREMIUM MOTION + DEPTH ── (the .reveal class is added by JS; with no JS or
    reduced-motion the markup stays fully visible) */
 .reveal{opacity:0;transform:translateY(26px);
-  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1);
-  will-change:opacity,transform;}
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1);}
 .reveal.in{opacity:1;transform:none;}
+/* will-change is applied per-element by JS right before it animates in, and
+   removed once the transition ends — NOT set here statically. A permanent
+   will-change on every .reveal element (there can be 40-60+ across the page)
+   forces the browser to keep that many separate GPU compositor layers alive
+   for the whole page lifetime, which is the #1 cause of scroll/load jank. */
+.reveal.will-anim{will-change:opacity,transform;}
 /* Hero glow blobs slowly drift for living depth */
 .hero-bg{animation:heroGlow 20s ease-in-out infinite alternate;}
 @keyframes heroGlow{from{transform:scale(1) translate(0,0);}to{transform:scale(1.07) translate(-1.4%,1.1%);}}
@@ -2777,11 +2782,19 @@ window.toggleFaq = function(trigger){
   // Position-based reveal (deterministic — never leaves content hidden, even on
   // anchor jumps or fast flicks, unlike IntersectionObserver which can coalesce).
   var pending = els.slice();
+  function animateIn(el) {
+    // Promote to a GPU layer only for the ~0.7s the transition actually runs,
+    // then drop it — see the .reveal.will-anim comment in <style> for why.
+    el.classList.add('will-anim', 'in');
+    var done = function () { el.classList.remove('will-anim'); el.removeEventListener('transitionend', done); };
+    el.addEventListener('transitionend', done);
+    setTimeout(done, 900); // safety net if transitionend never fires (e.g. display:none ancestor)
+  }
   function revealCheck() {
     var trigger = window.innerHeight * 0.94;
     for (var i = pending.length - 1; i >= 0; i--) {
       if (pending[i].getBoundingClientRect().top < trigger) {
-        pending[i].classList.add('in');
+        animateIn(pending[i]);
         pending.splice(i, 1);
       }
     }
@@ -2837,7 +2850,7 @@ window.toggleFaq = function(trigger){
   setTimeout(function () {
     document.querySelectorAll('.reveal:not(.in)').forEach(function (el) {
       var r = el.getBoundingClientRect();
-      if (r.top < window.innerHeight * 1.2) el.classList.add('in');
+      if (r.top < window.innerHeight * 1.2) animateIn(el);
     });
   }, 1600);
   window.addEventListener('load', function () { setTimeout(revealCheck, 200); });
