@@ -2265,7 +2265,7 @@ body::before{
       <div class="plan pop">
         <div class="plan-badge">Most popular</div>
         <div class="plan-name">Pro</div>
-        <div class="plan-price">$9 <span class="per">/ month</span></div>
+        <div class="plan-price">$9.90 <span class="per">/ month</span></div>
         <p class="plan-desc">For active tutors who teach every day and want no limits.</p>
         <ul class="plan-features">
           <li>Everything in Free, plus:</li>
@@ -2312,63 +2312,63 @@ body::before{
     </div>
     <div class="faq">
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           How does the AI generation work?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise — reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet — that you can edit, print, play as a game or drop on a board.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Do I need my own API key? Does AI cost extra?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">No. AI is built in — no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Can I edit what the AI produces?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">Always. Every generated item is fully editable before you export it — fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Do I need to download anything?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">No. TeachEd is a Progressive Web App — you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Does it really work offline?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">Yes. Once TeachEd has loaded once, all pages, boards, grades and games are cached by the Service Worker and available with no internet connection. Great for teaching in areas with spotty Wi-Fi.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           What languages does TeachEd support?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">The platform UI is in English. The ready-made lesson packs are designed for teaching English to Slavic-language learners (Ukrainian, Russian, Polish), with bilingual vocabulary cards. Custom boards can cover any language.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Can my students use TeachEd too?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">Yes. Students get a read-only portal where they see their homework, progress and board content shared by you. Live board sessions let students follow along on their own device in real time (Pro plan).</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Can I import my existing materials?
           <span class="faq-icon">+</span>
         </div>
         <div class="faq-a">You can copy-paste content from any source into board cards and notes. We're working on direct import from Google Docs and PDF. In the meantime, our ready-made packs cover most common lesson types immediately.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Is my data safe?
           <span class="faq-icon">+</span>
         </div>
@@ -2521,6 +2521,15 @@ body::before{
   </div>
 </div>
 
+<script>
+/* Keyboard-accessible FAQ accordion: toggles the open state and keeps
+   aria-expanded in sync so screen readers announce it correctly. */
+window.toggleFaq = function(trigger){
+  const item = trigger.parentElement;
+  const open = item.classList.toggle('open');
+  trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+};
+</script>
 <script>
 /* ───────── TeachEd landing auth (self-contained) ───────── */
 (function(){
