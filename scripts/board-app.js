@@ -2292,9 +2292,11 @@ function renderAssignment(el, card) {
 // revealed answers) — when true it's the teacher key.
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
+  if (/\baims?\b|objective|goal/.test(t)) return { cls:'ws-stage-aims', icon:'AIM', label:'Aims' };
   if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'VOC', label:'Language bank' };
   if (/before|lead|warm/.test(t)) return { cls:'ws-stage-before', icon:'Q', label:'Before task' };
   if (/after|discussion|follow/.test(t)) return { cls:'ws-stage-after', icon:'GO', label:'After task' };
+  if (/practice|production/.test(t)) return { cls:'ws-stage-practice', icon:'PR', label:'Practice' };
   if (/reading|text|article|story/.test(t)) return { cls:'ws-stage-reading', icon:'IN', label:'Input text' };
   if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'FX', label:'Focus' };
   return { cls:'ws-stage-default', icon:String(index + 1), label:'Stage' };
@@ -2304,6 +2306,12 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
   const raw = String(card?.text || '').trim();
   if (!raw) return '';
   const lines = raw.split(/\n+/).map(line => line.trim()).filter(Boolean);
+
+  if (stageMeta.cls === 'ws-stage-aims') {
+    const items = lines.map(line => line.replace(/^\s*[-•✓✔]\s*/, ''));
+    const rows = items.map(t => `<div class="ws-aim-row"><span class="ws-aim-check">✓</span><span>${_ttMdInline(t)}</span></div>`).join('');
+    return `<div class="ws-aims-list">${rows}</div>`;
+  }
 
   if (stageMeta.cls === 'ws-stage-vocab') {
     const rows = lines.map(line => {
@@ -2319,7 +2327,12 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
     return `<div class="ws-vocab-grid">${rows}</div>`;
   }
 
-  if (stageMeta.cls === 'ws-stage-before' || stageMeta.cls === 'ws-stage-after') {
+  if (stageMeta.cls === 'ws-stage-grammar') {
+    const rows = lines.map(l => `<div class="ws-grammar-line">${_ttMdInline(l)}</div>`).join('');
+    return `<div class="ws-grammar-block">${rows}</div>`;
+  }
+
+  if (stageMeta.cls === 'ws-stage-before' || stageMeta.cls === 'ws-stage-after' || stageMeta.cls === 'ws-stage-practice') {
     const prompts = lines.map((line, i) => {
       const m = line.match(/^\s*(\d+)[.)]\s*(.+)$/);
       const num = m ? m[1] : String(i + 1);
@@ -2388,10 +2401,22 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           <span class="ws-stage-label">${esc(sm.label)}</span>
         </div>
         <div class="ws-card-txt">${bodyHtml}</div>
+        <button type="button" class="ws-expand-btn" onclick="_ttToggleStageCard(this)">Show more ⌄</button>
       </div>`;
     }).join('');
   }
   return '';
+}
+
+/* Stage card body is clamped to a fixed height (see .ws-card-txt) so the
+   landscape grid's rows stay roughly even instead of one tall stage forcing
+   empty space under its shorter row-mates. Only cards that actually overflow
+   get the fade + button — see the .ws-q-card.overflowing gate in board.css. */
+function _ttToggleStageCard(btn) {
+  const card = btn.closest('.ws-q-card');
+  if (!card) return;
+  const expanded = card.classList.toggle('expanded');
+  btn.textContent = expanded ? 'Show less ⌃' : 'Show more ⌄';
 }
 
 function renderWorksheet(el, card) {
@@ -2479,6 +2504,17 @@ function renderWorksheet(el, card) {
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
   body.innerHTML = strip + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
+  // Mark stage cards whose body text actually overflows the clamp — only
+  // those get the fade + "Show more" (see .ws-q-card.overflowing in CSS).
+  // rAF: measure after layout has settled the landscape grid's row heights.
+  if (cards) {
+    requestAnimationFrame(() => {
+      body.querySelectorAll('.ws-q-card').forEach(cardEl => {
+        const txt = cardEl.querySelector('.ws-card-txt');
+        if (txt && txt.scrollHeight > txt.clientHeight + 2) cardEl.classList.add('overflowing');
+      });
+    });
+  }
 }
 
 /* ══════════ INTERACTIVE WORKSHEET MODE ══════════
@@ -3141,6 +3177,15 @@ function printWorksheet(cardId) {
     .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
     .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--stage-accent,${accent});color:#fff;font:900 11px ui-monospace,monospace}
     .ws-prompt-text{font-size:13px;line-height:1.5;color:#2c2f3c}
+    /* aims/objectives checklist + grammar example block */
+    .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#2c2f3c}
+    .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:var(--stage-accent,${accent});color:#fff;display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
+    .ws-grammar-block{background:#f7f7fa;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#242530}
+    /* Print always shows full stage text — no clamp, so the "Show more" toggle
+       (only meaningful on-screen) never appears here. */
+    .ws-expand-btn{display:none}
     /* Lesson Pack stages: two print columns instead of one long vertical run
        of pages — column-count reflows naturally across page breaks. */
     .ws-cards-print{column-count:2;column-gap:18px}
