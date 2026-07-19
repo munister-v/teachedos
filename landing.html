@@ -540,6 +540,9 @@ footer{
 }
 .sticky-mob-text{font-size:13px;font-weight:700;color:#fff;line-height:1.3;}
 .sticky-mob-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+/* Override the generic mobile ".btn{width:100%}" rule below — this button
+   must stay content-sized or it swallows the whole bar and wraps the label. */
+.sticky-mob .btn{width:auto;flex-shrink:0;}
 
 /* ── RESPONSIVE ── */
 @media(min-width:861px){
