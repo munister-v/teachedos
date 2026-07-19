@@ -2473,7 +2473,11 @@ function renderWorksheet(el, card) {
     </div>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  body.innerHTML = strip + `<div class="ws-list">${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
+  // Lesson Pack stages (cards[]) lay out as a landscape grid — see .ws-list-cards
+  // — everything else (questions/vocab items) stays a single reading column.
+  const listCls = cards ? 'ws-list ws-list-cards' : 'ws-list';
+  const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
+  body.innerHTML = strip + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
 
@@ -3137,9 +3141,14 @@ function printWorksheet(cardId) {
     .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
     .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--stage-accent,${accent});color:#fff;font:900 11px ui-monospace,monospace}
     .ws-prompt-text{font-size:13px;line-height:1.5;color:#2c2f3c}
+    /* Lesson Pack stages: two print columns instead of one long vertical run
+       of pages — column-count reflows naturally across page breaks. */
+    .ws-cards-print{column-count:2;column-gap:18px}
+    .ws-cards-print .ws-q-card{break-inside:avoid;margin-bottom:12px}
     @media print{body{padding:0}@page{margin:1.5cm}}`;
+  const cardsWrap = d.cards ? `<div class="ws-cards-print">${listHtml}</div>` : listHtml;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
-    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${listHtml}</body></html>`;
+    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${cardsWrap}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -9049,14 +9058,38 @@ function _ttEstWorksheetHeight(output){
       else sum += 64;
     }
   } else if (Array.isArray(output.items)) sum = output.items.length * 56;
-  else if (Array.isArray(output.cards)) sum = output.cards.reduce((s,c)=> s + 64 + Math.ceil((c.text||'').length/44)*16, 0);
+  else if (Array.isArray(output.cards)) {
+    // Lesson Pack stages render as a landscape grid (see .ws-list-cards), not a
+    // single stacked column, so height tracks ROWS of the grid, not the sum of
+    // every stage's height — otherwise an 11-stage pack would ask for a card
+    // tall enough to stack all 11 vertically even though most sit side-by-side.
+    const cols = _ttLessonPackCols(output.cards.length);
+    const perCard = output.cards.map(c => 64 + Math.ceil((c.text||'').length/44)*16);
+    const rows = Math.ceil(perCard.length / cols);
+    // Approximate each row's height as the average card height in that slice
+    // (good enough — the browser's own grid auto-sizing handles the real
+    // per-row max; this only has to get the CARD big enough to avoid a scrollbar).
+    let rowSum = 0;
+    for (let r = 0; r < rows; r++) {
+      const slice = perCard.slice(r*cols, r*cols+cols);
+      rowSum += Math.max(...slice);
+    }
+    sum = rowSum;
+  }
   // Size to fit ALL content (generous ceiling + headroom): the card then has no
   // inner scroll for realistic worksheets, so the whole sheet shows on the board
   // and exports/prints in full (html2canvas clips scrolled-away overflow).
   return Math.max(360, Math.min(1850, 170 + sum + 36));
 }
+// Column count for the Lesson Pack stage grid — kept in one place so the
+// width, the height estimate, and the CSS grid-template all agree.
+function _ttLessonPackCols(count){ return count <= 4 ? 2 : 3; }
 function _ttPlaceWorksheetOnBoard(output){
-  const W = 640, H = _ttEstWorksheetHeight(output);
+  const isCards = Array.isArray(output.cards) && output.cards.length > 0;
+  // Landscape width for Lesson Packs so stages sit in columns instead of one
+  // long vertical scroll; everything else keeps the narrower reading width.
+  const W = isCards ? Math.min(1180, 210 + _ttLessonPackCols(output.cards.length) * 300) : 640;
+  const H = _ttEstWorksheetHeight(output);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
   const pos = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
