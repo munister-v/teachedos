@@ -2292,14 +2292,27 @@ function renderAssignment(el, card) {
 // revealed answers) — when true it's the teacher key.
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
-  if (/\baims?\b|objective|goal/.test(t)) return { cls:'ws-stage-aims', icon:'AIM', label:'Aims' };
+  // 'anchor' marks the two bookend stages of a lesson (start/end) — see
+  // .ws-anchor in board.css. Everything else is a regular middle stage.
+  if (/\baims?\b|objective|goal/.test(t)) return { cls:'ws-stage-aims', icon:'AIM', label:'Aims', anchor:'start' };
   if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'VOC', label:'Language bank' };
   if (/before|lead|warm/.test(t)) return { cls:'ws-stage-before', icon:'Q', label:'Before task' };
   if (/after|discussion|follow/.test(t)) return { cls:'ws-stage-after', icon:'GO', label:'After task' };
   if (/practice|production/.test(t)) return { cls:'ws-stage-practice', icon:'PR', label:'Practice' };
   if (/reading|text|article|story/.test(t)) return { cls:'ws-stage-reading', icon:'IN', label:'Input text' };
   if (/grammar|rule|focus/.test(t)) return { cls:'ws-stage-grammar', icon:'FX', label:'Focus' };
+  if (/homework|assignment/.test(t)) return { cls:'ws-stage-default', icon:String(index + 1), label:'Homework', anchor:'end' };
   return { cls:'ws-stage-default', icon:String(index + 1), label:'Stage' };
+}
+
+// Pull a "(5 min)" / "5 minutes" timing hint out of a stage title so it can
+// render as its own badge instead of sitting inline in the heading text.
+function _ttExtractStageTiming(title) {
+  const s = String(title || '');
+  const m = s.match(/\(?\s*(\d+)\s*min(?:ute)?s?\.?\s*\)?/i);
+  if (!m) return { clean: s, time: '' };
+  const clean = s.replace(m[0], '').replace(/\s{2,}/g, ' ').trim().replace(/[\s([-]+$/, '');
+  return { clean, time: `${m[1]} min` };
 }
 
 function _ttWorksheetStageBodyHtml(card, stageMeta) {
@@ -2394,11 +2407,14 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     return cards.map((c, i) => {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
       const bodyHtml = _ttWorksheetStageBodyHtml(c, sm);
-      return `<div class="ws-q ws-q-card ${sm.cls}" style="--q-accent:${accent};--stage:${i+1}">
+      const { clean: cleanTitle, time } = _ttExtractStageTiming(c.title || '');
+      const anchorCls = sm.anchor ? ` ws-anchor ws-anchor-${sm.anchor}` : '';
+      return `<div class="ws-q ws-q-card ${sm.cls}${anchorCls}" style="--q-accent:${accent};--stage:${i+1}">
         <div class="ws-stage-rail"><span>${i + 1}</span></div>
         <div class="ws-qh ws-card-head">
-          <span class="ws-card-title">${esc(c.title || '')}</span>
+          <span class="ws-card-title">${esc(cleanTitle || c.title || '')}</span>
           <span class="ws-stage-label">${esc(sm.label)}</span>
+          ${time ? `<span class="ws-stage-time">⏱ ${esc(time)}</span>` : ''}
         </div>
         <div class="ws-card-txt">${bodyHtml}</div>
         <button type="button" class="ws-expand-btn" onclick="_ttToggleStageCard(this)">Show more ⌄</button>
@@ -3161,6 +3177,8 @@ function printWorksheet(cardId) {
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#171420;font-weight:850;font-size:15px}
     .ws-card-title{flex:1}
     .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6b7180}
+    .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
+    .ws-q-card.ws-anchor{border-style:dashed}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#3f3a4a;margin-top:9px;white-space:normal}
     .ws-card-txt strong{color:#171420;font-weight:850}
     /* reading block + drop cap */
