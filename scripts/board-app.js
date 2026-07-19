@@ -2384,7 +2384,6 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       return `<div class="ws-q ws-q-card ${sm.cls}" style="--q-accent:${accent};--stage:${i+1}">
         <div class="ws-stage-rail"><span>${i + 1}</span></div>
         <div class="ws-qh ws-card-head">
-          <span class="ws-card-dot">${esc(sm.icon)}</span>
           <span class="ws-card-title">${esc(c.title || '')}</span>
           <span class="ws-stage-label">${esc(sm.label)}</span>
         </div>
@@ -3115,27 +3114,27 @@ function printWorksheet(cardId) {
     .ws-mlink{width:22px;height:0;border-top:2px dotted color-mix(in srgb,${accent} 50%,#bbb)}
     .ws-r{font-size:12.5px;color:#3f3a4a}
     /* stage cards (reading / glossary / tasks / grammar) */
-    .ws-q-card{--stage-accent:${accent};border:1px solid color-mix(in srgb,var(--stage-accent) 22%,#e8e9f0);border-top:3px solid var(--stage-accent)}
-    .ws-stage-reading{--stage-accent:#4262FF}.ws-stage-vocab{--stage-accent:#D97706}.ws-stage-before{--stage-accent:#0891B2}.ws-stage-after{--stage-accent:#DB2777}.ws-stage-grammar{--stage-accent:#7C3AED}.ws-stage-default{--stage-accent:${accent}}
+    /* One accent for the whole pack (not a different hue per stage type) — the
+       stage rail number + text label are enough to tell stages apart. */
+    .ws-q-card{--stage-accent:${accent};border:1px solid #e8e9f0;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#171420;font-weight:850;font-size:15px}
-    .ws-card-dot{flex-shrink:0;min-width:26px;height:24px;padding:0 8px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--stage-accent) 13%,#fff);color:var(--stage-accent);font:900 9px ui-monospace,monospace;border:1px solid color-mix(in srgb,var(--stage-accent) 24%,transparent)}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:900 8.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--stage-accent);background:color-mix(in srgb,var(--stage-accent) 11%,#fff);border:1px solid color-mix(in srgb,var(--stage-accent) 20%,transparent);border-radius:999px;padding:3px 9px}
+    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6b7180}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#3f3a4a;margin-top:9px;white-space:normal}
     .ws-card-txt strong{color:#171420;font-weight:850}
     /* reading block + drop cap */
     .ws-reading-title{font-size:14px;font-weight:850;color:#171420;margin-bottom:7px}
-    .ws-reading-copy{font-size:13px;line-height:1.78;color:#2c2f3c;padding:14px 16px;border:1px solid color-mix(in srgb,var(--stage-accent,${accent}) 16%,#e8e9f0);border-radius:12px;background:#fff}
+    .ws-reading-copy{font-size:13px;line-height:1.78;color:#2c2f3c;padding:14px 16px;border:1px solid #e8e9f0;border-radius:12px;background:#fff}
     .ws-reading-copy::first-letter{float:left;font-size:42px;line-height:.8;font-weight:850;margin:4px 10px 0 0;color:var(--stage-accent,${accent})}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
-    .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 18%,#eee);border-radius:11px;page-break-inside:avoid}
-    .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:color-mix(in srgb,var(--stage-accent,#D97706) 86%,#111);background:color-mix(in srgb,var(--stage-accent,#D97706) 12%,#fff);border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 24%,transparent);padding:4px 11px;border-radius:999px}
+    .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
+    .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:#171420;background:#f4f4f8;border:1px solid #e4e5ec;padding:4px 11px;border-radius:999px}
     .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#3f3a4a}
     /* before / after prompts */
     .ws-prompt-list{display:grid;gap:7px;margin-top:4px}
-    .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid color-mix(in srgb,var(--stage-accent,${accent}) 16%,#eee);border-radius:11px;page-break-inside:avoid}
+    .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
     .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--stage-accent,${accent});color:#fff;font:900 11px ui-monospace,monospace}
     .ws-prompt-text{font-size:13px;line-height:1.5;color:#2c2f3c}
     @media print{body{padding:0}@page{margin:1.5cm}}`;
