@@ -2441,13 +2441,13 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       } else if (q.type === 'open') {
         ans = `<div class="ws-write"><i></i><i></i><i></i></div>`;
       }
-      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
+      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
   }
   if (items) {
     return items.map((it, i) => {
       const def = it.example || it.definition || '';
-      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
+      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${it._n || i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
     }).join('');
   }
   if (cards) {
@@ -9257,16 +9257,21 @@ const WS_H = {
   chromeQuestions: 194,            // card header + strip(117) + paddings
   chromeCards: 234,                // lesson-pack strip is taller (stepper row)
 };
+/* One question's rendered height. Split into its own function because the
+   sheet splitter has to measure questions the same way the card sizer does —
+   two copies of these sums drifting apart is exactly what silently clipped
+   sheets before (the old estimate assumed 26px option rows against a real 44). */
+function _ttQuestionHeight(q){
+  if (q.type === 'mcq' && Array.isArray(q.options)) return WS_H.mcqBase + q.options.length * WS_H.mcqPerOption;
+  if (q.type === 'truefalse') return WS_H.trueFalse;
+  if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair;
+  return WS_H.other;
+}
 function _ttEstWorksheetHeight(output){
   let sum = 0;
   let chrome = WS_H.chromeQuestions;
   if (Array.isArray(output.questions)) {
-    for (const q of output.questions) {
-      if (q.type === 'mcq' && Array.isArray(q.options)) sum += WS_H.mcqBase + q.options.length * WS_H.mcqPerOption;
-      else if (q.type === 'truefalse') sum += WS_H.trueFalse;
-      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += WS_H.matchBase + q.pairs.length * WS_H.matchPerPair;
-      else sum += WS_H.other;
-    }
+    for (const q of output.questions) sum += _ttQuestionHeight(q);
     sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
   } else if (Array.isArray(output.items)) {
     sum = output.items.length * WS_H.perItem + Math.max(0, output.items.length - 1) * WS_H.gap;
@@ -9294,11 +9299,61 @@ function _ttEstWorksheetHeight(output){
   // inner scroll for realistic worksheets, so the whole sheet shows on the board
   // and exports/prints in full (html2canvas clips scrolled-away overflow).
   // Ceiling raised with the type scale — at the old 1850 even a 4-question
-  // sheet clipped. 3200 covers the realistic worst case measured (8 MCQs with
-  // 4 options each ≈ 3030px). Past that the card scrolls again: print is safe
-  // either way (printWorksheet rebuilds the sheet from data, not from the DOM),
-  // but html2canvas PNG/PDF export captures the DOM and would drop the tail.
-  return Math.max(360, Math.min(3200, chrome + sum));
+  // sheet clipped. WS_MAX_SHEET covers the realistic worst case measured
+  // (8 MCQs with 4 options each ≈ 3030px); anything past it is split across
+  // sheets by _ttSplitWorksheet rather than left to scroll inside one card.
+  return Math.max(360, Math.min(WS_MAX_SHEET, chrome + sum));
+}
+
+/* Tallest a single sheet card may get. Beyond this the content used to keep
+   going inside a scrolling card: print stayed correct (printWorksheet rebuilds
+   from data, not from the DOM) but the board showed a scrollbar and PNG export
+   silently dropped everything below the fold, because html2canvas captures the
+   DOM as laid out. So oversized output becomes several sheets instead. */
+const WS_MAX_SHEET = 3200;
+
+/* Split output too tall for one card into consecutive sheets.
+   Returns an array of outputs — length 1 (the original object, untouched) when
+   it already fits, so the common case allocates nothing and behaves exactly as
+   before. Only questions and items split: a Lesson Pack's `cards` are stages of
+   one lesson laid out as a grid, and cutting that in half would misrepresent
+   the lesson rather than paginate it. */
+function _ttSplitWorksheet(output){
+  const list = Array.isArray(output.questions) ? output.questions
+             : Array.isArray(output.items)     ? output.items
+             : null;
+  if (!list || list.length < 2) return [output];
+  if (_ttEstWorksheetHeight(output) < WS_MAX_SHEET) return [output];
+
+  const key = Array.isArray(output.questions) ? 'questions' : 'items';
+  const chrome = WS_H.chromeQuestions;
+  const budget = WS_MAX_SHEET - chrome;
+  const hOf = key === 'questions' ? _ttQuestionHeight : () => WS_H.perItem;
+
+  const chunks = [];
+  let cur = [], curH = 0;
+  for (const entry of list) {
+    const h = hOf(entry) + (cur.length ? WS_H.gap : 0);
+    // A single question taller than a whole sheet still has to go somewhere;
+    // give it its own card and let that one scroll rather than dropping it.
+    if (cur.length && curH + h > budget) { chunks.push(cur); cur = []; curH = 0; }
+    cur.push(entry);
+    curH += cur.length === 1 ? hOf(entry) : h;
+  }
+  if (cur.length) chunks.push(cur);
+  if (chunks.length < 2) return [output];
+
+  // Numbering is absolute across the set, so sheet 2 starts at 9 rather than
+  // restarting at 1. It rides on the question itself because print rebuilds
+  // the sheet from data and would otherwise have to be told the offset too.
+  let n = 0;
+  return chunks.map((chunk, i) => {
+    const part = { ...output, questions: undefined, items: undefined };
+    part[key] = chunk.map(entry => ({ ...entry, _n: ++n }));
+    part.title = `${output.title || 'Worksheet'} · ${i + 1}/${chunks.length}`;
+    part._sheetOf = { i: i + 1, of: chunks.length };
+    return part;
+  });
 }
 // Column count for the Lesson Pack stage grid — kept in one place so the
 // width, the height estimate, and the CSS grid-template all agree.
@@ -9308,36 +9363,57 @@ function _ttPlaceWorksheetOnBoard(output){
   // Landscape width for Lesson Packs so stages sit in columns instead of one
   // long vertical scroll; everything else keeps the narrower reading width.
   const W = isCards ? Math.min(1180, 210 + _ttLessonPackCols(output.cards.length) * 300) : 640;
-  const H = _ttEstWorksheetHeight(output);
+  // Output taller than one card becomes consecutive sheets. Anything that fits
+  // comes back as a single-element array holding the original object, so the
+  // ordinary case runs exactly the path it always did.
+  const parts = _ttSplitWorksheet(output);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
-  const pos = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
-  const card = addCard('worksheet', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
-    title: output.title,
-    kind: output.kind,
-    cat: output.cat,
-    level: output.level || 'B1',
-    boardKind: output.boardKind,
-    questions: output.questions,
-    items: output.items,
-    cards: output.cards,
-    _ttSrc: 1,  // marks this card as Teacher Tool generated
-  }, W, H);
-  if (card) {
-    // Send to back so the white worksheet sits behind any existing board cards
+
+  const placed = [];
+  let anchorX = null;
+  for (const part of parts) {
+    const H = _ttEstWorksheetHeight(part);
+    // Sheets sit side by side in reading order rather than being scattered by
+    // findFreePlacement, which would spiral them apart and lose the sequence.
+    const pos = placed.length
+      ? { x: anchorX + placed.length * (W + 48), y: c0.y }
+      : findFreePlacement(c0.x, c0.y, W, H);
+    if (!placed.length) anchorX = pos.x;
+    const card = addCard('worksheet', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
+      title: part.title,
+      kind: part.kind,
+      cat: part.cat,
+      level: part.level || 'B1',
+      boardKind: part.boardKind,
+      questions: part.questions,
+      items: part.items,
+      cards: part.cards,
+      _ttSrc: 1,  // marks this card as Teacher Tool generated
+      _sheetOf: part._sheetOf,
+    }, W, H);
+    if (card) placed.push(card);
+  }
+
+  if (placed.length) {
+    // Send to back so the white worksheets sit behind any existing board cards
+    const ids = new Set(placed.map(c => c.id));
     const ordered = state.cards
       .map((c, i) => ({ c: normalizeCardLayer(c, i + 1), i }))
       .sort((a, b) => getCardZ(a.c) - getCardZ(b.c) || a.i - b.i)
       .map(x => x.c);
-    const bIdx = ordered.findIndex(c => c.id === card.id);
-    if (bIdx > 0) { ordered.unshift(ordered.splice(bIdx, 1)[0]); ordered.forEach((c, i) => { c.z = i + 1; applyCardLayer(c); }); }
+    const sheets = ordered.filter(c => ids.has(c.id));
+    const rest = ordered.filter(c => !ids.has(c.id));
+    [...sheets, ...rest].forEach((c, i) => { c.z = i + 1; applyCardLayer(c); });
     clearSelection && clearSelection();
-    selectCard(card.id);
-    setTimeout(() => { try { zoomToCard && zoomToCard(card.id, true); } catch (e) {} }, 80);
+    selectCard(placed[0].id);
+    setTimeout(() => { try { zoomToCard && zoomToCard(placed[0].id, true); } catch (e) {} }, 80);
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
-  toast('✨ Worksheet added — print-ready, click ✏️ on any card to annotate');
+  toast(placed.length > 1
+    ? `✨ Worksheet added as ${placed.length} sheets — too long for one`
+    : '✨ Worksheet added — print-ready, click ✏️ on any card to annotate');
 }
 
 /* Complex Teacher Tool board layouts live in js/teacher-tool-board-composer.js */
