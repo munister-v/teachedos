@@ -13113,6 +13113,21 @@ function flattenModernColorsForExport(root) {
   }
 }
 
+/* Wait one painted frame, but never wait forever. requestAnimationFrame does
+   not fire in a hidden tab, and "Rendering PDF…" is exactly the moment a user
+   switches away to wait — which used to hang the export for good, with the
+   board left mid-capture: pan zeroed, scale 1, .board-exporting still on, and
+   the restore never reached. The timeout is the fallback, not the path: when
+   the tab is visible rAF always wins the race. */
+function _exportSettleFrame() {
+  return new Promise(resolve => {
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
+    requestAnimationFrame(done);
+    setTimeout(done, 80);
+  });
+}
+
 // Render the board content to a canvas via html2canvas, neutralising the
 // pan/zoom transform and hiding editor chrome (handles, selection, dots) so
 // the snapshot looks like a clean printable artboard.
@@ -13135,10 +13150,13 @@ async function renderBoardToCanvas() {
   // Let arrows redraw at scale 1 so they line up in the capture.
   state.pan = { x: 0, y: 0 }; state.scale = 1;
   if (typeof renderAllArrows === 'function') renderAllArrows();
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   let canvas = null;
   try {
+    // The settle has to be inside the try: the board is already mutated at this
+    // point, so anything that stalls here must still hit the restore below.
+    await _exportSettleFrame();
+    await _exportSettleFrame();
     canvas = await window.html2canvas(board, {
       x: bounds.x, y: bounds.y, width: bounds.w, height: bounds.h,
       backgroundColor: bgColor, scale: 2, // fixed 2× for crisp print regardless of screen DPR
@@ -13173,6 +13191,9 @@ async function exportBoardImage(format) {
     const name = _boardExportName();
     if (format === 'png') {
       canvas.toBlob(blob => {
+        // toBlob hands back null rather than throwing when the canvas is over
+        // the browser's area cap, and this callback runs outside the try below.
+        if (!blob) { toast('⚠️ Board is too large to export as PNG — try PDF'); return; }
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = name + '.png';
@@ -13184,19 +13205,65 @@ async function exportBoardImage(format) {
       await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
       const { jsPDF } = window.jspdf || {};
       if (!jsPDF) throw new Error('jsPDF unavailable');
-      // Fit the artboard onto a landscape/portrait A4 preserving aspect ratio.
       const imgW = canvas.width, imgH = canvas.height;
       const landscape = imgW >= imgH;
       const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: landscape ? 'landscape' : 'portrait' });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 24;
-      const scale = Math.min((pageW - margin * 2) / imgW, (pageH - margin * 2) / imgH);
-      const drawW = imgW * scale, drawH = imgH * scale;
-      const offX = (pageW - drawW) / 2, offY = (pageH - drawH) / 2;
-      doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', offX, offY, drawW, drawH);
+      const usableW = pageW - margin * 2, usableH = pageH - margin * 2;
+      const boardBg = getComputedStyle(boardWrap).backgroundColor || '#F5F0E8';
+      const fitScale = Math.min(usableW / imgW, usableH / imgH);
+
+      /* Everything used to be squeezed onto a single A4, so the bigger the
+         board the less readable the PDF: a 3000px-wide board landed ~3.8×
+         smaller than on screen, turning 13px body text into 3px. Boards that
+         still fit stay one page; anything larger is tiled across pages at a
+         legible scale instead of shrunk to nothing.
+         The canvas is captured at 2×, and 1 CSS px ≈ 0.75pt, so 0.375 pt per
+         canvas px reproduces the board at roughly its on-screen size. */
+      const LEGIBLE = 0.375;
+      const MAX_PAGES = 40;
+      let cols = 1, rows = 1, scale = fitScale;
+      if (fitScale < LEGIBLE) {
+        const tileW = usableW / LEGIBLE, tileH = usableH / LEGIBLE; // canvas px per page
+        const c = Math.ceil(imgW / tileW), r = Math.ceil(imgH / tileH);
+        // A board huge enough to blow the page budget is better off shrunk than
+        // delivered as a hundred sheets nobody will tape together.
+        if (c * r <= MAX_PAGES) { cols = c; rows = r; scale = LEGIBLE; }
+      }
+
+      const JPEG_Q = 0.92;
+      if (cols === 1 && rows === 1) {
+        const drawW = imgW * scale, drawH = imgH * scale;
+        doc.addImage(canvas.toDataURL('image/jpeg', JPEG_Q), 'JPEG',
+          (pageW - drawW) / 2, (pageH - drawH) / 2, drawW, drawH);
+      } else {
+        const tileCanvas = document.createElement('canvas');
+        const tctx = tileCanvas.getContext('2d');
+        const tileW = Math.ceil(usableW / scale), tileH = Math.ceil(usableH / scale);
+        let first = true;
+        for (let ry = 0; ry < rows; ry++) {
+          for (let cx = 0; cx < cols; cx++) {
+            const sx = cx * tileW, sy = ry * tileH;
+            const sw = Math.min(tileW, imgW - sx), sh = Math.min(tileH, imgH - sy);
+            if (sw <= 0 || sh <= 0) continue;
+            tileCanvas.width = sw; tileCanvas.height = sh;
+            // Page edges land mid-card, so paint the board background rather
+            // than leaving the untouched canvas transparent (black in JPEG).
+            tctx.fillStyle = boardBg;
+            tctx.fillRect(0, 0, sw, sh);
+            tctx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+            if (!first) doc.addPage('a4', landscape ? 'landscape' : 'portrait');
+            first = false;
+            doc.addImage(tileCanvas.toDataURL('image/jpeg', JPEG_Q), 'JPEG',
+              margin, margin, sw * scale, sh * scale);
+          }
+        }
+      }
       doc.save(name + '.pdf');
-      toast('📑 Board exported as PDF');
+      const pages = cols * rows;
+      toast(pages > 1 ? `📑 Board exported as PDF (${pages} pages)` : '📑 Board exported as PDF');
     }
   } catch (err) {
     console.error('[board export]', err);
