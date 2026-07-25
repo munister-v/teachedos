@@ -88,8 +88,6 @@ const _PROMPTS = {
     `You are an EFL teacher. Explain the grammar rule for "${i.topic}" clearly for ${i.level} students. Include the rule, 3 examples, and 2 common mistakes.\nReturn ONLY a JSON array:\n[{"section":"Rule","text":"..."},{"section":"Examples","text":"1.\\n2.\\n3."},{"section":"Common mistakes","text":"..."}]`,
   'tense-contrast': (i) =>
     `You are an EFL teacher. Create exactly ${i.count} tense-contrast sentences at ${i.level} level about "${i.topic}". Students choose or transform the correct tense.\nReturn ONLY a JSON array:\n[{"text":"sentence with _____","options":["tense A form","tense B form"],"answer":"correct form"}]`,
-  'essay-outline': (i) =>
-    `You are an EFL teacher. Create an essay outline at ${i.level} level for the topic "${i.topic}". Include introduction, 3 body paragraph points, and conclusion.\nReturn ONLY a JSON array:\n[{"section":"Introduction","text":"Hook + thesis idea"},{"section":"Body 1","text":"..."},{"section":"Body 2","text":"..."},{"section":"Body 3","text":"..."},{"section":"Conclusion","text":"..."}]`,
   'creative-writing': (i) =>
     `You are an EFL teacher. Create a creative writing prompt and a model answer at ${i.level} level about "${i.topic}". Use vocab: ${i.vocab||'general'}.\nReturn ONLY a JSON array:\n[{"title":"Prompt","text":"writing prompt here"},{"title":"Model answer","text":"short model text"}]`,
   'sentence-translation': (i) =>
