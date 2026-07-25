@@ -931,7 +931,6 @@ money:{Ukrainian:'гроші',Russian:'деньги',Spanish:'dinero',French:'ar
 teacher:{Ukrainian:'вчитель',Russian:'учитель',Spanish:'profesor',French:'professeur',German:'Lehrer',Polish:'nauczyciel'},
 student:{Ukrainian:'учень',Russian:'ученик',Spanish:'estudiante',French:'étudiant',German:'Schüler',Polish:'uczeń'},
 car:{Ukrainian:'машина',Russian:'машина',Spanish:'coche',French:'voiture',German:'Auto',Polish:'samochód'},
-food:{Ukrainian:'їжа',Russian:'еда',Spanish:'comida',French:'nourriture',German:'Essen',Polish:'jedzenie'},
 travel:{Ukrainian:'подорож',Russian:'путешествие',Spanish:'viaje',French:'voyage',German:'Reise',Polish:'podróż'},
 weather:{Ukrainian:'погода',Russian:'погода',Spanish:'tiempo',French:'météo',German:'Wetter',Polish:'pogoda'},
 health:{Ukrainian:'здоров’я',Russian:'здоровье',Spanish:'salud',French:'santé',German:'Gesundheit',Polish:'zdrowie'}
