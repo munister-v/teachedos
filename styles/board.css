@@ -3365,43 +3365,43 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-retry-btn{display:inline-flex;align-items:center;border:0;background:rgba(66,98,255,.12);color:#4262FF;font-size:11px;font-weight:850;padding:3px 10px;border-radius:8px;cursor:pointer;margin-left:6px;vertical-align:middle;}
 .yt-retry-btn:hover{background:rgba(66,98,255,.2);}
 
-	/* ── Worksheet board card — vivid lesson strip, not a flat PDF ── */
+	/* ── Worksheet board card ──────────────────────────────────────────────
+	   Same visual language as games/*.html: one committed palette, flat
+	   surfaces, thick outlines, big touch/projector-sized rows. The palette
+	   lives in these four custom properties — reskinning the whole worksheet
+	   (or giving one card its own accent) is a change to them, not to the
+	   30-odd rules below. --q-accent is the per-card override JS sets inline. */
 	.ws-body{
+	  --ws-ink:#0E0E10; --ws-lime:#CDF24F; --ws-cream:#F5F0E8;
+	  --ws-line:rgba(14,14,16,.14); --ws-muted:#6E6A5C;
 	  padding:0 14px 14px;display:flex;flex-direction:column;height:calc(100% - 40px);
-	  background:
-	    radial-gradient(circle at 0 0,color-mix(in srgb,var(--tt-accent,#4262FF) 9%,transparent),transparent 38%),
-	    linear-gradient(180deg,#fbfbff 0%,#f3f5fb 100%);
+	  background:#fff;
 	  border-radius:0 0 14px 14px;
 	}
 	.ws-strip{
 	  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:center;
-	  padding:14px 14px;margin:0 -2px 10px;border-radius:18px;
-	  background:
-	    linear-gradient(135deg,color-mix(in srgb,var(--q-accent,#4262FF) 14%,#fff),#fff 58%),
-	    radial-gradient(circle at 100% 0,color-mix(in srgb,var(--q-accent,#4262FF) 18%,transparent),transparent 44%);
-	  border:1px solid color-mix(in srgb,var(--q-accent,#4262FF) 18%,rgba(17,24,39,.08));
-	  box-shadow:0 12px 28px color-mix(in srgb,var(--q-accent,#4262FF) 10%,transparent),inset 0 1px 0 rgba(255,255,255,.8);
+	  padding:14px 16px;margin:0 -2px 12px;border-radius:16px;
+	  background:var(--q-accent,var(--ws-ink));
+	  border:2px solid var(--ws-ink);
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:3px;}
-	.ws-strip-kicker{font:950 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--q-accent,#4262FF);}
-	.ws-strip-title{font-size:16px;font-weight:950;letter-spacing:-.035em;color:#171420;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+	.ws-strip-kicker{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+	.ws-strip-title{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#fff;line-height:1.14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 	.ws-strip-side{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
 	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:1px 0 0;}
 	.ws-step{
-	  --stage-accent:var(--q-accent,#4262FF);
-	  display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:124px;
-	  padding:5px 8px 5px 5px;border-radius:999px;background:color-mix(in srgb,var(--stage-accent) 9%,#fff);
-	  border:1px solid color-mix(in srgb,var(--stage-accent) 18%,rgba(17,24,39,.08));
-	  color:color-mix(in srgb,var(--stage-accent) 82%,#111827);box-shadow:inset 0 1px 0 rgba(255,255,255,.86);
+	  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:132px;
+	  padding:5px 10px 5px 5px;border-radius:999px;background:rgba(255,255,255,.12);
+	  border:1.5px solid rgba(255,255,255,.28);color:#fff;
 	}
-	.ws-step i{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:999px;background:var(--stage-accent);color:#fff;font:950 9px var(--mono);font-style:normal;box-shadow:0 4px 10px color-mix(in srgb,var(--stage-accent) 20%,transparent);}
-	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:950 8px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;}
-	.ws-step.more{--stage-accent:#64748B;}
-	.ws-tools{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end;}
-	.ws-btn{border:1px solid rgba(17,24,39,.11);background:rgba(255,255,255,.88);border-radius:10px;padding:5px 10px;font-size:10.5px;font-weight:900;color:#374151;cursor:pointer;white-space:nowrap;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;}
-	.ws-btn:hover{background:#111827;border-color:#111827;color:#fff;}
-	.ws-pill{font-size:9.5px;font-weight:950;border-radius:999px;padding:5px 10px;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;background:rgba(17,24,39,.07);color:#5f6575;box-shadow:none;}
-	.ws-pill.level{background:#111827;color:#CDF24F;}
+	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-lime);color:var(--ws-ink);font-size:10px;font-weight:800;font-style:normal;}
+	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+	.ws-step.more i{background:rgba(255,255,255,.85);}
+	.ws-tools{grid-column:1/-1;display:flex;gap:7px;justify-content:flex-end;}
+	.ws-btn{border:1.5px solid rgba(255,255,255,.4);background:transparent;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap;}
+	.ws-btn:hover{background:var(--ws-lime);border-color:var(--ws-lime);color:var(--ws-ink);}
+	.ws-pill{font-size:11px;font-weight:800;border-radius:999px;padding:5px 11px;background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.28);}
+	.ws-pill.level{background:var(--ws-lime);color:var(--ws-ink);border-color:var(--ws-lime);}
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 3px 4px 0;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
@@ -3409,48 +3409,46 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   narrow/unresized card instead of clipping. */
 	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
-	  position:relative;border:1px solid rgba(17,24,39,.075);background:rgba(255,255,255,.92);
-	  border-radius:18px;padding:14px 14px 14px 18px;box-shadow:0 1px 2px rgba(17,24,39,.04),0 10px 24px rgba(17,24,39,.055);
-	  transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease;overflow:hidden;flex-shrink:0;
+	  position:relative;border:2px solid var(--ws-line);background:#fff;
+	  border-radius:16px;padding:16px;
+	  transition:border-color .16s ease;flex-shrink:0;
 	}
-	.ws-q::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--q-accent,#4262FF);border-radius:18px 0 0 18px;opacity:.9;}
-	.ws-q::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent,#4262FF) 5%,transparent),transparent 46%);pointer-events:none;}
-	.ws-q>*{position:relative;z-index:1;}
-	.ws-q:hover{box-shadow:0 5px 18px rgba(17,24,39,.1),0 16px 34px color-mix(in srgb,var(--q-accent,#4262FF) 8%,transparent);transform:translateY(-1px);border-color:color-mix(in srgb,var(--q-accent,#4262FF) 20%,rgba(17,24,39,.08));}
-	.ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:800;color:#1d1a28;line-height:1.45;}
-	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9px;color:#fff;font-size:11px;font-weight:950;font-family:var(--mono);box-shadow:0 3px 8px rgba(17,24,39,.18);margin-top:0;}
+	.ws-q:hover{border-color:var(--ws-ink);}
+	.ws-qh{display:flex;align-items:flex-start;gap:11px;font-size:16px;font-weight:700;color:var(--ws-ink);line-height:1.4;}
+	/* Background lives here, not inline on the element: the renderer used to set
+	   background:<accent>, which turned into ink-on-ink (an invisible number)
+	   once every sheet shared the one brand accent. */
+	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:var(--ws-lime);color:var(--ws-ink);font-size:13px;font-weight:800;margin-top:0;}
 	.ws-qtext{flex:1;min-width:0;}
-	.ws-word{font-size:14px;font-weight:900;color:#1d1a28;}
-	.ws-opts{display:flex;flex-direction:column;gap:7px;margin-top:11px;padding-left:34px;}
-	.ws-opt{display:flex;align-items:center;gap:11px;font-size:12.5px;color:#3f4254;font-weight:680;padding:9px 13px;border-radius:13px;background:#fff;border:1.5px solid rgba(17,24,39,.07);box-shadow:0 1px 2px rgba(17,24,39,.04);transition:transform .12s,box-shadow .12s,border-color .12s,background .12s;}
-	.ws-opt:hover{border-color:color-mix(in srgb,var(--q-accent,#4262FF) 32%,rgba(17,24,39,.08));box-shadow:0 4px 12px color-mix(in srgb,var(--q-accent,#4262FF) 10%,transparent);transform:translateX(1px);}
-.ws-opt.correct{background:linear-gradient(135deg,#ecfdf3,#dcfce7);color:#15803d;font-weight:850;border-color:rgba(22,163,74,.35);box-shadow:0 4px 14px rgba(22,163,74,.14);}
-.ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,var(--q-accent,#4262FF) 9%,#fff);border:1.5px solid color-mix(in srgb,var(--q-accent,#4262FF) 26%,rgba(17,24,39,.12));font-size:11px;font-weight:950;color:color-mix(in srgb,var(--q-accent,#4262FF) 86%,#111827);font-family:var(--mono);}
-.ws-opt.correct .ws-mark{background:#16a34a;border-color:#16a34a;color:#fff;box-shadow:0 3px 8px rgba(22,163,74,.32);}
-.ws-tf{display:flex;gap:10px;margin-top:11px;padding-left:34px;}
-.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:850;padding:8px 20px;border-radius:12px;background:#fff;color:#9499a8;border:1.5px solid rgba(17,24,39,.09);box-shadow:0 1px 2px rgba(17,24,39,.04);transition:.12s;}
-.ws-tf-b.on{background:linear-gradient(135deg,#ecfdf3,#dcfce7);color:#15803d;border-color:rgba(22,163,74,.4);box-shadow:0 4px 14px rgba(22,163,74,.16);}
-.ws-ans{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;margin-top:10px;margin-left:34px;color:#15803d;font-weight:750;background:linear-gradient(135deg,#ecfdf3,#dcfce7);border:1px solid rgba(22,163,74,.26);border-radius:11px;padding:7px 12px;box-shadow:0 3px 10px rgba(22,163,74,.1);}
-.ws-ans-label{font-size:8.5px;font-weight:950;letter-spacing:.07em;text-transform:uppercase;background:#16a34a;color:#fff;padding:3px 8px;border-radius:999px;box-shadow:0 2px 6px rgba(22,163,74,.28);}
-.ws-ans b{color:#15803d;font-weight:900;}
-	.ws-open{height:0;margin:13px 0 4px 34px;border-bottom:2px dashed rgba(17,24,39,.16);}
-.ws-open + .ws-open{margin-top:20px;}
-	.ws-write{margin:11px 0 4px 34px;display:flex;flex-direction:column;gap:14px;}
-	.ws-write i{display:block;height:0;border-bottom:1.5px solid rgba(17,24,39,.14);}
-.ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:8px 8px;margin-top:11px;padding-left:34px;align-items:center;}
-.ws-l{font-size:12px;font-weight:850;padding:6px 12px;border-radius:10px;background:color-mix(in srgb,var(--q-accent,#4262FF) 13%,#fff);color:color-mix(in srgb,var(--q-accent,#4262FF) 88%,#111827);border:1px solid color-mix(in srgb,var(--q-accent,#4262FF) 22%,transparent);justify-self:start;}
-.ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--q-accent,#4262FF) 45%,transparent) 0 4px,transparent 4px 7px);}
-.ws-r{font-size:12px;color:#3f4254;font-weight:680;}
+	.ws-word{font-size:17px;font-weight:800;color:var(--ws-ink);}
+	.ws-opts{display:flex;flex-direction:column;gap:9px;margin-top:13px;}
+	.ws-opt{display:flex;align-items:center;gap:12px;font-size:15px;color:var(--ws-ink);font-weight:600;padding:13px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
+	.ws-opt:hover{border-color:var(--ws-ink);}
+.ws-opt.correct{background:var(--ws-lime);color:var(--ws-ink);font-weight:700;border-color:var(--ws-ink);}
+.ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
+.ws-opt.correct .ws-mark{background:var(--ws-ink);color:var(--ws-lime);}
+.ws-tf{display:flex;gap:10px;margin-top:13px;}
+.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;padding:11px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
+.ws-tf-b.on{background:var(--ws-lime);color:var(--ws-ink);border-color:var(--ws-ink);}
+.ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:15px;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 13px;}
+.ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-ink);color:var(--ws-lime);padding:4px 9px;border-radius:999px;}
+.ws-ans b{color:var(--ws-ink);font-weight:800;}
+	.ws-open{height:0;margin:15px 0 5px;border-bottom:2px dashed var(--ws-line);}
+.ws-open + .ws-open{margin-top:22px;}
+	.ws-write{margin:13px 0 5px;display:flex;flex-direction:column;gap:16px;}
+	.ws-write i{display:block;height:0;border-bottom:2px solid var(--ws-line);}
+.ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:13px;align-items:center;}
+.ws-l{font-size:14px;font-weight:700;padding:8px 13px;border-radius:11px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
+.ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
+.ws-r{font-size:14px;color:var(--ws-ink);font-weight:600;}
 	/* Stage / lesson-plan cards (cards[] kind) */
 	/* Lesson Pack stage cards — one accent (the pack's own category colour, not
 	   a different hue per stage type) so the sequence reads as one considered
 	   document instead of a rainbow of unrelated tags. Stage TYPE is still
 	   communicated, just by the text label alone instead of colour + a cryptic
 	   2-3 letter dot that duplicated it. */
-	.ws-q-card{--stage-accent:var(--q-accent,#4262FF);padding-left:46px;min-height:82px;border-color:rgba(17,24,39,.08);box-shadow:0 1px 2px rgba(17,24,39,.04);}
-	.ws-q-card::before{width:0;}
-	.ws-q-card::after{display:none;}
-	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:20px;border-radius:999px;background:rgba(17,24,39,.04);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--stage-accent);font:950 10px var(--mono);}
+	.ws-q-card{--stage-accent:var(--ws-ink,#0E0E10);padding-left:46px;min-height:82px;}
+	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:20px;border-radius:999px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
 	.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:950;letter-spacing:-.025em;color:#171420;}
 	.ws-card-title{flex:1;min-width:0;}
 	.ws-stage-label{font:800 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#6b7180;white-space:nowrap;}
@@ -3487,55 +3485,52 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-reading-block{position:relative;padding:0;}
 	.ws-reading-title{font-size:13.5px;font-weight:950;letter-spacing:-.015em;color:#171420;margin-bottom:7px;}
 	.ws-reading-copy{
-	  font-size:13px;line-height:1.74;color:#2c2f3c;font-weight:650;
-	  padding:14px 16px;border-radius:14px;background:#fff;
-	  border:1px solid color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 13%,rgba(17,24,39,.06));
-	  box-shadow:0 1px 2px rgba(17,24,39,.04),inset 0 1px 0 rgba(255,255,255,.9);
+	  font-size:13px;line-height:1.74;color:#26261E;font-weight:600;
+	  padding:14px 16px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
+	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	}
 	/* Drop-cap is opt-in (.has-dropcap, added by JS only for long-enough
 	   passages) — on a short one-liner it floats a huge letter next to almost
 	   nothing and looks broken rather than editorial. */
 	.ws-reading-copy.has-dropcap::first-letter{
-	  float:left;font-size:42px;line-height:.82;font-weight:950;margin:3px 9px 0 0;
-	  color:var(--stage-accent,var(--q-accent,#4262FF));
-	  text-shadow:0 3px 10px color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 24%,transparent);
+	  float:left;font-size:42px;line-height:.82;font-weight:800;margin:3px 9px 0 0;
+	  color:var(--ws-ink,#0E0E10);
 	}
 	.ws-vocab-grid{display:grid;gap:7px;margin-top:2px;}
 	.ws-vocab-row{
 	  display:grid;grid-template-columns:minmax(96px,.4fr) minmax(0,1fr);gap:12px;align-items:center;
-	  padding:9px 12px;border-radius:13px;background:#fff;
-	  border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 18%,rgba(17,24,39,.06));
-	  box-shadow:0 1px 2px rgba(17,24,39,.04);transition:transform .12s,box-shadow .12s;
+	  padding:9px 12px;border-radius:13px;background:var(--ws-cream,#F5F0E8);
+	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
+	  transition:border-color .12s;
 	}
-	.ws-vocab-row:hover{transform:translateX(1px);box-shadow:0 4px 12px color-mix(in srgb,var(--stage-accent,#D97706) 12%,transparent);}
-	.ws-vocab-term{justify-self:start;font-size:12px;font-weight:900;letter-spacing:-.01em;
-	  color:color-mix(in srgb,var(--stage-accent,#D97706) 88%,#111827);
-	  background:color-mix(in srgb,var(--stage-accent,#D97706) 13%,#fff);
-	  border:1px solid color-mix(in srgb,var(--stage-accent,#D97706) 24%,transparent);
+	.ws-vocab-row:hover{border-color:var(--ws-ink,#0E0E10);}
+	.ws-vocab-term{justify-self:start;font-size:12px;font-weight:800;letter-spacing:-.01em;
+	  color:var(--ws-ink,#0E0E10);background:#fff;
+	  border:1.5px solid var(--ws-line,rgba(14,14,16,.14));
 	  padding:4px 11px;border-radius:999px;
 	  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-	.ws-vocab-def{font-size:12px;line-height:1.5;color:#3f4254;font-weight:620;}
+	.ws-vocab-def{font-size:12px;line-height:1.5;color:#4A4838;font-weight:600;}
 	.ws-vocab-def:empty::before{content:"Add meaning";color:#b0a89b;font-style:italic;}
 	.ws-prompt-list{display:grid;gap:7px;margin-top:2px;}
 	.ws-prompt{
 	  display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start;
-	  padding:9px 10px;border-radius:13px;background:rgba(255,255,255,.78);
-	  border:1px solid color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 15%,rgba(17,24,39,.08));
+	  padding:9px 10px;border-radius:13px;background:#fff;
+	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	}
 	.ws-prompt-num{
-	  display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9px;
-	  background:var(--stage-accent,var(--q-accent,#4262FF));color:#fff;font:950 10px var(--mono);box-shadow:0 5px 12px color-mix(in srgb,var(--stage-accent,var(--q-accent,#4262FF)) 22%,rgba(17,24,39,.12));
+	  display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;
+	  background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);font-size:11px;font-weight:800;
 	}
-	.ws-prompt-text{font-size:12.5px;line-height:1.5;color:#303341;font-weight:750;}
+	.ws-prompt-text{font-size:12.5px;line-height:1.5;color:#26261E;font-weight:650;}
 /* Aims/objectives — checklist, not prose: a teacher scans this, doesn't read it. */
 .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.5;color:#303341;font-weight:650;}
-.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:var(--stage-accent,var(--q-accent,#4262FF));color:#fff;display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:1px;}
+.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:1px;}
 /* Grammar/focus — a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
-.ws-grammar-block{background:rgba(17,24,39,.035);border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
-.ws-grammar-line{font:600 12px/1.55 var(--mono);color:#242530;}
-.ws-grammar-line strong{color:var(--stage-accent,var(--q-accent,#4262FF));font-weight:800;}
+.ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+.ws-grammar-line{font:600 12px/1.55 var(--mono);color:#26261E;}
+.ws-grammar-line strong{color:var(--ws-ink,#0E0E10);font-weight:800;box-shadow:inset 0 -7px 0 var(--ws-lime,#CDF24F);}
 
 /* ── Teacher-tool note cards — category accent (cohesive board set) ── */
 .board-card.tt-note{box-shadow:inset 4px 0 0 var(--tt-accent,#4262FF),0 1px 2px rgba(17,24,39,.05),0 10px 26px rgba(17,24,39,.08)!important;}

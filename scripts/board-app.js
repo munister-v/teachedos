@@ -2309,6 +2309,12 @@ function renderAssignment(el, card) {
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
 // revealed answers) — when true it's the teacher key.
+/* Brand ink used as the single accent for every generated worksheet / lesson
+   card. Kept next to the worksheet renderers (rather than in BOARD_TOOL_META)
+   because it is the *output* palette, not the tool-picker palette. The rest of
+   the worksheet colours live in --ws-* custom properties in board.css. */
+const WS_ACCENT_INK = '#0E0E10';
+
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
   // 'anchor' marks the two bookend stages of a lesson (start/end) — see
@@ -2419,7 +2425,10 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></div>`;
         }).join('')}</div>`;
       } else if (q.type === 'truefalse') {
-        ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">✅ True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">❌ False</span></div>`;
+        // No ✅/❌ glyphs — the lime .on fill already marks the answer, and a red
+        // cross on a lime chip fought the palette. Without the key shown both
+        // chips stay plain, which is the student-facing state.
+        ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">False</span></div>`;
       } else if (q.type === 'gap-fill') {
         ans = (showAns && q.answer) ? `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>` : '<div class="ws-open"></div>';
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
@@ -2427,13 +2436,13 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       } else if (q.type === 'open') {
         ans = `<div class="ws-write"><i></i><i></i><i></i></div>`;
       }
-      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" style="background:${accent}">${i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
+      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
   }
   if (items) {
     return items.map((it, i) => {
       const def = it.example || it.definition || '';
-      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" style="background:${accent}">${i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
+      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
     }).join('');
   }
   if (cards) {
@@ -2472,7 +2481,13 @@ function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
              || { icon:'📄', color:'#4262FF' };
-  const accent = d.accent || meta.color || '#4262FF';
+  // Generated sheets all share ONE accent (the brand ink) instead of taking the
+  // category hue from BOARD_TOOL_META — seven saturated hues across reading /
+  // vocab / writing / speaking made a board of generated material read as a
+  // rainbow of unrelated widgets rather than one product. Category is still
+  // communicated, by meta.icon and the kicker text. BOARD_TOOL_META keeps its
+  // colours for the tools sidebar, which is a picker and benefits from them.
+  const accent = d.accent || WS_ACCENT_INK;
 
   // Interactive mode: render inside an iframe with drag strip
   if (d._interactive && _wsHasInteractive(d)) {
@@ -3164,7 +3179,12 @@ function printWorksheet(cardId) {
   if (!card) return;
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#4262FF' };
-  const accent = meta.color || '#4262FF';
+  // Mirrors the on-screen sheet (see .ws-* in board.css): same one brand accent,
+  // not the per-category hue. This popup carries its OWN copy of the styles —
+  // board.css is not loaded here — so any visual change to the worksheet has to
+  // be made in both places or the printout stops matching the board.
+  const accent = WS_ACCENT_INK;
+  const LIME = '#CDF24F', CREAM = '#F5F0E8', LINE = 'rgba(14,14,16,.14)';
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
@@ -3177,31 +3197,31 @@ function printWorksheet(cardId) {
     .ws-q{position:relative;border:1px solid #e8e9f0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
     .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:750;line-height:1.5}
-    .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:${accent};color:#fff;font:800 12px ui-monospace,monospace}
+    .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:${LIME};color:${accent};font:800 13px -apple-system,Arial}
     .ws-qtext{flex:1}.ws-word{font-weight:850}
     /* MCQ */
-    .ws-opts{display:flex;flex-direction:column;gap:6px;margin-top:11px;padding-left:34px}
-    .ws-opt{display:flex;align-items:center;gap:10px;font-size:13px;color:#3f3a4a;padding:8px 13px;border-radius:11px;background:#fff;border:1.5px solid #ececf2}
-    .ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:800;border-color:#a7e3bd}
-    .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;background:#f4f4f8;border:1.5px solid #d4d7e0;font:800 11px ui-monospace,monospace;color:#9499a8}
-    .ws-opt.correct .ws-mark{background:#16a34a;border-color:#16a34a;color:#fff}
+    .ws-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .ws-opt{display:flex;align-items:center;gap:11px;font-size:14px;color:${accent};font-weight:600;padding:11px 13px;border-radius:12px;background:#fff;border:2px solid ${LINE}}
+    .ws-opt.correct{background:${LIME};color:${accent};font-weight:700;border-color:${accent}}
+    .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:8px;background:${CREAM};border:0;font:800 13px -apple-system,Arial;color:${accent}}
+    .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
-    .ws-tf{display:flex;gap:10px;margin-top:11px;padding-left:34px}
-    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:7px 18px;border-radius:11px;background:#fff;border:1.5px solid #ececf2;color:#9ca3af}
-    .ws-tf-b.on{background:#dcfce7;color:#15803d;border-color:#a7e3bd}
+    .ws-tf{display:flex;gap:10px;margin-top:12px}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
+    .ws-tf-b.on{background:${LIME};color:${accent};border-color:${accent}}
     /* answer chip + writing lines */
-    .ws-ans{display:inline-flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;margin-left:34px;color:#15803d;background:#eafbf0;border:1px solid #bfe9cd;border-radius:10px;padding:6px 12px;font-weight:750}
-    .ws-ans-label{font:900 8.5px ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;background:#16a34a;color:#fff;padding:3px 8px;border-radius:999px}
-    .ws-ans b{color:#15803d;font-weight:900}
-    .ws-open{height:0;margin:14px 0 6px 34px;border-bottom:1.5px solid #cfd2db}
+    .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
+    .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
+    .ws-ans b{color:${accent};font-weight:800}
+    .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
     .ws-open + .ws-open{margin-top:22px}
-    .ws-write{margin:12px 0 6px 34px;display:flex;flex-direction:column;gap:20px}
-    .ws-write i{display:block;height:0;border-bottom:1.5px solid #cfd2db}
+    .ws-write{margin:13px 0 6px;display:flex;flex-direction:column;gap:20px}
+    .ws-write i{display:block;height:0;border-bottom:2px solid ${LINE}}
     /* match */
-    .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:9px;margin-top:11px;padding-left:34px;align-items:center}
-    .ws-l{font-size:12.5px;font-weight:800;color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);border:1px solid color-mix(in srgb,${accent} 22%,transparent);padding:5px 12px;border-radius:9px;justify-self:start}
-    .ws-mlink{width:22px;height:0;border-top:2px dotted color-mix(in srgb,${accent} 50%,#bbb)}
-    .ws-r{font-size:12.5px;color:#3f3a4a}
+    .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:12px;align-items:center}
+    .ws-l{font-size:13.5px;font-weight:700;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
+    .ws-mlink{width:22px;height:0;border-top:2px dotted ${LINE}}
+    .ws-r{font-size:13.5px;color:${accent};font-weight:600}
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) — the
        stage rail number + text label are enough to tell stages apart. */
@@ -3216,24 +3236,24 @@ function printWorksheet(cardId) {
     .ws-card-txt strong{color:#171420;font-weight:850}
     /* reading block + drop cap */
     .ws-reading-title{font-size:14px;font-weight:850;color:#171420;margin-bottom:7px}
-    .ws-reading-copy{font-size:13px;line-height:1.78;color:#2c2f3c;padding:14px 16px;border:1px solid #e8e9f0;border-radius:12px;background:#fff}
-    .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:850;margin:4px 10px 0 0;color:var(--stage-accent,${accent})}
+    .ws-reading-copy{font-size:13px;line-height:1.78;color:#26261E;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
+    .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:800;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
-    .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
-    .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:#171420;background:#f4f4f8;border:1px solid #e4e5ec;padding:4px 11px;border-radius:999px}
-    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#3f3a4a}
+    .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:2px solid ${LINE};background:${CREAM};border-radius:11px;page-break-inside:avoid}
+    .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:${accent};background:#fff;border:1.5px solid ${LINE};padding:4px 11px;border-radius:999px}
+    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#4A4838}
     /* before / after prompts */
     .ws-prompt-list{display:grid;gap:7px;margin-top:4px}
-    .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:1px solid #eee;border-radius:11px;page-break-inside:avoid}
-    .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--stage-accent,${accent});color:#fff;font:900 11px ui-monospace,monospace}
-    .ws-prompt-text{font-size:13px;line-height:1.5;color:#2c2f3c}
+    .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:2px solid ${LINE};border-radius:11px;page-break-inside:avoid}
+    .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:${LIME};color:${accent};font:800 11px -apple-system,Arial}
+    .ws-prompt-text{font-size:13px;line-height:1.5;color:#26261E}
     /* aims/objectives checklist + grammar example block */
     .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
     .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#2c2f3c}
-    .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:var(--stage-accent,${accent});color:#fff;display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
-    .ws-grammar-block{background:#f7f7fa;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#242530}
+    .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
+    .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#26261E}
     /* Print always shows full stage text — no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
     .ws-expand-btn{display:none}
@@ -9179,23 +9199,49 @@ function _ttShuffle(arr){ for (let i = arr.length-1; i > 0; i--){ const j = Math
 function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display='none'; }
 /* PILOT local-heuristic generators moved to scripts/board-gen.js — loaded
    on demand via _ensureGenLoaded() (see generateTeacherToolBuilder). */
+/* Height model for the worksheet card.
+   The constants below are MEASURED off the rendered card (640px wide) rather
+   than guessed — see the .ws-* block in board.css. If you change worksheet
+   type sizes or padding there, re-measure and update here in the same commit,
+   or generated sheets silently get an inner scrollbar again. The old constants
+   assumed ~26px option rows; the real row is 60px, which is why sheets were
+   clipping (and html2canvas drops scrolled-away content, so PNG/PDF export and
+   print lost questions).
+   Bias is deliberately toward OVER-estimating: extra blank space at the bottom
+   of a card is harmless, clipped questions are not. */
+const WS_H = {
+  mcqBase: 70, mcqPerOption: 70,   // measured 68 + n*69
+  trueFalse: 130,                  // measured 128
+  matchBase: 70, matchPerPair: 50, // measured 68 + n*47
+  other: 124,                      // gap-fill / open — measured 120
+  perItem: 90,                     // word list row — measured 86
+  gap: 12,                         // .ws-list gap
+  cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,
+  chromeQuestions: 194,            // card header + strip(117) + paddings
+  chromeCards: 234,                // lesson-pack strip is taller (stepper row)
+};
 function _ttEstWorksheetHeight(output){
   let sum = 0;
+  let chrome = WS_H.chromeQuestions;
   if (Array.isArray(output.questions)) {
     for (const q of output.questions) {
-      if (q.type === 'mcq' && Array.isArray(q.options)) sum += 42 + q.options.length * 26;
-      else if (q.type === 'truefalse') sum += 72;
-      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += 42 + q.pairs.length * 24;
-      else sum += 64;
+      if (q.type === 'mcq' && Array.isArray(q.options)) sum += WS_H.mcqBase + q.options.length * WS_H.mcqPerOption;
+      else if (q.type === 'truefalse') sum += WS_H.trueFalse;
+      else if (q.type === 'match' && Array.isArray(q.pairs)) sum += WS_H.matchBase + q.pairs.length * WS_H.matchPerPair;
+      else sum += WS_H.other;
     }
-  } else if (Array.isArray(output.items)) sum = output.items.length * 56;
+    sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
+  } else if (Array.isArray(output.items)) {
+    sum = output.items.length * WS_H.perItem + Math.max(0, output.items.length - 1) * WS_H.gap;
+  }
   else if (Array.isArray(output.cards)) {
+    chrome = WS_H.chromeCards;
     // Lesson Pack stages render as a landscape grid (see .ws-list-cards), not a
     // single stacked column, so height tracks ROWS of the grid, not the sum of
     // every stage's height — otherwise an 11-stage pack would ask for a card
     // tall enough to stack all 11 vertically even though most sit side-by-side.
     const cols = _ttLessonPackCols(output.cards.length);
-    const perCard = output.cards.map(c => 64 + Math.ceil((c.text||'').length/44)*16);
+    const perCard = output.cards.map(c => WS_H.cardBase + Math.ceil((c.text||'').length/WS_H.cardCharsPerRow)*WS_H.cardPerRow);
     const rows = Math.ceil(perCard.length / cols);
     // Approximate each row's height as the average card height in that slice
     // (good enough — the browser's own grid auto-sizing handles the real
@@ -9205,12 +9251,17 @@ function _ttEstWorksheetHeight(output){
       const slice = perCard.slice(r*cols, r*cols+cols);
       rowSum += Math.max(...slice);
     }
-    sum = rowSum;
+    sum = rowSum + Math.max(0, rows - 1) * WS_H.gap;
   }
   // Size to fit ALL content (generous ceiling + headroom): the card then has no
   // inner scroll for realistic worksheets, so the whole sheet shows on the board
   // and exports/prints in full (html2canvas clips scrolled-away overflow).
-  return Math.max(360, Math.min(1850, 170 + sum + 36));
+  // Ceiling raised with the type scale — at the old 1850 even a 4-question
+  // sheet clipped. 3200 covers the realistic worst case measured (8 MCQs with
+  // 4 options each ≈ 3030px). Past that the card scrolls again: print is safe
+  // either way (printWorksheet rebuilds the sheet from data, not from the DOM),
+  // but html2canvas PNG/PDF export captures the DOM and would drop the tail.
+  return Math.max(360, Math.min(3200, chrome + sum));
 }
 // Column count for the Lesson Pack stage grid — kept in one place so the
 // width, the height estimate, and the CSS grid-template all agree.
