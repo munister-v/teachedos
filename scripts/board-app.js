@@ -5101,7 +5101,39 @@ boardWrap.addEventListener('dblclick', e => {
 });
 
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
+/* A mouseup that happens outside the window never reaches the document, so a
+   drag or a pan can outlive the button being released: the user drags a card,
+   lets go over another app, comes back — and the card is still glued to the
+   cursor, with the grab cursor stuck on. Ending the gesture through the normal
+   mouseup path (dispatched on <body>, because that handler calls
+   e.target.closest) keeps the usual cleanup — snapshot, save, class removal —
+   in one place instead of duplicating it here. */
+function _endStuckGesture(clientX, clientY) {
+  document.body.dispatchEvent(new MouseEvent('mouseup', {
+    bubbles: true, clientX, clientY, button: 0, buttons: 0,
+  }));
+}
+let _lastPointerPos = { x: 0, y: 0 };
+// Releasing outside the window is only noticed when the pointer comes back, so
+// also bail out on blur / pointercancel — otherwise the board keeps panning
+// under a cursor that is no longer pressing anything.
+window.addEventListener('blur', () => {
+  if (isDraggingCard || isPanning || isResizing) _endStuckGesture(_lastPointerPos.x, _lastPointerPos.y);
+});
+window.addEventListener('pointercancel', () => {
+  if (isDraggingCard || isPanning || isResizing) _endStuckGesture(_lastPointerPos.x, _lastPointerPos.y);
+}, true);
+
 document.addEventListener('mousemove', e => {
+  _lastPointerPos.x = e.clientX; _lastPointerPos.y = e.clientY;
+  // No primary button held but still mid-gesture → the release was missed.
+  // Return before any movement is applied, so the card stays where the user
+  // actually left it rather than jumping to wherever the cursor re-entered.
+  if ((isDraggingCard || isPanning || isResizing) && !(e.buttons & 1)) {
+    _endStuckGesture(e.clientX, e.clientY);
+    return;
+  }
+
   if (spaceDown && (e.buttons & 1)) {
     if (!isPanning) {
       isPanning = true;
