@@ -2345,6 +2345,26 @@ function _ttExtractStageTiming(title) {
   return { clean, time: `${m[1]} min` };
 }
 
+/* One "term — definition" line, or null if the line is not a pair.
+   The separator has to be a real one. A bare hyphen cannot be it: compound
+   words (Pre-teach, role-play, follow-up) carry hyphens inside them and would
+   split at the wrong place, so a hyphen only counts when it is spaced. Em and
+   en dashes are unambiguous, and a colon counts when it is followed by space.
+   Both sides are then sanity-checked — a term is a couple of words, not a
+   clause, and a gloss is a phrase, not a paragraph. */
+function _ttParseVocabLine(line) {
+  const clean = String(line).replace(/^\s*[-•]\s*/, '').trim();
+  const m = clean.match(/^(.{1,40}?)(?:\s+[-–—]\s+|\s*[–—]\s*|:\s+)(.+)$/);
+  if (!m) return null;
+  const term = _ttStripMd(m[1]).trim();
+  const def = m[2].trim();
+  if (!term || !def) return null;
+  if (term.split(/\s+/).length > 4) return null;   // a clause, not a term
+  if (/[.!?]$/.test(term)) return null;            // a finished sentence
+  if (def.length > 160) return null;               // prose, not a gloss
+  return { term, def };
+}
+
 function _ttWorksheetStageBodyHtml(card, stageMeta) {
   const raw = String(card?.text || '').trim();
   if (!raw) return '';
@@ -2357,17 +2377,20 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
   }
 
   if (stageMeta.cls === 'ws-stage-vocab') {
-    const parsed = lines.map(line => {
-      const clean = line.replace(/^\s*[-•]\s*/, '');
-      const m = clean.match(/^(.{1,40}?)\s*(?:—|–|-|:)\s*(.+)$/);
-      return m ? { term: _ttStripMd(m[1]).trim(), def: m[2].trim() } : null;
-    });
-    // Only render the term/definition pill grid if the content actually LOOKS
-    // like vocab pairs (a title matching "vocab/glossary/word" doesn't
-    // guarantee it — e.g. AI prose fallback). Otherwise a whole sentence gets
-    // jammed into a pill meant for one short word, producing an oversized,
-    // misshapen blob instead of a paragraph. Fall back to plain text instead.
-    if (!parsed.some(Boolean)) return _ttMdToHtml(raw);
+    const parsed = lines.map(_ttParseVocabLine);
+    /* Only render the term/definition pill grid when the content really is
+       vocab pairs. A title matching "vocab/glossary/word" does not make it so —
+       the model often answers with prose instead, and one wrong split turns a
+       paragraph into a pill meant for a single word.
+
+       "one line parsed" was far too weak a test. A stage reading "Pre-teach the
+       target vocabulary: delay, reservation…" split on the hyphen inside
+       Pre-teach, giving the term "Pre" and a 392-character "definition", which
+       the two-column row then squeezed into a strip about one word wide. The
+       real signal is shape, not the presence of a separator: a vocab list has
+       several lines and most of them pair up. A single paragraph never does. */
+    const ok = parsed.filter(Boolean).length;
+    if (lines.length < 2 || ok < Math.ceil(lines.length * 0.6)) return _ttMdToHtml(raw);
     const rows = parsed.map((p, i) => {
       const term = p ? p.term : _ttStripMd(lines[i]).trim();
       const def = p ? p.def : '';
@@ -2464,24 +2487,16 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           ${time ? `<span class="ws-stage-time">⏱ ${esc(time)}</span>` : ''}
         </div>
         <div class="ws-card-txt">${bodyHtml}</div>
-        <button type="button" class="ws-expand-btn" onclick="_ttToggleStageCard(this)">Show more ⌄</button>
       </div>`;
     }).join('');
   }
   return '';
 }
 
-/* Stage card body is clamped to a fixed height (see .ws-card-txt) so the
-   landscape grid's rows stay roughly even instead of one tall stage forcing
-   empty space under its shorter row-mates. Only cards that actually overflow
-   get the fade + button — see the .ws-q-card.overflowing gate in board.css. */
-function _ttToggleStageCard(btn) {
-  const card = btn.closest('.ws-q-card');
-  if (!card) return;
-  const expanded = card.classList.toggle('expanded');
-  btn.textContent = expanded ? 'Show less ⌃' : 'Show more ⌄';
-}
-
+/* Stage cards show their full text. Evening out the grid's rows by clamping
+   cost more than it bought: the height estimate already reserves room for the
+   whole stage, so the clamp hid text inside space paid for, and export
+   captures the DOM, so the hidden tail was missing from PNG/PDF entirely. */
 function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
@@ -2573,17 +2588,6 @@ function renderWorksheet(el, card) {
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
   body.innerHTML = strip + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
-  // Mark stage cards whose body text actually overflows the clamp — only
-  // those get the fade + "Show more" (see .ws-q-card.overflowing in CSS).
-  // rAF: measure after layout has settled the landscape grid's row heights.
-  if (cards) {
-    requestAnimationFrame(() => {
-      body.querySelectorAll('.ws-q-card').forEach(cardEl => {
-        const txt = cardEl.querySelector('.ws-card-txt');
-        if (txt && txt.scrollHeight > txt.clientHeight + 2) cardEl.classList.add('overflowing');
-      });
-    });
-  }
 }
 
 /* ══════════ INTERACTIVE WORKSHEET MODE ══════════
@@ -3261,7 +3265,6 @@ function printWorksheet(cardId) {
     .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#26261E}
     /* Print always shows full stage text — no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
-    .ws-expand-btn{display:none}
     /* Lesson Pack stages: two print columns instead of one long vertical run
        of pages — column-count reflows naturally across page breaks. */
     .ws-cards-print{column-count:2;column-gap:18px}

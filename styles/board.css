@@ -3486,21 +3486,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  background:var(--stage-accent);opacity:.55;}
 	.ws-q-card.ws-anchor-start::after{border-radius:0 999px 999px 999px;}
 	.ws-q-card.ws-anchor-end::after{border-radius:2px;}
+	/* No clamp. The height estimate already budgets for the full text
+	   (WS_H.cardBase + rows), so clamping hid content inside space that had
+	   been reserved for it — and html2canvas captures the DOM as laid out, so
+	   whatever the fade covered was simply missing from PNG/PDF, with the
+	   gradient making the loss look deliberate. Same rule as the generated
+	   sheets: size to fit, never hide. */
 	.ws-card-txt{font-size:12.5px;line-height:1.56;color:#444857;font-weight:650;margin-top:9px;white-space:normal;
-	  max-height:132px;overflow:hidden;position:relative;transition:max-height .2s ease;}
-	.ws-q-card.expanded .ws-card-txt{max-height:none;}
+	  position:relative;}
 	.ws-card-txt strong{color:#171420;font-weight:950;}
 	.ws-stage-reading .ws-card-txt{font-size:13px;line-height:1.72;color:#303341;}
 	.ws-stage-vocab .ws-card-txt{display:grid;gap:4px;}
-	/* Fade + "show more" only appear once JS confirms the content actually
-	   overflows the clamp — short stages never get a pointless button. */
-	.ws-q-card.overflowing .ws-card-txt::after{content:'';position:absolute;left:0;right:0;bottom:0;height:30px;
-	  background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.94));pointer-events:none;transition:opacity .15s ease;}
-	.ws-q-card.overflowing.expanded .ws-card-txt::after{opacity:0;}
-	.ws-expand-btn{display:none;margin-top:6px;background:none;border:none;padding:0;
-	  font:800 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;
-	  color:var(--stage-accent,var(--q-accent,var(--accent)));cursor:pointer;}
-	.ws-q-card.overflowing .ws-expand-btn{display:inline-block;}
 	.ws-reading-block{position:relative;padding:0;}
 	.ws-reading-title{font-size:13.5px;font-weight:950;letter-spacing:-.015em;color:#171420;margin-bottom:7px;}
 	.ws-reading-copy{
@@ -3529,6 +3525,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  padding:4px 11px;border-radius:999px;
 	  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vocab-def{font-size:12px;line-height:1.5;color:#4A4838;font-weight:600;}
+	/* Lesson Pack stages sit in a ~230px grid column, where splitting the row
+	   into term + definition leaves the definition a strip a couple of words
+	   wide. Stack them there; the full-width worksheet keeps two columns. */
+	.ws-q-card .ws-vocab-row{grid-template-columns:minmax(0,1fr);gap:5px;align-items:start;}
+	.ws-q-card .ws-vocab-term{justify-self:start;}
 	.ws-vocab-def:empty::before{content:"Add meaning";color:#b0a89b;font-style:italic;}
 	.ws-prompt-list{display:grid;gap:7px;margin-top:2px;}
 	.ws-prompt{
