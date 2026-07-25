@@ -290,11 +290,16 @@ function findFreePlacement(cx, cy, w, h) {
   // Spiral search: try the desired spot, then expanding rings of offsets.
   const baseX = cx - w / 2, baseY = cy - h / 2;
   if (!overlaps(baseX, baseY)) return { x: cx, y: cy };
-  const step = Math.max(w, h) * 0.55 + GAP;
+  // Step per axis, not one step from max(w,h): a worksheet is ~640x960, so a
+  // shared step moved it a full card-height sideways too and scattered
+  // generated cards with big empty gaps between them. Overlap is still decided
+  // by overlaps() — the step only sets how finely the spiral samples.
+  const stepX = w * 0.55 + GAP;
+  const stepY = h * 0.55 + GAP;
   for (let ring = 1; ring <= 12; ring++) {
     for (const [dx, dy] of [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]]) {
-      const nx = baseX + dx * step * ring;
-      const ny = baseY + dy * step * ring;
+      const nx = baseX + dx * stepX * ring;
+      const ny = baseY + dy * stepY * ring;
       if (!overlaps(nx, ny)) return { x: nx + w / 2, y: ny + h / 2 };
     }
   }
