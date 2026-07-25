@@ -13073,6 +13073,46 @@ function boardContentBounds(pad = 48) {
   return { x: minX - pad, y: minY - pad, w: (maxX - minX) + pad * 2, h: (maxY - minY) + pad * 2 };
 }
 
+/* html2canvas 1.4.1 (the last release, 2022) parses colours itself and throws
+   `unsupported color function "color"` on anything it does not know. Browsers
+   resolve `color-mix()` at computed-value time to `color(srgb r g b / a)`, so a
+   single color-mix anywhere in the exported subtree aborts the whole export —
+   not one wrong colour, no PNG at all. board.css uses color-mix throughout
+   (tt-note cards, .vocab-*, worksheet rails), so this is not hypothetical.
+
+   Rather than ban color-mix from the stylesheet, flatten it in the clone
+   html2canvas renders: computed values are already numeric there, so rewriting
+   them to rgb() is lossless and keeps the source CSS modern. */
+const _EXPORT_COLOR_PROPS = [
+  'backgroundColor', 'color', 'borderTopColor', 'borderRightColor',
+  'borderBottomColor', 'borderLeftColor', 'outlineColor', 'textDecorationColor',
+  'caretColor', 'fill', 'stroke', 'boxShadow', 'backgroundImage', 'textShadow',
+];
+// color(srgb 0.05 0.05 0.06 / 0.3)  ->  rgba(14, 14, 16, 0.3)
+function _flattenColorFn(value) {
+  return value.replace(/color\(srgb\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s*(?:\/\s*([\d.eE+-]+))?\s*\)/g,
+    (_, r, g, b, a) => {
+      const c = n => Math.max(0, Math.min(255, Math.round(parseFloat(n) * 255)));
+      const alpha = a === undefined ? 1 : parseFloat(a);
+      return `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${alpha})`;
+    });
+}
+function flattenModernColorsForExport(root) {
+  if (!root) return;
+  const win = root.ownerDocument?.defaultView || window;
+  const els = [root, ...root.querySelectorAll('*')];
+  for (const el of els) {
+    let cs;
+    try { cs = win.getComputedStyle(el); } catch { continue; }
+    if (!cs) continue;
+    for (const prop of _EXPORT_COLOR_PROPS) {
+      const v = cs[prop];
+      if (typeof v !== 'string' || v.indexOf('color(') === -1) continue;
+      try { el.style[prop] = _flattenColorFn(v); } catch { /* read-only prop */ }
+    }
+  }
+}
+
 // Render the board content to a canvas via html2canvas, neutralising the
 // pan/zoom transform and hiding editor chrome (handles, selection, dots) so
 // the snapshot looks like a clean printable artboard.
@@ -13103,6 +13143,7 @@ async function renderBoardToCanvas() {
       x: bounds.x, y: bounds.y, width: bounds.w, height: bounds.h,
       backgroundColor: bgColor, scale: 2, // fixed 2× for crisp print regardless of screen DPR
       useCORS: true, logging: false, removeContainer: true,
+      onclone: (doc, el) => flattenModernColorsForExport(el || doc.body),
     });
   } finally {
     // Always restore the live view, even if capture throws.
