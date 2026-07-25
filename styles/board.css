@@ -3814,6 +3814,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-exporting #minimap,
 .board-exporting #empty-state,
 .board-exporting .arrow-add-dot{display:none!important;}
+/* Freeze motion for the capture. A card caught mid-cardPopIn is exported
+   half-scaled and half-transparent, and an in-flight colour interpolation also
+   serialises as oklab(), which html2canvas cannot parse at all. Settling
+   everything first makes the snapshot deterministic instead of dependent on
+   how soon after adding a card the user hit Export. */
+.board-exporting,
+.board-exporting *,
+.board-exporting *::before,
+.board-exporting *::after{animation:none!important;transition:none!important;}
 .board-exporting .board-card.selected{box-shadow:none!important;outline:none!important;}
 .board-exporting .board-card.dragging{box-shadow:none!important;}
 .board-exporting .lesson-present-btn,

@@ -13074,44 +13074,99 @@ function boardContentBounds(pad = 48) {
 }
 
 /* html2canvas 1.4.1 (the last release, 2022) parses colours itself and throws
-   `unsupported color function "color"` on anything it does not know. Browsers
-   resolve `color-mix()` at computed-value time to `color(srgb r g b / a)`, so a
-   single color-mix anywhere in the exported subtree aborts the whole export —
-   not one wrong colour, no PNG at all. board.css uses color-mix throughout
-   (tt-note cards, .vocab-*, worksheet rails), so this is not hypothetical.
+   `unsupported color function "…"` on anything it does not know, rather than
+   degrading — so one such value anywhere in the captured subtree aborts the
+   whole export: no image at all, not one wrong colour.
 
-   Rather than ban color-mix from the stylesheet, flatten it in the clone
-   html2canvas renders: computed values are already numeric there, so rewriting
-   them to rgb() is lossless and keeps the source CSS modern. */
-const _EXPORT_COLOR_PROPS = [
-  'backgroundColor', 'color', 'borderTopColor', 'borderRightColor',
-  'borderBottomColor', 'borderLeftColor', 'outlineColor', 'textDecorationColor',
-  'caretColor', 'fill', 'stroke', 'boxShadow', 'backgroundImage', 'textShadow',
-];
-// color(srgb 0.05 0.05 0.06 / 0.3)  ->  rgba(14, 14, 16, 0.3)
-function _flattenColorFn(value) {
-  return value.replace(/color\(srgb\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s*(?:\/\s*([\d.eE+-]+))?\s*\)/g,
-    (_, r, g, b, a) => {
-      const c = n => Math.max(0, Math.min(255, Math.round(parseFloat(n) * 255)));
-      const alpha = a === undefined ? 1 : parseFloat(a);
-      return `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${alpha})`;
-    });
-}
-function flattenModernColorsForExport(root) {
-  if (!root) return;
-  const win = root.ownerDocument?.defaultView || window;
-  const els = [root, ...root.querySelectorAll('*')];
-  for (const el of els) {
-    let cs;
-    try { cs = win.getComputedStyle(el); } catch { continue; }
-    if (!cs) continue;
-    for (const prop of _EXPORT_COLOR_PROPS) {
-      const v = cs[prop];
-      if (typeof v !== 'string' || v.indexOf('color(') === -1) continue;
-      try { el.style[prop] = _flattenColorFn(v); } catch { /* read-only prop */ }
+   Two independent sources, which is why this resolves colours generically
+   instead of matching a syntax. board.css uses color-mix() throughout (tt-note
+   cards, .vocab-*, worksheet rails), and browsers resolve that to
+   `color(srgb …)`. Separately, any in-flight colour interpolation serialises as
+   `oklab(…)` — a card caught mid-cardPopIn produced exactly that, and no grep
+   of the source would ever have found it, since it exists only at runtime.
+   .board-exporting now freezes animations so that second source is gone, but a
+   parser that only knew `color(srgb …)` was a patch for one spelling.
+
+   Resolution goes through a 1×1 canvas: the browser understands every colour
+   syntax it can compute, so whatever it hands back is exact and this keeps
+   working for oklch/lab/hwb without being taught about them. */
+const _MODERN_COLOR_SRC = '\\b(?:color|color-mix|oklab|oklch|lab|lch|hwb)\\((?:[^()]|\\([^()]*\\))*\\)';
+const _MODERN_COLOR_FN = new RegExp(_MODERN_COLOR_SRC, 'gi');
+// Separate non-global copy: .test() on a /g regex advances lastIndex, so
+// sharing one instance between the check and the replace skips matches.
+const _HAS_MODERN_COLOR = new RegExp(_MODERN_COLOR_SRC, 'i');
+let _colorProbeCtx = null;
+const _colorProbeCache = new Map();
+function _resolveColorToRgba(token) {
+  if (_colorProbeCache.has(token)) return _colorProbeCache.get(token);
+  let out = token;
+  try {
+    if (!_colorProbeCtx) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 1;
+      _colorProbeCtx = c.getContext('2d', { willReadFrequently: true });
     }
-  }
+    const ctx = _colorProbeCtx;
+    ctx.fillStyle = '#000';
+    ctx.fillStyle = token;             // silently ignored if unparseable…
+    if (ctx.fillStyle !== '#000' || /^#000000$|^black$/i.test(token.trim())) {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillRect(0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      out = `rgba(${d[0]}, ${d[1]}, ${d[2]}, ${+(d[3] / 255).toFixed(4)})`;
+    }
+  } catch { /* …in which case the original is left alone */ }
+  _colorProbeCache.set(token, out);
+  return out;
 }
+function _flattenColorFn(value) {
+  if (!value || value.indexOf('(') === -1 || !_HAS_MODERN_COLOR.test(value)) return value;
+  return value.replace(_MODERN_COLOR_FN, _resolveColorToRgba);
+}
+
+/* Flatten colours where html2canvas reads them, rather than in the DOM.
+   Rewriting the DOM was the wrong shape, and every variant leaked: an inline
+   style loses to an !important rule, !important loses to a running animation,
+   animations restart inside the clone after onclone has finished, and
+   pseudo-elements take no inline style at all. Every colour html2canvas sees
+   arrives through getComputedStyle, so wrapping that single call covers all of
+   them at once — whatever the source, whatever the timing.
+
+   Installed on the clone's window and on the live one for the duration of the
+   capture (html2canvas measures the original document too); renderBoardToCanvas
+   removes the live one in its finally. */
+function installColorFlattenHook(win) {
+  if (!win || win.__ttColorHook) return () => {};
+  const orig = win.getComputedStyle;
+  const wrap = cs => new Proxy(cs, {
+    get(target, key) {
+      if (key === 'getPropertyValue') {
+        return prop => _flattenColorFn(String(target.getPropertyValue(prop)));
+      }
+      const v = target[key];
+      if (typeof v === 'function') return v.bind(target);
+      return typeof v === 'string' ? _flattenColorFn(v) : v;
+    },
+  });
+  win.getComputedStyle = function (el, pe) { return wrap(orig.call(this, el, pe)); };
+  win.__ttColorHook = true;
+  return () => { win.getComputedStyle = orig; delete win.__ttColorHook; };
+}
+
+/* Keep animations from starting in the clone. Not a colour concern any more —
+   the hook above handles that — but a card cloned mid-cardPopIn would be
+   captured half-scaled and half-transparent. The cloned nodes keep their
+   trigger classes, so the freeze has to be a stylesheet: it applies to
+   animations that have not begun, which settling them cannot. */
+function freezeMotionInClone(doc) {
+  try {
+    const style = doc.createElement('style');
+    style.textContent =
+      '*,*::before,*::after{animation:none!important;transition:none!important;}';
+    (doc.head || doc.documentElement).appendChild(style);
+  } catch { /* the clone is html2canvas's to build; skip if it will not take it */ }
+}
+
 
 /* Wait one painted frame, but never wait forever. requestAnimationFrame does
    not fire in a hidden tab, and "Rendering PDF…" is exactly the moment a user
@@ -13152,7 +13207,9 @@ async function renderBoardToCanvas() {
   if (typeof renderAllArrows === 'function') renderAllArrows();
 
   let canvas = null;
+  let removeColorHook = () => {};
   try {
+    removeColorHook = installColorFlattenHook(window);
     // The settle has to be inside the try: the board is already mutated at this
     // point, so anything that stalls here must still hit the restore below.
     await _exportSettleFrame();
@@ -13161,10 +13218,14 @@ async function renderBoardToCanvas() {
       x: bounds.x, y: bounds.y, width: bounds.w, height: bounds.h,
       backgroundColor: bgColor, scale: 2, // fixed 2× for crisp print regardless of screen DPR
       useCORS: true, logging: false, removeContainer: true,
-      onclone: (doc, el) => flattenModernColorsForExport(el || doc.body),
+      onclone: doc => {
+        freezeMotionInClone(doc);
+        installColorFlattenHook(doc.defaultView);
+      },
     });
   } finally {
     // Always restore the live view, even if capture throws.
+    removeColorHook();
     document.body.classList.remove('board-exporting');
     board.style.transform = prevTransform;
     board.style.overflow = prevOverflow;
