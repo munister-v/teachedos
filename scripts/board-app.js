@@ -1552,8 +1552,8 @@ function _mtMoreDo(action) {
 }
 
 function renderFrame(el, card) {
-  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(66,98,255,.05)');
-  el.style.setProperty('--frame-border', card.data.border || 'rgba(66,98,255,.30)');
+  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(14,14,16,.05)');
+  el.style.setProperty('--frame-border', card.data.border || 'rgba(14,14,16,.30)');
   // Assign a number if missing (legacy frames)
   if (!card.data.num) {
     const frames = state.cards.filter(c => c.type === 'frame');
@@ -1841,8 +1841,8 @@ function quickAddFrame() {
   const newCard = addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
     title: 'Frame ' + n,
     num: n,
-    bg: 'rgba(66,98,255,.05)',
-    border: 'rgba(66,98,255,.30)',
+    bg: 'rgba(14,14,16,.05)',
+    border: 'rgba(14,14,16,.30)',
     childIds: []
   });
   // Send frames behind all other cards (Miro behaviour)
@@ -2485,7 +2485,7 @@ function _ttToggleStageCard(btn) {
 function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
-             || { icon:'📄', color:'#4262FF' };
+             || { icon:'📄', color:'#0E0E10' };
   // Generated sheets all share ONE accent (the brand ink) instead of taking the
   // category hue from BOARD_TOOL_META — seven saturated hues across reading /
   // vocab / writing / speaking made a board of generated material read as a
@@ -2655,7 +2655,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
-  const accent = d.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]?.color) || '#4262FF';
+  const accent = d.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]?.color) || '#0E0E10';
   const kind = String(d.kind || '').toLowerCase();
   // Teacher key is only shown to the board owner (students just get correct/wrong
   // feedback after Check). Persisted student state is injected for restore.
@@ -3183,7 +3183,7 @@ function printWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
   const d = card.data || {};
-  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#4262FF' };
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#0E0E10' };
   // Mirrors the on-screen sheet (see .ws-* in board.css): same one brand accent,
   // not the per-category hue. This popup carries its OWN copy of the styles —
   // board.css is not loaded here — so any visual change to the worksheet has to
@@ -4781,7 +4781,7 @@ function showLayerPopover(cardId) {
       }
     }
     accentRow.innerHTML = '';
-    const current = (card.data.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[card.data.cat]?.color) || '#4262FF').toLowerCase();
+    const current = (card.data.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[card.data.cat]?.color) || '#0E0E10').toLowerCase();
     WS_ACCENT_COLORS.forEach(c => {
       const sw = document.createElement('button');
       sw.className = 'card-color-swatch';
@@ -7292,8 +7292,8 @@ function toggleSbMoreMenu(e) {
   t?.classList.add('open');
   // Highlight current item if active
   m.querySelectorAll('.sb-more-item').forEach(it => {
-    it.style.background = it.dataset.tab === activeTab ? 'rgba(66,98,255,.08)' : '';
-    it.style.color      = it.dataset.tab === activeTab ? '#4262FF' : '';
+    it.style.background = it.dataset.tab === activeTab ? 'color-mix(in srgb,var(--accent) 8%,transparent)' : '';
+    it.style.color      = it.dataset.tab === activeTab ? 'var(--accent)' : '';
   });
   setTimeout(() => document.addEventListener('click', _outsideSbMore, { once:true }), 0);
 }
@@ -7317,12 +7317,12 @@ function toggleCommentsPanel() {
   p.style.cssText = `position:fixed;top:${getComputedStyle(document.documentElement).getPropertyValue('--tb-h')||'52px'};right:12px;width:320px;max-height:calc(100vh - 72px);background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);z-index:2000;overflow:hidden;display:flex;flex-direction:column;`;
   p.innerHTML = `
     <div style="padding:14px 16px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:10px;">
-      <span style="font-size:15px;font-weight:600;flex:1;color:#050038;">Comments</span>
+      <span style="font-size:15px;font-weight:600;flex:1;color:var(--text);">Comments</span>
       <button onclick="toggleCommentsPanel()" style="width:28px;height:28px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:#9999AA;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;" title="Close">&times;</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:14px 16px;font-size:13px;color:#9999AA;text-align:center;">
       <div style="padding:32px 0;font-size:32px;opacity:.6;">💬</div>
-      <div style="font-weight:500;color:#050038;margin-bottom:4px;">No comments yet</div>
+      <div style="font-weight:500;color:var(--text);margin-bottom:4px;">No comments yet</div>
       <div>Click any card and use the editor to add a comment</div>
     </div>`;
   document.body.appendChild(p);
@@ -7531,7 +7531,7 @@ const TT_TOOL_ICONS = {
   'transcript-helper':'📜','warmup-listening':'🎵','listening-dictation':'🎙️',
 };
 const BOARD_TOOL_META = {
-  all:       { icon:'✦', color:'#050038', bg:'rgba(5,0,56,.08)' },
+  all:       { icon:'✦', color:'#0E0E10', bg:'rgba(14,14,16,.08)' },
   reading:   { icon:'📖', color:'#4262FF', bg:'rgba(66,98,255,.12)' },
   vocabulary:{ icon:'🧠', color:'#EC2D8C', bg:'rgba(236,45,140,.12)' },
   writing:   { icon:'✍️', color:'#7C3AED', bg:'rgba(124,58,237,.12)' },
@@ -8150,7 +8150,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     }
     if (n) {
       frame = addCard('frame', x0, y0, {
-        title, bg: '#ffffff', border: 'rgba(66,98,255,.3)', childIds: [],
+        title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
       }, FW, FH);
       gridResults.forEach((out, i) => {
         const r = Math.floor(i / cols), c = i % cols;
@@ -9418,7 +9418,7 @@ function _ttPlaceWarmupStickers(output){
 }
 
 function _ttPlaceCardsOnBoard(output){
-  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#4262FF' };
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#0E0E10' };
   const cards = output.cards;
   const total = cards.length;
   const isDialogue = output.kind === 'Dialogue';
@@ -9458,7 +9458,7 @@ function _ttPlaceCardsOnBoard(output){
   try {
     const frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${output.title}`, bg:'#ffffff',
-      border: (meta.color || '#4262FF') + '55', // ~33% alpha (8-digit hex)
+      border: (meta.color || '#0E0E10') + '55', // ~33% alpha (8-digit hex)
       childIds:[],
       _ttSrc: 1, _ttCat: output.cat || 'utility', _ttKind: output.kind || '',
     }, FW, FH);
@@ -10223,7 +10223,7 @@ function openLessonPackPreview(packId) {
     <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;">
       <div style="font-size:32px;flex-shrink:0;">${pack.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:18px;font-weight:900;letter-spacing:-.02em;color:#050038;">${esc(pack.title)}</div>
+        <div style="font-size:18px;font-weight:900;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
         <div style="font-size:11.5px;font-weight:700;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
       </div>
       <button type="button" id="lp-preview-drop" style="border:none;background:${pack.color};color:#fff;font:800 12px var(--font);padding:10px 16px;border-radius:10px;cursor:pointer;">Drop on board →</button>
@@ -10233,8 +10233,8 @@ function openLessonPackPreview(packId) {
     <div style="flex:1;overflow:auto;padding:16px 22px 22px;display:grid;gap:12px;">
       ${pack.stages.map(s => `
         <div style="border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:14px;background:${s.color};">
-          <div style="font-size:13px;font-weight:900;margin-bottom:8px;color:#050038;">${esc(s.title)}</div>
-          <div style="font-size:12.5px;line-height:1.6;color:#050038;white-space:pre-wrap;">${esc(s.text)}</div>
+          <div style="font-size:13px;font-weight:900;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
+          <div style="font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${esc(s.text)}</div>
         </div>
       `).join('')}
     </div>
@@ -11478,7 +11478,7 @@ let _communityImportApplied = false;
       <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
       <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards — import to a new board?</div>
     </div>
-    <button id="comm-import-btn" style="background:#4262FF;color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
   `;
   document.body.appendChild(banner);
@@ -13539,7 +13539,7 @@ function _beginPlaceDrag(clientX, clientY) {
   const box = document.createElement('div');
   box.id = 'place-drag-ghost';
   box.style.cssText = `position:absolute;left:${bp.x}px;top:${bp.y}px;width:0;height:0;
-    border:1.5px dashed #4262FF;background:rgba(66,98,255,.06);border-radius:6px;
+    border:1.5px dashed var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent);border-radius:6px;
     pointer-events:none;z-index:9000;`;
   board.appendChild(box);
   _placeDrag.ghostBox = box;
@@ -14658,7 +14658,7 @@ function applyAiAssistantToBoard() {
   const accent = {
     Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
     Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899',
-  }[_aiSkill] || '#4262FF';
+  }[_aiSkill] || '#0E0E10';
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
 
   const ROW_LESSON = 150;
@@ -15144,10 +15144,10 @@ function switchVideoTab(tab) {
   _videoTab = tab;
   document.getElementById('vpanel-url').style.display  = tab === 'url'  ? 'block' : 'none';
   document.getElementById('vpanel-file').style.display = tab === 'file' ? 'block' : 'none';
-  document.getElementById('vtab-url').style.background  = tab === 'url'  ? '#4262FF' : 'transparent';
-  document.getElementById('vtab-url').style.color       = tab === 'url'  ? '#fff'    : 'var(--text-2)';
-  document.getElementById('vtab-file').style.background = tab === 'file' ? '#4262FF' : 'transparent';
-  document.getElementById('vtab-file').style.color      = tab === 'file' ? '#fff'    : 'var(--text-2)';
+  document.getElementById('vtab-url').style.background  = tab === 'url'  ? 'var(--accent)' : 'transparent';
+  document.getElementById('vtab-url').style.color       = tab === 'url'  ? 'var(--on-accent)' : 'var(--text-2)';
+  document.getElementById('vtab-file').style.background = tab === 'file' ? 'var(--accent)' : 'transparent';
+  document.getElementById('vtab-file').style.color      = tab === 'file' ? 'var(--on-accent)' : 'var(--text-2)';
 }
 
 function handleVideoFileDrop(e) {
@@ -16677,10 +16677,24 @@ function setTheme(name, save=true) {
   if (save) { boardSettings.accent = null; updateSettingsUI(); saveSettings(); }
 }
 
+/* Text drawn on an accent fill (--on-accent). The palette now offers light
+   accents (lime, yellow) as well as ink, and white on lime is unreadable, so
+   the pair is derived rather than fixed. sRGB relative luminance, WCAG 4.5:1
+   crossover against white sits near 0.18. */
+function _onAccentFor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+  if (!m) return '#FFFFFF';
+  const n = parseInt(m[1], 16);
+  const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  return L > 0.18 ? '#0E0E10' : '#FFFFFF';
+}
+
 function setAccentColor(hex, save=true) {
   boardSettings.accent = hex;
   document.documentElement.style.setProperty('--accent', hex);
   document.documentElement.style.setProperty('--accent-2', hex + '18');
+  document.documentElement.style.setProperty('--on-accent', _onAccentFor(hex));
   if (save) { updateSettingsUI(); saveSettings(); }
 }
 
@@ -17354,7 +17368,7 @@ function openStudentQuiz(cardId) {
         <div class="quiz-score-circle" style="--pct:${pct}">
           <svg width="120" height="120" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="50" fill="none" stroke="#f0e8f0" stroke-width="10"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#4262FF" stroke-width="10"
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10"
               stroke-dasharray="${2*Math.PI*50}" stroke-dashoffset="${2*Math.PI*50*(1-pct/100)}"
               stroke-linecap="round" transform="rotate(-90 60 60)"/>
           </svg>
