@@ -3199,11 +3199,11 @@ function printWorksheet(cardId) {
   const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
-    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1a1722;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0E0E10;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     h1{font-size:25px;margin:0 0 3px;letter-spacing:-.025em;font-weight:850}
-    .meta{font:800 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#8a8594;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #f0f0f4}
+    .meta{font:800 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7A7A6A;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #EDE8E0}
     /* question / stage card shell */
-    .ws-q{position:relative;border:1px solid #e8e9f0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
+    .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
     .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:750;line-height:1.5}
     .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:${LIME};color:${accent};font:800 13px -apple-system,Arial}
@@ -3234,17 +3234,17 @@ function printWorksheet(cardId) {
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) — the
        stage rail number + text label are enough to tell stages apart. */
-    .ws-q-card{--stage-accent:${accent};border:1px solid #e8e9f0;border-top:3px solid var(--stage-accent)}
+    .ws-q-card{--stage-accent:${accent};border:1px solid #EDE8E0;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
-    .ws-card-head{display:flex;align-items:center;gap:9px;color:#171420;font-weight:850;font-size:15px}
+    .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:850;font-size:15px}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6b7180}
+    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7A7A6A}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
-    .ws-card-txt{font-size:13px;line-height:1.65;color:#3f3a4a;margin-top:9px;white-space:normal}
-    .ws-card-txt strong{color:#171420;font-weight:850}
+    .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A2E;margin-top:9px;white-space:normal}
+    .ws-card-txt strong{color:#0E0E10;font-weight:850}
     /* reading block + drop cap */
-    .ws-reading-title{font-size:14px;font-weight:850;color:#171420;margin-bottom:7px}
+    .ws-reading-title{font-size:14px;font-weight:850;color:#0E0E10;margin-bottom:7px}
     .ws-reading-copy{font-size:13px;line-height:1.78;color:#26261E;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
     .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:800;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
@@ -3259,7 +3259,7 @@ function printWorksheet(cardId) {
     .ws-prompt-text{font-size:13px;line-height:1.5;color:#26261E}
     /* aims/objectives checklist + grammar example block */
     .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#2c2f3c}
+    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A2E}
     .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
     .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
     .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#26261E}
