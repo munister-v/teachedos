@@ -874,7 +874,7 @@ body:not(.board-page) .board-card::before {
   body:not(.os-desktop) .lesson-card .lc-meta,
   body:not(.os-desktop) .lesson-card .lc-dur  { color: rgba(245,240,232,0.55) !important; }
   /* OS window: white-bg cards → dark text */
-  body.os-desktop .lesson-card .lc-title      { color: #171719 !important; }
+  body.os-desktop .lesson-card .lc-title      { color: #0E0E10 !important; }
   body.os-desktop .lesson-card .lc-meta,
   body.os-desktop .lesson-card .lc-dur        { color: #6E6E5C !important; }
 }
@@ -891,15 +891,15 @@ body:not(.board-page) .board-card::before {
   /* ── Body: restore light background & dark text ── */
   body:not(.os-desktop) {
     background-color: transparent !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
 
   /* ── .wrap: restore dark ink text ── */
   body:not(.os-desktop) .wrap {
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
   body:not(.os-desktop) .grid {
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
 
   /* ── Form inputs / textareas / selects: restore light ── */
@@ -910,7 +910,7 @@ body:not(.board-page) .board-card::before {
     background: #ffffff !important;
     background-image: none !important;
     background-color: #ffffff !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
     border: 1px solid rgba(23,23,25,0.12) !important;
     box-shadow: none !important;
   }
@@ -934,7 +934,7 @@ body:not(.board-page) .board-card::before {
   /* ── select options: restore light ── */
   body:not(.os-desktop) select option {
     background: #ffffff !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
 
   /* ── Panel titles / headings: restore dark ink ── */
@@ -954,7 +954,7 @@ body:not(.board-page) .board-card::before {
   body:not(.os-desktop) .sch-nav-btn {
     background: rgba(23,23,25,0.06) !important;
     border-color: rgba(23,23,25,0.14) !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
   body:not(.os-desktop) .sch-nav-btn:hover {
     background: rgba(23,23,25,0.11) !important;
@@ -984,7 +984,7 @@ body:not(.board-page) .board-card::before {
     border-bottom: 1px solid rgba(23,23,25,0.08) !important;
   }
   body.os-desktop .win-title {
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
   body.os-desktop .win-sidebar {
     background: rgba(228,222,210,0.92) !important;
@@ -992,7 +992,7 @@ body:not(.board-page) .board-card::before {
   }
   body.os-desktop .win-main {
     background: rgba(250,248,243,0.98) !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
 
   /* Sidebar nav items */
@@ -1041,7 +1041,7 @@ body:not(.board-page) .board-card::before {
   }
   body.os-desktop .curr-search input,
   body.os-desktop .curr-search input:not([type="checkbox"]) {
-    color: #171719 !important;
+    color: #0E0E10 !important;
     background: none !important;
   }
   body.os-desktop .curr-search input::placeholder {
@@ -1062,7 +1062,7 @@ body:not(.board-page) .board-card::before {
     box-shadow: 0 4px 16px rgba(200,230,50,0.14) !important;
   }
   body.os-desktop .mp-board-title {
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
   body.os-desktop .mp-board-meta {
     color: rgba(23,23,25,0.50) !important;
@@ -1087,7 +1087,7 @@ body:not(.board-page) .board-card::before {
     border-color: rgba(200,230,50,0.35) !important;
   }
   body.os-desktop .mp-quick-t {
-    color: #171719 !important;
+    color: #0E0E10 !important;
   }
   body.os-desktop .mp-quick-s {
     color: rgba(23,23,25,0.52) !important;
@@ -1104,7 +1104,7 @@ body:not(.board-page) .board-card::before {
   body.os-desktop .win textarea,
   body.os-desktop .win select {
     background: rgba(255,255,255,0.90) !important;
-    color: #171719 !important;
+    color: #0E0E10 !important;
     border-color: rgba(23,23,25,0.14) !important;
     box-shadow: none !important;
   }
@@ -1213,7 +1213,7 @@ body {
    Lesson Builder is a light workspace, so lock its controls back to ink.
 ═══════════════════════════════════════════════════════════════ */
 body.lesson-builder-page {
-  color: #171719 !important;
+  color: #0E0E10 !important;
 }
 
 body.lesson-builder-page .hero-side {
@@ -1254,7 +1254,7 @@ body.lesson-builder-page .stage,
 body.lesson-builder-page .lib-item {
   background: rgba(255,255,255,0.94) !important;
   border-color: rgba(23,23,25,0.11) !important;
-  color: #171719 !important;
+  color: #0E0E10 !important;
 }
 
 body.lesson-builder-page .panel-sub,
@@ -1264,7 +1264,7 @@ body.lesson-builder-page .lib-item span,
 body.lesson-builder-page .doc-meta,
 body.lesson-builder-page .doc-section p,
 body.lesson-builder-page .doc-section li {
-  color: #5F615F !important;
+  color: #6E6E5C !important;
 }
 
 body.lesson-builder-page :is(.label, .form-label, .field label, .form-field label) {
@@ -1274,7 +1274,7 @@ body.lesson-builder-page :is(.label, .form-label, .field label, .form-field labe
 body.lesson-builder-page .btn.ghost {
   background: rgba(255,255,255,0.94) !important;
   border: 1px solid rgba(23,23,25,0.13) !important;
-  color: #171719 !important;
+  color: #0E0E10 !important;
   box-shadow: 0 8px 22px rgba(14,14,16,0.055) !important;
 }
 
@@ -1315,7 +1315,7 @@ body.lesson-builder-page .doc-section h3,
 body.lesson-builder-page .stage-title,
 body.lesson-builder-page .preset b,
 body.lesson-builder-page .activity-btn {
-  color: #171719 !important;
+  color: #0E0E10 !important;
 }
 
 body.lesson-builder-page .chip {
