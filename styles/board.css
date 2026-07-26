@@ -3461,6 +3461,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   cannot break across lines the way a run of underscores could, and it
 	   scales with the type. Filled, it carries the answer on the sheet's one
 	   highlight — the same lime that marks a correct option. */
+	.ws-chips{display:flex;flex-wrap:wrap;gap:8px;}
+	.ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:9px 14px;border-radius:14px;
+	  background:var(--ws-cream);border:2px solid var(--ws-line);font-size:14px;line-height:1.45;}
+	.ws-chip b{font-weight:800;color:var(--ws-ink);}
+	.ws-chip-def{color:#7A7A6A;font-weight:600;}
+	.ws-chip .ws-gap{min-width:76px;margin:0;}
 	.ws-section{font:800 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;
 	  color:#7A7A6A;margin:0 0 10px;padding-left:2px;}
 	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 5px;

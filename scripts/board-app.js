@@ -2500,10 +2500,20 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     }).join('');
   }
   if (items) {
-    return items.map((it, i) => {
+    /* A word list is a glossary, not a questionnaire. Rendering each entry as
+       a full-width numbered card gave a two-word item the same footprint as a
+       question and turned a twelve-word list into a very long column. They
+       flow as chips now, term and meaning together, which is how a language
+       bank is actually read. With the key off the meaning is a blank the
+       student writes on, so the sheet keeps working as a worksheet. */
+    const chips = items.map(it => {
       const def = it.example || it.definition || '';
-      return `<div class="ws-q ws-q-item" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${it._n || i + 1}</span><b class="ws-word">${esc(it.word || '')}</b></div>${(showAns && def) ? `<div class="ws-ans">${esc(def)}</div>` : '<div class="ws-open"></div>'}</div>`;
+      const tail = (showAns && def)
+        ? `<span class="ws-chip-def">${esc(def)}</span>`
+        : '<span class="ws-gap"></span>';
+      return `<span class="ws-chip"><b>${esc(it.word || '')}</b>${tail}</span>`;
     }).join('');
+    return `<div class="ws-chips">${chips}</div>`;
   }
   if (cards) {
     return cards.map((c, i) => {
@@ -3260,6 +3270,11 @@ function printWorksheet(cardId) {
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:800}
+    .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
+    .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
+    .ws-chip b{font-weight:800;color:${accent}}
+    .ws-chip-def{color:#7A7A6A;font-weight:600}
+    .ws-chip .ws-gap{min-width:72px;margin:0}
     .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#7A7A6A;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:800;vertical-align:baseline}
@@ -9296,7 +9311,7 @@ const WS_H = {
   matchBase: 70, matchPerPair: 50, // measured 68 + n*47
   other: 140,                      // gap-fill
   open: 200,                       // open question — four 8mm ruled lines
-  perItem: 90,                     // word list row — measured 86
+  chipCharPx: 8.4, chipPad: 34, chipRow: 56, chipUsable: 607,  // glossary chip: measured 235px wide for 24 chars, 42px tall + 8 gap
   gap: 12,                         // .ws-list gap
   cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,
   chromeQuestions: 214,            // card header + one-line masthead + section eyebrow + list padding
@@ -9329,6 +9344,15 @@ function _ttQuestionHeight(q){
   if (q.type === 'open') return WS_H.open + extra;
   return WS_H.other + extra;
 }
+// Average chip width for a glossary, and how many of them fit across the sheet.
+function _ttChipsPerRow(items){
+  const avg = items.reduce((w, it) => {
+    const def = it.example || it.definition || '';
+    const chars = String(it.word || '').length + (def ? String(def).length : 11);
+    return w + chars * WS_H.chipCharPx + WS_H.chipPad;
+  }, 0) / Math.max(1, items.length);
+  return Math.max(1, Math.floor(WS_H.chipUsable / Math.max(1, avg)));
+}
 function _ttEstWorksheetHeight(output){
   let sum = 0;
   let chrome = WS_H.chromeQuestions;
@@ -9342,7 +9366,11 @@ function _ttEstWorksheetHeight(output){
     for (const q of output.questions) sum += _ttQuestionHeight(q);
     sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
   } else if (Array.isArray(output.items)) {
-    sum = output.items.length * WS_H.perItem + Math.max(0, output.items.length - 1) * WS_H.gap;
+    /* Chips wrap, so height follows how many fit per row — not their summed
+       width. A chip cannot be split across rows, so two 235px chips leave
+       137px of a 607px row unused; dividing total width by row width
+       under-counted every glossary and the card scrolled. Pack instead. */
+    sum = Math.max(1, Math.ceil(output.items.length / _ttChipsPerRow(output.items))) * WS_H.chipRow;
   }
   else if (Array.isArray(output.cards)) {
     chrome = WS_H.chromeCards;
@@ -9396,7 +9424,12 @@ function _ttSplitWorksheet(output){
   const key = Array.isArray(output.questions) ? 'questions' : 'items';
   const chrome = WS_H.chromeQuestions;
   const budget = WS_MAX_SHEET - chrome;
-  const hOf = key === 'questions' ? _ttQuestionHeight : () => WS_H.perItem;
+  // Glossary chips flow rather than stack, so an entry costs the fraction of a
+  // wrapped row its own width takes up — the same model _ttEstWorksheetHeight
+  // uses, so the splitter and the sizer cannot disagree about a glossary.
+  const perRow = key === 'items' ? _ttChipsPerRow(list) : 1;
+  const chipHeight = () => WS_H.chipRow / perRow;
+  const hOf = key === 'questions' ? _ttQuestionHeight : chipHeight;
 
   const chunks = [];
   let cur = [], curH = 0;
