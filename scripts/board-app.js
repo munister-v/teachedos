@@ -9318,7 +9318,7 @@ const WS_H = {
   titleCharsPerRow: 29, titleRow: 27,  // masthead title wraps; measured 134px at 1 row, 188px at 3
   qCharsPerRow: 58, qRow: 26,          // question text at 16px/1.4 across the sheet
   optCharsPerRow: 50, optRow: 22,      // option text at 15px/1.45 beside its badge
-  chromeCards: 234,                // lesson-pack strip is taller (stepper row)
+  chromeCards: 268,                // lesson-pack strip is taller (stepper row) + lime masthead + section eyebrow
 };
 /* One question's rendered height. Split into its own function because the
    sheet splitter has to measure questions the same way the card sizer does —
@@ -9359,9 +9359,11 @@ function _ttEstWorksheetHeight(output){
   /* The masthead title is generated, so its length is unknown, and it wraps
      now rather than being cut off with an ellipsis. A fixed header constant
      therefore under-measures every long title by a line or two and the sheet
-     scrolls — the defect this file has already been bitten by twice. */
+     scrolls — the defect this file has already been bitten by twice.
+     Held separately and added at the end: the Lesson Pack branch below
+     reassigns `chrome`, which silently threw this allowance away. */
   const titleLen = String(output.topic || output.title || '').length;
-  chrome += Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
+  const titleExtra = Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
   if (Array.isArray(output.questions)) {
     for (const q of output.questions) sum += _ttQuestionHeight(q);
     sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
@@ -9398,7 +9400,7 @@ function _ttEstWorksheetHeight(output){
   // sheet clipped. WS_MAX_SHEET covers the realistic worst case measured
   // (8 MCQs with 4 options each ≈ 3030px); anything past it is split across
   // sheets by _ttSplitWorksheet rather than left to scroll inside one card.
-  return Math.max(360, Math.min(WS_MAX_SHEET, chrome + sum));
+  return Math.max(360, Math.min(WS_MAX_SHEET, chrome + titleExtra + sum));
 }
 
 /* Tallest a single sheet card may get. Beyond this the content used to keep
