@@ -4,8 +4,11 @@
   --ink:#0B0B0C; --ink2:#56565E; --ink3:#9A9AA4;
   --line:rgba(11,11,12,.10); --line-2:rgba(11,11,12,.06);
   --pink:#E11D74;
-  --font:'Manrope',-apple-system,system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
+  /* System stack, as unify.css sets everywhere else. These pages do not load
+     unify, so they kept Manrope and rendered in a different typeface from the
+     product they describe. */
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
