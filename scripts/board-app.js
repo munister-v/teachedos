@@ -2440,6 +2440,27 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
   return _ttMdToHtml(raw);
 }
 
+/* Draw the blank in a gap-fill instead of leaving the model's underscores as
+   text. As characters the blank is whatever length the model happened to type,
+   it can break across lines in the middle, and it does not scale with the type
+   size. As an element it is one fixed rule that cannot break.
+   With the key on and exactly one blank, the answer goes INSIDE the gap, which
+   is where a teacher reads it — the separate "Answer" chip then has nothing
+   left to say. Several blanks share one answer field, so those stay empty and
+   keep the chip. Returns null when the text has no blank at all. */
+function _ttGapFillHtml(text, answer, showAns) {
+  const safe = esc(String(text || ''));
+  const blanks = safe.match(/_{2,}/g);
+  if (!blanks) return null;
+  const fill = showAns && answer && blanks.length === 1;
+  return {
+    html: safe.replace(/_{2,}/g, fill
+      ? `<span class="ws-gap filled">${esc(answer)}</span>`
+      : '<span class="ws-gap"></span>'),
+    answerShown: fill,
+  };
+}
+
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -2447,6 +2468,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
   if (qs) {
     return qs.map((q, i) => {
       let ans = '';
+      const gap = q.type === 'gap-fill' ? _ttGapFillHtml(q.text, q.answer, showAns) : null;
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         ans = `<div class="ws-opts">${q.options.map((o, oi) => {
           const ok = showAns && o === q.answer;
@@ -2458,13 +2480,20 @@ function _ttWorksheetListHTML(d, showAns, accent) {
         // chips stay plain, which is the student-facing state.
         ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">False</span></div>`;
       } else if (q.type === 'gap-fill') {
-        ans = (showAns && q.answer) ? `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>` : '<div class="ws-open"></div>';
+        // A drawn blank replaces the underscores; only fall back to a rule of
+        // our own when the text carries no blank to draw.
+        if (!gap) ans = '<div class="ws-open"></div>';
+        else if (!gap.answerShown && showAns && q.answer) {
+          ans = `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>`;
+        }
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
         ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
-        ans = `<div class="ws-write"><i></i><i></i><i></i></div>`;
+        // Four ruled lines: at the old 4.8mm pitch three lines were unusable
+        // anyway, and an open question is the one place a student writes.
+        ans = `<div class="ws-write"><i></i><i></i><i></i><i></i></div>`;
       }
-      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${esc(q.text || '')}</span></div>${ans}</div>`;
+      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : esc(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
   }
   if (items) {
@@ -3210,27 +3239,29 @@ function printWorksheet(cardId) {
     .ws-qtext{flex:1}.ws-word{font-weight:850}
     /* MCQ */
     .ws-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-    .ws-opt{display:flex;align-items:center;gap:11px;font-size:14px;color:${accent};font-weight:600;padding:11px 13px;border-radius:12px;background:#fff;border:2px solid ${LINE}}
+    .ws-opt{display:flex;align-items:flex-start;gap:11px;font-size:14px;line-height:1.45;color:${accent};font-weight:600;padding:11px 13px;border-radius:12px;background:#fff;border:2px solid ${LINE}}
     .ws-opt.correct{background:${LIME};color:${accent};font-weight:700;border-color:${accent}}
     .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:8px;background:${CREAM};border:0;font:800 13px -apple-system,Arial;color:${accent}}
     .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
     .ws-tf{display:flex;gap:10px;margin-top:12px}
-    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:700;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
     .ws-tf-b.on{background:${LIME};color:${accent};border-color:${accent}}
     /* answer chip + writing lines */
-    .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
+    .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:800}
+    .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
+    .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:800;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
     .ws-open + .ws-open{margin-top:22px}
-    .ws-write{margin:13px 0 6px;display:flex;flex-direction:column;gap:20px}
+    .ws-write{margin:14px 0 6px;display:flex;flex-direction:column;gap:28px}
     .ws-write i{display:block;height:0;border-bottom:2px solid ${LINE}}
     /* match */
     .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:12px;align-items:center}
-    .ws-l{font-size:13.5px;font-weight:700;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
+    .ws-l{font-size:13.5px;line-height:1.45;font-weight:700;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
     .ws-mlink{width:22px;height:0;border-top:2px dotted ${LINE}}
-    .ws-r{font-size:13.5px;color:${accent};font-weight:600}
+    .ws-r{font-size:13.5px;line-height:1.45;color:${accent};font-weight:600}
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) — the
        stage rail number + text label are enough to tell stages apart. */
@@ -9253,7 +9284,8 @@ const WS_H = {
   mcqBase: 70, mcqPerOption: 70,   // measured 68 + n*69
   trueFalse: 130,                  // measured 128
   matchBase: 70, matchPerPair: 50, // measured 68 + n*47
-  other: 124,                      // gap-fill / open — measured 120
+  other: 124,                      // gap-fill — measured 56, kept generous
+  open: 180,                       // open question — measured 155 (1-line prompt) / 170 (2-line)
   perItem: 90,                     // word list row — measured 86
   gap: 12,                         // .ws-list gap
   cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,
@@ -9268,6 +9300,10 @@ function _ttQuestionHeight(q){
   if (q.type === 'mcq' && Array.isArray(q.options)) return WS_H.mcqBase + q.options.length * WS_H.mcqPerOption;
   if (q.type === 'truefalse') return WS_H.trueFalse;
   if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair;
+  // Open questions carry four 8mm ruled lines, so they are far taller than the
+  // gap-fill they used to share a constant with — one number for both left
+  // every open-question sheet scrolling.
+  if (q.type === 'open') return WS_H.open;
   return WS_H.other;
 }
 function _ttEstWorksheetHeight(output){

@@ -3441,25 +3441,37 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-qtext{flex:1;min-width:0;}
 	.ws-word{font-size:17px;font-weight:800;color:var(--ws-ink);}
 	.ws-opts{display:flex;flex-direction:column;gap:9px;margin-top:13px;}
-	.ws-opt{display:flex;align-items:center;gap:12px;font-size:15px;color:var(--ws-ink);font-weight:600;padding:13px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
+	.ws-opt{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.45;color:var(--ws-ink);font-weight:600;padding:13px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
 	.ws-opt:hover{border-color:var(--ws-ink);}
 .ws-opt.correct{background:var(--ws-lime);color:var(--ws-ink);font-weight:700;border-color:var(--ws-ink);}
 .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
 .ws-opt.correct .ws-mark{background:var(--ws-ink);color:var(--ws-lime);}
 .ws-tf{display:flex;gap:10px;margin-top:13px;}
-.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;padding:11px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
+.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;line-height:1.45;font-weight:700;padding:11px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
 .ws-tf-b.on{background:var(--ws-lime);color:var(--ws-ink);border-color:var(--ws-ink);}
-.ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:15px;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 13px;}
+.ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:15px;line-height:1.45;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 13px;}
 .ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-ink);color:var(--ws-lime);padding:4px 9px;border-radius:999px;}
 .ws-ans b{color:var(--ws-ink);font-weight:800;}
+	/* The blank in a gap-fill. One inline-block, so it is a fixed rule that
+	   cannot break across lines the way a run of underscores could, and it
+	   scales with the type. Filled, it carries the answer on the sheet's one
+	   highlight — the same lime that marks a correct option. */
+	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 5px;
+	  border-bottom:2px solid var(--ws-ink);vertical-align:-.22em;}
+	.ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;
+	  background:var(--ws-lime);color:var(--ws-ink);font-weight:800;vertical-align:baseline;}
 	.ws-open{height:0;margin:15px 0 5px;border-bottom:2px dashed var(--ws-line);}
 .ws-open + .ws-open{margin-top:22px;}
-	.ws-write{margin:13px 0 5px;display:flex;flex-direction:column;gap:16px;}
+	/* 8mm pitch (30px at 96dpi) — a school exercise book's ruling. It used to be
+	   18px ≈ 4.8mm, which no one can write on by hand, on a sheet whose whole
+	   point is being print-ready. The mark sits ON the line, so the gap is the
+	   pitch minus the 2px rule. */
+	.ws-write{margin:14px 0 6px;display:flex;flex-direction:column;gap:28px;}
 	.ws-write i{display:block;height:0;border-bottom:2px solid var(--ws-line);}
 .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:13px;align-items:center;}
-.ws-l{font-size:14px;font-weight:700;padding:8px 13px;border-radius:11px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
+.ws-l{font-size:14px;line-height:1.45;font-weight:700;padding:8px 13px;border-radius:11px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
 .ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
-.ws-r{font-size:14px;color:var(--ws-ink);font-weight:600;}
+.ws-r{font-size:14px;line-height:1.45;color:var(--ws-ink);font-weight:600;}
 	/* Stage / lesson-plan cards (cards[] kind) */
 	/* Lesson Pack stage cards — one accent (the pack's own category colour, not
 	   a different hue per stage type) so the sequence reads as one considered
