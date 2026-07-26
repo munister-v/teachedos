@@ -6210,6 +6210,17 @@ function duplicateSelected() {
 let connectPending = null; // { fromCard, fromAnchor, pathEl }
 
 function setMode(mode) {
+  // Leaving connect mode with a rubber-band still stretched (started a
+  // connector, then hit V / clicked another tool instead of finishing or
+  // hitting Escape) used to strand connectPending and its dashed
+  // .arrow-pending path in the SVG forever — a phantom connector nobody
+  // drew, sitting on the board on reload. Every setMiroTool/toggleConnectMode
+  // exit path calls setMode('select') directly, so cleaning up centrally
+  // here (rather than at each of the dozen call sites) is the one place
+  // that can't be missed.
+  if (mode !== 'connect' && typeof connectPending !== 'undefined' && connectPending) {
+    cancelConnection();
+  }
   state.mode = mode;
   const btn = document.getElementById('btn-connect');
   if (mode === 'connect') {
