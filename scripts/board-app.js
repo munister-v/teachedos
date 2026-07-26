@@ -12098,15 +12098,42 @@ function apiFetch(path, opts = {}) {
 }
 
 // ── Auth UI ──────────────────────────────────────────────────
+let _authReturnFocus = null;
+
+/* Keep Tab inside the dialog while it is open, and let Escape out.
+   Without this, tabbing past the last field walks into the board behind the
+   overlay — you keep tabbing through cards you cannot see — and the only way
+   to dismiss was the mouse. */
+function _authKeydown(e) {
+  if (e.key === 'Escape') { e.preventDefault(); closeAuthModal(); return; }
+  if (e.key !== 'Tab') return;
+  const ov = document.getElementById('auth-overlay');
+  const f = [...ov.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
 function openAuthModal(mode = 'login') {
   authMode = mode;
   renderAuthFields();
   const ov = document.getElementById('auth-overlay');
+  // Remember what to hand focus back to, so dismissing the dialog does not
+  // dump the caret at the top of the document.
+  if (ov.style.display === 'none' || !ov.style.display) _authReturnFocus = document.activeElement;
   ov.style.display = 'flex';
+  document.addEventListener('keydown', _authKeydown, true);
   setTimeout(() => document.querySelector('.auth-input')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
 }
-function closeAuthModal() { document.getElementById('auth-overlay').style.display = 'none'; }
+function closeAuthModal() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.removeEventListener('keydown', _authKeydown, true);
+  try { _authReturnFocus?.focus?.(); } catch {}
+  _authReturnFocus = null;
+}
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
 
 
@@ -12128,18 +12155,27 @@ function renderAuthFields() {
   document.getElementById('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
   const f = document.getElementById('auth-fields');
   if (isForgot) {
-    f.innerHTML = `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" autocomplete="email">`;
+    f.innerHTML = `<input class="auth-input" id="af-email" name="email" aria-label="Email address" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" autocomplete="email">`;
   } else {
-    f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
-      `<input class="auth-input" id="af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
+    f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" name="name" aria-label="Your full name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
+      `<input class="auth-input" id="af-email" name="email" aria-label="Email address" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
        <div class="auth-pass-wrap">
-         <input class="auth-input" id="af-pass" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">
+         <input class="auth-input" id="af-pass" name="password" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">
          <button type="button" class="auth-eye" onclick="togglePassVis()" title="Show/hide password" tabindex="-1">👁</button>
        </div>
        ${isLogin ? `<div class="auth-forgot-row"><button type="button" class="auth-forgot-link" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
   }
+  /* A real <form>: password managers and mobile autofill key off form
+     structure and a submit button, not a set of inputs in a div. The manual
+     Enter handler stays for the fields, but submit now also fires natively. */
+  const form = document.createElement('form');
+  form.id = 'auth-form';
+  form.noValidate = true;
+  form.addEventListener('submit', e => { e.preventDefault(); submitAuth(); });
+  while (f.firstChild) form.appendChild(f.firstChild);
+  f.appendChild(form);
   f.querySelectorAll('.auth-input').forEach(i => {
-    i.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
+    i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitAuth(); } });
   });
 }
 

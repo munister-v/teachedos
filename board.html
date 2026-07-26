@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=222">
+<link rel="manifest" href="manifest.json?v=223">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=222">
-<link rel="stylesheet" href="styles/mobile.css?v=222">
-<link rel="stylesheet" href="styles/harmony.css?v=222">
-<link rel="stylesheet" href="styles/unify.css?v=222">
+<link rel="stylesheet" href="styles/board.css?v=223">
+<link rel="stylesheet" href="styles/mobile.css?v=223">
+<link rel="stylesheet" href="styles/harmony.css?v=223">
+<link rel="stylesheet" href="styles/unify.css?v=223">
 </head>
 <body class="board-page">
 
@@ -1021,13 +1021,13 @@ polite request</textarea>
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
 <div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:3000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;color-scheme:light;background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%,rgba(205,242,79,.20) 0%,transparent 60%),rgba(20,16,24,.50);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);">
-  <div id="auth-modal" style="background:rgba(247,243,234,.96);backdrop-filter:blur(36px) saturate(1.6);-webkit-backdrop-filter:blur(36px) saturate(1.6);border-radius:26px;padding:34px 30px 26px;width:100%;max-width:400px;margin:auto;box-shadow:0 44px 110px rgba(5,5,23,.40),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;border:1px solid rgba(255,255,255,.6);">
+  <div id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" style="background:rgba(247,243,234,.96);backdrop-filter:blur(36px) saturate(1.6);-webkit-backdrop-filter:blur(36px) saturate(1.6);border-radius:26px;padding:34px 30px 26px;width:100%;max-width:400px;margin:auto;box-shadow:0 44px 110px rgba(5,5,23,.40),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;border:1px solid rgba(255,255,255,.6);">
     <div style="text-align:center;margin-bottom:22px;">
       <img src="logo-sm.png" alt="TeachEd" width="60" height="60" style="border-radius:15px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
-      <div style="font-size:1.9rem;font-weight:800;color:#0E0E10;margin-top:11px;letter-spacing:-.035em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;">Teach<em style="color:#EC2D8C;font-style:normal;">Ed</em></div>
+      <div id="auth-title" style="font-size:1.9rem;font-weight:800;color:#0E0E10;margin-top:11px;letter-spacing:-.035em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;">Teach<em style="color:#EC2D8C;font-style:normal;">Ed</em></div>
       <div id="auth-subtitle" style="font-size:.85rem;color:#5A5A4A;font-weight:600;margin-top:6px;">Sign in to sync your boards</div>
     </div>
-    <div id="auth-err" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 13px;font-size:.85rem;color:#c62828;font-weight:600;margin-bottom:14px;"></div>
+    <div id="auth-err" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 13px;font-size:.85rem;color:#c62828;font-weight:600;margin-bottom:14px;"></div>
     <div id="auth-role-row" style="display:none;margin-bottom:14px;">
       <div style="font-size:10px;font-weight:800;color:#7A7A6A;font-family:var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -1049,7 +1049,7 @@ polite request</textarea>
       <span id="auth-toggle-text">Don't have an account?</span>
       <span onclick="toggleAuthMode()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;text-decoration:underline;text-underline-offset:2px;" id="auth-toggle-link">Register</span>
     </div>
-    <div onclick="closeAuthModal()" style="position:absolute;top:16px;right:16px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</div>
+    <button type="button" aria-label="Close sign-in" onclick="closeAuthModal()" style="border:none;position:absolute;top:16px;right:16px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</button>
   </div>
 </div>
 
@@ -1645,9 +1645,9 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=222"></script>
-<script src="scripts/board-app.js?v=222"></script>
-<script src="js/teacher-tool-board-composer.js?v=222"></script>
+<script src="js/teacher-tools-data.js?v=223"></script>
+<script src="scripts/board-app.js?v=223"></script>
+<script src="js/teacher-tool-board-composer.js?v=223"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1655,7 +1655,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=222" defer></script>
+<script src="pwa-boot.js?v=223" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1696,11 +1696,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=222"></script>
-<script src="scripts/nav-boost.js?v=222" defer></script>
-<script src="scripts/mobile-perf.js?v=222" defer></script>
-<script src="scripts/mobile-nav.js?v=222"></script>
-<script src="scripts/mobile-zoom-guard.js?v=222" defer></script>
+<script src="pwa.js?v=223"></script>
+<script src="scripts/nav-boost.js?v=223" defer></script>
+<script src="scripts/mobile-perf.js?v=223" defer></script>
+<script src="scripts/mobile-nav.js?v=223"></script>
+<script src="scripts/mobile-zoom-guard.js?v=223" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
