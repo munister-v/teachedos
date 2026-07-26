@@ -2354,10 +2354,6 @@ html[data-theme="dark"] .board-shell #sidebar .sb-search input {
 .studio-hero{
   border:1px solid rgba(245,240,232,.10) !important;
 }
-.studio-hero::before{
-  content:'';position:absolute;left:24px;right:24px;bottom:18px;height:1px;
-  background:linear-gradient(90deg,rgba(205,242,79,.45),transparent);
-}
 .studio-copy{line-height:1.62 !important;}
 .curr-search{
   box-shadow:0 1px 0 rgba(255,255,255,.65) inset,0 8px 24px rgba(5,5,23,.06) !important;

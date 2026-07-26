@@ -512,9 +512,23 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 [data-theme="dark"] .tool-card,
 [data-theme="dark"] .stat-card,
 [data-theme="dark"] .mp-board-card,
+[data-theme="dark"] .card,
 [data-theme="dark"] .lesson-card:not(.featured):not(.ink) {
   background: #2C2C2E;
   border-color: rgba(255, 255, 255, 0.08);
+}
+/* profile.html's .card hardcodes #1C1C1E text + card-title color via --text,
+   which was never repointed for dark mode — left it reading near-black text
+   on the new #2C2C2E card fill above. */
+[data-theme="dark"] .card,
+[data-theme="dark"] .card-title,
+[data-theme="dark"] #profile-name-big {
+  color: #F0F0EC;
+}
+[data-theme="dark"] #profile-email-big,
+[data-theme="dark"] .stat-label,
+[data-theme="dark"] .rbi-meta {
+  color: rgba(240, 240, 236, 0.55);
 }
 [data-theme="dark"] .board-card:hover,
 [data-theme="dark"] .game-tile-comm:hover,
