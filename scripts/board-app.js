@@ -33,11 +33,17 @@ const STICKY_COLORS = [
   '#FFE566','#AFF4C6','#CFE2FF','#FFB8D9','#CDB4F6','#FFD580',
   '#FF8B8B','#9BDDCC','#FFC680','#B8F0FF','#FFB3BA','#D4F1A0',
 ];
-// Vivid accent palette for worksheet / activity / vocab cards (used as the
-// card's accent line, headers, interactive controls).
+/* Card accent palette (accent line, headers, interactive controls).
+   Twelve choices as before, but muted: the old set was Tailwind's vivid ramp
+   led by Miro's #4262FF, and a row of fully saturated hues shouted over a
+   board built from ink, lime and cream. These sit at a similar lightness and
+   chroma, so they read as one family and stay distinguishable from each
+   other. Lime leads, since it is the brand highlight.
+   Cards already saved keep whatever hex they were given — this only changes
+   what is offered next. */
 const WS_ACCENT_COLORS = [
-  '#4262FF','#6366F1','#8B5CF6','#D946EF','#EC4899','#EF4444',
-  '#F97316','#F59E0B','#16A34A','#14B8A6','#06B6D4','#64748B',
+  '#CDF24F','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
+  '#8C7BB0','#A56E96','#C4707E','#C4805A','#D0A045','#8A8A78',
 ];
 const SHARED_NOTES_KEY = 'teachedos_notes_v1';
 
@@ -3255,8 +3261,15 @@ function printWorksheet(cardId) {
   const css = `
     *{box-sizing:border-box}
     body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0E0E10;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    h1{font-size:25px;margin:0 0 3px;letter-spacing:-.025em;font-weight:850}
-    .meta{font:800 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7A7A6A;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #EDE8E0}
+    /* Same masthead as the board, deliberately shorter: on screen it can fill
+       the head of the card, on paper a full-bleed lime block is a lot of toner
+       for decoration, so it wraps just the title and its kicker. */
+    .ws-print-head{background:${LIME};border:2px solid ${accent};border-radius:16px;
+      padding:16px 18px;margin-bottom:20px;page-break-inside:avoid;break-inside:avoid}
+    .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
+      text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
+    h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:900;line-height:1.06;color:${accent}}
+    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#7A7A6A;margin:0 0 18px}
     /* question / stage card shell */
     .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
@@ -3335,7 +3348,11 @@ function printWorksheet(cardId) {
     @media print{body{padding:0}@page{margin:1.5cm}}`;
   const cardsWrap = d.cards ? `<div class="ws-cards-print">${listHtml}</div>` : listHtml;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
-    <body><h1>${esc(d.title || 'Worksheet')}</h1><div class="meta">${esc(metaLine)}</div>${cardsWrap}</body></html>`;
+    <body>
+      <div class="ws-print-head">
+        <div class="kicker">${esc(metaLine)}</div>
+        <h1>${esc(d.title || 'Worksheet')}</h1>
+      </div>${cardsWrap}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -9313,11 +9330,11 @@ function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); 
    Bias is deliberately toward OVER-estimating: extra blank space at the bottom
    of a card is harmless, clipped questions are not. */
 const WS_H = {
-  mcqBase: 70, mcqPerOption: 70,   // measured 68 + n*69
-  trueFalse: 130,                  // measured 128
-  matchBase: 70, matchPerPair: 50, // measured 68 + n*47
+  mcqBase: 88, mcqPerOption: 74,   // measured: option 72px, 4-option card 356px
+  trueFalse: 136,                  // measured 128
+  matchBase: 76, matchPerPair: 54, // measured 219px at 3 pairs
   other: 140,                      // gap-fill
-  open: 200,                       // open question — four 8mm ruled lines
+  open: 212,                       // open question — four 8mm ruled lines
   chipCharPx: 8.4, chipPad: 34, chipRow: 56, chipUsable: 607,  // glossary chip: measured 235px wide for 24 chars, 42px tall + 8 gap
   gap: 12,                         // .ws-list gap
   cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,

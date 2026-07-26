@@ -3372,7 +3372,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 @media (prefers-reduced-motion: reduce){.yt-progress-fill{transition:none;}}
 /* Per-exercise status chips */
 .yt-prog-list{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;}
-.yt-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:750;padding:4px 9px;border-radius:999px;background:rgba(24,24,24,.05);color:#7A7A6A;border:1px solid transparent;}
+.yt-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:750;padding:4px 10px;border-radius:999px;background:rgba(24,24,24,.05);color:#7A7A6A;border:1px solid transparent;}
 .yt-chip-ic{font-weight:900;font-size:10px;}
 .yt-chip.running{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 25%,transparent);}
 .yt-chip.running .yt-chip-ic{animation:ytSpin 1s linear infinite;}
@@ -3381,7 +3381,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 @keyframes ytSpin{to{transform:rotate(360deg);}}
 @media (prefers-reduced-motion: reduce){.yt-chip.running .yt-chip-ic{animation:none;}}
 /* Retry-failed inline button inside the status line */
-.yt-retry-btn{display:inline-flex;align-items:center;border:0;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-size:11px;font-weight:850;padding:3px 10px;border-radius:8px;cursor:pointer;margin-left:6px;vertical-align:middle;}
+.yt-retry-btn{display:inline-flex;align-items:center;border:0;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-size:11px;font-weight:850;padding:4px 10px;border-radius:8px;cursor:pointer;margin-left:6px;vertical-align:middle;}
 .yt-retry-btn:hover{background:color-mix(in srgb,var(--accent) 20%,transparent);}
 
 	/* ── Worksheet board card ──────────────────────────────────────────────
@@ -3402,31 +3402,31 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   and therefore of unpredictable length, is allowed to wrap here instead of
 	   being cut off with an ellipsis as it was. */
 	.ws-strip{
-	  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:11px 12px;align-items:start;
-	  padding:17px 18px;margin:0 -2px 14px;border-radius:18px;
+	  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 12px;align-items:start;
+	  padding:18px 18px;margin:0 -2px 14px;border-radius:18px;
 	  background:var(--ws-lime);
 	  border:2px solid var(--ws-ink);
 	}
-	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:7px;}
+	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
 	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.62);}
 	.ws-strip-title{font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-ink);line-height:1.08;
 	  overflow-wrap:anywhere;}
-	.ws-strip-side{display:flex;gap:7px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
-	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:1px 0 0;}
+	.ws-strip-side{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:2px 0 0;}
 	.ws-step{
 	  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:132px;
-	  padding:5px 10px 5px 5px;border-radius:999px;background:rgba(14,14,16,.06);
+	  padding:6px 10px 6px 6px;border-radius:999px;background:rgba(14,14,16,.06);
 	  border:2px solid rgba(14,14,16,.28);color:var(--ws-ink);
 	}
 	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-ink);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;}
 	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
 	.ws-step.more i{background:rgba(14,14,16,.7);color:var(--ws-lime);}
-	.ws-tools{grid-column:1/-1;display:flex;gap:7px;justify-content:flex-end;}
-	.ws-btn{border:2px solid var(--ws-ink);background:transparent;border-radius:12px;padding:7px 13px;font-size:12px;font-weight:800;color:var(--ws-ink);cursor:pointer;white-space:nowrap;}
+	.ws-tools{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;}
+	.ws-btn{border:2px solid var(--ws-ink);background:transparent;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--ws-ink);cursor:pointer;white-space:nowrap;}
 	.ws-btn:hover{background:var(--ws-ink);border-color:var(--ws-ink);color:var(--ws-lime);}
-	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 13px;background:transparent;color:var(--ws-ink);border:2px solid var(--ws-ink);}
+	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:transparent;color:var(--ws-ink);border:2px solid var(--ws-ink);}
 	.ws-pill.level{background:var(--ws-ink);color:#fff;border-color:var(--ws-ink);}
-	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 3px 4px 0;}
+	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 4px 4px 0;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
 	   sequence still scans like a timeline. Falls back to 1 column on a
@@ -3438,42 +3438,42 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  transition:border-color .16s ease;flex-shrink:0;
 	}
 	.ws-q:hover{border-color:var(--ws-ink);}
-	.ws-qh{display:flex;align-items:flex-start;gap:11px;font-size:16px;font-weight:700;color:var(--ws-ink);line-height:1.4;}
+	.ws-qh{display:flex;align-items:flex-start;gap:12px;font-size:16px;font-weight:700;color:var(--ws-ink);line-height:1.4;}
 	/* Background lives here, not inline on the element: the renderer used to set
 	   background:<accent>, which turned into ink-on-ink (an invisible number)
 	   once every sheet shared the one brand accent. */
 	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--ws-lime);color:var(--ws-ink);font-size:13px;font-weight:800;margin-top:0;}
 	.ws-qtext{flex:1;min-width:0;}
 	.ws-word{font-size:17px;font-weight:800;color:var(--ws-ink);}
-	.ws-opts{display:flex;flex-direction:column;gap:9px;margin-top:13px;}
-	.ws-opt{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.45;color:var(--ws-ink);font-weight:600;padding:13px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
+	.ws-opts{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+	.ws-opt{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.45;color:var(--ws-ink);font-weight:600;padding:14px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
 	.ws-opt:hover{border-color:var(--ws-ink);}
 .ws-opt.correct{background:var(--ws-lime);color:var(--ws-ink);font-weight:700;border-color:var(--ws-ink);}
 .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
 .ws-opt.correct .ws-mark{background:var(--ws-ink);color:var(--ws-lime);}
-.ws-tf{display:flex;gap:10px;margin-top:13px;}
-.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;line-height:1.45;font-weight:700;padding:11px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
+.ws-tf{display:flex;gap:10px;margin-top:14px;}
+.ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;line-height:1.45;font-weight:700;padding:12px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
 .ws-tf-b.on{background:var(--ws-lime);color:var(--ws-ink);border-color:var(--ws-ink);}
-.ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:15px;line-height:1.45;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 13px;}
-.ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-ink);color:var(--ws-lime);padding:4px 9px;border-radius:999px;}
+.ws-ans{display:inline-flex;align-items:center;gap:10px;font-size:15px;line-height:1.45;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 14px;}
+.ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-ink);color:var(--ws-lime);padding:4px 10px;border-radius:999px;}
 .ws-ans b{color:var(--ws-ink);font-weight:800;}
 	/* The blank in a gap-fill. One inline-block, so it is a fixed rule that
 	   cannot break across lines the way a run of underscores could, and it
 	   scales with the type. Filled, it carries the answer on the sheet's one
 	   highlight — the same lime that marks a correct option. */
 	.ws-chips{display:flex;flex-wrap:wrap;gap:8px;}
-	.ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:9px 14px;border-radius:14px;
+	.ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:10px 14px;border-radius:14px;
 	  background:var(--ws-cream);border:2px solid var(--ws-line);font-size:14px;line-height:1.45;}
 	.ws-chip b{font-weight:800;color:var(--ws-ink);}
 	.ws-chip-def{color:#7A7A6A;font-weight:600;}
 	.ws-chip .ws-gap{min-width:76px;margin:0;}
 	.ws-section{font:800 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;
 	  color:#7A7A6A;margin:0 0 10px;padding-left:2px;}
-	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 5px;
+	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 6px;
 	  border-bottom:2px solid var(--ws-ink);vertical-align:-.22em;}
-	.ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:8px;
+	.ws-gap.filled{min-width:0;height:auto;padding:2px 10px;border-bottom:0;border-radius:8px;
 	  background:var(--ws-lime);color:var(--ws-ink);font-weight:800;vertical-align:baseline;}
-	.ws-open{height:0;margin:15px 0 5px;border-bottom:2px dashed var(--ws-line);}
+	.ws-open{height:0;margin:16px 0 6px;border-bottom:2px dashed var(--ws-line);}
 .ws-open + .ws-open{margin-top:22px;}
 	/* 8mm pitch (30px at 96dpi) — a school exercise book's ruling. It used to be
 	   18px ≈ 4.8mm, which no one can write on by hand, on a sheet whose whole
@@ -3481,8 +3481,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   pitch minus the 2px rule. */
 	.ws-write{margin:14px 0 6px;display:flex;flex-direction:column;gap:28px;}
 	.ws-write i{display:block;height:0;border-bottom:2px solid var(--ws-line);}
-.ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:13px;align-items:center;}
-.ws-l{font-size:14px;line-height:1.45;font-weight:700;padding:8px 13px;border-radius:12px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
+.ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:14px;align-items:center;}
+.ws-l{font-size:14px;line-height:1.45;font-weight:700;padding:8px 14px;border-radius:12px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
 .ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
 .ws-r{font-size:14px;line-height:1.45;color:var(--ws-ink);font-weight:600;}
 	/* Stage / lesson-plan cards (cards[] kind) */
@@ -3517,13 +3517,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   whatever the fade covered was simply missing from PNG/PDF, with the
 	   gradient making the loss look deliberate. Same rule as the generated
 	   sheets: size to fit, never hide. */
-	.ws-card-txt{font-size:13px;line-height:1.56;color:#3A3A2E;font-weight:650;margin-top:9px;white-space:normal;
+	.ws-card-txt{font-size:13px;line-height:1.56;color:#3A3A2E;font-weight:650;margin-top:10px;white-space:normal;
 	  position:relative;}
 	.ws-card-txt strong{color:#0E0E10;font-weight:950;}
 	.ws-stage-reading .ws-card-txt{font-size:13px;line-height:1.72;color:#3A3A2E;}
 	.ws-stage-vocab .ws-card-txt{display:grid;gap:4px;}
 	.ws-reading-block{position:relative;padding:0;}
-	.ws-reading-title{font-size:14px;font-weight:950;letter-spacing:-.015em;color:#0E0E10;margin-bottom:7px;}
+	.ws-reading-title{font-size:14px;font-weight:950;letter-spacing:-.015em;color:#0E0E10;margin-bottom:8px;}
 	.ws-reading-copy{
 	  font-size:13px;line-height:1.74;color:#26261E;font-weight:600;
 	  padding:14px 16px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
@@ -3533,13 +3533,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   passages) — on a short one-liner it floats a huge letter next to almost
 	   nothing and looks broken rather than editorial. */
 	.ws-reading-copy.has-dropcap::first-letter{
-	  float:left;font-size:42px;line-height:.82;font-weight:800;margin:3px 9px 0 0;
+	  float:left;font-size:42px;line-height:.82;font-weight:800;margin:4px 10px 0 0;
 	  color:var(--ws-ink,#0E0E10);
 	}
-	.ws-vocab-grid{display:grid;gap:7px;margin-top:2px;}
+	.ws-vocab-grid{display:grid;gap:8px;margin-top:2px;}
 	.ws-vocab-row{
 	  display:grid;grid-template-columns:minmax(96px,.4fr) minmax(0,1fr);gap:12px;align-items:center;
-	  padding:9px 12px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
+	  padding:10px 12px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
 	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	  transition:border-color .12s;
 	}
@@ -3547,19 +3547,19 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-vocab-term{justify-self:start;font-size:12px;font-weight:800;letter-spacing:-.01em;
 	  color:var(--ws-ink,#0E0E10);background:#fff;
 	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
-	  padding:4px 11px;border-radius:999px;
+	  padding:4px 12px;border-radius:999px;
 	  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vocab-def{font-size:12px;line-height:1.5;color:#4A4838;font-weight:600;}
 	/* Lesson Pack stages sit in a ~230px grid column, where splitting the row
 	   into term + definition leaves the definition a strip a couple of words
 	   wide. Stack them there; the full-width worksheet keeps two columns. */
-	.ws-q-card .ws-vocab-row{grid-template-columns:minmax(0,1fr);gap:5px;align-items:start;}
+	.ws-q-card .ws-vocab-row{grid-template-columns:minmax(0,1fr);gap:6px;align-items:start;}
 	.ws-q-card .ws-vocab-term{justify-self:start;}
 	.ws-vocab-def:empty::before{content:"Add meaning";color:#b0a89b;font-style:italic;}
-	.ws-prompt-list{display:grid;gap:7px;margin-top:2px;}
+	.ws-prompt-list{display:grid;gap:8px;margin-top:2px;}
 	.ws-prompt{
-	  display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start;
-	  padding:9px 10px;border-radius:14px;background:#fff;
+	  display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;
+	  padding:10px 10px;border-radius:14px;background:#fff;
 	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	}
 	.ws-prompt-num{
@@ -3570,7 +3570,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Aims/objectives — checklist, not prose: a teacher scans this, doesn't read it. */
 .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A2E;font-weight:650;}
-.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:1px;}
+.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:2px;}
 /* Grammar/focus — a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
 .ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
@@ -3594,7 +3594,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tt-num{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;margin-top:0;border-radius:8px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 14%,transparent),rgba(124,58,237,.14));color:var(--accent);font:900 11px var(--mono,monospace);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 16%,transparent);}
 
 /* ── Premium result header ── */
-.tt-result-head{display:flex;align-items:center;gap:13px;padding:14px 16px;margin-bottom:12px;border-radius:18px;background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--accent) 9%,#fff));border:1px solid color-mix(in srgb,var(--accent) 18%,transparent);box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 12%,transparent);animation:ttHeadIn .35s cubic-bezier(.2,.8,.2,1) both;}
+.tt-result-head{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:12px;border-radius:18px;background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--accent) 9%,#fff));border:1px solid color-mix(in srgb,var(--accent) 18%,transparent);box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 12%,transparent);animation:ttHeadIn .35s cubic-bezier(.2,.8,.2,1) both;}
 .tt-result-icon{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:#fff;box-shadow:0 4px 12px rgba(17,24,39,.1),inset 0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent);}
 .tt-result-meta{min-width:0;flex:1;}
 .tt-result-title{font-size:15px;font-weight:950;letter-spacing:-.02em;color:#171420;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
