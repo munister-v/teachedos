@@ -2472,7 +2472,10 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         ans = `<div class="ws-opts">${q.options.map((o, oi) => {
           const ok = showAns && o === q.answer;
-          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${ok ? '✓' : String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></div>`;
+          // Keep the letter on the correct option too: a key is read as "the
+          // answer is B", and swapping the letter for a tick threw that away.
+          // The badge inverts instead, which is what marks it.
+          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></div>`;
         }).join('')}</div>`;
       } else if (q.type === 'truefalse') {
         // No ✅/❌ glyphs — the lime .on fill already marks the answer, and a red
@@ -2595,12 +2598,11 @@ function renderWorksheet(el, card) {
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
   const strip = `<div class="ws-strip" style="--q-accent:${accent}">
       <div class="ws-strip-main">
-        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}</span>
+        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}${d.level ? ' · ' + esc(d.level) : ''}</span>
         <span class="ws-strip-title">${esc(d.topic || d.title || 'Lesson activity')}</span>
       </div>
       <div class="ws-strip-side">
-        ${d.level ? `<span class="ws-pill level">${esc(d.level)}</span>` : ''}
-        <span class="ws-pill">${n} ${unit}</span>
+        <span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
       <span class="ws-tools">
@@ -2615,7 +2617,14 @@ function renderWorksheet(el, card) {
   // — everything else (questions/vocab items) stays a single reading column.
   const listCls = cards ? 'ws-list ws-list-cards' : 'ws-list';
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
-  body.innerHTML = strip + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
+  // Name the section. Generated sheets ran the masthead straight into the
+  // content, so a reader had nothing telling them what the block below is.
+  const sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
+                     : Array.isArray(d.items) && d.items.length ? 'Vocabulary'
+                     : Array.isArray(d.questions) && d.questions.length ? 'Questions'
+                     : '';
+  const eyebrow = sectionLabel ? `<div class="ws-section">${sectionLabel}</div>` : '';
+  body.innerHTML = strip + eyebrow + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
 }
 
@@ -3251,6 +3260,7 @@ function printWorksheet(cardId) {
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:800}
+    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#7A7A6A;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:800;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
@@ -9284,12 +9294,15 @@ const WS_H = {
   mcqBase: 70, mcqPerOption: 70,   // measured 68 + n*69
   trueFalse: 130,                  // measured 128
   matchBase: 70, matchPerPair: 50, // measured 68 + n*47
-  other: 124,                      // gap-fill — measured 56, kept generous
-  open: 180,                       // open question — measured 155 (1-line prompt) / 170 (2-line)
+  other: 140,                      // gap-fill
+  open: 200,                       // open question — four 8mm ruled lines
   perItem: 90,                     // word list row — measured 86
   gap: 12,                         // .ws-list gap
   cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,
-  chromeQuestions: 194,            // card header + strip(117) + paddings
+  chromeQuestions: 214,            // card header + one-line masthead + section eyebrow + list padding
+  titleCharsPerRow: 29, titleRow: 27,  // masthead title wraps; measured 134px at 1 row, 188px at 3
+  qCharsPerRow: 58, qRow: 26,          // question text at 16px/1.4 across the sheet
+  optCharsPerRow: 50, optRow: 22,      // option text at 15px/1.45 beside its badge
   chromeCards: 234,                // lesson-pack strip is taller (stepper row)
 };
 /* One question's rendered height. Split into its own function because the
@@ -9297,18 +9310,34 @@ const WS_H = {
    two copies of these sums drifting apart is exactly what silently clipped
    sheets before (the old estimate assumed 26px option rows against a real 44). */
 function _ttQuestionHeight(q){
-  if (q.type === 'mcq' && Array.isArray(q.options)) return WS_H.mcqBase + q.options.length * WS_H.mcqPerOption;
-  if (q.type === 'truefalse') return WS_H.trueFalse;
-  if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair;
+  // Wrapped lines, not just item counts. Every constant here assumed one line
+  // of prompt and one line per option; a long generated question or option
+  // then under-measured the card and it scrolled — the same way the masthead
+  // title did once it was allowed to wrap.
+  const rows = (text, per) => Math.max(0, Math.ceil(String(text || '').length / per) - 1);
+  const extra = rows(q.text, WS_H.qCharsPerRow) * WS_H.qRow;
+  if (q.type === 'mcq' && Array.isArray(q.options)) {
+    const opts = q.options.reduce((sum, o) =>
+      sum + WS_H.mcqPerOption + rows(o, WS_H.optCharsPerRow) * WS_H.optRow, 0);
+    return WS_H.mcqBase + opts + extra;
+  }
+  if (q.type === 'truefalse') return WS_H.trueFalse + extra;
+  if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair + extra;
   // Open questions carry four 8mm ruled lines, so they are far taller than the
   // gap-fill they used to share a constant with — one number for both left
   // every open-question sheet scrolling.
-  if (q.type === 'open') return WS_H.open;
-  return WS_H.other;
+  if (q.type === 'open') return WS_H.open + extra;
+  return WS_H.other + extra;
 }
 function _ttEstWorksheetHeight(output){
   let sum = 0;
   let chrome = WS_H.chromeQuestions;
+  /* The masthead title is generated, so its length is unknown, and it wraps
+     now rather than being cut off with an ellipsis. A fixed header constant
+     therefore under-measures every long title by a line or two and the sheet
+     scrolls — the defect this file has already been bitten by twice. */
+  const titleLen = String(output.topic || output.title || '').length;
+  chrome += Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
   if (Array.isArray(output.questions)) {
     for (const q of output.questions) sum += _ttQuestionHeight(q);
     sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
