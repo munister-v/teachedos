@@ -3053,7 +3053,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
 .iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:700}
 .iw-gap-input.wrong{border-color:#dc2626;color:#991b1b}
-.iw-check-btn{padding:5px 14px;border:none;border-radius:8px;background:${accent};color:#fff;font:700 11px system-ui;cursor:pointer}
+.iw-check-btn{padding:6px 14px;border:none;border-radius:8px;background:${WS_ACCENT_INK};color:#fff;font:800 11px system-ui;cursor:pointer}
 .iw-check-btn:hover{opacity:.85}
 /* Matching D&D */
 .iw-match{display:flex;gap:16px;flex-wrap:wrap}
@@ -3110,10 +3110,17 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-card-back-title{font:800 13px system-ui;color:${accent};margin-bottom:6px;width:100%}
 .iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
 /* ── Bottom buttons ── */
-.iw-bottom{display:flex;gap:10px;margin-top:18px;justify-content:center;flex-wrap:wrap}
-.iw-submit{padding:10px 28px;border:none;border-radius:10px;background:${accent};color:#fff;font:700 13px system-ui;cursor:pointer;transition:opacity .15s}
-.iw-submit:hover{opacity:.88}
-.iw-reset{background:#888}
+/* One wide primary action at the foot of the card, as on the static sheet:
+   the small centred pill read as a minor control on the screen where it is
+   the only thing to press. Ink rather than the category hue, so Play matches
+   the sheet it was generated from. */
+.iw-bottom{display:flex;flex-direction:column;gap:9px;margin-top:20px}
+.iw-submit{width:100%;padding:14px 22px;border:2px solid ${WS_ACCENT_INK};border-radius:14px;
+  background:${WS_ACCENT_INK};color:#fff;font:800 15px system-ui;cursor:pointer;transition:opacity .15s}
+.iw-submit:hover{opacity:.9}
+/* Secondary: outlined, not a second filled button in a flat grey that
+   belongs to no palette. */
+.iw-reset{background:transparent;color:${WS_ACCENT_INK};border-color:${WS_ACCENT_INK}}
 .iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${accent};display:none}
 .iw-score.iw-pop{animation:iwpop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes iwpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
@@ -3121,7 +3128,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 @keyframes iwfall{0%{transform:translateY(-12px) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
 /* ── Key ── */
 .iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
-.iw-key-toggle{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font:700 11px system-ui;cursor:pointer;color:#888}
+.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#7A7A6A}
 .iw-key-toggle:hover{border-color:${accent};color:${accent}}
 .iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
 .iw-key b{color:#16a34a}
@@ -3131,7 +3138,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${accent};cursor:pointer;transition:all .15s;line-height:1}
 .iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-step-nav:disabled{opacity:.3;cursor:default}
-.iw-step-count{font:800 12px monospace;color:#888;min-width:56px;text-align:center}
+.iw-step-count{font:800 12px monospace;color:#7A7A6A;min-width:56px;text-align:center}
 .iw-step-hidden{display:none!important}
 .iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
