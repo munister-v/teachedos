@@ -118,9 +118,9 @@
   --card:       #FFFFFF !important;
   --text:       #0E0E10 !important;
   --text-2:     #3A3A2E !important;
-  --text-3:     #7A7A6A !important;
+  --text-3:     #6E6E5C !important;
   --text2:      #3A3A2E !important;
-  --text3:      #7A7A6A !important;
+  --text3:      #6E6E5C !important;
   --border:     rgba(14,14,16,0.08) !important;
   --border-2:   rgba(14,14,16,0.16) !important;
   --border2:    rgba(14,14,16,0.16) !important;
@@ -142,7 +142,7 @@ html[data-theme="dark"],
   --card:       #FFFFFF !important;
   --text:       #0E0E10 !important;
   --text-2:     #3A3A2E !important;
-  --text-3:     #7A7A6A !important;
+  --text-3:     #6E6E5C !important;
   --ink:        #0E0E10 !important;
   --ink2:       #1C1C1E !important;
   --u-card:     #FFFFFF !important;
@@ -680,7 +680,7 @@ select optgroup {
   }
   body:not(.board-page):not(.admin-page) #sidebar .sb-label,
   body:not(.board-page):not(.admin-page) .sb-section-label {
-    color: var(--text-3, #7A7A6A) !important;
+    color: var(--text-3, #6E6E5C) !important;
   }
   body:not(.board-page):not(.admin-page) #sidebar {
     background: var(--bg, #F5F0E8) !important;
@@ -845,7 +845,7 @@ body:not(.board-page) .board-card::before {
   color: #0E0E10 !important;
 }
 .bc-meta {
-  color: #7A7A6A !important;
+  color: #6E6E5C !important;
 }
 
 /* Profile board grid: Primary "Open" button — ink, not pink */
@@ -865,7 +865,7 @@ body:not(.board-page) .board-card::before {
   color: #0E0E10 !important;
 }
 .rbi-meta {
-  color: #7A7A6A !important;
+  color: #6E6E5C !important;
 }
 
 /* lesson-card text: dark-bg cards (courses.html etc.) → cream text */
@@ -876,7 +876,7 @@ body:not(.board-page) .board-card::before {
   /* OS window: white-bg cards → dark text */
   body.os-desktop .lesson-card .lc-title      { color: #171719 !important; }
   body.os-desktop .lesson-card .lc-meta,
-  body.os-desktop .lesson-card .lc-dur        { color: #7A7A6A !important; }
+  body.os-desktop .lesson-card .lc-dur        { color: #6E6E5C !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1163,7 +1163,7 @@ body:not(.board-page) .board-card::before {
     color: #1C1C1E !important;
   }
   body:not(.os-desktop) .mp-board-meta {
-    color: #7A7A6A !important;
+    color: #6E6E5C !important;
   }
   body:not(.os-desktop) .mp-board-eyebrow {
     color: #A2A28C !important;
@@ -1857,7 +1857,7 @@ label.hw-search {
 
 .suite-page .page-sub,
 .suite-page .page-head [style*="font-size:13px"] {
-  color: var(--text-3, #7A7A6A) !important;
+  color: var(--text-3, #6E6E5C) !important;
   line-height: 1.45;
 }
 
@@ -1981,7 +1981,7 @@ label.hw-search {
 }
 
 .suite-page .empty {
-  color: var(--text-3, #7A7A6A) !important;
+  color: var(--text-3, #6E6E5C) !important;
 }
 
 body:is(.analytics-suite, .gradebook-suite) #page {

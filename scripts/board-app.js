@@ -3134,7 +3134,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 @keyframes iwfall{0%{transform:translateY(-12px) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
 /* ── Key ── */
 .iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
-.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#7A7A6A}
+.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#6E6E5C}
 .iw-key-toggle:hover{border-color:${accent};color:${accent}}
 .iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
 .iw-key b{color:#16a34a}
@@ -3144,7 +3144,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${accent};cursor:pointer;transition:all .15s;line-height:1}
 .iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-step-nav:disabled{opacity:.3;cursor:default}
-.iw-step-count{font:800 12px monospace;color:#7A7A6A;min-width:56px;text-align:center}
+.iw-step-count{font:800 12px monospace;color:#6E6E5C;min-width:56px;text-align:center}
 .iw-step-hidden{display:none!important}
 .iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
@@ -3269,7 +3269,7 @@ function printWorksheet(cardId) {
     .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
       text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
     h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:900;line-height:1.06;color:${accent}}
-    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#7A7A6A;margin:0 0 18px}
+    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E6E5C;margin:0 0 18px}
     /* question / stage card shell */
     .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
@@ -3293,9 +3293,9 @@ function printWorksheet(cardId) {
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:800;color:${accent}}
-    .ws-chip-def{color:#7A7A6A;font-weight:600}
+    .ws-chip-def{color:#6E6E5C;font-weight:600}
     .ws-chip .ws-gap{min-width:72px;margin:0}
-    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#7A7A6A;margin:0 0 9px}
+    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6E6E5C;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:800;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
@@ -3314,7 +3314,7 @@ function printWorksheet(cardId) {
     .ws-stage-rail{display:none}
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:850;font-size:15px}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7A7A6A}
+    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A2E;margin-top:9px;white-space:normal}

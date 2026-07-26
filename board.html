@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=203">
+<link rel="manifest" href="manifest.json?v=222">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=210">
-<link rel="stylesheet" href="styles/mobile.css?v=203">
-<link rel="stylesheet" href="styles/harmony.css?v=203">
-<link rel="stylesheet" href="styles/unify.css?v=203">
+<link rel="stylesheet" href="styles/board.css?v=222">
+<link rel="stylesheet" href="styles/mobile.css?v=222">
+<link rel="stylesheet" href="styles/harmony.css?v=222">
+<link rel="stylesheet" href="styles/unify.css?v=222">
 </head>
 <body class="board-page">
 
@@ -300,41 +300,41 @@
 <!-- MIRO-STYLE LEFT TOOLBAR (exact Miro order) -->
 <div id="miro-toolbar">
   <!-- 1. AI sparkle — placeholder (AI assistant arrives later) -->
-  <button class="mt-btn mt-ai" id="mt-ai" data-tip="AI Assistant" onclick="openAiAssistantPanel()">
+  <button class="mt-btn mt-ai" id="mt-ai" aria-label="AI Assistant" data-tip="AI Assistant" onclick="openAiAssistantPanel()">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.4 3.6L13 6l-3.6 1.4L8 11 6.6 7.4 3 6l3.6-1.4z"/><circle cx="13" cy="12" r="1.2"/><circle cx="3" cy="13" r=".8"/></svg>
   </button>
-  <button class="mt-btn mt-tools" id="mt-tools" data-tip="Teacher Tools (✦)" onclick="openToolsSidebar()">
+  <button class="mt-btn mt-tools" id="mt-tools" aria-label="Teacher Tools (✦)" data-tip="Teacher Tools (✦)" onclick="openToolsSidebar()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 2. Select (active) -->
-  <button class="mt-btn active" id="mt-select" data-tip="Select (V)" onclick="setMiroTool('select')">
+  <button class="mt-btn active" id="mt-select" aria-label="Select (V)" data-tip="Select (V)" onclick="setMiroTool('select')">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.5l11 5-5 1.5-1.5 5z"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 4. Sticky -->
-  <button class="mt-btn" id="mt-sticky" data-tip="Sticky Note (S)" onclick="setMiroTool('select');openStickyPalette()">
+  <button class="mt-btn" id="mt-sticky" aria-label="Sticky Note (S)" data-tip="Sticky Note (S)" onclick="setMiroTool('select');openStickyPalette()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h10l3 3v10h-13z"/><path d="M12.5 2.5v3h3"/></svg>
   </button>
   <!-- 5. Text -->
-  <button class="mt-btn" id="mt-text" data-tip="Text (T)" onclick="toolbarQuickAdd('text')">
+  <button class="mt-btn" id="mt-text" aria-label="Text (T)" data-tip="Text (T)" onclick="toolbarQuickAdd('text')">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4V3h12v1M9 3v12M7 15h4"/></svg>
   </button>
   <!-- 6. Shapes -->
-  <button class="mt-btn" id="mt-shape" data-tip="Shapes (Q)" onclick="openShapePanel(event)">
+  <button class="mt-btn" id="mt-shape" aria-label="Shapes (Q)" data-tip="Shapes (Q)" onclick="openShapePanel(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3.5"/><rect x="9.5" y="9.5" width="6" height="6" rx="1"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 7. Connect / line -->
-  <button class="mt-btn" id="mt-connect" data-tip="Connection line (C)" onclick="toggleConnectMode()">
+  <button class="mt-btn" id="mt-connect" aria-label="Connection line (C)" data-tip="Connection line (C)" onclick="toggleConnectMode()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="14" r="1.6"/><circle cx="14" cy="4" r="1.6"/><path d="M5 13L13 5"/></svg>
   </button>
   <!-- 8. Pen -->
-  <button class="mt-btn" id="mt-pen" data-tip="Pen / highlighter / eraser (P)" onclick="openUnifiedDrawMenu(event)">
+  <button class="mt-btn" id="mt-pen" aria-label="Pen / highlighter / eraser (P)" data-tip="Pen / highlighter / eraser (P)" onclick="openUnifiedDrawMenu(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.5l3 3L5.5 15.5h-3v-3z"/><path d="M10.5 4.5l3 3"/></svg>
   </button>
   <!-- 8b. Marker / Highlighter — distinct silhouette: chisel tip + bright accent stripe -->
-  <button class="mt-btn mt-marker" id="mt-marker" data-tip="Highlighter" onclick="toggleDrawTool('marker', event)" style="display:none;">
+  <button class="mt-btn mt-marker" id="mt-marker" aria-label="Highlighter" data-tip="Highlighter" onclick="toggleDrawTool('marker', event)" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <!-- highlighter body -->
       <rect x="9" y="1.5" width="7" height="5" rx="1" transform="rotate(45 12.5 4)"/>
@@ -345,29 +345,29 @@
     </svg>
   </button>
   <!-- 8c. Eraser -->
-  <button class="mt-btn" id="mt-eraser" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)" style="display:none;">
+  <button class="mt-btn" id="mt-eraser" aria-label="Eraser (E)" data-tip="Eraser (E)" onclick="toggleDrawTool('eraser', event)" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L9.5 5l4.5 4.5-6.5 6.5h-3v-3z"/><path d="M7 15.5h9"/></svg>
   </button>
   <!-- 9. Frame -->
-  <button class="mt-btn" id="mt-frame" data-tip="Frame (Shift+F)" onclick="openFramePanel(event)">
+  <button class="mt-btn" id="mt-frame" aria-label="Frame (Shift+F)" data-tip="Frame (Shift+F)" onclick="openFramePanel(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="13" height="11" rx="1"/><path d="M2.5 6.5h13M5.5 3.5v11"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 10. Sticker / Emoji -->
-  <button class="mt-btn" id="mt-sticker" data-tip="Stickers (Y)" onclick="setMiroTool('select');openStickerModal()">
+  <button class="mt-btn" id="mt-sticker" aria-label="Stickers (Y)" data-tip="Stickers (Y)" onclick="setMiroTool('select');openStickerModal()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><circle cx="6.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.5" r=".9" fill="currentColor"/><path d="M6 11c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg>
   </button>
   <!-- 11. Comment -->
-  <button class="mt-btn" id="mt-comment" data-tip="Comment — click canvas to add" onclick="toggleCommentMode()">
+  <button class="mt-btn" id="mt-comment" aria-label="Comment — click canvas to add" data-tip="Comment — click canvas to add" onclick="toggleCommentMode()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h13v9H7l-3.5 3v-12z"/></svg>
   </button>
   <!-- 11b. Games Hub — one click instead of buried in "+ More tools" -->
-  <button class="mt-btn" id="mt-games" data-tip="Games Hub (G)" onclick="openGamesModal()">
+  <button class="mt-btn" id="mt-games" aria-label="Games Hub (G)" data-tip="Games Hub (G)" onclick="openGamesModal()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="5.5" width="15" height="8" rx="4"/><path d="M5.5 9h-2M4.5 8v2"/><circle cx="11.5" cy="8" r=".75" fill="currentColor" stroke="none"/><circle cx="13.5" cy="10" r=".75" fill="currentColor" stroke="none"/></svg>
   </button>
   <div class="mt-sep"></div>
   <!-- 12. + More tools (Mind Map / Table / Image / Video / Voting) -->
-  <button class="mt-btn mt-add" id="mt-add" data-tip="More tools" onclick="toggleMtMore(event)">
+  <button class="mt-btn mt-add" id="mt-add" aria-label="More tools" data-tip="More tools" onclick="toggleMtMore(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3.5v11M3.5 9h11"/></svg>
   </button>
   <!-- Hidden buttons for legacy compatibility -->
@@ -1645,9 +1645,9 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=203"></script>
-<script src="scripts/board-app.js?v=212"></script>
-<script src="js/teacher-tool-board-composer.js?v=203"></script>
+<script src="js/teacher-tools-data.js?v=222"></script>
+<script src="scripts/board-app.js?v=222"></script>
+<script src="js/teacher-tool-board-composer.js?v=222"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1655,7 +1655,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=205" defer></script>
+<script src="pwa-boot.js?v=222" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1696,11 +1696,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=205"></script>
-<script src="scripts/nav-boost.js?v=203" defer></script>
-<script src="scripts/mobile-perf.js?v=203" defer></script>
-<script src="scripts/mobile-nav.js?v=203"></script>
-<script src="scripts/mobile-zoom-guard.js?v=203" defer></script>
+<script src="pwa.js?v=222"></script>
+<script src="scripts/nav-boost.js?v=222" defer></script>
+<script src="scripts/mobile-perf.js?v=222" defer></script>
+<script src="scripts/mobile-nav.js?v=222"></script>
+<script src="scripts/mobile-zoom-guard.js?v=222" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

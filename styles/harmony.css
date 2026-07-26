@@ -546,20 +546,20 @@ body { font-family: var(--font) !important; }
   border-right: 1px solid rgba(0,0,0,.08);
 }
 .sb-tabs { border-bottom-color: rgba(0,0,0,.06); }
-.sb-tab { color: #9999AA; }
-.sb-tab:hover { color: #4262FF; background: rgba(66,98,255,.04); }
-.sb-tab.active { color: #4262FF; border-bottom-color: #4262FF; }
+.sb-tab { color: #6E6E5C; }
+.sb-tab:hover { color: #0E0E10; background: rgba(14,14,16,.05); }
+.sb-tab.active { color: #0E0E10; border-bottom-color: #0E0E10; }
 .sb-tab-lbl { color: inherit; }
 .sb-search input {
   background: #F5F5F7;
   border-color: rgba(0,0,0,.10);
-  color: #050038;
+  color: #0E0E10;
 }
-.sb-search input::placeholder { color: #9999AA; }
-.sb-search input:focus { border-color: #4262FF; background: #fff; box-shadow: 0 0 0 3px rgba(66,98,255,.10); }
+.sb-search input::placeholder { color: #6E6E5C; }
+.sb-search input:focus { border-color: #0E0E10; background: #fff; box-shadow: 0 0 0 3px rgba(14,14,16,.10); }
 .sb-body { scrollbar-color: rgba(0,0,0,.12) transparent; }
 .sb-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
-.sb-label { color: #9999AA; }
+.sb-label { color: #6E6E5C; }
 .sb-sep { background: rgba(0,0,0,.06); }
 
 /* Snippet cards — light Miro */
@@ -568,11 +568,11 @@ body { font-family: var(--font) !important; }
   border: 1px solid rgba(0,0,0,.08);
 }
 .snippet:hover {
-  border-color: #4262FF;
-  box-shadow: 0 4px 14px rgba(66,98,255,.10);
+  border-color: #0E0E10;
+  box-shadow: 0 4px 14px rgba(14,14,16,.10);
 }
-.sn-title { font-family: var(--font); font-weight: 600; color: #050038; }
-.sn-label { font-family: var(--font); color: #9999AA; }
+.sn-title { font-family: var(--font); font-weight: 600; color: #0E0E10; }
+.sn-label { font-family: var(--font); color: #6E6E5C; }
 
 /* Badges: readable on light bg */
 .badge.active-s, .badge.active {
@@ -584,9 +584,9 @@ body { font-family: var(--font) !important; }
 .badge.b1 { background: rgba(167,139,250,.14); color: #7c3aed; }
 .badge.b2 { background: rgba(110,201,138,.14); color: #16a34a; }
 .badge.grammar { background: rgba(248,113,113,.12); color: #dc2626; }
-.badge.vocab { background: rgba(0,0,0,.06); color: #444466; }
+.badge.vocab { background: rgba(0,0,0,.06); color: #3A3A2E; }
 .badge.speaking { background: rgba(167,139,250,.12); color: #7c3aed; }
-.badge.draft { background: rgba(0,0,0,.06); color: #9999AA; }
+.badge.draft { background: rgba(0,0,0,.06); color: #6E6E5C; }
 .badge.pink { background: rgba(236,45,140,.12); color: #db2777; }
 .badge.amber { background: rgba(245,158,11,.14); color: #d97706; }
 .badge.a1 { background: rgba(56,189,248,.14); color: #0284c7; }
@@ -598,10 +598,10 @@ body { font-family: var(--font) !important; }
   border: 1px solid rgba(0,0,0,.08);
 }
 .el-item:hover {
-  border-color: #4262FF;
-  box-shadow: 0 4px 14px rgba(66,98,255,.10);
+  border-color: #0E0E10;
+  box-shadow: 0 4px 14px rgba(14,14,16,.10);
 }
-.el-label { color: #444466; }
+.el-label { color: #3A3A2E; }
 .el-icon { filter: none; }
 
 /* ── Profile title ── */
