@@ -792,7 +792,7 @@ function renderPresetPacks(){
   list.sort((a,b)=>(levelOrder[a.p.level]||9)-(levelOrder[b.p.level]||9) || a.p.title.localeCompare(b.p.title));
   wrap.innerHTML=list.map(({p,i})=>{
     const lv=(p.level||'').toUpperCase();
-    const lvColor={A1:'#22c55e',A2:'#0891B2',B1:'#4262FF',B2:'#7C3AED',C1:'#EC2D8C'}[lv]||'#181818';
+    const lvColor={A1:'#22c55e',A2:'#0891B2',B1:'#0E0E10',B2:'#7C3AED',C1:'#EC2D8C'}[lv]||'#0E0E10';
     return `<button class="preset-card" type="button" onclick="applyPresetPack(${i})" style="border-left:3px solid ${lvColor};padding:11px 14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
         <span style="font:900 9px var(--mono);letter-spacing:.06em;background:${lvColor}22;color:${lvColor};padding:2px 7px;border-radius:5px;">${esc(p.level||'')}</span>
@@ -1126,7 +1126,7 @@ function ttStructListHtml(s,showAns){
     // Universal section-color mapper (works for all tool types)
     function _hubSectionColor(title){
       const t=(title||'').toLowerCase();
-      if(/aim|objective|goal|brief|focus|overview/.test(t))return'#4262FF';
+      if(/aim|objective|goal|brief|focus|overview/.test(t))return'#0E0E10';
       if(/warm|starter|lead.in|hook|predict|curiosit/.test(t))return'#F59E0B';
       if(/vocab|word|term|glossar|activat/.test(t))return'#EC4899';
       if(/read|input|text|listen|present|comprehens|fact/.test(t))return'#10B981';
@@ -1150,9 +1150,9 @@ function ttStructListHtml(s,showAns){
       if(/checklist|submit|before/.test(t))return'#059669';
       if(/opinion|view|four|anna|ben|carla|david|agree|disagree/.test(t))return'#EF4444';
       if(/useful.language|language.bank|phrase/.test(t))return'#EC4899';
-      if(/structure.*guide|structure|format/.test(t))return'#4262FF';
+      if(/structure.*guide|structure|format/.test(t))return'#0E0E10';
       if(/academ|phrase|linking/.test(t))return'#8B5CF6';
-      return'#4262FF';
+      return'#0E0E10';
     }
     return s.cards.map(c=>{
       const col=_hubSectionColor(c.title||'');
@@ -1192,7 +1192,7 @@ function printOutput(){
     .tt-ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}.tt-ws-mark{width:14px;text-align:center;opacity:.6}.tt-ws-opt.correct .tt-ws-mark{opacity:1}
     .tt-ws-tf{display:flex;gap:10px;margin-top:8px}.tt-ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}.tt-ws-tf-b.on{background:#dcfce7;color:#15803d}
     .tt-ws-ans{font-size:13px;margin-top:7px;color:#15803d}.tt-ws-ans b{color:#15803d}.tt-ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
-    .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:700;color:#4262FF}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:700;color:#0E0E10}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
     .tt-ws-stage{border-radius:12px;padding:13px 16px;margin-bottom:11px;page-break-inside:avoid;background:#fff;border:1.5px solid currentColor;border-left-width:4px;}
     .tt-ws-stage-head{font-size:14px;font-weight:900;letter-spacing:-.01em;margin-bottom:8px;}
     .tt-ws-stage-body{font-size:12.5px;line-height:1.65;color:#2d2e38;white-space:pre-wrap;}
@@ -1313,7 +1313,7 @@ async function generateWithAI(){
     // Overlay a shimmer badge so teacher sees it's being upgraded
     const improveNote=document.createElement('div');
     improveNote.id='tt-ai-improving';
-    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#4262FF,#7C3AED);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
+    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#0E0E10,#3A3A2E);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
     improveNote.innerHTML='<span style="font-size:16px">✨</span> AI is enhancing this result…';
     body.insertBefore(improveNote,body.firstChild);
     // ── Step 2: cloud Groq in background ──

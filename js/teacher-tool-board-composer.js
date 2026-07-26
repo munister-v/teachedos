@@ -98,7 +98,7 @@ function _ttBoardComposerMeta(output) {
     // Generated activities should read like printable worksheets on the board:
     // white by default, with category color only as border/accent.
     frameBg: '#ffffff',
-    frameBorder: base.color || '#4262FF',
+    frameBorder: base.color || '#0E0E10',
     pale: cat === 'grammar' ? '#DCFCE7'
       : cat === 'reading' ? '#CFFAFE'
       : cat === 'speaking' ? '#FEF3C7'
@@ -148,9 +148,9 @@ function _ttStickyAccent(color) {
   const c = String(color || '').toUpperCase();
   if (/F9C4|F176|FF59|FDE|FEF3|FFD|FFE0|FFAB|F59/.test(c)) return '#F59E0B'; // yellow/orange
   if (/C8E6|BBF|86EF|D9F9|DCFCE|10B9|6EE7/.test(c)) return '#10B981';        // green
-  if (/BBDE|BAE6|93C5|3B82|DBEA|67E8/.test(c)) return '#3B82F6';             // blue
+  if (/BBDE|BAE6|93C5|3B82|DBEA|67E8/.test(c)) return '#6E8FB0';             // blue
   if (/E8D5|DDD6|C4B5|F8BB|FCE7|F3E8|8B5C|EC2/.test(c)) return '#8B5CF6';    // pink/purple
-  return '#4262FF';
+  return '#0E0E10';
 }
 // Body HTML for a panel: escape + **bold** + newlines, via the shared helper.
 function _ttPanelBody(text) {
@@ -198,9 +198,9 @@ function _ttLessonStageMeta(card, index) {
     return { label: 'Output', accent: '#DB2777', bg: '#FDF2F8' };
   }
   if (/answer|key|teacher|note|feedback|solution/.test(hay)) {
-    return { label: 'Teacher', accent: '#475569', bg: '#F8FAFC' };
+    return { label: 'Teacher', accent: '#475569', bg: '#F5F0E8' };
   }
-  return { label: `Stage ${index + 1}`, accent: '#4262FF', bg: '#F8FAFC' };
+  return { label: `Stage ${index + 1}`, accent: '#0E0E10', bg: '#F5F0E8' };
 }
 
 function _ttLessonStageHtml(card, index, stageMeta) {
@@ -213,7 +213,7 @@ function _ttLessonStageHtml(card, index, stageMeta) {
         <div style="width:30px;height:30px;border-radius:11px;background:${stageMeta.accent};color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px/1 var(--font);box-shadow:0 6px 14px rgba(15,23,42,.14)">${index + 1}</div>
         <div style="min-width:0;flex:1">
           <div style="font:900 9.5px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:${stageMeta.accent};margin-bottom:5px">${esc(stageMeta.label)}</div>
-          <div style="font:900 16px/1.18 var(--font);letter-spacing:-.02em;color:#0F172A;white-space:normal">${title}</div>
+          <div style="font:900 16px/1.18 var(--font);letter-spacing:-.02em;color:#0E0E10;white-space:normal">${title}</div>
         </div>
       </div>
       <div style="padding:12px 15px 14px;font:500 13.5px/1.55 var(--font);color:#263241;overflow:auto;min-height:0;flex:1">
@@ -228,7 +228,7 @@ function _ttLessonOverviewHtml(output, cards, meta) {
   const topic = output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'Classroom lesson';
   const stages = cards.length;
   return `
-    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:20px 22px;background:linear-gradient(135deg,#111827 0%,#1F2937 52%,${meta.frameBorder || '#4262FF'} 170%);color:#fff;box-shadow:0 18px 44px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden">
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:20px 22px;background:linear-gradient(135deg,#0E0E10 0%,#1C1C1E 52%,${meta.frameBorder || '#0E0E10'} 170%);color:#fff;box-shadow:0 18px 44px rgba(14,14,16,.18);display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden">
       <div style="min-width:0;max-width:820px">
         <div style="font:900 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.56);margin-bottom:10px">Generated lesson flow</div>
         <div style="font:950 30px/1.04 var(--font);letter-spacing:-.04em;color:#fff;white-space:normal">${esc(output.title || 'Lesson pack')}</div>
@@ -257,7 +257,7 @@ function _ttLessonMapHtml(cards) {
     : '';
   return `
     <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(15,23,42,.09);border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.06);padding:15px 16px;overflow:auto">
-      <div style="font:950 16px/1.15 var(--font);letter-spacing:-.02em;color:#0F172A;margin-bottom:10px">Lesson map</div>
+      <div style="font:950 16px/1.15 var(--font);letter-spacing:-.02em;color:#0E0E10;margin-bottom:10px">Lesson map</div>
       ${items}${extra}
     </div>`;
 }
@@ -265,18 +265,18 @@ function _ttLessonMapHtml(cards) {
 function _ttActivityOverviewHtml(output, count, meta, eyebrow, note) {
   const level = output.level || 'B1';
   const kind = output.kind || output.boardKind || 'Activity';
-  const accent = meta.frameBorder || '#4262FF';
+  const accent = meta.frameBorder || '#0E0E10';
   return `
-    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F8FAFC 0%,#FFFFFF 48%,${meta.pale || '#E2E8F0'} 170%);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 34px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F5F0E8 0%,#FFFFFF 48%,${meta.pale || '#E2E8F0'} 170%);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 34px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
       <div style="min-width:0;max-width:760px">
         <div style="font:950 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:${accent};margin-bottom:10px">${esc(eyebrow || 'Board activity')}</div>
-        <div style="font:950 27px/1.05 var(--font);letter-spacing:-.04em;color:#0F172A;white-space:normal">${esc(output.title || 'Generated activity')}</div>
+        <div style="font:950 27px/1.05 var(--font);letter-spacing:-.04em;color:#0E0E10;white-space:normal">${esc(output.title || 'Generated activity')}</div>
         <div style="font:500 13.5px/1.45 var(--font);color:#586174;margin-top:9px;max-width:720px">${esc(note || 'Run the activity from left to right, then collect feedback in the side rail.')}</div>
       </div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;max-width:330px">
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0F172A">${esc(level)}</span>
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0F172A">${esc(kind)}</span>
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0F172A">${count} items</span>
+        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${esc(level)}</span>
+        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${esc(kind)}</span>
+        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${count} items</span>
       </div>
     </div>`;
 }
@@ -338,14 +338,14 @@ function _ttPlaceMatchingOrSortingBoard(output, meta) {
       { textColor: meta.frameBorder, fontSize: 15 });
 
     const bankW = 250, colW = 330, cardH = 58, gap = 12;
-    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F8FAFC', fontSize: 13 });
+    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F5F0E8', fontSize: 13 });
     pairs.forEach((p, i) => {
       const col = i % 2, row = Math.floor(i / 2);
       _ttAddStickyCard(frame, x0 + PAD + col * (bankW + gap), y0 + 238 + row * (cardH + gap), bankW, cardH, p.left, i % 2 ? '#FFE0B2' : '#FFF176');
     });
 
     const matchX = x0 + PAD + 2 * (bankW + gap) + 26;
-    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F8FAFC', fontSize: 13 });
+    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F5F0E8', fontSize: 13 });
     pairs.forEach((p, i) => {
       const row = i;
       if (row > 11) return;

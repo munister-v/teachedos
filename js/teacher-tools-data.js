@@ -430,7 +430,7 @@ Send to teacher by Friday. Mark with: ✓ ✓ ✗.` }
     id: 'lp-job-interview-b2',
     title: 'Job Interview',
     level: 'B2', duration: '50 min', skill: 'Speaking + Writing',
-    icon: '💼', color: '#4262FF', bg: 'rgba(66,98,255,.12)',
+    icon: '💼', color: '#5B8FB0', bg: 'rgba(91,143,176,.12)',
     summary: 'CV vocabulary → STAR technique → mock interview → feedback round.',
     stages: [
       { title:'🌟 Warm-up · 5 min', color:'#FFE566', text:
