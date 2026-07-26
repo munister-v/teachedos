@@ -3416,13 +3416,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-step{
 	  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:132px;
 	  padding:5px 10px 5px 5px;border-radius:999px;background:rgba(14,14,16,.06);
-	  border:1.5px solid rgba(14,14,16,.28);color:var(--ws-ink);
+	  border:2px solid rgba(14,14,16,.28);color:var(--ws-ink);
 	}
 	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-ink);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;}
 	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
 	.ws-step.more i{background:rgba(14,14,16,.7);color:var(--ws-lime);}
 	.ws-tools{grid-column:1/-1;display:flex;gap:7px;justify-content:flex-end;}
-	.ws-btn{border:2px solid var(--ws-ink);background:transparent;border-radius:11px;padding:7px 13px;font-size:12px;font-weight:800;color:var(--ws-ink);cursor:pointer;white-space:nowrap;}
+	.ws-btn{border:2px solid var(--ws-ink);background:transparent;border-radius:12px;padding:7px 13px;font-size:12px;font-weight:800;color:var(--ws-ink);cursor:pointer;white-space:nowrap;}
 	.ws-btn:hover{background:var(--ws-ink);border-color:var(--ws-ink);color:var(--ws-lime);}
 	.ws-pill{font-size:11.5px;font-weight:800;border-radius:999px;padding:6px 13px;background:transparent;color:var(--ws-ink);border:2px solid var(--ws-ink);}
 	.ws-pill.level{background:var(--ws-ink);color:#fff;border-color:var(--ws-ink);}
@@ -3434,7 +3434,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
 	  position:relative;border:2px solid var(--ws-line);background:#fff;
-	  border-radius:16px;padding:16px;
+	  border-radius:18px;padding:16px;
 	  transition:border-color .16s ease;flex-shrink:0;
 	}
 	.ws-q:hover{border-color:var(--ws-ink);}
@@ -3442,14 +3442,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	/* Background lives here, not inline on the element: the renderer used to set
 	   background:<accent>, which turned into ink-on-ink (an invisible number)
 	   once every sheet shared the one brand accent. */
-	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:var(--ws-lime);color:var(--ws-ink);font-size:13px;font-weight:800;margin-top:0;}
+	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--ws-lime);color:var(--ws-ink);font-size:13px;font-weight:800;margin-top:0;}
 	.ws-qtext{flex:1;min-width:0;}
 	.ws-word{font-size:17px;font-weight:800;color:var(--ws-ink);}
 	.ws-opts{display:flex;flex-direction:column;gap:9px;margin-top:13px;}
 	.ws-opt{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.45;color:var(--ws-ink);font-weight:600;padding:13px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
 	.ws-opt:hover{border-color:var(--ws-ink);}
 .ws-opt.correct{background:var(--ws-lime);color:var(--ws-ink);font-weight:700;border-color:var(--ws-ink);}
-.ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
+.ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
 .ws-opt.correct .ws-mark{background:var(--ws-ink);color:var(--ws-lime);}
 .ws-tf{display:flex;gap:10px;margin-top:13px;}
 .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;line-height:1.45;font-weight:700;padding:11px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
@@ -3471,7 +3471,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  color:#7A7A6A;margin:0 0 10px;padding-left:2px;}
 	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 5px;
 	  border-bottom:2px solid var(--ws-ink);vertical-align:-.22em;}
-	.ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;
+	.ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:8px;
 	  background:var(--ws-lime);color:var(--ws-ink);font-weight:800;vertical-align:baseline;}
 	.ws-open{height:0;margin:15px 0 5px;border-bottom:2px dashed var(--ws-line);}
 .ws-open + .ws-open{margin-top:22px;}
@@ -3482,7 +3482,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-write{margin:14px 0 6px;display:flex;flex-direction:column;gap:28px;}
 	.ws-write i{display:block;height:0;border-bottom:2px solid var(--ws-line);}
 .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:13px;align-items:center;}
-.ws-l{font-size:14px;line-height:1.45;font-weight:700;padding:8px 13px;border-radius:11px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
+.ws-l{font-size:14px;line-height:1.45;font-weight:700;padding:8px 13px;border-radius:12px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
 .ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
 .ws-r{font-size:14px;line-height:1.45;color:var(--ws-ink);font-weight:600;}
 	/* Stage / lesson-plan cards (cards[] kind) */
@@ -3503,7 +3503,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   border + a small start/end mark set them apart from the procedural
 	   middle stages, without introducing a new colour. */
 	.ws-q-card.ws-anchor{border-style:dashed;position:relative;}
-	.ws-q-card.ws-anchor .ws-stage-rail{background:transparent;border:1.5px dashed color-mix(in srgb,var(--stage-accent) 45%,transparent);}
+	.ws-q-card.ws-anchor .ws-stage-rail{background:transparent;border:2px dashed color-mix(in srgb,var(--stage-accent) 45%,transparent);}
 	/* Small corner mark — keeps the rail number (position in the sequence)
 	   intact, just adds a bookend glyph rather than replacing it. */
 	.ws-q-card.ws-anchor-start::after,.ws-q-card.ws-anchor-end::after{
@@ -3539,14 +3539,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-vocab-grid{display:grid;gap:7px;margin-top:2px;}
 	.ws-vocab-row{
 	  display:grid;grid-template-columns:minmax(96px,.4fr) minmax(0,1fr);gap:12px;align-items:center;
-	  padding:9px 12px;border-radius:13px;background:var(--ws-cream,#F5F0E8);
+	  padding:9px 12px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
 	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	  transition:border-color .12s;
 	}
 	.ws-vocab-row:hover{border-color:var(--ws-ink,#0E0E10);}
 	.ws-vocab-term{justify-self:start;font-size:12px;font-weight:800;letter-spacing:-.01em;
 	  color:var(--ws-ink,#0E0E10);background:#fff;
-	  border:1.5px solid var(--ws-line,rgba(14,14,16,.14));
+	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	  padding:4px 11px;border-radius:999px;
 	  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vocab-def{font-size:12px;line-height:1.5;color:#4A4838;font-weight:600;}
@@ -3559,7 +3559,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-prompt-list{display:grid;gap:7px;margin-top:2px;}
 	.ws-prompt{
 	  display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start;
-	  padding:9px 10px;border-radius:13px;background:#fff;
+	  padding:9px 10px;border-radius:14px;background:#fff;
 	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
 	}
 	.ws-prompt-num{
@@ -3570,10 +3570,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Aims/objectives — checklist, not prose: a teacher scans this, doesn't read it. */
 .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.5;color:#3A3A2E;font-weight:650;}
-.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:1px;}
+.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:1px;}
 /* Grammar/focus — a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
-.ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+.ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-grammar-line{font:600 12px/1.55 var(--mono);color:#26261E;}
 .ws-grammar-line strong{color:var(--ws-ink,#0E0E10);font-weight:800;box-shadow:inset 0 -7px 0 var(--ws-lime,#CDF24F);}
 
@@ -3585,7 +3585,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* ── Editable preview ── */
 .tt-q{position:relative;}
 .tt-q .tt-del{
-  position:absolute;right:8px;top:8px;width:20px;height:20px;border-radius:6px;border:0;
+  position:absolute;right:8px;top:8px;width:20px;height:20px;border-radius:8px;border:0;
   background:rgba(17,24,39,.06);color:#9ca3af;font-size:13px;font-weight:900;cursor:pointer;
   display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s,background .12s,color .12s;
 }
