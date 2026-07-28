@@ -3431,9 +3431,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
 	   sequence still scans like a timeline. Falls back to 1 column on a
 	   narrow/unresized card instead of clipping. */
-	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
+	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
-	  position:relative;border:2px solid var(--ws-line);background:transparent;
+	  position:relative;border:2px solid var(--ws-line);background:#fff;
 	  border-radius:18px;padding:16px;
 	  transition:border-color .16s ease;flex-shrink:0;
 	}
@@ -3492,7 +3492,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   communicated, just by the text label alone instead of colour + a cryptic
 	   2-3 letter dot that duplicated it. */
 	.ws-q-card{--stage-accent:var(--ws-ink,#0E0E10);padding-left:46px;min-height:82px;}
-	.ws-stage-rail{position:absolute;left:14px;top:14px;width:24px;height:24px;border-radius:12px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:center;justify-content:center;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
+	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:20px;border-radius:999px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
 	.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:950;letter-spacing:-.025em;color:#0E0E10;}
 	.ws-card-title{flex:1;min-width:0;}
 	.ws-stage-label{font:800 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C;white-space:nowrap;}
