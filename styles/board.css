@@ -3431,9 +3431,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
 	   sequence still scans like a timeline. Falls back to 1 column on a
 	   narrow/unresized card instead of clipping. */
-	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
+	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
-	  position:relative;border:2px solid var(--ws-line);background:#fff;
+	  position:relative;border:2px solid var(--ws-line);background:transparent;
 	  border-radius:18px;padding:16px;
 	  transition:border-color .16s ease;flex-shrink:0;
 	}
@@ -3492,7 +3492,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   communicated, just by the text label alone instead of colour + a cryptic
 	   2-3 letter dot that duplicated it. */
 	.ws-q-card{--stage-accent:var(--ws-ink,#0E0E10);padding-left:46px;min-height:82px;}
-	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:20px;border-radius:999px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
+	.ws-stage-rail{position:absolute;left:14px;top:14px;width:24px;height:24px;border-radius:12px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:center;justify-content:center;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
 	.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:950;letter-spacing:-.025em;color:#0E0E10;}
 	.ws-card-title{flex:1;min-width:0;}
 	.ws-stage-label{font:800 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C;white-space:nowrap;}
@@ -5243,4 +5243,51 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .zc-btn{
     transition:none !important;
   }
+}
+
+/* ═══════════ Collected vocabulary panel (js/board-vocab.js) ═══════════
+   Extraction from free-form stickies is a guess, so the teacher reviews and
+   unticks before the set becomes a card or a game. Plain rgb/rgba only —
+   color-mix()/oklab() anywhere in a captured subtree breaks the html2canvas
+   PNG/PDF export used elsewhere on the board. */
+#vocab-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(16,16,18,.46);
+  align-items:center;justify-content:center;padding:20px}
+.vocab-box{width:min(560px,94vw);max-height:86vh;display:flex;flex-direction:column;
+  background:#fff;border-radius:20px;border:1px solid rgba(24,24,24,.10);
+  box-shadow:0 28px 70px rgba(16,16,18,.30);overflow:hidden}
+.vocab-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 20px 12px;border-bottom:1px solid rgba(24,24,24,.08)}
+.vocab-head h3{margin:0;font-size:18px;letter-spacing:-.02em}
+.vocab-scope{margin:3px 0 0;font-size:12px;color:#6b6c78}
+.vocab-x{border:0;background:rgba(24,24,24,.06);color:#3a3b45;width:30px;height:30px;
+  border-radius:9px;font-size:14px;cursor:pointer;flex-shrink:0}
+.vocab-x:hover{background:rgba(24,24,24,.12)}
+.vocab-tools{display:flex;align-items:center;gap:7px;padding:10px 20px;
+  border-bottom:1px solid rgba(24,24,24,.06);background:rgba(250,250,244,.7)}
+.vocab-count{font:800 11px var(--mono,monospace);color:#6b6c78}
+.vocab-spacer{flex:1}
+.vocab-mini{border:1px solid rgba(24,24,24,.12);background:#fff;color:#3a3b45;
+  border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer}
+.vocab-mini:hover{background:rgba(24,24,24,.05)}
+.vocab-list{overflow:auto;padding:6px 12px 10px;flex:1;min-height:80px}
+.vocab-row{display:grid;grid-template-columns:20px minmax(0,auto) minmax(0,1fr);gap:9px;
+  align-items:baseline;padding:8px 8px;border-radius:10px;cursor:pointer}
+.vocab-row:hover{background:rgba(24,24,24,.04)}
+.vocab-row input{width:15px;height:15px;accent-color:#5b6cff;cursor:pointer}
+.vocab-term{font-weight:800;font-size:14px;color:#1b1c22;overflow-wrap:anywhere}
+.vocab-def{font-size:12.5px;color:#5f606b;line-height:1.4;overflow-wrap:anywhere}
+.vocab-def-empty{color:#a4a5b0;font-style:italic}
+.vocab-empty{padding:22px;text-align:center;color:#8e90a0;font-size:13px}
+.vocab-actions{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px 18px;
+  border-top:1px solid rgba(24,24,24,.08);background:rgba(250,250,244,.7)}
+.vocab-btn{border:1px solid rgba(24,24,24,.12);background:#fff;color:#1b1c22;border-radius:11px;
+  padding:9px 13px;font-size:12.5px;font-weight:800;cursor:pointer;transition:background .14s,border-color .14s}
+.vocab-btn:hover{background:rgba(24,24,24,.05);border-color:rgba(24,24,24,.2)}
+.vocab-btn-primary{background:#181818;color:#fff;border-color:#181818}
+.vocab-btn-primary:hover{background:#2e2e2e;border-color:#2e2e2e}
+@media(max-width:560px){
+  .vocab-row{grid-template-columns:20px minmax(0,1fr);row-gap:2px}
+  .vocab-def{grid-column:2}
+  .vocab-actions{gap:6px;padding:12px 14px 16px}
+  .vocab-btn{flex:1;min-width:calc(50% - 6px);text-align:center}
 }
