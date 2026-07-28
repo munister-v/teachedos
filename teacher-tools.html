@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=229">
+<link rel="manifest" href="manifest.json?v=230">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -121,11 +121,34 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 @media(max-width:820px){.hero{padding:24px 18px}.hero-card{border-radius:20px}.tool{grid-template-columns:54px minmax(0,1fr);border-radius:18px}.tool{background-size:100% 2px,auto}.side{background:rgba(255,255,255,.96)}}
 @media(max-width:480px){.tool{display:flex;flex-direction:column}.tool-visual{width:100%;height:48px}.tool-visual::after{font-size:9px}.result-empty{min-height:240px}.recent-tools-strip{grid-template-columns:1fr}.recent-tool{min-height:52px}}
 @media(prefers-reduced-motion:reduce){.tool,.preset-card,.btn,.chip{transition:none!important}.tool:hover,.preset-card:hover,.btn:hover{transform:none!important}}
+/* bf-mobile-tool-row — mobile tool cards.
+   One column is forced site-wide by unify.css (:where(.grid,…){grid-template-columns:1fr
+   !important} under 860px), so the two-column rules this page declares for <=820px and
+   <=480px never apply — dead code, left in place rather than touched from here.
+   Given one column, the old card spent the full width on a 48px colour bar above a 12px
+   title and switched the description off entirely, so 51 cards read as identical bars.
+   Laid out as a row instead: category tile on the left, title plus a two-line description
+   on the right. Roughly 40% shorter per card and actually says what the tool does.
+   Declared after the earlier mobile blocks so it wins on order at equal specificity. */
+@media(max-width:820px){
+  .tool{display:grid;grid-template-columns:56px minmax(0,1fr);gap:11px;align-items:start;padding:13px}
+  .tool-visual{width:56px;height:auto;align-self:stretch;min-height:58px;font-size:18px;border-radius:13px}
+  .tool-visual::after{font-size:8px;letter-spacing:.04em;padding:3px 2px}
+  .tool h3{font-size:14.5px;line-height:1.18;margin:1px 0 4px;padding-right:34px}
+  .tool p{display:-webkit-box;-webkit-line-clamp:2;font-size:12.5px;line-height:1.38;padding-right:34px}
+}
+@media(max-width:400px){
+  .tool{grid-template-columns:54px minmax(0,1fr);gap:9px;padding:11px}
+  .tool-visual{width:54px;min-height:52px;font-size:16px}
+  .tool-visual::after{font-size:7.5px;letter-spacing:0}
+  .tool h3{font-size:13.5px}
+  .tool p{font-size:12px}
+}
 
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=229">
-<link rel="stylesheet" href="styles/unify.css?v=229">
-<link rel="stylesheet" href="styles/mobile.css?v=229">
+<link rel="stylesheet" href="styles/harmony.css?v=230">
+<link rel="stylesheet" href="styles/unify.css?v=230">
+<link rel="stylesheet" href="styles/mobile.css?v=230">
 </head>
 <body>
 <nav class="nav">
@@ -256,9 +279,9 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/teacher-tools-app.js?v=229"></script>
-<script src="js/teacher-tool-ai.js?v=229" defer></script>
-<script src="js/teacher-tool-stt.js?v=229" defer></script>
-<script src="pwa-boot.js?v=229" defer></script>
+<script src="scripts/teacher-tools-app.js?v=230"></script>
+<script src="js/teacher-tool-ai.js?v=230" defer></script>
+<script src="js/teacher-tool-stt.js?v=230" defer></script>
+<script src="pwa-boot.js?v=230" defer></script>
 </body>
 </html>
