@@ -636,6 +636,17 @@ function renderCard(card) {
       return el;
     }
   }
+  // Arrived stripped of its content by backend/lib/boardVisibility.js: the
+  // teacher is holding this one back. Draw the place it occupies so the student
+  // can see something is coming, without the board carrying what it says.
+  if (card.data && card.data.hiddenForViewer) {
+    el.classList.add('card-covered');
+    el.dataset.id = card.id;
+    el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;z-index:${getCardZ(card)};`;
+    el.innerHTML = '<div class="card-cover"><span class="card-cover-ic">🙈</span><span class="card-cover-t">Hidden by teacher</span></div>';
+    return el;
+  }
+
   el.dataset.id = card.id;
   el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;z-index:${getCardZ(card)};`;
 
@@ -760,6 +771,9 @@ function makeHeader(icon, title, cardId) {
     toggleCardPrivate(cardId);
   });
   hdr.appendChild(privBtn);
+  // Cover / reveal for students. Only the board owner can hold a card back —
+  // a collaborator has no business deciding what the class may not see.
+  if (typeof addStudentRevealToggle === 'function') addStudentRevealToggle(hdr, cardId);
   const btn = document.createElement('button');
   btn.className = 'card-close'; btn.textContent = '×';
   btn.addEventListener('click', e => { e.stopPropagation(); removeCard(cardId); });
@@ -7030,6 +7044,8 @@ boardWrap.addEventListener('contextmenu', e => {
 
   // Image clipboard ctx items: show only when relevant
   const cardEl = e.target.closest('.board-card');
+  // Hold-back item: only over a real card, only for whoever owns the board.
+  if (typeof syncStudentHideCtxItem === 'function') syncStudentHideCtxItem(cardEl);
   const onImageCard = cardEl && state.cards.find(c => c.id === cardEl.dataset.id)?.type === 'image';
   const copyItem  = document.getElementById('ctx-copy-image');
   const pasteItem = document.getElementById('ctx-paste-image');

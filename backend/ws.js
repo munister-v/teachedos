@@ -3,6 +3,7 @@
 const { WebSocketServer } = require('ws');
 const jwt  = require('jsonwebtoken');
 const pool = require('./db/pool');
+const { filterBoardData } = require('./lib/boardVisibility');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
 
@@ -11,14 +12,41 @@ const rooms = new Map();
 // boardId → { followMode: bool, boardOwnerId: string }
 const roomMeta = new Map();
 
+// Board payloads are per-recipient: the same patch carries different cards to
+// the teacher and to a student. Redacting only the HTTP GET would leak
+// everything back the moment the teacher edited anything, because this used to
+// fan the author's full board out to the whole room verbatim.
+function carriesBoardData(msg) {
+  return msg && (msg.type === 'board_patch' || msg.type === 'card_add' || msg.type === 'card_update');
+}
+
+function viewFor(msg, viewerId, ownerId) {
+  if (!carriesBoardData(msg)) return msg;
+  if (msg.type === 'board_patch' && msg.state) {
+    return Object.assign({}, msg, { state: filterBoardData(msg.state, viewerId, ownerId) });
+  }
+  if (msg.type === 'board_patch' && msg.data) {
+    return Object.assign({}, msg, { data: filterBoardData(msg.data, viewerId, ownerId) });
+  }
+  // Single-card messages: run the card through the same rule via a one-card board.
+  if (msg.card) {
+    const filtered = filterBoardData({ cards: [msg.card] }, viewerId, ownerId);
+    if (!filtered.cards.length) return null;          // not entitled to know it exists
+    return Object.assign({}, msg, { card: filtered.cards[0] });
+  }
+  return msg;
+}
+
 function broadcast(boardId, msg, exclude) {
   const room = rooms.get(boardId);
   if (!room) return;
-  const text = JSON.stringify(msg);
+  const ownerId = (roomMeta.get(boardId) || {}).boardOwnerId;
+  const plain = carriesBoardData(msg) ? null : JSON.stringify(msg);
   room.forEach(ws => {
-    if (ws !== exclude && ws.readyState === 1 /* OPEN */) {
-      ws.send(text);
-    }
+    if (ws === exclude || ws.readyState !== 1 /* OPEN */) return;
+    if (plain !== null) { ws.send(plain); return; }
+    const view = viewFor(msg, ws.userId, ownerId);
+    if (view) ws.send(JSON.stringify(view));
   });
 }
 

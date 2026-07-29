@@ -5291,3 +5291,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .vocab-actions{gap:6px;padding:12px 14px 16px}
   .vocab-btn{flex:1;min-width:calc(50% - 6px);text-align:center}
 }
+
+/* ═══ Card held back from students (js/board-reveal.js) ═══
+   The student sees the space the card occupies and that it is coming — the
+   content itself never reached the browser (backend/lib/boardVisibility.js). */
+.board-card.card-covered{background:repeating-linear-gradient(135deg,rgba(24,24,24,.045) 0 10px,rgba(24,24,24,.015) 10px 20px);
+  border:1px dashed rgba(24,24,24,.22);border-radius:14px;display:grid;place-items:center}
+.card-cover{display:grid;justify-items:center;gap:6px;text-align:center;padding:10px;pointer-events:none}
+.card-cover-ic{font-size:22px;opacity:.5}
+.card-cover-t{font:800 10px var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;color:rgba(24,24,24,.42)}
+.card-reveal-toggle.is-held{opacity:1}

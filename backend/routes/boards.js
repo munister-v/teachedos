@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { filterBoardData } = require('../lib/boardVisibility');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { PLAN_CATALOG, normalizePlanKey, getPlanLimit } = require('../lib/billing');
@@ -91,7 +92,13 @@ router.get('/:id', async (req, res) => {
     [req.params.id, req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
-  res.json({ board: rows[0] });
+  // A collaborator gets the board as they are entitled to see it: private cards
+  // of other authors are absent, and cards the teacher is still holding back
+  // arrive as empty placeholders. Filtering here rather than in the client is
+  // the point — the payload itself must not carry what the viewer may not read.
+  const board = rows[0];
+  board.data = filterBoardData(board.data, req.user.id, board.user_id);
+  res.json({ board });
 });
 
 // PUT /api/boards/:id — save board state (legacy)
