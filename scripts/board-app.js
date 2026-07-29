@@ -2656,6 +2656,88 @@ function renderWorksheet(el, card) {
   const eyebrow = sectionLabel ? `<div class="ws-section">${sectionLabel}</div>` : '';
   body.innerHTML = strip + eyebrow + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
+
+  // The height this card was given came from an estimate. Now that the real
+  // thing is on screen, ask it. See _wsFitToContent.
+  requestAnimationFrame(() => _wsFitToContent(card.id));
+}
+
+/* ───────────────── SIZE THE CARD TO WHAT IS ACTUALLY IN IT ─────────────────
+
+   Worksheet height was set from _ttEstWorksheetHeight — a character-count guess
+   made before anything rendered. When the guess came in low the card kept its
+   short height and .ws-list quietly scrolled, so the last question or two were
+   simply not on the board. Printing still looked right (printWorksheet rebuilds
+   from the data, not the DOM), which is why this survived so long, and PNG
+   export did not: html2canvas captures the DOM as laid out and drops whatever
+   sits below the fold.
+
+   Measuring is the fix for the whole class of problem, not a better guess. The
+   estimate still decides the INITIAL height — it has to, since layout happens
+   before render — but from here the rendered card gets the last word.
+
+   Adjusting by the difference between the content and the space it has is
+   exact rather than approximate: .ws-list is the flex child that absorbs the
+   card's spare height, so adding N pixels to the card adds N to the list.
+
+   NOT measured with scrollHeight. scrollHeight never reports less than
+   clientHeight, so it can say "content is taller than the box" but never "the
+   box has room to spare" — a card left too tall would stay too tall forever.
+   Summing the children answers both directions, and handles the Lesson Pack
+   grid too, where the tallest cell in the last row is not necessarily the last
+   child.
+
+   `shrink` is off by default. Growing fixes clipped content and is always
+   right; shrinking is only wanted when something changed the wrapping — the
+   teacher dragging the card wider — and would otherwise be an unpleasant
+   surprise, a card collapsing while it is being read. */
+function _wsListContentHeight(list) {
+  let top = Infinity, bottom = 0;
+  for (const kid of list.children) {
+    top = Math.min(top, kid.offsetTop);
+    bottom = Math.max(bottom, kid.offsetTop + kid.offsetHeight);
+  }
+  if (!isFinite(top)) return 0;
+  const cs = getComputedStyle(list);
+  return (bottom - top) + parseFloat(cs.paddingTop || 0) + parseFloat(cs.paddingBottom || 0);
+}
+
+function _wsFitToContent(cardId, { shrink = false } = {}) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || card.type !== 'worksheet') return;
+  const d = card.data || {};
+  // Play mode is deliberately compact — it shows one question at a time inside
+  // an iframe we cannot measure through anyway.
+  if (d._interactive) return;
+  // A height the teacher chose by hand is not ours to overrule.
+  if (d._manualH && !shrink) return;
+
+  const el = getCardEl(cardId);
+  if (!el) return;
+  const list = el.querySelector('.ws-list');
+  if (!list) return;
+
+  const delta = _wsListContentHeight(list) - list.clientHeight;  // >0 clipped, <0 slack
+  // Dead band, not a safety margin. An earlier version padded the grow by 2px
+  // "to be safe", which left every fitted card 2px of slack — enough for the
+  // shrink pass to immediately claim back, so a resize nudged the height every
+  // time. Landing exactly and ignoring sub-pixel noise is stable in both
+  // directions.
+  if (Math.abs(delta) <= 2) return;
+  if (delta < 0 && !shrink) return;
+
+  // Measure against the card as RENDERED, not against card.h. The two are
+  // supposed to agree, and when they briefly do not — mid-resize, or a render
+  // that has not flushed — trusting the model while reading the DOM's overflow
+  // mixes two answers into one sum and the height lurches. Reading both numbers
+  // off the same element cannot drift.
+  const curH = el.offsetHeight || card.h;
+  const next = Math.max(WS_MIN_SHEET, Math.min(WS_MAX_SHEET, Math.round(curH + delta)));
+  if (next === card.h && next === curH) return;
+
+  card.h = next;
+  el.style.height = next + 'px';
+  return next;
 }
 
 /* ══════════ INTERACTIVE WORKSHEET MODE ══════════
@@ -5523,8 +5605,20 @@ document.addEventListener('mouseup', e => {
     isResizing = false;
     document.body.classList.remove('board-dragging');
     document.body.style.cursor = '';
-    const { card, el } = resizeStart;
+    const { card, el, dir, sh } = resizeStart;
     if (card.type === 'game') applyGameScale(el, card);
+    /* A worksheet dragged WIDER rewraps its text, so the height it needed a
+       moment ago is the wrong height now — left alone it either scrolls or
+       trails blank paper. Re-fit, and allow shrinking here specifically because
+       the teacher just changed the wrapping themselves.
+
+       Dragging the height, on the other hand, is a decision: mark it and stop
+       auto-fitting this card, or every re-render would undo the teacher. */
+    if (card.type === 'worksheet' && card.data) {
+      const heightWasDragged = /n|s/.test(dir || '') && Math.abs(card.h - sh) > 1;
+      if (heightWasDragged) card.data._manualH = true;
+      else requestAnimationFrame(() => _wsFitToContent(card.id, { shrink: true }));
+    }
     scheduleSave();
   }
 
@@ -8344,6 +8438,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   if (ruleMade.length) title += '   ·  ⚠︎ draft — AI unavailable';
   snapshot(); _suppressSnapshot++;
   let frame;
+  const gridCardIds = [], packCardIds = [];
   try {
     if (embedUrl) {
       addCard('video', x0 - videoSlotW, y0, { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true }, VIDEO_W, VIDEO_H);
@@ -8360,7 +8455,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
           title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
           boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
         }, CARD_W, heights[i]);
-        if (frame && card) setCardParentFrame?.(card, frame);
+        if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
       });
     }
     // Lesson Pack(s): landscape, stacked below the frame (or centered if there
@@ -8375,13 +8470,31 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
         title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
         boardKind: out.boardKind, cards: out.cards, _ttSrc: 1,
       }, W2, H2);
-      if (card) stackY += H2 + GAP;
+      if (card) { packCardIds.push(card.id); stackY += H2 + GAP; }
     });
     if (typeof renumberFrames === 'function') renumberFrames();
     if (frame) _sendCardToBack(frame);   // substrate frame always behind existing cards
     const zoomTarget = frame?.id || (state.cards[state.cards.length - 1]?.id);
     if (zoomTarget) { clearSelection?.(); selectCard?.(zoomTarget); setTimeout(() => { try { zoomToCard?.(zoomTarget, true); } catch (e) {} }, 80); }
   } finally { _suppressSnapshot--; }
+  /* Everything above was laid out from estimated heights, because the grid has
+     to exist before anything can render. Now that it has rendered, measure and
+     lay it out again for real — otherwise a card that grew to fit its content
+     overlaps the row beneath it and hangs out of the frame. */
+  if ((frame && gridCardIds.length) || packCardIds.length) {
+    requestAnimationFrame(() => {
+      let below = null;
+      if (frame && gridCardIds.length) {
+        below = _relayoutLessonFrame(frame.id, gridCardIds,
+          { x0, y0, cols, CARD_W, GAP, PAD, HEAD });
+      }
+      // Lesson Packs stack under the frame, each one's position depending on
+      // the height of the one above it — so a single pack growing to fit its
+      // stages lands on top of the next. Re-stack them on measured heights,
+      // starting below wherever the frame actually ended up.
+      if (packCardIds.length) _restackBelow(packCardIds, below, GAP);
+    });
+  }
   scheduleSave?.(); saveLocal?.();
   // The toast fades after 1.8s, so it is the nudge, not the record — the frame
   // title above carries the same warning for as long as the lesson exists.
@@ -8392,6 +8505,82 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       : 'AI unavailable';
     toast('⚠︎ ' + cause + ' — ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
   }
+}
+
+/* ──────────── LAY THE LESSON GRID OUT AGAIN, ON MEASURED HEIGHTS ────────────
+
+   Reading order stays row-major (left to right, then down) — a lesson is a
+   sequence, and packing columns independently the way a masonry layout would
+   is tidier but scrambles the order the exercises are meant to be worked in.
+   So each row starts below the tallest card in the row above, and cards keep
+   their own natural heights rather than being stretched to match a neighbour:
+   padding a short worksheet out to the height of a long one buys alignment
+   with a screenful of blank paper.
+
+   Both the cards and the frame are updated in state AND in the DOM. Writing
+   only to state would leave the canvas showing the old positions until
+   something else forced a re-render. */
+function _relayoutLessonFrame(frameId, cardIds, geom) {
+  const { x0, y0, cols, CARD_W, GAP, PAD, HEAD } = geom;
+  const cards = cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  if (!cards.length) return;
+
+  // Ask every card its true height before any of them are positioned — a row's
+  // height is the tallest card in it, so one un-measured card misplaces a row.
+  cards.forEach(c => _wsFitToContent(c.id));
+
+  const rows = Math.ceil(cards.length / cols);
+  const rowH = [];
+  for (let r = 0; r < rows; r++) {
+    let mh = 0;
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      if (i < cards.length) mh = Math.max(mh, cards[i].h);
+    }
+    rowH.push(mh);
+  }
+
+  let top = HEAD;
+  cards.forEach((card, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    if (c === 0 && r > 0) top += rowH[r - 1] + GAP;
+    card.x = x0 + PAD + c * (CARD_W + GAP);
+    card.y = y0 + top;
+    const el = getCardEl(card.id);
+    if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
+  });
+
+  const frame = state.cards.find(c => c.id === frameId);
+  let frameBottom = null;
+  if (frame) {
+    frame.w = PAD * 2 + cols * CARD_W + (cols - 1) * GAP;
+    frame.h = HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD;
+    const fel = getCardEl(frame.id);
+    if (fel) { fel.style.width = frame.w + 'px'; fel.style.height = frame.h + 'px'; }
+    frameBottom = frame.y + frame.h;
+  }
+
+  scheduleSave?.(); saveLocal?.();
+  return frameBottom;   // where anything stacked underneath has to start
+}
+
+/* Re-stack a column of cards on their measured heights, top to bottom. Used for
+   Lesson Packs, which sit below the exercise frame: each one's y depends on the
+   height of the one above, so a single card growing to fit its content lands on
+   top of its neighbour unless the whole column is laid out again. */
+function _restackBelow(cardIds, startY, gap) {
+  const cards = cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  if (!cards.length) return;
+  cards.forEach(c => _wsFitToContent(c.id));
+
+  let y = (startY == null) ? cards[0].y : startY + gap;
+  cards.forEach(card => {
+    card.y = Math.round(y);
+    const el = getCardEl(card.id);
+    if (el) el.style.top = card.y + 'px';
+    y = card.y + card.h + gap;
+  });
+  scheduleSave?.(); saveLocal?.();
 }
 
 // Tools that produce a single artifact or a fixed scaffold — the "Items" count
@@ -9621,6 +9810,10 @@ function _ttEstWorksheetHeight(output, cardW = 440){
    silently dropped everything below the fold, because html2canvas captures the
    DOM as laid out. So oversized output becomes several sheets instead. */
 const WS_MAX_SHEET = 3200;
+// Floor for the measured fit (_wsFitToContent). A worksheet with one short
+// question still needs room for its masthead and the "Questions" label, and a
+// card that shrink-wraps tighter than this reads as a broken fragment.
+const WS_MIN_SHEET = 260;
 
 /* Split output too tall for one card into consecutive sheets.
    Returns an array of outputs — length 1 (the original object, untouched) when

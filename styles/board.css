@@ -1595,10 +1595,16 @@ body.alt-duplicating *{cursor:copy!important;}
 .resize-handle.h-sw,.resize-handle.h-se{
   width:10px;height:10px;border-radius:50%;
 }
-.resize-handle.h-nw{top:-5px;left:-5px;cursor:nwse-resize;}
-.resize-handle.h-ne{top:-5px;right:-5px;cursor:nesw-resize;}
-.resize-handle.h-sw{bottom:-5px;left:-5px;cursor:nesw-resize;}
-.resize-handle.h-se{bottom:-5px;right:-5px;cursor:nwse-resize;}
+/* Handles sit just INSIDE the card, not straddling its border.
+   .board-card is overflow:hidden with contain:paint, so anything outside the
+   box is clipped — and a clipped handle is not paintable OR hit-testable.
+   At -5px a 10px corner handle was half gone and the 6px edge bars had 2px of
+   themselves left to grab, which is why dragging an edge so often caught the
+   connector anchor instead: the anchor's inner half was the bigger target. */
+.resize-handle.h-nw{top:2px;left:2px;cursor:nwse-resize;}
+.resize-handle.h-ne{top:2px;right:2px;cursor:nesw-resize;}
+.resize-handle.h-sw{bottom:2px;left:2px;cursor:nesw-resize;}
+.resize-handle.h-se{bottom:2px;right:2px;cursor:nwse-resize;}
 /* Edge handles — short rounded bars */
 .resize-handle.h-n,.resize-handle.h-s{
   left:50%;transform:translateX(-50%);
@@ -1608,10 +1614,20 @@ body.alt-duplicating *{cursor:copy!important;}
   top:50%;transform:translateY(-50%);
   width:6px;height:18px;border-radius:3px;
 }
-.resize-handle.h-n{top:-4px;cursor:ns-resize;}
-.resize-handle.h-s{bottom:-4px;cursor:ns-resize;}
-.resize-handle.h-w{left:-4px;cursor:ew-resize;}
-.resize-handle.h-e{right:-4px;cursor:ew-resize;}
+.resize-handle.h-n{top:2px;cursor:ns-resize;}
+.resize-handle.h-s{bottom:2px;cursor:ns-resize;}
+.resize-handle.h-w{left:2px;cursor:ew-resize;}
+.resize-handle.h-e{right:2px;cursor:ew-resize;}
+/* The visible bars stay small, but an 18x6 target is a fiddly thing to hit.
+   Grow the grab area without growing the graphic — inward, since outward is
+   clipped by the card. Corners keep their own handles and sit far enough away
+   on any real card that the two never overlap. */
+.resize-handle.h-n::before,.resize-handle.h-s::before{
+  content:'';position:absolute;inset:-8px -12px;
+}
+.resize-handle.h-e::before,.resize-handle.h-w::before{
+  content:'';position:absolute;inset:-12px -8px;
+}
 .resize-handle:hover{background:var(--accent);border-color:var(--accent-hi);transform:scale(1.3);}
 /* Hide handles when card is locked */
 .board-card.card-locked .resize-handle{display:none!important;}
@@ -1632,9 +1648,23 @@ body.alt-duplicating *{cursor:copy!important;}
   cursor:crosshair;opacity:0;transition:opacity .12s,transform .1s,width .1s,height .1s,background .1s;
   box-shadow:0 0 0 1.5px color-mix(in srgb,var(--accent) 25%,transparent),0 1px 4px color-mix(in srgb,var(--accent) 20%,transparent);
 }
-/* Larger invisible hit-area so the dot is easy to grab */
+/* Larger invisible hit-area so the dot is easy to grab. Kept modest: at -8px
+   this halo was 28x28 centred on the middle of each edge — the exact spot the
+   edge resize handles occupy — so it swallowed resize drags and started a
+   connector instead. */
 .anchor-dot::after{
-  content:'';position:absolute;inset:-8px;border-radius:50%;
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+}
+/* On a SELECTED card the edges belong to resizing, so the anchors get out of
+   the way entirely — hidden, not merely inert, because a dot that looks
+   draggable and isn't is worse than no dot. "Click the card, then drag its
+   edge" now resizes instead of pulling out an arrow. Connect mode is the
+   deliberate opposite and is handled above, where the resize handles are the
+   ones that get hidden; that is also how you draw a connector FROM a card that
+   happens to be selected. */
+#board-wrap:not(.connecting) .board-card.selected .anchor-dot{
+  pointer-events:none;
+  opacity:0;
 }
 .anchor-dot:hover{
   width:16px!important;height:16px!important;opacity:1!important;
