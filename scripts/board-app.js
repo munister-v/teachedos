@@ -8232,7 +8232,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   // html2canvas silently crops out of the PNG. Overlong output is cut back in
   // _ttSanitizeOutput instead, where it costs nothing but words.
   const heights = gridResults.map(out => _ttEstWorksheetHeight(out, CARD_W));
-  const cols = n <= 2 ? n : 3;
+  // Worksheets are wide and tall; cap at 3 so the frame stays pannable, but let
+  // the ratio decide below that instead of jumping straight to a 3-wide grid.
+  const cols = _ttGridCols(n, CARD_W, 620, 3);
   const rows = Math.ceil(n / cols);
   // Each grid row is as tall as its tallest card.
   const rowH = [];
@@ -9596,8 +9598,53 @@ function _ttSplitWorksheet(output){
     return part;
   });
 }
-// Column count for the Lesson Pack stage grid — kept in one place so the
-// width, the height estimate, and the CSS grid-template all agree.
+/* ─────────────────── HOW MANY COLUMNS A GENERATED GRID GETS ───────────────────
+
+   Every placement function used to hardcode its own thresholds ("2 columns up
+   to 6 items, then 3"), and each of them leaned tall: six cards became a 2×3
+   column, eight stickies a 3×3. On a board — which pans sideways far more
+   comfortably than it scrolls down — that reads as a stack of exercises rather
+   than a lesson laid out.
+
+   So pick the column count by the shape it produces instead: score each
+   candidate on how far its bounding box lands from landscape, in log space so
+   the measure is scale-free.
+
+   Two things make the scoring work, and it picks worse layouts than the old
+   thresholds without either:
+
+   OVERSHOOT IS CHEAP. Too wide is scored at a quarter of too tall, because a
+   board pans sideways easily and scrolls down badly — they are not symmetric
+   costs. Scored evenly, four vocab cards came out 3x2 instead of a clean row
+   of four, which is the exact opposite of what this function is for.
+
+   A RAGGED LAST ROW COSTS REAL POINTS. Otherwise the ratio wins arguments it
+   should lose: three stages laid out 2x2, leaving a hole in a lesson of three.
+
+   cellH is nominal — rows are really as tall as their tallest card — so it only
+   has to be roughly right for the ratio to come out sensible. */
+function _ttGridCols(count, cellW, cellH, maxCols = 6, targetRatio = 2.2) {
+  if (!(count > 1)) return 1;
+  let best = 1, bestScore = Infinity;
+  for (let c = 1, hi = Math.min(maxCols, count); c <= hi; c++) {
+    const rows = Math.ceil(count / c);
+    const off = Math.log((c * cellW) / (rows * cellH) / targetRatio);
+    const score = Math.max(0, -off) + 0.25 * Math.max(0, off)
+      + (c * rows - count) * 0.18;
+    if (score < bestScore) { bestScore = score; best = c; }
+  }
+  return best;
+}
+
+/* Column count for the Lesson Pack stage grid — kept in one place so the
+   width, the height estimate, and the CSS grid-template all agree.
+
+   Deliberately NOT routed through _ttGridCols. This number does not position
+   anything: the stages are one CSS grid inside a single card, and .ws-list-cards
+   lays them out with auto-fit/minmax, so the browser picks the real column count
+   from the card's width. Raising this to 4 only widened the card past the point
+   where a 4th column fits, and the height estimate — which trusts this number —
+   would then have been short of what rendered. */
 function _ttLessonPackCols(count){ return count <= 4 ? 2 : 3; }
 function _ttPlaceWorksheetOnBoard(output){
   const isCards = Array.isArray(output.cards) && output.cards.length > 0;
@@ -9701,7 +9748,7 @@ function _ttPlaceWarmupStickers(output){
   if (!qs.length) { toast('No warm-up questions to place'); return; }
   const palette = ['#A8D02B','#EC2D8C','#8B5CF6','#F97316','#0891B2','#D97706'];
   const W = 210, H = 175, GAP = 20;
-  const COLS = qs.length <= 3 ? qs.length : (qs.length <= 8 ? 3 : 4);
+  const COLS = _ttGridCols(qs.length, W, H, 5);
   const ROWS = Math.ceil(qs.length / COLS);
   const totalW = COLS * W + (COLS - 1) * GAP;
   const totalH = ROWS * H + (ROWS - 1) * GAP;
@@ -9750,8 +9797,9 @@ function _ttPlaceCardsOnBoard(output){
   const estH = c => 44 /*header*/
     + wrapLines(c.title, titleCharsPerLine) * 24 + 8
     + wrapLines(c.text,  bodyCharsPerLine)  * 20 + 16;
-  // Reading order preserved (row-major); columns scale with item count.
-  const COLS = total <= 2 ? total : (total <= 6 ? 2 : 3);
+  // Reading order preserved (row-major); the column count is chosen for a wide
+  // grid rather than fixed thresholds, which turned six cards into a 2×3 column.
+  const COLS = _ttGridCols(total, CARD_W, 230, 4);
   const ROWS = Math.ceil(total / COLS);
   // Per-row heights (= tallest card in that row) so a long idiom gets the room it
   // needs while the grid stays aligned; shorter rows stay compact.
@@ -9803,8 +9851,11 @@ function _ttPlaceCardsOnBoard(output){
 
 function _ttPlaceVocabOnBoard(output){
   const def = getDefaults('vocab');
-  const VW = def.w, VH = def.h, GAP = 20, COLS = 4, PAD = 26, HEAD = 64;
   const items = output.items;
+  const VW = def.w, VH = def.h, GAP = 20, PAD = 26, HEAD = 64;
+  // Was a flat 4. Vocab cards are small, so a set of 12 sat in a 4×3 block when
+  // 6×2 reads across the board in one glance.
+  const COLS = _ttGridCols(items.length, VW, VH, 6);
   const cols = Math.min(items.length, COLS);
   const rows = Math.ceil(items.length / COLS);
   const FW = PAD*2 + cols*VW + (cols-1)*GAP;
