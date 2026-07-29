@@ -2559,6 +2559,40 @@ function _ttWorksheetListHTML(d, showAns, accent) {
    cost more than it bought: the height estimate already reserves room for the
    whole stage, so the clamp hid text inside space paid for, and export
    captures the DOM, so the hidden tail was missing from PNG/PDF entirely. */
+/* What the masthead should say on its big line.
+
+   The generated title is "B1 · Questions: Trump on Iran" — level, kind, then
+   the actual subject. The masthead prints the level and kind directly above it
+   in the kicker, and the card's own header bar carries the full string, so
+   using the title here spelled the same words three times on one card and left
+   the subject — the only part a teacher scans for — buried at the end of the
+   longest of them.
+
+   The server sends `topic` alongside `title` and the placement code now passes
+   it through. Cards saved before that do not have it, and re-generating a
+   board is not something anyone should have to do for a cosmetic fix, so fall
+   back to peeling the "<level> · <kind>: " prefix off the title. */
+function _wsDisplayTopic(d) {
+  if (d.topic) return d.topic;
+  const t = String(d.title || '').trim();
+  if (!t) return 'Lesson activity';
+  const kind = String(d.kind || '').trim();
+  const level = String(d.level || '').trim();
+  if (kind) {
+    /* Anchored, and the only wildcard is a CEFR token — so this can strip the
+       prefix this app generates but not a title that merely contains a colon.
+       The level is matched from the card when it has one and from its CEFR
+       shape when it does not: cards do exist whose title carries "B1 · " while
+       data.level was never stored. */
+    const lvl = level ? '(?:' + _reEsc(level) + '|[A-C][12])' : '[A-C][12]';
+    const prefix = '(?:' + lvl + '\\s*·\\s*)?' + _reEsc(kind) + ':\\s*';
+    const stripped = t.replace(new RegExp('^' + prefix, 'i'), '').trim();
+    if (stripped && stripped !== t) return stripped;
+  }
+  return t;
+}
+function _reEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
 function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
@@ -2628,8 +2662,8 @@ function renderWorksheet(el, card) {
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
   const strip = `<div class="ws-strip" style="--q-accent:${accent}">
       <div class="ws-strip-main">
-        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}${d.level ? ' · ' + esc(d.level) : ''}</span>
-        <span class="ws-strip-title">${esc(d.topic || d.title || 'Lesson activity')}</span>
+        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}${d.level ? ' · ' + esc(d.level) : ''}${d._sheetOf ? ` · Sheet ${d._sheetOf.i}/${d._sheetOf.of}` : ''}</span>
+        <span class="ws-strip-title">${esc(_wsDisplayTopic(d))}</span>
       </div>
       <div class="ws-strip-side">
         <span class="ws-pill level">${n} ${unit}</span>
@@ -2649,10 +2683,17 @@ function renderWorksheet(el, card) {
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
   // content, so a reader had nothing telling them what the block below is.
-  const sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
-                     : Array.isArray(d.items) && d.items.length ? 'Vocabulary'
-                     : Array.isArray(d.questions) && d.questions.length ? 'Questions'
-                     : '';
+  let sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
+                   : Array.isArray(d.items) && d.items.length ? 'Vocabulary'
+                   : Array.isArray(d.questions) && d.questions.length ? 'Questions'
+                   : '';
+  // …but not when the masthead's kicker directly above already says it. A
+  // Questions sheet was printing "QUESTIONS · B1" and then "QUESTIONS" again
+  // one line down, in a second size — a label that only repeats its neighbour
+  // is noise, and the space it takes belongs to the lesson.
+  if (sectionLabel && String(d.kind || '').trim().toLowerCase() === sectionLabel.toLowerCase()) {
+    sectionLabel = '';
+  }
   const eyebrow = sectionLabel ? `<div class="ws-section">${sectionLabel}</div>` : '';
   body.innerHTML = strip + eyebrow + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
   el.appendChild(body);
@@ -8452,7 +8493,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
         const x = x0 + PAD + c * (CARD_W + GAP);
         const y = y0 + HEAD + rowH.slice(0, r).reduce((s, h) => s + h + GAP, 0);
         const card = addCard('worksheet', x, y, {
-          title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
+          title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
           boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
         }, CARD_W, heights[i]);
         if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
@@ -8467,7 +8508,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       const H2 = _ttEstWorksheetHeight(out, W2);
       const cx = n ? x0 + FW / 2 : center.x;
       const card = addCard('worksheet', Math.round(cx - W2 / 2), stackY, {
-        title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
+        title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
         boardKind: out.boardKind, cards: out.cards, _ttSrc: 1,
       }, W2, H2);
       if (card) { packCardIds.push(card.id); stackY += H2 + GAP; }
@@ -9937,6 +9978,7 @@ function _ttPlaceWorksheetOnBoard(output){
     if (!placed.length) anchorX = pos.x;
     const card = addCard('worksheet', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
       title: part.title,
+      topic: part.topic,
       kind: part.kind,
       cat: part.cat,
       level: part.level || 'B1',
