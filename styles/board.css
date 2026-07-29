@@ -5301,3 +5301,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .card-cover-ic{font-size:22px;opacity:.5}
 .card-cover-t{font:800 10px var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;color:rgba(24,24,24,.42)}
 .card-reveal-toggle.is-held{opacity:1}
+
+/* ═══ Held-back cards banner (js/board-reveal.js) ═══
+   Only on screen while at least one card is hidden — a teacher who covered
+   something before the lesson should not have to remember it later. */
+#reveal-bar{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:905;
+  display:none;align-items:center;gap:10px;padding:6px 8px 6px 14px;border-radius:999px;
+  background:rgba(27,28,34,.92);color:#fff;box-shadow:0 10px 30px rgba(16,16,18,.28);
+  font:800 12px var(--font,system-ui)}
+#reveal-bar.show{display:flex}
+#reveal-bar-count{white-space:nowrap;letter-spacing:-.01em}
+#reveal-bar-btn{border:0;border-radius:999px;padding:6px 12px;cursor:pointer;
+  background:#CDF24F;color:#151515;font:800 12px var(--font,system-ui);white-space:nowrap}
+#reveal-bar-btn:hover{background:#d8f76e}
+@media(max-width:600px){#reveal-bar{top:58px;font-size:11px;padding:5px 6px 5px 11px}}

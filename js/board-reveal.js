@@ -93,6 +93,7 @@
     }
 
     refreshHeader(cardId);
+    refreshRevealBar();
     // The save is what pushes the change through the server filter to students.
     if (typeof scheduleSave === 'function') scheduleSave();
     if (typeof saveLocal === 'function') saveLocal();
@@ -125,6 +126,34 @@
     });
   });
 
+  /* The banner is the only way to reach revealAllForStudents(), so it has to be
+     right whenever the board changes — including undo, redo and a change that
+     arrived from someone else. Rather than reach into board-app's render path,
+     recompute on our own actions plus a slow tick; counting a few hundred cards
+     costs nothing next to a repaint. */
+  function refreshRevealBar() {
+    var bar = document.getElementById('reveal-bar');
+    if (!bar) return;
+    var n = 0;
+    try {
+      if (typeof state !== 'undefined' && state && Array.isArray(state.cards)) {
+        n = state.cards.filter(isHeldBack).length;
+      }
+    } catch (e) { n = 0; }
+    // A student cannot reveal anything, and their held-back cards arrive
+    // stripped anyway — the banner is for whoever owns the board.
+    if (!n || !canHoldBack()) { bar.classList.remove('show'); return; }
+    var label = document.getElementById('reveal-bar-count');
+    if (label) label.textContent = n + ' card' + (n === 1 ? '' : 's') + ' hidden from students';
+    bar.classList.add('show');
+  }
+  window.refreshRevealBar = refreshRevealBar;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    refreshRevealBar();
+    setInterval(refreshRevealBar, 1500);
+  });
+
   // Reveal everything at once — the usual end-of-task move.
   window.revealAllForStudents = function () {
     if (!canHoldBack()) return;
@@ -133,6 +162,7 @@
     if (!held.length) { if (typeof toast === 'function') toast('Nothing is hidden right now.'); return; }
     if (typeof snapshot === 'function') snapshot();
     held.forEach(function (c) { c.data.revealed = true; refreshHeader(c.id); });
+    refreshRevealBar();
     if (typeof scheduleSave === 'function') scheduleSave();
     if (typeof saveLocal === 'function') saveLocal();
     if (typeof toast === 'function') toast('👁 Revealed ' + held.length + ' card' + (held.length === 1 ? '' : 's'));
