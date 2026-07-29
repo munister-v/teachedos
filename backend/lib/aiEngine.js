@@ -12,7 +12,7 @@
 // Examples:
 //   Groq    : AI_BASE_URL=https://api.groq.com/openai/v1            AI_MODEL=llama-3.3-70b-versatile
 //   Gemini  : AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai  AI_MODEL=gemini-2.0-flash
-//   OpenRouter: AI_BASE_URL=https://openrouter.ai/api/v1            AI_MODEL=meta-llama/llama-3.3-70b-instruct:free
+//   OpenRouter: AI_BASE_URL=https://openrouter.ai/api/v1            AI_MODEL=openai/gpt-oss-20b:free
 //   OpenRouter native fallback chain:
 //     AI_OPENROUTER_MODELS=model-a,model-b,model-c
 //     AI_OPENROUTER_SORT=throughput|latency|price
@@ -33,12 +33,21 @@ function uniq(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
-const OPENROUTER_DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+/* OpenRouter's free tier is the backstop for when Groq rate-limits us, and on
+   2026-07-29 every model listed here answered 404 — "unavailable for free, the
+   paid version is available now". All four had been retired from the free tier,
+   so the backstop had quietly not existed for some time: a 429 from Groq went
+   straight to the rule engine while the logs blamed OpenRouter.
+
+   Checked against the live API; these three answered 200 that day. They will
+   rot the same way and nothing here will notice, so when the logs start showing
+   404s from OpenRouter, set AI_OPENROUTER_MODELS in .env to a working list —
+   that overrides this one and needs a restart, not a deploy. */
+const OPENROUTER_DEFAULT_MODEL = 'openai/gpt-oss-20b:free';
 const OPENROUTER_FALLBACK_MODELS = listEnv('AI_OPENROUTER_MODELS', [
   OPENROUTER_DEFAULT_MODEL,
-  'google/gemini-2.0-flash-exp:free',
-  'qwen/qwen-2.5-72b-instruct:free',
-  'deepseek/deepseek-chat:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'inclusionai/ling-3.0-flash:free',
 ]);
 
 const PRIMARY_KEY = process.env.AI_API_KEY || '';
@@ -77,12 +86,13 @@ const OPENROUTER_PROVIDER = CHAIN.find(p => p.baseUrl.includes('openrouter')) ||
 
 // Curated list of free OpenRouter models offered in the games/create.html
 // "AI model" switcher. Any of these can be requested via input.model.
+// Every name in the previous list had been retired from OpenRouter's free tier
+// and returned 404, so the switcher was offering a teacher five models that
+// could not answer. Kept in step with OPENROUTER_FALLBACK_MODELS above.
 const FREE_MODELS = [
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemini-2.0-flash-exp:free',
-  'deepseek/deepseek-chat:free',
-  'qwen/qwen-2.5-72b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
+  'openai/gpt-oss-20b:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'inclusionai/ling-3.0-flash:free',
 ];
 
 // Primary descriptors kept for status reporting / the engine label.

@@ -8101,6 +8101,56 @@ async function runYtLesson() {
 // Core build: fetch transcript (cached per-URL) → generate exercises in a
 // concurrency-limited pool → place them on the board. The server already owns
 // provider retries/fallbacks, so the client does not retry the same exercise.
+/* ─────────── HOW MUCH OF THE TRANSCRIPT ACTUALLY GOES TO THE MODEL ───────────
+
+   The whole thing used to, and that is what broke this feature. A full
+   transcript pushed each request to roughly 8,300 tokens, and on the free Groq
+   tier that meant:
+
+     llama-3.3-70b-versatile   429 — the account allows 12,000 tokens a minute,
+                                     and this flow fires two requests at once
+     llama-3.1-8b-instant      413 — over the per-request ceiling outright
+
+   Both tiers refused, the OpenRouter backstop was answering 404 (dead model
+   slug), and so every exercise came from the rule engine. What looked like a
+   quality problem in the generator was the generator never running.
+
+   Sampling, not truncation: a lesson built from the first 7,000 characters of a
+   twenty-minute video asks only about its opening. This keeps a generous head —
+   where the topic is actually established — then spreads the rest of the budget
+   over evenly spaced windows, each cut back to a sentence boundary so the model
+   is not handed half a word. */
+const YT_SOURCE_BUDGET = 7000;
+
+function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
+  const t = String(text || '').trim();
+  if (t.length <= budget) return t;
+
+  const HEAD = Math.round(budget * 0.4);
+  const WINDOWS = 4;
+  const winLen = Math.floor((budget - HEAD) / WINDOWS);
+
+  // Trim to the last sentence end inside the slice, so long as that does not
+  // throw most of the window away.
+  const toBoundary = (s) => {
+    const cut = Math.max(s.lastIndexOf('. '), s.lastIndexOf('! '), s.lastIndexOf('? '));
+    return cut > s.length * 0.6 ? s.slice(0, cut + 1) : s;
+  };
+
+  const parts = [toBoundary(t.slice(0, HEAD))];
+  // Spread the windows so the LAST one ends at the end of the transcript.
+  // Stepping by an even fraction of what remains instead left the final
+  // stretch of the video unsampled — a lesson that never asks how it concluded.
+  const span = Math.max(0, t.length - winLen - HEAD);
+  for (let i = 0; i < WINDOWS; i++) {
+    const start = HEAD + Math.round(span * (i / Math.max(1, WINDOWS - 1)));
+    parts.push(toBoundary(t.slice(start, start + winLen)));
+  }
+  // The marker is for the model, not the teacher: without it the jumps between
+  // windows read as incoherent speech and it tries to explain the discontinuity.
+  return parts.join('\n[…]\n');
+}
+
 async function _ytGenerate(url, level, picks, transcriptOverride) {
   const runBtn = document.getElementById('yt-lesson-run');
   const cancelBtn = document.getElementById('yt-lesson-cancel');
@@ -8143,12 +8193,17 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     const failed = [];
     let done = 0;
 
+    // Sampled once, not per tool: every exercise should be built from the same
+    // view of the video, or two sheets about "the same" lesson quietly cover
+    // different halves of it.
+    const source = _ytSampleTranscript(transcript);
+
     async function genOne(toolId) {
       if (signal.aborted) return null;
       statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
       let out = null;
       out = await requestServerTeacherTool(
-        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source: transcript },
+        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source },
         35000, signal);
       if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
       done++;
