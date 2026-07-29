@@ -8115,12 +8115,25 @@ async function runYtLesson() {
    slug), and so every exercise came from the rule engine. What looked like a
    quality problem in the generator was the generator never running.
 
-   Sampling, not truncation: a lesson built from the first 7,000 characters of a
-   twenty-minute video asks only about its opening. This keeps a generous head —
-   where the topic is actually established — then spreads the rest of the budget
-   over evenly spaced windows, each cut back to a sentence boundary so the model
-   is not handed half a word. */
-const YT_SOURCE_BUDGET = 7000;
+   Sampling, not truncation: a lesson built from the first few thousand
+   characters of a twenty-minute video asks only about its opening. This keeps a
+   generous head — where the topic is actually established — then spreads the
+   rest of the budget over evenly spaced windows, each cut back to a sentence
+   boundary so the model is not handed half a word.
+
+   And the budget is per tool, because the six tools do not need the same thing.
+   Five of them read the transcript closely — they quote it, gap it, or ask
+   about details in it. The lesson plan does not: it needs to know what the video
+   is about, and a plan is not improved by feeding it every sentence. Sending all
+   six the same block meant paying for the same transcript six times over, which
+   is what put a single lesson over the minute's token allowance in the first
+   place. TT_NEEDS_SOURCE_SET is the app's own answer to which is which. */
+const YT_SOURCE_BUDGET = 4000;   // tools that read the text
+const YT_BRIEF_BUDGET  = 1200;   // tools that only need the gist
+
+function _ytBudgetFor(toolId) {
+  return TT_NEEDS_SOURCE_SET.has(toolId) ? YT_SOURCE_BUDGET : YT_BRIEF_BUDGET;
+}
 
 function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
   const t = String(text || '').trim();
@@ -8193,17 +8206,22 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     const failed = [];
     let done = 0;
 
-    // Sampled once, not per tool: every exercise should be built from the same
-    // view of the video, or two sheets about "the same" lesson quietly cover
-    // different halves of it.
-    const source = _ytSampleTranscript(transcript);
+    // Sampled once per budget, not once per tool: every exercise should be built
+    // from the same view of the video, or two sheets about "the same" lesson
+    // quietly cover different halves of it. Both samples start from the head, so
+    // the brief is a shorter view of the same material, not a different one.
+    const sampled = {
+      [YT_SOURCE_BUDGET]: _ytSampleTranscript(transcript, YT_SOURCE_BUDGET),
+      [YT_BRIEF_BUDGET]:  _ytSampleTranscript(transcript, YT_BRIEF_BUDGET),
+    };
 
     async function genOne(toolId) {
       if (signal.aborted) return null;
       statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
       let out = null;
       out = await requestServerTeacherTool(
-        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source },
+        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson',
+          source: sampled[_ytBudgetFor(toolId)] },
         35000, signal);
       if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
       done++;
