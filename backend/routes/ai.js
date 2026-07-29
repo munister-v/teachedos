@@ -178,17 +178,53 @@ function cacheSet(key, value) {
   while (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
 }
 
+// Auto-generated YouTube captions arrive with no punctuation at all, so the
+// old split on [.!?] returned ONE fragment holding the entire transcript. It
+// passed the length check and was handed straight into a question, which is how
+// a comprehension task ended up printing forty lines of raw speech — and why
+// the card it lived in stretched to thousands of pixels.
+const TRANSCRIPT_NOISE = /\[(music|applause|laughter|inaudible|foreign)\]/gi;
+const SENTENCE_MAX = 240;            // longer than this is not a sentence a student reads
+
+// Cut an unpunctuated run at a discourse marker near the middle, so the pieces
+// break where a speaker actually pauses rather than mid-clause.
+function splitRun(text, max = 180) {
+  const out = [];
+  let rest = clean(text);
+  let guard = 0;
+  while (rest.length > max && guard++ < 60) {
+    const window = rest.slice(0, max);
+    const marker = Math.max(
+      window.lastIndexOf(' and '), window.lastIndexOf(' but '), window.lastIndexOf(' so '),
+      window.lastIndexOf(' because '), window.lastIndexOf(' then '), window.lastIndexOf(' which '),
+    );
+    const cut = marker > max * 0.4 ? marker : window.lastIndexOf(' ');
+    if (cut <= 0) break;
+    out.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+}
+
 function sourceSentences(source, topic, count) {
-  const parts = String(source || '')
+  const raw = String(source || '').replace(TRANSCRIPT_NOISE, ' ');
+  const parts = raw
     .split(/(?<=[.!?])\s+|\n+/)
-    .map(s => clean(s))
-    .filter(s => s.length > 18)
+    .flatMap(s => {
+      const t = clean(s);
+      // A fragment far past sentence length means the source was unpunctuated.
+      return t.length > SENTENCE_MAX ? splitRun(t) : [t];
+    })
+    .filter(s => s.length > 18 && s.length <= SENTENCE_MAX)
     .slice(0, Math.max(count, 12));
   if (parts.length) return parts;
   return Array.from({ length: count }, (_, i) =>
     `${topic} creates a realistic classroom situation where students need to notice meaning, choose accurate language and explain their answer.`
   );
 }
+
+const STOPWORDS = new Set(('about above actually after again against almost already also although always among another anything around because been before being below between both cannot could didn does doesn doing done down during each either else enough even ever every everything from further gonna gotta guys have having here hers herself himself into itself just keep kind know like little long look made make many maybe mean might more most much must myself need never next nothing okay once only other ours ourselves over own people perhaps place probably quite rather really right said same says seem seen several shall should show since some something sometimes soon still such sure take than that thats their theirs them themselves then there these they thing things think this those though thought three through thus time together told too took under until upon used using very want was wasn way well went were what when where whether which while who whom whose why will with within without won would yeah yes yet you your yours yourself').split(' '));
 
 function vocabList(input, count = input.count) {
   const direct = String(input.vocab || '')
@@ -197,11 +233,21 @@ function vocabList(input, count = input.count) {
     .filter(Boolean);
   if (direct.length) return direct.slice(0, count);
 
+  // Taking the first unique 4+ letter words in document order, minus an
+  // eleven-word stoplist, meant a transcript handed back whatever the speaker
+  // said in their opening seconds — "know, even, though, tired, feel" as the
+  // lesson's target language. Score by how much a word is actually used and how
+  // substantial it is, and throw away function words and speech filler.
   const sourceWords = String(input.source || '')
+    .replace(TRANSCRIPT_NOISE, ' ')   // else "[Applause]" scores as a topic word
     .toLowerCase()
     .match(/[a-z][a-z'-]{3,}/g) || [];
-  const unique = [...new Set(sourceWords)]
-    .filter(w => !['that', 'this', 'with', 'from', 'have', 'were', 'will', 'there', 'their', 'about', 'because'].includes(w))
+  const freq = new Map();
+  sourceWords.forEach(w => { if (!STOPWORDS.has(w)) freq.set(w, (freq.get(w) || 0) + 1); });
+  const unique = [...freq.entries()]
+    // repetition signals a topic word; length breaks ties toward the meatier one
+    .sort((a, b) => (b[1] * 10 + b[0].length) - (a[1] * 10 + a[0].length))
+    .map(e => e[0])
     .slice(0, count);
   if (unique.length >= Math.min(6, count)) return unique;
 
@@ -346,12 +392,27 @@ function makeCards(input) {
     'debate-cards': ['For', 'Against', 'Evidence', 'Rebuttal', 'Final vote'],
   }[input.toolId] || ['Teacher setup', 'Student task', 'Model answer', 'Practice', 'Feedback'];
 
+  // Looping the stage names with % meant asking for 8 cards produced Warmer and
+  // Input twice — a lesson plan with two warmers. A pack has as many stages as
+  // it has, and no more.
+  const MOVES = [
+    'model one example, then ask students to upgrade their answer',
+    'elicit first, correct after — let the class self-repair',
+    'pair students, then swap partners once for a second attempt',
+    'drill the form chorally, then individually',
+    'set a short time limit and take feedback on the board',
+    'collect two answers, one strong and one weak, and compare them',
+  ];
   const cards = [];
-  for (let i = 0; i < input.count; i++) {
-    const stage = stages[i % stages.length];
+  const n = Math.min(input.count, stages.length);
+  for (let i = 0; i < n; i++) {
+    const stage = stages[i];
+    const focus = words.slice(i, i + 5).filter(Boolean);
     cards.push({
       title: stage,
-      text: `${stage} for ${input.topic} (${input.level}).\nTarget language: ${words.slice(i, i + 5).join(', ') || input.topic}.\nTeacher move: model one example, then ask students to upgrade their answer.`,
+      text: `${stage} for ${input.topic} (${input.level}).`
+        + (focus.length ? `\nTarget language: ${focus.join(', ')}.` : '')
+        + `\nTeacher move: ${MOVES[i % MOVES.length]}.`,
     });
   }
   cards.push({

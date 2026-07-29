@@ -8221,9 +8221,16 @@ function _ytRetryFailed() {
 function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   const gridResults = results.filter(out => !cardsResults.includes(out));
-  const CARD_W = 440, GAP = 26, PAD = 30, HEAD = 64;
+  // 440 was tight for a worksheet: questions wrapped every few words and the
+  // card grew downwards instead of sideways.
+  const CARD_W = 560, GAP = 26, PAD = 30, HEAD = 64;
   const n = gridResults.length;
-  const heights = gridResults.map(_ttEstWorksheetHeight);
+  // Measured against the real card width, and capped: an unclamped estimate over
+  // a runaway generated question is what produced the tall narrow columns.
+  // 1600 still holds a long worksheet; past that the sheet splitter should have
+  // broken it into parts anyway.
+  const heights = gridResults.map(out =>
+    _ttEstWorksheetHeight(out, CARD_W));
   const cols = n <= 2 ? n : 3;
   const rows = Math.ceil(n / cols);
   // Each grid row is as tall as its tallest card.
@@ -8279,7 +8286,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     cardsResults.forEach(out => {
       const cols2 = _ttLessonPackCols(out.cards.length);
       const W2 = Math.min(1180, 210 + cols2 * 300);
-      const H2 = _ttEstWorksheetHeight(out);
+      // Every other call site clamps; this one did not, so a runaway generated
+      // question produced a card thousands of pixels tall.
+      const H2 = _ttEstWorksheetHeight(out, W2);
       const cx = n ? x0 + FW / 2 : center.x;
       const card = addCard('worksheet', Math.round(cx - W2 / 2), stackY, {
         title: out.title, kind: out.kind, cat: out.cat, level: out.level || 'B1',
@@ -9121,7 +9130,7 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
       console.warn('[tt-ai-server] unavailable', data?.error || response.status);
       return null;
     }
-    return data.output;
+    return _ttSanitizeOutput(data.output);
   } catch (err) {
     if (err.name !== 'AbortError') console.warn('[tt-ai-server] fallback:', err.message);
     return null;
@@ -9356,6 +9365,62 @@ function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); 
    print lost questions).
    Bias is deliberately toward OVER-estimating: extra blank space at the bottom
    of a card is harmless, clipped questions are not. */
+/* Generated content is not always sane. When the AI engine is busy the server
+   falls back to a rule engine, and on an unpunctuated YouTube transcript that
+   handed back the ENTIRE transcript as question one — a card several thousand
+   pixels tall, which is what "it stretches" meant.
+
+   The cap has to be on the TEXT, not on the height estimate. Capping the
+   estimate over uncapped text would put the sizer and the renderer back out of
+   step, which is precisely how sheets started scrolling before (see the notes
+   on WS_H below). Trim here, where output enters the app, and every path — the
+   YouTube builder, the tools sidebar, the composer — gets the same guarantee. */
+const TT_CAP = { question: 320, option: 140, item: 200, title: 120 };
+
+function _ttTrim(value, max) {
+  const s = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > max * 0.6 ? cut.slice(0, sp) : cut).trim() + '…';
+}
+
+function _ttSanitizeOutput(out) {
+  if (!out || typeof out !== 'object') return out;
+  try {
+    if (Array.isArray(out.questions)) {
+      out.questions.forEach(q => {
+        if (!q) return;
+        if (q.text)   q.text   = _ttTrim(q.text, TT_CAP.question);
+        if (q.answer && typeof q.answer === 'string') q.answer = _ttTrim(q.answer, TT_CAP.option);
+        if (Array.isArray(q.options)) q.options = q.options.map(o => _ttTrim(o, TT_CAP.option));
+        if (Array.isArray(q.pairs)) {
+          q.pairs = q.pairs.map(p => (p && typeof p === 'object')
+            ? { ...p, left: _ttTrim(p.left, TT_CAP.option), right: _ttTrim(p.right, TT_CAP.option) }
+            : p);
+        }
+      });
+    }
+    if (Array.isArray(out.items)) {
+      out.items.forEach(i => {
+        if (!i) return;
+        if (i.word)       i.word       = _ttTrim(i.word, TT_CAP.title);
+        if (i.definition) i.definition = _ttTrim(i.definition, TT_CAP.item);
+        if (i.example)    i.example    = _ttTrim(i.example, TT_CAP.item);
+      });
+    }
+    if (Array.isArray(out.cards)) {
+      out.cards.forEach(c => {
+        if (!c) return;
+        if (c.title) c.title = _ttTrim(c.title, TT_CAP.title);
+        // pack cards are multi-line on purpose — cap each line, keep the shape
+        if (c.text) c.text = String(c.text).split('\n').map(l => _ttTrim(l, TT_CAP.item)).join('\n');
+      });
+    }
+  } catch (e) { /* never let tidying block a result the teacher is waiting on */ }
+  return out;
+}
+
 const WS_H = {
   mcqBase: 88, mcqPerOption: 74,   // measured: option 72px, 4-option card 356px
   trueFalse: 136,                  // measured 128
@@ -9375,12 +9440,17 @@ const WS_H = {
    sheet splitter has to measure questions the same way the card sizer does —
    two copies of these sums drifting apart is exactly what silently clipped
    sheets before (the old estimate assumed 26px option rows against a real 44). */
-function _ttQuestionHeight(q){
+function _ttQuestionHeight(q, k = 1){
   // Wrapped lines, not just item counts. Every constant here assumed one line
   // of prompt and one line per option; a long generated question or option
   // then under-measured the card and it scrolled — the same way the masthead
   // title did once it was allowed to wrap.
-  const rows = (text, per) => Math.max(0, Math.ceil(String(text || '').length / per) - 1);
+  // k scales the per-row character counts, which were measured on a 440px card:
+  // a wider sheet fits more characters per line, so the same text wraps fewer
+  // times. Without it a 560px card is measured as if it were still 440 and comes
+  // out needlessly tall — the same estimate/render mismatch as the old bugs,
+  // just in the other direction.
+  const rows = (text, per) => Math.max(0, Math.ceil(String(text || '').length / (per * k)) - 1);
   const extra = rows(q.text, WS_H.qCharsPerRow) * WS_H.qRow;
   if (q.type === 'mcq' && Array.isArray(q.options)) {
     const opts = q.options.reduce((sum, o) =>
@@ -9404,7 +9474,8 @@ function _ttChipsPerRow(items){
   }, 0) / Math.max(1, items.length);
   return Math.max(1, Math.floor(WS_H.chipUsable / Math.max(1, avg)));
 }
-function _ttEstWorksheetHeight(output){
+function _ttEstWorksheetHeight(output, cardW = 440){
+  const k = Math.max(0.6, cardW / 440);   // constants below were measured at 440px
   let sum = 0;
   let chrome = WS_H.chromeQuestions;
   /* The masthead title is generated, so its length is unknown, and it wraps
@@ -9416,7 +9487,7 @@ function _ttEstWorksheetHeight(output){
   const titleLen = String(output.topic || output.title || '').length;
   const titleExtra = Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
   if (Array.isArray(output.questions)) {
-    for (const q of output.questions) sum += _ttQuestionHeight(q);
+    for (const q of output.questions) sum += _ttQuestionHeight(q, k);
     sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
   } else if (Array.isArray(output.items)) {
     /* Chips wrap, so height follows how many fit per row — not their summed
