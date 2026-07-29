@@ -789,28 +789,49 @@ const METRICS = {
   startedAt: new Date().toISOString(),
 };
 
-// Primary entry: try the LLM, fall back to the local rule engine on any error.
+/* Primary entry: try the LLM, fall back to the local rule engine on any error.
+
+   The fallback used to be silent to the caller, and that silence was its own
+   problem: the rule engine writes noticeably flatter material, so a teacher who
+   got it had no way to tell whether the tool is simply like this or whether
+   today it could not reach the model. `engine` now travels with every output —
+   and into the cache with it, which is right, since a cached result really was
+   made by whatever produced it — so the board can label what it is showing. */
 async function generate(input) {
-  if (aiEngine.enabled()) {
-    try {
-      input.boardKind = boardKindFor(input.toolId);
-      const out = assembleFromLLM(input, await aiEngine.generate(input));
-      METRICS.llmOk++;
-      const m = aiEngine.getLastModel() || aiEngine.MODEL;
-      METRICS.lastModel = m;
-      METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-      METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
-      recordUsage('llm_ok');
-      return out;
-    } catch (err) {
-      METRICS.fallback++;
-      METRICS.lastError = err.message;
-      METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-      recordUsage('fallback');
-      console.error('[ai/llm] falling back to rule engine:', err.message);
-    }
+  const local = (reason) => {
+    const out = generateLocal(input);
+    out.engine = 'rules';
+    out.engineReason = reason;
+    return out;
+  };
+
+  if (!aiEngine.enabled()) return local('not-configured');
+
+  try {
+    input.boardKind = boardKindFor(input.toolId);
+    const out = assembleFromLLM(input, await aiEngine.generate(input));
+    out.engine = 'ai';
+    METRICS.llmOk++;
+    const m = aiEngine.getLastModel() || aiEngine.MODEL;
+    METRICS.lastModel = m;
+    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
+    recordUsage('llm_ok');
+    return out;
+  } catch (err) {
+    METRICS.fallback++;
+    METRICS.lastError = err.message;
+    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    recordUsage('fallback');
+    console.error('[ai/llm] falling back to rule engine:', err.message);
+    // Coarse reason only. The raw error can name the provider, the model and
+    // occasionally part of the request, none of which belongs on a teacher's
+    // screen; the detail stays in METRICS.lastError for /status.
+    return local(
+      /timeout|abort|ETIMEDOUT/i.test(err.message) ? 'timeout'
+      : /429|rate|quota|limit/i.test(err.message) ? 'busy'
+      : 'error');
   }
-  return generateLocal(input);
 }
 
 router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req, res) => {

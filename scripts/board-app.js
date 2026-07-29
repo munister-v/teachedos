@@ -8225,12 +8225,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   // card grew downwards instead of sideways.
   const CARD_W = 560, GAP = 26, PAD = 30, HEAD = 64;
   const n = gridResults.length;
-  // Measured against the real card width, and capped: an unclamped estimate over
-  // a runaway generated question is what produced the tall narrow columns.
-  // 1600 still holds a long worksheet; past that the sheet splitter should have
-  // broken it into parts anyway.
-  const heights = gridResults.map(out =>
-    _ttEstWorksheetHeight(out, CARD_W));
+  // Measured against the REAL card width — the estimator assumes 440 unless
+  // told otherwise, so every wide card here used to be estimated far too tall.
+  // Deliberately not clamped on top of that: _ttEstWorksheetHeight already
+  // stops at WS_MAX_SHEET, and a card shorter than its content scrolls, which
+  // html2canvas silently crops out of the PNG. Overlong output is cut back in
+  // _ttSanitizeOutput instead, where it costs nothing but words.
+  const heights = gridResults.map(out => _ttEstWorksheetHeight(out, CARD_W));
   const cols = n <= 2 ? n : 3;
   const rows = Math.ceil(n / cols);
   // Each grid row is as tall as its tallest card.
@@ -8259,6 +8260,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     const t = videoTitle.length > 60 ? videoTitle.slice(0, 57).trim() + '…' : videoTitle;
     title = `🎬  ${t}`;
   }
+  /* When the model cannot be reached the server quietly answers from its rule
+     engine instead. The material is usable but noticeably flatter, and until
+     now nothing said so — a teacher blamed the tool for output it only produces
+     when it is running blind. Say it on the frame, which stays with the lesson,
+     rather than only in a toast the teacher may miss. */
+  const ruleMade = results.filter(o => o && o.engine === 'rules');
+  if (ruleMade.length) title += '   ·  ⚠︎ draft — AI unavailable';
   snapshot(); _suppressSnapshot++;
   let frame;
   try {
@@ -8286,8 +8294,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     cardsResults.forEach(out => {
       const cols2 = _ttLessonPackCols(out.cards.length);
       const W2 = Math.min(1180, 210 + cols2 * 300);
-      // Every other call site clamps; this one did not, so a runaway generated
-      // question produced a card thousands of pixels tall.
+      // W2, not CARD_W — this branch places at its own landscape width.
       const H2 = _ttEstWorksheetHeight(out, W2);
       const cx = n ? x0 + FW / 2 : center.x;
       const card = addCard('worksheet', Math.round(cx - W2 / 2), stackY, {
@@ -8302,6 +8309,15 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     if (zoomTarget) { clearSelection?.(); selectCard?.(zoomTarget); setTimeout(() => { try { zoomToCard?.(zoomTarget, true); } catch (e) {} }, 80); }
   } finally { _suppressSnapshot--; }
   scheduleSave?.(); saveLocal?.();
+  // The toast fades after 1.8s, so it is the nudge, not the record — the frame
+  // title above carries the same warning for as long as the lesson exists.
+  if (ruleMade.length) {
+    const why = ruleMade[0].engineReason;
+    const cause = why === 'busy' ? 'AI was busy'
+      : why === 'timeout' ? 'AI timed out'
+      : 'AI unavailable';
+    toast('⚠︎ ' + cause + ' — ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
+  }
 }
 
 // Tools that produce a single artifact or a fixed scaffold — the "Items" count
