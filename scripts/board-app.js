@@ -8294,8 +8294,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     // was nothing else to grid).
     let stackY = n ? y0 + FH + GAP : (Math.round(center.y - 200));
     cardsResults.forEach(out => {
-      const cols2 = _ttLessonPackCols(out.cards.length);
-      const W2 = Math.min(1180, 210 + cols2 * 300);
+      const W2 = _packWidth(out.cards.length);
       // W2, not CARD_W — this branch places at its own landscape width.
       const H2 = _ttEstWorksheetHeight(out, W2);
       const cx = n ? x0 + FW / 2 : center.x;
@@ -9636,21 +9635,23 @@ function _ttGridCols(count, cellW, cellH, maxCols = 6, targetRatio = 2.2) {
   return best;
 }
 
-/* Column count for the Lesson Pack stage grid — kept in one place so the
-   width, the height estimate, and the CSS grid-template all agree.
+/* Nominal width of one Lesson Pack stage column, and the widest the card may
+   get. The cap has to leave room for the column count actually chosen — at the
+   old 1180 a 4-column pack was handed a card that only fits three. */
+const PACK_COL_W = 300, PACK_CHROME_W = 210, PACK_MAX_W = PACK_CHROME_W + 4 * PACK_COL_W;
+function _packWidth(count){ return Math.min(PACK_MAX_W, PACK_CHROME_W + _ttLessonPackCols(count) * PACK_COL_W); }
 
-   Deliberately NOT routed through _ttGridCols. This number does not position
-   anything: the stages are one CSS grid inside a single card, and .ws-list-cards
-   lays them out with auto-fit/minmax, so the browser picks the real column count
-   from the card's width. Raising this to 4 only widened the card past the point
-   where a 4th column fits, and the height estimate — which trusts this number —
-   would then have been short of what rendered. */
-function _ttLessonPackCols(count){ return count <= 4 ? 2 : 3; }
+/* Column count for the Lesson Pack stage grid — the one place that decides, so
+   the card's width, its height estimate and the rendered grid cannot disagree.
+   .ws-list-cards now reads this through --lp-cols rather than choosing its own
+   column count from the card width, which is what let the estimate size a card
+   for a grid the browser never drew. */
+function _ttLessonPackCols(count){ return _ttGridCols(count, PACK_COL_W, 230, 4); }
 function _ttPlaceWorksheetOnBoard(output){
   const isCards = Array.isArray(output.cards) && output.cards.length > 0;
   // Landscape width for Lesson Packs so stages sit in columns instead of one
   // long vertical scroll; everything else keeps the narrower reading width.
-  const W = isCards ? Math.min(1180, 210 + _ttLessonPackCols(output.cards.length) * 300) : 640;
+  const W = isCards ? _packWidth(output.cards.length) : 640;
   // Output taller than one card becomes consecutive sheets. Anything that fits
   // comes back as a single-element array holding the original object, so the
   // ordinary case runs exactly the path it always did.

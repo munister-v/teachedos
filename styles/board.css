@@ -3429,9 +3429,20 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 4px 4px 0;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
-	   sequence still scans like a timeline. Falls back to 1 column on a
-	   narrow/unresized card instead of clipping. */
-	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
+	   sequence still scans like a timeline.
+
+	   The column count comes from --lp-cols, set by the renderer. It used to be
+	   auto-fit/minmax, which meant the BROWSER chose the columns from the card's
+	   width while _ttEstWorksheetHeight sized the card from _ttLessonPackCols —
+	   two answers to one question. Measured against the real stylesheet, they
+	   disagreed at 5 of 9 pack sizes: the card was built for four columns and
+	   the browser drew three, so the content ran past the height the card was
+	   given. One source now decides.
+
+	   minmax(0,1fr), not minmax(<width>,1fr): with an explicit column count the
+	   columns must be free to shrink, or a hand-narrowed card overflows instead
+	   of squeezing. */
+	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(var(--lp-cols,2),minmax(0,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
 	  position:relative;border:2px solid var(--ws-line);background:#fff;
 	  border-radius:18px;padding:16px;
