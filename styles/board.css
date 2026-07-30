@@ -246,6 +246,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   gap:4px;align-items:stretch;justify-content:space-between;
 }
 [data-theme="dark"] #mobile-quickbar{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+
+/* The mobile Add sheet needs its resting state HERE, outside the media query,
+   for the same reason #mobile-quickbar above does. Its only other rules live in
+   @media(max-width:860px), so on a desktop viewport it was styled by nothing at
+   all: a plain block div, first child of <body>, sitting in the document flow at
+   y=0 with eight inline-block tiles across it — "📝Sticky TText ◯Shape ⊟Frame
+   ↔Arrow 😊Sticker 📚Library 💬Comment". #toolbar is fixed with z-index 1000 so
+   it kept the clicks, but its background is rgba(255,252,246,.9) over
+   backdrop-filter:blur(22px), and 10% translucency plus a blur is enough to
+   smear that stray row of labels across the top navigation. That was the
+   desktop artifact. */
+.mq-add-sheet{display:none;position:fixed;}
+
 .mq-btn{
   flex:1;min-width:0;height:46px;
   border:none;border-radius:11px;background:transparent;
@@ -1553,8 +1566,20 @@ body.alt-duplicating *{cursor:copy!important;}
   /* layout+style+paint containment — browser skips recalc/repaint outside card bounds */
   contain:layout style paint;
   isolation:isolate;
-  will-change:transform,box-shadow;
-  transform:translateZ(0);
+  /* No permanent will-change or translateZ(0). Each of those pins the card to
+     its own compositor layer for as long as the board is open, and a board is
+     many cards — measured on a 40-card board, all 40 were promoted. That is the
+     intermittent-artifact case: it needs several elements before Chrome starts
+     mis-invalidating, which is why it never showed on a board with three.
+     harmony.css reached this conclusion already — "Remove will-change
+     everywhere — too many layers = OOM & stretching" — but scoped the guard to
+     a mobile media query, and a desktop board holds more cards, not fewer.
+     box-shadow is not a compositable property, so naming it here bought
+     nothing and cost a layer.
+     Neither declaration carried behaviour: cards are placed with left/top, and
+     every transform a card uses (hover lift, .dragging, cardPopIn) is declared
+     on that state and includes its own translateZ(0). Promotion during a move
+     comes from body.board-dragging below, which is exactly when it pays. */
 }
 .board-card.selected{
   border-color:var(--accent);
