@@ -8075,6 +8075,12 @@ const TT_REQUIRE_VOCAB_SET = new Set([
   // word-definition-match works from a word list — definitions are auto-filled,
   // no source text needed; block only until the words are given.
   'word-definition-match',
+  // The five vocabulary drills below moved into TT_LOCAL_QUALITY_SET, and they
+  // are the teacher's own words plus a fixed instruction — with the field empty
+  // their generator returns null and the caller drops to the generic scaffold.
+  // Asking for the words is the honest branch: "Give a synonym for ___" has
+  // nothing to be about otherwise. Same pattern as word-definition-match above.
+  'collocations','synonyms-antonyms','word-families','phrasal-verbs','idioms',
 ]);
 // Listening / video tools — offer a YouTube link that auto-fills the transcript.
 const TT_MEDIA_SET = new Set([
@@ -10404,10 +10410,21 @@ function buildLessonFromSelected(){
 //    half into meaningless "Category A/B"), two-options (two random words as the
 //    choices), odd-one-out (random 4 words, no shared category), simplify-text
 //    (a template can't actually re-level a text).
+//
+// The five vocabulary drills on the last line were in neither list — never
+// argued against, just never considered. They belong here: each one is the
+// teacher's own word plus a fixed instruction ("give a synonym and an antonym",
+// "complete the word family", "explain the idiom and use it in a sentence").
+// There is nothing for a template to get wrong, because there is no answer key
+// and no text to understand — the model words the prompt more gracefully, and
+// that is the whole of the difference. Every one of them is also in
+// TT_REQUIRE_VOCAB_SET, so the empty-field case asks for words instead of
+// falling through to the generic scaffold.
 const TT_LOCAL_QUALITY_SET = new Set([
   'extract-vocab','gap','word-definition-match','error-correction','essential-vocab',
   'flashcards','sentences-vocab','gaps-brackets','two-options',
   'rewrite','tense-contrast',
+  'collocations','synonyms-antonyms','word-families','phrasal-verbs','idioms',
   'discussion','question-ladder','roleplay-cards','debate-cards',
   'listening-dictation',
 ]);
