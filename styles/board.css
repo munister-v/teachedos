@@ -1719,6 +1719,22 @@ body.alt-duplicating *{cursor:copy!important;}
   background:transparent;color:#6E6E5C;font-size:13px;line-height:1;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
   transition:background .12s,color .12s;opacity:0;
+  position:relative;
+}
+/* 20x20 is a tight target for a mouse, but the button cannot simply be made
+   bigger: .card-header is 35px tall with 8px/6px padding, so there are 21px of
+   room inside it, and a 24px control pushes the header to 38. Card heights in
+   this project are computed from constants, which is the thing that has broken
+   repeatedly — growing every card's header to widen one button is a bad trade.
+   So the box stays 20x20 and only the hit area grows, to 28x28. The 4px reaches
+   nothing it should not: the private-eye toggle beside it ends 8px away, and the
+   card's right edge is 12px clear, so this also stays inside the card and is not
+   cut off by .board-card's overflow:hidden + contain:paint the way an outward
+   handle would be. It does take 4px of header away from card-dragging, which is
+   the right side of that trade — a missed drag costs a gesture, a missed close
+   costs the teacher a click on a card they wanted gone. */
+.card-close::before{
+  content:"";position:absolute;inset:-4px;border-radius:7px;
 }
 .board-card:hover .card-close,.board-card.selected .card-close{opacity:1;}
 /* Private-toggle button: hidden by default; visible on hover/select. Stays visible when the card is actually private. */
@@ -5243,9 +5259,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   border-radius:999px;
   background-clip:padding-box;
 }
+/* Same ring as .tb-icon-btn above. These four had :hover and :active but no
+   :focus-visible, so a keyboard user could move onto the Share button, a tool
+   in the sidebar or a row in the board list with nothing on screen saying where
+   they were. Pointer users lost nothing by it, which is why it went unnoticed. */
 .mq-btn:focus-visible,
 .zc-btn:focus-visible,
 .tb-board-chip-menu:focus-visible,
+.tb-btn:focus-visible,
+.tb-btn-primary:focus-visible,
+.tool-snippet:focus-visible,
+.board-list-item:focus-visible,
 .empty-action:focus-visible{
   outline:3px solid rgba(236,45,140,.25) !important;
   outline-offset:3px !important;

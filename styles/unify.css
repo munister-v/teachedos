@@ -2738,11 +2738,23 @@ body.board-page .mq-btn.active {
   background: #1C1C1E !important;
   color: #F5F0E8 !important;
 }
+/* This is the rule that actually paints the board's top bar. #toolbar is
+   declared twice in board.css as well, and both lose to these !important
+   declarations because unify.css loads last — so a blur "fixed" in board.css
+   changes nothing on screen. Worth knowing before editing the other two. */
 body.board-page #toolbar {
   min-height: 54px !important;
-  background: rgba(255,252,246,.9) !important;
+  background: rgba(255,252,246,.94) !important;
   border-bottom: 1px solid rgba(28,28,30,.08) !important;
-  backdrop-filter: blur(22px) saturate(1.25) !important;
+  /* backdrop-filter on fixed chrome sitting over a canvas that pans and zooms
+     means this strip is re-blurred every frame the board moves beneath it. At
+     22px under a 94%-opaque background the blur was doing almost no visible
+     work — 6% of the backdrop reaches the eye — so the radius drops to
+     something the compositor can afford. Opacity .9 -> .94 at the same time,
+     since a smaller radius lets what does come through arrive sharper, and this
+     is meant to read as a frosted edge rather than a window. */
+  backdrop-filter: blur(10px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.25) !important;
 }
 body.board-page .empty-action {
   min-height: 42px !important;
