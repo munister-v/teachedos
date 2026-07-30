@@ -33,6 +33,71 @@ function _ttBlank(sentence, word){
   return sentence.replace(re, '_____');
 }
 
+/* Turn a true sentence into one the text contradicts.
+
+   Swapping in a random word of similar length — what true/false used to do —
+   fails twice over. It can land on something still true ("the council invested
+   in new buses" -> "in new plans"), and the replacement was passed through
+   _ttCap(), which capitalises mid-sentence: every false item carried a stray
+   capital in the middle, so the answer key was readable down the page without
+   reading a single question.
+
+   These three mutations contradict the source instead of hoping to. Returns
+   null when none applies, and the caller must then keep the sentence TRUE
+   rather than publish a "false" one that isn't. */
+const _TT_OPPOSITES = [
+  ['always','never'], ['never','always'], ['often','rarely'], ['rarely','often'],
+  ['all','none'], ['everyone','nobody'], ['nobody','everyone'],
+  ['everything','nothing'], ['nothing','everything'],
+  ['increased','decreased'], ['decreased','increased'],
+  ['increase','decrease'], ['decrease','increase'],
+  ['rose','fell'], ['fell','rose'], ['before','after'], ['after','before'],
+  ['began','ended'], ['ended','began'], ['first','last'], ['last','first'],
+  ['more','fewer'], ['fewer','more'], ['possible','impossible'], ['impossible','possible'],
+  ['agreed','refused'], ['refused','agreed'], ['accepted','rejected'], ['rejected','accepted'],
+];
+const _TT_AUX = ['is','are','was','were','has','have','had','can','could','will','would','should','must','does','do','did'];
+
+function _ttMatchCase(original, replacement){
+  const o = String(original);
+  if (o === o.toUpperCase() && o.length > 1) return replacement.toUpperCase();
+  if (o[0] === (o[0]||'').toUpperCase()) return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+  return replacement;
+}
+
+function _ttFalsify(sentence){
+  const s = String(sentence || '').trim();
+  if (!s || s.split(/\s+/).length < 5) return null;
+
+  for (const [from, to] of _TT_OPPOSITES) {
+    const re = new RegExp('\\b' + from + '\\b', 'i');
+    const m = s.match(re);
+    if (m) return s.replace(re, _ttMatchCase(m[0], to));
+  }
+
+  // A changed number contradicts the text and leaves the grammar alone. Years
+  // shift by a few, never scale: "in 2019" -> "in 3029" is rejected on sight.
+  const num = s.match(/\b(\d{1,4})\b/);
+  if (num) {
+    const raw = num[1], n = parseInt(raw, 10);
+    const isYear = /^(1[5-9]\d\d|20\d\d|21\d\d)$/.test(raw);
+    const swapped = isYear ? String(n - 4) : String(n < 10 ? n + 3 : Math.round(n * 1.5));
+    if (swapped !== raw) return s.replace(new RegExp('\\b' + raw + '\\b'), swapped);
+  }
+
+  // Negate an auxiliary — grammatical, unlike dropping "not" before a main
+  // verb. Skipped on an already-negative sentence, where a second negative
+  // turns the item into a grammar puzzle and often restores the meaning.
+  if (!/\bnot\b|n['’]t\b|\bno\b|\bnever\b/i.test(s)) {
+    for (const aux of _TT_AUX) {
+      const re = new RegExp('\\b(' + aux + ')\\b', 'i');
+      const m = s.match(re);
+      if (m) return s.replace(re, m[1] + ' not');
+    }
+  }
+  return null;
+}
+
 // Build (sentence, target-word) pairs — up to `perSentence` different content
 // words per sentence — so a short text still yields many distinct questions
 // (each blanks a different word). Interleaved so variety comes first.
@@ -85,9 +150,20 @@ function _ttGenTrueFalse(input){
       seenTrue.add(s);
       questions.push({ type:'truefalse', text:s, answer:true, points:1 });
     } else {
+      // Provable contradiction first. Only if the sentence carries nothing to
+      // mutate do we fall back to the word swap — and that swap now keeps the
+      // replaced word's own case instead of capitalising mid-sentence.
+      const falsified = _ttFalsify(s);
       const repl = pool.find(w => w !== target && Math.abs(w.length - (target ? target.length : 0)) <= 3 && !s.toLowerCase().includes(w));
-      if (target && repl) {
-        questions.push({ type:'truefalse', text:_ttBlank(s, target).replace('_____', _ttCap(repl)), answer:false, points:1 });
+      if (falsified) {
+        questions.push({ type:'truefalse', text:falsified, answer:false, points:1 });
+      } else if (target && repl) {
+        // Case comes from the word as it appears in the sentence, not from
+        // `target` — that is always lower-cased, so keying off it would strip
+        // the capital from a word standing at the start of the sentence.
+        const re = new RegExp('\\b' + target.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i');
+        const shown = s.replace(re, (found) => _ttMatchCase(found, repl));
+        questions.push({ type:'truefalse', text:shown, answer:false, points:1 });
       } else if (!seenTrue.has(s)) {
         seenTrue.add(s);
         questions.push({ type:'truefalse', text:s, answer:true, points:1 });
