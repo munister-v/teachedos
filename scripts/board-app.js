@@ -11791,6 +11791,21 @@ function loadBoard() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
+    /* Start from a clean slate. state.cards is push()ed into below, and this
+       function has three call sites: the init at the bottom of the file, the
+       "cloud load failed, using local" catch, and the "backend unreachable —
+       loading cache" catch in the auth path. That last one runs again on every
+       attempt of startReconnectLoop(), so a board opened while the API was down
+       or cold-starting gained a complete extra copy of every card per retry —
+       4 -> 8 -> 12 -> 16, observed at 16 with 4 unique ids after a few minutes,
+       and persisted at that size as soon as anything triggered a save.
+       Duplicates stack exactly on top of each other, which is the intermittent
+       "ghost card" artifact; worse, getCardEl() resolves an id to the first
+       match, so dragging a card could move one copy and leave the other behind.
+       Only cards need this — arrows, strokes and groups are assigned, not
+       appended. */
+    state.cards.length = 0;
+    board.querySelectorAll('.board-card').forEach(el => el.remove());
     state.pan    = data.pan    || { x:100, y:60 };
     state.scale  = data.scale  || 1;
     state.nextId = data.nextId || 1;
