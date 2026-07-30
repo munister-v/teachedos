@@ -2,6 +2,7 @@ const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
+const derive = require('../lib/derive');
 const pool = require('../db/pool');
 
 // Persistent daily usage counters (survive restarts; power the dashboard chart).
@@ -224,7 +225,10 @@ function sourceSentences(source, topic, count) {
   );
 }
 
-const STOPWORDS = new Set(('about above actually after again against almost already also although always among another anything around because been before being below between both cannot could didn does doesn doing done down during each either else enough even ever every everything from further gonna gotta guys have having here hers herself himself into itself just keep kind know like little long look made make many maybe mean might more most much must myself need never next nothing okay once only other ours ourselves over own people perhaps place probably quite rather really right said same says seem seen several shall should show since some something sometimes soon still such sure take than that thats their theirs them themselves then there these they thing things think this those though thought three through thus time together told too took under until upon used using very want was wasn way well went were what when where whether which while who whom whose why will with within without won would yeah yes yet you your yours yourself').split(' '));
+// One stoplist, owned by the derive module. Two copies of it would drift, and
+// the drift would be invisible: the word ranking here and the distractor pool
+// there would quietly start disagreeing about what counts as a content word.
+const STOPWORDS = derive.STOPWORDS;
 
 function vocabList(input, count = input.count) {
   const direct = String(input.vocab || '')
@@ -285,15 +289,33 @@ function makeWordSet(input) {
   };
 }
 
+/* Vocabulary cards.
+
+   The example is the sentence the word actually appeared in. The old one was
+   "In <topic>, "<word>" helps students explain idea 3." — the same sentence on
+   every card with the index counting up, which is worse than an empty field
+   because it looks filled in.
+
+   The definition is left empty when there is nothing true to put in it. A
+   definition cannot be derived from a text, only written, so the honest options
+   are the model or the teacher; a fabricated one ("A useful B1 word or phrase
+   for discussing X", identical on all twelve cards) is neither. Empty is also
+   what the board's editor expects — the field is contenteditable with a
+   placeholder, so the teacher can fill it in, and the AI path overwrites it. */
 function makeVocab(input) {
   const words = vocabList(input, input.count);
+  const sentences = sourceSentences(input.source, input.topic, 40);
+  const hasSource = clean(input.source).length > 60;
   return {
     ...base(input, 'vocab'),
-    items: words.map((word, i) => ({
-      word,
-      definition: `A useful ${input.level} word or phrase for discussing ${input.topic}.`,
-      example: `In ${input.topic}, "${word}" helps students explain idea ${i + 1}.`,
-    })),
+    items: words.map((word) => {
+      const example = hasSource ? derive.exampleFor(word, sentences) : null;
+      return {
+        word,
+        definition: '',
+        example: example || '',
+      };
+    }),
     cards: [{
       title: 'Teacher flow',
       text: 'Reveal meaning -> ask for examples -> sort hard words -> recycle in a speaking or writing task.',
@@ -301,80 +323,188 @@ function makeVocab(input) {
   };
 }
 
+/* A matching task needs a right-hand column whose entries differ from one
+   another — that difference is the only thing the student has to reason about.
+   The old version paired every word with "Definition N: use this item
+   accurately in a <topic> context", so the six right-hand cells were the same
+   sentence six times and the exercise had no answer; the numbering was the only
+   distinguishing mark, and it gave the order away.
+
+   Both forms below take their right-hand column from the source instead.
+   Clause halves for the halves tools, and for the word tools the real sentence
+   the word came out of with the word removed — "match each word to the sentence
+   it belongs in" is a standard task, and every cell in it is real language. */
 function makeMatching(input) {
+  const sentences = sourceSentences(input.source, input.topic, Math.max(input.count, 8));
   const words = vocabList(input, input.count);
+  const pool = derive.contentWords(input.source, 40);
+  const isHalves = ['matching-halves', 'match-headings'].includes(input.toolId);
+
+  const pairs = [];
+  const seen = new Set();
+  for (const sentence of sentences) {
+    if (pairs.length >= input.count) break;
+    if (isHalves) {
+      const h = derive.halves(sentence);
+      if (!h) continue;
+      const key = h[1].toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pairs.push({ left: h[0], right: h[1] });
+    } else {
+      const g = derive.pickGapTarget(sentence, words, pool);
+      if (!g) continue;
+      const key = g.answer.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pairs.push({ left: g.answer, right: g.text });
+    }
+  }
+
+  // Under three pairs there is no task. Say so on the card rather than padding
+  // to length with invented definitions, which is what made the old output
+  // look complete and be useless.
+  const sparse = pairs.length < 3;
+  const text = sparse
+    ? `Not enough source text to build a matching task about ${input.topic}. Paste a text or a longer word list and generate again.`
+    : isHalves
+      ? `Match the beginnings with the endings. Topic: ${input.topic}.`
+      : `Match each word with the sentence it belongs in. Topic: ${input.topic}.`;
+
   return {
     ...base(input, 'quiz'),
-    questions: [{
-      type: 'match',
-      text: `Match the words with student-friendly definitions for ${input.topic}.`,
-      pairs: words.map((word, i) => ({
-        left: word,
-        right: `Definition ${i + 1}: use this item accurately in a ${input.topic} context.`,
-      })),
-      points: words.length,
-    }],
+    questions: [{ type: 'match', text, pairs, points: pairs.length }],
     sections: teacherFlow(input),
   };
 }
 
+/* Comprehension items built out of the source text.
+
+   Every closed item here is derived, never invented: the stem is a real
+   sentence, the answer is a word that was in it, the distractors are words from
+   the same text. The builders return null whenever the sentence will not carry
+   a sound item — a gap with no context around it, a "false" statement that
+   could not actually be made false — and the caller moves to the next sentence
+   instead of publishing the broken one. Coming back with nine good items beats
+   twelve of which three are wrong.
+
+   Open questions are the exception and are still written from a template. That
+   is legitimate: an open question anchored to a real quotation is a real task,
+   and there is no answer key to get wrong. They are also what the set is padded
+   with when the source runs dry, because the alternative — padding with
+   fabricated multiple choice — is how the engine used to produce items whose
+   options were "An unrelated detail" and "A grammar-only answer". */
 function makeQuiz(input) {
   const sentences = sourceSentences(input.source, input.topic, input.count);
   const words = vocabList(input, input.count);
-  const isTf = input.toolId === 'true-false';
-  const isGap = ['gap', 'gaps-brackets', 'listening-dictation'].includes(input.toolId);
+  const pool = derive.contentWords(input.source, 40);
+  const rand = derive.seeded(`${input.toolId}|${input.topic}|${input.source.slice(0, 400)}`);
+
+  const isTf = ['true-false', 'tf-not-given'].includes(input.toolId);
+  const isGap = ['gap', 'gaps-brackets', 'listening-dictation', 'type-gap', 'word-bank', 'summary-gapfill'].includes(input.toolId);
   const isTwo = input.toolId === 'two-options';
-  const isOpen = ['open-questions', 'discussion', 'question-ladder'].includes(input.toolId);
+  const isOpen = ['open-questions', 'discussion', 'question-ladder', 'conversation-starters', 'reference-questions'].includes(input.toolId);
+  const isOrder = input.toolId === 'word-order';
   const isGist = input.toolId === 'gist-detail';
 
-  const questions = Array.from({ length: input.count }, (_, i) => {
-    const sentence = sentences[i % sentences.length];
-    const word = words[i % words.length] || 'answer';
-    if (isTf) {
-      return {
-        type: 'truefalse',
-        text: i % 2 === 0 ? sentence : `${sentence.replace(/\b(always|never|often|sometimes)\b/i, 'rarely')} `,
-        answer: i % 2 === 0,
-        points: 1,
-      };
-    }
-    if (isGap) {
-      return {
-        type: 'gap-fill',
-        text: `${sentence.replace(new RegExp(`\\b${escapeRegExp(word)}\\b`, 'i'), '_____')}${sentence.toLowerCase().includes(word.toLowerCase()) ? '' : ` Use: _____ (${word})`}`,
-        answer: word,
-        points: 1,
-      };
-    }
-    if (isTwo) {
+  const cloze = (sentence) => derive.pickGapTarget(sentence, words, pool);
+
+  const openItem = (sentence, i) => ({
+    type: 'open',
+    text: i === 0
+      ? `What is the main idea of ${input.topic}?`
+      : `How does this detail connect to ${input.topic}: "${snippet(sentence, 90)}"?`,
+    points: 1,
+  });
+
+  const builders = {
+    truefalse: (sentence, i) => {
+      // Alternate the intended answer so a set is not all-true, but let the
+      // source have the final say: a sentence that cannot be made provably
+      // false is kept true rather than shipped as a false one that is not.
+      if (i % 2 === 0) return { type: 'truefalse', text: sentence, answer: true, points: 1 };
+      const f = derive.falsify(sentence);
+      return f ? { type: 'truefalse', text: f.text, answer: false, points: 1 } : null;
+    },
+    gap: (sentence) => {
+      const g = cloze(sentence);
+      return g ? { type: 'gap-fill', text: g.text, answer: g.answer, points: 1 } : null;
+    },
+    mcq: (sentence) => {
+      const g = cloze(sentence);
+      if (!g) return null;
+      const wrong = derive.distractors(g.answer, pool, 3, g.text);
+      if (wrong.length < 2) return null;      // one option is not a choice
       return {
         type: 'mcq',
-        text: `${sentence} Choose the better word for this context.`,
-        options: [word, `${word}s`],
-        answer: word,
+        text: g.text,
+        options: derive.shuffle([g.answer, ...wrong], rand),
+        answer: g.answer,
         points: 1,
       };
-    }
-    if (isOpen || (isGist && i > 0)) {
+    },
+    two: (sentence) => {
+      const g = cloze(sentence);
+      if (!g) return null;
+      const wrong = derive.distractors(g.answer, pool, 1, g.text);
+      if (!wrong.length) return null;
       return {
-        type: 'open',
-        text: i === 0 ? `What is the main idea of ${input.topic}?` : `How does this detail connect to ${input.topic}: "${snippet(sentence, 90)}"?`,
+        type: 'mcq',
+        text: g.text,
+        options: derive.shuffle([g.answer, wrong[0]], rand),
+        answer: g.answer,
         points: 1,
       };
+    },
+    order: (sentence) => {
+      const sc = derive.scramble(sentence, rand);
+      if (!sc) return null;
+      return {
+        type: 'gap-fill',
+        text: `Put the words in order: ${sc.tokens.join(' / ')}`,
+        answer: sc.answer,
+        points: 1,
+      };
+    },
+    open: openItem,
+  };
+
+  const builder = isTf ? builders.truefalse
+    : isGap ? builders.gap
+    : isTwo ? builders.two
+    : isOrder ? builders.order
+    : isOpen ? builders.open
+    : builders.mcq;
+
+  const questions = [];
+  const seenText = new Set();
+  // Two passes over the sentences: with twelve items asked of six usable
+  // sentences, the second pass gets the ones the first could not build from
+  // (a true/false pass rejects a sentence at odd i and accepts it at even).
+  for (let pass = 0; pass < 2 && questions.length < input.count; pass++) {
+    for (const sentence of sentences) {
+      if (questions.length >= input.count) break;
+      const item = builder(sentence, questions.length);
+      if (!item) continue;
+      const key = clean(item.text).toLowerCase();
+      if (seenText.has(key)) continue;
+      seenText.add(key);
+      questions.push(item);
     }
-    return {
-      type: 'mcq',
-      text: i === 0 && isGist ? `What is the best gist of this text about ${input.topic}?` : `Question ${i + 1}: What can we understand from this part?`,
-      options: [
-        `A clear point about ${input.topic}`,
-        `An unrelated detail`,
-        `The opposite of the text`,
-        `A grammar-only answer`,
-      ],
-      answer: `A clear point about ${input.topic}`,
-      points: 1,
-    };
-  });
+  }
+
+  // Pad with open questions rather than with fabricated closed items.
+  for (let i = 0; questions.length < input.count && i < sentences.length * 2; i++) {
+    const item = openItem(sentences[i % sentences.length], questions.length);
+    const key = clean(item.text).toLowerCase();
+    if (seenText.has(key)) continue;
+    seenText.add(key);
+    questions.push(item);
+  }
+
+  if (isGist && questions.length) {
+    questions[0] = { type: 'open', text: `What is the best gist of this text about ${input.topic}?`, points: 1 };
+  }
 
   return { ...base(input, 'quiz'), questions, sections: teacherFlow(input) };
 }
@@ -523,48 +653,102 @@ function boardKindFor(toolId) {
   return 'cards';
 }
 
-// Local rule-engine fallback (the original `vps-fast-v1` behaviour).
+/* With no source text there is nothing to derive from. The old code's answer to
+   that was six hardcoded sentences about urban regeneration, printed under
+   whatever topic the teacher had typed — a worksheet on "food" opened with "The
+   city centre has become very busy and ___", and all three parts were like it,
+   so the topic field did nothing at all. These parts use the only real material
+   available without a text: the teacher's own target words. Thin, but true, and
+   it says what it needs. */
+function vocabOnlyWorksheetParts(input, words) {
+  const wb = words.slice(0, 8);
+  return [
+    { type: 'fill_blank', title: 'Part 1: Word bank', instruction: `Write one sentence about ${input.topic} using each word.`,
+      word_bank: wb,
+      items: wb.map((w, i) => ({ id: i + 1, stem: `(${w}) ______________________________`, answer: w })) },
+    { type: 'essay', title: 'Part 2: Extended writing', instruction: `Use at least four of the words above.`,
+      items: [{ id: wb.length + 1, prompt: `Write 80–100 words about ${input.topic}.` }] },
+    { type: 'essay', title: 'Teacher note', instruction: 'Generated without a source text.',
+      items: [{ id: wb.length + 2, prompt: `Paste a reading text or transcript into "Source text" and generate again to get comprehension, gap-fill and matching parts built from it.` }] },
+  ];
+}
+
+/* A worksheet built out of the pasted text: cloze multiple choice, gap-fill
+   against a word bank, and clause matching — all of them real sentences with
+   real words taken out of them.
+
+   A part is dropped when the source cannot fill it, rather than padded. Three
+   short parts that work beat six where half the answer key is invented. */
 function makeWorksheet(input) {
-  const { topic, level } = input;
   const b = base(input, 'worksheet');
-  const words = vocabList(input, 8);
-  const wb = words.length >= 6 ? words.slice(0, 8) : ['expand','develop','improve','reduce','increase','maintain','support','create'];
-  return {
-    ...b,
-    parts: [
-      { type: 'multiple_choice', title: 'Part 1: Multiple Choice', instruction: 'Select the best option to complete each sentence.',
-        items: [
-          { id:1, stem:`The city centre has become very busy and ___ in recent years.`, options:['vibrant','silent','empty','cold'], answer:0 },
-          { id:2, stem:`Many old buildings are being ___ to create modern spaces.`, options:['renovated','ignored','painted','forgotten'], answer:0 },
-          { id:3, stem:`Local businesses are ___ thanks to the new investment.`, options:['thriving','closing','failing','sleeping'], answer:0 },
-          { id:4, stem:`Traffic is very ___ during rush hour in this area.`, options:['congested','quiet','light','clear'], answer:0 },
-          { id:5, stem:`The neighbourhood was ___ for years before the project began.`, options:['neglected','celebrated','renovated','expanded'], answer:0 },
-          { id:6, stem:`New housing developments are ___ all over the outskirts.`, options:['springing up','falling down','moving out','breaking in'], answer:0 },
-        ]
-      },
-      { type: 'fill_blank', title: 'Part 2: Sentence Completion', instruction: `Fill in the blank using a word from the word bank.`,
-        word_bank: wb,
-        items: [
-          { id:7,  stem:`We need to ___ our vocabulary to communicate more effectively.`, answer: wb[0] || 'expand' },
-          { id:8,  stem:`The city plans to ___ a new transport network by 2030.`, answer: wb[1] || 'develop' },
-          { id:9,  stem:`Residents want to ___ air quality in their neighbourhood.`, answer: wb[2] || 'improve' },
-          { id:10, stem:`The council is trying to ___ traffic in the city centre.`, answer: wb[3] || 'reduce' },
-          { id:11, stem:`Local shops hope to ___ their customer base next year.`, answer: wb[4] || 'increase' },
-          { id:12, stem:`It is important to ___ green spaces for future generations.`, answer: wb[5] || 'maintain' },
-        ]
-      },
-      { type: 'matching', title: 'Part 3: Matching Contexts', instruction: 'Choose the most logical sentence ending.',
-        items: [
-          { id:13, stem:`The area has been regenerated,`, options:['so property prices have risen significantly','but the weather remains cold','and the library closed'], answer:0 },
-          { id:14, stem:`Public transport improved,`, options:['so fewer people drive to work now','but parking became cheaper','and traffic got much worse'], answer:0 },
-          { id:15, stem:`The old factory was demolished,`, options:['and a modern park was built in its place','so production increased last year','but workers stayed on site'], answer:0 },
-          { id:16, stem:`Green spaces were added to the neighbourhood,`, options:['which improved residents\' wellbeing','so noise levels increased','but the shops moved out'], answer:0 },
-          { id:17, stem:`New shops and cafes opened downtown,`, options:['attracting more visitors to the area','causing residents to leave','making parking easier'], answer:0 },
-          { id:18, stem:`Housing became unaffordable,`, options:['so many young families moved to the suburbs','and the city centre thrived','but rents stayed the same'], answer:0 },
-        ]
-      },
-    ]
-  };
+  const targets = vocabList(input, 12);
+  if (clean(input.source).length < 120) {
+    return { ...b, parts: vocabOnlyWorksheetParts(input, targets.length >= 4 ? targets : ['expand', 'develop', 'improve', 'reduce', 'increase', 'maintain']) };
+  }
+
+  const sentences = sourceSentences(input.source, input.topic, 30);
+  const pool = derive.contentWords(input.source, 40);
+  const rand = derive.seeded(`worksheet|${input.topic}|${input.source.slice(0, 400)}`);
+  const claimed = new Set();   // an answer is used by one part only
+  let id = 1;
+
+  const mcqItems = [];
+  for (const s of sentences) {
+    if (mcqItems.length >= 6) break;
+    const g = derive.pickGapTarget(s, targets, pool, claimed);
+    if (!g) continue;
+    const wrong = derive.distractors(g.answer, pool, 3, g.text);
+    if (wrong.length < 3) continue;
+    claimed.add(g.answer.toLowerCase());
+    const options = derive.shuffle([g.answer, ...wrong], rand);
+    mcqItems.push({ id: id++, stem: g.text, options, answer: options.indexOf(g.answer) });
+  }
+
+  // Same sentences, but asking for a word Part 1 did not take, so the two parts
+  // do not compete for one word per sentence and quietly drop a section.
+  const gapItems = [];
+  for (const s of sentences) {
+    if (gapItems.length >= 6) break;
+    const g = derive.pickGapTarget(s, targets, pool, claimed);
+    if (!g) continue;
+    claimed.add(g.answer.toLowerCase());
+    gapItems.push({ id: id++, stem: g.text, answer: g.answer });
+  }
+
+  const matchItems = [];
+  const seenEnding = new Set();
+  const endings = [];
+  for (const s of sentences) {
+    const h = derive.halves(s);
+    if (h && !seenEnding.has(h[1].toLowerCase())) { seenEnding.add(h[1].toLowerCase()); endings.push(h); }
+  }
+  for (const [left, right] of endings.slice(0, 6)) {
+    // Wrong endings come from the other sentences, so every option is a real
+    // clause and the right one has to be chosen on meaning rather than on being
+    // the only one that reads like English.
+    const others = endings.filter(e => e[1] !== right).map(e => e[1]);
+    if (others.length < 2) break;
+    const options = derive.shuffle([right, ...derive.shuffle(others, rand).slice(0, 2)], rand);
+    matchItems.push({ id: id++, stem: left, options, answer: options.indexOf(right) });
+  }
+
+  const parts = [];
+  if (mcqItems.length >= 3) {
+    parts.push({ type: 'multiple_choice', title: 'Part 1: Multiple Choice', instruction: 'Select the best option to complete each sentence.', items: mcqItems });
+  }
+  if (gapItems.length >= 3) {
+    parts.push({
+      type: 'fill_blank', title: 'Part 2: Sentence Completion', instruction: 'Fill in the blank using a word from the word bank.',
+      word_bank: derive.shuffle(gapItems.map(i => i.answer), rand), items: gapItems,
+    });
+  }
+  if (matchItems.length >= 3) {
+    parts.push({ type: 'matching', title: 'Part 3: Matching Contexts', instruction: 'Choose the most logical sentence ending.', items: matchItems });
+  }
+  if (!parts.length) {
+    return { ...b, parts: vocabOnlyWorksheetParts(input, targets.length >= 4 ? targets : ['expand', 'develop', 'improve', 'reduce', 'increase', 'maintain']) };
+  }
+  return { ...b, parts };
 }
 
 function generateLocal(input) {
@@ -1041,3 +1225,7 @@ router.post('/wordset-guest', guestLimiter, async (req, res) => {
 });
 
 module.exports = router;
+// The local engine is pure — no request, no database — so it is worth being able
+// to exercise it directly instead of booting express and postgres around it.
+module.exports.generateLocal = generateLocal;
+module.exports.normaliseInput = normaliseInput;
