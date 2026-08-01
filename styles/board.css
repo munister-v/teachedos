@@ -2529,44 +2529,55 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Miro-style floating contextual toolbar above selected card */
 .layer-popover{
   position:fixed;display:none;align-items:center;gap:2px;z-index:9500;
-  padding:5px 6px;border-radius:10px;
-  background:rgba(255,255,255,.94);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  box-shadow:0 12px 32px rgba(5,5,40,.18),0 2px 8px rgba(0,0,0,.06),0 0 0 0.5px rgba(0,0,0,.06);
-  border:1px solid rgba(255,255,255,.7);
+  padding:6px 7px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(250,246,239,.96));
+  backdrop-filter:blur(14px) saturate(1.08);-webkit-backdrop-filter:blur(14px) saturate(1.08);
+  box-shadow:0 16px 38px rgba(18,22,40,.18),0 3px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.72);
+  border:1px solid rgba(70,55,38,.10);
   font-family:var(--font);
   animation:layer-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
 @keyframes layer-pop{from{opacity:0;transform:translateY(4px) scale(.96);}to{opacity:1;transform:none;}}
-[data-theme="dark"] .layer-popover{background:#1F1F35;border-color:rgba(255,255,255,.10);}
+[data-theme="dark"] .layer-popover{
+  background:linear-gradient(180deg,rgba(35,35,55,.96),rgba(24,24,37,.96));
+  border-color:rgba(255,255,255,.10);
+  box-shadow:0 18px 44px rgba(0,0,0,.36),0 2px 8px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);
+}
 .layer-popover.show{display:flex;}
 .layer-btn{
-  height:30px;min-width:30px;border:none;border-radius:7px;padding:0 8px;
-  background:transparent;color:var(--text);font:500 12px var(--font);
+  height:32px;min-width:32px;border:none;border-radius:10px;padding:0 9px;
+  background:transparent;color:var(--text);font:600 12px var(--font);
   cursor:pointer;white-space:nowrap;transition:background .1s,color .1s;
   display:flex;align-items:center;justify-content:center;gap:4px;
 }
 [data-theme="dark"] .layer-btn{color:var(--text);}
-.layer-btn:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent);}
-.layer-btn.active{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);}
+.layer-btn:hover{
+  background:color-mix(in srgb,var(--accent) 10%,#fff 90%);
+  color:color-mix(in srgb,var(--accent) 88%,#1b1630);
+}
+.layer-btn.active{
+  background:color-mix(in srgb,var(--accent) 16%,#fff 84%);
+  color:color-mix(in srgb,var(--accent) 92%,#1b1630);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent);
+}
 .layer-btn.danger:hover{background:rgba(239,68,68,.10);color:#ef4444;}
-.layer-sep{width:1px;height:18px;background:rgba(0,0,0,.10);margin:0 3px;flex-shrink:0;}
+.layer-sep{width:1px;height:18px;background:rgba(70,55,38,.12);margin:0 4px;flex-shrink:0;}
 [data-theme="dark"] .layer-sep{background:rgba(255,255,255,.10);}
 /* Inline color swatch row inside the layer popover (sticky/note) */
 .layer-popover .card-color-row{
-  display:flex;align-items:center;gap:5px;
+  display:flex;align-items:center;gap:6px;
   padding:0 6px;margin:0 2px;
 }
 .layer-popover .card-color-swatch{
-  width:18px;height:18px;border-radius:50%;cursor:pointer;
-  border:2px solid transparent;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
-  transition:transform .12s,border-color .12s;
+  width:20px;height:20px;border-radius:8px;cursor:pointer;
+  border:1.5px solid rgba(70,55,38,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 1px 2px rgba(17,24,39,.05);
+  transition:transform .12s,border-color .12s,box-shadow .12s;
 }
 .layer-popover .card-color-swatch:hover{transform:scale(1.12);}
 .layer-popover .card-color-swatch.active{
   border-color:var(--accent);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent),inset 0 0 0 1px rgba(0,0,0,.08);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent),inset 0 1px 0 rgba(255,255,255,.6),0 1px 3px rgba(17,24,39,.08);
 }
 
 /* ── IMAGE ── */
@@ -3478,28 +3489,32 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-strip{
 	  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 12px;align-items:start;
 	  padding:18px 18px;margin:0 -2px 14px;border-radius:18px;
-	  background:var(--ws-lime);
-	  border:2px solid var(--ws-ink);
+	  background:
+	    radial-gradient(circle at top right,rgba(255,255,255,.38),transparent 28%),
+	    linear-gradient(180deg,color-mix(in srgb,var(--ws-lime) 92%,#fff 8%),color-mix(in srgb,var(--ws-lime) 86%,#d4ee73 14%));
+	  border:1px solid color-mix(in srgb,var(--ws-ink) 18%,transparent);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 14px 32px rgba(182,205,87,.18),0 2px 6px rgba(17,24,39,.05);
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
-	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ws-on-accent-muted);}
+	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.56);}
 	.ws-strip-title{font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;
-	  overflow-wrap:anywhere;}
+	  text-wrap:balance;overflow-wrap:anywhere;}
 	.ws-strip-side{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
 	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:2px 0 0;}
 	.ws-step{
 	  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:132px;
-	  padding:6px 10px 6px 6px;border-radius:999px;background:var(--ws-on-accent-weak);
-	  border:2px solid var(--ws-on-accent-line);color:var(--ws-on-accent);
+	  padding:6px 10px 6px 6px;border-radius:999px;background:rgba(255,255,255,.30);
+	  border:1px solid rgba(14,14,16,.14);color:var(--ws-on-accent);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.34);
 	}
-	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-on-accent);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;}
+	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-on-accent);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;box-shadow:0 1px 2px rgba(17,24,39,.14);}
 	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
 	.ws-step.more i{background:var(--ws-on-accent-muted);color:var(--ws-lime);}
 	.ws-tools{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;}
-	.ws-btn{border:2px solid var(--ws-on-accent);background:transparent;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--ws-on-accent);cursor:pointer;white-space:nowrap;}
+	.ws-btn{border:1px solid rgba(14,14,16,.18);background:rgba(255,255,255,.34);border-radius:12px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--ws-on-accent);cursor:pointer;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.36);}
 	.ws-btn:hover{background:var(--ws-on-accent);border-color:var(--ws-on-accent);color:var(--ws-lime);}
-	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:transparent;color:var(--ws-on-accent);border:2px solid var(--ws-on-accent);}
-	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);}
+	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:rgba(255,255,255,.28);color:var(--ws-on-accent);border:1px solid rgba(14,14,16,.18);}
+	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);box-shadow:0 8px 20px rgba(14,14,16,.12);}
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 4px 4px 0;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
@@ -3520,9 +3535,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-q{
 	  position:relative;border:2px solid var(--ws-line);background:#fff;
 	  border-radius:18px;padding:16px;
-	  transition:border-color .16s ease;flex-shrink:0;
+	  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;flex-shrink:0;
+	  box-shadow:0 1px 2px rgba(17,24,39,.04),0 10px 24px rgba(17,24,39,.05);
 	}
-	.ws-q:hover{border-color:var(--ws-ink);}
+	.ws-q:hover{border-color:color-mix(in srgb,var(--stage-accent,var(--ws-ink)) 32%,rgba(14,14,16,.18));box-shadow:0 1px 2px rgba(17,24,39,.04),0 14px 30px rgba(17,24,39,.07);}
 	.ws-qh{display:flex;align-items:flex-start;gap:12px;font-size:16px;font-weight:700;color:var(--ws-ink);line-height:1.4;}
 	/* Background lives here, not inline on the element: the renderer used to set
 	   background:<accent>, which turned into ink-on-ink (an invisible number)
@@ -3576,14 +3592,33 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   document instead of a rainbow of unrelated tags. Stage TYPE is still
 	   communicated, just by the text label alone instead of colour + a cryptic
 	   2-3 letter dot that duplicated it. */
-	.ws-q-card{--stage-accent:var(--ws-ink,#0E0E10);padding-left:46px;min-height:82px;}
-	.ws-stage-rail{position:absolute;left:14px;top:14px;bottom:14px;width:20px;border-radius:999px;background:var(--ws-cream,#F5F0E8);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);}
-	.ws-q-card .ws-card-head{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:950;letter-spacing:-.025em;color:#0E0E10;}
+	.ws-q-card{
+	  --stage-accent:var(--ws-ink,#0E0E10);
+	  padding-left:50px;min-height:82px;
+	  background:linear-gradient(180deg,color-mix(in srgb,var(--stage-accent) 3.5%,#fff 96.5%),#fff 44%);
+	}
+	.ws-stage-rail{
+	  position:absolute;left:14px;top:14px;bottom:14px;width:22px;border-radius:999px;
+	  background:linear-gradient(180deg,color-mix(in srgb,var(--stage-accent) 16%,#fff 84%),color-mix(in srgb,var(--stage-accent) 7%,#f7f3ed 93%));
+	  display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:var(--ws-ink,#0E0E10);font:800 10px var(--mono);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px color-mix(in srgb,var(--stage-accent) 18%,transparent);
+	}
+	.ws-q-card .ws-card-head{display:flex;align-items:flex-start;gap:9px;font-size:15px;font-weight:950;letter-spacing:-.025em;color:#0E0E10;line-height:1.2;}
 	.ws-card-title{flex:1;min-width:0;}
-	.ws-stage-label{font:800 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C;white-space:nowrap;}
+	.ws-stage-label{
+	  font:800 9px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#6E6E5C;white-space:nowrap;
+	  padding:5px 7px;border-radius:999px;background:color-mix(in srgb,var(--stage-accent) 7%,#f4efe7 93%);
+	  border:1px solid color-mix(in srgb,var(--stage-accent) 12%,rgba(14,14,16,.08));
+	}
 	/* Pacing badge — pulled out of the title text so timing is scannable at a
 	   glance and consistent across every stage that has one. */
-	.ws-stage-time{font:800 9px var(--mono);letter-spacing:.03em;color:var(--stage-accent);white-space:nowrap;margin-left:auto;padding-left:6px;}
+	.ws-stage-time{
+	  font:800 9px var(--mono);letter-spacing:.05em;color:var(--stage-accent);white-space:nowrap;margin-left:auto;padding-left:6px;
+	  display:inline-flex;align-items:center;gap:4px;
+	}
+	.ws-stage-time::before{
+	  content:'';display:inline-block;width:5px;height:5px;border-radius:999px;background:currentColor;opacity:.5;
+	}
 	/* Anchor stages (lesson aims / homework) bookend the sequence — a dashed
 	   border + a small start/end mark set them apart from the procedural
 	   middle stages, without introducing a new colour. */
@@ -3602,7 +3637,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   whatever the fade covered was simply missing from PNG/PDF, with the
 	   gradient making the loss look deliberate. Same rule as the generated
 	   sheets: size to fit, never hide. */
-	.ws-card-txt{font-size:13px;line-height:1.56;color:#3A3A2E;font-weight:650;margin-top:10px;white-space:normal;
+	.ws-card-txt{font-size:13px;line-height:1.58;color:#3A3A2E;font-weight:650;margin-top:12px;white-space:normal;
 	  position:relative;}
 	.ws-card-txt strong{color:#0E0E10;font-weight:950;}
 	.ws-stage-reading .ws-card-txt{font-size:13px;line-height:1.72;color:#3A3A2E;}
@@ -3611,8 +3646,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-reading-title{font-size:14px;font-weight:950;letter-spacing:-.015em;color:#0E0E10;margin-bottom:8px;}
 	.ws-reading-copy{
 	  font-size:13px;line-height:1.74;color:#26261E;font-weight:600;
-	  padding:14px 16px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
-	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
+	  padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#faf7f1,var(--ws-cream,#F5F0E8));
+	  border:1px solid rgba(14,14,16,.10);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
 	}
 	/* Drop-cap is opt-in (.has-dropcap, added by JS only for long-enough
 	   passages) — on a short one-liner it floats a huge letter next to almost
@@ -3624,14 +3660,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-vocab-grid{display:grid;gap:8px;margin-top:2px;}
 	.ws-vocab-row{
 	  display:grid;grid-template-columns:minmax(96px,.4fr) minmax(0,1fr);gap:12px;align-items:center;
-	  padding:10px 12px;border-radius:14px;background:var(--ws-cream,#F5F0E8);
-	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
+	  padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,#fcfaf6,var(--ws-cream,#F5F0E8));
+	  border:1px solid rgba(14,14,16,.10);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
 	  transition:border-color .12s;
 	}
 	.ws-vocab-row:hover{border-color:var(--ws-ink,#0E0E10);}
 	.ws-vocab-term{justify-self:start;font-size:12px;font-weight:800;letter-spacing:-.01em;
 	  color:var(--ws-ink,#0E0E10);background:#fff;
-	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
+	  border:1px solid rgba(14,14,16,.10);
 	  padding:4px 12px;border-radius:999px;
 	  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vocab-def{font-size:12px;line-height:1.5;color:#4A4838;font-weight:600;}
@@ -3645,7 +3682,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-prompt{
 	  display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;
 	  padding:10px 10px;border-radius:14px;background:#fff;
-	  border:2px solid var(--ws-line,rgba(14,14,16,.14));
+	  border:1px solid rgba(14,14,16,.10);
+	  box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
 	}
 	.ws-prompt-num{
 	  display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;
@@ -3658,7 +3696,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-on-accent,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:2px;}
 /* Grammar/focus — a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
-.ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+.ws-grammar-block{background:linear-gradient(180deg,#faf7f1,var(--ws-cream,#F5F0E8));border:1px solid rgba(14,14,16,.10);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.68);}
 .ws-grammar-line{font:600 12px/1.55 var(--mono);color:#26261E;}
 .ws-grammar-line strong{color:var(--ws-ink,#0E0E10);font-weight:800;box-shadow:inset 0 -7px 0 var(--ws-lime,#CDF24F);}
 
