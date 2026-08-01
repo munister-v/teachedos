@@ -2332,7 +2332,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .ws-drag-strip span{flex:1;overflow:hidden;text-overflow:ellipsis}
 .ws-back-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:2px 8px;font:700 9px var(--font);cursor:pointer;margin-left:8px;flex-shrink:0}
 .ws-back-btn:hover{background:rgba(255,255,255,.35)}
-.ws-play-btn{background:var(--accent)!important;color:var(--on-accent)!important;border-color:var(--accent)!important}
+.ws-play-btn{background:var(--ws-on-accent,var(--accent))!important;color:var(--ws-lime,var(--on-accent))!important;border-color:var(--ws-on-accent,var(--accent))!important}
 .ws-play-btn:hover{opacity:.88}
 
 /* ── Miro-style pen palette (vertical column flyout) ── */
@@ -3462,7 +3462,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   (or giving one card its own accent) is a change to them, not to the
 	   30-odd rules below. --q-accent is the per-card override JS sets inline. */
 	.ws-body{
-	  --ws-ink:#0E0E10; --ws-lime:#CDF24F; --ws-cream:#F5F0E8;
+	  --ws-ink:#0E0E10; --ws-accent:#CDF24F; --ws-lime:var(--ws-accent,#CDF24F);
+	  --ws-on-accent:#0E0E10; --ws-on-accent-muted:rgba(14,14,16,.62);
+	  --ws-on-accent-line:rgba(14,14,16,.28); --ws-on-accent-weak:rgba(14,14,16,.06);
+	  --ws-cream:#F5F0E8;
 	  --ws-line:rgba(14,14,16,.14); --ws-muted:#6E6A5C;
 	  padding:0 14px 14px;display:flex;flex-direction:column;height:calc(100% - 40px);
 	  background:#fff;
@@ -3479,24 +3482,24 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  border:2px solid var(--ws-ink);
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
-	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.62);}
-	.ws-strip-title{font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-ink);line-height:1.08;
+	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ws-on-accent-muted);}
+	.ws-strip-title{font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;
 	  overflow-wrap:anywhere;}
 	.ws-strip-side{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
 	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:2px 0 0;}
 	.ws-step{
 	  display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:132px;
-	  padding:6px 10px 6px 6px;border-radius:999px;background:rgba(14,14,16,.06);
-	  border:2px solid rgba(14,14,16,.28);color:var(--ws-ink);
+	  padding:6px 10px 6px 6px;border-radius:999px;background:var(--ws-on-accent-weak);
+	  border:2px solid var(--ws-on-accent-line);color:var(--ws-on-accent);
 	}
-	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-ink);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;}
+	.ws-step i{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:999px;background:var(--ws-on-accent);color:var(--ws-lime);font-size:10px;font-weight:800;font-style:normal;}
 	.ws-step b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
-	.ws-step.more i{background:rgba(14,14,16,.7);color:var(--ws-lime);}
+	.ws-step.more i{background:var(--ws-on-accent-muted);color:var(--ws-lime);}
 	.ws-tools{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;}
-	.ws-btn{border:2px solid var(--ws-ink);background:transparent;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--ws-ink);cursor:pointer;white-space:nowrap;}
-	.ws-btn:hover{background:var(--ws-ink);border-color:var(--ws-ink);color:var(--ws-lime);}
-	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:transparent;color:var(--ws-ink);border:2px solid var(--ws-ink);}
-	.ws-pill.level{background:var(--ws-ink);color:#fff;border-color:var(--ws-ink);}
+	.ws-btn{border:2px solid var(--ws-on-accent);background:transparent;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--ws-on-accent);cursor:pointer;white-space:nowrap;}
+	.ws-btn:hover{background:var(--ws-on-accent);border-color:var(--ws-on-accent);color:var(--ws-lime);}
+	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:transparent;color:var(--ws-on-accent);border:2px solid var(--ws-on-accent);}
+	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);}
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 4px 4px 0;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
@@ -3524,20 +3527,20 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	/* Background lives here, not inline on the element: the renderer used to set
 	   background:<accent>, which turned into ink-on-ink (an invisible number)
 	   once every sheet shared the one brand accent. */
-	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--ws-lime);color:var(--ws-ink);font-size:13px;font-weight:800;margin-top:0;}
+	.ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--ws-lime);color:var(--ws-on-accent);font-size:13px;font-weight:800;margin-top:0;}
 	.ws-qtext{flex:1;min-width:0;}
 	.ws-word{font-size:17px;font-weight:800;color:var(--ws-ink);}
 	.ws-opts{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
 	.ws-opt{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.45;color:var(--ws-ink);font-weight:600;padding:14px 14px;border-radius:14px;background:#fff;border:2px solid var(--ws-line);transition:border-color .12s,background .12s;}
 	.ws-opt:hover{border-color:var(--ws-ink);}
-.ws-opt.correct{background:var(--ws-lime);color:var(--ws-ink);font-weight:700;border-color:var(--ws-ink);}
+.ws-opt.correct{background:var(--ws-lime);color:var(--ws-on-accent);font-weight:700;border-color:var(--ws-ink);}
 .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--ws-cream);border:0;font-size:14px;font-weight:800;color:var(--ws-ink);}
-.ws-opt.correct .ws-mark{background:var(--ws-ink);color:var(--ws-lime);}
+.ws-opt.correct .ws-mark{background:var(--ws-on-accent);color:var(--ws-lime);}
 .ws-tf{display:flex;gap:10px;margin-top:14px;}
 .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:15px;line-height:1.45;font-weight:700;padding:12px 22px;border-radius:14px;background:#fff;color:var(--ws-muted);border:2px solid var(--ws-line);transition:.12s;}
-.ws-tf-b.on{background:var(--ws-lime);color:var(--ws-ink);border-color:var(--ws-ink);}
+.ws-tf-b.on{background:var(--ws-lime);color:var(--ws-on-accent);border-color:var(--ws-ink);}
 .ws-ans{display:inline-flex;align-items:center;gap:10px;font-size:15px;line-height:1.45;margin-top:12px;color:var(--ws-ink);font-weight:700;background:var(--ws-cream);border:2px solid var(--ws-line);border-radius:12px;padding:10px 14px;}
-.ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-ink);color:var(--ws-lime);padding:4px 10px;border-radius:999px;}
+.ws-ans-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ws-lime);color:var(--ws-on-accent);padding:4px 10px;border-radius:999px;}
 .ws-ans b{color:var(--ws-ink);font-weight:800;}
 	/* The blank in a gap-fill. One inline-block, so it is a fixed rule that
 	   cannot break across lines the way a run of underscores could, and it
@@ -3554,7 +3557,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-gap{display:inline-block;min-width:112px;height:1.15em;margin:0 6px;
 	  border-bottom:2px solid var(--ws-ink);vertical-align:-.22em;}
 	.ws-gap.filled{min-width:0;height:auto;padding:2px 10px;border-bottom:0;border-radius:8px;
-	  background:var(--ws-lime);color:var(--ws-ink);font-weight:800;vertical-align:baseline;}
+	  background:var(--ws-lime);color:var(--ws-on-accent);font-weight:800;vertical-align:baseline;}
 	.ws-open{height:0;margin:16px 0 6px;border-bottom:2px dashed var(--ws-line);}
 .ws-open + .ws-open{margin-top:22px;}
 	/* 8mm pitch (30px at 96dpi) — a school exercise book's ruling. It used to be
@@ -3646,13 +3649,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	}
 	.ws-prompt-num{
 	  display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;
-	  background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);font-size:11px;font-weight:800;
+	  background:var(--ws-lime,#CDF24F);color:var(--ws-on-accent,#0E0E10);font-size:11px;font-weight:800;
 	}
 	.ws-prompt-text{font-size:13px;line-height:1.5;color:#26261E;font-weight:650;}
 /* Aims/objectives — checklist, not prose: a teacher scans this, doesn't read it. */
 .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A2E;font-weight:650;}
-.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-ink,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:2px;}
+.ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-on-accent,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:2px;}
 /* Grammar/focus — a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
 .ws-grammar-block{background:var(--ws-cream,#F5F0E8);border:2px solid var(--ws-line,rgba(14,14,16,.14));border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;}

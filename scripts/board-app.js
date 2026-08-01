@@ -2334,11 +2334,59 @@ function renderAssignment(el, card) {
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
 // revealed answers) — when true it's the teacher key.
-/* Brand ink used as the single accent for every generated worksheet / lesson
-   card. Kept next to the worksheet renderers (rather than in BOARD_TOOL_META)
-   because it is the *output* palette, not the tool-picker palette. The rest of
-   the worksheet colours live in --ws-* custom properties in board.css. */
+/* Worksheet output palette. Lime is the default brand highlight, but when the
+   teacher picks a card accent we turn that one hex into a full readable theme:
+   fill, text-on-fill, muted text and soft borders. Kept next to the worksheet
+   renderers because this belongs to generated output, not the tool picker. */
 const WS_ACCENT_INK = '#0E0E10';
+const WS_ACCENT_LIME = '#CDF24F';
+
+function _hexToRgb(hex) {
+  const clean = String(hex || '').trim();
+  const short = clean.match(/^#([0-9a-f]{3})$/i);
+  const full = clean.match(/^#([0-9a-f]{6})$/i);
+  if (short) {
+    const [r, g, b] = short[1].split('').map(ch => parseInt(ch + ch, 16));
+    return { r, g, b };
+  }
+  if (full) {
+    const n = parseInt(full[1], 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  return null;
+}
+
+function _accentTextColor(hex) {
+  const rgb = _hexToRgb(hex);
+  if (!rgb) return '#0E0E10';
+  const srgb = [rgb.r, rgb.g, rgb.b].map(v => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  const l = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+  return l > 0.58 ? '#0E0E10' : '#FFFFFF';
+}
+
+function _rgba(hex, alpha) {
+  const rgb = _hexToRgb(hex);
+  if (!rgb) return `rgba(14,14,16,${alpha})`;
+  return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+}
+
+function _wsAccentVars(accent = WS_ACCENT_LIME) {
+  const safeAccent = /^#[0-9a-f]{6}$/i.test(String(accent || '')) ? accent : WS_ACCENT_LIME;
+  const on = _accentTextColor(safeAccent);
+  return [
+    `--q-accent:${safeAccent}`,
+    `--ws-accent:${safeAccent}`,
+    `--ws-lime:${safeAccent}`,
+    `--ws-on-accent:${on}`,
+    `--ws-on-accent-muted:${_rgba(on, on === '#FFFFFF' ? 0.72 : 0.62)}`,
+    `--ws-on-accent-line:${_rgba(on, on === '#FFFFFF' ? 0.34 : 0.28)}`,
+    `--ws-on-accent-weak:${_rgba(on, on === '#FFFFFF' ? 0.13 : 0.06)}`,
+    `--ws-accent-soft:${_rgba(safeAccent, 0.14)}`,
+  ].join(';');
+}
 
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
@@ -2603,7 +2651,8 @@ function renderWorksheet(el, card) {
   // rainbow of unrelated widgets rather than one product. Category is still
   // communicated, by meta.icon and the kicker text. BOARD_TOOL_META keeps its
   // colours for the tools sidebar, which is a picker and benefits from them.
-  const accent = d.accent || WS_ACCENT_INK;
+  const accent = d.accent || WS_ACCENT_LIME;
+  const accentVars = _wsAccentVars(accent);
 
   // Interactive mode: render inside an iframe with drag strip
   if (d._interactive && _wsHasInteractive(d)) {
@@ -2648,6 +2697,7 @@ function renderWorksheet(el, card) {
 
   const body = document.createElement('div');
   body.className = 'card-body ws-body';
+  body.style.cssText = accentVars;
 
   const qs    = Array.isArray(d.questions) ? d.questions : null;
   const items = Array.isArray(d.items) ? d.items : null;
@@ -2660,7 +2710,7 @@ function renderWorksheet(el, card) {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
       return `<span class="ws-step ${sm.cls}"><i>${i + 1}</i><b>${esc(sm.label)}</b></span>`;
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
-  const strip = `<div class="ws-strip" style="--q-accent:${accent}">
+  const strip = `<div class="ws-strip" style="${accentVars}">
       <div class="ws-strip-main">
         <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}${d.level ? ' · ' + esc(d.level) : ''}${d._sheetOf ? ` · Sheet ${d._sheetOf.i}/${d._sheetOf.of}` : ''}</span>
         <span class="ws-strip-title">${esc(_wsDisplayTopic(d))}</span>
@@ -5001,7 +5051,7 @@ function showLayerPopover(cardId) {
       }
     }
     accentRow.innerHTML = '';
-    const current = (card.data.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[card.data.cat]?.color) || '#0E0E10').toLowerCase();
+    const current = (card.data.accent || WS_ACCENT_LIME).toLowerCase();
     WS_ACCENT_COLORS.forEach(c => {
       const sw = document.createElement('button');
       sw.className = 'card-color-swatch';
@@ -17205,6 +17255,16 @@ function _updateDpSizeDot() { /* placeholder kept for future visual */ }
 function setDrawColor(c) {
   if (!_drawTool || _drawTool === 'eraser') return;
   _drawState[_drawTool].color = c;
+  if (state.selectedStrokes && state.selectedStrokes.size) {
+    snapshot();
+    const selected = state.selectedStrokes;
+    (state.strokes || []).forEach(stroke => {
+      if (selected.has(stroke.id)) stroke.color = c;
+    });
+    renderAllStrokes();
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+    scheduleSave();
+  }
   _saveDrawState();
   // Re-render swatches for selected highlight
   openDrawPalette(document.getElementById('mt-pen'), _drawTool);
@@ -17215,6 +17275,16 @@ function setDrawSize(v) {
   const min = parseInt(sizeInput?.min, 10) || 1;
   const max = parseInt(sizeInput?.max, 10) || (_drawTool === 'eraser' ? 60 : _drawTool === 'marker' ? 40 : 20);
   _drawState[_drawTool].size = Math.max(min, Math.min(max, parseInt(v, 10) || min));
+  if (state.selectedStrokes && state.selectedStrokes.size) {
+    snapshot();
+    const selected = state.selectedStrokes;
+    (state.strokes || []).forEach(stroke => {
+      if (selected.has(stroke.id)) stroke.size = _drawState[_drawTool].size;
+    });
+    renderAllStrokes();
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+    scheduleSave();
+  }
   _saveDrawState();
   if (sizeInput) sizeInput.value = _drawState[_drawTool].size;
   const sv = document.getElementById('draw-size-val');
