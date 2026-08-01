@@ -1,4 +1,7 @@
+const path = require('path');
 require('dotenv').config();
+// Also resolve a colocated backend/.env when the process is started from the repo root.
+require('dotenv').config({ path: process.env.DOTENV_CONFIG_PATH || path.join(__dirname, '.env') });
 const express  = require('express');
 const cors     = require('cors');
 const http     = require('http');
