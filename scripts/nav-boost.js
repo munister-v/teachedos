@@ -11,6 +11,29 @@
 (function () {
   'use strict';
 
+  // Keep navigation reliably tappable on touch screens. The old 32–36px
+  // macOS-style targets were easy to miss, especially on Homework/Schedule.
+  const navStyle = document.createElement('style');
+  navStyle.textContent = `
+    #nav .nav-link, #menubar .mb-item {
+      min-height: 44px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 861px) {
+      #menubar { height: 44px; }
+      #menubar .mb-item { height: 44px; }
+    }
+    #nav .nav-link:focus-visible, #menubar .mb-item:focus-visible {
+      outline: 3px solid rgba(200,230,50,.72);
+      outline-offset: -2px;
+    }
+    @media (max-width: 860px) {
+      #nav .nav-link, #menubar .mb-item { min-height: 44px; }
+    }
+  `;
+  document.head.appendChild(navStyle);
+
   // ── Skip on small/slow connections (data-saver) ─────────────
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const lowData = conn && (conn.saveData || /2g/.test(conn.effectiveType || ''));
