@@ -949,7 +949,7 @@ function renderText(el, card) {
     const content = document.createElement('div');
     content.className = 'generated-panel-content';
     content.innerHTML = card.data.html
-      ? String(card.data.html).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+      ? _ttUpgradeStoredMarkdown(card.data.html)
       : textToHtml(card.data.text || card.data.title || '');
     content.addEventListener('mousedown', e => {
       if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
@@ -1049,7 +1049,7 @@ function renderText(el, card) {
   // render (no-op for new cards — _ttMdToHtml already stripped them). The
   // [^*\n] guard keeps each match inside one word/phrase so it can't gobble.
   editor.innerHTML = card.data.html
-    ? String(card.data.html).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    ? _ttUpgradeStoredMarkdown(card.data.html)
     : textToHtml(card.data.text || card.data.title || 'Text');
   applyTextStyles(card, editor);
 
@@ -1067,6 +1067,10 @@ function renderText(el, card) {
   });
   editor.addEventListener('blur', () => {
     if (_textEditOrigHtml === null) return;
+    const upgradedHtml = _ttUpgradeStoredMarkdown(editor.innerHTML);
+    if (upgradedHtml !== editor.innerHTML) editor.innerHTML = upgradedHtml;
+    card.data.html = editor.innerHTML;
+    card.data.text = editor.innerText;
     const newHtml = card.data.html, newText = card.data.text;
     if (_textEditOrigHtml !== newHtml || _textEditOrigText !== newText) {
       card.data.html = _textEditOrigHtml; card.data.text = _textEditOrigText;
@@ -2517,7 +2521,7 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
    left to say. Several blanks share one answer field, so those stay empty and
    keep the chip. Returns null when the text has no blank at all. */
 function _ttGapFillHtml(text, answer, showAns) {
-  const safe = esc(String(text || ''));
+  const safe = _ttMdInline(String(text || ''));
   const blanks = safe.match(/_{2,}/g);
   if (!blanks) return null;
   const fill = showAns && answer && blanks.length === 1;
@@ -2543,7 +2547,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           // Keep the letter on the correct option too: a key is read as "the
           // answer is B", and swapping the letter for a tick threw that away.
           // The badge inverts instead, which is what marks it.
-          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></div>`;
+          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${_ttMdInline(o)}</span></div>`;
         }).join('')}</div>`;
       } else if (q.type === 'truefalse') {
         // No ✅/❌ glyphs — the lime .on fill already marks the answer, and a red
@@ -2555,16 +2559,16 @@ function _ttWorksheetListHTML(d, showAns, accent) {
         // our own when the text carries no blank to draw.
         if (!gap) ans = '<div class="ws-open"></div>';
         else if (!gap.answerShown && showAns && q.answer) {
-          ans = `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${esc(q.answer)}</b></div>`;
+          ans = `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${_ttMdInline(q.answer)}</b></div>`;
         }
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
-        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${esc(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${esc(p.right || '')}</span>`).join('')}</div>`;
+        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${_ttMdInline(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${_ttMdInline(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
         // Four ruled lines: at the old 4.8mm pitch three lines were unusable
         // anyway, and an open question is the one place a student writes.
         ans = `<div class="ws-write"><i></i><i></i><i></i><i></i></div>`;
       }
-      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : esc(q.text || '')}</span></div>${ans}</div>`;
+      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : _ttMdInline(q.text || '')}</span></div>${ans}</div>`;
     }).join('');
   }
   if (items) {
@@ -2577,9 +2581,9 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     const chips = items.map(it => {
       const def = it.example || it.definition || '';
       const tail = (showAns && def)
-        ? `<span class="ws-chip-def">${esc(def)}</span>`
+        ? `<span class="ws-chip-def">${_ttMdInline(def)}</span>`
         : '<span class="ws-gap"></span>';
-      return `<span class="ws-chip"><b>${esc(it.word || '')}</b>${tail}</span>`;
+      return `<span class="ws-chip"><b>${_ttMdInline(it.word || '')}</b>${tail}</span>`;
     }).join('');
     return `<div class="ws-chips">${chips}</div>`;
   }
@@ -2592,7 +2596,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       return `<div class="ws-q ws-q-card ${sm.cls}${anchorCls}" style="--q-accent:${accent};--stage:${i+1}">
         <div class="ws-stage-rail"><span>${i + 1}</span></div>
         <div class="ws-qh ws-card-head">
-          <span class="ws-card-title">${esc(cleanTitle || c.title || '')}</span>
+          <span class="ws-card-title">${_ttMdInline(cleanTitle || c.title || '')}</span>
           <span class="ws-stage-label">${esc(sm.label)}</span>
           ${time ? `<span class="ws-stage-time">⏱ ${esc(time)}</span>` : ''}
         </div>
@@ -2907,6 +2911,11 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   if (ownerView === undefined) ownerView = true;
   const savedState = d._state || null;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // Keep Markdown only as an authoring convention. Every visible value uses
+  // this formatter, while data-* attributes continue to use plain esc().
+  const md = s => esc(s)
+    .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+?)__/g, '<strong>$1</strong>');
 
   let contentHtml = '';
   let scriptHtml = '';
@@ -2932,7 +2941,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
 
   // ─── MODE: Questions (quiz-based tools) ───
   if (qs.length && isAllGapFill) {
-    const sentencesHtml = qs.map((q, qi) => `<div class="iw-gs-item"><b>${qi+1}.</b> ${esc(q.text||'')}</div>`).join('');
+    const sentencesHtml = qs.map((q, qi) => `<div class="iw-gs-item"><b>${qi+1}.</b> ${md(q.text||'')}</div>`).join('');
     const tilesHtml = qs.map((q, qi) => {
       const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
       return `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}" onclick="this.querySelector('input').focus()">
@@ -2951,7 +2960,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
-          q.options.map((o, oi) => { const [t1, t2] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--t1:${t1};--t2:${t2}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`; }).join('')
+          q.options.map((o, oi) => { const [t1, t2] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--t1:${t1};--t2:${t2}">${String.fromCharCode(65+oi)}. ${md(o)}</button>`; }).join('')
         }</div>`;
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
@@ -2971,22 +2980,22 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
         if (isSorting) {
           inner = `<div class="iw-sort" data-qi="${qi}">
             <div class="iw-sort-bank" id="sbank-${qi}">
-              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}" data-expect="${esc(p.right)}">${esc(p.left)}</div>`).join('')}
+              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}" data-expect="${esc(p.right)}">${md(p.left)}</div>`).join('')}
             </div>
             <div class="iw-sort-cols">${cats.map(cat => `<div class="iw-sort-col" data-cat="${esc(cat)}">
-              <div class="iw-sort-header">${esc(cat)}</div>
+              <div class="iw-sort-header">${md(cat)}</div>
               <div class="iw-sort-drop"></div>
             </div>`).join('')}</div>
           </div>`;
         } else {
           inner = `<div class="iw-match" data-qi="${qi}">
             <div class="iw-match-bank" id="bank-${qi}">
-              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}">${esc(p.left)}</div>`).join('')}
+              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}">${md(p.left)}</div>`).join('')}
             </div>
             <div class="iw-match-targets">
               ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}" data-expect="${esc(p.left)}">
                 <span class="iw-slot"></span>
-                <span class="iw-def">${esc(p.right)}</span>
+                <span class="iw-def">${md(p.right)}</span>
               </div>`).join('')}
             </div>
           </div>`;
@@ -2995,7 +3004,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
         const words = String(q.text||'').split('\n').pop().split(/\s*\/\s*/).filter(w => w.trim());
         if (words.length >= 3) {
           inner = `<div class="iw-ooo" data-qi="${qi}">
-            ${words.map(w => `<button class="iw-ooo-btn" data-word="${esc(w.trim())}" onclick="pickOdd(this)">${esc(w.trim())}</button>`).join('')}
+            ${words.map(w => `<button class="iw-ooo-btn" data-word="${esc(w.trim())}" onclick="pickOdd(this)">${md(w.trim())}</button>`).join('')}
           </div>`;
         } else {
           inner = `<textarea class="iw-open-input" placeholder="Write your answer…" rows="2"></textarea>`;
@@ -3007,7 +3016,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       // Card starts showing only the question; tapping it either reveals the
       // answer controls (interactive types) or advances straight to the next
       // card (a bare prompt with nothing to answer) — see iwCardTap.
-      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${esc(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div><div class="iw-tap-hint">👆 tap to reveal</div>` : ''}</div></div>`;
+      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div><div class="iw-tap-hint">👆 tap to reveal</div>` : ''}</div></div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
@@ -3029,7 +3038,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
           else if (q.type === 'gap-fill') a = q.answer || '';
           else if (q.type === 'match') a = (q.pairs||[]).map(p => p.left + ' → ' + p.right).join('; ');
           else return '';
-          return a ? `<div><b>${i+1}.</b> ${esc(a)}</div>` : '';
+          return a ? `<div><b>${i+1}.</b> ${md(a)}</div>` : '';
         }).join('')}</div>
       </div>`;
     }
@@ -3160,8 +3169,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   else if (items.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
       <div class="iw-flash-inner">
-        <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${esc(it.word||'')}</span></div>
-        <div class="iw-flash-back"><span class="iw-flash-def">${esc(it.example || it.definition || '—')}</span></div>
+        <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${md(it.word||'')}</span></div>
+        <div class="iw-flash-back"><span class="iw-flash-def">${md(it.example || it.definition || '—')}</span></div>
       </div>
     </div>`).join('')}</div></div>
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
@@ -3173,8 +3182,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   else if (cards.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${cards.map((c, i) => `<div class="iw-card-flip" onclick="iwFlipOrNext(this)">
       <div class="iw-card-inner">
-        <div class="iw-card-front"><span class="iw-card-num">${i+1}</span><span class="iw-card-title">${esc(c.title||'')}</span><span class="iw-card-hint">tap to reveal</span></div>
-        <div class="iw-card-back"><div class="iw-card-back-title">${esc(c.title||'')}</div><div class="iw-card-back-text">${esc(c.text||'').replace(/\n/g,'<br>')}</div></div>
+        <div class="iw-card-front"><span class="iw-card-num">${i+1}</span><span class="iw-card-title">${md(c.title||'')}</span><span class="iw-card-hint">tap to reveal</span></div>
+        <div class="iw-card-back"><div class="iw-card-back-title">${md(c.title||'')}</div><div class="iw-card-back-text">${md(c.text||'').replace(/\n/g,'<br>')}</div></div>
       </div>
     </div>`).join('')}</div></div>
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
@@ -3218,6 +3227,7 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 *{box-sizing:border-box;margin:0}
 body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16px 18px 24px;background:#fff;overflow-x:hidden}
+strong{font-weight:800}
 .iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${accent};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
 /* ── Questions ── */
 .iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
@@ -3368,7 +3378,7 @@ body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16p
 .iw-gap-grid .iw-gap-input.correct{background:#dcfce7;color:#15803d}
 .iw-gap-grid .iw-gap-input.wrong{background:#fee2e2;color:#991b1b}
 </style></head><body>
-<div class="iw-title">${esc(d.title || d.kind || 'Interactive Activity')}</div>
+<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>
 ${contentHtml}
 <script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};<\/script>
 <script>${scriptHtml}<\/script>
@@ -3597,7 +3607,7 @@ function refreshAllMilestones() {
 }
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function textToHtml(s){ return esc(s || '').replace(/\n/g,'<br>'); }
+function textToHtml(s){ return _ttMdToHtml(s); }
 // Escape, then render markdown bold (**word**) as <strong> and newlines as <br>.
 // Used for AI text where target vocabulary comes back marked with **asterisks**.
 function _ttMdToHtml(s){
@@ -3614,6 +3624,13 @@ function _ttMdInline(s){
   return esc(s || '')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__(.+?)__/g, '<strong>$1</strong>');
+}
+// One legacy-normalisation rule for stored rich HTML. Older AI cards may
+// already contain HTML but still have literal Markdown emphasis in text.
+function _ttUpgradeStoredMarkdown(s){
+  return String(s || '')
+    .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+?)__/g, '<strong>$1</strong>');
 }
 
 /* ══════════════════════════════════════════════════════
