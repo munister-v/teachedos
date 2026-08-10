@@ -4918,6 +4918,15 @@ function updateMultiSelBox() {
   // zoomed far out. The selection geometry stays in board coordinates; only
   // its controls compensate for the current canvas scale.
   box.style.setProperty('--selection-inverse-scale', String(Math.max(.75, Math.min(12, 1 / state.scale))));
+  const dragHandle = box.querySelector('.ms-drag-handle');
+  if (dragHandle) {
+    const count = state.selected.size;
+    const noun = count === 1 ? 'element' : 'elements';
+    dragHandle.setAttribute('aria-label', `Move ${count} selected ${noun}`);
+    dragHandle.title = `Move ${count} selected ${noun}`;
+    const countEl = dragHandle.querySelector('.ms-count');
+    if (countEl) countEl.textContent = String(count);
+  }
   box.classList.add('show');
 }
 
