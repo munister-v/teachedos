@@ -81,7 +81,7 @@ rsync -a --delete --delete-excluded \
 systemctl restart teached-api.service
 ready=0
 for _ in {1..20}; do
-  if systemctl is-active --quiet teached-api.service && curl -fsS http://127.0.0.1:4000/health >/dev/null; then
+  if systemctl is-active --quiet teached-api.service && curl -fsS http://127.0.0.1:4000/health >/dev/null 2>&1; then
     ready=1
     break
   fi
