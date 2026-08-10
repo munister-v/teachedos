@@ -9224,6 +9224,10 @@ function _ttPlaceActivityWorksheet(frame, title, kind, cat, level, questions) {
   const data = {
     title, kind, cat: cat || 'vocabulary', level: level || 'B1',
     boardKind: 'quiz', questions, _ttSrc: 1, _interactive: true,
+    // Activities added from a lesson frame belong to one auto-managed grid.
+    // This lets the board keep generated work compact without moving any card
+    // that the teacher positioned manually.
+    _ttActivityGrid: 1,
   };
   const H = Math.max(300, Math.min(720, _ttEstWorksheetHeight({ questions })));
   _ttAppendActivityCard(frame, 'worksheet', data, 560, H);
@@ -9288,30 +9292,83 @@ async function addLessonActivity(frameId, type) {
   }
 }
 
-// Drop a new card inside the lesson frame, below the existing content, and grow
-// the frame to fit.
+/* Lay only the activities that TeachEd added through “+ Add activity” into a
+   compact, row-major grid. Other frame children are intentionally untouched:
+   they can be a carefully composed lesson layout or cards moved by a teacher.
+   Keeping that boundary makes automatic placement helpful rather than
+   surprising. */
+function _ttLayoutAppendedActivityGrid(frame) {
+  if (!frame || !frame.data) return;
+  const PAD = 28, GAP = 20, MIN_TWO_COL_W = 400;
+  const kids = (frame.data.childIds || []).map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  const activities = kids.filter(c => c.data && c.data._ttActivityGrid === 1);
+  if (!activities.length) return;
+
+  const fixed = kids.filter(c => !activities.includes(c));
+  const canUseTwoCols = activities.length > 1
+    && frame.w >= PAD * 2 + GAP + MIN_TWO_COL_W * 2;
+  const cols = canUseTwoCols ? 2 : 1;
+  const cardW = cols === 2
+    ? Math.min(560, Math.floor((frame.w - PAD * 2 - GAP) / 2))
+    : Math.min(560, Math.max(320, frame.w - PAD * 2));
+  const startY = (fixed.length ? Math.max(...fixed.map(c => c.y + c.h)) : frame.y + 72) + GAP;
+
+  // Resize first, then take true rendered heights. A long activity no longer
+  // pushes its neighbour into the next row or outside the lesson frame.
+  activities.forEach(card => {
+    card.w = cardW;
+    const el = getCardEl(card.id);
+    if (el) el.style.width = cardW + 'px';
+    _wsFitToContent(card.id);
+  });
+  const rows = Math.ceil(activities.length / cols);
+  const rowH = [];
+  for (let row = 0; row < rows; row++) {
+    const cardsInRow = activities.slice(row * cols, row * cols + cols);
+    rowH[row] = Math.max(...cardsInRow.map(card => card.h));
+  }
+
+  let y = startY;
+  activities.forEach((card, i) => {
+    const row = Math.floor(i / cols), col = i % cols;
+    if (col === 0 && row > 0) y += rowH[row - 1] + GAP;
+    card.x = frame.x + PAD + col * (cardW + GAP);
+    card.y = y;
+    const el = getCardEl(card.id);
+    if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
+  });
+
+  const gridBottom = startY + rowH.reduce((sum, h) => sum + h, 0) + Math.max(0, rows - 1) * GAP;
+  const needBottom = gridBottom + PAD;
+  if (needBottom > frame.y + frame.h) {
+    frame.h = needBottom - frame.y;
+    const frameEl = getCardEl(frame.id);
+    if (frameEl) frameEl.style.height = frame.h + 'px';
+  }
+}
+
+// Drop a new card into the generated-activity grid and grow the frame to fit.
 function _ttAppendActivityCard(frame, type, data, w, h) {
   snapshot(); _suppressSnapshot++;
   let card;
   try {
-    const PAD = 28, GAP = 18;
-    const kids = (frame.data.childIds || []).map(id => state.cards.find(c => c.id === id)).filter(Boolean);
-    const bottom = kids.length ? Math.max(...kids.map(c => c.y + c.h)) : (frame.y + 92);
-    const x = frame.x + PAD;
-    const y = bottom + GAP;
-    card = addCard(type, x, y, data, w, h);
+    // The final coordinates are set by _ttLayoutAppendedActivityGrid below;
+    // this provisional position only keeps the card valid during creation.
+    card = addCard(type, frame.x + 28, frame.y + frame.h + 20, data, w, h);
     setCardParentFrame(card, frame);
-    const needBottom = y + h + PAD;
-    if (needBottom > frame.y + frame.h) {
-      frame.h = needBottom - frame.y;
-      const fe = getCardEl(frame.id);
-      if (fe) fe.style.height = frame.h + 'px';
-    }
+    _ttLayoutAppendedActivityGrid(frame);
   } finally {
     _suppressSnapshot--;
   }
   renderAllArrows?.();
   scheduleSave?.(); saveLocal?.();
+  // Browser text wrapping can change a worksheet's height after its first
+  // paint. Re-measure once so the second grid row never overlaps the first.
+  if (card) requestAnimationFrame(() => {
+    _ttLayoutAppendedActivityGrid(frame);
+    renderAllArrows?.();
+    scheduleSave?.(); saveLocal?.();
+  });
   if (card) { clearSelection?.(); selectCard?.(card.id); setTimeout(() => { try { zoomToCard?.(card.id, true); } catch {} }, 80); }
   toast('✨ Interactive activity added — students can take it on the board');
 }
@@ -10037,19 +10094,46 @@ function _ttPlaceWorksheetOnBoard(output){
   // ordinary case runs exactly the path it always did.
   const parts = _ttSplitWorksheet(output);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
-  snapshot();
+  const isPagedSet = parts.length > 1;
+  const GAP = 28, PAD = 30, HEAD = 64;
+  // Long worksheets used to become one horizontal strip. Two columns preserve
+  // the page order while keeping the generated material in the visible board
+  // area. One normal worksheet deliberately stays a single clean sheet.
+  const COLS = isPagedSet ? Math.min(2, parts.length) : 1;
+  const ROWS = Math.ceil(parts.length / COLS);
+  const heights = parts.map(part => _ttEstWorksheetHeight(part, W));
+  const rowH = [];
+  for (let row = 0; row < ROWS; row++) {
+    rowH[row] = Math.max(...heights.slice(row * COLS, row * COLS + COLS));
+  }
+  const frameW = PAD * 2 + COLS * W + (COLS - 1) * GAP;
+  const frameH = isPagedSet
+    ? HEAD + rowH.reduce((sum, h) => sum + h, 0) + Math.max(0, ROWS - 1) * GAP + PAD
+    : heights[0];
+  const center = findFreePlacement(c0.x, c0.y, frameW, frameH);
+  const x0 = Math.round(center.x - frameW / 2);
+  const y0 = Math.round(center.y - frameH / 2);
+  snapshot(); _suppressSnapshot++;
 
   const placed = [];
-  let anchorX = null;
-  for (const part of parts) {
-    const H = _ttEstWorksheetHeight(part);
-    // Sheets sit side by side in reading order rather than being scattered by
-    // findFreePlacement, which would spiral them apart and lose the sequence.
-    const pos = placed.length
-      ? { x: anchorX + placed.length * (W + 48), y: c0.y }
-      : findFreePlacement(c0.x, c0.y, W, H);
-    if (!placed.length) anchorX = pos.x;
-    const card = addCard('worksheet', Math.round(pos.x - W/2), Math.round(pos.y - H/2), {
+  let frame = null;
+  try {
+    if (isPagedSet) {
+      frame = addCard('frame', x0, y0, {
+        title: `▦  ${output.title || 'Worksheet'} · ${parts.length} pages`,
+        bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
+        _ttSrc: 1, _ttGrid: 'pages',
+      }, frameW, frameH);
+    }
+    parts.forEach((part, i) => {
+      const row = Math.floor(i / COLS), col = i % COLS;
+      const x = isPagedSet
+        ? x0 + PAD + col * (W + GAP)
+        : Math.round(center.x - W / 2);
+      const y = isPagedSet
+        ? y0 + HEAD + rowH.slice(0, row).reduce((sum, h) => sum + h + GAP, 0)
+        : Math.round(center.y - heights[i] / 2);
+      const card = addCard('worksheet', x, y, {
       title: part.title,
       topic: part.topic,
       kind: part.kind,
@@ -10061,8 +10145,13 @@ function _ttPlaceWorksheetOnBoard(output){
       cards: part.cards,
       _ttSrc: 1,  // marks this card as Teacher Tool generated
       _sheetOf: part._sheetOf,
-    }, W, H);
-    if (card) placed.push(card);
+      _ttGrid: isPagedSet ? 'pages' : undefined,
+    }, W, heights[i]);
+      if (frame && card) setCardParentFrame(card, frame);
+      if (card) placed.push(card);
+    });
+  } finally {
+    _suppressSnapshot--;
   }
 
   if (placed.length) {
@@ -10072,17 +10161,32 @@ function _ttPlaceWorksheetOnBoard(output){
       .map((c, i) => ({ c: normalizeCardLayer(c, i + 1), i }))
       .sort((a, b) => getCardZ(a.c) - getCardZ(b.c) || a.i - b.i)
       .map(x => x.c);
+    // A page-set frame is the backdrop, not a card that should cover its own
+    // worksheets. Keep it below the generated pages before restoring the rest
+    // of the board's layering.
+    const frames = frame ? ordered.filter(c => c.id === frame.id) : [];
     const sheets = ordered.filter(c => ids.has(c.id));
-    const rest = ordered.filter(c => !ids.has(c.id));
-    [...sheets, ...rest].forEach((c, i) => { c.z = i + 1; applyCardLayer(c); });
+    const rest = ordered.filter(c => !ids.has(c.id) && c.id !== frame?.id);
+    [...frames, ...sheets, ...rest].forEach((c, i) => { c.z = i + 1; applyCardLayer(c); });
     clearSelection && clearSelection();
-    selectCard(placed[0].id);
-    setTimeout(() => { try { zoomToCard && zoomToCard(placed[0].id, true); } catch (e) {} }, 80);
+    const focusId = frame?.id || placed[0].id;
+    selectCard(focusId);
+    setTimeout(() => { try { zoomToCard && zoomToCard(focusId, true); } catch (e) {} }, 80);
+  }
+  if (frame && placed.length) {
+    // Initial height calculations happen before browser text wrapping. The
+    // shared measured grid pass keeps every page in its row and expands the
+    // frame only as much as its real content needs.
+    requestAnimationFrame(() => {
+      _relayoutLessonFrame(frame.id, placed.map(card => card.id), {
+        x0, y0, cols: COLS, CARD_W: W, GAP, PAD, HEAD,
+      });
+    });
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
   toast(placed.length > 1
-    ? `✨ Worksheet added as ${placed.length} sheets — too long for one`
+    ? `✨ Worksheet added as a ${COLS}×${ROWS} page grid — too long for one sheet`
     : '✨ Worksheet added — print-ready, click ✏️ on any card to annotate');
 }
 
@@ -10499,7 +10603,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '259';
+const TEACHEDOS_ASSET_VERSION = '260';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

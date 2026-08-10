@@ -571,8 +571,14 @@ function _ttPlaceCardFlowBoard(output, meta) {
   // Standard activity flow: same visual system as lesson packs, but smaller.
   const visibleCards = Math.min(cards.length, 12);
   const shown = cards.slice(0, visibleCards);
-  const COLS = 2;
-  const CARD_W = isSpeaking ? 430 : 448;
+  // A two-column flow is easy to read for a short activity, but with 7–12
+  // generated cards it turns into a very long lesson strip. Let larger sets
+  // use one extra column: boards pan horizontally well, while a long vertical
+  // scroll hides the later prompts during a live class.
+  const COLS = shown.length >= 7 ? 3 : 2;
+  const CARD_W = COLS === 3
+    ? (isSpeaking ? 330 : 350)
+    : (isSpeaking ? 430 : 448);
   const RAIL_W = 286;
   const GAP = 18, HEADER_H = 120, GRID_TOP = 192;
   const FRAME_W = PAD * 2 + COLS * CARD_W + GAP + 26 + RAIL_W;
@@ -764,7 +770,11 @@ function _ttPlaceWorksheetBoard(output, meta) {
   const parts = (output.parts || []).filter(Boolean);
   if (!parts.length) return false;
 
-  const COLS = 2, CARD_W = 500, CARD_H_BASE = 110;
+  // Three columns for a substantial worksheet keep eight or nine generated
+  // sections visible as a compact board grid instead of a tall 2-column wall.
+  // Smaller sets retain their wider two-column reading layout.
+  const COLS = parts.length >= 5 ? 3 : Math.min(2, parts.length);
+  const CARD_W = COLS === 3 ? 380 : 500, CARD_H_BASE = 110;
   const GAP = 20, PAD = 28, GRID_TOP = 192, RAIL_W = 286;
   const colW = CARD_W, colGap = GAP;
   const FRAME_W = PAD * 2 + COLS * colW + (COLS - 1) * colGap + 26 + RAIL_W;
@@ -773,9 +783,12 @@ function _ttPlaceWorksheetBoard(output, meta) {
   const heights = parts.map(p => {
     const n = (p.items || []).length;
     const wbExtra = (p.word_bank && p.word_bank.length) ? 52 : 0;
-    const perItem = p.type === 'multiple_choice' ? 106
-                  : p.type === 'essay'           ? 118
-                  : 52; // fill_blank, matching
+    const basePerItem = p.type === 'multiple_choice' ? 106
+                      : p.type === 'essay'           ? 118
+                      : 52; // fill_blank, matching
+    // Narrower cards wrap a little sooner. Account for that here so a 3-wide
+    // grid remains spacious rather than introducing inner scrollbars.
+    const perItem = Math.ceil(basePerItem * (500 / CARD_W));
     return Math.max(240, CARD_H_BASE + wbExtra + n * perItem);
   });
   const rowCount = Math.ceil(parts.length / COLS);
