@@ -81,6 +81,7 @@ const state = {
   pan:   { x:100, y:60 },
   scale: 1,
   cards: [],     // { id, type, x, y, w, h, data, color }
+  annotations: [], // { id, x, y, thread:[{ id, body, author, createdAt }], resolved, createdAt, updatedAt }
   arrows:[],     // { id, fromCard|fromPoint, fromAnchor, toCard|toPoint, toAnchor, color?, route?, waypoints?, headFrom?, headTo? }
   strokes:[],    // { id, tool:'pen'|'marker', color, size, points:[{x,y}] }
   selected: new Set(),
@@ -93,6 +94,51 @@ const state = {
 
 /* undo/redo stacks */
 const undoStack = [], redoStack = [];
+
+function normalizeAnnotations(list) {
+  return (Array.isArray(list) ? list : []).map((annotation, index) => ({
+    id: String(annotation.id || `cm-${index + 1}`),
+    x: Number(annotation.x) || 0,
+    y: Number(annotation.y) || 0,
+    thread: (Array.isArray(annotation.thread) ? annotation.thread : []).map((message, messageIndex) => ({
+      id: String(message.id || `msg-${messageIndex + 1}`),
+      body: String(message.body || '').slice(0, 2000),
+      author: String(message.author || 'Commenter').slice(0, 120),
+      createdAt: Number(message.createdAt) || Date.now(),
+    })).filter(message => message.body.trim()),
+    resolved: Boolean(annotation.resolved),
+    createdAt: Number(annotation.createdAt) || Date.now(),
+    updatedAt: Number(annotation.updatedAt) || Date.now(),
+  })).filter(annotation => annotation.thread.length);
+}
+
+// Boards saved before threaded comments used yellow sticky cards with isComment.
+// Convert them once on load and preserve their text and board position.
+function migrateLegacyCommentStickies(data) {
+  if (!data || !Array.isArray(data.cards)) return data || {};
+  const legacy = data.cards.filter(card => card?.type === 'sticky' && card?.data?.isComment);
+  if (!legacy.length) {
+    data.annotations = normalizeAnnotations(data.annotations);
+    return data;
+  }
+  const annotations = normalizeAnnotations(data.annotations);
+  legacy.forEach((card, index) => {
+    const body = String(card.data?.text || '').trim();
+    if (!body) return;
+    annotations.push({
+      id: `cm-legacy-${card.id || index + 1}`,
+      x: Number(card.x || 0) + Number(card.w || 160) / 2,
+      y: Number(card.y || 0) + Number(card.h || 100) / 2,
+      thread: [{ id: `msg-legacy-${card.id || index + 1}`, body, author: 'Commenter', createdAt: Date.now() }],
+      resolved: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  });
+  data.cards = data.cards.filter(card => !(card?.type === 'sticky' && card?.data?.isComment));
+  data.annotations = annotations;
+  return data;
+}
 
 /* ════════════════════════ DOM refs ════════════════════════ */
 const boardWrap  = document.getElementById('board-wrap');
@@ -204,6 +250,10 @@ function applyTransform() {
   if (!(typeof isPanning !== 'undefined' && isPanning) &&
       !(typeof isDraggingCard !== 'undefined' && isDraggingCard) &&
       !(typeof isResizing !== 'undefined' && isResizing)) positionLayerPopover();
+  if (_activeAnnotationId && annotationPopover()) {
+    const annotation = state.annotations.find(item => item.id === _activeAnnotationId);
+    if (annotation) positionAnnotationPopover(annotation, annotationPopover());
+  }
   if (!_isMomentum) wsSendViewport();
 }
 
@@ -371,13 +421,17 @@ function zoomToCard(cardId, animate) {
 }
 
 function fitAll(animate) {
-  if (!state.cards.length) return;
+  if (!state.cards.length && !state.annotations.length) return;
   // Cancel momentum
   if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
   state.cards.forEach(c => {
     minX=Math.min(minX,c.x); minY=Math.min(minY,c.y);
     maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h);
+  });
+  state.annotations.forEach(annotation => {
+    minX=Math.min(minX,annotation.x-22); minY=Math.min(minY,annotation.y-22);
+    maxX=Math.max(maxX,annotation.x+22); maxY=Math.max(maxY,annotation.y+22);
   });
   const phone = isBoardPhone();
   const PAD = phone ? 26 : 60;
@@ -466,6 +520,7 @@ function serialize() {
       return { ...c, data };
     }),
     arrows:  state.arrows.map(a => ({ ...a })),
+    annotations: normalizeAnnotations(state.annotations),
     strokes: (state.strokes || []).map(s => ({ ...s, points: s.points.map(p => ({ x:p.x, y:p.y })) })),
     groups:  state.groups ? state.groups.map(g => ({ ...g, cardIds: [...g.cardIds] })) : [],
     nextId:  state.nextId,
@@ -473,7 +528,7 @@ function serialize() {
 }
 
 function restoreState(json) {
-  const s = JSON.parse(json);
+  const s = migrateLegacyCommentStickies(JSON.parse(json));
   // Restore image sentinels: '\x00img:<id>' → live card's data.src
   const liveSrcMap = new Map(state.cards.filter(c => c.data?.src?.startsWith?.('data:')).map(c => [c.id, c.data.src]));
   if (Array.isArray(s.cards)) {
@@ -488,16 +543,19 @@ function restoreState(json) {
   state.cards.forEach(c => { const el = getCardEl(c.id); if (el) el.remove(); });
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = [];
+  state.annotations = [];
   state.arrows = [];
   state.strokes = [];
   state.groups = [];
   clearSelection();
   s.cards.forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
   state.arrows = s.arrows;
+  state.annotations = normalizeAnnotations(s.annotations);
   state.strokes = Array.isArray(s.strokes) ? s.strokes : [];
   state.groups = (s.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   state.nextId = s.nextId;
   renderAllArrows();
+  renderAllAnnotations();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   updateUndoButtons();
@@ -819,19 +877,6 @@ function _cardVisible(card) {
 
 function renderSticky(el, card) {
   el.style.backgroundColor = card.color || STICKY_COLORS[0];
-  // Comments are technically saved as stickies with isComment:true.
-  // Add a distinctive comment-pin badge so the user can tell them
-  // apart from regular sticky notes.
-  if (card.data && card.data.isComment) {
-    el.classList.add('card-comment-note');
-    let pin = el.querySelector('.comment-pin-badge');
-    if (!pin) {
-      pin = document.createElement('div');
-      pin.className = 'comment-pin-badge';
-      pin.innerHTML = '<span class="cpb-icon">💬</span><span class="cpb-label">Comment</span>';
-      el.appendChild(pin);
-    }
-  }
   const body = document.createElement('div');
   body.className = 'card-body';
 
@@ -6615,6 +6660,178 @@ document.addEventListener('keydown', e => {
 //  Currently we leave H for highlighter; user can click the icon for hand pan.)
 
 /* ─── Comment mode ─── */
+let _annotationPreviewTimer = null;
+let _activeAnnotationId = null;
+
+function getAnnotationLayer() {
+  let layer = document.getElementById('board-annotations');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.id = 'board-annotations';
+    layer.setAttribute('aria-label', 'Board comments');
+    board.appendChild(layer);
+  }
+  return layer;
+}
+
+function annotationLatest(annotation) {
+  return annotation.thread[annotation.thread.length - 1];
+}
+
+function annotationSnippet(annotation, max = 92) {
+  const body = annotationLatest(annotation)?.body || '';
+  return body.length > max ? `${body.slice(0, max - 1)}…` : body;
+}
+
+function renderAllAnnotations() {
+  const layer = getAnnotationLayer();
+  layer.replaceChildren();
+  normalizeAnnotations(state.annotations).forEach(annotation => {
+    const marker = document.createElement('button');
+    marker.type = 'button';
+    marker.className = `board-annotation-marker${annotation.resolved ? ' is-resolved' : ''}`;
+    marker.dataset.annotationId = annotation.id;
+    marker.style.left = `${annotation.x}px`;
+    marker.style.top = `${annotation.y}px`;
+    marker.setAttribute('aria-label', `Comment: ${annotationSnippet(annotation)}`);
+    marker.innerHTML = '<span class="annotation-mark" aria-hidden="true"><i></i><i></i><i></i></span>' +
+      (annotation.thread.length > 1 ? `<span class="annotation-count">${annotation.thread.length}</span>` : '');
+    marker.addEventListener('click', event => {
+      event.stopPropagation();
+      openAnnotationThread(annotation.id);
+    });
+    marker.addEventListener('mouseenter', () => {
+      clearTimeout(_annotationPreviewTimer);
+      _annotationPreviewTimer = setTimeout(() => openAnnotationPreview(annotation.id), 220);
+    });
+    marker.addEventListener('mouseleave', () => scheduleAnnotationPreviewClose());
+    marker.addEventListener('focus', () => openAnnotationPreview(annotation.id));
+    marker.addEventListener('blur', () => scheduleAnnotationPreviewClose());
+    layer.appendChild(marker);
+  });
+}
+
+function annotationPopover() {
+  return document.getElementById('annotation-popover');
+}
+
+function closeAnnotationPopover() {
+  _activeAnnotationId = null;
+  annotationPopover()?.remove();
+}
+
+document.addEventListener('pointerdown', event => {
+  const popover = annotationPopover();
+  if (popover && !popover.contains(event.target) && !event.target.closest('.board-annotation-marker')) {
+    closeAnnotationPopover();
+  }
+}, true);
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && annotationPopover()) closeAnnotationPopover();
+});
+
+function scheduleAnnotationPreviewClose() {
+  clearTimeout(_annotationPreviewTimer);
+  _annotationPreviewTimer = setTimeout(() => {
+    const popover = annotationPopover();
+    if (popover?.dataset.mode === 'preview') closeAnnotationPopover();
+  }, 160);
+}
+
+function positionAnnotationPopover(annotation, popover) {
+  const point = boardToScreen(annotation.x, annotation.y);
+  const margin = 14;
+  const width = Math.min(360, window.innerWidth - 24);
+  let left = point.x + margin;
+  let top = point.y - 22;
+  if (left + width > window.innerWidth - 12) left = Math.max(12, point.x - width - margin);
+  if (top + popover.offsetHeight > window.innerHeight - 12) top = Math.max(78, window.innerHeight - popover.offsetHeight - 12);
+  popover.style.left = `${left}px`;
+  popover.style.top = `${top}px`;
+}
+
+function openAnnotationPreview(annotationId) {
+  if (_activeAnnotationId === annotationId && annotationPopover()?.dataset.mode === 'thread') return;
+  const annotation = state.annotations.find(item => item.id === annotationId);
+  if (!annotation) return;
+  closeAnnotationPopover();
+  _activeAnnotationId = annotationId;
+  const message = annotationLatest(annotation);
+  const popover = document.createElement('div');
+  popover.id = 'annotation-popover';
+  popover.dataset.mode = 'preview';
+  popover.className = 'annotation-popover annotation-preview';
+  popover.innerHTML = `<p class="annotation-preview-body">${esc(annotationSnippet(annotation, 140))}</p><p class="annotation-preview-meta">${esc(message?.author || 'Commenter')} · ${annotation.thread.length} ${annotation.thread.length === 1 ? 'comment' : 'comments'}</p>`;
+  popover.addEventListener('mouseenter', () => clearTimeout(_annotationPreviewTimer));
+  popover.addEventListener('mouseleave', scheduleAnnotationPreviewClose);
+  document.body.appendChild(popover);
+  positionAnnotationPopover(annotation, popover);
+}
+
+function openAnnotationThread(annotationId) {
+  const annotation = state.annotations.find(item => item.id === annotationId);
+  if (!annotation) return;
+  closeAnnotationPopover();
+  _activeAnnotationId = annotationId;
+  const popover = document.createElement('section');
+  popover.id = 'annotation-popover';
+  popover.dataset.mode = 'thread';
+  popover.className = 'annotation-popover annotation-thread';
+  const messages = annotation.thread.map(message => `<article class="annotation-message"><b>${esc(message.author)}</b><p>${esc(message.body)}</p></article>`).join('');
+  popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><button type="button" class="annotation-close" aria-label="Close comment">×</button></header><div class="annotation-messages">${messages}</div><form class="annotation-reply"><textarea aria-label="Reply to comment" rows="2" placeholder="Reply…"></textarea><div><button type="button" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="submit" class="annotation-send">Reply</button></div></form>`;
+  document.body.appendChild(popover);
+  positionAnnotationPopover(annotation, popover);
+  popover.querySelector('.annotation-close').addEventListener('click', closeAnnotationPopover);
+  popover.querySelector('.annotation-resolve').addEventListener('click', () => {
+    snapshot();
+    annotation.resolved = !annotation.resolved;
+    annotation.updatedAt = Date.now();
+    renderAllAnnotations();
+    scheduleSave();
+    openAnnotationThread(annotation.id);
+  });
+  popover.querySelector('.annotation-reply').addEventListener('submit', event => {
+    event.preventDefault();
+    const field = popover.querySelector('textarea');
+    const body = field.value.trim();
+    if (!body) return;
+    snapshot();
+    annotation.thread.push({
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      body,
+      author: currentUser?.name || 'You',
+      createdAt: Date.now(),
+    });
+    annotation.resolved = false;
+    annotation.updatedAt = Date.now();
+    renderAllAnnotations();
+    scheduleSave();
+    openAnnotationThread(annotation.id);
+  });
+  popover.querySelector('textarea')?.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); closeAnnotationPopover(); }
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) popover.querySelector('form').requestSubmit();
+  });
+}
+
+function createBoardAnnotation(boardPt, body) {
+  snapshot();
+  const annotation = {
+    id: `cm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    x: boardPt.x,
+    y: boardPt.y,
+    thread: [{ id: `msg-${Date.now()}`, body, author: currentUser?.name || 'You', createdAt: Date.now() }],
+    resolved: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  state.annotations.push(annotation);
+  renderAllAnnotations();
+  scheduleSave();
+  return annotation;
+}
+
 function toggleCommentMode() {
   if (_miroTool === 'comment') {
     disableCommentMode();
@@ -6671,20 +6888,8 @@ function _openCommentComposer(sx, sy, boardPt) {
   setTimeout(() => ta.focus(), 30);
   const finish = (text) => {
     if (text && text.trim()) {
-      const def = getDefaults('sticky');
-      const c = addCard('sticky', boardPt.x - 80, boardPt.y - 50, {
-        text: text.trim(),
-        color: '#FEF3C7',
-        isComment: true,
-      }, 160, 100);
-      if (c) {
-        const el = getCardEl(c.id);
-        if (el) {
-          el.style.border = '1.5px solid #F59E0B';
-          el.style.boxShadow = '0 6px 18px rgba(245,158,11,.22)';
-        }
-      }
-      scheduleSave && scheduleSave();
+      const annotation = createBoardAnnotation(boardPt, text.trim());
+      openAnnotationThread(annotation.id);
     }
     disableCommentMode();
     _closeCommentComposer();
@@ -7470,16 +7675,18 @@ document.getElementById('btn-redo').addEventListener('click', redo);
 document.getElementById('btn-clear').addEventListener('click', clearAll);
 
 function clearAll() {
-  if (!state.cards.length && !state.arrows.length && !(state.strokes && state.strokes.length)) return;
+  if (!state.cards.length && !state.annotations.length && !state.arrows.length && !(state.strokes && state.strokes.length)) return;
   if (!confirm('Clear the entire board?')) return;
   snapshot();
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   state.cards = [];
+  state.annotations = [];
   state.arrows = [];
   state.strokes = [];
   state.groups = [];
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
+  renderAllAnnotations();
   clearSelection();
   updateGroupOutlines();
   updateEmpty();
@@ -7525,6 +7732,12 @@ function renderMinimap() {
     ctx.roundRect(c.x*scale+ox, c.y*scale+oy, c.w*scale, c.h*scale, 3);
     ctx.fill(); ctx.stroke();
   });
+  state.annotations.forEach(annotation => {
+    ctx.fillStyle = annotation.resolved ? '#8C948A' : '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(annotation.x * scale + ox, annotation.y * scale + oy, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
   // Viewport rectangle
   const vx = -state.pan.x/state.scale, vy = -state.pan.y/state.scale;
@@ -7539,7 +7752,7 @@ function renderMinimap() {
 
 // Click minimap to pan there
 document.getElementById('minimap').addEventListener('click', e => {
-  if (!state.cards.length) return;
+  if (!state.cards.length && !state.annotations.length) return;
   const r = document.getElementById('minimap').getBoundingClientRect();
   const mx = (e.clientX - r.left) / r.width;
   const my = (e.clientY - r.top) / r.height;
@@ -7548,6 +7761,10 @@ document.getElementById('minimap').addEventListener('click', e => {
   state.cards.forEach(c => {
     minX=Math.min(minX,c.x-40); minY=Math.min(minY,c.y-40);
     maxX=Math.max(maxX,c.x+c.w+40); maxY=Math.max(maxY,c.y+c.h+40);
+  });
+  state.annotations.forEach(annotation => {
+    minX=Math.min(minX,annotation.x-62); minY=Math.min(minY,annotation.y-62);
+    maxX=Math.max(maxX,annotation.x+62); maxY=Math.max(maxY,annotation.y+62);
   });
   const bx = minX + (maxX-minX)*mx, by = minY + (maxY-minY)*my;
   state.pan.x = boardWrap.clientWidth/2  - bx*state.scale;
@@ -7625,24 +7842,23 @@ function closeSbMoreMenu() {
   t?.classList.remove('open');
 }
 
-// Comments side-panel stub — toggles a list of all card comments
 function toggleCommentsPanel() {
   let p = document.getElementById('comments-panel');
   if (p) { p.remove(); return; }
   p = document.createElement('div');
   p.id = 'comments-panel';
-  p.style.cssText = `position:fixed;top:${getComputedStyle(document.documentElement).getPropertyValue('--tb-h')||'52px'};right:12px;width:320px;max-height:calc(100vh - 72px);background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);z-index:2000;overflow:hidden;display:flex;flex-direction:column;`;
-  p.innerHTML = `
-    <div style="padding:14px 16px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:10px;">
-      <span style="font-size:15px;font-weight:600;flex:1;color:var(--text);">Comments</span>
-      <button onclick="toggleCommentsPanel()" style="width:28px;height:28px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:#9999AA;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;" title="Close">&times;</button>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:14px 16px;font-size:13px;color:#9999AA;text-align:center;">
-      <div style="padding:32px 0;font-size:32px;opacity:.6;">💬</div>
-      <div style="font-weight:500;color:var(--text);margin-bottom:4px;">No comments yet</div>
-      <div>Click any card and use the editor to add a comment</div>
-    </div>`;
+  p.className = 'comments-panel';
+  const annotations = [...state.annotations].sort((a, b) => b.updatedAt - a.updatedAt);
+  const entries = annotations.length ? annotations.map(annotation => {
+    const latest = annotationLatest(annotation);
+    return `<button type="button" class="comments-panel-item" data-annotation-id="${esc(annotation.id)}"><span class="comments-panel-item-status${annotation.resolved ? ' is-resolved' : ''}"></span><span><b>${esc(latest?.author || 'Commenter')}</b><span>${esc(annotationSnippet(annotation, 100))}</span></span><em>${annotation.thread.length}</em></button>`;
+  }).join('') : '<div class="comments-panel-empty"><span class="comments-panel-empty-pin"></span><b>No comments yet</b><p>Choose the comment tool and click the board.</p></div>';
+  p.innerHTML = `<header><span>Comments</span><small>${annotations.length}</small><button type="button" class="comments-panel-close" aria-label="Close comments">×</button></header><div class="comments-panel-list">${entries}</div>`;
   document.body.appendChild(p);
+  p.querySelector('.comments-panel-close').addEventListener('click', () => p.remove());
+  p.querySelectorAll('.comments-panel-item').forEach(item => item.addEventListener('click', () => {
+    openAnnotationThread(item.dataset.annotationId);
+  }));
 }
 
 // Switch sidebar tab from outside (e.g., top-bar Layout button).
@@ -12344,6 +12560,7 @@ setInterval(() => {
 function serializeBoard() {
   return { pan:state.pan, scale:state.scale, nextId:state.nextId,
            cards:state.cards, arrows:state.arrows,
+           annotations: normalizeAnnotations(state.annotations),
            strokes: state.strokes || [],
            groups: (state.groups || []).map(g => ({ ...g, cardIds: [...g.cardIds] })),
            savedAt: Date.now() };
@@ -13829,9 +14046,11 @@ async function loadQuizResultsCache() {
 }
 
 function loadBoardData(data) {
+  data = migrateLegacyCommentStickies(data);
   board.querySelectorAll('.board-card').forEach(e => e.remove());
   arrowsSvg.querySelectorAll('.arrow-path').forEach(e => e.remove());
   state.cards = [];
+  state.annotations = [];
   state.arrows = [];
   state.strokes = [];
   state.selected = new Set();
@@ -13845,6 +14064,7 @@ function loadBoardData(data) {
   (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
   board.appendChild(_cardFrag);
   state.arrows = data.arrows || [];
+  state.annotations = normalizeAnnotations(data.annotations);
   state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
@@ -13876,6 +14096,7 @@ function loadBoardData(data) {
   applyTransform();
   renderAllArrows();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
+  renderAllAnnotations();
   renderMinimap();
   updateEmpty();
   updateSessionChip();
@@ -14269,7 +14490,7 @@ function wsBroadcastState() {
   wsBroadcastTimer = setTimeout(() => {
     if (ws?.readyState === 1) ws.send(JSON.stringify({
       type: 'board_patch',
-      state: { cards: state.cards, arrows: state.arrows, strokes: state.strokes || [], nextId: state.nextId }
+      state: { cards: state.cards, arrows: state.arrows, annotations: normalizeAnnotations(state.annotations), strokes: state.strokes || [], nextId: state.nextId }
     }));
   }, 400);
 }
@@ -14298,15 +14519,18 @@ function wsSendCursor(bx, by) {
 
 function applyRemoteState(remote) {
   // Full replace — server is source of truth for collab.
+  remote = migrateLegacyCommentStickies(remote);
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = remote.cards || [];
+  state.annotations = normalizeAnnotations(remote.annotations);
   state.arrows = remote.arrows || [];
   state.strokes = Array.isArray(remote.strokes) ? remote.strokes : (state.strokes || []);
   state.nextId = Math.max(state.nextId, remote.nextId || 0);
   clearSelection();
   state.cards.forEach(c => board.appendChild(renderCard(c)));
   renderAllArrows();
+  renderAllAnnotations();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   saveStatus.textContent = '☁ synced';
@@ -14560,7 +14784,7 @@ function loadBoardScript(src) {
 
 // Bounding box (board coords) enclosing every card, with padding.
 function boardContentBounds(pad = 48) {
-  if (!state.cards.length) return null;
+  if (!state.cards.length && !state.annotations.length) return null;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const c of state.cards) {
     if (c.data && c.data.private && c.data.private !== _currentUserId()) continue;
@@ -14568,6 +14792,12 @@ function boardContentBounds(pad = 48) {
     minY = Math.min(minY, c.y);
     maxX = Math.max(maxX, c.x + (c.w || 220));
     maxY = Math.max(maxY, c.y + (c.h || 160));
+  }
+  for (const annotation of state.annotations) {
+    minX = Math.min(minX, annotation.x - 22);
+    minY = Math.min(minY, annotation.y - 22);
+    maxX = Math.max(maxX, annotation.x + 22);
+    maxY = Math.max(maxY, annotation.y + 22);
   }
   if (minX === Infinity) return null;
   return { x: minX - pad, y: minY - pad, w: (maxX - minX) + pad * 2, h: (maxY - minY) + pad * 2 };
