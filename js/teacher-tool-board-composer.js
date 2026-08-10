@@ -327,6 +327,7 @@ function _ttFinishComposedBoard(frame, message) {
   renderAllArrows?.();
   scheduleSave?.();
   saveLocal?.();
+  _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 720, shrink: true });
   closeTeacherToolBuilder();
   toast(message || '✨ Tool layout added to board');
 }
@@ -595,6 +596,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
       const el = getCardEl?.(frame.id);
       if (el) el.style.height = compactH + 'px';
       scheduleSave?.(); saveLocal?.();
+      _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 820, shrink: true });
     });
     return true;
   }
@@ -761,6 +763,9 @@ function _ttPlaceReadingBoard(output, meta) {
       bg: meta.frameBg,
       border: meta.frameBorder,
       childIds: [],
+      _ttSrc: 1,
+      _ttCat: output.cat || meta.cat || 'reading',
+      _ttKind: output.kind || output.boardKind || 'Reading lesson',
     };
     const lesson = _ttDeriveLesson(output);
     if (lesson) frameData.lesson = lesson;

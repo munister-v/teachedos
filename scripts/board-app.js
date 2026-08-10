@@ -7923,7 +7923,8 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
       title: `${pack.icon}  ${pack.title} · ${pack.level} · ${pack.duration}`,
       bg: '#ffffff',
       border: pack.color,
-      childIds: []
+      childIds: [],
+      _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson Pack',
     }, FRAME_W, FRAME_H);
 
     // Lesson-level header text card (skill + summary line)
@@ -7967,6 +7968,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
 
   _sendCardToBack(outer);   // keep the white lesson substrate behind everything
   scheduleSave?.(); saveLocal?.();
+  _ttScheduleGeneratedHarmonyAudit?.(outer?.id, { minH: 720, shrink: true });
   return outer ? outer.id : null;
 }
 
@@ -7999,7 +8001,8 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
       title: `${meta.icon}  ${tool.title}`,
       bg: '#ffffff',
       border: meta.color,
-      childIds: []
+      childIds: [],
+      _ttSrc: 1, _ttCat: tool.cat || 'utility', _ttKind: tool.kind || 'Template',
     }, FRAME_W, FRAME_H);
 
     // 1. Header text card with the lesson goal + meta line
@@ -8050,6 +8053,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
   }
   _sendCardToBack(frame);   // substrate frame always behind existing cards
   scheduleSave?.(); saveLocal?.();
+  _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 620, shrink: true });
   return frame ? frame.id : null;
 }
 
@@ -8565,6 +8569,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     if (n) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
+        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video',
       }, FW, FH);
       gridResults.forEach((out, i) => {
         const r = Math.floor(i / cols), c = i % cols;
@@ -8612,6 +8617,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       // stages lands on top of the next. Re-stack them on measured heights,
       // starting below wherever the frame actually ended up.
       if (packCardIds.length) _restackBelow(packCardIds, below, GAP);
+      if (frame) _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
     });
   }
   scheduleSave?.(); saveLocal?.();
@@ -8705,6 +8711,111 @@ function _restackBelow(cardIds, startY, gap) {
     y = card.y + card.h + gap;
   });
   scheduleSave?.(); saveLocal?.();
+}
+
+/* ───────────── GENERATED BOARD HARMONY AUDIT ─────────────
+
+   Generation starts from approximate text heights, while the browser decides
+   the real shape only after fonts, grids and wrapped text have rendered. This
+   audit is the last safety net for every generated FRAME: it detects cards
+   escaping their frame, accidental overlaps, overly empty tails and a layout
+   that has become implausibly tall. It corrects only the frame envelope — not
+   a teacher's cards — so manual placement always remains authoritative. */
+function _ttAuditGeneratedFrame(frameId, opts = {}) {
+  const frame = state.cards.find(card => card && card.id === frameId && card.type === 'frame');
+  if (!frame || frame.data?._ttSrc !== 1) return null;
+  const childIds = [...new Set(frame.data?.childIds || [])];
+  // Nested frames define a real outer boundary, but their own contents naturally
+  // overlap them. Keep them for envelope checks and exclude them from collision
+  // checks so a lesson's stage frame never triggers a false alarm.
+  const children = childIds.map(id => state.cards.find(card => card && card.id === id)).filter(Boolean);
+  const leaves = children.filter(card => card.type !== 'frame');
+  if (!children.length) return null;
+
+  const PAD = Number.isFinite(opts.pad) ? opts.pad : 28;
+  const MIN_H = Number.isFinite(opts.minH) ? opts.minH : 640;
+  const bounds = children.reduce((out, card) => ({
+    left: Math.min(out.left, card.x), top: Math.min(out.top, card.y),
+    right: Math.max(out.right, card.x + card.w), bottom: Math.max(out.bottom, card.y + card.h),
+  }), { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+
+  const overlaps = [];
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+      const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+      // A tiny anti-aliasing edge is harmless; a real shared area is not.
+      if (w > 12 && h > 12) overlaps.push([a.id, b.id]);
+    }
+  }
+  const heights = leaves.map(card => card.h).sort((a, b) => a - b);
+  const median = heights[Math.floor(heights.length / 2)] || 1;
+  const tallCards = leaves.filter(card => card.h > median * 2.6).length;
+  const requiredW = Math.ceil(bounds.right - frame.x + PAD);
+  const requiredH = Math.ceil(bounds.bottom - frame.y + PAD);
+  const outside = bounds.left < frame.x - 2 || bounds.top < frame.y - 2
+    || requiredW > frame.w + 2 || requiredH > frame.h + 2;
+  const emptyTail = Math.max(0, frame.y + frame.h - bounds.bottom - PAD);
+  const mayResize = opts.repair !== false && !children.some(card => card.data?._manualLayout === 1);
+  let changed = false;
+
+  // Growth always protects content, including the rarer left/top overflow.
+  // Moving only the enclosing frame does not alter a teacher's card positions.
+  if (mayResize) {
+    const right = Math.max(frame.x + frame.w, bounds.right + PAD);
+    const bottom = Math.max(frame.y + frame.h, bounds.bottom + PAD);
+    const nextX = bounds.left < frame.x - 2 ? Math.floor(bounds.left - PAD) : frame.x;
+    const nextY = bounds.top < frame.y - 2 ? Math.floor(bounds.top - PAD) : frame.y;
+    const nextW = Math.ceil(right - nextX);
+    const nextH = Math.ceil(bottom - nextY);
+    if (nextX !== frame.x || nextW > frame.w + 2) { frame.x = nextX; frame.w = nextW; changed = true; }
+    if (nextY !== frame.y || nextH > frame.h + 2) { frame.y = nextY; frame.h = nextH; changed = true; }
+  }
+  if (mayResize && opts.shrink !== false && !overlaps.length) {
+    // frame.y may have just moved upward to protect an overflowing card, so
+    // measure the compact height from its final origin rather than stale input.
+    const compactH = Math.max(MIN_H, Math.ceil(bounds.bottom - frame.y + PAD));
+    if (emptyTail > Math.max(96, frame.h * 0.12) && compactH < frame.h - 2) {
+      frame.h = compactH;
+      changed = true;
+    }
+  }
+
+  // Keep a small, inspectable diagnostic record on generated frames. It is
+  // intentionally descriptive rather than a disruptive warning for teachers.
+  const finalEmptyTail = Math.max(0, frame.y + frame.h - bounds.bottom - PAD);
+  const finalTooTall = frame.h / Math.max(1, frame.w) > 2.4;
+  frame.data._ttHarmony = {
+    status: overlaps.length || (outside && !changed)
+      ? 'needs-attention'
+      : (finalTooTall || tallCards ? 'watch' : 'balanced'),
+    adjusted: changed,
+    overlaps: overlaps.length,
+    tallCards,
+    emptyTail: Math.round(finalEmptyTail),
+  };
+  if (changed) {
+    const el = getCardEl(frame.id);
+    if (el) {
+      el.style.left = frame.x + 'px'; el.style.top = frame.y + 'px';
+      el.style.width = frame.w + 'px'; el.style.height = frame.h + 'px';
+    }
+    renderAllArrows?.();
+  }
+  if (changed || opts.persist === true) {
+    scheduleSave?.(); saveLocal?.();
+  }
+  return frame.data._ttHarmony;
+}
+
+function _ttScheduleGeneratedHarmonyAudit(frameId, opts = {}) {
+  if (!frameId) return;
+  // Two frames ensure worksheet internals and web fonts have had their own
+  // measurement pass before the geometry audit reads the finished layout.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    _ttAuditGeneratedFrame(frameId, { ...opts, persist: true });
+  }));
 }
 
 // Tools that produce a single artifact or a fixed scaffold — the "Items" count
@@ -9378,6 +9489,7 @@ function _ttAppendActivityCard(frame, type, data, w, h) {
     _ttLayoutAppendedActivityGrid(frame);
     renderAllArrows?.();
     scheduleSave?.(); saveLocal?.();
+    _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
   });
   if (card) { clearSelection?.(); selectCard?.(card.id); setTimeout(() => { try { zoomToCard?.(card.id, true); } catch {} }, 80); }
   toast('✨ Interactive activity added — students can take it on the board');
@@ -10191,6 +10303,7 @@ function _ttPlaceWorksheetOnBoard(output){
       _relayoutLessonFrame(frame.id, placed.map(card => card.id), {
         x0, y0, cols: COLS, CARD_W: W, GAP, PAD, HEAD,
       });
+      _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
     });
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
@@ -10316,8 +10429,9 @@ function _ttPlaceCardsOnBoard(output){
   const center = findFreePlacement(c0.x, c0.y, FW, FH);
   const x0 = Math.round(center.x - FW/2), y0 = Math.round(center.y - FH/2);
   snapshot(); _suppressSnapshot++;
+  let frame;
   try {
-    const frame = addCard('frame', x0, y0, {
+    frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${output.title}`, bg:'#ffffff',
       border: (meta.color || '#0E0E10') + '55', // ~33% alpha (8-digit hex)
       childIds:[],
@@ -10341,6 +10455,7 @@ function _ttPlaceCardsOnBoard(output){
     if (frame?.id) { clearSelection?.(); selectCard?.(frame.id); setTimeout(()=>{ try{ zoomToCard?.(frame.id,true); }catch{} },80); }
   } finally { _suppressSnapshot--; }
   scheduleSave?.(); saveLocal?.();
+  _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 520, shrink: true });
   closeTeacherToolBuilder();
   toast(`✨ ${output.kind} added to board`);
 }
@@ -10394,6 +10509,7 @@ function _ttPlaceVocabOnBoard(output){
     setTimeout(() => { try { zoomToCard && zoomToCard(frame.id, true); } catch (e) {} }, 80);
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 460, shrink: true });
   closeTeacherToolBuilder();
   toast('✨ Vocabulary cards added — meanings pre-filled; edit translations as you teach');
 }
@@ -10613,7 +10729,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '261';
+const TEACHEDOS_ASSET_VERSION = '262';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -10890,7 +11006,8 @@ async function applyTeacherToolBuilderToBoard(mode) {
       title: `${meta.icon}  ${output.title}`,
       bg: '#ffffff',
       border: meta.color,
-      childIds: []
+      childIds: [],
+      _ttSrc: 1, _ttCat: output.cat || 'utility', _ttKind: output.kind || 'Lesson task',
     }, FRAME_W, FRAME_H);
 
     // Header card: title + meta kicker + one-line goal
@@ -10948,6 +11065,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
   }
   renderAllArrows?.();
   scheduleSave?.(); saveLocal?.();
+  _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 620, shrink: true });
   closeTeacherToolBuilder();
   toast('✨ Lesson task added to board');
 }
@@ -15861,6 +15979,7 @@ function applyAiAssistantToBoard() {
       title:  result.title || 'AI Lesson Flow',
       bg:     '#ffffff',
       border: accent,
+      _ttSrc: 1, _ttCat: 'utility', _ttKind: 'AI Lesson Flow',
     }, FW, frameH);
 
     if (frame?.id && frame.data) {
@@ -15875,6 +15994,7 @@ function applyAiAssistantToBoard() {
     _sendCardToBack(frame);   // frame is created last here → send behind its children + existing cards
     renderAllArrows?.();
     scheduleSave(); saveLocal?.();
+    _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 720, shrink: true });
     closeAiAssistantPanel();
     // Zoom to the new frame after panel slide-out (300ms)
     const _frameId = frame?.id;
