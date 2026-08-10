@@ -8165,6 +8165,115 @@ const TT_MEDIA_SET = new Set([
 ]);
 // Text-generation tools — offer Genre + Length controls for the produced text.
 const TT_TEXTGEN_SET = new Set(['generate-text','text-topic-vocab']);
+const TT_BUILDER_DRAFT_KEY = 'teachedos_tt_builder_draft_v1';
+const TT_BUILDER_DRAFT_MAX_CHARS = 180000;
+let _ttDraftSaveTimer = 0;
+let _ttClearedDraft = null;
+let _ttClearUndoTimer = 0;
+
+function _ttSetDraftState(message, tone = '') {
+  const el = document.getElementById('tbuilder-draft-state');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle('saved', tone === 'saved');
+  el.classList.toggle('unsaved', tone === 'unsaved');
+}
+
+function _ttReadBuilderDraft() {
+  const value = id => String(document.getElementById(id)?.value || '');
+  return {
+    level: value('tbuilder-level'), count: value('tbuilder-count'), topic: value('tbuilder-topic'),
+    genre: value('tbuilder-genre'), length: value('tbuilder-length'), source: value('tbuilder-source'),
+    vocab: value('tbuilder-vocab'), extra: value('tbuilder-extra'),
+    action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
+  };
+}
+
+function _ttApplyBuilderDraft(draft) {
+  if (!draft || typeof draft !== 'object') return false;
+  ['level','count','topic','genre','length','source','vocab','extra'].forEach(id => {
+    const el = document.getElementById(`tbuilder-${id}`);
+    if (el && typeof draft[id] === 'string') el.value = draft[id];
+  });
+  const action = ['simplify','upgrade','keep'].includes(draft.action) ? draft.action : 'simplify';
+  const actionRow = document.getElementById('tbuilder-action');
+  if (actionRow) {
+    actionRow.dataset.action = action;
+    actionRow.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.ttAction === action));
+  }
+  return true;
+}
+
+function _ttSaveBuilderDraft() {
+  if (!activeTeacherToolBuilder) return false;
+  if (_ttDraftSaveTimer) { clearTimeout(_ttDraftSaveTimer); _ttDraftSaveTimer = 0; }
+  const draft = _ttReadBuilderDraft();
+  const payload = JSON.stringify({ version: 1, savedAt: Date.now(), draft });
+  if (payload.length > TT_BUILDER_DRAFT_MAX_CHARS) {
+    _ttSetDraftState('Draft is too large to save locally', 'unsaved');
+    return false;
+  }
+  try {
+    localStorage.setItem(TT_BUILDER_DRAFT_KEY, payload);
+    _ttSetDraftState('Saved automatically on this device', 'saved');
+    return true;
+  } catch {
+    _ttSetDraftState('Draft stays in this open panel', 'unsaved');
+    return false;
+  }
+}
+
+function _ttResetClearButton() {
+  const button = document.getElementById('tbuilder-clear-btn');
+  if (!button) return;
+  button.textContent = 'Clear fields';
+  button.classList.remove('undo');
+}
+
+function _ttQueueBuilderDraft() {
+  if (!activeTeacherToolBuilder) return;
+  if (_ttClearedDraft) { _ttClearedDraft = null; clearTimeout(_ttClearUndoTimer); _ttResetClearButton(); }
+  if (_ttDraftSaveTimer) clearTimeout(_ttDraftSaveTimer);
+  _ttSetDraftState('Saving draft…');
+  _ttDraftSaveTimer = setTimeout(() => _ttSaveBuilderDraft(), 360);
+}
+
+function _ttRestoreBuilderDraft() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TT_BUILDER_DRAFT_KEY) || 'null');
+    if (saved?.version === 1 && _ttApplyBuilderDraft(saved.draft)) {
+      _ttSetDraftState('Restored your local draft', 'saved');
+      return true;
+    }
+  } catch {}
+  _ttSetDraftState('Draft stays on this device');
+  return false;
+}
+
+function clearTeacherToolBuilderFields() {
+  if (_ttClearedDraft) {
+    _ttApplyBuilderDraft(_ttClearedDraft);
+    _ttClearedDraft = null;
+    clearTimeout(_ttClearUndoTimer);
+    _ttResetClearButton();
+    _ttSaveBuilderDraft();
+    _ttSyncFormReadiness();
+    return;
+  }
+  const draft = _ttReadBuilderDraft();
+  const hasContent = ['topic','source','vocab','extra'].some(id => String(draft[id] || '').trim());
+  if (!hasContent) return;
+  _ttClearedDraft = draft;
+  ['tbuilder-topic','tbuilder-source','tbuilder-vocab','tbuilder-extra'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  try { localStorage.removeItem(TT_BUILDER_DRAFT_KEY); } catch {}
+  const button = document.getElementById('tbuilder-clear-btn');
+  if (button) { button.textContent = 'Undo clear'; button.classList.add('undo'); }
+  _ttSetDraftState('Fields cleared · undo is available', 'unsaved');
+  _ttSyncFormReadiness();
+  _ttClearUndoTimer = setTimeout(() => { _ttClearedDraft = null; _ttResetClearButton(); }, 8000);
+}
 
 function _ttUpdateFieldMeta() {
   const text = id => String(document.getElementById(id)?.value || '').trim();
@@ -8244,6 +8353,7 @@ async function fetchYoutubeTranscript() {
     if (src) src.value = d.transcript;
     if (status) status.textContent = `✓ Transcript loaded (${d.transcript.length.toLocaleString()} chars). Now click Generate.`;
     _ttSyncFormReadiness();
+    _ttQueueBuilderDraft();
   } catch (e) {
     if (status) status.textContent = `⚠ ${e.message}. Paste the transcript manually instead.`;
   } finally {
@@ -9028,6 +9138,7 @@ function setTeacherToolAction(action, btn) {
   row.dataset.action = safe;
   row.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.ttAction === safe));
   if (btn) btn.classList.add('active');
+  _ttQueueBuilderDraft();
 }
 
 function _ttSetAddToBoard(enabled) {
@@ -9572,6 +9683,7 @@ function openTeacherToolBuilder(toolId) {
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);
   if (!tool) return;
   activeTeacherToolBuilder = tool;
+  _ttRestoreBuilderDraft();
   lastTeacherToolBuilderOutput = null;
   document.getElementById('tbuilder-title').textContent = tool.title;
   document.getElementById('tbuilder-sub').textContent = tool.desc;
@@ -9587,6 +9699,7 @@ function openTeacherToolBuilder(toolId) {
 }
 
 function closeTeacherToolBuilder() {
+  _ttSaveBuilderDraft();
   document.getElementById('tool-builder-panel')?.classList.remove('open');
   _ttRefreshBuildLessonBtn();
 }
@@ -9606,10 +9719,16 @@ document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
 });
 
 document.querySelector('.tbuilder-form')?.addEventListener('input', e => {
-  if (e.target.matches('input, textarea, select')) _ttSyncFormReadiness();
+  if (e.target.matches('input, textarea, select')) { _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
 });
 document.querySelector('.tbuilder-form')?.addEventListener('change', e => {
-  if (e.target.matches('input, textarea, select')) _ttSyncFormReadiness();
+  if (e.target.matches('input, textarea, select')) { _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
+});
+document.querySelector('.tbuilder-form')?.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    generateTeacherToolBuilder('fast');
+  }
 });
 
 function readTeacherToolBuilderInput() {
@@ -10809,7 +10928,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '263';
+const TEACHEDOS_ASSET_VERSION = '264';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

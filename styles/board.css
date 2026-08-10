@@ -3333,6 +3333,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-form-status{flex:0 0 auto;max-width:146px;padding:6px 8px;border:1px solid rgba(14,14,16,.10);border-radius:999px;background:rgba(255,255,255,.82);color:#6E6E5C;font:850 10px/1.2 var(--mono,monospace);text-align:right;}
 .tbuilder-form-status.ready{color:#266e4a;border-color:rgba(38,110,74,.24);background:rgba(38,110,74,.07);}
 .tbuilder-form-status.needs-input{color:#8A5A09;border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.13);}
+.tbuilder-draft-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 6px;padding:7px 2px 2px;color:#817B6D;font:700 10px/1.35 var(--mono,monospace);}
+.tbuilder-draft-state{min-width:0;}
+.tbuilder-draft-state.saved{color:#266e4a;}
+.tbuilder-draft-state.unsaved{color:#8A5A09;}
+.tbuilder-draft-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
+.tbuilder-shortcut{white-space:nowrap;color:#938C7E;}
+.tbuilder-shortcut kbd{display:inline-flex;align-items:center;justify-content:center;min-width:17px;min-height:17px;padding:0 4px;border:1px solid rgba(14,14,16,.13);border-bottom-width:2px;border-radius:5px;background:#fff;color:#4A483F;font:800 9px/1 var(--mono,monospace);}
+.tbuilder-inline-btn{min-height:32px;padding:6px 9px;border:1px solid rgba(14,14,16,.12);border-radius:10px;background:#fff;color:#4A483F;font:850 10px/1 var(--mono,monospace);cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;}
+.tbuilder-inline-btn:hover{border-color:rgba(14,14,16,.28);background:#F8F6EF;box-shadow:0 5px 14px rgba(14,14,16,.06);}
+.tbuilder-inline-btn.undo{border-color:rgba(38,110,74,.28);background:rgba(38,110,74,.07);color:#266e4a;}
 .tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:950;margin:12px 0 6px;}
 .tbuilder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tbuilder-form input,.tbuilder-form select,.tbuilder-form textarea{
@@ -3795,6 +3805,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tbuilder-row{grid-template-columns:1fr;}
   .tbuilder-form-head{flex-direction:column;align-items:stretch;}
   .tbuilder-form-status{max-width:none;text-align:left;align-self:flex-start;}
+  .tbuilder-draft-bar{align-items:flex-start;flex-direction:column;}
+  .tbuilder-draft-actions{justify-content:flex-start;}
+  .tbuilder-inline-btn{min-height:44px;}
   .tb-field-meta{font-size:9.5px;}
 }
 
