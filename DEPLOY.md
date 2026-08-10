@@ -25,6 +25,22 @@ node scripts/bump-version.mjs
 
 Push to `main` and the change is live within ~2 minutes — no manual step.
 
+## Production configuration audit
+
+The deployment and API health checks do not print secrets. To audit the
+backend environment on the VPS, run:
+
+```bash
+node /opt/teachedos/repo/ops/check-prod-config.mjs /opt/teachedos/backend/.env
+```
+
+The audit reports only `ready`/`missing` states. Database, JWT, origin and
+site URL settings are required. AI, Stripe, transactional email and image
+search credentials are optional at boot, but missing values intentionally
+leave those features in local/dev fallback mode. Add fresh provider keys in
+`/opt/teachedos/backend/.env`, restart `teached-api.service`, and rerun the
+audit when enabling them. Never commit `.env` or paste key values into chat.
+
 ## nginx / edge
 
 The site's nginx vhost is versioned at `ops/nginx/teached.conf` (the live
