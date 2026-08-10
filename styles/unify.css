@@ -2756,6 +2756,15 @@ body.board-page #toolbar {
   backdrop-filter: blur(10px) saturate(1.25) !important;
   -webkit-backdrop-filter: blur(10px) saturate(1.25) !important;
 }
+/* Bottom sheets such as More live inside the toolbar for legacy event wiring.
+   A backdrop filter creates a fixed-position containing block, so on phones
+   the sheet is positioned against the 54px toolbar and disappears upward. */
+@media (max-width: 860px) {
+  body.board-page #toolbar {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
 body.board-page .empty-action {
   min-height: 42px !important;
   border-radius: 999px !important;
