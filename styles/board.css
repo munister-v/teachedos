@@ -3343,6 +3343,24 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-inline-btn{min-height:32px;padding:6px 9px;border:1px solid rgba(14,14,16,.12);border-radius:10px;background:#fff;color:#4A483F;font:850 10px/1 var(--mono,monospace);cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;}
 .tbuilder-inline-btn:hover{border-color:rgba(14,14,16,.28);background:#F8F6EF;box-shadow:0 5px 14px rgba(14,14,16,.06);}
 .tbuilder-inline-btn.undo{border-color:rgba(38,110,74,.28);background:rgba(38,110,74,.07);color:#266e4a;}
+.tbuilder-brief-review{display:grid;gap:8px;padding:10px 11px;margin:3px 0 8px;border:1px solid rgba(14,14,16,.10);border-radius:15px;background:rgba(255,255,255,.7);transition:border-color .16s ease,background .16s ease;}
+.tbuilder-brief-review-title{display:flex;align-items:flex-start;gap:8px;}
+.tbuilder-review-dot{flex:0 0 auto;width:8px;height:8px;margin-top:4px;border-radius:50%;background:#9A9386;box-shadow:0 0 0 4px rgba(154,147,134,.12);}
+.tbuilder-brief-review-title strong{display:block;color:#35332D;font:900 10px/1.25 var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;}
+.tbuilder-brief-review-title small{display:block;margin-top:2px;color:#817B6D;font:700 10px/1.35 var(--font);}
+.tbuilder-brief-review-items{display:flex;flex-wrap:wrap;gap:5px;}
+.tbuilder-review-item{display:inline-flex;align-items:center;gap:4px;padding:4px 6px;border:1px solid rgba(14,14,16,.09);border-radius:999px;background:#fff;color:#655F55;font:800 9px/1.15 var(--mono,monospace);}
+.tbuilder-review-item::before{content:'•';font-size:12px;line-height:8px;}
+.tbuilder-review-item.ok{border-color:rgba(38,110,74,.2);background:rgba(38,110,74,.06);color:#266e4a;}
+.tbuilder-review-item.ok::before{content:'✓';}
+.tbuilder-review-item.attention{border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.12);color:#8A5A09;}
+.tbuilder-review-item.needs{border-color:rgba(185,69,57,.22);background:rgba(185,69,57,.06);color:#9D3D35;}
+.tbuilder-brief-review.ready{border-color:rgba(38,110,74,.20);background:rgba(38,110,74,.04);}
+.tbuilder-brief-review.ready .tbuilder-review-dot{background:#266e4a;box-shadow:0 0 0 4px rgba(38,110,74,.11);}
+.tbuilder-brief-review.attention{border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.07);}
+.tbuilder-brief-review.attention .tbuilder-review-dot{background:#A36B0B;box-shadow:0 0 0 4px rgba(163,107,11,.11);}
+.tbuilder-brief-review.needs-input{border-color:rgba(185,69,57,.20);background:rgba(185,69,57,.045);}
+.tbuilder-brief-review.needs-input .tbuilder-review-dot{background:#A4453B;box-shadow:0 0 0 4px rgba(164,69,59,.11);}
 .tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:950;margin:12px 0 6px;}
 .tbuilder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tbuilder-form input,.tbuilder-form select,.tbuilder-form textarea{
@@ -3411,10 +3429,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tb-field-wrap:focus-within{border-color:color-mix(in srgb,var(--accent) 28%,transparent);background:color-mix(in srgb,var(--accent) 3%,transparent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 7%,transparent);}
 .tb-field-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-top:6px;color:#817B6D;font:700 10px/1.35 var(--mono,monospace);}
 .tb-field-meta span:last-child{flex:0 0 auto;color:#9A9386;text-align:right;white-space:nowrap;}
+.tb-field-meta-actions{display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;}
+.tb-field-meta .tb-field-meta-actions{color:inherit;}
+.tbuilder-field-action{min-height:26px;padding:4px 6px;border:1px solid color-mix(in srgb,var(--accent) 22%,rgba(14,14,16,.12));border-radius:8px;background:color-mix(in srgb,var(--accent) 6%,#fff);color:var(--accent);font:900 9px/1 var(--mono,monospace);cursor:pointer;transition:background .14s ease,border-color .14s ease;}
+.tbuilder-field-action:hover{border-color:color-mix(in srgb,var(--accent) 45%,rgba(14,14,16,.12));background:color-mix(in srgb,var(--accent) 12%,#fff);}
 .tb-field-wrap.tb-field-required{border-color:color-mix(in srgb,var(--accent) 18%,transparent);background:color-mix(in srgb,var(--accent) 2.5%,transparent);}
 .tb-field-wrap.tb-field-valid{border-color:rgba(38,110,74,.20);}
 .tb-field-wrap.tb-field-invalid{border-color:rgba(185,69,57,.48);background:rgba(185,69,57,.055);}
 .tb-field-wrap.tb-field-invalid .tb-field-meta{color:#A4453B;}
+.tb-field-wrap.tb-field-attention{border-color:rgba(138,90,9,.28);background:rgba(248,198,80,.07);}
 /* Hide regardless of the companion class — #tb-wrap-count is a bare row child
    (no .tb-field-wrap), so the old compound selector never matched it and the
    Items count stayed visible for scaffold tools. */
@@ -3808,6 +3831,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tbuilder-draft-bar{align-items:flex-start;flex-direction:column;}
   .tbuilder-draft-actions{justify-content:flex-start;}
   .tbuilder-inline-btn{min-height:44px;}
+  .tbuilder-field-action{min-height:44px;padding:7px 9px;}
   .tb-field-meta{font-size:9.5px;}
 }
 

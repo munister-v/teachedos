@@ -8170,6 +8170,8 @@ const TT_BUILDER_DRAFT_MAX_CHARS = 180000;
 let _ttDraftSaveTimer = 0;
 let _ttClearedDraft = null;
 let _ttClearUndoTimer = 0;
+let _ttTidyVocabUndo = null;
+let _ttTidyVocabUndoTimer = 0;
 
 function _ttSetDraftState(message, tone = '') {
   const el = document.getElementById('tbuilder-draft-state');
@@ -8251,6 +8253,8 @@ function _ttRestoreBuilderDraft() {
 }
 
 function clearTeacherToolBuilderFields() {
+  _ttTidyVocabUndo = null;
+  clearTimeout(_ttTidyVocabUndoTimer);
   if (_ttClearedDraft) {
     _ttApplyBuilderDraft(_ttClearedDraft);
     _ttClearedDraft = null;
@@ -8273,6 +8277,102 @@ function clearTeacherToolBuilderFields() {
   _ttSetDraftState('Fields cleared · undo is available', 'unsaved');
   _ttSyncFormReadiness();
   _ttClearUndoTimer = setTimeout(() => { _ttClearedDraft = null; _ttResetClearButton(); }, 8000);
+}
+
+function _ttVocabularyEntries(value) {
+  return String(value || '').split(/\n|,/)
+    .map(item => item.trim().replace(/\s+/g, ' ')).filter(Boolean);
+}
+
+function _ttUniqueVocabulary(entries) {
+  const seen = new Set();
+  return entries.filter(term => {
+    const key = term.toLocaleLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function _ttRefreshBriefReview() {
+  const review = document.getElementById('tbuilder-brief-review');
+  const heading = document.getElementById('tbuilder-brief-review-heading');
+  const copy = document.getElementById('tbuilder-brief-review-copy');
+  const items = document.getElementById('tbuilder-brief-review-items');
+  const tidyButton = document.getElementById('tbuilder-tidy-vocab');
+  const tool = activeTeacherToolBuilder;
+  if (!review || !heading || !copy || !items || !tool) return;
+  const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
+  const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
+  const rawVocab = String(document.getElementById('tbuilder-vocab')?.value || '');
+  const vocab = _ttVocabularyEntries(rawVocab);
+  const normalized = vocab.map(term => term.toLocaleLowerCase());
+  const duplicateCount = normalized.length - new Set(normalized).size;
+  const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
+  const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
+  const wantsVocab = TT_NEEDS_VOCAB_SET.has(tool.id);
+  const checks = [];
+  if (!topic) checks.push({ type:'needs', text:'Add a topic' });
+  else if (topic.length < 4) checks.push({ type:'attention', text:'Make the topic more specific' });
+  else checks.push({ type:'ok', text:'Topic set' });
+  if (needsSource) {
+    if (!source) checks.push({ type:'needs', text:'Source text needed' });
+    else if (source.length < 80) checks.push({ type:'attention', text:'Text is short' });
+    else checks.push({ type:'ok', text:'Text has context' });
+  } else if (source) {
+    checks.push({ type:'ok', text:'Extra context added' });
+  }
+  if (needsVocab) {
+    if (!vocab.length) checks.push({ type:'needs', text:'Vocabulary needed' });
+    else if (vocab.length < 2) checks.push({ type:'attention', text:'Add a few more terms' });
+    else checks.push({ type:'ok', text:`${vocab.length} terms ready` });
+  } else if (wantsVocab && vocab.length) {
+    checks.push({ type:'ok', text:`${vocab.length} terms added` });
+  }
+  if (duplicateCount) checks.push({ type:'attention', text:`${duplicateCount} repeated term${duplicateCount === 1 ? '' : 's'}` });
+  const hasNeeds = checks.some(check => check.type === 'needs');
+  const hasAttention = checks.some(check => check.type === 'attention');
+  review.classList.toggle('ready', !hasNeeds && !hasAttention);
+  review.classList.toggle('attention', !hasNeeds && hasAttention);
+  review.classList.toggle('needs-input', hasNeeds);
+  heading.textContent = hasNeeds ? 'Brief needs input' : (hasAttention ? 'Brief is usable' : 'Brief looks balanced');
+  copy.textContent = hasNeeds
+    ? 'Add the missing detail to unlock a reliable draft.'
+    : (hasAttention ? 'You can create now; one small improvement may sharpen the result.' : 'Context is clear enough to generate a focused activity.');
+  items.innerHTML = checks.map(check => `<span class="tbuilder-review-item ${check.type}">${check.text}</span>`).join('');
+  if (tidyButton) {
+    const compact = _ttUniqueVocabulary(vocab).join('\n');
+    const needsTidy = !!rawVocab.trim() && compact !== rawVocab.trim();
+    tidyButton.hidden = _ttTidyVocabUndo ? false : !needsTidy;
+    tidyButton.textContent = _ttTidyVocabUndo ? 'Undo tidy' : 'Tidy list';
+  }
+  document.getElementById('tb-wrap-vocab')?.classList.toggle('tb-field-attention', duplicateCount > 0);
+}
+
+function tidyTeacherToolVocabulary() {
+  const field = document.getElementById('tbuilder-vocab');
+  if (!field) return;
+  if (_ttTidyVocabUndo !== null) {
+    const original = _ttTidyVocabUndo;
+    _ttTidyVocabUndo = null;
+    clearTimeout(_ttTidyVocabUndoTimer);
+    field.value = original;
+    _ttSyncFormReadiness();
+    _ttQueueBuilderDraft();
+    return;
+  }
+  const original = field.value;
+  const clean = _ttUniqueVocabulary(_ttVocabularyEntries(original)).join('\n');
+  if (!clean || clean === original.trim()) return;
+  _ttTidyVocabUndo = original;
+  field.value = clean;
+  _ttSyncFormReadiness();
+  _ttQueueBuilderDraft();
+  field.focus();
+  _ttTidyVocabUndoTimer = setTimeout(() => {
+    _ttTidyVocabUndo = null;
+    _ttRefreshBriefReview();
+  }, 8000);
 }
 
 function _ttUpdateFieldMeta() {
@@ -8333,6 +8433,7 @@ function _ttSyncFormReadiness(opts = {}) {
     btn.setAttribute('aria-describedby', 'tbuilder-form-status');
   });
   if (!ready && opts.attempted) document.getElementById(missing[0]?.input)?.focus();
+  _ttRefreshBriefReview();
   return ready;
 }
 
@@ -10928,7 +11029,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '264';
+const TEACHEDOS_ASSET_VERSION = '265';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
