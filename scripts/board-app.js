@@ -8166,6 +8166,67 @@ const TT_MEDIA_SET = new Set([
 // Text-generation tools — offer Genre + Length controls for the produced text.
 const TT_TEXTGEN_SET = new Set(['generate-text','text-topic-vocab']);
 
+function _ttUpdateFieldMeta() {
+  const text = id => String(document.getElementById(id)?.value || '').trim();
+  const write = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  const source = text('tbuilder-source');
+  const vocab = text('tbuilder-vocab');
+  const topic = text('tbuilder-topic');
+  const extra = text('tbuilder-extra');
+  const terms = vocab ? vocab.split(/\n|,/).map(item => item.trim()).filter(Boolean).length : 0;
+  write('tbuilder-topic-meta', `${topic.length} character${topic.length === 1 ? '' : 's'}`);
+  write('tbuilder-source-meta', `${source.length.toLocaleString()} character${source.length === 1 ? '' : 's'}`);
+  write('tbuilder-vocab-meta', `${terms} term${terms === 1 ? '' : 's'}`);
+  write('tbuilder-extra-meta', `${extra.length} character${extra.length === 1 ? '' : 's'}`);
+}
+
+function _ttSetRequiredFieldState(wrapId, inputId, required, hasValue) {
+  const wrap = document.getElementById(wrapId);
+  const input = document.getElementById(inputId);
+  if (!wrap || !input) return;
+  wrap.classList.toggle('tb-field-required', required);
+  wrap.classList.toggle('tb-field-valid', required && hasValue);
+  wrap.classList.toggle('tb-field-invalid', required && !hasValue && wrap.dataset.ttAttempted === '1');
+  input.required = required;
+  input.setAttribute('aria-required', required ? 'true' : 'false');
+  input.setAttribute('aria-invalid', required && !hasValue && wrap.dataset.ttAttempted === '1' ? 'true' : 'false');
+}
+
+/* Keep the form truthful before the request starts: every visible required
+   field explains what is missing, and both generate paths share one readiness
+   rule. The task's own inputs remain untouched; this only changes UI state. */
+function _ttSyncFormReadiness(opts = {}) {
+  const tool = activeTeacherToolBuilder;
+  _ttUpdateFieldMeta();
+  if (!tool) return true;
+  const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
+  const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
+  const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
+  const vocab = String(document.getElementById('tbuilder-vocab')?.value || '').trim();
+  const missing = [];
+  if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
+  if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
+  if (opts.attempted) missing.forEach(item => { const wrap = document.getElementById(item.wrap); if (wrap) wrap.dataset.ttAttempted = '1'; });
+
+  _ttSetRequiredFieldState('tb-wrap-source', 'tbuilder-source', needsSource, !!source);
+  _ttSetRequiredFieldState('tb-wrap-vocab', 'tbuilder-vocab', needsVocab, !!vocab);
+  const ready = missing.length === 0;
+  const status = document.getElementById('tbuilder-form-status');
+  if (status) {
+    status.classList.toggle('ready', ready);
+    status.classList.toggle('needs-input', !ready);
+    status.textContent = ready ? 'Ready to create' : `Add ${missing.map(item => item.label).join(' + ')}`;
+  }
+  const gen = document.getElementById('tbuilder-gen-btn');
+  const ai = document.getElementById('tbuilder-ai-btn');
+  [gen, ai].filter(Boolean).forEach(btn => {
+    btn.disabled = !ready;
+    btn.setAttribute('aria-describedby', 'tbuilder-form-status');
+  });
+  if (!ready && opts.attempted) document.getElementById(missing[0]?.input)?.focus();
+  return ready;
+}
+
 // Fetch a YouTube transcript into the source field (Twee-style one-click flow).
 async function fetchYoutubeTranscript() {
   const urlEl = document.getElementById('tbuilder-youtube');
@@ -8182,6 +8243,7 @@ async function fetchYoutubeTranscript() {
     const src = document.getElementById('tbuilder-source');
     if (src) src.value = d.transcript;
     if (status) status.textContent = `✓ Transcript loaded (${d.transcript.length.toLocaleString()} chars). Now click Generate.`;
+    _ttSyncFormReadiness();
   } catch (e) {
     if (status) status.textContent = `⚠ ${e.message}. Paste the transcript manually instead.`;
   } finally {
@@ -8886,6 +8948,7 @@ function _ttAdaptFields(tool) {
   if (!tool) return;
   const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
   const needsVocab  = TT_NEEDS_VOCAB_SET.has(tool.id);
+  const vocabRequired = TT_REQUIRE_VOCAB_SET.has(tool.id);
   const needsAction = tool.id === 'simplify-text';
   const isMedia     = TT_MEDIA_SET.has(tool.id);
   const srcWrap  = document.getElementById('tb-wrap-source');
@@ -8896,6 +8959,7 @@ function _ttAdaptFields(tool) {
   const vocTA    = document.getElementById('tbuilder-vocab');
   const srcLabel = document.getElementById('tbuilder-source-label');
   const vocLabel = document.getElementById('tbuilder-vocab-label');
+  [srcWrap, vocWrap].forEach(wrap => { if (wrap) delete wrap.dataset.ttAttempted; });
 
   if (actionWrap) actionWrap.classList.toggle('tb-field-hidden', !needsAction);
   if (needsAction) setTeacherToolAction(document.querySelector('#tbuilder-action .active')?.dataset.ttAction || 'simplify');
@@ -8929,8 +8993,8 @@ function _ttAdaptFields(tool) {
   // Vocab field
   if (needsVocab) {
     vocWrap?.classList.remove('tb-field-hidden');
-    vocWrap?.classList.add('tb-field-required');
-    if (vocLabel) vocLabel.textContent = 'Your Vocabulary';
+    vocWrap?.classList.toggle('tb-field-required', vocabRequired);
+    if (vocLabel) vocLabel.textContent = vocabRequired ? 'Your Vocabulary' : 'Vocabulary (recommended)';
     if (vocTA) vocTA.placeholder = TT_VOCAB_PLACEHOLDERS[tool.id] || 'One word or phrase per line…';
   } else if (needsSource) {
     // source-primary: vocab optional
@@ -8946,6 +9010,15 @@ function _ttAdaptFields(tool) {
 
   // Extra field — always optional, sometimes less relevant
   if (extraWrap) extraWrap.classList.remove('tb-field-hidden');
+  const sourceHint = document.getElementById('tbuilder-source-hint');
+  const vocabHint = document.getElementById('tbuilder-vocab-hint');
+  if (sourceHint) sourceHint.textContent = needsSource
+    ? 'Required: the task will be built from this material.'
+    : (isMedia ? 'Optional: a transcript gives the task more context.' : 'Optional context for the generated task.');
+  if (vocabHint) vocabHint.textContent = vocabRequired
+    ? 'Required: one word or phrase per line.'
+    : (needsVocab ? 'Recommended: add words for a more specific task.' : 'Optional: one word or phrase per line.');
+  _ttSyncFormReadiness();
 }
 
 function setTeacherToolAction(action, btn) {
@@ -9530,6 +9603,13 @@ function _ttRefreshBuildLessonBtn(){
 
 document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
   if (e.target === e.currentTarget) closeTeacherToolBuilder();
+});
+
+document.querySelector('.tbuilder-form')?.addEventListener('input', e => {
+  if (e.target.matches('input, textarea, select')) _ttSyncFormReadiness();
+});
+document.querySelector('.tbuilder-form')?.addEventListener('change', e => {
+  if (e.target.matches('input, textarea, select')) _ttSyncFormReadiness();
 });
 
 function readTeacherToolBuilderInput() {
@@ -10729,7 +10809,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '262';
+const TEACHEDOS_ASSET_VERSION = '263';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -10764,6 +10844,7 @@ function _ensureTTAILoaded() {
 
 async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
+  if (!_ttSyncFormReadiness({ attempted: true })) return;
   await _ensureGenLoaded();   // pull in board-gen.js on first generation
   const input = readTeacherToolBuilderInput();
   const toolId = activeTeacherToolBuilder.id;
@@ -10799,7 +10880,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
 
   // Source-text requirement — single source of truth shared with the field
   // configurator (TT_NEEDS_SOURCE_SET), so the guard and the UI never diverge.
-  if (isPilot && TT_NEEDS_SOURCE_SET.has(toolId) && !input.source) {
+  if (TT_NEEDS_SOURCE_SET.has(toolId) && !input.source) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs text';
     if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
@@ -10808,7 +10889,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   }
 
   // Vocabulary requirement — tools that are meaningless without target words.
-  if (isPilot && TT_REQUIRE_VOCAB_SET.has(toolId) && !String(input.vocab || '').trim()) {
+  if (TT_REQUIRE_VOCAB_SET.has(toolId) && !String(input.vocab || '').trim()) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs vocab';
     if (body) body.innerHTML = '<div class="tbuilder-empty">Додайте цільові слова у поле «Your Vocabulary» — цей інструмент будує завдання навколо ваших слів.</div>';

@@ -1241,6 +1241,7 @@ function _ttSetGenerating(isGenerating) {
   if (ai) ai.disabled = !!isGenerating;
   if (add) add.disabled = !!isGenerating || !lastTeacherToolBuilderOutput;
   if (isGenerating) _ttSetImproving(false); // clear any stale shimmer on a new run
+  else _ttSyncFormReadiness?.();
 }
 
 // Shimmer state for the "draft shown → AI upgrading it" phase: a sweeping bar on

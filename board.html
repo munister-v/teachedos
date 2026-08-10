@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=262">
+<link rel="manifest" href="manifest.json?v=263">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=262">
-<link rel="stylesheet" href="styles/mobile.css?v=262">
-<link rel="stylesheet" href="styles/harmony.css?v=262">
-<link rel="stylesheet" href="styles/unify.css?v=262">
+<link rel="stylesheet" href="styles/board.css?v=263">
+<link rel="stylesheet" href="styles/mobile.css?v=263">
+<link rel="stylesheet" href="styles/harmony.css?v=263">
+<link rel="stylesheet" href="styles/unify.css?v=263">
 </head>
 <body class="board-page">
 
@@ -714,6 +714,13 @@
     </div>
     <div class="tbuilder-layout">
       <div class="tbuilder-form">
+        <div class="tbuilder-form-head">
+          <div>
+            <div class="tbuilder-form-eyebrow">01 · Task brief</div>
+            <strong>Give the generator a clear teaching goal</strong>
+          </div>
+          <div class="tbuilder-form-status" id="tbuilder-form-status" aria-live="polite">Ready for a topic</div>
+        </div>
         <div class="tbuilder-row">
           <div>
             <label for="tbuilder-level">Level</label>
@@ -726,7 +733,8 @@
         </div>
         <div class="tb-field-wrap" id="tb-wrap-topic">
           <label for="tbuilder-topic" id="tbuilder-topic-label">Topic / grammar focus</label>
-          <input id="tbuilder-topic" value="Travel problems" placeholder="e.g. job interview, past simple, climate change">
+          <input id="tbuilder-topic" value="Travel problems" autocomplete="off" placeholder="e.g. job interview, past simple, climate change">
+          <div class="tb-field-meta"><span>One focused theme gives a better task.</span><span id="tbuilder-topic-meta">0 characters</span></div>
         </div>
         <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-action">
           <label>What do you want to do?</label>
@@ -765,27 +773,30 @@
         <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-youtube">
           <label for="tbuilder-youtube">YouTube link</label>
           <div style="display:flex;gap:8px;align-items:stretch">
-            <input id="tbuilder-youtube" type="url" placeholder="https://youtube.com/watch?v=…" style="flex:1">
+            <input id="tbuilder-youtube" type="url" inputmode="url" autocomplete="url" placeholder="https://youtube.com/watch?v=…" style="flex:1">
             <button type="button" class="tbuilder-btn ghost" id="tbuilder-yt-btn" onclick="fetchYoutubeTranscript()" style="white-space:nowrap">Get transcript</button>
           </div>
-          <div id="tbuilder-yt-status" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+          <div class="tb-field-meta"><span id="tbuilder-yt-status">Paste a public link to load its transcript.</span></div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-source">
           <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
-          <textarea id="tbuilder-source" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
+          <textarea id="tbuilder-source" spellcheck="true" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
+          <div class="tb-field-meta"><span id="tbuilder-source-hint">Paste the material students will work with.</span><span id="tbuilder-source-meta">0 characters</span></div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-vocab">
           <label for="tbuilder-vocab" id="tbuilder-vocab-label">Target vocabulary</label>
-          <textarea id="tbuilder-vocab" placeholder="One word or phrase per line...">delay
+          <textarea id="tbuilder-vocab" spellcheck="true" placeholder="One word or phrase per line...">delay
 reservation
 boarding pass
 complaint
 solution
 polite request</textarea>
+          <div class="tb-field-meta"><span id="tbuilder-vocab-hint">One word or phrase per line.</span><span id="tbuilder-vocab-meta">5 terms</span></div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-extra">
           <label for="tbuilder-extra">Teacher notes (optional)</label>
-          <textarea id="tbuilder-extra" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
+          <textarea id="tbuilder-extra" spellcheck="true" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
+          <div class="tb-field-meta"><span>Constraints, learner needs, or a desired classroom outcome.</span><span id="tbuilder-extra-meta">0 characters</span></div>
         </div>
         <div class="tbuilder-actions">
           <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Create draft</button>
@@ -1685,11 +1696,11 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=262"></script>
-<script src="scripts/board-app.js?v=262"></script>
-<script src="js/board-vocab.js?v=262"></script>
-<script src="js/board-reveal.js?v=262"></script>
-<script src="js/teacher-tool-board-composer.js?v=262"></script>
+<script src="js/teacher-tools-data.js?v=263"></script>
+<script src="scripts/board-app.js?v=263"></script>
+<script src="js/board-vocab.js?v=263"></script>
+<script src="js/board-reveal.js?v=263"></script>
+<script src="js/teacher-tool-board-composer.js?v=263"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1697,7 +1708,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=262" defer></script>
+<script src="pwa-boot.js?v=263" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1738,11 +1749,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=262"></script>
-<script src="scripts/nav-boost.js?v=262" defer></script>
-<script src="scripts/mobile-perf.js?v=262" defer></script>
-<script src="scripts/mobile-nav.js?v=262"></script>
-<script src="scripts/mobile-zoom-guard.js?v=262" defer></script>
+<script src="pwa.js?v=263"></script>
+<script src="scripts/nav-boost.js?v=263" defer></script>
+<script src="scripts/mobile-perf.js?v=263" defer></script>
+<script src="scripts/mobile-nav.js?v=263"></script>
+<script src="scripts/mobile-zoom-guard.js?v=263" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

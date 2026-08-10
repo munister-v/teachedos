@@ -3327,11 +3327,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   border:1px solid rgba(14,14,16,.08);border-radius:22px;background:rgba(255,255,255,.86);
   box-shadow:0 12px 38px rgba(14,14,16,.06);padding:18px;
 }
+.tbuilder-form-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 13px;margin:-2px -2px 4px;border:1px solid color-mix(in srgb,var(--accent) 16%,rgba(14,14,16,.08));border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 9%,#fff),rgba(255,255,255,.92));}
+.tbuilder-form-head strong{display:block;max-width:250px;color:#171420;font-size:14px;line-height:1.28;letter-spacing:-.018em;}
+.tbuilder-form-eyebrow{margin-bottom:4px;color:var(--accent);font:900 9px/1 var(--mono,monospace);letter-spacing:.11em;text-transform:uppercase;}
+.tbuilder-form-status{flex:0 0 auto;max-width:146px;padding:6px 8px;border:1px solid rgba(14,14,16,.10);border-radius:999px;background:rgba(255,255,255,.82);color:#6E6E5C;font:850 10px/1.2 var(--mono,monospace);text-align:right;}
+.tbuilder-form-status.ready{color:#266e4a;border-color:rgba(38,110,74,.24);background:rgba(38,110,74,.07);}
+.tbuilder-form-status.needs-input{color:#8A5A09;border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.13);}
 .tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:950;margin:12px 0 6px;}
 .tbuilder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tbuilder-form input,.tbuilder-form select,.tbuilder-form textarea{
   width:100%;border:1.5px solid rgba(14,14,16,.10);border-radius:13px;background:#fff;color:#0E0E10;
-  padding:11px 12px;font:750 13px/1.35 var(--font);outline:none;
+  min-height:44px;padding:11px 12px;font:750 13px/1.35 var(--font);outline:none;
 }
 .tbuilder-form textarea{min-height:86px;resize:vertical;}
 .tbuilder-form input:focus,.tbuilder-form select:focus,.tbuilder-form textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent);}
@@ -3391,13 +3397,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-empty{min-height:280px;display:grid;place-items:center;text-align:center;color:rgba(23,20,32,.38);font-weight:750;line-height:1.6;font-size:13px;}
 .tbuilder-empty strong{display:block;font-size:22px;margin-bottom:8px;opacity:.5;}
 /* Field visibility helpers */
-.tb-field-wrap{transition:opacity .15s;}
+.tb-field-wrap{padding:1px 8px 8px;margin:5px -8px 0;border:1px solid transparent;border-radius:16px;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,opacity .15s;}
+.tb-field-wrap:focus-within{border-color:color-mix(in srgb,var(--accent) 28%,transparent);background:color-mix(in srgb,var(--accent) 3%,transparent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 7%,transparent);}
+.tb-field-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-top:6px;color:#817B6D;font:700 10px/1.35 var(--mono,monospace);}
+.tb-field-meta span:last-child{flex:0 0 auto;color:#9A9386;text-align:right;white-space:nowrap;}
+.tb-field-wrap.tb-field-required{border-color:color-mix(in srgb,var(--accent) 18%,transparent);background:color-mix(in srgb,var(--accent) 2.5%,transparent);}
+.tb-field-wrap.tb-field-valid{border-color:rgba(38,110,74,.20);}
+.tb-field-wrap.tb-field-invalid{border-color:rgba(185,69,57,.48);background:rgba(185,69,57,.055);}
+.tb-field-wrap.tb-field-invalid .tb-field-meta{color:#A4453B;}
 /* Hide regardless of the companion class — #tb-wrap-count is a bare row child
    (no .tb-field-wrap), so the old compound selector never matched it and the
    Items count stayed visible for scaffold tools. */
 .tb-field-hidden{display:none;}
 .tb-field-wrap.tb-field-required label::after{content:" *";color:var(--accent);font-weight:900;}
-.tb-field-wrap.tb-field-required textarea,.tb-field-wrap.tb-field-required input{border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 2.5%,transparent);}
+.tb-field-wrap.tb-field-required textarea,.tb-field-wrap.tb-field-required input{border-color:color-mix(in srgb,var(--accent) 35%,transparent)!important;background:color-mix(in srgb,var(--accent) 2.5%,#fff)!important;}
+.tb-field-wrap.tb-field-invalid textarea,.tb-field-wrap.tb-field-invalid input{border-color:rgba(185,69,57,.68)!important;box-shadow:0 0 0 3px rgba(185,69,57,.09)!important;}
 /* Disabled Add-to-board */
 .tbuilder-btn.blue:disabled,.tbuilder-btn.blue[disabled]{background:color-mix(in srgb,var(--accent) 30%,transparent);cursor:not-allowed;pointer-events:none;}
 
@@ -3779,6 +3793,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tbuilder-box{border-radius:24px 24px 0 0;max-height:92dvh;padding:18px;}
   .tbuilder-layout{grid-template-columns:1fr;}
   .tbuilder-row{grid-template-columns:1fr;}
+  .tbuilder-form-head{flex-direction:column;align-items:stretch;}
+  .tbuilder-form-status{max-width:none;text-align:left;align-self:flex-start;}
+  .tb-field-meta{font-size:9.5px;}
 }
 
 /* ══════════════ BOARD SEARCH ══════════════ */
