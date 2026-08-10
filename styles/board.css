@@ -1101,38 +1101,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   box-shadow:inset 0 0 0 1.5px rgba(123,159,255,.30);
 }
 
-/* ── AI sparkle — gradient pill ── */
-.mt-btn.mt-ai {
-  background:linear-gradient(145deg,rgba(139,92,246,.12),rgba(99,102,241,.08));
-  color:#7C3AED;
-  box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.18);
-}
-.mt-btn.mt-ai:hover {
-  background:linear-gradient(145deg,rgba(139,92,246,.20),rgba(99,102,241,.14));
-  color:#6D28D9;
-}
-.mt-btn.mt-ai.active {
-  background:linear-gradient(145deg,rgba(139,92,246,.26),rgba(99,102,241,.20));
-  color:#5B21B6;
-  box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.42);
-}
-[data-theme="dark"] .mt-btn.mt-ai {
-  background:linear-gradient(145deg,rgba(139,92,246,.18),rgba(99,102,241,.12));
-  color:#A78BFA;
-}
+/* AI Memory Studio is intentionally discoverable from Board menu → Preferences. */
+.mt-btn.mt-ai{display:none!important;}
 
-/* ── Teacher Tools — indigo ── */
+/* ── Teacher Tools — brand lime ── */
 .mt-btn.mt-tools {
-  color:#4F46E5;
-  background:rgba(79,70,229,.07);
-  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.15);
+  color:#26340E;
+  background:#CDF24F;
+  box-shadow:0 5px 14px rgba(132,164,18,.20),inset 0 0 0 1px rgba(55,75,9,.10);
 }
-.mt-btn.mt-tools:hover { background:rgba(79,70,229,.13); color:#3730A3; }
+.mt-btn.mt-tools:hover { background:#D7F76C; color:#1D280A; box-shadow:0 7px 18px rgba(132,164,18,.26); }
 .mt-btn.mt-tools.active {
-  background:rgba(79,70,229,.18); color:#3730A3;
-  box-shadow:inset 0 0 0 1.5px rgba(79,70,229,.42);
+  background:#CDF24F; color:#26340E;
+  box-shadow:0 5px 14px rgba(132,164,18,.20),inset 0 0 0 2px rgba(55,75,9,.22);
 }
-[data-theme="dark"] .mt-btn.mt-tools { color:#818CF8; background:rgba(79,70,229,.14); }
+[data-theme="dark"] .mt-btn.mt-tools { color:#26340E; background:#CDF24F; }
 
 /* ── + More button — indigo outlined ── */
 .mt-btn.mt-add {
