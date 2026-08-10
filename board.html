@@ -17,6 +17,7 @@
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
 <link rel="stylesheet" href="styles/board.css?v=273">
+<link rel="stylesheet" href="styles/auth.css?v=273">
 <link rel="stylesheet" href="styles/mobile.css?v=273">
 <link rel="stylesheet" href="styles/harmony.css?v=273">
 <link rel="stylesheet" href="styles/unify.css?v=273">
@@ -1226,37 +1227,37 @@ polite request</textarea>
 <div id="undo-toast"></div>
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
-<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:3000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;color-scheme:light;background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%,rgba(205,242,79,.20) 0%,transparent 60%),rgba(20,16,24,.50);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);">
-  <div id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" style="background:rgba(247,243,234,.96);backdrop-filter:blur(36px) saturate(1.6);-webkit-backdrop-filter:blur(36px) saturate(1.6);border-radius:26px;padding:34px 30px 26px;width:100%;max-width:400px;margin:auto;box-shadow:0 44px 110px rgba(5,5,23,.40),0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);position:relative;border:1px solid rgba(255,255,255,.6);">
-    <div style="text-align:center;margin-bottom:22px;">
-      <img src="logo-sm.png" alt="TeachEd" width="60" height="60" style="border-radius:15px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
-      <div id="auth-title" style="font-size:1.9rem;font-weight:800;color:#0E0E10;margin-top:11px;letter-spacing:-.035em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;">Teach<em style="color:#EC2D8C;font-style:normal;">Ed</em></div>
-      <div id="auth-subtitle" style="font-size:.85rem;color:#5A5A4A;font-weight:600;margin-top:6px;">Sign in to sync your boards</div>
+<div id="auth-overlay" class="auth-overlay board-auth-overlay" style="display:none;">
+  <div id="auth-modal" class="auth-card board-auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="auth-head">
+      <img class="auth-logo" src="logo-sm.png" alt="TeachEd" width="64" height="64">
+      <div id="auth-title" class="auth-title">Teach<em>Ed</em></div>
+      <div id="auth-subtitle" class="auth-sub">Sign in to sync your boards</div>
     </div>
-    <div id="auth-err" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 13px;font-size:.85rem;color:#c62828;font-weight:600;margin-bottom:14px;"></div>
-    <div id="auth-role-row" style="display:none;margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:800;color:#7A7A6A;font-family:var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button type="button" class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')" aria-pressed="true">
-          <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
-          <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
-          <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create boards &amp; courses</div>
+    <div id="auth-err" class="auth-err" role="alert" aria-live="assertive"></div>
+    <div id="auth-google-area" class="auth-google-area">
+      <div class="auth-google-btn" id="auth-google-btn"></div>
+      <div class="auth-or"><span class="auth-or-line"></span><span>OR</span><span class="auth-or-line"></span></div>
+    </div>
+    <div id="auth-role-row" class="auth-role-row">
+      <div class="auth-role-lbl">I am a…</div>
+      <div class="auth-role-grid">
+        <button type="button" class="auth-role auth-role-btn active sel" data-role="teacher" onclick="selectAuthRole('teacher')" aria-pressed="true">
+          <div class="auth-role-ic">🧑‍🏫</div><div class="auth-role-name">Teacher</div><div class="auth-role-desc">Create boards &amp; courses</div>
         </button>
-        <button type="button" class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')" aria-pressed="false">
-          <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🎓</div>
-          <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
-          <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Follow &amp; collaborate</div>
+        <button type="button" class="auth-role auth-role-btn" data-role="student" onclick="selectAuthRole('student')" aria-pressed="false">
+          <div class="auth-role-ic">🎓</div><div class="auth-role-name">Student</div><div class="auth-role-desc">Follow &amp; collaborate</div>
         </button>
       </div>
     </div>
     <div id="auth-fields"></div>
-    <button id="auth-submit" type="submit" aria-describedby="auth-security-note" style="width:100%;min-height:48px;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:6px;transition:filter .15s,transform .12s;letter-spacing:-.01em;box-shadow:0 6px 26px rgba(14,14,16,.26),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+    <button id="auth-submit" class="auth-btn" type="submit" aria-describedby="auth-security-note"><span class="auth-btn-spinner"></span><span class="auth-btn-lbl">Sign in</span></button>
     <p class="auth-security-note" id="auth-security-note">Protected sign-in · you can end active sessions from your profile.</p>
-    <div style="text-align:center;margin-top:16px;font-size:.85rem;color:#5A5A4A;font-weight:500;">
+    <div class="auth-toggle">
       <span id="auth-toggle-text">Don't have an account?</span>
-      <button type="button" onclick="toggleAuthMode()" style="color:#1C1C1E;font:inherit;font-weight:800;cursor:pointer;margin-left:4px;padding:0;border:0;background:transparent;text-decoration:underline;text-underline-offset:2px;" id="auth-toggle-link">Register</button>
+      <button type="button" onclick="toggleAuthMode()" id="auth-toggle-link">Register</button>
     </div>
-    <button type="button" aria-label="Close sign-in" onclick="closeAuthModal()" style="border:none;position:absolute;top:16px;right:16px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</button>
+    <button type="button" class="auth-close" aria-label="Close sign-in" onclick="closeAuthModal()">×</button>
   </div>
 </div>
 

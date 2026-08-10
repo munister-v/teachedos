@@ -13503,6 +13503,8 @@ let _boardPrefetch = null;
 function _settleP(p) { return p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e })); }
 let authMode = 'login'; // 'login' | 'register'
 let selectedRole = 'teacher';
+let _boardGoogleInitialized = false;
+let _boardGoogleClientId = null;
 let _cachedBoardCount = null;
 const BOARD_PACKAGE_FLAGS = {
   free:   { exports: false, ai: false, follow: false, maxBoards: 3 },
@@ -13607,8 +13609,9 @@ function openAuthModal(mode = 'login') {
   if (ov.style.display === 'none' || !ov.style.display) _authReturnFocus = document.activeElement;
   ov.style.display = 'flex';
   document.addEventListener('keydown', _authKeydown, true);
-  setTimeout(() => document.querySelector('.auth-input')?.focus(), 50);
+  setTimeout(() => document.querySelector('.auth-inp')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
+  if (authMode === 'login') setupBoardGoogle();
 }
 function closeAuthModal() {
   document.getElementById('auth-overlay').style.display = 'none';
@@ -13617,6 +13620,99 @@ function closeAuthModal() {
   _authReturnFocus = null;
 }
 function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
+
+function setAuthSubmitLabel(label) {
+  const button = document.getElementById('auth-submit');
+  if (!button) return;
+  const labelEl = button.querySelector('.auth-btn-lbl');
+  if (labelEl) labelEl.textContent = label;
+  else button.textContent = label;
+}
+
+function loadBoardGoogleScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) return resolve();
+    const existing = document.getElementById('board-gsi-script');
+    if (existing) {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'board-gsi-script';
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function setupBoardGoogle() {
+  const area = document.getElementById('auth-google-area');
+  const button = document.getElementById('auth-google-btn');
+  if (!area || !button || authMode !== 'login') return;
+  try {
+    if (!_boardGoogleInitialized) {
+      const configResponse = await fetch(API + '/api/auth/config');
+      const config = await configResponse.json();
+      if (!config.googleClientId) return;
+      _boardGoogleClientId = config.googleClientId;
+      await loadBoardGoogleScript();
+      google.accounts.id.initialize({
+        client_id: _boardGoogleClientId,
+        callback: handleBoardGoogle,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        context: 'signin',
+        itp_support: true,
+      });
+      _boardGoogleInitialized = true;
+    }
+    area.style.display = 'block';
+    button.innerHTML = '';
+    requestAnimationFrame(() => {
+      try {
+        const width = Math.min(336, Math.max(240, (document.getElementById('auth-modal')?.clientWidth || 400) - 60));
+        google.accounts.id.renderButton(button, {
+          type: 'standard', theme: 'outline', size: 'large', shape: 'pill',
+          text: 'continue_with', width, logo_alignment: 'center', locale: 'en',
+        });
+      } catch (error) { console.warn('[board-gsi] render failed', error); }
+    });
+  } catch (error) {
+    console.warn('[board-gsi] init failed', error);
+  }
+}
+
+async function handleBoardGoogle(response) {
+  const errorEl = document.getElementById('auth-err');
+  const button = document.getElementById('auth-submit');
+  if (errorEl) errorEl.style.display = 'none';
+  try {
+    google.accounts.id.cancel();
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    setAuthSubmitLabel('Signing in…');
+    const result = await apiFetch('/api/auth/google', {
+      method: 'POST',
+      body: { credential: response.credential, role: selectedRole },
+    });
+    const data = await result.json();
+    if (!result.ok) throw new Error(data.error || 'Google sign-in failed');
+    await finishBoardAuth(data);
+  } catch (error) {
+    if (errorEl) {
+      errorEl.textContent = error.message || 'Google sign-in failed';
+      errorEl.style.display = 'block';
+    }
+  } finally {
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    setAuthSubmitLabel('Sign in');
+  }
+}
 
 
 function markOnboardingPendingFromBoard(user) {
@@ -13645,25 +13741,27 @@ function renderAuthFields() {
   const isLogin = authMode === 'login';
   const isForgot = authMode === 'forgot';
   document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back' : 'Create your account');
-  document.getElementById('auth-submit').textContent = isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account');
+  setAuthSubmitLabel(isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account'));
   document.getElementById('auth-toggle-text').textContent = isForgot ? 'Remember your password?' : (isLogin ? "Don't have an account?" : 'Already have an account?');
   document.getElementById('auth-toggle-link').textContent = isForgot ? 'Sign in' : (isLogin ? 'Register' : 'Sign in');
   document.getElementById('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
+  const googleArea = document.getElementById('auth-google-area');
+  if (googleArea) googleArea.style.display = isLogin ? 'block' : 'none';
   const securityNote = document.getElementById('auth-security-note');
   if (securityNote) securityNote.textContent = isForgot
     ? 'For privacy, we only confirm that a reset message may have been sent.'
     : (isLogin ? 'Protected sign-in · you can end active sessions from your profile.' : 'Use 10 or more characters. You can manage active sessions after sign-in.');
   const f = document.getElementById('auth-fields');
   if (isForgot) {
-    f.innerHTML = `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-input" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@example.com" autocomplete="email"></div>`;
+    f.innerHTML = `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-inp" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@example.com" autocomplete="email"></div>`;
   } else {
-    f.innerHTML = (!isLogin ? `<div class="auth-field-wrap"><label class="auth-field-label" for="af-name">Your name</label><input class="auth-input" id="af-name" name="name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name"></div>` : '') +
-      `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-input" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com" autocomplete="email"></div>
+    f.innerHTML = (!isLogin ? `<div class="auth-field-wrap"><label class="auth-field-label" for="af-name">Your name</label><input class="auth-inp" id="af-name" name="name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name"></div>` : '') +
+      `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-inp" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com" autocomplete="email"></div>
        <div class="auth-field-wrap auth-password-field"><label class="auth-field-label" for="af-pass">Password</label><div class="auth-pass-wrap">
-         <input class="auth-input" id="af-pass" name="password" type="password" maxlength="72" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Your password' : '10 or more characters'}" autocomplete="${isLogin?'current':'new'}-password">
+         <input class="auth-inp" id="af-pass" name="password" type="password" maxlength="72" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Your password' : '10 or more characters'}" autocomplete="${isLogin?'current':'new'}-password">
          <button type="button" class="auth-eye" onclick="togglePassVis()" aria-label="Show password" aria-pressed="false">${AUTH_EYE_OPEN_ICON}</button>
        </div>${!isLogin ? '<p class="auth-password-help" id="auth-password-help">Use at least 10 characters.</p>' : ''}</div>
-       ${isLogin ? `<div class="auth-forgot-row"><button type="button" class="auth-forgot-link" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
+       ${isLogin ? `<div class="auth-forgot"><button type="button" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
   }
   /* A real <form>: password managers and mobile autofill key off form
      structure and a submit button, not a set of inputs in a div. The manual
@@ -13675,7 +13773,7 @@ function renderAuthFields() {
   while (f.firstChild) form.appendChild(f.firstChild);
   f.appendChild(form);
   document.getElementById('auth-submit')?.setAttribute('form', form.id);
-  f.querySelectorAll('.auth-input').forEach(i => {
+  f.querySelectorAll('.auth-inp').forEach(i => {
     i.addEventListener('keydown', e => { if (e.key === 'Enter' && i.id !== 'af-email') { e.preventDefault(); submitAuth(); } });
   });
   document.getElementById('af-pass')?.addEventListener('input', e => _authPasswordHint(e.target.value));
@@ -13699,8 +13797,29 @@ function selectAuthRole(role) {
   document.querySelectorAll('.auth-role-btn').forEach(b => {
     const active = b.dataset.role === role;
     b.classList.toggle('active', active);
+    b.classList.toggle('sel', active);
     b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
+}
+
+async function finishBoardAuth(data) {
+  if (authMode === 'register' || data.isNewUser) markOnboardingPendingFromBoard(data.user);
+  setToken(data.token);
+  currentUser = data.user;
+  try { localStorage.setItem('teachedos_user', JSON.stringify(data.user)); } catch {}
+  closeAuthModal();
+  updateAuthUI();
+  if (data.user.role === 'student' && !URL_BOARD_ID) {
+    location.href = 'student.html';
+    return;
+  }
+  if (window.__pendingLessonFlowImport) {
+    await runPendingLessonFlowImport();
+    wsConnect && wsConnect();
+  } else {
+    await initUserBoard();
+  }
+  if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
 }
 
 async function submitAuth() {
@@ -13720,13 +13839,13 @@ async function submitAuth() {
   }
   if (authMode === 'forgot') {
     let sent = false;
-    btn.disabled = true; btn.textContent = 'Sending…'; btn.setAttribute('aria-busy', 'true');
+    btn.disabled = true; setAuthSubmitLabel('Sending…'); btn.setAttribute('aria-busy', 'true');
     try {
       await apiFetch('/api/auth/forgot-password', { method: 'POST', body: { email } });
       errEl.style.color = '#179955';
       errEl.textContent = '✓ If that email is registered, a reset link is on its way.';
       errEl.style.display = 'block';
-      btn.textContent = 'Check your inbox';
+      setAuthSubmitLabel('Check your inbox');
       document.getElementById('auth-fields').innerHTML = '';
       sent = true;
     } catch {
@@ -13736,7 +13855,7 @@ async function submitAuth() {
     } finally {
       btn.removeAttribute('aria-busy');
       btn.disabled = sent;
-      if (!sent) btn.textContent = 'Send reset link';
+      if (!sent) setAuthSubmitLabel('Send reset link');
     }
     return;
   }
@@ -13766,7 +13885,7 @@ async function submitAuth() {
   }
 
   btn.disabled = true;
-  btn.textContent = authMode === 'login' ? 'Signing in…' : 'Creating account…';
+  setAuthSubmitLabel(authMode === 'login' ? 'Signing in…' : 'Creating account…');
   btn.setAttribute('aria-busy', 'true');
 
   try {
@@ -13775,23 +13894,7 @@ async function submitAuth() {
     const r = await apiFetch(endpoint, { method: 'POST', body });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Error');
-    if (authMode === 'register' || d.isNewUser) markOnboardingPendingFromBoard(d.user);
-    setToken(d.token);
-    currentUser = d.user;
-    try { localStorage.setItem('teachedos_user', JSON.stringify(d.user)); } catch {}
-    closeAuthModal();
-    updateAuthUI();
-    if (d.user.role === 'student' && !URL_BOARD_ID) {
-      location.href = 'student.html';
-      return;
-    }
-    if (window.__pendingLessonFlowImport) {
-      await runPendingLessonFlowImport();
-      wsConnect && wsConnect();
-    } else {
-      await initUserBoard();
-    }
-    if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+    await finishBoardAuth(d);
   } catch (err) {
     errEl.style.color = '';
     errEl.textContent = err.message;
@@ -13799,7 +13902,7 @@ async function submitAuth() {
   } finally {
     btn.disabled = false;
     btn.removeAttribute('aria-busy');
-    btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
+    setAuthSubmitLabel(authMode === 'login' ? 'Sign in' : 'Create account');
   }
 }
 

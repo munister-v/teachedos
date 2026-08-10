@@ -3965,6 +3965,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .auth-role-btn:hover{border-color:rgba(168,208,43,.6);background:rgba(205,242,79,.07);}
 .auth-role-btn.active{border-color:#A8D02B;background:rgba(205,242,79,.16);}
+/* Shared auth surface used by the landing page and the board. Keep the board
+   modal on the same visual system instead of maintaining a second inline UI. */
+.board-auth-overlay{z-index:3000!important;}
+.board-auth-card{width:min(420px,calc(100vw - 32px));}
+.board-auth-card #auth-role-row{display:none;}
+.board-auth-card .auth-head{margin-bottom:24px;}
+.board-auth-card .auth-google-area{margin-bottom:15px;}
+.board-auth-card .auth-google-btn{min-height:42px;}
+.board-auth-card .auth-btn{min-height:50px;}
+.board-auth-card .auth-toggle{margin-top:20px;}
 /* ══════════════ VERSION HISTORY PANEL ══════════════ */
 #vh-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
