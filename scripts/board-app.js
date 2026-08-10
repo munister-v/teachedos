@@ -6683,6 +6683,21 @@ function annotationSnippet(annotation, max = 92) {
   return body.length > max ? `${body.slice(0, max - 1)}…` : body;
 }
 
+function annotationTimeAgo(timestamp) {
+  const minutes = Math.max(0, Math.floor((Date.now() - Number(timestamp || Date.now())) / 60000));
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+function focusAnnotation(annotation) {
+  state.pan.x = boardWrap.clientWidth / 2 - annotation.x * state.scale;
+  state.pan.y = boardWrap.clientHeight / 2 - annotation.y * state.scale;
+  applyTransform();
+}
+
 function renderAllAnnotations() {
   const layer = getAnnotationLayer();
   layer.replaceChildren();
@@ -6762,7 +6777,7 @@ function openAnnotationPreview(annotationId) {
   popover.id = 'annotation-popover';
   popover.dataset.mode = 'preview';
   popover.className = 'annotation-popover annotation-preview';
-  popover.innerHTML = `<p class="annotation-preview-body">${esc(annotationSnippet(annotation, 140))}</p><p class="annotation-preview-meta">${esc(message?.author || 'Commenter')} · ${annotation.thread.length} ${annotation.thread.length === 1 ? 'comment' : 'comments'}</p>`;
+  popover.innerHTML = `<p class="annotation-preview-body">${esc(annotationSnippet(annotation, 140))}</p><p class="annotation-preview-meta">${esc(message?.author || 'Commenter')} <span>·</span> ${annotation.thread.length} ${annotation.thread.length === 1 ? 'comment' : 'comments'} <span>·</span> ${annotationTimeAgo(annotation.updatedAt)}</p>`;
   popover.addEventListener('mouseenter', () => clearTimeout(_annotationPreviewTimer));
   popover.addEventListener('mouseleave', scheduleAnnotationPreviewClose);
   document.body.appendChild(popover);
@@ -6778,7 +6793,7 @@ function openAnnotationThread(annotationId) {
   popover.id = 'annotation-popover';
   popover.dataset.mode = 'thread';
   popover.className = 'annotation-popover annotation-thread';
-  const messages = annotation.thread.map(message => `<article class="annotation-message"><b>${esc(message.author)}</b><p>${esc(message.body)}</p></article>`).join('');
+  const messages = annotation.thread.map(message => `<article class="annotation-message"><div><b>${esc(message.author)}</b><time>${annotationTimeAgo(message.createdAt)}</time></div><p>${esc(message.body)}</p></article>`).join('');
   popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><button type="button" class="annotation-close" aria-label="Close comment">×</button></header><div class="annotation-messages">${messages}</div><form class="annotation-reply"><textarea aria-label="Reply to comment" rows="2" placeholder="Reply…"></textarea><div><button type="button" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="submit" class="annotation-send">Reply</button></div></form>`;
   document.body.appendChild(popover);
   positionAnnotationPopover(annotation, popover);
@@ -7851,13 +7866,16 @@ function toggleCommentsPanel() {
   const annotations = [...state.annotations].sort((a, b) => b.updatedAt - a.updatedAt);
   const entries = annotations.length ? annotations.map(annotation => {
     const latest = annotationLatest(annotation);
-    return `<button type="button" class="comments-panel-item" data-annotation-id="${esc(annotation.id)}"><span class="comments-panel-item-status${annotation.resolved ? ' is-resolved' : ''}"></span><span><b>${esc(latest?.author || 'Commenter')}</b><span>${esc(annotationSnippet(annotation, 100))}</span></span><em>${annotation.thread.length}</em></button>`;
+    return `<button type="button" class="comments-panel-item" data-annotation-id="${esc(annotation.id)}"><span class="comments-panel-item-status${annotation.resolved ? ' is-resolved' : ''}"></span><span><b>${esc(latest?.author || 'Commenter')} <time>${annotationTimeAgo(annotation.updatedAt)}</time></b><span>${esc(annotationSnippet(annotation, 100))}</span></span><em>${annotation.thread.length}</em></button>`;
   }).join('') : '<div class="comments-panel-empty"><span class="comments-panel-empty-pin"></span><b>No comments yet</b><p>Choose the comment tool and click the board.</p></div>';
   p.innerHTML = `<header><span>Comments</span><small>${annotations.length}</small><button type="button" class="comments-panel-close" aria-label="Close comments">×</button></header><div class="comments-panel-list">${entries}</div>`;
   document.body.appendChild(p);
   p.querySelector('.comments-panel-close').addEventListener('click', () => p.remove());
   p.querySelectorAll('.comments-panel-item').forEach(item => item.addEventListener('click', () => {
-    openAnnotationThread(item.dataset.annotationId);
+    const annotation = state.annotations.find(entry => entry.id === item.dataset.annotationId);
+    if (!annotation) return;
+    focusAnnotation(annotation);
+    openAnnotationThread(annotation.id);
   }));
 }
 
