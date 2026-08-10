@@ -21,7 +21,7 @@
   --on-accent:#FFFFFF;
   --text:#0E0E10;--text-2:#3A3A2E;--text-3:#6E6E5C;
   --border:rgba(0,0,0,.12);--border-2:rgba(0,0,0,.22);
-  --sb-w:280px;--tb-h:48px;--mt-w:56px;
+  --sb-w:280px;--tb-h:54px;--mt-w:56px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
   --card-bg:#ffffff;--card-radius:10px;--board-dot1:rgba(5,5,56,.12);--board-dot2:rgba(0,0,0,.05);
