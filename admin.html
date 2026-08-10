@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=252">
+<link rel="manifest" href="manifest.json?v=253">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=252">
-<link rel="preload" as="style" href="styles/unify.css?v=252">
+<link rel="preload" as="style" href="styles/harmony.css?v=253">
+<link rel="preload" as="style" href="styles/unify.css?v=253">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -343,6 +343,16 @@ tr{transition:background .15s ease}
 .production-meta{font-size:11px;color:var(--muted);font-family:monospace;line-height:1.6}
 .production-meta strong{color:var(--text);font-family:inherit}
 .production-note{font-size:11px;color:var(--muted);max-width:520px;line-height:1.45;text-align:right}
+.ui-plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.ui-plan-card{padding:16px;border:1px solid var(--border);border-radius:16px;background:#fafafa}
+.ui-plan-card.p0{background:#fffaf3;border-color:#fed7aa}
+.ui-plan-card.p1{background:#f7f8ff;border-color:#dbeafe}
+.ui-plan-card.p2{background:#f7fcf8;border-color:#d1fae5}
+.ui-plan-kicker{font-size:10px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ui-plan-title{font-size:15px;font-weight:950;color:var(--text);margin-bottom:9px}
+.ui-plan-list{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.ui-plan-list li{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:var(--text2);line-height:1.4}
+.ui-plan-list li::before{content:'→';color:var(--accent);font-weight:950;flex:0 0 auto}
 .setting-title{font-size:16px;font-weight:800;margin-bottom:4px}
 .setting-desc{font-size:13px;color:var(--muted);margin-bottom:16px}
 .invite-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:320px;overflow:auto;padding-right:4px}
@@ -475,6 +485,7 @@ tr{transition:background .15s ease}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .activity-grid,.analytics-grid,.ops-grid,.settings-grid,.spotlight-results,.brief-card,.plan-control-grid,.plan-card-grid,.queue-grid{grid-template-columns:1fr}
   .production-check-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ui-plan-grid{grid-template-columns:1fr}
   .settings-hero{align-items:flex-start;flex-direction:column;padding:22px}
   .settings-hero-actions{width:100%}
   .settings-hero-actions .btn-sm{flex:1}
@@ -645,10 +656,10 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=252" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=252">
-<link rel="stylesheet" href="styles/harmony.css?v=252">
-<link rel="stylesheet" href="styles/unify.css?v=252">
+<script src="theme.js?v=253" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=253">
+<link rel="stylesheet" href="styles/harmony.css?v=253">
+<link rel="stylesheet" href="styles/unify.css?v=253">
 </head>
 <body class="admin-page">
 
@@ -1557,6 +1568,34 @@ html{scroll-behavior:smooth}
         </div>
       </section>
 
+      <section class="setting-card setting-card--featured" aria-labelledby="ui-plan-title">
+        <div class="production-head" style="margin-bottom:0">
+          <div>
+            <div class="production-kicker">Product delivery</div>
+            <div class="production-title" id="ui-plan-title">UI release plan</div>
+            <div class="production-desc">The next improvements are grouped by release risk, so the admin panel doubles as the hand-off point for production work.</div>
+          </div>
+          <button class="btn-sm btn-edit" type="button" onclick="window.open('https://github.com/munister-v/teachedos/blob/main/PRODUCTION_UI_PLAN.md','_blank','noopener')">Open full plan ↗</button>
+        </div>
+        <div class="ui-plan-grid">
+          <article class="ui-plan-card p0">
+            <div class="ui-plan-kicker">P0 · Release gates</div>
+            <div class="ui-plan-title">Make every release safe</div>
+            <ul class="ui-plan-list"><li>Session expiry banner with draft preservation</li><li>Mobile smoke at 360 / 390 / 768 px</li><li>Loading, success and error feedback on writes</li></ul>
+          </article>
+          <article class="ui-plan-card p1">
+            <div class="ui-plan-kicker">P1 · Teacher flow</div>
+            <div class="ui-plan-title">Keep the next action obvious</div>
+            <ul class="ui-plan-list"><li>Latest board and primary CTA on Home</li><li>Visible hide, duplicate, delete and publish controls</li><li>Sticky builder actions on mobile</li></ul>
+          </article>
+          <article class="ui-plan-card p2">
+            <div class="ui-plan-kicker">P2 · Polish</div>
+            <div class="ui-plan-title">Reduce friction and weight</div>
+            <ul class="ui-plan-list"><li>Lazy-load heavy board/editor modules</li><li>Shared motion and design tokens</li><li>Visual regression screenshots for core flows</li></ul>
+          </article>
+        </div>
+      </section>
+
       <div class="setting-card">
         <div class="setting-title">🛡️ Promote to Admin</div>
         <div class="setting-desc">Grant admin privileges to an existing user by email.</div>
@@ -1927,11 +1966,11 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=252"></script>
-<script src="pwa.js?v=252"></script>
-<script src="pwa-boot.js?v=252" defer></script>
-<script src="scripts/nav-boost.js?v=252" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=252" defer></script>
-<script src="scripts/mobile-perf.js?v=252" defer></script>
+<script src="scripts/admin-app.js?v=253"></script>
+<script src="pwa.js?v=253"></script>
+<script src="pwa-boot.js?v=253" defer></script>
+<script src="scripts/nav-boost.js?v=253" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=253" defer></script>
+<script src="scripts/mobile-perf.js?v=253" defer></script>
 </body>
 </html>
