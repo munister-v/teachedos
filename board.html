@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=265">
+<link rel="manifest" href="manifest.json?v=266">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=265">
-<link rel="stylesheet" href="styles/mobile.css?v=265">
-<link rel="stylesheet" href="styles/harmony.css?v=265">
-<link rel="stylesheet" href="styles/unify.css?v=265">
+<link rel="stylesheet" href="styles/board.css?v=266">
+<link rel="stylesheet" href="styles/mobile.css?v=266">
+<link rel="stylesheet" href="styles/harmony.css?v=266">
+<link rel="stylesheet" href="styles/unify.css?v=266">
 </head>
 <body class="board-page">
 
@@ -735,6 +735,18 @@
           </div>
           <div class="tbuilder-brief-review-items" id="tbuilder-brief-review-items"></div>
         </div>
+        <div class="tbuilder-generation-plan" id="tbuilder-generation-plan">
+          <div class="tbuilder-generation-plan-head">
+            <div><span class="tbuilder-plan-eyebrow">Draft route</span><strong id="tbuilder-plan-heading">Classroom task plan</strong></div>
+            <span class="tbuilder-plan-status" id="tbuilder-plan-status">Choose a tool</span>
+          </div>
+          <div class="tbuilder-plan-metrics">
+            <span class="tbuilder-plan-metric"><small>Format</small><strong id="tbuilder-plan-format">—</strong></span>
+            <span class="tbuilder-plan-metric"><small>Input</small><strong id="tbuilder-plan-input">—</strong></span>
+            <span class="tbuilder-plan-metric"><small>Output</small><strong id="tbuilder-plan-output">—</strong></span>
+          </div>
+          <p id="tbuilder-plan-copy">The plan will explain how the generator will use your brief.</p>
+        </div>
         <div class="tbuilder-row">
           <div>
             <label for="tbuilder-level">Level</label>
@@ -795,7 +807,7 @@
         <div class="tb-field-wrap" id="tb-wrap-source">
           <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
           <textarea id="tbuilder-source" spellcheck="true" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
-          <div class="tb-field-meta"><span id="tbuilder-source-hint">Paste the material students will work with.</span><span id="tbuilder-source-meta">0 characters</span></div>
+          <div class="tb-field-meta"><span id="tbuilder-source-hint">Paste the material students will work with.</span><span class="tb-field-meta-actions"><span id="tbuilder-source-meta">0 characters</span><button type="button" class="tbuilder-field-action" id="tbuilder-clean-source" onclick="tidyTeacherToolSource()" hidden>Clean text</button></span></div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-vocab">
           <label for="tbuilder-vocab" id="tbuilder-vocab-label">Target vocabulary</label>
@@ -1710,11 +1722,11 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=265"></script>
-<script src="scripts/board-app.js?v=265"></script>
-<script src="js/board-vocab.js?v=265"></script>
-<script src="js/board-reveal.js?v=265"></script>
-<script src="js/teacher-tool-board-composer.js?v=265"></script>
+<script src="js/teacher-tools-data.js?v=266"></script>
+<script src="scripts/board-app.js?v=266"></script>
+<script src="js/board-vocab.js?v=266"></script>
+<script src="js/board-reveal.js?v=266"></script>
+<script src="js/teacher-tool-board-composer.js?v=266"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1722,7 +1734,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=265" defer></script>
+<script src="pwa-boot.js?v=266" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1763,11 +1775,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=265"></script>
-<script src="scripts/nav-boost.js?v=265" defer></script>
-<script src="scripts/mobile-perf.js?v=265" defer></script>
-<script src="scripts/mobile-nav.js?v=265"></script>
-<script src="scripts/mobile-zoom-guard.js?v=265" defer></script>
+<script src="pwa.js?v=266"></script>
+<script src="scripts/nav-boost.js?v=266" defer></script>
+<script src="scripts/mobile-perf.js?v=266" defer></script>
+<script src="scripts/mobile-nav.js?v=266"></script>
+<script src="scripts/mobile-zoom-guard.js?v=266" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

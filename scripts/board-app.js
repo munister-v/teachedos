@@ -8172,6 +8172,8 @@ let _ttClearedDraft = null;
 let _ttClearUndoTimer = 0;
 let _ttTidyVocabUndo = null;
 let _ttTidyVocabUndoTimer = 0;
+let _ttTidySourceUndo = null;
+let _ttTidySourceUndoTimer = 0;
 
 function _ttSetDraftState(message, tone = '') {
   const el = document.getElementById('tbuilder-draft-state');
@@ -8255,6 +8257,8 @@ function _ttRestoreBuilderDraft() {
 function clearTeacherToolBuilderFields() {
   _ttTidyVocabUndo = null;
   clearTimeout(_ttTidyVocabUndoTimer);
+  _ttTidySourceUndo = null;
+  clearTimeout(_ttTidySourceUndoTimer);
   if (_ttClearedDraft) {
     _ttApplyBuilderDraft(_ttClearedDraft);
     _ttClearedDraft = null;
@@ -8284,6 +8288,18 @@ function _ttVocabularyEntries(value) {
     .map(item => item.trim().replace(/\s+/g, ' ')).filter(Boolean);
 }
 
+function _ttSourceWordCount(value) {
+  return (String(value || '').match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || []).length;
+}
+
+function _ttNormalizeSourceText(value) {
+  return String(value || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function _ttUniqueVocabulary(entries) {
   const seen = new Set();
   return entries.filter(term => {
@@ -8300,6 +8316,7 @@ function _ttRefreshBriefReview() {
   const copy = document.getElementById('tbuilder-brief-review-copy');
   const items = document.getElementById('tbuilder-brief-review-items');
   const tidyButton = document.getElementById('tbuilder-tidy-vocab');
+  const cleanSourceButton = document.getElementById('tbuilder-clean-source');
   const tool = activeTeacherToolBuilder;
   if (!review || !heading || !copy || !items || !tool) return;
   const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
@@ -8346,7 +8363,62 @@ function _ttRefreshBriefReview() {
     tidyButton.hidden = _ttTidyVocabUndo ? false : !needsTidy;
     tidyButton.textContent = _ttTidyVocabUndo ? 'Undo tidy' : 'Tidy list';
   }
+  if (cleanSourceButton) {
+    const cleanedSource = _ttNormalizeSourceText(source);
+    const needsSourceClean = !!source && cleanedSource !== source;
+    cleanSourceButton.hidden = _ttTidySourceUndo !== null ? false : !needsSourceClean;
+    cleanSourceButton.textContent = _ttTidySourceUndo !== null ? 'Undo clean' : 'Clean text';
+  }
   document.getElementById('tb-wrap-vocab')?.classList.toggle('tb-field-attention', duplicateCount > 0);
+}
+
+function _ttRefreshGenerationPlan() {
+  const tool = activeTeacherToolBuilder;
+  if (!tool) return;
+  const heading = document.getElementById('tbuilder-plan-heading');
+  const status = document.getElementById('tbuilder-plan-status');
+  const copy = document.getElementById('tbuilder-plan-copy');
+  const format = document.getElementById('tbuilder-plan-format');
+  const input = document.getElementById('tbuilder-plan-input');
+  const output = document.getElementById('tbuilder-plan-output');
+  if (!heading || !status || !copy || !format || !input || !output) return;
+  const level = String(document.getElementById('tbuilder-level')?.value || 'B1');
+  const requestedCount = Number(document.getElementById('tbuilder-count')?.value || 0);
+  const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
+  const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
+  const vocab = _ttVocabularyEntries(document.getElementById('tbuilder-vocab')?.value || '');
+  const sourceWords = _ttSourceWordCount(source);
+  const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
+  const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
+  const sourceRelevant = needsSource || TT_MEDIA_SET.has(tool.id);
+  const oneArtifact = TT_NO_COUNT_SET.has(tool.id);
+  const missingSource = needsSource && !source;
+  const missingVocab = needsVocab && !vocab.length;
+  heading.textContent = `${level} ${tool.kind} plan`;
+  format.textContent = tool.kind;
+  output.textContent = oneArtifact ? 'One task' : `${requestedCount || 12} items`;
+  if (missingSource) input.textContent = 'Text needed';
+  else if (missingVocab) input.textContent = 'Terms needed';
+  else if (sourceRelevant && sourceWords) input.textContent = `${sourceWords} words`;
+  else if (vocab.length) input.textContent = `${vocab.length} terms`;
+  else input.textContent = 'Topic-led';
+  const blocked = missingSource || missingVocab;
+  status.classList.toggle('ready', !blocked);
+  status.classList.toggle('needs-input', blocked);
+  status.textContent = missingSource ? 'Needs text' : (missingVocab ? 'Needs terms' : 'Brief mapped');
+  if (missingSource) {
+    copy.textContent = `Paste the core text and the generator will build ${oneArtifact ? 'one classroom task' : `${requestedCount || 12} items`} from it.`;
+  } else if (missingVocab) {
+    copy.textContent = 'Add the target terms and the generator will keep every prompt anchored to them.';
+  } else if (sourceRelevant && sourceWords && vocab.length) {
+    copy.textContent = `The generator will use your ${sourceWords}-word source together with ${vocab.length} selected term${vocab.length === 1 ? '' : 's'}.`;
+  } else if (sourceRelevant && sourceWords) {
+    copy.textContent = `The generator will shape the activity from your ${sourceWords}-word source.`;
+  } else if (vocab.length) {
+    copy.textContent = `The generator will build the activity around ${vocab.length} selected term${vocab.length === 1 ? '' : 's'}.`;
+  } else {
+    copy.textContent = topic ? `The generator will shape the task around “${topic}”.` : 'Add one focused theme to make the task more specific.';
+  }
 }
 
 function tidyTeacherToolVocabulary() {
@@ -8375,6 +8447,43 @@ function tidyTeacherToolVocabulary() {
   }, 8000);
 }
 
+function tidyTeacherToolSource() {
+  const field = document.getElementById('tbuilder-source');
+  if (!field) return;
+  if (_ttTidySourceUndo !== null) {
+    const original = _ttTidySourceUndo;
+    _ttTidySourceUndo = null;
+    clearTimeout(_ttTidySourceUndoTimer);
+    field.value = original;
+    _ttSyncFormReadiness();
+    _ttQueueBuilderDraft();
+    return;
+  }
+  const original = field.value;
+  const clean = _ttNormalizeSourceText(original);
+  if (!clean || clean === original) return;
+  _ttTidySourceUndo = original;
+  field.value = clean;
+  _ttSyncFormReadiness();
+  _ttQueueBuilderDraft();
+  field.focus();
+  _ttTidySourceUndoTimer = setTimeout(() => {
+    _ttTidySourceUndo = null;
+    _ttRefreshBriefReview();
+  }, 8000);
+}
+
+function _ttClearTidyUndoAfterManualEdit(inputId) {
+  if (inputId === 'tbuilder-vocab' && _ttTidyVocabUndo !== null) {
+    _ttTidyVocabUndo = null;
+    clearTimeout(_ttTidyVocabUndoTimer);
+  }
+  if (inputId === 'tbuilder-source' && _ttTidySourceUndo !== null) {
+    _ttTidySourceUndo = null;
+    clearTimeout(_ttTidySourceUndoTimer);
+  }
+}
+
 function _ttUpdateFieldMeta() {
   const text = id => String(document.getElementById(id)?.value || '').trim();
   const write = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
@@ -8383,8 +8492,9 @@ function _ttUpdateFieldMeta() {
   const topic = text('tbuilder-topic');
   const extra = text('tbuilder-extra');
   const terms = vocab ? vocab.split(/\n|,/).map(item => item.trim()).filter(Boolean).length : 0;
+  const sourceWords = _ttSourceWordCount(source);
   write('tbuilder-topic-meta', `${topic.length} character${topic.length === 1 ? '' : 's'}`);
-  write('tbuilder-source-meta', `${source.length.toLocaleString()} character${source.length === 1 ? '' : 's'}`);
+  write('tbuilder-source-meta', source ? `${source.length.toLocaleString()} characters · ${sourceWords} word${sourceWords === 1 ? '' : 's'}` : '0 characters');
   write('tbuilder-vocab-meta', `${terms} term${terms === 1 ? '' : 's'}`);
   write('tbuilder-extra-meta', `${extra.length} character${extra.length === 1 ? '' : 's'}`);
 }
@@ -8434,6 +8544,7 @@ function _ttSyncFormReadiness(opts = {}) {
   });
   if (!ready && opts.attempted) document.getElementById(missing[0]?.input)?.focus();
   _ttRefreshBriefReview();
+  _ttRefreshGenerationPlan();
   return ready;
 }
 
@@ -9820,10 +9931,10 @@ document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
 });
 
 document.querySelector('.tbuilder-form')?.addEventListener('input', e => {
-  if (e.target.matches('input, textarea, select')) { _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
+  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
 });
 document.querySelector('.tbuilder-form')?.addEventListener('change', e => {
-  if (e.target.matches('input, textarea, select')) { _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
+  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
 });
 document.querySelector('.tbuilder-form')?.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -11029,7 +11140,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '265';
+const TEACHEDOS_ASSET_VERSION = '266';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
