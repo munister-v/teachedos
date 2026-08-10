@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=254">
+<link rel="manifest" href="manifest.json?v=255">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=254">
-<link rel="preload" as="style" href="styles/unify.css?v=254">
+<link rel="preload" as="style" href="styles/harmony.css?v=255">
+<link rel="preload" as="style" href="styles/unify.css?v=255">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -176,6 +176,11 @@ a{text-decoration:none;color:inherit;}
 .m-role{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
 .role-student{background:rgba(99,102,241,.12);color:#6366f1;}
 .role-editor {background:rgba(34,197,94,.12);color:#16a34a;}
+.progress-chip{font-size:10px;font-weight:800;padding:3px 7px;border-radius:20px;white-space:nowrap;}
+.progress-chip.attention{background:#fee2e2;color:#b91c1c;}
+.progress-chip.active{background:#fef3c7;color:#92400e;}
+.progress-chip.on-track{background:#dcfce7;color:#166534;}
+.progress-chip.not-started{background:#e5e7eb;color:#4b5563;}
 .m-spacer{flex:1;}
 .m-pct{font-size:14px;font-weight:900;color:var(--accent);}
 .m-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:rgba(94,94,74,.1);overflow:hidden;}
@@ -230,6 +235,43 @@ a{text-decoration:none;color:inherit;}
 .si-blue{background:#eff6ff;} .si-orange{background:#fff7ed;}
 .stat-val{font-size:26px;font-weight:900;letter-spacing:-.03em;line-height:1;}
 .stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-top:2px;}
+
+/* Gradebook focus controls */
+.gradebook-pulse{
+  display:flex;align-items:center;gap:18px;padding:18px 20px;
+  border:1px solid var(--border);border-radius:16px;
+  background:linear-gradient(135deg,#fff 0%,#faf9f3 100%);box-shadow:var(--shadow);
+}
+.gp-main{min-width:0;flex:1;}
+.gp-kicker{font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+.gp-title{margin-top:4px;font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--text);}
+.gp-copy{margin-top:4px;max-width:560px;font-size:12px;line-height:1.45;color:var(--text2);}
+.gp-metrics{display:flex;align-items:stretch;gap:8px;flex-shrink:0;}
+.gp-metric{min-width:72px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.68);}
+.gp-metric-num{font-size:17px;line-height:1;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;}
+.gp-metric-label{margin-top:5px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.gp-metric.attention{border-color:rgba(239,68,68,.22);background:rgba(254,242,242,.75);}
+.gp-metric.attention .gp-metric-num{color:#b91c1c;}
+.gp-actions{display:flex;gap:8px;flex-shrink:0;}
+
+.gradebook-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.gb-filter-group{display:flex;gap:6px;flex-wrap:wrap;}
+.gb-filter{
+  min-height:38px;padding:0 12px;border:1px solid var(--border);border-radius:999px;
+  background:#fff;color:var(--text2);font:800 11px var(--font);cursor:pointer;transition:.15s;
+}
+.gb-filter:hover{border-color:var(--border2);color:var(--text);}
+.gb-filter[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;}
+.gb-filter.attention[aria-pressed="true"]{background:#b91c1c;border-color:#b91c1c;}
+.gb-search{position:relative;flex:1;min-width:220px;}
+.gb-search-input{
+  width:100%;min-height:40px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;
+  background:#fff;color:var(--text);font:600 13px var(--font);outline:none;transition:.15s;
+}
+.gb-search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,230,50,.22);}
+.gb-filter-note{width:100%;font-size:11px;color:var(--text3);font-weight:700;}
+.filtered-empty{padding:28px 12px;text-align:center;color:var(--text3);font-size:13px;line-height:1.45;}
+.gb-empty-row td{padding:28px 12px!important;text-align:center!important;color:var(--text3);font-size:12px;font-weight:700;}
 
 /* Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:none;align-items:center;justify-content:center;}
@@ -302,6 +344,16 @@ a{text-decoration:none;color:inherit;}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
   .stat-card{padding:14px;border-radius:14px;box-shadow:none;border:1px solid var(--border);}
   .stat-val{font-size:22px;}
+  .gradebook-pulse{align-items:stretch;flex-direction:column;padding:16px;border-radius:14px;box-shadow:none;}
+  .gp-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .gp-metric{min-width:0;padding:10px;}
+  .gp-actions{display:grid;grid-template-columns:1fr 1fr;}
+  .gp-actions .btn{width:100%;min-height:44px;}
+  .gradebook-controls{align-items:stretch;}
+  .gb-filter-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
+  .gb-filter{min-height:42px;}
+  .gb-search{min-width:0;width:100%;}
+  .gb-search-input{min-height:44px;font-size:16px;}
   .section{border-radius:14px;box-shadow:none;border:1px solid var(--border);}
   .sec-head,.sec-body{padding-left:14px;padding-right:14px;}
   .invite-form{flex-direction:column;align-items:stretch;}
@@ -328,10 +380,10 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=254" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=254">
-<link rel="stylesheet" href="styles/harmony.css?v=254">
-<link rel="stylesheet" href="styles/unify.css?v=254">
+<script src="theme.js?v=255" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=255">
+<link rel="stylesheet" href="styles/harmony.css?v=255">
+<link rel="stylesheet" href="styles/unify.css?v=255">
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
@@ -415,6 +467,27 @@ a{text-decoration:none;color:inherit;}
     <div class="stat-card"><div class="stat-icon si-orange" aria-hidden="true">🏆</div><div><div class="stat-val" id="s-top">—</div><div class="stat-lbl">Top Student</div></div></div>
   </div>
 
+  <section class="gradebook-pulse" id="gradebook-pulse" aria-live="polite">
+    <div class="gp-main">
+      <div class="gp-kicker">Class pulse</div>
+      <div class="gp-title">Choose a board to review progress</div>
+      <div class="gp-copy">Progress, attention flags and student filters will appear here.</div>
+    </div>
+  </section>
+
+  <section class="gradebook-controls" id="gradebook-controls" aria-label="Student filters">
+    <div class="gb-filter-group" role="group" aria-label="Filter students by progress">
+      <button type="button" class="gb-filter" data-gb-filter="all" aria-pressed="true" onclick="setGradebookFilter('all')">All students</button>
+      <button type="button" class="gb-filter attention" data-gb-filter="attention" aria-pressed="false" onclick="setGradebookFilter('attention')">Needs attention</button>
+      <button type="button" class="gb-filter" data-gb-filter="active" aria-pressed="false" onclick="setGradebookFilter('active')">In progress</button>
+      <button type="button" class="gb-filter" data-gb-filter="on-track" aria-pressed="false" onclick="setGradebookFilter('on-track')">On track</button>
+    </div>
+    <div class="gb-search">
+      <input class="gb-search-input" type="search" id="gb-student-search" aria-label="Search students" autocomplete="off" placeholder="Search student by name or email" oninput="setGradebookSearch(this.value)">
+    </div>
+    <div class="gb-filter-note" id="gb-filter-note">Select a board to filter its students.</div>
+  </section>
+
   <!-- Board selector -->
   <div class="section">
     <div class="sec-head"><div class="sec-title">Select Board</div></div>
@@ -432,12 +505,12 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div class="sec-body">
       <div class="invite-form" style="margin-bottom:18px;">
-        <input class="invite-input" type="email" id="invite-email" placeholder="student@email.com — invite by email"/>
+        <input class="invite-input" type="email" id="invite-email" required autocomplete="email" aria-label="Student email" placeholder="student@email.com — invite by email"/>
         <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;">
           <option value="student">Student</option>
           <option value="editor">Co-teacher</option>
         </select>
-        <button class="btn btn-primary btn-sm" onclick="inviteStudent()">Invite</button>
+        <button class="btn btn-primary btn-sm" id="invite-inline-btn" onclick="inviteStudent()">Invite</button>
       </div>
       <div class="member-list" id="member-list">
         <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No students yet. Invite someone above.</div>
@@ -474,21 +547,21 @@ a{text-decoration:none;color:inherit;}
 </div><!-- /page -->
 
 <!-- Student Detail Modal -->
-<div class="modal-bg" id="student-detail-modal" onclick="if(event.target===this)closeStudentDetail()">
+<div class="modal-bg" id="student-detail-modal" role="dialog" aria-modal="true" aria-label="Student details" onclick="if(event.target===this)closeStudentDetail()">
   <div class="modal" style="max-width:560px;width:95%;">
-    <button class="modal-close" onclick="closeStudentDetail()">✕</button>
+    <button class="modal-close" type="button" aria-label="Close student details" onclick="closeStudentDetail()">✕</button>
     <div id="student-detail-body">Loading…</div>
   </div>
 </div>
 
 <!-- Invite Modal (fallback) -->
-<div class="modal-bg" id="invite-modal">
+<div class="modal-bg" id="invite-modal" role="dialog" aria-modal="true" aria-label="Invite student">
   <div class="modal">
-    <button class="modal-close" onclick="closeInviteModal()">✕</button>
+    <button class="modal-close" type="button" aria-label="Close invite dialog" onclick="closeInviteModal()">✕</button>
     <h3>Invite Student</h3>
     <div class="field">
       <label>Student Email</label>
-      <input type="email" id="modal-email" placeholder="student@email.com"/>
+      <input type="email" id="modal-email" required autocomplete="email" placeholder="student@email.com"/>
     </div>
     <div class="field">
       <label>Role</label>
@@ -497,13 +570,13 @@ a{text-decoration:none;color:inherit;}
         <option value="editor">Co-teacher (full edit)</option>
       </select>
     </div>
-    <button class="btn btn-primary" style="width:100%" onclick="inviteFromModal()">Send Invite</button>
+    <button class="btn btn-primary" type="button" id="invite-modal-btn" style="width:100%" onclick="inviteFromModal()">Send Invite</button>
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=254"></script>
+<script src="scripts/app-core.js?v=255"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -512,7 +585,104 @@ let boards = [];
 let activeBoardId = localStorage.getItem('teachedos_board_id') || null;
 let members = [], lessonCols = [];
 let currentUser = null;
+let gradebookFilter = 'all';
+let gradebookSearch = '';
 const { planHasFeature, userPlan, upgradeMessage } = window.TeachEdApp;
+
+function progressForMember(member) {
+  const lessons = Array.isArray(member?.lessons) ? member.lessons : [];
+  const done = lessons.filter(lesson => lesson.status === 'done').length;
+  const total = lessons.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const state = !total ? 'not-started' : pct < 50 ? 'attention' : pct < 80 ? 'active' : 'on-track';
+  const label = {
+    attention: 'Needs attention',
+    active: 'In progress',
+    'on-track': 'On track',
+    'not-started': 'No activity',
+  }[state];
+  return { done, total, pct, state, label };
+}
+
+function visibleMembers() {
+  const query = gradebookSearch.trim().toLowerCase();
+  return members.filter(member => {
+    const progress = progressForMember(member);
+    const matchesFilter = gradebookFilter === 'all' || progress.state === gradebookFilter;
+    const searchable = `${member.name || ''} ${member.email || ''}`.toLowerCase();
+    return matchesFilter && (!query || searchable.includes(query));
+  });
+}
+
+function hasGradebookFilter() {
+  return gradebookFilter !== 'all' || Boolean(gradebookSearch.trim());
+}
+
+function renderGradebookPulse() {
+  const host = document.getElementById('gradebook-pulse');
+  if (!host) return;
+  const activeBoard = boards.find(board => board.id === activeBoardId);
+  if (!activeBoard) {
+    host.innerHTML = `<div class="gp-main"><div class="gp-kicker">Class pulse</div><div class="gp-title">Choose a board to review progress</div><div class="gp-copy">Progress, attention flags and student filters will appear here.</div></div>`;
+    return;
+  }
+  if (!members.length) {
+    host.innerHTML = `<div class="gp-main"><div class="gp-kicker">${esc(activeBoard.name || 'Selected board')}</div><div class="gp-title">No students to review yet</div><div class="gp-copy">Invite students to make this board a useful progress dashboard.</div></div><div class="gp-actions"><button class="btn btn-primary" type="button" onclick="openInviteModal()">Invite student</button></div>`;
+    return;
+  }
+  const progress = members.map(progressForMember);
+  const attention = progress.filter(item => item.state === 'attention').length;
+  const onTrack = progress.filter(item => item.state === 'on-track').length;
+  const noActivity = progress.filter(item => item.state === 'not-started').length;
+  const title = attention ? `${attention} student${attention === 1 ? '' : 's'} need attention` : 'Your class is on track';
+  const copy = attention
+    ? 'Review learners below 50% completion, then open their detail to see where they stopped.'
+    : noActivity
+      ? `${noActivity} student${noActivity === 1 ? ' has' : 's have'} not started a lesson yet.`
+      : `${onTrack} student${onTrack === 1 ? '' : 's'} are at 80% completion or above.`;
+  host.innerHTML = `<div class="gp-main"><div class="gp-kicker">${esc(activeBoard.name || 'Selected board')} · class pulse</div><div class="gp-title">${title}</div><div class="gp-copy">${copy}</div></div><div class="gp-metrics"><div class="gp-metric attention"><div class="gp-metric-num">${attention}</div><div class="gp-metric-label">Attention</div></div><div class="gp-metric"><div class="gp-metric-num">${onTrack}</div><div class="gp-metric-label">On track</div></div><div class="gp-metric"><div class="gp-metric-num">${noActivity}</div><div class="gp-metric-label">No activity</div></div></div><div class="gp-actions"><button class="btn btn-primary" type="button" ${attention ? '' : 'disabled'} onclick="focusGradebookAttention()">Review attention</button><button class="btn btn-ghost" type="button" onclick="setGradebookFilter('all')">View all</button></div>`;
+}
+
+function syncGradebookControls() {
+  const filterNote = document.getElementById('gb-filter-note');
+  const search = document.getElementById('gb-student-search');
+  document.querySelectorAll('[data-gb-filter]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.gbFilter === gradebookFilter));
+  });
+  if (search && search.value !== gradebookSearch) search.value = gradebookSearch;
+  if (!filterNote) return;
+  if (!activeBoardId) {
+    filterNote.textContent = 'Select a board to filter its students.';
+    return;
+  }
+  const visible = visibleMembers().length;
+  filterNote.textContent = hasGradebookFilter()
+    ? `Showing ${visible} of ${members.length} student${members.length === 1 ? '' : 's'}.`
+    : `${members.length} student${members.length === 1 ? '' : 's'} on this board.`;
+}
+
+function renderGradebookViews() {
+  renderGradebookPulse();
+  syncGradebookControls();
+  renderMemberList();
+  renderGradebook();
+}
+
+function setGradebookFilter(filter) {
+  if (!['all', 'attention', 'active', 'on-track'].includes(filter)) return;
+  gradebookFilter = filter;
+  renderGradebookViews();
+}
+
+function setGradebookSearch(value) {
+  gradebookSearch = String(value || '');
+  renderGradebookViews();
+}
+
+function focusGradebookAttention() {
+  setGradebookFilter('attention');
+  document.getElementById('members-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function readGradebookCache() {
   try {
@@ -716,9 +886,12 @@ document.addEventListener('keydown', e => {
 
 function selectBoard(id) {
   activeBoardId = id;
+  gradebookFilter = 'all';
+  gradebookSearch = '';
   localStorage.setItem('teachedos_board_id', id);
   writeGradebookCache({ activeBoardId: id });
   renderBoardPills();
+  syncGradebookControls();
   loadBoard(id);
 }
 
@@ -730,9 +903,8 @@ async function loadBoard(id) {
     members   = d.members;
     lessonCols = d.lessons;
     cacheBoardSnapshot(id, { members, lessonCols });
-    renderMemberList();
-    renderGradebook();
     updateStats();
+    renderGradebookViews();
     loadQuizResults(id);
   } catch (e) {
     const cached = readGradebookCache();
@@ -752,9 +924,8 @@ function applyBoardSnapshot(id, snapshot, options = {}) {
   lessonCols = snapshot.lessonCols || [];
   quizResultsData = snapshot.quizResultsData || [];
   renderBoardPills();
-  renderMemberList();
-  renderGradebook();
   updateStats();
+  renderGradebookViews();
   renderQuizResultsFromData(quizResultsData, options.offlineNotice);
   if (options.offlineNotice) {
     const status = document.getElementById('board-status-copy');
@@ -763,26 +934,32 @@ function applyBoardSnapshot(id, snapshot, options = {}) {
 }
 
 function renderMemberList() {
-  document.getElementById('member-count').textContent = members.length + ' student(s)';
+  const displayed = visibleMembers();
+  document.getElementById('member-count').textContent = hasGradebookFilter()
+    ? `${displayed.length}/${members.length} students`
+    : `${members.length} student(s)`;
   const list = document.getElementById('member-list');
   if (!members.length) {
     list.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No students yet. Invite someone above.</div>';
     return;
   }
-  list.innerHTML = members.map(m => {
-    const done  = m.lessons.filter(l => l.status === 'done').length;
-    const total = m.lessons.length;
-    const pct   = total ? Math.round(done / total * 100) : 0;
+  if (!displayed.length) {
+    list.innerHTML = '<div class="filtered-empty">No students match this filter. Try another progress state or clear the search.</div>';
+    return;
+  }
+  list.innerHTML = displayed.map(m => {
+    const { done, total, pct, state, label } = progressForMember(m);
     const quizzes = quizResultsData.filter(r => r.user_id === m.user_id || r.student_email === m.email);
     const avgQuiz = quizzes.length ? Math.round(quizzes.reduce((s,r)=>s+(r.pct||0),0)/quizzes.length) : null;
     return `
-    <div class="member-row" onclick="openStudentDetail('${m.user_id}')" style="cursor:pointer;" title="View student detail">
+    <div class="member-row" role="button" tabindex="0" onclick="openStudentDetail('${m.user_id}')" onkeydown="if(event.target===event.currentTarget&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openStudentDetail('${m.user_id}')}" style="cursor:pointer;" title="View student detail">
       <div class="m-avatar">${m.avatar}</div>
       <div>
         <div class="m-name">${esc(m.name)}</div>
         <div class="m-email">${esc(m.email)}</div>
       </div>
       <span class="m-role role-${m.role}">${m.role}</span>
+      <span class="progress-chip ${state}">${label}</span>
       <div class="m-spacer"></div>
       ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:${avgQuiz>=80?'#d1fae5':avgQuiz>=50?'#fef3c7':'#fee2e2'};color:${avgQuiz>=80?'#065f46':avgQuiz>=50?'#92400e':'#991b1b'}">${avgQuiz}%</span>` : ''}
       <div class="m-prog"><div class="m-prog-fill" style="width:${pct}%"></div></div>
@@ -797,6 +974,7 @@ function renderGradebook() {
   const mobileList = document.getElementById('gb-mobile-list');
   if (!members.length || !lessonCols.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
+  const displayed = visibleMembers();
 
   const thead = document.querySelector('#gb-table thead tr');
   thead.innerHTML = `<th class="th-name">Student</th>` +
@@ -809,10 +987,14 @@ function renderGradebook() {
   // Column completion counts (for summary row)
   const colDone = lessonCols.map(() => 0);
 
-  const rows = members.map(m => {
-    const done  = m.lessons.filter(l => l.status === 'done').length;
-    const total = m.lessons.length;
-    const pct   = total ? Math.round(done / total * 100) : 0;
+  if (!displayed.length) {
+    document.getElementById('gb-tbody').innerHTML = `<tr class="gb-empty-row"><td colspan="${lessonCols.length + 3}">No students match this filter.</td></tr>`;
+    if (mobileList) mobileList.innerHTML = '<div class="filtered-empty">No students match this filter. Try another progress state or clear the search.</div>';
+    return;
+  }
+
+  const rows = displayed.map(m => {
+    const { done, pct } = progressForMember(m);
     const cells = m.lessons.map((l, i) => {
       if (l.status === 'done') colDone[i]++;
       const cls = CLS[l.status] || 'sc-locked';
@@ -829,23 +1011,21 @@ function renderGradebook() {
 
   // Summary row
   const summCells = colDone.map((n, i) => {
-    const p = members.length ? Math.round(n / members.length * 100) : 0;
-    return `<td style="font-size:10px;color:${p>=80?'var(--green)':p>=50?'var(--orange)':'var(--text3)'};">${n}/${members.length}</td>`;
+    const p = displayed.length ? Math.round(n / displayed.length * 100) : 0;
+    return `<td style="font-size:10px;color:${p>=80?'var(--green)':p>=50?'var(--orange)':'var(--text3)'};">${n}/${displayed.length}</td>`;
   }).join('');
 
   document.getElementById('gb-tbody').innerHTML = rows + `
     <tr class="gb-summary">
-      <td class="td-name" style="font-weight:900;color:var(--text2);">Class avg</td>
+      <td class="td-name" style="font-weight:900;color:var(--text2);">${hasGradebookFilter() ? 'Filtered avg' : 'Class avg'}</td>
       ${summCells}
       <td>—</td>
-      <td style="font-weight:900;color:var(--accent);">${classAvgPct()}%</td>
+      <td style="font-weight:900;color:var(--accent);">${classAvgPct(displayed)}%</td>
     </tr>`;
 
   if (mobileList) {
-    mobileList.innerHTML = members.map(m => {
-      const done = m.lessons.filter(l => l.status === 'done').length;
-      const total = m.lessons.length;
-      const pct = total ? Math.round(done / total * 100) : 0;
+    mobileList.innerHTML = displayed.map(m => {
+      const { done, total, pct, state, label } = progressForMember(m);
       const quizzes = quizResultsData.filter(r => r.user_id === m.user_id || r.student_email === m.email);
       const avgQuiz = quizzes.length ? Math.round(quizzes.reduce((s, r) => s + (r.pct || 0), 0) / quizzes.length) : null;
       const lessonPills = m.lessons.slice(0, 8).map(l => {
@@ -863,6 +1043,7 @@ function renderGradebook() {
         </div>
         <div class="gb-mobile-meta">
           <span class="m-role role-${m.role}">${m.role}</span>
+          <span class="progress-chip ${state}">${label}</span>
           <span style="font-size:11px;font-weight:800;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}% complete</span>
           ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;color:var(--accent);">Quiz ${avgQuiz}%</span>` : ''}
         </div>
@@ -878,21 +1059,20 @@ function renderGradebook() {
         </div>
       </div>`;
     }).join('') + `<div class="gb-mobile-card" style="background:#F5F0E8;">
-      <div style="font-size:12px;font-weight:900;color:var(--text2);">Class average</div>
-      <div style="font-size:22px;font-weight:900;color:var(--accent);">${classAvgPct()}%</div>
-      <div style="font-size:11px;color:var(--text-3);">Across ${members.length} student${members.length === 1 ? '' : 's'} and ${lessonCols.length} lesson${lessonCols.length === 1 ? '' : 's'}.</div>
+      <div style="font-size:12px;font-weight:900;color:var(--text2);">${hasGradebookFilter() ? 'Filtered average' : 'Class average'}</div>
+      <div style="font-size:22px;font-weight:900;color:var(--accent);">${classAvgPct(displayed)}%</div>
+      <div style="font-size:11px;color:var(--text3);">Across ${displayed.length} student${displayed.length === 1 ? '' : 's'} and ${lessonCols.length} lesson${lessonCols.length === 1 ? '' : 's'}.</div>
     </div>`;
   }
 }
 
-function classAvgPct() {
-  if (!members.length) return 0;
-  const sum = members.reduce((acc, m) => {
-    const done  = m.lessons.filter(l => l.status === 'done').length;
-    const total = m.lessons.length;
-    return acc + (total ? done / total * 100 : 0);
+function classAvgPct(source = members) {
+  if (!source.length) return 0;
+  const sum = source.reduce((acc, m) => {
+    const { pct } = progressForMember(m);
+    return acc + pct;
   }, 0);
-  return Math.round(sum / members.length);
+  return Math.round(sum / source.length);
 }
 
 function updateStats() {
@@ -902,8 +1082,8 @@ function updateStats() {
 
   if (members.length) {
     const top = members.slice().sort((a, b) => {
-      const pctA = a.lessons.filter(l => l.status === 'done').length / (a.lessons.length || 1);
-      const pctB = b.lessons.filter(l => l.status === 'done').length / (b.lessons.length || 1);
+      const pctA = progressForMember(a).pct;
+      const pctB = progressForMember(b).pct;
       return pctB - pctA;
     })[0];
     document.getElementById('s-top').textContent = top.avatar + ' ' + top.name.split(' ')[0];
@@ -913,11 +1093,13 @@ function updateStats() {
 }
 
 async function inviteStudent() {
-  const email = document.getElementById('invite-email').value.trim();
+  const input = document.getElementById('invite-email');
+  const email = input.value.trim();
   const role  = document.getElementById('invite-role').value;
-  if (!email) { toast('Enter email'); return; }
+  if (!email || !input.checkValidity()) { toast('Enter a valid student email'); input.focus(); return; }
   if (!activeBoardId) { toast('Select a board first'); return; }
   try {
+    setInviteBusy('invite-inline-btn', true);
     const r = await fetch(API + `/api/members/${activeBoardId}/invite`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -929,14 +1111,18 @@ async function inviteStudent() {
       return;
     }
     if (!r.ok) { const d = await r.json(); toast(d.error || 'Error'); return; }
-    document.getElementById('invite-email').value = '';
+    input.value = '';
     toast('Student invited');
     await loadBoard(activeBoardId);
   } catch (e) { toast(e.message); }
+  finally { setInviteBusy('invite-inline-btn', false); }
 }
 
 async function removeMember(userId) {
   if (!activeBoardId) return;
+  const member = members.find(item => String(item.user_id) === String(userId));
+  const label = member?.name || member?.email || 'this student';
+  if (!confirm(`Remove ${label} from this board? They will lose access to its lessons.`)) return;
   try {
     await apiFetch(`/api/members/${activeBoardId}/${userId}`, { method: 'DELETE' });
     toast('Removed');
@@ -946,16 +1132,32 @@ async function removeMember(userId) {
 
 function openInviteModal() {
   document.getElementById('invite-modal').classList.add('open');
+  setInviteBusy('invite-modal-btn', false);
   setTimeout(() => document.getElementById('modal-email').focus(), 100);
 }
 function closeInviteModal() { document.getElementById('invite-modal').classList.remove('open'); }
 
+function setInviteBusy(buttonId, busy) {
+  const button = document.getElementById(buttonId);
+  if (!button) return;
+  if (busy) {
+    button.dataset.idleLabel = button.textContent;
+    button.textContent = 'Sending…';
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.idleLabel || (buttonId === 'invite-modal-btn' ? 'Send Invite' : 'Invite');
+    button.disabled = false;
+  }
+}
+
 async function inviteFromModal() {
-  const email = document.getElementById('modal-email').value.trim();
+  const input = document.getElementById('modal-email');
+  const email = input.value.trim();
   const role  = document.getElementById('modal-role').value;
-  if (!email) { toast('Enter email'); return; }
+  if (!email || !input.checkValidity()) { toast('Enter a valid student email'); input.focus(); return; }
   if (!activeBoardId) { toast('Select a board first'); closeInviteModal(); return; }
   try {
+    setInviteBusy('invite-modal-btn', true);
     const r = await fetch(API + `/api/members/${activeBoardId}/invite`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -968,11 +1170,12 @@ async function inviteFromModal() {
       return;
     }
     if (!r.ok) { const d = await r.json(); toast(d.error || 'Error'); return; }
-    document.getElementById('modal-email').value = '';
+    input.value = '';
     closeInviteModal();
     toast('Invited');
     await loadBoard(activeBoardId);
   } catch (e) { toast(e.message); }
+  finally { setInviteBusy('invite-modal-btn', false); }
 }
 
 function exportGradebook() {
@@ -1012,12 +1215,14 @@ async function loadQuizResults(boardId) {
     const d = await apiFetch(`/api/boards/${boardId}/quiz-results`);
     quizResultsData = d.results || [];
     cacheBoardSnapshot(boardId, { quizResultsData });
+    renderGradebookViews();
     renderQuizResultsFromData(quizResultsData);
   } catch {
     const cached = readGradebookCache();
     const snapshot = cached?.boardSnapshots?.[boardId];
     if (snapshot?.quizResultsData) {
       quizResultsData = snapshot.quizResultsData;
+      renderGradebookViews();
       renderQuizResultsFromData(quizResultsData, true);
       return;
     }
@@ -1156,11 +1361,11 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=254"></script>
-<script src="scripts/nav-boost.js?v=254" defer></script>
-<script src="scripts/mobile-perf.js?v=254" defer></script>
-<script src="scripts/mobile-nav.js?v=254"></script>
-<script src="pwa-boot.js?v=254" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=254" defer></script>
+<script src="pwa.js?v=255"></script>
+<script src="scripts/nav-boost.js?v=255" defer></script>
+<script src="scripts/mobile-perf.js?v=255" defer></script>
+<script src="scripts/mobile-nav.js?v=255"></script>
+<script src="pwa-boot.js?v=255" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=255" defer></script>
 </body>
 </html>
