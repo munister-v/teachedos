@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=255">
+<link rel="manifest" href="manifest.json?v=256">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=255">
-<link rel="preload" as="style" href="styles/unify.css?v=255">
+<link rel="preload" as="style" href="styles/harmony.css?v=256">
+<link rel="preload" as="style" href="styles/unify.css?v=256">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -78,7 +78,7 @@ a{text-decoration:none;color:inherit;}
 
 /* ── Sidebar ── */
 #side{
-  width:260px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+  width:276px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;
 }
 .side-section{padding:16px 14px 10px;}
@@ -102,7 +102,7 @@ a{text-decoration:none;color:inherit;}
 .wn-label{flex:1;text-align:center;font-size:13px;font-weight:800;color:var(--text);}
 .wn-today{
   font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;
-  background:var(--accent-bg);color:var(--accent);border:none;cursor:pointer;
+  background:rgba(200,230,50,.15);color:var(--accent);border:none;cursor:pointer;
   font-family:var(--font);transition:.15s;
 }
 .wn-today:hover{background:var(--accent);color:#fff;}
@@ -135,8 +135,17 @@ a{text-decoration:none;color:inherit;}
 .stat-lbl{font-size:10px;color:var(--text3);font-weight:700;margin-top:1px;}
 
 /* ── Main grid ── */
-#main{flex:1;overflow:auto;display:flex;flex-direction:column;}
-.grid-head{display:flex;border-bottom:2px solid var(--border);background:rgba(255,255,255,.95);position:sticky;top:0;z-index:100;}
+#main{flex:1;overflow:auto;display:flex;flex-direction:column;background:linear-gradient(180deg,#fff 0%,#fcfbf8 100%);}
+.schedule-canvas-bar{
+  min-height:68px;padding:12px 18px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:space-between;gap:16px;
+  position:sticky;top:0;z-index:110;backdrop-filter:blur(14px);
+}
+.scb-kicker{font:800 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.scb-title{margin-top:3px;font-size:16px;font-weight:900;letter-spacing:-.025em;color:var(--text);font-variant-numeric:tabular-nums;}
+.scb-note{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text2);font-size:10px;font-weight:800;white-space:nowrap;}
+.scb-note::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 3px rgba(200,230,50,.16);}
+.grid-head{display:flex;border-bottom:2px solid var(--border);background:rgba(255,255,255,.95);position:sticky;top:68px;z-index:100;}
 .gh-time{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
 .gh-day{
   flex:1;padding:10px 6px;text-align:center;font-size:12px;font-weight:800;
@@ -156,9 +165,11 @@ a{text-decoration:none;color:inherit;}
   height:60px;display:flex;align-items:flex-start;justify-content:center;
   padding-top:4px;font-size:10px;font-family:var(--mono);color:var(--text3);
 }
-.day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;}
+.day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;background:rgba(255,255,255,.35);}
+.day-col.today{background:linear-gradient(180deg,rgba(200,230,50,.13),rgba(255,255,255,.48) 22%,rgba(255,255,255,.35));}
+.day-col.weekend{background:rgba(94,94,74,.025);}
 .day-col.drop-target{background:rgba(200,230,50,.07);}
-.day-col:hover{background:rgba(255,255,255,.28);}
+.day-col:hover{background:rgba(200,230,50,.055);}
 .hour-line{height:60px;border-bottom:1px solid rgba(94,94,74,.07);}
 .half-line{height:30px;border-bottom:1px dashed rgba(94,94,74,.04);}
 .now-line{
@@ -175,7 +186,7 @@ a{text-decoration:none;color:inherit;}
   position:absolute;left:3px;right:3px;border-radius:10px;
   padding:6px 8px;cursor:grab;overflow:hidden;
   transition:box-shadow .2s ease,transform .2s cubic-bezier(.34,1.3,.64,1);
-  border-left:3px solid rgba(255,255,255,.5);
+  border-left:3px solid rgba(255,255,255,.58);
   user-select:none;touch-action:none;
   will-change:transform;transform:translateZ(0);
 }
@@ -190,9 +201,21 @@ a{text-decoration:none;color:inherit;}
   font-size:11px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.2);
   transform:translate(-50%,-150%);display:none;
 }
-.cb-title{font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cb-meta{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.7);margin-top:1px;}
+.cb-title{font-size:11px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-meta{font-size:9px;color:rgba(255,255,255,.82);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.76);margin-top:1px;}
+.slot-action{margin-top:4px;padding:3px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.58);background:rgba(255,255,255,.18);color:#fff;font:800 10px var(--font);cursor:pointer;width:100%;}
+.slot-action.live{background:rgba(239,68,68,.25);}
+.slot-once{position:absolute;top:4px;right:5px;font-size:9px;background:rgba(0,0,0,.25);color:#fff;padding:1px 5px;border-radius:4px;font-weight:800;}
+.cls-block.light{border-left-color:rgba(28,28,30,.28);}
+.cls-block.light .cb-title{color:#1C1C1E;}
+.cls-block.light .cb-meta{color:rgba(28,28,30,.74);}
+.cls-block.light .cb-time{color:rgba(28,28,30,.66);}
+.cls-block.light .slot-action{border-color:rgba(28,28,30,.22);background:rgba(255,255,255,.5);color:#1C1C1E;}
+.cls-block.light .slot-action.live{background:rgba(254,226,226,.76);color:#991b1b;border-color:rgba(185,28,28,.24);}
+.cls-block.light .slot-once{background:rgba(28,28,30,.76);color:#fff;}
+.cls-block.compact .cb-meta,.cls-block.compact .slot-action{display:none;}
+.cls-block.tiny .cb-time{display:none;}
 
 /* ── Up Next focus card (sidebar) ── */
 .up-next-wrap{padding:14px 14px 4px;}
@@ -244,6 +267,8 @@ a{text-decoration:none;color:inherit;}
 .wb-btn:active{transform:scale(.98);}
 .wb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
 .wb-btn.primary:hover{background:var(--accent2);color:var(--accent);}
+.schedule-secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.schedule-secondary-actions .btn-add{min-height:38px;padding:7px 6px!important;}
 
 /* ── Modal ── */
 .modal-overlay{
@@ -318,17 +343,18 @@ a{text-decoration:none;color:inherit;}
   .nav-sep{display:none;}
   .nav-user{border:none;background:transparent;padding:4px 6px;}
   #page{flex-direction:column;height:auto;min-height:calc(100vh - var(--nav-h));}
-  #side{width:100%;border-right:none;border-bottom:1px solid var(--border);background:#fff;}
+  #side{width:100%;border-right:none;border-bottom:0;background:#fff;}
   #main{display:none !important;}
+  #side .desktop-schedule-only{display:none !important;}
   .week-nav{padding:12px;}
   .side-section{padding:14px 12px 10px;}
   .stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
   .mobile-schedule-shell{display:block;padding:0 0 0;}
-  .mp-week-nav{display:flex;align-items:center;gap:6px;padding:8px 14px 4px;}
-  .mp-week-btn{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:.15s;}
+  .mp-week-nav{display:flex;align-items:center;gap:8px;padding:8px 14px 10px;}
+  .mp-week-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:.15s;}
   .mp-week-btn:hover{background:rgba(200,230,50,.1);border-color:var(--border2);}
   .mp-week-label{flex:1;text-align:center;font-size:13px;font-weight:800;color:var(--text);}
-  .mp-week-today{font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:rgba(200,230,50,.15);color:var(--accent);border:none;cursor:pointer;font-family:var(--font);transition:.15s;}
+  .mp-week-today{min-height:44px;font-size:11px;font-weight:800;padding:5px 14px;border-radius:12px;background:rgba(200,230,50,.15);color:var(--accent);border:none;cursor:pointer;font-family:var(--font);transition:.15s;}
   .mp-week-today:hover{background:var(--accent);color:#fff;}
   .mobile-schedule-hero{
     padding:18px;border-radius:20px;
@@ -354,7 +380,6 @@ a{text-decoration:none;color:inherit;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
   /* Hide duplicate desktop action buttons on mobile — already in mobile-schedule-actions */
   .side-section-actions{display:none !important;}
-  .desktop-schedule-only{display:none !important;}
   .lesson-presets{grid-template-columns:1fr;}
   .form-input,.form-select{min-height:44px;font-size:16px;}
   .btn-cancel,.btn-save{min-height:44px;}
@@ -365,10 +390,10 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=255" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=255">
-<link rel="stylesheet" href="styles/harmony.css?v=255">
-<link rel="stylesheet" href="styles/unify.css?v=255">
+<script src="theme.js?v=256" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=256">
+<link rel="stylesheet" href="styles/harmony.css?v=256">
+<link rel="stylesheet" href="styles/unify.css?v=256">
 </head>
 <body>
 
@@ -444,7 +469,7 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <!-- Week nav -->
-    <div class="week-nav">
+    <div class="week-nav desktop-schedule-only">
       <button class="wn-btn" onclick="shiftWeek(-1)">‹</button>
       <span class="wn-label" id="week-label"></span>
       <button class="wn-btn" onclick="shiftWeek(1)">›</button>
@@ -452,17 +477,19 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <!-- Up Next focus card -->
-    <div class="up-next-wrap" id="up-next-wrap"></div>
+    <div class="up-next-wrap desktop-schedule-only" id="up-next-wrap"></div>
 
     <div class="week-brief-wrap desktop-schedule-only" id="week-brief-wrap" aria-live="polite"></div>
 
-    <div class="side-section side-section-actions" style="display:flex;flex-direction:column;gap:8px;">
+    <div class="side-section side-section-actions desktop-schedule-only" style="display:flex;flex-direction:column;gap:8px;">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
-      <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;padding:7px;">📅 Export .ics</button>
-      <button class="btn-add" onclick="location.href='board.html'" style="background:transparent;color:var(--text2);border:1.5px solid var(--border);font-size:11px;padding:7px;">📌 Open Board</button>
+      <div class="schedule-secondary-actions">
+        <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;">Export</button>
+        <button class="btn-add" onclick="location.href='board.html'" style="background:transparent;color:var(--text2);border:1.5px solid var(--border);font-size:11px;">Open board</button>
+      </div>
     </div>
 
-    <div class="side-section">
+    <div class="side-section desktop-schedule-only">
       <div class="side-label">Stats</div>
       <div class="stat-row">
         <div class="stat-pill"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Classes</div></div>
@@ -471,7 +498,7 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
-    <div class="side-section">
+    <div class="side-section desktop-schedule-only">
       <div class="side-label">Time Zone</div>
       <div class="stat-pill" style="text-align:left;padding:12px 14px;">
         <div style="font-size:12px;font-weight:800;color:var(--text);" id="tz-schedule-zone">—</div>
@@ -481,7 +508,7 @@ a{text-decoration:none;color:inherit;}
       <div id="tz-student-zones" style="margin-top:8px;display:none;"></div>
     </div>
 
-    <div class="side-section" style="flex:1">
+    <div class="side-section desktop-schedule-only" style="flex:1">
       <div class="side-label">All Classes</div>
       <div id="cls-list"></div>
     </div>
@@ -489,6 +516,13 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Main timetable -->
   <div id="main">
+    <div class="schedule-canvas-bar desktop-schedule-only">
+      <div>
+        <div class="scb-kicker">Teaching week</div>
+        <div class="scb-title" id="week-canvas-range">—</div>
+      </div>
+      <div class="scb-note">Drag a class to reschedule</div>
+    </div>
     <!-- Day headers -->
     <div class="grid-head">
       <div class="gh-time"></div>
@@ -625,7 +659,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=255"></script>
+<script src="scripts/app-core.js?v=256"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1079,7 +1113,10 @@ function updateWeekHeader() {
   const dates = getWeekDates();
   const today = new Date(); today.setHours(0,0,0,0);
   const fmt = (d) => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  document.getElementById('week-label').textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  const range = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  document.getElementById('week-label').textContent = range;
+  const canvasRange = document.getElementById('week-canvas-range');
+  if (canvasRange) canvasRange.textContent = range;
   dates.forEach((d,i) => {
     const gh = document.getElementById(`gh-${i}`);
     const gd = document.getElementById(`gd-${i}`);
@@ -1331,9 +1368,12 @@ function buildTimeCol() {
 
 function renderGrid() {
   const weekDates = getWeekDates();
+  const today = new Date(); today.setHours(0,0,0,0);
   for (let d = 0; d < 7; d++) {
     const col = document.getElementById(`day-${d}`);
     col.dataset.day = d;
+    col.classList.toggle('today', weekDates[d].getTime() === today.getTime());
+    col.classList.toggle('weekend', d >= 5);
     // Clear blocks (keep now-line if present)
     Array.from(col.children).forEach(c => { if (!c.id.includes('now-line')) c.remove(); });
     // Hour lines
@@ -1433,6 +1473,19 @@ function openPlannerAt(day, startMin) {
   });
 }
 
+function isLightScheduleColor(color) {
+  const value = String(color || '').replace('#', '');
+  if (!/^[0-9a-f]{6}$/i.test(value)) return false;
+  const channel = start => {
+    const unit = parseInt(value.slice(start, start + 2), 16) / 255;
+    return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = channel(0) * 0.2126 + channel(2) * 0.7152 + channel(4) * 0.0722;
+  const whiteContrast = 1.05 / (luminance + 0.05);
+  const inkContrast = (luminance + 0.05) / 0.062;
+  return inkContrast >= whiteContrast;
+}
+
 function buildBlock(slot, layout) {
   const startMin = timeToMinutes(slot.start_time) - HOUR_START * 60;
   const endMin   = timeToMinutes(slot.end_time)   - HOUR_START * 60;
@@ -1441,7 +1494,11 @@ function buildBlock(slot, layout) {
 
   const el = document.createElement('div');
   el.className = 'cls-block';
-  el.style.cssText = `top:${top}px;height:${height}px;background:${slot.color||'#C8E632'};`;
+  const blockColor = slot.color || '#C8E632';
+  el.style.cssText = `top:${top}px;height:${height}px;background:${blockColor};`;
+  el.classList.toggle('light', isLightScheduleColor(blockColor));
+  el.classList.toggle('compact', height < 74);
+  el.classList.toggle('tiny', height < 42);
   // Side-by-side lane when this class overlaps others on the same day.
   if (layout && layout.cols > 1) {
     el.style.left  = `calc(${layout.leftPct}% + 2px)`;
@@ -1452,13 +1509,13 @@ function buildBlock(slot, layout) {
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #ef4444, 0 4px 14px rgba(239,68,68,.3)';
   el.innerHTML = `
     ${slot.is_live ? '<div style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-dot 1.2s infinite;"></div>' : ''}
-    ${slot.specific_date ? '<div style="position:absolute;top:4px;right:5px;font-size:9px;background:rgba(0,0,0,.25);color:#fff;padding:1px 5px;border-radius:4px;font-weight:700;">📅 Once</div>' : ''}
+    ${slot.specific_date ? '<div class="slot-once">Once</div>' : ''}
     <div class="cb-title">${esc(slot.title)}</div>
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
-    ${slot.room ? `<div class="cb-meta">📍 ${esc(slot.room)}</div>` : ''}
+    ${slot.room ? `<div class="cb-meta">${esc(slot.room)}</div>` : ''}
     <div class="cb-time">${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}</div>
-    ${slot.meeting_url||slot.is_live ? `<button onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.6);background:${slot.is_live?'rgba(239,68,68,.25)':'rgba(255,255,255,.2)'};color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">${slot.is_live?'⏹ End live':'🔴 Go Live'}</button>` : ''}
-    ${slot.board_id ? `<button onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')" style="margin-top:4px;padding:2px 7px;border-radius:5px;border:1.5px solid rgba(255,255,255,.55);background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:800;cursor:pointer;width:100%;">📌 Open board</button>` : ''}`;
+    ${slot.meeting_url||slot.is_live ? `<button type="button" class="slot-action ${slot.is_live ? 'live' : ''}" onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})">${slot.is_live ? 'End live' : 'Go live'}</button>` : ''}
+    ${slot.board_id ? `<button type="button" class="slot-action" onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')">Open board</button>` : ''}`;
   el.style.position = 'absolute';
   el.addEventListener('mousedown', e => startSlotDrag(e, slot, el));
   el.addEventListener('click', () => {
@@ -1938,11 +1995,11 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=255"></script>
-<script src="scripts/nav-boost.js?v=255" defer></script>
-<script src="scripts/mobile-perf.js?v=255" defer></script>
-<script src="scripts/mobile-nav.js?v=255"></script>
-<script src="pwa-boot.js?v=255" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=255" defer></script>
+<script src="pwa.js?v=256"></script>
+<script src="scripts/nav-boost.js?v=256" defer></script>
+<script src="scripts/mobile-perf.js?v=256" defer></script>
+<script src="scripts/mobile-nav.js?v=256"></script>
+<script src="pwa-boot.js?v=256" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=256" defer></script>
 </body>
 </html>
