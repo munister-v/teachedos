@@ -2774,6 +2774,38 @@ body.board-page .empty-action.primary {
   color: #F5F0E8 !important;
   border-color: #1C1C1E !important;
 }
+/* Text editing is a horizontal control rail on phones, not a shrunken desktop
+   toolbar. Larger targets and a quiet scrollbar keep formatting usable with a
+   thumb while preserving the compact desktop treatment. */
+@media (max-width: 860px) {
+  body.board-page .card-text .text-format-toolbar {
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 3px;
+    padding: 6px;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(28,28,30,.16), 0 1px 0 rgba(255,255,255,.82) inset;
+  }
+  body.board-page .card-text .text-format-toolbar::-webkit-scrollbar { display: none; }
+  body.board-page .text-format-btn,
+  body.board-page .text-link-btn,
+  body.board-page .text-lock-btn,
+  body.board-page .text-bg-clear {
+    min-width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  body.board-page .text-format-select,
+  body.board-page .text-size-input { height: 38px; border-radius: 10px; }
+  body.board-page .text-format-select { max-width: 92px; }
+  body.board-page .text-size-input { width: 50px; }
+  body.board-page .text-color-control { width: 38px; height: 38px; border-radius: 10px; }
+  body.board-page .text-format-toolbar .tb-sep { height: 22px; margin: 0 2px; }
+  body.board-page .text-drag-strip { top: -34px; height: 28px; padding-inline: 12px; }
+}
 @media (pointer: coarse) {
   body.board-page .mq-btn:hover,
   body.board-page .empty-action:hover {

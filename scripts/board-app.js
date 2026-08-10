@@ -1067,26 +1067,26 @@ function renderText(el, card) {
   const toolbar = document.createElement('div');
   toolbar.className = 'text-format-toolbar';
   toolbar.innerHTML = `
-    <select class="text-format-select" data-act="font" title="Font">
+    <select class="text-format-select" data-act="font" aria-label="Font">
       ${textFontOptions().map(f => `<option value="${esc(f.value)}"${(card.data.fontFamily||'var(--font)')===f.value?' selected':''}>${esc(f.label)}</option>`).join('')}
     </select>
     <input class="text-size-input" data-act="font-size" type="number" min="8" max="96" step="1"
-      value="${card.data.fontSize || 14}" title="Font size">
+      value="${card.data.fontSize || 14}" aria-label="Font size">
     <span class="tb-sep"></span>
-    <button class="text-format-btn" data-cmd="bold" title="Bold"><b>B</b></button>
-    <button class="text-format-btn" data-cmd="italic" title="Italic"><i>I</i></button>
-    <button class="text-format-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="text-format-btn" data-cmd="bold" aria-label="Bold"><b>B</b></button>
+    <button class="text-format-btn" data-cmd="italic" aria-label="Italic"><i>I</i></button>
+    <button class="text-format-btn" data-cmd="underline" aria-label="Underline"><u>U</u></button>
     <span class="tb-sep"></span>
-    <button class="text-format-btn" data-align="left" title="Align left">⇤</button>
-    <button class="text-format-btn" data-align="center" title="Center">↔</button>
-    <button class="text-format-btn" data-align="right" title="Align right">⇥</button>
+    <button class="text-format-btn" data-align="left" aria-label="Align left">⇤</button>
+    <button class="text-format-btn" data-align="center" aria-label="Align center">↔</button>
+    <button class="text-format-btn" data-align="right" aria-label="Align right">⇥</button>
     <span class="tb-sep"></span>
-    <button class="text-link-btn" title="Insert link">🔗</button>
-    <input class="text-color-control" type="color" data-act="text-color" title="Text color" value="${cssColorToHex(card.data.textColor || '#111111')}">
-    <input class="text-color-control" type="color" data-act="bg-color" title="Card background" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
-    <button class="text-bg-clear" title="Transparent background">⊘</button>
+    <button class="text-link-btn" aria-label="Insert link">🔗</button>
+    <input class="text-color-control" type="color" data-act="text-color" aria-label="Text color" value="${cssColorToHex(card.data.textColor || '#111111')}">
+    <input class="text-color-control" type="color" data-act="bg-color" aria-label="Card background color" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
+    <button class="text-bg-clear" aria-label="Transparent background">⊘</button>
     <span class="tb-sep"></span>
-    <button class="text-lock-btn${card.data.locked?' active':''}" title="Lock position">${card.data.locked?'🔒':'📌'}</button>`;
+    <button class="text-lock-btn${card.data.locked?' active':''}" aria-label="${card.data.locked?'Unlock position':'Lock position'}">${card.data.locked?'🔒':'📌'}</button>`;
 
   const editor = document.createElement('div');
   editor.className = 'text-rich-editor';
@@ -1158,6 +1158,7 @@ function renderText(el, card) {
   body.appendChild(editor);
   el.appendChild(tc);
   el.appendChild(body);
+  positionTextToolbar(toolbar, el);
 }
 
 function renderPlan(el, card) {
@@ -3826,11 +3827,30 @@ function currentTextFontSize(card, el) {
   return 16;
 }
 
+function positionTextToolbar(toolbar, cardEl) {
+  if (!toolbar || !cardEl) return;
+  requestAnimationFrame(() => {
+    if (getComputedStyle(toolbar).display === 'none') return;
+    toolbar.classList.remove('is-below');
+    toolbar.style.setProperty('--text-toolbar-shift', '0px');
+    const safe = window.innerWidth <= 860 ? 10 : 12;
+    const r = toolbar.getBoundingClientRect();
+    if (r.top < 58) toolbar.classList.add('is-below');
+    const next = toolbar.getBoundingClientRect();
+    let shift = 0;
+    if (next.left < safe) shift = safe - next.left;
+    if (next.right > window.innerWidth - safe) shift = window.innerWidth - safe - next.right;
+    toolbar.style.setProperty('--text-toolbar-shift', `${Math.round(shift)}px`);
+  });
+}
+
 function bindTextToolbar(toolbar, editor, card, el) {
-  toolbar.addEventListener('mousedown', e => {
+  const keepEditorSelection = e => {
     if (!e.target.closest('input,select')) e.preventDefault();
     e.stopPropagation();
-  });
+  };
+  toolbar.addEventListener('mousedown', keepEditorSelection);
+  toolbar.addEventListener('pointerdown', keepEditorSelection, { passive: false });
   toolbar.querySelectorAll('[data-cmd]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -4862,6 +4882,10 @@ function reRenderCard(card) {
   if (!old) return;
   const el = renderCard(card);
   board.replaceChild(el, old);
+  if (state.selected.has(card.id)) {
+    el.classList.add('selected');
+    positionTextToolbar(el.querySelector('.text-format-toolbar'), el);
+  }
   _scheduleArrows();
 }
 
@@ -4875,7 +4899,9 @@ function updateCardPos(card) {
 
 function selectCard(id, _fromGroup) {
   state.selected.add(id);
-  getCardEl(id)?.classList.add('selected');
+  const selectedEl = getCardEl(id);
+  selectedEl?.classList.add('selected');
+  positionTextToolbar(selectedEl?.querySelector('.text-format-toolbar'), selectedEl);
   if (!_fromGroup) {
     const g = state.groups.find(g => g.cardIds.has(id));
     if (g) g.cardIds.forEach(cid => { if (cid !== id) selectCard(cid, true); });

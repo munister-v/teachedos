@@ -2225,7 +2225,10 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   position:absolute;bottom:calc(100% + 8px);left:0;
   width:max-content;max-width:560px;
   z-index:200;
+  transform:translateX(var(--text-toolbar-shift,0px));
+  transition:transform .16s ease;
 }
+.card-text .text-format-toolbar.is-below{top:calc(100% + 8px);bottom:auto;}
 .card-text.selected .text-format-toolbar,.card-text:hover .text-format-toolbar{display:flex;}
 
 /* Thin separator between groups */
