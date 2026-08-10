@@ -39,7 +39,9 @@ site URL settings are required. AI, Stripe, transactional email and image
 search credentials are optional at boot, but missing values intentionally
 leave those features in local/dev fallback mode. Add fresh provider keys in
 `/opt/teachedos/backend/.env`, restart `teached-api.service`, and rerun the
-audit when enabling them. Never commit `.env` or paste key values into chat.
+audit when enabling them. The same redacted status is available to an
+authenticated admin at `GET /api/admin/production-status` and is shown in
+Admin → Settings. Never commit `.env` or paste key values into chat.
 
 ## nginx / edge
 

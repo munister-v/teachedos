@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=250">
+<link rel="manifest" href="manifest.json?v=251">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=250">
-<link rel="preload" as="style" href="styles/unify.css?v=250">
+<link rel="preload" as="style" href="styles/harmony.css?v=251">
+<link rel="preload" as="style" href="styles/unify.css?v=251">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -303,6 +303,46 @@ tr{transition:background .15s ease}
 .setting-card{background:#fff;border-radius:var(--card-r);padding:24px;box-shadow:var(--shadow);
   transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease}
 .setting-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(5,5,23,.12)}
+.settings-hero{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:26px 28px;margin-bottom:20px;border-radius:22px;background:linear-gradient(135deg,#1c1c1e 0%,#30302b 62%,#48501d 100%);color:#fff;box-shadow:0 18px 42px rgba(28,28,30,.18)}
+.settings-hero::after{content:"";position:absolute;right:-68px;bottom:-92px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,230,50,.42),transparent 68%);pointer-events:none}
+.settings-hero-copy{position:relative;z-index:1;max-width:680px}
+.settings-hero-kicker{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.56);margin-bottom:8px}
+.settings-hero-title{font-size:clamp(23px,3vw,34px);font-weight:950;letter-spacing:-.04em;line-height:1.05;margin-bottom:8px}
+.settings-hero-sub{font-size:13px;line-height:1.55;color:rgba(255,255,255,.7);max-width:580px}
+.settings-hero-actions{position:relative;z-index:1;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.settings-hero .btn-sm{min-height:40px;padding:0 14px;border-radius:11px}
+.settings-hero .btn-edit{background:#c8e632;color:#1c1c1e;border-color:transparent}
+.settings-hero .btn-ghost{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff}
+.setting-card--featured{grid-column:1/-1;background:linear-gradient(180deg,#fff 0%,#fcfcf8 100%);border:1px solid rgba(28,28,30,.08);box-shadow:0 16px 36px rgba(28,28,30,.1)}
+.setting-card--featured:hover{transform:none}
+.production-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.production-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.production-title{font-size:20px;font-weight:950;letter-spacing:-.03em}
+.production-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-top:5px;max-width:680px}
+.production-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.production-actions .btn-sm{min-height:38px;padding:0 13px}
+.production-summary{display:flex;align-items:center;gap:12px;min-height:58px;padding:13px 15px;margin-bottom:16px;border-radius:14px;background:#f7f7f2;border:1px solid var(--border)}
+.production-summary.is-good{background:#ecfdf5;border-color:#bbf7d0}
+.production-summary.is-warn{background:#fff7ed;border-color:#fed7aa}
+.production-summary.is-bad{background:#fef2f2;border-color:#fecaca}
+.production-summary-icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#fff;font-size:15px;flex:0 0 auto}
+.production-summary-title{font-size:14px;font-weight:950;color:var(--text)}
+.production-summary-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.production-check-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.production-check{display:flex;align-items:flex-start;gap:10px;min-height:76px;padding:13px;border-radius:14px;background:#fafafa;border:1px solid var(--border)}
+.production-check.good{background:#f5fcf7;border-color:#d1fae5}
+.production-check.warn{background:#fffaf3;border-color:#fed7aa}
+.production-check.bad{background:#fff6f6;border-color:#fecaca}
+.production-check-icon{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;background:#e5e7eb;color:#6b7280;font-size:12px;font-weight:950}
+.production-check.good .production-check-icon{background:#dcfce7;color:#15803d}
+.production-check.warn .production-check-icon{background:#ffedd5;color:#c2410c}
+.production-check.bad .production-check-icon{background:#fee2e2;color:#b91c1c}
+.production-check-label{font-size:12px;font-weight:900;color:var(--text);line-height:1.25}
+.production-check-state{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+.production-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.production-meta{font-size:11px;color:var(--muted);font-family:monospace;line-height:1.6}
+.production-meta strong{color:var(--text);font-family:inherit}
+.production-note{font-size:11px;color:var(--muted);max-width:520px;line-height:1.45;text-align:right}
 .setting-title{font-size:16px;font-weight:800;margin-bottom:4px}
 .setting-desc{font-size:13px;color:var(--muted);margin-bottom:16px}
 .invite-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:320px;overflow:auto;padding-right:4px}
@@ -434,6 +474,10 @@ tr{transition:background .15s ease}
   .page-title{font-size:24px}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .activity-grid,.analytics-grid,.ops-grid,.settings-grid,.spotlight-results,.brief-card,.plan-control-grid,.plan-card-grid,.queue-grid{grid-template-columns:1fr}
+  .production-check-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .settings-hero{align-items:flex-start;flex-direction:column;padding:22px}
+  .settings-hero-actions{width:100%}
+  .settings-hero-actions .btn-sm{flex:1}
   .brief-score{margin:0 auto}
   .chart-stack{grid-template-columns:1fr}
   .table-header{padding:16px;align-items:flex-start}
@@ -471,6 +515,12 @@ tr{transition:background .15s ease}
   .modal-footer{flex-direction:column}
   .modal-footer button{width:100%}
   .ops-kpis{grid-template-columns:1fr}
+  .production-check-grid{grid-template-columns:1fr}
+  .production-head{flex-direction:column}
+  .production-actions{width:100%}
+  .production-actions .btn-sm{flex:1}
+  .production-footer{align-items:flex-start;flex-direction:column}
+  .production-note{text-align:left}
   th,td{padding:10px 12px}
 }
 
@@ -595,10 +645,10 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=250" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=250">
-<link rel="stylesheet" href="styles/harmony.css?v=250">
-<link rel="stylesheet" href="styles/unify.css?v=250">
+<script src="theme.js?v=251" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=251">
+<link rel="stylesheet" href="styles/harmony.css?v=251">
+<link rel="stylesheet" href="styles/unify.css?v=251">
 </head>
 <body class="admin-page">
 
@@ -1468,7 +1518,44 @@ html{scroll-behavior:smooth}
     <div class="page-title">Settings</div>
     <div class="page-sub">System configuration and admin tools</div>
 
+    <section class="settings-hero" aria-labelledby="settings-hero-title">
+      <div class="settings-hero-copy">
+        <div class="settings-hero-kicker">TeachEd control room</div>
+        <div class="settings-hero-title" id="settings-hero-title">Production, clearly visible.</div>
+        <div class="settings-hero-sub">Check release health, provider fallbacks and access controls from one place. Secret values never leave the server.</div>
+      </div>
+      <div class="settings-hero-actions">
+        <button class="btn-sm btn-edit" type="button" onclick="loadProductionStatus()">Refresh status</button>
+        <button class="btn-sm btn-ghost" type="button" onclick="showPage('api-tester')">Open API tester</button>
+      </div>
+    </section>
+
     <div class="settings-grid">
+
+      <section class="setting-card setting-card--featured" aria-labelledby="production-title">
+        <div class="production-head">
+          <div>
+            <div class="production-kicker">Release readiness</div>
+            <div class="production-title" id="production-title">Production status</div>
+            <div class="production-desc">Required runtime configuration is separated from optional integrations. “Fallback” is an intentional degraded mode, not a hidden failure.</div>
+          </div>
+          <div class="production-actions">
+            <button class="btn-sm btn-edit" type="button" onclick="loadProductionStatus()">↻ Recheck</button>
+            <button class="btn-sm btn-orange" type="button" onclick="copyProductionReport()">Copy report</button>
+          </div>
+        </div>
+        <div class="production-summary" id="production-summary" aria-live="polite">
+          <div class="production-summary-icon">…</div>
+          <div><div class="production-summary-title">Checking production configuration</div><div class="production-summary-sub">Only readiness flags are loaded.</div></div>
+        </div>
+        <div class="production-check-grid" id="production-checks" aria-live="polite">
+          <div class="production-check"><div class="production-check-icon">…</div><div><div class="production-check-label">Loading checks</div><div class="production-check-state">Waiting for the admin API.</div></div></div>
+        </div>
+        <div class="production-footer">
+          <div class="production-meta" id="production-meta">Release metadata: loading…</div>
+          <div class="production-note">Provider keys are configured on the VPS only. Use the server-side audit when enabling AI, Stripe, email or image search.</div>
+        </div>
+      </section>
 
       <div class="setting-card">
         <div class="setting-title">🛡️ Promote to Admin</div>
@@ -1840,11 +1927,11 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=250"></script>
-<script src="pwa.js?v=250"></script>
-<script src="pwa-boot.js?v=250" defer></script>
-<script src="scripts/nav-boost.js?v=250" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=250" defer></script>
-<script src="scripts/mobile-perf.js?v=250" defer></script>
+<script src="scripts/admin-app.js?v=251"></script>
+<script src="pwa.js?v=251"></script>
+<script src="pwa-boot.js?v=251" defer></script>
+<script src="scripts/nav-boost.js?v=251" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=251" defer></script>
+<script src="scripts/mobile-perf.js?v=251" defer></script>
 </body>
 </html>

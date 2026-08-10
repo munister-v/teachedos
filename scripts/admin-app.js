@@ -18,7 +18,7 @@ const pageMeta = {
   audit: ['System Audit', 'Operational signals and hygiene checks'],
   billing: ['Billing', 'Manual payments and tariff approvals'],
   packages: ['Package Control', 'Plans, limits and manual subscription grants'],
-  settings: ['Settings', 'System configuration and admin tools'],
+  settings: ['Settings', 'Production readiness and admin tools'],
   'api-tester': ['API Tester', 'Test and debug API endpoints'],
 };
 
@@ -141,7 +141,7 @@ function showPage(name) {
   if (name === 'audit')     loadAudit();
   if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); loadBillingMetrics(); }
   if (name === 'packages')  loadPackageControl();
-  if (name === 'settings')  { loadSysInfo(); loadInvites(); }
+  if (name === 'settings')  { loadSysInfo(); loadInvites(); loadProductionStatus(); }
   if (name === 'api-tester') initApiTester();
 }
 
@@ -1424,6 +1424,98 @@ function revokeAllSessions() {
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────
+let productionStatusSnapshot = null;
+
+function productionCheckClass(check) {
+  return check.ready ? 'good' : (check.required ? 'bad' : 'warn');
+}
+
+function productionCheckIcon(check) {
+  return check.ready ? '✓' : (check.required ? '!' : '↩');
+}
+
+function productionCheckState(check) {
+  if (check.ready) return check.mode ? `Ready · ${check.mode}` : 'Ready';
+  return check.required ? 'Action needed · required' : `Fallback · ${check.mode || 'optional'}`;
+}
+
+function productionReportText(data = productionStatusSnapshot) {
+  if (!data) return 'Production status is not loaded.';
+  const lines = [
+    `TeachEd production: ${data.ok ? 'OK' : 'BLOCKED'}`,
+    ...Object.values(data.checks || {}).map(check => `${check.label}: ${check.ready ? 'ready' : (check.required ? 'missing' : 'fallback')}`),
+    `Environment: ${data.environment || '—'}`,
+    `Node: ${data.nodeVersion || '—'}`,
+    `Release: ${data.release?.version || '—'} / ${data.release?.deployedSha || '—'}`,
+    `Checked: ${data.checkedAt || '—'}`,
+  ];
+  return lines.join('\n');
+}
+
+async function copyProductionReport() {
+  const report = productionReportText();
+  try {
+    await navigator.clipboard.writeText(report);
+    toast('Production report copied ✅', 'success');
+  } catch {
+    toast('Clipboard unavailable — select the status manually', 'error');
+  }
+}
+
+function renderProductionStatus(data) {
+  productionStatusSnapshot = data;
+  const summary = document.getElementById('production-summary');
+  const checksRoot = document.getElementById('production-checks');
+  const meta = document.getElementById('production-meta');
+  if (!summary || !checksRoot || !meta) return;
+
+  const checks = Object.values(data.checks || {});
+  const requiredMissing = checks.filter(check => check.required && !check.ready).length;
+  const optionalFallbacks = checks.filter(check => !check.required && !check.ready).length;
+  const tone = requiredMissing ? 'is-bad' : optionalFallbacks ? 'is-warn' : 'is-good';
+  const icon = requiredMissing ? '!' : optionalFallbacks ? '↩' : '✓';
+  const title = requiredMissing ? 'Production is blocked' : optionalFallbacks ? 'Production is healthy with fallbacks' : 'Production is fully configured';
+  const sub = requiredMissing
+    ? `${requiredMissing} required setting${requiredMissing === 1 ? '' : 's'} missing. Resolve before calling the release ready.`
+    : optionalFallbacks
+      ? `${optionalFallbacks} optional integration${optionalFallbacks === 1 ? '' : 's'} use an intentional fallback mode.`
+      : 'Required runtime and optional provider integrations are ready.';
+  summary.className = `production-summary ${tone}`;
+  summary.innerHTML = `<div class="production-summary-icon">${icon}</div><div><div class="production-summary-title">${esc(title)}</div><div class="production-summary-sub">${esc(sub)}</div></div>`;
+
+  checksRoot.innerHTML = checks.map(check => `
+    <div class="production-check ${productionCheckClass(check)}">
+      <div class="production-check-icon" aria-hidden="true">${productionCheckIcon(check)}</div>
+      <div><div class="production-check-label">${esc(check.label)}</div><div class="production-check-state">${esc(productionCheckState(check))}</div></div>
+    </div>`).join('');
+
+  const release = data.release || {};
+  const releaseBits = [
+    `Environment <strong>${esc(data.environment || '—')}</strong>`,
+    `Node <strong>${esc(data.nodeVersion || '—')}</strong>`,
+    `Version <strong>${esc(release.version || '—')}</strong>`,
+    `SHA <strong>${esc(release.deployedSha || 'not available')}</strong>`,
+    `Checked <strong>${esc(data.checkedAt ? fmtDate(data.checkedAt) : '—')}</strong>`,
+  ];
+  meta.innerHTML = releaseBits.join(' &nbsp;·&nbsp; ');
+}
+
+async function loadProductionStatus() {
+  const summary = document.getElementById('production-summary');
+  if (!summary) return;
+  summary.className = 'production-summary';
+  summary.innerHTML = '<div class="production-summary-icon">…</div><div><div class="production-summary-title">Checking production configuration</div><div class="production-summary-sub">Only readiness flags are loaded.</div></div>';
+  try {
+    const data = await api('GET', '/api/admin/production-status');
+    renderProductionStatus(data);
+  } catch (e) {
+    summary.className = 'production-summary is-bad';
+    summary.innerHTML = `<div class="production-summary-icon">!</div><div><div class="production-summary-title">Could not load production status</div><div class="production-summary-sub">${esc(e.message || 'Admin API request failed')} · Retry the check.</div></div>`;
+    const checksRoot = document.getElementById('production-checks');
+    if (checksRoot) checksRoot.innerHTML = '<div class="production-check bad"><div class="production-check-icon">!</div><div><div class="production-check-label">Admin API unavailable</div><div class="production-check-state">No configuration values were exposed.</div></div></div>';
+  }
+}
+
 async function promoteUser() {
   const email = document.getElementById('promote-email').value.trim();
   if (!email) { toast('Enter email','error'); return; }

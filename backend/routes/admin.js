@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const pool   = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
@@ -385,6 +387,49 @@ router.get('/system', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── GET /api/admin/production-status ──────────────────────────────────────
+// Deliberately returns readiness booleans only. Secret values must never be
+// sent to the admin browser, even for authenticated administrators.
+router.get('/production-status', async (req, res) => {
+  const has = (...keys) => keys.some((key) => String(process.env[key] || '').trim().length > 0);
+  const checks = {
+    database: { label: 'Database', ready: has('DATABASE_URL'), required: true },
+    jwt: { label: 'JWT sessions', ready: has('JWT_SECRET'), required: true },
+    origins: { label: 'Allowed origins', ready: has('ALLOWED_ORIGINS'), required: true },
+    site: { label: 'Site URLs', ready: has('SITE_URL') && has('FRONTEND_URL'), required: true },
+    ai: { label: 'AI provider', ready: has('AI_API_KEY', 'AI_API_KEY_2'), required: false, mode: has('AI_API_KEY', 'AI_API_KEY_2') ? 'provider' : 'local-fallback' },
+    stripe: { label: 'Stripe billing', ready: has('STRIPE_SECRET_KEY'), required: false, mode: has('STRIPE_SECRET_KEY') ? 'live' : 'manual/dev' },
+    email: { label: 'Transactional email', ready: has('RESEND_API_KEY') || (has('GMAIL_USER') && has('GMAIL_APP_PASSWORD')), required: false, mode: has('RESEND_API_KEY') || (has('GMAIL_USER') && has('GMAIL_APP_PASSWORD')) ? 'provider' : 'simulated/dev' },
+    imageSearch: { label: 'Image search', ready: has('UNSPLASH_ACCESS_KEY', 'PIXABAY_API_KEY'), required: false, mode: has('UNSPLASH_ACCESS_KEY', 'PIXABAY_API_KEY') ? 'provider' : 'empty fallback' },
+    google: { label: 'Google sign-in', ready: true, required: false, mode: has('GOOGLE_CLIENT_ID') ? 'env override' : 'built-in client' },
+  };
+
+  let deployedSha = null;
+  let version = null;
+  let deployedAt = null;
+  try {
+    const markerPath = process.env.TEACHED_DEPLOY_MARKER || '/opt/teachedos/.deployed_sha';
+    deployedSha = fs.readFileSync(markerPath, 'utf8').trim().slice(0, 40) || null;
+  } catch (_) { /* local/dev installs may not have a deploy marker */ }
+  try {
+    const versionPath = process.env.TEACHED_VERSION_FILE || path.join(__dirname, '..', '..', 'version.json');
+    const release = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+    version = release.version || null;
+    deployedAt = release.deployedAt || null;
+  } catch (_) { /* version metadata is optional during local development */ }
+
+  const requiredReady = Object.values(checks).filter((check) => check.required).every((check) => check.ready);
+  res.json({
+    ok: requiredReady,
+    checkedAt: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    nodeVersion: process.version,
+    port: Number(process.env.PORT || 4000),
+    checks,
+    release: { deployedSha, version, deployedAt },
+  });
 });
 
 // ── GET /api/admin/analytics ───────────────────────────────────────────────
