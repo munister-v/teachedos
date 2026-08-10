@@ -3850,7 +3850,6 @@ function bindTextToolbar(toolbar, editor, card, el) {
     e.stopPropagation();
   };
   toolbar.addEventListener('mousedown', keepEditorSelection);
-  toolbar.addEventListener('pointerdown', keepEditorSelection, { passive: false });
   toolbar.querySelectorAll('[data-cmd]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
