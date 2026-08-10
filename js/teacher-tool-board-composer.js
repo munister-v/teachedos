@@ -281,6 +281,23 @@ function _ttActivityOverviewHtml(output, count, meta, eyebrow, note) {
     </div>`;
 }
 
+/* A board is a spatial workspace, not a print page. Keeping every card in a
+   row as tall as its tallest neighbour made generated lessons feel like one
+   huge vertical poster, with lots of empty white space inside short cards.
+   These fixed lanes keep the familiar left-to-right numbering (1/2/3, then
+   4/5/6) while letting every generated card keep the height its own content
+   needs. The numbered badges and the Lesson map preserve the teaching route. */
+function _ttCompactGrid(heights, cols, top, gap) {
+  const bottoms = Array(cols).fill(top);
+  const cells = heights.map((height, i) => {
+    const col = i % cols;
+    const y = bottoms[col];
+    bottoms[col] += height + gap;
+    return { col, y, height };
+  });
+  return { cells, bottom: Math.max(...bottoms) - gap };
+}
+
 function _ttAddChecklistCard(frame, x, y, w, h, title, items) {
   const card = addCard('checklist', x, y, {
     title,
@@ -527,7 +544,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
     const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
     const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
     snapshot(); _suppressSnapshot++;
-    let frame;
+    let frame, stageCard;
     try {
       frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
       _ttAddTextCard(frame, x0 + PAD, y0 + 52, FRAME_W - PAD * 2, HEADER_H, null, {
@@ -535,7 +552,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
         bgColor: 'transparent',
       });
 
-      const stageCard = addCard('worksheet', x0 + PAD, y0 + GRID_TOP, {
+      stageCard = addCard('worksheet', x0 + PAD, y0 + GRID_TOP, {
         title: output.title, kind: output.kind, cat: output.cat, level: output.level || 'B1',
         boardKind: 'cards', cards: shown, _ttSrc: 1,
       }, GRID_W, GRID_H);
@@ -565,6 +582,20 @@ function _ttPlaceCardFlowBoard(output, meta) {
       _suppressSnapshot--;
     }
     _ttFinishComposedBoard(frame, 'Lesson flow added to board');
+    // Stage heights are known exactly only after the browser lays out the
+    // internal card grid. Trim the generated pack and its enclosing frame in
+    // that second pass, while leaving the teacher rail fully visible.
+    if (frame && stageCard) requestAnimationFrame(() => {
+      _wsFitToContent?.(stageCard.id, { shrink: true });
+      const measured = state.cards.find(c => c.id === stageCard.id);
+      if (!measured) return;
+      const compactH = Math.max(820, Math.max(GRID_TOP + measured.h, GRID_TOP + sideStackH) + 38);
+      if (compactH >= frame.h) return;
+      frame.h = compactH;
+      const el = getCardEl?.(frame.id);
+      if (el) el.style.height = compactH + 'px';
+      scheduleSave?.(); saveLocal?.();
+    });
     return true;
   }
 
@@ -587,16 +618,9 @@ function _ttPlaceCardFlowBoard(output, meta) {
     const textForSizing = `${c.title || `Step ${i + 1}`}\n\n${c.text || ''}`;
     return _ttClamp(_ttTextCardHeight(textForSizing, CARD_W, 13.5, 66), 172, isSpeaking ? 300 : 334);
   });
-  const rowCount = Math.ceil(shown.length / COLS);
-  const rowTop = [], rowH = [];
-  let acc = GRID_TOP;
-  for (let r = 0; r < rowCount; r++) {
-    rowH[r] = Math.max(...cardH.slice(r * COLS, r * COLS + COLS));
-    rowTop[r] = acc;
-    acc += rowH[r] + GAP;
-  }
+  const grid = _ttCompactGrid(cardH, COLS, GRID_TOP, GAP);
   const sideStackH = 292 + 18 + 170 + 18 + 154 + (cards.length > visibleCards ? 18 + 126 : 0);
-  const FRAME_H = Math.max(800, Math.max(acc - GAP, GRID_TOP + sideStackH) + 38);
+  const FRAME_H = Math.max(800, Math.max(grid.bottom, GRID_TOP + sideStackH) + 38);
 
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
@@ -611,15 +635,15 @@ function _ttPlaceCardFlowBoard(output, meta) {
         isSpeaking ? 'Speaking board flow' : 'Generated board flow',
         isSpeaking
           ? 'Use the cards as prompts, collect strong phrases, then upgrade output with feedback.'
-          : 'Use the cards as a live classroom sequence: attempt, compare, feedback, reuse.'),
+          : 'Cards are numbered in teaching order. Use the compact lanes to attempt, compare, give feedback and reuse.'),
       bgColor: 'transparent',
     });
 
     shown.forEach((c, i) => {
-      const col = i % COLS, row = Math.floor(i / COLS);
+      const cell = grid.cells[i];
       const stageMeta = _ttLessonStageMeta(c, i);
-      _ttAddTextCard(frame, x0 + PAD + col * (CARD_W + GAP), y0 + rowTop[row],
-        CARD_W, rowH[row], null, {
+      _ttAddTextCard(frame, x0 + PAD + cell.col * (CARD_W + GAP), y0 + cell.y,
+        CARD_W, cell.height, null, {
           html: _ttLessonStageHtml(c, i, stageMeta),
           bgColor: 'transparent',
         });
@@ -791,12 +815,8 @@ function _ttPlaceWorksheetBoard(output, meta) {
     const perItem = Math.ceil(basePerItem * (500 / CARD_W));
     return Math.max(240, CARD_H_BASE + wbExtra + n * perItem);
   });
-  const rowCount = Math.ceil(parts.length / COLS);
-  const rowHeights = [];
-  for (let r = 0; r < rowCount; r++) {
-    rowHeights[r] = Math.max(...heights.slice(r * COLS, r * COLS + COLS).filter(Boolean));
-  }
-  const gridH = rowHeights.reduce((s, h) => s + h + GAP, 0) - GAP;
+  const grid = _ttCompactGrid(heights, COLS, GRID_TOP, GAP);
+  const gridH = grid.bottom - GRID_TOP;
   const sideStackH = 292 + 18 + 170;
   const FRAME_H = Math.max(820, GRID_TOP + Math.max(gridH, sideStackH) + 38);
 
@@ -810,15 +830,15 @@ function _ttPlaceWorksheetBoard(output, meta) {
     frame = _ttLessonFrame(meta, output, x0, y0, FRAME_W, FRAME_H);
     _ttAddTextCard(frame, x0 + PAD, y0 + 52, FRAME_W - PAD * 2, 120, null, {
       html: _ttActivityOverviewHtml(output, parts.length, meta, 'Interactive worksheet',
-        'Student tasks stay editable and clickable; the side rail keeps the teacher run order visible.'),
+        'Tasks stay editable and clickable. Their numbers show the teaching route; the compact lanes keep the board readable.'),
       bgColor: 'transparent',
     });
 
     parts.forEach((part, i) => {
-      const col = i % COLS, row = Math.floor(i / COLS);
-      const x = x0 + PAD + col * (colW + colGap);
-      const rowY = y0 + GRID_TOP + rowHeights.slice(0, row).reduce((s, h) => s + h + GAP, 0);
-      const h = rowHeights[row];
+      const cell = grid.cells[i];
+      const x = x0 + PAD + cell.col * (colW + colGap);
+      const rowY = y0 + cell.y;
+      const h = cell.height;
       const html = (typeof buildWorksheetHtml === 'function') ? buildWorksheetHtml(part) : '';
       const card = addCard('text', x, rowY, {
         text: part.title || part.type || 'Task',

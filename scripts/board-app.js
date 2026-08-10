@@ -2754,7 +2754,12 @@ function renderWorksheet(el, card) {
 
   // The height this card was given came from an estimate. Now that the real
   // thing is on screen, ask it. See _wsFitToContent.
-  requestAnimationFrame(() => _wsFitToContent(card.id));
+  // Lesson Packs are generated from an estimate before their stage grid exists.
+  // Unlike a teacher-resized worksheet they may safely shrink after rendering:
+  // that removes the otherwise enormous empty tail below a compact stage grid.
+  requestAnimationFrame(() => _wsFitToContent(card.id, {
+    shrink: Array.isArray(d.cards) && d._ttSrc === 1,
+  }));
 }
 
 /* ───────────────── SIZE THE CARD TO WHAT IS ACTUALLY IN IT ─────────────────
@@ -8685,7 +8690,12 @@ function _relayoutLessonFrame(frameId, cardIds, geom) {
 function _restackBelow(cardIds, startY, gap) {
   const cards = cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
   if (!cards.length) return;
-  cards.forEach(c => _wsFitToContent(c.id));
+  cards.forEach(c => _wsFitToContent(c.id, {
+    // Packs use a pre-render estimate for their stage grid. They are generated
+    // content, so shrinking to the measured stage height is safe and makes a
+    // multi-pack lesson read as a compact board instead of a tall strip.
+    shrink: Array.isArray(c.data?.cards) && c.data?._ttSrc === 1,
+  }));
 
   let y = (startY == null) ? cards[0].y : startY + gap;
   cards.forEach(card => {
@@ -10603,7 +10613,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '260';
+const TEACHEDOS_ASSET_VERSION = '261';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
