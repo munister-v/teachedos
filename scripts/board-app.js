@@ -5424,6 +5424,63 @@ function _startPanMomentum() {
   _panRaf = requestAnimationFrame(momentum);
 }
 
+/* Marquee selection is a first-class gesture, including on touch screens.
+ * Keep the coordinate conversion in one place so mouse and touch selection
+ * cannot drift apart when the board is zoomed or the phone shell is active. */
+function beginBoxSelectionAt(clientX, clientY) {
+  if (state.mode !== 'select' || _drawTool || _miroTool === 'comment' || _handMode || spaceDown) return false;
+  clearSelection();
+  isBoxSelecting = true;
+  const r = boardWrap.getBoundingClientRect();
+  boxSelStart = { sx: clientX, sy: clientY, wx: clientX-r.left, wy: clientY-r.top };
+  selBox.style.cssText = `display:block;left:${clientX}px;top:${clientY}px;width:0;height:0;`;
+  return true;
+}
+
+function updateBoxSelectionAt(clientX, clientY) {
+  if (!isBoxSelecting) return;
+  const x1 = Math.min(clientX, boxSelStart.sx), y1 = Math.min(clientY, boxSelStart.sy);
+  const x2 = Math.max(clientX, boxSelStart.sx), y2 = Math.max(clientY, boxSelStart.sy);
+  selBox.style.left = x1 + 'px'; selBox.style.top = y1 + 'px';
+  selBox.style.width = (x2 - x1) + 'px'; selBox.style.height = (y2 - y1) + 'px';
+}
+
+function finishBoxSelectionAt(clientX, clientY) {
+  if (!isBoxSelecting) return;
+  isBoxSelecting = false;
+  selBox.style.display = 'none';
+  const r = boardWrap.getBoundingClientRect();
+  const bx1 = (Math.min(clientX, boxSelStart.sx) - r.left - state.pan.x) / state.scale;
+  const by1 = (Math.min(clientY, boxSelStart.sy) - r.top  - state.pan.y) / state.scale;
+  const bx2 = (Math.max(clientX, boxSelStart.sx) - r.left - state.pan.x) / state.scale;
+  const by2 = (Math.max(clientY, boxSelStart.sy) - r.top  - state.pan.y) / state.scale;
+  if (Math.abs(clientX - boxSelStart.sx) <= 5 && Math.abs(clientY - boxSelStart.sy) <= 5) return;
+
+  state.cards.forEach(c => {
+    if (c.x < bx2 && c.x+c.w > bx1 && c.y < by2 && c.y+c.h > by1) selectCard(c.id);
+  });
+  // Arrows are selected as complete objects, so a short lasso never leaves
+  // behind only one endpoint. Waypoints count as part of the arrow bounds.
+  state.arrows.forEach(arrow => {
+    const points = [_arrowEndpoint(arrow, 'from'), _arrowEndpoint(arrow, 'to'), ...(arrow.waypoints || [])].filter(Boolean);
+    if (points.length < 2) return;
+    const inside = p => p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2;
+    if (points.every(inside)) state.selectedArrows.add(arrow.id);
+  });
+  // Strokes: select when most points lie inside the box. This keeps a small
+  // smoothing overshoot from making a hand-drawn arrow impossible to select.
+  (state.strokes || []).forEach(s => {
+    if (!s.points || !s.points.length) return;
+    const inCount = s.points.reduce((n, p) => n + (p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2 ? 1 : 0), 0);
+    if (inCount / s.points.length >= 0.6) {
+      state.selectedStrokes = state.selectedStrokes || new Set();
+      state.selectedStrokes.add(s.id);
+    }
+  });
+  renderAllArrows();
+  if (typeof renderAllStrokes === 'function') renderAllStrokes();
+}
+
 boardWrap.addEventListener('mousedown', e => {
   if (e.button === 1 || e.button === 2) { // middle or right mouse = pan
     isPanning = true;
@@ -5449,8 +5506,8 @@ boardWrap.addEventListener('mousedown', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
 
-  clearSelection();
   if (state.mode === 'connect') {
+    clearSelection();
     const pos = screenToBoard(e.clientX, e.clientY);
     if (connectPending) {
       if (connectPending.from?.card) {
@@ -5471,11 +5528,7 @@ boardWrap.addEventListener('mousedown', e => {
   }
 
   // Box select start
-  isBoxSelecting = true;
-  const r = boardWrap.getBoundingClientRect();
-  boxSelStart = { sx: e.clientX, sy: e.clientY, wx: e.clientX-r.left, wy: e.clientY-r.top };
-  selBox.style.cssText = `display:block;left:${e.clientX}px;top:${e.clientY}px;width:0;height:0;`;
-  e.preventDefault();
+  if (beginBoxSelectionAt(e.clientX, e.clientY)) e.preventDefault();
 });
 
 // Miro-style: double-click empty canvas → spawn a text card at cursor
@@ -5699,11 +5752,7 @@ document.addEventListener('mousemove', e => {
   }
 
   if (isBoxSelecting) {
-    const r = boardWrap.getBoundingClientRect();
-    const x1 = Math.min(e.clientX, boxSelStart.sx), y1 = Math.min(e.clientY, boxSelStart.sy);
-    const x2 = Math.max(e.clientX, boxSelStart.sx), y2 = Math.max(e.clientY, boxSelStart.sy);
-    selBox.style.left = x1+'px'; selBox.style.top = y1+'px';
-    selBox.style.width = (x2-x1)+'px'; selBox.style.height = (y2-y1)+'px';
+    updateBoxSelectionAt(e.clientX, e.clientY);
     return;
   }
 
@@ -5836,43 +5885,7 @@ document.addEventListener('mouseup', e => {
   }
 
   if (isBoxSelecting) {
-    isBoxSelecting = false;
-    selBox.style.display = 'none';
-    // Find cards within box
-    const r = boardWrap.getBoundingClientRect();
-    const bx1 = (Math.min(e.clientX, boxSelStart.sx) - r.left - state.pan.x) / state.scale;
-    const by1 = (Math.min(e.clientY, boxSelStart.sy) - r.top  - state.pan.y) / state.scale;
-    const bx2 = (Math.max(e.clientX, boxSelStart.sx) - r.left - state.pan.x) / state.scale;
-    const by2 = (Math.max(e.clientY, boxSelStart.sy) - r.top  - state.pan.y) / state.scale;
-    if (Math.abs(e.clientX - boxSelStart.sx) > 5 || Math.abs(e.clientY - boxSelStart.sy) > 5) {
-      state.cards.forEach(c => {
-        if (c.x < bx2 && c.x+c.w > bx1 && c.y < by2 && c.y+c.h > by1) selectCard(c.id);
-      });
-      // Arrows: select when both endpoints lie inside the box
-      state.arrows.forEach(arrow => {
-        const from = _arrowEndpoint(arrow, 'from');
-        const to   = _arrowEndpoint(arrow, 'to');
-        if (!from || !to) return;
-        const inside = (p) => p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2;
-        if (inside(from) && inside(to)) {
-          state.selectedArrows.add(arrow.id);
-          arrowsSvg.querySelector(`[data-arrow-id="${arrow.id}"] .arrow-path`)?.classList.add('selected-arrow');
-        }
-      });
-      // Strokes: select when most points lie inside the box
-      (state.strokes || []).forEach(s => {
-        if (!s.points || !s.points.length) return;
-        let inCount = 0;
-        for (const p of s.points) {
-          if (p.x >= bx1 && p.x <= bx2 && p.y >= by1 && p.y <= by2) inCount++;
-        }
-        if (inCount / s.points.length >= 0.6) {
-          state.selectedStrokes = state.selectedStrokes || new Set();
-          state.selectedStrokes.add(s.id);
-          _drawSvg?.querySelector(`[data-stroke-id="${s.id}"]`)?.classList.add('stroke-selected');
-        }
-      });
-    }
+    finishBoxSelectionAt(e.clientX, e.clientY);
   }
 
   if (isSidebarDrag) {
@@ -5983,6 +5996,10 @@ document.addEventListener('mouseup', e => {
   }
 
   boardWrap.addEventListener('touchstart', e => {
+    if (isBoxSelecting && e.touches.length > 1) {
+      isBoxSelecting = false;
+      selBox.style.display = 'none';
+    }
     // Placement mode: touch places element exactly where tapped
     if (_pendingPlace && e.touches.length === 1) {
       e.preventDefault();
@@ -5994,13 +6011,26 @@ document.addEventListener('mouseup', e => {
     if (isBoardPhone() && e.touches.length === 1) {
       if (_handleDoubleTap(e.touches[0], e.target)) { e.preventDefault(); touchDriving = false; return; }
     }
-    // Single-finger touch on an interactive object (resize handle, anchor dot,
-    // or a card body) → drive the existing mouse pipeline so resize / connect /
-    // drag all work by touch exactly like by mouse. Board panning is skipped.
+    // Single-finger touch on an interactive object (card, arrow hit area,
+    // endpoint or waypoint) → drive the existing mouse pipeline. This keeps
+    // touch and mouse behavior identical for drag, connect and re-anchor.
     if (e.touches.length === 1) {
       const tt = e.target;
       const editing = tt.closest && tt.closest('[contenteditable="true"],textarea,input,select,.text-format-toolbar,.layer-popover');
-      const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card');
+      const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card, .arrow-hit, .arrow-endpoint-handle, .arrow-waypoint-handle');
+      // Connect mode is a drag-first tool on touch: press anywhere, move to a
+      // card or a free point, release. The existing auto-connect mouseup path
+      // handles snapping and returns to Select after the gesture.
+      if (!editing && state.mode === 'connect') {
+        e.preventDefault();
+        touchDriving = true;
+        window._autoConnectMode = true;
+        const t = e.touches[0];
+        tt.dispatchEvent(new MouseEvent('mousedown', {
+          clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0
+        }));
+        return;
+      }
       if (hit) {
         e.preventDefault();
         touchDriving = true;
@@ -6008,6 +6038,14 @@ document.addEventListener('mouseup', e => {
         tt.dispatchEvent(new MouseEvent('mousedown', {
           clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0
         }));
+        return;
+      }
+      // Select mode uses a deliberate one-finger marquee on blank canvas.
+      // Two fingers remain available for pan/zoom; the Hand tool keeps the
+      // old one-finger pan behavior for anyone who needs to navigate freely.
+      if (!editing && !_handMode && !spaceDown && beginBoxSelectionAt(e.touches[0].clientX, e.touches[0].clientY)) {
+        e.preventDefault();
+        dismissBoardHint();
         return;
       }
     }
@@ -6018,8 +6056,8 @@ document.addEventListener('mouseup', e => {
       t0 = ts[0]; t1 = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
       pinchOrigin = null;
-      // Phones are read + light-edit only: no long-press-to-create on the
-      // canvas. Single-touch is pure pan; authoring lives on desktop.
+      // Blank-canvas one-finger pan is reserved for Hand mode. Select mode
+      // starts a marquee above; two fingers use the pinch/pan path below.
     } else if (ts.length === 2) {
       cancelLongPress();
       touchDriving = false;
@@ -6033,6 +6071,12 @@ document.addEventListener('mouseup', e => {
   }, { passive: false });
 
   boardWrap.addEventListener('touchmove', e => {
+    if (isBoxSelecting) {
+      const t = e.touches[0];
+      if (t) updateBoxSelectionAt(t.clientX, t.clientY);
+      e.preventDefault();
+      return;
+    }
     if (touchDriving) {
       const t = e.touches[0];
       if (t) document.dispatchEvent(new MouseEvent('mousemove', {
@@ -6092,8 +6136,18 @@ document.addEventListener('mouseup', e => {
   }, { passive: false });
 
   boardWrap.addEventListener('touchend', e => {
+    if (isBoxSelecting) {
+      const t = e.changedTouches[0];
+      if (t) finishBoxSelectionAt(t.clientX, t.clientY);
+      cancelLongPress();
+      return;
+    }
     if (touchDriving) {
       const t = e.changedTouches[0];
+      // A tap in Connect mode is intentionally click-click. Only promote it
+      // to drag-first auto-connect after the finger actually moved, otherwise
+      // the next tap on an anchor would restart the pending connection.
+      if (window._autoConnectMode && !window._anchorDragMoved) window._autoConnectMode = false;
       const tgt = (t && document.elementFromPoint(t.clientX, t.clientY)) || document;
       tgt.dispatchEvent(new MouseEvent('mouseup', {
         clientX: t ? t.clientX : 0, clientY: t ? t.clientY : 0, bubbles: true, cancelable: true, button: 0
@@ -6117,6 +6171,10 @@ document.addEventListener('mouseup', e => {
     }
   }, { passive: true });
   boardWrap.addEventListener('touchcancel', e => {
+    if (isBoxSelecting) {
+      isBoxSelecting = false;
+      selBox.style.display = 'none';
+    }
     if (touchDriving) {
       document.dispatchEvent(new MouseEvent('mouseup', {
         clientX: 0, clientY: 0, bubbles: true, cancelable: true, button: 0
@@ -6593,7 +6651,6 @@ function resetBoardPointer(announce = false) {
 
 /* ─── Mobile Add action sheet ─── */
 function openMobileAddSheet() {
-  if (!boardCanAuthor()) { toast && toast('Open on a computer to add cards'); return; }
   const sheet = document.getElementById('mq-add-sheet');
   if (!sheet) return;
   sheet.classList.add('open');
@@ -7217,12 +7274,20 @@ function renderAllArrows() {
     const dPath = makeArrowPathThroughWaypoints(fw, tw, wps, fromAnchor, toAnchor, route);
     // Hit area (wider invisible path)
     const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
+    hit.classList.add('arrow-hit');
     hit.setAttribute('d', dPath);
     hit.style.cssText = 'fill:none;stroke:transparent;stroke-width:12;cursor:pointer;pointer-events:stroke;';
+    hit.addEventListener('mousedown', e => {
+      if (e.button !== 0 || state.mode === 'connect') return;
+      e.stopPropagation();
+      if (!e.shiftKey) clearSelection();
+      state.selectedArrows.add(arrow.id);
+      renderAllArrows();
+    });
     hit.addEventListener('click', e => {
       e.stopPropagation();
+      if (!e.shiftKey) clearSelection();
       state.selectedArrows.add(arrow.id);
-      path.classList.add('selected-arrow');
       // Re-render so endpoint drag handles appear on this arrow
       renderAllArrows();
     });
