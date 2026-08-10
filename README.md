@@ -2,6 +2,12 @@
 
 Standalone static build of the `TeachedOS` language-learning interface.
 
+## Production UI
+
+The release-oriented UI backlog and acceptance checklist lives in
+[`PRODUCTION_UI_PLAN.md`](PRODUCTION_UI_PLAN.md). Deployment and server
+configuration checks are documented in [`DEPLOY.md`](DEPLOY.md).
+
 ## Structure
 
 - `index.html` — main OS shell
