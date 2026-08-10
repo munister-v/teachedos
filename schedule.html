@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=253">
+<link rel="manifest" href="manifest.json?v=254">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=253">
-<link rel="preload" as="style" href="styles/unify.css?v=253">
+<link rel="preload" as="style" href="styles/harmony.css?v=254">
+<link rel="preload" as="style" href="styles/unify.css?v=254">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -218,6 +218,33 @@ a{text-decoration:none;color:inherit;}
 .up-next.empty .un-btn.ghost{background:rgba(94,94,74,.08);color:var(--text2);}
 .un-countbar{position:absolute;left:0;bottom:0;height:3px;background:rgba(255,255,255,.55);}
 
+/* ── Weekly control card ── */
+.week-brief-wrap{padding:0 14px 8px;}
+.week-brief{border:1px solid var(--border);border-radius:16px;padding:14px;background:linear-gradient(145deg,#fff,#faf9f5);box-shadow:0 10px 24px rgba(94,94,74,.07);}
+.wb-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.wb-kicker{font:800 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.wb-title{font-size:14px;font-weight:900;color:var(--text);margin-top:4px;letter-spacing:-.02em;}
+.wb-status{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:rgba(200,230,50,.18);color:var(--accent);font-size:10px;font-weight:800;white-space:nowrap;}
+.wb-status.warn{background:#fff7ed;color:#c2410c;}
+.wb-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px;}
+.wb-metric{min-width:0;padding:9px 7px;border-radius:10px;background:#fff;border:1px solid rgba(94,94,74,.1);text-align:center;}
+.wb-num{font-size:16px;font-weight:950;color:var(--text);font-variant-numeric:tabular-nums;}
+.wb-lbl{font-size:9px;font-weight:700;color:var(--text3);margin-top:2px;white-space:nowrap;}
+.wb-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:13px;}
+.wb-day{min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:center;color:var(--text3);font:700 9px var(--mono);}
+.wb-day:focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:7px;}
+.wb-day-label{display:block;margin-bottom:5px;}
+.wb-bar{display:block;height:28px;border-radius:7px;background:rgba(94,94,74,.09);overflow:hidden;position:relative;}
+.wb-fill{position:absolute;left:0;right:0;bottom:0;background:var(--accent2);border-radius:7px;transition:height .2s ease;}
+.wb-day.today .wb-bar{box-shadow:0 0 0 2px rgba(200,230,50,.38);}
+.wb-day.today{color:var(--accent);}
+.wb-actions{display:flex;gap:7px;margin-top:13px;}
+.wb-btn{min-height:36px;flex:1;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text2);font:800 11px var(--font);cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),border-color .15s,background .15s;}
+.wb-btn:hover{border-color:var(--accent);background:rgba(200,230,50,.12);}
+.wb-btn:active{transform:scale(.98);}
+.wb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.wb-btn.primary:hover{background:var(--accent2);color:var(--accent);}
+
 /* ── Modal ── */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(28,10,20,.5);backdrop-filter:blur(6px);
@@ -241,6 +268,12 @@ a{text-decoration:none;color:inherit;}
   transition:border-color .18s ease,box-shadow .18s ease;
 }
 .form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,230,50,.15);}
+.lesson-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:-2px 0 16px;}
+.lesson-preset{min-height:54px;padding:9px 10px;border:1px solid var(--border);border-radius:12px;background:#fafafa;color:var(--text2);font-family:var(--font);text-align:left;cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),border-color .15s,background .15s;}
+.lesson-preset:hover{border-color:rgba(200,230,50,.9);background:#fff;transform:translateY(-1px);}
+.lesson-preset:focus-visible{outline:3px solid rgba(200,230,50,.32);outline-offset:2px;}
+.lesson-preset-title{display:block;font-size:12px;font-weight:900;color:var(--text);}
+.lesson-preset-sub{display:block;font-size:10px;color:var(--text3);margin-top:3px;line-height:1.25;}
 .color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
 .color-opt{
   width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;
@@ -254,6 +287,7 @@ a{text-decoration:none;color:inherit;}
 .btn-save{padding:9px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .15s ease,box-shadow .2s ease;}
 .btn-save:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(200,230,50,.25);}
 .btn-save:active{transform:scale(.97);}
+.btn-save:disabled{opacity:.58;cursor:wait;transform:none;box-shadow:none;}
 
 /* Toast */
 #toast{
@@ -320,6 +354,10 @@ a{text-decoration:none;color:inherit;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
   /* Hide duplicate desktop action buttons on mobile — already in mobile-schedule-actions */
   .side-section-actions{display:none !important;}
+  .desktop-schedule-only{display:none !important;}
+  .lesson-presets{grid-template-columns:1fr;}
+  .form-input,.form-select{min-height:44px;font-size:16px;}
+  .btn-cancel,.btn-save{min-height:44px;}
 }
 
 @media (max-width: 520px){
@@ -327,10 +365,10 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=253" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=253">
-<link rel="stylesheet" href="styles/harmony.css?v=253">
-<link rel="stylesheet" href="styles/unify.css?v=253">
+<script src="theme.js?v=254" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=254">
+<link rel="stylesheet" href="styles/harmony.css?v=254">
+<link rel="stylesheet" href="styles/unify.css?v=254">
 </head>
 <body>
 
@@ -416,6 +454,8 @@ a{text-decoration:none;color:inherit;}
     <!-- Up Next focus card -->
     <div class="up-next-wrap" id="up-next-wrap"></div>
 
+    <div class="week-brief-wrap desktop-schedule-only" id="week-brief-wrap" aria-live="polite"></div>
+
     <div class="side-section side-section-actions" style="display:flex;flex-direction:column;gap:8px;">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
       <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;padding:7px;">📅 Export .ics</button>
@@ -479,6 +519,16 @@ a{text-decoration:none;color:inherit;}
 <div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-title" id="modal-title">➕ Add Class</div>
+
+    <div id="lesson-presets-wrap">
+      <div class="form-label" style="margin-bottom:8px">Quick setup</div>
+      <div class="lesson-presets" id="lesson-presets">
+        <button class="lesson-preset" type="button" onclick="applyLessonPreset('online-one')"><span class="lesson-preset-title">1:1 online</span><span class="lesson-preset-sub">60 min · personal lesson</span></button>
+        <button class="lesson-preset" type="button" onclick="applyLessonPreset('online-group')"><span class="lesson-preset-title">Group online</span><span class="lesson-preset-sub">60 min · shared session</span></button>
+        <button class="lesson-preset" type="button" onclick="applyLessonPreset('offline')"><span class="lesson-preset-title">Classroom</span><span class="lesson-preset-sub">60 min · room-based class</span></button>
+        <button class="lesson-preset" type="button" onclick="applyLessonPreset('club')"><span class="lesson-preset-title">Speaking club</span><span class="lesson-preset-sub">75 min · group practice</span></button>
+      </div>
+    </div>
 
     <div class="form-row">
       <div class="form-group" style="flex:2">
@@ -575,7 +625,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=253"></script>
+<script src="scripts/app-core.js?v=254"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1059,8 +1109,8 @@ function updateNowLine() {
   line.style.display = minutes >= 0 ? 'block' : 'none';
 }
 
-function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); }
-function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); scrollToNow(); }
+function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); }
+function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); scrollToNow(); }
 
 // ── Up Next focus card ────────────────────────────────────────────────
 // Next datetime a slot occurs at or after `now` (recurring weekly or one-off).
@@ -1155,6 +1205,99 @@ function renderUpNext() {
     <div class="un-actions">${acts.join('')}</div>
     ${isNow ? `<div class="un-countbar" style="width:${pct}%"></div>` : ''}
   </div>`;
+}
+
+function localDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function weekSlotsForDay(day, date) {
+  const key = localDateKey(date);
+  return schedule.filter(slot => {
+    if (Number(slot.day) !== day) return false;
+    return !slot.specific_date || String(slot.specific_date).slice(0, 10) === key;
+  }).sort((a, b) => a.start_time.localeCompare(b.start_time));
+}
+
+function renderWeekBrief() {
+  const host = document.getElementById('week-brief-wrap');
+  if (!host) return;
+  const dates = getWeekDates();
+  const daySlots = dates.map((date, day) => weekSlotsForDay(day, date));
+  const slots = daySlots.flat();
+  const minutes = slots.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0);
+  const linked = slots.filter(slot => slot.board_id).length;
+  const maxMinutes = Math.max(60, ...daySlots.map(items => items.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0)));
+  const todayDow = (new Date().getDay() + 6) % 7;
+  const weekLabel = weekOffset === 0 ? 'This week' : (weekOffset > 0 ? 'Future week' : 'Past week');
+  const status = linked === slots.length && slots.length
+    ? 'All linked'
+    : linked
+      ? `${linked} linked`
+      : 'No boards linked';
+  const statusClass = linked === slots.length && slots.length ? '' : 'warn';
+
+  host.innerHTML = `<section class="week-brief" aria-label="Weekly planning summary">
+    <div class="wb-head">
+      <div><div class="wb-kicker">${weekLabel}</div><div class="wb-title">Teaching load</div></div>
+      <span class="wb-status ${statusClass}">${esc(status)}</span>
+    </div>
+    <div class="wb-metrics">
+      <div class="wb-metric"><div class="wb-num">${slots.length}</div><div class="wb-lbl">Lessons</div></div>
+      <div class="wb-metric"><div class="wb-num">${(minutes / 60).toFixed(minutes ? 1 : 0)}</div><div class="wb-lbl">Hours</div></div>
+      <div class="wb-metric"><div class="wb-num">${linked}</div><div class="wb-lbl">Boards linked</div></div>
+    </div>
+    <div class="wb-days" aria-label="Daily workload">
+      ${daySlots.map((items, day) => {
+        const dayMinutes = items.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0);
+        const height = dayMinutes ? Math.max(10, Math.round(dayMinutes / maxMinutes * 100)) : 0;
+        const label = `${DAY_NAMES[day]}: ${items.length} lesson${items.length === 1 ? '' : 's'}, ${(dayMinutes / 60).toFixed(dayMinutes ? 1 : 0)} hours`;
+        return `<button type="button" class="wb-day ${weekOffset === 0 && day === todayDow ? 'today' : ''}" title="${esc(label)}" aria-label="${esc(label)}" onclick="focusWeekDay(${day})"><span class="wb-day-label">${DAY_NAMES[day][0]}</span><span class="wb-bar"><span class="wb-fill" style="height:${height}%"></span></span></button>`;
+      }).join('')}
+    </div>
+    <div class="wb-actions">
+      <button class="wb-btn primary" type="button" onclick="findScheduleGap(60)">Find 60 min</button>
+      <button class="wb-btn" type="button" onclick="openModal()">Plan lesson</button>
+    </div>
+  </section>`;
+}
+
+function focusWeekDay(day) {
+  const col = document.getElementById(`day-${day}`);
+  if (col) col.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function findScheduleGap(duration = 60) {
+  const dates = getWeekDates();
+  const now = new Date();
+  const todayDow = (now.getDay() + 6) % 7;
+  const firstDay = weekOffset === 0 ? todayDow : 0;
+  for (let day = firstDay; day < dates.length; day++) {
+    let cursor = HOUR_START * 60;
+    if (weekOffset === 0 && day === todayDow) {
+      cursor = Math.max(cursor, snapMinutes(now.getHours() * 60 + now.getMinutes()));
+    }
+    const slots = weekSlotsForDay(day, dates[day]);
+    for (const slot of slots) {
+      const start = toMin(slot.start_time);
+      const end = toMin(slot.end_time);
+      if (start - cursor >= duration) {
+        openPlannerAt(day, cursor);
+        toast(`Found ${duration} min on ${DAY_NAMES[day]} at ${minutesToTime(cursor)}`, 'ok');
+        return;
+      }
+      cursor = Math.max(cursor, end);
+    }
+    if (HOUR_END * 60 - cursor >= duration) {
+      openPlannerAt(day, cursor);
+      toast(`Found ${duration} min on ${DAY_NAMES[day]} at ${minutesToTime(cursor)}`, 'ok');
+      return;
+    }
+  }
+  toast(`No ${duration}-minute opening in this week`, 'err');
 }
 
 function joinMeeting(url) {
@@ -1499,6 +1642,7 @@ function renderStats() {
   document.getElementById('stat-hours').textContent = hrs.toFixed(1);
   const groups = new Set(schedule.map(s=>s.group_name).filter(Boolean));
   document.getElementById('stat-groups').textContent = groups.size;
+  renderWeekBrief();
   updateMobileScheduleSummary();
 }
 
@@ -1548,6 +1692,9 @@ function openModal(slot = null, preset = null) {
   editingId = isEdit ? slot.id : null;
   document.getElementById('modal-title').textContent = isEdit ? '✏️ Edit Class' : '➕ Plan Lesson';
   document.getElementById('modal-save-btn').textContent = isEdit ? 'Save Changes' : 'Add Class';
+  delete document.getElementById('modal-save-btn').dataset.idleLabel;
+  document.getElementById('lesson-presets-wrap').hidden = isEdit;
+  setScheduleSaveBusy(false);
   document.getElementById('f-title').value = data.title || '';
   document.getElementById('f-day').value   = data.day ?? ((new Date().getDay() + 6) % 7);
   document.getElementById('f-start').value = data.start_time?.slice(0,5) || '09:00';
@@ -1574,6 +1721,43 @@ function openModal(slot = null, preset = null) {
   // Sync day when date changes
   document.getElementById('f-specific-date').onchange = syncDayFromDate;
   renderModalTzPreview();
+}
+
+const LESSON_PRESETS = {
+  'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#6366f1' },
+  'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#8b5cf6' },
+  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#C8E632' },
+  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#ec4899' },
+};
+
+function applyLessonPreset(key) {
+  const preset = LESSON_PRESETS[key];
+  if (!preset) return;
+  const start = document.getElementById('f-start').value || '09:00';
+  const [h, m] = start.split(':').map(Number);
+  const endMin = Math.min(HOUR_END * 60, h * 60 + m + preset.duration);
+  document.getElementById('f-title').value = preset.title;
+  document.getElementById('f-group').value = preset.group_name;
+  document.getElementById('f-level').value = preset.level;
+  document.getElementById('f-room').value = preset.room;
+  document.getElementById('f-end').value = minutesToTime(endMin);
+  selectedColor = preset.color;
+  document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color === preset.color));
+  renderModalTzPreview();
+  toast(`${preset.title} preset applied`, 'ok');
+}
+
+function setScheduleSaveBusy(isBusy) {
+  const button = document.getElementById('modal-save-btn');
+  if (!button) return;
+  if (isBusy) {
+    button.dataset.idleLabel = button.textContent;
+    button.textContent = 'Saving…';
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.idleLabel || (editingId ? 'Save Changes' : 'Add Class');
+    button.disabled = false;
+  }
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
@@ -1629,6 +1813,7 @@ async function saveClass() {
   };
 
   try {
+    setScheduleSaveBusy(true);
     if (editingId) {
       await apiFetch(`/api/schedule/${editingId}`, { method:'PATCH', body: JSON.stringify(body) });
       toast('Class updated ✅','ok');
@@ -1639,6 +1824,7 @@ async function saveClass() {
     closeModal();
     await loadSchedule();
   } catch (e) { toast(e.message,'err'); }
+  finally { setScheduleSaveBusy(false); }
 }
 
 async function deleteClass(e, id) {
@@ -1683,55 +1869,53 @@ init();
 function exportICS() {
   if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
   if (!schedule.length) { alert('No classes to export.'); return; }
-  const days = ['SU','MO','TU','WE','TH','FR','SA'];
+  const days = ['MO','TU','WE','TH','FR','SA','SU'];
   const pad2 = n => String(n).padStart(2,'0');
+  const escapeIcs = value => String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, '\\n')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,');
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
 
-  function toHHMM(time) {
-    // time like "09:30"
-    const [h, m] = (time || '09:00').split(':');
-    return pad2(h) + pad2(m) + '00';
-  }
-
-  function dtStart(day, time) {
-    // Find next occurrence of this weekday from today
+  function nextOccurrenceDate(slot) {
+    if (slot.specific_date) {
+      const [year, month, day] = String(slot.specific_date).slice(0,10).split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
     const today = new Date();
-    const todayDay = today.getDay(); // 0=Sun
-    const targetDay = ['sun','mon','tue','wed','thu','fri','sat'].indexOf((day||'mon').toLowerCase());
-    let diff = (targetDay - todayDay + 7) % 7;
-    if (diff === 0) diff = 0;
-    const d = new Date(today);
-    d.setDate(d.getDate() + diff);
-    const [h, m] = (time || '09:00').split(':');
-    d.setHours(Number(h), Number(m), 0, 0);
-    return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+    today.setHours(0, 0, 0, 0);
+    const todayDow = (today.getDay() + 6) % 7;
+    const targetDow = Math.max(0, Math.min(6, Number(slot.day) || 0));
+    today.setDate(today.getDate() + ((targetDow - todayDow + 7) % 7));
+    return today;
   }
 
-  function addDuration(dtStr, mins) {
-    const d = new Date(
-      dtStr.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/,
-        '$1-$2-$3T$4:$5:$6Z')
-    );
-    d.setMinutes(d.getMinutes() + (mins || 60));
-    return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  function eventDateTime(date, time) {
+    const [hours, minutes] = String(time || '09:00').slice(0,5).split(':').map(Number);
+    const local = new Date(date);
+    local.setHours(hours || 0, minutes || 0, 0, 0);
+    return `${local.getFullYear()}${pad2(local.getMonth() + 1)}${pad2(local.getDate())}T${pad2(local.getHours())}${pad2(local.getMinutes())}00`;
   }
 
-  const uid = () => Date.now() + '-' + Math.random().toString(36).slice(2) + '@teachedos';
-  const now = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
-
-  const vevents = schedule.map(s => {
-    const dtstart = dtStart(s.day, s.time);
-    const dtend   = addDuration(dtstart, s.duration || 60);
-    const byday   = days[['sun','mon','tue','wed','thu','fri','sat'].indexOf((s.day||'mon').toLowerCase())] || 'MO';
+  const vevents = schedule.map((slot, index) => {
+    const startDate = nextOccurrenceDate(slot);
+    const startMinutes = toMin(slot.start_time || '09:00');
+    const endMinutes = Math.max(startMinutes + 15, toMin(slot.end_time || '10:00'));
+    const start = eventDateTime(startDate, minutesToTime(startMinutes));
+    const end = eventDateTime(startDate, minutesToTime(endMinutes));
+    const description = [slot.group_name && `Group: ${slot.group_name}`, slot.level && `Level: ${slot.level}`, slot.board_id && 'TeachEd board linked'].filter(Boolean).join(' · ');
     return [
       'BEGIN:VEVENT',
-      `UID:${uid()}`,
-      `DTSTAMP:${now}`,
-      `DTSTART:${dtstart}`,
-      `DTEND:${dtend}`,
-      `SUMMARY:${(s.title||'Class').replace(/[,;\\]/g,' ')}`,
-      s.meeting_url ? `LOCATION:${s.meeting_url}` : '',
-      s.meeting_url ? `URL:${s.meeting_url}` : '',
-      s.recurring !== false ? `RRULE:FREQ=WEEKLY;BYDAY=${byday}` : '',
+      `UID:${Date.now()}-${index}-${Math.random().toString(36).slice(2)}@teachedos`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      `SUMMARY:${escapeIcs(slot.title || 'Class')}`,
+      slot.room ? `LOCATION:${escapeIcs(slot.room)}` : '',
+      description ? `DESCRIPTION:${escapeIcs(description)}` : '',
+      slot.meeting_url ? `URL:${escapeIcs(slot.meeting_url)}` : '',
+      !slot.specific_date && slot.recurring !== false ? `RRULE:FREQ=WEEKLY;BYDAY=${days[Math.max(0, Math.min(6, Number(slot.day) || 0))]}` : '',
       'END:VEVENT',
     ].filter(Boolean).join('\r\n');
   }).join('\r\n');
@@ -1742,6 +1926,7 @@ function exportICS() {
     'PRODID:-//TeachEd//Schedule//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
+    `X-WR-TIMEZONE:${effectiveScheduleZone()}`,
     vevents,
     'END:VCALENDAR',
   ].join('\r\n');
@@ -1753,11 +1938,11 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=253"></script>
-<script src="scripts/nav-boost.js?v=253" defer></script>
-<script src="scripts/mobile-perf.js?v=253" defer></script>
-<script src="scripts/mobile-nav.js?v=253"></script>
-<script src="pwa-boot.js?v=253" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=253" defer></script>
+<script src="pwa.js?v=254"></script>
+<script src="scripts/nav-boost.js?v=254" defer></script>
+<script src="scripts/mobile-perf.js?v=254" defer></script>
+<script src="scripts/mobile-nav.js?v=254"></script>
+<script src="pwa-boot.js?v=254" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=254" defer></script>
 </body>
 </html>
