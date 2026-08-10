@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=270">
+<link rel="manifest" href="manifest.json?v=271">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,139 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=270">
-<link rel="stylesheet" href="styles/mobile.css?v=270">
-<link rel="stylesheet" href="styles/harmony.css?v=270">
-<link rel="stylesheet" href="styles/unify.css?v=270">
+<link rel="stylesheet" href="styles/board.css?v=271">
+<link rel="stylesheet" href="styles/mobile.css?v=271">
+<link rel="stylesheet" href="styles/harmony.css?v=271">
+<link rel="stylesheet" href="styles/unify.css?v=271">
+<style id="board-classroom-polish">
+/* Classroom canvas: visually connects the board with the generated lesson sheets. */
+#toolbar{
+  background:#FFFDF7!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:0 1px 0 rgba(28,28,30,.10)!important;
+}
+#board-wrap{
+  background-color:#F7F4EA!important;
+  background-image:
+    linear-gradient(rgba(28,28,30,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(28,28,30,.035) 1px,transparent 1px)!important;
+  background-size:32px 32px!important;
+}
+#miro-toolbar{
+  background:#FFFDF7!important;
+  border-right:1px solid rgba(28,28,30,.10)!important;
+  box-shadow:2px 0 14px rgba(28,28,30,.06)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.mt-btn{
+  width:44px!important;
+  height:44px!important;
+  border-radius:12px!important;
+}
+.mt-btn:focus-visible,
+.tb-icon-btn:focus-visible,
+.tb-btn:focus-visible,
+.tb-btn-primary:focus-visible,
+.tb-board-chip-menu:focus-visible,
+.zc-btn:focus-visible{
+  outline:3px solid rgba(122,142,0,.72)!important;
+  outline-offset:2px!important;
+}
+#zoom-controls{
+  min-height:44px!important;
+  border-radius:12px!important;
+  box-shadow:0 4px 14px rgba(28,28,30,.10)!important;
+}
+.zc-btn{
+  width:38px!important;
+  height:38px!important;
+}
+#board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game){
+  border-radius:14px!important;
+  border-color:rgba(28,28,30,.12)!important;
+  box-shadow:0 3px 12px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.85) inset!important;
+}
+#board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-header{
+  min-height:36px;
+  background:#FFFDF7;
+  border-bottom:1px solid rgba(28,28,30,.08);
+  padding:9px 12px 7px;
+}
+#board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-title-text{
+  color:#5D5F56;
+  letter-spacing:.055em;
+  font-weight:800;
+}
+#board .card-frame .frame-body{
+  border-radius:16px!important;
+  background:rgba(255,255,255,.94)!important;
+  border:1.5px solid rgba(28,28,30,.16)!important;
+  box-shadow:0 12px 32px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.9) inset!important;
+}
+#board .card-frame .frame-body::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:5px;
+  border-radius:16px 0 0 16px;
+  background:var(--frame-border,var(--accent-hi));
+  pointer-events:none;
+}
+#board .card-frame .frame-title{
+  top:-36px!important;
+  padding:8px 12px!important;
+  border:1px solid rgba(28,28,30,.12)!important;
+  border-radius:10px!important;
+  background:#FFFDF7!important;
+  color:#24251F!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  letter-spacing:.045em!important;
+  text-transform:uppercase;
+  box-shadow:0 3px 10px rgba(28,28,30,.08)!important;
+}
+#board .card-frame .frame-num{
+  min-width:22px;
+  height:22px;
+  border-radius:7px!important;
+  background:#CDF24F!important;
+  color:#111!important;
+}
+#board .card-frame .frame-add-activity{
+  top:-36px!important;
+  min-height:36px;
+  padding:0 12px!important;
+  border-radius:10px!important;
+  background:#1C1C1E!important;
+  color:#CDF24F!important;
+  box-shadow:0 4px 12px rgba(28,28,30,.16)!important;
+}
+#board .card-frame .frame-add-activity:focus-visible,
+#board .card-close:focus-visible,
+#board .card-priv-toggle:focus-visible{
+  outline:3px solid #8AAE12!important;
+  outline-offset:2px!important;
+}
+@media (max-width:860px){
+  #miro-toolbar{width:52px!important;}
+  #board-wrap{left:52px!important;background-size:26px 26px!important;}
+  .mt-btn{width:44px!important;height:44px!important;}
+  #board .card-frame .frame-title{max-width:calc(100vw - 80px)!important;overflow:hidden;text-overflow:ellipsis;}
+}
+@media (prefers-reduced-motion:reduce){
+  #board .board-card,
+  #board .board-card:hover,
+  #board .card-frame .frame-body,
+  #board .card-frame .frame-add-activity{
+    transition:none!important;
+    transform:none!important;
+  }
+}
+</style>
 </head>
 <body class="board-page">
 
@@ -1723,11 +1852,11 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=270"></script>
-<script src="scripts/board-app.js?v=270"></script>
-<script src="js/board-vocab.js?v=270"></script>
-<script src="js/board-reveal.js?v=270"></script>
-<script src="js/teacher-tool-board-composer.js?v=270"></script>
+<script src="js/teacher-tools-data.js?v=271"></script>
+<script src="scripts/board-app.js?v=271"></script>
+<script src="js/board-vocab.js?v=271"></script>
+<script src="js/board-reveal.js?v=271"></script>
+<script src="js/teacher-tool-board-composer.js?v=271"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1735,7 +1864,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=270" defer></script>
+<script src="pwa-boot.js?v=271" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1776,11 +1905,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=270"></script>
-<script src="scripts/nav-boost.js?v=270" defer></script>
-<script src="scripts/mobile-perf.js?v=270" defer></script>
-<script src="scripts/mobile-nav.js?v=270"></script>
-<script src="scripts/mobile-zoom-guard.js?v=270" defer></script>
+<script src="pwa.js?v=271"></script>
+<script src="scripts/nav-boost.js?v=271" defer></script>
+<script src="scripts/mobile-perf.js?v=271" defer></script>
+<script src="scripts/mobile-nav.js?v=271"></script>
+<script src="scripts/mobile-zoom-guard.js?v=271" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
