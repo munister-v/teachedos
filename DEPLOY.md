@@ -10,6 +10,19 @@ A systemd timer polls `main` every 2 minutes and deploys on new commits:
 - `teached-deploy.service` + `teached-deploy.timer` drive it; last-deployed commit is tracked in `/opt/teachedos/.deployed_sha`.
 - Log: `/var/log/teached-deploy.log`. Pre-deploy backups: `/root/teached-backups/`.
 
+The versioned deploy implementation is `ops/deploy.sh`. The server copy at
+`/opt/teachedos/deploy.sh` is kept in sync with it. Frontend and backend code
+are mirrored with a clean sync so stale VPS-only files cannot survive a
+release; `.env`, `node_modules`, database files and uploads stay outside the
+release. Each run creates a rollback archive in `/root/teached-backups/`.
+
+Before publishing a change locally, run:
+
+```bash
+node scripts/check-static-assets.mjs .
+node scripts/bump-version.mjs
+```
+
 Push to `main` and the change is live within ~2 minutes — no manual step.
 
 ## nginx / edge
