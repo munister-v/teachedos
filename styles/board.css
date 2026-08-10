@@ -4491,7 +4491,6 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell #btn-present,
-  body.board-phone-shell #btn-more,
   body.board-phone-shell .tb-board-chip-menu{
     width:36px!important;
     height:36px!important;
@@ -4499,6 +4498,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     background:#fff!important;
     border:1px solid rgba(94,94,74,.12)!important;
   }
+
+  /* The board chip owns board settings. Keep one clear menu in the header;
+     global navigation and account actions live in the bottom More sheet. */
+  body.board-phone-shell #btn-more{display:none!important;}
+  body.board-phone-shell .tb-board-chip-menu{display:flex!important;}
 
   body.board-phone-shell #board-wrap{
     top:calc(var(--phone-toolbar-h) + env(safe-area-inset-top,0px))!important;
@@ -4519,7 +4523,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell #board-wrap::after{
-    content:"Read · double-tap a card to zoom";
+    content:"Double-tap a card to open";
     position:fixed;
     left:50%;
     top:calc(var(--phone-toolbar-h) + env(safe-area-inset-top,0px) + 10px);
@@ -4557,6 +4561,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     border:1px solid rgba(14,14,16,.08)!important;
     box-shadow:0 -8px 24px rgba(14,14,16,.12),0 1px 0 rgba(255,255,255,.8) inset!important;
     gap:5px;
+    max-width:420px;
+    margin-inline:auto;
   }
 
   body.board-phone-shell .mq-btn{
@@ -4572,6 +4578,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   body.board-phone-shell .mq-btn.active{
     background:rgba(200,230,50,.22)!important;
     color:#1C1C1E!important;
+    box-shadow:inset 0 0 0 1px rgba(112,139,14,.16)!important;
   }
   body.board-phone-shell .mq-btn.primary{
     background:#1C1C1E!important;
@@ -4594,6 +4601,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:0 8px 18px rgba(14,14,16,.16);
   }
   body.board-phone-shell .mq-status.warn{color:#FFD580;}
+
+  body.board-phone-shell #undo-toast{
+    bottom:calc(var(--phone-dock-h) + env(safe-area-inset-bottom,0px) + 13px)!important;
+    max-width:calc(100vw - 32px)!important;
+    width:max-content;
+    padding:10px 14px;
+    border-radius:14px;
+    font-size:12px;
+    line-height:1.35;
+    box-shadow:0 10px 28px rgba(14,14,16,.22),0 1px 2px rgba(14,14,16,.10);
+  }
 
   /* Phone canvas should feel calm: no desktop hover lift, giant resize handles,
      or connect dots fighting the finger while the user is just reading/panning. */
