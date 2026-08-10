@@ -4912,6 +4912,19 @@ function updateMultiSelBox() {
   box.style.height = (maxY - minY + pad*2) + 'px';
   box.classList.add('show');
 }
+
+function startMultiSelectionDrag(e) {
+  if (e.button !== 0 || state.selected.size < 2) return;
+  const anchor = state.cards.find(card => state.selected.has(card.id) && !(card.data && card.data.locked));
+  if (!anchor) { toast('All selected elements are locked'); return; }
+  e.preventDefault();
+  e.stopPropagation();
+  startCardDrag(e, anchor);
+}
+
+document.getElementById('multi-sel-box')?.querySelector('.ms-drag-handle')
+  ?.addEventListener('mousedown', startMultiSelectionDrag);
+
 function deleteSelected() {
   snapshot();
   if (state.selectedStrokes && state.selectedStrokes.size) {
