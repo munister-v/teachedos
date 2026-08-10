@@ -236,6 +236,10 @@ let _isMomentum = false;
 let _lastZoomPct = '';
 function applyTransform() {
   board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
+  const multiSelBox = document.getElementById('multi-sel-box');
+  if (multiSelBox && state.selected.size >= 2) {
+    multiSelBox.style.setProperty('--selection-inverse-scale', String(Math.max(.75, Math.min(12, 1 / state.scale))));
+  }
   const pct = Math.round(state.scale * 100) + '%';
   if (pct !== _lastZoomPct) {
     _lastZoomPct = pct;
@@ -4910,6 +4914,10 @@ function updateMultiSelBox() {
   box.style.top = (minY - pad) + 'px';
   box.style.width = (maxX - minX + pad*2) + 'px';
   box.style.height = (maxY - minY + pad*2) + 'px';
+  // Keep the grab affordance and corner handles usable when the board is
+  // zoomed far out. The selection geometry stays in board coordinates; only
+  // its controls compensate for the current canvas scale.
+  box.style.setProperty('--selection-inverse-scale', String(Math.max(.75, Math.min(12, 1 / state.scale))));
   box.classList.add('show');
 }
 

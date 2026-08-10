@@ -1328,7 +1328,7 @@ body.alt-duplicating *{cursor:copy!important;}
 #multi-sel-box .ms-h-sw,#multi-sel-box .ms-h-se{
   content:'';position:absolute;width:9px;height:9px;
   background:var(--accent-hi);border:1.5px solid var(--accent);border-radius:50%;
-  box-shadow:0 1px 2px rgba(0,0,0,.16);
+  box-shadow:0 1px 2px rgba(0,0,0,.16);transform:scale(var(--selection-inverse-scale,1));
 }
 #multi-sel-box .ms-drag-handle{
   position:absolute;left:50%;top:-22px;transform:translateX(-50%);
@@ -1336,8 +1336,9 @@ body.alt-duplicating *{cursor:copy!important;}
   padding:0;border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
   border-radius:999px;background:color-mix(in srgb,var(--bg) 88%,white);
   box-shadow:0 2px 7px rgba(5,5,23,.12);cursor:grab;pointer-events:auto;
+  transform:translateX(-50%) scale(var(--selection-inverse-scale,1));transform-origin:center bottom;
 }
-#multi-sel-box .ms-drag-handle:active{cursor:grabbing;transform:translateX(-50%) scale(.96);}
+#multi-sel-box .ms-drag-handle:active{cursor:grabbing;transform:translateX(-50%) scale(calc(var(--selection-inverse-scale,1) * .96));}
 #multi-sel-box .ms-drag-handle span{width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.75;}
 #multi-sel-box::before{top:-5px;left:-5px;}
 #multi-sel-box::after{top:-5px;right:-5px;}
