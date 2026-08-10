@@ -42,8 +42,8 @@ log "new commit $REMOTE (deployed: $DEPLOYED) — deploying with clean sync"
 git reset --hard --quiet "$REMOTE"
 
 # Backend runtime keeps only its secret env, dependencies and database data.
-rsync -a --delete --delete-excluded \
-  --exclude='.env' --exclude='node_modules/' --exclude='db/' --exclude='uploads/' \
+rsync -a --delete \
+  --exclude='.env' --exclude='node_modules/' --exclude='uploads/' \
   "$REPO/backend/" "$BACKEND/"
 ( cd "$BACKEND" && npm install --no-audit --no-fund --silent )
 
