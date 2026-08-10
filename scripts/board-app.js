@@ -7185,6 +7185,18 @@ function makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor) {
       if (Math.abs(dx) >= Math.abs(dy)) { c2x = x2 + (dx > 0 ? len : -len); }
       else                               { c2y = y2 + (dy > 0 ? len : -len); }
   }
+  // A curved connector can overshoot a visible endpoint by its full handle
+  // length (especially when it leaves a card through the left edge). Since
+  // arrows live in a clipped screen-space SVG, that turns into a visibly
+  // chopped line on narrow viewports. Keep control points inside the canvas
+  // only when their endpoint is visible; off-screen arrows retain their full
+  // geometry and come back naturally when the user pans.
+  const vw = boardWrap?.clientWidth || window.innerWidth;
+  const vh = boardWrap?.clientHeight || window.innerHeight;
+  const safe = (value, limit, endpoint) => endpoint >= 0 && endpoint <= limit
+    ? Math.max(10, Math.min(limit - 10, value)) : value;
+  c1x = safe(c1x, vw, x1); c2x = safe(c2x, vw, x2);
+  c1y = safe(c1y, vh, y1); c2y = safe(c2y, vh, y2);
   return `M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}`;
 }
 function makeStraight(x1, y1, x2, y2) {

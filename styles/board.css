@@ -4618,12 +4618,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:0 8px 20px rgba(14,14,16,.18);
   }
 
-  /* Read + light-edit tier: phones can pan/zoom, read, edit text & move cards,
-     but not author new cards or draw. Hide the create/draw affordances. */
-  body.board-phone-shell .mq-btn.primary,
-  body.board-phone-shell #mq-pen{
-    display:none!important;
-  }
+  /* Keep a compact Add entry on phones for the one authoring action that is
+     intentionally supported there: drawing a connector. Other creation
+     tiles stay hidden below, so the mobile surface remains honest. */
+  body.board-phone-shell .mq-btn.primary{display:flex!important;}
+  body.board-phone-shell #mq-pen{display:none!important;}
 
   body.board-phone-shell .mq-status{
     bottom:calc(100% + 9px);
@@ -4745,6 +4744,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     font-size:13px;
     font-weight:850;
   }
+  body.board-phone-shell .mq-add-tile:not([onclick*="connect"]){display:none!important;}
 
   body.board-phone-shell .mqa-ic{
     width:34px;
