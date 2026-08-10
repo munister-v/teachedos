@@ -52,7 +52,9 @@ rsync -a --delete \
 rsync -a --delete --delete-excluded \
   --exclude='.git/' --exclude='.github/' --exclude='backend/' \
   --exclude='node_modules/' --exclude='.claude/' --exclude='.vscode/' \
-  --exclude='ops/' --exclude='*.md' --exclude='*.bak' --exclude='*.bak_*' \
+  --exclude='ops/' --exclude='ng/' --exclude='*.md' --exclude='*.mjs' \
+  --exclude='*.map' --exclude='*.ts' --exclude='*.scss' --exclude='*.lock' \
+  --exclude='*.yaml' --exclude='*.yml' --exclude='*.bak' --exclude='*.bak_*' \
   --exclude='render.yaml' \
   "$REPO/" "$FRONTEND/"
 
