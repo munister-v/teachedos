@@ -6888,8 +6888,8 @@ function _openCommentComposer(sx, sy, boardPt) {
   setTimeout(() => ta.focus(), 30);
   const finish = (text) => {
     if (text && text.trim()) {
-      const annotation = createBoardAnnotation(boardPt, text.trim());
-      openAnnotationThread(annotation.id);
+      createBoardAnnotation(boardPt, text.trim());
+      toast && toast('Comment added');
     }
     disableCommentMode();
     _closeCommentComposer();
