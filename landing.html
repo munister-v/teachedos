@@ -29,8 +29,6 @@
 <meta name="twitter:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ games.">
 <meta name="twitter:image" content="https://teached.tech/og-cover.png">
 
-<link rel="stylesheet" href="styles/fonts.css?v=267">
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -40,11 +38,8 @@
   --ink:#0E0E10;  --ink2:#3A3A40; --ink3:#86868F;
   --card:#FFFFFF;
   --lavender:#D8C5FB; --peach:#FFB5AE; --cyan:#8FE6E6; --yellow:#FFC94A;
-  /* The app's own stack. The landing was set in Crimson Text — a literary
-     serif fonts.css itself labels "matches EPRIS Journal", i.e. another
-     project's typeface — over Manrope, while every screen behind the sign-up
-     button uses the system stack from unify.css. The page and the product it
-     sells did not look like the same thing. */
+  /* System-only stacks keep the landing lightweight and consistent with the
+     product UI. No web-font payload is needed for this page. */
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   --serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif;
   --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
@@ -687,8 +682,6 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=267">
-
 <!-- ═══════════════════ REDESIGN 2026 · light minimal (overrides above) ═══════════════════ -->
 <style>
 :root{
@@ -1610,6 +1603,45 @@ body::before{
   .preview-shell,.hchip,.pv-card,.bc,.cat,.plan,.testi,.step{animation:none!important;transition:none!important;}
 }
 </style>
+<!-- Static landing mode: keep the marketing page fast, predictable and calm.
+     The product UI keeps its own interaction polish; this page intentionally
+     avoids motion, blur, shadows and remote font payloads. -->
+<style id="landing-static-performance">
+html,html.auth-ready{
+  opacity:1!important;
+  scroll-behavior:auto!important;
+}
+*,*::before,*::after{
+  animation:none!important;
+  transition:none!important;
+  filter:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+body::after,body::before{display:none!important;}
+nav.ln{background:var(--cream)!important;}
+.hero-bg{background:var(--cream)!important;background-image:none!important;}
+.hero-aurora,.hero-spot,.hero-chips{display:none!important;}
+.hero-h em{background:none!important;color:var(--pink)!important;-webkit-text-fill-color:currentColor!important;}
+.preview-shell,.preview-bar,.preview-sidebar,.hero-badge,.btn-glass,.hchip,.pv-zoom,.pv-mini{
+  background:#fff!important;
+}
+.preview-shell{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+.btn-pink::after{display:none!important;}
+.reveal,.reveal.in,.reveal.will-anim{opacity:1!important;transform:none!important;}
+.preview-shell,.hchip,.bc:hover,.cat:hover,.testi:hover,.step:hover,.btn:hover,.btn:active{
+  transform:none!important;
+}
+.hero-h .line>span{transform:none!important;}
+.final{background:var(--cream)!important;background-image:none!important;}
+.hero-badge .dot,.pv-cursor,.pv-cursor.c2,.pv-type .car,.cp-write .pen .car,.fp-prompt .inp .car,
+.ab1,.ab2,.ab3{animation:none!important;}
+section{scroll-margin-top:64px;}
+:focus-visible{outline:3px solid var(--pink)!important;outline-offset:3px!important;}
+@view-transition{navigation:none;}
+::view-transition-old(root),::view-transition-new(root){animation:none!important;}
+</style>
 </head>
 <body>
 
@@ -2512,6 +2544,26 @@ body::before{
 .lp-inp-wrap .auth-inp:not([type="password"]) { padding-right:16px; }
 .lp-inp-wrap.has-toggle .auth-eye { top:39px; }
 </style>
+<style id="landing-static-auth-performance">
+#lp-auth,
+#lp-auth::before,
+#lp-auth::after,
+#lp-auth *{
+  animation:none!important;
+  transition:none!important;
+  filter:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+#lp-auth{background:#242126!important;}
+#lp-auth .auth-card{transform:none!important;}
+#lp-auth .auth-role:hover,
+#lp-auth .auth-btn:hover,
+#lp-auth .auth-btn:active{transform:none!important;}
+#lp-auth .auth-btn-spinner,#lp-auth .auth-spinner{display:none!important;}
+#lp-auth :focus-visible{outline:3px solid #CDF24F!important;outline-offset:3px!important;}
+</style>
 <div id="lp-auth" role="dialog" aria-modal="true" aria-label="Sign in to TeachEd">
   <div class="auth-card">
     <button class="auth-close" type="button" onclick="closeAuth()" aria-label="Close sign-in">×</button>
@@ -2807,10 +2859,12 @@ window.toggleFaq = function(trigger){
 })();
 </script>
 
+<script>window.__TEACHED_STATIC_LANDING__ = true;</script>
 <script>
 /* Premium motion: scroll-reveal (staggered) + number count-up.
    Fully progressive — if this never runs, nothing is hidden. */
 (function () {
+  if (window.__TEACHED_STATIC_LANDING__) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce || !('IntersectionObserver' in window)) return;
 
@@ -2910,6 +2964,7 @@ window.toggleFaq = function(trigger){
    never runs (reduced-motion, no JS), the board stays in its valid static
    state (timer 04:32, "yet" filled, "Synced"). */
 (function () {
+  if (window.__TEACHED_STATIC_LANDING__) return;
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var hidden = function () { return document.hidden; };
 
@@ -2958,6 +3013,7 @@ window.toggleFaq = function(trigger){
 /* Immersive hero: cursor spotlight + 3D parallax (desktop / fine pointer only).
    Progressive — does nothing under reduced-motion or on touch. */
 (function () {
+  if (window.__TEACHED_STATIC_LANDING__) return;
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var hero = document.querySelector('.hero');
   if (!hero) return;
@@ -2989,9 +3045,6 @@ window.toggleFaq = function(trigger){
   }
 })();
 </script>
-<script src="scripts/nav-boost.js?v=267" defer></script>
-<script src="scripts/mobile-perf.js?v=267" defer></script>
-<script src="pwa-boot.js?v=267" defer></script>
 <script>
 /* Footer accordion — collapse on mobile, always-open on desktop */
 (function () {

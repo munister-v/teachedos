@@ -7,6 +7,7 @@ const TOOL_STORE = 'teachedos_teacher_tools_library';
 const FAV_STORE = 'teachedos_teacher_tools_favorites';
 const DRAFT_STORE = 'teachedos_teacher_tools_drafts';
 const RECENT_TOOL_STORE = 'teachedos_teacher_tools_recent';
+const KNOWLEDGE_BASE_STORE = 'teachedos_teacher_knowledge_bases';
 const SAMPLE_TEXT = 'Many students want to improve their English, but they often need short daily routines. A good routine includes reading, speaking practice, useful vocabulary, and quick feedback from a teacher.';
 const SAMPLE_VOCAB = 'routine - a regular way of doing things\nfeedback - advice about how well you did\nimprove - to become better\npractice - repeated work to get better\nuseful - helpful in a real situation';
 const TOOLS = [
@@ -712,6 +713,128 @@ function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return fallback;}}
 function writeJson(key,val){localStorage.setItem(key,JSON.stringify(val));}
 
+// ── Local knowledge bases ──────────────────────────────────────────────────
+// Built-in bases live in scripts/knowledge-bases.js. Imported bases are
+// stored separately so a future app release can update the curated catalog
+// without overwriting a teacher's own additions.
+let activeKnowledgeBaseId = '';
+let activeKnowledgeBaseLevel = 'All';
+function trimKb(value,max=900){return String(value==null?'':value).trim().slice(0,max)}
+function normaliseKnowledgeBase(raw, local=true){
+  if(!raw||typeof raw!=='object')return null;
+  const title=trimKb(raw.title,120); if(!title)return null;
+  const rawId=trimKb(raw.id,80).toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');
+  const titleId=title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const id=rawId||titleId||`kb-${Date.now().toString(36)}`;
+  const entries=Array.isArray(raw.entries)?raw.entries.slice(0,80).map(item=>({
+    term:trimKb(item?.term,120),definition:trimKb(item?.definition,280),translation:trimKb(item?.translation,120),example:trimKb(item?.example,280)
+  })).filter(item=>item.term):[];
+  return {
+    id,title,subtitle:trimKb(raw.subtitle,180),level:trimKb(raw.level,20)||'Mixed',domain:trimKb(raw.domain,60),icon:trimKb(raw.icon,8)||'KB',accent:/^#[0-9a-f]{6}$/i.test(raw.accent||'')?raw.accent:'#5b6cff',defaultTool:TOOLS.some(tool=>tool.id===raw.defaultTool)?raw.defaultTool:'lesson-pack',tags:Array.isArray(raw.tags)?raw.tags.map(tag=>trimKb(tag,32)).filter(Boolean).slice(0,10):[],entries,grammar:trimKb(raw.grammar,900),prompts:Array.isArray(raw.prompts)?raw.prompts.map(item=>trimKb(item,300)).filter(Boolean).slice(0,12):[],facts:Array.isArray(raw.facts)?raw.facts.map(item=>trimKb(item,300)).filter(Boolean).slice(0,12):[],sourceText:trimKb(raw.sourceText,2200),local:Boolean(local),updatedAt:raw.updatedAt||new Date().toISOString()
+  };
+}
+function builtInKnowledgeBases(){return (Array.isArray(window.TEACHEDOS_KNOWLEDGE_BASES)?window.TEACHEDOS_KNOWLEDGE_BASES:[]).map(item=>normaliseKnowledgeBase(item,false)).filter(Boolean)}
+function customKnowledgeBases(){const stored=readJson(KNOWLEDGE_BASE_STORE,[]);return (Array.isArray(stored)?stored:[]).map(item=>normaliseKnowledgeBase(item,true)).filter(Boolean)}
+function allKnowledgeBases(){
+  const map=new Map(builtInKnowledgeBases().map(item=>[item.id,item]));
+  customKnowledgeBases().forEach(item=>map.set(item.id,item));
+  return [...map.values()];
+}
+function activeKnowledgeBase(){return activeKnowledgeBaseId?allKnowledgeBases().find(item=>item.id===activeKnowledgeBaseId)||null:null}
+function knowledgeBaseMeta(){const base=activeKnowledgeBase();return base?{knowledgeBaseId:base.id,knowledgeBaseTitle:base.title}:{}
+}
+function kbVocabText(base){return base.entries.map(item=>`${item.term} - ${item.definition}${item.translation?` / ${item.translation}`:''}${item.example?`\n  Example: ${item.example}`:''}`).join('\n')}
+function kbSourceText(base){
+  const parts=[base.sourceText,base.grammar?`Language focus: ${base.grammar}`:'',base.prompts.length?`Classroom prompts:\n${base.prompts.map((item,index)=>`${index+1}. ${item}`).join('\n')}`:'',base.facts.length?`Teacher notes:\n${base.facts.map((item,index)=>`${index+1}. ${item}`).join('\n')}`:''].filter(Boolean);
+  return parts.join('\n\n');
+}
+function renderKnowledgeBaseLevels(){
+  const el=document.getElementById('knowledge-base-levels');if(!el)return;
+  const levels=['All','A1','A2','B1','B2','C1','Exam','Kids'];
+  el.innerHTML=levels.map(level=>`<button class="kb-level ${activeKnowledgeBaseLevel===level?'active':''}" type="button" onclick="setKnowledgeBaseLevel('${level}')">${level}</button>`).join('');
+}
+function setKnowledgeBaseLevel(level){activeKnowledgeBaseLevel=level;renderKnowledgeBaseLevels();renderKnowledgeBases()}
+function kbMatchesLevel(base,level){
+  if(level==='All')return true;
+  if(level==='Exam')return /ielts|toefl|exam|cambridge/i.test(`${base.title} ${base.tags.join(' ')}`);
+  if(level==='Kids')return /kids|children|young/i.test(`${base.title} ${base.tags.join(' ')}`);
+  return String(base.level||'').toUpperCase().startsWith(level);
+}
+function renderKnowledgeBases(){
+  const grid=document.getElementById('knowledge-bases-grid');if(!grid)return;
+  const query=(document.getElementById('knowledge-base-search')?.value||'').toLowerCase().trim();
+  const list=allKnowledgeBases().filter(base=>kbMatchesLevel(base,activeKnowledgeBaseLevel)).filter(base=>{
+    if(!query)return true;
+    const hay=[base.title,base.subtitle,base.level,base.domain,...base.tags,...base.entries.map(item=>`${item.term} ${item.definition}`)].join(' ').toLowerCase();
+    return hay.includes(query);
+  });
+  const countEl=document.getElementById('knowledge-base-count');
+  if(countEl)countEl.textContent=list.length?`${list.length} packs · ${list.reduce((total,base)=>total+base.entries.length,0)} terms available offline`:'No packs match this filter';
+  if(!list.length){grid.innerHTML='<div class="kb-empty">No knowledge bases match this search. Import a JSON pack or clear the filter.</div>';return}
+  grid.innerHTML=list.map(base=>{
+    const entryCount=base.entries.length;
+    const tags=base.tags.slice(0,3).map(tag=>`<span>${esc(tag)}</span>`).join('');
+    const localLabel=base.local?'Local':'Built-in';
+    return `<article class="kb-card" style="--kb-accent:${esc(base.accent)}"><div class="kb-card-top"><div class="kb-card-icon" aria-hidden="true">${esc(base.icon)}</div><div><h3>${esc(base.title)}</h3><span class="kb-card-level">${esc(base.level)} · ${esc(base.domain||'TeachEd')}</span></div></div><p>${esc(base.subtitle||'Vocabulary, language focus and classroom prompts.')}</p><div class="kb-card-tags">${tags}</div><div class="kb-card-footer"><button class="btn sm lime" type="button" data-kb-action="use" data-kb-id="${esc(base.id)}">Use in tool</button>${base.local?'<button class="btn sm ghost" type="button" data-kb-action="remove" data-kb-id="'+esc(base.id)+'">Remove</button>':''}<span class="kb-card-source">${localLabel} · ${entryCount} terms</span></div></article>`;
+  }).join('');
+  grid.querySelectorAll('[data-kb-action]').forEach(button=>button.addEventListener('click',()=>{
+    const id=button.getAttribute('data-kb-id');
+    if(button.getAttribute('data-kb-action')==='remove')removeKnowledgeBase(id);else applyKnowledgeBase(id);
+  }));
+}
+function applyKnowledgeBase(id){
+  const base=allKnowledgeBases().find(item=>item.id===id);if(!base)return;
+  activeKnowledgeBaseId=base.id;
+  selectTool(base.defaultTool||'lesson-pack');
+  setTimeout(()=>{
+    const levelEl=document.getElementById('level'),topicEl=document.getElementById('topic'),vocabEl=document.getElementById('vocab'),sourceEl=document.getElementById('source');
+    if(levelEl&&[...levelEl.options].some(option=>option.value===base.level))levelEl.value=base.level;
+    if(topicEl)topicEl.value=base.title;
+    if(vocabEl)vocabEl.value=kbVocabText(base);
+    if(sourceEl)sourceEl.value=kbSourceText(base);
+    saveActiveDraft();
+    toast(`Knowledge base loaded: ${base.title}`);
+  },60);
+}
+function saveCurrentKnowledgeBase(){
+  if(!activeTool){toast('Choose a tool and fill its inputs first');return}
+  const suggested=(get('topic')||activeTool.title||'Local knowledge base').trim();
+  const title=window.prompt('Name this local knowledge base',suggested);
+  if(title===null)return;
+  const cleanTitle=title.trim();if(!cleanTitle){toast('Add a name for the knowledge base');return}
+  const vocabLines=lines(get('vocab')).filter(line=>!/^example\s*:/i.test(line));
+  const entries=vocabItems(vocabLines.join('\n')).slice(0,80).map(item=>({term:item.word,definition:item.def,translation:'',example:''}));
+  const tags=[activeTool.cat,...suggested.toLowerCase().split(/[^a-z0-9]+/).filter(word=>word.length>3).slice(0,5)];
+  const base=normaliseKnowledgeBase({id:`local-${Date.now().toString(36)}`,title:cleanTitle,subtitle:`${level()} · ${activeTool.title}`,level:level(),domain:'Teacher custom',icon:'LOCAL',accent:'#5b6cff',defaultTool:activeTool.id,tags,entries,grammar:'',prompts:[],facts:[],sourceText:get('source')},true);
+  if(!base){toast('Could not create this knowledge base');return}
+  const map=new Map(customKnowledgeBases().map(item=>[item.id,item]));map.set(base.id,base);writeJson(KNOWLEDGE_BASE_STORE,[...map.values()].slice(0,80));activeKnowledgeBaseId=base.id;renderKnowledgeBases();toast(`Saved local knowledge base: ${base.title}`);
+}
+function exportKnowledgeBases(){
+  const payload={format:'teached-knowledge-bases',version:1,exportedAt:new Date().toISOString(),bases:customKnowledgeBases()};
+  downloadText('teached-knowledge-bases.json',JSON.stringify(payload,null,2));
+  toast(customKnowledgeBases().length?'Custom knowledge bases exported':'No custom bases to export');
+}
+function importKnowledgeBases(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{
+    try{
+      const parsed=JSON.parse(reader.result);const incoming=Array.isArray(parsed)?parsed:parsed?.bases;
+      if(!Array.isArray(incoming))throw new Error('bad format');
+      const clean=incoming.map(item=>normaliseKnowledgeBase(item,true)).filter(Boolean).slice(0,80);
+      if(!clean.length)throw new Error('empty');
+      const map=new Map(customKnowledgeBases().map(item=>[item.id,item]));clean.forEach(item=>map.set(item.id,item));
+      writeJson(KNOWLEDGE_BASE_STORE,[...map.values()].slice(0,80));renderKnowledgeBaseLevels();renderKnowledgeBases();toast(`Imported ${clean.length} knowledge base${clean.length===1?'':'s'}`);
+    }catch{toast('Could not import this knowledge base file')}
+    event.target.value='';
+  };reader.readAsText(file);
+}
+function removeKnowledgeBase(id){
+  if(!confirm('Remove this local knowledge base?'))return;
+  writeJson(KNOWLEDGE_BASE_STORE,customKnowledgeBases().filter(item=>item.id!==id));
+  if(activeKnowledgeBaseId===id)activeKnowledgeBaseId='';
+  renderKnowledgeBases();toast('Knowledge base removed');
+}
+
 // ── Perf: in-memory favorites Set — avoids 51× localStorage reads per renderTools ──
 let _favSet = new Set(readJson(FAV_STORE, []));
 function favs(){return [..._favSet];}
@@ -1052,7 +1175,7 @@ async function generateSmart(){
     setToolBusy(false);
   }
 }
-function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()]};
+function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
   else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const tl=t.toLowerCase();const stageCards=[{title:'🎯 Lesson aims & objectives',text:'Topic: '+t+' · Level: '+lv+'\nEstimated duration: 60 min\n\nBy the end of this lesson, SWBAT:\n• Recognise and use the target vocabulary naturally in context\n• Identify gist, main ideas and specific details in the input\n• Complete controlled practice accurately (80%+ score target)\n• Communicate ideas on "'+tl+'" fluently for 2+ minutes\n\n📌 Key vocabulary: '+(ws.slice(0,6).join(', ')||'see vocab list')+'\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________'},{title:'🔥 Warm-up & lead-in (7 min)',text:'Option A — Word association (3 min)\nWrite "'+t+'" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2–3 unknown words from their lists.\n\nOption B — Two Truths and a Lie (4 min)\nSay 3 statements about '+tl+'  — students guess which is false. Then students do the same in pairs.\n\nOption C — Picture / image prompt (3 min)\nShow an image related to '+tl+'. Students describe what they see and predict the lesson topic.\n\n💡 Aim: activate prior knowledge + create curiosity.'},{title:'📖 Vocabulary presentation (8 min)',text:'Target words: '+(ws.slice(0,8).join(' · ')||'target vocabulary')+'.\n\nStep-by-step procedure:\n1. Context — show each word in a sentence (not isolated)\n2. Meaning — elicit, then confirm with a clear definition\n3. CCQ — ask 1–2 concept check questions per word\n4. Pronunciation — model → choral drill → individual drill\n5. Record — students write in vocab notebook: word / definition / example\n\n⏱ Timing: ~1 min per word. Don\'t rush — quality over quantity.\n💡 Use the Flashcards tool to create a drill activity.'},{title:'📄 Input & reading/listening (12 min)',text:'Procedure:\n\n1. PRE-TASK (2 min): Set gist question — "What is the main idea?"\n2. FIRST READ/LISTEN (3 min): Students find the answer to the gist question only.\n3. FEEDBACK (1 min): Quick whole-class check.\n4. SECOND READ/LISTEN (4 min): Detail questions —\n   a) Find three specific facts about '+tl+'.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer\'s/speaker\'s opinion.\n5. PEER CHECK (2 min): Compare answers in pairs before whole-class.\n\n💡 Differentiation: stronger students write a 2-sentence summary after step 4.'},{title:'✏️ Controlled practice (10 min)',text:'Activity type: gap-fill / matching / MCQ / error correction (choose one).\n\nProcedure:\n1. Demo one example together as a class.\n2. Students work individually (5 min). Remind them to use context clues.\n3. Peer check in pairs (2 min) — discuss any differences.\n4. Whole-class feedback (3 min) — address common errors.\n\nMonitoring tips:\n• Circulate — do NOT sit at your desk.\n• Note 2–3 errors anonymously for feedback stage.\n• Give quiet support to students who are stuck; avoid giving answers directly.\n\n✦ Fast finishers: write one more gap-fill sentence for a partner.'},{title:'🗣 Freer practice & production (12 min)',text:'Communicative task: "Discuss with your partner — '+['what do you personally think about','how has','what is your experience with','would you recommend'][Math.floor(Math.random()*4)]+' '+tl+'?"\n\nStructure the task:\n• 30 sec: individual think time (write 3 bullet points)\n• 3 min: pair discussion (both speak roughly equally)\n• 1 min: report back — "My partner said that…"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ 2 strong examples of language to praise\n❌ 2–3 errors to work on in feedback\n\n💡 If a pair finishes early: "Now disagree with each other — argue the opposite point."'},{title:'📋 Feedback & delayed error correction (5 min)',text:'Structure:\n1. PRAISE (1 min) — write 2 strong examples from student output on the board. Ask the class what is good about them.\n2. ERRORS (2 min) — write 2–3 anonymous errors. Students identify and correct as a class.\n3. LANGUAGE FOCUS (2 min) — clarify any remaining confusion about today\'s target language.\n\nAnonymous error board template:\n   ✗ "_______________"\n   ✓ "_______________" — because _______________\n\n📌 Note errors you heard — revisit them at the start of the NEXT lesson (great for recycling).'},{title:'📚 Homework (set in final 2 min)',text:'TASK: Write 80–100 words on the topic "'+t+'".\nUse at least 5 target words naturally.\n\nTopic prompt: Describe your own experience with '+tl+', your opinion, and one recommendation for others.\n\nDifferentiation:\n✦ Support (weaker): Use these starters —\n   "In my experience, '+tl+' is…"\n   "One thing I have noticed is…"\n   "I would suggest that…"\n✦ Extension (stronger): Add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check before submitting: vocabulary ☐ · opinion ☐ · spelling ☐'},{title:'🔄 Fast finishers & extension tasks',text:'If students finish early at any stage:\n\n📖 After vocabulary stage:\n→ Write a short paragraph using 5 target words. Make it surprising or funny.\n\n✏️ After controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\n🗣 After freer practice:\n→ "Now teach your partner — explain the key ideas as if they missed the lesson."\n\n🏆 Challenge task (top students):\n→ Find one real-world example of '+tl+' (news, video, website) and present it in 60 seconds at the start of the next lesson.\n\n📌 Extension tasks keep faster students engaged without disrupting the main pace.'},{title:'📊 Assessment & success criteria',text:'How will you know the lesson was successful?\n\n✅ Vocabulary: students can define/use '+Math.min(ws.length,5)+' target words without prompting.\n✅ Comprehension: students answer gist + 2 detail questions correctly.\n✅ Practice: 80% accuracy on the controlled exercise.\n✅ Production: students use target language for 90+ seconds in the speaking task.\n\nObservation checklist (teacher):\n☐ All students participated in the warm-up.\n☐ Vocabulary was drilled enough (3+ exposures).\n☐ Errors were corrected anonymously and constructively.\n☐ Homework was set with clear instructions and a deadline.\n\nNext lesson: revisit errors from the board + 5-min vocabulary quiz.'},{title:'🗒 Teacher notes & differentiation',text:'📌 TIMING ADJUSTMENTS:\n• Short class (45 min): cut freer practice to 8 min, skip extension.\n• Long class (90 min): double controlled practice + add a writing task.\n\n📌 DIFFERENTIATION:\n• Lower level: pre-teach vocabulary before class; provide sentence starters throughout.\n• Higher level: remove scaffolding, require longer production, add research task.\n• Mixed level: pair stronger + weaker for the speaking task; give different roles.\n\n📌 ADAPTING THE INPUT:\n• No text available? Use a short audio clip, image set, or infographic.\n• Text too hard? Simplify with the TeachEd Simplify tool first.\n\n📌 NEXT STEPS: revisit weak vocabulary → error correction board → homework feedback.'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
   else if(m==='worksheet'){const ws=wordsForCount(voc,n);const t=topic()||'English';const lv=level()||'B1';const tl=t.toLowerCase();const defs=makeDefinitions(items).slice(0,Math.min(ws.length,8));const shuffledWs=[...ws.slice(0,6)].sort(()=>Math.random()-.5);const wsCards=[{title:'📝 Student information',text:'Student name: ____________________   Date: __________\nClass: ____________________   Teacher: __________\nLevel: '+lv+'   Topic: '+t+'\n\n📌 Read all instructions carefully before you start.\n📌 Check your work when you finish each section.'},{title:'A. Vocabulary — match & define',text:'Part 1: Match each word with its meaning.\n\n'+ws.slice(0,6).map((w,i)=>`${i+1}. ${w}  → ___________________________`).join('\n')+'\n\nWord bank: '+shuffledWs.join(' · ')+'\n\nPart 2: Choose 2 words from above. Write your own sentence for each.\na) _______________________________________________\nb) _______________________________________________'},{title:'B. Vocabulary in context — gap fill',text:'Fill the gaps with the correct form of a word from section A.\n\n'+ws.slice(0,5).map((w,i)=>`${i+1}. Without a good understanding of _____, it is hard to make progress in ${tl}.`).join('\n')+'\n\n★ Challenge: Which sentence is closest to your own experience? Underline it and explain why.'},{title:'C. Reading comprehension',text:'Read the text carefully. Answer in full sentences where possible.\n\n1. Main idea: What is the text mainly about?\n   → ____________________________________________\n\n2. Detail A: Give one specific fact or statistic from the text.\n   → ____________________________________________\n\n3. Detail B: Give one example the writer uses.\n   → ____________________________________________\n\n4. Inference: What does the writer think about '+tl+'? How do you know?\n   → ____________________________________________\n\n5. Vocabulary: Find a word in the text that means "important" or "difficult".\n   → The word is: ___________  (line/paragraph: ___)'},{title:'D. Grammar in context',text:'Look at the target language in the text. Complete the tasks:\n\nTask 1: Find one example of the target grammar structure and write it here:\n   → ____________________________________________\n\nTask 2: Write two more examples using the same structure:\n   a) ____________________________________________\n   b) ____________________________________________\n\nTask 3: Write one INCORRECT version of your sentence b) — swap with a partner to correct each other\'s mistake:\n   ✗ ____________________________________________'},{title:'E. Speaking / discussion task',text:'Work with a partner. You have 5 minutes.\n\n🗣 Question 1: How does '+tl+' affect everyday life? Give a real example.\n🗣 Question 2: Do you think '+tl+' is important for your future? Why / why not?\n🗣 Question 3: What is one thing you would like to know more about '+tl+'?\n\nTry to use at least 3 words from Section A.\n\nUseful phrases:\n• "In my experience…"\n• "I think this is important because…"\n• "On the other hand…"'},{title:'F. Writing task',text:'Write 80–100 words on ONE of these prompts:\n\n✍️ Option 1 (opinion): "Is '+tl+' important in today\'s world? Give your opinion with at least 2 reasons."\n\n✍️ Option 2 (narrative): "Describe a time when '+tl+' made a difference to you or someone you know."\n\nChecklist before you finish:\n☐ I used at least 4 words from Section A.\n☐ My sentences are complete (subject + verb + idea).\n☐ I included my own opinion.\n☐ I checked my spelling and punctuation.'},{title:'G. Reflection — how did I do?',text:'Rate yourself honestly (✗ / ✦ / ✅):\n\nVocabulary: I can explain 4+ words without looking.           ___\nReading: I found the main idea and 2 details.                 ___\nGrammar: I formed the structure correctly.                    ___\nSpeaking: I spoke for 2+ minutes without stopping.           ___\nWriting: My paragraph is clear and uses target language.      ___\n\nMy strongest skill today: ________________________________\nWhat I need more practice with: ________________________________\nOne word I will definitely use this week: ________________________________'},{title:'🔑 Answer key & teacher notes',text:'Vocabulary:\n'+defs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n')+'\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min\n\n📌 Differentiation:\n  ✦ Weaker: give sentence starters for F; allow dictionary for A.\n  ✦ Stronger: write a paragraph response to Section E questions.'}];out.text=wsCards.map(c=>c.title+'\n'+c.text).join('\n\n');out.struct={boardKind:'cards',cards:wsCards,items:null,questions:null};}
@@ -1170,7 +1293,7 @@ function richWorksheetHtml(out,showAns){
   return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}${ttHubHasKey(out)?` · ${showAns?'Answer key':'Student copy'}`:''}</div></div><div class="tag">TeachEd</div></header><div class="tt-ws-list">${list}</div></article>`;
 }
 function toggleHubAnswers(){if(!lastOutput)return;lastOutput.showAnswers=lastOutput.showAnswers===false?true:false;renderResult(lastOutput);}
-function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button>${out.gameType?'<button class="btn sm lime" type="button" onclick="openPracticeGame()">Open practice game</button>':''}<button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${sheet}`}
+function renderResult(out){const showAns=out.showAnswers!==false;const keyBtn=ttHubHasKey(out)?`<button class="btn sm ghost" type="button" onclick="toggleHubAnswers()" title="Show or hide the answer key">${showAns?'🔑 Answers: on':'👁 Answers: off'}</button>`:'';const sheet=out.struct?richWorksheetHtml(out,showAns):worksheetHtml(out);const kbNote=out.knowledgeBaseTitle?`<div class="hint" style="margin:0 0 10px;">▣ Local knowledge base: <b>${esc(out.knowledgeBaseTitle)}</b></div>`:'';document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button>${keyBtn}<button class="btn sm ghost" type="button" onclick="editOutput()">Edit</button><button class="btn sm ghost" type="button" onclick="saveOutput()">Save</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">.txt</button><button class="btn sm ghost" type="button" onclick="downloadWord()">Word</button><button class="btn sm ghost" type="button" onclick="downloadPdf()">PDF</button><button class="btn sm pink" type="button" onclick="sendToBoard()">Add to Board</button><button class="btn sm pink" type="button" onclick="assignToStudents()">Assign to students</button>${out.gameType?'<button class="btn sm lime" type="button" onclick="openPracticeGame()">Open practice game</button>':''}<button class="btn sm pink" type="button" onclick="shareLink()">Share link</button></div>${out.aiGenerated?'<div class="hint" style="margin:0 0 10px;">✨ Generated with the TeachEd AI engine.</div>':''}${kbNote}${sheet}`}
 function worksheetHtml(out){const meta=`${out.level||'Mixed'} / ${(out.tags||[]).filter(Boolean).join(' / ')}`;const cardHtml=(out.cards&&out.cards.length&&!out.edited)?`<div class="worksheet-list">${out.cards.slice(0,60).map(c=>`<div class="worksheet-task"><b>${esc(c.a||c.word||c.name||'Item')}</b><br><span>${esc(c.b||c.def||c.note||(c.words?c.words.join(', '):''))}</span></div>`).join('')}</div>`:`<div class="worksheet-body">${esc(out.text||'')}</div>`;return `<article class="worksheet"><header class="worksheet-head"><div><div class="worksheet-title">${esc(out.title||'TeachEd Worksheet')}</div><div class="worksheet-meta">${esc(meta)}</div></div><div class="tag">TeachEd</div></header>${cardHtml}</article>`}
 function editOutput(){if(!lastOutput){toast('Generate something first');return;}const current=lastOutput.text||((lastOutput.cards||[]).map(c=>`${c.a||c.word||c.name||''} — ${c.b||c.def||c.note||''}`).join('\n'));const body=document.getElementById('result-body');const strip=body.querySelector('.action-strip');const ws=body.querySelector('.worksheet');if(ws)ws.remove();const existing=document.getElementById('tt-editor');if(existing)existing.remove();const editor=document.createElement('div');editor.id='tt-editor';editor.innerHTML=`<textarea id="tt-edit-area" style="width:100%;min-height:340px;padding:16px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">${esc(current)}</textarea><div class="hero-actions" style="margin-top:10px;"><button class="btn lime" type="button" onclick="saveEdit()">Save changes</button><button class="btn ghost" type="button" onclick="renderResult(lastOutput)">Cancel</button></div>`;body.appendChild(editor);document.getElementById('tt-edit-area').focus();}
 function saveEdit(){const ta=document.getElementById('tt-edit-area');if(!ta||!lastOutput)return;lastOutput.text=ta.value;lastOutput.edited=true;renderResult(lastOutput);toast('Changes saved — export or assign the edited version');}
@@ -1234,19 +1357,21 @@ function openPracticeGame(){
     gameContent:lastOutput.gameContent,
     level:lastOutput.level,
     tags:lastOutput.tags,
+    knowledgeBaseId:lastOutput.knowledgeBaseId||null,
+    knowledgeBaseTitle:lastOutput.knowledgeBaseTitle||'',
     createdAt:new Date().toISOString()
   }));
   location.href=practiceGameUrl(lastOutput.gameType)+'?from=tools';
 }
 
-function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const text=lastOutput.text||ttOutputPlainText(lastOutput);if(!text){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text,level:lastOutput.level,tags:lastOutput.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
+function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const text=lastOutput.text||ttOutputPlainText(lastOutput);if(!text){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text,level:lastOutput.level,tags:lastOutput.tags,knowledgeBaseId:lastOutput.knowledgeBaseId||null,knowledgeBaseTitle:lastOutput.knowledgeBaseTitle||'',createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
 function renderLibrary(){const grid=document.getElementById('library-grid');const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();const lib=readJson(TOOL_STORE,[]);const filtered=q?lib.filter(item=>`${item.title||''} ${item.text||''} ${(item.tags||[]).join(' ')}`.toLowerCase().includes(q)):lib;if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Create a draft and press Save.</div>';return}if(!filtered.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials match this search.</div>';return}grid.innerHTML=filtered.slice(0,32).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="reuseSaved('${item.id}')">Use again</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button><button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
 function viewSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;lastOutput=item;document.getElementById('workspace').classList.add('show');document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">Download .txt</button><button class="btn sm ghost" type="button" onclick="downloadHtmlOutput()">Download HTML</button><button class="btn sm pink" type="button" onclick="sendSavedToBoard('${item.id}')">Add to Board</button></div>${worksheetHtml(item)}`;document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}
 function copySaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)navigator.clipboard?.writeText(item.text||'').then(()=>toast('Copied'))}
-function reuseSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;if(item.toolId)selectTool(item.toolId);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');if(lvl&&item.level)lvl.value=item.level;if(top&&item.tags&&item.tags[1])top.value=item.tags[1];saveActiveDraft();toast('Loaded saved material setup')},40)}
+function reuseSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;if(item.knowledgeBaseId)activeKnowledgeBaseId=item.knowledgeBaseId;if(item.toolId)selectTool(item.toolId);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');if(lvl&&item.level)lvl.value=item.level;if(top&&item.tags&&item.tags[1])top.value=item.tags[1];saveActiveDraft();toast('Loaded saved material setup')},40)}
 function downloadSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)downloadText(`${slug(item.title)}.txt`,item.text||'')}
 function deleteSaved(id){writeJson(TOOL_STORE,readJson(TOOL_STORE,[]).filter(x=>x.id!==id));renderLibrary();toast('Deleted')}
-function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:item.title,text:item.text,level:item.level,tags:item.tags,createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
+function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:item.title,text:item.text,level:item.level,tags:item.tags,knowledgeBaseId:item.knowledgeBaseId||null,knowledgeBaseTitle:item.knowledgeBaseTitle||'',createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
 function exportLibrary(){const lib=readJson(TOOL_STORE,[]);downloadText('teachedos-teacher-tools-library.json',JSON.stringify(lib,null,2))}
 function importLibrary(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(reader.result);if(!Array.isArray(incoming))throw new Error('bad');const current=readJson(TOOL_STORE,[]);writeJson(TOOL_STORE,[...incoming,...current].slice(0,160));renderLibrary();toast('Library imported')}catch{toast('Could not import this file')}event.target.value=''};reader.readAsText(file)}
 function clearLibrary(){if(!confirm('Clear saved tool materials?'))return;writeJson(TOOL_STORE,[]);renderLibrary();toast('Library cleared')}
@@ -1341,7 +1466,7 @@ async function generateWithAI(){
   }catch(err){console.warn('[ai-generate]',err);const n=document.getElementById('tt-ai-improving');if(n)n.remove();toast('AI unavailable — showing a fast local draft you can edit');}
 }
 function aiResultToOutput(tool,arr,input){
-  const out={title:tool.title,type:tool.mode,text:'',cards:[],gameType:tool.game||null,gameContent:null,level:input.level,tags:[tool.cat,input.topic]};
+  const out={title:tool.title,type:tool.mode,text:'',cards:[],gameType:tool.game||null,gameContent:null,level:input.level,tags:[tool.cat,input.topic],...knowledgeBaseMeta()};
   const has=k=>arr.some(x=>x&&x[k]!=null);
   if(has('options')){
     out.text=arr.map((x,i)=>`${i+1}. ${x.text||x.question||''}\n`+(x.options||[]).map((o,j)=>`   ${String.fromCharCode(65+j)}) ${o}`).join('\n')+`\nAnswer: ${x.answer!=null?x.answer:''}`).join('\n\n');
@@ -1461,7 +1586,7 @@ function ttOutputPlainText(out){
 /* ── Assign generated material to students (hands off to Homework) ── */
 function assignToStudents(){
   if(!lastOutput){toast('Generate something first');return;}
-  sessionStorage.setItem('teachedos_tools_to_homework',JSON.stringify({title:lastOutput.title,instructions:ttOutputPlainText(lastOutput),level:lastOutput.level,tags:lastOutput.tags,createdAt:new Date().toISOString()}));
+  sessionStorage.setItem('teachedos_tools_to_homework',JSON.stringify({title:lastOutput.title,instructions:ttOutputPlainText(lastOutput),level:lastOutput.level,tags:lastOutput.tags,knowledgeBaseId:lastOutput.knowledgeBaseId||null,knowledgeBaseTitle:lastOutput.knowledgeBaseTitle||'',createdAt:new Date().toISOString()}));
   location.href='homework.html?from=teacher-tools';
 }
 
@@ -1472,7 +1597,7 @@ async function shareLink(){
   if(!token){toast('Sign in as a teacher to create share links');return;}
   toast('Creating share link…');
   try{
-    const r=await fetch(`${TT_API_BASE}/api/share`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({title:lastOutput.title,level:lastOutput.level,text:lastOutput.text,gameType:lastOutput.gameType,gameContent:lastOutput.gameContent,tags:lastOutput.tags})});
+    const r=await fetch(`${TT_API_BASE}/api/share`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({title:lastOutput.title,level:lastOutput.level,text:lastOutput.text,gameType:lastOutput.gameType,gameContent:lastOutput.gameContent,tags:lastOutput.tags,knowledgeBaseId:lastOutput.knowledgeBaseId||null,knowledgeBaseTitle:lastOutput.knowledgeBaseTitle||''})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Failed to create link');
     const url=`${location.origin}/share.html?t=${encodeURIComponent(d.token)}`;
@@ -1489,4 +1614,4 @@ function showShareBanner(url){
   body.insertBefore(div,body.firstChild);
 }
 
-renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();
+renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();renderKnowledgeBaseLevels();renderKnowledgeBases();

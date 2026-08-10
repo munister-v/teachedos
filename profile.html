@@ -257,7 +257,6 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .emoji-opt {
   font-size: 26px; padding: 8px; border-radius: 10px; cursor: pointer;
   transition: .15s; text-align: center; border: 2px solid transparent;
-}
 .emoji-opt:hover { background: var(--accent-2); }
 .emoji-opt.selected { border-color: var(--accent); background: var(--accent-3); }
 
@@ -493,8 +492,84 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-action-ic{display:none;}
 }
 </style>
+<style>
+/* Profile light workspace: the shared desktop harmony layer intentionally
+   uses a dark canvas for other app surfaces, but profile settings are a
+   form-heavy account page and need a calm, readable light surface. */
+body.profile-page,
+body.profile-page #layout,
+body.profile-page #main-content {
+  background: #F5F0E8 !important;
+  color: #1C1C1E !important;
+}
+body.profile-page #nav {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 max(14px, env(safe-area-inset-left)) !important;
+  gap: 2px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  flex-wrap: nowrap !important;
+  background: rgba(250,248,243,.96) !important;
+  border-bottom: 1px solid rgba(94,94,74,.14) !important;
+  box-shadow: 0 2px 14px rgba(58,58,46,.08) !important;
+  scrollbar-width: none;
+}
+body.profile-page #nav::-webkit-scrollbar { display: none; }
+body.profile-page #nav .nav-link {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 12px !important;
+  color: #3A3A2E !important;
+  font-weight: 700 !important;
+  flex: 0 0 auto;
+}
+body.profile-page #nav .nav-link:hover,
+body.profile-page #nav .nav-link:focus-visible {
+  background: rgba(200,230,50,.18) !important;
+  color: #1C1C1E !important;
+  outline: none;
+}
+body.profile-page #nav .nav-link.active {
+  background: rgba(200,230,50,.34) !important;
+  color: #1C1C1E !important;
+  box-shadow: inset 0 -2px 0 #7A8E00;
+}
+body.profile-page #nav .nav-logo-name { color: #1C1C1E !important; }
+body.profile-page #nav .nav-sep { background: rgba(94,94,74,.18) !important; }
+body.profile-page #nav .nav-user {
+  min-height: 40px;
+  flex: 0 0 auto;
+  color: #3A3A2E !important;
+  background: rgba(255,255,255,.8) !important;
+  border-color: rgba(94,94,74,.18) !important;
+}
+body.profile-page #nav .nav-user:focus-visible,
+body.profile-page .st-item:focus-visible,
+body.profile-page button:focus-visible,
+body.profile-page input:focus-visible,
+body.profile-page select:focus-visible,
+body.profile-page textarea:focus-visible {
+  outline: 3px solid rgba(122,142,0,.42);
+  outline-offset: 2px;
+}
+body.profile-page #sidebar-tabs,
+body.profile-page .st-item,
+body.profile-page .card,
+body.profile-page .stat-card,
+body.profile-page .board-card {
+  color: #1C1C1E;
+}
+body.profile-page #sidebar-tabs { background: transparent !important; }
+
+@media (max-width: 860px) {
+  body.profile-page { background: #F5F0E8 !important; }
+  body.profile-page #nav { display: none !important; }
+  body.profile-page #layout { background: transparent !important; }
+}
+</style>
 </head>
-<body>
+<body class="profile-page">
 
 <div id="page-loading"><div class="spinner"></div></div>
 <div id="toast"></div>
