@@ -77,7 +77,17 @@ rsync -a --delete --delete-excluded \
 ) || log "minify step error (continuing deploy)"
 
 systemctl restart teached-api.service
-systemctl is-active --quiet teached-api.service
-curl -fsS http://127.0.0.1:4000/health >/dev/null
+ready=0
+for _ in {1..20}; do
+  if systemctl is-active --quiet teached-api.service && curl -fsS http://127.0.0.1:4000/health >/dev/null; then
+    ready=1
+    break
+  fi
+  sleep 1
+done
+if [[ "$ready" != 1 ]]; then
+  systemctl --no-pager --full status teached-api.service || true
+  exit 1
+fi
 printf '%s\n' "$REMOTE" > "$MARKER"
 log "deployed $REMOTE OK; backup=$BACKUP_DIR"
