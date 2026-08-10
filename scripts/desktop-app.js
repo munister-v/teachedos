@@ -1499,9 +1499,36 @@ function showAuthOverlay() {
       display:flex;align-items:flex-start;justify-content:center;
       background:radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),radial-gradient(ellipse 58% 46% at 86% 78%, rgba(255,182,213,.18) 0%, transparent 60%),linear-gradient(160deg,#FFFFFF 0%,#FFF7FB 48%,#FDEBF4 100%);
       overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(20px,calc((100dvh - 620px)/2)) 16px max(20px,env(safe-area-inset-bottom,0px));
+      opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .24s cubic-bezier(.22,.61,.36,1),visibility 0s linear .24s;
     `;
     overlay.innerHTML = `
-      <div style="
+      <style id="os-auth-motion">
+        #os-auth-overlay.open{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
+        #os-auth-overlay .os-auth-card{opacity:0;transform:translateY(16px) scale(.975);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .34s cubic-bezier(.22,.61,.36,1)}
+        #os-auth-overlay.open .os-auth-card{opacity:1;transform:none}
+        #os-auth-overlay.open .os-auth-logo{animation:osAuthLogoIn .42s cubic-bezier(.22,.61,.36,1) both}
+        #os-auth-overlay .os-auth-field{opacity:0;transform:translateY(8px)}
+        #os-auth-overlay.open .os-auth-field{animation:osAuthFieldIn .28s cubic-bezier(.22,.61,.36,1) both}
+        #os-auth-overlay.open .os-auth-field:nth-child(2){animation-delay:.045s}
+        #os-auth-overlay.open .os-auth-field:nth-child(3){animation-delay:.09s}
+        #os-auth-overlay .os-auth-error[style*="display: block"]{animation:osAuthErrorIn .22s cubic-bezier(.22,.61,.36,1) both}
+        #os-auth-overlay .os-auth-btn{transition:filter .15s,transform .12s,box-shadow .15s,background .2s,color .2s}
+        #os-auth-overlay .os-auth-btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 10px 36px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.08)!important}
+        #os-auth-overlay .os-auth-btn:active:not(:disabled){transform:scale(.98)}
+        #os-auth-overlay .os-auth-btn.is-success{background:linear-gradient(140deg,#285a3a,#3b7f4e)!important;color:#eaffc6!important}
+        #os-auth-overlay .os-auth-card.is-success{transform:translateY(-2px) scale(.99)}
+        #os-auth-overlay .os-auth-error{line-height:1.4}
+        #os-auth-overlay .os-auth-logo{will-change:transform}
+        @keyframes osAuthLogoIn{from{opacity:0;transform:translateY(-7px) scale(.86)}to{opacity:1;transform:none}}
+        @keyframes osAuthFieldIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+        @keyframes osAuthErrorIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+        @media(prefers-reduced-motion:reduce){
+          #os-auth-overlay,#os-auth-overlay .os-auth-card{transition:none!important}
+          #os-auth-overlay.open .os-auth-logo,#os-auth-overlay.open .os-auth-field,#os-auth-overlay .os-auth-error[style*="display: block"]{animation:none!important}
+        }
+      </style>
+      <div class="os-auth-card" style="
         background:rgba(245,243,240,0.90);
         backdrop-filter:blur(40px) saturate(2);-webkit-backdrop-filter:blur(40px) saturate(2);
         border-radius:28px;
@@ -1515,14 +1542,14 @@ function showAuthOverlay() {
       ">
         <div style="text-align:center;margin-bottom:28px;">
           <div style="margin-bottom:12px;">
-            <img src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
+            <img class="os-auth-logo" src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
           </div>
           <div style="font-size:2rem;font-weight:900;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:6px;">
             <span style="color:#0E0E10;">Teach</span><span style="color:#EC2D8C;font-weight:900;">Ed</span>
           </div>
           <div id="os-auth-sub" style="font-size:13px;color:#5A5A4A;margin-top:0;font-weight:600;letter-spacing:.005em;">Sign in to your workspace</div>
         </div>
-        <div id="os-auth-err" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
+        <div id="os-auth-err" class="os-auth-error" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-google-area" style="display:none;margin-bottom:18px;">
           <div id="os-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#9A9A8A;font-size:12px;font-weight:700;letter-spacing:.04em;">
@@ -1545,7 +1572,7 @@ function showAuthOverlay() {
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
+        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
         <style>@keyframes _osSpin{to{transform:rotate(360deg)}}</style>
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
           <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
@@ -1563,10 +1590,13 @@ function showAuthOverlay() {
   // Register/Forgot state, role picker and half-filled fields left over from
   // the last time the overlay was opened.
   _osAuthMode = 'login';
+  _osAuthNavigating = false;
+  overlay.classList.remove('open', 'is-success');
+  const _oCard = overlay.querySelector('.os-auth-card'); if (_oCard) _oCard.classList.remove('is-success');
   const _oErr = document.getElementById('os-auth-err'); if (_oErr) _oErr.style.display = 'none';
   const _oTog = document.getElementById('os-toggle-link'); if (_oTog) _oTog.onclick = toggleOsAuth;
   renderOsAuthFields();
-  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('open'));
 }
 
 /* ─── Google Sign-In (GIS) ─── */
@@ -1675,17 +1705,28 @@ async function handleGoogleCredential(response) {
   }
 }
 function _applyOsAuthSuccess(d) {
+  if (_osAuthNavigating) return;
+  _osAuthNavigating = true;
   localStorage.setItem('teachedos_token', d.token);
   localStorage.setItem('teachedos_role', d.user.role);
   if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
   if (d.isNewUser) markOnboardingPending(d.user);
   // Reload so checkAuthAndRoute + live-widgets IIFE run fresh with the new token.
   // Students go straight to student.html; teachers reload index.html.
-  location.href = d.user.role === 'student' ? 'student.html' : 'index.html';
+  const overlay = document.getElementById('os-auth-overlay');
+  const card = overlay?.querySelector('.os-auth-card');
+  const btn = document.getElementById('os-auth-btn');
+  const lbl = document.getElementById('os-btn-lbl');
+  if (overlay) overlay.classList.add('is-success');
+  if (card) card.classList.add('is-success');
+  if (btn) { btn.classList.add('is-success'); btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
+  if (lbl) lbl.textContent = 'Opening workspace…';
+  setTimeout(() => { location.href = d.user.role === 'student' ? 'student.html' : 'index.html'; }, 300);
 }
 
 let _osAuthMode = 'login';
 let _osRole = 'teacher';
+let _osAuthNavigating = false;
 
 function selectOsRole(role) {
   _osRole = role;
@@ -1743,9 +1784,9 @@ function renderOsAuthFields() {
   const focusFn = "this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'";
   const blurFn  = "this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'";
   f.innerHTML =
-    (!isLogin ? `<div style="${WRAP_S}"><label for="os-af-name" style="${LABEL_S}">Your name</label><input id="os-af-name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
-    `<div style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
-     <div style="${WRAP_S}"><label for="os-af-pass" style="${LABEL_S}">Password</label><input id="os-af-pass" type="password" maxlength="72" aria-describedby="os-password-help" placeholder="${isLogin?'Password':'Password (10+ characters)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP_S}" onfocus="${focusFn}" onblur="${blurFn}">
+    (!isLogin ? `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-name" style="${LABEL_S}">Your name</label><input id="os-af-name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
+    `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
+     <div class="os-auth-field" style="${WRAP_S}"><label for="os-af-pass" style="${LABEL_S}">Password</label><input id="os-af-pass" type="password" maxlength="72" aria-describedby="os-password-help" placeholder="${isLogin?'Password':'Password (10+ characters)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP_S}" onfocus="${focusFn}" onblur="${blurFn}">
        <button type="button" style="${EYE_S}" onclick="_osEyeToggle(this)" aria-label="Show password">${EYE_SVG}</button></div>`;
   if (!isLogin) {
     const help = document.createElement('p');
@@ -1766,6 +1807,7 @@ function renderOsAuthFields() {
 }
 
 function toggleOsAuth() {
+  if (_osAuthNavigating) return;
   _osAuthMode = _osAuthMode === 'login' ? 'register' : 'login';
   document.getElementById('os-auth-err').style.display='none';
   document.getElementById('os-forgot-row').style.display = _osAuthMode==='login' ? '' : 'none';
@@ -1773,6 +1815,7 @@ function toggleOsAuth() {
 }
 
 function startForgotPassword() {
+  if (_osAuthNavigating) return;
   _osAuthMode = 'forgot';
   const sub = document.getElementById('os-auth-sub');
   const btn = document.getElementById('os-auth-btn');
@@ -1781,7 +1824,13 @@ function startForgotPassword() {
   const togLink = document.getElementById('os-toggle-link');
   const err = document.getElementById('os-auth-err');
   if (sub) sub.textContent = 'Reset your password';
-  if (btn) { btn.textContent = 'Send reset link'; btn.onclick = submitForgotPassword; }
+  if (btn) {
+    btn.innerHTML = '<span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Send reset link</span>';
+    btn.onclick = submitForgotPassword;
+    btn.disabled = false;
+    btn.classList.remove('loading', 'is-success');
+    btn.removeAttribute('aria-busy');
+  }
   if (row) row.style.display = 'none';
   if (tog) tog.textContent = 'Remember your password?';
   if (togLink) {
@@ -1795,8 +1844,10 @@ function startForgotPassword() {
   }
   err.style.display = 'none';
   const f = document.getElementById('os-auth-fields');
+  const WRAP_S = 'position:relative;margin-bottom:12px;';
+  const LABEL_S = 'display:block;margin:0 0 5px;color:#5A5A4A;font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;';
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = `<label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.innerHTML = `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });
 }
 
@@ -1810,7 +1861,9 @@ async function submitForgotPassword() {
     return;
   }
   errEl.style.display = 'none';
-  btn.disabled = true; btn.textContent = 'Sending…';
+  btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.classList.add('loading');
+  const btnLbl = document.getElementById('os-btn-lbl'); if (btnLbl) btnLbl.textContent = 'Sending…';
+  const spinEl = document.getElementById('os-btn-spinner'); if (spinEl) spinEl.style.display = 'block';
   try {
     await fetch(API_BASE + '/api/auth/forgot-password', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email})
@@ -1819,13 +1872,16 @@ async function submitForgotPassword() {
     errEl.style.color = '#179955';
     errEl.textContent = '✓ If that email is registered, a reset link is on its way. Check your inbox.';
     errEl.style.display = 'block';
-    btn.textContent = 'Sent';
+    if (btnLbl) btnLbl.textContent = 'Sent';
+    btn.classList.remove('loading'); btn.classList.add('is-success'); btn.removeAttribute('aria-busy');
     document.getElementById('os-auth-fields').innerHTML = '';
   } catch {
     errEl.style.color = '#d73333';
     errEl.textContent = 'Something went wrong. Please try again.';
     errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Send reset link';
+    btn.disabled = false; btn.classList.remove('loading'); btn.removeAttribute('aria-busy');
+    if (spinEl) spinEl.style.display = 'none';
+    if (btnLbl) btnLbl.textContent = 'Send reset link';
   }
 }
 

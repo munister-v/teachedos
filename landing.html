@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=271">
+<link rel="manifest" href="manifest.json?v=273">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd — lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -1611,7 +1611,9 @@ html,html.auth-ready{
   opacity:1!important;
   scroll-behavior:auto!important;
 }
-*,*::before,*::after{
+*:not(#lp-auth):not(#lp-auth *),
+*:not(#lp-auth):not(#lp-auth *)::before,
+*:not(#lp-auth):not(#lp-auth *)::after{
   animation:none!important;
   transition:none!important;
   filter:none!important;
@@ -2529,11 +2531,11 @@ section{scroll-margin-top:64px;}
 </div>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css">
+<link rel="stylesheet" href="styles/auth.css?v=273">
 <style>
 /* Landing-page auth: map old lp-* classes → auth.css tokens */
-#lp-auth { position:fixed;inset:0;z-index:9999;display:none; }
-#lp-auth.open { display:flex; }
+#lp-auth { position:fixed;inset:0;z-index:9999;display:flex;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .24s cubic-bezier(.22,.61,.36,1),visibility 0s linear .24s; }
+#lp-auth.open { visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s; }
 /* Reuse auth-overlay backdrop on the #lp-auth element itself */
 #lp-auth { align-items:center;justify-content:center;padding:20px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),
@@ -2544,25 +2546,36 @@ section{scroll-margin-top:64px;}
 .lp-inp-wrap .auth-inp:not([type="password"]) { padding-right:16px; }
 .lp-inp-wrap.has-toggle .auth-eye { top:39px; }
 </style>
-<style id="landing-static-auth-performance">
-#lp-auth,
-#lp-auth::before,
-#lp-auth::after,
-#lp-auth *{
-  animation:none!important;
-  transition:none!important;
-  filter:none!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-  box-shadow:none!important;
+<style id="landing-auth-motion">
+/* A restrained, stateful entrance: the modal should feel like part of the app,
+   not like a hard page swap. Keep transforms/opacity GPU-friendly. */
+#lp-auth .auth-card{
+  opacity:0;
+  transform:translateY(16px) scale(.975);
+  transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .34s cubic-bezier(.22,.61,.36,1),box-shadow .34s ease;
 }
-#lp-auth{background:#242126!important;}
-#lp-auth .auth-card{transform:none!important;}
-#lp-auth .auth-role:hover,
-#lp-auth .auth-btn:hover,
-#lp-auth .auth-btn:active{transform:none!important;}
-#lp-auth .auth-btn-spinner,#lp-auth .auth-spinner{display:none!important;}
-#lp-auth :focus-visible{outline:3px solid #CDF24F!important;outline-offset:3px!important;}
+#lp-auth.open .auth-card{opacity:1;transform:none;}
+#lp-auth.open .auth-logo{animation:lp-auth-logo-in .42s cubic-bezier(.34,1.56,.64,1) both;}
+#lp-auth .auth-field-wrap{
+  opacity:0;
+  transform:translateY(8px);
+}
+#lp-auth.open .auth-field-wrap{animation:lp-auth-field-in .28s cubic-bezier(.22,.61,.36,1) both;}
+#lp-auth.open .auth-field-wrap:nth-child(2){animation-delay:.035s;}
+#lp-auth.open .auth-field-wrap:nth-child(3){animation-delay:.07s;}
+#lp-auth.open .auth-field-wrap:nth-child(4){animation-delay:.105s;}
+#lp-auth .auth-err[style*="display: block"]{animation:lp-auth-alert-in .24s cubic-bezier(.22,.61,.36,1) both;}
+#lp-auth .auth-btn{transition:filter .15s,transform .12s,box-shadow .18s,background .18s,color .18s;}
+#lp-auth .auth-btn.success{background:#168447;color:#fff;box-shadow:0 8px 24px rgba(22,132,71,.25);}
+#lp-auth.is-success .auth-card{transform:translateY(-2px) scale(.99);}
+#lp-auth :focus-visible{outline:3px solid rgba(141,184,0,.72);outline-offset:3px;}
+@keyframes lp-auth-logo-in{from{opacity:0;transform:translateY(-8px) scale(.82)}to{opacity:1;transform:none}}
+@keyframes lp-auth-field-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes lp-auth-alert-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  #lp-auth,#lp-auth .auth-card,#lp-auth .auth-field-wrap{transition:none!important;animation:none!important;transform:none!important;opacity:1!important;}
+  #lp-auth:not(.open){opacity:0!important;visibility:hidden!important;}
+}
 </style>
 <div id="lp-auth" role="dialog" aria-modal="true" aria-label="Sign in to TeachEd">
   <div class="auth-card">
@@ -2626,6 +2639,7 @@ window.toggleFaq = function(trigger){
   let mode = 'login';     // 'login' | 'register' | 'forgot'
   let role = 'teacher';
   let gsiInit = false, gsiClientId = null;
+  let authNavigating = false;
 
   const $ = id => document.getElementById(id);
   const goApp = r => { location.href = (r === 'student') ? 'student.html' : 'index.html'; };
@@ -2638,12 +2652,33 @@ window.toggleFaq = function(trigger){
     } catch {}
   }
 
+  function clearAuthMessage(){
+    const err = $('lp-auth-err');
+    if (!err) return;
+    err.style.display = 'none';
+    err.style.color = '';
+    err.style.background = '';
+    err.style.borderColor = '';
+  }
+
   function applySuccess(d){
     localStorage.setItem('teachedos_token', d.token);
     localStorage.setItem('teachedos_role', d.user.role);
     if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
     if (d.isNewUser) markOnboardingPending(d.user);
-    goApp(d.user.role);
+    authNavigating = true;
+    const overlay = $('lp-auth');
+    const btn = $('lp-auth-submit');
+    const lbl = btn?.querySelector('.auth-btn-lbl');
+    if (overlay) overlay.classList.add('is-success');
+    if (btn){
+      btn.classList.remove('loading');
+      btn.classList.add('success');
+      btn.disabled = true;
+      btn.setAttribute('aria-busy','true');
+    }
+    if (lbl) lbl.textContent = 'Opening workspace…';
+    window.setTimeout(() => goApp(d.user.role), 300);
   }
 
   window.openAuth = function(m){
@@ -2651,13 +2686,14 @@ window.toggleFaq = function(trigger){
     const tok = localStorage.getItem('teachedos_token');
     if (tok) { goApp(localStorage.getItem('teachedos_role')); return; }
     mode = (m === 'register') ? 'register' : 'login';
-    const err = $('lp-auth-err'); if (err){ err.style.display='none'; err.style.color=''; }
+    clearAuthMessage();
     renderFields();
     $('lp-auth').classList.add('open');
     document.body.style.overflow = 'hidden';
     setupGoogle();
   };
   window.closeAuth = function(){
+    if (authNavigating) return;
     $('lp-auth').classList.remove('open');
     document.body.style.overflow = '';
   };
@@ -2688,7 +2724,7 @@ window.toggleFaq = function(trigger){
 
   function makeField(id, type, placeholder, autocomplete, label, showPasswordHelp){
     const isPass = type === 'password';
-    return `<div class="lp-inp-wrap${isPass?' has-toggle':''}">
+    return `<div class="auth-field-wrap lp-inp-wrap${isPass?' has-toggle':''}">
       <label class="auth-field-label" for="${id}">${label}</label>
       <input class="auth-inp" id="${id}" type="${type}" maxlength="${type==='email'?'254':type==='password'?'72':type==='text'?'120':''}" inputmode="${type==='email'?'email':''}" autocapitalize="${type==='email'?'none':''}" autocorrect="${type==='email'?'off':''}" spellcheck="false" placeholder="${placeholder}" autocomplete="${autocomplete}">
       ${isPass ? `<button type="button" class="auth-eye" onclick="_lpToggleEye('${id}',this)" aria-label="Show password">${EYE_SVG}</button>` : ''}
@@ -2705,7 +2741,7 @@ window.toggleFaq = function(trigger){
   }
   window.toggleAuthMode = function(){
     mode = (mode === 'login') ? 'register' : 'login';
-    const err = $('lp-auth-err'); if (err) err.style.display='none';
+    clearAuthMessage();
     renderFields();
   };
 
@@ -2715,7 +2751,7 @@ window.toggleFaq = function(trigger){
     const btn = $('lp-auth-submit');
     const lbl = btn.querySelector('.auth-btn-lbl');
     if (lbl) lbl.textContent = isLogin ? 'Sign in' : 'Create account';
-    btn.classList.remove('loading'); btn.disabled = false;
+    btn.classList.remove('loading','success'); btn.disabled = false; btn.setAttribute('aria-busy','false');
     btn.onclick = submitAuth;
     $('lp-role-row').style.display   = isLogin ? 'none' : 'block';
     $('lp-forgot-row').style.display = isLogin ? '' : 'none';
@@ -2747,7 +2783,7 @@ window.toggleFaq = function(trigger){
     if (isReg && pass.length < 10){ err.textContent='Password must be at least 10 characters.'; err.style.display='block'; return; }
     if (pass.length > 72){ err.textContent='Password is too long. Use 72 characters or fewer.'; err.style.display='block'; return; }
     err.style.display='none';
-    btn.classList.add('loading'); btn.disabled = true;
+    btn.classList.add('loading'); btn.disabled = true; btn.setAttribute('aria-busy','true');
     try{
       const endpoint = isReg ? '/api/auth/register' : '/api/auth/login';
       const body = isReg ? {email,password:pass,name,role} : {email,password:pass};
@@ -2758,7 +2794,7 @@ window.toggleFaq = function(trigger){
       applySuccess(d);
     }catch(e){
       err.textContent = e.message; err.style.display='block';
-      btn.classList.remove('loading'); btn.disabled = false;
+      btn.classList.remove('loading'); btn.disabled = false; btn.setAttribute('aria-busy','false');
     }
   };
 
@@ -2768,14 +2804,14 @@ window.toggleFaq = function(trigger){
     $('lp-role-row').style.display = 'none';
     $('lp-forgot-row').style.display = 'none';
     $('lp-google-area').style.display = 'none';
-    const err = $('lp-auth-err'); err.style.display='none';
+    clearAuthMessage();
     $('lp-toggle-text').textContent = 'Remember your password?';
     const link = $('lp-toggle-link'); link.textContent = 'Sign in';
     link.onclick = () => { mode='login'; renderFields(); setupGoogle(); };
     const btn = $('lp-auth-submit');
     const lbl = btn.querySelector('.auth-btn-lbl');
     if(lbl) lbl.textContent = 'Send reset link';
-    btn.classList.remove('loading'); btn.disabled = false;
+    btn.classList.remove('loading','success'); btn.disabled = false; btn.setAttribute('aria-busy','false');
     btn.onclick = submitForgot;
     $('lp-auth-fields').innerHTML = makeField('lp-af-email','email','you@example.com','email','Email address');
     $('lp-af-email').addEventListener('keydown', e => { if (e.key==='Enter') submitForgot(); });
@@ -2789,7 +2825,7 @@ window.toggleFaq = function(trigger){
       err.style.color='#c62828'; err.textContent='Please enter a valid email address.'; err.style.display='block'; return;
     }
     err.style.display='none';
-    btn.classList.add('loading'); btn.disabled=true;
+    btn.classList.add('loading'); btn.disabled=true; btn.setAttribute('aria-busy','true');
     const lbl = btn.querySelector('.auth-btn-lbl');
     try{
       await fetch(API + '/api/auth/forgot-password', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email}) });
@@ -2797,11 +2833,11 @@ window.toggleFaq = function(trigger){
       err.textContent = '✓ If that email is registered, a reset link is on its way.';
       err.style.display='block';
       if(lbl) lbl.textContent='Sent ✓';
-      btn.classList.remove('loading');
+      btn.classList.remove('loading'); btn.setAttribute('aria-busy','false');
       $('lp-auth-fields').innerHTML='';
     }catch{
       err.style.color='#c62828'; err.textContent='Something went wrong. Please try again.';
-      err.style.display='block'; btn.classList.remove('loading'); btn.disabled=false;
+      err.style.display='block'; btn.classList.remove('loading'); btn.disabled=false; btn.setAttribute('aria-busy','false');
     }
   }
 
