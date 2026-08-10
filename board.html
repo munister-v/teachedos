@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=266">
+<link rel="manifest" href="manifest.json?v=267">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,10 +16,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=266">
-<link rel="stylesheet" href="styles/mobile.css?v=266">
-<link rel="stylesheet" href="styles/harmony.css?v=266">
-<link rel="stylesheet" href="styles/unify.css?v=266">
+<link rel="stylesheet" href="styles/board.css?v=267">
+<link rel="stylesheet" href="styles/mobile.css?v=267">
+<link rel="stylesheet" href="styles/harmony.css?v=267">
+<link rel="stylesheet" href="styles/unify.css?v=267">
 </head>
 <body class="board-page">
 
@@ -1108,25 +1108,26 @@ polite request</textarea>
     <div id="auth-role-row" style="display:none;margin-bottom:14px;">
       <div style="font-size:10px;font-weight:800;color:#7A7A6A;font-family:var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')">
+        <button type="button" class="auth-role-btn active" data-role="teacher" onclick="selectAuthRole('teacher')" aria-pressed="true">
           <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
           <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
           <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create boards &amp; courses</div>
-        </div>
-        <div class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')">
+        </button>
+        <button type="button" class="auth-role-btn" data-role="student" onclick="selectAuthRole('student')" aria-pressed="false">
           <div style="font-size:1.7rem;line-height:1;margin-bottom:4px;">🎓</div>
           <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
           <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Follow &amp; collaborate</div>
-        </div>
+        </button>
       </div>
     </div>
     <div id="auth-fields"></div>
-    <button id="auth-submit" onclick="submitAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:6px;transition:filter .15s,transform .12s;letter-spacing:-.01em;box-shadow:0 6px 26px rgba(14,14,16,.26),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+    <button id="auth-submit" type="submit" aria-describedby="auth-security-note" style="width:100%;min-height:48px;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1a1a1a,#2D2D2D);color:#C8E632;font-family:var(--font);font-weight:800;font-size:1rem;cursor:pointer;margin-top:6px;transition:filter .15s,transform .12s;letter-spacing:-.01em;box-shadow:0 6px 26px rgba(14,14,16,.26),inset 0 1px 0 rgba(255,255,255,.08);">Sign in</button>
+    <p class="auth-security-note" id="auth-security-note">Protected sign-in · you can end active sessions from your profile.</p>
     <div style="text-align:center;margin-top:16px;font-size:.85rem;color:#5A5A4A;font-weight:500;">
       <span id="auth-toggle-text">Don't have an account?</span>
-      <span onclick="toggleAuthMode()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;text-decoration:underline;text-underline-offset:2px;" id="auth-toggle-link">Register</span>
+      <button type="button" onclick="toggleAuthMode()" style="color:#1C1C1E;font:inherit;font-weight:800;cursor:pointer;margin-left:4px;padding:0;border:0;background:transparent;text-decoration:underline;text-underline-offset:2px;" id="auth-toggle-link">Register</button>
     </div>
-    <button type="button" aria-label="Close sign-in" onclick="closeAuthModal()" style="border:none;position:absolute;top:16px;right:16px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</button>
+    <button type="button" aria-label="Close sign-in" onclick="closeAuthModal()" style="border:none;position:absolute;top:16px;right:16px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(14,14,16,.07);font-size:17px;cursor:pointer;color:#3A3A40;line-height:1;transition:background .12s;">×</button>
   </div>
 </div>
 
@@ -1722,11 +1723,11 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=266"></script>
-<script src="scripts/board-app.js?v=266"></script>
-<script src="js/board-vocab.js?v=266"></script>
-<script src="js/board-reveal.js?v=266"></script>
-<script src="js/teacher-tool-board-composer.js?v=266"></script>
+<script src="js/teacher-tools-data.js?v=267"></script>
+<script src="scripts/board-app.js?v=267"></script>
+<script src="js/board-vocab.js?v=267"></script>
+<script src="js/board-reveal.js?v=267"></script>
+<script src="js/teacher-tool-board-composer.js?v=267"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1734,7 +1735,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=266" defer></script>
+<script src="pwa-boot.js?v=267" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1775,11 +1776,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=266"></script>
-<script src="scripts/nav-boost.js?v=266" defer></script>
-<script src="scripts/mobile-perf.js?v=266" defer></script>
-<script src="scripts/mobile-nav.js?v=266"></script>
-<script src="scripts/mobile-zoom-guard.js?v=266" defer></script>
+<script src="pwa.js?v=267"></script>
+<script src="scripts/nav-boost.js?v=267" defer></script>
+<script src="scripts/mobile-perf.js?v=267" defer></script>
+<script src="scripts/mobile-nav.js?v=267"></script>
+<script src="scripts/mobile-zoom-guard.js?v=267" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

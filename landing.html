@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=266">
+<link rel="manifest" href="manifest.json?v=267">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd — lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -29,7 +29,7 @@
 <meta name="twitter:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ games.">
 <meta name="twitter:image" content="https://teached.tech/og-cover.png">
 
-<link rel="stylesheet" href="styles/fonts.css?v=266">
+<link rel="stylesheet" href="styles/fonts.css?v=267">
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -687,7 +687,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=266">
+<link rel="stylesheet" href="styles/mobile.css?v=267">
 
 <!-- ═══════════════════ REDESIGN 2026 · light minimal (overrides above) ═══════════════════ -->
 <style>
@@ -2510,16 +2510,17 @@ body::before{
 /* lp-inp wraps are injected by JS — override padding-right for non-password */
 .lp-inp-wrap { position:relative;margin-bottom:11px; }
 .lp-inp-wrap .auth-inp:not([type="password"]) { padding-right:16px; }
+.lp-inp-wrap.has-toggle .auth-eye { top:39px; }
 </style>
 <div id="lp-auth" role="dialog" aria-modal="true" aria-label="Sign in to TeachEd">
   <div class="auth-card">
-    <button class="auth-close" type="button" onclick="closeAuth()" aria-label="Close">×</button>
+    <button class="auth-close" type="button" onclick="closeAuth()" aria-label="Close sign-in">×</button>
     <div class="auth-head">
       <img class="auth-logo" src="logo-sm.png" alt="TeachEd">
       <div class="auth-title">Teach<em>Ed</em></div>
       <div class="auth-sub" id="lp-auth-sub">Sign in to your workspace</div>
     </div>
-    <div class="auth-err" id="lp-auth-err"></div>
+    <div class="auth-err" id="lp-auth-err" role="alert" aria-live="assertive"></div>
     <div class="auth-google-area" id="lp-google-area">
       <div class="auth-google-btn" id="lp-google-btn"></div>
       <div class="auth-or"><span class="auth-or-line"></span>OR<span class="auth-or-line"></span></div>
@@ -2527,16 +2528,16 @@ body::before{
     <div id="lp-role-row" style="display:none;margin-bottom:16px;">
       <div class="auth-role-lbl">I am a…</div>
       <div class="auth-role-grid">
-        <div class="auth-role sel" id="lp-role-teacher" onclick="selectRole('teacher')">
+        <button type="button" class="auth-role sel" id="lp-role-teacher" onclick="selectRole('teacher')" aria-pressed="true">
           <div class="auth-role-ic">🧑‍🏫</div>
           <div class="auth-role-name">Teacher</div>
           <div class="auth-role-desc">Create &amp; manage</div>
-        </div>
-        <div class="auth-role" id="lp-role-student" onclick="selectRole('student')">
+        </button>
+        <button type="button" class="auth-role" id="lp-role-student" onclick="selectRole('student')" aria-pressed="false">
           <div class="auth-role-ic">🎓</div>
           <div class="auth-role-name">Student</div>
           <div class="auth-role-desc">Learn &amp; progress</div>
-        </div>
+        </button>
       </div>
     </div>
     <div id="lp-auth-fields"></div>
@@ -2612,6 +2613,8 @@ window.toggleFaq = function(trigger){
     role = r;
     $('lp-role-teacher').classList.toggle('sel', r==='teacher');
     $('lp-role-student').classList.toggle('sel', r==='student');
+    $('lp-role-teacher').setAttribute('aria-pressed', r==='teacher' ? 'true' : 'false');
+    $('lp-role-student').setAttribute('aria-pressed', r==='student' ? 'true' : 'false');
   };
 
   // Eye toggle for password fields
@@ -2621,6 +2624,8 @@ window.toggleFaq = function(trigger){
     inp.type = showing ? 'password' : 'text';
     btn.querySelectorAll('.eye-open').forEach(el => el.style.display = showing ? '' : 'none');
     btn.querySelectorAll('.eye-closed').forEach(el => el.style.display = showing ? 'none' : '');
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    btn.setAttribute('aria-pressed', showing ? 'false' : 'true');
   };
 
   const EYE_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2629,12 +2634,22 @@ window.toggleFaq = function(trigger){
     <path class="eye-closed" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" style="display:none"/>
   </svg>`;
 
-  function makeField(id, type, placeholder, autocomplete){
+  function makeField(id, type, placeholder, autocomplete, label, showPasswordHelp){
     const isPass = type === 'password';
     return `<div class="lp-inp-wrap${isPass?' has-toggle':''}">
-      <input class="auth-inp" id="${id}" type="${type}" inputmode="${type==='email'?'email':''}" autocapitalize="${type==='email'?'none':''}" autocorrect="${type==='email'?'off':''}" spellcheck="false" placeholder="${placeholder}" autocomplete="${autocomplete}">
+      <label class="auth-field-label" for="${id}">${label}</label>
+      <input class="auth-inp" id="${id}" type="${type}" maxlength="${type==='email'?'254':type==='password'?'72':type==='text'?'120':''}" inputmode="${type==='email'?'email':''}" autocapitalize="${type==='email'?'none':''}" autocorrect="${type==='email'?'off':''}" spellcheck="false" placeholder="${placeholder}" autocomplete="${autocomplete}">
       ${isPass ? `<button type="button" class="auth-eye" onclick="_lpToggleEye('${id}',this)" aria-label="Show password">${EYE_SVG}</button>` : ''}
+      ${showPasswordHelp ? '<p class="auth-password-help" id="lp-password-help">Use at least 10 characters.</p>' : ''}
     </div>`;
+  }
+
+  function refreshPasswordHelp(value){
+    const help = $('lp-password-help'); if (!help) return;
+    const len = String(value || '').length;
+    help.classList.toggle('ready', len >= 10);
+    help.classList.toggle('needs-input', len > 0 && len < 10);
+    help.textContent = len >= 10 ? 'Length looks good. A memorable multi-word passphrase is best.' : `Use at least 10 characters${len ? ` · ${10 - len} more needed` : ''}.`;
   }
   window.toggleAuthMode = function(){
     mode = (mode === 'login') ? 'register' : 'login';
@@ -2657,10 +2672,11 @@ window.toggleFaq = function(trigger){
     $('lp-toggle-link').onclick = toggleAuthMode;
     const f = $('lp-auth-fields');
     f.innerHTML =
-      (!isLogin ? makeField('lp-af-name', 'text', 'Your full name', 'name') : '') +
-      makeField('lp-af-email', 'email', 'Email address', 'email') +
-      makeField('lp-af-pass', 'password', isLogin ? 'Password' : 'Password (min 8 chars)', isLogin ? 'current-password' : 'new-password');
+      (!isLogin ? makeField('lp-af-name', 'text', 'Your full name', 'name', 'Your name') : '') +
+      makeField('lp-af-email', 'email', 'you@example.com', 'email', 'Email address') +
+      makeField('lp-af-pass', 'password', isLogin ? 'Your password' : '10 or more characters', isLogin ? 'current-password' : 'new-password', 'Password', !isLogin);
     f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); }));
+    $('lp-af-pass')?.addEventListener('input', e => refreshPasswordHelp(e.target.value));
     if (!isLogin) $('lp-af-name')?.focus(); else $('lp-af-email')?.focus();
   }
 
@@ -2672,9 +2688,12 @@ window.toggleFaq = function(trigger){
     const btn   = $('lp-auth-submit');
     const isReg = mode === 'register';
     err.style.color = '';
-    if (!email || !pass){ err.textContent='Please enter your email and password.'; err.style.display='block'; return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254){ err.textContent='Please enter a valid email address.'; err.style.display='block'; return; }
+    if (!pass){ err.textContent='Please enter your password.'; err.style.display='block'; return; }
     if (isReg && !name){ err.textContent='Please enter your full name.'; err.style.display='block'; return; }
-    if (isReg && pass.length < 8){ err.textContent='Password must be at least 8 characters.'; err.style.display='block'; return; }
+    if (isReg && name.length > 120){ err.textContent='Your name is too long. Use 120 characters or fewer.'; err.style.display='block'; return; }
+    if (isReg && pass.length < 10){ err.textContent='Password must be at least 10 characters.'; err.style.display='block'; return; }
+    if (pass.length > 72){ err.textContent='Password is too long. Use 72 characters or fewer.'; err.style.display='block'; return; }
     err.style.display='none';
     btn.classList.add('loading'); btn.disabled = true;
     try{
@@ -2706,7 +2725,7 @@ window.toggleFaq = function(trigger){
     if(lbl) lbl.textContent = 'Send reset link';
     btn.classList.remove('loading'); btn.disabled = false;
     btn.onclick = submitForgot;
-    $('lp-auth-fields').innerHTML = makeField('lp-af-email','email','Your email address','email');
+    $('lp-auth-fields').innerHTML = makeField('lp-af-email','email','you@example.com','email','Email address');
     $('lp-af-email').addEventListener('keydown', e => { if (e.key==='Enter') submitForgot(); });
     $('lp-af-email')?.focus();
   };
@@ -2714,7 +2733,9 @@ window.toggleFaq = function(trigger){
   async function submitForgot(){
     const email = $('lp-af-email')?.value.trim();
     const err = $('lp-auth-err'); const btn = $('lp-auth-submit');
-    if (!email) return;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254){
+      err.style.color='#c62828'; err.textContent='Please enter a valid email address.'; err.style.display='block'; return;
+    }
     err.style.display='none';
     btn.classList.add('loading'); btn.disabled=true;
     const lbl = btn.querySelector('.auth-btn-lbl');
@@ -2968,9 +2989,9 @@ window.toggleFaq = function(trigger){
   }
 })();
 </script>
-<script src="scripts/nav-boost.js?v=266" defer></script>
-<script src="scripts/mobile-perf.js?v=266" defer></script>
-<script src="pwa-boot.js?v=266" defer></script>
+<script src="scripts/nav-boost.js?v=267" defer></script>
+<script src="scripts/mobile-perf.js?v=267" defer></script>
+<script src="pwa-boot.js?v=267" defer></script>
 <script>
 /* Footer accordion — collapse on mobile, always-open on desktop */
 (function () {

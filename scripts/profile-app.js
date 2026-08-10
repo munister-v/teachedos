@@ -1076,7 +1076,7 @@ async function savePassword() {
   const confirm = document.getElementById('set-pass-confirm').value;
   if (!current || !next) { toast('Fill in all fields'); return; }
   if (next !== confirm) { toast('Passwords do not match'); return; }
-  if (next.length < 8) { toast('Password must be at least 8 characters'); return; }
+  if (next.length < 10) { toast('Password must be at least 10 characters'); return; }
   try {
     const r = await apiFetch('/api/users/me/password', { method: 'PATCH', body: { current, next } });
     if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }

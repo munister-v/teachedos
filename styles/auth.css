@@ -49,13 +49,14 @@
 /* ── Close button ────────────────────────────────────────────── */
 .auth-close {
   position: absolute; top: 16px; right: 16px;
-  width: 32px; height: 32px; border-radius: 10px;
+  width: 44px; height: 44px; border-radius: 12px;
   background: rgba(14,14,16,.06); color: var(--auth-ink2);
   font-size: 18px; font-weight: 800; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; border: none; transition: background .15s;
 }
 .auth-close:hover { background: rgba(14,14,16,.13); }
+.auth-close:focus-visible,.auth-eye:focus-visible,.auth-role:focus-visible,.auth-forgot button:focus-visible,.auth-toggle button:focus-visible{outline:3px solid rgba(141,184,0,.58);outline-offset:2px;}
 
 /* ── Header ──────────────────────────────────────────────────── */
 .auth-head { text-align: center; margin-bottom: 26px; }
@@ -96,7 +97,7 @@
 .auth-role {
   padding: 14px 10px 12px; border-radius: 14px;
   border: 2px solid var(--auth-border); background: rgba(255,255,255,.62);
-  cursor: pointer; text-align: center; transition: border-color .18s, background .18s, transform .12s;
+  min-height:86px;color:inherit;font:inherit;cursor: pointer; text-align: center; transition: border-color .18s, background .18s, transform .12s;
   user-select: none;
 }
 .auth-role:hover { border-color: rgba(141,184,0,.4); background: rgba(205,242,79,.10); transform: translateY(-1px); }
@@ -126,16 +127,21 @@
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
 /* No eye button for non-password fields */
 .auth-field-wrap:not(.has-toggle) .auth-inp { padding-right: 16px; }
+.auth-field-label{display:block;margin:0 0 5px;color:var(--auth-ink2);font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;}
+.auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
+.auth-password-help.needs-input{color:#9A5B12;}
+.auth-password-help.ready{color:#166534;}
 
 /* ── Password eye toggle ─────────────────────────────────────── */
 .auth-eye {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  width: 30px; height: 30px; border: none; background: none; cursor: pointer;
+  width: 44px; height: 44px; border: none; background: none; cursor: pointer;
   color: var(--auth-ink3); display: flex; align-items: center; justify-content: center;
   border-radius: 7px; transition: color .14s, background .14s;
 }
 .auth-eye:hover { color: var(--auth-ink2); background: rgba(14,14,16,.06); }
 .auth-eye svg { width: 18px; height: 18px; pointer-events: none; }
+.auth-field-wrap.has-toggle > .auth-eye{top:39px;}
 
 /* ── Submit button ───────────────────────────────────────────── */
 .auth-btn {

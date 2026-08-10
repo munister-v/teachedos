@@ -1522,7 +1522,7 @@ function showAuthOverlay() {
           </div>
           <div id="os-auth-sub" style="font-size:13px;color:#5A5A4A;margin-top:0;font-weight:600;letter-spacing:.005em;">Sign in to your workspace</div>
         </div>
-        <div id="os-auth-err" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
+        <div id="os-auth-err" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-google-area" style="display:none;margin-bottom:18px;">
           <div id="os-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
           <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#9A9A8A;font-size:12px;font-weight:700;letter-spacing:.04em;">
@@ -1532,16 +1532,16 @@ function showAuthOverlay() {
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
           <div style="font-size:10px;font-weight:700;color:#7A7A6A;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div id="role-teacher" onclick="selectOsRole('teacher')" style="padding:14px 8px;border-radius:14px;border:2px solid #8DB800;background:rgba(141,184,0,.10);cursor:pointer;text-align:center;transition:.2s;">
+            <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:14px;border:2px solid #8DB800;background:rgba(141,184,0,.10);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
               <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
               <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create &amp; manage</div>
-            </div>
-            <div id="role-student" onclick="selectOsRole('student')" style="padding:14px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(245,240,232,.7);cursor:pointer;text-align:center;transition:.2s;">
+            </button>
+            <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(245,240,232,.7);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
               <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
               <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Learn &amp; progress</div>
-            </div>
+            </button>
           </div>
         </div>
         <div id="os-auth-fields"></div>
@@ -1696,6 +1696,8 @@ function selectOsRole(role) {
         t.style.background  = role==='teacher'?'rgba(200,230,74,.10)':'#fafafa';
         s.style.borderColor = role==='student'?'#C8E64A':'rgba(94,94,74,.14)';
         s.style.background  = role==='student'?'rgba(200,230,74,.10)':'#fafafa';
+        t.setAttribute('aria-pressed', role === 'teacher' ? 'true' : 'false');
+        s.setAttribute('aria-pressed', role === 'student' ? 'true' : 'false');
   }
 }
 
@@ -1703,6 +1705,8 @@ function renderOsAuthFields() {
   const isLogin = _osAuthMode === 'login';
   const sub = document.getElementById('os-auth-sub');
   const btn = document.getElementById('os-auth-btn');
+  const err = document.getElementById('os-auth-err');
+  if (err) { err.style.display = 'none'; err.style.color = ''; }
   const forgotRow = document.getElementById('os-forgot-row');
   if (forgotRow) forgotRow.style.display = isLogin ? '' : 'none';
   if (btn) btn.onclick = submitOsAuth;
@@ -1723,6 +1727,7 @@ function renderOsAuthFields() {
   const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.55);box-sizing:border-box;';
   const INP_PLAIN = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.55);box-sizing:border-box;';
   const WRAP_S = 'position:relative;margin-bottom:12px;';
+  const LABEL_S = 'display:block;margin:0 0 5px;color:#5A5A4A;font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;';
   const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#9A9AAA;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
   const EYE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path class="eo" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eo" cx="12" cy="12" r="3"/>
@@ -1738,12 +1743,26 @@ function renderOsAuthFields() {
   const focusFn = "this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'";
   const blurFn  = "this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'";
   f.innerHTML =
-    (!isLogin ? `<div style="${WRAP_S}"><input id="os-af-name" type="text" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
-    `<div style="${WRAP_S}"><input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
-     <div style="${WRAP_S}"><input id="os-af-pass" type="password" placeholder="${isLogin?'Password':'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP_S}" onfocus="${focusFn}" onblur="${blurFn}">
+    (!isLogin ? `<div style="${WRAP_S}"><label for="os-af-name" style="${LABEL_S}">Your name</label><input id="os-af-name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
+    `<div style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
+     <div style="${WRAP_S}"><label for="os-af-pass" style="${LABEL_S}">Password</label><input id="os-af-pass" type="password" maxlength="72" aria-describedby="os-password-help" placeholder="${isLogin?'Password':'Password (10+ characters)'}" autocomplete="${isLogin?'current':'new'}-password" style="${INP_S}" onfocus="${focusFn}" onblur="${blurFn}">
        <button type="button" style="${EYE_S}" onclick="_osEyeToggle(this)" aria-label="Show password">${EYE_SVG}</button></div>`;
+  if (!isLogin) {
+    const help = document.createElement('p');
+    help.id = 'os-password-help';
+    help.style.cssText = 'margin:-7px 1px 12px;color:#5A5A4A;font-size:11px;font-weight:650;line-height:1.4;';
+    help.textContent = 'Use at least 10 characters.';
+    f.querySelector('#os-af-pass')?.parentElement?.appendChild(help);
+  }
   window._osEyeToggle = _osEyeToggle;
   f.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') submitOsAuth(); }));
+  f.querySelector('#os-af-pass')?.addEventListener('input', e => {
+    const help = document.getElementById('os-password-help');
+    if (!help) return;
+    const len = e.target.value.length;
+    help.style.color = len >= 10 ? '#166534' : (len ? '#9A5B12' : '#5A5A4A');
+    help.textContent = len >= 10 ? 'Length looks good. A memorable multi-word passphrase is best.' : `Use at least 10 characters${len ? ` · ${10 - len} more needed` : ''}.`;
+  });
 }
 
 function toggleOsAuth() {
@@ -1765,11 +1784,19 @@ function startForgotPassword() {
   if (btn) { btn.textContent = 'Send reset link'; btn.onclick = submitForgotPassword; }
   if (row) row.style.display = 'none';
   if (tog) tog.textContent = 'Remember your password?';
-  if (togLink) { togLink.textContent = 'Sign in'; togLink.onclick = () => { _osAuthMode='login'; err.style.display='none'; row.style.display=''; toggleOsAuth(); btn.onclick=submitOsAuth; }; }
+  if (togLink) {
+    togLink.textContent = 'Sign in';
+    togLink.onclick = () => {
+      _osAuthMode = 'login';
+      err.style.display = 'none';
+      renderOsAuthFields();
+      setupGoogleSignIn();
+    };
+  }
   err.style.display = 'none';
   const f = document.getElementById('os-auth-fields');
   const INP = 'width:100%;padding:13px 16px;border:1.5px solid rgba(94,94,74,.14);border-radius:13px;font-family:inherit;font-size:.95rem;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:rgba(245,240,232,.5);backdrop-filter:blur(4px);box-sizing:border-box;';
-  f.innerHTML = `<input id="os-af-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
+  f.innerHTML = `<label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='#C8E64A';this.style.boxShadow='0 0 0 3px rgba(200,230,74,.15)'" onblur="this.style.borderColor='rgba(94,94,74,.14)';this.style.boxShadow='none'">`;
   f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });
 }
 
@@ -1777,7 +1804,11 @@ async function submitForgotPassword() {
   const email = document.getElementById('os-af-email')?.value.trim();
   const errEl = document.getElementById('os-auth-err');
   const btn   = document.getElementById('os-auth-btn');
-  if (!email) return;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
   errEl.style.display = 'none';
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
@@ -1806,16 +1837,28 @@ async function submitOsAuth() {
   const btn   = document.getElementById('os-auth-btn');
   const isReg = _osAuthMode === 'register';
   // Client-side validation
-  if (!email || !pass) {
-    errEl.textContent = 'Please enter your email and password.';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!pass) {
+    errEl.textContent = 'Please enter your password.';
     errEl.style.display = 'block'; return;
   }
   if (isReg && !name) {
     errEl.textContent = 'Please enter your full name.';
     errEl.style.display = 'block'; return;
   }
-  if (isReg && pass.length < 8) {
-    errEl.textContent = 'Password must be at least 8 characters.';
+  if (isReg && name.length > 120) {
+    errEl.textContent = 'Your name is too long. Use 120 characters or fewer.';
+    errEl.style.display = 'block'; return;
+  }
+  if (isReg && pass.length < 10) {
+    errEl.textContent = 'Password must be at least 10 characters.';
+    errEl.style.display = 'block'; return;
+  }
+  if (pass.length > 72) {
+    errEl.textContent = 'Password is too long. Use 72 characters or fewer.';
     errEl.style.display = 'block'; return;
   }
   errEl.style.display = 'none';

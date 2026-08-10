@@ -11140,7 +11140,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '266';
+const TEACHEDOS_ASSET_VERSION = '267';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13362,24 +13362,42 @@ function markOnboardingPendingFromBoard(user) {
   } catch {}
 }
 
+const AUTH_EYE_OPEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const AUTH_EYE_CLOSED_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.1 6.1A18.4 18.4 0 0 0 1 12s4 8 11 8a10 10 0 0 0 5.9-2.1"/></svg>';
+
+function _authPasswordHint(value) {
+  const help = document.getElementById('auth-password-help');
+  if (!help) return;
+  const length = String(value || '').length;
+  help.classList.toggle('ready', length >= 10);
+  help.classList.toggle('needs-input', length > 0 && length < 10);
+  help.textContent = length >= 10
+    ? 'Length looks good. A memorable multi-word passphrase is best.'
+    : `Use at least 10 characters${length ? ` · ${Math.max(0, 10 - length)} more needed` : ''}.`;
+}
+
 function renderAuthFields() {
   const isLogin = authMode === 'login';
   const isForgot = authMode === 'forgot';
-  document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back 👋' : 'Create your account');
+  document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back' : 'Create your account');
   document.getElementById('auth-submit').textContent = isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account');
   document.getElementById('auth-toggle-text').textContent = isForgot ? 'Remember your password?' : (isLogin ? "Don't have an account?" : 'Already have an account?');
   document.getElementById('auth-toggle-link').textContent = isForgot ? 'Sign in' : (isLogin ? 'Register' : 'Sign in');
   document.getElementById('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
+  const securityNote = document.getElementById('auth-security-note');
+  if (securityNote) securityNote.textContent = isForgot
+    ? 'For privacy, we only confirm that a reset message may have been sent.'
+    : (isLogin ? 'Protected sign-in · you can end active sessions from your profile.' : 'Use 10 or more characters. You can manage active sessions after sign-in.');
   const f = document.getElementById('auth-fields');
   if (isForgot) {
-    f.innerHTML = `<input class="auth-input" id="af-email" name="email" aria-label="Email address" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" autocomplete="email">`;
+    f.innerHTML = `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-input" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@example.com" autocomplete="email"></div>`;
   } else {
-    f.innerHTML = (!isLogin ? `<input class="auth-input" id="af-name" name="name" aria-label="Your full name" type="text" placeholder="Your full name" autocomplete="name">` : '') +
-      `<input class="auth-input" id="af-email" name="email" aria-label="Email address" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Email address" autocomplete="email">
-       <div class="auth-pass-wrap">
-         <input class="auth-input" id="af-pass" name="password" type="password" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Password' : 'Password (min 8 chars)'}" autocomplete="${isLogin?'current':'new'}-password">
-         <button type="button" class="auth-eye" onclick="togglePassVis()" title="Show/hide password" tabindex="-1">👁</button>
-       </div>
+    f.innerHTML = (!isLogin ? `<div class="auth-field-wrap"><label class="auth-field-label" for="af-name">Your name</label><input class="auth-input" id="af-name" name="name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name"></div>` : '') +
+      `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-input" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com" autocomplete="email"></div>
+       <div class="auth-field-wrap auth-password-field"><label class="auth-field-label" for="af-pass">Password</label><div class="auth-pass-wrap">
+         <input class="auth-input" id="af-pass" name="password" type="password" maxlength="72" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Your password' : '10 or more characters'}" autocomplete="${isLogin?'current':'new'}-password">
+         <button type="button" class="auth-eye" onclick="togglePassVis()" aria-label="Show password" aria-pressed="false">${AUTH_EYE_OPEN_ICON}</button>
+       </div>${!isLogin ? '<p class="auth-password-help" id="auth-password-help">Use at least 10 characters.</p>' : ''}</div>
        ${isLogin ? `<div class="auth-forgot-row"><button type="button" class="auth-forgot-link" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
   }
   /* A real <form>: password managers and mobile autofill key off form
@@ -13391,9 +13409,11 @@ function renderAuthFields() {
   form.addEventListener('submit', e => { e.preventDefault(); submitAuth(); });
   while (f.firstChild) form.appendChild(f.firstChild);
   f.appendChild(form);
+  document.getElementById('auth-submit')?.setAttribute('form', form.id);
   f.querySelectorAll('.auth-input').forEach(i => {
-    i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitAuth(); } });
+    i.addEventListener('keydown', e => { if (e.key === 'Enter' && i.id !== 'af-email') { e.preventDefault(); submitAuth(); } });
   });
+  document.getElementById('af-pass')?.addEventListener('input', e => _authPasswordHint(e.target.value));
 }
 
 function togglePassVis() {
@@ -13401,12 +13421,21 @@ function togglePassVis() {
   if (!inp) return;
   inp.type = inp.type === 'password' ? 'text' : 'password';
   const eye = inp.parentElement?.querySelector('.auth-eye');
-  if (eye) eye.textContent = inp.type === 'password' ? '👁' : '🙈';
+  if (eye) {
+    const visible = inp.type === 'text';
+    eye.innerHTML = visible ? AUTH_EYE_CLOSED_ICON : AUTH_EYE_OPEN_ICON;
+    eye.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+    eye.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
 }
 
 function selectAuthRole(role) {
   selectedRole = role;
-  document.querySelectorAll('.auth-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  document.querySelectorAll('.auth-role-btn').forEach(b => {
+    const active = b.dataset.role === role;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 }
 
 async function submitAuth() {
@@ -13425,19 +13454,25 @@ async function submitAuth() {
     return;
   }
   if (authMode === 'forgot') {
-    btn.disabled = true; btn.textContent = 'Sending…';
+    let sent = false;
+    btn.disabled = true; btn.textContent = 'Sending…'; btn.setAttribute('aria-busy', 'true');
     try {
       await apiFetch('/api/auth/forgot-password', { method: 'POST', body: { email } });
       errEl.style.color = '#179955';
       errEl.textContent = '✓ If that email is registered, a reset link is on its way.';
       errEl.style.display = 'block';
-      btn.textContent = 'Sent ✓';
+      btn.textContent = 'Check your inbox';
       document.getElementById('auth-fields').innerHTML = '';
+      sent = true;
     } catch {
       errEl.style.color = '';
       errEl.textContent = 'Something went wrong. Please try again.';
       errEl.style.display = 'block';
-    } finally { btn.disabled = false; }
+    } finally {
+      btn.removeAttribute('aria-busy');
+      btn.disabled = sent;
+      if (!sent) btn.textContent = 'Send reset link';
+    }
     return;
   }
   if (!pass) {
@@ -13446,8 +13481,14 @@ async function submitAuth() {
     document.getElementById('af-pass')?.focus();
     return;
   }
-  if (authMode === 'register' && pass.length < 8) {
-    errEl.textContent = 'Password must be at least 8 characters.';
+  if (authMode === 'register' && pass.length < 10) {
+    errEl.textContent = 'Password must be at least 10 characters.';
+    errEl.style.display = 'block'; errEl.style.color = '';
+    document.getElementById('af-pass')?.focus();
+    return;
+  }
+  if (pass.length > 72) {
+    errEl.textContent = 'Password is too long. Use 72 characters or fewer.';
     errEl.style.display = 'block'; errEl.style.color = '';
     document.getElementById('af-pass')?.focus();
     return;
@@ -13459,7 +13500,9 @@ async function submitAuth() {
     return;
   }
 
-  btn.disabled = true; btn.textContent = '…';
+  btn.disabled = true;
+  btn.textContent = authMode === 'login' ? 'Signing in…' : 'Creating account…';
+  btn.setAttribute('aria-busy', 'true');
 
   try {
     const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
@@ -13490,6 +13533,7 @@ async function submitAuth() {
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
+    btn.removeAttribute('aria-busy');
     btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
   }
 }

@@ -3,6 +3,14 @@ const bcrypt = require('bcryptjs');
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
+function passwordProblem(password) {
+  if (typeof password !== 'string') return 'Password is required';
+  const value = password;
+  if (value.length < 10) return 'Password must be at least 10 characters';
+  if (Buffer.byteLength(value, 'utf8') > 72) return 'Password is too long. Use 72 bytes or fewer';
+  return null;
+}
+
 router.use(requireAuth);
 
 // GET /api/users/me — full profile
@@ -38,8 +46,11 @@ router.patch('/me', async (req, res) => {
 // PATCH /api/users/me/password
 router.patch('/me/password', async (req, res) => {
   const { current, next: nextPwd } = req.body;
-  if (!current || !nextPwd) return res.status(400).json({ error: 'current and next password required' });
-  if (nextPwd.length < 8) return res.status(400).json({ error: 'Password must be ≥ 8 chars' });
+  if (typeof current !== 'string' || typeof nextPwd !== 'string' || !current || !nextPwd) {
+    return res.status(400).json({ error: 'current and next password required' });
+  }
+  const passwordError = passwordProblem(nextPwd);
+  if (passwordError) return res.status(400).json({ error: passwordError });
 
   const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
   const ok = await bcrypt.compare(current, rows[0].password_hash);
@@ -47,6 +58,9 @@ router.patch('/me/password', async (req, res) => {
 
   const hash = await bcrypt.hash(nextPwd, 12);
   await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [req.user.id, hash]);
+  // Keep the browser where the change was verified, but end every other
+  // device immediately so a previously copied session cannot persist.
+  await pool.query('DELETE FROM sessions WHERE user_id = $1 AND id <> $2', [req.user.id, req.authSessionId]);
   res.json({ ok: true });
 });
 

@@ -1762,11 +1762,21 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 .auth-input::placeholder{color:#8f8797;font-weight:500;}
 .auth-input:focus{border-color:#A8D02B;box-shadow:0 0 0 3px rgba(205,242,79,.28);}
+.auth-field-wrap{margin-bottom:11px;}
+.auth-field-wrap .auth-input{margin-bottom:0;}
+.auth-field-label{display:block;margin:0 0 5px;color:#5A5A4A;font:800 10px/1.2 var(--mono,monospace);letter-spacing:.07em;text-transform:uppercase;}
 /* Password field wrapper with eye toggle */
-.auth-pass-wrap{position:relative;margin-bottom:11px;}
+.auth-pass-wrap{position:relative;margin-bottom:0;}
 .auth-pass-wrap .auth-input{margin-bottom:0;padding-right:44px;}
-.auth-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:6px;border-radius:8px;opacity:.6;transition:opacity .12s;}
-.auth-eye:hover{opacity:1;}
+.auth-eye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;background:none;border:none;cursor:pointer;color:#625C67;padding:8px;border-radius:10px;transition:background .12s,color .12s;}
+.auth-eye:hover{background:rgba(14,14,16,.06);color:#1C1C1E;}
+.auth-eye:focus-visible,.auth-role-btn:focus-visible,.auth-forgot-link:focus-visible,#auth-toggle-link:focus-visible{outline:3px solid rgba(168,208,43,.55);outline-offset:2px;}
+.auth-eye svg{width:18px;height:18px;}
+.auth-password-help{margin:6px 1px 0;color:#7A727B;font:650 11px/1.4 var(--font);}
+.auth-password-help.needs-input{color:#9A5B12;}
+.auth-password-help.ready{color:#266E4A;}
+.auth-security-note{display:flex;align-items:flex-start;gap:6px;margin:10px 3px 0;color:#6C6670;font:650 11px/1.42 var(--font);}
+.auth-security-note::before{content:'•';color:#5E7E16;font-size:16px;line-height:11px;}
 /* Forgot password link */
 .auth-forgot-row{text-align:right;margin:-4px 0 10px;}
 .auth-forgot-link{background:none;border:none;color:#6E6E5C;font:600 12px var(--font);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;transition:color .12s;}
@@ -3946,7 +3956,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* ── Auth role picker ── */
 .auth-role-btn{
   padding:13px 9px;border-radius:14px;border:2px solid rgba(94,94,74,.14);
-  background:rgba(255,255,255,.6);cursor:pointer;text-align:center;transition:.15s;
+  background:rgba(255,255,255,.6);color:inherit;font:inherit;cursor:pointer;text-align:center;transition:.15s;
 }
 .auth-role-btn:hover{border-color:rgba(168,208,43,.6);background:rgba(205,242,79,.07);}
 .auth-role-btn.active{border-color:#A8D02B;background:rgba(205,242,79,.16);}

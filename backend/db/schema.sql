@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS boards (
 CREATE INDEX IF NOT EXISTS idx_boards_user_id  ON boards(user_id);
 CREATE INDEX IF NOT EXISTS idx_boards_updated  ON boards(updated_at DESC);
 
--- ── Sessions (refresh tokens) ───────────────────────────────────────────────
+-- ── Sessions (JWT fingerprints, never raw browser tokens) ───────────────────
 CREATE TABLE IF NOT EXISTS sessions (
   id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,

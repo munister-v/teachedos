@@ -69,9 +69,9 @@ body{
   .hero-title{font-size:30px}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=266">
-<link rel="stylesheet" href="styles/harmony.css?v=266">
-<link rel="stylesheet" href="styles/unify.css?v=266">
+<link rel="stylesheet" href="styles/mobile.css?v=267">
+<link rel="stylesheet" href="styles/harmony.css?v=267">
+<link rel="stylesheet" href="styles/unify.css?v=267">
 </head>
 <body>
   <div class="shell">
@@ -104,11 +104,11 @@ body{
         </div>
         <div>
           <label class="label" for="password">Create Password</label>
-          <input class="input" id="password" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+          <input class="input" id="password" type="password" maxlength="72" placeholder="At least 10 characters" autocomplete="new-password"/>
         </div>
         <div>
           <label class="label" for="password2">Confirm Password</label>
-          <input class="input" id="password2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+          <input class="input" id="password2" type="password" maxlength="72" placeholder="Repeat password" autocomplete="new-password"/>
         </div>
         <button class="btn" id="submit-btn" type="submit">Create Account</button>
       </form>
@@ -188,8 +188,8 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
     setStatus('Passwords do not match.', 'error');
     return;
   }
-  if (password.length < 8) {
-    setStatus('Password must be at least 8 characters.', 'error');
+  if (password.length < 10) {
+    setStatus('Password must be at least 10 characters.', 'error');
     return;
   }
 
@@ -224,7 +224,7 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=266" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=266" defer></script>
+<script src="scripts/nav-boost.js?v=267" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=267" defer></script>
 </body>
 </html>

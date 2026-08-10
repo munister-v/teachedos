@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=266">
+<link rel="manifest" href="manifest.json?v=267">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=266">
-<link rel="preload" as="style" href="styles/unify.css?v=266">
+<link rel="preload" as="style" href="styles/harmony.css?v=267">
+<link rel="preload" as="style" href="styles/unify.css?v=267">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -656,10 +656,10 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=266" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=266">
-<link rel="stylesheet" href="styles/harmony.css?v=266">
-<link rel="stylesheet" href="styles/unify.css?v=266">
+<script src="theme.js?v=267" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=267">
+<link rel="stylesheet" href="styles/harmony.css?v=267">
+<link rel="stylesheet" href="styles/unify.css?v=267">
 </head>
 <body class="admin-page">
 
@@ -1621,11 +1621,11 @@ html{scroll-behavior:smooth}
         <div class="setting-desc">Update your admin account password.</div>
         <div class="form-group">
           <label class="form-label">New Password</label>
-          <input class="form-input" id="new-pass" type="password" placeholder="Min 8 characters"/>
+      <input class="form-input" id="new-pass" type="password" maxlength="72" placeholder="Min 10 characters"/>
         </div>
         <div class="form-group">
           <label class="form-label">Confirm Password</label>
-          <input class="form-input" id="new-pass2" type="password" placeholder="Repeat password"/>
+      <input class="form-input" id="new-pass2" type="password" maxlength="72" placeholder="Repeat password"/>
         </div>
         <button class="btn-primary" style="margin-top:4px" onclick="changeMyPassword()">Update Password</button>
       </div>
@@ -1840,7 +1840,7 @@ html{scroll-behavior:smooth}
     </div>
     <div class="form-group">
       <label class="form-label">New Password <span style="color:var(--muted);font-weight:400">(leave blank to keep)</span></label>
-      <input class="form-input" id="mu-pass" type="password" placeholder="Min 8 characters"/>
+      <input class="form-input" id="mu-pass" type="password" maxlength="72" placeholder="Min 10 characters"/>
     </div>
     <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)">
       <div style="font:700 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Plan & Payment History</div>
@@ -1867,7 +1867,7 @@ html{scroll-behavior:smooth}
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-input" id="au-pass" type="password" placeholder="Min 8 characters"/>
+      <input class="form-input" id="au-pass" type="password" maxlength="72" placeholder="Min 10 characters"/>
     </div>
     <div class="form-group">
       <label class="form-label">Role</label>
@@ -1966,11 +1966,11 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=266"></script>
-<script src="pwa.js?v=266"></script>
-<script src="pwa-boot.js?v=266" defer></script>
-<script src="scripts/nav-boost.js?v=266" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=266" defer></script>
-<script src="scripts/mobile-perf.js?v=266" defer></script>
+<script src="scripts/admin-app.js?v=267"></script>
+<script src="pwa.js?v=267"></script>
+<script src="pwa-boot.js?v=267" defer></script>
+<script src="scripts/nav-boost.js?v=267" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=267" defer></script>
+<script src="scripts/mobile-perf.js?v=267" defer></script>
 </body>
 </html>

@@ -11,6 +11,14 @@ const {
   normalizeCycleKey,
 } = require('../lib/billing');
 
+function passwordProblem(password) {
+  if (typeof password !== 'string') return 'Password is required';
+  const value = password;
+  if (value.length < 10) return 'Password must be at least 10 characters';
+  if (Buffer.byteLength(value, 'utf8') > 72) return 'Password is too long. Use 72 bytes or fewer';
+  return null;
+}
+
 // All admin routes require auth + admin role
 router.use(requireAuth, requireAdmin);
 
@@ -847,9 +855,8 @@ router.post('/users', async (req, res) => {
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password and name are required' });
   }
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
+  const passwordError = passwordProblem(password);
+  if (passwordError) return res.status(400).json({ error: passwordError });
 
   try {
     const hash = await bcrypt.hash(password, 12);
@@ -1009,9 +1016,8 @@ router.patch('/users/:id', async (req, res) => {
       changes.push(`expires→${plan_expires_at || 'null'}`);
     }
     if (password) {
-      if (password.length < 8) {
-        return res.status(400).json({ error: 'Password must be at least 8 characters' });
-      }
+      const passwordError = passwordProblem(password);
+      if (passwordError) return res.status(400).json({ error: passwordError });
       const hash = await bcrypt.hash(password, 12);
       sets.push(`password_hash=$${i++}`);
       vals.push(hash);
@@ -1025,6 +1031,11 @@ router.patch('/users/:id', async (req, res) => {
       vals
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    if (password) {
+      // A password set by an administrator is a security event: immediately
+      // revoke every existing browser session for that account.
+      await pool.query('DELETE FROM sessions WHERE user_id=$1', [rows[0].id]);
+    }
     logAdminAction(req, 'user.update', {
       targetId: rows[0].id,
       targetLabel: rows[0].email,

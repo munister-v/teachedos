@@ -893,7 +893,7 @@ async function saveUser() {
     avatar: document.getElementById('mu-avatar').value.trim(),
   };
   const pass = document.getElementById('mu-pass').value;
-  if (pass) { if (pass.length < 8) { toast('Password min 8 chars','error'); return; } body.password = pass; }
+  if (pass) { if (pass.length < 10) { toast('Password min 10 chars','error'); return; } body.password = pass; }
   const newEmail = document.getElementById('mu-email').value.trim().toLowerCase();
   if (newEmail && newEmail !== editingUserEmail) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { toast('Invalid email','error'); return; }
@@ -921,7 +921,7 @@ async function createUser() {
   const pass  = document.getElementById('au-pass').value;
   const role  = document.getElementById('au-role').value;
   if (!name||!email||!pass) { toast('All fields required','error'); return; }
-  if (pass.length < 8) { toast('Password min 8 chars','error'); return; }
+  if (pass.length < 10) { toast('Password min 10 chars','error'); return; }
   try {
     await api('POST', '/api/admin/users', { name, email, password: pass, role });
     document.getElementById('modal-add-user').classList.remove('open');
@@ -1548,7 +1548,7 @@ async function changeMyPassword() {
   const p2 = document.getElementById('new-pass2').value;
   if (!p1 || !p2) { toast('Fill both fields','error'); return; }
   if (p1 !== p2) { toast('Passwords do not match','error'); return; }
-  if (p1.length < 8) { toast('Min 8 characters','error'); return; }
+  if (p1.length < 10) { toast('Min 10 characters','error'); return; }
   try {
     await api('PATCH', `/api/admin/users/${currentAdminUser.id}`, { password: p1 });
     toast('Password updated ✅', 'success');

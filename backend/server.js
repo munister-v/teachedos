@@ -8,6 +8,17 @@ const http     = require('http');
 const migrate  = require('./db/migrate');
 
 const app = express();
+app.disable('x-powered-by');
+
+// Keep API responses safe even when a request bypasses the nginx front door
+// (local previews, health probes and future proxy changes). These headers are
+// intentionally conservative and do not interfere with the app's inline UI.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
 
 // ── CORS ───────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
@@ -41,6 +52,16 @@ app.post('/api/billing/webhook',
   require('./routes/billing').handleWebhook
 );
 
+// Auth payloads only contain credentials and small profile fields. Parse them
+// with a tight limit before the general 25 MB board parser to reduce memory
+// abuse on public login/register/reset endpoints.
+app.use('/api/auth', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  next();
+});
+app.use('/api/auth', express.json({ limit: '64kb' }));
+app.use('/api/auth', express.urlencoded({ extended: true, limit: '64kb' }));
 app.use(express.json({ limit: '25mb' }));   // boards can include optimized image cards
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -76,6 +97,9 @@ app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 app.use((err, req, res, _next) => {
   console.error('[error]', err.message);
   if (err.type === 'entity.too.large') {
+    if (req.originalUrl.startsWith('/api/auth')) {
+      return res.status(413).json({ error: 'Authentication request is too large.' });
+    }
     return res.status(413).json({
       error: 'Board payload is too large. Compress or remove a few images and try again.',
     });

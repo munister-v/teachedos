@@ -38,6 +38,10 @@ function present(values, ...keys) {
   return keys.some((key) => typeof values[key] === 'string' && values[key].trim().length > 0);
 }
 
+function strongSecret(values, key, minLength = 32) {
+  return typeof values[key] === 'string' && values[key].trim().length >= minLength;
+}
+
 let values;
 try {
   values = parseEnv(fs.readFileSync(path.resolve(envPath), 'utf8'));
@@ -56,7 +60,7 @@ try {
 
 const checks = [
   { key: 'database', label: 'Database', ready: present(values, 'DATABASE_URL'), required: true },
-  { key: 'jwt', label: 'JWT sessions', ready: present(values, 'JWT_SECRET'), required: true },
+  { key: 'jwt', label: 'JWT sessions (32+ chars)', ready: strongSecret(values, 'JWT_SECRET'), required: true },
   { key: 'origins', label: 'Allowed origins', ready: present(values, 'ALLOWED_ORIGINS'), required: true },
   { key: 'site', label: 'Site URLs', ready: present(values, 'SITE_URL') && present(values, 'FRONTEND_URL'), required: true },
   { key: 'ai', label: 'AI provider', ready: present(values, 'AI_API_KEY', 'AI_API_KEY_2'), required: false },
