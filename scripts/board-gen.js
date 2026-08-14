@@ -1285,9 +1285,111 @@ function _ttGenChooseSummary(input){
       answer:correct, points:1 }] };
 }
 
+
+/* ── Друга партія генераторів, яких бракувало рушію ────────────────────────
+   Ті самі вправи, що жили лише у студії. Усі повертають відповіді, тож на
+   дошці працює перемикач ключа, а не лише друк. */
+
+function _ttGenTypeGap(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5);
+  if (!sents.length) return null;
+  const questions = [];
+  for (const s of sents) {
+    if (questions.length >= input.count) break;
+    const words = s.trim().split(/\s+/);
+    /* Ховаємо змістовне слово, а не перше-ліпше довше за чотири літери:
+       артикль чи прийменник у пропуску роблять завдання беззмістовним. */
+    const idx = words.findIndex(w => {
+      const bare = w.replace(/[^a-zA-Z]/g, '');
+      return bare.length >= 4 && _ttContentWords(bare).length;
+    });
+    if (idx < 0) continue;
+    const answer = words[idx].replace(/[^a-zA-Z]/g, '');
+    const shown = [...words]; shown[idx] = '_____';
+    questions.push({ type:'gap-fill', text:shown.join(' '), answer, points:1 });
+  }
+  return questions.length
+    ? { boardKind:'quiz', kind:'Type the gap', cat:'grammar', level:input.level, topic:input.topic,
+        title:`${input.level} · Type a word into the gap: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenSummaryGapFill(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40);
+  if (sents.length < 2) return null;
+  const summary = sents.slice(0, Math.max(3, Math.ceil(input.count / 2))).join(' ');
+  const keys = _ttContentWords(summary, 5).slice(0, Math.min(input.count, 8));
+  if (!keys.length) return null;
+  let gapped = summary;
+  const used = [];
+  keys.forEach(k => {
+    const re = new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    if (re.test(gapped)) { gapped = gapped.replace(re, '_____'); used.push(k); }
+  });
+  if (!used.length) return null;
+  return { boardKind:'quiz', kind:'Summary gap-fill', cat:'listening', level:input.level, topic:input.topic,
+    title:`${input.level} · Summary gap-fill: ${input.topic}`,
+    questions:[
+      { type:'open', text:'Word bank: ' + _ttShuffle([...used]).join(' · '), points:0 },
+      { type:'gap-fill', text:gapped, answer:used.join(', '), points:used.length },
+    ] };
+}
+
+function _ttGenFindQuotes(input){
+  /* Поріг у шість слів відсікав майже все: у звичайному навчальному тексті
+     речення короткі, і з пʼяти лишалась одна цитата. Пʼять — межа, за якою
+     речення ще має що обговорювати. */
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 5);
+  if (!sents.length) return null;
+  const picked = sents.slice(0, Math.min(input.count, 6));
+  const cards = picked.map((s, i) => ({
+    title: `Quote ${i + 1}`,
+    text: '"' + s.trim().replace(/[.]$/, '') + '"\n\n• Does this fit the topic? Why?\n• Say it in your own words.\n• Do you agree? Discuss in pairs.',
+  }));
+  return { boardKind:'cards', kind:'Quotes', cat:'speaking', level:input.level, topic:input.topic,
+    title:`${input.level} · Quotes for discussion: ${input.topic}`, cards };
+}
+
+function _ttGenRephraseWord(input){
+  const words = _ttVocabPairs(input).map(x => x.word).filter(Boolean).slice(0, input.count);
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40)
+    .filter(s => s.split(/\s+/).length >= 5);
+  if (!words.length || !sents.length) return null;
+  const questions = words.slice(0, Math.min(words.length, sents.length)).map((w, i) => ({
+    type:'gap-fill',
+    text:`Rewrite using "${w}": ${sents[i].trim()}`,
+    answer:'',   // відкрите завдання: правильних варіантів кілька
+    points:1,
+  }));
+  return questions.length
+    ? { boardKind:'quiz', kind:'Rephrase', cat:'writing', level:input.level, topic:input.topic,
+        title:`${input.level} · Rephrase using the word given: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenTextTopicVocab(input){
+  const items = _ttVocabPairs(input).slice(0, Math.max(input.count, 6));
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40);
+  if (!items.length || !sents.length) return null;
+  return { boardKind:'cards', kind:'Text + vocabulary', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Text with your vocabulary: ${input.topic}`,
+    cards:[
+      { title:'Text', text:sents.slice(0, 8).join(' ') },
+      { title:'Target vocabulary', text:items.map(x => '• ' + x.word + (x.def ? ' — ' + x.def : '')).join('\n') },
+      { title:'Tasks', text:'• Find each target word in the text.\n• Write one new sentence per word.\n• Retell the text using at least four of them.' },
+    ] };
+}
+
 function generateTeacherToolLocal(input){
   const id = input.tool && input.tool.id;
   // ── quality local generators ─────────────────────────────────────
+  if (id === 'type-gap')              return _ttGenTypeGap(input);
+  if (id === 'summary-gapfill')       return _ttGenSummaryGapFill(input);
+  if (id === 'find-quotes')           return _ttGenFindQuotes(input);
+  if (id === 'rephrase-word')         return _ttGenRephraseWord(input);
+  if (id === 'text-topic-vocab')      return _ttGenTextTopicVocab(input);
   if (id === 'word-order')            return _ttGenWordOrder(input);
   if (id === 'matching-halves')       return _ttGenMatchingHalves(input);
   if (id === 'word-bank')             return _ttGenWordBank(input);

@@ -3684,9 +3684,23 @@ function _ttStripMd(s){ return String(s||'').replace(/\*\*(.+?)\*\*/g,'$1').repl
 // Inline variant: escape + **bold**→<strong>, but NO newline→<br> (caller controls
 // block layout, e.g. wrapping each line/paragraph in its own element).
 function _ttMdInline(s){
-  return esc(s || '')
+  /* Прогалини у вправах пишуться рядком підкреслень (`_____`), а правило
+     Markdown `__жирний__` їх зʼїдало: пʼять підкреслень перетворювались на
+     <strong>_</strong>, і замість пропуску в реченні лишалась одна риска.
+     Ламалось це в КОЖНОМУ gap-fill, не тільки в нових генераторах.
+
+     Тому спершу ховаємо будь-який рядок із трьох і більше підкреслень за
+     плейсхолдер, а повертаємо після розмітки. Три — бо `__жирний__` має рівно
+     два з кожного боку, і чіпати його не треба. */
+  const blanks = [];
+  const hidden = esc(s || '').replace(/_{3,}/g, m => {
+    blanks.push(m);
+    return '\u0000BLANK' + (blanks.length - 1) + '\u0000';
+  });
+  return hidden
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.+?)__/g, '<strong>$1</strong>');
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\u0000BLANK(\d+)\u0000/g, (_, i) => blanks[Number(i)]);
 }
 // One legacy-normalisation rule for stored rich HTML. Older AI cards may
 // already contain HTML but still have literal Markdown emphasis in text.
