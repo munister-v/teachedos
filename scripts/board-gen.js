@@ -1187,9 +1187,112 @@ function _ttBuildFromAI(toolId, input, items) {
   return null;
 }
 
+
+/* ── Генератори, яких рушію бракувало ──────────────────────────────────────
+   Ці вправи досі жили тільки в студії і їхали на дошку плоским текстом.
+   Кожен повертає ту саму структуру, що й решта рушія, тож картка на дошці
+   виходить нормальною worksheet, а не прямокутником.
+
+   Джерело слів беремо з input.vocab, якщо воно є, інакше з тексту — студія
+   передає обидва, а дошка може дати лише текст. */
+
+/* Не плутати з `_ttVocabLines` вище: та повертає масив РЯДКІВ і має 15
+   викликів. Ця віддає пари {word, def} — я спершу назвав її так само і
+   перекрив оригінал, після чого word-image-match впав на `w.toLowerCase is not
+   a function`, а чотири інструменти тихо з'їхали на гілку хаба. */
+function _ttVocabPairs(input){
+  const raw = String(input.vocab || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+  if (raw.length) {
+    return raw.map(line => {
+      const m = line.split(/\s*[-–—:|]\s*/);
+      return { word: (m[0] || line).trim(), def: (m[1] || '').trim() };
+    });
+  }
+  return _ttContentWords(input.source || '', 4).slice(0, 40).map(w => ({ word: w, def: '' }));
+}
+
+function _ttGenWordOrder(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 4);
+  if (!sents.length) return null;
+  const questions = sents.slice(0, input.count).map(s => {
+    const words = s.replace(/[.!?]+$/, '').trim().split(/\s+/);
+    /* Перемішуємо, поки порядок не зміниться: випадковість інколи повертає
+       вихідне речення, і тоді завдання не має сенсу. */
+    let mixed = _ttShuffle([...words]);
+    for (let i = 0; i < 4 && mixed.join(' ') === words.join(' '); i++) mixed = _ttShuffle([...words]);
+    return { type:'gap-fill', text:'Put in order: ' + mixed.join(' / '), answer:s.trim(), points:1 };
+  });
+  return questions.length
+    ? { boardKind:'quiz', kind:'Word order', cat:'grammar', level:input.level, topic:input.topic,
+        title:`${input.level} · Word order: ${input.topic}`, questions }
+    : null;
+}
+
+function _ttGenMatchingHalves(input){
+  const items = _ttVocabPairs(input).filter(x => x.word.split(/\s+/).length > 1 || x.def);
+  if (!items.length) return null;
+  const pairs = items.slice(0, input.count).map(x => {
+    const words = x.word.split(/\s+/);
+    const mid = Math.ceil(words.length / 2);
+    const left = words.slice(0, mid).join(' ');
+    const right = words.slice(mid).join(' ') || x.def;
+    return { left, right };
+  }).filter(p => p.left && p.right);
+  return pairs.length
+    ? { boardKind:'quiz', kind:'Matching halves', cat:'vocabulary', level:input.level, topic:input.topic,
+        title:`${input.level} · Matching halves: ${input.topic}`,
+        questions:[{ type:'match', text:'Match the halves', pairs, points:pairs.length }] }
+    : null;
+}
+
+function _ttGenWordBank(input){
+  const items = _ttVocabPairs(input).slice(0, Math.max(input.count, 8));
+  if (!items.length) return null;
+  return { boardKind:'vocab', kind:'Word bank', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Word bank: ${input.topic}`,
+    items: items.map(x => ({ word:x.word, definition:x.def || '', example:'' })) };
+}
+
+function _ttGenThreeTitles(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40);
+  if (!sents.length) return null;
+  const words = _ttContentWords(input.source || sents.join(' '), 5);
+  const key = words.slice(0, 3).map(_ttCap);
+  const options = [
+    key.length ? key.join(', ') : _ttCap(input.topic),
+    'A step-by-step guide to repairing a machine',
+    'A personal letter about a holiday',
+  ];
+  return { boardKind:'quiz', kind:'Choose the title', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Three titles: ${input.topic}`,
+    questions:[{ type:'mcq', text:'Which title fits the text best?', options:_ttShuffle([...options]),
+      answer:options[0], points:1 }] };
+}
+
+function _ttGenChooseSummary(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40);
+  if (!sents.length) return null;
+  const correct = sents.slice(0, 2).join(' ');
+  const options = [
+    correct,
+    'The text only gives instructions on how to repair a machine.',
+    'The text is a personal letter about a holiday.',
+  ];
+  return { boardKind:'quiz', kind:'Choose the summary', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Choose the summary: ${input.topic}`,
+    questions:[{ type:'mcq', text:'Which summary best matches the text?', options:_ttShuffle([...options]),
+      answer:correct, points:1 }] };
+}
+
 function generateTeacherToolLocal(input){
   const id = input.tool && input.tool.id;
   // ── quality local generators ─────────────────────────────────────
+  if (id === 'word-order')            return _ttGenWordOrder(input);
+  if (id === 'matching-halves')       return _ttGenMatchingHalves(input);
+  if (id === 'word-bank')             return _ttGenWordBank(input);
+  if (id === 'three-titles')          return _ttGenThreeTitles(input);
+  if (id === 'choose-summary')        return _ttGenChooseSummary(input);
   if (id === 'abcd-text')             return _ttGenAbcd(input);
   if (id === 'true-false')            return _ttGenTrueFalse(input);
   if (id === 'extract-vocab')         return _ttGenExtractVocab(input);
