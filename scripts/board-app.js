@@ -13351,16 +13351,66 @@ function runPendingToolMaterialImport() {
     const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
     const title = material.title || 'Teacher Tool Material';
     const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
-    const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
-    addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
-      text,
-      fontFamily: 'var(--font)',
-      textColor: '#111111',
-      bgColor: '#ffffff',
-      align: 'left',
-    }), 520, 420);
+    /* Матеріал зі студії інструментів приходить структурою (struct із
+       boardKind/questions/items/cards) — тими самими полями, які чекає
+       worksheet-картка. Раніше все, що завгодно, ставало одним text-блоком
+       520x420: вправа втрачала тип, ключ відповідей був запечений у текст, а
+       висота бралася зі стелі, тож довге завдання обрізалось, а коротке висіло
+       в порожнечі.
+
+       Тепер: є struct — робимо worksheet тим самим шляхом, що й власна
+       генерація дошки (та сама оцінка висоти _ttEstWorksheetHeight). Немає
+       struct — лишається текстова картка, але вже як усвідомлений випадок для
+       матеріалів, що справді є просто текстом. */
+    const struct = material.struct;
+    const hasStruct = struct && (
+      (Array.isArray(struct.questions) && struct.questions.length) ||
+      (Array.isArray(struct.items) && struct.items.length) ||
+      (Array.isArray(struct.cards) && struct.cards.length)
+    );
+
+    if (hasStruct) {
+      const wsData = {
+        title,
+        topic: material.topic || title,
+        kind: material.kind || '',
+        cat: material.cat || 'utility',
+        level: material.level || 'B1',
+        boardKind: struct.boardKind || 'quiz',
+        questions: struct.questions || null,
+        items: struct.items || null,
+        cards: struct.cards || null,
+        /* Ключ відповідей — властивість картки, а не тексту: кнопка
+           «🔑 Key on / 👁 Key off» на картці тепер працює і для матеріалу
+           з інструментів. */
+        showAnswers: material.showAnswers !== false,
+        _ttSrc: 1,
+      };
+      const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
+        ? _packWidth(struct.cards.length)
+        : 520;
+      const h = (typeof _ttEstWorksheetHeight === 'function')
+        ? _ttEstWorksheetHeight(wsData, w)
+        : 420;
+      /* Структурована картка більша за колишній текстовий прямоугольник, тож
+         падати рівно в центр екрана вона стала частіше поверх уже наявної.
+         findFreePlacement — той самий помічник, яким користується решта дошки. */
+      const spot = (typeof findFreePlacement === 'function')
+        ? findFreePlacement(Math.round(pos.x - w / 2), Math.round(pos.y - h / 2), w, h)
+        : { x: Math.round(pos.x - w / 2), y: Math.round(pos.y - h / 2) };
+      addCard('worksheet', spot.x, spot.y, wsData, w, h);
+    } else {
+      const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
+      addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
+        text,
+        fontFamily: 'var(--font)',
+        textColor: '#111111',
+        bgColor: '#ffffff',
+        align: 'left',
+      }), 520, 420);
+    }
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    toast && toast('✦ Teacher tool material added to board');
+    toast && toast(hasStruct ? '✦ Exercise added as a worksheet card' : '✦ Teacher tool material added to board');
     const params = new URLSearchParams(location.search);
     params.delete('addToolMaterial');
     const q = params.toString();

@@ -1364,14 +1364,51 @@ function openPracticeGame(){
   location.href=practiceGameUrl(lastOutput.gameType)+'?from=tools';
 }
 
-function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const text=lastOutput.text||ttOutputPlainText(lastOutput);if(!text){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:lastOutput.title,text,level:lastOutput.level,tags:lastOutput.tags,knowledgeBaseId:lastOutput.knowledgeBaseId||null,knowledgeBaseTitle:lastOutput.knowledgeBaseTitle||'',createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
+/* Матеріал на дошку їде СТРУКТУРОЮ, а не плоским текстом.
+   
+   Раніше сюди клалися лише title/text/level/tags, а out.struct — типізовані
+   питання, пари й картки — викидався. Дошка через це робила один текстовий
+   прямокутник 520x420 на будь-яку вправу: матчинг, ABCD і gap-fill ставали
+   стіною тексту, і дошка навіть не знала, що їй дали вправу. Поля struct
+   (boardKind/questions/items/cards) називаються рівно так само, як їх чекає
+   worksheet-картка дошки, тож достатньо їх не втратити.
+   
+   showAnswers їде ОКРЕМИМ полем, а не запеченим у текст: у дошки є свій
+   перемикач ключа на картці, і поки відповіді були частиною тексту, вчитель
+   не міг їх сховати — а дошку показують класу з проєктора. */
+function ttBoardPayload(out){
+  return {
+    title: out.title,
+    /* Якщо вчитель ВИМКНУВ ключ у студії, текст має поїхати без відповідей.
+       out.text у більшості інструментів зібраний один раз при генерації і
+       перемикача не знає, а ttOutputPlainText його поважає — тож для вимкненого
+       ключа беремо саме його. Інакше вчитель ховає відповіді, натискає «на
+       дошку» і бачить їх там знову. */
+    text: (out.showAnswers === false) ? ttOutputPlainText(out) : (out.text || ttOutputPlainText(out)),
+    level: out.level,
+    tags: out.tags,
+    topic: out.topic || '',
+    kind: out.kind || '',
+    cat: out.cat || '',
+    struct: out.struct || null,
+    showAnswers: out.showAnswers !== false,
+    knowledgeBaseId: out.knowledgeBaseId || null,
+    knowledgeBaseTitle: out.knowledgeBaseTitle || '',
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function sendToBoard(){if(!lastOutput){toast('Generate something first');return}const payload=ttBoardPayload(lastOutput);if(!payload.text&&!payload.struct){toast('Nothing to add — generate content first');return}sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify(payload));location.href='board.html?addToolMaterial=1'}
 function renderLibrary(){const grid=document.getElementById('library-grid');const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();const lib=readJson(TOOL_STORE,[]);const filtered=q?lib.filter(item=>`${item.title||''} ${item.text||''} ${(item.tags||[]).join(' ')}`.toLowerCase().includes(q)):lib;if(!lib.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials yet. Create a draft and press Save.</div>';return}if(!filtered.length){grid.innerHTML='<div class="panel" style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">No saved materials match this search.</div>';return}grid.innerHTML=filtered.slice(0,32).map(item=>`<div class="library-item"><h4>${esc(item.title)}</h4><p>${esc((item.text||'').slice(0,170))}${(item.text||'').length>170?'...':''}</p><footer><button class="btn sm ghost" type="button" onclick="viewSaved('${item.id}')">View</button><button class="btn sm ghost" type="button" onclick="reuseSaved('${item.id}')">Use again</button><button class="btn sm ghost" type="button" onclick="copySaved('${item.id}')">Copy</button><button class="btn sm ghost" type="button" onclick="downloadSaved('${item.id}')">TXT</button><button class="btn sm ghost danger-text" type="button" onclick="deleteSaved('${item.id}')">Delete</button></footer></div>`).join('')}
 function viewSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;lastOutput=item;document.getElementById('workspace').classList.add('show');document.getElementById('result-body').innerHTML=`<div class="action-strip"><button class="btn sm lime" type="button" onclick="copyOutput()">Copy text</button><button class="btn sm ghost" type="button" onclick="printOutput()">Print</button><button class="btn sm ghost" type="button" onclick="downloadOutput()">Download .txt</button><button class="btn sm ghost" type="button" onclick="downloadHtmlOutput()">Download HTML</button><button class="btn sm pink" type="button" onclick="sendSavedToBoard('${item.id}')">Add to Board</button></div>${worksheetHtml(item)}`;document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'})}
 function copySaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)navigator.clipboard?.writeText(item.text||'').then(()=>toast('Copied'))}
 function reuseSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;if(item.knowledgeBaseId)activeKnowledgeBaseId=item.knowledgeBaseId;if(item.toolId)selectTool(item.toolId);setTimeout(()=>{const lvl=document.getElementById('level');const top=document.getElementById('topic');if(lvl&&item.level)lvl.value=item.level;if(top&&item.tags&&item.tags[1])top.value=item.tags[1];saveActiveDraft();toast('Loaded saved material setup')},40)}
 function downloadSaved(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(item)downloadText(`${slug(item.title)}.txt`,item.text||'')}
 function deleteSaved(id){writeJson(TOOL_STORE,readJson(TOOL_STORE,[]).filter(x=>x.id!==id));renderLibrary();toast('Deleted')}
-function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify({title:item.title,text:item.text,level:item.level,tags:item.tags,knowledgeBaseId:item.knowledgeBaseId||null,knowledgeBaseTitle:item.knowledgeBaseTitle||'',createdAt:new Date().toISOString()}));location.href='board.html?addToolMaterial=1'}
+function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;
+  /* saveOutput кладе {...lastOutput}, тож у бібліотеці struct уже лежить —
+     збережений матеріал їде на дошку тим самим шляхом, що й свіжий. */
+  sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify(ttBoardPayload(item)));location.href='board.html?addToolMaterial=1'}
 function exportLibrary(){const lib=readJson(TOOL_STORE,[]);downloadText('teachedos-teacher-tools-library.json',JSON.stringify(lib,null,2))}
 function importLibrary(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(reader.result);if(!Array.isArray(incoming))throw new Error('bad');const current=readJson(TOOL_STORE,[]);writeJson(TOOL_STORE,[...incoming,...current].slice(0,160));renderLibrary();toast('Library imported')}catch{toast('Could not import this file')}event.target.value=''};reader.readAsText(file)}
 function clearLibrary(){if(!confirm('Clear saved tool materials?'))return;writeJson(TOOL_STORE,[]);renderLibrary();toast('Library cleared')}
