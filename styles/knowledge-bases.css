@@ -29,3 +29,37 @@
 @media(max-width:1180px){.knowledge-bases-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.knowledge-bases{padding:14px;border-radius:20px}.knowledge-bases-head{display:block}.knowledge-bases-actions{margin-top:12px}.knowledge-bases-grid{grid-template-columns:1fr}.knowledge-bases-search{width:100%}.kb-card{min-height:0}}
 @media(prefers-reduced-motion:reduce){.kb-card{transition:none}.kb-card:hover{transform:none}}
+
+/* ── Згорнутий вигляд ─────────────────────────────────────────────────────
+   Секція розгорталась повністю і займала 70% сторінки, стоячи перед списком
+   інструментів. Тепер це <details>: закрита за замовчуванням, відкривається
+   тим, кому справді потрібен пак. Лічильник у підписі показує, що всередині,
+   щоб згортання не виглядало як зникнення. */
+details.knowledge-bases > summary.knowledge-bases-summary {
+  cursor: pointer; list-style: none; padding: 16px 18px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  border: 1px solid rgba(14,14,16,.14); border-radius: 14px; background: #fff;
+}
+details.knowledge-bases > summary::-webkit-details-marker { display: none; }
+details.knowledge-bases > summary::before { content: '▸'; margin-right: 6px; opacity: .55; }
+details.knowledge-bases[open] > summary::before { content: '▾'; }
+details.knowledge-bases > summary:hover { border-color: rgba(14,14,16,.34); }
+.kb-summary-title { font-weight: 800; font-size: 15px; }
+.kb-summary-hint  { font-size: 12px; opacity: .68; }
+.kb-summary-count { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px;
+                    background: #C8E64A; color: #2c3a00; }
+details.knowledge-bases[open] > summary.knowledge-bases-summary {
+  border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0;
+}
+
+/* Пресети згорнуто тим самим прийомом, що й бази знань — 93 картки на 10 338
+   пікселів стояли між шапкою і списком інструментів. */
+details.presets-block > summary.presets-summary {
+  cursor: pointer; list-style: none; padding: 14px 18px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  border: 1px solid rgba(14,14,16,.14); border-radius: 14px; background: #fff;
+}
+details.presets-block > summary::-webkit-details-marker { display: none; }
+details.presets-block > summary::before { content: '▸'; margin-right: 6px; opacity: .55; }
+details.presets-block[open] > summary::before { content: '▾'; }
+details.presets-block > summary:hover { border-color: rgba(14,14,16,.34); }

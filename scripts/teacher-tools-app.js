@@ -769,7 +769,14 @@ function renderKnowledgeBases(){
     return hay.includes(query);
   });
   const countEl=document.getElementById('knowledge-base-count');
-  if(countEl)countEl.textContent=list.length?`${list.length} packs · ${list.reduce((total,base)=>total+base.entries.length,0)} terms available offline`:'No packs match this filter';
+  const terms=list.reduce((total,base)=>total+base.entries.length,0);
+  if(countEl)countEl.textContent=list.length?`${list.length} packs · ${terms} terms available offline`:'No packs match this filter';
+  /* Секція згорнута, тож лічильник дублюється в підпис: інакше згортання
+     читається як «паків більше немає». */
+  const hintEl=document.getElementById('knowledge-base-summary-hint');
+  if(hintEl)hintEl.innerHTML=list.length
+    ? `<span class="kb-summary-count">${list.length} packs · ${terms} terms</span> reusable offline packs — load one into any tool`
+    : 'No packs match this filter';
   if(!list.length){grid.innerHTML='<div class="kb-empty">No knowledge bases match this search. Import a JSON pack or clear the filter.</div>';return}
   grid.innerHTML=list.map(base=>{
     const entryCount=base.entries.length;
@@ -906,6 +913,10 @@ function renderPresetPacks(){
   const list=PRESET_PACKS.map((p,i)=>({p,i})).filter(({p})=>presetMatchesLevel(p,activePresetLevel));
   const countEl=document.getElementById('preset-count');
   if(countEl) countEl.textContent=list.length;
+  /* Блок згорнутий, тож кількість дублюється в підпис — інакше згортання
+     виглядає так, ніби пресетів немає. */
+  const sumEl=document.getElementById('preset-summary-count');
+  if(sumEl) sumEl.textContent=list.length+' presets';
   if(!list.length){
     wrap.innerHTML=`<div style="padding:18px;color:var(--muted);font-size:13px;text-align:center;width:100%;border:1px dashed rgba(24,24,24,.12);border-radius:14px;">No presets at this level yet.</div>`;
     return;

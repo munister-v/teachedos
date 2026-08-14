@@ -220,7 +220,7 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 </style>
 <link rel="stylesheet" href="styles/harmony.css?v=273">
 <link rel="stylesheet" href="styles/unify.css?v=273">
-<link rel="stylesheet" href="styles/knowledge-bases.css?v=273">
+<link rel="stylesheet" href="styles/knowledge-bases.css?v=274">
 <link rel="stylesheet" href="styles/mobile.css?v=273">
 </head>
 <body>
@@ -298,11 +298,16 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
       </div>
       <div class="recent-tools-strip" id="recent-tools-strip"></div>
     </section>
-    <section aria-label="Ready preset lessons" style="margin:18px 0 4px;">
-      <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+    <!-- 93 пресети розгортались на 10 338 пікселів перед списком інструментів.
+         Це вітрина готових уроків, а не те, повз що треба щоразу гортати. -->
+    <details class="presets-block" aria-label="Ready preset lessons" style="margin:18px 0 4px;">
+      <summary class="presets-summary">
+        <span class="kb-summary-title">Drop a lesson in one click</span>
+        <span class="kb-summary-hint"><span class="kb-summary-count" id="preset-summary-count">0</span> pre-written topic, vocab and source text</span>
+      </summary>
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 8px;">
         <div>
           <div class="eyebrow" style="margin-bottom:4px;">Ready presets</div>
-          <h2 style="font-size:20px;letter-spacing:-.03em;">Drop a lesson in one click</h2>
           <p style="color:var(--muted);font-size:12.5px;margin-top:3px;">Pre-written topic, vocab and source text. Pick a level to narrow down.</p>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -313,8 +318,22 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
         </div>
       </div>
       <div class="preset-strip" id="preset-strip"></div>
-    </section>
-    <section class="knowledge-bases" id="knowledge-bases-section" aria-labelledby="knowledge-bases-title">
+    </details>
+    <div class="bar">
+      <div class="search"><input id="search" placeholder="Search by lesson goal, skill or exercise..." oninput="scheduleSearch()"><span>⌕</span></div>
+      <div class="chips" id="top-chips"></div>
+    </div>
+    <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
+    <!-- Секція знань розгорталась повністю: 64 паки, 448 карток, 61 139 пікселів —
+     70% усієї сторінки, і стояла МІЖ пресетами та списком інструментів. Щоб
+     дійти до інструмента, вчитель прокручував бібліотеку словників.
+     Тепер вона згорнута і стоїть ПІСЛЯ інструментів: це довідник, до якого
+     звертаються за потреби, а не те, повз що йдуть щоразу. -->
+<details class="knowledge-bases" id="knowledge-bases-section" aria-labelledby="knowledge-bases-title">
+    <summary class="knowledge-bases-summary">
+      <span class="kb-summary-title">Ready knowledge bases</span>
+      <span class="kb-summary-hint" id="knowledge-base-summary-hint">reusable offline packs — vocabulary, grammar notes, prompts and a source text</span>
+    </summary>
       <div class="knowledge-bases-head">
         <div>
           <div class="eyebrow" style="margin-bottom:4px;">Local knowledge</div>
@@ -334,12 +353,7 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
         <div class="knowledge-bases-levels" id="knowledge-base-levels" aria-label="Filter knowledge bases by level"></div>
       </div>
       <div class="knowledge-bases-grid" id="knowledge-bases-grid"></div>
-    </section>
-    <div class="bar">
-      <div class="search"><input id="search" placeholder="Search by lesson goal, skill or exercise..." oninput="scheduleSearch()"><span>⌕</span></div>
-      <div class="chips" id="top-chips"></div>
-    </div>
-    <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
+    </details>
     <section class="workspace" id="workspace">
       <div class="panel">
         <div class="panel-head">
@@ -375,7 +389,7 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 <div class="toast" id="toast"></div>
 <script src="scripts/knowledge-bases.js?v=273"></script>
 <script src="scripts/tt-text-core.js?v=1"></script>
-<script src="scripts/teacher-tools-app.js?v=277"></script>
+<script src="scripts/teacher-tools-app.js?v=278"></script>
 <script src="js/teacher-tool-ai.js?v=273" defer></script>
 <script src="js/teacher-tool-stt.js?v=273" defer></script>
 <script src="pwa-boot.js?v=273" defer></script>
