@@ -983,6 +983,7 @@ function selectTool(id){
   const prev=activeTool;
   activeTool=TOOLS.find(t=>t.id===id);
   if(!activeTool) return;
+  ttPrefetchEngine();
   rememberRecentTool(id);
   lastOutput=null; imageRows=[];
   // Perf: swap .active class on existing cards without rebuilding the grid
@@ -1203,6 +1204,22 @@ async function generateSmart(){
    Рушій вантажиться на першу генерацію (92 КБ), а не в парсі сторінки. Якщо
    він не приїхав — мовчки працює стара гілка, тому мережевий збій нічого не
    ламає. */
+/* Прогрів кешу, не виконання. `rel=prefetch` кладе board-gen.js у кеш браузера
+   без парсу, тож коли ttEnsureEngine справді впорсне <script>, той приїде з
+   кешу. Дошка робить так само на INIT. Без цього перша генерація чекала б
+   92 КБ по мережі, і «миттєва чернетка» переставала б бути миттєвою. */
+let _ttEnginePrefetched=false;
+function ttPrefetchEngine(){
+  if(_ttEnginePrefetched||typeof generateTeacherToolLocal==='function')return;
+  _ttEnginePrefetched=true;
+  const go=()=>{
+    const l=document.createElement('link');
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js';
+    document.head.appendChild(l);
+  };
+  if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
+  else setTimeout(go,1200);
+}
 let _ttEnginePromise=null;
 function ttEnsureEngine(){
   if(typeof generateTeacherToolLocal==='function')return Promise.resolve(true);
@@ -1576,6 +1593,26 @@ function serverEnvelopeToArr(env){
 async function generateWithAI(){
   if(!activeTool)return;
   const body=document.getElementById('result-body');
+  /* Спільний рушій стартує ПАРАЛЕЛЬНО з хмарою і нікого не затримує: він
+     потрібен лише тоді, коли AI не відповів. Доти ця гілка лишала вчителя на
+     чернетці з generate() — стара mode-based гілка, плоский текст, а отже на
+     дошку вправа їхала звичайною text-карткою замість worksheet. Free-тарифи
+     впираються в ліміт регулярно (Groq 12k TPM, OpenRouter 429), тож це був не
+     рідкісний випадок, а типовий; і саме через це 41 інструмент зі структурою
+     бачив досі лише розлогінений гість. */
+  const enginePromise=ttTryEngine().catch(()=>null);
+  /* Рушій перемагає ЛИШЕ коли приносить структуру. Там, де він віддає самий
+     текст (18 інструментів: pros-cons, essay-topics, lead-in, dialogue…), у
+     хаба є власні заточені під тему шаблони, і підміняти їх універсальним
+     скафолдом означало б погіршити те, що працює. Тож зміна суто додаткова:
+     22 інструменти отримують структуру, решта лишається як була. */
+  const useEngineDraft=async()=>{
+    const shared=await enginePromise;
+    const st=shared&&shared.struct;
+    if(!st||!(st.questions||st.items||st.cards))return false;
+    lastOutput=shared;renderResult(shared);
+    return true;
+  };
   try{
     // ── Step 1: show local draft instantly (same two-pass approach as the board) ──
     generate(); // sets lastOutput + renders result immediately
@@ -1605,8 +1642,14 @@ async function generateWithAI(){
       const arr=await _ttAI.generate(activeTool.id,input,()=>{});
       if(arr&&arr.length){const out=aiResultToOutput(activeTool,arr,input);out.aiGenerated=true;lastOutput=out;renderResult(out);toast('Generated with AI ✨');return;}
     }
+    if(await useEngineDraft()){toast('AI is busy — here is a structured draft you can edit');return;}
     toast('AI is busy right now — showing a fast local draft you can edit');
-  }catch(err){console.warn('[ai-generate]',err);const n=document.getElementById('tt-ai-improving');if(n)n.remove();toast('AI unavailable — showing a fast local draft you can edit');}
+  }catch(err){
+    console.warn('[ai-generate]',err);
+    const n=document.getElementById('tt-ai-improving');if(n)n.remove();
+    if(await useEngineDraft()){toast('AI unavailable — here is a structured draft you can edit');return;}
+    toast('AI unavailable — showing a fast local draft you can edit');
+  }
 }
 function aiResultToOutput(tool,arr,input){
   const out={title:tool.title,type:tool.mode,text:'',cards:[],gameType:tool.game||null,gameContent:null,level:input.level,tags:[tool.cat,input.topic],...knowledgeBaseMeta()};
