@@ -1170,11 +1170,85 @@ async function generateSmart(){
   setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating draft…':'Creating local draft…');
   try{
     if(localStorage.getItem('teachedos_token')) return await generateWithAI();
+    const shared=await ttTryEngine();
+    if(shared){lastOutput=shared;renderResult(shared);return;}
     return generate();
   }finally{
     setToolBusy(false);
   }
 }
+/* ── Один каталог замість двох ──────────────────────────────────────────────
+
+   У проєкті два генератори однакових вправ: цей хаб і `board-gen.js`, який
+   ліниво вантажить дошка. Двадцять вправ написано двічі, і поки це так, будь-яка
+   правка робиться в двох місцях, а розходження — питання часу.
+
+   Тут не переписування, а перемикання точки виклику: якщо спільний рушій
+   покриває інструмент — беремо його результат, ні — лишається гілка хаба.
+   Побічний виграш більший за економію рядків: рушій завжди повертає СТРУКТУРУ
+   (boardKind/questions/items/cards), тож інструменти, що досі віддавали плоский
+   текст, тепер їдуть на дошку нормальною worksheet-карткою.
+
+   Рушій вантажиться на першу генерацію (92 КБ), а не в парсі сторінки. Якщо
+   він не приїхав — мовчки працює стара гілка, тому мережевий збій нічого не
+   ламає. */
+let _ttEnginePromise=null;
+function ttEnsureEngine(){
+  if(typeof generateTeacherToolLocal==='function')return Promise.resolve(true);
+  if(_ttEnginePromise)return _ttEnginePromise;
+  _ttEnginePromise=new Promise(resolve=>{
+    const el=document.createElement('script');
+    el.src='scripts/board-gen.js';
+    el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
+    el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
+    document.head.appendChild(el);
+  });
+  return _ttEnginePromise;
+}
+
+/* Результат рушія → форма, якою живе хаб (renderResult, експорти, «на дошку»).
+   Текст збираємо тим самим ttOutputPlainText, тож ключ відповідей і тут
+   лишається властивістю, а не запеченим рядком. */
+function ttEngineOutput(tool,res){
+  if(!res)return null;
+  const out={
+    title:res.title||tool.title,
+    type:tool.mode,
+    text:'',
+    cards:[],
+    gameType:tool.game||null,
+    gameContent:null,
+    level:res.level||level(),
+    topic:res.topic||topic(),
+    kind:res.kind||'',
+    cat:res.cat||tool.cat||'',
+    tags:[tool.cat,topic()],
+    struct:{boardKind:res.boardKind||'quiz',questions:res.questions||null,items:res.items||null,cards:res.cards||null},
+    ...knowledgeBaseMeta(),
+  };
+  out.text=ttOutputPlainText(out);
+  return out.text||out.struct.questions||out.struct.items||out.struct.cards?out:null;
+}
+
+async function ttTryEngine(){
+  if(!activeTool)return null;
+  if(!await ttEnsureEngine())return null;
+  try{
+    const res=generateTeacherToolLocal({
+      tool:{id:activeTool.id},
+      source:get('source')||SAMPLE_TEXT,
+      vocab:get('vocab')||SAMPLE_VOCAB,
+      topic:topic(),
+      level:level(),
+      count:count(),
+    });
+    return ttEngineOutput(activeTool,res);
+  }catch(err){
+    console.warn('[tools] shared engine failed, using hub branch',err);
+    return null;
+  }
+}
+
 function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
   else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const tl=t.toLowerCase();const stageCards=[{title:'🎯 Lesson aims & objectives',text:'Topic: '+t+' · Level: '+lv+'\nEstimated duration: 60 min\n\nBy the end of this lesson, SWBAT:\n• Recognise and use the target vocabulary naturally in context\n• Identify gist, main ideas and specific details in the input\n• Complete controlled practice accurately (80%+ score target)\n• Communicate ideas on "'+tl+'" fluently for 2+ minutes\n\n📌 Key vocabulary: '+(ws.slice(0,6).join(', ')||'see vocab list')+'\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________'},{title:'🔥 Warm-up & lead-in (7 min)',text:'Option A — Word association (3 min)\nWrite "'+t+'" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2–3 unknown words from their lists.\n\nOption B — Two Truths and a Lie (4 min)\nSay 3 statements about '+tl+'  — students guess which is false. Then students do the same in pairs.\n\nOption C — Picture / image prompt (3 min)\nShow an image related to '+tl+'. Students describe what they see and predict the lesson topic.\n\n💡 Aim: activate prior knowledge + create curiosity.'},{title:'📖 Vocabulary presentation (8 min)',text:'Target words: '+(ws.slice(0,8).join(' · ')||'target vocabulary')+'.\n\nStep-by-step procedure:\n1. Context — show each word in a sentence (not isolated)\n2. Meaning — elicit, then confirm with a clear definition\n3. CCQ — ask 1–2 concept check questions per word\n4. Pronunciation — model → choral drill → individual drill\n5. Record — students write in vocab notebook: word / definition / example\n\n⏱ Timing: ~1 min per word. Don\'t rush — quality over quantity.\n💡 Use the Flashcards tool to create a drill activity.'},{title:'📄 Input & reading/listening (12 min)',text:'Procedure:\n\n1. PRE-TASK (2 min): Set gist question — "What is the main idea?"\n2. FIRST READ/LISTEN (3 min): Students find the answer to the gist question only.\n3. FEEDBACK (1 min): Quick whole-class check.\n4. SECOND READ/LISTEN (4 min): Detail questions —\n   a) Find three specific facts about '+tl+'.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer\'s/speaker\'s opinion.\n5. PEER CHECK (2 min): Compare answers in pairs before whole-class.\n\n💡 Differentiation: stronger students write a 2-sentence summary after step 4.'},{title:'✏️ Controlled practice (10 min)',text:'Activity type: gap-fill / matching / MCQ / error correction (choose one).\n\nProcedure:\n1. Demo one example together as a class.\n2. Students work individually (5 min). Remind them to use context clues.\n3. Peer check in pairs (2 min) — discuss any differences.\n4. Whole-class feedback (3 min) — address common errors.\n\nMonitoring tips:\n• Circulate — do NOT sit at your desk.\n• Note 2–3 errors anonymously for feedback stage.\n• Give quiet support to students who are stuck; avoid giving answers directly.\n\n✦ Fast finishers: write one more gap-fill sentence for a partner.'},{title:'🗣 Freer practice & production (12 min)',text:'Communicative task: "Discuss with your partner — '+['what do you personally think about','how has','what is your experience with','would you recommend'][Math.floor(Math.random()*4)]+' '+tl+'?"\n\nStructure the task:\n• 30 sec: individual think time (write 3 bullet points)\n• 3 min: pair discussion (both speak roughly equally)\n• 1 min: report back — "My partner said that…"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ 2 strong examples of language to praise\n❌ 2–3 errors to work on in feedback\n\n💡 If a pair finishes early: "Now disagree with each other — argue the opposite point."'},{title:'📋 Feedback & delayed error correction (5 min)',text:'Structure:\n1. PRAISE (1 min) — write 2 strong examples from student output on the board. Ask the class what is good about them.\n2. ERRORS (2 min) — write 2–3 anonymous errors. Students identify and correct as a class.\n3. LANGUAGE FOCUS (2 min) — clarify any remaining confusion about today\'s target language.\n\nAnonymous error board template:\n   ✗ "_______________"\n   ✓ "_______________" — because _______________\n\n📌 Note errors you heard — revisit them at the start of the NEXT lesson (great for recycling).'},{title:'📚 Homework (set in final 2 min)',text:'TASK: Write 80–100 words on the topic "'+t+'".\nUse at least 5 target words naturally.\n\nTopic prompt: Describe your own experience with '+tl+', your opinion, and one recommendation for others.\n\nDifferentiation:\n✦ Support (weaker): Use these starters —\n   "In my experience, '+tl+' is…"\n   "One thing I have noticed is…"\n   "I would suggest that…"\n✦ Extension (stronger): Add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check before submitting: vocabulary ☐ · opinion ☐ · spelling ☐'},{title:'🔄 Fast finishers & extension tasks',text:'If students finish early at any stage:\n\n📖 After vocabulary stage:\n→ Write a short paragraph using 5 target words. Make it surprising or funny.\n\n✏️ After controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\n🗣 After freer practice:\n→ "Now teach your partner — explain the key ideas as if they missed the lesson."\n\n🏆 Challenge task (top students):\n→ Find one real-world example of '+tl+' (news, video, website) and present it in 60 seconds at the start of the next lesson.\n\n📌 Extension tasks keep faster students engaged without disrupting the main pace.'},{title:'📊 Assessment & success criteria',text:'How will you know the lesson was successful?\n\n✅ Vocabulary: students can define/use '+Math.min(ws.length,5)+' target words without prompting.\n✅ Comprehension: students answer gist + 2 detail questions correctly.\n✅ Practice: 80% accuracy on the controlled exercise.\n✅ Production: students use target language for 90+ seconds in the speaking task.\n\nObservation checklist (teacher):\n☐ All students participated in the warm-up.\n☐ Vocabulary was drilled enough (3+ exposures).\n☐ Errors were corrected anonymously and constructively.\n☐ Homework was set with clear instructions and a deadline.\n\nNext lesson: revisit errors from the board + 5-min vocabulary quiz.'},{title:'🗒 Teacher notes & differentiation',text:'📌 TIMING ADJUSTMENTS:\n• Short class (45 min): cut freer practice to 8 min, skip extension.\n• Long class (90 min): double controlled practice + add a writing task.\n\n📌 DIFFERENTIATION:\n• Lower level: pre-teach vocabulary before class; provide sentence starters throughout.\n• Higher level: remove scaffolding, require longer production, add research task.\n• Mixed level: pair stronger + weaker for the speaking task; give different roles.\n\n📌 ADAPTING THE INPUT:\n• No text available? Use a short audio clip, image set, or infographic.\n• Text too hard? Simplify with the TeachEd Simplify tool first.\n\n📌 NEXT STEPS: revisit weak vocabulary → error correction board → homework feedback.'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
