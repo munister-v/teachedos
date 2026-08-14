@@ -1376,8 +1376,27 @@ function openPracticeGame(){
    showAnswers їде ОКРЕМИМ полем, а не запеченим у текст: у дошки є свій
    перемикач ключа на картці, і поки відповіді були частиною тексту, вчитель
    не міг їх сховати — а дошку показують класу з проєктора. */
+/* Стабільний ідентифікатор матеріалу.
+
+   Потрібен для двостороннього звʼязку: дошка запамʼятовує, з чого зроблена
+   картка, і при повторній відправці не плодить копію. Для збереженого в
+   бібліотеці беремо його власний id; для щойно згенерованого — id інструмента
+   плюс відбиток вмісту, щоб та сама вправа мала той самий ключ, а
+   перегенерована — новий. */
+function ttMaterialKey(out){
+  if (out && out.id) return out.id;
+  const tool = (typeof activeTool !== 'undefined' && activeTool && activeTool.id) || out.kind || 'tool';
+  const body = String(out && (out.text || '')).slice(0, 400);
+  let h = 0;
+  for (let i = 0; i < body.length; i++) { h = ((h << 5) - h + body.charCodeAt(i)) | 0; }
+  return tool + ':' + (h >>> 0).toString(36);
+}
+
 function ttBoardPayload(out){
   return {
+    materialKey: ttMaterialKey(out),
+    toolId: (typeof activeTool !== 'undefined' && activeTool && activeTool.id) || '',
+    toolTitle: (typeof activeTool !== 'undefined' && activeTool && activeTool.title) || '',
     title: out.title,
     /* Якщо вчитель ВИМКНУВ ключ у студії, текст має поїхати без відповідей.
        out.text у більшості інструментів зібраний один раз при генерації і
@@ -1408,7 +1427,9 @@ function deleteSaved(id){writeJson(TOOL_STORE,readJson(TOOL_STORE,[]).filter(x=>
 function sendSavedToBoard(id){const item=readJson(TOOL_STORE,[]).find(x=>x.id===id);if(!item)return;
   /* saveOutput кладе {...lastOutput}, тож у бібліотеці struct уже лежить —
      збережений матеріал їде на дошку тим самим шляхом, що й свіжий. */
-  sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify(ttBoardPayload(item)));location.href='board.html?addToolMaterial=1'}
+  const payload=ttBoardPayload(item);
+  if(!payload.toolId&&item.toolId)payload.toolId=item.toolId;
+  sessionStorage.setItem('teachedos_pending_tool_material',JSON.stringify(payload));location.href='board.html?addToolMaterial=1'}
 function exportLibrary(){const lib=readJson(TOOL_STORE,[]);downloadText('teachedos-teacher-tools-library.json',JSON.stringify(lib,null,2))}
 function importLibrary(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(reader.result);if(!Array.isArray(incoming))throw new Error('bad');const current=readJson(TOOL_STORE,[]);writeJson(TOOL_STORE,[...incoming,...current].slice(0,160));renderLibrary();toast('Library imported')}catch{toast('Could not import this file')}event.target.value=''};reader.readAsText(file)}
 function clearLibrary(){if(!confirm('Clear saved tool materials?'))return;writeJson(TOOL_STORE,[]);renderLibrary();toast('Library cleared')}
@@ -1652,3 +1673,26 @@ function showShareBanner(url){
 }
 
 renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();renderKnowledgeBaseLevels();renderKnowledgeBases();
+
+/* ?tool=<id> відкриває саме цей інструмент.
+
+   Потрібне для зворотного ходу з дошки: картка памʼятає, яким інструментом
+   зроблена, і кнопка на ній веде сюди. Без цього посилання привело б на хаб зі
+   списком з 51 позиції, де потрібну довелося б шукати очима.
+
+   Виклик стоїть тут, у кінці бутстрапу, а не в openFirstTool: та функція в
+   коді визначена, але не викликається ніде — я спершу повісив приймання саме
+   на неї, і воно, звісно, не спрацювало. */
+(function ttOpenToolFromUrl(){
+  let wanted='';
+  try{ wanted=new URLSearchParams(location.search).get('tool')||''; }catch(_){ return; }
+  if(!wanted) return;
+  const target=TOOLS.find(t=>t.id===wanted);
+  if(!target) return;
+  selectTool(target.id);
+  try{
+    const p=new URLSearchParams(location.search); p.delete('tool');
+    const q=p.toString();
+    history.replaceState({},'',location.pathname+(q?'?'+q:''));
+  }catch(_){}
+})();

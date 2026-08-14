@@ -2777,6 +2777,7 @@ function renderWorksheet(el, card) {
         ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
+        ${d._ttOrigin && d._ttOrigin.toolId ? `<button class="ws-btn" onclick="openSourceTool('${card.id}')" title="Open the tool this came from">↩ ${esc(d._ttOrigin.toolTitle || 'Tool')}</button>` : ''}
       </span>
     </div>`;
 
@@ -3483,6 +3484,18 @@ function _iwSortScript(accent) {
   return `
 // Return a drag chip back to the sort bank on double-click
 document.addEventListener('dblclick',e=>{ const d=e.target.closest('.iw-sort-drop .iw-drag'); if(d&&!d.closest('.iw-sort')?.dataset.locked){ const bank=d.closest('.iw-sort').querySelector('.iw-sort-bank'); if(bank) bank.appendChild(d); if(typeof iwSave==='function') iwSave(); } });`;
+}
+
+/* Зворотний хід: з картки — в інструмент, який її зробив.
+
+   Без цього звʼязок був однобічним: матеріал приїхав, і щоб його
+   перегенерувати, треба було памʼятати, яким саме з 51 інструмента ти
+   користувався. Тепер картка це памʼятає сама. */
+function openSourceTool(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  const origin = card && card.data && card.data._ttOrigin;
+  if (!origin || !origin.toolId) return;
+  location.href = 'teacher-tools.html?tool=' + encodeURIComponent(origin.toolId);
 }
 
 /* Flip the answer-key visibility on a worksheet card and re-render it. */
@@ -13370,6 +13383,38 @@ function runPendingToolMaterialImport() {
        генерація дошки (та сама оцінка висоти _ttEstWorksheetHeight). Немає
        struct — лишається текстова картка, але вже як усвідомлений випадок для
        матеріалів, що справді є просто текстом. */
+    /* Двосторонній звʼязок. Раніше він був одноразовим: матеріал поїхав на
+       дошку і слід загубився. Через це та сама вправа, надіслана двічі,
+       ставала двома картками, а вчитель, який щось виправив на дошці, при
+       повторній відправці отримував ще одну копію поруч зі своєю правкою.
+
+       Тепер картка памʼятає, з чого зроблена (_ttOrigin), і якщо така вже
+       лежить — ми її показуємо, а не дублюємо. Перезаписувати теж не можна:
+       правки вчителя на дошці головніші за повторний експорт. */
+    const originKey = material.materialKey || '';
+    if (originKey) {
+      const twin = state.cards.find(c => c.data && c.data._ttOrigin && c.data._ttOrigin.key === originKey);
+      if (twin) {
+        try {
+          if (typeof selectCard === 'function') selectCard(twin.id);
+          const el = document.querySelector('[data-id="' + twin.id + '"]');
+          el && el.scrollIntoView({ block: 'center', inline: 'center' });
+        } catch (_) {}
+        toast && toast('Це вже на дошці — показую наявну картку');
+        const p0 = new URLSearchParams(location.search);
+        p0.delete('addToolMaterial');
+        const q0 = p0.toString();
+        history.replaceState({}, '', location.pathname + (q0 ? '?' + q0 : ''));
+        return true;
+      }
+    }
+    const origin = originKey ? {
+      key: originKey,
+      toolId: material.toolId || '',
+      toolTitle: material.toolTitle || '',
+      at: material.createdAt || new Date().toISOString(),
+    } : null;
+
     const struct = material.struct;
     const hasStruct = struct && (
       (Array.isArray(struct.questions) && struct.questions.length) ||
@@ -13393,6 +13438,7 @@ function runPendingToolMaterialImport() {
            з інструментів. */
         showAnswers: material.showAnswers !== false,
         _ttSrc: 1,
+        _ttOrigin: origin,
       };
       const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
         ? _packWidth(struct.cards.length)
@@ -13409,13 +13455,14 @@ function runPendingToolMaterialImport() {
       addCard('worksheet', spot.x, spot.y, wsData, w, h);
     } else {
       const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
-      addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
+      const tc = addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
         text,
         fontFamily: 'var(--font)',
         textColor: '#111111',
         bgColor: '#ffffff',
         align: 'left',
       }), 520, 420);
+      if (tc && origin) tc.data._ttOrigin = origin;
     }
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
     toast && toast(hasStruct ? '✦ Exercise added as a worksheet card' : '✦ Teacher tool material added to board');
