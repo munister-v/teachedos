@@ -13400,7 +13400,7 @@ function runPendingToolMaterialImport() {
           const el = document.querySelector('[data-id="' + twin.id + '"]');
           el && el.scrollIntoView({ block: 'center', inline: 'center' });
         } catch (_) {}
-        toast && toast('Це вже на дошці — показую наявну картку');
+        toast && toast('Already on the board — showing the existing card');
         const p0 = new URLSearchParams(location.search);
         p0.delete('addToolMaterial');
         const q0 = p0.toString();
