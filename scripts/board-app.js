@@ -13335,7 +13335,15 @@ window.__pendingToolMaterialImport = null;
     if (!raw) return;
     const material = JSON.parse(raw);
     sessionStorage.removeItem('teachedos_pending_tool_material');
-    if (!material || !material.text) return;
+    /* Матеріал тепер може приїхати структурою — вправа з питаннями, у якої
+       плоского тексту може не бути взагалі. Стара умова вимагала саме text і
+       тихо викидала б таку посилку. */
+    const hasBody = material && (material.text || (material.struct && (
+      (material.struct.questions || []).length ||
+      (material.struct.items || []).length ||
+      (material.struct.cards || []).length
+    )));
+    if (!hasBody) return;
     window.__pendingToolMaterialImport = material;
   } catch (err) {
     console.warn('Tool material capture failed', err);
