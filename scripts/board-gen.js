@@ -1382,9 +1382,55 @@ function _ttGenTextTopicVocab(input){
     ] };
 }
 
+
+/* ── Третя партія: reading-bits і transcript-helper ────────────────────────
+   word-translation-match лишається текстом свідомо: переклад слів у хабі бере
+   з MINI_DICT, який живе тільки там і ніколи не завантажується на дошці.
+   Тягнути сюди неповний словник — робити вигляд, що переклад є там, де його
+   нема; чесніше не видавати структуру, ніж видати порожні пари. */
+
+function _ttGenReadingBits(input){
+  const parts = teacherToolSourceSentences(input.source, input.topic, 40);
+  if (parts.length < 3) return null;
+  const labeled = parts.map((s, i) => ({ n: i + 1, s }));
+  const shuffled = _ttShuffle([...labeled]);
+  const order = labeled.map(x => String.fromCharCode(65 + shuffled.findIndex(y => y === x)));
+  /* type:'open' — це відкрите завдання, де відповідь пише учень, і рендер
+     карточки НІКОЛИ не друкує туди q.answer (перевірено: ключ на такій
+     картці не показує нічого, і це не баг, а межа типу). Правильний
+     порядок — рядок-факт, тож пакуємо його як gap-fill із СПРАВЖНІМ
+     пропуском: тільки цей тип рендерить answer. */
+  return { boardKind:'quiz', kind:'Reading: bits and pieces', cat:'reading', level:input.level, topic:input.topic,
+    title:`${input.level} · Bits and pieces: ${input.topic}`,
+    questions:[{
+      type:'gap-fill',
+      text:'Put the pieces in the correct order:\n' + shuffled.map((x, i) => String.fromCharCode(65 + i) + '. ' + x.s).join('\n') + '\n\nCorrect order: _____',
+      answer:order.join(' → '),
+      points:1,
+    }] };
+}
+
+function _ttGenTranscriptHelper(input){
+  const sents = teacherToolSourceSentences(input.source, input.topic, 40)
+    .filter(s => s.split(/\s+/).length >= 5);
+  if (!sents.length) return null;
+  const questions = sents.slice(0, input.count).map(s => ({
+    type:'open',
+    text:'Listening check: what does the speaker mean by: "' + s.trim().slice(0, 100) + '"?',
+    answer:'',
+    points:1,
+  }));
+  return questions.length
+    ? { boardKind:'quiz', kind:'Transcript check', cat:'listening', level:input.level, topic:input.topic,
+        title:`${input.level} · Transcript check: ${input.topic}`, questions }
+    : null;
+}
+
 function generateTeacherToolLocal(input){
   const id = input.tool && input.tool.id;
   // ── quality local generators ─────────────────────────────────────
+  if (id === 'reading-bits')          return _ttGenReadingBits(input);
+  if (id === 'transcript-helper')     return _ttGenTranscriptHelper(input);
   if (id === 'type-gap')              return _ttGenTypeGap(input);
   if (id === 'summary-gapfill')       return _ttGenSummaryGapFill(input);
   if (id === 'find-quotes')           return _ttGenFindQuotes(input);
