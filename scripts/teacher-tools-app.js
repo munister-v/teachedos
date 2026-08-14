@@ -1258,19 +1258,51 @@ function ttEngineOutput(tool,res){
   return out.text||out.struct.questions||out.struct.items||out.struct.cards?out:null;
 }
 
+function ttEngineInput(){
+  return {
+    tool:{id:activeTool.id},
+    source:get('source')||SAMPLE_TEXT,
+    vocab:get('vocab')||SAMPLE_VOCAB,
+    topic:topic(),
+    level:level(),
+    count:count(),
+  };
+}
+
+/* Синхронний прогін рушія — тільки якщо він УЖЕ в памʼяті, нічого не вантажить.
+   Потрібен для першого малюнка: `selectTool` гріє board-gen.js префетчем, тож
+   на момент «Generate» він зазвичай уже тут, і чернетку можна одразу малювати
+   правильну. Доти було так: хаб малює свою версію, вчитель кілька секунд
+   дивиться на неї, поки відвалюється хмара, і аж тоді вміст підмінюється
+   рушієвим. Підміна на очах гірша за секунду очікування.
+
+   Віддає результат ЛИШЕ зі структурою — там, де рушій має саму прозу, у хаба
+   лишаються свої заточені шаблони (те саме правило, що і в фолбеку). */
+function ttEngineDraftSync(){
+  if(!activeTool||typeof generateTeacherToolLocal!=='function')return null;
+  try{
+    const out=ttEngineOutput(activeTool,generateTeacherToolLocal(ttEngineInput()));
+    const st=out&&out.struct;
+    return st&&(st.questions||st.items||st.cards)?out:null;
+  }catch(err){
+    console.warn('[tools] engine draft failed, using hub branch',err);
+    return null;
+  }
+}
+
+/* Локальна чернетка одним рішенням: рушій, якщо готовий, інакше гілка хаба. */
+function ttLocalDraft(){
+  const shared=ttEngineDraftSync();
+  if(shared){lastOutput=shared;renderResult(shared);return true;}
+  generate();
+  return false;
+}
+
 async function ttTryEngine(){
   if(!activeTool)return null;
   if(!await ttEnsureEngine())return null;
   try{
-    const res=generateTeacherToolLocal({
-      tool:{id:activeTool.id},
-      source:get('source')||SAMPLE_TEXT,
-      vocab:get('vocab')||SAMPLE_VOCAB,
-      topic:topic(),
-      level:level(),
-      count:count(),
-    });
-    return ttEngineOutput(activeTool,res);
+    return ttEngineOutput(activeTool,generateTeacherToolLocal(ttEngineInput()));
   }catch(err){
     console.warn('[tools] shared engine failed, using hub branch',err);
     return null;
@@ -1601,6 +1633,7 @@ async function generateWithAI(){
      рідкісний випадок, а типовий; і саме через це 41 інструмент зі структурою
      бачив досі лише розлогінений гість. */
   const enginePromise=ttTryEngine().catch(()=>null);
+  let engineDraftShown=false;
   /* Рушій перемагає ЛИШЕ коли приносить структуру. Там, де він віддає самий
      текст (18 інструментів: pros-cons, essay-topics, lead-in, dialogue…), у
      хаба є власні заточені під тему шаблони, і підміняти їх універсальним
@@ -1615,7 +1648,8 @@ async function generateWithAI(){
   };
   try{
     // ── Step 1: show local draft instantly (same two-pass approach as the board) ──
-    generate(); // sets lastOutput + renders result immediately
+    // Рушій, якщо вже прогрітий префетчем; інакше гілка хаба, а рушій наздожене нижче.
+    engineDraftShown=ttLocalDraft(); // sets lastOutput + renders result immediately
     // Overlay a shimmer badge so teacher sees it's being upgraded
     const improveNote=document.createElement('div');
     improveNote.id='tt-ai-improving';
@@ -1642,12 +1676,12 @@ async function generateWithAI(){
       const arr=await _ttAI.generate(activeTool.id,input,()=>{});
       if(arr&&arr.length){const out=aiResultToOutput(activeTool,arr,input);out.aiGenerated=true;lastOutput=out;renderResult(out);toast('Generated with AI ✨');return;}
     }
-    if(await useEngineDraft()){toast('AI is busy — here is a structured draft you can edit');return;}
+    if(engineDraftShown||await useEngineDraft()){toast('AI is busy — here is a structured draft you can edit');return;}
     toast('AI is busy right now — showing a fast local draft you can edit');
   }catch(err){
     console.warn('[ai-generate]',err);
     const n=document.getElementById('tt-ai-improving');if(n)n.remove();
-    if(await useEngineDraft()){toast('AI unavailable — here is a structured draft you can edit');return;}
+    if(engineDraftShown||await useEngineDraft()){toast('AI unavailable — here is a structured draft you can edit');return;}
     toast('AI unavailable — showing a fast local draft you can edit');
   }
 }
