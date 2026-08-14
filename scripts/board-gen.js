@@ -589,7 +589,10 @@ function _ttGenGapsBrackets(input){
   const questions = [];
   for (const [s, target] of targets){
     if (questions.length >= input.count) break;
-    questions.push({ type:'open',
+    // gap-fill, не open: текст уже несе пропуск від _ttBlank і має answer, а
+    // картка для 'open' малює лінійки для письма й до q.answer не звертається
+    // взагалі — ключ мовчки губився. Та сама пастка, що й у reading-bits.
+    questions.push({ type:'gap-fill',
       text:`Use the word in the correct form:\n"${_ttBlank(s,target)}"  (${target.toUpperCase()})`,
       answer:target, points:1 });
   }

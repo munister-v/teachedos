@@ -1237,6 +1237,67 @@ function ttEnsureEngine(){
 /* Результат рушія → форма, якою живе хаб (renderResult, експорти, «на дошку»).
    Текст збираємо тим самим ttOutputPlainText, тож ключ відповідей і тут
    лишається властивістю, а не запеченим рядком. */
+/* Struct рушія → вміст практичної гри.
+
+   `gameContent` тут стояв `null`, і поки рушій діставався лише гостям це нічого
+   не важило. Щойно він став основним для всіх, 19 інструментів з грою почали
+   віддавати share-посилання без інтерактиву: `share.html` перевіряє саме
+   `gameContent` і, не знайшовши, мовчки малює простиню тексту замість квізу.
+   Деградація тиха, тому й не впадала в око.
+
+   Форми взяті з того, що читає `share.html`, а не з голови: пропуск у нього
+   рівно `___` (три), розділювач `|`; у рушія пропуск `_____` (пʼять).
+   Де зібрати нічого — чесно повертаємо null, і сторінка так само чесно падає
+   на текст. */
+function ttGameContentFromStruct(gameType,struct){
+  if(!gameType||!struct)return null;
+  const qs=Array.isArray(struct.questions)?struct.questions:[];
+  const items=Array.isArray(struct.items)?struct.items:[];
+  const matchPairs=()=>{
+    const out=[];
+    qs.forEach(q=>{
+      if(!q||q.type!=='match'||!Array.isArray(q.pairs))return;
+      q.pairs.forEach(p=>{
+        const a=String(p&&p.left||'').trim(),b=String(p&&p.right||'').trim();
+        if(a&&b)out.push({a,b});
+      });
+    });
+    return out;
+  };
+  if(gameType==='memory-match'||gameType==='flashcards'){
+    const pairs=[...matchPairs(),...items.map(i=>({a:String(i&&i.word||'').trim(),b:String(i&&(i.def||i.example)||'').trim()})).filter(p=>p.a&&p.b)];
+    return pairs.length?{pairs}:null;
+  }
+  if(gameType==='speed-quiz'){
+    const questions=qs.filter(q=>q&&q.type==='mcq'&&Array.isArray(q.options)&&q.options.length).map(q=>{
+      const opts=q.options.map(String);
+      return {q:String(q.text||''),opts,correct:Math.max(0,opts.indexOf(String(q.answer)))};
+    });
+    return questions.length?{questions}:null;
+  }
+  if(gameType==='true-false'){
+    const statements=qs.filter(q=>q&&q.type==='truefalse').map(q=>({text:String(q.text||''),answer:q.answer===true||String(q.answer).toLowerCase()==='true'}));
+    return statements.length?{statements}:null;
+  }
+  if(gameType==='fill-blank'){
+    const sentences=qs.filter(q=>q&&q.type==='gap-fill'&&q.answer).map(q=>`${String(q.text||'').replace(/_{3,}/g,'___')}|${String(q.answer)}`);
+    return sentences.length?{sentences}:null;
+  }
+  if(gameType==='word-categories'){
+    const byCat={};
+    qs.forEach(q=>{
+      if(!q||q.type!=='match'||!Array.isArray(q.pairs))return;
+      q.pairs.forEach(p=>{
+        const name=String(p&&p.right||'').trim(),w=String(p&&p.left||'').trim();
+        if(name&&w)(byCat[name]=byCat[name]||[]).push(w);
+      });
+    });
+    const categories=Object.keys(byCat).map(name=>({name,words:byCat[name]}));
+    return categories.length?{categories}:null;
+  }
+  return null;
+}
+
 function ttEngineOutput(tool,res){
   if(!res)return null;
   const out={
@@ -1254,6 +1315,15 @@ function ttEngineOutput(tool,res){
     struct:{boardKind:res.boardKind||'quiz',questions:res.questions||null,items:res.items||null,cards:res.cards||null},
     ...knowledgeBaseMeta(),
   };
+  out.gameContent=ttGameContentFromStruct(out.gameType,out.struct);
+  /* Рушій дає структуру, але не завжди гру: odd-one-out і sentences-vocab —
+     відкриті питання без єдиної відповіді, word-bank віддає словник без
+     речень. Хаб для них гру будує, тож беремо звідти, а структуру лишаємо
+     рушієву. Інакше share-посилання на ці три втратило б інтерактив. */
+  if(out.gameType&&!out.gameContent){
+    try{const hub=buildHubOutput();if(hub&&hub.gameContent)out.gameContent=hub.gameContent;}
+    catch(err){console.warn('[tools] hub game content unavailable',err);}
+  }
   out.text=ttOutputPlainText(out);
   return out.text||out.struct.questions||out.struct.items||out.struct.cards?out:null;
 }
@@ -1309,7 +1379,13 @@ async function ttTryEngine(){
   }
 }
 
-function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
+/* Обчислення хабової чернетки, БЕЗ показу. Розділено, бо вміст практичної гри
+   іноді треба взяти звідси, не малюючи нічого на екрані: рушій дає структуру,
+   але для трьох інструментів (odd-one-out, sentences-vocab, word-bank) не має
+   з чого зібрати гру, а хаб має. Раніше `generate()` наприкінці і присвоював
+   lastOutput, і рендерив, і скролив, тож «просто дізнатися результат» було
+   неможливо. */
+function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
   else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const tl=t.toLowerCase();const stageCards=[{title:'🎯 Lesson aims & objectives',text:'Topic: '+t+' · Level: '+lv+'\nEstimated duration: 60 min\n\nBy the end of this lesson, SWBAT:\n• Recognise and use the target vocabulary naturally in context\n• Identify gist, main ideas and specific details in the input\n• Complete controlled practice accurately (80%+ score target)\n• Communicate ideas on "'+tl+'" fluently for 2+ minutes\n\n📌 Key vocabulary: '+(ws.slice(0,6).join(', ')||'see vocab list')+'\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________'},{title:'🔥 Warm-up & lead-in (7 min)',text:'Option A — Word association (3 min)\nWrite "'+t+'" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2–3 unknown words from their lists.\n\nOption B — Two Truths and a Lie (4 min)\nSay 3 statements about '+tl+'  — students guess which is false. Then students do the same in pairs.\n\nOption C — Picture / image prompt (3 min)\nShow an image related to '+tl+'. Students describe what they see and predict the lesson topic.\n\n💡 Aim: activate prior knowledge + create curiosity.'},{title:'📖 Vocabulary presentation (8 min)',text:'Target words: '+(ws.slice(0,8).join(' · ')||'target vocabulary')+'.\n\nStep-by-step procedure:\n1. Context — show each word in a sentence (not isolated)\n2. Meaning — elicit, then confirm with a clear definition\n3. CCQ — ask 1–2 concept check questions per word\n4. Pronunciation — model → choral drill → individual drill\n5. Record — students write in vocab notebook: word / definition / example\n\n⏱ Timing: ~1 min per word. Don\'t rush — quality over quantity.\n💡 Use the Flashcards tool to create a drill activity.'},{title:'📄 Input & reading/listening (12 min)',text:'Procedure:\n\n1. PRE-TASK (2 min): Set gist question — "What is the main idea?"\n2. FIRST READ/LISTEN (3 min): Students find the answer to the gist question only.\n3. FEEDBACK (1 min): Quick whole-class check.\n4. SECOND READ/LISTEN (4 min): Detail questions —\n   a) Find three specific facts about '+tl+'.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer\'s/speaker\'s opinion.\n5. PEER CHECK (2 min): Compare answers in pairs before whole-class.\n\n💡 Differentiation: stronger students write a 2-sentence summary after step 4.'},{title:'✏️ Controlled practice (10 min)',text:'Activity type: gap-fill / matching / MCQ / error correction (choose one).\n\nProcedure:\n1. Demo one example together as a class.\n2. Students work individually (5 min). Remind them to use context clues.\n3. Peer check in pairs (2 min) — discuss any differences.\n4. Whole-class feedback (3 min) — address common errors.\n\nMonitoring tips:\n• Circulate — do NOT sit at your desk.\n• Note 2–3 errors anonymously for feedback stage.\n• Give quiet support to students who are stuck; avoid giving answers directly.\n\n✦ Fast finishers: write one more gap-fill sentence for a partner.'},{title:'🗣 Freer practice & production (12 min)',text:'Communicative task: "Discuss with your partner — '+['what do you personally think about','how has','what is your experience with','would you recommend'][Math.floor(Math.random()*4)]+' '+tl+'?"\n\nStructure the task:\n• 30 sec: individual think time (write 3 bullet points)\n• 3 min: pair discussion (both speak roughly equally)\n• 1 min: report back — "My partner said that…"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ 2 strong examples of language to praise\n❌ 2–3 errors to work on in feedback\n\n💡 If a pair finishes early: "Now disagree with each other — argue the opposite point."'},{title:'📋 Feedback & delayed error correction (5 min)',text:'Structure:\n1. PRAISE (1 min) — write 2 strong examples from student output on the board. Ask the class what is good about them.\n2. ERRORS (2 min) — write 2–3 anonymous errors. Students identify and correct as a class.\n3. LANGUAGE FOCUS (2 min) — clarify any remaining confusion about today\'s target language.\n\nAnonymous error board template:\n   ✗ "_______________"\n   ✓ "_______________" — because _______________\n\n📌 Note errors you heard — revisit them at the start of the NEXT lesson (great for recycling).'},{title:'📚 Homework (set in final 2 min)',text:'TASK: Write 80–100 words on the topic "'+t+'".\nUse at least 5 target words naturally.\n\nTopic prompt: Describe your own experience with '+tl+', your opinion, and one recommendation for others.\n\nDifferentiation:\n✦ Support (weaker): Use these starters —\n   "In my experience, '+tl+' is…"\n   "One thing I have noticed is…"\n   "I would suggest that…"\n✦ Extension (stronger): Add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check before submitting: vocabulary ☐ · opinion ☐ · spelling ☐'},{title:'🔄 Fast finishers & extension tasks',text:'If students finish early at any stage:\n\n📖 After vocabulary stage:\n→ Write a short paragraph using 5 target words. Make it surprising or funny.\n\n✏️ After controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\n🗣 After freer practice:\n→ "Now teach your partner — explain the key ideas as if they missed the lesson."\n\n🏆 Challenge task (top students):\n→ Find one real-world example of '+tl+' (news, video, website) and present it in 60 seconds at the start of the next lesson.\n\n📌 Extension tasks keep faster students engaged without disrupting the main pace.'},{title:'📊 Assessment & success criteria',text:'How will you know the lesson was successful?\n\n✅ Vocabulary: students can define/use '+Math.min(ws.length,5)+' target words without prompting.\n✅ Comprehension: students answer gist + 2 detail questions correctly.\n✅ Practice: 80% accuracy on the controlled exercise.\n✅ Production: students use target language for 90+ seconds in the speaking task.\n\nObservation checklist (teacher):\n☐ All students participated in the warm-up.\n☐ Vocabulary was drilled enough (3+ exposures).\n☐ Errors were corrected anonymously and constructively.\n☐ Homework was set with clear instructions and a deadline.\n\nNext lesson: revisit errors from the board + 5-min vocabulary quiz.'},{title:'🗒 Teacher notes & differentiation',text:'📌 TIMING ADJUSTMENTS:\n• Short class (45 min): cut freer practice to 8 min, skip extension.\n• Long class (90 min): double controlled practice + add a writing task.\n\n📌 DIFFERENTIATION:\n• Lower level: pre-teach vocabulary before class; provide sentence starters throughout.\n• Higher level: remove scaffolding, require longer production, add research task.\n• Mixed level: pair stronger + weaker for the speaking task; give different roles.\n\n📌 ADAPTING THE INPUT:\n• No text available? Use a short audio clip, image set, or infographic.\n• Text too hard? Simplify with the TeachEd Simplify tool first.\n\n📌 NEXT STEPS: revisit weak vocabulary → error correction board → homework feedback.'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
   else if(m==='worksheet'){const ws=wordsForCount(voc,n);const t=topic()||'English';const lv=level()||'B1';const tl=t.toLowerCase();const defs=makeDefinitions(items).slice(0,Math.min(ws.length,8));const shuffledWs=[...ws.slice(0,6)].sort(()=>Math.random()-.5);const wsCards=[{title:'📝 Student information',text:'Student name: ____________________   Date: __________\nClass: ____________________   Teacher: __________\nLevel: '+lv+'   Topic: '+t+'\n\n📌 Read all instructions carefully before you start.\n📌 Check your work when you finish each section.'},{title:'A. Vocabulary — match & define',text:'Part 1: Match each word with its meaning.\n\n'+ws.slice(0,6).map((w,i)=>`${i+1}. ${w}  → ___________________________`).join('\n')+'\n\nWord bank: '+shuffledWs.join(' · ')+'\n\nPart 2: Choose 2 words from above. Write your own sentence for each.\na) _______________________________________________\nb) _______________________________________________'},{title:'B. Vocabulary in context — gap fill',text:'Fill the gaps with the correct form of a word from section A.\n\n'+ws.slice(0,5).map((w,i)=>`${i+1}. Without a good understanding of _____, it is hard to make progress in ${tl}.`).join('\n')+'\n\n★ Challenge: Which sentence is closest to your own experience? Underline it and explain why.'},{title:'C. Reading comprehension',text:'Read the text carefully. Answer in full sentences where possible.\n\n1. Main idea: What is the text mainly about?\n   → ____________________________________________\n\n2. Detail A: Give one specific fact or statistic from the text.\n   → ____________________________________________\n\n3. Detail B: Give one example the writer uses.\n   → ____________________________________________\n\n4. Inference: What does the writer think about '+tl+'? How do you know?\n   → ____________________________________________\n\n5. Vocabulary: Find a word in the text that means "important" or "difficult".\n   → The word is: ___________  (line/paragraph: ___)'},{title:'D. Grammar in context',text:'Look at the target language in the text. Complete the tasks:\n\nTask 1: Find one example of the target grammar structure and write it here:\n   → ____________________________________________\n\nTask 2: Write two more examples using the same structure:\n   a) ____________________________________________\n   b) ____________________________________________\n\nTask 3: Write one INCORRECT version of your sentence b) — swap with a partner to correct each other\'s mistake:\n   ✗ ____________________________________________'},{title:'E. Speaking / discussion task',text:'Work with a partner. You have 5 minutes.\n\n🗣 Question 1: How does '+tl+' affect everyday life? Give a real example.\n🗣 Question 2: Do you think '+tl+' is important for your future? Why / why not?\n🗣 Question 3: What is one thing you would like to know more about '+tl+'?\n\nTry to use at least 3 words from Section A.\n\nUseful phrases:\n• "In my experience…"\n• "I think this is important because…"\n• "On the other hand…"'},{title:'F. Writing task',text:'Write 80–100 words on ONE of these prompts:\n\n✍️ Option 1 (opinion): "Is '+tl+' important in today\'s world? Give your opinion with at least 2 reasons."\n\n✍️ Option 2 (narrative): "Describe a time when '+tl+' made a difference to you or someone you know."\n\nChecklist before you finish:\n☐ I used at least 4 words from Section A.\n☐ My sentences are complete (subject + verb + idea).\n☐ I included my own opinion.\n☐ I checked my spelling and punctuation.'},{title:'G. Reflection — how did I do?',text:'Rate yourself honestly (✗ / ✦ / ✅):\n\nVocabulary: I can explain 4+ words without looking.           ___\nReading: I found the main idea and 2 details.                 ___\nGrammar: I formed the structure correctly.                    ___\nSpeaking: I spoke for 2+ minutes without stopping.           ___\nWriting: My paragraph is clear and uses target language.      ___\n\nMy strongest skill today: ________________________________\nWhat I need more practice with: ________________________________\nOne word I will definitely use this week: ________________________________'},{title:'🔑 Answer key & teacher notes',text:'Vocabulary:\n'+defs.map((p,i)=>`${i+1}. ${p.a} — ${p.b}`).join('\n')+'\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min\n\n📌 Differentiation:\n  ✦ Weaker: give sentence starters for F; allow dictionary for A.\n  ✦ Stronger: write a paragraph response to Section E questions.'}];out.text=wsCards.map(c=>c.title+'\n'+c.text).join('\n\n');out.struct={boardKind:'cards',cards:wsCards,items:null,questions:null};}
@@ -1358,6 +1434,10 @@ function generate(){if(!activeTool)return;const m=activeTool.mode;const n=count(
   else if(m==='summary-gapfill'){const text=sentenceParts(src).slice(0,Math.max(3,Math.ceil(n/2))).join(' ');const keys=extractKeywords(text,Math.min(n,8));let gapped=text;keys.forEach(k=>{gapped=gapped.replace(new RegExp('\\b'+k+'\\b','i'),'_____')});out.text=`Listening: Summary Gap-Fill (${level()})\n\nListen and complete the summary. Word bank: ${[...keys].sort(()=>Math.random()-.5).join(' · ')||'(add key words)'}\n\n${gapped}\n\nAnswer key: ${keys.join(', ')}`;out.gameType='fill-blank';out.gameContent={sentences:keys.map(k=>`... ${k} ...|${k}`)};}
   else if(m==='choose-summary'){const correct=`The text is mainly about ${topic().toLowerCase()} and its key points.`;out.text=`Choose the Right Summary (${level()})\n\nWhich summary best matches what you heard/read?\n\nA) ${correct}\nB) The text only gives instructions on how to repair a machine.\nC) The text is a personal letter to a friend about a holiday.\n\nAnswer: A`;out.gameType='speed-quiz';out.gameContent={questions:[{q:'Choose the best summary',opts:[correct,'The text only gives instructions on how to repair a machine.','The text is a personal letter about a holiday.','The text is a list of shopping items.'],correct:0}]};}
   else {out.text=src;}
+  return out;}
+function generate(){
+  const out=buildHubOutput();
+  if(!out)return;
   lastOutput=out;renderResult(out);if(window.innerWidth<=820){document.querySelector('.result').scrollIntoView({behavior:'smooth',block:'start'})}}
 function parseGroups(text){return lines(text).map((line,i)=>{const [name,rest]=line.includes(':')?line.split(/:(.+)/):[`Group ${i+1}`,line];const words=(rest||'').split(',').map(s=>s.trim()).filter(Boolean);return {name:name.trim(),words:words.slice(0,8),odd:['umbrella','banana','airport','winter','keyboard'][i%5]}}).filter(g=>g.words.length)}
 // True when the structured result has answers worth hiding for a student copy.
