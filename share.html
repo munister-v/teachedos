@@ -36,6 +36,15 @@
   .btn.lime{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);color:var(--lime)}
   .pair{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:11px;padding:9px 13px;margin:7px 0}
   .pair b{color:#3a5b00}
+  .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:4px}
+  .fc{border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:16px 13px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;font:inherit;transition:.12s}
+  .fc:hover{border-color:#bcd24a}
+  .fc-w{font-weight:800}
+  .fc-d{font-size:14px;color:var(--muted)}
+  .fc-hint{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+  .fc.on{border-color:#1a1a1a;background:#1a1a1a}
+  .fc.on .fc-w{color:var(--lime)}
+  .fc.on .fc-d{color:#fff}
   .score{margin-top:16px;font-weight:800}
   .foot{margin-top:26px;text-align:center;font-size:13px;color:var(--muted)}
   .foot a{color:#5C8500;font-weight:700;text-decoration:none}
@@ -77,6 +86,7 @@ function render(m){
   else if(gt==='true-false' && gc && Array.isArray(gc.statements)) interactive=renderTF(gc.statements);
   else if(gt==='memory-match' && gc && Array.isArray(gc.pairs)) interactive=renderPairs(gc.pairs);
   else if(gt==='word-categories' && gc && Array.isArray(gc.categories)) interactive=renderCats(gc.categories);
+  else if(gt==='flashcards' && gc && Array.isArray(gc.pairs)) interactive=renderFlashcards(gc.pairs);
 
   root.innerHTML=`<div class="card">
     <h1>${esc(m.title||'TeachEd Task')}</h1>
@@ -104,12 +114,31 @@ function renderTF(st){
 function renderPairs(pairs){
   return `<p>Match each word with its meaning:</p>`+pairs.map(p=>`<div class="pair"><b>${esc(p.a||'')}</b><span>${esc(p.b||'')}</span></div>`).join('');
 }
+/* Картки з перевертанням. Статичний список пар (як у renderPairs) для
+   flashcards не годиться: сенс саме в тому, щоб спершу згадати, а вже потім
+   побачити значення. Пари сюди приходять тим самим {a,b}, що й у memory-match. */
+function renderFlashcards(pairs){
+  const cards=pairs.filter(p=>p&&(p.a||p.b));
+  if(!cards.length)return '';
+  return `<p>Tap a card to see the meaning:</p><div class="fc-grid">`+cards.map(p=>
+    `<button class="fc" type="button"><span class="fc-w">${esc(p.a||'')}</span><span class="fc-d" hidden>${esc(p.b||'')}</span><span class="fc-hint">tap</span></button>`
+  ).join('')+`</div>`;
+}
 function renderCats(cats){
   return cats.map(c=>`<div class="q"><div class="qt">${esc(c.name||'')}</div><div>${(c.words||[]).map(esc).join(', ')}</div></div>`).join('');
 }
 function scoreBar(){return `<div class="score" id="score"></div>`;}
 
 function wireInteractive(gt){
+  if(gt==='flashcards'){
+    document.querySelectorAll('.fc').forEach(card=>card.addEventListener('click',()=>{
+      const def=card.querySelector('.fc-d'),hint=card.querySelector('.fc-hint');
+      const open=card.classList.toggle('on');
+      if(def)def.hidden=!open;
+      if(hint)hint.hidden=open;
+    }));
+    return;
+  }
   if(gt==='speed-quiz'){
     let answered=0,correct=0;const total=document.querySelectorAll('.q').length;
     document.querySelectorAll('.q').forEach(q=>{
