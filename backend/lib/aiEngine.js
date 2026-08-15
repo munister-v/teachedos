@@ -200,8 +200,22 @@ function shapeSpec(input) {
   if (input.source) ctx.push(`Source text / transcript:\n"""${input.source}"""`);
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
   if (input.extra) ctx.push(`Extra teacher note: ${input.extra}`);
-  const context = ctx.length ? `\n\n${ctx.join('\n\n')}` : '';
-  const head = `Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
+  /* Транскрипт іде ПЕРШИМ, а не в кінці — заради кешу префікса у провайдера.
+
+     Один YouTube-урок — це окремий запит на КОЖНУ вправу, і в кожному лежить
+     той самий транскрипт (до 18 000 символів, ~4 500 токенів). Кеш працює по
+     збігу початку промпту, а початок у нас розходився одразу: спершу йшла
+     інструкція конкретного інструмента, і лише потім спільний текст. Тобто
+     платили за транскрипт стільки разів, скільки вправ.
+
+     Тепер спільна частина (system + транскрипт) — це і є префікс, а те, що
+     різне, зсунуто за нього. Кешований вхід коштує вчетверо дешевше повного,
+     тож урок на шість вправ платить за транскрипт приблизно один раз замість
+     шести. Для моделі порядок нешкідливий: спершу матеріал, потім завдання —
+     саме так і рекомендують будувати промпт під кешування. */
+  const prefix = ctx.length ? `${ctx.join('\n\n')}\n\n` : '';
+  const context = '';
+  const head = `${prefix}Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults
