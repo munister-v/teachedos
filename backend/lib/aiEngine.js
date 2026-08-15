@@ -71,29 +71,23 @@ const PROVIDERS = [
 if (PRIMARY_KEY && LIGHT_MODEL && LIGHT_MODEL !== PRIMARY_MODEL) {
   PROVIDERS.push({ name: 'light', key: PRIMARY_KEY, baseUrl: PRIMARY_URL, model: LIGHT_MODEL });
 }
-PROVIDERS.push({
-  name: 'secondary',
-  key: process.env.AI_API_KEY_2 || '',
-  baseUrl: (process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
-  model: process.env.AI_MODEL_2 || OPENROUTER_FALLBACK_MODELS[0] || OPENROUTER_DEFAULT_MODEL,
-});
+/* Секондарі-провайдера більше немає.
+
+   OpenRouter стояв тут страховкою на час, коли основним був безкоштовний Groq
+   і 429 був щоденною подією. Тепер основний — платний OpenAI, а безкоштовні
+   моделі OpenRouter і були причиною скарги на якість: урок міг тихо звалитись
+   на них і видати поверхневі питання, а вчитель бачив би просто «слабку
+   генерацію», не знаючи, що відповідала інша модель. Мовчазний фолбек на гіршу
+   якість шкідливіший за чесну помилку.
+
+   Ланцюг тепер: основна модель → легка на тому ж ключі → локальні шаблони.
+   AI_API_KEY_2 / AI_BASE_URL_2 / AI_MODEL_2 більше не читаються. */
 const CHAIN = PROVIDERS.filter(p => p.key);
 
-// OpenRouter provider used as the override target when the caller picks a
-// specific free model (games/create.html model switcher). Reuses whichever
-// configured key already points at OpenRouter.
-const OPENROUTER_PROVIDER = CHAIN.find(p => p.baseUrl.includes('openrouter')) || null;
-
-// Curated list of free OpenRouter models offered in the games/create.html
-// "AI model" switcher. Any of these can be requested via input.model.
-// Every name in the previous list had been retired from OpenRouter's free tier
-// and returned 404, so the switcher was offering a teacher five models that
-// could not answer. Kept in step with OPENROUTER_FALLBACK_MODELS above.
-const FREE_MODELS = [
-  'openai/gpt-oss-20b:free',
-  'nvidia/nemotron-3-super-120b-a12b:free',
-  'inclusionai/ling-3.0-flash:free',
-];
+// Перемикач моделей у games/create.html жив на безкоштовних моделях
+// OpenRouter. Порожній список він обробляє сам (`(d.freeModels||[])`), тож
+// лишається один пункт «Default (server)» — саме те, що треба.
+const FREE_MODELS = [];
 
 // Primary descriptors kept for status reporting / the engine label.
 const MODEL = CHAIN[0]?.model || PRIMARY_MODEL;
@@ -826,12 +820,9 @@ async function generate(input) {
   const { task, schema } = shapeSpec(input);
   const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
 
-  // Caller picked a specific free model (games/create.html switcher) — try it
-  // first via OpenRouter, then fall through to the normal chain on failure.
-  let chain = orderedChain(input);
-  if (input.model && FREE_MODELS.includes(input.model) && OPENROUTER_PROVIDER) {
-    chain = [{ ...OPENROUTER_PROVIDER, name: 'chosen', model: input.model }, ...chain];
-  }
+  // Вибір конкретної моделі з боку клієнта прибрано разом з OpenRouter: єдине,
+  // що там можна було вибрати, — його безкоштовні моделі.
+  const chain = orderedChain(input);
 
   const trace = { at: new Date().toISOString(), kind: 'teacher-tool', attempts: [] };
   let lastErr;
