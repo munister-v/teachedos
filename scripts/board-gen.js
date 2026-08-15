@@ -794,6 +794,118 @@ function _ttGenDebate(input){
     ]};
 }
 
+/* ── lead-in / facts / pros-cons / situations / four opinions ─────
+   Ці п'ять інструментів досі падали в _ttGenScaffold, а він роздає картки
+   по КАТЕГОРІЇ, не по інструменту. Тобто «Lead-in», «Interesting Facts» і
+   «Pros and Cons» повертали один і той самий текст про «Preparation (1 min)»
+   — три різні кнопки з однаковим результатом. Тут у кожного своя форма.
+
+   Свідомо не вигадуємо фактів і думок за вчителя: локальний генератор не
+   знає нічого про тему, тож усе, що виглядає як зміст, або взяте з
+   вставленого тексту, або лишається рамкою, яку вчитель заповнює. Краще
+   чесна заготовка, ніж правдоподібна вигадка в матеріалі для учня. */
+function _ttGenLeadIn(input){
+  const topic=input.topic||'the topic';
+  // _ttContentPool, а не _ttVocabLines: другий при порожньому полі добиває
+  // список загальними словами ("problem", "reason"), і дошка перетворюється
+  // на розминку ні про що.
+  const ws=_ttContentPool(input).slice(0,6);
+  const board = ws.length
+    ? `Write on the board: ${ws.join(', ')}.\nIn pairs: which word is closest to "${topic}"? Why?`
+    : `Board race: in pairs, write as many words connected to "${topic}" as you can in 60 seconds.`;
+  return { boardKind:'cards', kind:'Lead-in', cat:'speaking', level:input.level, topic,
+    title:`${input.level} · Lead-in: ${topic}`,
+    cards:[
+      { title:'1 · Quick round (2 min)', text:`Ask each student one question, no long answers:\n• What comes to mind when you hear "${topic}"?\n• Have you ever talked about this before?\n• One word for how you feel about it?` },
+      { title:'2 · On the board (3 min)', text:board },
+      { title:'3 · Hand over to the topic (2 min)', text:`Pairs agree on ONE question about "${topic}" they want answered today.\nCollect the questions; return to them at the end of the lesson.` },
+    ]};
+}
+
+function _ttGenInterestingFacts(input){
+  const topic=input.topic||'the topic';
+  // З фактами обережно: вигадувати їх локально не можна. Якщо вчитель вставив
+  // текст — беремо речення з нього, це справжній матеріал. Якщо ні — даємо
+  // рамки під факти, а не вигадані «цікавинки».
+  const sents = String(input.source||'').trim()
+    ? teacherToolSourceSentences(input.source, topic, 30).filter(s=>s.split(/\s+/).length>=6).slice(0,4)
+    : [];
+  const factCard = sents.length
+    ? { title:'Facts from the text', text:sents.map((s,i)=>`${i+1}. ${s}`).join('\n') }
+    : { title:'Facts (fill in before class)', text:`1. ____________________ about ${topic}\n2. ____________________\n3. ____________________\n\nOne of them should be false — students guess which.` };
+  return { boardKind:'cards', kind:'Facts', cat:'speaking', level:input.level, topic,
+    title:`${input.level} · Interesting Facts: ${topic}`,
+    cards:[
+      factCard,
+      { title:'React to each fact', text:'Choose one line for every fact and say why:\n• That surprises me because…\n• I already knew that, but…\n• I doubt that — I think…' },
+      { title:'Two truths and a lie', text:`In groups of three: each student says three statements about ${topic}, two true and one false.\nThe others guess the false one and explain their reasoning.` },
+    ]};
+}
+
+function _ttGenProsCons(input){
+  const topic=input.topic||'the topic';
+  // Перші три слова тексту — це майже завжди сама тема ("Remote, Work, Grew"),
+  // тобто підказка ні про що. Викидаємо слова з теми і беремо найдовші: без
+  // розбору частин мови це найдешевший спосіб дістати саме змістовні слова
+  // (productivity, colleagues), а не службові.
+  const topicWords=new Set(_ttWords(topic));
+  const ws=_ttContentWords(input.source||'',5)
+    .filter(w=>!topicWords.has(w))
+    .sort((a,b)=>b.length-a.length)
+    .slice(0,3)
+    .map(_ttCap);
+  const seed = ws.length>=2 ? `From the text, consider: ${ws.join(', ')}.` : '';
+  return { boardKind:'cards', kind:'Pros & Cons', cat:'speaking', level:input.level, topic,
+    title:`${input.level} · Pros and Cons: ${topic}`,
+    cards:[
+      { title:'➕ Arguments for', text:`${seed}\n1. ____________________\n2. ____________________\n3. ____________________\n\nEach argument needs an example, not only a claim.`.trim() },
+      { title:'➖ Arguments against', text:'1. ____________________\n2. ____________________\n3. ____________________\n\nThe strongest objection goes last.' },
+      { title:'Language for weighing up', text:'One advantage is… / The main drawback is…\nOn the one hand… / On the other hand…\nAlthough… , I still think…\nOverall, the benefits outweigh… / …do not outweigh…' },
+      { title:'Verdict', text:`Take a position on "${topic}" in one sentence.\nThen give the single argument from the other side that you find hardest to answer.` },
+    ]};
+}
+
+function _ttGenCommSituations(input){
+  const ws=_ttContentPool(input).filter(Boolean);
+  // Інструмент побудований навколо слів учителя. Без них це просто рольова
+  // гра, яка вже є окремим інструментом, тож повертаємо null — хай впаде далі.
+  if (ws.length < 3) return null;
+  const topic=input.topic||'the topic';
+  const per = Math.max(2, Math.ceil(ws.length / 3));
+  const groups = [ws.slice(0,per), ws.slice(per,per*2), ws.slice(per*2,per*3)].filter(g=>g.length);
+  const SETTINGS = [
+    ['At the counter', 'One of you needs something and cannot get it. The other works there.'],
+    ['A phone call', 'You cannot see each other. Sit back to back.'],
+    ['Meeting a friend', 'You have not met for a year. One of you has news.'],
+  ];
+  const cards = groups.map((g,i)=>({
+    title:`Situation ${i+1} · ${SETTINGS[i][0]}`,
+    text:`${SETTINGS[i][1]}\nTopic: ${topic}\nYou must use: ${g.join(', ')}.`,
+  }));
+  cards.push({ title:'After the role-play', text:'Swap roles and run it again, faster.\nListeners note one phrase that sounded natural and one they would change.' });
+  return { boardKind:'cards', kind:'Situations', cat:'vocabulary', level:input.level, topic,
+    title:`${input.level} · Communicative Situations: ${topic}`, cards };
+}
+
+function _ttGenFourOpinions(input){
+  const topic=input.topic||'the topic';
+  // Чотири голоси задані РОЛЯМИ, а не готовими думками: рамка стоїть, зміст
+  // пише вчитель або модель, і жодна вигадана цитата не потрапляє до учня.
+  const VOICES = [
+    ['Anna', 'strongly agrees', 'and gives a personal reason'],
+    ['Ben', 'partly agrees', 'but names one condition'],
+    ['Carla', 'disagrees', 'and offers a different solution'],
+    ['Dan', 'has not decided', 'and asks a question instead'],
+  ];
+  const cards = VOICES.map(([name,stance,note])=>({
+    title:`${name} — ${stance}`,
+    text:`"____________________________________________"\n(${note})\nOn: ${topic}`,
+  }));
+  cards.push({ title:'Your response', text:`Whose opinion is closest to yours, and whose is furthest? Say why.\nWrite a reply to ONE of them in 80–100 words: name the opinion, agree or disagree, give a reason and an example.` });
+  return { boardKind:'cards', kind:'Four Opinions', cat:'writing', level:input.level, topic,
+    title:`${input.level} · Four Opinions: ${topic}`, cards };
+}
+
 /* ── listening tools (reuse reading patterns) ───────────────────── */
 function _ttGenListeningDictation(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 40)
@@ -1474,6 +1586,11 @@ function generateTeacherToolLocal(input){
   if (id === 'question-ladder')       return _ttGenQuestionLadder(input);
   if (id === 'roleplay-cards')        return _ttGenRoleplay(input);
   if (id === 'debate-cards')          return _ttGenDebate(input);
+  if (id === 'lead-in')               return _ttGenLeadIn(input);
+  if (id === 'interesting-facts')     return _ttGenInterestingFacts(input);
+  if (id === 'pros-cons')             return _ttGenProsCons(input);
+  if (id === 'comm-situations')       return _ttGenCommSituations(input);
+  if (id === 'four-opinions')         return _ttGenFourOpinions(input);
   if (id === 'listening-dictation')   return _ttGenListeningDictation(input);
   if (id === 'simplify-text')         return _ttGenAdaptText(input);
   if (id === 'lesson-pack')           return _ttGenLessonPack(input);
