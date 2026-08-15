@@ -434,7 +434,11 @@ function shapeSpec(input) {
     if (isOpen || isWarmup) {
       const openTask = isWarmup
         ? `${head} Produce exactly ${count} pre-listening prediction questions at ${level} level that activate prior knowledge and curiosity before hearing/watching. Mix prediction ("What do you think...?"), prior knowledge ("What do you already know about...?"), and personal connection ("Have you ever...?") types. Use type "open".`
-        : `${head} Produce exactly ${count} open-ended questions at ${level} level that encourage critical thinking and personal response. Use type "open".`;
+        /* Те саме, що і з MCQ: просили «критичне мислення й особисту реакцію»
+           взагалі, і виходили питання, які можна поставити до БУДЬ-ЯКОГО
+           виступу, не читавши цього. Тепер кожне прив'язане до конкретного
+           місця в тексті і вибудуване драбиною складності. */
+        : `${head} Produce exactly ${count} open-ended discussion questions at ${level} level. Anchor EVERY question in something specific the source text says — name the moment, claim or example it refers to, so the question cannot be answered by someone who has not read it. Order them as a ladder: the first checks understanding of what the text argues, the next asks the student to analyse WHY, the next asks them to evaluate or challenge it, the last invites their own experience. No yes/no questions and nothing answerable in a single word; each must need several sentences. Keep the wording within ${level} vocabulary even when the thinking is demanding. Use type "open".`;
       return {
         task: `${openTask}${context}`,
         schema: '{"questions":[{"type":"open","text":"question?","points":1}]}',
@@ -477,11 +481,20 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"mcq","text":"What is the main idea of the text?","options":["full answer phrase A","full answer phrase B","full answer phrase C","full answer phrase D"],"answer":"full answer phrase A","points":1},{"type":"mcq","text":"detail question about a stated fact?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
       };
     }
-    const verb = isMcqGap ? 'multiple-choice gap-fill sentences (one blank, 4 options)'
-      : isAbcd ? 'multiple-choice comprehension questions (4 options)'
-        : 'multiple-choice questions (4 options)';
+    /* Питання на розуміння просимо ДЕТАЛЬНО.
+
+       Тут довго стояло саме «produce N multiple-choice comprehension
+       questions», і модель робила рівно те, що просили: буквальний переказ
+       перших рядків, іноді двічі про те саме. Скарга вчителя на «мізерну
+       глибину» була скаргою на цей рядок, а не на модель — перевірено
+       порівнянням: дорога модель зі старим формулюванням дала ті самі
+       поверхневі питання, а дешева з цим — головну думку, деталь, висновок і
+       ставлення, вчетверо дешевше. Решта промптів у цьому файлі давно детальні,
+       відставав саме головний інструмент розуміння тексту. */
+    const abcdTask = `Produce exactly ${count} multiple-choice comprehension questions (4 options) at ${level} level. Spread them across the WHOLE text, not only its opening. Vary what each one tests, cycling through: the main idea or the speaker's purpose; a specific detail; an INFERENCE the text implies but never states; the speaker's attitude or tone. At least one MUST be an inference question. Reject any question a student could answer correctly without having read the text, any that repeats what another question already tests, and any whose wording copies a sentence verbatim so the answer can be matched by eye. Every distractor must be plausible to someone who half-understood the text, and must match the answer in topic and length.`;
+    const plainTask = `Produce exactly ${count} ${isMcqGap ? 'multiple-choice gap-fill sentences (one blank, 4 options)' : 'multiple-choice questions (4 options)'} at ${level} level. Each has 4 options and "answer" equal to the correct option text.`;
     return {
-      task: `${head} Produce exactly ${count} ${verb} at ${level} level. Each has 4 options and "answer" equal to the correct option text. Use type "mcq".${context}`,
+      task: `${head} ${isAbcd ? abcdTask : plainTask} Use type "mcq".${context}`,
       schema: '{"questions":[{"type":"mcq","text":"question","options":["A","B","C","D"],"answer":"correct option text","points":1}]}',
     };
   }
