@@ -107,8 +107,34 @@ function listModels() {
 // first. Everything else (vocab, matching, simple grammar/quiz drills) is
 // "light": we try the fast small model FIRST to save the 70B quota and cut
 // latency, with the big model still behind it as a quality backstop.
+/* Інструменти, які йдуть НА СИЛЬНУ модель.
+
+   Список складався, коли основною була безкоштовна Groq 70B, а легкою — 8B, і
+   кожен зайвий пункт коштував квоти. Тепер це $0.0009 проти $0.0003 за вправу,
+   і економити на мисленні немає сенсу: `open-questions` — головний інструмент
+   критичного мислення — сидів у легкій групі, тобто саме питання «на глибину»
+   писала слабша модель. Це друга половина скарги вчителя, поряд з промптами.
+
+   Критерій простий: чи потрібне тут судження. Питання на висновок, правдоподібні
+   дистрактори, справжнє (а не переформульоване) хибне твердження, оцінка рівня
+   тексту — потрібне. Механічне (перемішати слова, розрізати на половинки,
+   зробити картки зі списку) — ні, там легка модель дає той самий результат
+   дешевше і швидше. */
 const HEAVY_TOOLS = new Set([
+  // читання: розуміння й екзаменаційні формати
   'abcd-text', 'gist-detail', 'three-titles', 'choose-summary', 'reading-bits',
+  'true-false', 'summary-task', 'simplify-text', 'text-topic-vocab', 'generate-text',
+  'tf-not-given', 'vocab-in-context', 'reference-questions', 'match-headings', 'sentence-insertion',
+  // мислення й мовлення
+  'open-questions', 'discussion', 'question-ladder', 'debate-cards', 'roleplay-cards',
+  // слухання: це ті самі питання на розуміння, лише джерело інше
+  'audio-video-questions',
+  // граматика, де дистрактор має бути осмисленим
+  'gaps-abcd', 'two-options', 'error-correction', 'tense-contrast', 'grammar-rules',
+  // лексика, де потрібна семантика, а не список
+  'odd-one-out', 'word-sorting', 'collocations', 'synonyms-antonyms', 'idioms',
+  // письмо й оцінювання
+  'creative-writing', 'essay-outline', 'rewrite-style', 'rubric-maker',
 ]);
 function isLight(input) {
   if (input.boardKind === 'cards') return false;      // lesson packs, dialogues, essays…
