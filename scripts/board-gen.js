@@ -906,6 +906,138 @@ function _ttGenFourOpinions(input){
     title:`${input.level} · Four Opinions: ${topic}`, cards };
 }
 
+/* ── writing / grammar / listening: решта інструментів зі скаффолда ──── */
+function _ttGenCreativeWriting(input){
+  // Інструмент називається "with Target Vocabulary". Без слів учителя це
+  // просто тема для есе, а для тем уже є Essay Topics, тож не дублюємо.
+  const ws=_ttContentPool(input).slice(0,10);
+  if (ws.length < 3) return null;
+  const topic=input.topic||'the topic';
+  const must=ws.slice(0,6);
+  return { boardKind:'cards', kind:'Creative Writing', cat:'writing', level:input.level, topic,
+    title:`${input.level} · Creative Writing: ${topic}`,
+    cards:[
+      { title:'Word bank (all of them must appear)', text:must.join(' · ') },
+      { title:'Prompt A · a scene', text:`Write about a moment connected to "${topic}" where something goes wrong.\nStart in the middle of the action, not with the background.\n120–150 words.` },
+      { title:'Prompt B · a voice', text:`Someone who disagrees with the usual view of "${topic}" writes a short message explaining why.\nKeep it to one paragraph and one clear reason.` },
+      { title:'Prompt C · a constraint', text:`Same topic, but: no adjectives in the first two sentences, and the last sentence is a question.\nUse at least ${Math.min(4, must.length)} words from the bank.` },
+      { title:'Before you hand it in', text:`✅ Every word from the bank is used, and used correctly\n✅ The opening does not repeat the prompt\n✅ One sentence you are proud of — underline it` },
+    ]};
+}
+
+function _ttGenEssayTopics(input){
+  // Тут вигадувати нічого й не треба: чотири екзаменаційні типи завдання —
+  // це реальні сталі формати, а не наш здогад про тему. Тема лише
+  // підставляється в кожен.
+  const topic=input.topic||'the topic';
+  const t=topic.toLowerCase();
+  return { boardKind:'cards', kind:'Essay Topics', cat:'writing', level:input.level, topic,
+    title:`${input.level} · Essay Topics: ${topic}`,
+    cards:[
+      { title:'Opinion', text:`"${_ttCap(t)} does more harm than good."\nTo what extent do you agree or disagree?\n\nPlan: your position → two reasons with examples → the counter-argument → restate.` },
+      { title:'Discuss both views', text:`Some people think ${t} should be encouraged. Others believe it should be limited.\nDiscuss both views and give your own opinion.\n\nPlan: view 1 → view 2 → your position last.` },
+      { title:'Problem and solution', text:`What problems are caused by ${t}, and what could be done about them?\n\nPlan: name two problems → one realistic solution each → say which solution matters most.` },
+      { title:'Advantages and disadvantages', text:`What are the advantages and disadvantages of ${t}?\n\nPlan: two advantages → two disadvantages → do the advantages outweigh them?` },
+      { title:'Marking focus', text:'Task response · Coherence · Vocabulary range · Grammar accuracy\nPick ONE to improve in this essay and write it at the top of the page.' },
+    ]};
+}
+
+function _ttGenGrammarRules(input){
+  // Граматичну точку знає лише тема ("present perfect"), самого правила
+  // локально не вивести — тож картки лишаються рамкою в тому самому
+  // порядку, що й у промпті aiEngine (Rule → Examples → Mistakes →
+  // Practice), щоб швидкий і AI-варіант мали однакову форму.
+  const point=input.topic||'the target structure', lv=input.level||'B1';
+  return { boardKind:'cards', kind:'Grammar Rules', cat:'grammar', level:lv, topic:point,
+    title:`${lv} · Grammar Rules: ${point}`,
+    cards:[
+      { title:'Rule', text:`${point} · ${lv}\n\nForm: ____________________________________\nWe use it when: ________________________\nWe do NOT use it when: _________________` },
+      { title:'Examples', text:'1. ____________________________________\n2. ____________________________________\n3. ____________________________________\n\nOne affirmative, one negative, one question.' },
+      { title:'Common mistakes', text:`❌ ____________________  →  ✅ ____________________\n❌ ____________________  →  ✅ ____________________\n\nWhy the mistake happens: ______________` },
+      { title:'Practice', text:`Five short prompts for ${point}:\n1. ____________________\n2. ____________________\n3. ____________________\n4. ____________________\n5. ____________________\n\nAnswers on the back of the card.` },
+    ]};
+}
+
+function _ttGenWarmupListening(input){
+  // Розминка ПЕРЕД слуханням. Навмисно ігноруємо input.source: якщо
+  // підмішати сюди речення з транскрипту, вправа на передбачення перестає
+  // бути передбаченням — учень уже прочитав відповідь.
+  const topic=input.topic||'the topic';
+  return { boardKind:'cards', kind:'Warm-Up', cat:'speaking', level:input.level, topic,
+    title:`${input.level} · Warm-Up Before Listening: ${topic}`,
+    cards:[
+      { title:'1 · Predict the words', text:`You are about to hear something about "${topic}".\nIn pairs, write 8 words you expect to hear.\nTick them off while listening — who guessed most?` },
+      { title:'2 · Predict the content', text:`• Who is speaking, and to whom?\n• Will the speaker be positive or critical about ${topic}?\n• Name one thing you are sure will be mentioned.` },
+      { title:'3 · Your reason to listen', text:'Write ONE question you want the recording to answer.\nIf it is not answered, that is your first question afterwards.' },
+      { title:'4 · Pre-teach (teacher)', text:'Words the class will not survive without:\n1. ____________________\n2. ____________________\n3. ____________________' },
+    ]};
+}
+
+function _ttGenAudioVideoQuestions(input){
+  // Відрізняється від transcript-helper: там перевірка кожного речення на
+  // переказ, тут — набір із градацією (суть → деталі → ставлення) на весь
+  // запис. Без транскрипту повертаємо null: вигадувати питання до аудіо,
+  // якого ми не чули, не можна.
+  const sents = teacherToolSourceSentences(input.source, input.topic, 60)
+    .filter(s => s.split(/\s+/).length >= 6);
+  if (!String(input.source||'').trim() || sents.length < 2) return null;
+  const topic=input.topic||'the recording';
+  const count=Math.max(3, input.count||6);
+  const questions=[{ type:'open', text:`Listen once without writing. In ONE sentence: what is the speaker's main point about ${topic}?`, answer:'', points:1 }];
+  for (const s of sents) {
+    if (questions.length >= count-1) break;
+    // Не перше слово речення: воно стоїть на передбачуваній позиції і
+    // вгадується без слухання, а ще робить усі пункти однаковими на вигляд.
+    // Найдовше змістовне слово — це майже завжди те, заради чого пункт і є.
+    const cands=_ttContentWords(s).slice(1);
+    const w=cands.slice().sort((a,b)=>b.length-a.length)[0];
+    if (!w) continue;
+    questions.push({ type:'gap-fill', text:'Listen again and complete: ' + _ttBlank(s.trim().slice(0,140), w), answer:w, points:1 });
+  }
+  questions.push({ type:'open', text:'What is the speaker\'s attitude, and which words gave it away?', answer:'', points:1 });
+  return { boardKind:'quiz', kind:'A/V Questions', cat:'listening', level:input.level, topic,
+    title:`${input.level} · Audio & Video Questions: ${topic}`, questions };
+}
+
+function _ttGenWordTranslationMatch(input){
+  // Перекласти локально ми не можемо, але два справжні джерела є:
+  // рядки виду "dog - собака", які вчитель уже вписав, і бібліотека
+  // TEACHEDOS_VOCAB (680 слів з uk). Слова без перекладу ВИКИДАЄМО, а не
+  // лишаємо з порожнім правим боком: у memory-match порожня картка — це
+  // зламана гра, а не підказка вчителю.
+  // Рядок або вже пара ("dog - собака"), або перелік через кому — у другому
+  // випадку кому не можна вважати роздільником пари, бо переклад сам буває
+  // з комою, тож ділимо на слова лише те, де пари немає.
+  const PAIR = /^(.+?)\s*(?:[-–—=:]|\s{2,})\s*(.+)$/;
+  const raw = [];
+  for (const line of String(input.vocab||'').split(/[\n;]+/).map(x=>x.trim()).filter(Boolean)) {
+    if (PAIR.test(line)) raw.push(line);
+    else line.split(',').map(x=>x.trim()).filter(Boolean).forEach(w=>raw.push(w));
+  }
+  const lib = _ttVocabLibIndex();
+  const pairs = [];
+  const seen = new Set();
+  for (const line of raw) {
+    const m = line.match(PAIR);
+    let left, right;
+    if (m) { left = m[1].trim(); right = m[2].trim(); }
+    else { left = line.trim(); right = (lib[left.toLowerCase()]||{}).uk || ''; }
+    if (!left || !right) continue;
+    const k = left.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    pairs.push({ left:_ttCap(left), right });
+    if (pairs.length >= (input.count||10)) break;
+  }
+  if (pairs.length < 2) return null;
+  // Той самий конверт, що й у word-definition-match: пари на дошці живуть як
+  // quiz з одним питанням type:'match'. Окремий boardKind:'pairs' тут ніхто
+  // не читає — ні прев'ю, ні передача в memory-match.
+  return { boardKind:'quiz', kind:'Translation Match', cat:'vocabulary', level:input.level, topic:input.topic,
+    title:`${input.level} · Word-Translation Matching: ${input.topic}`,
+    questions: [{ type:'match', text:'Match each word to its translation.', pairs, points: pairs.length }] };
+}
+
 /* ── listening tools (reuse reading patterns) ───────────────────── */
 function _ttGenListeningDictation(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 40)
@@ -1591,6 +1723,12 @@ function generateTeacherToolLocal(input){
   if (id === 'pros-cons')             return _ttGenProsCons(input);
   if (id === 'comm-situations')       return _ttGenCommSituations(input);
   if (id === 'four-opinions')         return _ttGenFourOpinions(input);
+  if (id === 'creative-writing')      return _ttGenCreativeWriting(input);
+  if (id === 'essay-topics')          return _ttGenEssayTopics(input);
+  if (id === 'grammar-rules')         return _ttGenGrammarRules(input);
+  if (id === 'warmup-listening')      return _ttGenWarmupListening(input);
+  if (id === 'audio-video-questions') return _ttGenAudioVideoQuestions(input);
+  if (id === 'word-translation-match')return _ttGenWordTranslationMatch(input);
   if (id === 'listening-dictation')   return _ttGenListeningDictation(input);
   if (id === 'simplify-text')         return _ttGenAdaptText(input);
   if (id === 'lesson-pack')           return _ttGenLessonPack(input);
