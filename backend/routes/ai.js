@@ -970,8 +970,37 @@ const METRICS = {
   lastTrace: null, // provider/model attempts from the last LLM request
   lastAt: null,    // ISO timestamp of last request
   byModel: {},     // per-model success counts
+  /* Token accounting, so the prompt-cache story can be checked instead of
+     believed. shapeSpec deliberately puts the transcript FIRST to make the
+     provider's prefix cache carry it across the six calls of one video lesson;
+     whether that actually happens is a property of the provider, the model and
+     how long the calls are apart, and nothing here has ever reported it. The
+     provider returns the numbers in `usage` — they were captured into the last
+     trace and then thrown away with it. `cachedPrompt` is what a lesson does
+     NOT pay full price for; if it stays near zero, the prefix is being broken
+     somewhere and the whole arrangement is buying nothing. */
+  tokens: { calls: 0, prompt: 0, cachedPrompt: 0, completion: 0 },
   startedAt: new Date().toISOString(),
 };
+
+/* OpenAI reports the cache hit under prompt_tokens_details.cached_tokens;
+   Anthropic-style providers use cache_read_input_tokens. Read both, prefer
+   whichever is present, and never let a missing field throw — this is
+   bookkeeping, not the request. */
+function recordTokens(usage) {
+  if (!usage || typeof usage !== 'object') return;
+  const cached = Number(
+    usage.prompt_tokens_details?.cached_tokens
+    ?? usage.cache_read_input_tokens
+    ?? usage.cached_tokens
+    ?? 0) || 0;
+  const prompt = Number(usage.prompt_tokens ?? usage.input_tokens ?? 0) || 0;
+  const completion = Number(usage.completion_tokens ?? usage.output_tokens ?? 0) || 0;
+  METRICS.tokens.calls++;
+  METRICS.tokens.prompt += prompt;
+  METRICS.tokens.cachedPrompt += cached;
+  METRICS.tokens.completion += completion;
+}
 
 /* Primary entry: try the LLM, fall back to the local rule engine on any error.
 
@@ -999,6 +1028,7 @@ async function generate(input) {
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
     return out;
@@ -1059,7 +1089,14 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
     maxItems: MAX_ITEMS,
     ratePerMin: Number(process.env.AI_RATE_PER_MIN || 15),
     freeModels: aiEngine.FREE_MODELS || [],
-    metrics: { ...METRICS },
+    metrics: {
+      ...METRICS,
+      // Share of prompt tokens served from the provider's cache. This is the
+      // number that says whether transcript-first prompting is working.
+      cachedPromptPct: METRICS.tokens.prompt
+        ? Math.round(1000 * METRICS.tokens.cachedPrompt / METRICS.tokens.prompt) / 10
+        : null,
+    },
   });
 });
 
