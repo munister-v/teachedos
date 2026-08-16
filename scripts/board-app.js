@@ -1319,12 +1319,14 @@ function renderVideo(el, card) {
     const eyebrow = document.createElement('span');
     eyebrow.className = 'video-eyebrow';
     eyebrow.textContent = 'SOURCE VIDEO';
+    eyebrow.setAttribute('aria-hidden', 'true');
     hdr.insertBefore(eyebrow, hdr.firstChild);
     if (d.url) {
       const link = document.createElement('a');
       link.className = 'video-open-link';
       link.href = d.url; link.target = '_blank'; link.rel = 'noopener';
       link.title = 'Open on YouTube'; link.textContent = '↗';
+      link.setAttribute('aria-label', 'Open on YouTube');
       link.addEventListener('mousedown', e => e.stopPropagation());
       hdr.appendChild(link);
     }
@@ -1335,6 +1337,9 @@ function renderVideo(el, card) {
   if (d.embedUrl) {
     const iframe = document.createElement('iframe');
     lazyBoardMediaSrc(iframe, d.embedUrl);
+    // An untitled iframe is announced as just "frame" — on a lesson board that
+    // is the one card whose content nothing else describes.
+    iframe.title = d.title || 'Embedded video';
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
@@ -2583,6 +2588,17 @@ function _ttGapFillHtml(text, answer, showAns) {
   };
 }
 
+/* The list element that holds what _ttWorksheetListHTML returns. Questions and
+   lesson stages are ordered sequences and lesson stages are literally numbered,
+   so they are an <ol>; a glossary is an unordered bank of words, so it is a
+   <ul>. Both the board and the print view build their container from here, so
+   the two cannot drift into different markup for the same content — and the
+   items themselves are <li>, which is what makes a worksheet readable to a
+   screen reader ("list, 8 items") and survivable as pasted HTML. */
+function _ttWorksheetListTag(d) {
+  return Array.isArray(d.items) && !Array.isArray(d.questions) ? 'ul' : 'ol';
+}
+
 function _ttWorksheetListHTML(d, showAns, accent) {
   const items = Array.isArray(d.items) ? d.items : null;
   const cards = Array.isArray(d.cards) ? d.cards : null;
@@ -2592,13 +2608,13 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       let ans = '';
       const gap = q.type === 'gap-fill' ? _ttGapFillHtml(q.text, q.answer, showAns) : null;
       if (q.type === 'mcq' && Array.isArray(q.options)) {
-        ans = `<div class="ws-opts">${q.options.map((o, oi) => {
+        ans = `<ul class="ws-opts">${q.options.map((o, oi) => {
           const ok = showAns && o === q.answer;
           // Keep the letter on the correct option too: a key is read as "the
           // answer is B", and swapping the letter for a tick threw that away.
           // The badge inverts instead, which is what marks it.
-          return `<div class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${_ttMdInline(o)}</span></div>`;
-        }).join('')}</div>`;
+          return `<li class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${_ttMdInline(o)}</span></li>`;
+        }).join('')}</ul>`;
       } else if (q.type === 'truefalse') {
         // No ✅/❌ glyphs — the lime .on fill already marks the answer, and a red
         // cross on a lime chip fought the palette. Without the key shown both
@@ -2618,7 +2634,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
         // anyway, and an open question is the one place a student writes.
         ans = `<div class="ws-write"><i></i><i></i><i></i><i></i></div>`;
       }
-      return `<div class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : _ttMdInline(q.text || '')}</span></div>${ans}</div>`;
+      return `<li class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" aria-hidden="true">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : _ttMdInline(q.text || '')}</span></div>${ans}</li>`;
     }).join('');
   }
   if (items) {
@@ -2633,9 +2649,9 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       const tail = (showAns && def)
         ? `<span class="ws-chip-def">${_ttMdInline(def)}</span>`
         : '<span class="ws-gap"></span>';
-      return `<span class="ws-chip"><b>${_ttMdInline(it.word || '')}</b>${tail}</span>`;
+      return `<li class="ws-chip"><b>${_ttMdInline(it.word || '')}</b>${tail}</li>`;
     }).join('');
-    return `<div class="ws-chips">${chips}</div>`;
+    return chips;
   }
   if (cards) {
     return cards.map((c, i) => {
@@ -2643,15 +2659,15 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       const bodyHtml = _ttWorksheetStageBodyHtml(c, sm);
       const { clean: cleanTitle, time } = _ttExtractStageTiming(c.title || '');
       const anchorCls = sm.anchor ? ` ws-anchor ws-anchor-${sm.anchor}` : '';
-      return `<div class="ws-q ws-q-card ${sm.cls}${anchorCls}" style="--q-accent:${accent};--stage:${i+1}">
-        <div class="ws-stage-rail"><span>${i + 1}</span></div>
+      return `<li class="ws-q ws-q-card ${sm.cls}${anchorCls}" style="--q-accent:${accent};--stage:${i+1}">
+        <div class="ws-stage-rail" aria-hidden="true"><span>${i + 1}</span></div>
         <div class="ws-qh ws-card-head">
           <span class="ws-card-title">${_ttMdInline(cleanTitle || c.title || '')}</span>
           <span class="ws-stage-label">${esc(sm.label)}</span>
           ${time ? `<span class="ws-stage-time">⏱ ${esc(time)}</span>` : ''}
         </div>
         <div class="ws-card-txt">${bodyHtml}</div>
-      </div>`;
+      </li>`;
     }).join('');
   }
   return '';
@@ -2694,6 +2710,25 @@ function _wsDisplayTopic(d) {
   return t;
 }
 function _reEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+/* What the big line of the masthead says, and what the small line above it
+   says. On a standalone sheet the subject is what distinguishes it, so the
+   subject is the heading — unchanged. Inside a lesson built from one video
+   every sheet has the SAME subject, and four cards headed by the same 25px
+   line is how a lesson came to read as four copies of itself. There the
+   exercise's own name leads and the shared subject moves up to the kicker,
+   where it belongs: context, not identity. */
+function _wsHeading(d) {
+  return d._ytTool || _wsDisplayTopic(d);
+}
+function _wsStripKicker(d) {
+  const base = [d.kind || 'Worksheet', d.level].filter(Boolean).join(' · ');
+  const sheet = d._sheetOf ? ` · Sheet ${d._sheetOf.i}/${d._sheetOf.of}` : '';
+  // Only when the heading is not already the topic, or the card would print the
+  // same string twice, one size apart.
+  const topic = d._ytTool ? _wsDisplayTopic(d) : '';
+  return (topic ? topic + ' · ' : '') + base + sheet;
+}
 
 function renderWorksheet(el, card) {
   const d = card.data || {};
@@ -2764,10 +2799,14 @@ function renderWorksheet(el, card) {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
       return `<span class="ws-step ${sm.cls}"><i>${i + 1}</i><b>${esc(sm.label)}</b></span>`;
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
-  const strip = `<div class="ws-strip" style="${accentVars}">
+  /* <header> + <h2>, not two spans in a div: the masthead IS the sheet's
+     heading, and a board full of generated worksheets was, structurally, a
+     page with no headings at all — nothing to jump between, nothing to lift
+     when the card is copied out or exported. */
+  const strip = `<header class="ws-strip" style="${accentVars}">
       <div class="ws-strip-main">
-        <span class="ws-strip-kicker">${esc(d.kind || 'Worksheet')}${d.level ? ' · ' + esc(d.level) : ''}${d._sheetOf ? ` · Sheet ${d._sheetOf.i}/${d._sheetOf.of}` : ''}</span>
-        <span class="ws-strip-title">${esc(_wsDisplayTopic(d))}</span>
+        <span class="ws-strip-kicker">${esc(_wsStripKicker(d))}</span>
+        <h2 class="ws-strip-title">${esc(_wsHeading(d))}</h2>
       </div>
       <div class="ws-strip-side">
         <span class="ws-pill level">${n} ${unit}</span>
@@ -2779,7 +2818,7 @@ function renderWorksheet(el, card) {
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
         ${d._ttOrigin && d._ttOrigin.toolId ? `<button class="ws-btn" onclick="openSourceTool('${card.id}')" title="Open the tool this came from">↩ ${esc(d._ttOrigin.toolTitle || 'Tool')}</button>` : ''}
       </span>
-    </div>`;
+    </header>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   // Lesson Pack stages (cards[]) lay out as a landscape grid — see .ws-list-cards
@@ -2789,7 +2828,9 @@ function renderWorksheet(el, card) {
   const qList = Array.isArray(d.questions) ? d.questions : null;
   const qCols = qList ? _ttQuestionCols(qList.length, card.w) : 1;
   const listCls = cards ? 'ws-list ws-list-cards'
+                : Array.isArray(d.items) && d.items.length ? 'ws-list ws-list-chips'
                 : qCols > 1 ? 'ws-list ws-list-qgrid' : 'ws-list';
+  const listTag = _ttWorksheetListTag(d);
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"`
                  : qCols > 1 ? `style="--q-cols:${qCols}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
@@ -2805,8 +2846,10 @@ function renderWorksheet(el, card) {
   if (sectionLabel && String(d.kind || '').trim().toLowerCase() === sectionLabel.toLowerCase()) {
     sectionLabel = '';
   }
-  const eyebrow = sectionLabel ? `<div class="ws-section">${sectionLabel}</div>` : '';
-  body.innerHTML = strip + eyebrow + `<div class="${listCls}" ${gridCols}>${listHtml || '<div class="ws-open">Empty worksheet</div>'}</div>`;
+  const eyebrow = sectionLabel ? `<h3 class="ws-section">${sectionLabel}</h3>` : '';
+  body.innerHTML = strip + eyebrow + (listHtml
+    ? `<${listTag} class="${listCls}" ${gridCols}>${listHtml}</${listTag}>`
+    : `<div class="${listCls}"><div class="ws-open">Empty worksheet</div></div>`);
   el.appendChild(body);
 
   // The height this card was given came from an estimate. Now that the real
@@ -3528,7 +3571,14 @@ function printWorksheet(cardId) {
   const LIME = '#CDF24F', CREAM = '#F5F0E8', LINE = 'rgba(14,14,16,.14)';
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  const metaLine = [d.kind, d.level, showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
+  // Same heading rule as the board (see _wsHeading): inside a lesson the sheet
+  // is named after the exercise and the video moves into the kicker. Printing
+  // d.title raw put "B1 · Questions: <the whole video title>" on the <h1> of
+  // every sheet in the pack — three identical pages as far as a reader is
+  // concerned, and the level/kind repeated from the line directly above it.
+  const printHeading = _wsHeading(d) || d.title || 'Worksheet';
+  const metaLine = [d._ytTool ? _wsDisplayTopic(d) : '', d.kind, d.level,
+                    showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
     body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0E0E10;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -3561,6 +3611,7 @@ function printWorksheet(cardId) {
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:800}
+    .ws-print-list,.ws-opts,.ws-chips{list-style:none;margin:0;padding:0}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:800;color:${accent}}
@@ -3617,12 +3668,16 @@ function printWorksheet(cardId) {
     .ws-cards-print{column-count:2;column-gap:18px}
     .ws-cards-print .ws-q-card{break-inside:avoid;margin-bottom:12px}
     @media print{body{padding:0}@page{margin:1.5cm}}`;
-  const cardsWrap = d.cards ? `<div class="ws-cards-print">${listHtml}</div>` : listHtml;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title || 'Worksheet')}</title><style>${css}</style></head>
+  // Same markup as the board (see _ttWorksheetListTag): the items are <li>, so
+  // they need their list element here too — dropped bare into <body> they were
+  // orphan list items, which is invalid and reads as nothing to a screen reader.
+  const printTag = _ttWorksheetListTag(d);
+  const cardsWrap = `<${printTag} class="ws-print-list${d.cards ? ' ws-cards-print' : ''}${Array.isArray(d.items) && d.items.length ? ' ws-chips' : ''}">${listHtml}</${printTag}>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(printHeading)}</title><style>${css}</style></head>
     <body>
       <div class="ws-print-head">
         <div class="kicker">${esc(metaLine)}</div>
-        <h1>${esc(d.title || 'Worksheet')}</h1>
+        <h1>${esc(printHeading)}</h1>
       </div>${cardsWrap}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups to print the worksheet'); return; }
@@ -9221,7 +9276,11 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
       done++;
       _ytSetProgress(10 + Math.round((done / picks.length) * 88));
-      if (out) { statusMap[toolId] = 'done'; }
+      /* Which of the six tools made this. Every sheet in a lesson shares the
+         video's topic, so the topic alone cannot tell two blocks apart —
+         "Gist + Detail questions" vs "Key vocabulary" is the only thing that
+         does, and it is known here and nowhere downstream. */
+      if (out) { out._ytTool = (YT_LESSON_TOOLS.find(t => t.id === toolId) || {}).label || ''; statusMap[toolId] = 'done'; }
       else if (signal.aborted) { statusMap[toolId] = 'pending'; }
       else { statusMap[toolId] = 'fail'; failed.push(toolId); }
       _ytRenderChips(picks, statusMap);
@@ -9365,7 +9424,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
               // Generated, never hand-sized — so the measure pass below may
               // shrink it to its content instead of leaving the estimate's
               // slack as a hole in the grid.
-              _ttSrc: 1,
+              _ttSrc: 1, _ytTool: out._ytTool || '',
             }, CARD_W, cell.h);
         if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
       });
@@ -11580,7 +11639,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '274';
+const TEACHEDOS_ASSET_VERSION = '275';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

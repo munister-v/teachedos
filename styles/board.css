@@ -3574,7 +3574,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
 	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.56);}
-	.ws-strip-title{font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;
+	/* <h2> now (see the strip markup) — zero the UA margin so the masthead keeps
+	   the exact spacing it had as a span. */
+	.ws-strip-title{margin:0;font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;
 	  text-wrap:balance;overflow-wrap:anywhere;}
 	.ws-strip-side{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
 	.ws-stepper{grid-column:1/-1;display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;padding:2px 0 0;}
@@ -3592,7 +3594,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-btn:hover{background:var(--ws-on-accent);border-color:var(--ws-on-accent);color:var(--ws-lime);}
 	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:rgba(255,255,255,.28);color:var(--ws-on-accent);border:1px solid rgba(14,14,16,.18);}
 	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);box-shadow:0 8px 20px rgba(14,14,16,.12);}
+	/* .ws-list is an <ol>/<ul> (see _ttWorksheetListTag) — kill the browser's
+	   list chrome, since the numbering a worksheet shows is its own .ws-num
+	   badge, not the marker. Applied to the nested lists too: MCQ options and
+	   the glossary are lists as well now. */
+	.ws-list,.ws-opts,.ws-chips{list-style:none;margin:0;padding:0;}
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 4px 4px 0;}
+	/* A glossary flows as chips; the list element itself is the chip row now
+	   that the extra .ws-chips wrapper is gone. */
+	.ws-list.ws-list-chips{display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;gap:8px;}
 	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
 	   sequence still scans like a timeline.
