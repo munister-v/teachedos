@@ -3574,6 +3574,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
 	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.56);}
+	/* Where this block sits in the lesson. Solid ink on the lime masthead rather
+	   than another tint of it — it has to survive being read at board zoom, and
+	   flat colours also keep html2canvas happy on export. */
+	.ws-step-badge{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;
+	  background:#0E0E10;color:#CDF24F;font:800 11px var(--mono);letter-spacing:.09em;}
 	/* <h2> now (see the strip markup) — zero the UA margin so the masthead keeps
 	   the exact spacing it had as a span. */
 	.ws-strip-title{margin:0;font-size:25px;font-weight:900;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;

@@ -1318,7 +1318,7 @@ function renderVideo(el, card) {
   if (d._ytSource) {
     const eyebrow = document.createElement('span');
     eyebrow.className = 'video-eyebrow';
-    eyebrow.textContent = 'SOURCE VIDEO';
+    eyebrow.textContent = d._step ? `STEP ${d._step}${d._steps ? '/' + d._steps : ''} · SOURCE VIDEO` : 'SOURCE VIDEO';
     eyebrow.setAttribute('aria-hidden', 'true');
     hdr.insertBefore(eyebrow, hdr.firstChild);
     if (d.url) {
@@ -2867,7 +2867,7 @@ function renderWorksheet(el, card) {
      when the card is copied out or exported. */
   const strip = `<header class="ws-strip" style="${accentVars}">
       <div class="ws-strip-main">
-        <span class="ws-strip-kicker">${esc(_wsStripKicker(d))}</span>
+        <span class="ws-strip-kicker">${d._step ? `<b class="ws-step-badge">Step ${d._step}${d._steps ? '/' + d._steps : ''}</b>` : ''}${esc(_wsStripKicker(d))}</span>
         <h2 class="ws-strip-title">${esc(_wsHeading(d))}</h2>
       </div>
       <div class="ws-strip-side">
@@ -3679,7 +3679,8 @@ function printWorksheet(cardId) {
   // every sheet in the pack — three identical pages as far as a reader is
   // concerned, and the level/kind repeated from the line directly above it.
   const printHeading = _wsHeading(d) || d.title || 'Worksheet';
-  const metaLine = [d._ytTool ? _wsDisplayTopic(d) : '', d.kind, d.level,
+  const metaLine = [d._step ? `Step ${d._step}${d._steps ? '/' + d._steps : ''}` : '',
+                    d._ytTool ? _wsDisplayTopic(d) : '', d.kind, d.level,
                     showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
@@ -9133,13 +9134,19 @@ async function fetchYoutubeTranscript() {
 /* ══════════════ YouTube → full lesson (one click) ══════════════
    Paste a link → fetch transcript → generate a curated set of exercises from
    it → drop them as styled worksheet cards inside a single "Lesson" frame.   */
+/* The six exercises a video lesson can be built from. `stage` is where each one
+   belongs in a LESSON, which is not the order this list is written in — the
+   list is a picker, grouped the way a teacher shops, while a lesson runs
+   pre-teach → comprehension → language work → production. Vocabulary is
+   generated third and taught first; discussion is generated last and stays
+   last, which is the only place the two orders agree. */
 const YT_LESSON_TOOLS = [
-  { id:'lesson-pack',   label:'Lesson plan (warm-up → production)' },
-  { id:'gist-detail',   label:'Gist + Detail questions' },
-  { id:'extract-vocab', label:'Key vocabulary' },
-  { id:'gap',           label:'Gap-fill from the text' },
-  { id:'true-false',    label:'True / False statements' },
-  { id:'open-questions',label:'Discussion questions' },
+  { id:'lesson-pack',   label:'Lesson plan (warm-up → production)', stage:0 },
+  { id:'gist-detail',   label:'Gist + Detail questions',            stage:2 },
+  { id:'extract-vocab', label:'Key vocabulary',                     stage:1 },
+  { id:'gap',           label:'Gap-fill from the text',             stage:3 },
+  { id:'true-false',    label:'True / False statements',            stage:2.5 },
+  { id:'open-questions',label:'Discussion questions',               stage:4 },
 ];
 /* ── YouTube→Lesson run state ──────────────────────────────────────────────
    Tracks the in-flight build so the modal can show live progress, be stopped
@@ -9389,7 +9396,12 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
          video's topic, so the topic alone cannot tell two blocks apart —
          "Gist + Detail questions" vs "Key vocabulary" is the only thing that
          does, and it is known here and nowhere downstream. */
-      if (out) { out._ytTool = (YT_LESSON_TOOLS.find(t => t.id === toolId) || {}).label || ''; statusMap[toolId] = 'done'; }
+      if (out) {
+        const tool = YT_LESSON_TOOLS.find(t => t.id === toolId) || {};
+        out._ytTool = tool.label || '';
+        out._ytStage = tool.stage == null ? 9 : tool.stage;
+        statusMap[toolId] = 'done';
+      }
       else if (signal.aborted) { statusMap[toolId] = 'pending'; }
       else { statusMap[toolId] = 'fail'; failed.push(toolId); }
       _ytRenderChips(picks, statusMap);
@@ -9470,6 +9482,17 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
     const kept = _ttDedupeQuestions(out.questions, seen);
     return kept.length === out.questions.length ? out : { ...out, questions: kept };
   }).filter(out => !Array.isArray(out.questions) || out.questions.length > 0);
+  /* Teaching order, not generation order. The tools run in whatever order the
+     teacher ticked them and finish in whatever order the AI answered, and the
+     grid then laid them out in exactly that arbitrary sequence — a lesson whose
+     first block was a gap-fill and whose vocabulary came fourth, after the
+     exercises that use those words. Sorting by the stage each tool belongs to
+     turns the same set of cards into a lesson that can be taught top to bottom.
+     Stable within a stage, and anything unknown keeps to the end. */
+  gridResults = gridResults
+    .map((out, i) => ({ out, i, stage: typeof out._ytStage === 'number' ? out._ytStage : 9 }))
+    .sort((a, b) => a.stage - b.stage || a.i - b.i)
+    .map(x => x.out);
   // 440 was tight for a worksheet: questions wrapped every few words and the
   // card grew downwards instead of sideways. 720 is the width at which
   // _ttQuestionCols splits the question list two-up, which is what stops a
@@ -9486,13 +9509,23 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   const VIDEO_HEADER_H = 34, VIDEO_H = Math.round(CARD_W * 9 / 16) + VIDEO_HEADER_H;
   const cells = [];
   if (embedUrl) cells.push({ video: true, h: VIDEO_H });
+  /* The frame is one lesson, so its blocks are numbered — a teacher (and a
+     student handed a printout) can see that vocabulary comes before the
+     questions that use it, which the layout alone cannot say once the grid
+     packs the cards into columns of unequal length. The video, when present,
+     is step 1: watching it IS the first activity. */
+  let step = embedUrl ? 1 : 0;
   // Measured against the REAL card width — the estimator assumes 440 unless
   // told otherwise, so every wide card here used to be estimated far too tall.
   // Deliberately not clamped on top of that: _ttEstWorksheetHeight already
   // stops at WS_MAX_SHEET, and a card shorter than its content scrolls, which
   // html2canvas silently crops out of the PNG. Overlong output is cut back in
   // _ttSanitizeOutput instead, where it costs nothing but words.
-  gridResults.forEach(out => cells.push({ out, h: _ttEstWorksheetHeight(out, CARD_W) }));
+  gridResults.forEach(out => {
+    out._step = ++step;
+    out._steps = gridResults.length + (embedUrl ? 1 : 0);
+    cells.push({ out, h: _ttEstWorksheetHeight(out, CARD_W) });
+  });
   const n = cells.length;
   // Worksheets are wide and tall; cap at 3 so the frame stays pannable, but let
   // the ratio decide below that instead of jumping straight to a 3-wide grid.
@@ -9538,7 +9571,8 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
         const out = cell.out;
         const card = cell.video
           ? addCard('video', x, y,
-              { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true },
+              { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true,
+                _step: 1, _steps: gridResults.length + 1 },
               CARD_W, cell.h)
           : addCard('worksheet', x, y, {
               title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
@@ -9546,7 +9580,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
               // Generated, never hand-sized — so the measure pass below may
               // shrink it to its content instead of leaving the estimate's
               // slack as a hole in the grid.
-              _ttSrc: 1, _ytTool: out._ytTool || '',
+              _ttSrc: 1, _ytTool: out._ytTool || '', _step: out._step, _steps: out._steps,
             }, CARD_W, cell.h);
         if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
       });
@@ -11283,22 +11317,51 @@ function _ttPackedCols(heights, cellW, gap, top, maxCols = 3, targetRatio = 1.3)
   return best;
 }
 
-/* Pack cards of unequal height into `cols` columns of equal width, top-aligned,
-   each card going to the shortest column so far. Returns each card's column and
-   y offset, plus the height of the tallest column.
+/* Split cards into `cols` columns of equal width, keeping their ORDER and
+   balancing the columns' heights. Contiguous, so column 1 holds the first few
+   cards, column 2 the next few: a numbered lesson still reads down one column
+   and on to the next, the way a poster does.
 
-   Fixed rows are the obvious layout and the wrong one here: a row is as tall as
-   its tallest card, so one long question sheet beside a short vocabulary card
-   leaves a hole the height of the difference — which is exactly the "stretched
-   vertically, holes everywhere" shape a generated lesson used to have.
+   Two earlier shapes were both wrong. Fixed rows made a row as tall as its
+   tallest card, so one long question sheet beside a short vocabulary card left
+   a hole the size of the difference. Then shortest-column packing balanced the
+   heights beautifully and scattered the sequence — step 5 landed under step 1
+   because that column happened to be short, which is fine for a gallery and
+   wrong for a lesson.
 
-   The first `cols` cards are forced one per column so the top edge is filled in
-   order, left to right; without that a tall first card would send the second
-   card underneath it and the lesson would no longer read in sequence. */
+   Balanced contiguous partition gives both: exact via a small DP (minimise the
+   tallest column), because the card count here is single digits and the greedy
+   "fill to the average" answer is visibly worse on exactly the shapes that
+   occur — one very tall sheet among short ones. */
 function _ttPackColumns(heights, cols, top = 0, gap = 26) {
-  const colH = new Array(Math.max(1, cols)).fill(top);
+  const n = heights.length;
+  const k = Math.max(1, Math.min(cols, n || 1));
+  const colOf = new Array(n).fill(0);
+  if (n) {
+    // pre[i] = height of cards [0,i) stacked with gaps between them
+    const pre = [0];
+    for (let i = 0; i < n; i++) pre.push(pre[i] + heights[i] + (i ? gap : 0));
+    const seg = (a, b) => pre[b] - pre[a] - (a ? gap : 0);   // cards [a,b)
+    // best[c][i] = min possible tallest column using c columns for cards [0,i)
+    const INF = Infinity;
+    const best = Array.from({ length: k + 1 }, () => new Array(n + 1).fill(INF));
+    const cut  = Array.from({ length: k + 1 }, () => new Array(n + 1).fill(0));
+    best[0][0] = 0;
+    for (let c = 1; c <= k; c++) {
+      for (let i = c; i <= n; i++) {
+        for (let j = c - 1; j < i; j++) {
+          if (best[c - 1][j] === INF) continue;
+          const cand = Math.max(best[c - 1][j], seg(j, i));
+          if (cand < best[c][i]) { best[c][i] = cand; cut[c][i] = j; }
+        }
+      }
+    }
+    let i = n;
+    for (let c = k; c >= 1; c--) { const j = cut[c][i]; for (let t = j; t < i; t++) colOf[t] = c - 1; i = j; }
+  }
+  const colH = new Array(k).fill(top);
   const cells = heights.map((h, i) => {
-    const col = i < colH.length ? i : colH.indexOf(Math.min(...colH));
+    const col = colOf[i];
     const y = colH[col];
     colH[col] = y + h + gap;
     return { col, y };
@@ -11850,7 +11913,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '277';
+const TEACHEDOS_ASSET_VERSION = '278';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
