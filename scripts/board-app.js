@@ -9148,6 +9148,58 @@ const YT_LESSON_TOOLS = [
   { id:'true-false',    label:'True / False statements',            stage:2.5 },
   { id:'open-questions',label:'Discussion questions',               stage:4 },
 ];
+/* ── GENERATED-EXERCISE CACHE ──────────────────────────────────────────────
+
+   The same video, the same tool, the same level and the same slice of
+   transcript can only produce the same exercise, so building that lesson a
+   second time is a request whose answer we already have. The server keeps one
+   of these for thirty minutes; this one survives a reload and a lunch break,
+   which is when a teacher actually comes back to a lesson they were building.
+
+   That is the whole saving, and it is the only honest big one available
+   without changing what the model is asked: a rebuild costs nothing instead of
+   five transcript-sized prompts.
+
+   Two things are deliberately NOT cached. A rule-engine answer (engine:'rules')
+   is what the server returns when the AI could not be reached — caching the
+   degraded lesson would freeze it in place for a day. And the key includes a
+   hash of the exact source sample, so a different video, a different level or
+   a change to how the transcript is sampled all miss, rather than serving
+   material built from something else. */
+const YT_CACHE_KEY = 'tt.ytLesson.results';
+const YT_CACHE_TTL = 24 * 60 * 60 * 1000;
+const YT_CACHE_MAX = 24;
+function _ytCacheId(url) {
+  const m = String(url || '').match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);
+  return m ? m[1] : (/^[\w-]{11}$/.test(String(url || '').trim()) ? String(url).trim() : '');
+}
+function _ytCacheKey(url, toolId, level, source) {
+  return [_ytCacheId(url), toolId, level, _ttStrHash(String(source || '')), String(source || '').length].join('|');
+}
+function _ytCacheRead() {
+  try { return JSON.parse(localStorage.getItem(YT_CACHE_KEY) || '{}') || {}; } catch { return {}; }
+}
+function _ytCacheGet(key) {
+  const all = _ytCacheRead();
+  const hit = all[key];
+  if (!hit || Date.now() - hit.at > YT_CACHE_TTL) return null;
+  try { return JSON.parse(JSON.stringify(hit.out)); } catch { return null; }
+}
+function _ytCacheSet(key, out) {
+  if (!out || out.engine === 'rules') return;
+  try {
+    const all = _ytCacheRead();
+    all[key] = { at: Date.now(), out };
+    const keys = Object.keys(all)
+      .filter(k => Date.now() - all[k].at <= YT_CACHE_TTL)
+      .sort((a, b) => all[b].at - all[a].at)
+      .slice(0, YT_CACHE_MAX);
+    const kept = {};
+    keys.forEach(k => { kept[k] = all[k]; });
+    localStorage.setItem(YT_CACHE_KEY, JSON.stringify(kept));
+  } catch { /* quota or private mode — the cache is an optimisation, not a feature */ }
+}
+
 /* ── YouTube→Lesson run state ──────────────────────────────────────────────
    Tracks the in-flight build so the modal can show live progress, be stopped
    mid-run (AbortController), and retry only the exercises that failed.        */
@@ -9297,12 +9349,42 @@ async function runYtLesson() {
 const YT_SOURCE_BUDGET = 4000;   // tools that read the text
 const YT_BRIEF_BUDGET  = 1200;   // tools that only need the gist
 
+/* Discussion questions are the exception inside TT_NEEDS_SOURCE_SET. That set
+   answers "does this tool read a pasted text", and open-questions does — but it
+   asks the class what THEY think about what the video was about, and it cannot
+   quote, gap or check a detail. Feeding it every sentence buys nothing: the
+   same prompt at the brief budget produces the same kind of question, and it is
+   the largest single block of source in a lesson that is pure overhead. */
+const YT_BRIEF_TOOLS = new Set(['open-questions']);
 function _ytBudgetFor(toolId) {
+  if (YT_BRIEF_TOOLS.has(toolId)) return YT_BRIEF_BUDGET;
   return TT_NEEDS_SOURCE_SET.has(toolId) ? YT_SOURCE_BUDGET : YT_BRIEF_BUDGET;
 }
 
+/* Caption noise, removed once before anything is sampled from it. Measured on
+   real auto-caption tracks this is only about 2% of the text — worth doing
+   because it is free and because everything it removes is content the model
+   would have had to ignore anyway, but it is not where the tokens are. Do not
+   expect a lesson to get cheaper from this alone. */
+function _ytCleanTranscript(text) {
+  let s = ' ' + String(text || '') + ' ';
+  s = s.replace(/\[[^\]]{0,40}\]/g, ' ');          // [Music], [Applause], [__]
+  s = s.replace(/\([^)]{0,30}\)/g, ' ');            // (laughs)
+  s = s.replace(/[\u266a\u266b]+/g, ' ');           // ♪ ♫
+  s = s.replace(/\s+>>\s*/g, ' ');                  // speaker arrows
+  s = s.replace(/\b(?:um+|uh+|erm+|mm+|hmm+|mhm+)\b[,\s]*/gi, ' ');
+  /* No collapsing of repeated words. "the the" is usually an ASR stutter, but
+     the rule cannot tell it from a real repeat across a phrase boundary: on the
+     test sentence it turned "all around you" + "you know" into "all around you
+     know". Removing a word the speaker said, to save two percent, is the wrong
+     trade — the point of this pass is that everything it drops is certainly
+     noise. */
+  s = s.replace(/\s+([,.!?;:])/g, '$1');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
 function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
-  const t = String(text || '').trim();
+  const t = _ytCleanTranscript(text);
   if (t.length <= budget) return t;
 
   const HEAD = Math.round(budget * 0.4);
@@ -9381,15 +9463,21 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       [YT_BRIEF_BUDGET]:  _ytSampleTranscript(transcript, YT_BRIEF_BUDGET),
     };
 
+    let reused = 0;
     async function genOne(toolId) {
       if (signal.aborted) return null;
       statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
-      let out = null;
-      out = await requestServerTeacherTool(
-        { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson',
-          source: sampled[_ytBudgetFor(toolId)] },
-        35000, signal);
-      if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
+      const source = sampled[_ytBudgetFor(toolId)];
+      const ck = _ytCacheKey(url, toolId, level, source);
+      let out = _ytCacheGet(ck);
+      if (out) reused++;
+      else {
+        out = await requestServerTeacherTool(
+          { tool: { id: toolId }, level, count: 8, topic: videoTitle || 'Video lesson', source },
+          35000, signal);
+        if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
+        if (out) _ytCacheSet(ck, out);
+      }
       done++;
       _ytSetProgress(10 + Math.round((done / picks.length) * 88));
       /* Which of the six tools made this. Every sheet in a lesson shares the
@@ -9439,7 +9527,11 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     } else {
       _ytRunning = false;   // closeYtLesson() would otherwise treat this as "Stop while building"
       closeYtLesson();
-      toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board`);
+      // Say when nothing was spent. A teacher rebuilding a lesson has no other
+      // way to know the second build was free, and it is the difference between
+      // "the AI is slow today" and "there was nothing to wait for".
+      const free = reused ? ` · ${reused} reused` : '';
+      toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board${free}`);
     }
   } finally {
     _ytRunning = false;
@@ -11918,7 +12010,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '279';
+const TEACHEDOS_ASSET_VERSION = '280';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
