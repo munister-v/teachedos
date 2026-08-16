@@ -9456,7 +9456,20 @@ function _ytRetryFailed() {
 // column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
 function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
-  const gridResults = results.filter(out => !cardsResults.includes(out));
+  let gridResults = results.filter(out => !cardsResults.includes(out));
+  /* Each exercise is generated from the same transcript by a separate call, so
+     none of them knows what the others asked — and the same fact is the most
+     quotable one in the video for all of them. "How long has she lived in the
+     U.S.?" as a multiple choice, then the same thing as a gap-fill, is a lesson
+     that looks longer than it is. Dedupe ACROSS the sheets, first one wins, so
+     the earlier (and more central) exercise keeps the question. A sheet left
+     with nothing is dropped rather than placed empty. */
+  const seen = new Set();
+  gridResults = gridResults.map(out => {
+    if (!Array.isArray(out.questions) || !out.questions.length) return out;
+    const kept = _ttDedupeQuestions(out.questions, seen);
+    return kept.length === out.questions.length ? out : { ...out, questions: kept };
+  }).filter(out => !Array.isArray(out.questions) || out.questions.length > 0);
   // 440 was tight for a worksheet: questions wrapped every few words and the
   // card grew downwards instead of sideways. 720 is the width at which
   // _ttQuestionCols splits the question list two-up, which is what stops a
@@ -10900,10 +10913,85 @@ function _ttTrim(value, max) {
   return (sp > max * 0.6 ? cut.slice(0, sp) : cut).trim() + '…';
 }
 
+/* ── QUESTION HYGIENE ─────────────────────────────────────────────────────
+
+   What a model returns is usable but not clean, and the same handful of flaws
+   come back every time. Fixing them at the door means every tool, every sheet
+   and every lesson gets the same treatment, and none of the renderers have to
+   defend themselves against a broken item.
+
+   The one worth naming is answer position. Generators put the correct option
+   first far more often than chance — across a sheet of eight that is a pattern
+   a student spots long before they read the questions, and it quietly turns a
+   comprehension task into a guessing game. Rotating fixes it without touching a
+   single word: the options keep their relative order, they just start at a
+   different one. The target position is derived from the question text, not
+   Math.random, so the same sheet is always the same sheet — a re-render, a
+   reload or a re-print cannot reshuffle a key a teacher has already handed out.  */
+function _ttQNorm(t) { return String(t || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
+function _ttStrHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+
+function _ttPolishQuestion(q) {
+  if (!q || typeof q !== 'object') return null;
+  if (q.type === 'mcq') {
+    let opts = (Array.isArray(q.options) ? q.options : [])
+      .map(o => String(o == null ? '' : o).trim())
+      .filter(Boolean);
+    // Duplicated distractors are worse than fewer of them: two identical
+    // options make one of them provably wrong to no purpose, and if the answer
+    // is the duplicated one the question has two correct answers.
+    const seen = new Set();
+    opts = opts.filter(o => { const k = _ttQNorm(o); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+    const ans = String(q.answer == null ? '' : q.answer).trim();
+    if (ans && !opts.some(o => _ttQNorm(o) === _ttQNorm(ans))) opts.unshift(ans);
+    // Nothing to choose between — render it as the open question it has become
+    // rather than a multiple choice with one option.
+    if (opts.length < 2) return { ...q, type: 'open', options: undefined, answer: undefined };
+    const at = opts.findIndex(o => _ttQNorm(o) === _ttQNorm(ans));
+    if (at >= 0) {
+      const want = _ttStrHash(_ttQNorm(q.text)) % opts.length;
+      const by = (at - want + opts.length) % opts.length;   // rotate left by `by`
+      if (by) opts = opts.slice(by).concat(opts.slice(0, by));
+    }
+    return { ...q, options: opts };
+  }
+  if (q.type === 'gap-fill') {
+    const text = String(q.text || '');
+    const ans = String(q.answer || '').trim();
+    // A gap-fill with no gap is just a sentence. When the answer is actually in
+    // the sentence, blanking it is what the question meant to say.
+    if (ans && !/_{2,}/.test(text)) {
+      const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ans.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![\\p{L}\\p{N}])', 'iu');
+      if (re.test(text)) return { ...q, text: text.replace(re, (m, a) => a + '____') };
+    }
+    return q;
+  }
+  return q;
+}
+
+/* Drop questions that ask the same thing twice. Same normalised text, or — for
+   gap-fill, where the sentences differ but the point does not — the same answer
+   twice. Keeps the first, which is the order the generator thought best. */
+function _ttDedupeQuestions(list, seen = new Set()) {
+  const out = [];
+  for (const q of Array.isArray(list) ? list : []) {
+    if (!q) continue;
+    const k = _ttQNorm(q.text);
+    const ak = q.type === 'gap-fill' && q.answer ? 'a:' + _ttQNorm(q.answer) : '';
+    if (k && seen.has(k)) continue;
+    if (ak && seen.has(ak)) continue;
+    if (k) seen.add(k);
+    if (ak) seen.add(ak);
+    out.push(q);
+  }
+  return out;
+}
+
 function _ttSanitizeOutput(out) {
   if (!out || typeof out !== 'object') return out;
   try {
     if (Array.isArray(out.questions)) {
+      out.questions = _ttDedupeQuestions(out.questions.map(_ttPolishQuestion).filter(Boolean));
       out.questions.forEach(q => {
         if (!q) return;
         if (q.text)   q.text   = _ttTrim(q.text, TT_CAP.question);
@@ -11762,7 +11850,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '276';
+const TEACHEDOS_ASSET_VERSION = '277';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
