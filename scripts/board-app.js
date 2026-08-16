@@ -2784,8 +2784,14 @@ function renderWorksheet(el, card) {
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   // Lesson Pack stages (cards[]) lay out as a landscape grid — see .ws-list-cards
   // — everything else (questions/vocab items) stays a single reading column.
-  const listCls = cards ? 'ws-list ws-list-cards' : 'ws-list';
-  const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"` : '';
+  // Questions get the same treatment once the sheet is wide enough to hold two
+  // readable columns — see _ttQuestionCols.
+  const qList = Array.isArray(d.questions) ? d.questions : null;
+  const qCols = qList ? _ttQuestionCols(qList.length, card.w) : 1;
+  const listCls = cards ? 'ws-list ws-list-cards'
+                : qCols > 1 ? 'ws-list ws-list-qgrid' : 'ws-list';
+  const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"`
+                 : qCols > 1 ? `style="--q-cols:${qCols}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
   // content, so a reader had nothing telling them what the block below is.
   let sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
@@ -9284,40 +9290,45 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   const gridResults = results.filter(out => !cardsResults.includes(out));
   // 440 was tight for a worksheet: questions wrapped every few words and the
-  // card grew downwards instead of sideways.
-  const CARD_W = 560, GAP = 26, PAD = 30, HEAD = 64;
-  const n = gridResults.length;
+  // card grew downwards instead of sideways. 720 is the width at which
+  // _ttQuestionCols splits the question list two-up, which is what stops a
+  // video lesson from coming out as a row of tall vertical ribbons.
+  const CARD_W = 720, GAP = 26, PAD = 30, HEAD = 64;
+  /* The source video is a CELL OF THE GRID, not a card parked beside the frame.
+     Floating outside it, it was the one piece of the lesson that a teacher
+     could move, print or export without, and it broke the frame's rectangle —
+     the lesson read as "a frame, and also a video". First cell, top-left: the
+     thing the lesson is made from is the first thing in it. */
+  const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
+  // True 16:9 for the player area itself, plus the card header's own height —
+  // sizing the WHOLE card to 16:9 left the actual video letterboxed.
+  const VIDEO_HEADER_H = 34, VIDEO_H = Math.round(CARD_W * 9 / 16) + VIDEO_HEADER_H;
+  const cells = [];
+  if (embedUrl) cells.push({ video: true, h: VIDEO_H });
   // Measured against the REAL card width — the estimator assumes 440 unless
   // told otherwise, so every wide card here used to be estimated far too tall.
   // Deliberately not clamped on top of that: _ttEstWorksheetHeight already
   // stops at WS_MAX_SHEET, and a card shorter than its content scrolls, which
   // html2canvas silently crops out of the PNG. Overlong output is cut back in
   // _ttSanitizeOutput instead, where it costs nothing but words.
-  const heights = gridResults.map(out => _ttEstWorksheetHeight(out, CARD_W));
+  gridResults.forEach(out => cells.push({ out, h: _ttEstWorksheetHeight(out, CARD_W) }));
+  const n = cells.length;
   // Worksheets are wide and tall; cap at 3 so the frame stays pannable, but let
   // the ratio decide below that instead of jumping straight to a 3-wide grid.
-  const cols = _ttGridCols(n, CARD_W, 620, 3);
-  const rows = Math.ceil(n / cols);
-  // Each grid row is as tall as its tallest card.
-  const rowH = [];
-  for (let r = 0; r < rows; r++) {
-    let mh = 0;
-    for (let c = 0; c < cols; c++) { const i = r * cols + c; if (i < n) mh = Math.max(mh, heights[i]); }
-    rowH.push(mh);
-  }
+  /* Column packing, not fixed rows. A row is as tall as its tallest card, so a
+     440px vocabulary card sharing a row with a 2100px question sheet left a
+     1600px hole under it — and the video, the shortest cell of all, opened the
+     lesson with the biggest hole. Each card instead goes to whichever column is
+     currently shortest, which is what makes the block heights read as one grid
+     rather than three ribbons of different length. The first pass fills the top
+     row left-to-right so reading order still starts video → first exercise. */
+  const cols = _ttPackedCols(cells.map(c => c.h), CARD_W, GAP, HEAD, 3);
+  const layout = _ttPackColumns(cells.map(c => c.h), cols, HEAD, GAP);
   const FW = n ? PAD * 2 + cols * CARD_W + (cols - 1) * GAP : 0;
-  const FH = n ? HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD : 0;
-  // The actual video, embedded — not just the exercises generated FROM it.
-  // Sits to the left of the exercise frame so the teacher can play it and
-  // reference the tasks side by side.
-  const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
-  // True 16:9 for the player area itself, plus the card header's own height —
-  // sizing the WHOLE card to 16:9 (as before) left the actual video letterboxed.
-  const VIDEO_W = 400, VIDEO_HEADER_H = 34, VIDEO_H = Math.round(VIDEO_W * 9 / 16) + VIDEO_HEADER_H;
-  const videoSlotW = embedUrl ? VIDEO_W + GAP : 0;
+  const FH = n ? layout.height + PAD : 0;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-  const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640) + videoSlotW, Math.max(FH || 400, embedUrl ? VIDEO_H : 0));
-  const x0 = Math.round(center.x - FW / 2 + videoSlotW / 2), y0 = Math.round(center.y - FH / 2);
+  const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640), Math.max(FH || 400, VIDEO_H));
+  const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
   // Title the frame after the actual video when we have it.
   let title = '🎬  Lesson from YouTube';
   if (videoTitle) {
@@ -9335,22 +9346,27 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
   let frame;
   const gridCardIds = [], packCardIds = [];
   try {
-    if (embedUrl) {
-      addCard('video', x0 - videoSlotW, y0, { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true }, VIDEO_W, VIDEO_H);
-    }
     if (n) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
         _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video',
       }, FW, FH);
-      gridResults.forEach((out, i) => {
-        const r = Math.floor(i / cols), c = i % cols;
-        const x = x0 + PAD + c * (CARD_W + GAP);
-        const y = y0 + HEAD + rowH.slice(0, r).reduce((s, h) => s + h + GAP, 0);
-        const card = addCard('worksheet', x, y, {
-          title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
-          boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
-        }, CARD_W, heights[i]);
+      cells.forEach((cell, i) => {
+        const x = x0 + PAD + layout.cells[i].col * (CARD_W + GAP);
+        const y = y0 + layout.cells[i].y;
+        const out = cell.out;
+        const card = cell.video
+          ? addCard('video', x, y,
+              { title: videoTitle || 'YouTube video', url: videoUrl, embedUrl, _ytSource: true },
+              CARD_W, cell.h)
+          : addCard('worksheet', x, y, {
+              title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
+              boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
+              // Generated, never hand-sized — so the measure pass below may
+              // shrink it to its content instead of leaving the estimate's
+              // slack as a hole in the grid.
+              _ttSrc: 1,
+            }, CARD_W, cell.h);
         if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
       });
     }
@@ -9378,11 +9394,17 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
      lay it out again for real — otherwise a card that grew to fit its content
      overlaps the row beneath it and hangs out of the frame. */
   if ((frame && gridCardIds.length) || packCardIds.length) {
-    requestAnimationFrame(() => {
+    /* Run it TWICE. Each worksheet measures and fits itself in a rAF of its
+       own (end of renderWorksheet), and a card that has not fitted yet reports
+       no slack — so a single pass here packs the grid from the estimates it
+       was trying to replace. The layout is idempotent, so the second pass
+       simply repacks once every card has settled; without it the generated
+       lesson kept the estimate's empty tails under the shorter cards. */
+    const relayout = () => {
       let below = null;
       if (frame && gridCardIds.length) {
         below = _relayoutLessonFrame(frame.id, gridCardIds,
-          { x0, y0, cols, CARD_W, GAP, PAD, HEAD });
+          { x0, y0, cols, CARD_W, GAP, PAD, HEAD, pack: true });
       }
       // Lesson Packs stack under the frame, each one's position depending on
       // the height of the one above it — so a single pack growing to fit its
@@ -9390,7 +9412,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       // starting below wherever the frame actually ended up.
       if (packCardIds.length) _restackBelow(packCardIds, below, GAP);
       if (frame) _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
-    });
+    };
+    requestAnimationFrame(relayout);
+    setTimeout(relayout, 180);
   }
   scheduleSave?.(); saveLocal?.();
   // The toast fades after 1.8s, so it is the nudge, not the record — the frame
@@ -9418,31 +9442,57 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
    only to state would leave the canvas showing the old positions until
    something else forced a re-render. */
 function _relayoutLessonFrame(frameId, cardIds, geom) {
-  const { x0, y0, cols, CARD_W, GAP, PAD, HEAD } = geom;
+  const { x0, y0, CARD_W, GAP, PAD, HEAD } = geom;
+  let cols = geom.cols;
   const cards = cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
   if (!cards.length) return;
 
-  // Ask every card its true height before any of them are positioned — a row's
-  // height is the tallest card in it, so one un-measured card misplaces a row.
-  cards.forEach(c => _wsFitToContent(c.id));
+  // Ask every card its true height before any of them are positioned — the
+  // layout below is built entirely from these numbers, so one un-measured card
+  // misplaces everything after it.
+  cards.forEach(c => _wsFitToContent(c.id, {
+    // A packed grid is built from these heights, so an estimate that came in
+    // high leaves a visible gap under the card. Generated cards may therefore
+    // shrink to their content; a teacher's own card is still grow-only.
+    shrink: !!geom.pack && c.data?._ttSrc === 1,
+  }));
 
-  const rows = Math.ceil(cards.length / cols);
-  const rowH = [];
-  for (let r = 0; r < rows; r++) {
-    let mh = 0;
-    for (let c = 0; c < cols; c++) {
-      const i = r * cols + c;
-      if (i < cards.length) mh = Math.max(mh, cards[i].h);
+  /* Two shapes, one function. `pack` fills columns by shortest-first (see
+     _ttPackColumns) so cards of unequal height leave no holes; without it the
+     caller keeps the strict row grid, where every card in a row shares the
+     height of the tallest one. The lesson grid packs; a worksheet split into
+     equal consecutive sheets does not need to. */
+  let layout;
+  if (geom.pack) {
+    /* Column count comes from the MEASURED heights, not the estimate the first
+       pass used: a card that rendered taller or shorter than predicted can make
+       a different column count the balanced one, and keeping the old count is
+       how a lesson ended up with one full column and one nearly empty. */
+    cols = _ttPackedCols(cards.map(c => c.h), CARD_W, GAP, HEAD, 3);
+    layout = _ttPackColumns(cards.map(c => c.h), cols, HEAD, GAP);
+  } else {
+    const rows = Math.ceil(cards.length / cols);
+    const rowH = [];
+    for (let r = 0; r < rows; r++) {
+      let mh = 0;
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        if (i < cards.length) mh = Math.max(mh, cards[i].h);
+      }
+      rowH.push(mh);
     }
-    rowH.push(mh);
+    let top = HEAD;
+    const cells = cards.map((card, i) => {
+      const r = Math.floor(i / cols), c = i % cols;
+      if (c === 0 && r > 0) top += rowH[r - 1] + GAP;
+      return { col: c, y: top };
+    });
+    layout = { cells, height: HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP };
   }
 
-  let top = HEAD;
   cards.forEach((card, i) => {
-    const r = Math.floor(i / cols), c = i % cols;
-    if (c === 0 && r > 0) top += rowH[r - 1] + GAP;
-    card.x = x0 + PAD + c * (CARD_W + GAP);
-    card.y = y0 + top;
+    card.x = x0 + PAD + layout.cells[i].col * (CARD_W + GAP);
+    card.y = y0 + layout.cells[i].y;
     const el = getCardEl(card.id);
     if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
   });
@@ -9451,7 +9501,7 @@ function _relayoutLessonFrame(frameId, cardIds, geom) {
   let frameBottom = null;
   if (frame) {
     frame.w = PAD * 2 + cols * CARD_W + (cols - 1) * GAP;
-    frame.h = HEAD + rowH.reduce((s, h) => s + h, 0) + (rows - 1) * GAP + PAD;
+    frame.h = layout.height + PAD;
     const fel = getCardEl(frame.id);
     if (fel) { fel.style.width = frame.w + 'px'; fel.style.height = frame.h + 'px'; }
     frameBottom = frame.y + frame.h;
@@ -10784,8 +10834,16 @@ function _ttEstWorksheetHeight(output, cardW = 440){
   const titleLen = String(output.topic || output.title || '').length;
   const titleExtra = Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
   if (Array.isArray(output.questions)) {
-    for (const q of output.questions) sum += _ttQuestionHeight(q, k);
-    sum += Math.max(0, output.questions.length - 1) * WS_H.gap;
+    /* Two-column question grids (see _ttQuestionCols) wrap against the COLUMN,
+       not the card, so the width factor has to be the column's — measuring a
+       two-up sheet at full card width is the under-estimate that clips content.
+       Height then tracks grid ROWS: the tallest question in each row. */
+    const qcols = _ttQuestionCols(output.questions.length, cardW);
+    const kq = Math.max(0.6, (cardW / qcols) / 440);
+    const hs = output.questions.map(q => _ttQuestionHeight(q, kq));
+    const rows = Math.ceil(hs.length / qcols);
+    for (let r = 0; r < rows; r++) sum += Math.max(...hs.slice(r * qcols, r * qcols + qcols));
+    sum += Math.max(0, rows - 1) * WS_H.gap;
   } else if (Array.isArray(output.items)) {
     /* Chips wrap, so height follows how many fit per row — not their summed
        width. A chip cannot be split across rows, so two 235px chips leave
@@ -10931,6 +10989,74 @@ function _packWidth(count){ return Math.min(PACK_MAX_W, PACK_CHROME_W + _ttLesso
    column count from the card width, which is what let the estimate size a card
    for a grid the browser never drew. */
 function _ttLessonPackCols(count){ return _ttGridCols(count, PACK_COL_W, 230, 4); }
+
+/* Column count for a packed grid, chosen from the REAL packed height rather
+   than from a nominal cell size. _ttGridCols scores count x cellW against a
+   fixed cellH, which is fine when every cell is the same shape and wrong here:
+   a lesson's cards differ by 5x in height, so the nominal ratio has almost
+   nothing to do with the rectangle the frame actually ends up as. Pack for each
+   candidate, keep the one closest to a landscape frame — the shape a board pans
+   to comfortably. Ties go to fewer columns, so a short lesson stays compact. */
+function _ttPackedCols(heights, cellW, gap, top, maxCols = 3, targetRatio = 1.3) {
+  const n = heights.length;
+  if (n < 2) return 1;
+  let best = 1, bestScore = Infinity;
+  for (let c = 1, hi = Math.min(maxCols, n); c <= hi; c++) {
+    const h = _ttPackColumns(heights, c, top, gap).height;
+    const w = c * cellW + (c - 1) * gap;
+    // Symmetric in log space: too tall and too wide are both penalised, but a
+    // frame that is too tall is the failure being fixed, so it costs double.
+    const off = Math.log((w / h) / targetRatio);
+    const score = off < 0 ? -off * 2 : off;
+    if (score < bestScore - 1e-9) { bestScore = score; best = c; }
+  }
+  return best;
+}
+
+/* Pack cards of unequal height into `cols` columns of equal width, top-aligned,
+   each card going to the shortest column so far. Returns each card's column and
+   y offset, plus the height of the tallest column.
+
+   Fixed rows are the obvious layout and the wrong one here: a row is as tall as
+   its tallest card, so one long question sheet beside a short vocabulary card
+   leaves a hole the height of the difference — which is exactly the "stretched
+   vertically, holes everywhere" shape a generated lesson used to have.
+
+   The first `cols` cards are forced one per column so the top edge is filled in
+   order, left to right; without that a tall first card would send the second
+   card underneath it and the lesson would no longer read in sequence. */
+function _ttPackColumns(heights, cols, top = 0, gap = 26) {
+  const colH = new Array(Math.max(1, cols)).fill(top);
+  const cells = heights.map((h, i) => {
+    const col = i < colH.length ? i : colH.indexOf(Math.min(...colH));
+    const y = colH[col];
+    colH[col] = y + h + gap;
+    return { col, y };
+  });
+  return { cells, height: Math.max(...colH) - gap };
+}
+
+/* Column count for a QUESTION list, and the one place that decides it — the
+   renderer sets --q-cols from here and _ttEstWorksheetHeight measures rows from
+   here, so the estimate cannot size a card for a grid the browser never drew
+   (the same trap _ttLessonPackCols was written to close).
+
+   A question list used to be a single reading column at every width. On a
+   narrow sheet that is right; on the wide sheets a video lesson generates it is
+   what stretched every block into a tall ribbon — eight questions stacked when
+   the card had room for two abreast. Column width, not card width, is the
+   constraint: an MCQ option below ~300px wraps every few words, so the split
+   only happens once each column can still hold a readable line. */
+const WS_QCOL_MIN = 330;
+function _ttQuestionCols(count, cardW = 440){
+  if (!(count > 3)) return 1;                 // three or fewer read better stacked
+  // 8 = .ws-list right padding, 12 = the grid gap between columns. Deliberately
+  // strict: at 330 the standalone 640px sheet stays a single reading column, so
+  // this only reshapes the wide cards a generated lesson builds — not every
+  // worksheet a teacher already has on a board.
+  const fits = Math.floor((cardW - 8 + 12) / (WS_QCOL_MIN + 12));
+  return Math.max(1, Math.min(2, fits, Math.floor(count / 2)));
+}
 function _ttPlaceWorksheetOnBoard(output){
   const isCards = Array.isArray(output.cards) && output.cards.length > 0;
   // Landscape width for Lesson Packs so stages sit in columns instead of one
@@ -11454,7 +11580,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '273';
+const TEACHEDOS_ASSET_VERSION = '274';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
