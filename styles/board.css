@@ -3619,11 +3619,27 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   columns must be free to shrink, or a hand-narrowed card overflows instead
 	   of squeezing. */
 	.ws-list.ws-list-cards{display:grid;grid-template-columns:repeat(var(--lp-cols,2),minmax(0,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
-	/* Questions on a wide sheet, same deal: --q-cols comes from _ttQuestionCols,
-	   which the height estimate reads too. Row-major, so 1-2-3-4 still reads
-	   across then down, and align-items:start keeps a short question from being
-	   stretched to its row's height. */
-	.ws-list.ws-list-qgrid{display:grid;grid-template-columns:repeat(var(--q-cols,2),minmax(0,1fr));grid-auto-rows:min-content;align-items:start;gap:12px;}
+	/* Questions are grouped by type (see _ttGroupQuestions): the sheet is a
+	   column of <section>s, each with its own heading, rubric and list. */
+	.ws-list.ws-list-groups{display:flex;flex-direction:column;gap:18px;}
+	.ws-group{min-width:0;}
+	.ws-group-head{margin:0 0 10px;padding-left:2px;}
+	.ws-group-title{margin:0;font:800 10px var(--mono);letter-spacing:.14em;
+	  text-transform:uppercase;color:var(--ws-ink);}
+	/* The instruction. It is the one line on the sheet addressed to the student
+	   rather than about the content, so it is set apart from both the heading
+	   above it and the questions below. */
+	.ws-rubric{margin:3px 0 0;font-size:13px;line-height:1.4;font-weight:600;color:#6E6E5C;padding-left:2px;}
+	.ws-group-head + .ws-group-list,.ws-rubric + .ws-group-list{margin-top:10px;}
+	/* --q-cols comes from _ttQuestionCols, which the height estimate reads too.
+	   Row-major, so 1-2-3-4 reads across then down; align-items:start keeps a
+	   short question from being stretched to its row's height. Within a group
+	   every item is the same TYPE, which is what makes these rows come out even
+	   — the mixed sheet this replaced put a four-option MCQ beside a one-line
+	   true/false and left the difference as a hole. */
+	.ws-group-list{list-style:none;margin:0;padding:0;display:grid;
+	  grid-template-columns:repeat(var(--q-cols,1),minmax(0,1fr));
+	  grid-auto-rows:min-content;align-items:start;gap:12px;}
 	.ws-q{
 	  position:relative;border:2px solid var(--ws-line);background:#fff;
 	  border-radius:18px;padding:16px;

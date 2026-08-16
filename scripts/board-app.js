@@ -2588,6 +2588,51 @@ function _ttGapFillHtml(text, answer, showAns) {
   };
 }
 
+/* ── HOW A SHEET IS ORGANISED ─────────────────────────────────────────────
+
+   A generated sheet arrived as whatever order the model wrote in: an MCQ, then
+   a true/false, then an open question, then another MCQ. Two things were wrong
+   with that. Pedagogically it asks a student to switch task type on every
+   item, and it never says what to actually DO — there was no rubric anywhere on
+   the card, only questions. Visually it was worse still on a two-column sheet,
+   where a 380px MCQ landing beside a 130px true/false makes a row as tall as
+   the MCQ and leaves the difference empty.
+
+   Grouping by type fixes both at once: each group carries its instruction, and
+   items of one type have near-identical heights, so the rows inside a group
+   come out even without any packing logic.
+
+   The order is the shape of a comprehension lesson: recognise (multiple
+   choice), verify (true/false), retrieve (gap-fill), connect (matching), then
+   produce (open questions) last, because that is the only one that asks for
+   the student's own words. Anything unrecognised keeps its place at the end
+   rather than being dropped. Numbering stays continuous across the groups —
+   the sheet is still one sequence of questions, just a signposted one. */
+const WS_GROUPS = [
+  { type:'mcq',       label:'Multiple choice', rubric:'Choose the best answer.' },
+  { type:'truefalse', label:'True or false',   rubric:'Decide whether each statement is true or false.' },
+  { type:'gap-fill',  label:'Gap-fill',        rubric:'Complete each sentence with one word.' },
+  { type:'match',     label:'Matching',        rubric:'Match each item on the left with its pair.' },
+  { type:'open',      label:'Open questions',  rubric:'Answer in your own words.' },
+];
+function _ttGroupQuestions(qs) {
+  const list = Array.isArray(qs) ? qs : [];
+  const groups = [];
+  const bucket = new Map();
+  for (const g of WS_GROUPS) bucket.set(g.type, []);
+  const rest = [];
+  for (const q of list) (bucket.has(q.type) ? bucket.get(q.type) : rest).push(q);
+  let n = 0;
+  for (const g of WS_GROUPS) {
+    const items = bucket.get(g.type);
+    if (!items.length) continue;
+    groups.push({ ...g, items, start: n });
+    n += items.length;
+  }
+  if (rest.length) groups.push({ type:'other', label:'Questions', rubric:'', items:rest, start:n });
+  return groups;
+}
+
 /* The list element that holds what _ttWorksheetListHTML returns. Questions and
    lesson stages are ordered sequences and lesson stages are literally numbered,
    so they are an <ol>; a glossary is an unordered bank of words, so it is a
@@ -2596,7 +2641,10 @@ function _ttGapFillHtml(text, answer, showAns) {
    items themselves are <li>, which is what makes a worksheet readable to a
    screen reader ("list, 8 items") and survivable as pasted HTML. */
 function _ttWorksheetListTag(d) {
-  return Array.isArray(d.items) && !Array.isArray(d.questions) ? 'ul' : 'ol';
+  // Questions are grouped into <section>s that carry their own <ol> (see
+  // _ttGroupQuestions), so the outer element is a plain container there.
+  if (Array.isArray(d.questions) && d.questions.length) return 'div';
+  return Array.isArray(d.items) && d.items.length ? 'ul' : 'ol';
 }
 
 function _ttWorksheetListHTML(d, showAns, accent) {
@@ -2604,7 +2652,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
   const cards = Array.isArray(d.cards) ? d.cards : null;
   const qs    = Array.isArray(d.questions) ? d.questions : null;
   if (qs) {
-    return qs.map((q, i) => {
+    const one = (q, i) => {
       let ans = '';
       const gap = q.type === 'gap-fill' ? _ttGapFillHtml(q.text, q.answer, showAns) : null;
       if (q.type === 'mcq' && Array.isArray(q.options)) {
@@ -2635,6 +2683,20 @@ function _ttWorksheetListHTML(d, showAns, accent) {
         ans = `<div class="ws-write"><i></i><i></i><i></i><i></i></div>`;
       }
       return `<li class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" aria-hidden="true">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : _ttMdInline(q.text || '')}</span></div>${ans}</li>`;
+    };
+    /* One group is not worth signposting — a sheet that is entirely gap-fill
+       already says so in its own masthead, and a lone "Gap-fill" heading over
+       the whole card is furniture. Its rubric is still worth having, so it
+       goes on the group without the heading. */
+    const groups = _ttGroupQuestions(qs);
+    const solo = groups.length < 2;
+    return groups.map(g => {
+      const items = g.items.map((q, i) => one(q, g.start + i)).join('');
+      const head = solo
+        ? (g.rubric ? `<p class="ws-rubric">${esc(g.rubric)}</p>` : '')
+        : `<div class="ws-group-head"><h4 class="ws-group-title">${esc(g.label)}</h4>${
+            g.rubric ? `<p class="ws-rubric">${esc(g.rubric)}</p>` : ''}</div>`;
+      return `<section class="ws-group ws-group-${g.type}">${head}<ol class="ws-group-list" start="${g.start + 1}">${items}</ol></section>`;
     }).join('');
   }
   if (items) {
@@ -2829,10 +2891,12 @@ function renderWorksheet(el, card) {
   const qCols = qList ? _ttQuestionCols(qList.length, card.w) : 1;
   const listCls = cards ? 'ws-list ws-list-cards'
                 : Array.isArray(d.items) && d.items.length ? 'ws-list ws-list-chips'
-                : qCols > 1 ? 'ws-list ws-list-qgrid' : 'ws-list';
+                : qList ? 'ws-list ws-list-groups' : 'ws-list';
   const listTag = _ttWorksheetListTag(d);
+  // --q-cols is read by every group's own list, so the column count is decided
+  // once for the sheet and every group obeys it.
   const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"`
-                 : qCols > 1 ? `style="--q-cols:${qCols}"` : '';
+                 : qList ? `style="--q-cols:${qCols}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
   // content, so a reader had nothing telling them what the block below is.
   let sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
@@ -2857,9 +2921,33 @@ function renderWorksheet(el, card) {
   // Lesson Packs are generated from an estimate before their stage grid exists.
   // Unlike a teacher-resized worksheet they may safely shrink after rendering:
   // that removes the otherwise enormous empty tail below a compact stage grid.
-  requestAnimationFrame(() => _wsFitToContent(card.id, {
-    shrink: Array.isArray(d.cards) && d._ttSrc === 1,
-  }));
+  /* One rAF is not always enough. A card restored with the board, or rendered
+     while its part of the canvas is still off-screen, can reach this point
+     before it has been laid out at all — the list then measures as zero, the
+     fit is a no-op, and nothing ever asks again. That left a saved worksheet
+     stuck at whatever height it was stored with, which silently clips as soon
+     as its content grows (adding the question-group headings did exactly
+     that to every board saved before them). Retry, briefly and bounded, until
+     the thing has a size to measure. */
+  const fit = (tries = 0) => {
+    const live = getCardEl(card.id);
+    const list = live && live.querySelector('.ws-list');
+    // Both numbers have to be real. An empty CONTENT measurement is the
+    // dangerous one: it reads as "the card has 700px of slack", which a
+    // grow-only fit answers by doing nothing at all — the card then keeps a
+    // height that no longer matches what is in it, forever.
+    const ready = list && list.clientHeight && _wsListContentHeight(list) > 0;
+    if (!ready && tries < 6) { setTimeout(() => fit(tries + 1), 60); return; }
+    if (!ready) return;
+    _wsFitToContent(card.id, { shrink: Array.isArray(d.cards) && d._ttSrc === 1 });
+  };
+  /* rAF is the right hook when the board is on screen — measure after paint.
+     It is also the only hook that never fires in a hidden tab, and a board is
+     routinely restored in one (opened in a background tab, or reloaded while
+     the teacher is elsewhere). The timer is the fallback for exactly that; the
+     fit is idempotent, so on a visible board the second call is a no-op. */
+  requestAnimationFrame(() => fit());
+  setTimeout(() => fit(), 120);
 }
 
 /* ───────────────── SIZE THE CARD TO WHAT IS ACTUALLY IN IT ─────────────────
@@ -2902,7 +2990,21 @@ function _wsListContentHeight(list) {
   return (bottom - top) + parseFloat(cs.paddingTop || 0) + parseFloat(cs.paddingBottom || 0);
 }
 
-function _wsFitToContent(cardId, { shrink = false } = {}) {
+/* Bounded, because one pass is not always enough: resizing the card re-wraps
+   what is inside it (a two-column question grid re-balances, long text reflows),
+   so the measurement that produced the correction can be stale the moment it is
+   applied. Converges in two passes in practice; three is the ceiling, and each
+   pass is a no-op once the numbers agree. */
+function _wsFitToContent(cardId, opts = {}) {
+  let last;
+  for (let pass = 0; pass < 3; pass++) {
+    const next = _wsFitToContentOnce(cardId, opts);
+    if (next == null || next === last) break;
+    last = next;
+  }
+  return last;
+}
+function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || card.type !== 'worksheet') return;
   const d = card.data || {};
@@ -3611,7 +3713,12 @@ function printWorksheet(cardId) {
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:800}
-    .ws-print-list,.ws-opts,.ws-chips{list-style:none;margin:0;padding:0}
+    .ws-print-list,.ws-opts,.ws-chips,.ws-group-list{list-style:none;margin:0;padding:0}
+    /* Question groups — same structure as the board (see _ttGroupQuestions). */
+    .ws-group{margin:0 0 18px;break-inside:auto}
+    .ws-group-head{margin:0 0 9px}
+    .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#0E0E10}
+    .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6E6E5C}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:800;color:${accent}}
@@ -3673,6 +3780,8 @@ function printWorksheet(cardId) {
   // orphan list items, which is invalid and reads as nothing to a screen reader.
   const printTag = _ttWorksheetListTag(d);
   const cardsWrap = `<${printTag} class="ws-print-list${d.cards ? ' ws-cards-print' : ''}${Array.isArray(d.items) && d.items.length ? ' ws-chips' : ''}">${listHtml}</${printTag}>`;
+  // (For questions that tag is a <div> and the <li>s live inside each group's
+  //  own <ol> — see _ttWorksheetListTag.)
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(printHeading)}</title><style>${css}</style></head>
     <body>
       <div class="ws-print-head">
@@ -10834,7 +10943,10 @@ const WS_H = {
   other: 140,                      // gap-fill
   open: 212,                       // open question — four 8mm ruled lines
   chipCharPx: 8.4, chipPad: 34, chipRow: 56, chipUsable: 607,  // glossary chip: measured 235px wide for 24 chars, 42px tall + 8 gap
-  gap: 12,                         // .ws-list gap
+  gap: 12,                         // grid gap between questions
+  groupHead: 46,                   // .ws-group-head: title + rubric + its 10px lead
+  rubric: 30,                      // a lone rubric with no heading above it
+  groupGap: 18,                    // .ws-list-groups gap between sections
   cardBase: 102, cardPerRow: 26, cardCharsPerRow: 34,
   chromeQuestions: 214,            // card header + one-line masthead + section eyebrow + list padding
   titleCharsPerRow: 29, titleRow: 27,  // masthead title wraps; measured 134px at 1 row, 188px at 3
@@ -10899,10 +11011,21 @@ function _ttEstWorksheetHeight(output, cardW = 440){
        Height then tracks grid ROWS: the tallest question in each row. */
     const qcols = _ttQuestionCols(output.questions.length, cardW);
     const kq = Math.max(0.6, (cardW / qcols) / 440);
-    const hs = output.questions.map(q => _ttQuestionHeight(q, kq));
-    const rows = Math.ceil(hs.length / qcols);
-    for (let r = 0; r < rows; r++) sum += Math.max(...hs.slice(r * qcols, r * qcols + qcols));
-    sum += Math.max(0, rows - 1) * WS_H.gap;
+    /* Per GROUP, not across the whole list — the sheet is a column of grouped
+       sections now (see _ttGroupQuestions), so a group's last row is its own
+       and does not pair up with the first row of the next one. Measuring the
+       flat list instead would under-count by one row per group boundary, which
+       is the direction that clips content. */
+    const groups = _ttGroupQuestions(output.questions);
+    const solo = groups.length < 2;
+    groups.forEach((g, gi) => {
+      const hs = g.items.map(q => _ttQuestionHeight(q, kq));
+      const rows = Math.ceil(hs.length / qcols);
+      for (let r = 0; r < rows; r++) sum += Math.max(...hs.slice(r * qcols, r * qcols + qcols));
+      sum += Math.max(0, rows - 1) * WS_H.gap;
+      sum += (solo ? (g.rubric ? WS_H.rubric : 0) : WS_H.groupHead) ;
+      if (gi) sum += WS_H.groupGap;
+    });
   } else if (Array.isArray(output.items)) {
     /* Chips wrap, so height follows how many fit per row — not their summed
        width. A chip cannot be split across rows, so two 235px chips leave
@@ -11639,7 +11762,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '275';
+const TEACHEDOS_ASSET_VERSION = '276';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
