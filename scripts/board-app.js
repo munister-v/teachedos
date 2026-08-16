@@ -11114,7 +11114,10 @@ function _ttChipsPerRow(items){
   }, 0) / Math.max(1, items.length);
   return Math.max(1, Math.floor(WS_H.chipUsable / Math.max(1, avg)));
 }
-function _ttEstWorksheetHeight(output, cardW = 440){
+/* `clamp:false` returns the height the content actually wants, past the cap a
+   card is allowed to have. The splitter needs that number — asking a clamped
+   estimate whether a sheet is too tall can only ever be answered "no". */
+function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
   const k = Math.max(0.6, cardW / 440);   // constants below were measured at 440px
   let sum = 0;
   let chrome = WS_H.chromeQuestions;
@@ -11181,7 +11184,8 @@ function _ttEstWorksheetHeight(output, cardW = 440){
   // sheet clipped. WS_MAX_SHEET covers the realistic worst case measured
   // (8 MCQs with 4 options each ≈ 3030px); anything past it is split across
   // sheets by _ttSplitWorksheet rather than left to scroll inside one card.
-  return Math.max(360, Math.min(WS_MAX_SHEET, chrome + titleExtra + sum));
+  const want = chrome + titleExtra + sum;
+  return clamp ? Math.max(360, Math.min(WS_MAX_SHEET, want)) : want;
 }
 
 /* Tallest a single sheet card may get. Beyond this the content used to keep
@@ -11201,32 +11205,33 @@ const WS_MIN_SHEET = 260;
    before. Only questions and items split: a Lesson Pack's `cards` are stages of
    one lesson laid out as a grid, and cutting that in half would misrepresent
    the lesson rather than paginate it. */
-function _ttSplitWorksheet(output){
+function _ttSplitWorksheet(output, cardW = 640){
   const list = Array.isArray(output.questions) ? output.questions
              : Array.isArray(output.items)     ? output.items
              : null;
   if (!list || list.length < 2) return [output];
-  if (_ttEstWorksheetHeight(output) < WS_MAX_SHEET) return [output];
+  if (_ttEstWorksheetHeight(output, cardW, { clamp: false }) <= WS_MAX_SHEET) return [output];
 
   const key = Array.isArray(output.questions) ? 'questions' : 'items';
-  const chrome = WS_H.chromeQuestions;
-  const budget = WS_MAX_SHEET - chrome;
-  // Glossary chips flow rather than stack, so an entry costs the fraction of a
-  // wrapped row its own width takes up — the same model _ttEstWorksheetHeight
-  // uses, so the splitter and the sizer cannot disagree about a glossary.
-  const perRow = key === 'items' ? _ttChipsPerRow(list) : 1;
-  const chipHeight = () => WS_H.chipRow / perRow;
-  const hOf = key === 'questions' ? _ttQuestionHeight : chipHeight;
+  /* Measure a candidate sheet with the function that SIZES a sheet, at the
+     width it will really be given, rather than re-deriving the sum here. The
+     splitter used to keep its own copy of the model — per-question heights
+     plus a fixed chrome constant — and every change to how a sheet is laid out
+     had to be made in both places or they disagreed: the question groups and
+     their rubrics were invisible to it, so it packed sheets that then rendered
+     taller than the cap it was enforcing. One function decides now, and a
+     glossary, a grouped question list and a two-column sheet are all handled
+     because they are handled there. */
+  const fits = chunk => _ttEstWorksheetHeight(
+    { ...output, questions: undefined, items: undefined, [key]: chunk }, cardW, { clamp: false }) <= WS_MAX_SHEET;
 
   const chunks = [];
-  let cur = [], curH = 0;
+  let cur = [];
   for (const entry of list) {
-    const h = hOf(entry) + (cur.length ? WS_H.gap : 0);
-    // A single question taller than a whole sheet still has to go somewhere;
-    // give it its own card and let that one scroll rather than dropping it.
-    if (cur.length && curH + h > budget) { chunks.push(cur); cur = []; curH = 0; }
+    // A single entry too tall for a whole sheet still has to go somewhere: give
+    // it its own card and let that one scroll rather than dropping it.
+    if (cur.length && !fits(cur.concat([entry]))) { chunks.push(cur); cur = []; }
     cur.push(entry);
-    curH += cur.length === 1 ? hOf(entry) : h;
   }
   if (cur.length) chunks.push(cur);
   if (chunks.length < 2) return [output];
@@ -11398,7 +11403,7 @@ function _ttPlaceWorksheetOnBoard(output){
   // Output taller than one card becomes consecutive sheets. Anything that fits
   // comes back as a single-element array holding the original object, so the
   // ordinary case runs exactly the path it always did.
-  const parts = _ttSplitWorksheet(output);
+  const parts = _ttSplitWorksheet(output, W);
   const c0 = getBoardViewportCenter() || { x:320, y:260 };
   const isPagedSet = parts.length > 1;
   const GAP = 28, PAD = 30, HEAD = 64;
@@ -11913,7 +11918,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '278';
+const TEACHEDOS_ASSET_VERSION = '279';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
