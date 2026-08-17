@@ -2779,7 +2779,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
            пустые рамки. Словарь — это десяток мелких снимков, цена честная. */
         const frame = img
           ? `<span class="ws-vcard-img"><img src="${esc(img)}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">${credit}</span>`
-          : '<span class="ws-vcard-img ws-vcard-img--empty"></span>';
+          : _ttLetterTile(it.word || '');
         return `<li class="ws-vcard" data-vi="${i}">${frame}<b>${_ttMdInline(it.word || '')}</b>${body}</li>`;
       }).join('');
     }
@@ -9989,6 +9989,32 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
      печати: источник может ответить иначе или не ответить вовсе.           */
 const _TT_IMG_CONCURRENCY = 3;
 
+/* КОГДА КАРТИНКИ НЕТ.
+
+   Фотобанк не находит снимок примерно на каждом десятом слове — абстрактном
+   («justice»), узком («semicolon») или просто редком. Раньше на его месте
+   оставалась заштрихованная пустая рамка: на экране она читается как «идёт
+   загрузка», на печати — как брак вёрстки.
+
+   Рисуем вместо неё буквенную плитку прямо в браузере: первая буква слова на
+   спокойном фоне и подпись «draw it». Внешних сервисов не нужно вовсе, а
+   пустое место превращается в задание — ученик рисует слово сам, и это лучший
+   способ его запомнить из всех, что у нас тут были.
+
+   Цвет выводится из самого слова, поэтому один и тот же термин всегда одного
+   оттенка — и на доске, и в PNG-экспорте, и на перепечатке через месяц.     */
+function _ttLetterTile(word) {
+  const w = String(word || '').trim();
+  const letter = (w[0] || '?').toUpperCase();
+  let h = 0;
+  for (let i = 0; i < w.length; i++) h = (h * 31 + w.charCodeAt(i)) % 360;
+  const bg = `hsl(${h} 42% 93%)`;
+  const fg = `hsl(${h} 38% 34%)`;
+  return `<span class="ws-vcard-img ws-vcard-img--letter" style="background:${bg};color:${fg}">`
+    + `<span class="ws-vcard-letter">${esc(letter)}</span>`
+    + `<span class="ws-vcard-draw">draw it</span></span>`;
+}
+
 async function _ttFetchWordImage(word, topic, context) {
   const qs = new URLSearchParams({ q: word, limit: '1' });
   if (topic) qs.set('topic', topic);
@@ -12803,7 +12829,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '305';
+const TEACHEDOS_ASSET_VERSION = '306';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

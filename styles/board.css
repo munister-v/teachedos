@@ -3717,6 +3717,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-vcard-img{position:relative;display:block;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:rgba(14,14,16,.05);}
 	.ws-vcard-img img{width:100%;height:100%;object-fit:cover;display:block;}
 	.ws-vcard-img--empty{background:repeating-linear-gradient(45deg,rgba(14,14,16,.04) 0 6px,transparent 6px 12px);}
+	/* Плитка вместо ненайденного снимка: место под рисунок ученика, а не
+	   дырка в листе. Цвета приходят инлайном — они выведены из слова. */
+	.ws-vcard-img--letter{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+	.ws-vcard-letter{font-size:30px;font-weight:600;line-height:1;opacity:.85;}
+	.ws-vcard-draw{font-size:8px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;}
 	/* Подпись автора: мелко, но не невидимо — она обязана уехать в печать. */
 	.ws-vcard-credit{position:absolute;left:0;right:0;bottom:0;padding:3px 6px;font-size:8px;line-height:1.2;color:#fff;background:rgba(14,14,16,.45);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vcard b{font-size:14px;line-height:1.25;}
