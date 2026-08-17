@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=291">
+<link rel="manifest" href="manifest.json?v=292">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=291">
-<link rel="preload" as="style" href="styles/unify.css?v=291">
+<link rel="preload" as="style" href="styles/harmony.css?v=292">
+<link rel="preload" as="style" href="styles/unify.css?v=292">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -400,10 +400,10 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=291" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=291">
-<link rel="stylesheet" href="styles/harmony.css?v=291">
-<link rel="stylesheet" href="styles/unify.css?v=291">
+<script src="theme.js?v=292" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=292">
+<link rel="stylesheet" href="styles/harmony.css?v=292">
+<link rel="stylesheet" href="styles/unify.css?v=292">
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
@@ -612,7 +612,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=291"></script>
+<script src="scripts/app-core.js?v=292"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -779,7 +779,7 @@ async function init() {
 function setNavUser(user) {
   const name = (user?.name || 'Teacher').trim();
   const avatar = user?.avatar;
-  document.getElementById('nav-avatar').textContent = avatar && avatar !== '🧑‍🏫' ? avatar : initials(name);
+  document.getElementById('nav-avatar').textContent = avatar && !/^[\u{1F300}-\u{1FAFF}]/u.test(avatar) ? avatar : initials(name);
   document.getElementById('nav-name').textContent = name.split(/\s+/)[0] || 'Teacher';
 }
 
@@ -802,7 +802,7 @@ function applyPackageGateUI() {
 
 function _setRefreshBusy(busy) {
   document.querySelectorAll('button.btn-ghost').forEach(b => {
-    if (/refresh|🔄/i.test(b.textContent || '')) b.classList.toggle('btn-refresh-spinning', busy);
+    if (/refresh/i.test(b.textContent || '')) b.classList.toggle('btn-refresh-spinning', busy);
   });
   document.querySelectorAll('.stat-val').forEach(el => el.classList.toggle('is-loading', busy));
 }
@@ -1332,7 +1332,7 @@ function openStudentDetail(userId) {
 
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-      <div style="font-size:44px;">${m.avatar||'🎓'}</div>
+      <div class="gb-member-avatar">${m.avatar ? esc(m.avatar) : (m.name||'?').trim().charAt(0).toUpperCase()}</div>
       <div>
         <div style="font-size:18px;font-weight:900;">${esc(m.name)}</div>
         <div style="font-size:12px;color:var(--text3);">${esc(m.email)} · <span class="m-role role-${m.role}">${m.role}</span></div>
@@ -1397,11 +1397,11 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=291"></script>
-<script src="scripts/nav-boost.js?v=291" defer></script>
-<script src="scripts/mobile-perf.js?v=291" defer></script>
-<script src="scripts/mobile-nav.js?v=291"></script>
-<script src="pwa-boot.js?v=291" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=291" defer></script>
+<script src="pwa.js?v=292"></script>
+<script src="scripts/nav-boost.js?v=292" defer></script>
+<script src="scripts/mobile-perf.js?v=292" defer></script>
+<script src="scripts/mobile-nav.js?v=292"></script>
+<script src="pwa-boot.js?v=292" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=292" defer></script>
 </body>
 </html>

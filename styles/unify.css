@@ -2895,3 +2895,21 @@ body.board-page .empty-action.primary {
 #notif-panel .np-item.unread .np-item-title { font-weight: 800; }
 #notif-panel .np-item-body, #notif-panel .np-item-time { font-size: 11px; color: rgba(245,240,232,.55) !important; margin-top: 2px; line-height: 1.4; }
 #notif-panel .np-dot { width: 7px; height: 7px; border-radius: 50%; background: #EC2D8C; flex-shrink: 0; margin-top: 5px; }
+
+/* Инициал вместо эмодзи-заглушки в карточке участника: буква из имени всегда
+   уместна, а «🎓» было единственной картинкой такого рода на странице. */
+.gb-member-avatar {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(14,14,16,.06); color: #0E0E10;
+  font-size: 20px; font-weight: 900; letter-spacing: -.02em;
+}
+
+/* Иконки в подписях карточек и боковом меню профиля: размер от текста, чтобы
+   строка не рвалась, и выравнивание по базовой линии. */
+.card-title .ic, .st-icon .ic, .form-label .ic, .setting-btn .ic, .plan-option-icon .ic,
+.mobile-profile-action-ic .ic, .mp-icon-btn .ic {
+  width: 1.15em; height: 1.15em; vertical-align: -.2em;
+}
+.st-icon { display: inline-flex; align-items: center; }
+.plan-option-icon .ic, .mobile-profile-action-ic .ic { width: 22px; height: 22px; }

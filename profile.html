@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=291">
-<link rel="preload" as="style" href="styles/unify.css?v=291">
-<link rel="manifest" href="manifest.json?v=291">
+<link rel="preload" as="style" href="styles/harmony.css?v=292">
+<link rel="preload" as="style" href="styles/unify.css?v=292">
+<link rel="manifest" href="manifest.json?v=292">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -389,10 +389,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=291" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=291">
-<link rel="stylesheet" href="styles/harmony.css?v=291">
-<link rel="stylesheet" href="styles/unify.css?v=291">
+<script src="theme.js?v=292" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=292">
+<link rel="stylesheet" href="styles/harmony.css?v=292">
+<link rel="stylesheet" href="styles/unify.css?v=292">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -575,6 +575,27 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 </style>
 </head>
 <body class="profile-page">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 19.5c.8-3.4 3.5-5.2 7-5.2s6.2 1.8 7 5.2"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h6a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2h-6z"/><path d="M19.5 5.5h-6a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h6z"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v3H8z"/><path d="M16 5.5h2.5v14H5.5v-14H8"/><path d="M9 11h6M9 15h4"/></symbol>
+<symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5L12 5.5l8.5 4-8.5 4z"/><path d="M7 11.5v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M3.5 10h17M7 14.5h3"/></symbol>
+<symbol id="i-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6.5v15H14"/><path d="M11 12h9.5M17 8.5l3.5 3.5-3.5 3.5"/></symbol>
+<symbol id="i-gradebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-11a1.5 1.5 0 0 1 0-3h11"/><path d="M6.5 4.5v13"/><path d="M10 8.5h5"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5h15"/><path d="M7.5 19.5v-6M12 19.5V6.5M16.5 19.5v-9"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10M8 10.5l4 4 4-4"/><path d="M5 18.5h14"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M4.5 7.5l7.5 5.5 7.5-5.5"/></symbol>
+<symbol id="i-smile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M9 10.5h.01M15 10.5h.01M8.8 14.4a4 4 0 0 0 6.4 0"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6.5" width="12" height="11" rx="2.5"/><path d="M15.5 11l5-2.6v7.2l-5-2.6z"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.2 2.3 3.3 5 3.3 8s-1.1 5.7-3.3 8c-2.2-2.3-3.3-5-3.3-8S9.8 6.3 12 4z"/></symbol>
+<symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 2 4.5 5 4.5 8.5L12 16l-4.5-4.5C7.5 8 9 5 12 3z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 16.5L7 21l4-1.5M15 16.5L17 21l-4-1.5"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V4.8h4V7M6.5 7l.9 12.2h9.2L17.5 7"/><path d="M10.5 10.5v6M13.5 10.5v6"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2.5"/><path d="M4 10.5h16M9 4v3.5M15 4v3.5"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.7 6-10a6 6 0 1 0-12 0c0 4.3 6 10 6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+</defs></svg>
 
 <div id="page-loading"><div class="spinner"></div></div>
 <div id="toast"></div>
@@ -616,25 +637,25 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
   <!-- Sidebar Tabs -->
   <div id="sidebar-tabs">
     <div class="st-item active" data-tab="overview" onclick="switchTab('overview')">
-      <span class="st-icon">👤</span> Overview
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span> Overview
     </div>
     <a class="st-item" href="courses.html" style="text-decoration:none;display:flex;">
-      <span class="st-icon">📚</span> Courses
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span> Courses
     </a>
     <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
-      <span class="st-icon">📋</span> My Boards
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></span> My Boards
     </div>
     <div class="st-item" data-tab="shared" onclick="switchTab('shared')">
-      <span class="st-icon">🎓</span> Shared with me
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></span> Shared with me
     </div>
     <div class="st-item" data-tab="settings" onclick="switchTab('settings')">
       <span class="st-icon">⚙️</span> Settings
     </div>
     <div class="st-item" data-tab="plans" onclick="openPlansSection()">
-      <span class="st-icon">💳</span> Tariffs
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></span> Tariffs
     </div>
     <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#ef4444;">
-      <span class="st-icon">🚪</span> Sign out
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg></span> Sign out
     </div>
   </div>
 
@@ -647,7 +668,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <div class="mobile-profile-copy" id="mobile-profile-copy">This phone view keeps your account, boards, and settings close at hand.</div>
         <div class="mobile-profile-actions">
           <div class="mobile-profile-action" onclick="switchTab('boards')">
-            <div class="mobile-profile-action-ic">📋</div>
+            <div class="mobile-profile-action-ic"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div>
             <div>
               <div class="mobile-profile-action-title">Boards</div>
               <div class="mobile-profile-action-sub">Open lesson boards</div>
@@ -661,14 +682,14 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
             </div>
           </div>
           <a class="mobile-profile-action" href="gradebook.html">
-            <div class="mobile-profile-action-ic">📒</div>
+            <div class="mobile-profile-action-ic"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
             <div>
               <div class="mobile-profile-action-title">Gradebook</div>
               <div class="mobile-profile-action-sub">Roster and progress</div>
             </div>
           </a>
           <div class="mobile-profile-action" onclick="switchTab('shared')">
-            <div class="mobile-profile-action-ic">🎓</div>
+            <div class="mobile-profile-action-ic"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
             <div>
               <div class="mobile-profile-action-title">Shared</div>
               <div class="mobile-profile-action-sub">Boards shared with you</div>
@@ -689,18 +710,18 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <div id="tab-overview" class="tab-panel active">
       <div class="card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
         <div style="text-align:center;">
-          <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')">🧑‍🏫</div>
+          <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')"></div>
         </div>
         <div style="flex:1;min-width:180px;">
           <div id="profile-name-big">—</div>
           <div id="profile-email-big">—</div>
           <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">—</div>
-          <div class="role-badge" id="profile-role-badge">🎓 Teacher</div>
+          <div class="role-badge" id="profile-role-badge">Teacher</div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">📊 Stats</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Stats</div>
         <div class="stats-grid" id="stats-grid">
           <div class="stat-card"><div class="stat-n" id="stat-boards">—</div><div class="stat-label">Total Boards</div></div>
           <div class="stat-card"><div class="stat-n" id="stat-cards">—</div><div class="stat-label">Total Cards</div></div>
@@ -710,7 +731,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
       </div>
 
       <div class="card">
-        <div class="card-title">🕐 Recent Boards</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg> Recent boards</div>
         <div id="recent-boards-list">
           <div style="color:var(--text-3);font-size:14px;">Loading…</div>
         </div>
@@ -721,7 +742,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <div id="tab-boards" class="tab-panel">
       <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
         <button class="new-board-btn" onclick="createNewBoard()" style="margin-bottom:0;">➕ New Board</button>
-        <button class="new-board-btn" onclick="openBulkImport()" style="margin-bottom:0;background:transparent;color:var(--accent);border:1.5px solid var(--accent-3);">📥 Bulk Invite Students</button>
+        <button class="new-board-btn" onclick="openBulkImport()" style="margin-bottom:0;background:transparent;color:var(--accent);border:1.5px solid var(--accent-3);">Bulk Invite Students</button>
       </div>
       <div class="boards-grid" id="boards-grid">
         <div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">Loading…</div>
@@ -731,7 +752,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <!-- BULK IMPORT MODAL -->
     <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
-        <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">📥 Bulk Invite Students</div>
+        <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
         <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
@@ -771,7 +792,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
       <!-- Change email -->
       <div class="card">
-        <div class="card-title">📧 Email Address</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg> Email address</div>
         <div class="setting-group">
           <div class="setting-label">Email</div>
           <input class="setting-input" id="set-email" type="email" placeholder="your@email.com">
@@ -782,7 +803,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
       <!-- Change avatar -->
       <div class="card">
-        <div class="card-title">😀 Avatar</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-smile"/></svg> Avatar</div>
         <div class="setting-label" style="margin-bottom:10px;">Choose your avatar emoji</div>
         <div class="emoji-grid" id="emoji-grid"></div>
         <div style="margin-top:14px;">
@@ -792,7 +813,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
       <!-- Change password -->
       <div class="card">
-        <div class="card-title">🔒 Change Password</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg> Change password</div>
         <div class="setting-group">
           <div class="setting-label">Current Password</div>
           <input class="setting-input" id="set-pass-current" type="password" maxlength="72" placeholder="Current password">
@@ -810,7 +831,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
       <!-- Meeting Rooms -->
       <div class="card">
-        <div class="card-title">📹 Meeting Rooms</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting rooms</div>
         <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Save your permanent Google Meet or Zoom room URLs. Students see these links when you go live.</p>
         <div class="setting-group">
           <div class="setting-label">Google Meet URL</div>
@@ -824,7 +845,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
       </div>
 
       <div class="card">
-        <div class="card-title">🌍 Time Zone</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Time zone</div>
         <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Choose whether TeachEd should use your computer time automatically or keep a fixed teaching timezone. We use this to show lesson times correctly for students in other countries.</p>
         <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(200,230,50,.05);">
           <div>
@@ -860,7 +881,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
       <!-- Plan -->
       <div class="card" id="plan-card">
-        <div class="card-title">💳 Subscription Plan</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Subscription plan</div>
         <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="font-size:2rem;" id="plan-icon">⭐</div>
           <div>
@@ -886,7 +907,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
           <div style="display:grid;gap:10px;">
             <div class="plan-option" onclick="selectPlan('pro')" id="plan-opt-pro"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
-              <div class="plan-option-icon" style="font-size:1.35rem;">🚀</div>
+              <div class="plan-option-icon"><svg class="ic" aria-hidden="true"><use href="#i-rocket"/></svg></div>
               <div style="flex:1;">
                 <div class="plan-option-title" style="font-size:14px;font-weight:800;">Teacher Pro</div>
                 <div class="plan-option-meta" style="font-size:11px;">Unlimited boards · 30 students · Analytics</div>
@@ -895,7 +916,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
             </div>
             <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
-              <div class="plan-option-icon" style="font-size:1.35rem;">🏫</div>
+              <div class="plan-option-icon"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
               <div style="flex:1;">
                 <div class="plan-option-title" style="font-size:14px;font-weight:800;">School</div>
                 <div class="plan-option-meta" style="font-size:11px;">Unlimited everything · Admin panel</div>
@@ -908,7 +929,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <!-- IBAN payment details (shown after selecting a plan) -->
         <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
           <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(200,230,50,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
-            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">💳 Payment Details</div>
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Payment details</div>
             <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
                 <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:700;cursor:pointer;color:var(--text-2);">Copy</button>
@@ -932,7 +953,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         </div>
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <a href="billing.html" class="setting-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">🚀 Upgrade plan</a>
+          <a href="billing.html" class="setting-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Upgrade plan</a>
           <button class="setting-btn secondary" onclick="toggleManagePanel()">Manage subscription</button>
         </div>
 
@@ -940,7 +961,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <div id="manage-sub-panel" style="display:none;margin-top:16px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;">
           <!-- Header -->
           <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(200,230,50,.1),rgba(200,230,50,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:800;color:var(--text);">📋 Subscription Details</div>
+            <div style="font-size:13px;font-weight:800;color:var(--text);"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Subscription details</div>
             <button onclick="toggleManagePanel()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);line-height:1;">×</button>
           </div>
           <!-- Plan summary -->
@@ -963,7 +984,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <div class="danger-zone">
           <div class="danger-zone-title">Delete All Boards</div>
           <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
-          <button class="setting-btn danger" onclick="deleteAllBoards()">🗑 Delete All Boards</button>
+          <button class="setting-btn danger" onclick="deleteAllBoards()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Delete all boards</button>
         </div>
       </div>
     </div>
@@ -971,15 +992,15 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=291"></script>
-<script src="scripts/profile-app.js?v=291"></script>
-<script src="pwa-boot.js?v=291" defer></script>
+<script src="scripts/app-core.js?v=292"></script>
+<script src="scripts/profile-app.js?v=292"></script>
+<script src="pwa-boot.js?v=292" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(5,5,23,.18);padding:28px 28px 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-size:18px;font-weight:900;">📋 New Board</div>
+      <div style="font-size:18px;font-weight:900;"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> New board</div>
       <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
     </div>
     <div style="margin-bottom:16px;">
@@ -993,11 +1014,11 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js?v=291"></script>
-<script src="scripts/nav-boost.js?v=291" defer></script>
-<script src="scripts/mobile-perf.js?v=291" defer></script>
-<script src="scripts/mobile-nav.js?v=291"></script>
-<script src="scripts/mobile-zoom-guard.js?v=291" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=291" defer></script>
+<script src="pwa.js?v=292"></script>
+<script src="scripts/nav-boost.js?v=292" defer></script>
+<script src="scripts/mobile-perf.js?v=292" defer></script>
+<script src="scripts/mobile-nav.js?v=292"></script>
+<script src="scripts/mobile-zoom-guard.js?v=292" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=292" defer></script>
 </body>
 </html>
