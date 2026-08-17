@@ -51,6 +51,29 @@ async function pixabaySearch(query, limit = 1) {
   })).filter(r => r.url);
 }
 
+// ── Pexels ───────────────────────────────────────────────────────────────────
+// Третий источник, а не запасной: у Unsplash сильная «эстетическая» база, но
+// слабая бытовая — «аэропорт», «врач», «поездка на автобусе» дают там красивые
+// пустые кадры. У Pexels ровно обратный перекос, поэтому вместе они закрывают
+// школьные темы, а Commons остаётся крайним случаем.
+const PEXELS_KEY = process.env.PEXELS_API_KEY || '';
+
+async function pexelsSearch(query, limit = 1) {
+  if (!PEXELS_KEY) return [];
+  const d = await safeFetch(
+    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=${Math.max(3, limit)}&orientation=square`,
+    { Authorization: PEXELS_KEY }
+  );
+  if (!Array.isArray(d?.photos)) return [];
+  return d.photos.slice(0, limit).map(p => ({
+    url:    p.src?.large || p.src?.medium || null,
+    thumb:  p.src?.small || p.src?.tiny   || null,
+    credit: p.photographer ? `Photo by ${p.photographer} on Pexels` : 'Pexels',
+    source: 'pexels',
+    license: 'Pexels License — free to use, attribution appreciated',
+  })).filter(r => r.url);
+}
+
 // ── Wikipedia fallback chain (last resort — often gives unrelated images) ─────
 async function wikiSummary(query) {
   const d = await safeFetch(
@@ -116,8 +139,14 @@ router.get('/search', async (req, res) => {
     return res.json({ url: cached[0]?.url || null, urls: cached });
   }
 
-  // Primary: Unsplash → Pixabay → Wikipedia (last resort, often unrelated)
+  /* Порядок: Unsplash → Pexels → Pixabay → Wikipedia.
+     Первые три отдают снимки, которые можно печатать без обязательств (у
+     Pexels и Unsplash подпись желательна, у Pixabay не нужна). Wikimedia
+     оставлен последним намеренно: там CC-лицензии, где указание автора чаще
+     всего ОБЯЗАТЕЛЬНО, и материал попадает на печатный лист — поэтому его
+     подпись и лицензия едут вместе с картинкой, а не теряются. */
   let results = await unsplashSearch(q, limit);
+  if (!results.length) results = await pexelsSearch(q, limit);
   if (!results.length) results = await pixabaySearch(q, limit);
   if (!results.length) results = await wikiResolve(q);
 
@@ -126,6 +155,34 @@ router.get('/search', async (req, res) => {
   cacheSet(multiCache, cacheKey, results);
 
   res.json({ url, urls: results });
+});
+
+/* GET /api/images/status — какие источники реально подключены.
+
+   Ключей на сервере не было, поэтому поиск молча падал в Wikimedia и отдавал
+   случайные картинки: снаружи это выглядело как «подбор не работает», хотя
+   код работал. Проверить это было нечем — эндпоинт отвечает на вопрос «ключ
+   вставлен и он живой?» одним запросом, без выкладки и без чтения .env
+   руками. Ключи не возвращаются, только факт их наличия и ответ провайдера. */
+router.get('/status', async (req, res) => {
+  const probe = async (name, key, fn) => {
+    if (!key) return { name, configured: false, ok: false, note: 'no key in .env' };
+    const hits = await fn('classroom', 1).catch(() => []);
+    return { name, configured: true, ok: hits.length > 0, sample: hits[0]?.credit || null };
+  };
+  const sources = [
+    await probe('unsplash', UNSPLASH_KEY, unsplashSearch),
+    await probe('pexels',   PEXELS_KEY,   pexelsSearch),
+    await probe('pixabay',  PIXABAY_KEY,  pixabaySearch),
+  ];
+  const live = sources.filter(s => s.ok).map(s => s.name);
+  res.json({
+    ok: live.length > 0,
+    live,
+    fallback: 'wikimedia (CC — attribution usually required)',
+    sources,
+    cache: { single: singleCache.size, multi: multiCache.size },
+  });
 });
 
 module.exports = router;
