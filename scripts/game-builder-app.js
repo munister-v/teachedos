@@ -896,6 +896,7 @@ function openBuilder() {
   renderPresetBar();
   renderContentFields();
   updateItemCounter();
+  refreshLivePreview(true);
   b.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1567,7 +1568,7 @@ async function aiFillGame() {
     const out = data && data.output;
     const content = _gbContentFromAI(selectedType.fields, out);
     if (!content) throw new Error('empty result');
-    renderContentFields(); populateContent({ content }); updateItemCounter();
+    renderContentFields(); populateContent({ content }); updateItemCounter(); refreshLivePreview(true);
     /* Честно говорим, чем собрано: страховочная модель и локальные шаблоны
        пишут заметно проще, и учитель должен видеть это до урока, а не на нём. */
     const note = out.engine === 'rules' ? ' (offline templates — regenerate later)'
@@ -1681,7 +1682,7 @@ async function autoFillGame() {
     else if (selectedType.fields === 'categories') content = { categories:[{name:'Learning',words:['practice','feedback','progress','mistake']},{name:'Communication',words:['conversation','example','confidence','solution']},{name:'Mindset',words:['challenge','routine','focus','goal']}] };
   }
   if (!content) { toast('Smart fill is not available for this game type'); return; }
-  renderContentFields(); populateContent({ content }); updateItemCounter();
+  renderContentFields(); populateContent({ content }); updateItemCounter(); refreshLivePreview(true);
   toast(vocab && vocab.length ? '✨ Filled with real vocabulary' : 'Smart content generated');
 }
 function upgradeDifficulty() {
@@ -2035,6 +2036,135 @@ function importGames(event) {
 
 /* ---- PREVIEW (live, playable) ---- */
 let _previewMsgHandler = null;
+
+/* ── ЖИВОЙ ПРЕДПРОСМОТР РЯДОМ С ФОРМОЙ ────────────────────────────────────
+
+   Игру можно было увидеть только модальным окном по кнопке «Preview»: правишь
+   вслепую, открываешь, закрываешь, правишь снова. Для конструктора это главный
+   недостаток — редактор игры должен показывать игру.
+
+   Пересборка отложена на 550 мс после последней правки: игра при получении
+   контента стартует заново (таймер, перемешивание), и пересобирать её на каждое
+   нажатие клавиши означало бы дёргающийся экран рядом с полем ввода. По той же
+   причине предпросмотр НЕ трогает фокус и не прокручивает страницу.            */
+let _livePreviewTimer = 0;
+let _liveMsgHandler = null;
+let _liveSignature = '';
+
+function scheduleLivePreview() {
+  clearTimeout(_livePreviewTimer);
+  _livePreviewTimer = setTimeout(() => refreshLivePreview(false), 550);
+}
+
+function refreshLivePreview(force) {
+  const wrap = document.getElementById('builder');
+  const stage = document.getElementById('gb-live-stage');
+  const note = document.getElementById('gb-live-note');
+  if (!wrap || !stage) return;
+  wrap.classList.toggle('has-live', !!selectedType);
+  if (!selectedType) return;
+
+  const titleEl = document.getElementById('gb-live-title');
+  if (titleEl) titleEl.textContent = selectedType.name;
+
+  // lenient: показываем то, что уже набрано, не требуя полного комплекта.
+  const content = collectContent(true);
+  const count = _liveItemCount(content);
+  const min = 2;
+  if (!content || count < min) {
+    stage.innerHTML = '<div class="gb-live-empty">Add at least two items — the game will play here.</div>';
+    if (note) { note.textContent = ''; note.classList.remove('warn'); }
+    _liveSignature = '';
+    return;
+  }
+
+  /* Одинаковый контент не перезапускает игру: иначе правка заголовка сбрасывала
+     бы партию, которую учитель в этот момент проверяет. */
+  const sig = selectedType.id + '|' + JSON.stringify(content);
+  if (!force && sig === _liveSignature) return;
+  _liveSignature = sig;
+
+  const title = (document.getElementById('game-title').value || '').trim() || selectedType.name;
+  _mountLiveGame(selectedType, content, title, stage);
+
+  if (note) {
+    const want = selectedType.minItems || 4;
+    if (count < want) {
+      note.textContent = `${count} items — most classes need ${want}+ for this game.`;
+      note.classList.add('warn');
+    } else {
+      note.textContent = `${count} items · ${document.getElementById('game-level').value || 'B1'}`;
+      note.classList.remove('warn');
+    }
+  }
+}
+
+function _liveItemCount(content) {
+  if (!content) return 0;
+  for (const k of ['pairs', 'words', 'sentences', 'statements', 'questions', 'categories']) {
+    if (Array.isArray(content[k])) return content[k].length;
+  }
+  return 0;
+}
+
+function _mountLiveGame(type, content, title, stage) {
+  const w = type.w || 460, h = type.h || 560;
+  stage.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = type.gameSrc;
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+  iframe.style.cssText = `width:${w}px;height:${h}px;`;
+
+  let delivered = false;
+  const deliver = () => {
+    if (delivered) return;
+    try {
+      iframe.contentWindow.postMessage({
+        type: 'teachedos-custom-game-content',
+        title,
+        level: document.getElementById('game-level').value || '',
+        content,
+      }, '*');
+      delivered = true;
+    } catch {}
+  };
+  iframe.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); });
+  if (_liveMsgHandler) window.removeEventListener('message', _liveMsgHandler);
+  _liveMsgHandler = (e) => {
+    if (e.data && e.data.type === 'game-ready' && e.source === iframe.contentWindow) deliver();
+  };
+  window.addEventListener('message', _liveMsgHandler);
+
+  stage.appendChild(iframe);
+  // Игра нарисована в своих размерах — вписываем её в колонку, но не растягиваем
+  // сверх 1:1, иначе текст плывёт.
+  requestAnimationFrame(() => {
+    const avail = (stage.clientWidth || w) - 2;
+    const scale = Math.min(1, avail / w);
+    iframe.style.transform = `scale(${scale})`;
+    stage.style.height = Math.round(h * scale) + 'px';
+    stage.style.alignItems = 'flex-start';
+  });
+}
+
+/* Любая правка в области контента — повод пересобрать предпросмотр. Слушаем на
+   контейнере, а не на полях: поля перерисовываются при смене типа игры и
+   добавлении строк, и вешать обработчики на каждое означало бы терять их. */
+(function bindLivePreview() {
+  const bind = () => {
+    const area = document.getElementById('content-area');
+    if (!area || area._liveBound) return;
+    area._liveBound = true;
+    area.addEventListener('input', scheduleLivePreview);
+    area.addEventListener('change', scheduleLivePreview);
+    ['game-title', 'game-level'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el._liveBound) { el._liveBound = true; el.addEventListener('change', scheduleLivePreview); }
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
 
 function previewGame() {
   if (!selectedType) { toast('Choose a game type first'); return; }

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=293">
-<link rel="preload" as="style" href="styles/unify.css?v=293">
-<link rel="manifest" href="manifest.json?v=293">
+<link rel="preload" as="style" href="styles/harmony.css?v=294">
+<link rel="preload" as="style" href="styles/unify.css?v=294">
+<link rel="manifest" href="manifest.json?v=294">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -177,6 +177,23 @@ textarea{min-height:60px;resize:vertical}
 #toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
 #toast.show{opacity:1;transform:translateY(0)}
 .preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center}
+/* Редактор и предпросмотр стоят рядом. Предпросмотр липкий: список элементов
+   длинный, и на десятом пункте окно игры не должно уезжать из виду. */
+.builder.has-live{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:22px;align-items:start}
+.gb-form{min-width:0}
+.builder.has-live > .gb-live{position:sticky;top:16px}
+.gb-live{display:none;border:1px solid var(--border);border-radius:18px;background:#fff;padding:14px;box-shadow:0 10px 30px rgba(14,14,16,.05)}
+.builder.has-live > .gb-live{display:block}
+.gb-live-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.gb-live-eyebrow{font:800 9px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.gb-live-title{font:900 15px/1.2 var(--font);letter-spacing:-.02em;color:var(--text)}
+.gb-live-actions{display:flex;gap:6px;flex-shrink:0}
+.gb-live-stage{border:1px solid var(--border);border-radius:14px;background:#F5F0E8;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center}
+.gb-live-stage iframe{border:none;display:block;transform-origin:top left}
+.gb-live-empty{padding:26px 18px;text-align:center;font:700 12px/1.6 var(--font);color:var(--text3)}
+.gb-live-note{margin-top:9px;font:700 11px/1.45 var(--mono,monospace);color:var(--text3);min-height:16px}
+.gb-live-note.warn{color:#8A5A09}
+@media(max-width:1100px){.builder.has-live{grid-template-columns:1fr}.builder.has-live > .gb-live{position:static}}
 .preview-overlay.show{display:flex}
 .preview-box{background:var(--card);border-radius:22px;padding:24px;width:100%;max-width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.24);border:1px solid var(--border);position:relative}
 .preview-close{position:absolute;top:14px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:18px;cursor:pointer;color:var(--text3);border:none}
@@ -218,10 +235,10 @@ textarea{min-height:60px;resize:vertical}
 .pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#777;font-size:.85rem}
 
 </style>
-<script src="theme.js?v=293" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=293">
-<link rel="stylesheet" href="styles/harmony.css?v=293">
-<link rel="stylesheet" href="styles/unify.css?v=293">
+<script src="theme.js?v=294" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=294">
+<link rel="stylesheet" href="styles/harmony.css?v=294">
+<link rel="stylesheet" href="styles/unify.css?v=294">
 </head>
 <body>
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -325,6 +342,7 @@ textarea{min-height:60px;resize:vertical}
   <div class="dict-grid" id="dict-grid"></div>
 
   <div class="builder" id="builder">
+    <div class="gb-form">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
       <div>
         <div class="builder-title" id="builder-title">Configure your game</div>
@@ -415,11 +433,35 @@ textarea{min-height:60px;resize:vertical}
     </div>
     <div id="content-area"></div>
     <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
-      <button class="btn lime" onclick="saveGame()" id="save-btn">Save Game to Library</button>
-      <button class="btn ghost" onclick="previewGame()">Preview</button>
-      <button class="btn sm blue" onclick="saveAndAddToBoard()" title="Save and immediately open on board">Save &amp; Add to Board</button>
-      <button class="btn ghost" onclick="publishGame()" id="publish-btn" title="Share this game with the community">🌍 Publish to Community</button>
+      <button class="btn lime" onclick="saveGame()" id="save-btn">Save game to library</button>
+      <button class="btn ghost" onclick="previewGame()">Full preview</button>
+      <button class="btn sm blue" onclick="saveAndAddToBoard()" title="Save and immediately open on board">Save and add to board</button>
+      <button class="btn ghost" onclick="publishGame()" id="publish-btn" title="Share this game with the community">Publish to community</button>
     </div>
+
+    </div>
+
+    <!-- ЖИВОЙ ПРЕДПРОСМОТР.
+         Раньше игру можно было увидеть только модальным окном по кнопке: правишь
+         вслепую, открываешь, закрываешь, правишь снова. Здесь она стоит рядом и
+         пересобирается сама через полсекунды после правки — редактор показывает
+         то, что получает ученик, а не форму с полями. -->
+    <aside class="gb-live" id="gb-live">
+      <div class="gb-live-head">
+        <div>
+          <div class="gb-live-eyebrow">Live preview</div>
+          <div class="gb-live-title" id="gb-live-title">Student view</div>
+        </div>
+        <div class="gb-live-actions">
+          <button class="tool-btn" type="button" onclick="refreshLivePreview(true)" title="Rebuild the preview now">Restart</button>
+          <button class="tool-btn" type="button" onclick="previewGame()" title="Open the full-size preview">Full size</button>
+        </div>
+      </div>
+      <div class="gb-live-stage" id="gb-live-stage">
+        <div class="gb-live-empty" id="gb-live-empty">Pick a game type and add content — it will play here as you edit.</div>
+      </div>
+      <div class="gb-live-note" id="gb-live-note"></div>
+    </aside>
   </div>
 
   <div class="section-head">
@@ -448,9 +490,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=293"></script>
-<script src="scripts/vocab-loader.js?v=293"></script>
-<script src="scripts/game-builder-app.js?v=293"></script>
+<script src="scripts/app-core.js?v=294"></script>
+<script src="scripts/vocab-loader.js?v=294"></script>
+<script src="scripts/game-builder-app.js?v=294"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -464,9 +506,9 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=293" defer></script>
-<script src="scripts/mobile-nav.js?v=293"></script>
-<script src="scripts/mobile-zoom-guard.js?v=293" defer></script>
-<script src="pwa-boot.js?v=293" defer></script>
+<script src="scripts/mobile-perf.js?v=294" defer></script>
+<script src="scripts/mobile-nav.js?v=294"></script>
+<script src="scripts/mobile-zoom-guard.js?v=294" defer></script>
+<script src="pwa-boot.js?v=294" defer></script>
 </body>
 </html>
