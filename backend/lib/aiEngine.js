@@ -289,12 +289,12 @@ function shapeSpec(input) {
     const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
     if (wordsList.length) {
       return {
-        task: `For ESL students at ${level} level, produce a vocab entry for EACH of these words/phrases (one entry per word, same order, do not add or skip any): ${wordsList.join(', ')}. For each: "en" = the word/phrase as given; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural ${level}-level English example sentence using it.`,
+        task: `${cefrBrief(level)}\nProduce a vocab entry for EACH of these words/phrases (one entry per word, same order, do not add or skip any): ${wordsList.join(', ')}. For each: "en" = the word/phrase as given; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at the level above.`,
         schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
       };
     }
     return {
-      task: `For ESL students at ${level} level, build a vocabulary set of exactly ${count} useful words/phrases on the topic "${topic}". For each: "en" = the English word/phrase; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural ${level}-level English example sentence using it.`,
+      task: `${cefrBrief(level)}\nBuild a vocabulary set of exactly ${count} useful words/phrases on the topic "${topic}", choosing words that belong to the vocabulary band above. For each: "en" = the English word/phrase; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at that level.`,
       schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
     };
   }

@@ -1623,6 +1623,12 @@ function ttBoardPayload(out){
     topic: out.topic || '',
     kind: out.kind || '',
     cat: out.cat || '',
+    /* Текст, з якого зроблено завдання, їде разом із ним на дошку. Без нього
+       картка на дошці знає СВОЇ питання, але не знає матеріалу — а отже її не
+       можна перебрати на інший рівень CEFR, не вигадавши зміст наново. Обрізаємо:
+       на дошці зберігається весь стан, і тягнути туди повний транскрипт кожної
+       вправи немає потреби — для перегенерації вистачає цього шматка. */
+    source: String((typeof get === 'function' && get('source')) || '').slice(0, 6000),
     struct: out.struct || null,
     showAnswers: out.showAnswers !== false,
     knowledgeBaseId: out.knowledgeBaseId || null,

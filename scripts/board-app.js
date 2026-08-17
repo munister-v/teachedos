@@ -2917,7 +2917,7 @@ function renderWorksheet(el, card) {
       </div>
       ${stepper}
       <span class="ws-tools">
-        ${d._ytToolId ? `<span class="ws-level" title="Rebuild this block one CEFR step easier or harder">
+        ${_wsLevelOrigin(card) ? `<span class="ws-level" title="Rebuild this block one CEFR step easier or harder">
           <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',-1)" aria-label="One level easier">−</button>
           <b class="ws-level-now">${d._levelBusy ? '…' : esc(String(d.level || 'B1'))}</b>
           <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',1)" aria-label="One level harder">+</button>
@@ -9803,7 +9803,15 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
               _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
               _step: out._step, _steps: out._steps,
             }, CARD_W, cell.h);
-        if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
+        if (frame && card) {
+          setCardParentFrame?.(card, frame);
+          gridCardIds.push(card.id);
+          /* Перерисовка ПОСЛЕ того, как карточка попала в кадр. Шапка листа
+             показывает регулятор уровня, только если видит, из чего сделан урок,
+             а материал лежит на кадре — в момент первой отрисовки карточка ещё
+             ничья, и регулятор не появлялся до следующего перерендера. */
+          reRenderCard(card);
+        }
       });
     }
     /* Lesson Pack(s): full-width rows at the foot of the frame when there is a
@@ -9898,17 +9906,36 @@ function _wsItemCount(d) {
     || (Array.isArray(d.cards) && d.cards.length) || 8;
 }
 
+/* ОТКУДА У БЛОКА БЕРЁТСЯ УРОВЕНЬ, НЕЗАВИСИМО ОТ ТОГО, ЧЕМ ЕГО СДЕЛАЛИ.
+
+   Генераторов у нас несколько: урок из видео, урок из текста в кадре, хаб
+   инструментов на полсотни вправ и активности, добавленные к готовому кадру.
+   Регулятор уровня не должен знать их все — ему нужны две вещи: каким
+   инструментом сделано и из какого материала. Кто именно это записал, неважно.
+
+   Материал ищется у карточки, а если его там нет — у кадра, в котором она
+   лежит: активности из кадра источник не копируют, он общий на весь урок. */
+function _wsLevelOrigin(card) {
+  const d = card?.data || {};
+  const frame = state.cards.find(c => c.id === d.parentFrame);
+  const L = frame?.data?.lesson || null;
+  const toolId = d._ytToolId || d._ttToolId || d._ttOrigin?.toolId || '';
+  const source = String(d._ttSource || L?.source || '').trim();
+  if (!toolId || source.length < 120) return null;   // короче — это не материал
+  return { toolId, source, topic: d.topic || L?.topic || 'Lesson', level: d.level || L?.level || 'B1', frame };
+}
+
 async function regenerateWorksheetAtLevel(cardId, dir) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || !card.data) return;
   const d = card.data;
-  const frame = state.cards.find(c => c.id === d.parentFrame);
-  const L = frame?.data?.lesson;
-  if (!d._ytToolId || !L?.source) {
-    toast('This block does not remember what it was built from — regenerate the lesson to get level controls.', 'error');
+  const org = _wsLevelOrigin(card);
+  if (!org) {
+    toast('This block does not remember what it was built from — rebuild it from a tool or a lesson to get level controls.', 'error');
     return;
   }
-  const next = _cefrStep(d.level || L.level || 'B1', dir);
+  const frame = org.frame;
+  const next = _cefrStep(d.level || org.level, dir);
   if (!next) { toast(dir < 0 ? 'A1 is the bottom of the scale.' : 'C2 is the top of the scale.'); return; }
   if (d._levelBusy) return;
   d._levelBusy = true;
@@ -9916,7 +9943,7 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
   toast(`✨ Rebuilding this block at ${next}…`);
   try {
     const out = await requestServerTeacherTool(
-      { tool: { id: d._ytToolId }, level: next, count: _wsItemCount(d), topic: L.topic || 'Video lesson', source: L.source },
+      { tool: { id: org.toolId }, level: next, count: _wsItemCount(d), topic: org.topic, source: org.source },
       35000);
     const ok = out && (out.questions?.length || out.items?.length || out.cards?.length);
     if (!ok) { toast('The engine came back empty — the level is unchanged.', 'error'); return; }
@@ -9933,7 +9960,9 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
     reRenderCard(card);
     requestAnimationFrame(() => {
       _wsFitToContent(card.id, { shrink: true });
-      if (frame) _relayoutLessonFrameNow(frame);
+      // Пересобирать кадр есть смысл только у сетки урока: одиночная карточка
+      // на доске просто меняет свою высоту и никого не двигает.
+      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
     });
     toast(`Rebuilt at ${next}.`);
   } catch (e) {
@@ -10861,10 +10890,14 @@ function _ttEffectiveLesson(frame) {
 
 /* Place a generated activity as an INTERACTIVE worksheet card (drag-drop /
    click / type + Check) inside the lesson frame, ready for the student to do. */
-function _ttPlaceActivityWorksheet(frame, title, kind, cat, level, questions) {
+function _ttPlaceActivityWorksheet(frame, title, kind, cat, level, questions, toolId = '') {
   const data = {
     title, kind, cat: cat || 'vocabulary', level: level || 'B1',
     boardKind: 'quiz', questions, _ttSrc: 1, _interactive: true,
+    // Активность собрана из урока в кадре — значит источник у неё есть, и
+    // уровень у неё тоже должен крутиться.
+    _ttToolId: toolId || '',
+    _ttSource: String(frame?.data?.lesson?.source || '').slice(0, 6000),
     // Activities added from a lesson frame belong to one auto-managed grid.
     // This lets the board keep generated work compact without moving any card
     // that the teacher positioned manually.
@@ -10913,7 +10946,7 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'truefalse').slice(0, 8);
     if (!qs.length) { toast('Could not generate true/false right now — try again.', 'error'); return; }
-    _ttPlaceActivityWorksheet(frame, 'True or False', 'Check', 'reading', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'True or False', 'Check', 'reading', L.level, qs, 'true-false');
   } else if (type === 'open') {
     toast('✨ Generating open questions…');
     const out = await requestServerTeacherTool(
@@ -10921,7 +10954,7 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'open').slice(0, 8);
     if (!qs.length) { toast('Could not generate open questions right now — try again.', 'error'); return; }
-    _ttPlaceActivityWorksheet(frame, 'Open questions', 'Questions', 'reading', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Open questions', 'Questions', 'reading', L.level, qs, 'open-questions');
   } else if (type === 'quiz') {
     toast('✨ Generating a quiz from the text…');
     const out = await requestServerTeacherTool(
@@ -10929,7 +10962,7 @@ async function addLessonActivity(frameId, type) {
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2).slice(0, 8);
     if (!qs.length) { toast('Could not generate a quiz right now — try again.', 'error'); return; }
-    _ttPlaceActivityWorksheet(frame, 'Comprehension quiz', 'MCQ', 'reading', L.level, qs);
+    _ttPlaceActivityWorksheet(frame, 'Comprehension quiz', 'MCQ', 'reading', L.level, qs, 'abcd-text');
   }
 }
 
@@ -12497,7 +12530,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '284';
+const TEACHEDOS_ASSET_VERSION = '285';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14417,6 +14450,11 @@ function runPendingToolMaterialImport() {
         showAnswers: material.showAnswers !== false,
         _ttSrc: 1,
         _ttOrigin: origin,
+        /* Из чего и чем сделано — чтобы регулятор уровня работал и здесь, а не
+           только у видео-уроков. Инструмент лежит в _ttOrigin, но материал —
+           нет, а без него «сделать проще» пришлось бы выдумывать содержание. */
+        _ttToolId: material.toolId || '',
+        _ttSource: String(material.source || '').slice(0, 6000),
       };
       const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
         ? _packWidth(struct.cards.length)
