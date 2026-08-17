@@ -196,6 +196,89 @@ const SYSTEM = [
   'no markdown, no commentary, no code fences, no trailing text.',
 ].join(' ');
 
+/* ── РІВЕНЬ ЯК ОБМЕЖЕННЯ, А НЕ ЯК ЯРЛИК ────────────────────────────────────
+
+   Досі рівень існував у промпті одним рядком — «CEFR level: B1» — плюс загальна
+   фраза в системному повідомленні «підбирай лексику й довжину речень під
+   рівень». Модель робила з цим рівно те, що можна зробити з побажанням: A2 і B2
+   виходили майже однакові, різниця бачилась хіба у випадкових словах. Вчитель
+   міняв рівень у списку і не бачив, щоб щось змінилось — бо майже нічого й не
+   змінювалось.
+
+   Тут рівень стає набором ПЕРЕВІРЯЛЬНИХ обмежень: скільки слів у реченні,
+   яка лексика дозволена, які часи й конструкції доречні, наскільки тонкими
+   мають бути дистрактори і що для цього рівня заборонено. Це впливає на всі
+   інструменти одразу, бо `head` спільний для них усіх.
+
+   Смуги свідомо описані через ЧАСТОТНІСТЬ і ДОВЖИНУ, а не через назви
+   граматичних тем: модель погано тримає «PET vocabulary list», але добре
+   тримає «найуживаніші 1500 слів, речення до 12 слів». */
+const CEFR = {
+  A1: {
+    sentence: 'Sentences of 6–10 words, one clause each. No relative clauses, no passive.',
+    lexis: 'Only the ~1000 most frequent English words. No idioms, no phrasal verbs, no figurative meaning.',
+    grammar: 'Present simple, present continuous, "can", "there is/are", past simple of common verbs.',
+    task: 'Ask about facts stated in one short sentence. Options differ obviously and are 1–4 words long.',
+    avoid: 'Never ask for inference, opinion-with-justification, or anything needing more than one sentence to answer.',
+  },
+  A2: {
+    sentence: 'Sentences of 8–14 words, at most two clauses joined by and/but/because.',
+    lexis: 'The ~2000 most frequent words, plus topic words that appear in the source. Very common phrasal verbs only, and only if the source uses them.',
+    grammar: 'All simple tenses, going to, comparatives, common modals. Passive only if the source uses it.',
+    task: 'Facts and simple reasons. MCQ options are short phrases of similar length; one is right, the others are wrong for a visible reason.',
+    avoid: 'No abstract nouns as the subject of a question, no multi-step reasoning.',
+  },
+  B1: {
+    sentence: 'Sentences up to about 18 words; subordinate clauses are fine, nested ones are not.',
+    lexis: 'The ~3000 most frequent words, plus the source’s own topic vocabulary. Common idioms allowed when the source uses them.',
+    grammar: 'Perfect tenses, conditionals 1–2, passive, reported speech.',
+    task: 'A mix of stated facts and light inference. Distractors must be plausible for someone who skimmed, not obviously wrong.',
+    avoid: 'No specialist jargon, no rhetorical analysis of the text.',
+  },
+  B2: {
+    sentence: 'Sentences up to about 25 words; complex sentences are expected.',
+    lexis: 'Wide general vocabulary, collocations, idioms and phrasal verbs used naturally.',
+    grammar: 'All conditionals, perfect continuous, inversion for emphasis, hedging language.',
+    task: 'Inference, attitude, implication and the writer’s purpose. Distractors are half-true: right fact, wrong relation.',
+    avoid: 'Do not ask what can be answered by copying one sentence out of the text.',
+  },
+  C1: {
+    sentence: 'No length ceiling; vary rhythm, use nuanced clause structure.',
+    lexis: 'Precise, low-frequency and academic vocabulary; register, connotation and tone matter.',
+    grammar: 'Full range, including cleft sentences, nominalisation and discourse markers.',
+    task: 'Argument, stance, tone, implication and the effect of specific word choices. Distractors are defensible readings that the text does not actually support.',
+    avoid: 'Nothing answerable from a single sentence; no vocabulary explained in a way a B1 sheet would.',
+  },
+  C2: {
+    sentence: 'No constraints; the prose should read as written for an educated native audience.',
+    lexis: 'Idiomatic, allusive and specialised language, irony and connotation included.',
+    grammar: 'Full range with stylistic choices treated as meaningful.',
+    task: 'Subtext, rhetorical strategy, register shifts and what is deliberately left unsaid. Distractors differ from the answer by a single interpretive step.',
+    avoid: 'No comprehension checks of literal content.',
+  },
+};
+
+function cefrKey(level) {
+  const m = String(level || '').trim().toUpperCase().match(/^[ABC][12]/);
+  return m && CEFR[m[0]] ? m[0] : 'B1';
+}
+
+/* Компактний блок під рівень. Один рядок на вимогу — так модель тримає їх усі;
+   розгорнутий абзац на кожну вона переказує і забуває. */
+function cefrBrief(level) {
+  const key = cefrKey(level);
+  const s = CEFR[key];
+  return [
+    `CEFR level: ${key}. Everything below is a hard constraint for this level, not a suggestion:`,
+    `• Sentences: ${s.sentence}`,
+    `• Vocabulary: ${s.lexis}`,
+    `• Grammar: ${s.grammar}`,
+    `• What the items must demand: ${s.task}`,
+    `• Never: ${s.avoid}`,
+    `Write the items at ${key}, not "about" ${key}: a teacher must be able to tell this apart from the level above and below.`,
+  ].join('\n');
+}
+
 // Describe the target JSON shape per board kind. The model fills these in;
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
@@ -235,7 +318,7 @@ function shapeSpec(input) {
      саме так і рекомендують будувати промпт під кешування. */
   const prefix = ctx.length ? `${ctx.join('\n\n')}\n\n` : '';
   const context = '';
-  const head = `${prefix}Tool: ${toolId}. CEFR level: ${level}. Topic: "${topic}".`;
+  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}".`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults

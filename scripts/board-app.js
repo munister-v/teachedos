@@ -2917,6 +2917,11 @@ function renderWorksheet(el, card) {
       </div>
       ${stepper}
       <span class="ws-tools">
+        ${d._ytToolId ? `<span class="ws-level" title="Rebuild this block one CEFR step easier or harder">
+          <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',-1)" aria-label="One level easier">−</button>
+          <b class="ws-level-now">${d._levelBusy ? '…' : esc(String(d.level || 'B1'))}</b>
+          <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',1)" aria-label="One level harder">+</button>
+        </span>` : ''}
         ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
@@ -9201,6 +9206,30 @@ const YT_TOOL_COUNT = {
   'lesson-pack': 8, 'extract-vocab': 12, 'gist-detail': 10,
   gap: 12, 'true-false': 10, 'open-questions': 6,
 };
+/* УРОВЕНЬ МЕНЯЕТ И ОБЪЁМ, а не только формулировки.
+
+   Одно и то же число на всех уровнях — это разный урок по длине. Двенадцать
+   слов на A1 — половина занятия и гарантированная перегрузка; шесть вопросов на
+   обсуждение на A2 бессмысленны, потому что там ещё нечем обсуждать, зато на C1
+   именно они и есть урок, а проверка фактов не нужна почти совсем.
+
+   Множители на блок и на ступень, а не таблица на тридцать шесть клеток:
+   правило видно целиком и его можно объяснить вслух. */
+const YT_LEVEL_SCALE = {
+  A1: { 'extract-vocab': 0.6, 'gist-detail': 0.6, gap: 0.6, 'true-false': 0.8, 'open-questions': 0.34 },
+  A2: { 'extract-vocab': 0.75, 'gist-detail': 0.8, gap: 0.8, 'true-false': 1, 'open-questions': 0.5 },
+  B1: {},
+  B2: { 'extract-vocab': 1, 'gist-detail': 1, gap: 0.9, 'true-false': 0.8, 'open-questions': 1.34 },
+  C1: { 'extract-vocab': 1.1, 'gist-detail': 1, gap: 0.75, 'true-false': 0.6, 'open-questions': 1.67 },
+  C2: { 'extract-vocab': 1.1, 'gist-detail': 0.9, gap: 0.6, 'true-false': 0.4, 'open-questions': 2 },
+};
+function _ytCountFor(toolId, level) {
+  const base = YT_TOOL_COUNT[toolId] || 8;
+  const key = String(level || 'B1').trim().toUpperCase().slice(0, 2);
+  const k = (YT_LEVEL_SCALE[key] || {})[toolId];
+  // Меньше трёх заданий блок не бывает: это уже не упражнение, а пример.
+  return k ? Math.max(3, Math.round(base * k)) : base;
+}
 /* ── GENERATED-EXERCISE CACHE ──────────────────────────────────────────────
 
    The same video, the same tool, the same level and the same slice of
@@ -9530,7 +9559,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       if (out) reused++;
       else {
         out = await requestServerTeacherTool(
-          { tool: { id: toolId }, level, count: YT_TOOL_COUNT[toolId] || 8,
+          { tool: { id: toolId }, level, count: _ytCountFor(toolId, level),
             topic: videoTitle || 'Video lesson', source },
           35000, signal);
         if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
@@ -9545,6 +9574,9 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       if (out) {
         const tool = YT_LESSON_TOOLS.find(t => t.id === toolId) || {};
         out._ytTool = tool.label || '';
+        // Идентификатор инструмента, а не только подпись: по нему карточку
+        // потом пересобирают на другом уровне.
+        out._ytToolId = toolId;
         out._ytStage = tool.stage == null ? 9 : tool.stage;
         statusMap[toolId] = 'done';
       }
@@ -9574,7 +9606,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     }
 
     _ytSetProgress(100);
-    _placeLessonOnBoard(results, videoTitle, url);
+    _placeLessonOnBoard(results, videoTitle, url, { source: sampled[YT_SOURCE_BUDGET], level });
 
     if (failed.length) {
       // Partial success — keep the modal open and let the user retry the misses.
@@ -9616,7 +9648,7 @@ function _ytRetryFailed() {
 // landscape width — cramming them into the same fixed CARD_W as the other
 // exercises is exactly what forced a 9-stage pack into one narrow scrolling
 // column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
-function _placeLessonOnBoard(results, videoTitle, videoUrl) {
+function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   let gridResults = results.filter(out => !cardsResults.includes(out));
   /* Each exercise is generated from the same transcript by a separate call, so
@@ -9745,6 +9777,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
         _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video',
+        /* Из чего собран урок — на кадре. Без этого блок нельзя пересобрать:
+           карточка знает СВОИ вопросы, но не текст, из которого они сделаны.
+           Тот же слепок транскрипта, что уходил в генерацию, поэтому «сделать
+           проще» строится ровно из того же материала, а не из другого куска
+           видео. Заодно кадру становится доступно «+ Add activity», которое
+           до сих пор работало только у уроков из конструктора инструментов. */
+        lesson: { source: ctx.source || '', topic: videoTitle || 'Video lesson', level: ctx.level || 'B1', vocab: [] },
       }, FW, FH);
       cells.forEach((cell, i) => {
         const x = x0 + PAD + layout.cells[i].col * (CARD_W + COL_GAP);
@@ -9761,7 +9800,8 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
               // Generated, never hand-sized — so the measure pass below may
               // shrink it to its content instead of leaving the estimate's
               // slack as a hole in the grid.
-              _ttSrc: 1, _ytTool: out._ytTool || '', _step: out._step, _steps: out._steps,
+              _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
+              _step: out._step, _steps: out._steps,
             }, CARD_W, cell.h);
         if (frame && card) { setCardParentFrame?.(card, frame); gridCardIds.push(card.id); }
       });
@@ -9828,6 +9868,97 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl) {
       : 'AI unavailable';
     toast('⚠︎ ' + cause + ' — ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
   }
+}
+
+/* ── УРОВЕНЬ КАК РЕГУЛЯТОР, А НЕ КАК ОТМЕТКА ────────────────────────────────
+
+   Уровень выбирался один раз на весь урок в выпадающем списке и после этого
+   становился надписью на карточке. Живой класс так не устроен: в одной группе
+   лексика идёт тяжело, а обсуждение — легко, и первое, что делает учитель,
+   увидев лист, — «этот блок попроще». Раньше это означало собрать урок заново
+   целиком, другим уровнем, и потерять всё остальное.
+
+   Теперь у каждого сгенерированного блока свои − и +: карточка пересобирается
+   на соседней ступени CEFR из того же куска транскрипта (frame.data.lesson),
+   тем же инструментом и тем же числом заданий — меняется только уровень.
+   Остальной урок при этом не трогается. */
+const CEFR_LADDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+function _cefrStep(level, dir) {
+  const i = CEFR_LADDER.indexOf(String(level || 'B1').trim().toUpperCase().slice(0, 2));
+  const j = (i < 0 ? 2 : i) + dir;
+  return (j < 0 || j >= CEFR_LADDER.length) ? null : CEFR_LADDER[j];
+}
+
+/* Сколько заданий в блоке сейчас — столько же просим и на новом уровне: смена
+   уровня не должна незаметно укорачивать урок. */
+function _wsItemCount(d) {
+  return (Array.isArray(d.questions) && d.questions.length)
+    || (Array.isArray(d.items) && d.items.length)
+    || (Array.isArray(d.cards) && d.cards.length) || 8;
+}
+
+async function regenerateWorksheetAtLevel(cardId, dir) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || !card.data) return;
+  const d = card.data;
+  const frame = state.cards.find(c => c.id === d.parentFrame);
+  const L = frame?.data?.lesson;
+  if (!d._ytToolId || !L?.source) {
+    toast('This block does not remember what it was built from — regenerate the lesson to get level controls.', 'error');
+    return;
+  }
+  const next = _cefrStep(d.level || L.level || 'B1', dir);
+  if (!next) { toast(dir < 0 ? 'A1 is the bottom of the scale.' : 'C2 is the top of the scale.'); return; }
+  if (d._levelBusy) return;
+  d._levelBusy = true;
+  reRenderCard(card);
+  toast(`✨ Rebuilding this block at ${next}…`);
+  try {
+    const out = await requestServerTeacherTool(
+      { tool: { id: d._ytToolId }, level: next, count: _wsItemCount(d), topic: L.topic || 'Video lesson', source: L.source },
+      35000);
+    const ok = out && (out.questions?.length || out.items?.length || out.cards?.length);
+    if (!ok) { toast('The engine came back empty — the level is unchanged.', 'error'); return; }
+    snapshot();
+    d.level = next;
+    /* Присваиваем только то, что пришло: инструмент отдаёт либо вопросы, либо
+       словарь, либо этапы, и затирать пустотой чужое поле — это молча стереть
+       блок вместо того, чтобы поменять ему уровень. */
+    if (out.questions?.length) d.questions = out.questions;
+    if (out.items?.length) d.items = out.items;
+    if (out.cards?.length) d.cards = out.cards;
+    // Заголовок листа несёт уровень («… · B1»), поэтому пересобираем и его.
+    if (typeof d.title === 'string') d.title = d.title.replace(/\b[ABC][12]\b/g, next);
+    reRenderCard(card);
+    requestAnimationFrame(() => {
+      _wsFitToContent(card.id, { shrink: true });
+      if (frame) _relayoutLessonFrameNow(frame);
+    });
+    toast(`Rebuilt at ${next}.`);
+  } catch (e) {
+    toast('Could not rebuild this block right now.', 'error');
+  } finally {
+    d._levelBusy = false;
+    reRenderCard(card);
+    scheduleSave?.(); saveLocal?.();
+  }
+}
+
+/* Пересборка кадра его же геометрией — после того как один блок изменился в
+   размере. Отдельная обёртка, потому что вызывать это приходится из мест, у
+   которых нет под рукой параметров постановки. */
+function _relayoutLessonFrameNow(frame) {
+  const { grid, full } = _lessonFrameChildren(frame.id);
+  const play = frame.data._mode === 'play';
+  const { CARD_W, PLAY_CARD_W, COL_GAP, ROW_GAP, PAD, HEAD } = LESSON_GRID;
+  _relayoutLessonFrame(frame.id, (play ? [...grid, ...full] : grid).map(c => c.id), {
+    x0: frame.x, y0: frame.y,
+    CARD_W: play ? PLAY_CARD_W : CARD_W,
+    COL_GAP, ROW_GAP, PAD, HEAD,
+    pack: true, stretch: !play,
+    fullIds: play ? [] : full.map(c => c.id),
+  });
 }
 
 /* Дети кадра, разложенные по роли: карточки сетки и то, что идёт во всю ширину
@@ -11627,8 +11758,15 @@ const WS_STRETCH = 0.35;
    измеренным высотам и переключатель Plan/Play. Пока числа лежали в первой из
    них, две другие знали их «по памяти» — а расходятся такие копии молча.
    Play-режим меняет ширину: интерактивная карточка это степпер на 480, а не
-   лист на 720, поэтому колонка в режиме показа уже. */
-const LESSON_GRID = { CARD_W: 720, PLAY_CARD_W: 480, COL_GAP: 100, ROW_GAP: 34, PAD: 30, HEAD: 64 };
+   лист на 720, поэтому колонка в режиме показа уже.
+
+   PAD и HEAD равны COL_GAP не случайно. Промежуток между колонками стал 2 см,
+   а поля кадра оставались прежними 30px — и крайние листы оказались прижаты к
+   рамке вдвое плотнее, чем стоят друг к другу. Глаз читает такое как ошибку
+   вёрстки: внешнее поле не может быть уже внутреннего. Теперь вокруг урока
+   ровная рамка в те же 2 см со всех четырёх сторон (HEAD — верхнее поле:
+   заголовок кадра висит НАД рамкой и места внутри не занимает). */
+const LESSON_GRID = { CARD_W: 720, PLAY_CARD_W: 480, COL_GAP: 100, ROW_GAP: 34, PAD: 100, HEAD: 100 };
 
 /* PICK THE SHEET SIZE THAT LEAVES THE LESSON FRAME WITH NO HOLES.
 
@@ -12359,7 +12497,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '283';
+const TEACHEDOS_ASSET_VERSION = '284';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

@@ -2382,6 +2382,16 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .ws-back-btn:hover{background:rgba(255,255,255,.35)}
 .ws-play-btn{background:var(--ws-on-accent,var(--accent))!important;color:var(--ws-lime,var(--on-accent))!important;border-color:var(--ws-on-accent,var(--accent))!important}
 .ws-play-btn:hover{opacity:.88}
+/* Регулятор уровня: «−  B1  +» одним блоком, чтобы читалось как одна шкала,
+   а не как две несвязанные кнопки рядом со случайной надписью. */
+.ws-level{display:inline-flex;align-items:stretch;border:1px solid currentColor;border-radius:8px;overflow:hidden;line-height:1;}
+.ws-level .ws-level-btn{border:none!important;border-radius:0!important;padding:3px 8px!important;font-weight:800;}
+.ws-level .ws-level-now{
+  display:inline-flex;align-items:center;padding:0 8px;
+  font:800 11px var(--font);letter-spacing:.02em;
+  border-left:1px solid currentColor;border-right:1px solid currentColor;
+}
+.ws-level .ws-level-btn[disabled]{opacity:.45;cursor:default;}
 
 /* ── Miro-style pen palette (vertical column flyout) ── */
 .draw-palette{
