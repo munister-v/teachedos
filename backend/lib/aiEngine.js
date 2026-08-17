@@ -163,6 +163,14 @@ function isLight(input) {
 }
 // Return the provider chain ordered for this request's complexity.
 function orderedChain(input) {
+  /* Бюджет має право пересунути важке завдання на легку модель. Це не те саме,
+     що isLight: там рішення про СКЛАДНІСТЬ («це переказ чи це міркування»), а
+     тут — про ГРОШІ. Розділені навмисно: коли добова межа мине, лишається
+     чесний вибір «дешевше, але працює» замість тиші. */
+  if (input.preferLight) {
+    const light = CHAIN.filter(p => p.name === 'light');
+    if (light.length) return [...light, ...CHAIN.filter(p => p.name !== 'light')];
+  }
   if (!isLight(input)) return CHAIN;
   const light = CHAIN.filter(p => p.name === 'light');
   if (!light.length) return CHAIN;

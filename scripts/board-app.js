@@ -2913,6 +2913,7 @@ function renderWorksheet(el, card) {
         <h2 class="ws-strip-title">${esc(_wsHeading(d))}</h2>
       </div>
       <div class="ws-strip-side">
+        ${_wsQualityPill(d)}
         <span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
@@ -3093,6 +3094,33 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
    Transforms a static worksheet into a live activity: matching = drag-and-drop,
    MCQ = click-to-select, gap-fill = type-in, true/false = click buttons.
    Rendered inside a sandboxed iframe so mouse events don't conflict with board drag. */
+
+/* СЕМАФОР КАЧЕСТВА НА ЛИСТЕ.
+
+   Сервер проверяет каждое задание правилами методиста (auditQuestions) и
+   присылает итог: сколько оставлено из запрошенного, что выброшено и что
+   замечено. Раньше это знание умирало в ответе API — учитель видел лист, где
+   вместо десяти заданий восемь, и не знал, урезала ли модель или так задумано.
+
+   Зелёный не показываем вовсе: «всё в порядке» — это норма, а не новость, и
+   значок на каждой карточке быстро перестают замечать. Показываем только
+   жёлтый и красный, то есть только то, на что стоит посмотреть. */
+function _wsQualityPill(d) {
+  const q = d && d._quality;
+  const note = d && d._engineNote;
+  if (!q || q.level === 'green') {
+    return note ? `<span class="ws-pill sem sem-amber" title="${esc(note)}">!</span>` : '';
+  }
+  const dropped = (q.dropped || []).map(x => x.why).filter(Boolean);
+  const why = [
+    q.kept < q.asked ? `${q.kept} of ${q.asked} items kept` : '',
+    ...[...new Set(dropped)].map(w => 'dropped: ' + w),
+    ...(q.notes || []),
+    note || '',
+  ].filter(Boolean).join(' · ');
+  const label = q.level === 'red' ? 'check' : 'note';
+  return `<span class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" title="${esc(why)}">${label}</span>`;
+}
 
 function _wsHasInteractive(d) {
   const qs = Array.isArray(d.questions) ? d.questions : null;
@@ -9807,6 +9835,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
               // slack as a hole in the grid.
               _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
               _step: out._step, _steps: out._steps,
+              // Семафор приезжает с сервера вместе с материалом и живёт на
+              // карточке: учитель смотрит на лист, а не в консоль.
+              _quality: out.quality || null, _engineNote: out.engineNote || '',
             }, CARD_W, cell.h);
         if (frame && card) {
           setCardParentFrame?.(card, frame);
@@ -12540,7 +12571,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '286';
+const TEACHEDOS_ASSET_VERSION = '287';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

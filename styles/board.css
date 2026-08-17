@@ -3639,6 +3639,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-btn:hover{background:var(--ws-on-accent);border-color:var(--ws-on-accent);color:var(--ws-lime);}
 	.ws-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 14px;background:rgba(255,255,255,.28);color:var(--ws-on-accent);border:1px solid rgba(14,14,16,.18);}
 	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);box-shadow:0 8px 20px rgba(14,14,16,.12);}
+	/* Семафор качества. Показывается только когда есть что сказать, поэтому
+	   бросается в глаза намеренно: жёлтый — «взгляните», красный — «пересоберите».
+	   Курсор help, потому что вся суть в подсказке при наведении. */
+	.ws-pill.sem{cursor:help;letter-spacing:.02em;text-transform:lowercase;}
+	.ws-pill.sem-amber{background:#f6c667;color:#4a3306;border-color:#b8860b;}
+	.ws-pill.sem-red{background:#e9908a;color:#4a1512;border-color:#a3352d;}
 	/* .ws-list is an <ol>/<ul> (see _ttWorksheetListTag) — kill the browser's
 	   list chrome, since the numbering a worksheet shows is its own .ws-num
 	   badge, not the marker. Applied to the nested lists too: MCQ options and

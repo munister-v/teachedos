@@ -829,6 +829,125 @@ function sanitizeQuestion(q) {
   return out;
 }
 
+/* ── ПРАВИЛА ПРИГОДНОСТИ ЗАДАНИЯ ───────────────────────────────────────────
+
+   sanitizeQuestion проверяет ФОРМУ: есть ли текст, не повторяются ли варианты,
+   нашёлся ли ответ. Этого мало. Форма бывает безупречной у задания, которое
+   нельзя дать классу: пропуск, в котором ответ уже написан рядом; десять
+   утверждений True/False, где все десять — True; «открытый» вопрос, на который
+   отвечают словом «да»; два одинаковых вопроса подряд; вариант ответа, который
+   вдвое длиннее остальных — школьники такие угадывают, не читая.
+
+   Ни одно из этих правил не про модель. Это то, что проверил бы методист,
+   прежде чем печатать лист. Часть ошибок неисправима — такое задание
+   выбрасываем; часть безобидна поодиночке, но говорит о качестве всей пачки —
+   такое помечаем, и по числу пометок дальше загорается семафор.                */
+
+function normStem(text) {
+  return String(text || '').toLowerCase().replace(/[^a-zа-яіїєґ0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+}
+const GAP_MARK = /_{2,}|\[\s*\.{3,}\s*\]|\.{4,}/;
+// Вопросы, на которые отвечают «да» или «нет»: как открытые они бессмысленны.
+const YES_NO_START = /^(is|are|was|were|do|does|did|has|have|had|can|could|will|would|should|may|might)\b/i;
+
+function auditQuestions(questions, input) {
+  const kept = [];
+  const dropped = [];
+  const notes = [];
+  const seen = new Set();
+  const drop = (q, why) => dropped.push({ why, text: String(q.text || '').slice(0, 90) });
+
+  for (const q of questions) {
+    const key = normStem(q.text);
+    if (key && seen.has(key)) { drop(q, 'duplicate'); continue; }
+    if (key) seen.add(key);
+
+    if (q.type === 'gap-fill') {
+      const hasGap = GAP_MARK.test(q.text);
+      const ans = String(q.answer || '').trim();
+      // Пропуск без пропуска — это просто предложение; ответ, стоящий в самом
+      // предложении, — это подсказка вместо задания.
+      if (!hasGap) { drop(q, 'no blank in the sentence'); continue; }
+      if (!ans) { drop(q, 'no answer'); continue; }
+      const stemWithoutGap = q.text.replace(GAP_MARK, ' ');
+      if (ans.length > 2 && new RegExp(`\\b${ans.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(stemWithoutGap)) {
+        drop(q, 'answer already visible in the sentence'); continue;
+      }
+    }
+
+    if (q.type === 'mcq') {
+      const opts = q.options || [];
+      if (opts.length < 3) notes.push('a multiple-choice item has fewer than three options');
+      if (!opts.some(o => o === q.answer)) { drop(q, 'answer is not one of the options'); continue; }
+      /* Классический тест-крафт: самый длинный вариант почти всегда верный,
+         и ученик выбирает по длине. Одно такое — случайность, много — система. */
+      const lens = opts.map(o => o.length);
+      const longest = Math.max(...lens);
+      if (opts.length > 2 && String(q.answer).length === longest && longest > Math.min(...lens) * 1.8) {
+        notes.push('the correct option is the longest one — guessable without reading');
+      }
+    }
+
+    if (q.type === 'open' && YES_NO_START.test(String(q.text).trim())) {
+      notes.push('an open question can be answered yes/no');
+    }
+
+    kept.push(q);
+  }
+
+  // True/False целиком в одну сторону — не проверка, а лотерея с одним билетом.
+  const tf = kept.filter(q => q.type === 'truefalse');
+  if (tf.length >= 4) {
+    const trues = tf.filter(q => q.answer === true).length;
+    if (trues === tf.length || trues === 0) notes.push('every true/false statement has the same answer');
+  }
+
+  const asked = Number(input.count) || questions.length || 0;
+  return { kept, dropped, notes, asked };
+}
+
+function auditItems(items) {
+  const kept = [];
+  const dropped = [];
+  const notes = [];
+  const seen = new Set();
+  for (const it of items) {
+    const word = String(it.word || '').trim();
+    if (!word) { dropped.push({ why: 'no word', text: '' }); continue; }
+    const key = word.toLowerCase();
+    if (seen.has(key)) { dropped.push({ why: 'duplicate', text: word }); continue; }
+    seen.add(key);
+    // Определение, которое повторяет слово, не объясняет ничего.
+    if (String(it.definition || '').trim().toLowerCase() === key) {
+      dropped.push({ why: 'definition repeats the word', text: word }); continue;
+    }
+    const ex = String(it.example || '');
+    if (ex && !new RegExp(word.split(/\s+/)[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(ex)) {
+      notes.push(`example for “${word}” does not use the word`);
+    }
+    kept.push(it);
+  }
+  return { kept, dropped, notes };
+}
+
+/* Семафор. Зелёный — брать и вести урок. Жёлтый — годится, но стоит взглянуть:
+   что-то выброшено или замечено. Красный — материал неполный, лучше пересобрать.
+   Порог в две трети выбран по смыслу: если из десяти заданий уцелело шесть,
+   учитель всё равно пойдёт добирать, и честнее сказать это сразу. */
+function qualitySignal({ kept, dropped, notes, asked }) {
+  const got = kept.length;
+  const want = asked || got;
+  const ratio = want ? got / want : 1;
+  const level = (ratio < 0.67 || got === 0) ? 'red'
+    : (dropped.length || notes.length) ? 'amber'
+    : 'green';
+  return {
+    level, kept: got, asked: want,
+    dropped: dropped.slice(0, 6),
+    notes: [...new Set(notes)].slice(0, 4),
+  };
+}
+
 // Wrap the LLM's structured pieces in the exact envelope the front-end expects.
 function assembleFromLLM(input, data) {
   const kind = input.boardKind;
@@ -866,13 +985,16 @@ function assembleFromLLM(input, data) {
   }
 
   if (kind === 'vocab') {
-    const items = dedupeBy(
+    const cleanItems = dedupeBy(
       (data.items || [])
         .map(x => ({ word: line(x.word), definition: block(x.definition), example: block(x.example) }))
         .filter(x => x.word),
       x => x.word.toLowerCase(),
-    ).slice(0, input.count);
+    );
+    const vAudit = auditItems(cleanItems);
+    const items = vAudit.kept.slice(0, input.count);
     if (!items.length) throw new Error('LLM returned no vocab items');
+    env.quality = qualitySignal({ ...vAudit, kept: items, asked: Number(input.count) || items.length });
     return {
       ...env,
       items,
@@ -930,8 +1052,12 @@ function assembleFromLLM(input, data) {
   if (kind === 'quiz') {
     // Sanitise first, drop invalid, THEN cap to count — so bad items don't
     // silently shrink the set below what the teacher asked for.
-    const questions = (data.questions || []).map(sanitizeQuestion).filter(Boolean).slice(0, input.count);
+    const clean = (data.questions || []).map(sanitizeQuestion).filter(Boolean);
+    // Форма — выше (sanitizeQuestion), пригодность — здесь (auditQuestions).
+    const audit = auditQuestions(clean, input);
+    const questions = audit.kept.slice(0, input.count);
     if (!questions.length) throw new Error('LLM returned no questions');
+    env.quality = qualitySignal({ ...audit, kept: questions });
     const sections = teacherFlow(input);
     if (input.toolId === 'word-bank') {
       const bank = [...new Set(questions.map(q => q.answer).filter(Boolean))]
@@ -980,8 +1106,54 @@ const METRICS = {
      NOT pay full price for; if it stays near zero, the prefix is being broken
      somewhere and the whole arrangement is buying nothing. */
   tokens: { calls: 0, prompt: 0, cachedPrompt: 0, completion: 0 },
+  /* Расход за сегодня. Токены уже считались, но в токенах никто не думает —
+     решение «дорого или нет» принимается в деньгах, поэтому оно и считается в
+     деньгах. Сбрасывается по календарной дате: биллинг у провайдера тоже
+     суточный, и совпадение окон избавляет от объяснений, почему цифры разные. */
+  spend: { date: today(), usd: 0, calls: 0, byModel: {} },
   startedAt: new Date().toISOString(),
 };
+
+function today() { return new Date().toISOString().slice(0, 10); }
+
+/* Цены за миллион токенов. Это ОЦЕНКА для бюджета, а не счёт от провайдера:
+   тарифы меняются, и переопределить их можно через AI_PRICES без правки кода
+   (JSON вида {"gpt-4.1-mini":{"in":0.4,"cachedIn":0.1,"out":1.6}}).
+   Кэшированный вход считается отдельно — ради него транскрипт и стоит первым
+   в промпте, и без отдельной цены экономия была бы невидимой. */
+const DEFAULT_PRICES = {
+  'gpt-4.1-mini': { in: 0.40, cachedIn: 0.10, out: 1.60 },
+  'gpt-4o-mini': { in: 0.15, cachedIn: 0.075, out: 0.60 },
+};
+const PRICES = (() => {
+  try { return { ...DEFAULT_PRICES, ...(JSON.parse(process.env.AI_PRICES || '{}')) }; }
+  catch { return DEFAULT_PRICES; }
+})();
+// Порог суточного расхода в долларах. 0 — без ограничения (поведение как было).
+const DAILY_BUDGET = Number(process.env.AI_DAILY_BUDGET_USD || 0) || 0;
+
+function priceFor(model) {
+  const key = Object.keys(PRICES).find(k => String(model || '').includes(k));
+  // Незнакомая модель — не повод потерять счёт: берём самый дорогой известный
+  // тариф, чтобы оценка ошибалась в безопасную сторону.
+  return key ? PRICES[key] : { in: 0.40, cachedIn: 0.10, out: 1.60 };
+}
+
+function rollSpendDay() {
+  const d = today();
+  if (METRICS.spend.date !== d) METRICS.spend = { date: d, usd: 0, calls: 0, byModel: {} };
+}
+
+/* Светофор расходов: сколько потрачено сегодня и что из-за этого происходит.
+   green — работаем как обычно; amber — за порогом, тяжёлые задания уходят на
+   лёгкую модель; red — вдвое за порогом, к модели не обращаемся вовсе. */
+function budgetState() {
+  rollSpendDay();
+  if (!DAILY_BUDGET) return { level: 'green', usd: METRICS.spend.usd, budget: 0 };
+  const usd = METRICS.spend.usd;
+  const level = usd >= DAILY_BUDGET * 2 ? 'red' : usd >= DAILY_BUDGET ? 'amber' : 'green';
+  return { level, usd, budget: DAILY_BUDGET };
+}
 
 /* OpenAI reports the cache hit under prompt_tokens_details.cached_tokens;
    Anthropic-style providers use cache_read_input_tokens. Read both, prefer
@@ -1000,6 +1172,17 @@ function recordTokens(usage) {
   METRICS.tokens.prompt += prompt;
   METRICS.tokens.cachedPrompt += cached;
   METRICS.tokens.completion += completion;
+
+  rollSpendDay();
+  const model = METRICS.lastModel || aiEngine.MODEL;
+  const p = priceFor(model);
+  // Кэшированная часть входа тарифицируется отдельно и дешевле, поэтому её
+  // вычитаем из полного входа, а не считаем дважды.
+  const fresh = Math.max(0, prompt - cached);
+  const usd = (fresh * p.in + cached * p.cachedIn + completion * p.out) / 1e6;
+  METRICS.spend.usd = Number((METRICS.spend.usd + usd).toFixed(6));
+  METRICS.spend.calls++;
+  METRICS.spend.byModel[model] = Number(((METRICS.spend.byModel[model] || 0) + usd).toFixed(6));
 }
 
 /* Primary entry: try the LLM, fall back to the local rule engine on any error.
@@ -1020,6 +1203,14 @@ async function generate(input) {
 
   if (!aiEngine.enabled()) return local('not-configured');
 
+  /* Расходы решают, КАК спрашивать, а не только сколько это стоило потом.
+     За суточным порогом тяжёлые задания уходят на лёгкую модель, а вдвое за
+     ним мы к модели не обращаемся вовсе: лучше честные шаблоны с причиной
+     'budget', чем счёт, которого никто не ждал. */
+  const budget = budgetState();
+  if (budget.level === 'red') return local('budget');
+  if (budget.level === 'amber') input.preferLight = true;
+
   try {
     input.boardKind = boardKindFor(input.toolId);
     const out = assembleFromLLM(input, await aiEngine.generate(input));
@@ -1029,6 +1220,7 @@ async function generate(input) {
        як «інструмент сьогодні дурний». Так само, як ми вже позначаємо роботу
        на локальних шаблонах. */
     out.engine = (aiEngine.getLastTier && aiEngine.getLastTier() === 'backup') ? 'backup' : 'ai';
+    if (input.preferLight) out.engineNote = 'daily budget reached — built on the light model';
     METRICS.llmOk++;
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
@@ -1101,6 +1293,9 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
       cachedPromptPct: METRICS.tokens.prompt
         ? Math.round(1000 * METRICS.tokens.cachedPrompt / METRICS.tokens.prompt) / 10
         : null,
+      // Светофор расходов рядом с самими расходами: цифра без порога ничего
+      // не значит, а порог без цифры не проверяется.
+      budget: budgetState(),
     },
   });
 });
