@@ -2,6 +2,7 @@
 // Returns {url, urls:[{url,thumb,credit}]} or {url:null}
 // Primary: Unsplash API. Fallback chain: Wikipedia summary → OpenSearch → Commons.
 const router = require('express').Router();
+const imageIndex = require('../lib/imageIndex');
 
 const singleCache = new Map();   // q → url|null
 const multiCache  = new Map();   // q+limit → [{url,thumb,credit}]
@@ -175,6 +176,17 @@ router.get('/search', async (req, res) => {
   const context = String(req.query.context || '').trim().slice(0, 200);
   if (!q) return res.json({ url: null, urls: [] });
 
+  /* Долгий индекс: то, что нашли когда-то, отдаём мгновенно и без сети.
+     Память процесса живёт до перезапуска, а этот файл — годами, поэтому
+     повторное слово (а школьная лексика повторяется постоянно) наружу
+     больше не ходит. Контекстные запросы тоже берём из индекса: снимок к
+     слову не зависит от того, каким предложением его сегодня обставили. */
+  const remembered = imageIndex.get(q, topic);
+  if (remembered && remembered.hits.length >= limit) {
+    const hits = remembered.hits.slice(0, limit);
+    return res.json({ url: hits[0]?.url || null, urls: hits, query: q, source: 'index' });
+  }
+
   const queries = buildQueries({ q, topic, context });
   const cacheKey = `${queries.join('~')}|${limit}`;
   if (multiCache.has(cacheKey)) {
@@ -216,6 +228,7 @@ router.get('/search', async (req, res) => {
   if (!topic && !context) cacheSet(singleCache, q, url);
   proxied.query = used;
   cacheSet(multiCache, cacheKey, proxied);
+  imageIndex.put(q, topic, proxied);
 
   res.json({ url, urls: proxied, query: used });
 });
@@ -299,7 +312,8 @@ router.get('/status', async (req, res) => {
   ];
   const live = sources.filter(s => s.ok).map(s => s.name);
   res.json({
-    ok: live.length > 0,
+    ok: live.length > 0 || imageIndex.stats().entries > 0,
+    index: imageIndex.stats(),
     live,
     fallback: 'wikimedia (CC — attribution usually required)',
     sources,
