@@ -9342,7 +9342,7 @@ function _ytCacheSet(key, out) {
   /* Ни шаблоны, ни страховочная модель в кэш не идут: и то и другое — ответ
      на «основная модель сегодня недоступна», и держать его сутки означало бы
      закрепить худший результат ещё на день после того, как всё починилось. */
-  if (!out || out.engine === 'rules' || out.engine === 'backup') return;
+  if (!out || out.engine === 'rules' || out.engine === 'backup' || out.engine === 'archive') return;
   try {
     const all = _ytCacheRead();
     all[key] = { at: Date.now(), out };
@@ -9842,8 +9842,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
      when it is running blind. Say it on the frame, which stays with the lesson,
      rather than only in a toast the teacher may miss. */
   const ruleMade = results.filter(o => o && o.engine === 'rules');
+  const archiveMade = results.filter(o => o && o.engine === 'archive');
   const backupMade = results.filter(o => o && o.engine === 'backup');
   if (ruleMade.length) title += '   ·  ⚠︎ draft — AI unavailable';
+  /* Материал из архива собрала настоящая модель, но раньше и, возможно, для
+     другого класса. Отличать его от свежего обязательно: иначе учитель не
+     поймёт, почему повтор генерации дал ровно тот же лист. */
+  else if (archiveMade.length) title += '   ·  ⚠︎ reused earlier lesson';
   else if (backupMade.length) title += '   ·  ⚠︎ backup engine';
   snapshot(); _suppressSnapshot++;
   let frame;
@@ -12798,7 +12803,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '304';
+const TEACHEDOS_ASSET_VERSION = '305';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

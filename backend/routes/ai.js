@@ -5,6 +5,7 @@ const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
+const genArchive = require('../lib/genArchive');
 
 // Persistent daily usage counters (survive restarts; power the dashboard chart).
 pool.query(`
@@ -1210,7 +1211,19 @@ function recordTokens(usage) {
    and into the cache with it, which is right, since a cached result really was
    made by whatever produced it — so the board can label what it is showing. */
 async function generate(input) {
+  /* Отказ модели раньше означал шаблоны. Сначала смотрим в архив: такой же
+     урок мог собираться раньше настоящей моделью, и прошлый живой лист
+     полезнее сегодняшней заглушки. Помечаем честно — вместе с датой, чтобы
+     учитель понимал, что видит вчерашнюю работу, а не свежую. */
   const local = (reason) => {
+    const kept = genArchive.get(input);
+    if (kept) {
+      const out = kept.output;
+      out.engine = 'archive';
+      out.engineReason = reason;
+      out.engineNote = `built earlier by the model on ${new Date(kept.at).toISOString().slice(0, 10)} — reused because the model is unavailable`;
+      return out;
+    }
     const out = generateLocal(input);
     out.engine = 'rules';
     out.engineReason = reason;
@@ -1244,6 +1257,7 @@ async function generate(input) {
     recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
+    genArchive.put(input, out);
     return out;
   } catch (err) {
     METRICS.fallback++;
@@ -1312,6 +1326,7 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
       // Светофор расходов рядом с самими расходами: цифра без порога ничего
       // не значит, а порог без цифры не проверяется.
       budget: budgetState(),
+      archive: genArchive.stats(),
     },
   });
 });

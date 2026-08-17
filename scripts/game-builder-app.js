@@ -1572,6 +1572,7 @@ async function aiFillGame() {
     /* Честно говорим, чем собрано: страховочная модель и локальные шаблоны
        пишут заметно проще, и учитель должен видеть это до урока, а не на нём. */
     const note = out.engine === 'rules' ? ' (offline templates — regenerate later)'
+      : out.engine === 'archive' ? ' (reused an earlier lesson — the model is unavailable)'
       : out.engine === 'backup' ? ' (backup engine — regenerate later for sharper items)' : '';
     toast(`Filled ${level} content for “${topic}”${note}`);
   } catch (e) {
