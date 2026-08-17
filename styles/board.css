@@ -1423,9 +1423,39 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 [data-theme="dark"] .card-frame .frame-title{color:var(--text);}
 .card-frame .frame-title:hover{background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:4px;}
+/* Полоса инструментов кадра (справа над рамкой): переключатель Plan/Play и
+   «+ Add activity». Раскладку задаёт flex — кнопки больше не занимают одну и
+   ту же абсолютную точку. */
+.card-frame .frame-tools{
+  position:absolute;top:-32px;right:0;z-index:11;
+  display:inline-flex;align-items:center;gap:8px;
+}
+/* Plan / Play — сегментный переключатель: две половины одного элемента, а не
+   две кнопки, потому что это один выбор из двух, а не два действия. */
+.card-frame .frame-mode{
+  display:inline-flex;align-items:stretch;
+  background:#fff;border:1px solid rgba(17,24,39,.14);
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(17,24,39,.10);
+}
+/* Цвет краски задан явно, а не через var(--text). Рамка кадра переопределяет
+   --text под свою подложку, и на белой плашке надпись оказалась белой по
+   белому: переключатель читался только по активной половине. */
+.card-frame .frame-mode-btn{
+  appearance:none;border:none;background:transparent;cursor:pointer;
+  padding:5px 12px;font:700 12px var(--font);color:#0e0e16;
+  letter-spacing:-.01em;transition:background .12s ease,color .12s ease;
+}
+.card-frame .frame-mode-btn + .frame-mode-btn{border-left:1px solid rgba(17,24,39,.12);}
+.card-frame .frame-mode-btn:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);}
+.card-frame .frame-mode-btn.on{background:var(--accent);color:var(--on-accent);}
+[data-theme="dark"] .card-frame .frame-mode{background:#1b1b20;border-color:rgba(255,255,255,.16);box-shadow:0 2px 8px rgba(0,0,0,.4);}
+[data-theme="dark"] .card-frame .frame-mode-btn{color:#f2f2f4;}
+[data-theme="dark"] .card-frame .frame-mode-btn + .frame-mode-btn{border-left-color:rgba(255,255,255,.14);}
+
 /* "+ Add activity" on lesson frames (top-right, above the frame) */
 .card-frame .frame-add-activity{
-  position:absolute;top:-32px;right:0;z-index:11;
+  position:static;z-index:11;
   display:inline-flex;align-items:center;gap:5px;
   background:var(--accent);color:var(--on-accent);border:none;
   border-radius:10px;padding:5px 11px;font:800 12px var(--font);cursor:pointer;
