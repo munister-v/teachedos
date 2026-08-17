@@ -281,3 +281,92 @@ CREATE TABLE IF NOT EXISTS shared_materials (
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_shared_materials_owner ON shared_materials(owner_id, created_at DESC);
+
+-- ── Подготовка к нагрузке ────────────────────────────────────────────────────
+-- Размер доски хранится рядом с доской. Раньше лимит хранилища считался на
+-- каждом автосохранении запросом SUM(pg_column_size(data)) по всем доскам
+-- учителя: Postgres поднимал из TOAST и распаковывал КАЖДУЮ доску, чтобы
+-- узнать её размер. При пятидесяти досках это десятки мегабайт чтения на
+-- одно нажатие «сохранить» — незаметно на одном учителе и смертельно на ста.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS data_bytes INTEGER NOT NULL DEFAULT 0;
+
+CREATE OR REPLACE FUNCTION set_board_data_bytes() RETURNS TRIGGER AS $$
+BEGIN
+  NEW.data_bytes := pg_column_size(NEW.data);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_boards_data_bytes ON boards;
+CREATE TRIGGER trg_boards_data_bytes
+  BEFORE INSERT OR UPDATE OF data ON boards
+  FOR EACH ROW EXECUTE FUNCTION set_board_data_bytes();
+
+-- Разовый добор для досок, созданных до появления колонки.
+UPDATE boards SET data_bytes = pg_column_size(data) WHERE data_bytes = 0;
+
+CREATE INDEX IF NOT EXISTS idx_boards_user_bytes ON boards(user_id) INCLUDE (data_bytes);
+
+-- Просроченные сессии никто не убирал: таблица растёт линейно по числу входов
+-- и остаётся в ней навсегда. Индекс нужен уборщику, который ходит по ней раз в час.
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+
+-- Дубли индексов: те же колонки уже покрыты UNIQUE-ограничениями. Каждый лишний
+-- индекс — это ещё одна запись при каждом входе и лишние страницы в памяти.
+DROP INDEX IF EXISTS idx_sessions_token;
+-- У quiz_results два одинаковых UNIQUE по (board_id, card_id, user_id): один
+-- достался от прежнего имени ограничения. Снимаем именно ограничение — индекс
+-- под ним отдельно не удаляется.
+ALTER TABLE quiz_results DROP CONSTRAINT IF EXISTS quiz_results_board_card_user_key;
+
+-- Ближайший дедлайн доски вычисляется при сохранении, а не ежечасным перебором
+-- всех досок. Часовая задача напоминаний читала каждую доску целиком, чтобы
+-- почти всегда ничего не найти; теперь она берёт по индексу узкое окно и в
+-- обычный час не трогает ни одной строки.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS next_deadline TIMESTAMPTZ;
+
+CREATE OR REPLACE FUNCTION set_board_next_deadline() RETURNS TRIGGER AS $$
+BEGIN
+  SELECT MIN(d) INTO NEW.next_deadline
+    FROM (
+      SELECT (c->'data'->>'deadline')::timestamptz AS d
+        FROM jsonb_array_elements(COALESCE(NEW.data->'cards', '[]'::jsonb)) c
+       WHERE c->>'type' = 'assignment'
+         AND COALESCE(c->'data'->>'deadline', '') <> ''
+    ) x
+   WHERE d > NOW();
+  RETURN NEW;
+EXCEPTION WHEN others THEN
+  -- Кривая дата в карточке не должна ронять сохранение доски: учитель потеряет
+  -- работу из-за опечатки в поле срока. Напоминание для такой доски пропадёт,
+  -- сама доска сохранится.
+  NEW.next_deadline := NULL;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_boards_next_deadline ON boards;
+CREATE TRIGGER trg_boards_next_deadline
+  BEFORE INSERT OR UPDATE OF data ON boards
+  FOR EACH ROW EXECUTE FUNCTION set_board_next_deadline();
+
+CREATE INDEX IF NOT EXISTS idx_boards_next_deadline ON boards(next_deadline)
+  WHERE next_deadline IS NOT NULL;
+
+-- Разовый добор для досок, сохранённых до появления колонки. schema.sql
+-- применяется при КАЖДОМ старте, поэтому добор помечается в schema_meta:
+-- иначе каждый перезапуск переписывал бы все доски целиком.
+CREATE TABLE IF NOT EXISTS schema_meta (key TEXT PRIMARY KEY, done_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM schema_meta WHERE key = 'boards_next_deadline_backfill') THEN
+    UPDATE boards b SET next_deadline = (
+      SELECT MIN((c->'data'->>'deadline')::timestamptz)
+        FROM jsonb_array_elements(COALESCE(b.data->'cards', '[]'::jsonb)) c
+       WHERE c->>'type' = 'assignment'
+         AND (c->'data'->>'deadline') ~ '^\d{4}-\d{2}-\d{2}'
+    );
+    INSERT INTO schema_meta(key) VALUES ('boards_next_deadline_backfill');
+  END IF;
+END $$;

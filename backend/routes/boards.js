@@ -9,14 +9,17 @@ async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
   if (storageMbLimit === -1 || boardData === undefined) return null;
 
   const serialized = typeof boardData === 'string' ? boardData : JSON.stringify(boardData);
-  const [otherBoards, nextBoard] = await Promise.all([
-    pool.query(
-      'SELECT COALESCE(SUM(pg_column_size(data)), 0)::bigint AS bytes FROM boards WHERE user_id=$1 AND id<>$2',
-      [userId, boardId || null]
-    ),
-    pool.query('SELECT pg_column_size($1::jsonb)::bigint AS bytes', [serialized]),
-  ]);
-  const totalBytes = Number(otherBoards.rows[0]?.bytes || 0) + Number(nextBoard.rows[0]?.bytes || 0);
+  /* Размеры чужих досок берём из колонки data_bytes, которую поддерживает
+     триггер, а не пересчитываем распаковкой каждой доски. Размер входящей
+     считаем тем же pg_column_size, чтобы единицы совпадали с хранимыми, —
+     и обе величины одним запросом, а не двумя. */
+  const { rows } = await pool.query(
+    `SELECT (SELECT COALESCE(SUM(data_bytes), 0)::bigint
+               FROM boards WHERE user_id = $1 AND id <> $2) AS others,
+            pg_column_size($3::jsonb)::bigint AS next`,
+    [userId, boardId || null, serialized]
+  );
+  const totalBytes = Number(rows[0]?.others || 0) + Number(rows[0]?.next || 0);
   const totalMb = Math.round((totalBytes / 1024 / 1024) * 100) / 100;
   if (totalMb > storageMbLimit) {
     return {

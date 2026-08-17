@@ -134,6 +134,8 @@ async function main() {
   if (process.env.DATABASE_URL) {
     const { scheduleDeadlineReminders } = require('./jobs/deadlineReminders');
     scheduleDeadlineReminders();
+    const { scheduleHousekeeping } = require('./jobs/housekeeping');
+    scheduleHousekeeping();
   }
 }
 

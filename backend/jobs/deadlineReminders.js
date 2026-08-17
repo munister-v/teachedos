@@ -9,8 +9,20 @@ async function sendDeadlineReminders() {
   try {
     // Find all boards with saved JSON state and scan for assignment cards with deadlines in ~24h.
     // Older code called this payload "state"; the current schema stores it in boards.data.
+    /* Раньше отсюда вычитывались ВСЕ доски целиком — каждый час, с распаковкой
+       jsonb из TOAST, ради горстки карточек с дедлайном. При тысяче досок это
+       сотни мегабайт чтения в час на задаче, которая почти всегда не находит
+       ничего. Отбор карточек с дедлайном делает Postgres по jsonb-условию, и
+       наружу едут только доски, где такие карточки действительно есть. */
+    /* Раньше отсюда вычитывались ВСЕ доски целиком — каждый час, с распаковкой
+       jsonb из TOAST, ради горстки карточек с дедлайном. При тысяче досок это
+       сотни мегабайт чтения в час на задаче, которая почти всегда не находит
+       ничего. Ближайший срок доски теперь проставляет триггер при сохранении,
+       и час без дедлайнов не читает ни одной строки. */
     const { rows: boards } = await pool.query(
-      `SELECT id, data AS state FROM boards WHERE data IS NOT NULL`
+      `SELECT id, data AS state FROM boards
+        WHERE next_deadline >= NOW() + INTERVAL '24 hours'
+          AND next_deadline <  NOW() + INTERVAL '25 hours'`
     );
 
     const now     = Date.now();
