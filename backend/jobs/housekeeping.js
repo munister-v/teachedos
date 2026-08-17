@@ -21,15 +21,20 @@ const TASKS = [
 ];
 
 async function runHousekeeping() {
+  /* Итог печатается всегда, даже когда удалять нечего. Молчание при «всё
+     чисто» неотличимо от молчания при «задача не запустилась» — а именно это
+     и надо видеть в журнале, чтобы уборка не оказалась мёртвой полгода. */
+  const done = [];
   for (const [label, sql] of TASKS) {
     try {
       const r = await pool.query(sql);
-      if (r.rowCount) console.log(`[housekeeping] ${label}: removed ${r.rowCount}`);
+      if (r.rowCount) done.push(`${label}: ${r.rowCount}`);
     } catch (err) {
       // Таблицы может не быть на свежей базе — это не повод ронять остальные.
       if (!/does not exist/i.test(err.message)) console.warn(`[housekeeping] ${label}:`, err.message);
     }
   }
+  console.log(`[housekeeping] ${done.length ? done.join(', ') : 'nothing to remove'}`);
 }
 
 function scheduleHousekeeping() {
