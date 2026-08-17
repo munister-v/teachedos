@@ -117,6 +117,46 @@ async function wikiResolve(query) {
   return url ? [{ url, thumb: url, credit: 'Wikimedia' }] : [];
 }
 
+/* ── ЧТО ИМЕННО ИСКАТЬ ─────────────────────────────────────────────────────
+
+   Поиск по голому слову промахивается чаще, чем попадает. Проверка на живых
+   словах урока дала 1 попадание из 6: «nervous» — обезьяна, «premiere» —
+   пустой стадион, «citizen» — люди в национальных костюмах. Причина не в
+   фотобанке: слово вне контекста для него не запрос, а омоним. «Scarf» —
+   это и шарф, и модный портрет; «premiere» — и премьера фильма, и любая
+   премьера чего угодно.
+
+   Контекст у нас уже есть, просто он не доезжал: у словарной статьи есть тема
+   урока и пример предложения. Из них строится лестница запросов от самого
+   узкого к самому широкому, и берётся первый, который что-то нашёл.
+
+   Абстрактные слова — отдельный случай. Фото «гражданства» не существует;
+   существует фото сцены, где это происходит (церемония, паспорт, очередь).
+   Поэтому для них в запрос идёт пример предложения, а не само слово.        */
+const ABSTRACT_HINT = /\b(feel|feeling|idea|concept|state|quality|process|ability|belief|right|freedom|justice|trend|policy|status|value)\b/i;
+
+function buildQueries({ q, topic, context }) {
+  const word = String(q || '').trim();
+  const theme = String(topic || '').trim().toLowerCase()
+    .replace(/[^a-zа-яіїєґ0-9\s-]/gi, ' ').split(/\s+/).filter(Boolean).slice(0, 3).join(' ');
+  /* Из примера берём существительные-«декорации», а не всё предложение:
+     фотобанк ищет по ключевым словам, и длинная фраза сужает выдачу в ноль. */
+  const scene = String(context || '').toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 3 && !STOP.has(w) && w !== word.toLowerCase())
+    .slice(0, 3).join(' ');
+
+  const list = [];
+  if (theme && word) list.push(`${word} ${theme}`);
+  if (scene && word) list.push(`${word} ${scene}`);
+  if (word) list.push(word);
+  if (scene) list.push(scene);            // абстрактное слово: ищем сцену
+  if (theme) list.push(theme);            // последняя попытка — хотя бы по теме
+  return [...new Set(list.filter(Boolean))];
+}
+const STOP = new Set(['this','that','they','their','there','with','from','have','were','been','about','which','when','what','your','you','the','and','for','was','are','его','это','как','для']);
+
 // ── Evict-oldest helper ───────────────────────────────────────────────────────
 function cacheSet(map, key, val) {
   if (map.size >= MAXCACHE) map.delete(map.keys().next().value);
@@ -129,14 +169,20 @@ function cacheSet(map, key, val) {
 router.get('/search', async (req, res) => {
   const q     = String(req.query.q || '').trim().toLowerCase().slice(0, 120);
   const limit = Math.min(parseInt(req.query.limit) || 1, 12);
+  // Необязательный контекст: тема урока и пример предложения. Без них
+  // поведение ровно прежнее — ищем по слову.
+  const topic   = String(req.query.topic || '').trim().slice(0, 80);
+  const context = String(req.query.context || '').trim().slice(0, 200);
   if (!q) return res.json({ url: null, urls: [] });
 
-  if (limit === 1 && singleCache.has(q)) return res.json({ url: singleCache.get(q), urls: [] });
-
-  const cacheKey = `${q}|${limit}`;
+  const queries = buildQueries({ q, topic, context });
+  const cacheKey = `${queries.join('~')}|${limit}`;
   if (multiCache.has(cacheKey)) {
     const cached = multiCache.get(cacheKey);
-    return res.json({ url: cached[0]?.url || null, urls: cached });
+    return res.json({ url: cached[0]?.url || null, urls: cached, query: cached.query || queries[0] });
+  }
+  if (!topic && !context && limit === 1 && singleCache.has(q)) {
+    return res.json({ url: singleCache.get(q), urls: [] });
   }
 
   /* Порядок: Unsplash → Pexels → Pixabay → Wikipedia.
@@ -145,16 +191,24 @@ router.get('/search', async (req, res) => {
      оставлен последним намеренно: там CC-лицензии, где указание автора чаще
      всего ОБЯЗАТЕЛЬНО, и материал попадает на печатный лист — поэтому его
      подпись и лицензия едут вместе с картинкой, а не теряются. */
-  let results = await unsplashSearch(q, limit);
-  if (!results.length) results = await pexelsSearch(q, limit);
-  if (!results.length) results = await pixabaySearch(q, limit);
-  if (!results.length) results = await wikiResolve(q);
+  let results = [];
+  let used = queries[0];
+  for (const candidate of queries) {
+    results = await unsplashSearch(candidate, limit);
+    if (!results.length) results = await pexelsSearch(candidate, limit);
+    if (!results.length) results = await pixabaySearch(candidate, limit);
+    if (results.length) { used = candidate; break; }
+  }
+  // Wikimedia — только по самому слову и только если не нашлось ничего: его
+  // лицензии требуют подписи, поэтому он крайний случай, а не равный участник.
+  if (!results.length) { results = await wikiResolve(q); used = q; }
 
   const url = results[0]?.url || null;
-  cacheSet(singleCache, q, url);
+  if (!topic && !context) cacheSet(singleCache, q, url);
+  results.query = used;
   cacheSet(multiCache, cacheKey, results);
 
-  res.json({ url, urls: results });
+  res.json({ url, urls: results, query: used });
 });
 
 /* GET /api/images/status — какие источники реально подключены.
