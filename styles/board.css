@@ -228,6 +228,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   border-radius:6px;letter-spacing:-.005em;
 }
 .user-menu-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent);}
+/* Пункты меню доски: одна колонка иконок, одна высота строки.
+   До этого значки были смесью эмодзи (🧰 🔗 🎨 🗑) и типографских знаков
+   (⊞ ↖ ⛶ ⌨): разная ширина, разная высота, часть цветная, часть нет — текст
+   в строках не выстраивался по одной линии, и меню читалось как список,
+   собранный из разных мест. Теперь один штриховой набор, фиксированный слот
+   под значок и наследуемый цвет: строка выделяется целиком, а не наполовину. */
+.user-menu-item{min-height:32px;}
+.umi-ic{width:16px;height:16px;flex:0 0 16px;opacity:.75;}
+.user-menu-item:hover .umi-ic{opacity:1;}
+/* Разрушающие действия помечены цветом только на наведении: список, где два
+   пункта из шестнадцати всегда красные, читается как список ошибок. */
+#btn-clear-menu{color:var(--text);}
+#btn-clear-menu:hover{background:rgba(236,45,140,.10);color:#EC2D8C;}
+#btn-clear-menu:hover .umi-ic{opacity:1;}
+.more-signout:hover{background:rgba(14,14,16,.06);}
 .mobile-board-action{display:none;}
 #btn-follow-me{
   padding:4px 12px;border-radius:8px;border:none;
@@ -1788,8 +1803,11 @@ body.alt-duplicating *{cursor:copy!important;}
 .more-account-info{display:flex;flex-direction:column;min-width:0;line-height:1.2;}
 .more-account-name{font-weight:900;font-size:14px;color:#0E0E10;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .more-account-email{font:600 11px var(--mono,monospace);color:#86868F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.more-signout{color:#ef4444;font-weight:800;}
-.more-signout:hover{background:rgba(239,68,68,.08);color:#ef4444;}
+/* Выход — не разрушительное действие, а конец сеанса: постоянный красный
+   ставил его в один ряд с «очистить доску» и делал список тревожным.
+   Цвет появляется на наведении, как и у «очистить». */
+.more-signout{color:var(--text);font-weight:600;}
+.more-signout:hover{background:rgba(14,14,16,.06);color:var(--text);}
 .auth-input{
   width:100%;padding:13px 15px;border:1.5px solid rgba(94,94,74,.16);border-radius:13px;
   font-family:var(--font);font-size:14px;font-weight:600;color:#1C1C1E;outline:none;margin-bottom:11px;
