@@ -9268,7 +9268,10 @@ function _ytCacheGet(key) {
   try { return JSON.parse(JSON.stringify(hit.out)); } catch { return null; }
 }
 function _ytCacheSet(key, out) {
-  if (!out || out.engine === 'rules') return;
+  /* Ни шаблоны, ни страховочная модель в кэш не идут: и то и другое — ответ
+     на «основная модель сегодня недоступна», и держать его сутки означало бы
+     закрепить худший результат ещё на день после того, как всё починилось. */
+  if (!out || out.engine === 'rules' || out.engine === 'backup') return;
   try {
     const all = _ytCacheRead();
     all[key] = { at: Date.now(), out };
@@ -9768,7 +9771,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
      when it is running blind. Say it on the frame, which stays with the lesson,
      rather than only in a toast the teacher may miss. */
   const ruleMade = results.filter(o => o && o.engine === 'rules');
+  const backupMade = results.filter(o => o && o.engine === 'backup');
   if (ruleMade.length) title += '   ·  ⚠︎ draft — AI unavailable';
+  else if (backupMade.length) title += '   ·  ⚠︎ backup engine';
   snapshot(); _suppressSnapshot++;
   let frame;
   const gridCardIds = [], packCardIds = [];
@@ -9875,6 +9880,11 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
       : why === 'timeout' ? 'AI timed out'
       : 'AI unavailable';
     toast('⚠︎ ' + cause + ' — ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
+  } else if (backupMade.length) {
+    /* Страховка сработала — значит основная модель была недоступна. Сказать об
+       этом важнее, чем промолчать: материал рабочий, но заметно проще, и
+       переспросить через час стоит одного нажатия. */
+    toast('⚠︎ Main engine unavailable — ' + backupMade.length + ' of ' + results.length + ' built on the backup engine. Regenerate later for sharper questions.');
   }
 }
 
@@ -12530,7 +12540,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '285';
+const TEACHEDOS_ASSET_VERSION = '286';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

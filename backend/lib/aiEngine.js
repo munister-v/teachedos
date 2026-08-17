@@ -71,17 +71,32 @@ const PROVIDERS = [
 if (PRIMARY_KEY && LIGHT_MODEL && LIGHT_MODEL !== PRIMARY_MODEL) {
   PROVIDERS.push({ name: 'light', key: PRIMARY_KEY, baseUrl: PRIMARY_URL, model: LIGHT_MODEL });
 }
-/* Секондарі-провайдера більше немає.
+/* СТРАХОВКА ПОВЕРНУЛАСЬ, АЛЕ ВЖЕ НЕ МОВЧКИ.
 
-   OpenRouter стояв тут страховкою на час, коли основним був безкоштовний Groq
-   і 429 був щоденною подією. Тепер основний — платний OpenAI, а безкоштовні
-   моделі OpenRouter і були причиною скарги на якість: урок міг тихо звалитись
-   на них і видати поверхневі питання, а вчитель бачив би просто «слабку
-   генерацію», не знаючи, що відповідала інша модель. Мовчазний фолбек на гіршу
-   якість шкідливіший за чесну помилку.
+   OpenRouter звідси прибрали свідомо: він стояв страховкою на часи, коли
+   основним був безкоштовний Groq, а потім основним став платний OpenAI — і
+   тихе падіння на безкоштовні моделі OpenRouter давало поверхневі питання,
+   які вчитель читав як «інструмент слабкий». Проблемою була не сама страховка,
+   а МОВЧАННЯ: неможливо було відрізнити «сьогодні відповідала запасна модель»
+   від «так воно і працює».
 
-   Ланцюг тепер: основна модель → легка на тому ж ключі → локальні шаблони.
-   AI_API_KEY_2 / AI_BASE_URL_2 / AI_MODEL_2 більше не читаються. */
+   Тому страховка є знову — коли OpenAI недоступний або впав у ліміт, урок
+   краще зібрати запасною моделлю, ніж локальними шаблонами, — але провайдер,
+   який відповів, тепер їде разом із результатом (getLastTier), і дошка про це
+   каже вголос, так само як каже про роботу на шаблонах.
+
+   Ланцюг: основна модель → легка на тому ж ключі → OpenRouter → локальні
+   шаблони. Вмикається ключем AI_BACKUP_KEY (сумісно зі старим AI_API_KEY_2);
+   без ключа поведінка рівно та, що була. */
+const BACKUP_KEY = process.env.AI_BACKUP_KEY || process.env.AI_API_KEY_2 || '';
+if (BACKUP_KEY) {
+  PROVIDERS.push({
+    name: 'backup',
+    key: BACKUP_KEY,
+    baseUrl: (process.env.AI_BACKUP_URL || process.env.AI_BASE_URL_2 || 'https://openrouter.ai/api/v1').replace(/\/+$/, ''),
+    model: process.env.AI_BACKUP_MODEL || process.env.AI_MODEL_2 || OPENROUTER_DEFAULT_MODEL,
+  });
+}
 const CHAIN = PROVIDERS.filter(p => p.key);
 
 // Перемикач моделей у games/create.html жив на безкоштовних моделях
@@ -96,8 +111,13 @@ const BASE_URL = CHAIN[0]?.baseUrl || PRIMARY_URL;
 // The model that actually produced the last successful generation.
 let lastUsedModel = null;
 let lastTrace = null;
+/* Яка саме ступінь ланцюга відповіла: 'primary' | 'light' | 'backup'.
+   Потрібна не для логів, а для екрана вчителя — див. коментар про мовчазний
+   фолбек вище. */
+let lastTier = null;
 function getLastModel() { return lastUsedModel; }
 function getLastTrace() { return lastTrace; }
+function getLastTier() { return lastTier; }
 function listModels() {
   return uniq(CHAIN.flatMap(p => isOpenRouter(p) ? [p.model, ...OPENROUTER_FALLBACK_MODELS] : [p.model]));
 }
@@ -970,6 +990,7 @@ async function generate(input) {
       try {
         const result = await callProvider(provider, user);
         lastUsedModel = result.model || provider.model;
+        lastTier = provider.name;
         attemptInfo.ok = true;
         attemptInfo.model = lastUsedModel;
         attemptInfo.generationId = result.generationId;
@@ -1018,6 +1039,7 @@ async function rawGenerate(userPrompt) {
       try {
         const result = await callProvider(provider, userPrompt);
         lastUsedModel = result.model || provider.model;
+        lastTier = provider.name;
         attemptInfo.ok = true;
         attemptInfo.model = lastUsedModel;
         attemptInfo.generationId = result.generationId;
@@ -1049,4 +1071,4 @@ async function rawGenerate(userPrompt) {
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, listModels, FREE_MODELS };
+module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, getLastTier, listModels, FREE_MODELS };

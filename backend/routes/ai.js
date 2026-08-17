@@ -1023,7 +1023,12 @@ async function generate(input) {
   try {
     input.boardKind = boardKindFor(input.toolId);
     const out = assembleFromLLM(input, await aiEngine.generate(input));
-    out.engine = 'ai';
+    /* 'ai' — основна модель; 'backup' — відповіла страхувальна ланка ланцюга
+       (OpenRouter). Різниця не косметична: запасні моделі помітно слабші, і
+       вчитель має бачити, що урок зібрано ними, — інакше він читає це просто
+       як «інструмент сьогодні дурний». Так само, як ми вже позначаємо роботу
+       на локальних шаблонах. */
+    out.engine = (aiEngine.getLastTier && aiEngine.getLastTier() === 'backup') ? 'backup' : 'ai';
     METRICS.llmOk++;
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
