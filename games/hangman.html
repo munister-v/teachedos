@@ -83,7 +83,7 @@ let WORDS=[
   if(!words.length) return;
   WORDS = words.map(w => ({ w: w.en.toLowerCase(), h: w.uk + (w.ru ? ' (' + w.ru + ')' : '') }));
   const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
-  if(topic) document.title = topic.icon + ' ' + topic.name + ' Hangman · TeachEd';
+  if(topic) document.title = topic.name + ' Hangman · TeachEd';
 })();
 const PARTS=['p0','p1','p2','p3','p4','p5'];
 let queue=[],idx=0,score=0,word='',guessed=new Set(),wrong=0;

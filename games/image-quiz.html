@@ -60,7 +60,7 @@ function loadWords(){
     const set=TEACHEDOS_CUSTOM.get(setId);
     if(set && set.words.length>=4){
       words=set.words;
-      topicMeta={name:set.name, icon:set.icon||'📚', color:'#C8E632'};
+      topicMeta={name:set.name, color:'#C8E632'};
       return true;
     }
   }
@@ -95,7 +95,7 @@ function start(){
     document.getElementById('prompt').textContent='Vocabulary library not available.';
     return;
   }
-  document.getElementById('topicLabel').textContent = topicMeta.icon+' '+topicMeta.name+' — pick the matching word';
+  document.getElementById('topicLabel').textContent = topicMeta.name+' — pick the matching word';
   buildQuestions();
   idx=0; score=0;
   document.getElementById('score').textContent=0;

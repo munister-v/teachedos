@@ -1510,6 +1510,124 @@ function shuffleArray(items) {
 
 function _gbRegEscape(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+/* ── ГЕНЕРАЦИЯ ИГРЫ НАШИМИ МОДЕЛЯМИ ────────────────────────────────────────
+
+   «Smart fill» ниже — это подстановка из локальной библиотеки тем, а когда её
+   не хватает — скелет из десяти общих слов («challenge», «solution»…). Для
+   игры по конкретной теме и конкретному уровню это заметно: слова верные, но
+   не про то. При этом у нас есть движок, который умеет ровно это — с
+   ограничениями CEFR (длина, частотная полоса, грамматика) и проверкой
+   пригодности заданий.
+
+   Здесь тот же endpoint, что и у конструктора уроков, и тот же уровень из
+   формы. Инструмент выбирается по тому, ЧТО игре нужно: пары «слово —
+   перевод», список слов, предложения с пропуском, утверждения или вопросы с
+   вариантами. Если модель недоступна, ничего не ломается — остаётся прежняя
+   подстановка из библиотеки.                                                */
+const GB_TOOL_FOR_FIELDS = {
+  pairs:      'word-translation-match',
+  words:      'extract-vocab',
+  sentences:  'gap',
+  statements: 'true-false',
+  mcq:        'abcd-text',
+};
+
+function _gbApiBase() {
+  return (window.TEACHED_API_BASE
+    || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000'
+    : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin
+    : 'https://teached.tech')));
+}
+
+async function aiFillGame() {
+  if (!selectedType) { toast('Choose a game type first'); return; }
+  const toolId = GB_TOOL_FOR_FIELDS[selectedType.fields];
+  if (!toolId) { toast('AI fill is not available for this game type yet'); return; }
+  const token = localStorage.getItem('teachedos_token');
+  if (!token) { toast('Sign in to generate with AI'); return; }
+
+  const levelSel = document.getElementById('game-level').value;
+  const level = ['A1','A2','B1','B2','C1','C2'].includes(levelSel) ? levelSel : 'B1';
+  const topic = (document.getElementById('game-tags').value || document.getElementById('game-title').value || '')
+    .split(',')[0].trim() || 'general English';
+  const count = Math.max(4, Math.min(20, Number(document.getElementById('game-items')?.value) || 8));
+
+  const btn = document.getElementById('gb-ai-btn');
+  const label = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  toast(`Generating ${count} items at ${level}…`);
+  try {
+    const r = await fetch(`${_gbApiBase()}/api/ai/teacher-tool`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ toolId, input: { level, count, topic } }),
+    });
+    if (!r.ok) throw new Error('server ' + r.status);
+    const data = await r.json();
+    const out = data && data.output;
+    const content = _gbContentFromAI(selectedType.fields, out);
+    if (!content) throw new Error('empty result');
+    renderContentFields(); populateContent({ content }); updateItemCounter();
+    /* Честно говорим, чем собрано: страховочная модель и локальные шаблоны
+       пишут заметно проще, и учитель должен видеть это до урока, а не на нём. */
+    const note = out.engine === 'rules' ? ' (offline templates — regenerate later)'
+      : out.engine === 'backup' ? ' (backup engine — regenerate later for sharper items)' : '';
+    toast(`Filled ${level} content for “${topic}”${note}`);
+  } catch (e) {
+    toast('AI is unavailable right now — using the topic library instead');
+    autoFillGame();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = label || 'Generate with AI'; }
+  }
+}
+
+/* Конверт движка → поля конкретной игры. Движок отвечает одним из трёх видов
+   (items / questions / pairs), а играм нужны свои формы, поэтому перевод здесь,
+   в одном месте, а не в пяти обработчиках. */
+function _gbContentFromAI(fields, out) {
+  if (!out) return null;
+  const qs = Array.isArray(out.questions) ? out.questions : [];
+  const items = Array.isArray(out.items) ? out.items : [];
+  const pairs = Array.isArray(out.pairs) ? out.pairs : [];
+
+  if (fields === 'pairs') {
+    const fromPairs = pairs.map(p => ({ a: String(p.left || '').trim(), b: String(p.right || '').trim() }));
+    const fromMatch = qs.filter(q => Array.isArray(q.pairs)).flatMap(q => q.pairs)
+      .map(p => ({ a: String(p.left || '').trim(), b: String(p.right || '').trim() }));
+    const fromItems = items.map(i => ({ a: String(i.word || '').trim(), b: String(i.definition || '').trim() }));
+    const list = [fromPairs, fromMatch, fromItems].find(l => l.filter(x => x.a && x.b).length >= 2);
+    return list ? { pairs: list.filter(x => x.a && x.b) } : null;
+  }
+  if (fields === 'words') {
+    const list = items.map(i => String(i.word || '').trim()).filter(Boolean);
+    return list.length >= 2 ? { words: list } : null;
+  }
+  if (fields === 'sentences') {
+    // Игре нужен формат «предложение с ___|ответ».
+    const list = qs.filter(q => q.type === 'gap-fill' && q.answer)
+      .map(q => `${String(q.text || '').replace(/_{2,}/g, '___')}|${q.answer}`)
+      .filter(x => x.includes('___'));
+    return list.length >= 2 ? { sentences: list } : null;
+  }
+  if (fields === 'statements') {
+    const list = qs.filter(q => q.type === 'truefalse')
+      .map(q => ({ text: String(q.text || '').trim(), answer: !!q.answer }))
+      .filter(x => x.text);
+    return list.length >= 2 ? { statements: list } : null;
+  }
+  if (fields === 'mcq') {
+    const list = qs.filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2)
+      .map(q => {
+        const opts = q.options.map(o => String(o).trim());
+        const correct = Math.max(0, opts.indexOf(String(q.answer).trim()));
+        return { q: String(q.text || '').trim(), opts, correct };
+      })
+      .filter(x => x.q);
+    return list.length >= 2 ? { questions: list } : null;
+  }
+  return null;
+}
+
 async function autoFillGame() {
   if (!selectedType) { toast('Choose a game type first'); return; }
   const levelSel = document.getElementById('game-level').value;

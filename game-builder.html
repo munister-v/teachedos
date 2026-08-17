@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=292">
-<link rel="preload" as="style" href="styles/unify.css?v=292">
-<link rel="manifest" href="manifest.json?v=292">
+<link rel="preload" as="style" href="styles/harmony.css?v=293">
+<link rel="preload" as="style" href="styles/unify.css?v=293">
+<link rel="manifest" href="manifest.json?v=293">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -118,6 +118,11 @@ textarea{min-height:60px;resize:vertical}
 .quality-metric.good b{color:var(--green)}.quality-metric.warn b{color:var(--orange)}.quality-metric.bad b{color:var(--red)}
 .quality-warnings{grid-column:1/-1;display:grid;gap:6px}.quality-warning{padding:8px 10px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);font-size:12px;color:#a16207;line-height:1.35}
 .smart-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.smart-pill{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:7px 12px;font:850 11px var(--font);cursor:pointer;color:var(--text2)}.smart-pill:hover{border-color:var(--pink);color:var(--pink);transform:translateY(-1px)}
+/* Генерация моделью — главное действие в этом ряду, поэтому она заполненная,
+   а не обведённая: остальные кнопки правят то, что уже есть, эта создаёт. */
+.smart-pill.primary{background:#0E0E10;border-color:#0E0E10;color:#fff}
+.smart-pill.primary:hover{background:#1b1b20;border-color:#1b1b20;color:#CDF24F;transform:translateY(-1px)}
+.smart-pill.primary[disabled]{opacity:.55;cursor:default;transform:none}
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
 .game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
@@ -213,10 +218,10 @@ textarea{min-height:60px;resize:vertical}
 .pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#777;font-size:.85rem}
 
 </style>
-<script src="theme.js?v=292" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=292">
-<link rel="stylesheet" href="styles/harmony.css?v=292">
-<link rel="stylesheet" href="styles/unify.css?v=292">
+<script src="theme.js?v=293" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=293">
+<link rel="stylesheet" href="styles/harmony.css?v=293">
+<link rel="stylesheet" href="styles/unify.css?v=293">
 </head>
 <body>
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -381,13 +386,20 @@ textarea{min-height:60px;resize:vertical}
         </select>
       </div>
     </div>
-    <div class="field">
-      <div class="label">Topic / Tags</div>
-      <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;">
+      <div class="field">
+        <div class="label">Topic / Tags</div>
+        <input id="game-tags" placeholder="e.g. phrasal verbs, travel, speaking">
+      </div>
+      <div class="field">
+        <div class="label">Items to generate</div>
+        <input id="game-items" type="number" min="4" max="20" step="1" value="8">
+      </div>
     </div>
     <div id="item-counter" class="item-counter" style="display:none;"></div>
     <div class="quality-panel" id="game-quality-panel" style="display:none;"></div>
     <div class="smart-row" id="smart-row" style="display:none;">
+      <button class="smart-pill primary" id="gb-ai-btn" type="button" onclick="aiFillGame()">Generate with AI</button>
       <button class="smart-pill" type="button" onclick="autoFillGame()">Smart fill</button>
       <button class="smart-pill" type="button" onclick="upgradeDifficulty()">Upgrade difficulty</button>
       <button class="smart-pill" type="button" onclick="makeStudentFriendly()">Student-friendly wording</button>
@@ -436,9 +448,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=292"></script>
-<script src="scripts/vocab-loader.js?v=292"></script>
-<script src="scripts/game-builder-app.js?v=292"></script>
+<script src="scripts/app-core.js?v=293"></script>
+<script src="scripts/vocab-loader.js?v=293"></script>
+<script src="scripts/game-builder-app.js?v=293"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -452,9 +464,9 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=292" defer></script>
-<script src="scripts/mobile-nav.js?v=292"></script>
-<script src="scripts/mobile-zoom-guard.js?v=292" defer></script>
-<script src="pwa-boot.js?v=292" defer></script>
+<script src="scripts/mobile-perf.js?v=293" defer></script>
+<script src="scripts/mobile-nav.js?v=293"></script>
+<script src="scripts/mobile-zoom-guard.js?v=293" defer></script>
+<script src="pwa-boot.js?v=293" defer></script>
 </body>
 </html>

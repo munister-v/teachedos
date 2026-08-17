@@ -14,24 +14,31 @@ body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Displ
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px;text-align:center}
-.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:520px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#888;font-size:.9rem}
+.card{background:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 4px 24px rgba(14,14,16,.07);width:100%;max-width:620px;text-align:center}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-weight:700;color:#8a857c;font-size:.82rem;letter-spacing:.02em}
 .top span{color:var(--accent)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tile{aspect-ratio:1;border-radius:12px;background:#FBF8F3;border:2px solid #eee2d8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.78rem;color:var(--accent);cursor:pointer;text-align:center;padding:6px;line-height:1.2;transition:.15s}
-.tile:hover{border-color:var(--lime)}
-.tile.selected{background:rgba(200,230,50,0.25);border-color:var(--accent)}
-.tile.matched{visibility:hidden}
-.tile.wrong-flash{background:#fce4ec;border-color:#f44336}
+/* Колонка не уже 128px: длинные слова («мінімалістичний») в четырёх колонках на
+   520px рвались на три строки и вылезали за карточку. Сетка сама решает,
+   сколько колонок помещается, поэтому и на узкой доске, и на весь экран
+   плитка остаётся читаемой. */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}
+/* Квадрат заменён на минимальную высоту: слово из трёх строк больше не
+   выпирает за пределы плитки, а короткое не растягивает её впустую. */
+.tile{min-height:84px;border-radius:14px;background:#FBF8F3;border:1.5px solid #ece4d9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:var(--accent);cursor:pointer;text-align:center;padding:10px 8px;line-height:1.25;transition:border-color .14s,background .14s,transform .1s;overflow-wrap:anywhere;hyphens:auto}
+.tile:active{transform:scale(.98)}
+.tile:hover{border-color:#0E0E10}
+.tile.selected{background:rgba(200,230,50,.35);border-color:var(--accent)}
+.tile.matched{visibility:hidden;pointer-events:none}
+.tile.wrong-flash{background:rgba(236,45,140,.10);border-color:#EC2D8C}
 .feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#888}
 .play-again{margin-top:12px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
-@media (max-width:420px){.grid{grid-template-columns:repeat(3,1fr)}.tile{font-size:.7rem}}
+@media (max-width:420px){.grid{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}.tile{font-size:.74rem;min-height:72px}}
 </style>
 <link rel="stylesheet" href="../styles/mobile-guard.css?v=188">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
-<h1>🟩 Find the Match</h1>
+<h1>Find the match</h1>
 <p class="subtitle" id="topicLabel">Click two tiles that match — word and translation</p>
 <div class="card">
   <div class="top"><div>Pairs left: <span id="left">0</span></div><div>⏱ <span id="time">90</span>s</div></div>
@@ -55,7 +62,7 @@ function loadWords(){
   if(setId && window.TEACHEDOS_CUSTOM){
     const set=TEACHEDOS_CUSTOM.get(setId);
     if(set && set.words.length>=4){
-      document.getElementById('topicLabel').textContent=(set.icon||'📚')+' '+set.name+' — match each word to its translation';
+      document.getElementById('topicLabel').textContent=set.name+' — match each word to its translation';
       return shuffle(set.words).slice(0,8);
     }
   }
@@ -68,7 +75,7 @@ function loadWords(){
     topicId=ids[Math.floor(Math.random()*ids.length)];
   }
   const topic=V.getTopic(topicId);
-  document.getElementById('topicLabel').textContent=topic.icon+' '+topic.name+' — match each word to its translation';
+  document.getElementById('topicLabel').textContent=topic.name+' — match each word to its translation';
   let words=V.getWords(topicId, level);
   if(words.length<8) words=V.getWords(topicId,'mix');
   return shuffle(words).slice(0,8);
@@ -143,7 +150,7 @@ function clickTile(i,el){
 function endGame(won){
   clearInterval(sInt);
   const found=totalPairs-pairsLeft;
-  document.getElementById('feedback').textContent= won ? '🎉 All pairs matched!' : '⏱ Time up! '+found+'/'+totalPairs+' pairs found';
+  document.getElementById('feedback').textContent= won ? 'All pairs matched' : 'Time up — '+found+'/'+totalPairs+' pairs found';
   document.getElementById('again').style.display='inline-block';
   try{window.parent.postMessage({type:'game-finished',score:found,max:totalPairs,game:'Find the match',status:'done'},'*');}catch(e){}
 }
@@ -152,7 +159,7 @@ function applyCustomContent(content,title){
   const pairs=((content&&content.pairs)||[]).map(p=>({en:String(p.a||p.word||p.en||'').trim(),uk:String(p.b||p.definition||p.uk||'').trim()})).filter(p=>p.en&&p.uk);
   if(pairs.length<2)return;
   customWords=pairs.slice(0,8);
-  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?('📚 '+title):'Custom set')+' — match each word to its translation';
+  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?title:'Custom set')+' — match each word to its translation';
   if(title){document.title=title+' · Find the match';}
   start();
 }

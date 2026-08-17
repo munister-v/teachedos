@@ -55,7 +55,7 @@ let WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERAT
   if(!words.length) return;
   WORDS = words.slice(0, 10).map(w => w.en.toUpperCase());
   const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
-  if(topic) document.title = topic.icon + ' ' + topic.name + ' Word Search · TeachEd';
+  if(topic) document.title = topic.name + ' Word Search · TeachEd';
 })();
 const SIZE=12;
 let grid=[],placed=[],foundSet=new Set(),selecting=false,selStart=null,selCells=[];

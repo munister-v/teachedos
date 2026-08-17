@@ -59,7 +59,7 @@ function loadWords(){
     const set=TEACHEDOS_CUSTOM.get(setId);
     if(set && set.words.length>=4){
       words=set.words;
-      document.getElementById('topicLabel').textContent=(set.icon||'📚')+' '+set.name+' — choose the matching word';
+      document.getElementById('topicLabel').textContent=set.name+' — choose the matching word';
       return true;
     }
   }
@@ -72,7 +72,7 @@ function loadWords(){
     topicId=ids[Math.floor(Math.random()*ids.length)];
   }
   const topic=V.getTopic(topicId);
-  document.getElementById('topicLabel').textContent=topic.icon+' '+topic.name+' — choose the matching word';
+  document.getElementById('topicLabel').textContent=topic.name+' — choose the matching word';
   words=V.getWords(topicId, level);
   if(words.length<4) words=V.getWords(topicId,'mix');
   return words.length>=4;

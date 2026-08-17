@@ -59,7 +59,7 @@ let PAIRS=[
   PAIRS = words.map(w => ({ w: w.en, d: w.uk }));
   const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
   if(topic){
-    document.title = topic.icon + ' ' + topic.name + ' Memory Match · TeachEd';
+    document.title = topic.name + ' Memory Match · TeachEd';
   }
 })();
 let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt,pairsInPlay=8;

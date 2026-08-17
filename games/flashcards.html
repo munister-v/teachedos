@@ -107,9 +107,9 @@ let VOCAB=[
     tr: w.uk + (w.ru ? ' · ' + w.ru : ''),
     ex: w.ex
   }));
-  document.title = set.icon + ' ' + set.name + ' Flashcards · TeachEd';
+  document.title = set.name + ' Flashcards · TeachEd';
   const titleEl = document.querySelector('.title, h1, .game-title');
-  if(titleEl) titleEl.textContent = set.icon + ' ' + set.name;
+  if(titleEl) titleEl.textContent = set.name;
   return true;
 })();
 
@@ -130,9 +130,9 @@ let VOCAB=[
   // Update page title
   const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
   if(topic){
-    document.title = topic.icon + ' ' + topic.name + ' Flashcards · TeachEd';
+    document.title = topic.name + ' Flashcards · TeachEd';
     const titleEl = document.querySelector('.title, h1, .game-title');
-    if(titleEl) titleEl.textContent = topic.icon + ' ' + topic.name + (level === 'mix' ? '' : ' · ' + level);
+    if(titleEl) titleEl.textContent = topic.name + (level === 'mix' ? '' : ' · ' + level);
   }
 })();
 
