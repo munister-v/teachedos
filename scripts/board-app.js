@@ -2748,6 +2748,42 @@ function _ttWorksheetListHTML(d, showAns, accent) {
        flow as chips now, term and meaning together, which is how a language
        bank is actually read. With the key off the meaning is a blank the
        student writes on, so the sheet keeps working as a worksheet. */
+    /* КАРТИНКА В СЛОВАРНОЙ КАРТОЧКЕ.
+
+       Слово и перевод — это то, что ученик забудет к следующему занятию;
+       образ держится дольше и даёт контекст, которого в определении нет.
+       Поэтому если у элемента есть картинка, чип превращается в карточку:
+       снимок сверху, слово под ним, значение ниже.
+
+       Смешивать нельзя: строка, где часть чипов с фото, а часть без, читается
+       как сбой вёрстки. Поэтому режим выбирается на весь список — есть хотя бы
+       у половины элементов картинка, значит карточки у всех. */
+    const withImg = items.filter(it => it && it.image && it.image.url).length;
+    const asCards = withImg >= Math.ceil(items.length / 2) && withImg > 0;
+
+    if (asCards) {
+      return items.map((it, i) => {
+        const def = it.example || it.definition || '';
+        const img = it.image && it.image.url;
+        const body = (showAns && def)
+          ? `<span class="ws-vcard-def">${_ttMdInline(def)}</span>`
+          : '<span class="ws-gap"></span>';
+        /* Подпись автора едет с картинкой всегда, даже когда источник её не
+           требует: лист печатают и раздают, и потерять её потом негде. */
+        const credit = it.image && it.image.credit
+          ? `<span class="ws-vcard-credit">${esc(it.image.credit)}</span>` : '';
+        /* loading="eager", а не lazy: карточка живёт на полотне доски, которое
+           двигают и масштабируют трансформом. Ленивая картинка внутри такого
+           полотна может не попасть во «вьюпорт» по мнению браузера и не
+           загрузиться вовсе — а экспорт доски в PNG (html2canvas) снимет
+           пустые рамки. Словарь — это десяток мелких снимков, цена честная. */
+        const frame = img
+          ? `<span class="ws-vcard-img"><img src="${esc(img)}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">${credit}</span>`
+          : '<span class="ws-vcard-img ws-vcard-img--empty"></span>';
+        return `<li class="ws-vcard" data-vi="${i}">${frame}<b>${_ttMdInline(it.word || '')}</b>${body}</li>`;
+      }).join('');
+    }
+
     const chips = items.map(it => {
       const def = it.example || it.definition || '';
       const tail = (showAns && def)
@@ -2937,8 +2973,15 @@ function renderWorksheet(el, card) {
   // readable columns — see _ttQuestionCols.
   const qList = Array.isArray(d.questions) ? d.questions : null;
   const qCols = qList ? _ttQuestionCols(qList.length, card.w) : 1;
+  /* Словарь с картинками — сетка карточек, без картинок — прежняя строка
+     чипов. Решение принимается один раз здесь, чтобы список и его контейнер
+     не разошлись во мнениях. */
+  const vItems = Array.isArray(d.items) ? d.items : null;
+  const vImgs = vItems ? vItems.filter(it => it && it.image && it.image.url).length : 0;
+  const vCards = vItems && vItems.length && vImgs >= Math.ceil(vItems.length / 2) && vImgs > 0;
   const listCls = cards ? 'ws-list ws-list-cards'
-                : Array.isArray(d.items) && d.items.length ? 'ws-list ws-list-chips'
+                : vCards ? 'ws-list ws-list-vcards'
+                : vItems && vItems.length ? 'ws-list ws-list-chips'
                 : qList ? 'ws-list ws-list-groups' : 'ws-list';
   const listTag = _ttWorksheetListTag(d);
   // --q-cols is read by every group's own list, so the column count is decided
@@ -9842,6 +9885,11 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
         if (frame && card) {
           setCardParentFrame?.(card, frame);
           gridCardIds.push(card.id);
+          /* Словарь урока получает картинки. Не ждём их: лист уже на доске,
+             снимки долетают следом и карточка перерисовывается. */
+          if (Array.isArray(card.data.items) && card.data.items.length) {
+            _ttAttachImagesToVocabCard(card.id, videoTitle || out?.topic || '');
+          }
           /* Перерисовка ПОСЛЕ того, как карточка попала в кадр. Шапка листа
              показывает регулятор уровня, только если видит, из чего сделан урок,
              а материал лежит на кадре — в момент первой отрисовки карточка ещё
@@ -9917,6 +9965,144 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
        переспросить через час стоит одного нажатия. */
     toast('⚠︎ Main engine unavailable — ' + backupMade.length + ' of ' + results.length + ' built on the backup engine. Regenerate later for sharper questions.');
   }
+}
+
+/* ── КАРТИНКИ К СЛОВАМ ────────────────────────────────────────────────────
+
+   Образ держится в памяти дольше слова и даёт контекст, которого нет в
+   определении, — ради этого всё и затевалось. Подбор идёт через наш
+   /api/images/search, которому теперь можно передать тему урока и пример
+   предложения: без контекста поиск по слову промахивается чаще, чем попадает
+   («nervous» отдавал обезьяну).
+
+   Три правила, все из осторожности:
+   • урок не ждёт картинок. Лист ставится на доску сразу, снимки долетают и
+     дорисовываются — если сеть медленная, у учителя всё равно есть материал;
+   • не больше трёх запросов одновременно, чтобы не выесть часовой лимит
+     фотобанка одним уроком на двенадцать слов;
+   • подпись автора сохраняется вместе с адресом, а не берётся заново при
+     печати: источник может ответить иначе или не ответить вовсе.           */
+const _TT_IMG_CONCURRENCY = 3;
+
+async function _ttFetchWordImage(word, topic, context) {
+  const qs = new URLSearchParams({ q: word, limit: '1' });
+  if (topic) qs.set('topic', topic);
+  if (context) qs.set('context', context);
+  try {
+    const r = await apiFetch('/api/images/search?' + qs.toString());
+    if (!r.ok) return null;
+    const d = await r.json();
+    const first = (d.urls && d.urls[0]) || (d.url ? { url: d.url } : null);
+    if (!first || !first.url) return null;
+    return { url: first.url, thumb: first.thumb || first.url, credit: first.credit || '', query: d.query || word };
+  } catch { return null; }
+}
+
+/* Дополняет карточку словаря картинками и перерисовывает её по мере готовности.
+   Возвращает число найденных — вызывающему это нужно, чтобы решить, стоит ли
+   пересобирать кадр под изменившуюся высоту. */
+/* ЗАМЕНА КАРТИНКИ.
+
+   Автоподбор на абстрактных словах ошибается всегда, и это нормально — если
+   исправление стоит одно нажатие. Клик по снимку показывает четыре варианта
+   из той же выдачи; выбранный сразу встаёт в карточку.
+
+   Открывается по клику именно на изображении, а не по кнопке рядом: кнопка на
+   каждой из двенадцати карточек — это двенадцать лишних элементов на листе,
+   который учитель ещё и печатает. */
+async function openVocabImagePicker(cardId, index, anchorEl) {
+  const card = state.cards.find(c => c.id === cardId);
+  const it = card && card.data?.items?.[index];
+  if (!it || !it.word) return;
+  document.getElementById('vimg-picker')?.remove();
+
+  const box = document.createElement('div');
+  box.id = 'vimg-picker';
+  box.className = 'vimg-picker';
+  box.innerHTML = '<div class="vimg-picker-head">Choose a picture for “' + esc(it.word) + '”</div><div class="vimg-picker-grid">Searching…</div>';
+  document.body.appendChild(box);
+  const r = anchorEl.getBoundingClientRect();
+  box.style.left = Math.max(12, Math.min(window.innerWidth - 300, r.left)) + 'px';
+  box.style.top = Math.min(window.innerHeight - 240, r.bottom + 8) + 'px';
+
+  const close = (e) => {
+    if (e && box.contains(e.target)) return;
+    box.remove(); document.removeEventListener('mousedown', close);
+  };
+  setTimeout(() => document.addEventListener('mousedown', close), 0);
+
+  const topic = state.cards.find(c => c.id === card.data.parentFrame)?.data?.lesson?.topic || card.data.topic || '';
+  const qs = new URLSearchParams({ q: it.word, limit: '4' });
+  if (topic) qs.set('topic', topic);
+  if (it.example || it.definition) qs.set('context', it.example || it.definition);
+  let urls = [];
+  try {
+    const res = await apiFetch('/api/images/search?' + qs.toString());
+    const d = await res.json();
+    urls = (d.urls || []).filter(u => u && u.url);
+  } catch {}
+  const grid = box.querySelector('.vimg-picker-grid');
+  if (!urls.length) { grid.textContent = 'Nothing found for this word.'; return; }
+  grid.innerHTML = urls.map((u, i) =>
+    `<button type="button" class="vimg-opt" data-i="${i}"><img src="${esc(u.thumb || u.url)}" alt="" referrerpolicy="no-referrer" crossorigin="anonymous"></button>`).join('')
+    + '<button type="button" class="vimg-opt vimg-none" data-i="-1">No picture</button>';
+  grid.querySelectorAll('.vimg-opt').forEach(btn => btn.addEventListener('click', () => {
+    const i = Number(btn.dataset.i);
+    if (i < 0) delete it.image;
+    else {
+      const u = urls[i];
+      it.image = { url: u.url, thumb: u.thumb || u.url, credit: u.credit || '' };
+    }
+    box.remove(); document.removeEventListener('mousedown', close);
+    reRenderCard(card);
+    requestAnimationFrame(() => {
+      _wsFitToContent(card.id, { shrink: true });
+      const frame = state.cards.find(c => c.id === card.data.parentFrame);
+      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
+    });
+    scheduleSave?.(); saveLocal?.();
+  }));
+}
+
+if (typeof document !== 'undefined' && !window.__vimgPickerBound) {
+  window.__vimgPickerBound = true;
+  document.addEventListener('click', (e) => {
+    const frame = e.target.closest('.ws-vcard-img');
+    if (!frame) return;
+    const li = frame.closest('.ws-vcard');
+    const cardEl = frame.closest('[data-id]');
+    if (!li || !cardEl) return;
+    e.stopPropagation();
+    openVocabImagePicker(cardEl.dataset.id, Number(li.dataset.vi), frame);
+  });
+}
+
+async function _ttAttachImagesToVocabCard(cardId, topic) {
+  const card = state.cards.find(c => c.id === cardId);
+  const items = card && Array.isArray(card.data?.items) ? card.data.items : null;
+  if (!items || !items.length) return 0;
+
+  let found = 0;
+  const queue = items.map((it, i) => ({ it, i })).filter(x => x.it && x.it.word && !x.it.image);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < queue.length) {
+      const { it } = queue[cursor++];
+      const img = await _ttFetchWordImage(it.word, topic, it.example || it.definition || '');
+      if (img) { it.image = img; found++; }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(_TT_IMG_CONCURRENCY, queue.length) }, worker));
+  if (found) {
+    reRenderCard(card);
+    requestAnimationFrame(() => {
+      _wsFitToContent(card.id, { shrink: true });
+      const frame = state.cards.find(c => c.id === card.data.parentFrame);
+      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
+    });
+    scheduleSave?.(); saveLocal?.();
+  }
+  return found;
 }
 
 /* ── УРОВЕНЬ КАК РЕГУЛЯТОР, А НЕ КАК ОТМЕТКА ────────────────────────────────
@@ -11712,7 +11898,20 @@ function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
        width. A chip cannot be split across rows, so two 235px chips leave
        137px of a 607px row unused; dividing total width by row width
        under-counted every glossary and the card scrolled. Pack instead. */
-    sum = Math.max(1, Math.ceil(output.items.length / _ttChipsPerRow(output.items))) * WS_H.chipRow;
+    /* Словарь с картинками — сетка карточек (см. .ws-list-vcards), а не строка
+       чипов: 150px колонка, картинка 4:3, слово и значение под ней. Если не
+       считать это здесь, карточка окажется вдвое ниже содержимого и лист
+       обрежется — ровно тот дефект, которым этот файл болел трижды. */
+    const imgs = output.items.filter(it => it && it.image && it.image.url).length;
+    if (imgs >= Math.ceil(output.items.length / 2) && imgs > 0) {
+      const cols = Math.max(1, Math.floor((cardW - 40) / (150 + 14)));
+      const rows = Math.ceil(output.items.length / cols);
+      const colW = Math.max(150, (cardW - 40 - (cols - 1) * 14) / cols);
+      const cardH = Math.round(colW * 3 / 4) + 74;   // картинка 4:3 + слово + значение + поля
+      sum = rows * cardH + Math.max(0, rows - 1) * 14;
+    } else {
+      sum = Math.max(1, Math.ceil(output.items.length / _ttChipsPerRow(output.items))) * WS_H.chipRow;
+    }
   }
   else if (Array.isArray(output.cards)) {
     chrome = WS_H.chromeCards;
@@ -12582,7 +12781,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '300';
+const TEACHEDOS_ASSET_VERSION = '301';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
