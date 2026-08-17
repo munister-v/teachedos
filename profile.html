@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=297">
-<link rel="preload" as="style" href="styles/unify.css?v=297">
-<link rel="manifest" href="manifest.json?v=297">
+<link rel="preload" as="style" href="styles/harmony.css?v=298">
+<link rel="preload" as="style" href="styles/unify.css?v=298">
+<link rel="manifest" href="manifest.json?v=298">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -389,10 +389,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=297" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=297">
-<link rel="stylesheet" href="styles/harmony.css?v=297">
-<link rel="stylesheet" href="styles/unify.css?v=297">
+<script src="theme.js?v=298" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=298">
+<link rel="stylesheet" href="styles/harmony.css?v=298">
+<link rel="stylesheet" href="styles/unify.css?v=298">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -538,12 +538,31 @@ body.profile-page #nav .nav-link.active {
 }
 body.profile-page #nav .nav-logo-name { color: #1C1C1E !important; }
 body.profile-page #nav .nav-sep { background: rgba(94,94,74,.18) !important; }
+/* СВЕТЛАЯ ШАПКА — ЗНАЧИТ ТЁМНЫЙ ТЕКСТ, ВКЛЮЧАЯ ВЛОЖЕННЫЙ.
+
+   Здесь красился только сам чип (.nav-user), а имя внутри него — отдельный
+   элемент со своим цветом: unify.css задаёт «#nav #nav-name { color:
+   rgba(245,240,232,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
+   с двумя id перебивало наследование. На профиле шапка светлая, поэтому имя
+   выходило кремовым по белому — «Teacher» читался только под углом.
+   Тот же класс ошибки, что был у поля поиска: правило для тёмной поверхности
+   доживало до светлой. */
 body.profile-page #nav .nav-user {
   min-height: 40px;
   flex: 0 0 auto;
   color: #3A3A2E !important;
   background: rgba(255,255,255,.8) !important;
   border-color: rgba(94,94,74,.18) !important;
+}
+body.profile-page #nav #nav-name,
+body.profile-page #nav .nav-user span:not(#nav-avatar) {
+  color: #3A3A2E !important;
+}
+/* Инициал в кружке: лаймовый по светло-лаймовому — то же самое, только тише.
+   Тёмная буква на лаймовом кружке читается на любом фоне. */
+body.profile-page #nav #nav-avatar {
+  background: #C8E632 !important;
+  color: #1C1C1E !important;
 }
 body.profile-page #nav .nav-user:focus-visible,
 body.profile-page .st-item:focus-visible,
@@ -992,9 +1011,9 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=297"></script>
-<script src="scripts/profile-app.js?v=297"></script>
-<script src="pwa-boot.js?v=297" defer></script>
+<script src="scripts/app-core.js?v=298"></script>
+<script src="scripts/profile-app.js?v=298"></script>
+<script src="pwa-boot.js?v=298" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1014,11 +1033,11 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js?v=297"></script>
-<script src="scripts/nav-boost.js?v=297" defer></script>
-<script src="scripts/mobile-perf.js?v=297" defer></script>
-<script src="scripts/mobile-nav.js?v=297"></script>
-<script src="scripts/mobile-zoom-guard.js?v=297" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=297" defer></script>
+<script src="pwa.js?v=298"></script>
+<script src="scripts/nav-boost.js?v=298" defer></script>
+<script src="scripts/mobile-perf.js?v=298" defer></script>
+<script src="scripts/mobile-nav.js?v=298"></script>
+<script src="scripts/mobile-zoom-guard.js?v=298" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=298" defer></script>
 </body>
 </html>
