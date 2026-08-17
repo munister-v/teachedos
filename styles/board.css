@@ -3386,19 +3386,25 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 #tool-builder-panel.open{display:flex;}
 .tbuilder-box{
-  width:min(1040px,100%);max-height:min(88vh,780px);overflow:auto;border-radius:28px;
+  width:min(1120px,100%);max-height:min(90vh,820px);overflow:auto;border-radius:24px;
   background:linear-gradient(145deg,#ffffff 0%,#FAFAF4 48%,#F5F0E8 100%);
   border:1px solid rgba(14,14,16,.08);box-shadow:0 28px 90px rgba(10,8,24,.26);
   padding:24px;color:#0E0E10;
 }
-.tbuilder-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px;}
+.tbuilder-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;}
 .tbuilder-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:950;}
-.tbuilder-title{font-size:clamp(28px,4vw,46px);line-height:.94;letter-spacing:-.055em;font-weight:950;margin:6px 0;}
-.tbuilder-sub{max-width:640px;color:#6E6E5C;font-size:13px;line-height:1.55;font-weight:700;}
+/* Заголовок был набран до 46px с line-height .94 — на панели высотой 780px он
+   вместе с подзаголовком съедал верхнюю треть, а работа начиналась ниже. Это
+   служебное окно, а не витрина: название инструмента должно называть, а не
+   объявлять. */
+.tbuilder-title{font-size:clamp(21px,2.2vw,28px);line-height:1.08;letter-spacing:-.03em;font-weight:950;margin:3px 0 2px;}
+.tbuilder-sub{max-width:560px;color:#6E6E5C;font-size:12.5px;line-height:1.5;font-weight:700;}
 .tbuilder-close{border:0;background:rgba(14,14,16,.08);width:36px;height:36px;border-radius:13px;font-size:18px;font-weight:900;color:#0E0E10;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .14s,transform .1s;flex-shrink:0;}
 .tbuilder-close:hover{background:rgba(14,14,16,.14);}
 .tbuilder-close:active{transform:scale(.94);}
-.tbuilder-layout{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(360px,1.15fr);gap:16px;}
+/* Форма шире предпросмотра: пока не нажата «Generate», справа пустая
+   рамка, а слева — вся работа. Раньше пропорция была обратной. */
+.tbuilder-layout{display:grid;grid-template-columns:minmax(360px,1.08fr) minmax(320px,.92fr);gap:16px;}
 .tbuilder-form,.tbuilder-preview{
   border:1px solid rgba(14,14,16,.08);border-radius:22px;background:rgba(255,255,255,.86);
   box-shadow:0 12px 38px rgba(14,14,16,.06);padding:18px;
@@ -3409,7 +3415,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-form-status{flex:0 0 auto;max-width:146px;padding:6px 8px;border:1px solid rgba(14,14,16,.10);border-radius:999px;background:rgba(255,255,255,.82);color:#6E6E5C;font:850 10px/1.2 var(--mono,monospace);text-align:right;}
 .tbuilder-form-status.ready{color:#266e4a;border-color:rgba(38,110,74,.24);background:rgba(38,110,74,.07);}
 .tbuilder-form-status.needs-input{color:#8A5A09;border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.13);}
-.tbuilder-draft-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 6px;padding:7px 2px 2px;color:#817B6D;font:700 10px/1.35 var(--mono,monospace);}
+.tbuilder-draft-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:8px 0 0;border-top:1px dashed rgba(14,14,16,.13);color:#8E877A;font:700 9.5px/1.35 var(--mono,monospace);}
 .tbuilder-draft-state{min-width:0;}
 .tbuilder-draft-state.saved{color:#266e4a;}
 .tbuilder-draft-state.unsaved{color:#8A5A09;}
@@ -3423,25 +3429,29 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
    отдельными карточками с собственными рамками и фонами они спорили друг с
    другом и отодвигали поля, ради которых окно открывают. Теперь это один блок
    с внутренней линией: сверху — состояние, снизу — что из этого следует. */
-.tbuilder-brief-review{display:grid;gap:8px;padding:11px 12px;margin:3px 0 0;border:1px solid rgba(14,14,16,.10);border-bottom:0;border-radius:14px 14px 0 0;background:rgba(255,255,255,.7);transition:border-color .16s ease,background .16s ease;}
-.tbuilder-brief-review-title{display:flex;align-items:flex-start;gap:8px;}
+.tbuilder-brief{display:grid;gap:9px;padding:12px 13px;margin:0 0 14px;border:1px solid rgba(14,14,16,.10);border-radius:14px;background:rgba(255,255,255,.72);transition:border-color .16s ease,background .16s ease;}
+.tbuilder-brief-top{display:flex;align-items:flex-start;gap:9px;}
+.tbuilder-brief-copy{flex:1;min-width:0;}
+.tbuilder-brief-copy strong{display:block;color:#35332D;font:900 10px/1.25 var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;}
+.tbuilder-brief-copy small{display:block;margin-top:2px;color:#817B6D;font:700 10.5px/1.4 var(--font);}
 .tbuilder-review-dot{flex:0 0 auto;width:8px;height:8px;margin-top:4px;border-radius:50%;background:#9A9386;box-shadow:0 0 0 4px rgba(154,147,134,.12);}
-.tbuilder-brief-review-title strong{display:block;color:#35332D;font:900 10px/1.25 var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;}
-.tbuilder-brief-review-title small{display:block;margin-top:2px;color:#817B6D;font:700 10px/1.35 var(--font);}
 .tbuilder-brief-review-items{display:flex;flex-wrap:wrap;gap:5px;}
-.tbuilder-review-item{display:inline-flex;align-items:center;gap:4px;padding:4px 6px;border:1px solid rgba(14,14,16,.09);border-radius:999px;background:#fff;color:#655F55;font:800 9px/1.15 var(--mono,monospace);}
+.tbuilder-review-item{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border:1px solid rgba(14,14,16,.09);border-radius:999px;background:#fff;color:#655F55;font:800 9px/1.15 var(--mono,monospace);}
 .tbuilder-review-item::before{content:'•';font-size:12px;line-height:8px;}
 .tbuilder-review-item.ok{border-color:rgba(38,110,74,.2);background:rgba(38,110,74,.06);color:#266e4a;}
 .tbuilder-review-item.ok::before{content:'✓';}
 .tbuilder-review-item.attention{border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.12);color:#8A5A09;}
 .tbuilder-review-item.needs{border-color:rgba(185,69,57,.22);background:rgba(185,69,57,.06);color:#9D3D35;}
-.tbuilder-brief-review.ready{border-color:rgba(38,110,74,.20);background:rgba(38,110,74,.04);}
-.tbuilder-brief-review.ready .tbuilder-review-dot{background:#266e4a;box-shadow:0 0 0 4px rgba(38,110,74,.11);}
-.tbuilder-brief-review.attention{border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.07);}
-.tbuilder-brief-review.attention .tbuilder-review-dot{background:#A36B0B;box-shadow:0 0 0 4px rgba(163,107,11,.11);}
-.tbuilder-brief-review.needs-input{border-color:rgba(185,69,57,.20);background:rgba(185,69,57,.045);}
-.tbuilder-brief-review.needs-input .tbuilder-review-dot{background:#A4453B;box-shadow:0 0 0 4px rgba(164,69,59,.11);}
-.tbuilder-generation-plan{display:grid;gap:9px;padding:11px 12px;margin:0 0 12px;border:1px solid rgba(14,14,16,.10);border-top:1px dashed rgba(14,14,16,.12);border-radius:0 0 14px 14px;background:linear-gradient(135deg,rgba(14,14,16,.02),color-mix(in srgb,var(--accent) 4%,#fff));}
+.tbuilder-brief.ready{border-color:rgba(38,110,74,.20);background:rgba(38,110,74,.04);}
+.tbuilder-brief.ready .tbuilder-review-dot{background:#266e4a;box-shadow:0 0 0 4px rgba(38,110,74,.11);}
+.tbuilder-brief.attention{border-color:rgba(138,90,9,.22);background:rgba(248,198,80,.07);}
+.tbuilder-brief.attention .tbuilder-review-dot{background:#A36B0B;box-shadow:0 0 0 4px rgba(163,107,11,.11);}
+.tbuilder-brief.needs-input{border-color:rgba(185,69,57,.20);background:rgba(185,69,57,.045);}
+.tbuilder-brief.needs-input .tbuilder-review-dot{background:#A4453B;box-shadow:0 0 0 4px rgba(164,69,59,.11);}
+/* Статус справа в той же строке, что и заголовок разбора: одно состояние —
+   одно место. До этого «Ready to create», «Brief looks balanced» и «Brief
+   mapped» жили в трёх карточках и повторяли друг друга. */
+.tbuilder-generation-plan{display:grid;gap:8px;padding:10px 0 0;margin:0;border:0;border-top:1px dashed rgba(14,14,16,.13);background:none;}
 .tbuilder-generation-plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;}
 .tbuilder-plan-eyebrow{display:block;margin-bottom:3px;color:var(--accent);font:900 9px/1 var(--mono,monospace);letter-spacing:.09em;text-transform:uppercase;}
 .tbuilder-generation-plan-head strong{display:block;color:#35332D;font:900 12px/1.25 var(--font);letter-spacing:-.012em;}
