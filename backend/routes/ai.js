@@ -4,6 +4,7 @@ const { requireAuth, requireTeacher } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
+const vocabLibrary = require('../lib/vocabLibrary');
 
 // Persistent daily usage counters (survive restarts; power the dashboard chart).
 pool.query(`
@@ -255,6 +256,13 @@ function vocabList(input, count = input.count) {
     .slice(0, count);
   if (unique.length >= Math.min(6, count)) return unique;
 
+  /* Последняя ветка раньше отдавала TOPIC_WORDS с темой в скобках —
+     «challenge (airport)». Собранная библиотека приложения знает настоящие
+     слова по двадцати школьным темам; берём их, и оффлайновый урок остаётся
+     уроком. TOPIC_WORDS остаются только для тем, которых в ней нет. */
+  const fromLibrary = vocabLibrary.words(input.topic, count).map(w => w.en);
+  if (fromLibrary.length) return fromLibrary;
+
   const topic = input.topic.toLowerCase();
   return TOPIC_WORDS.slice(0, count).map(w => `${w} (${topic})`);
 }
@@ -279,13 +287,21 @@ function base(input, boardKind) {
 function makeWordSet(input) {
   const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const source = wordsList.length ? wordsList : vocabList(input, input.count);
+  /* Перевод и пример — из библиотеки, если слово в ней есть: пустое поле «uk»
+     и «попробуйте составить предложение» учитель всё равно дозаполняет руками. */
+  const known = new Map(vocabLibrary.words(input.topic, 60).map(w => [w.en.toLowerCase(), w]));
   return {
     ...base(input, 'wordset'),
     engine: 'vps-fast-v1',
-    words: source.map(en => ({
-      en, uk: '', ru: '',
-      ex: `Try using "${en}" in a sentence about ${input.topic}.`,
-    })),
+    words: source.map(en => {
+      const hit = known.get(String(en).toLowerCase());
+      return {
+        en,
+        uk: hit?.uk || '',
+        ru: hit?.ru || '',
+        ex: hit?.ex || `Try using "${en}" in a sentence about ${input.topic}.`,
+      };
+    }),
   };
 }
 
