@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=287">
-<link rel="preload" as="style" href="styles/unify.css?v=287">
+<link rel="preload" as="style" href="styles/harmony.css?v=288">
+<link rel="preload" as="style" href="styles/unify.css?v=288">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=287">
+<link rel="manifest" href="manifest.json?v=288">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -58,8 +58,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=287">
-<link rel="stylesheet" href="styles/main.css?v=287">
+<link rel="stylesheet" href="styles/tokens.css?v=288">
+<link rel="stylesheet" href="styles/main.css?v=288">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -440,21 +440,41 @@ html,body {
   box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
   cursor:default; flex-shrink:0; position:relative;
 }
-.win-controls { display:flex; gap:8px; align-items:center; z-index:1; }
+.win-controls { display:flex; gap:4px; align-items:center; z-index:1; }
+/* Свои кнопки окна вместо трёх цветных кружков macOS.
+   Кружки — чужой знак: они читаются как «это Mac», а не «это TeachEd», и на
+   любом другом устройстве выглядят цитатой из чужого интерфейса. Здесь то же
+   действие сказано своим языком: тихая ghost-кнопка со знаком, который сам
+   объясняет, что произойдёт. Цветом отмечено только закрытие — единственное
+   необратимое из трёх. */
 .tl {
-  width:13px; height:13px; border-radius:50%; cursor:pointer;
-  transition:filter .15s; flex-shrink:0;
+  width:22px; height:22px; border-radius:7px; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color: var(--text-3); background:transparent;
+  transition:background .14s, color .14s;
 }
-.tl.close  { background:#ff5f57; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
-.tl.min    { background:#febc2e; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
-.tl.max    { background:#28c840; box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
-.tl:hover  { filter:brightness(1.12); }
+.tl::before { display:block; font-size:12px; line-height:1; font-weight:700; }
+.tl.close::before { content:'\2715'; }
+.tl.min::before   { content:'\2013'; }
+.tl.max::before   { content:'\2197'; }
+.tl:hover  { background:rgba(14,14,16,.07); color: var(--text); }
+.tl.close:hover { background:rgba(236,45,140,.13); color:#EC2D8C; }
 .win-title {
   position:absolute; left:50%; transform:translateX(-50%);
   font-size:13px; font-weight:800; color: var(--text-2); white-space:nowrap;
   letter-spacing:-0.01em;
 }
 .win-body { flex:1; overflow:hidden; display:flex; }
+
+/* Иконки: наследуют цвет и кегль текста, поэтому одинаково живут и в тёмной
+   строке меню, и на цветной плитке дока. */
+.ic { width:1.25em; height:1.25em; display:inline-block; vertical-align:-.28em; flex-shrink:0; }
+.win-title .ic { vertical-align:-.2em; margin-right:6px; }
+.sb-item .ic { width:16px; height:16px; margin-right:8px; vertical-align:-.22em; }
+.di-icon .ic { width:24px; height:24px; color:#fff; }
+.mp-quick-ic2 .ic { width:20px; height:20px; color:#2C2A24; }
+.mob-win-header .ic { width:22px; height:22px; }
+
 
 /* ── Resize handles (8 edges) ── */
 .win-rz-n,.win-rz-s,.win-rz-e,.win-rz-w,
@@ -528,15 +548,7 @@ html,body {
 }
 .win-snap-preview.show { opacity:1; }
 
-/* ── Traffic-light symbols on hover ── */
-.win-controls:hover .tl.close::before { content:'×'; }
-.win-controls:hover .tl.min::before   { content:'−'; }
-.win-controls:hover .tl.max::before   { content:'+'; }
-.win-controls .tl::before {
-  display:block; text-align:center; line-height:13px; font-size:11px;
-  font-weight:900; color:rgba(0,0,0,0.55);
-}
-.tl { display:flex; align-items:center; justify-content:center; }
+
 .win-sidebar {
   width:200px; flex-shrink:0;
   background: rgba(250,246,242,0.82);
@@ -1461,10 +1473,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=287" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=287">
-<link rel="stylesheet" href="styles/harmony.css?v=287">
-<link rel="stylesheet" href="styles/unify.css?v=287">
+<script src="theme.js?v=288" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=288">
+<link rel="stylesheet" href="styles/harmony.css?v=288">
+<link rel="stylesheet" href="styles/unify.css?v=288">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1474,6 +1486,52 @@ html,body {
 </style>
 </head>
 <body class="os-desktop">
+<!-- ─────────────────────────────────────────────────────────────────────────
+     Свой набор иконок вместо эмодзи.
+
+     Эмодзи в интерфейсе — это чужая графика: она рисуется шрифтом системы,
+     поэтому на макбуке, на телефоне и на Windows это буквально три разные
+     картинки, в цвете, который мы не выбирали и не можем согласовать с бренд-
+     палитрой. Отсюда и ощущение дешевизны: интерфейс выглядит собранным из
+     стикеров. Эти иконки — одна геометрия (сетка 24, штрих 1.6, скруглённые
+     концы), наследуют цвет текста и масштабируются вместе с ним.
+─────────────────────────────────────────────────────────────────────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<g id="i-base" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></g>
+<symbol id="i-plans" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v3H8z"/><path d="M16 5.5h2.5v14H5.5v-14H8"/><path d="M9 11h6M9 15h4"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="8.5" r="3"/><path d="M4 19c.6-3 2.8-4.5 5.5-4.5S14.4 16 15 19"/><path d="M16 6.2a3 3 0 0 1 0 5.6M17.5 14.8c1.7.6 2.9 2 3.3 4.2"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2.5"/><path d="M4 10.5h16M9 4v3.5M15 4v3.5"/></symbol>
+<symbol id="i-notes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 4.8l3.7 3.7-9 9-4.5.8.8-4.5z"/><path d="M13.6 6.7l3.7 3.7"/></symbol>
+<symbol id="i-tools" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6l1.7 4.7 4.7 1.7-4.7 1.7L12 16.4l-1.7-4.7-4.7-1.7 4.7-1.7z"/><path d="M18 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M3.5 10h17M7 14.5h3"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.5 2h-14z"/><path d="M10.2 19a1.9 1.9 0 0 0 3.6 0"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7.5h15M4.5 12h15M4.5 16.5h15"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 5 3 3H7l3-3z"/><path d="M12 12v7"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V4.8h4V7M6.5 7l.9 12.2h9.2L17.5 7"/><path d="M10.5 10.5v6M13.5 10.5v6"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h6a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2h-6z"/><path d="M19.5 5.5h-6a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h6z"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.9l3.6 3.6L9 18.6l-4.6 1 1-4.6z"/><path d="M5.4 15l3.6 3.6"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.4c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L4.5 20l1.2-3.4A6.4 6.4 0 0 1 4 12.4C4 8.8 7.6 6 12 6s8 2.8 8 6.4z"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5h13v10l-4.5 5h-8.5z"/><path d="M18.5 14.5H14v5"/><path d="M8.5 8.5h7M8.5 11.5h5"/></symbol>
+<symbol id="i-type" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5h9M9 6.5V18"/><path d="M13.5 12.5h6M16.5 12.5V18"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M18 6l-1.6 1.6M7.6 16.4L6 18M18 18l-1.6-1.6M7.6 7.6L6 6"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.2 2.3 3.3 5 3.3 8s-1.1 5.7-3.3 8c-2.2-2.3-3.3-5-3.3-8S9.8 6.3 12 4z"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 19.5c.8-3.4 3.5-5.2 7-5.2s6.2 1.8 7 5.2"/></symbol>
+<symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5L12 5.5l8.5 4-8.5 4z"/><path d="M7 11.5v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5h15"/><path d="M7.5 19.5v-6M12 19.5V6.5M16.5 19.5v-9"/></symbol>
+<symbol id="i-gradebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-11a1.5 1.5 0 0 1 0-3h11"/><path d="M6.5 4.5v13"/><path d="M10 8.5h5"/></symbol>
+<symbol id="i-board" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2"/><path d="M8 17.5L7 20M16 17.5L17 20M8.5 9h3M8.5 12.5h6"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6.5" width="12" height="11" rx="2.5"/><path d="M15.5 11l5-2.6v7.2l-5-2.6z"/></symbol>
+<symbol id="i-speak" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3.5" width="6" height="10" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/></symbol>
+<symbol id="i-ruler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="8.5" width="18.4" height="7" rx="1.6" transform="rotate(-45 12 12)"/><path d="M9 8.4l1.6 1.6M12 11.4l1.6 1.6M15 14.4l1.6 1.6"/></symbol>
+<symbol id="i-case" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="17" height="11" rx="2"/><path d="M9 7.5V5.5h6v2M3.5 12h17"/></symbol>
+<symbol id="i-kid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M6.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M9.5 4.4C10 3.5 11 3 12 3s2 .5 2.5 1.4"/></symbol>
+<symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 2 4.5 5 4.5 8.5L12 16l-4.5-4.5C7.5 8 9 5 12 3z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 16.5L7 21l4-1.5M15 16.5L17 21l-4-1.5"/></symbol>
+<symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11v15l-5.5-4-5.5 4z"/></symbol>
+<symbol id="i-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2.5"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 7L7 17"/></symbol>
+</defs></svg>
+
 <h1 class="sr-only">TeachEd language learning platform for teachers</h1>
 
 <!-- ════════════════════ DESKTOP ════════════════════ -->
@@ -1515,11 +1573,11 @@ html,body {
   <div class="wp-card wp-card-white wp-c2"></div>
   <!-- Lime card with owl icon -->
   <div class="wp-card wp-card-lime wp-c3">
-    <div class="wp-icon">🦉</div>
+    <div class="wp-icon"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
   </div>
   <!-- Pink bookmark card -->
   <div class="wp-card wp-card-pink wp-c4">
-    <div class="wp-icon" style="font-size:22px;">🔖</div>
+    <div class="wp-icon"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg></div>
   </div>
   <!-- Schedule card -->
   <div class="wp-card wp-card-white wp-c5">
@@ -1551,9 +1609,9 @@ html,body {
   </nav>
   <div class="mb-right">
     <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
-    <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
+    <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1572,13 +1630,13 @@ html,body {
 <div class="widget" id="wg-clock">
   <div class="wg-clock-time" id="wg-time">10<em>:</em>42</div>
   <div class="wg-clock-date" id="wg-date">wednesday · may 7</div>
-  <div class="wg-clock-lang">👩‍🏫 Teacher</div>
+  <div class="wg-clock-lang">Teacher</div>
 </div>
 
 <div class="widget" id="wg-streak">
   <div style="display:flex;align-items:baseline;gap:6px;">
     <div class="wg-streak-n">—</div>
-    <span style="font-size:20px;">📅</span>
+    <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>
   </div>
   <div class="wg-streak-label">Classes today</div>
   <div class="wg-streak-sub">Loading schedule…</div>
@@ -1613,15 +1671,15 @@ html,body {
       <div class="tl min"    onclick="minWin('plans')"></div>
       <div class="tl max"    onclick="maxWin('plans')"></div>
     </div>
-    <div class="win-title">📋 Lesson Plans</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg>Lesson Plans</div>
   </div>
   <div class="win-body">
     <div class="win-sidebar" id="sidebar-plans">
       <div class="sb-section-label">Quick links</div>
-      <a class="sb-item" href="courses.html" style="text-decoration:none;">📚 All Courses</a>
-      <a class="sb-item" href="board.html" style="text-decoration:none;">📌 Open Board</a>
-      <a class="sb-item" href="gradebook.html" style="text-decoration:none;">📒 Gradebook</a>
-      <a class="sb-item" href="analytics.html" style="text-decoration:none;">📊 Analytics</a>
+      <a class="sb-item" href="courses.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>All Courses</a>
+      <a class="sb-item" href="board.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg>Open Board</a>
+      <a class="sb-item" href="gradebook.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg>Gradebook</a>
+      <a class="sb-item" href="analytics.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Analytics</a>
       <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
       <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
       <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
@@ -1629,9 +1687,9 @@ html,body {
     </div>
     <div class="win-main" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">📋</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg>
         <div class="mob-win-title">Lesson Plans</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')">☰</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('plans')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <div class="mob-home-shell mp-shell">
         <!-- Top bar: avatar + greeting + actions -->
@@ -1695,7 +1753,7 @@ html,body {
         <div class="mp-section-head"><div class="mp-section-h">Teacher controls</div></div>
         <div class="mp-quick-list">
           <a class="mp-quick" href="schedule.html">
-            <div class="mp-quick-ic2" style="background:rgba(205,242,79,.22)" aria-hidden="true">📅</div>
+            <div class="mp-quick-ic2" style="background:rgba(205,242,79,.22)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Schedule</div>
               <div class="mp-quick-s">Plan, move and reschedule classes</div>
@@ -1703,7 +1761,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="gradebook.html">
-            <div class="mp-quick-ic2" style="background:rgba(143,230,230,.28)" aria-hidden="true">📒</div>
+            <div class="mp-quick-ic2" style="background:rgba(143,230,230,.28)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Gradebook</div>
               <div class="mp-quick-s">Scores, attendance and progress</div>
@@ -1711,7 +1769,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="homework.html">
-            <div class="mp-quick-ic2" style="background:rgba(255,181,174,.30)" aria-hidden="true">📝</div>
+            <div class="mp-quick-ic2" style="background:rgba(255,181,174,.30)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Homework inbox</div>
               <div class="mp-quick-s">Review submitted tasks and follow up</div>
@@ -1719,7 +1777,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="analytics.html">
-            <div class="mp-quick-ic2" style="background:rgba(236,45,140,.16)" aria-hidden="true">📊</div>
+            <div class="mp-quick-ic2" style="background:rgba(236,45,140,.16)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Weekly recap</div>
               <div class="mp-quick-s">Class and student progress at a glance</div>
@@ -1745,12 +1803,12 @@ html,body {
         <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip" href="lesson-builder.html">Lesson builder</a><a class="studio-chip" href="community.html">Community boards</a></div>
       </section>
       <div class="curr-search">
-        <span class="curr-search-ic">🔍</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
         <input type="text" placeholder="Search your boards by name…" id="plans-search-input" oninput="boardsRender()">
       </div>
       <div class="curr-grid" id="plans-grid">
         <div class="plans-empty-state" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:12px;">
-          <div style="font-size:36px;opacity:.5;">📋</div>
+          <div style="opacity:.45;font-size:0"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
           <div style="font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:-.01em;">Preparing your boards…</div>
           <div style="font-size:12px;color:var(--text-3);font-weight:500;">Saved lessons, shared boards and drafts will appear here</div>
         </div>
@@ -1767,18 +1825,18 @@ html,body {
       <div class="tl min"    onclick="minWin('students')"></div>
       <div class="tl max"    onclick="maxWin('students')"></div>
     </div>
-    <div class="win-title">👥 Students</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Students</div>
   </div>
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar" id="sidebar-students">
       <div class="sb-section-label">Groups</div>
-      <div class="sb-item active" onclick="studentsFilter('all',this)">👥 All Students</div>
+      <div class="sb-item active" onclick="studentsFilter('all',this)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>All Students</div>
     </div>
     <div class="win-main studio-main-scroll" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">👥</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>
         <div class="mob-win-title">Students</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')">☰</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero blue">
         <div class="studio-eyebrow">Student command center</div>
@@ -1799,12 +1857,12 @@ html,body {
       <div class="tl min"    onclick="minWin('schedule')"></div>
       <div class="tl max"    onclick="maxWin('schedule')"></div>
     </div>
-    <div class="win-title">📅 Schedule</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Schedule</div>
   </div>
   <div class="win-body">
     <div class="win-main studio-main-scroll" style="flex-direction:column;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">📅</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>
         <div class="mob-win-title">Schedule</div>
       </div>
       <section class="studio-hero pink">
@@ -1838,7 +1896,7 @@ html,body {
       <div class="tl min"    onclick="minWin('notes')"></div>
       <div class="tl max"    onclick="maxWin('notes')"></div>
     </div>
-    <div class="win-title">✍️ Notes</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg>Notes</div>
   </div>
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar notes-sidebar" id="sidebar-notes">
@@ -1849,9 +1907,9 @@ html,body {
     </div>
     <div class="win-main notes-editor studio-main-scroll" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">✍️</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg>
         <div class="mob-win-title">Notes</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')">☰</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero">
         <div class="studio-eyebrow">Teacher notebook</div>
@@ -1860,8 +1918,8 @@ html,body {
         <div class="studio-actions"><button class="studio-chip primary" type="button" onclick="notesNew()">New note →</button><span class="studio-chip">Autosaved locally</span></div>
       </section>
       <div class="notes-toolbar">
-        <button class="notes-tb-btn" data-note-pin onclick="notesTogglePin()" title="Pin note">📌</button>
-        <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note">🗑</button>
+        <button class="notes-tb-btn" data-note-pin onclick="notesTogglePin()" title="Pin note"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg></button>
+        <button class="notes-tb-btn" onclick="notesDelete(activeNote)" title="Delete note"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
       </div>
       <textarea class="notes-editor-area" id="notes-ta" placeholder="Start writing…&#10;&#10;Use this space for lesson prep, student feedback, grammar notes, or anything you need to remember." oninput="notesAutoSave()"></textarea>
       <div class="notes-footer">
@@ -1888,29 +1946,29 @@ html,body {
       <div class="tl min"    onclick="minWin('tools')"></div>
       <div class="tl max"    onclick="maxWin('tools')"></div>
     </div>
-    <div class="win-title">🪄 Teaching Tools</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>Teaching Tools</div>
   </div>
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar" id="sidebar-tools">
       <div class="sb-section-label">All Skills</div>
       <div class="sb-item active" id="tg-all" onclick="toolsFilter('all',this)">
-        <span class="sb-item-ic">✦</span> All Tools
+        <svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg> All Tools
         <span class="sb-item-badge">14</span>
       </div>
       <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
-      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <span class="sb-item-ic">📖</span> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
-      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <span class="sb-item-ic">✏️</span> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
+      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
+      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
 
-      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <span class="sb-item-ic">💬</span> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
-      <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><span class="sb-item-ic">📝</span> Vocabulary <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <span class="sb-item-ic">🔤</span> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
-      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <span class="sb-item-ic">⚙️</span> Utility    <span class="sb-item-badge" style="background:rgba(156,163,175,.2);color:#9ca3af;">2</span></div>
+      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
+      <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg> Vocabulary <span class="sb-item-badge">4</span></div>
+      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <svg class="ic" aria-hidden="true"><use href="#i-type"/></svg> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
+      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg> Utility    <span class="sb-item-badge" style="background:rgba(156,163,175,.2);color:#9ca3af;">2</span></div>
     </div>
     <div class="win-main" style="padding:0;flex-direction:column;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">🪄</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>
         <div class="mob-win-title">Teaching Tools</div>
-        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')">☰</div>
+        <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero mix">
         <div class="studio-eyebrow">Teacher tool studio</div>
@@ -1932,12 +1990,12 @@ html,body {
       <div class="tl min" onclick="minWin('pricing')"></div>
       <div class="tl max" onclick="maxWin('pricing')"></div>
     </div>
-    <div class="win-title">💳 Pricing & Plans</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Pricing &amp; Plans</div>
   </div>
   <div class="win-body">
     <div class="win-main" style="padding:0;display:block;">
       <div class="mob-win-header">
-        <span style="font-size:22px;">💳</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>
         <div class="mob-win-title">Pricing</div>
       </div>
       <div class="pricing-shell">
@@ -2043,64 +2101,64 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#0E0E10,#CDF24F);">📋</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#0E0E10,#CDF24F);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-students" onclick="openApp('students')" title="Students">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#3b82f6);">👥</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#3b82f6);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
       <div class="di-label">Students</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-schedule" onclick="openApp('schedule')" title="Schedule">
-      <div class="di-icon schedule">📅</div>
+      <div class="di-icon schedule"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
       <div class="di-label">Schedule</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-notes" onclick="openApp('notes')" title="Notes">
-      <div class="di-icon notes">✍️</div>
+      <div class="di-icon notes"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div>
       <div class="di-label">Notes</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
-      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#9F8CE8);">🪄</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#9F8CE8);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-board" href="board.html" style="text-decoration:none;" title="Board">
-      <div class="di-icon" style="background:linear-gradient(145deg,#FFC94A,#F59E0B);">📌</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#FFC94A,#F59E0B);"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg></div>
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
-      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#7c3aed);">📚</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#7c3aed);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
-      <div class="di-icon" style="background:linear-gradient(145deg,#CDF24F,#0E0E10);">🌍</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#CDF24F,#0E0E10);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
       <div class="di-label">Community</div>
       <div class="di-dot"></div>
     </a>
     <div class="di-sep"></div>
     <a class="di" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
-      <div class="di-icon" style="background:linear-gradient(145deg,#8FE6E6,#059669);position:relative;">📊</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#8FE6E6,#059669);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
 
     <a class="di" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" title="Gradebook">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);">📒</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
     <div class="di" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
-      <div class="di-icon" style="background:linear-gradient(145deg,#101014,#EC2D8C,#CDF24F);">💳</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#101014,#EC2D8C,#CDF24F);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
       <div class="di-label">Pricing</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
-      <div class="di-icon" style="background:linear-gradient(145deg,#EC2D8C,#d4267f);">👤</div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#EC2D8C,#d4267f);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
     </a>
@@ -2110,7 +2168,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=287"></script>
+<script src="scripts/desktop-app.js?v=288"></script>
 
 <script>
 
@@ -2130,7 +2188,7 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="pwa-boot.js?v=287" defer></script>
+<script src="pwa-boot.js?v=288" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2145,15 +2203,15 @@ function showOsToast(msg) {
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
           <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(200,230,50,.15);">
-            <div style="font-size:28px;">📋</div>
+            <div><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
             <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
-            <div style="font-size:28px;">🎓</div>
+            <div><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
             <div><div style="font-size:14px;font-weight:800;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
-            <div style="font-size:28px;">📅</div>
+            <div><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
             <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
@@ -2165,43 +2223,43 @@ function showOsToast(msg) {
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
         <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
           <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #EC2D8C;cursor:pointer;transition:.15s;background:#F5F0E8;">
-            <div style="font-size:20px;margin-bottom:4px;">⬜</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-square"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>
           <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">🗣️</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-speak"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Speaking</div>
           </div>
           <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📐</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Grammar</div>
           </div>
           <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📚</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Reading</div>
           </div>
           <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">✍️</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Writing</div>
           </div>
           <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📖</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Vocabulary</div>
           </div>
           <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">📝</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Exam Prep</div>
           </div>
           <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">💼</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-case"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Business</div>
           </div>
           <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
-            <div style="font-size:20px;margin-bottom:4px;">🧒</div>
+            <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-kid"/></svg></div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Kids (A1)</div>
           </div>
         </div>
@@ -2219,7 +2277,7 @@ function showOsToast(msg) {
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
         <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📹 Add your meeting room</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
@@ -2231,7 +2289,7 @@ function showOsToast(msg) {
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">🚀 Finish Setup!</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Finish setup</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
@@ -2297,7 +2355,7 @@ async function obCreateBoard() {
           vocab:     [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Vocabulary Introduction', status:'available', skill:'Vocabulary', duration:'15 min', level:'B1', desc:'Present 10 new words in context with images and examples.' }}, { type:'vocab', x:340, y:80, w:220, h:170, data:{ word:'ambitious', phonetic:'/æmˈbɪʃəs/', pos:'adjective', translation:'амбітний', example:'She is very ambitious — she wants to become CEO.' }}, { type:'assignment', x:60, y:300, w:260, h:160, data:{ title:'Vocabulary Quiz', type:'Quiz', maxScore:20, desc:'Match words to definitions. Fill gaps in sentences.', questions:[] }}, { type:'milestone', x:340, y:280, w:220, h:120, data:{ title:'Vocabulary Unit ✓' }}],
           testprep:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', level:'B2', desc:'Quick review of key grammar and vocabulary.' }}, { type:'assignment', x:350, y:80, w:270, h:170, data:{ title:'Mock Test — Grammar', type:'Quiz', maxScore:30, timeLimit:20, desc:'15 multiple choice grammar questions. Exam conditions.', questions:[] }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Mock Test — Writing', type:'Essay', maxScore:20, timeLimit:30, desc:'Write a formal email (150 words).' }}, { type:'milestone', x:350, y:280, w:220, h:120, data:{ title:'Mock Exam ✓' }}],
           business:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Formal vs Informal Register', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Compare formal email vs casual message. Key phrases for each register.' }}, { type:'vocab', x:350, y:80, w:220, h:180, data:{ word:'Business phrases', phonetic:'', pos:'functional language', translation:'Ділові фрази', example:'I am writing with regard to… / Please find attached…' }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Email Writing Task', type:'Essay', maxScore:20, desc:'Write a formal email (120 words) to a client.' }}, { type:'milestone', x:350, y:290, w:220, h:120, data:{ title:'Business English ✓' }}],
-          kids:      [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! Hi! Good morning!' }}, { type:'sticky', x:340, y:80, w:200, h:160, data:{ text:'🌈 Today we learn:\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun! 🎉', color:'#E8F5E9' }}, { type:'lesson', x:60, y:300, w:260, h:180, data:{ title:'Vocabulary — Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word.' }}, { type:'milestone', x:340, y:280, w:220, h:110, data:{ title:'Kids Lesson ✓ 🌟', desc:'Great job today!' }}],
+          kids:      [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! Hi! Good morning!' }}, { type:'sticky', x:340, y:80, w:200, h:160, data:{ text:' Today we learn:\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun!', color:'#E8F5E9' }}, { type:'lesson', x:60, y:300, w:260, h:180, data:{ title:'Vocabulary — Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word.' }}, { type:'milestone', x:340, y:280, w:220, h:110, data:{ title:'Kids Lesson ✓', desc:'Great job today!' }}],
         };
         const tplCards = OB_TEMPLATES[_obTpl];
         if (tplCards) {
@@ -2350,10 +2408,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=287" defer></script>
-<script src="scripts/nav-boost.js?v=287" defer></script>
-<script src="scripts/mobile-perf.js?v=287" defer></script>
-<script src="scripts/mobile-nav.js?v=287" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=287" defer></script>
+<script src="pwa.js?v=288" defer></script>
+<script src="scripts/nav-boost.js?v=288" defer></script>
+<script src="scripts/mobile-perf.js?v=288" defer></script>
+<script src="scripts/mobile-nav.js?v=288" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=288" defer></script>
 </body>
 </html>

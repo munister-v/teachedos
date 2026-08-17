@@ -262,15 +262,22 @@ h1,h2,h3,h4,h5,h6 {
   cursor:default; flex-shrink:0; position:relative;
   -webkit-app-region: drag;
 }
-.win-controls { display:flex; gap:8px; align-items:center; z-index:1; }
+.win-controls { display:flex; gap:4px; align-items:center; z-index:1; }
+/* Свои кнопки окна вместо трёх цветных кружков macOS — та же система, что в
+   index.html. Кружки читаются как «это Mac», а не «это TeachEd»; здесь то же
+   действие сказано своим языком, и цветом отмечено только закрытие. */
 .tl {
-  width:12px; height:12px; border-radius:50%; cursor:pointer;
-  transition:filter .12s, transform .12s; flex-shrink:0;
+  width:22px; height:22px; border-radius:7px; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color: var(--text-3); background:transparent;
+  transition:background .14s, color .14s;
 }
-.tl.close  { background:#ff5f57; box-shadow:0 0 0 0.5px rgba(0,0,0,0.18); }
-.tl.min    { background:#febc2e; box-shadow:0 0 0 0.5px rgba(0,0,0,0.18); }
-.tl.max    { background:#28c840; box-shadow:0 0 0 0.5px rgba(0,0,0,0.18); }
-.win-controls:hover .tl { filter:brightness(1.08); }
+.tl::before { display:block; font-size:12px; line-height:1; font-weight:700; }
+.tl.close::before { content:'\2715'; }
+.tl.min::before   { content:'\2013'; }
+.tl.max::before   { content:'\2197'; }
+.tl:hover  { background:rgba(14,14,16,.07); color: var(--text); }
+.tl.close:hover { background:rgba(236,45,140,.13); color:#EC2D8C; }
 .win-title {
   position:absolute; left:50%; transform:translateX(-50%);
   font-size:13px; font-weight:650; color: var(--text-2); white-space:nowrap;

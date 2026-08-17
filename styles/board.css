@@ -3401,7 +3401,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-inline-btn{min-height:32px;padding:6px 9px;border:1px solid rgba(14,14,16,.12);border-radius:10px;background:#fff;color:#4A483F;font:850 10px/1 var(--mono,monospace);cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;}
 .tbuilder-inline-btn:hover{border-color:rgba(14,14,16,.28);background:#F8F6EF;box-shadow:0 5px 14px rgba(14,14,16,.06);}
 .tbuilder-inline-btn.undo{border-color:rgba(38,110,74,.28);background:rgba(38,110,74,.07);color:#266e4a;}
-.tbuilder-brief-review{display:grid;gap:8px;padding:10px 11px;margin:3px 0 8px;border:1px solid rgba(14,14,16,.10);border-radius:15px;background:rgba(255,255,255,.7);transition:border-color .16s ease,background .16s ease;}
+/* Разбор брифа и план сборки — про одно и то же: как понят бриф. Двумя
+   отдельными карточками с собственными рамками и фонами они спорили друг с
+   другом и отодвигали поля, ради которых окно открывают. Теперь это один блок
+   с внутренней линией: сверху — состояние, снизу — что из этого следует. */
+.tbuilder-brief-review{display:grid;gap:8px;padding:11px 12px;margin:3px 0 0;border:1px solid rgba(14,14,16,.10);border-bottom:0;border-radius:14px 14px 0 0;background:rgba(255,255,255,.7);transition:border-color .16s ease,background .16s ease;}
 .tbuilder-brief-review-title{display:flex;align-items:flex-start;gap:8px;}
 .tbuilder-review-dot{flex:0 0 auto;width:8px;height:8px;margin-top:4px;border-radius:50%;background:#9A9386;box-shadow:0 0 0 4px rgba(154,147,134,.12);}
 .tbuilder-brief-review-title strong{display:block;color:#35332D;font:900 10px/1.25 var(--mono,monospace);letter-spacing:.06em;text-transform:uppercase;}
@@ -3419,7 +3423,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-brief-review.attention .tbuilder-review-dot{background:#A36B0B;box-shadow:0 0 0 4px rgba(163,107,11,.11);}
 .tbuilder-brief-review.needs-input{border-color:rgba(185,69,57,.20);background:rgba(185,69,57,.045);}
 .tbuilder-brief-review.needs-input .tbuilder-review-dot{background:#A4453B;box-shadow:0 0 0 4px rgba(164,69,59,.11);}
-.tbuilder-generation-plan{display:grid;gap:9px;padding:10px 11px;margin:0 0 9px;border:1px solid rgba(14,14,16,.10);border-radius:15px;background:linear-gradient(135deg,rgba(14,14,16,.025),color-mix(in srgb,var(--accent) 5%,#fff));}
+.tbuilder-generation-plan{display:grid;gap:9px;padding:11px 12px;margin:0 0 12px;border:1px solid rgba(14,14,16,.10);border-top:1px dashed rgba(14,14,16,.12);border-radius:0 0 14px 14px;background:linear-gradient(135deg,rgba(14,14,16,.02),color-mix(in srgb,var(--accent) 4%,#fff));}
 .tbuilder-generation-plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;}
 .tbuilder-plan-eyebrow{display:block;margin-bottom:3px;color:var(--accent);font:900 9px/1 var(--mono,monospace);letter-spacing:.09em;text-transform:uppercase;}
 .tbuilder-generation-plan-head strong{display:block;color:#35332D;font:900 12px/1.25 var(--font);letter-spacing:-.012em;}
@@ -3431,7 +3435,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-plan-metric small{overflow:hidden;color:#817B6D;font:800 8px/1.1 var(--mono,monospace);letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;}
 .tbuilder-plan-metric strong{overflow:hidden;color:#3D3A32;font:800 10px/1.25 var(--font);text-overflow:ellipsis;white-space:nowrap;}
 .tbuilder-generation-plan p{margin:0;color:#6F695D;font:700 10px/1.4 var(--font);}
-.tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:950;margin:12px 0 6px;}
+.tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:950;margin:14px 0 6px;}
+/* Одна шкала скруглений на всё окно: 20 — панели, 14 — блоки, 12 — поля и
+   кнопки. До этого в одном экране встречались 28, 22, 16, 15, 13, 11 и 10, и
+   именно от этого интерфейс выглядел собранным из разных наборов. */
+.tbuilder-form,.tbuilder-preview{border-radius:20px;}
+.tbuilder-form-head{border-radius:14px;}
+.tbuilder-choice-row{border-radius:14px;}
+.tbuilder-choice-row button{border-radius:10px;}
+.tbuilder-btn{border-radius:12px;}
+.tbuilder-inline-btn{border-radius:9px;}
+.tbuilder-plan-metric{border-radius:9px;}
 .tbuilder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tbuilder-form input,.tbuilder-form select,.tbuilder-form textarea{
   width:100%;border:1.5px solid rgba(14,14,16,.10);border-radius:13px;background:#fff;color:#0E0E10;
@@ -3446,9 +3460,20 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 #tool-builder-panel .tbuilder-form select,
 #tool-builder-panel .tbuilder-form textarea{
   background:#fff !important;color:#0E0E10 !important;
-  border:1.5px solid rgba(14,14,16,.10) !important;border-radius:13px !important;
+  border:1.5px solid rgba(14,14,16,.10) !important;border-radius:12px !important;
   font-weight:750 !important;
 }
+/* Системный вид выпадающего списка — это чужая деталь: macOS рисует свою
+   рамку, свой размер и свою стрелку, поэтому «Уровень» выбивался из ряда
+   собственных полей формы. Рисуем сами: та же рамка, что у input, и своя
+   стрелка на месте, где её ждёт глаз. */
+#tool-builder-panel .tbuilder-form select{
+  -webkit-appearance:none !important;appearance:none !important;
+  padding-right:34px !important;background-repeat:no-repeat !important;
+  background-position:right 12px center !important;background-size:11px 7px !important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%236E6E5C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+}
+#tool-builder-panel .tbuilder-form select::-ms-expand{display:none;}
 #tool-builder-panel .tbuilder-form input::placeholder,
 #tool-builder-panel .tbuilder-form textarea::placeholder{color:#A2A28C !important;}
 #tool-builder-panel .tbuilder-form input:focus,
@@ -3493,7 +3518,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tt-answer-badge.false{background:#fee2e2;color:#dc2626;}
 /* Empty / status states */
 .tbuilder-empty{min-height:280px;display:grid;place-items:center;text-align:center;color:rgba(23,20,32,.38);font-weight:750;line-height:1.6;font-size:13px;}
-.tbuilder-empty strong{display:block;font-size:22px;margin-bottom:8px;opacity:.5;}
+.tbuilder-empty strong{display:block;margin-bottom:10px;opacity:.42;color:rgba(23,20,32,.75);}
+.tbuilder-empty strong svg{display:block;margin:0 auto;}
 /* Field visibility helpers */
 .tb-field-wrap{padding:1px 8px 8px;margin:5px -8px 0;border:1px solid transparent;border-radius:16px;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,opacity .15s;}
 .tb-field-wrap:focus-within{border-color:color-mix(in srgb,var(--accent) 28%,transparent);background:color-mix(in srgb,var(--accent) 3%,transparent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 7%,transparent);}

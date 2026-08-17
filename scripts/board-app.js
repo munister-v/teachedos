@@ -10455,9 +10455,20 @@ const TT_VOCAB_PLACEHOLDERS = {
   'phrasal-verbs':'Optional: specific phrasal verbs. Leave empty to generate from the topic.',
   'idioms':'Optional: specific idioms. Leave empty to generate from the topic.',
 };
+/* Пустое состояние предпросмотра рисуется своей графикой, а не эмодзи: эмодзи
+   берётся из системного шрифта, поэтому на разных машинах это разные картинки в
+   чужих цветах — на светлой панели конструктора они выглядели наклейкой. Здесь
+   один штрих (1.6, скруглённые концы) и цвет, наследуемый от панели. */
+const TT_EMPTY_ART = (paths) =>
+  `<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 const TT_EMPTY_ICONS = {
-  reading:'📄', vocabulary:'📖', grammar:'✏️', speaking:'🗣',
-  writing:'✍️', listening:'🎧', utility:'🧰',
+  reading:    TT_EMPTY_ART('<path d="M6 4.5h9l3.5 3.5v11.5H6z"/><path d="M14.5 4.5V8h3.5"/><path d="M9 12.5h6M9 16h4"/>'),
+  vocabulary: TT_EMPTY_ART('<path d="M4.5 5.5h6a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2h-6z"/><path d="M19.5 5.5h-6a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h6z"/>'),
+  grammar:    TT_EMPTY_ART('<path d="M4.5 6.5h9M9 6.5V18"/><path d="M13.5 12.5h6M16.5 12.5V18"/>'),
+  speaking:   TT_EMPTY_ART('<rect x="9" y="3.5" width="6" height="10" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/>'),
+  writing:    TT_EMPTY_ART('<path d="M16.5 3.9l3.6 3.6L9 18.6l-4.6 1 1-4.6z"/><path d="M5.4 15l3.6 3.6"/>'),
+  listening:  TT_EMPTY_ART('<path d="M5 13v-1a7 7 0 0 1 14 0v1"/><rect x="3.5" y="13" width="4" height="6" rx="2"/><rect x="16.5" y="13" width="4" height="6" rx="2"/>'),
+  utility:    TT_EMPTY_ART('<rect x="3.5" y="7.5" width="17" height="11" rx="2"/><path d="M9 7.5V5.5h6v2M3.5 12h17"/>'),
 };
 
 function _ttAdaptFields(tool) {
@@ -11099,7 +11110,7 @@ function openTeacherToolBuilder(toolId) {
   document.getElementById('tbuilder-sub').textContent = tool.desc;
   document.getElementById('tbuilder-kicker').textContent = `${BOARD_TOOL_NAMES[tool.cat] || tool.cat} / ${tool.kind}`;
   document.getElementById('tbuilder-chip').textContent = 'ready';
-  const icon = TT_EMPTY_ICONS[tool.cat] || '✦';
+  const icon = TT_EMPTY_ICONS[tool.cat] || TT_EMPTY_ART('<circle cx="12" cy="12" r="7.5"/><path d="M12 8.5v7M8.5 12h7"/>');
   document.getElementById('tbuilder-output').innerHTML = `<div class="tbuilder-empty"><strong>${icon}</strong>Fill the fields and click Generate.<br>The result will preview here before landing on the board.</div>`;
   _ttAdaptFields(tool);
   _ttSetAddToBoard(false);
@@ -12571,7 +12582,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '287';
+const TEACHEDOS_ASSET_VERSION = '288';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
