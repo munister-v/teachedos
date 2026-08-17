@@ -290,7 +290,12 @@ function shapeSpec(input) {
       };
     }
     const source = toolId === 'extract-vocab'
-      ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below (skip trivial function words). For each, give a short student-friendly definition (max 15 words) and quote or adapt a natural example sentence at ${level} level.`
+      /* «quote or adapt» на практиці означало «вигадай»: приклади виходили
+         правильні, але з іншого життя — «I love drawing pictures of animals in
+         my sketchbook» до інтерв'ю, де слово прозвучало зовсім інакше. Речення
+         з тексту прив'язує слово до того, що учень щойно подивився, і показує
+         справжнє вживання, а не словникове. */
+      ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below — collocations and multi-word phrases where the text has them, and skip trivial function words. For each: a short student-friendly definition (max 15 words) of the meaning IT HAS HERE, and as "example" the sentence from the source text where it appears, trimmed to at most 18 words and lightly cleaned up (fix false starts and filler; keep the speaker's own wording). Only write a new sentence if the source one truly cannot stand alone, and keep it at ${level} level.`
       : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
     return {
       task: `${head} ${source}${context}`,
@@ -421,8 +426,16 @@ function shapeSpec(input) {
       };
     }
     if (isGap) {
+      /* Це був найкоротший промпт у файлі — «зроби N речень з пропуском» — і
+         віддавав рівно те, що просили: підручникові речення нізвідки, які до
+         відео не мають стосунку. Тепер речення береться з тексту, а пропуск
+         стоїть на слові, яке варто вчити, а не на першому-ліпшому. */
+      const fromSource = String(input.source || '').trim().length > 120;
+      const sourced = fromSource
+        ? ` Build every sentence FROM THE SOURCE TEXT: take a sentence where something happens or is claimed, shorten it to at most 18 words if you must, and keep its wording. Work through the text in order, so the sheet follows the video. Blank the word that is worth learning — a key noun, verb, adjective or the second half of a collocation — never a name, number, article or preposition that can only be guessed. No two answers may be the same word, and each sentence must carry enough context for exactly one answer to fit.`
+        : '';
       return {
-        task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level. Use "_____" for the gap and give the exact missing word as "answer". Use type "gap-fill".${context}`,
+        task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level. Use "_____" for the gap and give the exact missing word as "answer".${sourced} Use type "gap-fill".${context}`,
         schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"word","points":1}]}',
       };
     }
