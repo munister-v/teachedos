@@ -203,12 +203,80 @@ router.get('/search', async (req, res) => {
   // лицензии требуют подписи, поэтому он крайний случай, а не равный участник.
   if (!results.length) { results = await wikiResolve(q); used = q; }
 
-  const url = results[0]?.url || null;
+  /* Наружу отдаём адреса через наш прокси, а исходный сохраняем в `origin`:
+     карточка урока живёт годами, и ссылка на чужой CDN — это срок годности,
+     о котором никто не узнает, пока картинки не пропадут посреди занятия. */
+  const proxied = results.map(r => ({
+    ...r,
+    origin: r.url,
+    url: r.url ? `/api/images/proxy?u=${encodeURIComponent(r.url)}` : r.url,
+    thumb: r.thumb ? `/api/images/proxy?u=${encodeURIComponent(r.thumb)}` : r.thumb,
+  }));
+  const url = proxied[0]?.url || null;
   if (!topic && !context) cacheSet(singleCache, q, url);
-  results.query = used;
-  cacheSet(multiCache, cacheKey, results);
+  proxied.query = used;
+  cacheSet(multiCache, cacheKey, proxied);
 
-  res.json({ url, urls: results, query: used });
+  res.json({ url, urls: proxied, query: used });
+});
+
+/* GET /api/images/proxy?u=… — чужая картинка через наш домен.
+
+   Зачем вообще: карточки урока печатают, экспортируют в PNG и открывают
+   через месяцы. Прямая ссылка на CDN фотобанка держится ровно до тех пор,
+   пока фотобанк не поменяет правила хотлинка, — а экспорт доски идёт через
+   html2canvas, которому нужен CORS: чужой домен без нужных заголовков даёт
+   пустые рамки вместо картинок.
+
+   Почему прокси, а не своя копия на диске: пересжатие требует sharp с
+   нативными бинарниками, а на этой машине 1.7 ГБ памяти и общий диск с
+   четырьмя другими проектами. Прокси даёт то же главное — свой origin,
+   свои CORS-заголовки и годовой кэш, — не заводя ни зависимости, ни
+   каталога, который придётся чистить.
+
+   Открытым прокси это быть не должно: без белого списка хостов любой мог бы
+   гонять через нас произвольные запросы (SSRF), поэтому пропускаются только
+   те источники, из которых мы сами и берём картинки.                        */
+const PROXY_HOSTS = new Set([
+  'images.pexels.com', 'pixabay.com', 'cdn.pixabay.com',
+  'images.unsplash.com', 'upload.wikimedia.org', 'commons.wikimedia.org',
+]);
+const PROXY_MAX_BYTES = 6 * 1024 * 1024;
+
+router.get('/proxy', async (req, res) => {
+  let target;
+  try { target = new URL(String(req.query.u || '')); }
+  catch { return res.status(400).json({ error: 'bad url' }); }
+  if (target.protocol !== 'https:' || !PROXY_HOSTS.has(target.hostname)) {
+    return res.status(403).json({ error: 'host not allowed' });
+  }
+  try {
+    const upstream = await fetch(target.toString(), {
+      headers: { 'User-Agent': 'TeachEd/1.0 (+https://teached.tech)' },
+      signal: AbortSignal.timeout(8000),
+    });
+    const type = upstream.headers.get('content-type') || '';
+    if (!upstream.ok || !type.startsWith('image/')) {
+      return res.status(502).json({ error: 'upstream ' + upstream.status });
+    }
+    const len = Number(upstream.headers.get('content-length') || 0);
+    if (len && len > PROXY_MAX_BYTES) return res.status(413).json({ error: 'too large' });
+
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    if (buf.length > PROXY_MAX_BYTES) return res.status(413).json({ error: 'too large' });
+    res.set({
+      'Content-Type': type,
+      'Content-Length': String(buf.length),
+      // Ссылка на конкретный файл фотобанка не меняет содержимое, поэтому год
+      // и immutable — печать и повторное открытие урока идут уже из кэша.
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Access-Control-Allow-Origin': '*',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    });
+    res.end(buf);
+  } catch (e) {
+    res.status(504).json({ error: 'fetch failed' });
+  }
 });
 
 /* GET /api/images/status — какие источники реально подключены.

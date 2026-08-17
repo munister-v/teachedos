@@ -9994,7 +9994,14 @@ async function _ttFetchWordImage(word, topic, context) {
     const d = await r.json();
     const first = (d.urls && d.urls[0]) || (d.url ? { url: d.url } : null);
     if (!first || !first.url) return null;
-    return { url: first.url, thumb: first.thumb || first.url, credit: first.credit || '', query: d.query || word };
+    /* Сервер отдаёт относительный путь к своему прокси. На доске он должен
+       стать абсолютным: карточка сохраняется в состояние доски и открывается
+       откуда угодно, а относительный путь тогда указывал бы в никуда. */
+    const abs = (u) => (u && u.startsWith('/') ? API + u : u);
+    return {
+      url: abs(first.url), thumb: abs(first.thumb || first.url),
+      credit: first.credit || '', origin: first.origin || '', query: d.query || word,
+    };
   } catch { return null; }
 }
 
@@ -10051,7 +10058,8 @@ async function openVocabImagePicker(cardId, index, anchorEl) {
     if (i < 0) delete it.image;
     else {
       const u = urls[i];
-      it.image = { url: u.url, thumb: u.thumb || u.url, credit: u.credit || '' };
+      const abs = (x) => (x && x.startsWith('/') ? API + x : x);
+      it.image = { url: abs(u.url), thumb: abs(u.thumb || u.url), credit: u.credit || '', origin: u.origin || '' };
     }
     box.remove(); document.removeEventListener('mousedown', close);
     reRenderCard(card);
@@ -12322,7 +12330,16 @@ function _ttPlaceWorksheetOnBoard(output){
       _ttGrid: isPagedSet ? 'pages' : undefined,
     }, W, heights[i]);
       if (frame && card) setCardParentFrame(card, frame);
-      if (card) placed.push(card);
+      if (card) {
+        placed.push(card);
+        /* Словарь, собранный любым инструментом, получает картинки так же, как
+           словарь видео-урока: раньше это работало только на одном пути, и
+           учитель видел картинки или нет в зависимости от того, откуда пришёл
+           лист — что выглядит как случайность, а не как правило. */
+        if (Array.isArray(card.data.items) && card.data.items.length) {
+          _ttAttachImagesToVocabCard(card.id, part.topic || output.topic || '');
+        }
+      }
     });
   } finally {
     _suppressSnapshot--;
@@ -12781,7 +12798,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '301';
+const TEACHEDOS_ASSET_VERSION = '302';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
