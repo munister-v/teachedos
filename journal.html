@@ -194,10 +194,10 @@ a{text-decoration:none;color:inherit;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=288" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=288">
-<link rel="stylesheet" href="styles/harmony.css?v=288">
-<link rel="stylesheet" href="styles/unify.css?v=288">
+<script src="theme.js?v=291" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=291">
+<link rel="stylesheet" href="styles/harmony.css?v=291">
+<link rel="stylesheet" href="styles/unify.css?v=291">
 </head>
 <body class="suite-page journal-suite">
 
@@ -238,9 +238,9 @@ a{text-decoration:none;color:inherit;}
 
   <div class="stats-row" id="stats-row">
     <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Students</div></div>
-    <div class="stat-card"><div class="stat-num" id="s-lessons">—</div><div class="stat-lbl">Lessons available</div></div>
-    <div class="stat-card"><div class="stat-num" id="s-low">—</div><div class="stat-lbl">Low balance (≤2)</div></div>
-    <div class="stat-card"><div class="stat-num" id="s-ready">—</div><div class="stat-lbl">Ready (3+)</div></div>
+    <div class="stat-card primary"><div class="stat-num" id="s-lessons">—</div><div class="stat-lbl">Lessons available</div></div>
+    <div class="stat-card attention"><div class="stat-num" id="s-low">—</div><div class="stat-lbl">Low balance (≤2)</div></div>
+    <div class="stat-card good"><div class="stat-num" id="s-ready">—</div><div class="stat-lbl">Ready (3+)</div></div>
   </div>
 
   <section class="journal-controls" aria-labelledby="roster-heading">
@@ -342,7 +342,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=288"></script>
+<script src="scripts/app-core.js?v=291"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
@@ -680,11 +680,11 @@ document.addEventListener('keydown', event => {
 init();
 </script>
 
-<script src="pwa.js?v=288"></script>
-<script src="scripts/nav-boost.js?v=288" defer></script>
-<script src="scripts/mobile-perf.js?v=288" defer></script>
-<script src="scripts/mobile-nav.js?v=288"></script>
-<script src="scripts/mobile-zoom-guard.js?v=288" defer></script>
-<script src="pwa-boot.js?v=288" defer></script>
+<script src="pwa.js?v=291"></script>
+<script src="scripts/nav-boost.js?v=291" defer></script>
+<script src="scripts/mobile-perf.js?v=291" defer></script>
+<script src="scripts/mobile-nav.js?v=291"></script>
+<script src="scripts/mobile-zoom-guard.js?v=291" defer></script>
+<script src="pwa-boot.js?v=291" defer></script>
 </body>
 </html>

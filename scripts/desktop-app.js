@@ -1995,18 +1995,27 @@ function renderNotifList() {
   const list = document.getElementById('notif-list');
   if (!list) return;
   if (!_notifData.length) {
-    list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:#A2A28C;">No notifications yet</div>';
+    list.innerHTML = '<div class="np-empty">No notifications yet</div>';
     return;
   }
+  /* Цвета и наведение — в CSS (см. #notif-panel в unify.css). Здесь они были
+     инлайном со светлой палитрой, поэтому на тёмной панели заголовок письма
+     сливался с фоном. Значок типа — свой штриховой, а не эмодзи: системные
+     картинки в этой строке выглядели наклейками. */
+  const glyph = (t) => ({
+    live:   '<circle cx="12" cy="12" r="4.5"/>',
+    grade:  '<path d="M4.5 19.5h15"/><path d="M8 19.5v-5M12 19.5V7.5M16 19.5v-8"/>',
+    invite: '<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M4.5 7.5l7.5 5.5 7.5-5.5"/>',
+  }[t] || '<path d="M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.5 2h-14z"/><path d="M10.2 19a1.9 1.9 0 0 0 3.6 0"/>');
   list.innerHTML = _notifData.map(n => `
-    <div onclick="notifRead('${n.id}','${n.link||''}')" style="display:flex;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;background:${n.read?'transparent':'rgba(200,230,50,.05)'};transition:.12s;margin-bottom:2px;" onmouseenter="this.style.background='rgba(5,5,23,.05)'" onmouseleave="this.style.background='${n.read?'transparent':'rgba(200,230,50,.05)'}'">
-      <span style="font-size:18px;flex-shrink:0;">${n.type==='live'?'🔴':n.type==='grade'?'📊':n.type==='invite'?'📩':'🔔'}</span>
+    <div class="np-item${n.read ? '' : ' unread'}" onclick="notifRead('${n.id}','${n.link||''}')">
+      <svg class="np-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${glyph(n.type)}</svg>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:${n.read?'600':'800'};color:#1C1C1E;line-height:1.3;">${esc(n.title)}</div>
-        ${n.body?`<div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${esc(n.body)}</div>`:''}
-        <div style="font-size:10px;color:#A2A28C;margin-top:3px;">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="np-item-title">${esc(n.title)}</div>
+        ${n.body ? `<div class="np-item-body">${esc(n.body)}</div>` : ''}
+        <div class="np-item-time">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      ${!n.read?'<span style="width:7px;height:7px;border-radius:50%;background:#EC2D8C;flex-shrink:0;margin-top:4px;"></span>':''}
+      ${!n.read ? '<span class="np-dot"></span>' : ''}
     </div>`).join('');
 }
 
