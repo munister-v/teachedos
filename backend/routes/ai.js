@@ -143,6 +143,10 @@ function normaliseInput(body) {
     source: limitText(raw.source, 18000),
     vocab: limitText(raw.vocab, 8000),
     extra: clean(raw.extra, '').slice(0, 600),
+    /* Что уже собрано в этом уроке и сколько он длится. Нужно только плану:
+       без этого он планирует НЕ те материалы, которые лежат на доске рядом. */
+    materials: clean(raw.materials, '').slice(0, 1200),
+    duration: Math.max(20, Math.min(120, parseInt(raw.duration, 10) || 45)),
     model: clean(raw.model, '').slice(0, 80),
     cat: meta[0],
     kind: meta[1],
@@ -552,11 +556,27 @@ function makeCards(input) {
   ];
   const cards = [];
   const n = Math.min(input.count, stages.length);
+  /* Минуты и в запасном плане тоже. План без времени учитель всё равно
+     доразмечает сам — а это ровно та работа, которую он и хотел не делать.
+     Раскладка простая и предсказуемая: разминка короче остальных этапов,
+     остаток делится поровну, последнее окно дотягивается до конца занятия,
+     чтобы сумма сходилась ровно, а не «примерно». */
+  const isPlan = input.toolId === 'lesson-pack';
+  const total = Math.max(20, Math.min(120, Number(input.duration) || 45));
+  const warm = Math.max(3, Math.round(total * 0.1));
+  const step = n > 1 ? Math.floor((total - warm) / (n - 1)) : total;
+  let clock = 0;
   for (let i = 0; i < n; i++) {
     const stage = stages[i];
     const focus = words.slice(i, i + 5).filter(Boolean);
+    let title = stage;
+    if (isPlan) {
+      const len = i === 0 ? warm : (i === n - 1 ? total - clock : step);
+      title = `${clock}–${clock + len} min · ${stage}`;
+      clock += len;
+    }
     cards.push({
-      title: stage,
+      title,
       text: `${stage} for ${input.topic} (${input.level}).`
         + (focus.length ? `\nTarget language: ${focus.join(', ')}.` : '')
         + `\nTeacher move: ${MOVES[i % MOVES.length]}.`,

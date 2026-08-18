@@ -2508,6 +2508,15 @@ function _ttWorksheetStageMeta(title = '', index = 0) {
 // render as its own badge instead of sitting inline in the heading text.
 function _ttExtractStageTiming(title) {
   const s = String(title || '');
+  /* Окно на часах — «0–5 min · Warm-up». Разбирается ПЕРВЫМ: иначе правило
+     ниже выхватывало из него одно число и оставляло в заголовке огрызок
+     «0–· Warm-up». Окно полезнее одиночной длительности — по нему видно не
+     только сколько идёт этап, но и когда он начинается. */
+  const win = s.match(/^\s*(\d+)\s*[–—-]\s*(\d+)\s*min(?:ute)?s?\.?\s*(?:[·:.\-–—]\s*)?/i);
+  if (win) {
+    const clean = s.slice(win[0].length).trim().replace(/^[·:.\-–—]\s*/, '');
+    return { clean, time: `${win[1]}–${win[2]} min`, endsAt: Number(win[2]) };
+  }
   const m = s.match(/\(?\s*(\d+)\s*min(?:ute)?s?\.?\s*\)?/i);
   if (!m) return { clean: s, time: '' };
   const clean = s.replace(m[0], '').replace(/\s{2,}/g, ' ').trim().replace(/[\s([-]+$/, '');
@@ -2950,7 +2959,7 @@ function renderWorksheet(el, card) {
       </div>
       <div class="ws-strip-side">
         ${_wsQualityPill(d)}
-        <span class="ws-pill level">${n} ${unit}</span>
+        ${_wsPlanTotal(cards)}<span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
       <span class="ws-tools">
@@ -3148,6 +3157,21 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
    Зелёный не показываем вовсе: «всё в порядке» — это норма, а не новость, и
    значок на каждой карточке быстро перестают замечать. Показываем только
    жёлтый и красный, то есть только то, на что стоит посмотреть. */
+/* Сколько всего идёт занятие — на шапке плана.
+
+   Этапы несут свои окна на часах, но общая длина складывается в голове, а
+   именно её учитель сверяет с расписанием: помещается ли урок в сорок пять
+   минут. Берём конец последнего окна, и только если окна действительно есть. */
+function _wsPlanTotal(cards) {
+  if (!Array.isArray(cards) || !cards.length) return '';
+  let end = 0;
+  for (const c of cards) {
+    const t = _ttExtractStageTiming(c && c.title || '');
+    if (t.endsAt) end = Math.max(end, t.endsAt);
+  }
+  return end ? `<span class="ws-pill level">${end} min</span>` : '';
+}
+
 function _wsQualityPill(d) {
   const q = d && d._quality;
   const note = d && d._engineNote;
@@ -9572,6 +9596,36 @@ function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
   return parts.join('\n[…]\n');
 }
 
+/* ЧТО НАПИСАТЬ ПЛАНУ ПРО ОСТАЛЬНОЙ УРОК.
+
+   План — единственный блок, который должен знать про соседей: остальные пять
+   самостоятельны, а он их расставляет по времени. Отдаём ему короткую опись
+   собранного: название блока, сколько в нём заданий и несколько первых —
+   этого хватает, чтобы план назвал вещи своими именами («раздайте карточки
+   Key vocabulary, 12 слов»), и не хватает, чтобы раздуть запрос транскриптом
+   во второй раз. */
+function _ytMaterialsManifest(results) {
+  return results.map((out) => {
+    const name = out._ytTool || out.kind || 'Activity';
+    const items = Array.isArray(out.questions) ? out.questions
+      : Array.isArray(out.items) ? out.items
+      : Array.isArray(out.cards) ? out.cards : [];
+    const sample = items.slice(0, 3).map(it =>
+      String(it.word || it.text || it.stem || it.title || '').replace(/\s+/g, ' ').slice(0, 70)
+    ).filter(Boolean);
+    return `- ${name} (${items.length} item${items.length === 1 ? '' : 's'})`
+      + (sample.length ? `: ${sample.join(' / ')}` : '');
+  }).join('\n');
+}
+
+/* Длительность занятия. Сорок пять минут — школьный урок и разумная середина;
+   всё остальное учитель выбирает сам, и от этого зависят минуты в плане. */
+function _ytDuration() {
+  const el = document.getElementById('yt-duration');
+  const n = parseInt(el && el.value, 10);
+  return Number.isFinite(n) ? n : 45;
+}
+
 async function _ytGenerate(url, level, picks, transcriptOverride) {
   const runBtn = document.getElementById('yt-lesson-run');
   const cancelBtn = document.getElementById('yt-lesson-cancel');
@@ -9624,17 +9678,20 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     };
 
     let reused = 0;
-    async function genOne(toolId) {
+    async function genOne(toolId, extraFields) {
       if (signal.aborted) return null;
       statusMap[toolId] = 'running'; _ytRenderChips(picks, statusMap);
       const source = sampled[_ytBudgetFor(toolId)];
-      const ck = _ytCacheKey(url, toolId, level, source);
+      /* Ключ кэша учитывает опись материалов и длительность: иначе повторная
+         сборка вернула бы прошлый план, составленный вслепую. */
+      const ck = _ytCacheKey(url, toolId, level,
+        source + (extraFields ? '|' + JSON.stringify(extraFields) : ''));
       let out = _ytCacheGet(ck);
       if (out) reused++;
       else {
         out = await requestServerTeacherTool(
           { tool: { id: toolId }, level, count: _ytCountFor(toolId, level),
-            topic: videoTitle || 'Video lesson', source },
+            topic: videoTitle || 'Video lesson', source, ...(extraFields || {}) },
           35000, signal);
         if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
         if (out) _ytCacheSet(ck, out);
@@ -9660,15 +9717,34 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       return out;
     }
 
-    const LIMIT = Math.min(2, picks.length);   // fast, but gentle on free AI providers
+    /* План идёт ПОСЛЕДНИМ и отдельно от остальных.
+
+       Пока он собирался в общей пачке, он не мог знать, что именно попало на
+       доску, и планировал урок «вообще»: pre-teach vocabulary — при том, что
+       конкретные двенадцать слов уже лежали рядом. Теперь сначала собирается
+       материал, потом по его описи строится расписание занятия. Цена — один
+       запрос не параллельно с прочими, то есть несколько секунд ожидания;
+       взамен план перестаёт быть отдельным уроком рядом с уроком. */
+    const planIdx = picks.indexOf('lesson-pack');
+    const firstPass = picks.map((id, i) => i).filter(i => i !== planIdx);
+
+    const LIMIT = Math.min(2, Math.max(1, firstPass.length));   // fast, but gentle on free AI providers
     let idx = 0;
     async function worker() {
-      while (idx < picks.length && !signal.aborted) {
-        const cur = idx++;
+      while (idx < firstPass.length && !signal.aborted) {
+        const cur = firstPass[idx++];
         ordered[cur] = await genOne(picks[cur]);
       }
     }
     await Promise.all(Array.from({ length: LIMIT }, worker));
+
+    if (planIdx >= 0 && !signal.aborted) {
+      const built = ordered.filter(Boolean);
+      ordered[planIdx] = await genOne('lesson-pack', {
+        duration: _ytDuration(),
+        materials: _ytMaterialsManifest(built),
+      });
+    }
 
     if (signal.aborted) { _ytStatus('⏹ Stopped. Nothing placed.'); return; }
 
@@ -12829,7 +12905,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '308';
+const TEACHEDOS_ASSET_VERSION = '309';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

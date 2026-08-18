@@ -797,9 +797,29 @@ function shapeSpec(input) {
 
   // ── Utility / lesson builders ────────────────────────────────────────────────
   if (toolId === 'lesson-pack') {
+    /* ПЛАН ПЛАНИРУЕТ ТО, ЧТО РЕАЛЬНО ЛЕЖИТ НА ДОСКЕ.
+
+       Раньше план собирался одновременно с остальными блоками урока и ничего
+       о них не знал. Получался вежливый план вообще: «pre-teach vocabulary»,
+       «controlled practice» — при том, что в двадцати сантиметрах справа уже
+       лежат конкретные двенадцать слов и десять вопросов. Учителю приходилось
+       сводить два урока в один самому, а это ровно та работа, ради которой
+       инструмент и нужен.
+
+       Теперь план получает список собранных блоков и длительность занятия и
+       обязан расписать именно их: с минутами, которые сходятся в сумме, и с
+       указанием, что раздать и в каком порядке. */
+    const mats = String(input.materials || '').trim();
+    const mins = Number(input.duration) || 45;
+    const planFor = mats
+      ? `The board already holds these ready blocks:\n${mats}\nPlan the lesson AROUND THEM: every block must be used at least once, referred to by its exact name, and no stage may invent an activity that is not on this list except the warm-up, the transitions and the closing round.`
+      : 'No blocks are prepared yet, so each stage must describe the activity in full.';
     return {
-      task: `${head} Build a complete, ready-to-teach lesson at ${level} level. Return cards in order: "Lesson aims", "Warm-up (5 min)", "Lead-in", "Pre-teach vocabulary", "Input / presentation", "Controlled practice", "Freer practice / production", "Homework", "Teacher notes". Each card = clear classroom instructions, timing and examples. Include "vocab" of target words.${context}`,
-      schema: '{"cards":[{"title":"Lesson aims","text":"..."},{"title":"Warm-up (5 min)","text":"..."},{"title":"Controlled practice","text":"..."},{"title":"Homework","text":"..."}],"vocab":["word"]}',
+      task: `${head} Build a ready-to-teach ${mins}-minute lesson at ${level} level. ${planFor}\n`
+        + `Return cards in lesson order. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". The windows must be continuous and add up to exactly ${mins} minutes.\n`
+        + `Each card text must contain, on separate lines: "Aim:" one line on what the students will be able to do; "Do:" the numbered classroom steps with what the teacher says or asks; "Watch for:" the mistake or misunderstanding likely at ${level} and how to fix it on the spot.\n`
+        + `First card is the warm-up (no materials needed), last card is homework tied to the material used in class. Include "vocab" of the target words.${context}`,
+      schema: '{"cards":[{"title":"0–5 min · Warm-up","text":"Aim: ...\\nDo: 1. ...\\n2. ...\\nWatch for: ..."},{"title":"5–12 min · Pre-teach vocabulary","text":"Aim: ...\\nDo: ...\\nWatch for: ..."},{"title":"40–45 min · Homework","text":"Aim: ...\\nDo: ...\\nWatch for: ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'worksheet-builder') {
