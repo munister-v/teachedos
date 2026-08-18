@@ -2278,6 +2278,12 @@ function closeModal() {
    никуда не уезжает; серверное хранение — следующий шаг, и оно ничего здесь
    не сломает, потому что формат один и тот же.                             */
 const MY_PACKS_KEY = 'teachedos_my_packs';
+/* Страница паков публичная: сюда заходят и без входа, посмотреть готовые
+   уроки. Общий клиент на 401 показывает красную плашку и через четыре
+   секунды уводит на главную — на закрытых страницах это правильно, здесь же
+   гость, нажавший «Build a pack», просто терял страницу. Редирект выключен, а
+   про необходимость входа мы говорим сами, ДО запроса. */
+window.__teachedNoRedirectOn401 = true;
 const _lpApi = (window.TeachEdApp && window.TeachEdApp.createApiClient)
   ? window.TeachEdApp.createApiClient(() => localStorage.getItem('teachedos_token'))
   : null;
@@ -2310,7 +2316,13 @@ async function runPackBuilder() {
   const status = document.getElementById('bp-status');
   const btn = document.getElementById('bp-run');
   if (!topic) { status.textContent = 'Give the pack a topic first.'; return; }
-  if (!_lpApi) { status.textContent = 'Sign in to build your own packs.'; return; }
+  const signedIn = !!localStorage.getItem('teachedos_token');
+  if (!_lpApi || !signedIn) {
+    status.innerHTML = 'Building your own pack needs an account — '
+      + '<a href="index.html" style="text-decoration:underline">sign in</a>. '
+      + 'The 22 ready packs stay open to everyone.';
+    return;
+  }
 
   btn.disabled = true; btn.textContent = 'Building…';
   status.textContent = 'Planning a ' + duration + '-minute ' + level + ' lesson…';
