@@ -159,13 +159,22 @@ function isBoardPhone() {
   return !!(BOARD_PHONE_MQL && BOARD_PHONE_MQL.matches);
 }
 
-// Mobile capability tier: phones get "read + light edits" — pan/zoom, tap a card
-// to read, edit its text inline, and move existing cards. Canvas authoring
-// (creating new cards/types, pen/drawing, long-press & double-tap create) is
-// reserved for desktop where the gestures actually work well.
-function boardCanAuthor() {
-  return !isBoardPhone();
-}
+/* НА ТЕЛЕФОНЕ ТОЖЕ РАБОТАЮТ, А НЕ ТОЛЬКО СМОТРЯТ.
+
+   Раньше телефон был режимом чтения: панель «Add» показывала одну плитку из
+   восьми (стрелку), библиотека уроков отвечала «откройте на компьютере», перо
+   было спрятано, а половина меню «More» — включая генерацию заданий и
+   экспорт — не показывалась вовсе. Замысел понятен: на маленьком экране жесты
+   капризны. На практике учитель открывал доску с телефона и не мог сделать
+   ничего.
+
+   Ограничение снято целиком, поэтому и переключателя boardCanAuthor() больше
+   нет — мёртвый флаг через месяц читается как рабочий. За десктопом осталось
+   ровно одно: СОЗДАНИЕ ДВОЙНЫМ ТАПОМ по пустому месту. На телефоне этот жест
+   уже занят — он открывает карточку и приближает, — и второе значение сделало
+   бы из него генератор случайных стикеров. Всё остальное делается кнопкой, а
+   кнопка на телефоне работает не хуже. */
+
 
 let _wasBoardPhone = null;
 let _boardHintTimer = null;
@@ -5870,7 +5879,9 @@ boardWrap.addEventListener('mousedown', e => {
 boardWrap.addEventListener('dblclick', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
-  if (!boardCanAuthor()) return; // phones: read + light edits, no double-tap create
+  // Двойной тап на телефоне уже означает «открыть карточку» — создавать по
+  // нему нельзя, иначе каждый промах мимо карточки рождает пустой текст.
+  if (isBoardPhone()) return;
   if (state.mode !== 'select' && state.mode !== 'text') return;
   const bp = screenToBoard(e.clientX, e.clientY);
   const def = (typeof getDefaults === 'function') ? getDefaults('text') : {w:160,h:50};
@@ -8599,7 +8610,6 @@ function getToolSeed(tool) {
    content for the chosen topic.
    Returns the outer frame id so the caller can select / zoom. */
 function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
-  if (!boardCanAuthor()) { toast && toast('Open on a computer to drop lesson packs'); return null; }
   if (!pack || !Array.isArray(pack.stages) || !pack.stages.length) return null;
 
   // Outer frame holds the whole lesson; sub-frames per stage sit inside.
@@ -12905,7 +12915,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '319';
+const TEACHEDOS_ASSET_VERSION = '321';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19847,7 +19857,6 @@ function chooseDrawTool(tool) {
 }
 
 function toggleDrawTool(tool, ev) {
-  if (!boardCanAuthor()) { toast && toast('Drawing is available on a computer'); return; }
   if (_drawTool === tool) {
     // Second click on the same tool → open palette (pen / marker only)
     if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {

@@ -4441,7 +4441,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .mq-add-tile:hover,.mq-add-tile:active{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);}
   .mq-add-tile:active{transform:scale(.95);}
   [data-theme="dark"] .mq-add-tile{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.06);}
-  .mqa-ic{font-size:22px;line-height:1;}
+  /* Плитки теперь несут SVG, а не эмодзи: одна графическая система на всё
+     приложение вместо системного шрифта, который на каждой платформе свой. */
+  .mqa-ic{font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+  .mqa-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
   body.mq-sheet-open::after{
     content:"";position:fixed;inset:0;background:rgba(15,12,30,.45);
     z-index:1250;pointer-events:auto;
@@ -4782,11 +4785,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:0 8px 20px rgba(14,14,16,.18);
   }
 
-  /* Keep a compact Add entry on phones for the one authoring action that is
-     intentionally supported there: drawing a connector. Other creation
-     tiles stay hidden below, so the mobile surface remains honest. */
+  /* Создание на телефоне включено полностью: и «Add», и перо. */
   body.board-phone-shell .mq-btn.primary{display:flex!important;}
-  body.board-phone-shell #mq-pen{display:none!important;}
+  body.board-phone-shell #mq-pen{display:flex!important;}
 
   body.board-phone-shell .mq-status{
     bottom:calc(100% + 9px);
@@ -4873,15 +4874,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     padding:6px 10px 12px;
   }
 
-  /* Hide authoring / desktop-only items on phone */
-  body.board-phone-shell #more-ai-assistant,
-  body.board-phone-shell #more-teacher-tools,
-  body.board-phone-shell #more-export-board,
-  body.board-phone-shell #more-bg,
+  /* На телефоне скрыто только то, что там физически бессмысленно или опасно:
+     список клавиатурных сокращений (клавиатуры нет), тонкая настройка
+     примагничивания и «очистить доску» — кнопка, стирающая всю работу, рядом
+     с остальными пунктами на тач-экране. Генерация заданий, инструменты
+     учителя, экспорт, фон и настройки открыты: учитель готовит урок с того
+     устройства, которое у него в руках. */
   body.board-phone-shell #more-shortcuts,
-  body.board-phone-shell #more-settings,
-  body.board-phone-shell #btn-clear-menu,
-  body.board-phone-shell #snap-menu-item{
+  body.board-phone-shell #snap-menu-item,
+  body.board-phone-shell #btn-clear-menu{
     display:none!important;
   }
 
@@ -4908,7 +4909,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     font-size:13px;
     font-weight:850;
   }
-  body.board-phone-shell .mq-add-tile:not([onclick*="connect"]){display:none!important;}
+  /* Все восемь плиток, а не одна. Скрытые плитки делали кнопку «Add» на
+     телефоне бессмысленной: открывался лист с единственной стрелкой. */
 
   body.board-phone-shell .mqa-ic{
     width:34px;
@@ -4921,6 +4923,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     font-size:18px;
     flex-shrink:0;
   }
+  body.board-phone-shell .mqa-ic svg{width:18px;height:18px;}
 
   body.board-phone-shell.mobile-sheet-open #mobile-quickbar,
   body.board-phone-shell.mq-sheet-open #mobile-quickbar{
@@ -5017,7 +5020,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     justify-content:center;
   }
   body.board-phone-shell .empty-sub::after{
-    content:"Phone mode is for reading, fitting, moving cards, and quick text edits. Open on desktop to build new boards.";
+    /* Текст описывал прежний режим «только чтение». Создание на телефоне
+       включено, и обещать обратное — врать в самом заметном месте пустой доски. */
+    content:"Tap Add to put the first card down — sticky, text, frame or a ready lesson from the library.";
     display:flex;
     align-items:center;
     justify-content:center;
