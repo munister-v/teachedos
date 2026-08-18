@@ -1987,6 +1987,16 @@ function filterLevel(level, el) {
 }
 
 /* Строка урока, в которой нашлось слово, с подсветкой самого слова. */
+/* Один и тот же пак приходит в двух видах: готовые — текстом, собранные
+   моделью — карточками. Всё, что ниже (поиск, копирование, разбор на доску),
+   работает с плоским текстом, поэтому приводим к нему в одном месте. */
+function _lpPlainText(p) {
+  if (p && Array.isArray(p.cards)) {
+    return p.cards.map(c => (c.title || '') + '\n' + (c.text || '')).join('\n\n');
+  }
+  return String((p && p.content) || '');
+}
+
 function _lpMatchLine(content, q) {
   const line = String(content || '').split('\n')
     // Ведущий маркер списка в цитате — мусор: он размечал исходник, а не текст.
@@ -2001,8 +2011,9 @@ function _lpMatchLine(content, q) {
 
 function renderPacks() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
-  const filtered = PACKS.filter(p => {
-    if (activeSkill !== 'all' && p.skill !== activeSkill) return false;
+  const filtered = allPacks().filter(p => {
+    if (activeSkill === 'mine') { if (!p.mine) return false; }
+    else if (activeSkill !== 'all' && p.skill !== activeSkill) return false;
     if (activeLevel !== 'all' && p.level !== activeLevel) return false;
     if (activeLang !== 'all' && p.langs && !p.langs.includes(activeLang)) return false;
     /* Поиск шёл только по названию и описанию — то есть по двум строкам из
@@ -2011,11 +2022,19 @@ function renderPacks() {
        Содержимое ищется третьим, после дешёвых полей. */
     if (q && !p.title.toLowerCase().includes(q)
           && !p.desc.toLowerCase().includes(q)
-          && !String(p.content || '').toLowerCase().includes(q)) return false;
+          && !_lpPlainText(p).toLowerCase().includes(q)) return false;
     return true;
   });
 
   document.getElementById('badge-all').textContent = filtered.length;
+  /* Раздел «My packs» появляется только когда паки есть: пустой пункт меню
+     обещает содержимое, которого нет. */
+  const mine = myPacks();
+  const sbMine = document.getElementById('sb-mine');
+  if (sbMine) {
+    sbMine.style.display = mine.length ? '' : 'none';
+    document.getElementById('badge-mine').textContent = mine.length;
+  }
 
   const grid = document.getElementById('packs-grid');
   if (!filtered.length) {
@@ -2030,9 +2049,9 @@ function renderPacks() {
        названии и описании которого искомого слова нет, и выглядит это как
        сбой фильтра. Показываем строку, в которой слово нашлось. */
     const deep = q && !p.title.toLowerCase().includes(q) && !p.desc.toLowerCase().includes(q)
-      ? _lpMatchLine(p.content, q) : '';
+      ? _lpMatchLine(_lpPlainText(p), q) : '';
     return `
-    <div class="pack-card" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
+    <div class="pack-card${p.mine ? ' mine' : ''}" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
       <div class="pc-eyebrow">${p.eyebrow}</div>
       <div class="pc-title">${p.title}</div>
       ${deep ? `<div class="pc-hit">${deep}</div>` : ''}
@@ -2106,6 +2125,20 @@ function _lpBodyHtml(body) {
     const key = t.match(/^(KEY|ANSWERS?|ВІДПОВІДІ|ОТВЕТЫ)\s*[:：]\s*(.+)$/i);
     if (key) { flush(); out.push(`<p class="lp-key"><b>${_LP_ESC(key[1])}</b> ${_LP_ESC(key[2])}</p>`); continue; }
 
+    /* Собранный моделью этап пишется тремя помеченными строками: цель,
+       шаги, типичная ошибка. Их видно как метки, а не как абзацы, которые
+       начинаются с двоеточия. Шаги внутри «Do:» — уже нумерованный список,
+       поэтому первый шаг отделяется от метки, а не тянется с ней в строке. */
+    const tag = t.match(/^(Aim|Do|Watch for|Ціль|Мета|Кроки)\s*[:：]\s*(.*)$/i);
+    if (tag) {
+      flush();
+      const rest = tag[2] || '';
+      const first = rest.match(/^(\d{1,2})[.)]\s+(.*)$/);
+      out.push(`<p class="lp-tag-line"><span class="lp-tag">${_LP_ESC(tag[1])}</span>${first ? '' : ' ' + _LP_ESC(rest)}</p>`);
+      if (first) push('ol', `<li>${_LP_ESC(first[2])}</li>`);
+      continue;
+    }
+
     const num = t.match(/^(\d{1,2})[.)]\s+(.*)$/);
     if (num) { push('ol', `<li>${_LP_ESC(num[2])}</li>`); continue; }
 
@@ -2147,7 +2180,11 @@ function _lpBodyHtml(body) {
 /* Тип секции решает её цвет и подпись. Учитель ищет глазами «где практика» и
    «где ответы», а не читает заголовки подряд. */
 function _lpSectionKind(title) {
+  /* У собранных паков заголовок несёт часы: «12–20 min · Gist questions».
+     Роль определяется по названию этапа, поэтому окно снимаем. */
+  title = String(title).replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '');
   if (/objective|aims?|goals?/i.test(title)) return { cls: 'aim', label: 'Aims' };
+  if (/warm[-\s]?up|lead[-\s]?in/i.test(title)) return { cls: 'prod', label: 'Warm-up' };
   if (/vocab|word\s*bank|key\s*language|phrases/i.test(title)) return { cls: 'voc', label: 'Language' };
   if (/\b(practice|practise|exercises?|tasks?|drill)\b/i.test(title)) return { cls: 'prac', label: 'Practice' };
   if (/\b(role-?play|discussion|debate|speaking)\b/i.test(title)) return { cls: 'prod', label: 'Production' };
@@ -2162,20 +2199,30 @@ function _lpSkillMark(skill) {
 }
 
 function renderPackContent(p) {
-  const sections = _lpSections(p.content);
+  /* Собранный моделью пак приходит уже разделами — этап и его текст. Гонять
+     их через разбор ASCII-вёрстки незачем: структура и так есть. */
+  const sections = Array.isArray(p.cards) && p.cards.length
+    ? p.cards.map(c => ({ title: String(c.title || 'Stage'), body: String(c.text || '') }))
+    : _lpSections(p.content);
   if (!sections.length) {
     // Незнакомая вёрстка — показываем как есть, но честно, а не молча пустой.
-    return `<pre class="lp-mono lp-raw">${_LP_ESC(p.content)}</pre>`;
+    return `<pre class="lp-mono lp-raw">${_LP_ESC(_lpPlainText(p))}</pre>`;
   }
   const nav = sections.length > 2
     ? `<nav class="lp-toc">${sections.map((s, i) =>
-        `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(s.title)}</button>`).join('')}</nav>`
+        `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(String(s.title).replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, ''))}</button>`).join('')}</nav>`
     : '';
   const body = sections.map((s, i) => {
     const k = _lpSectionKind(s.title);
+    /* Часы этапа отделены от его названия: время — метка, а не часть
+       заголовка, и в таком виде его видно, не вчитываясь в строку. */
+    const w = String(s.title).match(/^\s*(\d+\s*[–—-]\s*\d+\s*min)[^·:]*[·:]?\s*(.*)$/i);
+    const clock = w ? w[1].replace(/\s+/g, ' ').replace(/\s*min$/i, ' min') : '';
+    const heading = w ? w[2] : s.title;
     return `<section class="lp-sec lp-${k.cls}" id="lp-sec-${i}">
       <div class="lp-sec-head"><span class="lp-sec-tag">${_LP_ESC(k.label)}</span>
-        <h3 class="lp-sec-title">${_LP_ESC(s.title)}</h3></div>
+        <h3 class="lp-sec-title">${_LP_ESC(heading)}</h3>
+        ${clock ? `<span class="lp-sec-clock">${_LP_ESC(clock)}</span>` : ''}</div>
       ${_lpBodyHtml(s.body)}
     </section>`;
   }).join('');
@@ -2188,7 +2235,7 @@ function _lpJump(i) {
 }
 
 function openPack(id) {
-  const p = PACKS.find(x => x.id === id);
+  const p = allPacks().find(x => x.id === id);
   if (!p) return;
   activePack = p;
   /* Эмодзи в шапке урока не несёт информации и выбивается из остального
@@ -2199,6 +2246,8 @@ function openPack(id) {
   document.getElementById('modal-eyebrow').textContent = p.eyebrow;
   document.getElementById('modal-title').textContent = p.title;
   document.getElementById('modal-content').innerHTML = renderPackContent(p);
+  const del = document.getElementById('bp-delete');
+  if (del) { del.style.display = p.mine ? '' : 'none'; del.onclick = () => deleteMyPack(p.id); }
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2209,6 +2258,111 @@ function closeModal() {
   activePack = null;
 }
 
+
+
+/* ═══ СВОЙ ПАК ═════════════════════════════════════════════════════════════
+
+   Двадцать два готовых урока закрывают частые темы и не закрывают ни одной
+   редкой: «собеседование в IT», «разговор с врачом», тема сегодняшнего
+   ученика. До сих пор учитель в этом месте уходил со страницы — на доску, в
+   конструктор, куда угодно, и возвращался с материалом, который здесь уже не
+   жил.
+
+   Тот же движок, что расписывает YouTube-урок по минутам, умеет собрать и
+   пак: у него на входе тема, уровень и длительность, на выходе — этапы с
+   часами, целями и разбором ошибок. Разбор, печать и «Open on board» здесь
+   уже написаны, поэтому собственный пак попадает ровно в те же механизмы,
+   что и готовые, и ничем от них не отличается в работе.
+
+   Хранится в браузере. Это честная первая версия: пак появляется мгновенно и
+   никуда не уезжает; серверное хранение — следующий шаг, и оно ничего здесь
+   не сломает, потому что формат один и тот же.                             */
+const MY_PACKS_KEY = 'teachedos_my_packs';
+const _lpApi = (window.TeachEdApp && window.TeachEdApp.createApiClient)
+  ? window.TeachEdApp.createApiClient(() => localStorage.getItem('teachedos_token'))
+  : null;
+
+function myPacks() {
+  try { return JSON.parse(localStorage.getItem(MY_PACKS_KEY) || '[]') || []; }
+  catch { return []; }
+}
+function saveMyPacks(list) {
+  try { localStorage.setItem(MY_PACKS_KEY, JSON.stringify(list.slice(0, 60))); }
+  catch (e) { console.warn('Could not store the pack', e); }
+}
+function allPacks() { return myPacks().concat(PACKS); }
+
+function openPackBuilder() {
+  document.getElementById('build-overlay').classList.add('open');
+  document.getElementById('bp-status').textContent = '';
+  const t = document.getElementById('bp-topic');
+  t.value = ''; setTimeout(() => t.focus(), 30);
+}
+function closePackBuilder() {
+  document.getElementById('build-overlay').classList.remove('open');
+}
+
+async function runPackBuilder() {
+  const topic = document.getElementById('bp-topic').value.trim();
+  const level = document.getElementById('bp-level').value;
+  const duration = Number(document.getElementById('bp-duration').value) || 45;
+  const skill = document.getElementById('bp-skill').value;
+  const status = document.getElementById('bp-status');
+  const btn = document.getElementById('bp-run');
+  if (!topic) { status.textContent = 'Give the pack a topic first.'; return; }
+  if (!_lpApi) { status.textContent = 'Sign in to build your own packs.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Building…';
+  status.textContent = 'Planning a ' + duration + '-minute ' + level + ' lesson…';
+  try {
+    const r = await _lpApi('/api/ai/teacher-tool', {
+      method: 'POST',
+      body: { toolId: 'lesson-pack', level, count: 8, topic, duration },
+    });
+    const d = await r.json().catch(() => null);
+    if (r.status === 401) throw new Error('Sign in to build your own packs.');
+    if (!r.ok || !d || !d.output) throw new Error((d && d.error) || 'The engine is busy right now.');
+    const out = d.output;
+    const cards = Array.isArray(out.cards) ? out.cards.filter(c => c && (c.title || c.text)) : [];
+    if (!cards.length) throw new Error('The engine returned nothing usable. Try a narrower topic.');
+
+    const pack = {
+      id: 'my-' + Date.now().toString(36),
+      mine: true,
+      skill,
+      icon: '',
+      accent: '#0E0E10',
+      title: topic.slice(0, 70),
+      eyebrow: [skill.toUpperCase(), level, duration + ' MIN'].join(' · '),
+      level,
+      duration: duration + ' min',
+      langs: ['ru', 'ua', 'pl'],
+      desc: 'Built for you' + (out.engine === 'rules' ? ' offline, from templates' : out.engine === 'archive' ? ' from an earlier lesson' : '') + '.',
+      /* Структуру храним как есть. Готовые паки — это текст, свои — карточки;
+         рендер и разбор ниже работают с обоими, поэтому переводить одно в
+         другое (и терять на этом разметку) незачем. */
+      cards,
+      vocab: Array.isArray(out.vocab) ? out.vocab : [],
+      engine: out.engine || 'ai',
+      createdAt: new Date().toISOString(),
+    };
+    saveMyPacks([pack].concat(myPacks()));
+    closePackBuilder();
+    renderPacks();
+    openPack(pack.id);
+  } catch (e) {
+    status.textContent = e.message || 'Could not build the pack.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Build pack';
+  }
+}
+
+function deleteMyPack(id) {
+  if (!confirm('Delete this pack? It is stored only in this browser.')) return;
+  saveMyPacks(myPacks().filter(p => p.id !== id));
+  closeModal();
+  renderPacks();
+}
 
 /* ═══ ПАК → УРОК НА ДОСКЕ ═══════════════════════════════════════════════════
 
@@ -2287,9 +2441,14 @@ function _lpBullets(text, max) {
 }
 
 function packToLessonFlow(p) {
-  const sections = _lpSections(p.content);
+  const sections = Array.isArray(p.cards) && p.cards.length
+    ? p.cards.map(c => ({ title: String(c.title || 'Stage'), body: String(c.text || '') }))
+    : _lpSections(p.content);
   const objectives = _lpBullets(_lpPickSection(sections, /objective|aims?|goals?/i), 5);
-  const vocab = _lpBullets(_lpPickSection(sections, /vocab|word\s*bank|key\s*language|phrases/i), 8);
+  // Свой пак несёт словарь отдельным полем — разбирать его из текста незачем.
+  const vocab = (Array.isArray(p.vocab) && p.vocab.length)
+    ? p.vocab.slice(0, 8).join('\n')
+    : _lpBullets(_lpPickSection(sections, /vocab|word\s*bank|key\s*language|phrases/i), 8);
   const homework = _lpPickSection(sections, /homework|follow[-\s]?up/i).slice(0, 400);
 
   /* Этапами становятся разделы, которые не ушли в цели, словарь и домашку.
@@ -2299,7 +2458,13 @@ function packToLessonFlow(p) {
   /* Заметки учителю — не этап занятия: они не занимают времени в классе и
      переезжают в описание урока. */
   const used = /objective|aims?|goals?|vocab|word\s*bank|key\s*language|phrases|homework|follow[-\s]?up|teacher\s*notes?/i;
-  const stageSecs = sections.filter(s => !used.test(s.title)).slice(0, 8);
+  /* У готового пака словарь и домашка — это справочные разделы, и на доске им
+     место в своих карточках, а не в расписании. У собранного плана всё иначе:
+     там «Pre-teach vocabulary» и «Homework» — настоящие этапы со своими
+     минутами, и выбрасывать их значило потерять половину урока (проверено:
+     из 45 минут на доску уезжало 25). */
+  const isPlan = Array.isArray(p.cards) && p.cards.length;
+  const stageSecs = (isPlan ? sections : sections.filter(s => !used.test(s.title))).slice(0, 9);
   const total = parseInt(String(p.duration).match(/\d+/)?.[0], 10) || 30;
   const weight = stageSecs.map(s => Math.max(120, s.body.length));
   const sum = weight.reduce((a, b) => a + b, 0) || 1;
@@ -2314,9 +2479,12 @@ function packToLessonFlow(p) {
     mins[fat] = Math.max(3, mins[fat] + drift);
   }
   const stages = stageSecs.map((s, i) => {
-    const min = mins[i];
+    /* Если этап уже несёт своё окно на часах, оно и есть длительность —
+       пересчитывать по объёму текста было бы враньём поверх точных данных. */
+    const w = s.title.match(/^\s*(\d+)\s*[–—-]\s*(\d+)\s*min/i);
+    const min = w ? Math.max(1, Number(w[2]) - Number(w[1])) : mins[i];
     return {
-      name: s.title.replace(/\s+/g, ' ').slice(0, 60),
+      name: s.title.replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '').replace(/\s+/g, ' ').slice(0, 60),
       min,
       /* Слова целиком, а не куски: «MAKE — create, produce, cause» — это
          презентация лексики, а подстрока «produc» делала из неё продукцию. */
@@ -2363,7 +2531,7 @@ function printPack() {
 
 function copyContent() {
   if (!activePack) return;
-  navigator.clipboard.writeText(activePack.content).then(() => {
+  navigator.clipboard.writeText(_lpPlainText(activePack)).then(() => {
     const btn = document.querySelector('#modal-actions .btn-lime');
     const orig = btn.textContent;
     btn.textContent = '✓ Copied!';
