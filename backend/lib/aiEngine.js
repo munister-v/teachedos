@@ -818,10 +818,15 @@ function shapeSpec(input) {
        карточки, что стоят в примере схемы, и урок получался с дырой от 12-й
        минуты до 40-й. Пример схемы читается как образец объёма, поэтому число
        называется прямо и требование непрерывности стоит рядом с ним. */
-    const stageCount = Math.max(5, Math.min(9, Number(input.count) || 7));
+    /* Число этапов выводится из длительности, а не из общего `count`. При
+       восьми этапах на сорок пять минут модель упиралась в арифметику и
+       выдавала два этапа с ОДНИМ окном «40–45 min» — расписание, по которому
+       нельзя вести урок. Примерно этап на восемь минут: 30 мин → 5, 45 → 6,
+       90 → 9. */
+    const stageCount = Math.max(5, Math.min(9, Math.round(mins / 8)));
     return {
       task: `${head} Build a ready-to-teach ${mins}-minute lesson at ${level} level. ${planFor}\n`
-        + `Return EXACTLY ${stageCount} cards in lesson order — the schema below shows the shape, not the number. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". Each window starts on the minute the previous one ended, leaving no gap, and the last one ends at exactly ${mins} min.\n`
+        + `Return EXACTLY ${stageCount} cards in lesson order — the schema below shows the shape, not the number. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". Each window starts on the minute the previous one ended, leaving no gap, no two cards may share the same window, and the last one ends at exactly ${mins} min.\n`
         + `Each card text must contain, on separate lines: "Aim:" one line on what the students will be able to do; "Do:" the numbered classroom steps with what the teacher says or asks; "Watch for:" the mistake or misunderstanding likely at ${level} and how to fix it on the spot.\n`
         + `First card is the warm-up (no materials needed), last card is homework tied to the material used in class. Include "vocab" of the target words.${context}`,
       schema: '{"cards":[{"title":"0–5 min · Warm-up","text":"Aim: ...\\nDo: 1. ...\\n2. ...\\nWatch for: ..."},{"title":"5–12 min · Pre-teach vocabulary","text":"Aim: ...\\nDo: ...\\nWatch for: ..."},{"title":"40–45 min · Homework","text":"Aim: ...\\nDo: ...\\nWatch for: ..."}],"vocab":["word"]}',
