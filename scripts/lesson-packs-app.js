@@ -2000,7 +2000,7 @@ function renderPacks() {
 
   const grid = document.getElementById('packs-grid');
   if (!filtered.length) {
-    grid.innerHTML = '<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">Nothing found</div></div>';
+    grid.innerHTML = '<div class="empty"><div class="empty-t">Nothing found</div><div class="empty-sub">Try another level, skill or search word.</div></div>';
     return;
   }
 
@@ -2009,7 +2009,7 @@ function renderPacks() {
   grid.innerHTML = filtered.map(p => `
     <div class="pack-card" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
       <div class="pc-eyebrow">${p.eyebrow}</div>
-      <div class="pc-title">${p.icon} ${p.title}</div>
+      <div class="pc-title">${p.title}</div>
       <div class="pc-desc">${p.desc}</div>
       <div class="pc-meta">
         <span class="pc-level ${lvlClass(p.level)}">${p.level}</span>
@@ -2023,14 +2023,140 @@ function renderPacks() {
 /* ═══ MODAL ═══ */
 let activePack = null;
 
+
+/* ═══ ПАК КАК ДОКУМЕНТ, А НЕ КАК РАСПЕЧАТКА ═════════════════════════════════
+
+   Содержимое пака показывалось моноширинной простынёй ровно в том виде, в
+   каком лежит в исходнике: линейки из ═, эмодзи вместо заголовков, отступы
+   пробелами. Это вёрстка терминала конца девяностых, и читать по ней урок
+   тяжело: всё одного размера, ничего не выделено, глазу не за что зацепиться.
+
+   Разметка в паках при этом настоящая, просто выражена символами. Тот же
+   разбор, что раскладывает пак на доску, годится и здесь: разделы становятся
+   секциями, маркеры — списками, пары «слово — перевод» — словарём, реплики в
+   кавычках — примерами, пронумерованные строки — упражнениями. Моноширинный
+   шрифт остаётся ровно там, где он несёт смысл: в колонках-образцах, где
+   выравнивание пробелами и есть содержание.                                 */
+const _LP_ESC = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function _lpBodyHtml(body) {
+  const lines = String(body || '').split('\n');
+  const out = [];
+  let buf = null;               // накопитель для списка или блока примеров
+
+  const flush = () => {
+    if (!buf) return;
+    if (buf.kind === 'ul')   out.push('<ul class="lp-list">' + buf.items.join('') + '</ul>');
+    if (buf.kind === 'ol')   out.push('<ol class="lp-ex">' + buf.items.join('') + '</ol>');
+    if (buf.kind === 'dl')   out.push('<dl class="lp-gloss">' + buf.items.join('') + '</dl>');
+    if (buf.kind === 'mono') out.push('<pre class="lp-mono">' + buf.items.join('\n') + '</pre>');
+    buf = null;
+  };
+  const push = (kind, item) => {
+    if (!buf || buf.kind !== kind) { flush(); buf = { kind, items: [] }; }
+    buf.items.push(item);
+  };
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line.trim()) { flush(); continue; }
+    const t = line.trim();
+
+    // Ответы к упражнению — отдельной плашкой: учитель прячет их от экрана.
+    const key = t.match(/^(KEY|ANSWERS?|ВІДПОВІДІ|ОТВЕТЫ)\s*[:：]\s*(.+)$/i);
+    if (key) { flush(); out.push(`<p class="lp-key"><b>${_LP_ESC(key[1])}</b> ${_LP_ESC(key[2])}</p>`); continue; }
+
+    const num = t.match(/^(\d{1,2})[.)]\s+(.*)$/);
+    if (num) { push('ol', `<li>${_LP_ESC(num[2])}</li>`); continue; }
+
+    const bullet = t.match(/^[•▸►·*\-]\s+(.*)$/);
+    if (bullet) {
+      const item = bullet[1];
+      const pair = item.match(/^(.{1,32}?)\s+[—–]\s+(.+)$/);
+      if (pair) { push('dl', `<div><dt>${_LP_ESC(pair[1])}</dt><dd>${_LP_ESC(pair[2])}</dd></div>`); continue; }
+      push('ul', `<li>${_LP_ESC(item)}</li>`);
+      continue;
+    }
+
+    /* «agenda         — список питань зустрічі»: словарь, выровненный
+       пробелами. Одинарный пробел вокруг тире считается тем же самым, иначе
+       строка «take the floor — взяти слово», написанная без выравнивания,
+       выпадала из словаря в обычный абзац. Ограничения по длине обеих частей
+       не дают правилу схватить нормальное предложение с тире. */
+    const gloss = t.match(/^([^\s][^—–]{0,30}?)\s+[—–]\s+(.{1,90})$/)
+      || t.match(/^([^\s].{0,30}?)\s{2,}[-]\s*(.{1,90})$/);
+    if (gloss && !/[.!?]$/.test(gloss[1])) {
+      push('dl', `<div><dt>${_LP_ESC(gloss[1])}</dt><dd>${_LP_ESC(gloss[2])}</dd></div>`);
+      continue;
+    }
+
+    /* Колонки-образцы: «a book   a user   a university». Выравнивание здесь и
+       есть содержание — его нельзя схлопывать в обычный абзац. */
+    if (/\s{3,}\S/.test(line) && line.trim().length < 90) { push('mono', _LP_ESC(line)); continue; }
+
+    flush();
+    out.push(`<p class="lp-p">${_LP_ESC(t)}</p>`);
+  }
+  flush();
+  return out.join('');
+}
+
+/* Тип секции решает её цвет и подпись. Учитель ищет глазами «где практика» и
+   «где ответы», а не читает заголовки подряд. */
+function _lpSectionKind(title) {
+  if (/objective|aims?|goals?/i.test(title)) return { cls: 'aim', label: 'Aims' };
+  if (/vocab|word\s*bank|key\s*language|phrases/i.test(title)) return { cls: 'voc', label: 'Language' };
+  if (/\b(practice|practise|exercises?|tasks?|drill)\b/i.test(title)) return { cls: 'prac', label: 'Practice' };
+  if (/\b(role-?play|discussion|debate|speaking)\b/i.test(title)) return { cls: 'prod', label: 'Production' };
+  if (/teacher\s*notes?/i.test(title)) return { cls: 'note', label: 'Teacher notes' };
+  if (/homework|follow[-\s]?up/i.test(title)) return { cls: 'hw', label: 'Homework' };
+  return { cls: 'core', label: 'Input' };
+}
+
+function _lpSkillMark(skill) {
+  return ({ grammar: 'Gr', vocabulary: 'Vo', speaking: 'Sp',
+            writing: 'Wr', reading: 'Rd', pronunciation: 'Pr' })[skill] || 'Lp';
+}
+
+function renderPackContent(p) {
+  const sections = _lpSections(p.content);
+  if (!sections.length) {
+    // Незнакомая вёрстка — показываем как есть, но честно, а не молча пустой.
+    return `<pre class="lp-mono lp-raw">${_LP_ESC(p.content)}</pre>`;
+  }
+  const nav = sections.length > 2
+    ? `<nav class="lp-toc">${sections.map((s, i) =>
+        `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(s.title)}</button>`).join('')}</nav>`
+    : '';
+  const body = sections.map((s, i) => {
+    const k = _lpSectionKind(s.title);
+    return `<section class="lp-sec lp-${k.cls}" id="lp-sec-${i}">
+      <div class="lp-sec-head"><span class="lp-sec-tag">${_LP_ESC(k.label)}</span>
+        <h3 class="lp-sec-title">${_LP_ESC(s.title)}</h3></div>
+      ${_lpBodyHtml(s.body)}
+    </section>`;
+  }).join('');
+  return nav + body;
+}
+
+function _lpJump(i) {
+  const el = document.getElementById('lp-sec-' + i);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function openPack(id) {
   const p = PACKS.find(x => x.id === id);
   if (!p) return;
   activePack = p;
-  document.getElementById('modal-icon').textContent = p.icon;
+  /* Эмодзи в шапке урока не несёт информации и выбивается из остального
+     интерфейса, где их уже нет. На его месте — метка навыка: две буквы,
+     по которым видно, что это за пак, ещё до чтения заголовка. */
+  document.getElementById('modal-icon').textContent = _lpSkillMark(p.skill);
+  document.getElementById('modal-icon').className = 'skill-' + (p.skill || 'other');
   document.getElementById('modal-eyebrow').textContent = p.eyebrow;
   document.getElementById('modal-title').textContent = p.title;
-  document.getElementById('modal-content').textContent = p.content;
+  document.getElementById('modal-content').innerHTML = renderPackContent(p);
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
