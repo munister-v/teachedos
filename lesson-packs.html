@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<link rel="manifest" href="manifest.json?v=312">
+<link rel="manifest" href="manifest.json?v=313">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,13 +9,13 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=312">
-<link rel="preload" as="style" href="styles/unify.css?v=312">
+<link rel="preload" as="style" href="styles/harmony.css?v=313">
+<link rel="preload" as="style" href="styles/unify.css?v=313">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lesson Packs · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=312">
+<link rel="stylesheet" href="styles/fonts.css?v=313">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -103,6 +103,9 @@ a{text-decoration:none;color:inherit;}
 .pc-level.c2{background:rgba(168,85,247,.15);color:#9333ea;}
 .pc-dur{font-size:10px;color:var(--text3);font-family:var(--mono);}
 .pc-open{margin-left:auto;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--accent);}
+/* Строка урока, по которой пак попал в выдачу поиска. */
+.pc-hit{font-size:11.5px;color:var(--text3);line-height:1.5;margin:-2px 0 8px;padding-left:9px;border-left:2px solid var(--border2);}
+.pc-hit mark{background:rgba(200,230,50,.45);color:var(--text);border-radius:3px;padding:0 2px;}
 
 /* ── MODAL ── */
 #modal-overlay{
@@ -221,11 +224,32 @@ a{text-decoration:none;color:inherit;}
   #modal{width:100vw;max-height:95vh;border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;}
   #modal-overlay.open{align-items:flex-end;}
 }
+
+/* ── ПЕЧАТЬ ─────────────────────────────────────────────────────────────────
+   Раздатка — обычная жизнь этих уроков, а распечатать их было нечем: оставался
+   буфер обмена и чужой редактор. Печатается только содержимое открытого пака:
+   без навигации, сетки, оглавления и кнопок, чёрным по белому и без обрывов
+   секций между страницами. */
+@media print{
+  #nav,#sidebar,.lp-mob-top,.search-wrap,.level-tabs,#packs-grid,
+  #modal-actions,#modal-close,.lp-toc{display:none!important;}
+  body{background:#fff!important;color:#000;}
+  #page{display:block;height:auto;overflow:visible;}
+  #modal-overlay{position:static!important;display:block!important;background:none!important;backdrop-filter:none!important;}
+  #modal{width:auto;max-height:none;box-shadow:none;border-radius:0;background:#fff;}
+  #modal-header{border-bottom:1px solid #ddd;padding:0 0 10px;}
+  #modal-body{overflow:visible;padding:14px 0 0;}
+  .lp-sec{break-inside:avoid;page-break-inside:avoid;border:none;border-left:3px solid #bbb;border-radius:0;
+    padding:8px 0 8px 12px;margin-bottom:10px;background:#fff;}
+  .lp-sec-tag{color:#555!important;}
+  .lp-mono,.lp-key{background:#f4f4f4!important;}
+  a[href]:after{content:none!important;}
+}
 </style>
-<script src="theme.js?v=312" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=312">
-<link rel="stylesheet" href="styles/harmony.css?v=312">
-<link rel="stylesheet" href="styles/unify.css?v=312">
+<script src="theme.js?v=313" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=313">
+<link rel="stylesheet" href="styles/harmony.css?v=313">
+<link rel="stylesheet" href="styles/unify.css?v=313">
 </head>
 <body>
 
@@ -307,6 +331,7 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div id="modal-actions">
       <button class="btn btn-lime" onclick="openPackOnBoard()">Open on board</button>
+      <button class="btn btn-ghost" onclick="printPack()">Print</button>
       <button class="btn btn-ghost" onclick="copyContent()">Copy content</button>
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
     </div>
@@ -316,12 +341,12 @@ a{text-decoration:none;color:inherit;}
   </div>
 </div>
 
-<script src="scripts/lesson-packs-app.js?v=312"></script>
-<script src="scripts/mobile-nav.js?v=312"></script>
-<script src="pwa.js?v=312"></script>
-<script src="scripts/nav-boost.js?v=312" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=312" defer></script>
-<script src="scripts/mobile-perf.js?v=312" defer></script>
-<script src="pwa-boot.js?v=312" defer></script>
+<script src="scripts/lesson-packs-app.js?v=313"></script>
+<script src="scripts/mobile-nav.js?v=313"></script>
+<script src="pwa.js?v=313"></script>
+<script src="scripts/nav-boost.js?v=313" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=313" defer></script>
+<script src="scripts/mobile-perf.js?v=313" defer></script>
+<script src="pwa-boot.js?v=313" defer></script>
 </body>
 </html>

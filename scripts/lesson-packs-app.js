@@ -1986,13 +1986,32 @@ function filterLevel(level, el) {
   renderPacks();
 }
 
+/* Строка урока, в которой нашлось слово, с подсветкой самого слова. */
+function _lpMatchLine(content, q) {
+  const line = String(content || '').split('\n')
+    // Ведущий маркер списка в цитате — мусор: он размечал исходник, а не текст.
+    .map(l => l.trim().replace(/^[•▸►·*\-]\s*/, ''))
+    .find(l => l.toLowerCase().includes(q) && l.length > q.length + 2);
+  if (!line) return '';
+  const cut = line.length > 90 ? line.slice(0, 90) + '…' : line;
+  const i = cut.toLowerCase().indexOf(q);
+  if (i < 0) return _LP_ESC(cut);
+  return _LP_ESC(cut.slice(0, i)) + '<mark>' + _LP_ESC(cut.slice(i, i + q.length)) + '</mark>' + _LP_ESC(cut.slice(i + q.length));
+}
+
 function renderPacks() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const filtered = PACKS.filter(p => {
     if (activeSkill !== 'all' && p.skill !== activeSkill) return false;
     if (activeLevel !== 'all' && p.level !== activeLevel) return false;
     if (activeLang !== 'all' && p.langs && !p.langs.includes(activeLang)) return false;
-    if (q && !p.title.toLowerCase().includes(q) && !p.desc.toLowerCase().includes(q)) return false;
+    /* Поиск шёл только по названию и описанию — то есть по двум строкам из
+       урока на три экрана. Учитель ищет «passive», «small talk», «agenda»:
+       это слова ИЗ материала, и раньше они не находились ни в одном паке.
+       Содержимое ищется третьим, после дешёвых полей. */
+    if (q && !p.title.toLowerCase().includes(q)
+          && !p.desc.toLowerCase().includes(q)
+          && !String(p.content || '').toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -2006,10 +2025,17 @@ function renderPacks() {
 
   const lvlClass = l => l.toLowerCase().replace(/[^a-z]/g,'');
 
-  grid.innerHTML = filtered.map(p => `
+  grid.innerHTML = filtered.map(p => {
+    /* Совпадение внутри урока надо объяснить: иначе в выдаче стоит пак, в
+       названии и описании которого искомого слова нет, и выглядит это как
+       сбой фильтра. Показываем строку, в которой слово нашлось. */
+    const deep = q && !p.title.toLowerCase().includes(q) && !p.desc.toLowerCase().includes(q)
+      ? _lpMatchLine(p.content, q) : '';
+    return `
     <div class="pack-card" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
       <div class="pc-eyebrow">${p.eyebrow}</div>
       <div class="pc-title">${p.title}</div>
+      ${deep ? `<div class="pc-hit">${deep}</div>` : ''}
       <div class="pc-desc">${p.desc}</div>
       <div class="pc-meta">
         <span class="pc-level ${lvlClass(p.level)}">${p.level}</span>
@@ -2017,7 +2043,8 @@ function renderPacks() {
         <span class="pc-open">Open →</span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 /* ═══ MODAL ═══ */
@@ -2039,6 +2066,18 @@ let activePack = null;
    выравнивание пробелами и есть содержание.                                 */
 const _LP_ESC = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* Термин ли это.
+
+   Тире внутри маркированного пункта — не всегда словарная статья. Пункт
+   «• Make 3 sentences about yourself — use a, an, and the.» разъезжался на
+   термин и перевод, и задание для ученика превращалось в строку словаря.
+   Термин — это одно-три слова без завершающей точки, а не предложение. */
+function _lpIsTerm(left) {
+  const t = String(left || '').trim();
+  if (!t || /[.!?:]$/.test(t)) return false;
+  return t.split(/\s+/).length <= 3;
+}
 
 function _lpBodyHtml(body) {
   const lines = String(body || '').split('\n');
@@ -2074,7 +2113,10 @@ function _lpBodyHtml(body) {
     if (bullet) {
       const item = bullet[1];
       const pair = item.match(/^(.{1,32}?)\s+[—–]\s+(.+)$/);
-      if (pair) { push('dl', `<div><dt>${_LP_ESC(pair[1])}</dt><dd>${_LP_ESC(pair[2])}</dd></div>`); continue; }
+      if (pair && _lpIsTerm(pair[1])) {
+        push('dl', `<div><dt>${_LP_ESC(pair[1])}</dt><dd>${_LP_ESC(pair[2])}</dd></div>`);
+        continue;
+      }
       push('ul', `<li>${_LP_ESC(item)}</li>`);
       continue;
     }
@@ -2086,7 +2128,7 @@ function _lpBodyHtml(body) {
        не дают правилу схватить нормальное предложение с тире. */
     const gloss = t.match(/^([^\s][^—–]{0,30}?)\s+[—–]\s+(.{1,90})$/)
       || t.match(/^([^\s].{0,30}?)\s{2,}[-]\s*(.{1,90})$/);
-    if (gloss && !/[.!?]$/.test(gloss[1])) {
+    if (gloss && _lpIsTerm(gloss[1])) {
       push('dl', `<div><dt>${_LP_ESC(gloss[1])}</dt><dd>${_LP_ESC(gloss[2])}</dd></div>`);
       continue;
     }
@@ -2310,6 +2352,13 @@ function openPackOnBoard() {
   } catch (e) {
     alert('Could not open this pack on the board: ' + e.message);
   }
+}
+
+/* Печать открытого пака. Отдельная кнопка, а не подсказка «нажмите Ctrl+P»:
+   печать со страницы без открытого урока напечатала бы сетку карточек. */
+function printPack() {
+  if (!activePack) return;
+  window.print();
 }
 
 function copyContent() {
