@@ -1,15 +1,28 @@
 User-agent: *
 Allow: /
 
-# Private / authenticated app pages — no SEO value
+# Страницы приложения: для гостя это пустые каркасы, а в выдаче они
+# перехватывают запросы у публичных страниц.
+Disallow: /index.html
 Disallow: /admin.html
 Disallow: /profile.html
 Disallow: /billing.html
 Disallow: /billing-success.html
 Disallow: /homework-do.html
+Disallow: /homework.html
 Disallow: /reset-password.html
 Disallow: /invite.html
 Disallow: /share.html
 Disallow: /portal.html
+Disallow: /board.html
+Disallow: /schedule.html
+Disallow: /gradebook.html
+Disallow: /journal.html
+Disallow: /analytics.html
+Disallow: /student.html
+Disallow: /game-builder.html
+Disallow: /quiz-builder.html
+Disallow: /lesson-builder.html
+Disallow: /offline.html
 
 Sitemap: https://teached.tech/sitemap.xml
