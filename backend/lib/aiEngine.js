@@ -814,9 +814,14 @@ function shapeSpec(input) {
     const planFor = mats
       ? `The board already holds these ready blocks:\n${mats}\nPlan the lesson AROUND THEM: every block must be used at least once, referred to by its exact name, and no stage may invent an activity that is not on this list except the warm-up, the transitions and the closing round.`
       : 'No blocks are prepared yet, so each stage must describe the activity in full.';
+    /* Сколько этапов просить. Без явного числа модель повторяла ровно те три
+       карточки, что стоят в примере схемы, и урок получался с дырой от 12-й
+       минуты до 40-й. Пример схемы читается как образец объёма, поэтому число
+       называется прямо и требование непрерывности стоит рядом с ним. */
+    const stageCount = Math.max(5, Math.min(9, Number(input.count) || 7));
     return {
       task: `${head} Build a ready-to-teach ${mins}-minute lesson at ${level} level. ${planFor}\n`
-        + `Return cards in lesson order. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". The windows must be continuous and add up to exactly ${mins} minutes.\n`
+        + `Return EXACTLY ${stageCount} cards in lesson order — the schema below shows the shape, not the number. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". Each window starts on the minute the previous one ended, leaving no gap, and the last one ends at exactly ${mins} min.\n`
         + `Each card text must contain, on separate lines: "Aim:" one line on what the students will be able to do; "Do:" the numbered classroom steps with what the teacher says or asks; "Watch for:" the mistake or misunderstanding likely at ${level} and how to fix it on the spot.\n`
         + `First card is the warm-up (no materials needed), last card is homework tied to the material used in class. Include "vocab" of the target words.${context}`,
       schema: '{"cards":[{"title":"0–5 min · Warm-up","text":"Aim: ...\\nDo: 1. ...\\n2. ...\\nWatch for: ..."},{"title":"5–12 min · Pre-teach vocabulary","text":"Aim: ...\\nDo: ...\\nWatch for: ..."},{"title":"40–45 min · Homework","text":"Aim: ...\\nDo: ...\\nWatch for: ..."}],"vocab":["word"]}',
