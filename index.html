@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=317">
-<link rel="preload" as="style" href="styles/unify.css?v=317">
+<link rel="preload" as="style" href="styles/harmony.css?v=318">
+<link rel="preload" as="style" href="styles/unify.css?v=318">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=317">
+<link rel="manifest" href="manifest.json?v=318">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -25,9 +25,9 @@
 <meta http-equiv="Expires" content="0"/>
 <title>TeachEd — Language Learning Platform</title>
 <!-- Адрес приложения, а не витрина: публичная страница живёт на teached.tech/.
-     Без этого в выдаче конкурировали два URL, и на главный запрос отвечал
-     пустой для гостя дашборд. -->
-<meta name="robots" content="noindex, follow">
+     noindex у страницы уже был ниже по head; здесь не хватало только
+     canonical, иначе на главный запрос в выдаче отвечал пустой для гостя
+     каркас приложения. -->
 <link rel="canonical" href="https://teached.tech/">
 <!-- Prevent flash of unstyled content before auth check -->
 <style>html { opacity: 0; } html.auth-ready { opacity: 1; transition: opacity 0.22s ease; }</style>
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=317">
-<link rel="stylesheet" href="styles/main.css?v=317">
+<link rel="stylesheet" href="styles/tokens.css?v=318">
+<link rel="stylesheet" href="styles/main.css?v=318">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1478,10 +1478,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=317" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=317">
-<link rel="stylesheet" href="styles/harmony.css?v=317">
-<link rel="stylesheet" href="styles/unify.css?v=317">
+<script src="theme.js?v=318" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=318">
+<link rel="stylesheet" href="styles/harmony.css?v=318">
+<link rel="stylesheet" href="styles/unify.css?v=318">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -2178,7 +2178,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=317"></script>
+<script src="scripts/desktop-app.js?v=318"></script>
 
 <script>
 
@@ -2198,7 +2198,7 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="pwa-boot.js?v=317" defer></script>
+<script src="pwa-boot.js?v=318" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2418,10 +2418,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=317" defer></script>
-<script src="scripts/nav-boost.js?v=317" defer></script>
-<script src="scripts/mobile-perf.js?v=317" defer></script>
-<script src="scripts/mobile-nav.js?v=317" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=317" defer></script>
+<script src="pwa.js?v=318" defer></script>
+<script src="scripts/nav-boost.js?v=318" defer></script>
+<script src="scripts/mobile-perf.js?v=318" defer></script>
+<script src="scripts/mobile-nav.js?v=318" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=318" defer></script>
 </body>
 </html>
