@@ -2041,6 +2041,151 @@ function closeModal() {
   activePack = null;
 }
 
+
+/* ═══ ПАК → УРОК НА ДОСКЕ ═══════════════════════════════════════════════════
+
+   До сих пор с готовым паком можно было сделать ровно одно: скопировать его в
+   буфер. Двадцать два подробных урока лежали витриной, из которой ничего
+   нельзя достать: чтобы провести такой урок, учитель вставлял текст в другое
+   окно и разбирал его руками на этапы. Материал есть, работы с ним нет.
+
+   Теперь пак открывается на доске тем же путём, которым туда попадает урок из
+   конструктора: тот же ключ в sessionStorage и тот же board.html?addLessonFlow.
+   Второй механизм импорта городить незачем — доска уже умеет раскладывать
+   этапы, цели, словарь и домашнее задание карточками.
+
+   Разбор текста пака держится на его собственной вёрстке: разделы отбиты
+   линейками из ━ или ═, а первая строка под линейкой — заголовок раздела. Это
+   не догадка о формате, а то, как все двадцать два пака и написаны.         */
+function _lpSections(content) {
+  const lines = String(content || '').split('\n');
+  const isRule = l => /^[\s]*[━═─]{5,}[\s]*$/.test(l);
+  /* Заголовком раздела в паках работают три вещи, и все три встречаются в
+     одном и том же файле: строка между линейками, строка с эмодзи впереди
+     («🎯 OBJECTIVES») и просто строка капсом без отступа («GIVING YOUR
+     OPINION»). Отступ важен: под заголовками идут примеры с двумя пробелами
+     слева, и без этого условия каждая реплика в кавычках капсом стала бы
+     собственным этапом урока. */
+  const isHeading = (l) => {
+    if (!l || /^\s/.test(l)) return false;
+    const t = l.trim();
+    if (t.length < 3 || t.length > 70) return false;
+    if (/^[\p{Extended_Pictographic}]/u.test(t)) return true;
+    const letters = t.replace(/[^A-Za-zА-Яа-яЇїІіЄєҐґ]/g, '');
+    return letters.length >= 3 && letters === letters.toUpperCase();
+  };
+
+  const out = [];
+  let cur = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (isRule(line)) {
+      const next = (lines[i + 1] || '').trim();
+      if (next && !isRule(lines[i + 1] || '')) {
+        if (cur) out.push(cur);
+        cur = { title: next.replace(/^[\s►▸•]+/, '').trim(), body: [] };
+        i += isRule(lines[i + 2] || '') ? 2 : 1;
+      }
+      continue;
+    }
+    if (isHeading(line)) {
+      if (cur) out.push(cur);
+      cur = { title: line.trim().replace(/^[\p{Extended_Pictographic}\s►▸•]+/u, '').trim(), body: [] };
+      continue;
+    }
+    if (cur) cur.body.push(line);
+  }
+  if (cur) out.push(cur);
+  return out
+    .map(s => ({ title: s.title, body: s.body.join('\n').trim() }))
+    /* Шапка пака — не раздел: там стоят название, уровень и длительность,
+       которые на доске и так лежат на самой карточке урока. */
+    .filter(s => s.title && s.body && !/Level:.*Duration:/s.test(s.body));
+}
+
+/* Раздел с целями и раздел со словарём вынимаются отдельно: на доске у них
+   свои карточки — чеклист и список слов, — а не ещё один этап урока. */
+function _lpPickSection(sections, re) {
+  const hit = sections.find(s => re.test(s.title));
+  return hit ? hit.body : '';
+}
+
+function _lpBullets(text, max) {
+  return String(text || '').split('\n')
+    .map(l => l.replace(/^[\s►▸•·\-*]+/, '').trim())
+    .filter(l => l && l.length < 160)
+    .slice(0, max)
+    .join('\n');
+}
+
+function packToLessonFlow(p) {
+  const sections = _lpSections(p.content);
+  const objectives = _lpBullets(_lpPickSection(sections, /objective|aims?|goals?/i), 5);
+  const vocab = _lpBullets(_lpPickSection(sections, /vocab|word\s*bank|key\s*language|phrases/i), 8);
+  const homework = _lpPickSection(sections, /homework|follow[-\s]?up/i).slice(0, 400);
+
+  /* Этапами становятся разделы, которые не ушли в цели, словарь и домашку.
+     Минуты раскладываются пропорционально длине раздела, а не поровну: в паке
+     блок «правило» короткий, а «практика» занимает половину занятия, и ровные
+     доли соврали бы учителю про хронометраж. */
+  /* Заметки учителю — не этап занятия: они не занимают времени в классе и
+     переезжают в описание урока. */
+  const used = /objective|aims?|goals?|vocab|word\s*bank|key\s*language|phrases|homework|follow[-\s]?up|teacher\s*notes?/i;
+  const stageSecs = sections.filter(s => !used.test(s.title)).slice(0, 8);
+  const total = parseInt(String(p.duration).match(/\d+/)?.[0], 10) || 30;
+  const weight = stageSecs.map(s => Math.max(120, s.body.length));
+  const sum = weight.reduce((a, b) => a + b, 0) || 1;
+  const mins = weight.map(w => Math.max(3, Math.round(total * (w / sum))));
+  /* Расхождение округлений отдаём самому объёмному разделу, а не последнему.
+     Последним в паке часто стоит короткий список тем для обсуждения, и именно
+     он получал бы лишние пятнадцать минут — план врал бы про хронометраж
+     ровно в том месте, где учитель на него смотрит. */
+  const drift = total - mins.reduce((a, b) => a + b, 0);
+  if (drift && mins.length) {
+    const fat = weight.indexOf(Math.max(...weight));
+    mins[fat] = Math.max(3, mins[fat] + drift);
+  }
+  const stages = stageSecs.map((s, i) => {
+    const min = mins[i];
+    return {
+      name: s.title.replace(/\s+/g, ' ').slice(0, 60),
+      min,
+      /* Слова целиком, а не куски: «MAKE — create, produce, cause» — это
+         презентация лексики, а подстрока «produc» делала из неё продукцию. */
+      mode: /\b(practice|practise|exercises?|tasks?|drill)\b/i.test(s.title) ? 'Practice'
+        : /\b(role-?play|discussion|debate|production|speaking)\b/i.test(s.title) ? 'Production'
+        : /\b(feedback|errors?|mistakes?)\b/i.test(s.title) ? 'Feedback' : 'Input',
+      teacher: s.body.slice(0, 700),
+      student: '',
+    };
+  });
+
+  return {
+    title: p.title,
+    level: p.level,
+    duration: total,
+    skill: p.skill ? p.skill[0].toUpperCase() + p.skill.slice(1) : 'Speaking',
+    format: '1:1 online',
+    brief: [p.desc || '', _lpPickSection(sections, /teacher\s*notes?/i).slice(0, 400)].filter(Boolean).join('\n\n'),
+    objectives,
+    vocab,
+    homework,
+    materials: 'TeachEd Lesson Pack: ' + p.title,
+    stages: stages.length ? stages : [{ name: p.title, min: total, mode: 'Input', teacher: String(p.content || '').slice(0, 700), student: '' }],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function openPackOnBoard() {
+  if (!activePack) return;
+  try {
+    sessionStorage.setItem('teachedos_pending_lesson_flow', JSON.stringify(packToLessonFlow(activePack)));
+    location.href = 'board.html?addLessonFlow=1';
+  } catch (e) {
+    alert('Could not open this pack on the board: ' + e.message);
+  }
+}
+
 function copyContent() {
   if (!activePack) return;
   navigator.clipboard.writeText(activePack.content).then(() => {
