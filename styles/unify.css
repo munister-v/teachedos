@@ -2913,3 +2913,187 @@ body.board-page .empty-action.primary {
 }
 .st-icon { display: inline-flex; align-items: center; }
 .plan-option-icon .ic, .mobile-profile-action-ic .ic { width: 22px; height: 22px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CALM UI PASS — neutral editorial controls
+
+   The product needs one quiet visual language: warm surfaces, graphite
+   actions and a restrained sage accent. Lime/pink remain available for
+   status and progress, but routine actions no longer compete with content.
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --calm-ink: #556056;
+  --calm-ink-hover: #465047;
+  --calm-ink-soft: #EEF1EC;
+  --calm-accent: #7C8A7B;
+  --calm-accent-soft: #E7ECE6;
+  --calm-surface: #FFFDF9;
+  --calm-line: rgba(68, 78, 69, .16);
+  --calm-muted: #737A72;
+}
+
+/* Headings use hierarchy through size and spacing, not a wall of bold. */
+body:not(.board-page) :where(h1, h2, h3, h4, h5, h6, .page-title, .section-title,
+  .card-title, .ready-title, .ch-name, .module-title, .curr-title,
+  .prog-section-title, .nav-logo-name) {
+  font-weight: 600 !important;
+}
+body:not(.board-page) :where(strong, b, .nav-link.active, .nav-user, .btn,
+  .mini-btn, .ready-meta, .ready-chip, .insight-label, .form-label) {
+  font-weight: 600 !important;
+}
+
+/* Neutral primary/secondary actions. Semantic danger buttons keep their red. */
+body:not(.board-page) :where(
+  .btn-primary, .btn.btn-primary, .btn.lime, .btn.btn-lime,
+  .mini-btn:not(.alt):not(.lime):not(.ghost), .btn-new-course,
+  .ready-actions .btn-primary, .module-button.primary,
+  .price-btn.primary, .plan-action.primary, .billing-action.primary
+) {
+  background: var(--calm-ink) !important;
+  color: #fff !important;
+  border-color: var(--calm-ink) !important;
+  box-shadow: 0 5px 14px rgba(59, 69, 60, .16) !important;
+  font-weight: 600 !important;
+}
+body:not(.board-page) :where(
+  .btn-primary:hover, .btn.btn-primary:hover, .btn.lime:hover,
+  .btn.btn-lime:hover, .mini-btn:not(.alt):not(.lime):not(.ghost):hover,
+  .btn-new-course:hover, .ready-actions .btn-primary:hover,
+  .module-button.primary:hover, .price-btn.primary:hover,
+  .plan-action.primary:hover, .billing-action.primary:hover
+) {
+  background: var(--calm-ink-hover) !important;
+  border-color: var(--calm-ink-hover) !important;
+  box-shadow: 0 8px 20px rgba(59, 69, 60, .20) !important;
+}
+body:not(.board-page) :where(
+  .btn-ghost, .btn.btn-ghost, .btn-soft, .btn.btn-soft,
+  .btn.ghost, .btn.soft, .mini-btn.alt, .mini-btn.ghost,
+  .ready-actions .btn-soft
+) {
+  background: var(--calm-ink-soft) !important;
+  color: var(--calm-ink-hover) !important;
+  border-color: var(--calm-line) !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+body:not(.board-page) :where(
+  .btn-ghost:hover, .btn.btn-ghost:hover, .btn-soft:hover,
+  .btn.btn-soft:hover, .btn.ghost:hover, .btn.soft:hover,
+  .mini-btn.alt:hover, .mini-btn.ghost:hover, .ready-actions .btn-soft:hover
+) {
+  background: var(--calm-accent-soft) !important;
+  border-color: rgba(85, 96, 86, .28) !important;
+  color: var(--calm-ink-hover) !important;
+}
+
+/* App navigation: quiet surface, low-contrast divider, no dark glass strip. */
+body:not(.board-page):not(.os-desktop) #nav {
+  background: rgba(247, 244, 237, .94) !important;
+  border-bottom-color: rgba(68, 78, 69, .12) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.72) inset !important;
+  backdrop-filter: blur(16px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav :where(.nav-link, .nav-logo-name) {
+  color: #4C554D !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
+  background: rgba(85, 96, 86, .08) !important;
+  color: #303930 !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
+  color: var(--calm-ink) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-user {
+  background: rgba(85, 96, 86, .07) !important;
+  border-color: rgba(85, 96, 86, .18) !important;
+  color: #4C554D !important;
+}
+body:not(.board-page):not(.os-desktop) #nav #nav-avatar {
+  background: var(--calm-accent-soft) !important;
+  color: var(--calm-ink-hover) !important;
+}
+
+/* Courses: one neutral family for levels, tags, icons and card actions. */
+body.mp-shell #nav {
+  background: rgba(247, 244, 237, .96) !important;
+  border-bottom-color: rgba(68, 78, 69, .12) !important;
+  backdrop-filter: blur(16px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
+}
+body.mp-shell :where(.ready-card, .insight-card, .module-block) {
+  border-color: rgba(68, 78, 69, .14) !important;
+  box-shadow: 0 4px 16px rgba(61, 70, 62, .06) !important;
+}
+body.mp-shell .ready-icon,
+body.mp-shell .ch-icon {
+  background: var(--calm-accent-soft) !important;
+  color: var(--calm-ink-hover) !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+body.mp-shell .ready-chip,
+body.mp-shell .ch-pill {
+  background: #F2F1EC !important;
+  border-color: rgba(68, 78, 69, .12) !important;
+  color: #5D665E !important;
+  font-weight: 500 !important;
+}
+body.mp-shell :where(.ci-dot, .ready-card .ready-icon) {
+  --level-color: var(--calm-accent);
+}
+body.mp-shell .ci-dot {
+  background: var(--calm-accent) !important;
+}
+body.mp-shell :where(.ready-title, .module-title, .ch-name, .course-item .ci-name) {
+  font-weight: 600 !important;
+}
+body.mp-shell :where(.ready-meta, .ready-copy, .module-count, .course-item .ci-count) {
+  font-weight: 400 !important;
+}
+body.mp-shell .ready-actions .btn {
+  border-radius: 10px !important;
+  min-height: 44px;
+  padding-inline: 14px;
+}
+body.mp-shell .ready-meta,
+body.mp-shell .ready-chip {
+  font-family: var(--font) !important;
+}
+body.mp-shell .ready-meta {
+  color: var(--calm-muted) !important;
+  letter-spacing: 0 !important;
+}
+body.mp-shell .ready-copy {
+  color: #5C655D !important;
+  line-height: 1.5;
+}
+body.mp-shell .ready-actions .btn-primary {
+  flex: 1 1 auto;
+}
+body.mp-shell .ready-actions .btn-soft {
+  flex: 0 0 auto;
+}
+body.mp-shell .ready-empty-head {
+  color: var(--calm-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* Small icon tiles use one stroke/shape language instead of assorted emoji. */
+body:not(.board-page) :where(.ready-icon, .tool-icon, .feature-icon, .icon-tile,
+  .mp-quick-ic, .mp-quick-ic2) {
+  background: var(--calm-accent-soft) !important;
+  color: var(--calm-ink) !important;
+}
+
+/* Selection/focus remains visible but no longer flashes saturated lime/pink. */
+body:not(.board-page) :where(:focus-visible, .chip.active, .tag-btn.active) {
+  outline-color: var(--calm-accent) !important;
+}
+body:not(.board-page) :where(.chip.active, .tag-btn.active) {
+  background: var(--calm-ink) !important;
+  border-color: var(--calm-ink) !important;
+  color: #fff !important;
+}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=321">
+<link rel="manifest" href="manifest.json?v=322">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,11 +16,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=321">
-<link rel="stylesheet" href="styles/auth.css?v=321">
-<link rel="stylesheet" href="styles/mobile.css?v=321">
-<link rel="stylesheet" href="styles/harmony.css?v=321">
-<link rel="stylesheet" href="styles/unify.css?v=321">
+<link rel="stylesheet" href="styles/board.css?v=322">
+<link rel="stylesheet" href="styles/auth.css?v=322">
+<link rel="stylesheet" href="styles/mobile.css?v=322">
+<link rel="stylesheet" href="styles/harmony.css?v=322">
+<link rel="stylesheet" href="styles/unify.css?v=322">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -149,6 +149,127 @@
     transform:none!important;
   }
 }
+
+/* Calm board chrome: neutral controls keep the canvas and lesson content first. */
+:root{
+  --board-calm-ink:#59635A;
+  --board-calm-ink-hover:#485248;
+  --board-calm-soft:#E9EEE8;
+  --board-calm-line:rgba(73,84,74,.16);
+}
+#toolbar,#miro-toolbar{
+  background:#F8F6F0!important;
+  border-color:var(--board-calm-line)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 4px 16px rgba(55,65,56,.06)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#toolbar :where(.tb-btn,.tb-btn-primary,.tb-icon-btn,.tb-auth-chip),
+#miro-toolbar :where(.mt-btn,.mt-more-item){
+  font-weight:600!important;
+}
+#toolbar .tb-btn{
+  background:#FFFDF9!important;
+  border-color:var(--board-calm-line)!important;
+  color:var(--board-calm-ink-hover)!important;
+}
+#toolbar .tb-btn:hover,#toolbar .tb-icon-btn:hover,#toolbar .tb-auth-chip:hover{
+  background:var(--board-calm-soft)!important;
+  border-color:rgba(73,84,74,.24)!important;
+  color:var(--board-calm-ink-hover)!important;
+}
+#toolbar #btn-share.tb-btn-primary{
+  background:var(--board-calm-ink)!important;
+  border-color:var(--board-calm-ink)!important;
+  color:#fff!important;
+  box-shadow:0 5px 14px rgba(73,84,74,.16)!important;
+}
+#toolbar #btn-share.tb-btn-primary:hover{background:var(--board-calm-ink-hover)!important;}
+#miro-toolbar .mt-btn{
+  color:var(--board-calm-ink)!important;
+}
+#miro-toolbar .mt-btn:hover,
+#miro-toolbar .mt-btn.active,
+#miro-toolbar .mt-btn.mt-add,
+#miro-toolbar .mt-btn.mt-tools{
+  background:var(--board-calm-soft)!important;
+  color:var(--board-calm-ink-hover)!important;
+  border-color:var(--board-calm-line)!important;
+  box-shadow:none!important;
+}
+#miro-toolbar .mt-btn.mt-add{border:1px solid var(--board-calm-line)!important;}
+#miro-toolbar .mt-btn.active{
+  background:var(--board-calm-ink)!important;
+  border-color:var(--board-calm-ink)!important;
+  color:#fff!important;
+  box-shadow:0 3px 10px rgba(55,65,56,.14)!important;
+}
+#miro-toolbar .mt-btn.active:hover{
+  background:var(--board-calm-ink-hover)!important;
+  border-color:var(--board-calm-ink-hover)!important;
+  color:#fff!important;
+}
+#miro-toolbar .mt-btn:active{transform:scale(.94)!important;}
+#toolbar :where(.tb-btn,.tb-btn-primary,.tb-icon-btn,.tb-auth-chip):focus-visible,
+#miro-toolbar .mt-btn:focus-visible,
+#align-bar .align-btn:focus-visible{
+  outline:3px solid rgba(124,138,123,.62)!important;
+  outline-offset:2px!important;
+}
+#mt-more-pop{
+  border-color:var(--board-calm-line)!important;
+  box-shadow:0 14px 34px rgba(55,65,56,.14),0 1px 4px rgba(55,65,56,.05)!important;
+}
+#mt-more-pop .mt-more-item:hover{
+  background:var(--board-calm-soft)!important;
+  color:var(--board-calm-ink-hover)!important;
+}
+.mtm-ic{display:inline-flex;align-items:center;justify-content:center;color:var(--board-calm-ink);}
+.mtm-ic svg{width:18px;height:18px;display:block;}
+
+/* Make the selected-card tool self-explanatory: title + familiar alignment glyphs. */
+#align-bar{
+  min-width:148px;
+  padding:8px!important;
+  gap:4px!important;
+  border-color:var(--board-calm-line)!important;
+  box-shadow:0 10px 28px rgba(55,65,56,.12)!important;
+}
+.align-heading{
+  padding:2px 4px 5px;
+  color:#697269;
+  font:600 10px/1 var(--font);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.align-btn{
+  width:36px!important;height:36px!important;
+  color:var(--board-calm-ink)!important;
+  border:1px solid transparent!important;
+  font-size:0!important;
+}
+.align-btn:hover,.align-btn:focus-visible{
+  background:var(--board-calm-soft)!important;
+  border-color:var(--board-calm-line)!important;
+  color:var(--board-calm-ink-hover)!important;
+}
+.align-btn .align-icon{width:18px;height:18px;display:block;}
+.align-btn .align-icon :where(path,rect,circle){vector-effect:non-scaling-stroke;}
+.align-sep{background:var(--board-calm-line)!important;}
+
+/* Keep board titles and lesson controls editorial rather than heavy/black. */
+#board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-title-text,
+#board .card-frame .frame-title{font-weight:600!important;}
+#board .card-frame .frame-num{
+  background:var(--board-calm-soft)!important;
+  color:var(--board-calm-ink-hover)!important;
+}
+#board .card-frame .frame-add-activity{
+  background:var(--board-calm-ink)!important;
+  color:#fff!important;
+  box-shadow:0 4px 12px rgba(55,65,56,.14)!important;
+}
+#board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
 </head>
 <body class="board-page">
@@ -546,17 +667,17 @@
 
 <!-- More tools popover — anchored to the + button -->
 <div id="mt-more-pop" role="menu" aria-hidden="true">
-  <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic">◉</span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic">⊞</span><span class="mtm-lbl">Table</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('image')"><span class="mtm-ic">🖼</span><span class="mtm-lbl">Image</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('gif')"><span class="mtm-ic">🎞️</span><span class="mtm-lbl">GIF</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('video')"><span class="mtm-ic">▶</span><span class="mtm-lbl">Video</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('voting')"><span class="mtm-ic">📊</span><span class="mtm-lbl">Voting</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('games')"><span class="mtm-ic">🎮</span><span class="mtm-lbl">Games</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span><span class="mtm-lbl">Table</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('image')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-frame"/></svg></span><span class="mtm-lbl">Image</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('gif')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-courses"/></svg></span><span class="mtm-lbl">GIF</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('video')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-homework"/></svg></span><span class="mtm-lbl">Video</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('voting')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-progress"/></svg></span><span class="mtm-lbl">Voting</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('games')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-sticker"/></svg></span><span class="mtm-lbl">Games</span></button>
   <div class="mtm-sep"></div>
-  <button class="mt-more-item" onclick="_mtMoreDo('practice-all')"><span class="mtm-ic">⚡</span><span class="mtm-lbl">Practice all vocab</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('practice-all')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span class="mtm-lbl">Practice all vocab</span></button>
   <div class="mtm-sep"></div>
-  <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic">🧹</span><span class="mtm-lbl">Clear drawing</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-trash"/></svg></span><span class="mtm-lbl">Clear drawing</span></button>
 </div>
 
 <!-- SHAPE PANEL — Miro-style: list of connectors + shapes with labels + shortcuts -->
@@ -602,11 +723,11 @@
   </button>
   <div class="sp-divider"></div>
   <button class="sp-row sp-row-secondary" onclick="_showMoreShapes(event)">
-    <span class="sp-row-ic-emoji">▦</span>
+    <svg class="sp-row-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-grid"/></svg>
     <span class="sp-row-lbl">More shapes</span>
   </button>
   <button class="sp-row sp-row-secondary" onclick="closeShapePanel();toolbarQuickAdd('mindmap')">
-    <span class="sp-row-ic-emoji">◉</span>
+    <svg class="sp-row-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-shape"/></svg>
     <span class="sp-row-lbl">Diagram</span>
   </button>
 </div>
@@ -761,22 +882,23 @@
 </div>
 
 <!-- Align bar (shown when ≥2 cards selected) -->
-<div id="align-bar" title="Align selected cards">
-  <button class="align-btn" onclick="alignCards('left')"    title="Align left">⬛▫▫</button>
-  <button class="align-btn" onclick="alignCards('hcenter')" title="Center horizontally">▫⬛▫</button>
-  <button class="align-btn" onclick="alignCards('right')"   title="Align right">▫▫⬛</button>
+<div id="align-bar" title="Align selected cards" aria-label="Align and distribute selected cards">
+  <div class="align-heading">Align &amp; distribute</div>
+  <button class="align-btn" onclick="alignCards('left')" title="Align left" aria-label="Align left"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 3v18"/><rect x="8" y="5" width="11" height="3" rx="1"/><rect x="8" y="10.5" width="7" height="3" rx="1"/><rect x="8" y="16" width="9" height="3" rx="1"/></svg></button>
+  <button class="align-btn" onclick="alignCards('hcenter')" title="Center horizontally" aria-label="Center horizontally"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v18"/><rect x="6" y="5" width="12" height="3" rx="1"/><rect x="8.5" y="10.5" width="7" height="3" rx="1"/><rect x="5" y="16" width="14" height="3" rx="1"/></svg></button>
+  <button class="align-btn" onclick="alignCards('right')" title="Align right" aria-label="Align right"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 3v18"/><rect x="5" y="5" width="11" height="3" rx="1"/><rect x="9" y="10.5" width="7" height="3" rx="1"/><rect x="7" y="16" width="9" height="3" rx="1"/></svg></button>
   <div class="align-sep"></div>
-  <button class="align-btn" onclick="alignCards('top')"     title="Align top">⬛</button>
-  <button class="align-btn" onclick="alignCards('vcenter')" title="Center vertically">▫⬛</button>
-  <button class="align-btn" onclick="alignCards('bottom')"  title="Align bottom">▫▫⬛</button>
+  <button class="align-btn" onclick="alignCards('top')" title="Align top" aria-label="Align top"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h18"/><rect x="5" y="8" width="3" height="11" rx="1"/><rect x="10.5" y="8" width="3" height="7" rx="1"/><rect x="16" y="8" width="3" height="9" rx="1"/></svg></button>
+  <button class="align-btn" onclick="alignCards('vcenter')" title="Center vertically" aria-label="Center vertically"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12h18"/><rect x="5" y="6" width="3" height="12" rx="1"/><rect x="10.5" y="8.5" width="3" height="7" rx="1"/><rect x="16" y="5" width="3" height="14" rx="1"/></svg></button>
+  <button class="align-btn" onclick="alignCards('bottom')" title="Align bottom" aria-label="Align bottom"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 20h18"/><rect x="5" y="5" width="3" height="11" rx="1"/><rect x="10.5" y="9" width="3" height="7" rx="1"/><rect x="16" y="7" width="3" height="9" rx="1"/></svg></button>
   <div class="align-sep"></div>
-  <button class="align-btn" onclick="distributeCards('h')"  title="Distribute horizontally">⬛▫⬛▫⬛</button>
-  <button class="align-btn" onclick="distributeCards('v')"  title="Distribute vertically">⬛</button>
+  <button class="align-btn" onclick="distributeCards('h')" title="Distribute horizontally" aria-label="Distribute horizontally"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4v16M20 4v16"/><rect x="7" y="8" width="3" height="8" rx="1"/><rect x="14" y="8" width="3" height="8" rx="1"/></svg></button>
+  <button class="align-btn" onclick="distributeCards('v')" title="Distribute vertically" aria-label="Distribute vertically"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16M4 20h16"/><rect x="8" y="7" width="8" height="3" rx="1"/><rect x="8" y="14" width="8" height="3" rx="1"/></svg></button>
   <div class="align-sep"></div>
-  <button class="align-btn" onclick="groupSelected()"   title="Group (Ctrl+G)" style="font-size:11px;">⊞</button>
-  <button class="align-btn" onclick="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)" style="font-size:11px;">⊟</button>
+  <button class="align-btn" onclick="groupSelected()" title="Group (Ctrl+G)" aria-label="Group"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M11 8h2M8 11v2M13 16h-2M16 13v-2" stroke-linecap="round"/></svg></button>
+  <button class="align-btn" onclick="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)" aria-label="Ungroup"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M11 8h2M8 11v2M13 16h-2M16 13v-2" stroke-linecap="round" stroke-dasharray="1.5 2"/></svg></button>
   <div class="align-sep"></div>
-  <button class="align-btn" onclick="collectVocabulary()" title="Collect vocabulary from these cards" style="font-size:11px;">📗</button>
+  <button class="align-btn" onclick="collectVocabulary()" title="Collect vocabulary from these cards" aria-label="Collect vocabulary"><svg class="align-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5h10a2 2 0 0 1 2 2v12H8a2 2 0 0 1-2-2z"/><path d="M8 5v14M10 9h5M10 13h5"/></svg></button>
 </div>
 
 <!-- Collected vocabulary: review before it becomes a card or a game -->
@@ -1899,12 +2021,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=321"></script>
-<script src="scripts/tt-text-core.js?v=321"></script>
-<script src="scripts/board-app.js?v=321"></script>
-<script src="js/board-vocab.js?v=321"></script>
-<script src="js/board-reveal.js?v=321"></script>
-<script src="js/teacher-tool-board-composer.js?v=321"></script>
+<script src="js/teacher-tools-data.js?v=322"></script>
+<script src="scripts/tt-text-core.js?v=322"></script>
+<script src="scripts/board-app.js?v=322"></script>
+<script src="js/board-vocab.js?v=322"></script>
+<script src="js/board-reveal.js?v=322"></script>
+<script src="js/teacher-tool-board-composer.js?v=322"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -1912,7 +2034,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=321" defer></script>
+<script src="pwa-boot.js?v=322" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -1953,11 +2075,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=321"></script>
-<script src="scripts/nav-boost.js?v=321" defer></script>
-<script src="scripts/mobile-perf.js?v=321" defer></script>
-<script src="scripts/mobile-nav.js?v=321"></script>
-<script src="scripts/mobile-zoom-guard.js?v=321" defer></script>
+<script src="pwa.js?v=322"></script>
+<script src="scripts/nav-boost.js?v=322" defer></script>
+<script src="scripts/mobile-perf.js?v=322" defer></script>
+<script src="scripts/mobile-nav.js?v=322"></script>
+<script src="scripts/mobile-zoom-guard.js?v=322" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
