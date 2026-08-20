@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=323">
+<link rel="manifest" href="manifest.json?v=324">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,11 +16,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=323">
-<link rel="stylesheet" href="styles/auth.css?v=323">
-<link rel="stylesheet" href="styles/mobile.css?v=323">
-<link rel="stylesheet" href="styles/harmony.css?v=323">
-<link rel="stylesheet" href="styles/unify.css?v=323">
+<link rel="stylesheet" href="styles/board.css?v=324">
+<link rel="stylesheet" href="styles/auth.css?v=324">
+<link rel="stylesheet" href="styles/mobile.css?v=324">
+<link rel="stylesheet" href="styles/harmony.css?v=324">
+<link rel="stylesheet" href="styles/unify.css?v=324">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -80,7 +80,7 @@
 #board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-title-text{
   color:#5D5F56;
   letter-spacing:.055em;
-  font-weight:800;
+  font-weight:650;
 }
 #board .card-frame .frame-body{
   border-radius:16px!important;
@@ -107,7 +107,7 @@
   background:#FFFDF7!important;
   color:#24251F!important;
   font-size:11px!important;
-  font-weight:850!important;
+  font-weight:650!important;
   letter-spacing:.045em!important;
   text-transform:uppercase;
   box-shadow:0 3px 10px rgba(28,28,30,.08)!important;
@@ -319,7 +319,7 @@
   </a>
   <span class="tb-slash" aria-hidden="true">/</span>
   <div class="tb-board-chip" id="tb-board-chip">
-    <span id="board-name-display" class="tb-board-chip-title" title="Click to rename" onclick="startRenameBoard()">My Board</span>
+    <span id="board-name-display" class="tb-board-chip-title" title="Rename board" onclick="startRenameBoard()">My Board</span>
     <span class="tb-board-chip-status" title="Sync status">
       <span id="board-meta-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;transition:background .3s;"></span>
     </span>
@@ -816,10 +816,10 @@
     </defs>
   </svg>
   <!-- Student live-class banner (shown when teacher is broadcasting) -->
-  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:var(--accent);color:var(--on-accent);padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:700;box-shadow:0 4px 18px rgba(14,14,16,.35);">
+  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:var(--accent);color:var(--on-accent);padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 4px 18px rgba(14,14,16,.35);">
     <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;animation:pulse-dot 1.2s infinite;flex-shrink:0;font-size:0;line-height:0;">&nbsp;</span>
     <span id="board-live-label">Your teacher is live now</span>
-    <a id="board-live-join" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1" style="margin-left:auto;background:var(--on-accent);color:var(--accent);padding:5px 14px;border-radius:8px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
+    <a id="board-live-join" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1" style="margin-left:auto;background:var(--on-accent);color:var(--accent);padding:5px 14px;border-radius:8px;font-weight:650;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
     <button onclick="document.getElementById('board-live-banner').style.display='none'" style="border:none;background:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">×</button>
   </div>
   <!-- Board canvas -->
@@ -1739,7 +1739,7 @@ polite request</textarea>
 
       <!-- Reset -->
       <div style="padding-top:4px;border-top:1px solid var(--border);">
-        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef4444;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
+        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#ef4444;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
       </div>
 
     </div>
@@ -1754,8 +1754,8 @@ polite request</textarea>
 
     <!-- Tabs -->
     <div style="display:flex;gap:4px;margin-bottom:18px;background:var(--bg,#F5F0E8);border-radius:10px;padding:3px;">
-      <button id="vtab-url" onclick="switchVideoTab('url')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:.15s;">🔗 URL</button>
-      <button id="vtab-file" onclick="switchVideoTab('file')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;background:transparent;color:var(--text-2);transition:.15s;">📁 Upload from PC</button>
+      <button id="vtab-url" onclick="switchVideoTab('url')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:.15s;">🔗 URL</button>
+      <button id="vtab-file" onclick="switchVideoTab('file')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;background:transparent;color:var(--text-2);transition:.15s;">📁 Upload from PC</button>
     </div>
 
     <!-- URL tab -->
@@ -1771,16 +1771,16 @@ polite request</textarea>
         ondragleave="this.style.borderColor='rgba(0,0,0,.18)'"
         ondrop="handleVideoFileDrop(event)">
         <div style="font-size:2rem;margin-bottom:8px;">🎬</div>
-        <div style="font-size:13px;font-weight:800;color:var(--text);">Click or drag a video file</div>
+        <div style="font-size:13px;font-weight:650;color:var(--text);">Click or drag a video file</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP4, WebM, MOV · max 50 MB</div>
       </div>
       <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleVideoFileSelect(this)">
-      <div id="video-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;border:1px solid rgba(14,14,16,.25);margin-bottom:14px;"></div>
+      <div id="video-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;border:1px solid rgba(14,14,16,.25);margin-bottom:14px;"></div>
     </div>
 
     <div style="display:flex;gap:8px;">
-      <button onclick="closeVideoModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
-      <button onclick="confirmVideoEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:var(--on-accent);font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Video</button>
+      <button onclick="closeVideoModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmVideoEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:var(--on-accent);font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Video</button>
     </div>
     <div onclick="closeVideoModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
@@ -1798,20 +1798,20 @@ polite request</textarea>
       ondragleave="this.style.borderColor='rgba(94,94,74,.28)'"
       ondrop="handleAudioFileDrop(event)">
       <div style="font-size:2.5rem;margin-bottom:8px;">🎵</div>
-      <div style="font-size:13px;font-weight:800;color:var(--text);">Click or drag an audio file</div>
+      <div style="font-size:13px;font-weight:650;color:var(--text);">Click or drag an audio file</div>
       <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP3, WAV, OGG, M4A · max 20 MB</div>
     </div>
     <input id="audio-file-input" type="file" accept="audio/mp3,audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/*" style="display:none;" onchange="handleAudioFileSelect(this)">
-    <div id="audio-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(28,28,30,.12);border-radius:8px;border:1px solid rgba(28,28,30,.3);margin-bottom:14px;"></div>
+    <div id="audio-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(28,28,30,.12);border-radius:8px;border:1px solid rgba(28,28,30,.3);margin-bottom:14px;"></div>
 
     <div style="margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Title (optional)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Title (optional)</div>
       <input id="audio-title-input" class="cfg-input" type="text" placeholder="e.g. Listening Exercise 1">
     </div>
 
     <div style="display:flex;gap:8px;">
-      <button onclick="closeAudioModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
-      <button onclick="confirmAudioEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#1C1C1E;color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Audio</button>
+      <button onclick="closeAudioModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmAudioEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#1C1C1E;color:#fff;font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Audio</button>
     </div>
     <div onclick="closeAudioModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
@@ -1830,18 +1830,18 @@ polite request</textarea>
          onclick="document.getElementById('image-file-input').click()"
          style="border:2px dashed rgba(94,94,74,.28);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:14px;transition:.15s;">
       <div style="font-size:24px;margin-bottom:4px;">📁</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text-2);">Drop image, paste, or click to choose</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-2);">Drop image, paste, or click to choose</div>
       <div style="font-size:10px;color:var(--text-3);margin-top:4px;">PNG · JPG · GIF · WebP · max 8 MB</div>
     </div>
     <input id="image-file-input" type="file" accept="image/*" style="display:none;" onchange="handleImageFileSelect(this)">
-    <div id="image-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:700;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;margin-bottom:14px;"></div>
+    <div id="image-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;margin-bottom:14px;"></div>
 
-    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Or use a URL</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Or use a URL</div>
     <input id="image-url-input" class="cfg-input" type="url" placeholder="https://example.com/image.png" style="margin-bottom:14px;">
 
     <div style="display:flex;gap:8px;">
-      <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:700;cursor:pointer;color:var(--text-2);">Cancel</button>
-      <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:800;cursor:pointer;font-size:13px;">Add Image</button>
+      <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
+      <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Image</button>
     </div>
     <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
@@ -2007,26 +2007,26 @@ polite request</textarea>
 <div id="conflict-banner">
   <span>⚠️</span>
   <span>This board was updated elsewhere.</span>
-  <button onclick="resolveConflict('theirs')" style="padding:4px 10px;border-radius:7px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;">Use server version</button>
-  <button onclick="resolveConflict('mine')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:var(--card-bg,white);color:var(--text-2);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;">Keep mine</button>
+  <button onclick="resolveConflict('theirs')" style="padding:4px 10px;border-radius:7px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-size:11px;font-weight:650;cursor:pointer;">Use server version</button>
+  <button onclick="resolveConflict('mine')" style="padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:var(--card-bg,white);color:var(--text-2);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;">Keep mine</button>
   <button onclick="document.getElementById('conflict-banner').classList.remove('show')" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:16px;line-height:1;">×</button>
 </div>
 
 <!-- BOARD LIST MODAL -->
 <div id="boards-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
-    <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:16px;">📋 My Boards</div>
+    <div style="font-size:1.1rem;font-weight:650;color:var(--text);margin-bottom:16px;">📋 My Boards</div>
     <div id="boards-list"></div>
     <button onclick="closeBoardList()" style="position:absolute;top:14px;right:16px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-3);">×</button>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=323"></script>
-<script src="scripts/tt-text-core.js?v=323"></script>
-<script src="scripts/board-app.js?v=323"></script>
-<script src="js/board-vocab.js?v=323"></script>
-<script src="js/board-reveal.js?v=323"></script>
-<script src="js/teacher-tool-board-composer.js?v=323"></script>
+<script src="js/teacher-tools-data.js?v=324"></script>
+<script src="scripts/tt-text-core.js?v=324"></script>
+<script src="scripts/board-app.js?v=324"></script>
+<script src="js/board-vocab.js?v=324"></script>
+<script src="js/board-reveal.js?v=324"></script>
+<script src="js/teacher-tool-board-composer.js?v=324"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2034,7 +2034,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=323" defer></script>
+<script src="pwa-boot.js?v=324" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2075,11 +2075,11 @@ polite request</textarea>
     </div>
   </div>
 </div>
-<script src="pwa.js?v=323"></script>
-<script src="scripts/nav-boost.js?v=323" defer></script>
-<script src="scripts/mobile-perf.js?v=323" defer></script>
-<script src="scripts/mobile-nav.js?v=323"></script>
-<script src="scripts/mobile-zoom-guard.js?v=323" defer></script>
+<script src="pwa.js?v=324"></script>
+<script src="scripts/nav-boost.js?v=324" defer></script>
+<script src="scripts/mobile-perf.js?v=324" defer></script>
+<script src="scripts/mobile-nav.js?v=324"></script>
+<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

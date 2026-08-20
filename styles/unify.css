@@ -3097,3 +3097,128 @@ body:not(.board-page) :where(.chip.active, .tag-btn.active) {
   border-color: var(--calm-ink) !important;
   color: #fff !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CALM UI PASS — the board
+
+   The calm pass above deliberately stops at `body:not(.board-page)`, so the
+   editor kept the old near-black chrome while the rest of the app moved to
+   graphite. The board is fully tokenised on --accent, but unify's global
+   `--accent:#0E0E10` (set on :root, and this file loads last) outranked
+   board.css's own value — so the retune has to land here, on body, to reach
+   the editor's descendants.
+═══════════════════════════════════════════════════════════════ */
+body.board-page {
+  --accent: #556056;
+  --accent-2: color-mix(in srgb, var(--accent) 10%, transparent);
+  --text: #22261F;
+  --text-2: #454B44;
+  --text-3: #737A72;
+  --border: rgba(68, 78, 69, .14);
+  --border-2: rgba(68, 78, 69, .24);
+}
+
+/* The top bar was the loudest surface in the editor: full-contrast ink type on
+   white. Same information, quieter delivery. */
+body.board-page :where(.tb-btn, .tb-board-chip-title, .tb-logo-mark) {
+  font-weight: 600 !important;
+}
+body.board-page .tb-slash { color: rgba(68, 78, 69, .28) !important; }
+
+/* Filled toolbar/panel actions follow the app's graphite instead of pure ink. */
+body.board-page :where(.mq-btn.primary, .tb-btn.primary, .ed-btn.primary) {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 14px rgba(59, 69, 60, .16) !important;
+}
+
+/* Rename affordance: hovering the board name showed only a grey wash, which
+   reads as a hover state, not "this text is editable". A pencil mark plus a
+   dotted baseline says it before the click. */
+.tb-board-chip-title {
+  position: relative;
+  border-bottom: 1px dashed transparent;
+}
+.tb-board-chip-title:hover {
+  border-bottom-color: rgba(68, 78, 69, .32);
+}
+.tb-board-chip-title:hover::after {
+  content: '';
+  display: inline-block;
+  width: 11px; height: 11px;
+  margin-left: 6px;
+  vertical-align: -1px;
+  opacity: .55;
+  background: currentColor;
+  -webkit-mask: var(--pencil-mask) center/11px no-repeat;
+          mask: var(--pencil-mask) center/11px no-repeat;
+}
+:root {
+  --pencil-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/%3E%3C/svg%3E");
+}
+
+/* Rename input + its hint: make the edit state obviously an input.
+   harmony.css styles every bare `input` through an :is() list with !important
+   (46px tall, 17px radius, form borders) — that outranks a lone class, and a
+   46px field would also blow the 54px top bar apart. Its six :not([type=…])
+   clauses score (0,6,1), so no reasonable class chain outranks it — the id is
+   what wins here. */
+body.board-page input#board-rename-input.tb-rename-input {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  font-family: var(--font) !important;
+  color: var(--text, #22261F) !important;
+  background: #fff !important;
+  /* Border and shadow stay with harmony's global form styling — it wins these
+     two even against an id, so declaring them here would just be dead CSS. */
+  border-radius: 7px !important;
+  padding: 4px 9px !important;
+  outline: none !important;
+  width: 190px !important;
+  min-height: 30px !important;
+  height: 30px !important;
+}
+.tb-rename-hint {
+  font-size: 10px;
+  letter-spacing: .02em;
+  color: var(--text-3, #737A72);
+  white-space: nowrap;
+  margin-left: 8px;
+  align-self: center;
+}
+
+/* Board chrome that still shouted after the token retune: hard-coded ink and
+   pink fills that no variable reached. */
+body.board-page :where(#btn-share.tb-btn-primary, .tb-btn-primary) {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 16px rgba(59, 69, 60, .16) !important;
+}
+body.board-page :where(#btn-share.tb-btn-primary:hover, .tb-btn-primary:hover) {
+  background: #465047 !important;
+}
+body.board-page .empty-action.primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+/* The primary empty-state action flipped to hot pink on hover — pink is
+   reserved for urgency, not for a routine "Open tools". */
+body.board-page .empty-action.primary:hover {
+  background: #465047 !important;
+  border-color: #465047 !important;
+  color: #fff !important;
+}
+body.board-page .empty-key {
+  background: #EEF1EC !important;
+  color: #454B44 !important;
+  border-color: rgba(68, 78, 69, .16) !important;
+}
+body.board-page .empty-icon {
+  color: var(--accent) !important;
+  background: rgba(85, 96, 86, .08) !important;
+  border-color: rgba(68, 78, 69, .16) !important;
+}
+body.board-page #empty-state::before {
+  background: linear-gradient(180deg, var(--accent), rgba(85, 96, 86, .25)) !important;
+}

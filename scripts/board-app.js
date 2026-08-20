@@ -1206,7 +1206,7 @@ function renderStudent(el, card) {
       <div class="prog-bar"><div class="prog-fill" style="width:${d.progress||0}%"></div></div>
     </div>
     <div class="student-meta">
-      <span style="color:#f59e0b;font-weight:700;">${(d.streak||0)>0?'🔥'+d.streak:'—'}</span>
+      <span style="color:#f59e0b;font-weight:600;">${(d.streak||0)>0?'🔥'+d.streak:'—'}</span>
       <span>${esc(d.lastSeen||'')}</span>
       <span class="badge ${lc}">${d.level||''}</span>
     </div>`;
@@ -2346,7 +2346,7 @@ function renderLesson(el, card) {
   // Footer
   const footerHtml = `
     <div class="lesson-footer">
-      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:700;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
+      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:600;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
       <button class="lesson-present-btn" onclick="event.stopPropagation();openLessonPresent('${card.id}')">▶ Present</button>
       ${isOwner ? `<button class="lesson-status-btn" onclick="event.stopPropagation();cycleLessonStatus('${card.id}')" title="Cycle status">↻</button>` : ''}
       <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
@@ -3585,7 +3585,7 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 *{box-sizing:border-box;margin:0}
 body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16px 18px 24px;background:#fff;overflow-x:hidden}
-strong{font-weight:800}
+strong{font-weight:650}
 .iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${accent};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
 /* ── Questions ── */
 .iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
@@ -3597,8 +3597,8 @@ strong{font-weight:800}
 .iw-opts{display:flex;flex-direction:column;gap:5px}
 .iw-opt{display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
 .iw-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 6%,#fff)}
-.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent};font-weight:700}
-.iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:700}
+.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent};font-weight:600}
+.iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
 .iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
 /* T/F */
@@ -3612,7 +3612,7 @@ strong{font-weight:800}
 /* Gap-fill */
 .iw-gap{display:flex;gap:8px;align-items:center}
 .iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
-.iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:700}
+.iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:600}
 .iw-gap-input.wrong{border-color:#dc2626;color:#991b1b}
 .iw-check-btn{padding:6px 14px;border:none;border-radius:8px;background:${WS_ACCENT_INK};color:#fff;font:800 11px system-ui;cursor:pointer}
 .iw-check-btn:hover{opacity:.85}
@@ -3703,14 +3703,14 @@ strong{font-weight:800}
 .iw-step-hidden{display:none!important}
 .iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
-.iw-stepper .iw-qtext{font-size:23px;font-weight:800;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
+.iw-stepper .iw-qtext{font-size:23px;font-weight:650;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
 .iw-qreveal{display:none;animation:iwreveal .25s ease}
 .iw-q.iw-revealed .iw-qreveal{display:block}
 @keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .iw-tap-hint{text-align:center;font:700 12px system-ui;color:#aaa;margin-top:6px}
 .iw-q.iw-revealed .iw-tap-hint{display:none}
 .iw-stepper .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-.iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
+.iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
 .iw-stepper .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
 .iw-stepper .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
 .iw-stepper .iw-opt.correct{background:#16a34a!important;color:#fff}
@@ -3843,28 +3843,28 @@ function printWorksheet(cardId) {
       padding:16px 18px;margin-bottom:20px;page-break-inside:avoid;break-inside:avoid}
     .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
       text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
-    h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:900;line-height:1.06;color:${accent}}
+    h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:700;line-height:1.06;color:${accent}}
     .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E6E5C;margin:0 0 18px}
     /* question / stage card shell */
     .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
-    .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:750;line-height:1.5}
+    .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:600;line-height:1.5}
     .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:${LIME};color:${accent};font:800 13px -apple-system,Arial}
-    .ws-qtext{flex:1}.ws-word{font-weight:850}
+    .ws-qtext{flex:1}.ws-word{font-weight:650}
     /* MCQ */
     .ws-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
     .ws-opt{display:flex;align-items:flex-start;gap:11px;font-size:14px;line-height:1.45;color:${accent};font-weight:600;padding:11px 13px;border-radius:12px;background:#fff;border:2px solid ${LINE}}
-    .ws-opt.correct{background:${LIME};color:${accent};font-weight:700;border-color:${accent}}
+    .ws-opt.correct{background:${LIME};color:${accent};font-weight:600;border-color:${accent}}
     .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:8px;background:${CREAM};border:0;font:800 13px -apple-system,Arial;color:${accent}}
     .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
     .ws-tf{display:flex;gap:10px;margin-top:12px}
-    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:700;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:600;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
     .ws-tf-b.on{background:${LIME};color:${accent};border-color:${accent}}
     /* answer chip + writing lines */
-    .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:700}
+    .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:600}
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
-    .ws-ans b{color:${accent};font-weight:800}
+    .ws-ans b{color:${accent};font-weight:650}
     .ws-print-list,.ws-opts,.ws-chips,.ws-group-list{list-style:none;margin:0;padding:0}
     /* Question groups — same structure as the board (see _ttGroupQuestions). */
     .ws-group{margin:0 0 18px;break-inside:auto}
@@ -3873,19 +3873,19 @@ function printWorksheet(cardId) {
     .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6E6E5C}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
-    .ws-chip b{font-weight:800;color:${accent}}
+    .ws-chip b{font-weight:650;color:${accent}}
     .ws-chip-def{color:#6E6E5C;font-weight:600}
     .ws-chip .ws-gap{min-width:72px;margin:0}
     .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6E6E5C;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
-    .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:800;vertical-align:baseline}
+    .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:650;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
     .ws-open + .ws-open{margin-top:22px}
     .ws-write{margin:14px 0 6px;display:flex;flex-direction:column;gap:28px}
     .ws-write i{display:block;height:0;border-bottom:2px solid ${LINE}}
     /* match */
     .ws-match{display:grid;grid-template-columns:auto auto 1fr;gap:10px;margin-top:12px;align-items:center}
-    .ws-l{font-size:13.5px;line-height:1.45;font-weight:700;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
+    .ws-l{font-size:13.5px;line-height:1.45;font-weight:600;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
     .ws-mlink{width:22px;height:0;border-top:2px dotted ${LINE}}
     .ws-r{font-size:13.5px;line-height:1.45;color:${accent};font-weight:600}
     /* stage cards (reading / glossary / tasks / grammar) */
@@ -3893,17 +3893,17 @@ function printWorksheet(cardId) {
        stage rail number + text label are enough to tell stages apart. */
     .ws-q-card{--stage-accent:${accent};border:1px solid #EDE8E0;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
-    .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:850;font-size:15px}
+    .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:650;font-size:15px}
     .ws-card-title{flex:1}
     .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A2E;margin-top:9px;white-space:normal}
-    .ws-card-txt strong{color:#0E0E10;font-weight:850}
+    .ws-card-txt strong{color:#0E0E10;font-weight:650}
     /* reading block + drop cap */
-    .ws-reading-title{font-size:14px;font-weight:850;color:#0E0E10;margin-bottom:7px}
+    .ws-reading-title{font-size:14px;font-weight:650;color:#0E0E10;margin-bottom:7px}
     .ws-reading-copy{font-size:13px;line-height:1.78;color:#26261E;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
-    .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:800;margin:4px 10px 0 0;color:${accent}}
+    .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:650;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
     .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:2px solid ${LINE};background:${CREAM};border-radius:11px;page-break-inside:avoid}
@@ -4041,7 +4041,7 @@ function _wsEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 
 function _wsCSS(){
   const G='#447C6F';
-  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#1a1a2e}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#666;margin:0 0 12px;font-style:italic}.wb{background:#f0fdf4;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:700;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#1a1a2e;padding:1px 3px}select{border:1px solid #d1d5db;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#f0fdf4;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:700}`;
+  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#1a1a2e}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#666;margin:0 0 12px;font-style:italic}.wb{background:#f0fdf4;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:600;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#1a1a2e;padding:1px 3px}select{border:1px solid #d1d5db;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#f0fdf4;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:600}`;
 }
 
 function _wsMCItems(items){
@@ -4331,7 +4331,7 @@ function openCardEditor(cardId) {
       <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
         <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
           Objectives
-          <button type="button" onclick="edAddObjective()" style="padding:2px 8px;border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);">+ Add</button>
+          <button type="button" onclick="edAddObjective()" style="padding:2px 8px;border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);">+ Add</button>
         </div>
         <div id="ed-objectives" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
           ${objectives.map((o,i) => `
@@ -4345,7 +4345,7 @@ function openCardEditor(cardId) {
       <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
         <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
           Attachments
-          <button type="button" onclick="edAddAttachment()" style="padding:2px 8px;border:1px solid rgba(59,130,246,.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#3b82f6;background:rgba(59,130,246,.06);">+ Add</button>
+          <button type="button" onclick="edAddAttachment()" style="padding:2px 8px;border:1px solid rgba(59,130,246,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#3b82f6;background:rgba(59,130,246,.06);">+ Add</button>
         </div>
         <div id="ed-attachments" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
           ${attachments.map((a,i) => `
@@ -4580,7 +4580,7 @@ function openCardEditor(cardId) {
       <textarea id="card-comment-input" placeholder="Add a comment…"
         style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(0,0,0,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fff;color:#1c1c1e;"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCardComment();}"></textarea>
-      <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">Send</button>
+      <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">Send</button>
     </div>`;
   body.appendChild(commentsDiv);
   loadCardComments(cardId);
@@ -4612,10 +4612,10 @@ async function loadCardComments(cardId) {
         <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${c.avatar||'👤'}</div>
         <div style="flex:1;background:${isOwn?'rgba(200,230,50,.07)':'#f5f5f7'};border-radius:10px;padding:7px 10px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-            <span style="font-size:11px;font-weight:800;color:var(--text);">${esc(c.name)} <span style="font-weight:400;color:var(--text-3);">${c.role==='teacher'?'· Teacher':''}</span></span>
+            <span style="font-size:11px;font-weight:650;color:var(--text);">${esc(c.name)} <span style="font-weight:400;color:var(--text-3);">${c.role==='teacher'?'· Teacher':''}</span></span>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:10px;color:var(--text-3);">${time}</span>
-              ${isOwn?`<span onclick="deleteCardComment(${c.id},'${cardId}')" style="font-size:10px;color:#ef4444;cursor:pointer;font-weight:700;">✕</span>`:''}
+              ${isOwn?`<span onclick="deleteCardComment(${c.id},'${cardId}')" style="font-size:10px;color:#ef4444;cursor:pointer;font-weight:600;">✕</span>`:''}
             </div>
           </div>
           <div style="font-size:12px;color:var(--text);white-space:pre-wrap;">${esc(c.body)}</div>
@@ -7764,7 +7764,7 @@ function renderAllArrows() {
       fo.setAttribute('width', 80); fo.setAttribute('height', 24);
       fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
         background:rgba(255,255,255,.92);border:1px solid rgba(94,94,74,.2);border-radius:6px;
-        padding:2px 7px;font-size:10px;font-weight:700;color:#3A3A2E;
+        padding:2px 7px;font-size:10px;font-weight:600;color:#3A3A2E;
         font-family:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;text-align:center;white-space:nowrap;
         overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
       g.appendChild(fo);
@@ -13403,8 +13403,8 @@ function openLessonPackPreview(packId) {
     <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;">
       <div style="font-size:32px;flex-shrink:0;">${pack.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:18px;font-weight:900;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
-        <div style="font-size:11.5px;font-weight:700;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
       </div>
       <button type="button" id="lp-preview-drop" style="border:none;background:${pack.color};color:#fff;font:800 12px var(--font);padding:10px 16px;border-radius:10px;cursor:pointer;">Drop on board →</button>
       <button type="button" id="lp-preview-close" style="border:none;background:rgba(0,0,0,.06);width:34px;height:34px;border-radius:10px;font-size:16px;cursor:pointer;color:#666;">×</button>
@@ -13413,7 +13413,7 @@ function openLessonPackPreview(packId) {
     <div style="flex:1;overflow:auto;padding:16px 22px 22px;display:grid;gap:12px;">
       ${pack.stages.map(s => `
         <div style="border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:14px;background:${s.color};">
-          <div style="font-size:13px;font-weight:900;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
           <div style="font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${esc(s.text)}</div>
         </div>
       `).join('')}
@@ -13646,7 +13646,7 @@ function renderToolsTab_Exercises(sec, q) {
 function _renderEmptyToolsState() {
   const empty = document.createElement('div');
   empty.style.cssText = 'padding:24px 16px;text-align:center;font-size:12px;color:var(--text-3);border:1px dashed var(--border);border-radius:12px;margin:8px 4px;';
-  empty.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🤔</div>Nothing matches this filter or search.<br><button type="button" onclick="setBoardToolSkill('all', document.querySelector('.tool-skill-chip[data-skill=all]'))" style="margin-top:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:800;cursor:pointer;">Clear filter</button>`;
+  empty.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🤔</div>Nothing matches this filter or search.<br><button type="button" onclick="setBoardToolSkill('all', document.querySelector('.tool-skill-chip[data-skill=all]'))" style="margin-top:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:650;cursor:pointer;">Clear filter</button>`;
   return empty;
 }
 
@@ -13684,7 +13684,7 @@ function renderStudentsTab(sec) {
   const members = _realMembers || [];
   if (!members.length) {
     sec.innerHTML = `<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-3);">
-      No students yet.<br><a href="gradebook.html" style="color:var(--accent);font-weight:700;">Invite via Gradebook →</a>
+      No students yet.<br><a href="gradebook.html" style="color:var(--accent);font-weight:600;">Invite via Gradebook →</a>
     </div>`;
     return;
   }
@@ -13695,7 +13695,7 @@ function renderStudentsTab(sec) {
   const doneCount = members.reduce((s,m) => s + m.lessons.filter(l=>l.status==='done').length, 0);
   const totalLessons = members.reduce((s,m) => s + m.lessons.length, 0);
   const summary = document.createElement('div');
-  summary.style.cssText = 'padding:8px 10px;background:rgba(94,94,74,.06);border-radius:9px;font-size:11px;font-weight:700;color:var(--text-2);margin:4px 6px 8px;';
+  summary.style.cssText = 'padding:8px 10px;background:rgba(94,94,74,.06);border-radius:9px;font-size:11px;font-weight:600;color:var(--text-2);margin:4px 6px 8px;';
   summary.textContent = `${members.length} student${members.length>1?'s':''} · ${doneCount}/${totalLessons} lessons done`;
   sec.appendChild(summary);
 
@@ -13712,7 +13712,7 @@ function renderStudentsTab(sec) {
   // Link to gradebook
   const link = document.createElement('a');
   link.href = 'gradebook.html';
-  link.style.cssText = 'display:block;text-align:center;font-size:11px;font-weight:700;color:var(--accent);padding:10px 0;text-decoration:none;';
+  link.style.cssText = 'display:block;text-align:center;font-size:11px;font-weight:600;color:var(--accent);padding:10px 0;text-decoration:none;';
   link.textContent = '📒 Open Gradebook →';
   sec.appendChild(link);
 }
@@ -13905,7 +13905,7 @@ function renderCourseTab(sec) {
       const st = LESSON_STATUS_MAP[card.data.status||'available'];
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;';
-      row.innerHTML = `<span>${card.data.level||''}</span><span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(card.data.title||'')}</span>
+      row.innerHTML = `<span>${card.data.level||''}</span><span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(card.data.title||'')}</span>
         <span class="lesson-status ${st.cls}" style="font-size:9px;">${st.label}</span>`;
       row.addEventListener('click', () => openCardEditor(card.id));
       sec.appendChild(row);
@@ -14460,7 +14460,7 @@ function renderVersionList() {
   function renderGroup(title, items) {
     if (!items.length) return;
     const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:2px 0 6px;';
+    lbl.style.cssText = 'font-size:10px;font-weight:600;color:var(--text-3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:2px 0 6px;';
     lbl.textContent = title;
     list.appendChild(lbl);
     items.forEach(ver => {
@@ -14671,10 +14671,10 @@ let _communityImportApplied = false;
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
       <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards — import to a new board?</div>
     </div>
-    <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
   `;
   document.body.appendChild(banner);
@@ -15071,7 +15071,7 @@ renderGamesGrid = function(filter) {
   if (!filtered.length) return;
   // Add separator
   const sep = document.createElement('div');
-  sep.style.cssText = 'grid-column:1/-1;font-size:11px;font-weight:900;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;';
+  sep.style.cssText = 'grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;';
   sep.textContent = 'My Custom Games';
   grid.appendChild(sep);
   filtered.forEach(g => {
@@ -15080,9 +15080,9 @@ renderGamesGrid = function(filter) {
     tile.style.cssText = 'background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;';
     tile.innerHTML = `
       <div style="font-size:30px;line-height:1;">${esc(g.icon || '🎮')}</div>
-      <div style="font-size:14px;font-weight:900;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.typeName || '')} · ${esc(g.level || 'Mixed')}</div>
-      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
+      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
         <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">Custom</span>
       </div>`;
     tile.addEventListener('mouseenter', () => { tile.style.borderColor = 'var(--accent)'; tile.style.transform = 'translateY(-2px)'; tile.style.boxShadow = '0 8px 24px rgba(200,230,50,.12)'; });
@@ -15621,7 +15621,7 @@ function applyRoleUI() {
     const badge = document.getElementById('role-badge') || (() => {
       const b = document.createElement('span');
       b.id = 'role-badge';
-      b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;';
+      b.style.cssText = 'font-size:10px;font-weight:650;padding:2px 7px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;';
       chip.appendChild(b);
       return b;
     })();
@@ -16021,16 +16021,24 @@ function startRenameBoard() {
   const oldName = el.textContent;
   const inp = document.createElement('input');
   inp.value = oldName;
-  inp.style.cssText = 'font-size:13px;font-weight:700;border:1px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:150px;';
+  inp.className = 'tb-rename-input';
+  inp.id = 'board-rename-input';
+  inp.setAttribute('aria-label', 'Board name');
+  // The bare input read as "some text got selected"; spell out how to commit.
+  const hint = document.createElement('span');
+  hint.className = 'tb-rename-hint';
+  hint.textContent = 'Enter to save · Esc to cancel';
   el.replaceWith(inp);
+  inp.after(hint);
   inp.focus(); inp.select();
   async function save() {
+    hint.remove();
     const newName = inp.value.trim() || oldName;
     // Preserve the original element type/class to keep top-bar styling intact.
     const span = document.createElement('span');
     span.id = 'board-name-display';
     span.className = 'tb-board-chip-title';
-    span.title = 'Click to rename';
+    span.title = 'Rename board';
     span.onclick = startRenameBoard;
     span.textContent = newName;
     inp.replaceWith(span);
@@ -16061,7 +16069,7 @@ async function showBoardList() {
     boards.forEach(b => {
       const item = document.createElement('div');
       item.className = 'board-list-item';
-      item.innerHTML = `<div style="flex:1"><div style="font-weight:800;color:var(--text)">${esc(b.name)}</div><div style="font-size:.78rem;color:var(--text-3)">${b.card_count||0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div></div><div style="font-size:11px;color:var(--accent);font-weight:700">${b.id===currentBoardId?'Active':''}</div>`;
+      item.innerHTML = `<div style="flex:1"><div style="font-weight:650;color:var(--text)">${esc(b.name)}</div><div style="font-size:.78rem;color:var(--text-3)">${b.card_count||0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div></div><div style="font-size:11px;color:var(--accent);font-weight:600">${b.id===currentBoardId?'Active':''}</div>`;
       item.onclick = () => switchBoard(b.id, b.name);
       list.appendChild(item);
     });
@@ -16347,7 +16355,7 @@ function updatePresenceBar() {
     }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#9999AA;"><span>+${peers.length-5}</span></div>` : '');
   } else {
     // Student: simple count
-    bar.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
+    bar.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
   }
 }
 
@@ -17829,7 +17837,7 @@ function renderTimer(el, card) {
     display.textContent = formatTime(d.remaining);
     display.className='timer-display';
   });
-  setRow.innerHTML = '<span style="font-size:11px;color:var(--text-3);font-weight:700;">min</span>';
+  setRow.innerHTML = '<span style="font-size:11px;color:var(--text-3);font-weight:600;">min</span>';
   setRow.prepend(minInput);
   setRow.appendChild(document.createTextNode(':'));
   setRow.appendChild(secInput);
@@ -19272,7 +19280,7 @@ function renderStickerGrid(cat, filter) {
     Object.values(STICKER_CATEGORIES).forEach(arr => arr.forEach(g => { if (g.includes(raw) && !seen.has(g)) { seen.add(g); list.push(g); } }));
   }
   if (!list.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-3);font-size:12px;font-weight:700;">No recent stickers yet. Pick any emoji to start.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-3);font-size:12px;font-weight:600;">No recent stickers yet. Pick any emoji to start.</div>';
     return;
   }
   grid.innerHTML = list.map(g => `
@@ -19344,7 +19352,7 @@ function buildGamesTabs() {
   if (!tabs) return;
   tabs.innerHTML = GAME_TAGS.map(tag => `
     <button onclick="switchGamesTab('${tag}')"
-      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'var(--accent)':'var(--bg)'};color:${tag===_gamesActiveTag?'#fff':'var(--text-2)'};font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;">${tag}</button>
+      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'var(--accent)':'var(--bg)'};color:${tag===_gamesActiveTag?'#fff':'var(--text-2)'};font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">${tag}</button>
   `).join('');
 }
 function switchGamesTab(tag) {
@@ -19366,9 +19374,9 @@ function renderGamesGrid(filter) {
       onclick='addGameCard(${JSON.stringify(g.src)},${JSON.stringify(g.title)},${g.w},${g.h})'
       style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
       <div style="font-size:30px;line-height:1;">${g.icon}</div>
-      <div style="font-size:14px;font-weight:900;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.desc)}</div>
-      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
+      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
         <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">${esc(g.tag)}</span>
       </div>
     </div>
