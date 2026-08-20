@@ -3239,29 +3239,72 @@ body.os-desktop {
   --deep-rose: #7C8A7B;
 }
 
-/* The lesson-workspace hero inside desktop windows: harmony paints it as a
-   near-black slab with lime headline and a lime CTA. Keep the dark card (it
-   separates the hero from the list) but warm it and drop the lime. */
+/* Lesson-workspace hero, simplified.
+   It was a dark slab sitting inside an already-light window — a card inside a
+   card, with an italic accent doing the work a plain heading does better. Same
+   words, no container: a section header with one solid action and two quiet
+   links, separated from the list by a hairline instead of a colour block. */
 body.os-desktop .studio-hero {
-  background: #2F352E !important;
-  box-shadow: 0 16px 44px rgba(38,44,38,0.30) !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid rgba(68, 78, 69, .12) !important;
+  margin: 4px 20px 0 !important;
+  padding: 18px 0 18px !important;
 }
-body.os-desktop .studio-eyebrow,
+/* The decorative blob only existed to lift the dark panel. */
+body.os-desktop .studio-hero::after { display: none !important; }
+
+body.os-desktop .studio-eyebrow {
+  color: var(--text-3, #737A72) !important;
+  font-weight: 600 !important;
+  letter-spacing: .1em !important;
+}
+body.os-desktop .studio-title {
+  color: var(--text) !important;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.028em !important;
+  line-height: 1.15 !important;
+}
+/* No italic, no accent colour — the heading is already the emphasis. */
 body.os-desktop .studio-title em {
-  color: #B9C4B4 !important;
+  font-style: normal !important;
+  color: inherit !important;
+}
+body.os-desktop .studio-copy {
+  color: var(--text-2, #454B44) !important;
+  max-width: 620px !important;
+}
+
+/* One action reads as the action; the rest are links, not competing pills. */
+body.os-desktop .studio-chip {
+  background: transparent !important;
+  border: none !important;
+  padding: 7px 2px !important;
+  color: #556056 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+  text-decoration-color: rgba(85, 96, 86, .3) !important;
 }
 body.os-desktop .studio-chip:hover {
-  background: rgba(185,196,180,0.14) !important;
-  border-color: rgba(185,196,180,0.28) !important;
-  color: #E4E9E1 !important;
+  color: #3F493F !important;
+  text-decoration-color: rgba(85, 96, 86, .6) !important;
+  background: transparent !important;
 }
 body.os-desktop .studio-chip.primary {
-  background: #DDE3D9 !important;
-  color: #2F352E !important;
-  border-color: #C3CCC0 !important;
-  box-shadow: 0 4px 12px rgba(38,44,38,0.18) !important;
+  background: #556056 !important;
+  color: #fff !important;
+  border: 1px solid #556056 !important;
+  border-radius: 999px !important;
+  padding: 8px 14px !important;
+  margin-right: 6px !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(59, 69, 60, .16) !important;
 }
 body.os-desktop .studio-chip.primary:hover {
-  background: #CBD3C6 !important;
-  box-shadow: 0 6px 16px rgba(38,44,38,0.22) !important;
+  background: #465047 !important;
+  border-color: #465047 !important;
+  color: #fff !important;
 }
