@@ -101,6 +101,13 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .lesson-preview-card:nth-child(2){background:rgba(200,230,50,.65);}
   body .lesson-preview-card:nth-child(3){background:rgba(255,255,255,.28);}
   body .publisher-meta-fields{display:grid;grid-template-columns:.75fr 1.2fr .9fr;gap:10px;}
+  body .publisher-scope{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;margin:-2px 0 13px;padding:9px 10px;border:1px solid rgba(139,66,253,.18);border-radius:13px;background:linear-gradient(135deg,#faf8ff,#f0eaff);}
+  body .publisher-scope-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#8B42FD;color:#fff;font:900 10px var(--mono);}
+  body .publisher-scope-copy{display:grid;gap:2px;min-width:0;}
+  body .publisher-scope-copy strong{overflow:hidden;color:#38256d;font-size:11px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap;}
+  body .publisher-scope-copy small{color:#71668d;font-size:10px;line-height:1.35;}
+  body .publisher-scope-clear{min-height:30px;padding:0 9px;border:1px solid rgba(139,66,253,.2);border-radius:9px;background:#fff;color:#5730a7;font:750 10px var(--font);cursor:pointer;}
+  body .publisher-scope-clear:hover{background:#f8f3ff;border-color:rgba(139,66,253,.4);}
   body .publisher-note{display:flex;gap:7px;align-items:flex-start;margin:10px 1px 0;color:#777765;font-size:11px;line-height:1.42;}
   body .publisher-note-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:16px;border-radius:50%;background:rgba(200,230,50,.28);color:#4e6100;font-size:10px;font-weight:900;}
   body .community-lesson-card{min-height:0;padding:0;gap:0;border-color:rgba(28,28,30,.1);background:#fff;}
@@ -271,6 +278,11 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <div class="label">Source board</div>
         <select id="share-board" onchange="updatePublisherPreview()"><option value="">Loading your boards…</option></select>
       </div>
+      <div class="publisher-scope" id="publisher-scope" hidden>
+        <span class="publisher-scope-mark" aria-hidden="true">FR</span>
+        <span class="publisher-scope-copy"><strong id="publisher-scope-title">Selected lesson frame</strong><small>Only this frame and its activities will be shared.</small></span>
+        <button class="publisher-scope-clear" type="button" onclick="clearPublisherFrame()">Whole board</button>
+      </div>
       <div class="field">
         <div class="label">Lesson title</div>
         <input id="share-title" placeholder="B1 Speaking: Travel Problems" oninput="updatePublisherPreview()">
@@ -367,6 +379,8 @@ const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
 const POST_KEY = 'teachedos_community_posts_v2';
 let _serverCommunityLessons = [];
+let publisherFrameId = new URLSearchParams(location.search).get('publishFrame') || '';
+let publisherFrameMeta = null;
 
 function setText(id, value) {
   const el = document.getElementById(id);
@@ -501,16 +515,74 @@ function getSelectedPublisherBoard() {
   };
 }
 
+function getFrameDescendants(cards, frameId) {
+  const frame = cards.find(card => card.id === frameId && card.type === 'frame');
+  if (!frame) return null;
+  const ids = new Set([frame.id]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    cards.forEach(card => {
+      const parentId = card.data?.parentFrame;
+      const listed = [...ids].some(id => cards.find(parent => parent.id === id)?.data?.childIds?.includes(card.id));
+      if ((parentId && ids.has(parentId)) || listed) {
+        if (!ids.has(card.id)) { ids.add(card.id); changed = true; }
+      }
+    });
+  }
+  return cards.filter(card => ids.has(card.id));
+}
+
+function getPublisherScopeCards(cards) {
+  return publisherFrameId ? getFrameDescendants(cards, publisherFrameId) : cards;
+}
+
+async function loadPublisherFrameMeta(boardId) {
+  publisherFrameMeta = null;
+  const scope = document.getElementById('publisher-scope');
+  if (!publisherFrameId || !boardId || !scope) { if (scope) scope.hidden = true; updatePublisherPreview(); return; }
+  try {
+    const response = await api('/api/boards/' + encodeURIComponent(boardId));
+    const result = await response.json().catch(() => ({}));
+    const boardData = result.board?.data || result.board || {};
+    const cards = Array.isArray(boardData.cards) ? boardData.cards : [];
+    const frame = cards.find(card => card.id === publisherFrameId && card.type === 'frame');
+    const scopedCards = getFrameDescendants(cards, publisherFrameId);
+    if (!frame || !scopedCards) throw new Error('The selected lesson frame is no longer available.');
+    publisherFrameMeta = { title: frame.data?.title || 'Selected lesson frame', cardCount: scopedCards.filter(card => card.type !== 'frame').length };
+    setText('publisher-scope-title', publisherFrameMeta.title);
+    const titleInput = document.getElementById('share-title');
+    const boardName = getSelectedPublisherBoard().name;
+    if (titleInput && (!titleInput.value.trim() || titleInput.value.trim() === boardName)) titleInput.value = publisherFrameMeta.title;
+    scope.hidden = false;
+    updatePublisherPreview();
+  } catch (error) {
+    publisherFrameId = '';
+    if (scope) scope.hidden = true;
+    updatePublisherPreview();
+    toast(error?.message || 'Could not load the selected lesson frame');
+  }
+}
+
+function clearPublisherFrame() {
+  publisherFrameId = '';
+  publisherFrameMeta = null;
+  const scope = document.getElementById('publisher-scope');
+  if (scope) scope.hidden = true;
+  updatePublisherPreview();
+}
+
 function updatePublisherPreview() {
   const board = getSelectedPublisherBoard();
   const level = document.getElementById('share-level')?.value || 'Mixed';
   const skill = document.getElementById('share-skill')?.value || '';
   const duration = document.getElementById('share-duration')?.value || '';
-  const title = document.getElementById('share-title')?.value.trim() || board.name || 'Your lesson title';
+  const title = document.getElementById('share-title')?.value.trim() || publisherFrameMeta?.title || board.name || 'Your lesson title';
+  const scopedCount = publisherFrameMeta ? publisherFrameMeta.cardCount : board.cardCount;
   const detail = [
     skill,
     duration ? `${duration} min` : '',
-    board.cardCount ? `${board.cardCount} cards` : (board.name ? 'Board snapshot' : 'Choose a board to start'),
+    scopedCount ? `${scopedCount} cards` : (board.name ? 'Board snapshot' : 'Choose a board to start'),
   ].filter(Boolean).join(' · ');
 
   setText('share-preview-title', title);
@@ -584,8 +656,9 @@ function openCommunityPublisherFromBoard() {
   }
   sel.value = boardId;
   const title = document.getElementById('share-title');
-  if (title && !title.value.trim()) title.value = option.dataset.name || option.textContent.split(' · ')[0];
+  if (title && !title.value.trim()) title.value = publisherFrameMeta?.title || option.dataset.name || option.textContent.split(' · ')[0];
   updatePublisherPreview();
+  loadPublisherFrameMeta(boardId);
   focusCommunityPublisher();
   history.replaceState({}, '', location.pathname);
 }
@@ -607,7 +680,7 @@ async function publishBoard() {
     if (!canPublishCommunityLesson()) { toast(token ? 'Teacher account required to publish' : 'Sign in as a teacher to publish'); return; }
     const { id:boardId, name:selectedName } = getSelectedPublisherBoard();
     if (!boardId) { toast('Choose a board to publish first'); return; }
-    const title = document.getElementById('share-title').value.trim() || selectedName || 'Untitled';
+    const title = document.getElementById('share-title').value.trim() || publisherFrameMeta?.title || selectedName || 'Untitled';
     const desc  = document.getElementById('share-desc').value.trim() || 'Ready-to-use board from TeachEd.';
     const level = document.getElementById('share-level').value;
     const skill = document.getElementById('share-skill').value;
@@ -622,13 +695,21 @@ async function publishBoard() {
     if (!boardResponse.ok) throw new Error(boardResult.error || 'Could not load the selected board');
     const board = boardResult.board || {};
     const boardData = board.data || board;
+    const allCards = Array.isArray(boardData.cards) ? boardData.cards : [];
+    const scopedCards = getPublisherScopeCards(allCards);
+    if (!scopedCards) throw new Error('The selected lesson frame is no longer available.');
+    const allowedIds = new Set(scopedCards.map(card => card.id));
     const snapshot = {
       name: title,
-      cards: Array.isArray(boardData.cards) ? boardData.cards : [],
-      links: Array.isArray(boardData.links) ? boardData.links : (boardData.arrows || []),
+      cards: scopedCards,
+      links: (Array.isArray(boardData.links) ? boardData.links : (boardData.arrows || [])).filter(link => {
+        const from = link.from || link.fromId || link.source || link.startId;
+        const to = link.to || link.toId || link.target || link.endId;
+        return (!from || allowedIds.has(from)) && (!to || allowedIds.has(to));
+      }),
     };
 
-    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, sourceBoardId:boardId, sourceBoardName:selectedName, snapshot, createdAt:new Date().toISOString() };
+    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, sourceBoardId:boardId, sourceBoardName:selectedName, sourceFrameId:publisherFrameId || null, snapshot, createdAt:new Date().toISOString() };
     let publishedPost = post;
     if (token) {
       const response = await api('/api/library', {
@@ -645,6 +726,7 @@ async function publishBoard() {
             snapshot_version:1,
             sourceBoardId:boardId,
             sourceBoardName:selectedName,
+            sourceFrameId:publisherFrameId || null,
             duration,
             snapshot,
           },

@@ -15821,6 +15821,7 @@ function loadBoardData(data) {
 let _sharePanelOpen = false;
 let _shareCanInvite = false;
 let _shareCanPublish = false;
+let _shareFrameId = '';
 
 function getShareUrl() {
   if (currentBoardId) return location.origin + location.pathname + '?id=' + currentBoardId;
@@ -15832,17 +15833,47 @@ function spUpdateBoardContext() {
   const rawName = document.getElementById('board-name-display')?.textContent || 'Untitled board';
   const boardName = rawName.trim() || 'Untitled board';
   const cardCount = Array.isArray(state?.cards) ? state.cards.length : 0;
-  const cardsLabel = `${cardCount} activity ${cardCount === 1 ? 'card' : 'cards'}`;
+  const selectedCards = [...(state?.selected || [])]
+    .map(id => state.cards.find(card => card.id === id))
+    .filter(Boolean);
+  let selectedFrame = selectedCards.find(card => card.type === 'frame') || null;
+  if (!selectedFrame) {
+    const parentId = selectedCards.find(card => card.data?.parentFrame)?.data?.parentFrame;
+    selectedFrame = parentId ? state.cards.find(card => card.id === parentId && card.type === 'frame') : null;
+  }
+  _shareFrameId = selectedFrame?.id || '';
+  const frameIds = new Set(_shareFrameId ? [_shareFrameId] : []);
+  if (_shareFrameId) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      state.cards.forEach(card => {
+        if (card.data?.parentFrame && frameIds.has(card.data.parentFrame) && !frameIds.has(card.id)) {
+          frameIds.add(card.id);
+          changed = true;
+        }
+      });
+    }
+  }
+  const scopeCount = _shareFrameId
+    ? state.cards.filter(card => frameIds.has(card.id) && card.type !== 'frame').length
+    : cardCount;
+  const cardsLabel = `${scopeCount} activity ${scopeCount === 1 ? 'card' : 'cards'}`;
   const sourceLabel = currentBoardId ? 'saved board' : 'local board';
+  const shareTitle = selectedFrame?.data?.title || 'Untitled lesson frame';
 
   const contextName = document.getElementById('sp-board-name');
   const contextMeta = document.getElementById('sp-board-meta');
   const previewTitle = document.getElementById('sp-preview-title');
   const previewCount = document.getElementById('sp-preview-count');
+  const previewScope = document.getElementById('sp-preview-scope');
   if (contextName) contextName.textContent = boardName;
-  if (contextMeta) contextMeta.textContent = `${cardsLabel} · ${sourceLabel}`;
-  if (previewTitle) previewTitle.textContent = boardName;
-  if (previewCount) previewCount.textContent = `${cardCount} ${cardCount === 1 ? 'card' : 'cards'}`;
+  if (contextMeta) contextMeta.textContent = _shareFrameId ? `${cardsLabel} · selected frame` : `${cardsLabel} · ${sourceLabel}`;
+  if (previewTitle) previewTitle.textContent = _shareFrameId ? shareTitle : boardName;
+  if (previewCount) previewCount.textContent = `${scopeCount} ${scopeCount === 1 ? 'card' : 'cards'}`;
+  if (previewScope) previewScope.textContent = _shareFrameId
+    ? 'Only this lesson frame and its activities will be published.'
+    : 'Title, level and description are added next.';
 }
 
 function spShowView(view) {
@@ -15883,7 +15914,9 @@ function openSharePanel() {
   const inviteCopy = document.getElementById('sp-dest-invite-copy');
   const publishCopy = document.getElementById('sp-dest-community-copy');
   if (inviteCopy) inviteCopy.textContent = canInvite ? 'Give students access to this board.' : 'Sync a board you own to invite students.';
-  if (publishCopy) publishCopy.textContent = canPublish ? 'Turn this board into a reusable Community lesson.' : 'Sync a board you own to publish it.';
+  if (publishCopy) publishCopy.textContent = canPublish
+    ? (_shareFrameId ? 'Publish the selected lesson frame to Community.' : 'Turn this board into a reusable Community lesson.')
+    : 'Sync a board you own to publish it.';
   const nativeBtn = document.getElementById('sp-native-share-btn');
   if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
   if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
@@ -15905,7 +15938,8 @@ function spOpenCommunityPublisher() {
     toast('Sync a board you own before publishing it');
     return;
   }
-  window.location.href = 'community.html?publishBoard=' + encodeURIComponent(currentBoardId);
+  const frameQuery = _shareFrameId ? '&publishFrame=' + encodeURIComponent(_shareFrameId) : '';
+  window.location.href = 'community.html?publishBoard=' + encodeURIComponent(currentBoardId) + frameQuery;
 }
 
 function copyTextFallback(text) {
