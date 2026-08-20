@@ -3256,6 +3256,9 @@ body.os-desktop .studio-hero {
 /* The decorative blob only existed to lift the dark panel. */
 body.os-desktop .studio-hero::after { display: none !important; }
 
+/* The eyebrow and headline are gone from the markup: the window titlebar
+   already names the app, so all three said the same thing. These rules stay
+   for any hero that still carries them. */
 body.os-desktop .studio-eyebrow {
   color: var(--text-3, #737A72) !important;
   font-weight: 600 !important;
@@ -3268,14 +3271,23 @@ body.os-desktop .studio-title {
   letter-spacing: -.028em !important;
   line-height: 1.15 !important;
 }
-/* No italic, no accent colour — the heading is already the emphasis. */
 body.os-desktop .studio-title em {
   font-style: normal !important;
   color: inherit !important;
 }
+/* Now the only line of text in the header, so it carries a bit more weight. */
 body.os-desktop .studio-copy {
   color: var(--text-2, #454B44) !important;
   max-width: 620px !important;
+  margin-top: 0 !important;
+  font-size: 14px !important;
+  /* harmony sets 600 here for white-on-dark; on the light header that reads as
+     a heading rather than a description. */
+  font-weight: 450 !important;
+  line-height: 1.45 !important;
+}
+body.os-desktop .studio-actions {
+  margin-top: 12px !important;
 }
 
 /* One action reads as the action; the rest are links, not competing pills. */
@@ -3307,4 +3319,20 @@ body.os-desktop .studio-chip.primary:hover {
   background: #465047 !important;
   border-color: #465047 !important;
   color: #fff !important;
+}
+
+/* Notes app: harmony paints the "New note" button and the notes sidebar in
+   pink. Creating a note is the most ordinary action in the window. */
+body.os-desktop .notes-new-btn {
+  background: #556056 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(59, 69, 60, .18) !important;
+}
+body.os-desktop .notes-new-btn:hover {
+  background: #465047 !important;
+}
+body.os-desktop .note-item.active,
+body.os-desktop .note-item.active .note-item-title {
+  background: rgba(124, 138, 123, .12) !important;
+  color: var(--text) !important;
 }

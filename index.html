@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=326">
-<link rel="preload" as="style" href="styles/unify.css?v=326">
+<link rel="preload" as="style" href="styles/harmony.css?v=327">
+<link rel="preload" as="style" href="styles/unify.css?v=327">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=326">
+<link rel="manifest" href="manifest.json?v=327">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=326">
-<link rel="stylesheet" href="styles/main.css?v=326">
+<link rel="stylesheet" href="styles/tokens.css?v=327">
+<link rel="stylesheet" href="styles/main.css?v=327">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1485,10 +1485,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=326" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=326">
-<link rel="stylesheet" href="styles/harmony.css?v=326">
-<link rel="stylesheet" href="styles/unify.css?v=326">
+<script src="theme.js?v=327" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=327">
+<link rel="stylesheet" href="styles/harmony.css?v=327">
+<link rel="stylesheet" href="styles/unify.css?v=327">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1814,9 +1814,7 @@ html,body {
         <span id="mob-focus-sub" style="display:none"></span>
       </div>
       <section class="studio-hero mix">
-        <div class="studio-eyebrow">Teacher workspace</div>
-        <div class="studio-title">Build, find and reuse your <em>lesson boards</em>.</div>
-        <p class="studio-copy">Saved boards, shared lessons and classroom flows live here. Search by class, topic or student and return to teaching without digging through files.</p>
+        <p class="studio-copy">Search saved boards, shared lessons and drafts by class, topic or student.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip" href="lesson-builder.html">Lesson builder</a><a class="studio-chip" href="community.html">Community boards</a></div>
       </section>
       <div class="curr-search">
@@ -1856,9 +1854,7 @@ html,body {
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('students')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero blue">
-        <div class="studio-eyebrow">Student command center</div>
-        <div class="studio-title">Keep every learner visible and <em>organized</em>.</div>
-        <p class="studio-copy">Track active students, shared boards and next actions from one clean place. Add or manage students through Gradebook.</p>
+        <p class="studio-copy">Active students, their boards and what needs doing next. Add or edit them in Gradebook.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="gradebook.html">Open gradebook →</a><a class="studio-chip" href="profile.html#students">Student settings</a></div>
       </section>
       <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
@@ -1883,9 +1879,7 @@ html,body {
         <div class="mob-win-title">Schedule</div>
       </div>
       <section class="studio-hero pink">
-        <div class="studio-eyebrow">Calendar studio</div>
-        <div class="studio-title">Plan the week without losing the <em>flow</em>.</div>
-        <p class="studio-copy">See classes, jump to the full schedule, and keep teaching time aligned with boards, students and homework.</p>
+        <p class="studio-copy">This week at a glance, with the full schedule one click away.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="schedule.html">Open full schedule →</a><a class="studio-chip" href="board.html">Open board</a></div>
       </section>
       <div class="sch-body">
@@ -1929,9 +1923,7 @@ html,body {
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('notes')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero">
-        <div class="studio-eyebrow">Teacher notebook</div>
-        <div class="studio-title">Capture ideas before they <em>disappear</em>.</div>
-        <p class="studio-copy">Draft lesson notes, student feedback, grammar reminders and quick classroom scripts in one focused space.</p>
+        <p class="studio-copy">Lesson notes, feedback and quick classroom scripts, saved as you type.</p>
         <div class="studio-actions"><button class="studio-chip primary" type="button" onclick="notesNew()">New note →</button><span class="studio-chip">Autosaved locally</span></div>
       </section>
       <div class="notes-toolbar">
@@ -1988,9 +1980,7 @@ html,body {
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
       <section class="studio-hero mix">
-        <div class="studio-eyebrow">Teacher tool studio</div>
-        <div class="studio-title">Generate classroom materials with <em>less friction</em>.</div>
-        <p class="studio-copy">Open reading, vocabulary, grammar, speaking and utility tools, then send the result straight into a board or lesson flow.</p>
+        <p class="studio-copy">Reading, vocabulary, grammar and speaking tools; results go straight into a board.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="teacher-tools.html">Open full hub →</a><span class="studio-chip" id="tools-count">14 tools</span></div>
       </section>
       <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
@@ -2185,7 +2175,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=326"></script>
+<script src="scripts/desktop-app.js?v=327"></script>
 
 <script>
 
@@ -2205,7 +2195,7 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="pwa-boot.js?v=326" defer></script>
+<script src="pwa-boot.js?v=327" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2425,10 +2415,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=326" defer></script>
-<script src="scripts/nav-boost.js?v=326" defer></script>
-<script src="scripts/mobile-perf.js?v=326" defer></script>
-<script src="scripts/mobile-nav.js?v=326" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=326" defer></script>
+<script src="pwa.js?v=327" defer></script>
+<script src="scripts/nav-boost.js?v=327" defer></script>
+<script src="scripts/mobile-perf.js?v=327" defer></script>
+<script src="scripts/mobile-nav.js?v=327" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=327" defer></script>
 </body>
 </html>
