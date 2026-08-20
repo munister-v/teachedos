@@ -12,6 +12,7 @@
  *   node scripts/bump-version.mjs 231    # explicit
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 const versionFile = 'version.json';
 const meta = JSON.parse(readFileSync(versionFile, 'utf8'));
@@ -46,8 +47,19 @@ let assetConstBumped = false;
   if (after !== before) { writeFileSync(p, after); assetConstBumped = true; }
 }
 
+function listStaticHtml(dir = '.') {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes:true })) {
+    if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'ng' || entry.name.startsWith('._')) continue;
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...listStaticHtml(path));
+    else if (entry.isFile() && entry.name.endsWith('.html')) files.push(path);
+  }
+  return files;
+}
+
 let touched = 0, links = 0;
-for (const file of readdirSync('.').filter(f => f.endsWith('.html'))) {
+for (const file of listStaticHtml()) {
   const before = readFileSync(file, 'utf8');
   const after = before.replace(/(\.(?:css|js|json))\?v=\d+/g, `$1?v=${next}`);
   if (after !== before) {

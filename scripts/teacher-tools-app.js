@@ -1921,6 +1921,81 @@ function showShareBanner(url){
   body.insertBefore(div,body.firstChild);
 }
 
+/* ── Quiet draft workflow ────────────────────────────────────────────────
+   A generated worksheet is the important thing here. The previous result
+   header put eleven equal-weight actions before it, so exporting started to
+   compete with reviewing the lesson. Keep one clear next step visible and
+   place the rest in an intentional overflow. Results are also saved as a
+   rolling local draft — "Save" is no longer work the teacher has to remember. */
+function saveOutput({silent=false}={}){
+  if(!lastOutput)return false;
+  const library=readJson(TOOL_STORE,[]);
+  const knownId=lastOutput._libraryId||lastOutput.id||'';
+  const existingIndex=knownId?library.findIndex(item=>item&&item.id===knownId):-1;
+  const id=existingIndex>=0?library[existingIndex].id:(knownId||('tool-'+Date.now()));
+  const now=new Date().toISOString();
+  lastOutput._libraryId=id;
+  const snapshot={...lastOutput,id,toolId:activeTool?.id||lastOutput.toolId||'',savedAt:existingIndex>=0?(library[existingIndex].savedAt||now):now,updatedAt:now};
+  delete snapshot._libraryId;
+  if(existingIndex>=0)library[existingIndex]={...library[existingIndex],...snapshot};
+  else library.unshift(snapshot);
+  writeJson(TOOL_STORE,library.slice(0,80));
+  renderLibrary();
+  if(!silent)toast('Saved to your library');
+  return true;
+}
+
+function renderResult(out){
+  if(!out)return;
+  lastOutput=out;
+  saveOutput({silent:true});
+  const showAnswers=out.showAnswers!==false;
+  const answerAction=ttHubHasKey(out)
+    ?'<button class="result-menu-item" type="button" role="menuitem" onclick="toggleHubAnswers()">'+(showAnswers?'Hide answer key':'Show answer key')+'</button>'
+    :'';
+  const sourceNote=[
+    out.aiGenerated?'AI-enhanced':'',
+    out.knowledgeBaseTitle?'Based on '+esc(out.knowledgeBaseTitle):''
+  ].filter(Boolean).join(' · ');
+  const moreActions=
+    '<details class="result-more-actions">'+
+      '<summary class="btn sm ghost" aria-label="More draft actions">More</summary>'+
+      '<div class="result-more-menu" role="menu">'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="editOutput()">Edit draft</button>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="copyOutput()">Copy text</button>'+
+        answerAction+
+        (out.gameType?'<button class="result-menu-item" type="button" role="menuitem" onclick="openPracticeGame()">Open practice game</button>':'')+
+        '<span class="result-menu-label">Export</span>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="printOutput()">Print / PDF</button>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="downloadWord()">Word document</button>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="downloadOutput()">Text file</button>'+
+        '<span class="result-menu-label">Send</span>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="assignToStudents()">Assign to students</button>'+
+        '<button class="result-menu-item" type="button" role="menuitem" onclick="shareLink()">Share link</button>'+
+      '</div>'+
+    '</details>';
+  const actions=
+    '<div class="result-actions">'+
+      '<div class="result-autosave"><span aria-hidden="true"></span>Saved locally</div>'+
+      '<div class="result-actions-controls">'+
+        '<button class="btn sm lime result-primary" type="button" onclick="sendToBoard()">Add to board</button>'+
+        moreActions+
+      '</div>'+
+    '</div>';
+  const sheet=out.struct?richWorksheetHtml(out,showAnswers):worksheetHtml(out);
+  const note=sourceNote?'<div class="result-context">'+sourceNote+'</div>':'';
+  document.getElementById('result-body').innerHTML=actions+note+sheet;
+}
+
+function viewSaved(id){
+  const item=readJson(TOOL_STORE,[]).find(entry=>entry.id===id);
+  if(!item)return;
+  lastOutput=item;
+  document.getElementById('workspace').classList.add('show');
+  renderResult(lastOutput);
+  document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();renderRecentTools();renderTools();renderLibrary();renderKnowledgeBaseLevels();renderKnowledgeBases();
 
 /* ?tool=<id> відкриває саме цей інструмент.
