@@ -508,3 +508,218 @@ body.os-desktop .note-item.active .note-item-title { background:#EEE8FF !importa
 @media (max-width:860px) {
   body { animation:none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Brand colour finish
+
+   These tokens sit after the legacy "calm" skin on every static page.  The
+   purpose is not to colour every card: colour has one job at a time — lime
+   moves a lesson forward, violet says "you are here", coral publishes or
+   shares, and the remaining hues describe learning content and data.
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --te-surface-lime:#F3FCD7;
+  --te-surface-violet:#EEE8FF;
+  --te-surface-coral:#FFE7DB;
+  --te-surface-blue:#E6F0FF;
+  --te-surface-cyan:#E0F7FA;
+  --te-surface-yellow:#FFF4C8;
+  --te-line:rgba(32,32,44,.14);
+  --te-line-strong:rgba(32,32,44,.24);
+  --te-shadow:0 10px 26px rgba(32,32,44,.08);
+  --te-shadow-hover:0 16px 34px rgba(32,32,44,.12);
+}
+
+/* Warm paper is a surface, not a grey theme. White remains reserved for
+   working areas so forms, lesson material and results retain clear contrast. */
+body:not(.board-page):not(.os-desktop):not(.landing-page) {
+  background:
+    radial-gradient(circle at 94% 2%,rgba(139,66,253,.055),transparent 25%),
+    radial-gradient(circle at 3% 92%,rgba(205,249,64,.10),transparent 28%),
+    #FFFCF8 !important;
+}
+body:not(.board-page):not(.os-desktop):not(.landing-page) :where(input,textarea,select) {
+  background:#fff !important;
+  border-color:var(--te-line) !important;
+  color:var(--te-ink) !important;
+}
+body:not(.board-page):not(.os-desktop):not(.landing-page) :where(input,textarea,select):focus {
+  border-color:var(--te-violet) !important;
+  box-shadow:0 0 0 3px rgba(139,66,253,.14) !important;
+}
+
+/* App chrome: the active location is visible at a glance without adding a
+   second dark navigation strip. */
+body:not(.board-page):not(.os-desktop) #nav {
+  background:rgba(255,252,248,.94) !important;
+  border-bottom-color:var(--te-line) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
+  background:var(--te-surface-violet) !important;
+  color:var(--te-violet) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
+  background:rgba(139,66,253,.08) !important;
+  color:var(--te-violet) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-user {
+  background:var(--te-surface-lime) !important;
+  border-color:rgba(205,249,64,.72) !important;
+}
+
+/* Reusable state language for pills, filters and small actions. It restores
+   colour through a compact signal rather than a field of tinted panels. */
+:where(.tab.active,.suite-tab.active,.bs-tab.active,.level-pill.active,.filter-chip.active,.preset-chip.active) {
+  background:var(--te-violet) !important;
+  border-color:var(--te-violet) !important;
+  color:#fff !important;
+  box-shadow:0 6px 14px rgba(139,66,253,.18) !important;
+}
+:where(.tab:hover,.suite-tab:hover,.bs-tab:hover,.level-pill:hover,.filter-chip:hover,.preset-chip:hover) {
+  border-color:rgba(139,66,253,.42) !important;
+  color:var(--te-violet) !important;
+}
+:where(.pill.done,.pill.completed,.chip.ok,.status-pill.sp-done,.progress-chip.done,.progress-chip.complete) {
+  background:var(--te-surface-lime) !important;
+  color:#2E6A21 !important;
+}
+:where(.pill.in_progress,.pill.pending,.chip.warn,.status-pill.sp-progress,.progress-chip.in_progress) {
+  background:var(--te-surface-yellow) !important;
+  color:#9A5A00 !important;
+}
+:where(.pill.overdue,.pill.failed,.chip.error,.status-pill.sp-locked,.progress-chip.overdue) {
+  background:var(--te-surface-coral) !important;
+  color:#B93412 !important;
+}
+
+/* Shared cards stay paper-white; one thin, expressive edge only appears on
+   intentful hover. This removes the old dull outline without adding noise. */
+body:not(.board-page):not(.os-desktop):not(.landing-page):not(.tools-workbench)
+  :is(.section,.card,.panel,.stat-card,.ready-card,.lesson-card,.module-block,.insight-card,.assign-card,.game-tile-comm,.table-card,.chart-card,.ops-card,.audit-card,.qr-card,.mobile-profile-action,.recent-board-item) {
+  border-color:var(--te-line) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.88) inset,0 5px 18px rgba(32,32,44,.045) !important;
+}
+body:not(.board-page):not(.os-desktop):not(.landing-page):not(.tools-workbench)
+  :is(.ready-card,.lesson-card,.module-block,.insight-card,.assign-card,.game-tile-comm,.recent-board-item):hover {
+  border-color:rgba(139,66,253,.34) !important;
+  box-shadow:var(--te-shadow-hover) !important;
+}
+
+/* Main app areas ------------------------------------------------------- */
+body.tools-workbench {
+  --tt-ink:var(--te-ink);
+  --tt-muted:#666672;
+  --tt-faint:#8D8D98;
+  --tt-line:var(--te-line);
+  --tt-paper:#fff;
+  --tt-wash:#FFFCF8;
+  --tt-accent:var(--te-lime);
+  background:
+    radial-gradient(circle at 98% 4%,rgba(139,66,253,.06),transparent 23%),
+    #FFFCF8 !important;
+}
+html:has(body.tools-workbench) { background:#FFFCF8 !important; }
+body.tools-workbench .nav {
+  background:rgba(255,252,248,.94) !important;
+  border-bottom-color:var(--te-line) !important;
+}
+body.tools-workbench .nav-link.active,
+body.tools-workbench .side-btn.active {
+  background:linear-gradient(90deg,var(--te-surface-lime),rgba(205,249,64,.10)) !important;
+  color:var(--te-ink) !important;
+}
+body.tools-workbench .nav-link:hover,
+body.tools-workbench .side-btn:hover { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; }
+body.tools-workbench .side-btn.active .side-ic { color:var(--te-ink) !important; background:var(--te-lime) !important; }
+body.tools-workbench .tool.active {
+  background:linear-gradient(90deg,var(--te-surface-lime),#fff 76%) !important;
+  box-shadow:inset 3px 0 0 var(--te-coral) !important;
+}
+body.tools-workbench .tool:focus-visible { outline-color:var(--te-violet) !important; }
+body.tools-workbench .workspace .panel-icon { background:linear-gradient(135deg,var(--te-surface-violet),var(--te-surface-lime)) !important; color:var(--te-violet) !important; }
+body.tools-workbench .workspace .label { color:var(--te-violet) !important; }
+
+/* Analytics, journal and gradebook use a quiet data surface with enough
+   chroma to scan metrics without relying on a generic green icon. */
+body.suite-page .suite-tab.active { background:var(--te-violet) !important; color:#fff !important; }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card { position:relative; overflow:hidden; }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card::before {
+  content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--te-violet);
+}
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+2)::before { background:var(--te-blue); }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+3)::before { background:var(--te-lime); }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+4)::before { background:var(--te-orange); }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card.primary::before { background:var(--te-coral); }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card .stat-icon {
+  background:var(--te-surface-violet) !important;
+  color:var(--te-violet) !important;
+}
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+2) .stat-icon { background:var(--te-surface-blue) !important; color:var(--te-blue) !important; }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+3) .stat-icon { background:var(--te-surface-lime) !important; color:#4C6800 !important; }
+body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+4) .stat-icon { background:var(--te-surface-yellow) !important; color:#A35D00 !important; }
+body.journal-suite .stat-card.attention::before { background:var(--te-orange) !important; }
+body.journal-suite .stat-card.good::before { background:#35B96E !important; }
+
+/* Profile/admin cards already carry plenty of information. Colour the icon
+   and the metric edge, never the whole tile. */
+body:is(.profile-page,.admin-page) .stat-card { position:relative; overflow:hidden; }
+body:is(.profile-page,.admin-page) .stat-card::before { content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--te-violet); }
+body:is(.profile-page,.admin-page) .stat-card:nth-child(3n+2)::before { background:var(--te-blue); }
+body:is(.profile-page,.admin-page) .stat-card:nth-child(3n)::before { background:var(--te-coral); }
+body.admin-page .stat-icon.pink { background:var(--te-surface-coral) !important; color:var(--te-coral) !important; }
+body.admin-page .stat-icon.blue { background:var(--te-surface-blue) !important; color:var(--te-blue) !important; }
+body.admin-page .stat-icon.green { background:var(--te-surface-lime) !important; color:#278646 !important; }
+body.admin-page .stat-icon.orange { background:var(--te-surface-yellow) !important; color:#A96000 !important; }
+
+/* Community: the act of publishing is coral, the lesson itself stays the
+   focal point. Cover variants make shared material recognisable at a glance. */
+.community-primary-action { background:var(--te-coral) !important; color:#fff !important; }
+.community-primary-action:hover { background:#D94200 !important; }
+.share-publish-btn { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; box-shadow:0 8px 18px rgba(255,78,0,.22) !important; }
+.community-link-action:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.38) !important; color:var(--te-violet) !important; }
+.community-lesson-cover { background:linear-gradient(135deg,#29233B,var(--te-violet)) !important; }
+.community-lesson-cover.cover-style-2 { background:linear-gradient(135deg,#183553,var(--te-blue)) !important; }
+.community-lesson-cover.cover-style-3 { background:linear-gradient(135deg,#54251B,var(--te-coral)) !important; }
+.community-lesson-cover.cover-style-4 { background:linear-gradient(135deg,#174348,#28A9B5) !important; }
+.community-cover-level,.lesson-preview-level { background:var(--te-lime) !important; color:var(--te-ink) !important; }
+
+/* Lesson and game creation: semantic actions remain distinct after the
+   global layer has normalised base controls. */
+body.lesson-builder-page .btn.pink,
+body:has(.type-grid) .btn.pink { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; }
+body.lesson-builder-page .btn.blue,
+body:has(.type-grid) .btn.blue { background:var(--te-blue) !important; border-color:var(--te-blue) !important; color:#fff !important; }
+body:has(.type-grid) .type-card.selected { border-color:var(--te-violet) !important; background:linear-gradient(145deg,#fff,var(--te-surface-violet)) !important; box-shadow:0 0 0 3px rgba(139,66,253,.13) !important; }
+body:has(.type-grid) .topic-bar { background:var(--te-ink) !important; border-color:var(--te-ink) !important; }
+body:has(.type-grid) .topic-go { background:var(--te-lime) !important; color:var(--te-ink) !important; }
+
+/* Schedule colours are visible in summary and primary controls, while the
+   timetable remains a clean canvas for actual lesson events. */
+body:has(.week-nav) .btn-add:not([style*="background:transparent"]) { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
+body:has(.week-nav) .stat-pill:nth-child(1) { box-shadow:inset 0 3px 0 var(--te-violet) !important; }
+body:has(.week-nav) .stat-pill:nth-child(2) { box-shadow:inset 0 3px 0 var(--te-blue) !important; }
+body:has(.week-nav) .stat-pill:nth-child(3) { box-shadow:inset 0 3px 0 var(--te-coral) !important; }
+body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; border-color:rgba(139,66,253,.28) !important; }
+
+/* Board: retain its dedicated editing language. Share is coral, the selected
+   drawing mode is violet, and the additive action stays lime. */
+body.board-page {
+  --board-calm-ink:var(--te-violet) !important;
+  --board-calm-ink-hover:#6D2BD7 !important;
+  --board-calm-soft:var(--te-surface-violet) !important;
+  --board-calm-line:var(--te-line) !important;
+}
+body.board-page #toolbar,
+body.board-page #miro-toolbar { background:#FFFCF8 !important; border-color:var(--te-line) !important; }
+body.board-page #toolbar #btn-share.tb-btn-primary { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; box-shadow:0 7px 16px rgba(255,78,0,.20) !important; }
+body.board-page #toolbar #btn-share.tb-btn-primary:hover { background:#D94200 !important; border-color:#D94200 !important; }
+body.board-page #miro-toolbar .mt-btn.active { background:var(--te-violet) !important; border-color:var(--te-violet) !important; color:#fff !important; }
+body.board-page #miro-toolbar .mt-btn.mt-add { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
+body.board-page .empty-action.primary { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
+body.board-page .empty-icon { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; }
+
+/* The landing stays restrained for performance, but its key invitations must
+   still feel like TeachEd: coral joins, lime begins, violet guides. */
+body.landing-page .nav-lnk:hover { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; }
+body.landing-page .btn-glass,body.landing-page .btn-cream { background:#fff !important; border-color:var(--te-line) !important; color:var(--te-ink) !important; }
+body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.30) !important; color:var(--te-violet) !important; }
