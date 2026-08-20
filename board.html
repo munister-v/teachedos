@@ -2021,25 +2021,29 @@ polite request</textarea>
 </div>
 
 <!-- Share hub: link, classroom members, or a reusable Community lesson. -->
-<div id="share-panel" role="dialog" aria-label="Share board" aria-modal="false">
+<div id="share-panel" role="dialog" aria-labelledby="share-panel-title" aria-modal="false">
   <div id="share-panel-head">
     <span id="share-panel-title">Share board</span>
     <button class="sp-close" type="button" aria-label="Close share options" onclick="closeSharePanel(true)">×</button>
   </div>
   <div id="share-panel-body">
     <section class="sp-view" id="sp-home-view">
+      <div class="sp-board-context">
+        <span class="sp-board-context-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#bi-boards"/></svg></span>
+        <span class="sp-board-context-copy"><strong id="sp-board-name">This board</strong><small id="sp-board-meta">Board snapshot</small></span>
+      </div>
       <p class="sp-hub-copy">Choose how you want to share this board.</p>
       <div class="sp-destination-list">
         <button class="sp-destination" id="sp-dest-link" type="button" onclick="spShowView('link')">
-          <span class="sp-destination-token">LINK</span>
+          <span class="sp-destination-token" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#bi-share"/></svg></span>
           <span><strong>Share a link</strong><small>Let someone open this exact board.</small></span>
         </button>
         <button class="sp-destination" id="sp-dest-invite" type="button" onclick="spShowView('invite')">
-          <span class="sp-destination-token">CLASS</span>
+          <span class="sp-destination-token" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#bi-user"/></svg></span>
           <span><strong>Invite students</strong><small id="sp-dest-invite-copy">Give students access to this board.</small></span>
         </button>
         <button class="sp-destination community" id="sp-dest-community" type="button" onclick="spShowView('community')">
-          <span class="sp-destination-token">COMM</span>
+          <span class="sp-destination-token" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#bi-boards"/></svg></span>
           <span><strong>Publish a lesson</strong><small id="sp-dest-community-copy">Turn this board into a reusable Community lesson.</small></span>
         </button>
       </div>
@@ -2075,6 +2079,12 @@ polite request</textarea>
       <div class="sp-community-kicker">Community lesson</div>
       <h2 class="sp-community-title">Publish a reusable lesson</h2>
       <p class="sp-community-copy">We will publish a snapshot of this board, so later edits stay private until you publish a new version.</p>
+      <div class="sp-community-preview" aria-hidden="true">
+        <div class="sp-community-preview-top"><span>BOARD LESSON</span><span id="sp-preview-count">0 cards</span></div>
+        <strong id="sp-preview-title">This board</strong>
+        <div class="sp-community-preview-canvas"><i></i><i></i><i></i><i></i></div>
+        <small>Title, level and description are added next.</small>
+      </div>
       <ul class="sp-community-points">
         <li>Add title, level, description and tags</li>
         <li>Generate an image preview for the lesson card</li>

@@ -15828,6 +15828,23 @@ function getShareUrl() {
   return location.origin + location.pathname + '?local=1';
 }
 
+function spUpdateBoardContext() {
+  const rawName = document.getElementById('board-name-display')?.textContent || 'Untitled board';
+  const boardName = rawName.trim() || 'Untitled board';
+  const cardCount = Array.isArray(state?.cards) ? state.cards.length : 0;
+  const cardsLabel = `${cardCount} activity ${cardCount === 1 ? 'card' : 'cards'}`;
+  const sourceLabel = currentBoardId ? 'saved board' : 'local board';
+
+  const contextName = document.getElementById('sp-board-name');
+  const contextMeta = document.getElementById('sp-board-meta');
+  const previewTitle = document.getElementById('sp-preview-title');
+  const previewCount = document.getElementById('sp-preview-count');
+  if (contextName) contextName.textContent = boardName;
+  if (contextMeta) contextMeta.textContent = `${cardsLabel} · ${sourceLabel}`;
+  if (previewTitle) previewTitle.textContent = boardName;
+  if (previewCount) previewCount.textContent = `${cardCount} ${cardCount === 1 ? 'card' : 'cards'}`;
+}
+
 function spShowView(view) {
   if (view === 'invite' && !_shareCanInvite) {
     toast('Sync this board first to invite students');
@@ -15852,6 +15869,7 @@ function openSharePanel() {
   const panel = document.getElementById('share-panel');
   _sharePanelOpen = true;
   panel.classList.add('open');
+  spUpdateBoardContext();
   const url = getShareUrl();
   document.getElementById('sp-link-input').value = url;
   const canInvite = !!(currentBoardId && isOwner && currentUser);
