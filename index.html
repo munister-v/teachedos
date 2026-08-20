@@ -1019,6 +1019,8 @@ html,body {
 .studio-title em{font-style:italic;color:#7C8A7B;}
 .studio-copy{position:relative;z-index:1;max-width:650px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
 .studio-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
+#win-plans .studio-actions .studio-chip.secondary,
+#win-plans #sidebar-plans .sb-secondary { display:none; }
 .studio-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);text-decoration:none;}
 .studio-chip.primary{background:#DDE3D9;color:#3F493F;border-color:#C3CCC0;}
 .studio-chip.hot{background:#556056;color:#fff;border-color:#556056;}
@@ -1725,8 +1727,8 @@ html,body {
       <div class="sb-section-label">Quick links</div>
       <a class="sb-item" href="courses.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>All Courses</a>
       <a class="sb-item" href="board.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg>Open Board</a>
-      <a class="sb-item" href="gradebook.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg>Gradebook</a>
-      <a class="sb-item" href="analytics.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Analytics</a>
+      <a class="sb-item sb-secondary" href="gradebook.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg>Gradebook</a>
+      <a class="sb-item sb-secondary" href="analytics.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Analytics</a>
       <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
       <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
       <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
@@ -1844,8 +1846,10 @@ html,body {
         <span id="mob-focus-sub" style="display:none"></span>
       </div>
       <section class="studio-hero mix">
+        <div class="studio-eyebrow">Lesson workspace</div>
+        <div class="studio-title">Your lesson boards</div>
         <p class="studio-copy">Search saved boards, shared lessons and drafts by class, topic or student.</p>
-        <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip" href="lesson-builder.html">Lesson builder</a><a class="studio-chip" href="community.html">Community boards</a></div>
+        <div class="studio-actions"><a class="studio-chip primary" href="board.html">Create board →</a><a class="studio-chip secondary" href="lesson-builder.html">Lesson builder</a><a class="studio-chip secondary" href="community.html">Community boards</a></div>
       </section>
       <div class="curr-search">
         <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
