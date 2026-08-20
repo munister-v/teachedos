@@ -136,6 +136,48 @@ async function wikiResolve(query) {
    Поэтому для них в запрос идёт пример предложения, а не само слово.        */
 const ABSTRACT_HINT = /\b(feel|feeling|idea|concept|state|quality|process|ability|belief|right|freedom|justice|trend|policy|status|value)\b/i;
 
+/* ЗАПРОС В ФОТОБАНК ИДЁТ ПО-АНГЛИЙСКИ.
+
+   Фотобанки индексируют снимки английскими тегами. Русский или украинский
+   запрос они не отклоняют — они отдают что придётся: «учебник» возвращал
+   роман на диване, «иностранные языки» — удалённый кадр с заглушкой «изображение
+   недоступно». На доске это выглядит как случайная фотография рядом с
+   осмысленной подписью, и понять логику подбора невозможно, потому что её
+   там и нет.
+
+   Поэтому нелатинский запрос сначала переводится. MyMemory выбран за
+   отсутствие ключа и лимитов, которые здесь можно исчерпать: слова уходят
+   поштучно, а найденное оседает в индексе картинок, так что повтор наружу
+   не ходит вовсе. Перевод не удался — ищем как раньше, по оригиналу: хуже,
+   чем сейчас, от этого не станет.                                          */
+const CYRILLIC = /[\u0400-\u04FF]/;
+const translationCache = new Map();   // «слово» → "word"
+
+async function toEnglish(text) {
+  const src = String(text || '').trim();
+  if (!src || !CYRILLIC.test(src)) return src;
+  const key = src.toLowerCase();
+  if (translationCache.has(key)) return translationCache.get(key);
+
+  // Українські літери есть только в украинском: пара выбирается по ним, иначе
+  // «і» и «ї» переводятся как опечатки и слово теряется.
+  const from = /[іїєґ]/i.test(src) ? 'uk' : 'ru';
+  const d = await safeFetch(
+    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(src.slice(0, 120))}&langpair=${from}|en`
+  );
+  const out = String(d?.responseData?.translatedText || '').trim();
+  /* MyMemory на неудаче возвращает исходную строку или служебное сообщение
+     капслоком («MYMEMORY WARNING: …»), а не ошибку. И то и другое для поиска
+     бесполезно, поэтому проверяем результат, а не код ответа. */
+  const ok = out
+    && !CYRILLIC.test(out)
+    && !/^[A-Z\s.,'"!?-]+$/.test(out)
+    && out.length <= src.length * 3;
+  const value = ok ? out.toLowerCase() : src;
+  cacheSet(translationCache, key, value);
+  return value;
+}
+
 function buildQueries({ q, topic, context }) {
   const word = String(q || '').trim();
   const theme = String(topic || '').trim().toLowerCase()
@@ -187,7 +229,13 @@ router.get('/search', async (req, res) => {
     return res.json({ url: hits[0]?.url || null, urls: hits, query: q, source: 'index' });
   }
 
-  const queries = buildQueries({ q, topic, context });
+  /* Перевод стоит ПОСЛЕ индекса и ДО фотобанка: повторное слово отдаётся из
+     индекса, ни разу не обратившись к переводчику, а наружу уходит уже
+     английский запрос. */
+  const [qEn, topicEn, contextEn] = await Promise.all([
+    toEnglish(q), toEnglish(topic), toEnglish(context),
+  ]);
+  const queries = buildQueries({ q: qEn, topic: topicEn, context: contextEn });
   const cacheKey = `${queries.join('~')}|${limit}`;
   if (multiCache.has(cacheKey)) {
     const cached = multiCache.get(cacheKey);
