@@ -4060,12 +4060,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   display:none;flex-direction:column;gap:4px;
 }
 #align-bar.show{display:flex;}
+/* The heading was an unstyled div — label the panel so the icon grid reads as
+   "align & distribute" instead of a column of anonymous glyphs. */
+.align-heading{
+  font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted,#737A72);padding:2px 4px 4px;text-align:center;
+}
 .align-btn{
   width:30px;height:30px;border:none;background:transparent;cursor:pointer;
   border-radius:7px;font-size:15px;display:flex;align-items:center;justify-content:center;
-  transition:background .1s;
+  transition:background .1s;color:#556056;
 }
 .align-btn:hover{background:var(--accent-2);}
+/* Without an explicit size these inline SVGs fall back to the 300x150 default
+   and overflow the 30px button, so each icon rendered as a black slab. */
+.align-icon{width:16px;height:16px;display:block;flex:none;}
 .align-sep{height:1px;background:var(--border);margin:2px 0;}
 
 /* ══════════════ ARROW LABEL ══════════════ */
