@@ -30,21 +30,21 @@ body{
   padding:38px 34px;background:linear-gradient(180deg,rgba(200,230,50,.96),rgba(28,28,30,.96));color:#fff;
   display:flex;flex-direction:column;justify-content:space-between;gap:24px;
 }
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:800;width:max-content}
-.hero-title{font-size:38px;line-height:1.05;font-weight:900;max-width:10ch}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:650;width:max-content}
+.hero-title{font-size:38px;line-height:1.05;font-weight:700;max-width:10ch}
 .hero-sub{font-size:15px;line-height:1.65;max-width:38ch;color:rgba(255,255,255,.88)}
 .hero-points{display:grid;gap:12px}
 .hero-point{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.12);font-size:14px;line-height:1.55}
 .panel{padding:34px 30px;background:var(--card)}
-.panel-title{font-size:28px;font-weight:900;line-height:1.08}
+.panel-title{font-size:28px;font-weight:700;line-height:1.08}
 .panel-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6}
 .invite-meta{
   margin-top:20px;padding:16px;border-radius:16px;background:#faf7f3;border:1px solid var(--border);
   display:grid;gap:8px;font-size:14px;
 }
-.meta-line strong{font-weight:900}
+.meta-line strong{font-weight:700}
 .form{margin-top:22px;display:grid;gap:14px}
-.label{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px;display:block}
+.label{font-size:13px;font-weight:650;color:var(--muted);margin-bottom:6px;display:block}
 .input{
   width:100%;padding:13px 14px;border-radius:12px;border:2px solid #ece8e0;background:#fff;
   font:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
@@ -52,12 +52,12 @@ body{
 .input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(200,230,50,.12)}
 .btn{
   width:100%;padding:14px 16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;font:inherit;font-weight:900;cursor:pointer;transition:transform .12s,opacity .12s;
+  color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s;
 }
 .btn:hover{transform:translateY(-1px)}
 .btn:disabled{opacity:.5;cursor:wait;transform:none}
 .status{
-  margin-top:16px;min-height:22px;font-size:13px;font-weight:700;
+  margin-top:16px;min-height:22px;font-size:13px;font-weight:600;
 }
 .status.error{color:var(--red)}
 .status.success{color:var(--green)}
@@ -69,9 +69,9 @@ body{
   .hero-title{font-size:30px}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body>
   <div class="shell">
@@ -224,7 +224,7 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
 </body>
 </html>

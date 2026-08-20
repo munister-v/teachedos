@@ -41,7 +41,7 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
@@ -49,10 +49,10 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#C8E632;}
+.nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
@@ -61,7 +61,7 @@ a{text-decoration:none;color:inherit;}
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 
@@ -70,12 +70,12 @@ a{text-decoration:none;color:inherit;}
 
 /* Header */
 .page-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.page-title{font-size:26px;font-weight:900;letter-spacing:-.03em;letter-spacing:-.03em;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;letter-spacing:-.03em;}
 .page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 .head-spacer{flex:1;}
 .btn{
   min-height:44px;padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);
-  font-size:13px;font-weight:800;cursor:pointer;transition:.15s;display:inline-flex;
+  font-size:13px;font-weight:650;cursor:pointer;transition:.15s;display:inline-flex;
   align-items:center;justify-content:center;gap:8px;
 }
 .btn-primary{background:var(--accent);color:#fff;}
@@ -96,8 +96,8 @@ a{text-decoration:none;color:inherit;}
 .si-blue  {background:#eff6ff;}
 .si-orange{background:#fff7ed;}
 .si-purple{background:#faf5ff;}
-.stat-val{font-size:28px;font-weight:900;letter-spacing:-.03em;line-height:1;}
-.stat-lbl{font-size:12px;color:var(--text3);font-weight:700;margin-top:2px;}
+.stat-val{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1;}
+.stat-lbl{font-size:12px;color:var(--text3);font-weight:600;margin-top:2px;}
 
 /* All-boards overview */
 .ov-board-row{
@@ -107,20 +107,20 @@ a{text-decoration:none;color:inherit;}
   font-family:var(--font);text-align:left;
 }
 .ov-board-row:hover{border-color:var(--accent2);box-shadow:0 4px 14px rgba(94,94,74,.08);transform:translateY(-1px);}
-.ovb-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ovb-name{font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ovb-bar{height:8px;border-radius:6px;background:rgba(94,94,74,.12);overflow:hidden;}
 .ovb-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .5s cubic-bezier(.34,1.1,.6,1);}
-.ovb-pct{font-size:12px;font-weight:800;font-family:var(--mono);text-align:right;color:var(--text2);}
+.ovb-pct{font-size:12px;font-weight:650;font-family:var(--mono);text-align:right;color:var(--text2);}
 .ovb-meta{grid-column:1/-1;font-size:11px;color:var(--text3);font-weight:600;}
 @media(max-width:560px){.ov-board-row{grid-template-columns:1fr 40px;}.ovb-bar{grid-column:1/-1;}}
 
 /* Section */
 .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
 .sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.sec-title{font-size:15px;font-weight:800;flex:1;}
+.sec-title{font-size:15px;font-weight:650;flex:1;}
 .sec-body{padding:18px 20px;}
 .sec-title-group{min-width:0;flex:1;}
-.sec-kicker{font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.sec-kicker{font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
 .section-sub{font-size:12px;color:var(--text3);font-weight:600;line-height:1.45;}
 
 /* Grid 2-col */
@@ -152,14 +152,14 @@ a{text-decoration:none;color:inherit;}
 
 /* Lesson table */
 .lesson-table{width:100%;border-collapse:collapse;}
-.lesson-table th{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;
+.lesson-table th{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;
   letter-spacing:.05em;padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);background:#fafafa;}
 .lesson-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
 .lesson-table tr:last-child td{border-bottom:none;}
 .lesson-table tr:hover td{background:#fafafa;}
 .status-pill{
   display:inline-flex;align-items:center;gap:4px;
-  font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;font-family:var(--mono);
+  font-size:10px;font-weight:650;padding:3px 8px;border-radius:20px;font-family:var(--mono);
 }
 .sp-done     {background:rgba(34,197,94,.12); color:#16a34a;}
 .sp-progress {background:rgba(245,158,11,.12);color:#d97706;}
@@ -168,7 +168,7 @@ a{text-decoration:none;color:inherit;}
 
 /* Progress bar */
 .prog-wrap{margin-bottom:14px;}
-.prog-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px;}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:5px;}
 .prog-bar{height:8px;border-radius:4px;background:rgba(94,94,74,.1);overflow:hidden;}
 .prog-fill{height:100%;border-radius:4px;transition:width .6s ease;}
 
@@ -177,35 +177,35 @@ a{text-decoration:none;color:inherit;}
 .pie{width:112px;height:112px;border-radius:50%;flex-shrink:0;position:relative;display:grid;place-items:center;}
 .pie-center{position:absolute;inset:14px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card);line-height:1.05;}
 .pie-center strong{font-size:22px;letter-spacing:-.04em;}
-.pie-center span{font-size:10px;font-weight:800;color:var(--text3);margin-top:3px;}
+.pie-center span{font-size:10px;font-weight:650;color:var(--text3);margin-top:3px;}
 .pie-legend{display:flex;flex-direction:column;gap:7px;}
-.pie-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;}
+.pie-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;}
 .pie-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 
 /* Assignment cards */
 .assign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
 .assign-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafafa;display:flex;flex-direction:column;gap:8px;}
-.ac-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.ac-title{font-size:13px;font-weight:650;color:var(--text);margin-bottom:6px;}
 .ac-meta{font-size:11px;color:var(--text3);line-height:1.45;}
 .ac-prog{display:flex;align-items:center;gap:8px;}
 .ac-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
 .ac-fill{height:100%;border-radius:3px;background:var(--orange);}
-.ac-pct{font-size:12px;font-weight:800;color:var(--orange);min-width:36px;text-align:right;}
+.ac-pct{font-size:12px;font-weight:650;color:var(--orange);min-width:36px;text-align:right;}
 .stu-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
 .stu-row:last-child{border-bottom:none;}
 .stu-avatar{width:36px;height:36px;border-radius:10px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .stu-info{flex:1;min-width:0;}
-.stu-name{font-size:13px;font-weight:800;color:var(--text);}
+.stu-name{font-size:13px;font-weight:650;color:var(--text);}
 .stu-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-.stu-pct{font-size:15px;font-weight:900;min-width:42px;text-align:right;}
-.progress-status{font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;}
+.stu-pct{font-size:15px;font-weight:700;min-width:42px;text-align:right;}
+.progress-status{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
 
 /* Board selector */
 /* Unified board+students dropdown */
 .board-switcher{position:relative;display:inline-block;}
 .board-switcher-trigger{display:inline-flex;align-items:center;gap:8px;}
 .board-switcher-trigger .bs-icon{font-size:14px;line-height:1;}
-.board-switcher-trigger .bs-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;}
+.board-switcher-trigger .bs-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
 .board-switcher-pop{
   display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1000;
   width:320px;max-height:420px;overflow:hidden;
@@ -217,7 +217,7 @@ a{text-decoration:none;color:inherit;}
 @keyframes bs-pop{from{opacity:0;transform:translateY(-4px) scale(.97);}to{opacity:1;transform:none;}}
 .board-switcher.open .board-switcher-pop{display:flex;}
 .bs-tabs{display:flex;border-bottom:1px solid var(--border);padding:4px;gap:4px;flex-shrink:0;}
-.bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
+.bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
 .bs-tab:hover{background:rgba(94,94,74,.06);color:var(--text2);}
 .bs-tab.active{background:rgba(200,230,50,.14);color:var(--accent);}
 .bs-search{
@@ -231,7 +231,7 @@ a{text-decoration:none;color:inherit;}
 .bs-list::-webkit-scrollbar-thumb{background:rgba(94,94,74,.18);border-radius:6px;}
 .bs-item{
   display:flex;align-items:center;gap:8px;padding:8px 10px;
-  border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:700;
+  border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;
   transition:background .1s,color .1s;
 }
 .bs-item:hover{background:rgba(94,94,74,.08);color:var(--text);}
@@ -248,7 +248,7 @@ a{text-decoration:none;color:inherit;}
 .bs-empty{padding:24px 16px;text-align:center;color:var(--text3);font-size:12px;}
 .board-pills{display:flex;gap:8px;flex-wrap:wrap;}
 .board-pill{
-  min-height:44px;padding:6px 14px;border-radius:20px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;
+  min-height:44px;padding:6px 14px;border-radius:20px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;
   border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:.15s;
 }
 .board-pill:hover{border-color:var(--border2);color:var(--accent);}
@@ -262,21 +262,21 @@ a{text-decoration:none;color:inherit;}
 .insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
 .insight-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:168px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#fafafa;overflow:hidden;}
 .insight-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--insight-color,var(--accent));}
-.insight-kicker{font-family:var(--mono);font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
-.insight-title{font-size:15px;font-weight:900;letter-spacing:-.015em;line-height:1.25;margin-top:8px;color:var(--text);}
+.insight-kicker{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.insight-title{font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.25;margin-top:8px;color:var(--text);}
 .insight-detail{font-size:12px;font-weight:600;line-height:1.5;color:var(--text2);margin-top:7px;}
-.insight-action{min-height:36px;margin-top:auto;padding:0;border:0;background:transparent;color:var(--text);font-family:var(--font);font-size:12px;font-weight:900;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.insight-action{min-height:36px;margin-top:auto;padding:0;border:0;background:transparent;color:var(--text);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
 .insight-card.tone-alert{background:#fff7f7;}
 .insight-card.tone-focus{background:#fffaf0;}
 .insight-card.tone-progress{background:#f6fbef;}
 .quiz-card{padding:14px;border:1px solid var(--border);border-radius:14px;background:#fafafa;}
 .quiz-card + .quiz-card{margin-top:12px;}
 .quiz-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.quiz-title{font-size:12px;font-weight:900;color:var(--text2);}
-.quiz-summary{margin-left:auto;font-size:12px;font-weight:900;}
+.quiz-title{font-size:12px;font-weight:700;color:var(--text2);}
+.quiz-summary{margin-left:auto;font-size:12px;font-weight:700;}
 .quiz-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
 .quiz-row:last-child{border-bottom:none;}
-.score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:28px;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:900;}
+.score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:28px;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:700;}
 .score-good{background:#dcfce7;color:#166534;}.score-mid{background:#fef3c7;color:#92400e;}.score-low{background:#fee2e2;color:#991b1b;}
 
 :where(.analytics-suite) button:focus-visible,
@@ -291,16 +291,16 @@ a{text-decoration:none;color:inherit;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:700;background:#1C1C1E;color:#fff;
+  border-radius:12px;font-size:13px;font-weight:600;background:#1C1C1E;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body class="suite-page analytics-suite">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -350,7 +350,7 @@ a{text-decoration:none;color:inherit;}
     <a class="suite-tab" href="journal.html">Journal</a>
     <a class="suite-tab" href="gradebook.html">Gradebook</a>
   </nav>
-  <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:700;margin-bottom:18px;"></div>
+  <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:600;margin-bottom:18px;"></div>
 
   <!-- Board selector -->
   <div class="section analytics-context" id="board-context">
@@ -388,7 +388,7 @@ a{text-decoration:none;color:inherit;}
         <div class="sec-kicker">Portfolio view</div>
         <div class="sec-title">All boards overview</div>
       </div>
-      <span id="overview-sub" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+      <span id="overview-sub" style="font-size:12px;color:var(--text3);font-weight:600;"></span>
     </div>
     <div class="sec-body">
       <div class="stats-row" id="overview-stats">
@@ -443,7 +443,7 @@ a{text-decoration:none;color:inherit;}
   <div class="section" id="lessons-section">
     <div class="sec-head">
       <div class="sec-title">Lessons</div>
-      <span id="lessons-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+      <span id="lessons-count" style="font-size:12px;color:var(--text3);font-weight:600;"></span>
     </div>
     <div style="overflow-x:auto">
       <table class="lesson-table" id="lesson-table">
@@ -467,7 +467,7 @@ a{text-decoration:none;color:inherit;}
   <div class="section" id="students-section" style="display:none">
     <div class="sec-head">
       <div class="sec-title">Student Progress</div>
-      <span id="students-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+      <span id="students-count" style="font-size:12px;color:var(--text3);font-weight:600;"></span>
     </div>
     <div class="sec-body" id="students-body">
       <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No students yet</div>
@@ -478,7 +478,7 @@ a{text-decoration:none;color:inherit;}
   <div class="section" id="quiz-analytics-section" style="display:none">
     <div class="sec-head">
       <div class="sec-title">Quiz Results</div>
-      <span id="quiz-analytics-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+      <span id="quiz-analytics-count" style="font-size:12px;color:var(--text3);font-weight:600;"></span>
     </div>
     <div class="sec-body" id="quiz-analytics-body">
       <div class="empty"><div class="empty-icon" aria-hidden="true"></div>No quiz submissions yet</div>
@@ -489,7 +489,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -590,7 +590,7 @@ function applyAnalyticsGateUI() {
       lock.style.display = 'none';
     } else {
       lock.style.display = 'block';
-      lock.innerHTML = `${upgradeMessage('analytics')} <a href="profile.html#plans" style="color:#9a3412;font-weight:900;">Upgrade package →</a>`;
+      lock.innerHTML = `${upgradeMessage('analytics')} <a href="profile.html#plans" style="color:#9a3412;font-weight:700;">Upgrade package →</a>`;
     }
   }
   const exportBtn = document.getElementById('btn-export');
@@ -715,7 +715,7 @@ async function renderOverview() {
 
 function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
-  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>'; }
+  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>'; }
   else {
     wrap.innerHTML = boards.map(b =>
       `<button type="button" class="board-pill${b.id===activeBoardId?' active':''}" onclick="selectBoard('${b.id}')" aria-pressed="${b.id===activeBoardId}">${esc(b.name)}</button>`
@@ -851,7 +851,7 @@ function analyzeBoard(boardId, cards, boardName) {
 
   const progSec = document.getElementById('progress-section');
   if (!total) {
-    progSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:700;">Go to board →</a></div>';
+    progSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:600;">Go to board →</a></div>';
   } else {
     const skillColors = {Grammar:'#ef4444',Vocabulary:'#f59e0b',Speaking:'#8b5cf6',Reading:'#06b6d4',Writing:'#10b981',Listening:'#6366f1'};
     progSec.innerHTML = `
@@ -939,7 +939,7 @@ function analyzeBoard(boardId, cards, boardName) {
       return `<div class="assign-card">
         <div class="ac-title">${esc(a.data.title||'Assignment')}</div>
         <div class="ac-meta">
-          <span style="color:${color};font-weight:700;">${esc(a.data.type||'')}</span>
+          <span style="color:${color};font-weight:600;">${esc(a.data.type||'')}</span>
           ${a.data.maxScore ? ` · ${a.data.maxScore} pts` : ''}
           · <span style="color:${overdue?'#b91c1c':'var(--text3)'};font-weight:${overdue?'800':'600'};">${deadlineLabel}</span>
         </div>
@@ -1063,7 +1063,7 @@ async function loadQuizAnalytics(boardId) {
       const color = avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red,#ef4444)';
       const studentRows = rows.map(r => `
         <div class="quiz-row">
-          <div style="font-size:13px;font-weight:700;min-width:0;">${esc(r.student_name||'Unknown')}</div>
+          <div style="font-size:13px;font-weight:600;min-width:0;">${esc(r.student_name||'Unknown')}</div>
           <div class="quiz-email" style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.student_email||'')}</div>
           <div class="quiz-score"><span class="score-pill ${r.pct>=80?'score-good':r.pct>=50?'score-mid':'score-low'}">${r.pct}%</span></div>
           <div class="quiz-points" style="font-size:11px;color:var(--text3);white-space:nowrap;">${r.score}/${r.max_score} pts</div>
@@ -1163,10 +1163,10 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

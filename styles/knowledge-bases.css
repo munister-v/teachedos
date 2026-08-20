@@ -6,7 +6,7 @@
 .knowledge-bases-status{margin-top:8px;color:var(--soft);font:900 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .knowledge-bases-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .knowledge-bases-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.knowledge-bases-search{width:min(310px,100%);height:40px;border:1px solid rgba(24,24,24,.12);border-radius:13px;background:#fff;padding:0 12px;color:var(--ink);font-size:13px;font-weight:700;outline:none}
+.knowledge-bases-search{width:min(310px,100%);height:40px;border:1px solid rgba(24,24,24,.12);border-radius:13px;background:#fff;padding:0 12px;color:var(--ink);font-size:13px;font-weight:600;outline:none}
 .knowledge-bases-search:focus{border-color:rgba(91,108,255,.58);box-shadow:0 0 0 4px rgba(91,108,255,.1)}
 .knowledge-bases-levels{display:flex;gap:6px;flex-wrap:wrap}
 .kb-level{min-height:32px;border:1px solid rgba(24,24,24,.1);border-radius:999px;padding:0 10px;background:#fff;color:#4a4b55;font:900 10px var(--mono);cursor:pointer}
@@ -44,9 +44,9 @@ details.knowledge-bases > summary::-webkit-details-marker { display: none; }
 details.knowledge-bases > summary::before { content: '▸'; margin-right: 6px; opacity: .55; }
 details.knowledge-bases[open] > summary::before { content: '▾'; }
 details.knowledge-bases > summary:hover { border-color: rgba(14,14,16,.34); }
-.kb-summary-title { font-weight: 800; font-size: 15px; }
+.kb-summary-title { font-weight:650; font-size: 15px; }
 .kb-summary-hint  { font-size: 12px; opacity: .68; }
-.kb-summary-count { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px;
+.kb-summary-count { font-size: 11px; font-weight:650; padding: 3px 9px; border-radius: 999px;
                     background: #C8E64A; color: #2c3a00; }
 details.knowledge-bases[open] > summary.knowledge-bases-summary {
   border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0;

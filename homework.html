@@ -6,13 +6,13 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=324">
+<link rel="stylesheet" href="styles/fonts.css?v=325">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -43,7 +43,7 @@ button{font-family:var(--font);cursor:pointer;}
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
@@ -51,10 +51,10 @@ button{font-family:var(--font);cursor:pointer;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#C8E632;}
+.nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
@@ -63,16 +63,16 @@ button{font-family:var(--font);cursor:pointer;}
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 
 #page{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
-.page-eyebrow{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
-.page-title{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.02em;line-height:1.05;}
+.page-eyebrow{font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+.page-title{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.02em;line-height:1.05;}
 .page-sub{font-size:14px;color:var(--text3);margin-top:4px;}
-.btn{min-height:44px;padding:9px 16px;border:none;border-radius:11px;font-size:13px;font-weight:800;transition:.15s;cursor:pointer;font-family:var(--font);}
+.btn{min-height:44px;padding:9px 16px;border:none;border-radius:11px;font-size:13px;font-weight:650;transition:.15s;cursor:pointer;font-family:var(--font);}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
 .btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1.5px solid var(--border2);}
@@ -94,15 +94,15 @@ button{font-family:var(--font);cursor:pointer;}
 .homework-hero h1 em{color:var(--lime);font-style:italic;}
 .homework-hero p{margin-top:12px;max-width:680px;color:rgba(255,255,255,.72);font-size:15px;line-height:1.6;}
 .hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
-.hero-chip{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900;color:rgba(255,255,255,.82);}
+.hero-chip{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:700;color:rgba(255,255,255,.82);}
 .hero-score{min-width:190px;border-radius:24px;padding:16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);}
 .hero-score b{display:block;font-size:38px;line-height:1;color:var(--lime);}
-.hero-score span{display:block;margin-top:7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);}
+.hero-score span{display:block;margin-top:7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);}
 
 .hw-dashboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 16px;}
 .hw-metric{background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:20px;padding:15px;box-shadow:0 14px 36px rgba(94,94,74,.08);}
 .hw-metric b{display:block;font-size:26px;letter-spacing:-.05em;color:var(--text);}
-.hw-metric span{display:block;margin-top:4px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
+.hw-metric span{display:block;margin-top:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
 .hw-toolbar{
   display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
   margin:12px -20px 4px;padding:10px 20px;
@@ -117,7 +117,7 @@ button{font-family:var(--font);cursor:pointer;}
   box-shadow:0 6px 18px rgba(94,94,74,.10),0 1px 0 var(--border);
 }
 .hw-filters{display:flex;gap:8px;flex-wrap:wrap;}
-.filter-btn{min-height:44px;border:1px solid var(--border);background:rgba(255,255,255,.86);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:900;color:var(--text2);cursor:pointer;transition:background .12s,border-color .12s,color .12s,transform .08s;}
+.filter-btn{min-height:44px;border:1px solid var(--border);background:rgba(255,255,255,.86);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:background .12s,border-color .12s,color .12s,transform .08s;}
 .filter-btn:hover{border-color:var(--accent);color:var(--accent);}
 .filter-btn:active{transform:scale(.96);}
 .filter-btn.active{background:var(--lime);border-color:rgba(168,196,42,.38);color:#0E0E10;}
@@ -137,7 +137,7 @@ button{font-family:var(--font);cursor:pointer;}
 .hw-focus{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:4px 0 12px;padding:16px 18px;border:1px solid var(--border);border-radius:18px;background:var(--card);box-shadow:0 10px 28px rgba(94,94,74,.055);}
 .hw-focus-copy{min-width:0;flex:1;}
 .hw-focus-kicker{font:900 10px/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
-.hw-focus-title{margin-top:5px;font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--text);}
+.hw-focus-title{margin-top:5px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text);}
 .hw-focus-detail{margin-top:5px;font-size:12px;font-weight:600;line-height:1.5;color:var(--text2);}
 .hw-focus .btn{flex-shrink:0;}
 .hw-list-summary{margin-left:auto;font:800 11px var(--mono);color:var(--text3);white-space:nowrap;}
@@ -153,16 +153,16 @@ button{font-family:var(--font);cursor:pointer;}
 .hw-card.overdue{border-color:rgba(239,68,68,.30);}
 .hw-card.submitted{border-color:rgba(34,197,94,.28);}
 .hw-card.graded{border-color:rgba(139,92,246,.26);}
-.hw-card .hw-title{font-size:15px;font-weight:900;color:var(--text);line-height:1.25;}
+.hw-card .hw-title{font-size:15px;font-weight:700;color:var(--text);line-height:1.25;}
 .hw-card .hw-sub{font-size:11px;color:var(--text3);}
 .hw-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.hw-kind{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#7FA000;background:rgba(200,230,50,.18);border:1px solid rgba(200,230,50,.35);border-radius:999px;padding:4px 8px;}
+.hw-kind{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7FA000;background:rgba(200,230,50,.18);border:1px solid rgba(200,230,50,.35);border-radius:999px;padding:4px 8px;}
 .hw-stats{display:flex;gap:10px;margin-top:auto;font-size:11px;color:var(--text2);}
-.hw-stat{display:flex;align-items:center;gap:5px;font-weight:700;background:var(--bg);padding:4px 9px;border-radius:8px;border:1px solid var(--border);}
+.hw-stat{display:flex;align-items:center;gap:5px;font-weight:600;background:var(--bg);padding:4px 9px;border-radius:8px;border:1px solid var(--border);}
 
 .empty{padding:60px 20px;text-align:center;color:var(--text3);}
 .empty-icon{font-size:48px;margin-bottom:10px;}
-.empty-title{font-size:18px;font-weight:800;color:var(--text2);margin-bottom:6px;}
+.empty-title{font-size:18px;font-weight:650;color:var(--text2);margin-bottom:6px;}
 .empty-sub{font-size:13px;max-width:380px;margin:0 auto;line-height:1.6;}
 
 /* Modal */
@@ -170,10 +170,10 @@ button{font-family:var(--font);cursor:pointer;}
 .modal-overlay.open{display:flex;}
 .modal-box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
   box-shadow:0 24px 70px rgba(0,0,0,.22);border:1px solid var(--border);position:relative;}
-.modal-title{font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.02em;margin-bottom:6px;}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:6px;}
 .modal-sub{font-size:12px;color:var(--text3);margin-bottom:18px;}
 .form-field{margin-bottom:14px;}
-.form-label{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.form-label{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
 .form-input,.form-select,.form-textarea{
   width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
   min-height:44px;font-family:var(--font);font-size:13px;outline:none;background:var(--bg);color:var(--text);
@@ -195,7 +195,7 @@ button{font-family:var(--font);cursor:pointer;}
 .card-pick-item.selected .cpi-check{background:var(--accent);border-color:var(--accent);}
 .cpi-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
 .cpi-body{flex:1;min-width:0;}
-.cpi-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cpi-name{font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cpi-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
 .student-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:6px;background:var(--bg);border-radius:10px;border:1.5px solid var(--border);}
 .student-item{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;background:var(--card);color:var(--text);font:inherit;text-align:left;}
@@ -207,18 +207,18 @@ button{font-family:var(--font);cursor:pointer;}
 #hw-detail{display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;margin-top:18px;}
 #hw-detail.open{display:block;}
 .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
-.detail-title{font-size:20px;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+.detail-title{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
 .detail-meta{font-size:12px;color:var(--text3);margin-top:4px;}
 .detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
 .detail-row:last-child{border-bottom:none;}
-.detail-row .det-label{color:var(--text3);font-weight:700;}
-.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.detail-row .det-label{color:var(--text3);font-weight:600;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:650;text-transform:uppercase;letter-spacing:.04em;}
 .pill.assigned{background:rgba(99,102,241,.12);color:var(--blue);}
 .pill.in_progress{background:rgba(245,158,11,.14);color:#b45309;}
 .pill.submitted{background:rgba(34,197,94,.14);color:#15803d;}
 .pill.graded{background:rgba(139,92,246,.14);color:var(--purple);}
 
-#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:700;
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 
@@ -253,10 +253,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body class="mp-shell">
 
@@ -702,12 +702,12 @@ async function openDetail(id) {
     det.classList.add('open');
     det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+esc(hw.title)+'</div><div class="detail-meta">'+required.length+' required card'+(required.length!==1?'s':'')+' · Pass threshold '+(hw.pass_threshold || 60)+'% · '+(offlineMode || hw.local ? 'local mode' : 'live')+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost" onclick=\'openBoard("'+esc(hw.board_id)+'")\'>Open board</button><button class="btn btn-danger" onclick=\'deleteHomework("'+esc(hw.id)+'")\'>Delete</button></div></div>'+
       (hw.instructions ? '<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:12px 14px;border-radius:14px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">'+esc(hw.instructions)+'</div>' : '')+
-      '<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students ('+assignments.length+')</div>'+
+      '<div style="font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students ('+assignments.length+')</div>'+
       (assignments.length ? assignments.map(a => {
         const att = byAsgn[a.id] || [];
         const completed = typeof a.final_score === 'number' || ['submitted','graded'].includes(a.status) ? required.length : att.filter(t => t.status === 'done').length;
         const pct = required.length ? Math.round((completed/required.length) * 100) : 0;
-        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(200,230,50,.2);font-weight:900;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:800;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:900;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>';
+        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(200,230,50,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>';
       }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>');
     det.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
   } catch (e) { toast('Error: ' + e.message); }
@@ -836,10 +836,10 @@ function toast(msg) { const t = document.getElementById('toast'); t.textContent 
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

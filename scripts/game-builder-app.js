@@ -1323,7 +1323,7 @@ function addMCQ() {
   block.className = 'mcq-item';
   block.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;';
   block.innerHTML = `
-    <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:8px;">Question ${idx}</div>
+    <div style="font-size:12px;font-weight:650;color:var(--text3);margin-bottom:8px;">Question ${idx}</div>
     <input class="mcq-question" placeholder="Question text" style="margin-bottom:8px;" oninput="updateItemCounter()">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
       <input class="mcq-opt" placeholder="Option A">
@@ -2183,7 +2183,7 @@ function previewGame() {
     </div>` : '';
 
   pv.innerHTML = `
-    <div style="font-size:16px;font-weight:900;">${selectedType.icon} ${esc(title)}</div>
+    <div style="font-size:16px;font-weight:700;">${selectedType.icon} ${esc(title)}</div>
     <div style="font-size:12px;color:var(--text3);">${esc(selectedType.name)} \u00b7 ${getPreviewItemCount(content)} items \u00b7 live preview</div>
     ${switcher}
     <div id="pv-stage" style="position:relative;width:100%;border-radius:14px;overflow:hidden;background:#0E0E14;border:1px solid var(--border);"></div>

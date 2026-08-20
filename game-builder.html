@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
+<link rel="manifest" href="manifest.json?v=325">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -29,13 +29,13 @@
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
 #nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(245,240,232,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(94,94,74,.08);display:flex;align-items:center;padding:0 14px}
-.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:800;margin-left:7px}
+.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:650;margin-left:7px}
 .nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
 .nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;white-space:nowrap;transition:background .12s,color .12s}
-.nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:900;color:var(--lime)}
+.nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:700;color:var(--lime)}
 .nav-spacer{flex:1}
-.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
-#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:900}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:700}
 .wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
 .hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
 .hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(94,94,74,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(237,232,224,.82))}
@@ -45,7 +45,7 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .hero-stats{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
 .hero-stat{display:flex;align-items:center;gap:7px;padding:6px 14px;background:rgba(255,255,255,.65);border-radius:999px;font:800 12px var(--font);color:var(--text2);border:1px solid var(--border)}
-.hero-stat .stat-num{font-size:16px;color:var(--accent);font-weight:950}
+.hero-stat .stat-num{font-size:16px;color:var(--accent);font-weight:700}
 .btn{border:none;border-radius:14px;padding:11px 16px;font:900 13px var(--font);cursor:pointer;background:var(--accent);color:#fff;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .15s,box-shadow .2s}
 .btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(.97)}
 .btn.lime{background:var(--lime);color:var(--accent);box-shadow:0 4px 14px rgba(205,242,79,.28)}.btn.lime:hover{background:#b8d62e}
@@ -59,19 +59,19 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 .tab:hover{border-color:var(--lime);color:var(--accent)}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px;flex-wrap:wrap;gap:10px}
-.section-title{font-size:22px;font-weight:950;letter-spacing:-.04em}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-.04em}
 .section-sub{font-size:13px;color:var(--text3);margin-top:3px}
 .type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:22px}
 .type-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:8px;position:relative}
 .type-card:hover{border-color:var(--lime);transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,230,50,.12)}
 .type-card.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
 .type-icon{font-size:28px;line-height:1}
-.type-name{font-size:14px;font-weight:900;color:var(--text)}
+.type-name{font-size:14px;font-weight:700;color:var(--text)}
 .type-desc{font-size:11px;color:var(--text3);line-height:1.4}
 .type-badge{position:absolute;top:10px;right:10px;font:800 9px var(--mono);padding:3px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
 .builder{display:none;background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:24px;margin-bottom:22px}
 .builder.show{display:block}
-.builder-title{font-size:18px;font-weight:900;margin-bottom:4px}
+.builder-title{font-size:18px;font-weight:700;margin-bottom:4px}
 .builder-sub{font-size:12px;color:var(--text3);margin-bottom:18px}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .label{font:800 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
@@ -129,7 +129,7 @@ textarea{min-height:60px;resize:vertical}
 .game-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),var(--accent))}
 .game-top{display:flex;gap:10px;align-items:center}
 .game-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
-.game-name{font-size:15px;font-weight:900;line-height:1.2}
+.game-name{font-size:15px;font-weight:700;line-height:1.2}
 .game-meta{font-size:11px;color:var(--text3);margin-top:2px}
 .game-tags{display:flex;gap:6px;flex-wrap:wrap}
 .tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
@@ -149,7 +149,7 @@ textarea{min-height:60px;resize:vertical}
 .tpl-card[data-level="C1"]::before{background:linear-gradient(90deg,#8b5cf6,#c4b5fd)}
 .tpl-card[data-level="C2"]::before{background:linear-gradient(90deg,#ef4444,#fca5a5)}
 .tpl-icon{font-size:26px;line-height:1}
-.tpl-title{font-size:14px;font-weight:900}
+.tpl-title{font-size:14px;font-weight:700}
 .tpl-meta{font-size:11px;color:var(--text3);line-height:1.3}
 .tpl-bottom{display:flex;gap:6px;align-items:center;margin-top:auto}
 .dict-toolbar{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;margin-bottom:14px}
@@ -159,7 +159,7 @@ textarea{min-height:60px;resize:vertical}
 .dict-card::after{content:"";position:absolute;right:-44px;top:-44px;width:112px;height:112px;border-radius:999px;background:rgba(200,230,50,.18);pointer-events:none}
 .dict-head{display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1}
 .dict-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
-.dict-title{font-size:15px;font-weight:950;letter-spacing:-.02em;line-height:1.15}
+.dict-title{font-size:15px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
 .dict-meta{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.35}
 .dict-preview{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1}
 .dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
@@ -174,7 +174,7 @@ textarea{min-height:60px;resize:vertical}
 .tool-btn:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
 .search-box{position:relative;margin-bottom:14px}
 .search-box input{padding-left:14px}
-#toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+#toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:650;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.18)}
 #toast.show{opacity:1;transform:translateY(0)}
 .preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center}
 /* Редактор и предпросмотр стоят рядом. Предпросмотр липкий: список элементов
@@ -235,10 +235,10 @@ textarea{min-height:60px;resize:vertical}
 .pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#777;font-size:.85rem}
 
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body>
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -490,9 +490,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=324"></script>
-<script src="scripts/vocab-loader.js?v=324"></script>
-<script src="scripts/game-builder-app.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
+<script src="scripts/vocab-loader.js?v=325"></script>
+<script src="scripts/game-builder-app.js?v=325"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -506,9 +506,9 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
+<link rel="manifest" href="manifest.json?v=325">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=324">
+<link rel="stylesheet" href="styles/fonts.css?v=325">
 <title>TeachEd — Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -53,7 +53,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-logo{
   padding:16px 22px 14px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:10px;
-  font-size:18px;font-weight:900;letter-spacing:-.03em;
+  font-size:18px;font-weight:700;letter-spacing:-.03em;
 }
 .sb-logo img{width:28px;height:28px;border-radius:7px;}
 .sb-logo em{color:var(--accent);font-style:normal}
@@ -70,12 +70,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-size:2.5rem;line-height:1;
   animation:glow-pulse 3s ease-in-out infinite;
 }
-.sb-name{font-size:14px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
+.sb-name{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
 .sb-role{font-size:10px;color:var(--text-3);font-family:var(--mono);margin-top:3px;letter-spacing:.06em}
 
 .sb-section{padding:18px 22px 14px}
 .sb-section-title{
-  font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  font-size:10px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;
   color:var(--text-3);margin-bottom:12px;font-family:var(--mono);
 }
 
@@ -94,10 +94,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-class-thumb img{width:100%;height:100%;object-fit:cover}
 .sb-class-thumb-ph{font-size:1.2rem;opacity:.4}
 .sb-class-info{flex:1;min-width:0}
-.sb-class-name{font-size:12px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-class-name{font-size:12px;font-weight:650;color:var(--text);line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-class-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sb-class-badge{
-  font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;
+  font-size:9px;font-weight:600;padding:1px 6px;border-radius:4px;
   background:rgba(6,182,212,.12);color:var(--accent);font-family:var(--mono);
 }
 .sb-class-badge.type{background:rgba(28,28,30,.12);color:var(--lavender)}
@@ -109,8 +109,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   text-align:center;padding:20px;margin:0 22px 14px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
 }
-.sb-counter-num{font-size:42px;font-weight:900;font-family:var(--display);color:var(--text);line-height:1}
-.sb-counter-label{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px;font-family:var(--mono)}
+.sb-counter-num{font-size:42px;font-weight:700;font-family:var(--display);color:var(--text);line-height:1}
+.sb-counter-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px;font-family:var(--mono)}
 
 /* Milestones */
 .sb-milestone{
@@ -118,7 +118,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
 }
 .sb-milestone-labels{display:flex;justify-content:space-between;margin-bottom:6px}
-.sb-milestone-level{font-size:11px;font-weight:800;font-family:var(--mono)}
+.sb-milestone-level{font-size:11px;font-weight:650;font-family:var(--mono)}
 .sb-milestone-level.from{color:var(--accent)}
 .sb-milestone-level.to{color:var(--lime)}
 .sb-milestone-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
@@ -129,7 +129,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-signout{
   width:100%;padding:9px;border-radius:8px;border:1px solid rgba(239,68,68,.2);
   background:transparent;color:#ef4444;font-family:var(--font);font-size:12px;
-  font-weight:700;cursor:pointer;transition:.15s;
+  font-weight:600;cursor:pointer;transition:.15s;
 }
 .sb-signout:hover{background:rgba(239,68,68,.08)}
 
@@ -146,7 +146,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tb-guide{
   display:flex;align-items:center;gap:6px;padding:7px 14px;
   border-radius:20px;border:1px solid var(--accent-border);background:transparent;
-  color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;
+  color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;
   font-family:var(--font);transition:.15s;text-decoration:none;
 }
 .tb-guide:hover{background:var(--accent-glow)}
@@ -173,18 +173,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   border:1px solid var(--accent-border);
 }
 .ms-kicker{
-  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  font-size:11px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;
   color:var(--text-3);font-family:var(--mono);
 }
-.ms-title{font-size:19px;font-weight:900;margin-top:8px;line-height:1.15}
+.ms-title{font-size:19px;font-weight:700;margin-top:8px;line-height:1.15}
 .ms-copy{font-size:13px;line-height:1.6;color:var(--text-2);margin-top:8px}
 .ms-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 .ms-stat{
   padding:12px 10px;border-radius:14px;background:rgba(28,28,30,.22);
   border:1px solid rgba(255,255,255,.05);text-align:center;
 }
-.ms-stat-value{font-size:22px;font-weight:900;font-family:var(--mono);line-height:1}
-.ms-stat-label{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+.ms-stat-value{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
+.ms-stat-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
 
 /* Content area */
 .content{padding:28px;flex:1}
@@ -192,7 +192,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Welcome hero */
 .welcome{margin-bottom:28px}
 .welcome-text{
-  font-family:var(--display);font-size:28px;font-weight:900;
+  font-family:var(--display);font-size:28px;font-weight:700;
   letter-spacing:.02em;line-height:1.15;
   background:linear-gradient(135deg,#f0e68c,#06b6d4);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
@@ -201,7 +201,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* Section headings */
 .sec-title{
-  font-family:var(--display);font-size:13px;font-weight:800;
+  font-family:var(--display);font-size:13px;font-weight:650;
   letter-spacing:.08em;text-transform:uppercase;color:var(--text);
   margin-bottom:16px;
 }
@@ -219,26 +219,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.4;
 }
 .vs-icon{font-size:20px;margin-bottom:6px;display:block}
-.vs-label{font-size:9px;font-weight:700;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:6px}
-.vs-num{font-size:26px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1}
+.vs-label{font-size:9px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:6px}
+.vs-num{font-size:26px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
 
 /* Action buttons */
 .vocab-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
 .va-btn{
   display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;
-  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;
+  font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;
   transition:.15s;border:1px solid var(--border);background:var(--bg-card);color:var(--text);
   text-decoration:none;
 }
 .va-btn:hover{border-color:var(--accent-border);background:var(--bg-card-2)}
 .va-btn.primary{background:var(--accent);border-color:var(--accent);color:#1C1C1E}
 .va-btn.primary:hover{opacity:.88}
-.va-lang{color:var(--orange);font-weight:800}
+.va-lang{color:var(--orange);font-weight:650}
 
 /* Tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
 .tab{
-  padding:10px 20px;font-size:13px;font-weight:700;color:var(--text-3);
+  padding:10px 20px;font-size:13px;font-weight:600;color:var(--text-3);
   cursor:pointer;border-bottom:2px solid transparent;transition:.15s;
   background:none;border-top:none;border-left:none;border-right:none;
   font-family:var(--font);
@@ -257,7 +257,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   border:1px solid var(--accent-border);border-radius:14px;margin-bottom:16px;
 }
 .notif-icon{font-size:18px;flex-shrink:0}
-.notif-text{font-size:13px;font-weight:700;color:var(--text)}
+.notif-text{font-size:13px;font-weight:600;color:var(--text)}
 
 /* Teacher feedback */
 .teacher-fb{
@@ -267,7 +267,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .teacher-fb-content{display:flex;align-items:flex-start;gap:10px}
 .teacher-fb-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
-.teacher-fb-name{font-size:13px;font-weight:800;color:var(--accent)}
+.teacher-fb-name{font-size:13px;font-weight:650;color:var(--accent)}
 .teacher-fb-msg{font-size:13px;color:var(--text-2)}
 
 /* Empty state */
@@ -283,11 +283,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   margin-bottom:8px;transition:.15s;
 }
 .vocab-word-item:hover{border-color:var(--accent-border)}
-.vw-word{font-size:14px;font-weight:800;color:var(--text);min-width:100px}
+.vw-word{font-size:14px;font-weight:650;color:var(--text);min-width:100px}
 .vw-trans{font-size:13px;color:var(--accent);flex:1}
 .vw-example{font-size:11px;color:var(--text-3);font-style:italic}
 .vw-badge{
-  font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 10px;
+  font-size:10px;font-weight:600;font-family:var(--mono);padding:3px 10px;
   border-radius:20px;cursor:pointer;transition:.15s;border:none;
 }
 .vw-badge.learned{background:rgba(34,197,94,.12);color:#22c55e}
@@ -299,8 +299,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   padding:16px;text-align:center;
 }
-.prog-card-num{font-size:28px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1}
-.prog-card-label{font-size:11px;color:var(--text-3);font-weight:700;margin-top:6px}
+.prog-card-num{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
+.prog-card-label{font-size:11px;color:var(--text-3);font-weight:600;margin-top:6px}
 .prog-bar-wrap{margin-top:12px}
 .prog-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px}
 .prog-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
@@ -315,7 +315,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .game-card:hover{border-color:var(--accent-border);transform:translateY(-2px)}
 .game-card-icon{font-size:1.6rem}
-.game-card-name{font-size:12px;font-weight:800;color:var(--text)}
+.game-card-name{font-size:12px;font-weight:650;color:var(--text)}
 .game-card-cat{font-size:10px;color:var(--text-3)}
 
 /* Schedule items */
@@ -329,12 +329,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:var(--accent-glow);border:1px solid var(--accent-border);
   display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;
 }
-.sch-day{font-size:16px;font-weight:900;color:var(--accent);font-family:var(--mono);line-height:1}
-.sch-mon{font-size:9px;font-weight:700;color:var(--text-3);font-family:var(--mono);text-transform:uppercase}
+.sch-day{font-size:16px;font-weight:700;color:var(--accent);font-family:var(--mono);line-height:1}
+.sch-mon{font-size:9px;font-weight:600;color:var(--text-3);font-family:var(--mono);text-transform:uppercase}
 .sch-info{flex:1}
-.sch-title{font-size:13px;font-weight:800;color:var(--text)}
+.sch-title{font-size:13px;font-weight:650;color:var(--text)}
 .sch-meta{font-size:11px;color:var(--text-3);margin-top:2px}
-.sch-level{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--accent-glow);color:var(--accent)}
+.sch-level{font-size:10px;font-weight:600;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--accent-glow);color:var(--accent)}
 
 /* Quiz history items */
 .quiz-item{
@@ -344,11 +344,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .quiz-score{
   width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-weight:900;font-size:14px;flex-shrink:0;font-family:var(--mono);
+  justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;font-family:var(--mono);
 }
 .quiz-info{flex:1;min-width:0}
 .quiz-board{font-size:11px;color:var(--text-3);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.quiz-title{font-size:13px;font-weight:700;color:var(--text)}
+.quiz-title{font-size:13px;font-weight:600;color:var(--text)}
 .quiz-date{font-size:11px;color:var(--text-3);margin-top:2px}
 
 /* Live banner */
@@ -361,11 +361,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   animation:pulse-dot 1.2s infinite;flex-shrink:0;
 }
 .live-info{flex:1}
-.live-title{font-weight:800;font-size:14px}
+.live-title{font-weight:650;font-size:14px}
 .live-sub{font-size:12px;opacity:.85;margin-top:2px}
 .live-join{
   padding:9px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.8);
-  color:#fff;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;
+  color:#fff;font-weight:650;font-size:13px;text-decoration:none;white-space:nowrap;
 }
 
 /* Loading */
@@ -387,7 +387,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   border-radius:18px;padding:24px;width:100%;max-width:400px;
   box-shadow:0 24px 64px rgba(0,0,0,.4);
 }
-.modal-title{font-size:16px;font-weight:900;margin-bottom:16px}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
 .modal-input{
   width:100%;padding:10px 12px;border:1.5px solid var(--border-2);border-radius:10px;
   font-family:var(--font);font-size:13px;outline:none;margin-bottom:10px;
@@ -398,12 +398,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .modal-cancel{
   flex:1;padding:10px;border-radius:10px;border:1px solid var(--border-2);
   background:var(--bg);color:var(--text);font-family:var(--font);
-  font-weight:700;cursor:pointer;font-size:13px;
+  font-weight:600;cursor:pointer;font-size:13px;
 }
 .modal-submit{
   flex:2;padding:10px;border-radius:10px;border:none;
   background:var(--accent);color:#1C1C1E;font-family:var(--font);
-  font-weight:800;cursor:pointer;font-size:13px;transition:.15s;
+  font-weight:650;cursor:pointer;font-size:13px;transition:.15s;
 }
 .modal-submit:hover{opacity:.88}
 
@@ -411,7 +411,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--bg-card-2);border:1px solid var(--border-2);color:var(--text);
-  padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;
+  padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;
   opacity:0;pointer-events:none;transition:.25s;z-index:9999;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -439,7 +439,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mtab{
   flex:1;min-width:0;border:none;border-radius:0;background:transparent;color:rgba(255,255,255,.36);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  height:56px;padding:0 4px;font-family:var(--font);font-size:9px;font-weight:800;letter-spacing:.04em;
+  height:56px;padding:0 4px;font-family:var(--font);font-size:9px;font-weight:650;letter-spacing:.04em;
   text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
   position:relative;transition:color .15s, opacity .15s;
 }
@@ -502,16 +502,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body>
 
 <div id="loading-screen">
   <div style="font-size:2rem;">📚</div>
   <div class="spinner"></div>
-  <div style="font-size:13px;font-weight:700;color:var(--text-3);">Loading dashboard…</div>
+  <div style="font-size:13px;font-weight:600;color:var(--text-3);">Loading dashboard…</div>
 </div>
 
 <div id="toast"></div>
@@ -557,7 +557,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <div class="sb-footer">
-      <a href="profile.html" style="display:block;text-align:center;padding:8px;color:var(--text-2);font-size:12px;font-weight:700;text-decoration:none;margin-bottom:8px;">👤 Profile</a>
+      <a href="profile.html" style="display:block;text-align:center;padding:8px;color:var(--text-2);font-size:12px;font-weight:600;text-decoration:none;margin-bottom:8px;">👤 Profile</a>
       <button class="sb-signout" onclick="logout()">Sign out</button>
     </div>
   </aside>
@@ -724,7 +724,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <a class="game-card" href="games/hangman.html"><span class="game-card-icon">💀</span><div class="game-card-name">Hangman</div><div class="game-card-cat">Vocabulary</div></a>
         </div>
         <div style="text-align:center;margin-top:16px;">
-          <a href="games/index.html" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;">See all games →</a>
+          <a href="games/index.html" style="font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;">See all games →</a>
         </div>
       </div>
 
@@ -769,7 +769,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1317,11 +1317,11 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="pwa-boot.js?v=324" defer></script>
-<script src="pwa.js?v=324"></script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
+<script src="pwa.js?v=325"></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
 </body>
 </html>

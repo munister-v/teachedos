@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="manifest" href="manifest.json?v=325">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=324">
-<link rel="stylesheet" href="styles/main.css?v=324">
+<link rel="stylesheet" href="styles/tokens.css?v=325">
+<link rel="stylesheet" href="styles/main.css?v=325">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -79,11 +79,14 @@
   --text:      #1C1C1E;
   --text-2:    #3A3A2E;
   --text-3:    #A2A28C;
-  --accent:    #1C1C1E;
-  --accent-2:  rgba(200,230,50,0.10);
+  /* Calm pass: the desktop shares the app's graphite/sage action colour.
+     --rose / --deep-rose keep their names (used in ~40 places) but no longer
+     carry lime and hot pink. */
+  --accent:    #556056;
+  --accent-2:  rgba(124,138,123,0.12);
   --accent-3:  rgba(94,94,74,0.22);
-  --rose:      #CDF24F;
-  --deep-rose: #EC2D8C;
+  --rose:      #A8B2A2;
+  --deep-rose: #7C8A7B;
   --blush:     #CAC9B7;
   --plum:      #5E5E4A;
   --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -107,9 +110,9 @@ html,body {
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),
-    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(255,182,213,.18) 0%, transparent 60%),
-    linear-gradient(160deg, #FFFFFF 0%, #FFF7FB 48%, #FDEBF4 100%);
+    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(124,138,123,.10) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(194,180,138,.14) 0%, transparent 60%),
+    linear-gradient(160deg, #FBF8F2 0%, #F6F2EA 48%, #EFEBE1 100%);
   overflow:hidden;
 }
 @keyframes desktopIn { from{opacity:0} to{opacity:1} }
@@ -121,22 +124,22 @@ html,body {
 }
 .blob1 {
   width:560px; height:420px; bottom:-80px; left:-100px;
-  background:radial-gradient(circle, rgba(255,210,229,.36), transparent 70%);
+  background:radial-gradient(circle, rgba(198,205,192,.30), transparent 70%);
   animation: blobPulse1 14s ease-in-out infinite;
 }
 .blob2 {
   width:440px; height:360px; bottom:-60px; right:-80px;
-  background:radial-gradient(circle, rgba(236,45,140,.12), transparent 70%);
+  background:radial-gradient(circle, rgba(124,138,123,.12), transparent 70%);
   animation: blobPulse2 18s ease-in-out infinite;
 }
 .blob3 {
   width:300px; height:260px; top:30%; left:38%;
-  background:radial-gradient(circle, rgba(255,245,249,.50), transparent 70%);
+  background:radial-gradient(circle, rgba(252,250,245,.50), transparent 70%);
   animation: blobPulse3 22s ease-in-out infinite;
 }
 .blob4 {
   width:200px; height:180px; top:12%; right:12%;
-  background:radial-gradient(circle, rgba(236,45,140,.08), transparent 70%);
+  background:radial-gradient(circle, rgba(194,180,138,.10), transparent 70%);
   animation: blobPulse2 16s ease-in-out infinite reverse;
 }
 @keyframes blobPulse1 { 0%,100%{opacity:.7} 50%{opacity:.45} }
@@ -157,14 +160,14 @@ html,body {
   box-shadow:0 8px 32px rgba(94,94,74,.07), 0 2px 8px rgba(94,94,74,.04);
 }
 .wp-card-lime {
-  background:rgba(205,242,79,0.80);
-  border:1px solid rgba(205,242,79,0.60);
-  box-shadow:0 8px 32px rgba(168,208,43,.18);
+  background:rgba(199,208,196,0.78);
+  border:1px solid rgba(160,174,158,0.42);
+  box-shadow:0 8px 32px rgba(85,96,86,.12);
 }
 .wp-card-pink {
-  background:rgba(236,45,140,0.80);
-  border:1px solid rgba(236,45,140,0.50);
-  box-shadow:0 8px 24px rgba(236,45,140,.22);
+  background:rgba(216,203,178,0.78);
+  border:1px solid rgba(186,170,140,0.42);
+  box-shadow:0 8px 24px rgba(120,105,74,.14);
 }
 /* individual cards — center zone (between left-panel & right-widgets) */
 .wp-c1 { width:155px; height:200px; left:36%; top:38%; animation:wpFloat1 8s  ease-in-out infinite; }
@@ -177,7 +180,7 @@ html,body {
            font-size:36px; opacity:.70; }
 /* header bar inside white card */
 .wp-bar { position:absolute; left:14px; right:14px; height:6px; border-radius:3px;
-          background:rgba(205,242,79,.80); top:20px; }
+          background:rgba(160,174,158,.55); top:20px; }
 .wp-lines { position:absolute; left:14px; right:14px; top:38px; display:flex; flex-direction:column; gap:8px; }
 .wp-line { height:5px; border-radius:3px; background:rgba(94,94,74,.10); }
 .wp-line:nth-child(2) { width:65%; }
@@ -187,9 +190,9 @@ html,body {
   position:absolute; border-radius:50%;
   animation:dotPop 2s ease-in-out infinite;
 }
-.wp-dot-lime { background:rgba(205,242,79,.90); width:9px; height:9px; }
-.wp-dot-pink { background:rgba(236,45,140,.80); width:9px; height:9px; }
-.wp-dot-ring { background:transparent; border:2px solid rgba(205,242,79,.60); width:12px; height:12px; }
+.wp-dot-lime { background:rgba(140,156,138,.75); width:9px; height:9px; }
+.wp-dot-pink { background:rgba(194,180,138,.80); width:9px; height:9px; }
+.wp-dot-ring { background:transparent; border:2px solid rgba(140,156,138,.50); width:12px; height:12px; }
 @keyframes dotPop { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.3);opacity:.6} }
 @keyframes wpFloat1 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
 @keyframes wpFloat2 { 0%,100%{transform:translateY(0px) rotate(0deg)} 50%{transform:translateY(-8px) rotate(.5deg)} }
@@ -210,7 +213,7 @@ html,body {
 }
 .mb-apple img { width:22px; height:22px; border-radius:5px; }
 .mb-app-name {
-  font-size:13px; font-weight:800; color: #2D2D2D; margin-right:4px;
+  font-size:13px; font-weight:650; color: #2D2D2D; margin-right:4px;
   letter-spacing:-0.01em;
 }
 .mb-menu { display:flex; gap:0; align-items:center; }
@@ -226,7 +229,7 @@ html,body {
 .mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
 .mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
 #mb-clock {
-  font-family: var(--font-ui); font-size:13px; font-weight:700; color: var(--text-2);
+  font-family: var(--font-ui); font-size:13px; font-weight:600; color: var(--text-2);
 }
 
 /* ═══════════════════════════ DESKTOP WIDGETS ═══════════════════════════ */
@@ -259,7 +262,7 @@ html,body {
   text-align:center;
 }
 .wg-clock-time {
-  font-family: var(--font-ui); font-size:52px; font-weight:900;
+  font-family: var(--font-ui); font-size:52px; font-weight:700;
   color: var(--text); line-height:1; letter-spacing:-0.03em;
 }
 .wg-clock-time em { color: var(--accent); font-style:normal; }
@@ -269,7 +272,7 @@ html,body {
 }
 .wg-clock-lang {
   margin-top:10px; font-size:11px; color: var(--accent);
-  font-family: var(--font-ui); font-weight:700; letter-spacing:0.02em;
+  font-family: var(--font-ui); font-weight:600; letter-spacing:0.02em;
   background: var(--accent-2); border: 1px solid var(--accent-3);
   border-radius:20px; padding:4px 12px; display:inline-block;
 }
@@ -348,12 +351,12 @@ html,body {
 }
 .wg-vocab-next {
   margin-top:12px; width:100%;
-  background: linear-gradient(135deg, var(--accent), #99B329); border: none;
+  background: linear-gradient(135deg, var(--accent), #6B7669); border: none;
   border-radius:12px; padding:9px; font-size:12px; font-family: var(--font-ui);
-  font-weight:800; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
-  text-align:center; box-shadow: 0 4px 14px rgba(200,230,50,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  font-weight:650; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
+  text-align:center; box-shadow: 0 4px 14px rgba(124,138,123,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
 }
-.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,230,50,0.30); }
+.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(124,138,123,0.30); }
 
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
@@ -382,10 +385,10 @@ html,body {
   width:46px; height:46px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
   font-size:21px; position:relative; transition:inherit;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+  box-shadow: 0 4px 12px rgba(59,69,60,0.18), inset 0 1px 0 rgba(255,255,255,0.18);
 }
 .di-label {
-  font-size:9px; font-weight:700; color: var(--text-3); font-family: var(--font-ui);
+  font-size:9px; font-weight:600; color: var(--text-3); font-family: var(--font-ui);
   transition:color .15s; white-space:nowrap;
 }
 .di:hover .di-label { color: var(--accent); }
@@ -399,15 +402,19 @@ html,body {
   width:1px; height:44px; background: rgba(202,201,183,0.22);
   margin:0 3px; align-self:center;
 }
-/* dock icon colors — harmony palette */
-.di-icon.curriculum { background: linear-gradient(145deg,#EC2D8C,#d4267f); }
-.di-icon.flashcards  { background: linear-gradient(145deg,#D8C5FB,#9F8CE8); }
-.di-icon.progress    { background: linear-gradient(145deg,#FFB5AE,#EC2D8C); }
-.di-icon.schedule    { background: linear-gradient(145deg,#EC2D8C,#d4267f); }
-.di-icon.notes       { background: linear-gradient(145deg,#0E0E10,#EC2D8C); }
-.di-icon.dictionary  { background: linear-gradient(145deg,#8FE6E6,#4a72a0); }
-.di-icon.settings    { background: linear-gradient(145deg,#3A3A40,#0E0E10); }
-.di-icon.finder      { background: linear-gradient(145deg,#8FE6E6,#059669); }
+/* Dock icons: one family, eight hues.
+   The old set paired hot pink, lilac, coral, cyan and near-black — eight
+   unrelated brands in a 400px strip. These keep enough hue separation to tell
+   apart at 46px while reading as a single set, and every glyph stays white
+   at >=4.5:1. */
+.di-icon.curriculum  { background: linear-gradient(145deg,#6B7669,#5A6459); }
+.di-icon.flashcards  { background: linear-gradient(145deg,#75798A,#63667A); }
+.di-icon.progress    { background: linear-gradient(145deg,#867D5F,#6F684F); }
+.di-icon.schedule    { background: linear-gradient(145deg,#5F6B75,#4F5A64); }
+.di-icon.notes       { background: linear-gradient(145deg,#786E5F,#635B4E); }
+.di-icon.dictionary  { background: linear-gradient(145deg,#5C7570,#4C625E); }
+.di-icon.settings    { background: linear-gradient(145deg,#585C59,#474B48); }
+.di-icon.finder      { background: linear-gradient(145deg,#6B7A63,#5A6754); }
 
 /* ═══════════════════════════ WINDOWS ═══════════════════════════ */
 .win {
@@ -458,7 +465,7 @@ html,body {
   color: var(--text-3); background:transparent;
   transition:background .14s, color .14s;
 }
-.tl::before { display:block; font-size:12px; line-height:1; font-weight:700; }
+.tl::before { display:block; font-size:12px; line-height:1; font-weight:600; }
 .tl.close::before { content:'\2715'; }
 .tl.min::before   { content:'\2013'; }
 .tl.max::before   { content:'\2197'; }
@@ -466,7 +473,7 @@ html,body {
 .tl.close:hover { background:rgba(236,45,140,.13); color:#EC2D8C; }
 .win-title {
   position:absolute; left:50%; transform:translateX(-50%);
-  font-size:13px; font-weight:800; color: var(--text-2); white-space:nowrap;
+  font-size:13px; font-weight:650; color: var(--text-2); white-space:nowrap;
   letter-spacing:-0.01em;
 }
 .win-body { flex:1; overflow:hidden; display:flex; }
@@ -544,8 +551,8 @@ html,body {
 /* ── Snap preview overlay ── */
 .win-snap-preview {
   position:fixed; z-index:99; pointer-events:none;
-  background:rgba(200,230,50,0.18);
-  border:2px solid rgba(200,230,50,0.55);
+  background:rgba(124,138,123,0.18);
+  border:2px solid rgba(124,138,123,0.55);
   border-radius:var(--radius-win);
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
@@ -570,7 +577,7 @@ html,body {
 .sb-section-label {
   font-size:9.5px; font-family: var(--font-mono); letter-spacing:0.14em;
   text-transform:uppercase; color: var(--text-3);
-  padding:16px 14px 5px; font-weight:700;
+  padding:16px 14px 5px; font-weight:600;
 }
 .sb-item {
   display:flex; align-items:center; gap:9px; padding:7px 11px;
@@ -578,16 +585,16 @@ html,body {
   border-radius:10px; margin:1px 6px;
   transition: background .15s, color .15s, box-shadow .15s;
 }
-.sb-item:hover { background: rgba(200,230,50,0.10); color: var(--text); }
+.sb-item:hover { background: rgba(124,138,123,0.10); color: var(--text); }
 .sb-item.active {
-  background: #1C1C1E; color: #C8E632;
+  background: #556056; color: #FFFFFF;
   box-shadow: 0 2px 8px rgba(5,5,23,.18);
 }
 .sb-item-ic { font-size:15px; flex-shrink:0; width:20px; text-align:center; }
 .sb-item-badge {
   margin-left:auto; font-size:10px; font-family: var(--font-ui);
   background: var(--accent); color: #fff; border-radius:10px;
-  padding:1px 8px; font-weight:800;
+  padding:1px 8px; font-weight:650;
 }
 
 /* scrollbar */
@@ -606,20 +613,20 @@ html,body {
   text-transform:uppercase; color: var(--text-3); margin-bottom:6px;
 }
 .curr-title {
-  font-family: var(--font-ui); font-size:26px; font-weight:900;
+  font-family: var(--font-ui); font-size:26px; font-weight:700;
   color: var(--text); line-height:1.2; letter-spacing:-0.02em;
 }
 .curr-title em { font-style:normal; color: var(--accent); }
 .curr-search {
   margin:16px 24px 0;
   display:flex; align-items:center; gap:10px;
-  background: rgba(200,230,50,0.04); border: 1px solid rgba(94,94,74,0.10);
+  background: rgba(124,138,123,0.04); border: 1px solid rgba(94,94,74,0.10);
   border-radius:14px; padding:10px 16px;
   transition:border-color .2s, box-shadow .2s;
 }
 .curr-search:focus-within {
-  border-color:rgba(200,230,50,.3);
-  box-shadow:0 0 0 3px rgba(200,230,50,.06);
+  border-color:rgba(124,138,123,.3);
+  box-shadow:0 0 0 3px rgba(124,138,123,.06);
 }
 .curr-search input {
   flex:1; background:none; border:none; outline:none;
@@ -632,11 +639,11 @@ html,body {
   border-bottom: 1px solid var(--border);
 }
 .curr-tab {
-  font-size:12px; font-family: var(--font-ui); font-weight:700; letter-spacing:0.01em;
+  font-size:12px; font-family: var(--font-ui); font-weight:600; letter-spacing:0.01em;
   padding:6px 16px; border-radius:20px; cursor:pointer; color: var(--text-3);
   transition: background .15s, color .15s;
 }
-.curr-tab:hover { background: rgba(200,230,50,0.08); color: var(--text-2); }
+.curr-tab:hover { background: rgba(124,138,123,0.08); color: var(--text-2); }
 .curr-tab.active {
   background: var(--accent); color: #fff;
 }
@@ -645,17 +652,17 @@ html,body {
   padding:20px 24px;
 }
 .lesson-card {
-  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(200,230,50,0.08);
+  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(124,138,123,0.08);
   border-radius:18px; padding:20px; cursor:pointer;
   transition: box-shadow .22s, border-color .22s, transform .22s;
   position:relative; overflow:hidden;
-  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(200,230,50,0);
+  box-shadow: 0 2px 12px rgba(94,94,74,0.06), 0 0 0 0 rgba(124,138,123,0);
   backdrop-filter:blur(8px);
 }
 .lesson-card:hover {
-  border-color: rgba(200,230,50,0.25);
+  border-color: rgba(124,138,123,0.25);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(200,230,50,0.06);
+  box-shadow: 0 12px 32px rgba(94,94,74,0.12), 0 0 0 1px rgba(124,138,123,0.06);
 }
 .lesson-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -664,13 +671,13 @@ html,body {
 }
 .lesson-card:hover::before { opacity:1; }
 .lc-lang {
-  font-size:10px; font-family: var(--font-ui); font-weight:800; letter-spacing:0.04em;
+  font-size:10px; font-family: var(--font-ui); font-weight:650; letter-spacing:0.04em;
   text-transform:uppercase; color: var(--accent);
   background: var(--accent-2); border: 1px solid var(--accent-3);
   border-radius:20px; padding:3px 10px; display:inline-block; margin-bottom:10px;
 }
 .lc-title {
-  font-family: var(--font-ui); font-size:16px; font-weight:800;
+  font-family: var(--font-ui); font-size:16px; font-weight:650;
   color: var(--text); line-height:1.3; margin-bottom:6px; letter-spacing:-0.01em;
 }
 .lc-desc {
@@ -683,11 +690,11 @@ html,body {
   font-size:10px; font-family: var(--font-mono); padding:2px 8px;
   border-radius:4px; font-weight:600;
 }
-.lc-level.a1 { background:rgba(110,201,138,.12); color:#6ec98a; }
-.lc-level.a2 { background:rgba(96,165,250,.12); color:#60a5fa; }
-.lc-level.b1 { background:rgba(245,158,11,.12); color:#f59e0b; }
-.lc-level.b2 { background:rgba(202,201,183,.18); color:#1C1C1E; }
-.lc-level.c1 { background:rgba(205,242,79,.12); color:#CDF24F; }
+.lc-level.a1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
+.lc-level.a2 { background:rgba(124,138,123,.12); color:#5F6B5E; }
+.lc-level.b1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
+.lc-level.b2 { background:rgba(124,138,123,.12); color:#5F6B5E; }
+.lc-level.c1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
 .lc-dur {
   font-size:10px; color: var(--text-3); font-family: var(--font-mono);
 }
@@ -733,12 +740,12 @@ html,body {
 }
 .fc-front {
   background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
-  border: 1.5px solid rgba(200,230,50,0.12);
+  border: 1.5px solid rgba(124,138,123,0.12);
   box-shadow: 0 8px 32px rgba(94,94,74,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
   backdrop-filter:blur(8px);
 }
 .fc-back {
-  background: linear-gradient(145deg, rgba(200,230,50,0.10) 0%, rgba(28,28,30,0.06) 100%);
+  background: linear-gradient(145deg, rgba(124,138,123,0.10) 0%, rgba(28,28,30,0.06) 100%);
   border: 1.5px solid rgba(94,94,74,0.20);
   box-shadow: 0 4px 20px rgba(94,94,74,0.14);
   transform:rotateY(180deg);
@@ -778,12 +785,12 @@ html,body {
   max-width:400px;
 }
 .fc-set {
-  font-size:12px; font-family: var(--font-ui); font-weight:700; padding:6px 16px;
-  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(200,230,50,0.16);
+  font-size:12px; font-family: var(--font-ui); font-weight:600; padding:6px 16px;
+  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(124,138,123,0.16);
   color: var(--text-3); background: #fff;
   transition: background .15s, border-color .15s, color .15s;
 }
-.fc-set:hover { background: rgba(200,230,50,0.06); color: var(--accent); border-color: var(--accent); }
+.fc-set:hover { background: rgba(124,138,123,0.06); color: var(--accent); border-color: var(--accent); }
 .fc-set.active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
@@ -807,16 +814,16 @@ html,body {
   box-shadow: 0 8px 24px rgba(94,94,74,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
 }
 .prog-stat-n {
-  font-family: var(--font-ui); font-size:32px; font-weight:900;
+  font-family: var(--font-ui); font-size:32px; font-weight:700;
   color: var(--text); line-height:1; letter-spacing:-0.02em;
 }
 .prog-stat-n em { color: var(--accent); font-style:normal; }
 .prog-stat-l {
-  font-size:10px; font-family: var(--font-ui); font-weight:700; letter-spacing:0.04em;
+  font-size:10px; font-family: var(--font-ui); font-weight:600; letter-spacing:0.04em;
   text-transform:uppercase; color: var(--text-3); margin-top:2px;
 }
 .prog-section-title {
-  font-family: var(--font-ui); font-size:18px; font-weight:900;
+  font-family: var(--font-ui); font-size:18px; font-weight:700;
   color: var(--text); margin-bottom:10px; letter-spacing:-0.02em;
 }
 .prog-section-title em { color: var(--accent); font-style:normal; }
@@ -863,7 +870,7 @@ html,body {
 .prog-ach {
   background: #fff; border: 1.5px solid rgba(94,94,74,0.12);
   border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:center;
-  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(200,230,50,0.06);
+  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(124,138,123,0.06);
 }
 .prog-ach-ic { font-size:24px; }
 .prog-ach-name { font-size:12px; color: var(--text-2); font-weight:600; }
@@ -879,20 +886,20 @@ html,body {
 }
 .sch-nav-btn {
   width:30px; height:30px; border-radius:10px;
-  background: rgba(200,230,50,0.07); border: 1.5px solid rgba(94,94,74,0.14);
+  background: rgba(124,138,123,0.07); border: 1.5px solid rgba(94,94,74,0.14);
   color: var(--accent); cursor:pointer; display:flex; align-items:center;
-  justify-content:center; font-size:14px; font-weight:700; transition:background .15s;
+  justify-content:center; font-size:14px; font-weight:600; transition:background .15s;
 }
 .sch-nav-btn:hover { background: rgba(94,94,74,0.14); }
 .sch-month {
-  font-family: var(--font-ui); font-size:18px; font-weight:900;
+  font-family: var(--font-ui); font-size:18px; font-weight:700;
   color: var(--text); letter-spacing:-0.02em;
 }
 .sch-view-btns {
   margin-left:auto; display:flex; gap:4px;
 }
 .sch-view {
-  font-size:11px; font-family: var(--font-ui); font-weight:700; padding:5px 14px;
+  font-size:11px; font-family: var(--font-ui); font-weight:600; padding:5px 14px;
   border-radius:20px; cursor:pointer; color: var(--text-3);
   transition:background .15s, color .15s;
 }
@@ -914,11 +921,11 @@ html,body {
   position:relative;
 }
 .sch-cell.other-month { opacity:0.35; }
-.sch-cell.today { background: rgba(200,230,50,0.06); }
+.sch-cell.today { background: rgba(124,138,123,0.06); }
 .sch-cell.today .sch-day-num {
   background: var(--accent); color:#fff; border-radius:50%;
   width:22px; height:22px; display:flex; align-items:center; justify-content:center;
-  font-weight:800;
+  font-weight:650;
 }
 .sch-day-num {
   font-size:12px; color: var(--text-3); margin-bottom:4px;
@@ -926,17 +933,17 @@ html,body {
   display:flex; align-items:center; justify-content:center;
 }
 .sch-event {
-  background: linear-gradient(135deg, rgba(200,230,50,0.22), rgba(202,201,183,0.20));
+  background: linear-gradient(135deg, rgba(124,138,123,0.22), rgba(202,201,183,0.20));
   border: 1px solid rgba(202,201,183,0.28); border-radius:5px;
   font-size:10px; padding:2px 6px; color: var(--accent); margin-bottom:3px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   font-family: var(--font-mono); cursor:pointer;
 }
 .sch-event.green {
-  background: rgba(110,201,138,0.10); border-color: rgba(110,201,138,0.22); color:#6ec98a;
+  background: rgba(124,138,123,0.12); border-color: rgba(124,138,123,0.26); color:#556056;
 }
 .sch-event.blue {
-  background: rgba(96,165,250,0.10); border-color: rgba(96,165,250,0.22); color:#60a5fa;
+  background: rgba(132,150,168,0.12); border-color: rgba(132,150,168,0.26); color:#4F5A64;
 }
 
 /* ═══════════════════════════ NOTES APP ═══════════════════════════ */
@@ -947,7 +954,7 @@ html,body {
   padding:10px 10px; border-radius:12px; cursor:pointer; margin:1px 0;
   transition: background .15s;
 }
-.note-item:hover { background: rgba(200,230,50,0.08); }
+.note-item:hover { background: rgba(124,138,123,0.08); }
 .note-item.active { background: rgba(94,94,74,0.14); }
 .note-item-title { font-size:13px; color: var(--text); font-weight:500; margin-bottom:3px; }
 .note-item-preview { font-size:11px; color: var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -959,10 +966,10 @@ html,body {
 }
 .notes-tb-btn {
   width:30px; height:30px; border-radius:8px; display:flex; align-items:center;
-  justify-content:center; font-size:13px; font-weight:700; color: var(--text-3); cursor:pointer;
+  justify-content:center; font-size:13px; font-weight:600; color: var(--text-3); cursor:pointer;
   transition:background .15s, color .15s;
 }
-.notes-tb-btn:hover { background: rgba(200,230,50,0.10); color: var(--accent); }
+.notes-tb-btn:hover { background: rgba(124,138,123,0.10); color: var(--accent); }
 .notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
 .notes-editor {
   flex:1; display:flex; flex-direction:column;
@@ -975,15 +982,15 @@ html,body {
 .notes-footer {
   height:28px; display:flex; align-items:center; padding:0 16px;
   border-top: 1px solid var(--border); flex-shrink:0;
-  font-size:10px; font-weight:700; color: var(--text-3); font-family: var(--font-ui); gap:16px;
+  font-size:10px; font-weight:600; color: var(--text-3); font-family: var(--font-ui); gap:16px;
   background: rgba(255,240,248,0.50);
 }
 .notes-new-btn {
   display:flex; align-items:center; gap:6px; padding:8px 14px;
   margin:8px; border-radius:12px; cursor:pointer;
   background: var(--accent); color: #fff;
-  font-size:12px; font-family: var(--font-ui); font-weight:800;
-  transition:opacity .15s; box-shadow: 0 2px 8px rgba(200,230,50,0.25);
+  font-size:12px; font-family: var(--font-ui); font-weight:650;
+  transition:opacity .15s; box-shadow: 0 2px 8px rgba(124,138,123,0.25);
 }
 .notes-new-btn:hover { opacity:0.88; }
 
@@ -994,65 +1001,65 @@ html,body {
 
 /* ═══════════════════════════ STUDIO HERO HEADER ═══════════════════════════ */
 .studio-hero{position:relative;overflow:hidden;margin:18px 20px 14px;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;box-shadow:0 20px 70px rgba(16,16,20,.18);flex-shrink:0;}
-.studio-hero::after{content:'';position:absolute;right:-78px;top:-92px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(205,242,79,.38),transparent 68%);pointer-events:none;}
-.studio-hero.pink::after{background:radial-gradient(circle,rgba(236,45,140,.34),transparent 68%);}
+.studio-hero::after{content:'';position:absolute;right:-78px;top:-92px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(124,138,123,.38),transparent 68%);pointer-events:none;}
+.studio-hero.pink::after{background:radial-gradient(circle,rgba(124,138,123,.28),transparent 68%);}
 .studio-hero.blue::after{background:radial-gradient(circle,rgba(96,165,250,.36),transparent 68%);}
-.studio-hero.mix::after{background:radial-gradient(circle at 40% 40%,rgba(205,242,79,.36),transparent 46%),radial-gradient(circle at 72% 62%,rgba(236,45,140,.3),transparent 60%);}
-.studio-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#CDF24F;margin-bottom:8px;}
-.studio-title{position:relative;z-index:1;font-size:31px;line-height:.98;font-weight:950;letter-spacing:-.058em;max-width:620px;}
-.studio-title em{font-style:italic;color:#CDF24F;}
+.studio-hero.mix::after{background:radial-gradient(circle at 40% 40%,rgba(168,178,162,.32),transparent 46%),radial-gradient(circle at 72% 62%,rgba(194,180,138,.26),transparent 60%);}
+.studio-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C8A7B;margin-bottom:8px;}
+.studio-title{position:relative;z-index:1;font-size:31px;line-height:.98;font-weight:700;letter-spacing:-.058em;max-width:620px;}
+.studio-title em{font-style:italic;color:#7C8A7B;}
 .studio-copy{position:relative;z-index:1;max-width:650px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
 .studio-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
-.studio-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:850;color:rgba(255,255,255,.82);text-decoration:none;}
-.studio-chip.primary{background:#CDF24F;color:#101014;border-color:#CDF24F;}
-.studio-chip.hot{background:#EC2D8C;color:#fff;border-color:#EC2D8C;}
+.studio-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);text-decoration:none;}
+.studio-chip.primary{background:#DDE3D9;color:#3F493F;border-color:#C3CCC0;}
+.studio-chip.hot{background:#556056;color:#fff;border-color:#556056;}
 .studio-main-scroll{overflow:auto;}
 
 
 /* ═══════════════════════════ PRICING WINDOW ═══════════════════════════ */
-.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(205,242,79,.28),transparent 26%),radial-gradient(circle at 86% 8%,rgba(236,45,140,.14),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(245,240,232,.92));}
+.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(124,138,123,.18),transparent 26%),radial-gradient(circle at 86% 8%,rgba(194,180,138,.12),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(245,240,232,.92));}
 .pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(16,16,20,.18);}
-.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(205,242,79,.42),transparent 68%);pointer-events:none;}
-.pricing-eyebrow{font-family:var(--font-mono);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#CDF24F;margin-bottom:8px;}
-.pricing-title{font-size:32px;line-height:.96;font-weight:900;letter-spacing:-.055em;max-width:560px;}
-.pricing-title em{font-style:italic;color:#CDF24F;}
+.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(124,138,123,.42),transparent 68%);pointer-events:none;}
+.pricing-eyebrow{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C8A7B;margin-bottom:8px;}
+.pricing-title{font-size:32px;line-height:.96;font-weight:700;letter-spacing:-.055em;max-width:560px;}
+.pricing-title em{font-style:italic;color:#7C8A7B;}
 .pricing-copy{max-width:640px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
 .pricing-hero-row{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
-.price-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:800;color:rgba(255,255,255,.82);}
+.price-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);}
 .pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
 .pricing-card{position:relative;display:flex;flex-direction:column;min-height:360px;border:1px solid rgba(94,94,74,.14);border-radius:24px;background:rgba(255,255,255,.84);box-shadow:0 14px 44px rgba(94,94,74,.08);padding:18px;overflow:hidden;}
-.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#CAC9B7,#CDF24F);}
-.pricing-card.pro{background:#fff;border-color:rgba(236,45,140,.24);box-shadow:0 22px 70px rgba(236,45,140,.13);transform:translateY(-5px);}
-.pricing-card.pro::before{background:linear-gradient(90deg,#EC2D8C,#CDF24F);}
-.pricing-card.school::before{background:linear-gradient(90deg,#0E0E10,#60a5fa,#CDF24F);}
-.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text-2);font-family:var(--font-mono);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
-.pricing-card.pro .plan-tag{background:rgba(236,45,140,.1);color:#b91c68;}
-.price-name{font-size:22px;font-weight:950;letter-spacing:-.045em;color:var(--text);}
+.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#CAC9B7,#A8B2A2);}
+.pricing-card.pro{background:#fff;border-color:rgba(85,96,86,.28);box-shadow:0 22px 60px rgba(59,69,60,.12);transform:translateY(-5px);}
+.pricing-card.pro::before{background:linear-gradient(90deg,#556056,#A8B2A2);}
+.pricing-card.school::before{background:linear-gradient(90deg,#4F5A64,#7C8A7B,#A8B2A2);}
+.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text-2);font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
+.pricing-card.pro .plan-tag{background:rgba(85,96,86,.10);color:#4A554B;}
+.price-name{font-size:22px;font-weight:700;letter-spacing:-.045em;color:var(--text);}
 .price-line{display:flex;align-items:flex-end;gap:6px;margin:8px 0 6px;}
-.price-amount{font-size:34px;font-weight:950;letter-spacing:-.07em;color:var(--text);}
-.price-period{font-size:11px;font-weight:800;color:var(--text-3);padding-bottom:6px;}
+.price-amount{font-size:34px;font-weight:700;letter-spacing:-.07em;color:var(--text);}
+.price-period{font-size:11px;font-weight:650;color:var(--text-3);padding-bottom:6px;}
 .price-desc{font-size:12px;line-height:1.55;color:var(--text-2);min-height:56px;margin-bottom:12px;}
 .price-limits{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
 .price-limit{border:1px solid rgba(94,94,74,.1);border-radius:13px;background:rgba(245,240,232,.58);padding:8px;}
 .price-limit b{display:block;font-size:14px;color:var(--text);line-height:1;}
-.price-limit span{display:block;margin-top:4px;font-size:9px;font-family:var(--font-mono);font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+.price-limit span{display:block;margin-top:4px;font-size:9px;font-family:var(--font-mono);font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
 .price-features{list-style:none;display:grid;gap:7px;margin:0 0 16px;padding:0;}
 .price-features li{display:flex;gap:8px;font-size:12px;line-height:1.35;color:var(--text-2);}
-.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(205,242,79,.35);color:#1C1C1E;font-weight:950;flex:0 0 auto;font-size:10px;}
+.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(124,138,123,.35);color:#1C1C1E;font-weight:700;flex:0 0 auto;font-size:10px;}
 .price-actions{margin-top:auto;display:grid;gap:8px;}
-.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(94,94,74,.16);background:#fff;color:var(--text);font-size:12px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
+.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(94,94,74,.16);background:#fff;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
 .price-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(94,94,74,.1);}
-.price-btn.primary{border-color:#EC2D8C;background:#EC2D8C;color:#fff;}
+.price-btn.primary{border-color:#556056;background:#556056;color:#fff;}
 .price-btn.dark{border-color:#101014;background:#101014;color:#fff;}
 .pricing-compare{margin-top:14px;border:1px solid rgba(94,94,74,.12);border-radius:22px;background:rgba(255,255,255,.72);overflow:hidden;}
 .compare-head,.compare-row{display:grid;grid-template-columns:1.45fr repeat(3,1fr);gap:0;align-items:center;}
-.compare-head{background:rgba(16,16,20,.92);color:#fff;font-size:10px;font-family:var(--font-mono);font-weight:900;text-transform:uppercase;letter-spacing:.08em;}
+.compare-head{background:rgba(16,16,20,.92);color:#fff;font-size:10px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
 .compare-head div,.compare-row div{padding:10px 12px;border-right:1px solid rgba(94,94,74,.1);}
 .compare-row{font-size:12px;color:var(--text-2);border-top:1px solid rgba(94,94,74,.09);}
-.compare-row div:first-child{font-weight:850;color:var(--text);}
-.compare-yes{color:#15803d;font-weight:950;}
-.compare-no{color:#a3a3a3;font-weight:850;}
-.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(236,45,140,.16);border-radius:18px;background:rgba(236,45,140,.07);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
+.compare-row div:first-child{font-weight:650;color:var(--text);}
+.compare-yes{color:#15803d;font-weight:700;}
+.compare-no{color:#a3a3a3;font-weight:650;}
+.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(85,96,86,.18);border-radius:18px;background:rgba(85,96,86,.06);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
 .pricing-note b{display:block;color:var(--text);margin-bottom:2px;}
 
 
@@ -1083,11 +1090,11 @@ html,body {
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
 #spotlight-input-wrap {
   display:flex; align-items:center; gap:12px;
-  padding:16px 20px; border-bottom: 1px solid rgba(200,230,50,0.10);
+  padding:16px 20px; border-bottom: 1px solid rgba(124,138,123,0.10);
 }
 #spotlight-input-wrap .sp-ic { font-size:18px; color: var(--accent); flex-shrink:0; }
 #spotlight-input {
-  flex:1; font-size:20px; font-weight:700; color: var(--text);
+  flex:1; font-size:20px; font-weight:600; color: var(--text);
   background:none; border:none; outline:none; font-family: var(--font-ui);
 }
 #spotlight-input::placeholder { color: var(--text-3); font-weight:400; font-size:17px; }
@@ -1110,14 +1117,14 @@ html,body {
   padding:9px 20px; cursor:pointer;
   transition:background .12s;
 }
-.sp-result:hover, .sp-result.selected { background: rgba(200,230,50,0.08); }
+.sp-result:hover, .sp-result.selected { background: rgba(124,138,123,0.08); }
 .sp-result-icon {
   width:36px; height:36px; border-radius:9px;
   display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
 .sp-result-text { flex:1; min-width:0; }
-.sp-result-title { font-size:14px; font-weight:700; color: var(--text); line-height:1.2; }
+.sp-result-title { font-size:14px; font-weight:600; color: var(--text); line-height:1.2; }
 .sp-result-sub { font-size:11px; color: var(--text-3); margin-top:1px; font-family: var(--font-mono); }
 .sp-result-kbd { font-size:10px; color: var(--text-3); font-family: var(--font-mono);
   background: rgba(0,0,0,0.06); border-radius:5px; padding:2px 6px; flex-shrink:0; }
@@ -1128,7 +1135,7 @@ html,body {
   position:absolute; top:-4px; right:-4px;
   min-width:16px; height:16px; border-radius:8px;
   background: var(--accent); color:#fff;
-  font-size:9px; font-weight:800; font-family: var(--font-ui);
+  font-size:9px; font-weight:650; font-family: var(--font-ui);
   display:flex; align-items:center; justify-content:center;
   padding:0 4px; border:2px solid rgba(255,240,248,0.9);
   pointer-events:none;
@@ -1164,11 +1171,11 @@ html,body {
   }
   .mb-right .nav-user { border:none; background:transparent; padding:4px 6px; }
   .mb-app-name {
-    font-size:20px; font-weight:900; color:var(--text);
+    font-size:20px; font-weight:700; color:var(--text);
     letter-spacing:-0.02em;
   }
   #mb-clock {
-    font-size:14px; font-weight:700; color:var(--text-3);
+    font-size:14px; font-weight:600; color:var(--text-3);
   }
   .mb-right { gap:10px; }
 
@@ -1202,13 +1209,13 @@ html,body {
     background: rgba(255,255,255,0.96);
   }
   .mob-win-title {
-    font-size:20px; font-weight:900; color:var(--text);
+    font-size:20px; font-weight:700; color:var(--text);
     letter-spacing:-0.02em;
   }
   .mob-sidebar-btn {
     margin-left:auto; width:34px; height:34px; border-radius:10px;
-    background:rgba(200,230,50,0.09); border:1.5px solid var(--border);
-    color:var(--accent); font-size:16px; font-weight:700;
+    background:rgba(124,138,123,0.09); border:1.5px solid var(--border);
+    color:var(--accent); font-size:16px; font-weight:600;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
   }
@@ -1257,9 +1264,9 @@ html,body {
     padding:18px;
     border-radius:22px;
     background:
-      radial-gradient(circle at top right, rgba(200,230,50,0.18), transparent 34%),
+      radial-gradient(circle at top right, rgba(124,138,123,0.18), transparent 34%),
       linear-gradient(155deg, rgba(255,255,255,0.96), rgba(247,238,242,0.92));
-    border:1px solid rgba(200,230,50,0.14);
+    border:1px solid rgba(124,138,123,0.14);
     box-shadow:0 18px 40px rgba(94,94,74,0.08);
   }
   .mob-home-eyebrow {
@@ -1274,7 +1281,7 @@ html,body {
     font-family:var(--font-serif);
     font-size:28px;
     line-height:1.05;
-    font-weight:700;
+    font-weight:600;
     color:var(--text);
     letter-spacing:-0.04em;
   }
@@ -1295,12 +1302,12 @@ html,body {
     padding:14px 12px;
     text-align:left;
     background:rgba(255,255,255,0.86);
-    box-shadow: inset 0 0 0 1px rgba(200,230,50,0.09);
+    box-shadow: inset 0 0 0 1px rgba(124,138,123,0.09);
   }
   .mob-home-kpi-n {
     display:block;
     font-size:21px;
-    font-weight:900;
+    font-weight:700;
     color:var(--text);
     letter-spacing:-0.04em;
   }
@@ -1328,7 +1335,7 @@ html,body {
     border-radius:18px;
     text-decoration:none;
     background:#fff;
-    border:1px solid rgba(200,230,50,0.10);
+    border:1px solid rgba(124,138,123,0.10);
     color:var(--text);
     box-shadow:0 2px 8px rgba(94,94,74,0.04);
     transition:transform .12s ease, box-shadow .18s ease, border-color .15s;
@@ -1339,8 +1346,8 @@ html,body {
   }
   .mob-home-action:active { transform:scale(0.97); }
   .mob-home-action:hover {
-    border-color:rgba(200,230,50,0.28);
-    box-shadow:0 6px 18px rgba(200,230,50,0.10);
+    border-color:rgba(124,138,123,0.28);
+    box-shadow:0 6px 18px rgba(124,138,123,0.10);
   }
   .mob-home-action-ic {
     width:42px;
@@ -1351,16 +1358,16 @@ html,body {
     justify-content:center;
     font-size:20px;
     flex-shrink:0;
-    background:linear-gradient(135deg, rgba(200,230,50,0.16), rgba(28,28,30,0.16));
-    border:1px solid rgba(200,230,50,0.10);
+    background:linear-gradient(135deg, rgba(124,138,123,0.16), rgba(28,28,30,0.16));
+    border:1px solid rgba(124,138,123,0.10);
   }
   .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(28,28,30,0.20), rgba(96,165,250,0.16)); border-color:rgba(28,28,30,0.16); }
-  .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(200,230,50,0.14)); border-color:rgba(96,165,250,0.16); }
-  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(200,230,50,0.14)); border-color:rgba(245,158,11,0.16); }
+  .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(124,138,123,0.14)); border-color:rgba(96,165,250,0.16); }
+  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(124,138,123,0.14)); border-color:rgba(245,158,11,0.16); }
   .mob-home-action-copy { min-width:0; width:100%; }
   .mob-home-action-title {
     font-size:14px;
-    font-weight:900;
+    font-weight:700;
     line-height:1.15;
     letter-spacing:-0.01em;
   }
@@ -1369,7 +1376,7 @@ html,body {
     font-size:11px;
     color:var(--text-3);
     line-height:1.4;
-    font-weight:700;
+    font-weight:600;
   }
   .mob-home-focus {
     margin-top:12px;
@@ -1388,7 +1395,7 @@ html,body {
   }
   .mob-home-focus-title {
     font-size:15px;
-    font-weight:800;
+    font-weight:650;
     color:var(--text);
     line-height:1.35;
   }
@@ -1410,10 +1417,10 @@ html,body {
     padding:10px 12px;
     border-radius:999px;
     font-size:11px;
-    font-weight:800;
+    font-weight:650;
     color:var(--accent);
-    background:rgba(200,230,50,0.09);
-    border:1px solid rgba(200,230,50,0.12);
+    background:rgba(124,138,123,0.09);
+    border:1px solid rgba(124,138,123,0.12);
     text-decoration:none;
   }
 
@@ -1478,10 +1485,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1552,17 +1559,17 @@ html,body {
   <!-- SVG curves + dots -->
   <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
     <!-- pink curve: connects lime card → pink card -->
-    <path d="M 460,430 Q 560,560 640,500" fill="none" stroke="rgba(236,45,140,.30)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 460,430 Q 560,560 640,500" fill="none" stroke="rgba(124,138,123,.28)" stroke-width="1.5" stroke-linecap="round"/>
     <!-- lime curve: pink card → schedule card -->
-    <path d="M 640,500 Q 700,460 665,275" fill="none" stroke="rgba(205,242,79,.38)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 640,500 Q 700,460 665,275" fill="none" stroke="rgba(124,138,123,.38)" stroke-width="1.5" stroke-linecap="round"/>
     <!-- dot on lime curve mid -->
-    <circle cx="238" cy="530" r="4.5" fill="rgba(205,242,79,.90)"/>
+    <circle cx="238" cy="530" r="4.5" fill="rgba(124,138,123,.90)"/>
     <!-- dot on pink curve -->
-    <circle cx="608" cy="498" r="4.5" fill="rgba(236,45,140,.80)"/>
+    <circle cx="608" cy="498" r="4.5" fill="rgba(140,156,138,.75)"/>
     <!-- dot on lime curve top -->
-    <circle cx="1100" cy="630" r="4.5" fill="rgba(205,242,79,.80)"/>
+    <circle cx="1100" cy="630" r="4.5" fill="rgba(124,138,123,.80)"/>
     <!-- ring dot -->
-    <circle cx="1098" cy="628" r="9" fill="none" stroke="rgba(205,242,79,.45)" stroke-width="1.5"/>
+    <circle cx="1098" cy="628" r="9" fill="none" stroke="rgba(124,138,123,.45)" stroke-width="1.5"/>
   </svg>
 
   <!-- Card silhouettes — white card tall -->
@@ -1586,7 +1593,7 @@ html,body {
   </div>
   <!-- Schedule card -->
   <div class="wp-card wp-card-white wp-c5">
-    <div class="wp-bar" style="top:16px;height:5px;background:rgba(205,242,79,.85);"></div>
+    <div class="wp-bar" style="top:16px;height:5px;background:rgba(124,138,123,.85);"></div>
     <div style="position:absolute;left:14px;top:34px;right:14px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(94,94,74,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(94,94,74,.10);flex:1;"></div></div>
       <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(94,94,74,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(94,94,74,.10);flex:1;width:70%;"></div></div>
@@ -1613,10 +1620,10 @@ html,body {
     <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
+    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(124,138,123,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <span id="mb-clock">--:--</span>
   </div>
@@ -1763,7 +1770,7 @@ html,body {
         <div class="mp-section-head"><div class="mp-section-h">Teacher controls</div></div>
         <div class="mp-quick-list">
           <a class="mp-quick" href="schedule.html">
-            <div class="mp-quick-ic2" style="background:rgba(205,242,79,.22)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
+            <div class="mp-quick-ic2" style="background:rgba(124,138,123,.22)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Schedule</div>
               <div class="mp-quick-s">Plan, move and reschedule classes</div>
@@ -1787,7 +1794,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="analytics.html">
-            <div class="mp-quick-ic2" style="background:rgba(236,45,140,.16)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
+            <div class="mp-quick-ic2" style="background:rgba(85,96,86,.12)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Weekly recap</div>
               <div class="mp-quick-s">Class and student progress at a glance</div>
@@ -1819,7 +1826,7 @@ html,body {
       <div class="curr-grid" id="plans-grid">
         <div class="plans-empty-state" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:12px;">
           <div style="opacity:.45;font-size:0"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
-          <div style="font-size:14px;font-weight:800;color:var(--text-2);letter-spacing:-.01em;">Preparing your boards…</div>
+          <div style="font-size:14px;font-weight:650;color:var(--text-2);letter-spacing:-.01em;">Preparing your boards…</div>
           <div style="font-size:12px;color:var(--text-3);font-weight:500;">Saved lessons, shared boards and drafts will appear here</div>
         </div>
       </div>
@@ -1966,13 +1973,13 @@ html,body {
         <span class="sb-item-badge">14</span>
       </div>
       <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
-      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Reading    <span class="sb-item-badge" style="background:rgba(96,165,250,.3);color:#60a5fa;">4</span></div>
-      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg> Writing    <span class="sb-item-badge" style="background:rgba(110,201,138,.3);color:#6ec98a;">2</span></div>
+      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Reading    <span class="sb-item-badge">4</span></div>
+      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg> Writing    <span class="sb-item-badge">2</span></div>
 
-      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> Speaking   <span class="sb-item-badge" style="background:rgba(167,139,250,.3);color:#a78bfa;">2</span></div>
+      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> Speaking   <span class="sb-item-badge">2</span></div>
       <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg> Vocabulary <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <svg class="ic" aria-hidden="true"><use href="#i-type"/></svg> Grammar    <span class="sb-item-badge" style="background:rgba(248,113,113,.3);color:#f87171;">3</span></div>
-      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg> Utility    <span class="sb-item-badge" style="background:rgba(156,163,175,.2);color:#9ca3af;">2</span></div>
+      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <svg class="ic" aria-hidden="true"><use href="#i-type"/></svg> Grammar    <span class="sb-item-badge">3</span></div>
+      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg> Utility    <span class="sb-item-badge">2</span></div>
     </div>
     <div class="win-main" style="padding:0;flex-direction:column;">
       <div class="mob-win-header">
@@ -2111,12 +2118,12 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#0E0E10,#CDF24F);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-students" onclick="openApp('students')" title="Students">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#3b82f6);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
       <div class="di-label">Students</div>
       <div class="di-dot"></div>
     </div>
@@ -2131,44 +2138,44 @@ html,body {
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
-      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#9F8CE8);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-board" href="board.html" style="text-decoration:none;" title="Board">
-      <div class="di-icon" style="background:linear-gradient(145deg,#FFC94A,#F59E0B);"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#867D5F,#6F684F);"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg></div>
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
-      <div class="di-icon" style="background:linear-gradient(145deg,#D8C5FB,#7c3aed);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
     </a>
     <a class="di" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
-      <div class="di-icon" style="background:linear-gradient(145deg,#CDF24F,#0E0E10);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#6B7A63,#5A6754);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
       <div class="di-label">Community</div>
       <div class="di-dot"></div>
     </a>
     <div class="di-sep"></div>
     <a class="di" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
-      <div class="di-icon" style="background:linear-gradient(145deg,#8FE6E6,#059669);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5C7570,#4C625E);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
 
     <a class="di" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" title="Gradebook">
-      <div class="di-icon" style="background:linear-gradient(145deg,#60a5fa,#2563eb);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
     <div class="di" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
-      <div class="di-icon" style="background:linear-gradient(145deg,#101014,#EC2D8C,#CDF24F);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5A6459,#6B7669);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
       <div class="di-label">Pricing</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
-      <div class="di-icon" style="background:linear-gradient(145deg,#EC2D8C,#d4267f);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
     </a>
@@ -2178,7 +2185,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=324"></script>
+<script src="scripts/desktop-app.js?v=325"></script>
 
 <script>
 
@@ -2189,7 +2196,7 @@ function showOsToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'os-toast';
-    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:inherit;';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:inherit;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
@@ -2198,7 +2205,7 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2207,99 +2214,99 @@ function showOsToast(msg) {
     <div id="ob-step-1" class="ob-step">
       <div style="background:linear-gradient(135deg,#2D2D2D,#1a1a1a);padding:36px 32px 28px;text-align:center;">
         <div style="margin-bottom:12px;"><img src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;"></div>
-        <div style="font-size:22px;font-weight:900;color:#C8E64A;margin-bottom:8px;">Welcome to TeachEd!</div>
+        <div style="font-size:22px;font-weight:700;color:#C8E64A;margin-bottom:8px;">Welcome to TeachEd!</div>
         <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(200,230,50,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(124,138,123,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
-            <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases — drag & drop cards to build your curriculum.</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
-            <div><div style="font-size:14px;font-weight:800;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
-            <div><div style="font-size:14px;font-weight:800;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Get Started →</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Get Started →</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Create your first board</div>
+        <div style="font-size:11px;font-weight:600;color:#7C8A7B;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:6px;">Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #EC2D8C;cursor:pointer;transition:.15s;background:#F5F0E8;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #556056;cursor:pointer;transition:.15s;background:#F5F0E8;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-square"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Blank Board</div>
           </div>
           <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-speak"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Speaking</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Speaking</div>
           </div>
           <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Grammar</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Grammar</div>
           </div>
           <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Reading</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Reading</div>
           </div>
           <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Writing</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Writing</div>
           </div>
           <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Vocabulary</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Vocabulary</div>
           </div>
           <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Exam Prep</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Exam Prep</div>
           </div>
           <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-case"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Business</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Business</div>
           </div>
           <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-kid"/></svg></div>
-            <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Kids (A1)</div>
+            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Kids (A1)</div>
           </div>
         </div>
         <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
           <input id="ob-board-name" type="text" placeholder="My First Board"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;">Create Board & Continue →</button>
         <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:700;color:#EC2D8C;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Add your meeting room</div>
+        <div style="font-size:11px;font-weight:600;color:#7C8A7B;font-family:monospace;letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:6px;">Add your meeting room</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
           <input id="ob-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
         <div style="margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#EC2D8C;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;">Finish setup</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Finish setup</button>
         <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
@@ -2330,7 +2337,7 @@ function obSelectTpl(id) {
   _obTpl = id;
   document.querySelectorAll('[id^="ob-tpl-"]').forEach(el => {
     const tid = el.id.replace('ob-tpl-','');
-    el.style.borderColor = tid === id ? '#EC2D8C' : '#e5e7eb';
+    el.style.borderColor = tid === id ? '#556056' : '#e5e7eb';
     el.style.background   = tid === id ? '#F5F0E8' : '#fafafa';
   });
   const names = { blank:'', speaking:'Speaking Lesson', grammar:'Grammar Lesson', reading:'Reading Lesson', writing:'Writing Lesson', vocab:'Vocabulary Unit', testprep:'Exam Preparation', business:'Business English', kids:'Kids Lesson', listening:'Listening Lesson', conversation:'Conversation Class', pronunciation:'Pronunciation Lesson', ielts:'IELTS Preparation' };
@@ -2418,10 +2425,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=324" defer></script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
+<script src="pwa.js?v=325" defer></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
 </body>
 </html>

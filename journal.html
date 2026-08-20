@@ -39,7 +39,7 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
@@ -47,10 +47,10 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#C8E632;}
+.nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
@@ -59,17 +59,17 @@ a{text-decoration:none;color:inherit;}
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
-#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:900;}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:700;}
 
 /* Page */
 #page{max-width:1100px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:16px;}
 .page-head{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
-.page-title{font-size:26px;font-weight:900;letter-spacing:-.03em;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;}
 .head-spacer{flex:1;}
-.btn{min-height:44px;padding:10px 20px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn{min-height:44px;padding:10px 20px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 .btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(200,230,50,.22);}
 .btn-primary:hover{filter:brightness(1.08);}
 .btn-ghost{background:rgba(94,94,74,.08);color:var(--text2);border:1px solid var(--border);}
@@ -78,16 +78,16 @@ a{text-decoration:none;color:inherit;}
 /* Stats row */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.stat-num{font-size:28px;font-weight:900;color:var(--accent);letter-spacing:-.03em;}
-.stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);}
+.stat-num{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-.03em;}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);}
 
 /* Roster controls keep the next action close to the student list. */
 .journal-controls{padding:16px 18px;border:1px solid var(--border);border-radius:16px;background:var(--card);}
 .journal-controls-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .journal-title-group{min-width:0;flex:1;}
 .journal-kicker{font:900 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
-.journal-title{font-size:16px;font-weight:900;letter-spacing:-.02em;margin-top:5px;}
-.journal-summary{font-size:12px;font-weight:700;color:var(--text3);white-space:nowrap;}
+.journal-title{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-top:5px;}
+.journal-summary{font-size:12px;font-weight:600;color:var(--text3);white-space:nowrap;}
 .journal-search{width:min(320px,100%);min-height:44px;padding:0 13px;border:1px solid var(--border2);border-radius:11px;background:var(--bg);color:var(--text);font:600 13px var(--font);outline:none;}
 .journal-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(28,28,30,.10);}
 .journal-filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;}
@@ -99,29 +99,29 @@ a{text-decoration:none;color:inherit;}
 .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
 .table-head{display:grid;grid-template-columns:40px 1fr 80px 80px 120px 100px 80px;gap:0;
   background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;
-  font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);}
+  font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);}
 .table-row{display:grid;grid-template-columns:40px 1fr 80px 80px 120px 100px 96px;gap:0;
   padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;transition:.12s;min-height:72px;}
 .table-row:last-child{border-bottom:none;}
 .table-row:hover{background:rgba(94,94,74,.04);}
 .student-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:900;color:#1C1C1E;flex-shrink:0;}
-.student-name{font-size:14px;font-weight:800;color:var(--text);}
+  font-size:12px;font-weight:700;color:#1C1C1E;flex-shrink:0;}
+.student-name{font-size:14px;font-weight:650;color:var(--text);}
 .student-email{font-size:11px;color:var(--text3);margin-top:1px;}
 .student-level-mobile{display:none;}
-.level-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;font-family:var(--mono);}
+.level-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:650;font-family:var(--mono);}
 .level-a1{background:rgba(34,197,94,.12);color:#16a34a;}
 .level-a2{background:rgba(96,165,250,.12);color:#2563eb;}
 .level-b1{background:rgba(245,158,11,.12);color:#d97706;}
 .level-b2{background:rgba(28,28,30,.12);color:#7c3aed;}
 .level-c1{background:rgba(239,68,68,.12);color:#dc2626;}
 .level-c2{background:rgba(5,5,23,.10);color:#1C1C1E;}
-.balance-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800;border:1.5px solid;}
+.balance-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:650;border:1.5px solid;}
 .balance-ok{color:#16a34a;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08);}
 .balance-low{color:#d97706;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08);}
 .balance-zero{color:#dc2626;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);}
 .journal-suite .attend-btn{min-height:44px !important;padding:5px 12px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;
-  color:var(--accent);font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;transition:.12s;}
+  color:var(--accent);font-family:var(--font);font-size:11px;font-weight:650;cursor:pointer;transition:.12s;}
 .attend-btn:hover{background:var(--accent);color:#fff;}
 .journal-suite .action-btn{width:44px;height:44px;border-radius:9px;border:1px solid var(--border);background:transparent;
   cursor:pointer;font-size:13px;transition:.12s;display:inline-flex;align-items:center;justify-content:center;}
@@ -133,9 +133,9 @@ a{text-decoration:none;color:inherit;}
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:440px;
   box-shadow:0 24px 64px rgba(5,5,23,.18);}
-.modal-title{font-size:18px;font-weight:900;letter-spacing:-.03em;margin-bottom:20px;}
+.modal-title{font-size:18px;font-weight:700;letter-spacing:-.03em;margin-bottom:20px;}
 .form-group{margin-bottom:14px;}
-.form-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block;font-family:var(--mono);}
+.form-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block;font-family:var(--mono);}
 .form-input,.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
   min-height:44px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;background:var(--bg);transition:.15s;}
 .form-input:focus,.form-select:focus{border-color:var(--accent);}
@@ -143,7 +143,7 @@ a{text-decoration:none;color:inherit;}
 
 /* Toast */
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;
-  font-size:13px;font-weight:700;background:#1C1C1E;color:#fff;
+  font-size:13px;font-weight:600;background:#1C1C1E;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 #toast.ok{background:#16a34a;}
@@ -152,7 +152,7 @@ a{text-decoration:none;color:inherit;}
 /* Empty */
 .empty{text-align:center;padding:48px 24px;color:var(--text3);}
 .empty-icon{font-size:2.5rem;margin-bottom:12px;}
-.empty-title{font-size:16px;font-weight:800;color:var(--text2);margin-bottom:6px;}
+.empty-title{font-size:16px;font-weight:650;color:var(--text2);margin-bottom:6px;}
 .empty-sub{font-size:13px;line-height:1.6;}
 
 :where(.journal-suite) button:focus-visible,
@@ -194,10 +194,10 @@ a{text-decoration:none;color:inherit;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 </head>
 <body class="suite-page journal-suite">
 
@@ -315,7 +315,7 @@ a{text-decoration:none;color:inherit;}
 <div class="modal-overlay" id="attend-modal" onclick="if(event.target===this)closeAttendModal()">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="attend-modal-title">
     <div class="modal-title" id="attend-modal-title">Mark Attendance</div>
-    <div id="attend-student-name" style="font-size:15px;font-weight:700;color:var(--text2);margin-bottom:16px;"></div>
+    <div id="attend-student-name" style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:16px;"></div>
     <div class="form-group">
       <label class="form-label" for="a-date">Date</label>
       <input class="form-input" id="a-date" type="date">
@@ -342,7 +342,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
@@ -680,11 +680,11 @@ document.addEventListener('keydown', event => {
 init();
 </script>
 
-<script src="pwa.js?v=324"></script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="pwa.js?v=325"></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

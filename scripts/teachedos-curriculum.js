@@ -59,7 +59,7 @@ window.initCurriculumApp = function initCurriculumApp(api) {
         <div class="lc-meta">
           <span class="lc-level ${getLevelClass(item.level)}">${item.level}</span>
           <span class="lc-dur">${item.duration}</span>
-          <span class="lc-dur" style="margin-left:auto;color:var(--accent);font-weight:700;">${actionLabel(item)}</span>
+          <span class="lc-dur" style="margin-left:auto;color:var(--accent);font-weight:600;">${actionLabel(item)}</span>
         </div>
         <div class="lc-prog"><div class="lc-prog-fill" style="width:${item.progress}%"></div></div>
       </div>

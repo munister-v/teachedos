@@ -3843,7 +3843,7 @@ function printWorksheet(cardId) {
       padding:16px 18px;margin-bottom:20px;page-break-inside:avoid;break-inside:avoid}
     .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
       text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
-    h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:700;line-height:1.06;color:${accent}}
+    h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:600;line-height:1.06;color:${accent}}
     .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E6E5C;margin:0 0 18px}
     /* question / stage card shell */
     .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
@@ -13403,7 +13403,7 @@ function openLessonPackPreview(packId) {
     <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;">
       <div style="font-size:32px;flex-shrink:0;">${pack.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
+        <div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
         <div style="font-size:11.5px;font-weight:600;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
       </div>
       <button type="button" id="lp-preview-drop" style="border:none;background:${pack.color};color:#fff;font:800 12px var(--font);padding:10px 16px;border-radius:10px;cursor:pointer;">Drop on board →</button>
@@ -13413,7 +13413,7 @@ function openLessonPackPreview(packId) {
     <div style="flex:1;overflow:auto;padding:16px 22px 22px;display:grid;gap:12px;">
       ${pack.stages.map(s => `
         <div style="border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:14px;background:${s.color};">
-          <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
           <div style="font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${esc(s.text)}</div>
         </div>
       `).join('')}
@@ -14671,10 +14671,10 @@ let _communityImportApplied = false;
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:700;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
       <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards — import to a new board?</div>
     </div>
-    <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
   `;
   document.body.appendChild(banner);
@@ -15071,7 +15071,7 @@ renderGamesGrid = function(filter) {
   if (!filtered.length) return;
   // Add separator
   const sep = document.createElement('div');
-  sep.style.cssText = 'grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;';
+  sep.style.cssText = 'grid-column:1/-1;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 2px;border-top:1px solid var(--border);margin-top:4px;';
   sep.textContent = 'My Custom Games';
   grid.appendChild(sep);
   filtered.forEach(g => {
@@ -15080,7 +15080,7 @@ renderGamesGrid = function(filter) {
     tile.style.cssText = 'background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;';
     tile.innerHTML = `
       <div style="font-size:30px;line-height:1;">${esc(g.icon || '🎮')}</div>
-      <div style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.typeName || '')} · ${esc(g.level || 'Mixed')}</div>
       <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
         <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">Custom</span>
@@ -19374,7 +19374,7 @@ function renderGamesGrid(filter) {
       onclick='addGameCard(${JSON.stringify(g.src)},${JSON.stringify(g.title)},${g.w},${g.h})'
       style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
       <div style="font-size:30px;line-height:1;">${g.icon}</div>
-      <div style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.desc)}</div>
       <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
         <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">${esc(g.tag)}</span>

@@ -256,7 +256,7 @@ async function renderOverview(forceOffline = false) {
   if (existingPlanBadge) existingPlanBadge.remove();
   if (planBadge) {
     const el = document.getElementById('profile-role-badge');
-    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(200,230,50,.25);font-size:12px;font-weight:800;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
+    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(200,230,50,.25);font-size:12px;font-weight:650;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
   }
 
   if (me.created_at) {
@@ -376,7 +376,7 @@ function startBoardRename(id) {
   const oldName = el.textContent;
   const inp = document.createElement('input');
   inp.value = oldName;
-  inp.style.cssText = 'font-size:14px;font-weight:800;border:1.5px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:100%;font-family:var(--font);';
+  inp.style.cssText = 'font-size:14px;font-weight:650;border:1.5px solid var(--accent);border-radius:6px;padding:2px 7px;outline:none;width:100%;font-family:var(--font);';
   el.replaceWith(inp);
   inp.focus(); inp.select();
   async function save() {
@@ -529,9 +529,9 @@ function createNewBoard() {
     <div id="tpl-${t.id}" onclick="selectTemplate('${t.id}')"
       style="padding:14px;border-radius:14px;border:2px solid ${t.id==='blank'?'var(--accent)':'var(--border)'};cursor:pointer;transition:.15s;background:${t.id==='blank'?'rgba(200,230,50,.05)':'#F5F0E8'};">
       <div style="font-size:22px;margin-bottom:6px;">${t.icon}</div>
-      <div style="font-size:13px;font-weight:800;color:#1C1C1E;letter-spacing:-.01em;">${t.name}</div>
+      <div style="font-size:13px;font-weight:650;color:#1C1C1E;letter-spacing:-.01em;">${t.name}</div>
       <div style="font-size:11px;color:#A2A28C;margin-top:2px;line-height:1.4;">${t.desc}</div>
-      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:700;color:#C8E632;font-family:monospace;">${t.cards.length} cards</div>` : ''}
+      ${t.cards.length ? `<div style="margin-top:6px;font-size:10px;font-weight:600;color:#C8E632;font-family:monospace;">${t.cards.length} cards</div>` : ''}
     </div>`).join('');
   document.getElementById('tpl-name').value = '';
   const modal = document.getElementById('tpl-modal');
@@ -603,10 +603,10 @@ async function loadSharedBoards(forceOffline = false) {
       <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
         <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
-          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
         </div>
-        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
+        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
       </a>`).join('');
   } catch {
     const cachedBoards = readProfileCache()?.sharedBoards || [];
@@ -619,10 +619,10 @@ async function loadSharedBoards(forceOffline = false) {
       <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
         <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
-          <div style="font-size:15px;font-weight:800;color:var(--text);">${esc(b.name)}</div>
+          <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar || '👩‍🏫'} ${esc(b.owner_name || 'Teacher')} · Saved snapshot</div>
         </div>
-        <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role || 'viewer'}</span>
+        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role || 'viewer'}</span>
       </a>`).join('');
   }
   updateMobileProfileSummary({ offline: forceOffline });
@@ -706,14 +706,14 @@ function renderBillingUsage(usage) {
     }
   ];
   root.innerHTML = `
-    <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;">Usage & limits</div>
+    <div style="font-size:11px;font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;">Usage & limits</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
       ${items.map(item => {
         const entry = item.entry || { used: 0, limit: 0, remaining: 0, unlimited: false };
         return `
           <div style="padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);">
-            <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">${item.label}</div>
-            <div style="font-size:16px;font-weight:900;color:var(--text);margin-top:4px;">${item.formatter(entry)}</div>
+            <div style="font-size:11px;font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">${item.label}</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px;">${item.formatter(entry)}</div>
             <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${item.detail(entry)}</div>
           </div>`;
       }).join('')}
@@ -732,7 +732,7 @@ function renderBillingFeatures(features = [], flags = {}) {
   ].filter(Boolean);
   const chips = [...features, ...flagFeatures].slice(0, 8);
   root.innerHTML = chips.map(feature => `
-    <div style="padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);font-size:12px;font-weight:700;color:var(--text-2);">
+    <div style="padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.55);font-size:12px;font-weight:600;color:var(--text-2);">
       ✓ ${esc(feature)}
     </div>
   `).join('');
@@ -871,7 +871,7 @@ async function loadBillingRequests() {
     return;
   }
   root.innerHTML = `
-    <div style="font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Payment Requests</div>
+    <div style="font-size:12px;font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Payment Requests</div>
     <div style="display:grid;gap:8px;">
       ${payments.slice(0, 8).map(p => {
         const amount = formatMoney(p.amount, p.currency);
@@ -879,7 +879,7 @@ async function loadBillingRequests() {
         return `<div style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);">
           <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
             <strong style="font-size:12px;color:var(--text);">${p.invoice_no || '#' + p.id}</strong>
-            <span style="font-size:11px;font-weight:900;color:${tone.color};text-transform:uppercase;">${esc(p.status_meta?.label || p.status)}</span>
+            <span style="font-size:11px;font-weight:700;color:${tone.color};text-transform:uppercase;">${esc(p.status_meta?.label || p.status)}</span>
           </div>
           <div style="font-size:11px;color:var(--text-3);margin-top:4px;">${PLAN_NAMES[p.plan] || p.plan} · ${billingCycleLabel(p.billing_cycle)} · ${amount}</div>
           <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Created ${formatBillingDate(p.created_at)} · ${p.months || 1} month(s)</div>
@@ -947,7 +947,7 @@ function toggleManagePanel() {
   const row = (label, value, color='var(--text)') =>
     `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
        <span style="color:var(--text-3);font-weight:600;">${label}</span>
-       <span style="font-weight:700;color:${color};">${value}</span>
+       <span style="font-weight:600;color:${color};">${value}</span>
      </div>`;
 
   document.getElementById('manage-plan-summary').innerHTML = [

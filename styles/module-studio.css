@@ -80,7 +80,7 @@ body {
   display: block;
   margin-bottom: 8px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight:650;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
@@ -144,7 +144,7 @@ body {
   border-radius: 18px;
   background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 72%, #6b4eff 28%) 100%);
   color: #fff;
-  font-weight: 800;
+  font-weight:650;
   box-shadow: 0 16px 30px color-mix(in srgb, var(--accent) 18%, transparent 82%);
 }
 
@@ -153,7 +153,7 @@ body {
   border-radius: 16px;
   background: var(--accent-2);
   color: var(--accent);
-  font-weight: 800;
+  font-weight:650;
 }
 
 .module-copy:disabled,
@@ -242,7 +242,7 @@ body {
   background: #fff;
   color: var(--muted);
   font-size: 13px;
-  font-weight: 700;
+  font-weight:600;
   border: 1px solid var(--border);
 }
 
@@ -260,7 +260,7 @@ body {
   padding: 10px 14px;
   background: var(--accent-2);
   color: var(--accent);
-  font-weight: 800;
+  font-weight:650;
 }
 
 .module-kpi {

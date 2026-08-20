@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="manifest" href="manifest.json?v=325">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -22,7 +22,7 @@
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 a{text-decoration:none;color:inherit}
 #nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(245,240,232,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(94,94,74,.08);display:flex;align-items:center;padding:0 14px;gap:0}
-.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:800;margin-left:7px}.nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}.nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;white-space:nowrap;transition:background .12s ease,color .12s ease}.nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:900;color:var(--lime)}.nav-spacer{flex:1}.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:900}
+.nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:650;margin-left:7px}.nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}.nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;white-space:nowrap;transition:background .12s ease,color .12s ease}.nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:700;color:var(--lime)}.nav-spacer{flex:1}.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:700}
 .wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
 .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);gap:18px;align-items:stretch;margin-bottom:18px}
 .hero-card,.panel,.share-card{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.7);border-radius:24px;box-shadow:0 14px 44px rgba(94,94,74,.08);backdrop-filter:blur(16px);will-change:transform;transform:translateZ(0);transition:transform .24s cubic-bezier(.34,1.3,.64,1),box-shadow .24s ease}
@@ -35,11 +35,11 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .btn:disabled,.mini-btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
 .community-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:24px;max-width:640px}
 .stat-pill{border:1px solid rgba(94,94,74,.12);border-radius:16px;background:rgba(255,255,255,.7);padding:12px 14px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset}
-.stat-num{font-size:22px;font-weight:950;letter-spacing:-.05em;color:var(--accent)}
+.stat-num{font-size:22px;font-weight:700;letter-spacing:-.05em;color:var(--accent)}
 .stat-label{font:800 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:3px}
-.share-card{padding:22px}.share-title{font-size:18px;font-weight:900;margin-bottom:14px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.label{font:800 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;font:600 13px var(--font);outline:none;background:#fff;color:var(--text)}textarea{min-height:84px;resize:vertical}input,textarea,select{transition:border-color .18s ease,box-shadow .18s ease}input:focus,textarea:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,242,79,.15)}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.panel{padding:20px}.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px}.section-title{font-size:24px;font-weight:950;letter-spacing:-.04em}.section-sub{font-size:13px;color:var(--text3);margin-top:3px}
-.board-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:18px;min-height:214px;display:flex;flex-direction:column;position:relative;overflow:hidden;will-change:transform,box-shadow;transform:translateZ(0);transition:transform .22s cubic-bezier(.34,1.3,.64,1),box-shadow .22s ease,border-color .18s ease}.board-card:hover{transform:translateY(-3px) translateZ(0);box-shadow:0 14px 36px rgba(94,94,74,.12),0 4px 12px rgba(94,94,74,.05);border-color:rgba(205,242,79,.35)}.board-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),#1C1C1E)}.board-top{display:flex;gap:10px;align-items:center;margin-bottom:14px}.board-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font:950 13px var(--mono);color:var(--accent)}.board-name{font-size:16px;font-weight:900;line-height:1.2}.board-meta{font-size:11px;color:var(--text3);margin-top:3px}.board-desc{font-size:13px;line-height:1.55;color:var(--text2);flex:1}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2);transition:background .15s ease,color .15s ease}.tag:hover{background:rgba(205,242,79,.18);color:var(--accent)}.card-actions{display:flex;gap:8px;margin-top:auto}.mini-btn{flex:1;text-align:center;border-radius:12px;padding:10px 10px;font-size:12px;font-weight:900;background:var(--accent);color:#fff;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s ease,opacity .15s ease}.mini-btn:hover{transform:translateY(-1px)}.mini-btn:active{transform:scale(.97)}.mini-btn.alt{background:rgba(200,230,50,.18);color:var(--accent)}.mini-btn.alt:hover{background:rgba(200,230,50,.28)}
+.share-card{padding:22px}.share-title{font-size:18px;font-weight:700;margin-bottom:14px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.label{font:800 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;font:600 13px var(--font);outline:none;background:#fff;color:var(--text)}textarea{min-height:84px;resize:vertical}input,textarea,select{transition:border-color .18s ease,box-shadow .18s ease}input:focus,textarea:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,242,79,.15)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.panel{padding:20px}.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 14px}.section-title{font-size:24px;font-weight:700;letter-spacing:-.04em}.section-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.board-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:18px;min-height:214px;display:flex;flex-direction:column;position:relative;overflow:hidden;will-change:transform,box-shadow;transform:translateZ(0);transition:transform .22s cubic-bezier(.34,1.3,.64,1),box-shadow .22s ease,border-color .18s ease}.board-card:hover{transform:translateY(-3px) translateZ(0);box-shadow:0 14px 36px rgba(94,94,74,.12),0 4px 12px rgba(94,94,74,.05);border-color:rgba(205,242,79,.35)}.board-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),#1C1C1E)}.board-top{display:flex;gap:10px;align-items:center;margin-bottom:14px}.board-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font:950 13px var(--mono);color:var(--accent)}.board-name{font-size:16px;font-weight:700;line-height:1.2}.board-meta{font-size:11px;color:var(--text3);margin-top:3px}.board-desc{font-size:13px;line-height:1.55;color:var(--text2);flex:1}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2);transition:background .15s ease,color .15s ease}.tag:hover{background:rgba(205,242,79,.18);color:var(--accent)}.card-actions{display:flex;gap:8px;margin-top:auto}.mini-btn{flex:1;text-align:center;border-radius:12px;padding:10px 10px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s ease,opacity .15s ease}.mini-btn:hover{transform:translateY(-1px)}.mini-btn:active{transform:scale(.97)}.mini-btn.alt{background:rgba(200,230,50,.18);color:var(--accent)}.mini-btn.alt:hover{background:rgba(200,230,50,.28)}
 .empty{grid-column:1/-1;text-align:center;padding:34px;color:var(--text3);background:#fff;border:1px dashed var(--border);border-radius:20px}
 .comm-tabs{display:flex;gap:6px;margin:0 0 18px;border-bottom:1px solid var(--border);padding-bottom:0;overflow:auto;scrollbar-width:none}.comm-tabs::-webkit-scrollbar{display:none}
 .comm-tab{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;font:900 14px var(--font);color:var(--text3);cursor:pointer;margin-bottom:-1px;transition:color .15s,border-color .15s,background .15s;white-space:nowrap;border-radius:12px 12px 0 0}
@@ -53,14 +53,14 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .tile-icon{width:44px;height:44px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font:950 12px var(--mono);color:var(--accent)}
 .skeleton-card{min-height:214px;border-radius:20px;background:linear-gradient(90deg,rgba(255,255,255,.65),rgba(255,255,255,.95),rgba(255,255,255,.65));background-size:220% 100%;animation:skel 1.25s ease-in-out infinite;border:1px solid rgba(94,94,74,.08)}
 @keyframes skel{0%{background-position:120% 0}100%{background-position:-120% 0}}
-#toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:800;opacity:0;transform:translateY(10px) translateZ(0);transition:opacity .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.34,1.3,.64,1);z-index:9999;will-change:transform,opacity;backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.18)}#toast.show{opacity:1;transform:translateY(0) translateZ(0)}
+#toast{position:fixed;right:20px;bottom:20px;background:#1C1C1E;color:#fff;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:650;opacity:0;transform:translateY(10px) translateZ(0);transition:opacity .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.34,1.3,.64,1);z-index:9999;will-change:transform,opacity;backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.18)}#toast.show{opacity:1;transform:translateY(0) translateZ(0)}
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 <style>
   body .comm-tab{
     color:#5E5E4A!important;
@@ -105,7 +105,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       border:0!important;
       border-radius:14px!important;
       font-size:13px!important;
-      font-weight:850!important;
+      font-weight:650!important;
       background:transparent!important;
       color:#626252!important;
     }
@@ -243,8 +243,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </main>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=324"></script>
-<script src="scripts/vocab-loader.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
+<script src="scripts/vocab-loader.js?v=325"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -571,10 +571,10 @@ function checkImportParam() {
   banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:16px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:900;font-size:14px;margin-bottom:3px;">Board shared with you</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:3px;">Board shared with you</div>
       <div style="font-size:12px;opacity:.7;">"${esc(snapshot.name||'Community board')}" · ${(snapshot.cards||[]).length} cards</div>
     </div>
-    <button onclick="doImportFromUrl('${imp}')" style="background:var(--lime);color:#1C1C1E;border:none;padding:9px 14px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
+    <button onclick="doImportFromUrl('${imp}')" style="background:var(--lime);color:#1C1C1E;border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
   `;
   document.body.appendChild(banner);
@@ -798,12 +798,12 @@ function renderCommunityGames() {
   grid.innerHTML = filtered.map(g => `
     <div class="game-tile-comm" onclick="addGameToBoard('${esc(g.src)}','${esc(g.title)}')">
       <div class="tile-icon">${esc((g.type || 'game').slice(0,4).toUpperCase())}</div>
-      <div style="font-size:16px;font-weight:900;letter-spacing:-.02em;">${esc(g.title)}</div>
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.02em;">${esc(g.title)}</div>
       <div style="font-size:12px;color:var(--text3);line-height:1.4;min-height:34px;">${esc(g.desc)}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;">
-        <span class="tag" style="background:rgba(200,230,50,.18);color:var(--accent);font-weight:900;">${esc(g.level)}</span>
+        <span class="tag" style="background:rgba(200,230,50,.18);color:var(--accent);font-weight:700;">${esc(g.level)}</span>
         <span class="tag">${esc(g.topic)}</span>
-        ${g.isCustom ? '<span class="tag" style="background:rgba(200,230,50,.16);color:#5A7A00;font-weight:900;">My game</span>' : ''}
+        ${g.isCustom ? '<span class="tag" style="background:rgba(200,230,50,.16);color:#5A7A00;font-weight:700;">My game</span>' : ''}
       </div>
       <button class="mini-btn" style="margin-top:8px;" onclick="event.stopPropagation();addGameToBoard('${esc(g.src)}','${esc(g.title)}')">Add to board →</button>
     </div>
@@ -820,25 +820,25 @@ loadBoards();
 <!-- IMPORT PICKER MODAL -->
 <div id="import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);z-index:9998;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeImportModal()">
   <div style="background:#fff;border-radius:24px;padding:28px;width:min(440px,100%);box-shadow:0 32px 80px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.5);">
-    <div style="font-size:18px;font-weight:900;margin-bottom:6px;color:#1C1C1E;" id="import-modal-title">Import board</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;color:#1C1C1E;" id="import-modal-title">Import board</div>
     <div style="font-size:13px;color:#7A7A6A;margin-bottom:20px;" id="import-modal-sub">Choose which board to import into</div>
 
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#A2A28C;margin-bottom:8px;">Import into</div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#A2A28C;margin-bottom:8px;">Import into</div>
     <select id="import-board-sel" onchange="updateImportHint()" style="width:100%;border:1.5px solid rgba(94,94,74,.18);border-radius:12px;padding:11px 12px;font-size:13px;font-weight:600;background:#F9F8F6;color:#1C1C1E;margin-bottom:6px;outline:none;">
       <option value="__new__">✦ Create new board</option>
     </select>
     <div style="font-size:12px;color:#A2A28C;margin-bottom:20px;" id="import-board-hint">Cards will be added to a fresh board</div>
 
     <div style="display:flex;gap:10px;margin-top:4px;">
-      <button onclick="closeImportModal()" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid rgba(94,94,74,.18);background:transparent;font-size:14px;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
-      <button id="import-confirm-btn" onclick="confirmImport()" style="flex:2;padding:13px;border-radius:13px;border:none;background:#1C1C1E;color:#C8E632;font-size:14px;font-weight:900;cursor:pointer;">Import →</button>
+      <button onclick="closeImportModal()" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid rgba(94,94,74,.18);background:transparent;font-size:14px;font-weight:600;cursor:pointer;color:#3A3A2E;">Cancel</button>
+      <button id="import-confirm-btn" onclick="confirmImport()" style="flex:2;padding:13px;border-radius:13px;border:none;background:#1C1C1E;color:#C8E632;font-size:14px;font-weight:700;cursor:pointer;">Import →</button>
     </div>
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

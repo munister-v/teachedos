@@ -582,7 +582,7 @@ function studentsRender() {
   if (!STUDENTS.length) {
     list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-3);font-size:13px;">
       No students yet.<br>
-      <a href="gradebook.html" style="color:var(--accent);font-weight:700;text-decoration:none;margin-top:10px;display:inline-block;">Open Gradebook to add →</a>
+      <a href="gradebook.html" style="color:var(--accent);font-weight:600;text-decoration:none;margin-top:10px;display:inline-block;">Open Gradebook to add →</a>
     </div>`;
     return;
   }
@@ -598,7 +598,7 @@ function studentsRender() {
     <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(200,230,50,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(200,230,50,0.09)'" onmouseleave="this.style.background='rgba(200,230,50,0.04)'">
       <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${s.name}</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${s.email}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
@@ -654,7 +654,7 @@ function boardsRender() {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
       ${boardsFilterMode === 'shared' ? 'No boards shared with you yet.' : 'No boards yet.'}
       <div style="margin-top:10px;">
-        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}" style="color:var(--accent);font-weight:700;text-decoration:none;">
+        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}" style="color:var(--accent);font-weight:600;text-decoration:none;">
           ${boardsFilterMode === 'shared' ? 'Open Profile →' : 'Create your first board →'}
         </a>
       </div></div>`;
@@ -1084,20 +1084,20 @@ toolsRender();
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
 const SP_ITEMS = [
   // Windows
-  { icon:'📋', iconBg:'linear-gradient(145deg,#0E0E10,#CDF24F)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
-  { icon:'👥', iconBg:'linear-gradient(145deg,#60a5fa,#3b82f6)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
-  { icon:'📅', iconBg:'linear-gradient(145deg,#d4749a,#a84d70)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
-  { icon:'✍️', iconBg:'linear-gradient(145deg,#1C1C1E,#e87898)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
-  { icon:'📋', iconBg:'linear-gradient(145deg,#0E0E10,#CDF24F)', title:'Lesson Builder', sub:'Build a full lesson plan', kbd:'Builder', action:()=>location.href='lesson-builder.html' },
-  { icon:'🪄', iconBg:'linear-gradient(145deg,#b87ac4,#7a4a9c)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
-  { icon:'💳', iconBg:'linear-gradient(145deg,#101014,#EC2D8C,#CDF24F)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'👥', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
+  { icon:'📅', iconBg:'linear-gradient(145deg,#786E5F,#635B4E)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
+  { icon:'✍️', iconBg:'linear-gradient(145deg,#585C59,#474B48)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Lesson Builder', sub:'Build a full lesson plan', kbd:'Builder', action:()=>location.href='lesson-builder.html' },
+  { icon:'🪄', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
+  { icon:'💳', iconBg:'linear-gradient(145deg,#5A6459,#6B7669)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
-  { icon:'📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
-  { icon:'📚', iconBg:'linear-gradient(145deg,#a78bfa,#7c3aed)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
-  { icon:'🌍', iconBg:'linear-gradient(145deg,#CDF24F,#0E0E10)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
-  { icon:'📊', iconBg:'linear-gradient(145deg,#34d399,#059669)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
-  { icon:'📒', iconBg:'linear-gradient(145deg,#60a5fa,#2563eb)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
-  { icon:'👤', iconBg:'linear-gradient(145deg,#f472b6,#db2777)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
+  { icon:'📌', iconBg:'linear-gradient(145deg,#867D5F,#6F684F)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
+  { icon:'📚', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
+  { icon:'🌍', iconBg:'linear-gradient(145deg,#6B7A63,#5A6754)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
+  { icon:'📊', iconBg:'linear-gradient(145deg,#5C7570,#4C625E)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
+  { icon:'📒', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
+  { icon:'👤', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
   // Students quick jump (rebuilt later when STUDENTS loads from API)
 ];
 
@@ -1115,7 +1115,7 @@ function rebuildSpotlightBoards() {
   let i = SP_ITEMS.length - 1;
   while (i >= 0 && SP_ITEMS[i].kbd === 'Board') SP_ITEMS.splice(i--, 1);
   (MY_BOARDS || []).slice(0, 12).forEach(b => SP_ITEMS.push({
-    icon: '📌', iconBg:'linear-gradient(145deg,#f59e0b,#d97706)',
+    icon: '📌', iconBg:'linear-gradient(145deg,#867D5F,#6F684F)',
     title: b.name || 'Untitled Board',
     sub: 'Open board · ' + (b.card_count || 0) + ' cards',
     kbd:'Board',
@@ -1436,7 +1436,7 @@ async function checkAuthAndRoute() {
       const btn = document.createElement('button');
       btn.id = 'mp-offline-signin';
       btn.textContent = '⚡ Sign in';
-      btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#1C1C1E;color:#C8E632;border:none;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(14,14,16,.25);display:none;';
+      btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#1C1C1E;color:#C8E632;border:none;border-radius:20px;font-size:13px;font-weight:650;cursor:pointer;box-shadow:0 4px 16px rgba(14,14,16,.25);display:none;';
       btn.onclick = () => { clearAuthState(); showAuthOverlay(); btn.remove(); };
       document.body.appendChild(btn);
       // Show only on mobile
@@ -1458,7 +1458,7 @@ function applyUserToDesktop(user) {
   const planBadge = document.getElementById('mb-plan-badge') || (() => {
     const b = document.createElement('span');
     b.id = 'mb-plan-badge';
-    b.style.cssText = 'font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+    b.style.cssText = 'font-size:10px;font-weight:650;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
     b.title = 'Open subscription settings';
     b.setAttribute('role', 'button');
     b.tabIndex = 0;
@@ -1544,42 +1544,42 @@ function showAuthOverlay() {
           <div style="margin-bottom:12px;">
             <img class="os-auth-logo" src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;filter:drop-shadow(0 4px 18px rgba(160,200,20,.45));">
           </div>
-          <div style="font-size:2rem;font-weight:900;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:6px;">
-            <span style="color:#0E0E10;">Teach</span><span style="color:#EC2D8C;font-weight:900;">Ed</span>
+          <div style="font-size:2rem;font-weight:700;letter-spacing:-.055em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;margin-bottom:6px;">
+            <span style="color:#0E0E10;">Teach</span><span style="color:#EC2D8C;font-weight:700;">Ed</span>
           </div>
           <div id="os-auth-sub" style="font-size:13px;color:#5A5A4A;margin-top:0;font-weight:600;letter-spacing:.005em;">Sign in to your workspace</div>
         </div>
         <div id="os-auth-err" class="os-auth-error" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-google-area" style="display:none;margin-bottom:18px;">
           <div id="os-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#9A9A8A;font-size:12px;font-weight:700;letter-spacing:.04em;">
+          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#9A9A8A;font-size:12px;font-weight:600;letter-spacing:.04em;">
             <span style="flex:1;height:1px;background:rgba(94,94,74,.18);"></span>OR<span style="flex:1;height:1px;background:rgba(94,94,74,.18);"></span>
           </div>
         </div>
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
-          <div style="font-size:10px;font-weight:700;color:#7A7A6A;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="font-size:10px;font-weight:600;color:#7A7A6A;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:14px;border:2px solid #8DB800;background:rgba(141,184,0,.10);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
-              <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Teacher</div>
+              <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Teacher</div>
               <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create &amp; manage</div>
             </button>
             <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:14px;border:2px solid rgba(94,94,74,.16);background:rgba(245,240,232,.7);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
-              <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Student</div>
+              <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Student</div>
               <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Learn &amp; progress</div>
             </button>
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
+        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:650;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
         <style>@keyframes _osSpin{to{transform:rotate(360deg)}}</style>
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
-          <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
+          <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
         </div>
         <div style="text-align:center;margin-top:16px;font-size:13px;color:#5A5A4A;font-weight:500;">
           <span id="os-toggle-text">Don't have an account?</span>
-          <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:800;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
+          <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:650;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);

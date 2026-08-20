@@ -1899,7 +1899,7 @@ function renderTeacherToolLocalPreview(out){
     } else if (q.type === 'match') {
       ans = `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;margin-top:7px;align-items:center;">${
         (q.pairs||[]).map((p,pi)=>`
-          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="left" style="font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;background:#eef2ff;color:#4262FF">${esc(p.left)}</span>
+          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="left" style="font-size:11px;font-weight:650;padding:3px 8px;border-radius:7px;background:#eef2ff;color:#4262FF">${esc(p.left)}</span>
           <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="right" style="font-size:11px;padding:3px 8px;color:#5f6070" data-ph="match / definition…">${esc(p.right||'')}</span>`).join('')
       }</div>`;
     } else if (q.type === 'open') {

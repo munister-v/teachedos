@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="manifest" href="manifest.json?v=325">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -46,7 +46,7 @@ button{font-family:var(--font);cursor:pointer;}
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:var(--text);margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:var(--text);margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;
@@ -54,10 +54,10 @@ button{font-family:var(--font);cursor:pointer;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:var(--text);}
-.nav-link.active{font-weight:800;color:var(--accent);}
+.nav-link.active{font-weight:650;color:var(--accent);}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text2);
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
@@ -66,7 +66,7 @@ button{font-family:var(--font);cursor:pointer;}
 .nav-user:hover{border-color:var(--accent);background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:var(--accent);font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:var(--accent);font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 
@@ -84,10 +84,10 @@ button{font-family:var(--font);cursor:pointer;}
   padding:16px 14px 12px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:8px;
 }
-#sb-head-title{font-size:13px;font-weight:900;flex:1;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+#sb-head-title{font-size:13px;font-weight:700;flex:1;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
 .btn-new-course{
   padding:5px 11px;border:none;border-radius:8px;
-  background:var(--lime);color:#1C1C1E;font-size:12px;font-weight:800;
+  background:var(--lime);color:#1C1C1E;font-size:12px;font-weight:650;
   transition:.15s;white-space:nowrap;
 }
 .btn-new-course:hover{background:var(--accent);color:#F5F0E8;}
@@ -100,11 +100,11 @@ button{font-family:var(--font);cursor:pointer;}
 .course-item.active{background:rgba(94,94,74,.12);}
 .course-item.active .ci-name{color:var(--accent);}
 .ci-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.ci-name{font-size:13px;font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
-.ci-count{font-size:11px;color:var(--text3);font-weight:700;font-family:var(--mono);}
+.ci-name{font-size:13px;font-weight:650;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.ci-count{font-size:11px;color:var(--text3);font-weight:600;font-family:var(--mono);}
 #sb-shared-head{
   padding:12px 14px 6px;
-  font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;
+  font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;
   border-top:1px solid var(--border);
 }
 
@@ -117,7 +117,7 @@ button{font-family:var(--font);cursor:pointer;}
   gap:14px;padding:40px;text-align:center;color:var(--text3);
 }
 #welcome .w-icon{font-size:56px;}
-#welcome .w-title{font-size:20px;font-weight:900;color:var(--text2);}
+#welcome .w-title{font-size:20px;font-weight:700;color:var(--text2);}
 #welcome .w-sub{font-size:14px;line-height:1.6;max-width:360px;}
 
 /* ── COURSE HEADER ── */
@@ -129,23 +129,23 @@ button{font-family:var(--font);cursor:pointer;}
 }
 .ch-icon{
   width:54px;height:54px;border-radius:18px;display:flex;align-items:center;
-  justify-content:center;font-size:26px;flex-shrink:0;color:#fff;font-weight:900;
+  justify-content:center;font-size:26px;flex-shrink:0;color:#fff;font-weight:700;
   box-shadow:0 4px 16px rgba(0,0,0,.15);
 }
 .ch-body{flex:1;min-width:200px;}
-.ch-name{font-size:22px;font-weight:900;line-height:1.2;color:var(--text);}
+.ch-name{font-size:22px;font-weight:700;line-height:1.2;color:var(--text);}
 .ch-meta{
   font-size:12px;color:var(--text3);margin-top:6px;
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
 }
 .ch-pill{
   display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;
-  font-size:11px;font-weight:800;background:rgba(94,94,74,.12);color:var(--accent);
+  font-size:11px;font-weight:650;background:rgba(94,94,74,.12);color:var(--accent);
 }
 .ch-actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start;margin-top:4px;}
 .btn{
   padding:7px 16px;border:none;border-radius:10px;
-  font-size:12px;font-weight:800;transition:.15s;cursor:pointer;
+  font-size:12px;font-weight:650;transition:.15s;cursor:pointer;
 }
 .btn-primary{background:var(--lime);color:#1C1C1E;}
 .btn-primary:hover{background:var(--accent);color:#F5F0E8;}
@@ -176,18 +176,18 @@ button{font-family:var(--font);cursor:pointer;}
   width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
   background:rgba(200,230,50,.16);font-size:17px;flex-shrink:0;
 }
-.ready-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.25;}
-.ready-meta{font-size:11px;color:var(--text3);font-weight:800;font-family:var(--mono);}
+.ready-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.25;}
+.ready-meta{font-size:11px;color:var(--text3);font-weight:650;font-family:var(--mono);}
 .ready-copy{font-size:12px;color:var(--text2);line-height:1.45;}
 .ready-lessons{display:flex;flex-wrap:wrap;gap:5px;}
 .ready-chip{
-  font-size:10px;font-weight:800;color:var(--text2);
+  font-size:10px;font-weight:650;color:var(--text2);
   background:rgba(94,94,74,.08);border:1px solid var(--border);border-radius:999px;
   padding:3px 7px;
 }
 .ready-actions{display:flex;gap:8px;margin-top:auto;}
 .ready-empty-head{
-  margin-top:20px;font-size:12px;font-weight:900;color:var(--text3);
+  margin-top:20px;font-size:12px;font-weight:700;color:var(--text3);
   text-transform:uppercase;letter-spacing:.06em;
 }
 
@@ -203,8 +203,8 @@ button{font-family:var(--font);cursor:pointer;}
   border-radius:12px;
   padding:12px;
 }
-.insight-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:800;}
-.insight-value{font-size:22px;font-weight:900;color:var(--text);margin-top:6px;}
+.insight-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:650;}
+.insight-value{font-size:22px;font-weight:700;color:var(--text);margin-top:6px;}
 .insight-hint{font-size:11px;color:var(--text3);margin-top:2px;}
 
 /* ── MODULES AREA ── */
@@ -219,12 +219,12 @@ button{font-family:var(--font);cursor:pointer;}
 .module-head:hover{background:color-mix(in srgb,var(--card) 90%,var(--accent));}
 .module-chevron{font-size:10px;color:var(--text3);transition:transform .22s;}
 .module-chevron.open{transform:rotate(90deg);}
-.module-title{font-size:14px;font-weight:900;flex:1;color:var(--text);}
-.module-count{font-size:11px;color:var(--text3);font-weight:700;font-family:var(--mono);}
+.module-title{font-size:14px;font-weight:700;flex:1;color:var(--text);}
+.module-count{font-size:11px;color:var(--text3);font-weight:600;font-family:var(--mono);}
 .module-actions{display:flex;gap:4px;opacity:0;transition:.15s;}
 .module-head:hover .module-actions{opacity:1;}
 .mod-btn{
-  padding:3px 9px;border:none;border-radius:7px;font-size:11px;font-weight:700;
+  padding:3px 9px;border:none;border-radius:7px;font-size:11px;font-weight:600;
   background:rgba(200,230,50,.08);color:var(--accent);transition:.15s;
 }
 .mod-btn:hover{background:rgba(200,230,50,.18);}
@@ -250,8 +250,8 @@ button{font-family:var(--font);cursor:pointer;}
   box-shadow:0 6px 24px rgba(94,94,74,.12);
   transform:translateY(-2px);
 }
-.lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:800;color:#6E6E5C !important;font-family:var(--mono);letter-spacing:.04em;}
-.lessons-grid .lesson-card .lc-name{font-size:13px;font-weight:850;color:#1C1C1E !important;line-height:1.3;}
+.lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:650;color:#6E6E5C !important;font-family:var(--mono);letter-spacing:.04em;}
+.lessons-grid .lesson-card .lc-name{font-size:13px;font-weight:650;color:#1C1C1E !important;line-height:1.3;}
 .lessons-grid .lesson-card .lc-meta{font-size:11px;color:#6E6E5C !important;}
 .lc-remove{
   position:absolute;top:8px;right:8px;width:20px;height:20px;
@@ -264,7 +264,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 .add-lesson-btn{
   border:2px dashed var(--border2);border-radius:12px;padding:20px 14px;
-  background:transparent;color:var(--text3);font-size:12px;font-weight:700;
+  background:transparent;color:var(--text3);font-size:12px;font-weight:600;
   cursor:pointer;transition:.15s;text-align:center;
 }
 .add-lesson-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(94,94,74,.04);}
@@ -272,7 +272,7 @@ button{font-family:var(--font);cursor:pointer;}
 /* Unassigned */
 #unassigned-section{padding:0 28px 24px;}
 .unassigned-head{
-  font-size:10px;font-weight:800;color:var(--text3);
+  font-size:10px;font-weight:650;color:var(--text3);
   text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;
 }
 
@@ -292,23 +292,23 @@ button{font-family:var(--font);cursor:pointer;}
 #picker-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;}
 #picker-overlay.open{display:flex;}
 #picker-modal{background:var(--card);border-radius:20px;padding:24px;width:480px;max-width:94vw;max-height:70vh;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 70px rgba(0,0,0,.22);}
-#picker-title{font-size:16px;font-weight:900;color:var(--text);}
+#picker-title{font-size:16px;font-weight:700;color:var(--text);}
 #picker-search{padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;outline:none;width:100%;background:var(--bg);color:var(--text);}
 #picker-search:focus{border-color:var(--accent);}
 #picker-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid transparent;transition:.15s;}
 .picker-item:hover{background:rgba(200,230,50,.07);border-color:var(--border);}
 .picker-item.selected{background:rgba(94,94,74,.12);border-color:var(--accent);}
-.pi-name{font-size:13px;font-weight:800;flex:1;color:var(--text);}
+.pi-name{font-size:13px;font-weight:650;flex:1;color:var(--text);}
 .pi-meta{font-size:11px;color:var(--text3);}
 #picker-actions{display:flex;gap:8px;justify-content:flex-end;}
 /* form */
 #form-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;}
 #form-overlay.open{display:flex;}
 #form-modal{background:var(--card);border-radius:20px;padding:28px;width:440px;max-width:94vw;box-shadow:0 24px 70px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:16px;}
-#form-title{font-size:17px;font-weight:900;color:var(--text);}
+#form-title{font-size:17px;font-weight:700;color:var(--text);}
 .form-field{display:flex;flex-direction:column;gap:5px;}
-.form-label{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.form-label{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
 .form-input{padding:9px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;outline:none;background:var(--bg);color:var(--text);}
 .form-input:focus{border-color:var(--accent);}
 .color-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -319,7 +319,7 @@ button{font-family:var(--font);cursor:pointer;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:700;background:#1C1C1E;color:#fff;
+  border-radius:12px;font-size:13px;font-weight:600;background:#1C1C1E;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
@@ -332,8 +332,8 @@ button{font-family:var(--font);cursor:pointer;}
   #sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);background:var(--bg);}
   /* mp-topbar already shows title + New button — hide duplicate sidebar header */
   #sb-head{display:none !important;}
-  #sb-head-title{font-size:18px;font-weight:900;letter-spacing:-.03em;}
-  #sb-shared-head{padding:8px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);}
+  #sb-head-title{font-size:18px;font-weight:700;letter-spacing:-.03em;}
+  #sb-shared-head{padding:8px 16px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);}
   #course-list{padding:4px 8px 12px;}
   .course-item{padding:8px 10px;border-radius:10px;}
   #layout{flex-direction:column;height:auto;overflow:visible;}
@@ -350,10 +350,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -527,7 +527,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -862,7 +862,7 @@ function renderCourseView({ course, modules, unassigned }) {
   if (!modules.length) {
     area.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">
       <div class="course-empty-dot" aria-hidden="true"></div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">No modules yet</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">No modules yet</div>
       <div style="font-size:13px;margin-bottom:16px;">Add a module (topic/unit) and assign lesson boards to it.</div>
       <button class="btn btn-primary" onclick="openModuleForm('${course.id}')">+ Add first module</button>
     </div>`;
@@ -1142,16 +1142,16 @@ async function openSharedCourse(id) {
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;display:flex;align-items:center;justify-content:center;';
     const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     modal.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">' +
-      '<div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
       '<div style="font-size:13px;color:#A2A28C;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
       (boards.length ? boards.map(b =>
         '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F0E8;">' +
         '<span class="course-board-dot" aria-hidden="true"></span>' +
-        '<div><div style="font-size:14px;font-weight:800;color:#1C1C1E;">' + esc2(b.name) + '</div>' +
+        '<div><div style="font-size:14px;font-weight:650;color:#1C1C1E;">' + esc2(b.name) + '</div>' +
         '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
-        '<span style="margin-left:auto;color:#C8E632;font-weight:700;font-size:13px;">Open →</span></a>'
+        '<span style="margin-left:auto;color:#C8E632;font-weight:600;font-size:13px;">Open →</span></a>'
       ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
-      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:inherit;font-weight:700;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:inherit;font-weight:600;cursor:pointer;color:#3A3A2E;">Close</button>' +
       '</div>';
     modal.onclick = e => { if(e.target===modal) modal.remove(); };
     document.body.appendChild(modal);
@@ -1390,10 +1390,10 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="pwa-boot.js?v=325" defer></script>
 </body>
 </html>

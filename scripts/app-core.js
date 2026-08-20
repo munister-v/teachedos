@@ -140,7 +140,7 @@
       'box-shadow:0 2px 8px rgba(0,0,0,.25)'
     ].join(';'));
     el.innerHTML = 'Your session has expired. ' +
-      '<a href="/index.html" style="color:#fff;font-weight:700;text-decoration:underline">Sign in again →</a>';
+      '<a href="/index.html" style="color:#fff;font-weight:600;text-decoration:underline">Sign in again →</a>';
     if (document.body) document.body.prepend(el);
     else document.addEventListener('DOMContentLoaded', function() { document.body.prepend(el); });
     if (!window.__teachedNoRedirectOn401) {

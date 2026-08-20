@@ -95,7 +95,7 @@
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-icon svg{width:20px;height:20px;stroke-width:2.1;}',
     '.mob-nav-label{',
-    '  font-size:10px;font-weight:850;letter-spacing:0;',
+    '  font-size:10px;font-weight:650;letter-spacing:0;',
     '  font-family:inherit;line-height:1;',
     '}',
     /* body padding so content isn't hidden behind nav */

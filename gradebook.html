@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="manifest" href="manifest.json?v=325">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -49,7 +49,7 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
@@ -57,10 +57,10 @@ a{text-decoration:none;color:inherit;}
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#C8E632;}
+.nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
   background:rgba(94,94,74,.07);
@@ -69,23 +69,23 @@ a{text-decoration:none;color:inherit;}
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 .nav-user:hover{border-color:rgba(94,94,74,.32);}
-#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:#FF4E00;font-size:11px;font-weight:900;}
+#nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:#FF4E00;font-size:11px;font-weight:700;}
 
 /* Page */
 #page{max-width:1400px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:22px;}
 
 /* Page header */
 .page-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.page-title{font-size:26px;font-weight:900;letter-spacing:-.03em;letter-spacing:-.03em;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;letter-spacing:-.03em;}
 .page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 .head-spacer{flex:1;}
 
 /* Buttons */
-.btn{padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:.15s;}
+.btn{padding:9px 18px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:.15s;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
 .btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1px solid var(--border2);}
@@ -97,14 +97,14 @@ a{text-decoration:none;color:inherit;}
 /* Section */
 .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
 .sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.sec-title{font-size:15px;font-weight:800;flex:1;}
+.sec-title{font-size:15px;font-weight:650;flex:1;}
 .sec-body{padding:18px 20px;}
 
 /* Unified board+students dropdown */
 .board-switcher{position:relative;display:inline-block;}
 .board-switcher-trigger{display:inline-flex;align-items:center;gap:8px;}
 .board-switcher-trigger .bs-icon{font-size:14px;line-height:1;}
-.board-switcher-trigger .bs-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;}
+.board-switcher-trigger .bs-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
 .board-switcher-pop{
   display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1000;
   width:320px;max-height:420px;overflow:hidden;
@@ -116,7 +116,7 @@ a{text-decoration:none;color:inherit;}
 @keyframes bs-pop{from{opacity:0;transform:translateY(-4px) scale(.97);}to{opacity:1;transform:none;}}
 .board-switcher.open .board-switcher-pop{display:flex;}
 .bs-tabs{display:flex;border-bottom:1px solid var(--border);padding:4px;gap:4px;flex-shrink:0;}
-.bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
+.bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
 .bs-tab:hover{background:rgba(94,94,74,.06);color:var(--text2);}
 .bs-tab.active{background:rgba(200,230,50,.14);color:var(--accent);}
 .bs-search{
@@ -130,7 +130,7 @@ a{text-decoration:none;color:inherit;}
 .bs-list::-webkit-scrollbar-thumb{background:rgba(94,94,74,.18);border-radius:6px;}
 .bs-item{
   display:flex;align-items:center;gap:8px;padding:8px 10px;
-  border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:700;
+  border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;
   transition:background .1s,color .1s;
 }
 .bs-item:hover{background:rgba(94,94,74,.08);color:var(--text);}
@@ -147,7 +147,7 @@ a{text-decoration:none;color:inherit;}
 /* Board selector pills */
 .board-pills{display:flex;gap:8px;flex-wrap:wrap;}
 .board-pill{
-  padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
   border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:.15s;font-family:var(--font);
 }
 .board-pill:hover{border-color:var(--border2);color:var(--accent);}
@@ -171,18 +171,18 @@ a{text-decoration:none;color:inherit;}
 .member-row:last-child{border-bottom:none;}
 .m-avatar{width:36px;height:36px;border-radius:50%;background:rgba(200,230,50,.08);
   display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.m-name{font-size:13px;font-weight:800;color:var(--text);}
+.m-name{font-size:13px;font-weight:650;color:var(--text);}
 .m-email{font-size:11px;color:var(--text3);}
-.m-role{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
+.m-role{font-size:10px;font-weight:650;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
 .role-student{background:rgba(99,102,241,.12);color:#6366f1;}
 .role-editor {background:rgba(34,197,94,.12);color:#16a34a;}
-.progress-chip{font-size:10px;font-weight:800;padding:3px 7px;border-radius:20px;white-space:nowrap;}
+.progress-chip{font-size:10px;font-weight:650;padding:3px 7px;border-radius:20px;white-space:nowrap;}
 .progress-chip.attention{background:#fee2e2;color:#b91c1c;}
 .progress-chip.active{background:#fef3c7;color:#92400e;}
 .progress-chip.on-track{background:#dcfce7;color:#166534;}
 .progress-chip.not-started{background:#e5e7eb;color:#4b5563;}
 .m-spacer{flex:1;}
-.m-pct{font-size:14px;font-weight:900;color:var(--accent);}
+.m-pct{font-size:14px;font-weight:700;color:var(--accent);}
 .m-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:rgba(94,94,74,.1);overflow:hidden;}
 .m-prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease;}
 
@@ -191,7 +191,7 @@ a{text-decoration:none;color:inherit;}
 .gb-table{border-collapse:collapse;width:100%;font-size:12px;}
 .gb-table th{
   position:sticky;top:0;background:#fff;z-index:2;
-  padding:10px 8px;text-align:center;font-weight:800;color:#5A5A4A;
+  padding:10px 8px;text-align:center;font-weight:650;color:#5A5A4A;
   text-transform:uppercase;letter-spacing:.06em;font-size:10px;
   border-bottom:2px solid var(--border);white-space:nowrap;
 }
@@ -199,7 +199,7 @@ a{text-decoration:none;color:inherit;}
 .gb-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:center;}
 .gb-table td.td-name{
   text-align:left;position:sticky;left:0;background:#fff;z-index:1;
-  font-weight:700;font-size:12px;white-space:nowrap;
+  font-weight:600;font-size:12px;white-space:nowrap;
   display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;
 }
 .gb-table tr:last-child td{border-bottom:none;}
@@ -218,7 +218,7 @@ a{text-decoration:none;color:inherit;}
 .sc-locked   {background:#f3f4f6;color:#9ca3af;}
 
 /* Summary row */
-.gb-table tr.gb-summary td{background:#F5F0E8;font-weight:800;font-size:11px;}
+.gb-table tr.gb-summary td{background:#F5F0E8;font-weight:650;font-size:11px;}
 .gb-table tr.gb-summary td.td-name{background:#F5F0E8;}
 
 /* Empty state */
@@ -233,8 +233,8 @@ a{text-decoration:none;color:inherit;}
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .si-pink{background:#F5F0E8;} .si-green{background:#f0fdf4;}
 .si-blue{background:#eff6ff;} .si-orange{background:#fff7ed;}
-.stat-val{font-size:26px;font-weight:900;letter-spacing:-.03em;line-height:1;}
-.stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-top:2px;}
+.stat-val{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1;}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:600;margin-top:2px;}
 
 /* Gradebook focus controls */
 .gradebook-pulse{
@@ -246,12 +246,12 @@ a{text-decoration:none;color:inherit;}
 .gradebook-pulse>*{position:relative;z-index:1;}
 .gp-main{min-width:0;flex:1;}
 .gp-kicker{font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
-.gp-title{margin-top:4px;font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--text);}
+.gp-title{margin-top:4px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text);}
 .gp-copy{margin-top:4px;max-width:560px;font-size:12px;line-height:1.45;color:var(--text2);}
 .gp-metrics{display:flex;align-items:stretch;gap:8px;flex-shrink:0;}
 .gp-metric{min-width:72px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.68);}
-.gp-metric-num{font-size:17px;line-height:1;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;}
-.gp-metric-label{margin-top:5px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.gp-metric-num{font-size:17px;line-height:1;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+.gp-metric-label{margin-top:5px;font-size:9px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
 .gp-metric.attention{border-color:rgba(239,68,68,.22);background:rgba(254,242,242,.75);}
 .gp-metric.attention .gp-metric-num{color:#b91c1c;}
 .gp-actions{display:flex;gap:8px;flex-shrink:0;}
@@ -271,10 +271,10 @@ a{text-decoration:none;color:inherit;}
   background:#fff;color:var(--text);font:600 13px var(--font);outline:none;transition:.15s;
 }
 .gb-search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,230,50,.22);}
-.gb-filter-note{width:100%;padding-top:2px;font-size:11px;color:var(--text3);font-weight:700;}
+.gb-filter-note{width:100%;padding-top:2px;font-size:11px;color:var(--text3);font-weight:600;}
 .filtered-empty{padding:28px 12px;text-align:center;color:var(--text3);font-size:13px;line-height:1.45;}
-.gb-empty-row td{padding:28px 12px!important;text-align:center!important;color:var(--text3);font-size:12px;font-weight:700;}
-.gb-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;color:var(--text3);font-size:10px;font-weight:800;}
+.gb-empty-row td{padding:28px 12px!important;text-align:center!important;color:var(--text3);font-size:12px;font-weight:600;}
+.gb-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;color:var(--text3);font-size:10px;font-weight:650;}
 .gb-legend-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
 .gb-legend .sc{width:18px;height:18px;border-radius:6px;font-size:0;}
 
@@ -296,10 +296,10 @@ a{text-decoration:none;color:inherit;}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:none;align-items:center;justify-content:center;}
 .modal-bg.open{display:flex;}
 .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
-.modal h3{font-size:18px;font-weight:900;margin-bottom:18px;}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:18px;}
 .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);margin-top:-4px;}
 .field{margin-bottom:14px;}
-.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
 .field input,.field select{
   width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
   font-family:var(--font);font-size:13px;font-weight:600;outline:none;transition:.15s;
@@ -309,19 +309,19 @@ a{text-decoration:none;color:inherit;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:700;background:#1C1C1E;color:#fff;
+  border-radius:12px;font-size:13px;font-weight:600;background:#1C1C1E;color:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
 .qr-card{border:1.5px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
-.qr-card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#F5F0E8;font-size:12px;font-weight:700;color:#1C1C1E;}
+.qr-card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#F5F0E8;font-size:12px;font-weight:600;color:#1C1C1E;}
 .qr-avg{font-size:11px;color:#3A3A2E;font-weight:600;}
 .qr-table{width:100%;border-collapse:collapse;font-size:12px;}
-.qr-table th{padding:7px 12px;text-align:left;font-size:11px;font-weight:800;color:var(--text3);border-bottom:1px solid var(--border);}
+.qr-table th{padding:7px 12px;text-align:left;font-size:11px;font-weight:650;color:var(--text3);border-bottom:1px solid var(--border);}
 .qr-table td{padding:7px 12px;border-bottom:1px solid #fdf0f5;vertical-align:middle;}
 .qr-table tr:last-child td{border-bottom:none;}
-.qr-score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-weight:700;font-size:11px;background:linear-gradient(90deg,rgba(94,94,74,.12),rgba(232,53,122,.08));color:#C8E632;}
+.qr-score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-weight:600;font-size:11px;background:linear-gradient(90deg,rgba(94,94,74,.12),rgba(232,53,122,.08));color:#C8E632;}
 .gb-mobile-list{display:none;}
 .gb-mobile-card{
   border-top:1px solid var(--border);
@@ -342,8 +342,8 @@ a{text-decoration:none;color:inherit;}
   border-radius:12px;
   padding:10px 12px;
 }
-.gb-mobile-box-n{font-size:16px;font-weight:900;color:var(--text);line-height:1;}
-.gb-mobile-box-l{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.gb-mobile-box-n{font-size:16px;font-weight:700;color:var(--text);line-height:1;}
+.gb-mobile-box-l{font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
 .gb-mobile-lessons{display:flex;flex-wrap:wrap;gap:6px;}
 .gb-mobile-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;}
 
@@ -356,8 +356,8 @@ a{text-decoration:none;color:inherit;}
   #nav{transform:translateZ(0);}
   #page{padding:20px 16px 16px;gap:14px;}
   .page-head{flex-direction:column;align-items:stretch;gap:10px;}
-  .page-title{font-size:28px;font-weight:900;letter-spacing:-.04em;}
-  .page-sub{font-size:12px;line-height:1.5;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+  .page-title{font-size:28px;font-weight:700;letter-spacing:-.04em;}
+  .page-sub{font-size:12px;line-height:1.5;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
   .head-spacer{display:none;}
   .page-head .btn{align-self:flex-start;padding:8px 16px;border-radius:20px;font-size:12px;}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
@@ -379,7 +379,7 @@ a{text-decoration:none;color:inherit;}
   .invite-form{flex-direction:column;align-items:stretch;}
   .invite-input{min-width:0;}
   .member-row{align-items:center;gap:10px;padding:10px 0;}
-  .m-avatar{width:40px;height:40px;border-radius:50%;font-size:16px;font-weight:800;}
+  .m-avatar{width:40px;height:40px;border-radius:50%;font-size:16px;font-weight:650;}
   .m-prog{max-width:none;width:100%;}
   .m-spacer{display:none;}
   .gb-wrap{display:none;}
@@ -400,10 +400,10 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
@@ -531,12 +531,12 @@ a{text-decoration:none;color:inherit;}
   <div class="section" id="members-section" style="display:none">
     <div class="sec-head">
       <div class="sec-title">Students</div>
-      <span id="member-count" style="font-size:12px;color:var(--text3);font-weight:700;"></span>
+      <span id="member-count" style="font-size:12px;color:var(--text3);font-weight:600;"></span>
     </div>
     <div class="sec-body">
       <div class="invite-form" style="margin-bottom:18px;">
         <input class="invite-input" type="email" id="invite-email" required autocomplete="email" aria-label="Student email" placeholder="student@email.com — invite by email"/>
-        <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;">
+        <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:600;outline:none;">
           <option value="student">Student</option>
           <option value="editor">Co-teacher</option>
         </select>
@@ -612,7 +612,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=324"></script>
+<script src="scripts/app-core.js?v=325"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -840,7 +840,7 @@ function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
   const status = document.getElementById('board-status-copy');
   if (!boards.length) {
-    wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards — <a href="board.html" style="color:var(--accent);font-weight:700;">create one</a></span>';
+    wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards — <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>';
     if (status) status.textContent = 'Create a board first, then your gradebook will appear here.';
   } else {
     wrap.innerHTML = boards.map(b =>
@@ -997,7 +997,7 @@ function renderMemberList() {
       <span class="m-role role-${m.role}">${m.role}</span>
       <span class="progress-chip ${state}">${label}</span>
       <div class="m-spacer"></div>
-      ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:${avgQuiz>=80?'#d1fae5':avgQuiz>=50?'#fef3c7':'#fee2e2'};color:${avgQuiz>=80?'#065f46':avgQuiz>=50?'#92400e':'#991b1b'}">${avgQuiz}%</span>` : ''}
+      ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:650;padding:2px 7px;border-radius:7px;background:${avgQuiz>=80?'#d1fae5':avgQuiz>=50?'#fef3c7':'#fee2e2'};color:${avgQuiz>=80?'#065f46':avgQuiz>=50?'#92400e':'#991b1b'}">${avgQuiz}%</span>` : ''}
       <div class="m-prog"><div class="m-prog-fill" style="width:${pct}%"></div></div>
       <div class="m-pct">${pct}%</div>
       <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removeMember('${m.user_id}')">✕</button>
@@ -1040,8 +1040,8 @@ function renderGradebook() {
     return `<tr>
       <td class="td-name"><div class="m-avatar" style="width:28px;height:28px;font-size:15px;">${m.avatar}</div>${esc(m.name)}</td>
       ${cells}
-      <td style="font-weight:800;color:var(--green);">${done}</td>
-      <td style="font-weight:900;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}%</td>
+      <td style="font-weight:650;color:var(--green);">${done}</td>
+      <td style="font-weight:700;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}%</td>
     </tr>`;
   }).join('');
 
@@ -1053,10 +1053,10 @@ function renderGradebook() {
 
   document.getElementById('gb-tbody').innerHTML = rows + `
     <tr class="gb-summary">
-      <td class="td-name" style="font-weight:900;color:var(--text2);">${hasGradebookFilter() ? 'Filtered avg' : 'Class avg'}</td>
+      <td class="td-name" style="font-weight:700;color:var(--text2);">${hasGradebookFilter() ? 'Filtered avg' : 'Class avg'}</td>
       ${summCells}
       <td>—</td>
-      <td style="font-weight:900;color:var(--accent);">${classAvgPct(displayed)}%</td>
+      <td style="font-weight:700;color:var(--accent);">${classAvgPct(displayed)}%</td>
     </tr>`;
 
   if (mobileList) {
@@ -1080,8 +1080,8 @@ function renderGradebook() {
         <div class="gb-mobile-meta">
           <span class="m-role role-${m.role}">${m.role}</span>
           <span class="progress-chip ${state}">${label}</span>
-          <span style="font-size:11px;font-weight:800;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}% complete</span>
-          ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:800;color:var(--accent);">Quiz ${avgQuiz}%</span>` : ''}
+          <span style="font-size:11px;font-weight:650;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${pct}% complete</span>
+          ${avgQuiz !== null ? `<span style="font-size:11px;font-weight:650;color:var(--accent);">Quiz ${avgQuiz}%</span>` : ''}
         </div>
         <div class="gb-mobile-progress">
           <div class="gb-mobile-box"><div class="gb-mobile-box-n">${done}/${total}</div><div class="gb-mobile-box-l">Lessons</div></div>
@@ -1095,8 +1095,8 @@ function renderGradebook() {
         </div>
       </div>`;
     }).join('') + `<div class="gb-mobile-card" style="background:#F5F0E8;">
-      <div style="font-size:12px;font-weight:900;color:var(--text2);">${hasGradebookFilter() ? 'Filtered average' : 'Class average'}</div>
-      <div style="font-size:22px;font-weight:900;color:var(--accent);">${classAvgPct(displayed)}%</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text2);">${hasGradebookFilter() ? 'Filtered average' : 'Class average'}</div>
+      <div style="font-size:22px;font-weight:700;color:var(--accent);">${classAvgPct(displayed)}%</div>
       <div style="font-size:11px;color:var(--text3);">Across ${displayed.length} student${displayed.length === 1 ? '' : 's'} and ${lessonCols.length} lesson${lessonCols.length === 1 ? '' : 's'}.</div>
     </div>`;
   }
@@ -1283,7 +1283,7 @@ function renderQuizResultsFromData(results, offlineNotice = false) {
     const avg = Math.round(rows.reduce((s, r) => s + (r.pct || 0), 0) / rows.length);
     const tableRows = rows.map(r => `
       <tr>
-        <td style="font-weight:700">${esc(r.student_name || 'Unknown')}</td>
+        <td style="font-weight:600">${esc(r.student_name || 'Unknown')}</td>
         <td style="color:var(--text3);font-size:11px">${esc(r.student_email || '')}</td>
         <td><div class="qr-score-pill" style="--pct:${r.pct}">${r.score}/${r.max_score} <span style="opacity:.6">(${r.pct}%)</span></div></td>
         <td style="font-size:11px;color:var(--text3)">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
@@ -1318,14 +1318,14 @@ function openStudentDetail(userId) {
   const lessonRows = m.lessons.map((l,i) => {
     const icons = { done:'Done', 'in-progress':'Active', available:'Open', locked:'Locked' };
     return `<tr>
-      <td style="font-size:11px;font-weight:700;padding:5px 8px;">${esc(lessonCols[i]?.data?.title || lessonCols[i]?.title || 'Lesson '+(i+1))}</td>
+      <td style="font-size:11px;font-weight:600;padding:5px 8px;">${esc(lessonCols[i]?.data?.title || lessonCols[i]?.title || 'Lesson '+(i+1))}</td>
       <td style="text-align:center;">${icons[l.status]||'—'}</td>
     </tr>`;
   }).join('');
 
   const quizRows = quizzes.map(r => `<tr>
     <td style="font-size:11px;padding:5px 8px;font-family:var(--mono);">${r.card_id.slice(-8)}</td>
-    <td style="text-align:center;"><span style="padding:2px 8px;border-radius:7px;font-size:11px;font-weight:800;background:${r.pct>=80?'#d1fae5':r.pct>=50?'#fef3c7':'#fee2e2'};color:${r.pct>=80?'#065f46':r.pct>=50?'#92400e':'#991b1b'}">${r.pct}%</span></td>
+    <td style="text-align:center;"><span style="padding:2px 8px;border-radius:7px;font-size:11px;font-weight:650;background:${r.pct>=80?'#d1fae5':r.pct>=50?'#fef3c7':'#fee2e2'};color:${r.pct>=80?'#065f46':r.pct>=50?'#92400e':'#991b1b'}">${r.pct}%</span></td>
     <td style="font-size:11px;text-align:center;">${r.score}/${r.max_score}</td>
     <td style="font-size:11px;color:var(--text3);">${new Date(r.submitted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
   </tr>`).join('');
@@ -1334,33 +1334,33 @@ function openStudentDetail(userId) {
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
       <div class="gb-member-avatar">${m.avatar ? esc(m.avatar) : (m.name||'?').trim().charAt(0).toUpperCase()}</div>
       <div>
-        <div style="font-size:18px;font-weight:900;">${esc(m.name)}</div>
+        <div style="font-size:18px;font-weight:700;">${esc(m.name)}</div>
         <div style="font-size:12px;color:var(--text3);">${esc(m.email)} · <span class="m-role role-${m.role}">${m.role}</span></div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
       <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:22px;font-weight:900;color:var(--accent);">${pct}%</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:700;">Lesson progress</div>
+        <div style="font-size:22px;font-weight:700;color:var(--accent);">${pct}%</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:600;">Lesson progress</div>
       </div>
       <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:22px;font-weight:900;color:#6366f1;">${done}/${total}</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:700;">Lessons done</div>
+        <div style="font-size:22px;font-weight:700;color:#6366f1;">${done}/${total}</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:600;">Lessons done</div>
       </div>
       <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:22px;font-weight:900;color:#10b981;">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:700;">Quiz avg (${quizzes.length})</div>
+        <div style="font-size:22px;font-weight:700;color:#10b981;">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:600;">Quiz avg (${quizzes.length})</div>
       </div>
     </div>
     ${total ? `<div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Lesson Status</div>
+      <div style="font-size:12px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Lesson Status</div>
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead><tr><th style="text-align:left;padding:4px 8px;color:var(--text3);font-size:11px;">Lesson</th><th style="font-size:11px;color:var(--text3);">Status</th></tr></thead>
         <tbody>${lessonRows}</tbody>
       </table>
     </div>` : ''}
     ${quizzes.length ? `<div>
-      <div style="font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Quiz Submissions</div>
+      <div style="font-size:12px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Quiz Submissions</div>
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr><th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text3);">Card</th><th style="font-size:11px;color:var(--text3);">Score%</th><th style="font-size:11px;color:var(--text3);">Pts</th><th style="font-size:11px;color:var(--text3);">Date</th></tr></thead>
         <tbody>${quizRows}</tbody>
@@ -1397,11 +1397,11 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=324"></script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="pwa-boot.js?v=324" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
+<script src="pwa.js?v=325"></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="pwa-boot.js?v=325" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
 </body>
 </html>

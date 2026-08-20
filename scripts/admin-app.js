@@ -1210,7 +1210,7 @@ async function loadBillingPayments() {
           <td data-label="Plan"><span class="badge badge-${p.plan === 'school' ? 'admin' : 'teacher'}">${esc(p.plan)}</span><div class="time-text">Current: ${currentState}</div>${p.current_plan_expires_at ? `<div class="time-text">Expires: ${fmtDate(p.current_plan_expires_at)}</div>` : ''}</td>
           <td data-label="Amount"><strong>${amount}</strong><div class="time-text">${esc(p.payer_name || '')}</div><div class="time-text">${Number(p.months || 1)} month(s)</div></td>
           <td data-label="Billing">${billingCycleLabel(p.billing_cycle || 'monthly')} · ${fmtDate(p.tx_date)}${p.company_name ? `<div class="time-text">${esc(p.company_name)}</div>` : ''}${note}${adminNote}</td>
-          <td data-label="Status"><span class="badge" style="background:${p.status==='approved'?'#dcfce7':p.status==='rejected'?'#fee2e2':p.status==='pending'?'#fef3c7':'#f3f4f6'};color:${p.status==='approved'?'#166534':p.status==='rejected'?'#991b1b':p.status==='pending'?'#92400e':'#374151'};font-weight:800">${esc(p.status.toUpperCase())}</span>${p.reviewed_at ? `<div class="time-text">${fmtDate(p.reviewed_at)}</div>` : ''}</td>
+          <td data-label="Status"><span class="badge" style="background:${p.status==='approved'?'#dcfce7':p.status==='rejected'?'#fee2e2':p.status==='pending'?'#fef3c7':'#f3f4f6'};color:${p.status==='approved'?'#166534':p.status==='rejected'?'#991b1b':p.status==='pending'?'#92400e':'#374151'};font-weight:650">${esc(p.status.toUpperCase())}</span>${p.reviewed_at ? `<div class="time-text">${fmtDate(p.reviewed_at)}</div>` : ''}</td>
           <td data-label="Actions">
             ${pending ? `<div class="action-group">
               <button class="btn-sm btn-green" onclick="approvePayment(${p.id}, '${escAttr(p.user_name || 'user')}', '${escAttr(p.plan)}', ${Number(p.months || 1)}, '${escAttr(p.billing_cycle || 'monthly')}', '${escAttr(p.invoice_no || '')}')">Approve</button>
@@ -1312,7 +1312,7 @@ async function loadBoards() {
       <tr>
         <td data-label="Board"><strong>${esc(b.name)}</strong></td>
         <td data-label="Owner">
-          <div style="font-size:13px;font-weight:700">${esc(b.owner_name)}</div>
+          <div style="font-size:13px;font-weight:600">${esc(b.owner_name)}</div>
           <div class="ip-text">${esc(b.owner_email)}</div>
         </td>
         <td data-label="Cards" style="text-align:center">${b.cards_count ?? '—'}</td>
@@ -1374,7 +1374,7 @@ async function loadSessions() {
     tbody.innerHTML = d.sessions.map(s => `
       <tr>
         <td data-label="User">
-          <div style="font-weight:700">${s.user_avatar} ${esc(s.user_name)}</div>
+          <div style="font-weight:600">${s.user_avatar} ${esc(s.user_name)}</div>
           <div class="ip-text">${esc(s.user_email)}</div>
         </td>
         <td data-label="Device" style="font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
@@ -1796,7 +1796,7 @@ function initApiTester() {
   const btns = document.getElementById('at-quick-btns');
   if (btns) {
     btns.innerHTML = AT_QUICK.map((q, i) =>
-      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(94,94,74,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:700;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
+      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(94,94,74,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
     ).join('');
   }
 }
@@ -1904,7 +1904,7 @@ function renderApiHistory() {
   }
   el.innerHTML = atHistory.map((h, i) => `
     <div onclick="replayApiHistoryItem(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
-      <span style="font-family:monospace;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:${h.status<300?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)'};color:${h.status<300?'var(--green)':'var(--red)'}">${h.method}</span>
+      <span style="font-family:monospace;font-size:11px;font-weight:650;padding:2px 7px;border-radius:6px;background:${h.status<300?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)'};color:${h.status<300?'var(--green)':'var(--red)'}">${h.method}</span>
       <span style="font-family:monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.path)}</span>
       <span style="font-size:11px;color:var(--muted)">${h.status} · ${h.elapsed}ms · ${h.time}</span>
     </div>`).join('');
@@ -1990,7 +1990,7 @@ async function loadUserAuthEventsDrawer(userId) {
     el.innerHTML = d.events.slice(0, 12).map(e => `
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:11.5px">
         <span>${icons[e.event] || '⚪'}</span>
-        <span style="font-weight:700;min-width:100px">${esc(e.event)}</span>
+        <span style="font-weight:600;min-width:100px">${esc(e.event)}</span>
         <span style="color:var(--muted);flex:1">${esc(e.ip || '—')}</span>
         ${e.detail ? `<span style="color:var(--muted)">${esc(e.detail)}</span>` : ''}
         <span style="color:var(--muted);white-space:nowrap">${fmtRelative(e.created_at)}</span>
@@ -2105,7 +2105,7 @@ async function loadAuthEvents() {
     const icons = { 'login.ok':'🟢','login.fail':'🔴','login.blocked':'🚫','logout':'👋','password.reset':'🔑','google.login':'🔵','google.signup':'🔵' };
     tbody.innerHTML = d.events.map(e => `<tr>
       <td class="time-text">${fmtRelative(e.created_at)}</td>
-      <td><span style="font-weight:700">${icons[e.event]||'⚪'} ${esc(e.event)}</span></td>
+      <td><span style="font-weight:600">${icons[e.event]||'⚪'} ${esc(e.event)}</span></td>
       <td style="font-size:12px">${esc(e.user_name || e.email || '—')}<br><span style="color:var(--muted);font-size:11px">${esc(e.email||'')}</span></td>
       <td style="font-size:12px;font-family:monospace">${esc(e.ip||'—')}</td>
       <td style="font-size:12px;color:var(--muted)">${esc(e.detail||'—')}</td>
@@ -2127,7 +2127,7 @@ async function loadSuspendedUsers() {
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="font-size:22px">${u.avatar}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:13px">${esc(u.name)}</div>
+          <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
           ${u.suspended_reason ? `<div style="font-size:11px;color:#dc2626">${esc(u.suspended_reason)}</div>` : ''}
         </div>
@@ -2147,7 +2147,7 @@ async function loadLockedAccounts() {
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="font-size:22px">${u.avatar}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:13px">${esc(u.name)}</div>
+          <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
           <div style="font-size:11px;color:#ea580c">${u.failed_login_count||0} failed attempts · locked ${fmtRelative(u.locked_at)}</div>
         </div>

@@ -1524,15 +1524,15 @@ function printOutput(){
   const css=`*{box-sizing:border-box}body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#171420;margin:0;padding:32px 36px;background:#fff}
     h1{font-size:22px;margin:0 0 2px;letter-spacing:-.02em}.meta{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#7b7282;margin-bottom:18px}
     .tt-ws-q{border:1px solid #e6e7ee;border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid}
-    .tt-ws-qh{font-size:14px;font-weight:700;line-height:1.45}.tt-ws-num{font-weight:800;margin-right:6px}
+    .tt-ws-qh{font-size:14px;font-weight:600;line-height:1.45}.tt-ws-num{font-weight:650;margin-right:6px}
     .tt-ws-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}
     .tt-ws-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;padding:4px 9px;border-radius:7px;background:#f5f6fa}
-    .tt-ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:700}.tt-ws-mark{width:14px;text-align:center;opacity:.6}.tt-ws-opt.correct .tt-ws-mark{opacity:1}
-    .tt-ws-tf{display:flex;gap:10px;margin-top:8px}.tt-ws-tf-b{font-size:12px;font-weight:700;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}.tt-ws-tf-b.on{background:#dcfce7;color:#15803d}
+    .tt-ws-opt.correct{background:#dcfce7;color:#15803d;font-weight:600}.tt-ws-mark{width:14px;text-align:center;opacity:.6}.tt-ws-opt.correct .tt-ws-mark{opacity:1}
+    .tt-ws-tf{display:flex;gap:10px;margin-top:8px}.tt-ws-tf-b{font-size:12px;font-weight:600;padding:4px 12px;border-radius:7px;background:#f0f1f4;color:#9ca3af}.tt-ws-tf-b.on{background:#dcfce7;color:#15803d}
     .tt-ws-ans{font-size:13px;margin-top:7px;color:#15803d}.tt-ws-ans b{color:#15803d}.tt-ws-open{margin-top:9px;color:#c0c2cc;letter-spacing:1px}
-    .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:700;color:#0E0E10}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
+    .tt-ws-match{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:8px}.tt-ws-l{font-weight:600;color:#0E0E10}.tt-ws-card-txt{font-size:13px;line-height:1.55;color:#444;margin-top:6px}
     .tt-ws-stage{border-radius:12px;padding:13px 16px;margin-bottom:11px;page-break-inside:avoid;background:#fff;border:1.5px solid currentColor;border-left-width:4px;}
-    .tt-ws-stage-head{font-size:14px;font-weight:900;letter-spacing:-.01em;margin-bottom:8px;}
+    .tt-ws-stage-head{font-size:14px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px;}
     .tt-ws-stage-body{font-size:12.5px;line-height:1.65;color:#2d2e38;white-space:pre-wrap;}
     .task{border:1px solid #e6e7ee;border-radius:10px;padding:11px 13px;margin-bottom:10px;page-break-inside:avoid;font-size:13.5px;line-height:1.55}
     pre{white-space:pre-wrap;font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0}
@@ -1739,7 +1739,7 @@ async function generateWithAI(){
     // Overlay a shimmer badge so teacher sees it's being upgraded
     const improveNote=document.createElement('div');
     improveNote.id='tt-ai-improving';
-    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#0E0E10,#3A3A2E);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
+    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#0E0E10,#3A3A2E);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:650;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
     improveNote.innerHTML='<span style="font-size:16px">✨</span> AI is enhancing this result…';
     body.insertBefore(improveNote,body.firstChild);
     // ── Step 2: cloud Groq in background ──

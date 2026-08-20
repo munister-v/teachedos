@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=324">
-<link rel="preload" as="style" href="styles/unify.css?v=324">
-<link rel="manifest" href="manifest.json?v=324">
+<link rel="preload" as="style" href="styles/harmony.css?v=325">
+<link rel="preload" as="style" href="styles/unify.css?v=325">
+<link rel="manifest" href="manifest.json?v=325">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -51,7 +51,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 }
 .nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0;text-decoration:none;}
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:800;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
 .nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
 .nav-link{
   font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
@@ -59,10 +59,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 .nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:800;color:#C8E632;}
+.nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
@@ -70,7 +70,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:900;
+  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 .nb-spacer{flex:1;}
@@ -85,7 +85,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .st-item {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px; border-radius: 11px;
-  font-size: 13.5px; font-weight: 700; color: var(--text-2);
+  font-size: 13.5px; font-weight:600; color: var(--text-2);
   cursor: pointer;
   transition: background .15s ease, color .15s ease, transform .18s cubic-bezier(.34,1.3,.64,1), box-shadow .15s ease;
   margin-bottom: 2px;
@@ -113,17 +113,17 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   will-change: transform; transform: translateZ(0);
 }
 .card:hover { transform: translateY(-3px) translateZ(0); box-shadow: 0 10px 36px rgba(5,5,23,.11), 0 1px 0 rgba(255,255,255,.8) inset; border-color: rgba(200,230,50,.25); }
-.card-title { font-size: 16px; font-weight: 750; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card-title { font-size: 16px; font-weight:600; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
 /* ── Avatar area ── */
 #profile-avatar-big { font-size: 72px; line-height: 1; margin-bottom: 12px; cursor: pointer; transition: .15s; display: inline-block; }
 #profile-avatar-big:hover { transform: scale(1.08); }
-#profile-name-big { font-size: 26px; font-weight: 800; letter-spacing: -.04em; line-height: 1.02; color: var(--text, #1C1C1E) !important; }
+#profile-name-big { font-size: 26px; font-weight:650; letter-spacing: -.04em; line-height: 1.02; color: var(--text, #1C1C1E) !important; }
 #profile-email-big { font-size: 14px; color: var(--text-3); margin-top: 2px; }
 .role-badge {
   display: inline-flex; align-items: center; gap: 5px;
   margin-top: 8px; padding: 3px 12px; border-radius: 20px;
-  font-size: 12px; font-weight: 700;
+  font-size: 12px; font-weight:600;
   background: var(--accent-3); color: var(--accent);
 }
 
@@ -135,8 +135,8 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   transition: transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(94,94,74,.1); }
-.stat-n { font-size: 32px; font-weight: 800; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
-.stat-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-top: 4px; }
+.stat-n { font-size: 32px; font-weight:650; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
+.stat-label { font-size: 12px; font-weight:600; color: var(--text-3); margin-top: 4px; }
 
 /* ── Recent boards ── */
 .recent-board-item {
@@ -146,7 +146,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 }
 .recent-board-item:hover { background: var(--accent-2); transform: translateX(4px); }
 .rbi-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--accent-3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.rbi-name { font-size: 14px; font-weight: 700; }
+.rbi-name { font-size: 14px; font-weight:600; }
 .rbi-meta { font-size: 12px; color: var(--text-3); }
 
 /* ── Board grid (My Boards tab) ── */
@@ -161,13 +161,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .bc-thumb { height: 100px; background: linear-gradient(135deg, var(--accent-3), rgba(120,80,200,.12)); display: flex; align-items: center; justify-content: center; font-size: 36px; }
 .bc-body { padding: 14px; flex: 1; }
 .bc-name-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.bc-name { font-size: 14px; font-weight: 800; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.bc-name { font-size: 14px; font-weight:650; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .bc-name:hover { color: var(--accent); }
 .bc-meta { font-size: 11px; color: var(--text-3); }
 .bc-actions { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
 .bc-btn {
   flex: 1; padding: 6px 0; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg); font-size: 12px; font-weight: 700; cursor: pointer;
+  background: var(--bg); font-size: 12px; font-weight:600; cursor: pointer;
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .15s ease, border-color .15s ease, color .15s ease;
   color: var(--text-2); font-family: var(--font);
 }
@@ -181,7 +181,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; padding: 12px; border-radius: 12px;
   border: 2px dashed var(--border-2); background: var(--accent-2);
-  color: var(--accent); font-size: 14px; font-weight: 800;
+  color: var(--accent); font-size: 14px; font-weight:650;
   cursor: pointer; transition: .15s; font-family: var(--font);
   margin-bottom: 20px;
 }
@@ -189,7 +189,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 /* ── Settings ── */
 .setting-group { margin-bottom: 20px; }
-.setting-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.setting-label { font-size: 12px; font-weight:600; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
 .setting-input {
   width: 100%; padding: 10px 14px; border-radius: 10px;
   border: 1.5px solid var(--border); font-family: var(--font);
@@ -204,7 +204,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .setting-btn {
   padding: 9px 20px; border-radius: 10px; border: none;
   background: var(--accent); color: #fff; font-family: var(--font);
-  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-size: 14px; font-weight:600; cursor: pointer;
   transition: transform .2s cubic-bezier(.34,1.56,.64,1), background .15s ease, box-shadow .2s ease;
 }
 .setting-btn:hover { background: #2e2e34; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(5,5,23,.28); }
@@ -263,13 +263,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 /* ── Danger zone ── */
 .danger-zone { border: 1.5px solid rgba(239,68,68,.25); border-radius: 14px; padding: 20px; }
-.danger-zone-title { font-size: 14px; font-weight: 800; color: #ef4444; margin-bottom: 12px; }
+.danger-zone-title { font-size: 14px; font-weight:650; color: #ef4444; margin-bottom: 12px; }
 
 /* ── Toast ── */
 #toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px) translateZ(0);
   background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 20px;
-  font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none;
+  font-size: 13px; font-weight:600; opacity: 0; pointer-events: none;
   transition: opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.34,1.3,.64,1);
   z-index: 9999; white-space: nowrap; will-change: transform, opacity;
   backdrop-filter: blur(12px); box-shadow: 0 8px 28px rgba(0,0,0,.18);
@@ -308,7 +308,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     background: rgba(255,255,255,0.7);
     border: 1px solid var(--border);
     font-size: 13px;
-    font-weight: 800;
+    font-weight:650;
     white-space: nowrap;
     min-height: 0;
     margin-bottom: 0;
@@ -332,7 +332,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   }
   .mobile-profile-eyebrow {
     font-size: 10px;
-    font-weight: 800;
+    font-weight:650;
     color: var(--text-3);
     text-transform: uppercase;
     letter-spacing: .08em;
@@ -340,7 +340,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   }
   .mobile-profile-title {
     font-size: 24px;
-    font-weight: 900;
+    font-weight:700;
     color: var(--text);
     line-height: 1.05;
     letter-spacing: -.04em;
@@ -376,7 +376,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     flex-shrink: 0;
     font-size: 18px;
   }
-  .mobile-profile-action-title { font-size: 13px; font-weight: 800; line-height: 1.2; }
+  .mobile-profile-action-title { font-size: 13px; font-weight:650; line-height: 1.2; }
   .mobile-profile-action-sub { margin-top: 3px; font-size: 11px; color: var(--text-3); line-height: 1.35; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .boards-grid { grid-template-columns: 1fr; }
@@ -389,10 +389,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=324" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=324">
-<link rel="stylesheet" href="styles/harmony.css?v=324">
-<link rel="stylesheet" href="styles/unify.css?v=324">
+<script src="theme.js?v=325" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=325">
+<link rel="stylesheet" href="styles/harmony.css?v=325">
+<link rel="stylesheet" href="styles/unify.css?v=325">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -522,7 +522,7 @@ body.profile-page #nav .nav-link {
   height: 44px;
   padding: 0 12px !important;
   color: #3A3A2E !important;
-  font-weight: 700 !important;
+  font-weight:600 !important;
   flex: 0 0 auto;
 }
 body.profile-page #nav .nav-link:hover,
@@ -771,20 +771,20 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
     <!-- BULK IMPORT MODAL -->
     <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
-        <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
+        <div style="font-size:18px;font-weight:700;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
         <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
+          <div style="font-size:11px;font-weight:600;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
           <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
         </div>
         <div style="margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
+          <div style="font-size:11px;font-weight:600;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
           <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
-          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:600;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:650;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
         <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
       </div>
@@ -871,7 +871,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
             <div class="setting-label" style="margin-bottom:4px;">Use computer time automatically</div>
             <div style="font-size:12px;color:var(--text-3);">Detected zone: <span id="tz-detected-label">—</span></div>
           </div>
-          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-2);cursor:pointer;">
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
             <input id="set-tz-auto" type="checkbox" onchange="toggleTimeZoneMode(this.checked)">
             Auto
           </label>
@@ -904,8 +904,8 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="font-size:2rem;" id="plan-icon">⭐</div>
           <div>
-            <div style="font-size:1rem;font-weight:900;color:var(--text);" id="plan-name-display">Free</div>
-            <div style="font-size:12px;color:var(--text-3);font-weight:700;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--text);" id="plan-name-display">Free</div>
+            <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
           </div>
         </div>
         <div id="plan-status-banner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(28,28,30,.03);font-size:12px;line-height:1.6;"></div>
@@ -914,7 +914,7 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
 
         <!-- Upgrade options -->
         <div id="plan-upgrade-section" style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Choose a package and billing cycle</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Choose a package and billing cycle</div>
           <div class="setting-group" style="margin-bottom:12px;">
             <div class="setting-label">Billing cycle</div>
             <select class="setting-input" id="billing-cycle-select" onchange="updateSelectedPlanPrice()">
@@ -928,19 +928,19 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
               <div class="plan-option-icon"><svg class="ic" aria-hidden="true"><use href="#i-rocket"/></svg></div>
               <div style="flex:1;">
-                <div class="plan-option-title" style="font-size:14px;font-weight:800;">Teacher Pro</div>
+                <div class="plan-option-title" style="font-size:14px;font-weight:650;">Teacher Pro</div>
                 <div class="plan-option-meta" style="font-size:11px;">Unlimited boards · 30 students · Analytics</div>
               </div>
-              <div class="plan-option-price" id="plan-price-pro" style="font-size:14px;font-weight:900;">$9.90/mo</div>
+              <div class="plan-option-price" id="plan-price-pro" style="font-size:14px;font-weight:700;">$9.90/mo</div>
             </div>
             <div class="plan-option" onclick="selectPlan('school')" id="plan-opt-school"
               style="padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;">
               <div class="plan-option-icon"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
               <div style="flex:1;">
-                <div class="plan-option-title" style="font-size:14px;font-weight:800;">School</div>
+                <div class="plan-option-title" style="font-size:14px;font-weight:650;">School</div>
                 <div class="plan-option-meta" style="font-size:11px;">Unlimited everything · Admin panel</div>
               </div>
-              <div class="plan-option-price" id="plan-price-school" style="font-size:14px;font-weight:900;">$29/mo</div>
+              <div class="plan-option-price" id="plan-price-school" style="font-size:14px;font-weight:700;">$29/mo</div>
             </div>
           </div>
         </div>
@@ -948,10 +948,10 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <!-- IBAN payment details (shown after selecting a plan) -->
         <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
           <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(200,230,50,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
-            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Payment details</div>
+            <div style="font-size:13px;font-weight:650;color:var(--text);margin-bottom:10px;"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Payment details</div>
             <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
-                <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:700;cursor:pointer;color:var(--text-2);">Copy</button>
+                <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:600;cursor:pointer;color:var(--text-2);">Copy</button>
               </div>
               <div><strong>Plan:</strong> <span id="iban-plan-name">—</span></div>
               <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
@@ -980,14 +980,14 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
         <div id="manage-sub-panel" style="display:none;margin-top:16px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;">
           <!-- Header -->
           <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(200,230,50,.1),rgba(200,230,50,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:800;color:var(--text);"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Subscription details</div>
+            <div style="font-size:13px;font-weight:650;color:var(--text);"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Subscription details</div>
             <button onclick="toggleManagePanel()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);line-height:1;">×</button>
           </div>
           <!-- Plan summary -->
           <div id="manage-plan-summary" style="padding:14px 16px;border-bottom:1px solid var(--border);display:grid;gap:8px;"></div>
           <!-- Payment history -->
           <div style="padding:14px 16px;">
-            <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Payment History</div>
+            <div style="font-size:11px;font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Payment History</div>
             <div id="billing-requests"></div>
           </div>
           <!-- Renew -->
@@ -1011,33 +1011,33 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=324"></script>
-<script src="scripts/profile-app.js?v=324"></script>
-<script src="pwa-boot.js?v=324" defer></script>
+<script src="scripts/app-core.js?v=325"></script>
+<script src="scripts/profile-app.js?v=325"></script>
+<script src="pwa-boot.js?v=325" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(5,5,23,.18);padding:28px 28px 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-size:18px;font-weight:900;"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> New board</div>
+      <div style="font-size:18px;font-weight:700;"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> New board</div>
       <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
     </div>
     <div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board Name</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board Name</div>
       <input id="tpl-name" type="text" placeholder="My Board"
         style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font);outline:none;"
         onkeydown="if(event.key==='Enter')confirmNewBoard()">
     </div>
-    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
     <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;max-height:360px;overflow-y:auto;padding-right:4px;"></div>
-    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
+    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js?v=324"></script>
-<script src="scripts/nav-boost.js?v=324" defer></script>
-<script src="scripts/mobile-perf.js?v=324" defer></script>
-<script src="scripts/mobile-nav.js?v=324"></script>
-<script src="scripts/mobile-zoom-guard.js?v=324" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=324" defer></script>
+<script src="pwa.js?v=325"></script>
+<script src="scripts/nav-boost.js?v=325" defer></script>
+<script src="scripts/mobile-perf.js?v=325" defer></script>
+<script src="scripts/mobile-nav.js?v=325"></script>
+<script src="scripts/mobile-zoom-guard.js?v=325" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=325" defer></script>
 </body>
 </html>

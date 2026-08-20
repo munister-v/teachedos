@@ -233,17 +233,17 @@
     letter-spacing: .10em; text-transform: uppercase; margin-bottom: 2px;
   }
   .mp-topbar-title {
-    font-size: 20px; font-weight: 900; color: var(--mp-text); letter-spacing: -.02em;
+    font-size: 20px; font-weight:700; color: var(--mp-text); letter-spacing: -.02em;
     line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .mp-greeting { flex: 1; min-width: 0; }
-  .mp-greeting-name { font-size: 19px; font-weight: 900; color: var(--mp-text); letter-spacing: -.02em; line-height: 1.1; transition: opacity .2s ease; }
+  .mp-greeting-name { font-size: 19px; font-weight:700; color: var(--mp-text); letter-spacing: -.02em; line-height: 1.1; transition: opacity .2s ease; }
   .mp-topbar-actions { display: flex; gap: 8px; align-items: center; }
   .mp-avatar {
     width: 42px; height: 42px; border-radius: 50%;
     background: linear-gradient(135deg, var(--mp-lime), var(--mp-lime-dark));
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 14px; color: var(--mp-premium);
+    font-weight:650; font-size: 14px; color: var(--mp-premium);
     letter-spacing: .04em; flex-shrink: 0;
   }
   .mp-icon-btn, .mp-icon-bell {
@@ -269,7 +269,7 @@
     font: 700 10px/1 var(--mp-mono); color: var(--mp-text-3);
     letter-spacing: .10em; text-transform: uppercase; margin-bottom: 6px;
   }
-  .mp-h1 { font-size: clamp(26px, 8vw, 30px); font-weight: 900; letter-spacing: -.035em; line-height: 1.05; color: var(--mp-text); }
+  .mp-h1 { font-size: clamp(26px, 8vw, 30px); font-weight:700; letter-spacing: -.035em; line-height: 1.05; color: var(--mp-text); }
   .mp-hero-serif { font-family: var(--mp-serif); font-weight: 600; font-size: clamp(26px, 8vw, 30px); line-height: 1.05; color: var(--mp-text); letter-spacing: -.02em; }
   .mp-hero-serif em { color: var(--mp-lime-dark); font-style: italic; }
   .mp-page-actions { display: flex; gap: 8px; margin-left: auto; }
@@ -309,8 +309,8 @@
     font: 700 10px/1 var(--mp-mono); color: var(--mp-text-inv-2);
     letter-spacing: .10em; text-transform: uppercase;
   }
-  .mp-featured-title { font-size: 24px; font-weight: 900; letter-spacing: -.025em; line-height: 1.1; margin-bottom: 6px; }
-  .mp-next-title { font-family: var(--mp-serif); font-weight: 700; font-size: 22px; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; color: #fff; }
+  .mp-featured-title { font-size: 24px; font-weight:700; letter-spacing: -.025em; line-height: 1.1; margin-bottom: 6px; }
+  .mp-next-title { font-family: var(--mp-serif); font-weight:600; font-size: 22px; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; color: #fff; }
   .mp-featured-meta, .mp-next-meta { font-size: 13px; color: var(--mp-text-inv-2); margin-bottom: 18px; line-height: 1.4; }
   .mp-featured-cta, .mp-next-cta { display: flex; gap: 8px; }
   /* Pulse — opacity-only (stays on compositor, zero paint) */
@@ -334,8 +334,8 @@
   a.mp-stat:active, button.mp-stat:active { transform: scale(.97); }
   a.mp-stat:hover, button.mp-stat:hover { border-color: var(--mp-border-2); }
   .mp-stat-label { font: 700 10px/1 var(--mp-mono); color: var(--mp-text-3); letter-spacing: .10em; text-transform: uppercase; margin-bottom: 10px; }
-  .mp-stat-n { font-size: 28px; font-weight: 900; letter-spacing: -.04em; color: var(--mp-text); line-height: 1; transition: opacity .25s ease; }
-  .mp-stat-sub { font-size: 11px; color: var(--mp-text-3); font-weight: 700; margin-top: 4px; }
+  .mp-stat-n { font-size: 28px; font-weight:700; letter-spacing: -.04em; color: var(--mp-text); line-height: 1; transition: opacity .25s ease; }
+  .mp-stat-sub { font-size: 11px; color: var(--mp-text-3); font-weight:600; margin-top: 4px; }
   /* Coloured tile variants with serif numerals */
   .mp-stat-lavender { background: rgba(205,242,79,.22); border-color: rgba(205,242,79,.35); }
   .mp-stat-peach    { background: rgba(255,190,100,.22); border-color: rgba(255,190,100,.35); }
@@ -344,7 +344,7 @@
   .mp-stat-peach .mp-stat-label, .mp-stat-peach .mp-stat-sub,
   .mp-stat-cyan .mp-stat-label, .mp-stat-cyan .mp-stat-sub { color: rgba(14,14,16,.55); }
   .mp-stat-lavender .mp-stat-n, .mp-stat-peach .mp-stat-n, .mp-stat-cyan .mp-stat-n {
-    font-family: var(--mp-serif); font-weight: 700; font-size: 30px; color: var(--mp-text); letter-spacing: -.03em;
+    font-family: var(--mp-serif); font-weight:600; font-size: 30px; color: var(--mp-text); letter-spacing: -.03em;
   }
 
   /* ── Section head ── */
@@ -377,8 +377,8 @@
   .mp-board-card.dark { background: var(--mp-premium); border-color: var(--mp-premium); color: var(--mp-text-inv); }
   .mp-board-eyebrow { font: 700 10px var(--mp-mono); color: var(--mp-text-3); letter-spacing: .10em; text-transform: uppercase; }
   .mp-board-card.dark .mp-board-eyebrow { color: var(--mp-text-inv-2); }
-  .mp-board-title { font-size: 15px; font-weight: 900; letter-spacing: -.02em; line-height: 1.2; flex: 1; }
-  .mp-board-foot { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; }
+  .mp-board-title { font-size: 15px; font-weight:700; letter-spacing: -.02em; line-height: 1.2; flex: 1; }
+  .mp-board-foot { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight:600; }
   .mp-board-meta { font-family: var(--mp-mono); color: var(--mp-text-3); letter-spacing: .04em; }
   .mp-board-card.dark .mp-board-meta { color: var(--mp-text-inv-3); }
   .mp-board-status { display: inline-flex; align-items: center; gap: 5px; color: var(--mp-text-2); }
@@ -416,14 +416,14 @@
   .mp-quick:active { transform: scale(.98); }
   .mp-quick-ic, .mp-quick-ic2 {
     border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
-    font-weight: 900; flex-shrink: 0;
+    font-weight:700; flex-shrink: 0;
   }
   .mp-quick-ic { width: 40px; height: 40px; background: var(--mp-bg); font-size: 20px; color: var(--mp-text-2); }
   .mp-quick-ic2 { width: 44px; height: 44px; font-size: 18px; }
   .mp-quick-info { flex: 1; min-width: 0; }
-  .mp-quick-t { font-size: 14px; font-weight: 900; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; }
-  .mp-quick-s { font-size: 12px; color: var(--mp-text-3); font-weight: 700; margin-top: 3px; }
-  .mp-quick-arrow, .mp-quick-arr { font-size: 18px; color: var(--mp-text-3); font-weight: 700; flex-shrink: 0; }
+  .mp-quick-t { font-size: 14px; font-weight:700; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; }
+  .mp-quick-s { font-size: 12px; color: var(--mp-text-3); font-weight:600; margin-top: 3px; }
+  .mp-quick-arrow, .mp-quick-arr { font-size: 18px; color: var(--mp-text-3); font-weight:600; flex-shrink: 0; }
 
   /* ── Today list / timeline ── */
   .mp-today-list { padding: 0 18px 4px; display: flex; flex-direction: column; gap: 8px; }
@@ -438,10 +438,10 @@
   .mp-today-time b { font: 800 15px/1 var(--mp-mono); color: var(--mp-text); letter-spacing: -.01em; }
   .mp-today-time span { font: 700 10px/1 var(--mp-mono); color: var(--mp-text-3); margin-top: 4px; }
   .mp-today-info { flex: 1; min-width: 0; }
-  .mp-today-name { font-size: 14px; font-weight: 900; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mp-today-name { font-size: 14px; font-weight:700; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mp-today-sub { font: 700 11px var(--mp-mono); color: var(--mp-text-3); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
-  .mp-today-arrow { font-size: 17px; color: var(--mp-text-3); font-weight: 700; flex-shrink: 0; }
-  .mp-today-check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(22,163,74,.12); color: #16a34a; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; }
+  .mp-today-arrow { font-size: 17px; color: var(--mp-text-3); font-weight:600; flex-shrink: 0; }
+  .mp-today-check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(22,163,74,.12); color: #16a34a; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight:700; }
   .mp-today-badge { flex-shrink: 0; font: 900 9px var(--mp-mono); letter-spacing: .08em; background: var(--mp-lime); color: var(--mp-premium); padding: 4px 9px; border-radius: 999px; }
   .mp-today-item.next { background: var(--mp-premium); border-color: var(--mp-premium); box-shadow: 0 10px 26px rgba(14,14,16,.18); }
   .mp-today-item.next .mp-today-name { color: #fff; }
@@ -449,12 +449,12 @@
   .mp-today-item.next .mp-today-time b { color: var(--mp-lime); }
   .mp-today-item.next .mp-today-time span, .mp-today-item.next .mp-today-sub { color: rgba(255,255,255,.55); }
   .mp-today-item.done { opacity: .5; }
-  .mp-today-empty { margin: 0 18px; padding: 20px 16px; background: var(--mp-surface); border: 1px dashed var(--mp-border-2); border-radius: var(--mp-radius-md); font-size: 13px; font-weight: 700; color: var(--mp-text-3); text-align: center; line-height: 1.5; }
-  .mp-today-empty b { color: var(--mp-text); font-weight: 900; }
+  .mp-today-empty { margin: 0 18px; padding: 20px 16px; background: var(--mp-surface); border: 1px dashed var(--mp-border-2); border-radius: var(--mp-radius-md); font-size: 13px; font-weight:600; color: var(--mp-text-3); text-align: center; line-height: 1.5; }
+  .mp-today-empty b { color: var(--mp-text); font-weight:700; }
 
   /* ── Lesson timeline ── */
   .mp-timeline-head { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 18px 14px; }
-  .mp-timeline-h { font-family: var(--mp-serif); font-size: 24px; font-weight: 700; letter-spacing: -.025em; }
+  .mp-timeline-h { font-family: var(--mp-serif); font-size: 24px; font-weight:600; letter-spacing: -.025em; }
   .mp-timeline-meta { font: 700 10px var(--mp-mono); color: var(--mp-text-3); letter-spacing: .10em; text-transform: uppercase; }
   .mp-timeline { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; }
   .mp-tl-row { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: stretch; }
@@ -462,8 +462,8 @@
   .mp-tl-time::after { content: ''; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--mp-border-2); margin-top: 2px; }
   .mp-tl-card { padding: 14px 16px; background: var(--mp-surface); border-radius: var(--mp-radius-md); border: 1px solid var(--mp-border); box-shadow: var(--mp-shadow-sm); display: flex; align-items: center; gap: 10px; }
   .mp-tl-info { flex: 1; min-width: 0; }
-  .mp-tl-t { font-size: 14px; font-weight: 900; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; }
-  .mp-tl-s { font-size: 11px; color: var(--mp-text-3); font-weight: 700; margin-top: 3px; }
+  .mp-tl-t { font-size: 14px; font-weight:700; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; }
+  .mp-tl-s { font-size: 11px; color: var(--mp-text-3); font-weight:600; margin-top: 3px; }
   .mp-tl-tag { padding: 3px 8px; border-radius: 999px; background: var(--mp-lime); color: var(--mp-lime-text); font: 900 9px var(--mp-mono); letter-spacing: .08em; }
   .mp-tl-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--mp-border-2); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--mp-text-3); flex-shrink: 0; }
   .mp-tl-check.done { background: var(--mp-lime); border-color: var(--mp-lime); color: var(--mp-lime-text); }
@@ -482,7 +482,7 @@
   }
   .mp-day:active { transform: scale(.93); }
   .mp-day-w { font: 700 10px var(--mp-mono); color: var(--mp-text-3); letter-spacing: .08em; text-transform: uppercase; }
-  .mp-day-n { font-size: 18px; font-weight: 900; color: var(--mp-text); letter-spacing: -.02em; line-height: 1; }
+  .mp-day-n { font-size: 18px; font-weight:700; color: var(--mp-text); letter-spacing: -.02em; line-height: 1; }
   .mp-day.active, .mp-day.now { background: var(--mp-premium); border-color: var(--mp-premium); }
   .mp-day.active .mp-day-w, .mp-day.now .mp-day-w { color: var(--mp-text-inv-2); }
   .mp-day.active .mp-day-n, .mp-day.now .mp-day-n { color: var(--mp-text-inv); }
@@ -497,7 +497,7 @@
   }
   .mp-search-ic { font-size: 14px; color: var(--mp-text-3); }
   .mp-search input { flex: 1; border: none; outline: none; background: transparent; font: 700 16px var(--mp-font); color: var(--mp-text); }
-  .mp-search input::placeholder { color: var(--mp-text-3); font-weight: 700; }
+  .mp-search input::placeholder { color: var(--mp-text-3); font-weight:600; }
   .mp-filters { display: flex; gap: 6px; padding: 0 18px 16px; overflow-x: auto; }
   .mp-filter {
     flex: 0 0 auto; min-height: 44px; padding: 9px 16px; border-radius: var(--mp-radius-full);
