@@ -1200,6 +1200,7 @@ function renderCommunity() {
           ? `<a class="community-primary-action" href="${esc(buildLessonUrl(p))}">View lesson →</a>`
           : `<a class="community-primary-action" href="board.html">Open board</a>`
         }
+        <button class="community-link-action" type="button" aria-label="Share lesson" title="Share lesson" onclick='shareCommunityPost(${JSON.stringify(p.id)})'>Share</button>
         </div>
       </div>
     </article>`;
@@ -1220,6 +1221,20 @@ function copyPostLink(postId) {
   navigator.clipboard?.writeText(link)
     .then(() => toast('✓ Share link copied - paste it to any teacher'))
     .catch(() => { prompt('Copy this link:', link); });
+}
+
+async function shareCommunityPost(postId) {
+  const post = findPost(postId);
+  if (!post) { toast('Lesson not found'); return; }
+  const url = buildShareLink(post);
+  if (navigator.share) {
+    try { await navigator.share({ title: post.title || 'TeachEd lesson', text: post.desc || 'Shared lesson from TeachEd Community.', url }); return; } catch {}
+  }
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+    else throw new Error('clipboard unavailable');
+    toast('✓ Lesson link copied');
+  } catch { window.prompt('Copy this lesson link:', url); }
 }
 
 // ── Import board snapshot → open board.html with data ─────────
