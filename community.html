@@ -124,7 +124,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .community-cover-kind{font:800 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);}
   body .community-cover-level{display:inline-flex;align-items:center;justify-content:center;min-height:25px;padding:3px 8px;border-radius:999px;background:#C8E632;color:#171817;font:900 10px var(--mono);letter-spacing:.05em;}
   body .community-cover-grid{position:absolute;z-index:1;top:50px;right:14px;bottom:37px;left:14px;display:grid;grid-template-columns:1.25fr .85fr .85fr;grid-template-rows:1fr 1fr;gap:5px;}
-  body .community-cover-block{display:block;min-height:0;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:rgba(255,255,255,.16);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;}
+  body .community-cover-block{display:flex;min-height:0;overflow:hidden;align-items:flex-end;padding:6px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:rgba(255,255,255,.16);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;color:rgba(255,255,255,.7);font:800 8px var(--mono);letter-spacing:.04em;text-transform:uppercase;}
   body .community-cover-block:nth-child(1){grid-row:1 / span 2;background:rgba(255,255,255,.25);}
   body .community-cover-block:nth-child(2){background:rgba(200,230,50,.7);}
   body .community-cover-block:nth-child(3){background:rgba(255,255,255,.12);}
@@ -789,16 +789,29 @@ function getAuthorInitials(name) {
   return String(name || 'Teacher').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || 'T';
 }
 
+function previewColor(value, fallback) {
+  const color = String(value || '').trim();
+  return /^#[0-9a-f]{3,8}$/i.test(color) ? color : fallback;
+}
+
 function lessonCoverHtml(post, cardCount) {
   const seed = Array.from(String(post.id || post.title || '')).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const style = (seed % 4) + 1;
   const caption = cardCount ? `${cardCount} activity cards` : 'Lesson snapshot';
+  const palette = ['#ffffff66','#c8e632','#ffffff33','#ffffff4d'];
+  const cards = Array.isArray(post.snapshot?.cards) ? post.snapshot.cards.filter(card => card.type !== 'frame').slice(0,4) : [];
+  const labels = cards.map(card => String(card.type || 'activity').replace(/[-_]/g, ' '));
+  const blocks = Array.from({ length:4 }, (_, index) => {
+    const card = cards[index];
+    const color = previewColor(card?.data?.color, palette[index]);
+    return `<span class="community-cover-block" style="background:${esc(color)}">${esc(labels[index] || '')}</span>`;
+  }).join('');
   return `<div class="community-lesson-cover cover-style-${style}" aria-hidden="true">
     <div class="community-cover-head">
       <span class="community-cover-kind">Board lesson</span>
       <span class="community-cover-level">${esc(post.level || 'Mixed')}</span>
     </div>
-    <div class="community-cover-grid"><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span></div>
+    <div class="community-cover-grid">${blocks || '<span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span>'}</div>
     <span class="community-cover-caption">${caption}</span>
   </div>`;
 }
