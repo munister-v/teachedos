@@ -15034,7 +15034,7 @@ const COMMUNITY_IMPORT_KEY = 'teachedos_community_import';
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Shared board ready to import</div>
       <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards - import to a new board?</div>
     </div>
     <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
@@ -15996,8 +15996,18 @@ let _shareFrameId = '';
 
 function getShareUrl() {
   if (currentBoardId) return location.origin + location.pathname + '?id=' + currentBoardId;
-  forceSave && forceSave();
-  return location.origin + location.pathname + '?local=1';
+  const boardName = document.getElementById('board-name-display')?.textContent?.trim() || 'Shared board';
+  const snapshot = { name: boardName, cards: state.cards, links: state.arrows };
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
+    if (encoded.length > 240000) {
+      toast('This local board is too large for a share link. Sync it first.');
+      return location.origin + location.pathname + '?local=1';
+    }
+    return location.origin + location.pathname + '?communityImport=' + encodeURIComponent(encoded);
+  } catch {
+    return location.origin + location.pathname + '?local=1';
+  }
 }
 
 function spUpdateBoardContext() {
@@ -16107,7 +16117,7 @@ function openSharePanel() {
     : 'Sync a board you own to publish it.';
   const nativeBtn = document.getElementById('sp-native-share-btn');
   if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
-  if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
+  if (!currentBoardId) toast('This local board link includes a snapshot. Invite and Community publishing require sync.');
   document.getElementById('btn-share')?.setAttribute('aria-expanded', 'true');
   spShowView('home');
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
