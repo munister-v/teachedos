@@ -416,6 +416,15 @@ html,body {
 .di-icon.settings    { background: linear-gradient(145deg,#585C59,#474B48); }
 .di-icon.finder      { background: linear-gradient(145deg,#6B7A63,#5A6754); }
 
+/* The top navigation already owns the full information architecture. Keep
+   the dock focused on the six actions teachers use while preparing a class;
+   secondary destinations remain one click away in the menubar. */
+@media (min-width: 861px) {
+  #dock .di-secondary { display: none; }
+  #dock { gap: 6px; padding-left: 12px; padding-right: 12px; }
+  #dock .di-icon { width: 44px; height: 44px; }
+}
+
 /* ═══════════════════════════ WINDOWS ═══════════════════════════ */
 .win {
   position:fixed; border-radius:var(--radius-win); overflow:hidden;
@@ -1129,6 +1138,27 @@ html,body {
 .sp-result-kbd { font-size:10px; color: var(--text-3); font-family: var(--font-mono);
   background: rgba(0,0,0,0.06); border-radius:5px; padding:2px 6px; flex-shrink:0; }
 #spotlight-empty { padding:32px; text-align:center; color: var(--text-3); font-size:13px; }
+
+/* Spotlight rows are actions, not a dense result table: give each one a
+   clear hit area and enough breathing room for keyboard or touch use. */
+#spotlight-results { padding: 10px 8px 12px; }
+.sp-result {
+  min-height: 56px;
+  margin: 2px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.sp-result:hover, .sp-result.selected { background: rgba(205,242,79,.10); }
+#spotlight-clear { width: 32px; height: 32px; }
+
+@media (max-width: 860px) {
+  #spotlight-overlay { padding: 16px 8px 0; }
+  #spotlight-box { width: 100%; max-width: 560px; }
+  #spotlight-input-wrap { min-height: 56px; padding-left: 16px; padding-right: 12px; }
+  #spotlight-results { max-height: 64vh; padding: 8px 6px 12px; }
+  .sp-result { min-height: 60px; padding: 11px 12px; }
+  .sp-result-icon { width: 38px; height: 38px; }
+}
 
 /* ═══════════════════════════ NOTIFICATION BADGE ═══════════════════════════ */
 .di-badge {
@@ -2137,34 +2167,34 @@ html,body {
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
     </a>
-    <a class="di" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
+    <a class="di di-secondary" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
       <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
     </a>
-    <a class="di" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
+    <a class="di di-secondary" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
       <div class="di-icon" style="background:linear-gradient(145deg,#6B7A63,#5A6754);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
       <div class="di-label">Community</div>
       <div class="di-dot"></div>
     </a>
     <div class="di-sep"></div>
-    <a class="di" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
+    <a class="di di-secondary" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
       <div class="di-icon" style="background:linear-gradient(145deg,#5C7570,#4C625E);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
 
-    <a class="di" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" title="Gradebook">
+    <a class="di di-secondary" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" title="Gradebook">
       <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
-    <div class="di" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
+    <div class="di di-secondary" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
       <div class="di-icon" style="background:linear-gradient(145deg,#5A6459,#6B7669);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
       <div class="di-label">Pricing</div>
       <div class="di-dot"></div>
     </div>
-    <a class="di" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
+    <a class="di di-secondary" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
       <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>

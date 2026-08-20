@@ -2879,7 +2879,7 @@ body.board-page .empty-action.primary {
 }
 #notif-panel .np-title { font-size: 13px; font-weight:650; letter-spacing: -.01em; color: #F5F0E8 !important; }
 #notif-panel .np-mark {
-  margin-left: auto; padding: 4px 8px; border: 0; border-radius: 7px; cursor: pointer;
+  margin-left: auto; min-height: 32px; padding: 5px 9px; border: 0; border-radius: 8px; cursor: pointer;
   background: rgba(205,242,79,.12) !important; color: #CDF24F !important;
   font-size: 11px; font-weight:600;
 }
@@ -2887,7 +2887,7 @@ body.board-page .empty-action.primary {
 #notif-panel .np-list { overflow-y: auto; max-height: 360px; padding: 8px; }
 #notif-panel .np-empty { padding: 26px 16px; text-align: center; font-size: 13px; color: rgba(245,240,232,.62) !important; }
 #notif-panel .np-item {
-  display: flex; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer;
+  display: flex; align-items: flex-start; gap: 10px; min-height: 56px; padding: 11px 10px; border-radius: 10px; cursor: pointer;
   color: #F5F0E8 !important; transition: background .12s;
 }
 #notif-panel .np-item:hover { background: rgba(245,240,232,.07) !important; }
@@ -2896,6 +2896,18 @@ body.board-page .empty-action.primary {
 #notif-panel .np-item.unread .np-item-title { font-weight:650; }
 #notif-panel .np-item-body, #notif-panel .np-item-time { font-size: 11px; color: rgba(245,240,232,.55) !important; margin-top: 2px; line-height: 1.4; }
 #notif-panel .np-dot { width: 7px; height: 7px; border-radius: 50%; background: #EC2D8C; flex-shrink: 0; margin-top: 5px; }
+
+@media (max-width: 860px) {
+  #notif-panel {
+    top: 58px;
+    right: 10px;
+    width: min(340px, calc(100vw - 20px));
+    max-height: calc(100dvh - 78px);
+    border-radius: 14px;
+  }
+  #notif-panel .np-list { max-height: calc(100dvh - 140px); }
+  #notif-panel .np-item { min-height: 60px; padding: 12px 10px; }
+}
 
 /* Инициал вместо эмодзи-заглушки в карточке участника: буква из имени всегда
    уместна, а «🎓» было единственной картинкой такого рода на странице. */
