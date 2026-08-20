@@ -1,6 +1,6 @@
 /* ═══════════════════════ COLLECT LESSON VOCABULARY ═══════════════════════
-   A live lesson leaves language scattered across the board — words on stickies,
-   a glossary inside a lesson frame, "term — meaning" lines typed into a text
+   A live lesson leaves language scattered across the board - words on stickies,
+   a glossary inside a lesson frame, "term - meaning" lines typed into a text
    card. Until now nothing could gather it: _ttGamePayloads() in board-app.js
    turns a teacher-tool RESULT into a game, but has no way to read what the
    lesson itself produced.
@@ -11,7 +11,7 @@
 
    Kept in its own file rather than added to board-app.js (17k+ lines) so it can
    be read and removed as one piece. Everything it touches from the board is
-   guarded — a missing global degrades to a toast, never a broken canvas. */
+   guarded - a missing global degrades to a toast, never a broken canvas. */
 
 (function () {
   'use strict';
@@ -41,7 +41,7 @@
   // bare headings ending in a colon, checklist/bullet leftovers, timings.
   function isNoise(line) {
     if (!line) return true;
-    if (/^[-–—•*·>#\s]*$/.test(line)) return true;
+    if (/^[-•*·>#\s]*$/.test(line)) return true;
     if (/:\s*$/.test(line)) return true;
     if (/\(\s*\d+\s*(min|mins|minutes|хв|мин)\b/i.test(line)) return true;
     if (/^\d+[.)]\s*$/.test(line)) return true;
@@ -49,7 +49,7 @@
   }
 
   function cleanTerm(s) {
-    return plain(s).replace(/^[-–—•*·\d.)\s]+/, '').replace(/\s+/g, ' ').trim();
+    return plain(s).replace(/^[-•*·\d.)\s]+/, '').replace(/\s+/g, ' ').trim();
   }
 
   // A term must look like a word or short phrase. This is what keeps whole
@@ -61,15 +61,15 @@
     return /[a-zà-öø-ÿа-щьюяєіїґ]/i.test(t);   // must contain a letter, not just punctuation/digits
   }
 
-  // "word - meaning", "word — meaning", "word: meaning".
+  // "word - meaning", "word - meaning", "word: meaning".
   // The separator must be spaced (or a dash character that never appears inside
   // a word) so hyphenated terms like "word-image" are not split in half.
   function splitPair(line) {
-    var m = line.match(/^(.{1,42}?)\s+[-–—]\s+(.+)$/);
+    var m = line.match(/^(.{1,42}?)\s+[-]\s+(.+)$/);
     if (m) return { term: cleanTerm(m[1]), def: plain(m[2]).trim() };
     m = line.match(/^([^:]{1,42}?):\s+(.+)$/);
     if (m) return { term: cleanTerm(m[1]), def: plain(m[2]).trim() };
-    m = line.match(/^(.{1,42}?)\s+[–—]\s*(.+)$/);   // em/en dash without a trailing space
+    m = line.match(/^(.{1,42}?)\s+[-]\s*(.+)$/);   // hyphen separator without a trailing space
     if (m) return { term: cleanTerm(m[1]), def: plain(m[2]).trim() };
     return null;
   }
@@ -77,7 +77,7 @@
   function fromCard(card, out) {
     var d = (card && card.data) || {};
 
-    // A lesson frame already carries a structured glossary — take it verbatim
+    // A lesson frame already carries a structured glossary - take it verbatim
     // rather than re-parsing the rendered text.
     if (d.lesson && Array.isArray(d.lesson.vocab)) {
       d.lesson.vocab.forEach(function (v) {
@@ -155,7 +155,7 @@
 
   // Whether a word is kept lives on the item, not on the checkbox. Reading it
   // back out of the DOM meant any re-render reset every tick to "on", so
-  // unticking a word — the entire point of reviewing — could not stick.
+  // unticking a word - the entire point of reviewing - could not stick.
   function chosen() {
     return _items.filter(function (it) { return it.on; });
   }
@@ -188,7 +188,7 @@
     var res = gather();
     if (!res.items.length) {
       say(res.scope === 'selection'
-        ? 'No words found in the selected cards — try selecting stickies or a lesson frame.'
+        ? 'No words found in the selected cards - try selecting stickies or a lesson frame.'
         : 'No vocabulary found on this board yet.', 'error');
       return;
     }
@@ -230,7 +230,7 @@
     if (has('snapshot')) window.snapshot();
 
     var body = picked.map(function (it) {
-      return it.def ? it.term + ' — ' + it.def : it.term;
+      return it.def ? it.term + ' - ' + it.def : it.term;
     }).join('\n');
     var text = 'Lesson vocabulary (' + picked.length + ')\n\n' + body;
 
@@ -264,7 +264,7 @@
 
     if (needPairs) {
       if (pairs.length < 3) {
-        say('Need at least 3 words with meanings for this game — ' + pairs.length + ' so far.', 'error');
+        say('Need at least 3 words with meanings for this game - ' + pairs.length + ' so far.', 'error');
         return;
       }
       content = { pairs: pairs };

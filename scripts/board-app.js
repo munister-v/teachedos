@@ -22,12 +22,12 @@ const STUDENTS = [
   { name:'Aleksei Ivanov',    group:'B', level:'B1', streak:9,  lastSeen:'Today',     native:'🇷🇺', progress:58 },
 ];
 const NOTES = [
-  { title:'Articles lesson — Group A', preview:'Warm-up: show pictures, ask students…',
-    body:'Articles lesson — Group A\nMay 7, 2026 · A2 · 60 min\n\nWARM-UP (10 min)\nShow 5 pictures. Ask to name them.\nWrite answers without articles.\n\nPRESENTATION (15 min)\nA/AN = first mention, one of many\nTHE  = both speaker+listener know which\nØ    = general plurals, proper nouns\n\nNOTES\n— Anna: struggles with THE before unique nouns\n— Andriy: still using "a" before vowel sounds' },
-  { title:'Group B — speaking feedback', preview:'Mikhail: good fluency but hedging…',
-    body:'Group B — Speaking Feedback\nMay 6, 2026 · B1\n\nNatalia — excellent! PP for results\nEkaterina — best in group, accuracy + fluency\nSofia — impressive, ready for B2 content\nAleksei — good tense control, occasional "I have went"\nMikhail — fluent but avoids PP\nPavel — very hesitant, needs more practice\n\nGROUP PATTERNS:\n• "have went/came" — irregular verb drilling\n• Hedging phrases almost absent → add lesson' },
-  { title:'Phrasal Verbs — plan draft', preview:'get, make, take — context-first approach…',
-    body:'Phrasal Verbs: get, make, take — DRAFT\nTarget: B1 · 50 min\n\nOBJECTIVES\n• 12 core phrasal verbs in context\n• Separable vs inseparable\n• Use naturally in speaking\n\nACTIVITIES\n• Gap-fill story (office setting)\n• B2 extension: phrasal verbs with multiple meanings\n• Review quiz for next class\n• Role-play cards with image prompts' },
+  { title:'Articles lesson - Group A', preview:'Warm-up: show pictures, ask students…',
+    body:'Articles lesson - Group A\nMay 7, 2026 · A2 · 60 min\n\nWARM-UP (10 min)\nShow 5 pictures. Ask to name them.\nWrite answers without articles.\n\nPRESENTATION (15 min)\nA/AN = first mention, one of many\nTHE  = both speaker+listener know which\nØ    = general plurals, proper nouns\n\nNOTES\n- Anna: struggles with THE before unique nouns\n- Andriy: still using "a" before vowel sounds' },
+  { title:'Group B - speaking feedback', preview:'Mikhail: good fluency but hedging…',
+    body:'Group B - Speaking Feedback\nMay 6, 2026 · B1\n\nNatalia - excellent! PP for results\nEkaterina - best in group, accuracy + fluency\nSofia - impressive, ready for B2 content\nAleksei - good tense control, occasional "I have went"\nMikhail - fluent but avoids PP\nPavel - very hesitant, needs more practice\n\nGROUP PATTERNS:\n• "have went/came" - irregular verb drilling\n• Hedging phrases almost absent → add lesson' },
+  { title:'Phrasal Verbs - plan draft', preview:'get, make, take - context-first approach…',
+    body:'Phrasal Verbs: get, make, take - DRAFT\nTarget: B1 · 50 min\n\nOBJECTIVES\n• 12 core phrasal verbs in context\n• Separable vs inseparable\n• Use naturally in speaking\n\nACTIVITIES\n• Gap-fill story (office setting)\n• B2 extension: phrasal verbs with multiple meanings\n• Review quiz for next class\n• Role-play cards with image prompts' },
 ];
 const STICKY_COLORS = [
   '#FFE566','#AFF4C6','#CFE2FF','#FFB8D9','#CDB4F6','#FFD580',
@@ -39,7 +39,7 @@ const STICKY_COLORS = [
    board built from ink, lime and cream. These sit at a similar lightness and
    chroma, so they read as one family and stay distinguishable from each
    other. Lime leads, since it is the brand highlight.
-   Cards already saved keep whatever hex they were given — this only changes
+   Cards already saved keep whatever hex they were given - this only changes
    what is offered next. */
 const WS_ACCENT_COLORS = [
   '#CDF24F','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
@@ -163,15 +163,15 @@ function isBoardPhone() {
 
    Раньше телефон был режимом чтения: панель «Add» показывала одну плитку из
    восьми (стрелку), библиотека уроков отвечала «откройте на компьютере», перо
-   было спрятано, а половина меню «More» — включая генерацию заданий и
-   экспорт — не показывалась вовсе. Замысел понятен: на маленьком экране жесты
+   было спрятано, а половина меню «More» - включая генерацию заданий и
+   экспорт - не показывалась вовсе. Замысел понятен: на маленьком экране жесты
    капризны. На практике учитель открывал доску с телефона и не мог сделать
    ничего.
 
    Ограничение снято целиком, поэтому и переключателя boardCanAuthor() больше
-   нет — мёртвый флаг через месяц читается как рабочий. За десктопом осталось
+   нет - мёртвый флаг через месяц читается как рабочий. За десктопом осталось
    ровно одно: СОЗДАНИЕ ДВОЙНЫМ ТАПОМ по пустому месту. На телефоне этот жест
-   уже занят — он открывает карточку и приближает, — и второе значение сделало
+   уже занят - он открывает карточку и приближает, - и второе значение сделало
    бы из него генератор случайных стикеров. Всё остальное делается кнопкой, а
    кнопка на телефоне работает не хуже. */
 
@@ -258,7 +258,7 @@ function applyTransform() {
   }
   _scheduleArrows();
   _scheduleMinimap();
-  // Skip getBoundingClientRect during active pan/drag — defer to RAF end
+  // Skip getBoundingClientRect during active pan/drag - defer to RAF end
   // (guard typeof: these vars are declared later in the file, safe after init)
   if (!(typeof isPanning !== 'undefined' && isPanning) &&
       !(typeof isDraggingCard !== 'undefined' && isDraggingCard) &&
@@ -270,12 +270,12 @@ function applyTransform() {
   if (!_isMomentum) wsSendViewport();
 }
 
-// Per-frame cache for boardWrap.getBoundingClientRect() — avoids forced layout
+// Per-frame cache for boardWrap.getBoundingClientRect() - avoids forced layout
 // in hot paths like screenToBoard / boardToScreen during mousemove.
 let _cachedBoardWrapRect = null;
 let _cachedBoardWrapRectStamp = -1;
 function _getBoardWrapRect() {
-  const now = performance.now() | 0; // integer ms — same within a single sync task
+  const now = performance.now() | 0; // integer ms - same within a single sync task
   if (now !== _cachedBoardWrapRectStamp) {
     _cachedBoardWrapRect = boardWrap.getBoundingClientRect();
     _cachedBoardWrapRectStamp = now;
@@ -362,7 +362,7 @@ function findFreePlacement(cx, cy, w, h) {
   // Step per axis, not one step from max(w,h): a worksheet is ~640x960, so a
   // shared step moved it a full card-height sideways too and scattered
   // generated cards with big empty gaps between them. Overlap is still decided
-  // by overlaps() — the step only sets how finely the spiral samples.
+  // by overlaps() - the step only sets how finely the spiral samples.
   const stepX = w * 0.55 + GAP;
   const stepY = h * 0.55 + GAP;
   for (let ring = 1; ring <= 12; ring++) {
@@ -521,14 +521,14 @@ function snapshot() {
 }
 
 function serialize() {
-  // Inline image data URLs (data:image/...) are excluded from undo snapshots —
+  // Inline image data URLs (data:image/...) are excluded from undo snapshots -
   // they can be megabytes each and are already persisted via saveLocal(). We
   // store a sentinel so restore can fetch from the live state instead.
   return JSON.stringify({
     cards: state.cards.map(c => {
       const data = { ...c.data };
       if (data.src && typeof data.src === 'string' && data.src.startsWith('data:')) {
-        data.src = '\x00img:' + c.id; // sentinel — restored from live card
+        data.src = '\x00img:' + c.id; // sentinel - restored from live card
       }
       return { ...c, data };
     }),
@@ -642,7 +642,7 @@ function applyCardLayer(card) {
 // Send a card to the very back of the z-stack (lowest z), re-layering every
 // card so stacking is explicit. Used after generating a lesson/worksheet so the
 // white "substrate" frame ALWAYS sits behind existing board cards (and its own
-// children). Lean — no snapshot/save/popover — safe to call mid-generation.
+// children). Lean - no snapshot/save/popover - safe to call mid-generation.
 function _sendCardToBack(card) {
   if (!card) return;
   const ordered = state.cards
@@ -824,7 +824,7 @@ function makeHeader(icon, title, cardId) {
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
   hdr.innerHTML = `<span class="card-drag-ic">${icon}</span><span class="card-title-text">${esc(title)}</span>`;
-  // Private toggle — hidden by default; only appears on hover/select.
+  // Private toggle - hidden by default; only appears on hover/select.
   // When the card IS marked private, show the lock at full opacity so it's
   // discoverable that the card is private.
   const card = state.cards.find(c => c.id === cardId);
@@ -834,7 +834,7 @@ function makeHeader(icon, title, cardId) {
   if (isPrivate) privBtn.classList.add('is-private');
   privBtn.style.marginRight = '2px';
   privBtn.style.fontSize = '12px';
-  privBtn.title = isPrivate ? 'Card is private — click to make visible to others' : 'Make card private';
+  privBtn.title = isPrivate ? 'Card is private - click to make visible to others' : 'Make card private';
   privBtn.textContent = isPrivate ? '🔒' : '🔓';
   privBtn.addEventListener('mousedown', e => e.stopPropagation());
   privBtn.addEventListener('click', e => {
@@ -842,7 +842,7 @@ function makeHeader(icon, title, cardId) {
     toggleCardPrivate(cardId);
   });
   hdr.appendChild(privBtn);
-  // Cover / reveal for students. Only the board owner can hold a card back —
+  // Cover / reveal for students. Only the board owner can hold a card back -
   // a collaborator has no business deciding what the class may not see.
   if (typeof addStudentRevealToggle === 'function') addStudentRevealToggle(hdr, cardId);
   const btn = document.createElement('button');
@@ -862,7 +862,7 @@ function toggleCardPrivate(cardId) {
     toast && toast('🔓 Card is now public');
   } else {
     card.data.private = _currentUserId();
-    toast && toast('🔒 Card is now private — others won\'t see it');
+    toast && toast('🔒 Card is now private - others won\'t see it');
   }
   // Re-render to update header icon + outline
   const el = getCardEl(cardId);
@@ -1034,7 +1034,7 @@ function renderText(el, card) {
     tc.className = 'card-close text-close'; tc.textContent = '×';
     tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
 
-    // Drag strip — visible handle so user can grab & move the card
+    // Drag strip - visible handle so user can grab & move the card
     const strip = document.createElement('div');
     strip.className = 'ws-drag-strip';
     strip.textContent = card.data.text || 'Worksheet';
@@ -1104,7 +1104,7 @@ function renderText(el, card) {
   editor.dataset.placeholder = 'Text';
   // Heal legacy cards: text generated before the markdown pass stored raw
   // **target words** in the html. Convert any leftover markers to <strong> at
-  // render (no-op for new cards — _ttMdToHtml already stripped them). The
+  // render (no-op for new cards - _ttMdToHtml already stripped them). The
   // [^*\n] guard keeps each match inside one word/phrase so it can't gobble.
   editor.innerHTML = card.data.html
     ? _ttUpgradeStoredMarkdown(card.data.html)
@@ -1206,7 +1206,7 @@ function renderStudent(el, card) {
       <div class="prog-bar"><div class="prog-fill" style="width:${d.progress||0}%"></div></div>
     </div>
     <div class="student-meta">
-      <span style="color:#f59e0b;font-weight:600;">${(d.streak||0)>0?'🔥'+d.streak:'—'}</span>
+      <span style="color:#f59e0b;font-weight:600;">${(d.streak||0)>0?'🔥'+d.streak:'-'}</span>
       <span>${esc(d.lastSeen||'')}</span>
       <span class="badge ${lc}">${d.level||''}</span>
     </div>`;
@@ -1281,7 +1281,7 @@ function renderEvent(el, card) {
   el.appendChild(makeHeader('📅', d.title||'Class', card.id));
   const body = document.createElement('div');
   body.className = 'card-body event-body';
-  body.innerHTML = `<div class="event-time">${esc(d.time||'—')}</div>
+  body.innerHTML = `<div class="event-time">${esc(d.time||'-')}</div>
     <div class="event-group">${esc(d.group||'')} · ${esc(d.level||'')}</div>
     <div class="event-topic">${esc(d.topic||'')}</div>`;
   el.appendChild(body);
@@ -1319,7 +1319,7 @@ function lazyBoardMediaSrc(el, src) {
 
 function renderVideo(el, card) {
   const d = card.data;
-  // "Source video" flavour — set by _placeLessonOnBoard so the clip a Lesson
+  // "Source video" flavour - set by _placeLessonOnBoard so the clip a Lesson
   // Pack was generated from reads as paired with its exercises (same accent
   // as the frame border) instead of a generic red video-card.
   if (d._ytSource) el.classList.add('yt-source');
@@ -1346,7 +1346,7 @@ function renderVideo(el, card) {
   if (d.embedUrl) {
     const iframe = document.createElement('iframe');
     lazyBoardMediaSrc(iframe, d.embedUrl);
-    // An untitled iframe is announced as just "frame" — on a lesson board that
+    // An untitled iframe is announced as just "frame" - on a lesson board that
     // is the one card whose content nothing else describes.
     iframe.title = d.title || 'Embedded video';
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
@@ -1364,7 +1364,7 @@ function renderVideo(el, card) {
 
 /* ══════════════════════ IMAGE RENDERER ══════════════════════ */
 function renderImage(el, card) {
-  // No header bar — the image shows raw (Miro-style). Edit / lock / delete
+  // No header bar - the image shows raw (Miro-style). Edit / lock / delete
   // live in the floating menu above the selected card (layer-popover).
   const body = document.createElement('div');
   body.className = 'card-body image-body';
@@ -1397,12 +1397,12 @@ function renderImage(el, card) {
     lazyBoardMediaSrc(img, card.data.src);
     wrap.appendChild(img);
 
-    // Fit toggle — surfaces only on hover (see board.css .image-fit-btn).
+    // Fit toggle - surfaces only on hover (see board.css .image-fit-btn).
     const fitBtn = document.createElement('button');
     fitBtn.className = 'image-fit-btn';
     fitBtn.type = 'button';
     fitBtn.textContent = fit === 'cover' ? '⤢' : '⛶';
-    fitBtn.title = fit === 'cover' ? 'Showing: fill card — click to fit whole image' : 'Showing: whole image — click to fill card';
+    fitBtn.title = fit === 'cover' ? 'Showing: fill card - click to fit whole image' : 'Showing: whole image - click to fill card';
     fitBtn.addEventListener('click', ev => {
       ev.stopPropagation();
       card.data.fit = fit === 'cover' ? 'contain' : 'cover';
@@ -1412,7 +1412,7 @@ function renderImage(el, card) {
     wrap.appendChild(fitBtn);
     body.appendChild(wrap);
 
-    // Caption strip — only when the teacher set one (was captured but never shown).
+    // Caption strip - only when the teacher set one (was captured but never shown).
     if (card.data.caption) {
       const cap = document.createElement('div');
       cap.className = 'image-caption';
@@ -1433,7 +1433,7 @@ function renderImage(el, card) {
 }
 
 /* ══════════════════════ GIF CARD ══════════════════════
-   Animated GIF card — Tenor search + direct URL input.
+   Animated GIF card - Tenor search + direct URL input.
    Stores: { src, tenorId, query, caption }              */
 function renderGif(el, card) {
   const d = card.data;
@@ -1490,7 +1490,7 @@ function renderGif(el, card) {
 }
 
 /* ══════════════════════ GIF PANEL (Tenor search) ══════════════════════ */
-// Tenor API v1 — free public key (official Tenor test key, rate-limited but no registration needed)
+// Tenor API v1 - free public key (official Tenor test key, rate-limited but no registration needed)
 const TENOR_KEY = 'LIVDSRZULELA';
 const TENOR_BASE = 'https://api.tenor.com/v1';
 
@@ -1670,7 +1670,7 @@ function renderFrame(el, card) {
     }
   });
   el.appendChild(title);
-  /* Инструменты кадра — одной полосой над правым верхним углом. Раньше здесь
+  /* Инструменты кадра - одной полосой над правым верхним углом. Раньше здесь
      висела одна кнопка «+ Add activity» на абсолютных координатах; кнопок стало
      две, и место для второй должна давать раскладка, а не второй набор
      координат, который разъедется при первой же правке. */
@@ -1678,16 +1678,16 @@ function renderFrame(el, card) {
   tools.className = 'frame-tools';
   tools.addEventListener('mousedown', e => e.stopPropagation());
 
-  /* PLAN / PLAY — примерка урока глазами ученика.
+  /* PLAN / PLAY - примерка урока глазами ученика.
      Учитель собирает лист: всё видно сразу, длинные листы, поля для письма.
      Ученик получает степпер: один вопрос за раз в окне 480x460. Проверить, как
      оно сядет, можно было только включив «Play» на каждой карточке по очереди и
-     потом так же по очереди выключив — то есть практически никак. Здесь это
+     потом так же по очереди выключив - то есть практически никак. Здесь это
      один переключатель на весь кадр, и кадр пересобирается под ту ширину,
      которая в этом режиме настоящая. */
   /* Кадр урока помечен при постановке (_ttKind), и полагаться надо на метку, а
      не на детей: в первый раз рамка рисуется РАНЬШЕ, чем в неё положат карточки,
-     и проверка «есть ли дети» тогда честно отвечает «нет» — тулбар не появлялся
+     и проверка «есть ли дети» тогда честно отвечает «нет» - тулбар не появлялся
      до перезагрузки доски. Для кадров, собранных руками, остаётся проверка по
      детям: там метки нет, а переключать всё равно есть что. */
   if (card.data._ttKind === 'Lesson from video' || card.data.lesson || _lessonFrameChildren(card.id).grid.length) {
@@ -2404,7 +2404,7 @@ function renderAssignment(el, card) {
       ${overdue ? ' · Overdue' : ''}
     </div>` : '';
 
-  // Progress bar — owner sees real submission count + avg score if available
+  // Progress bar - owner sees real submission count + avg score if available
   const progHtml = (total || liveData) ? `
     <div class="assign-prog-wrap">
       <div class="assign-prog-label">
@@ -2443,7 +2443,7 @@ function renderAssignment(el, card) {
 // Build the inner question/list HTML for a worksheet. Shared by the board card
 // and the print document so both stay identical. `showAns` toggles the answer
 // key: when false the sheet is a clean student hand-out (no green highlight, no
-// revealed answers) — when true it's the teacher key.
+// revealed answers) - when true it's the teacher key.
 /* Worksheet output palette. Lime is the default brand highlight, but when the
    teacher picks a card accent we turn that one hex into a full readable theme:
    fill, text-on-fill, muted text and soft borders. Kept next to the worksheet
@@ -2500,7 +2500,7 @@ function _wsAccentVars(accent = WS_ACCENT_LIME) {
 
 function _ttWorksheetStageMeta(title = '', index = 0) {
   const t = String(title).toLowerCase();
-  // 'anchor' marks the two bookend stages of a lesson (start/end) — see
+  // 'anchor' marks the two bookend stages of a lesson (start/end) - see
   // .ws-anchor in board.css. Everything else is a regular middle stage.
   if (/\baims?\b|objective|goal/.test(t)) return { cls:'ws-stage-aims', icon:'AIM', label:'Aims', anchor:'start' };
   if (/glossary|vocab|word/.test(t)) return { cls:'ws-stage-vocab', icon:'VOC', label:'Language bank' };
@@ -2517,14 +2517,14 @@ function _ttWorksheetStageMeta(title = '', index = 0) {
 // render as its own badge instead of sitting inline in the heading text.
 function _ttExtractStageTiming(title) {
   const s = String(title || '');
-  /* Окно на часах — «0–5 min · Warm-up». Разбирается ПЕРВЫМ: иначе правило
+  /* Окно на часах - «0-5 min · Warm-up». Разбирается ПЕРВЫМ: иначе правило
      ниже выхватывало из него одно число и оставляло в заголовке огрызок
-     «0–· Warm-up». Окно полезнее одиночной длительности — по нему видно не
+     «0-· Warm-up». Окно полезнее одиночной длительности - по нему видно не
      только сколько идёт этап, но и когда он начинается. */
-  const win = s.match(/^\s*(\d+)\s*[–—-]\s*(\d+)\s*min(?:ute)?s?\.?\s*(?:[·:.\-–—]\s*)?/i);
+  const win = s.match(/^\s*(\d+)\s*[-]\s*(\d+)\s*min(?:ute)?s?\.?\s*(?:[·:.-]\s*)?/i);
   if (win) {
-    const clean = s.slice(win[0].length).trim().replace(/^[·:.\-–—]\s*/, '');
-    return { clean, time: `${win[1]}–${win[2]} min`, endsAt: Number(win[2]) };
+    const clean = s.slice(win[0].length).trim().replace(/^[·:.-]\s*/, '');
+    return { clean, time: `${win[1]}-${win[2]} min`, endsAt: Number(win[2]) };
   }
   const m = s.match(/\(?\s*(\d+)\s*min(?:ute)?s?\.?\s*\)?/i);
   if (!m) return { clean: s, time: '' };
@@ -2532,16 +2532,16 @@ function _ttExtractStageTiming(title) {
   return { clean, time: `${m[1]} min` };
 }
 
-/* One "term — definition" line, or null if the line is not a pair.
+/* One "term - definition" line, or null if the line is not a pair.
    The separator has to be a real one. A bare hyphen cannot be it: compound
    words (Pre-teach, role-play, follow-up) carry hyphens inside them and would
    split at the wrong place, so a hyphen only counts when it is spaced. Em and
    en dashes are unambiguous, and a colon counts when it is followed by space.
-   Both sides are then sanity-checked — a term is a couple of words, not a
+   Both sides are then sanity-checked - a term is a couple of words, not a
    clause, and a gloss is a phrase, not a paragraph. */
 function _ttParseVocabLine(line) {
   const clean = String(line).replace(/^\s*[-•]\s*/, '').trim();
-  const m = clean.match(/^(.{1,40}?)(?:\s+[-–—]\s+|\s*[–—]\s*|:\s+)(.+)$/);
+  const m = clean.match(/^(.{1,40}?)(?:\s+[-]\s+|\s*[-]\s*|:\s+)(.+)$/);
   if (!m) return null;
   const term = _ttStripMd(m[1]).trim();
   const def = m[2].trim();
@@ -2566,7 +2566,7 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
   if (stageMeta.cls === 'ws-stage-vocab') {
     const parsed = lines.map(_ttParseVocabLine);
     /* Only render the term/definition pill grid when the content really is
-       vocab pairs. A title matching "vocab/glossary/word" does not make it so —
+       vocab pairs. A title matching "vocab/glossary/word" does not make it so -
        the model often answers with prose instead, and one wrong split turns a
        paragraph into a pill meant for a single word.
 
@@ -2615,7 +2615,7 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
     const copy = bodyLines.join(' ');
     // The drop-cap only reads well on an actual passage (a real paragraph a
     // student is meant to read). On short/placeholder text it floats a huge
-    // letter next to almost nothing, leaving a visibly broken-looking gap —
+    // letter next to almost nothing, leaving a visibly broken-looking gap -
     // gate it behind a length check instead of applying it unconditionally.
     const dropCapCls = copy.length >= 90 ? ' has-dropcap' : '';
     return `<div class="ws-reading-block">
@@ -2632,7 +2632,7 @@ function _ttWorksheetStageBodyHtml(card, stageMeta) {
    it can break across lines in the middle, and it does not scale with the type
    size. As an element it is one fixed rule that cannot break.
    With the key on and exactly one blank, the answer goes INSIDE the gap, which
-   is where a teacher reads it — the separate "Answer" chip then has nothing
+   is where a teacher reads it - the separate "Answer" chip then has nothing
    left to say. Several blanks share one answer field, so those stay empty and
    keep the chip. Returns null when the text has no blank at all. */
 function _ttGapFillHtml(text, answer, showAns) {
@@ -2653,7 +2653,7 @@ function _ttGapFillHtml(text, answer, showAns) {
    A generated sheet arrived as whatever order the model wrote in: an MCQ, then
    a true/false, then an open question, then another MCQ. Two things were wrong
    with that. Pedagogically it asks a student to switch task type on every
-   item, and it never says what to actually DO — there was no rubric anywhere on
+   item, and it never says what to actually DO - there was no rubric anywhere on
    the card, only questions. Visually it was worse still on a two-column sheet,
    where a 380px MCQ landing beside a 130px true/false makes a row as tall as
    the MCQ and leaves the difference empty.
@@ -2666,7 +2666,7 @@ function _ttGapFillHtml(text, answer, showAns) {
    choice), verify (true/false), retrieve (gap-fill), connect (matching), then
    produce (open questions) last, because that is the only one that asks for
    the student's own words. Anything unrecognised keeps its place at the end
-   rather than being dropped. Numbering stays continuous across the groups —
+   rather than being dropped. Numbering stays continuous across the groups -
    the sheet is still one sequence of questions, just a signposted one. */
 const WS_GROUPS = [
   { type:'mcq',       label:'Multiple choice', rubric:'Choose the best answer.' },
@@ -2697,7 +2697,7 @@ function _ttGroupQuestions(qs) {
    lesson stages are ordered sequences and lesson stages are literally numbered,
    so they are an <ol>; a glossary is an unordered bank of words, so it is a
    <ul>. Both the board and the print view build their container from here, so
-   the two cannot drift into different markup for the same content — and the
+   the two cannot drift into different markup for the same content - and the
    items themselves are <li>, which is what makes a worksheet readable to a
    screen reader ("list, 8 items") and survivable as pasted HTML. */
 function _ttWorksheetListTag(d) {
@@ -2724,7 +2724,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           return `<li class="ws-opt${ok ? ' correct' : ''}"><span class="ws-mark">${String.fromCharCode(65 + oi)}</span><span>${_ttMdInline(o)}</span></li>`;
         }).join('')}</ul>`;
       } else if (q.type === 'truefalse') {
-        // No ✅/❌ glyphs — the lime .on fill already marks the answer, and a red
+        // No ✅/❌ glyphs - the lime .on fill already marks the answer, and a red
         // cross on a lime chip fought the palette. Without the key shown both
         // chips stay plain, which is the student-facing state.
         ans = `<div class="ws-tf"><span class="ws-tf-b${showAns && q.answer ? ' on' : ''}">True</span><span class="ws-tf-b${showAns && !q.answer ? ' on' : ''}">False</span></div>`;
@@ -2744,7 +2744,7 @@ function _ttWorksheetListHTML(d, showAns, accent) {
       }
       return `<li class="ws-q" style="--q-accent:${accent}"><div class="ws-qh"><span class="ws-num" aria-hidden="true">${q._n || i + 1}</span><span class="ws-qtext">${gap ? gap.html : _ttMdInline(q.text || '')}</span></div>${ans}</li>`;
     };
-    /* One group is not worth signposting — a sheet that is entirely gap-fill
+    /* One group is not worth signposting - a sheet that is entirely gap-fill
        already says so in its own masthead, and a lone "Gap-fill" heading over
        the whole card is furniture. Its rubric is still worth having, so it
        goes on the group without the heading. */
@@ -2768,13 +2768,13 @@ function _ttWorksheetListHTML(d, showAns, accent) {
        student writes on, so the sheet keeps working as a worksheet. */
     /* КАРТИНКА В СЛОВАРНОЙ КАРТОЧКЕ.
 
-       Слово и перевод — это то, что ученик забудет к следующему занятию;
+       Слово и перевод - это то, что ученик забудет к следующему занятию;
        образ держится дольше и даёт контекст, которого в определении нет.
        Поэтому если у элемента есть картинка, чип превращается в карточку:
        снимок сверху, слово под ним, значение ниже.
 
        Смешивать нельзя: строка, где часть чипов с фото, а часть без, читается
-       как сбой вёрстки. Поэтому режим выбирается на весь список — есть хотя бы
+       как сбой вёрстки. Поэтому режим выбирается на весь список - есть хотя бы
        у половины элементов картинка, значит карточки у всех. */
     const withImg = items.filter(it => it && it.image && it.image.url).length;
     const asCards = withImg >= Math.ceil(items.length / 2) && withImg > 0;
@@ -2793,8 +2793,8 @@ function _ttWorksheetListHTML(d, showAns, accent) {
         /* loading="eager", а не lazy: карточка живёт на полотне доски, которое
            двигают и масштабируют трансформом. Ленивая картинка внутри такого
            полотна может не попасть во «вьюпорт» по мнению браузера и не
-           загрузиться вовсе — а экспорт доски в PNG (html2canvas) снимет
-           пустые рамки. Словарь — это десяток мелких снимков, цена честная. */
+           загрузиться вовсе - а экспорт доски в PNG (html2canvas) снимет
+           пустые рамки. Словарь - это десяток мелких снимков, цена честная. */
         const frame = img
           ? `<span class="ws-vcard-img"><img src="${esc(img)}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">${credit}</span>`
           : _ttLetterTile(it.word || '');
@@ -2837,11 +2837,11 @@ function _ttWorksheetListHTML(d, showAns, accent) {
    captures the DOM, so the hidden tail was missing from PNG/PDF entirely. */
 /* What the masthead should say on its big line.
 
-   The generated title is "B1 · Questions: Trump on Iran" — level, kind, then
+   The generated title is "B1 · Questions: Trump on Iran" - level, kind, then
    the actual subject. The masthead prints the level and kind directly above it
    in the kicker, and the card's own header bar carries the full string, so
    using the title here spelled the same words three times on one card and left
-   the subject — the only part a teacher scans for — buried at the end of the
+   the subject - the only part a teacher scans for - buried at the end of the
    longest of them.
 
    The server sends `topic` alongside `title` and the placement code now passes
@@ -2855,7 +2855,7 @@ function _wsDisplayTopic(d) {
   const kind = String(d.kind || '').trim();
   const level = String(d.level || '').trim();
   if (kind) {
-    /* Anchored, and the only wildcard is a CEFR token — so this can strip the
+    /* Anchored, and the only wildcard is a CEFR token - so this can strip the
        prefix this app generates but not a title that merely contains a colon.
        The level is matched from the card when it has one and from its CEFR
        shape when it does not: cards do exist whose title carries "B1 · " while
@@ -2871,7 +2871,7 @@ function _reEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 /* What the big line of the masthead says, and what the small line above it
    says. On a standalone sheet the subject is what distinguishes it, so the
-   subject is the heading — unchanged. Inside a lesson built from one video
+   subject is the heading - unchanged. Inside a lesson built from one video
    every sheet has the SAME subject, and four cards headed by the same 25px
    line is how a lesson came to read as four copies of itself. There the
    exercise's own name leads and the shared subject moves up to the kicker,
@@ -2893,7 +2893,7 @@ function renderWorksheet(el, card) {
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
              || { icon:'📄', color:'#0E0E10' };
   // Generated sheets all share ONE accent (the brand ink) instead of taking the
-  // category hue from BOARD_TOOL_META — seven saturated hues across reading /
+  // category hue from BOARD_TOOL_META - seven saturated hues across reading /
   // vocab / writing / speaking made a board of generated material read as a
   // rainbow of unrelated widgets rather than one product. Category is still
   // communicated, by meta.icon and the kicker text. BOARD_TOOL_META keeps its
@@ -2959,7 +2959,7 @@ function renderWorksheet(el, card) {
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
   /* <header> + <h2>, not two spans in a div: the masthead IS the sheet's
      heading, and a board full of generated worksheets was, structurally, a
-     page with no headings at all — nothing to jump between, nothing to lift
+     page with no headings at all - nothing to jump between, nothing to lift
      when the card is copied out or exported. */
   const strip = `<header class="ws-strip" style="${accentVars}">
       <div class="ws-strip-main">
@@ -2985,13 +2985,13 @@ function renderWorksheet(el, card) {
     </header>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
-  // Lesson Pack stages (cards[]) lay out as a landscape grid — see .ws-list-cards
-  // — everything else (questions/vocab items) stays a single reading column.
+  // Lesson Pack stages (cards[]) lay out as a landscape grid - see .ws-list-cards
+  // - everything else (questions/vocab items) stays a single reading column.
   // Questions get the same treatment once the sheet is wide enough to hold two
-  // readable columns — see _ttQuestionCols.
+  // readable columns - see _ttQuestionCols.
   const qList = Array.isArray(d.questions) ? d.questions : null;
   const qCols = qList ? _ttQuestionCols(qList.length, card.w) : 1;
-  /* Словарь с картинками — сетка карточек, без картинок — прежняя строка
+  /* Словарь с картинками - сетка карточек, без картинок - прежняя строка
      чипов. Решение принимается один раз здесь, чтобы список и его контейнер
      не разошлись во мнениях. */
   const vItems = Array.isArray(d.items) ? d.items : null;
@@ -3014,7 +3014,7 @@ function renderWorksheet(el, card) {
                    : '';
   // …but not when the masthead's kicker directly above already says it. A
   // Questions sheet was printing "QUESTIONS · B1" and then "QUESTIONS" again
-  // one line down, in a second size — a label that only repeats its neighbour
+  // one line down, in a second size - a label that only repeats its neighbour
   // is noise, and the space it takes belongs to the lesson.
   if (sectionLabel && String(d.kind || '').trim().toLowerCase() === sectionLabel.toLowerCase()) {
     sectionLabel = '';
@@ -3032,7 +3032,7 @@ function renderWorksheet(el, card) {
   // that removes the otherwise enormous empty tail below a compact stage grid.
   /* One rAF is not always enough. A card restored with the board, or rendered
      while its part of the canvas is still off-screen, can reach this point
-     before it has been laid out at all — the list then measures as zero, the
+     before it has been laid out at all - the list then measures as zero, the
      fit is a no-op, and nothing ever asks again. That left a saved worksheet
      stuck at whatever height it was stored with, which silently clips as soon
      as its content grows (adding the question-group headings did exactly
@@ -3043,14 +3043,14 @@ function renderWorksheet(el, card) {
     const list = live && live.querySelector('.ws-list');
     // Both numbers have to be real. An empty CONTENT measurement is the
     // dangerous one: it reads as "the card has 700px of slack", which a
-    // grow-only fit answers by doing nothing at all — the card then keeps a
+    // grow-only fit answers by doing nothing at all - the card then keeps a
     // height that no longer matches what is in it, forever.
     const ready = list && list.clientHeight && _wsListContentHeight(list) > 0;
     if (!ready && tries < 6) { setTimeout(() => fit(tries + 1), 60); return; }
     if (!ready) return;
     _wsFitToContent(card.id, { shrink: Array.isArray(d.cards) && d._ttSrc === 1 });
   };
-  /* rAF is the right hook when the board is on screen — measure after paint.
+  /* rAF is the right hook when the board is on screen - measure after paint.
      It is also the only hook that never fires in a hidden tab, and a board is
      routinely restored in one (opened in a background tab, or reloaded while
      the teacher is elsewhere). The timer is the fallback for exactly that; the
@@ -3061,7 +3061,7 @@ function renderWorksheet(el, card) {
 
 /* ───────────────── SIZE THE CARD TO WHAT IS ACTUALLY IN IT ─────────────────
 
-   Worksheet height was set from _ttEstWorksheetHeight — a character-count guess
+   Worksheet height was set from _ttEstWorksheetHeight - a character-count guess
    made before anything rendered. When the guess came in low the card kept its
    short height and .ws-list quietly scrolled, so the last question or two were
    simply not on the board. Printing still looked right (printWorksheet rebuilds
@@ -3070,8 +3070,8 @@ function renderWorksheet(el, card) {
    sits below the fold.
 
    Measuring is the fix for the whole class of problem, not a better guess. The
-   estimate still decides the INITIAL height — it has to, since layout happens
-   before render — but from here the rendered card gets the last word.
+   estimate still decides the INITIAL height - it has to, since layout happens
+   before render - but from here the rendered card gets the last word.
 
    Adjusting by the difference between the content and the space it has is
    exact rather than approximate: .ws-list is the flex child that absorbs the
@@ -3079,14 +3079,14 @@ function renderWorksheet(el, card) {
 
    NOT measured with scrollHeight. scrollHeight never reports less than
    clientHeight, so it can say "content is taller than the box" but never "the
-   box has room to spare" — a card left too tall would stay too tall forever.
+   box has room to spare" - a card left too tall would stay too tall forever.
    Summing the children answers both directions, and handles the Lesson Pack
    grid too, where the tallest cell in the last row is not necessarily the last
    child.
 
    `shrink` is off by default. Growing fixes clipped content and is always
-   right; shrinking is only wanted when something changed the wrapping — the
-   teacher dragging the card wider — and would otherwise be an unpleasant
+   right; shrinking is only wanted when something changed the wrapping - the
+   teacher dragging the card wider - and would otherwise be an unpleasant
    surprise, a card collapsing while it is being read. */
 function _wsListContentHeight(list) {
   let top = Infinity, bottom = 0;
@@ -3117,7 +3117,7 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || card.type !== 'worksheet') return;
   const d = card.data || {};
-  // Play mode is deliberately compact — it shows one question at a time inside
+  // Play mode is deliberately compact - it shows one question at a time inside
   // an iframe we cannot measure through anyway.
   if (d._interactive) return;
   // A height the teacher chose by hand is not ours to overrule.
@@ -3130,7 +3130,7 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
 
   const delta = _wsListContentHeight(list) - list.clientHeight;  // >0 clipped, <0 slack
   // Dead band, not a safety margin. An earlier version padded the grow by 2px
-  // "to be safe", which left every fitted card 2px of slack — enough for the
+  // "to be safe", which left every fitted card 2px of slack - enough for the
   // shrink pass to immediately claim back, so a resize nudged the height every
   // time. Landing exactly and ignoring sub-pixel noise is stable in both
   // directions.
@@ -3138,8 +3138,8 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
   if (delta < 0 && !shrink) return;
 
   // Measure against the card as RENDERED, not against card.h. The two are
-  // supposed to agree, and when they briefly do not — mid-resize, or a render
-  // that has not flushed — trusting the model while reading the DOM's overflow
+  // supposed to agree, and when they briefly do not - mid-resize, or a render
+  // that has not flushed - trusting the model while reading the DOM's overflow
   // mixes two answers into one sum and the height lurches. Reading both numbers
   // off the same element cannot drift.
   const curH = el.offsetHeight || card.h;
@@ -3160,13 +3160,13 @@ function _wsFitToContentOnce(cardId, { shrink = false } = {}) {
 
    Сервер проверяет каждое задание правилами методиста (auditQuestions) и
    присылает итог: сколько оставлено из запрошенного, что выброшено и что
-   замечено. Раньше это знание умирало в ответе API — учитель видел лист, где
+   замечено. Раньше это знание умирало в ответе API - учитель видел лист, где
    вместо десяти заданий восемь, и не знал, урезала ли модель или так задумано.
 
-   Зелёный не показываем вовсе: «всё в порядке» — это норма, а не новость, и
+   Зелёный не показываем вовсе: «всё в порядке» - это норма, а не новость, и
    значок на каждой карточке быстро перестают замечать. Показываем только
    жёлтый и красный, то есть только то, на что стоит посмотреть. */
-/* Сколько всего идёт занятие — на шапке плана.
+/* Сколько всего идёт занятие - на шапке плана.
 
    Этапы несут свои окна на часах, но общая длина складывается в голове, а
    именно её учитель сверяет с расписанием: помещается ли урок в сорок пять
@@ -3279,17 +3279,17 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   let scriptHtml = '';
 
   // Play mode always renders one card at a time (stepper) instead of a long
-  // stacked list — big font, tap-to-reveal/advance. See iwGoto/iwCardTap/
+  // stacked list - big font, tap-to-reveal/advance. See iwGoto/iwCardTap/
   // iwFlipOrNext in the shared script appended below.
   // Worksheets made entirely of single-blank gap-fill sentences collapse into
   // one combined step (a numbered sentence list + a grid of answer tiles)
-  // instead of one stepper card per blank — see the isAllGapFill branch below.
+  // instead of one stepper card per blank - see the isAllGapFill branch below.
   const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill');
   const stepTotal = isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
     : '';
-  // Vivid gradient pairs for MCQ/gap-fill answer tiles — a dedicated set
+  // Vivid gradient pairs for MCQ/gap-fill answer tiles - a dedicated set
   // (not the pastel STICKY_PALETTE_COLORS, which is built for sticky notes
   // with dark text) matching the gradient look already used by
   // .iw-flash-front/.iw-card-front below.
@@ -3373,7 +3373,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       const hasInner = !!inner;
       // Card starts showing only the question; tapping it either reveals the
       // answer controls (interactive types) or advances straight to the next
-      // card (a bare prompt with nothing to answer) — see iwCardTap.
+      // card (a bare prompt with nothing to answer) - see iwCardTap.
       return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div><div class="iw-tap-hint">👆 tap to reveal</div>` : ''}</div></div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
@@ -3381,7 +3381,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   }
 
   // Answer key + scoring/state script apply to either Questions branch above
-  // (grouped gap-fill grid or the per-question stepper) — both produce the
+  // (grouped gap-fill grid or the per-question stepper) - both produce the
   // same .iw-opts/.iw-tf/.iw-gap/.iw-match/.iw-sort markup that checkAll()/
   // iwSnapshot()/iwRestore() already query by class+attribute.
   if (qs.length) {
@@ -3437,7 +3437,7 @@ function checkAll(silent){
   document.querySelectorAll('.iw-match,.iw-sort').forEach(w=>{ w.dataset.locked='1'; w.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=false; }); });
   const el=document.getElementById('iw-score'); if(!el) return;
   const pct=total?Math.round(score/total*100):0; el.style.display='block';
-  el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) — Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) — Good job!':'📚 '+score+'/'+total+' ('+pct+'%) — Keep practicing!';
+  el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) - Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) - Good job!':'📚 '+score+'/'+total+' ('+pct+'%) - Keep practicing!';
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='none';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='inline-block';
   if(!silent){ el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop'); iwBeep(pct>=50); if(pct>=80) iwConfetti(); iwSave();
@@ -3528,7 +3528,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
       <div class="iw-flash-inner">
         <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${md(it.word||'')}</span></div>
-        <div class="iw-flash-back"><span class="iw-flash-def">${md(it.example || it.definition || '—')}</span></div>
+        <div class="iw-flash-back"><span class="iw-flash-def">${md(it.example || it.definition || '-')}</span></div>
       </div>
     </div>`).join('')}</div></div>
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
@@ -3788,7 +3788,7 @@ function _iwSortScript(accent) {
 document.addEventListener('dblclick',e=>{ const d=e.target.closest('.iw-sort-drop .iw-drag'); if(d&&!d.closest('.iw-sort')?.dataset.locked){ const bank=d.closest('.iw-sort').querySelector('.iw-sort-bank'); if(bank) bank.appendChild(d); if(typeof iwSave==='function') iwSave(); } });`;
 }
 
-/* Зворотний хід: з картки — в інструмент, який її зробив.
+/* Зворотний хід: з картки - в інструмент, який її зробив.
 
    Без цього звʼязок був однобічним: матеріал приїхав, і щоб його
    перегенерувати, треба було памʼятати, яким саме з 51 інструмента ти
@@ -3810,15 +3810,15 @@ function toggleWorksheetAnswers(cardId) {
 }
 
 /* Open a clean A4 print/PDF view of the worksheet, respecting the answer-key
-   toggle. Pure HTML — no canvas — so text is crisp and never clipped. */
+   toggle. Pure HTML - no canvas - so text is crisp and never clipped. */
 function printWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#0E0E10' };
   // Mirrors the on-screen sheet (see .ws-* in board.css): same one brand accent,
-  // not the per-category hue. This popup carries its OWN copy of the styles —
-  // board.css is not loaded here — so any visual change to the worksheet has to
+  // not the per-category hue. This popup carries its OWN copy of the styles -
+  // board.css is not loaded here - so any visual change to the worksheet has to
   // be made in both places or the printout stops matching the board.
   const accent = WS_ACCENT_INK;
   const LIME = '#CDF24F', CREAM = '#F5F0E8', LINE = 'rgba(14,14,16,.14)';
@@ -3827,7 +3827,7 @@ function printWorksheet(cardId) {
   // Same heading rule as the board (see _wsHeading): inside a lesson the sheet
   // is named after the exercise and the video moves into the kicker. Printing
   // d.title raw put "B1 · Questions: <the whole video title>" on the <h1> of
-  // every sheet in the pack — three identical pages as far as a reader is
+  // every sheet in the pack - three identical pages as far as a reader is
   // concerned, and the level/kind repeated from the line directly above it.
   const printHeading = _wsHeading(d) || d.title || 'Worksheet';
   const metaLine = [d._step ? `Step ${d._step}${d._steps ? '/' + d._steps : ''}` : '',
@@ -3866,7 +3866,7 @@ function printWorksheet(cardId) {
     .ws-ans-label{font:800 10px -apple-system,Arial;letter-spacing:.07em;text-transform:uppercase;background:${accent};color:${LIME};padding:4px 9px;border-radius:999px}
     .ws-ans b{color:${accent};font-weight:650}
     .ws-print-list,.ws-opts,.ws-chips,.ws-group-list{list-style:none;margin:0;padding:0}
-    /* Question groups — same structure as the board (see _ttGroupQuestions). */
+    /* Question groups - same structure as the board (see _ttGroupQuestions). */
     .ws-group{margin:0 0 18px;break-inside:auto}
     .ws-group-head{margin:0 0 9px}
     .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#0E0E10}
@@ -3889,7 +3889,7 @@ function printWorksheet(cardId) {
     .ws-mlink{width:22px;height:0;border-top:2px dotted ${LINE}}
     .ws-r{font-size:13.5px;line-height:1.45;color:${accent};font-weight:600}
     /* stage cards (reading / glossary / tasks / grammar) */
-    /* One accent for the whole pack (not a different hue per stage type) — the
+    /* One accent for the whole pack (not a different hue per stage type) - the
        stage rail number + text label are enough to tell stages apart. */
     .ws-q-card{--stage-accent:${accent};border:1px solid #EDE8E0;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
@@ -3920,20 +3920,20 @@ function printWorksheet(cardId) {
     .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
     .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
     .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#26261E}
-    /* Print always shows full stage text — no clamp, so the "Show more" toggle
+    /* Print always shows full stage text - no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
     /* Lesson Pack stages: two print columns instead of one long vertical run
-       of pages — column-count reflows naturally across page breaks. */
+       of pages - column-count reflows naturally across page breaks. */
     .ws-cards-print{column-count:2;column-gap:18px}
     .ws-cards-print .ws-q-card{break-inside:avoid;margin-bottom:12px}
     @media print{body{padding:0}@page{margin:1.5cm}}`;
   // Same markup as the board (see _ttWorksheetListTag): the items are <li>, so
-  // they need their list element here too — dropped bare into <body> they were
+  // they need their list element here too - dropped bare into <body> they were
   // orphan list items, which is invalid and reads as nothing to a screen reader.
   const printTag = _ttWorksheetListTag(d);
   const cardsWrap = `<${printTag} class="ws-print-list${d.cards ? ' ws-cards-print' : ''}${Array.isArray(d.items) && d.items.length ? ' ws-chips' : ''}">${listHtml}</${printTag}>`;
   // (For questions that tag is a <div> and the <li>s live inside each group's
-  //  own <ol> — see _ttWorksheetListTag.)
+  //  own <ol> - see _ttWorksheetListTag.)
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(printHeading)}</title><style>${css}</style></head>
     <body>
       <div class="ws-print-head">
@@ -4012,7 +4012,7 @@ function _ttMdInline(s){
      Ламалось це в КОЖНОМУ gap-fill, не тільки в нових генераторах.
 
      Тому спершу ховаємо будь-який рядок із трьох і більше підкреслень за
-     плейсхолдер, а повертаємо після розмітки. Три — бо `__жирний__` має рівно
+     плейсхолдер, а повертаємо після розмітки. Три - бо `__жирний__` має рівно
      два з кожного боку, і чіпати його не треба. */
   const blanks = [];
   const hidden = esc(s || '').replace(/_{3,}/g, m => {
@@ -4033,7 +4033,7 @@ function _ttUpgradeStoredMarkdown(s){
 }
 
 /* ══════════════════════════════════════════════════════
-   Interactive Worksheet Card — HTML builder
+   Interactive Worksheet Card - HTML builder
    Takes a structured part JSON and returns a full srcdoc
    HTML string that renders inside an iframe on the board.
    ══════════════════════════════════════════════════════ */
@@ -4063,7 +4063,7 @@ function _wsFillItems(items){
 function _wsMatchItems(items){
   return (items||[]).map(it=>{
     const opts=(it.options||[]).map((o,i)=>`<option value="${i}">${_wsEsc(o)}</option>`).join('');
-    return `<div class="item"><span class="item-n">${it.id}.</span> ${_wsEsc(it.stem)} <select><option value="">— choose —</option>${opts}</select></div>`;
+    return `<div class="item"><span class="item-n">${it.id}.</span> ${_wsEsc(it.stem)} <select><option value="">- choose -</option>${opts}</select></div>`;
   }).join('');
 }
 
@@ -4232,7 +4232,7 @@ function bindTextToolbar(toolbar, editor, card, el) {
       applyTextStyles(card, editor);
       scheduleSave();
     };
-    // input fires on every spinner step; change fires on blur — snapshot only on change
+    // input fires on every spinner step; change fires on blur - snapshot only on change
     sizeInput.addEventListener('input',   () => applySize(false));
     sizeInput.addEventListener('change',  () => applySize(true));
     sizeInput.addEventListener('keydown', e => {
@@ -4361,7 +4361,7 @@ function openCardEditor(cardId) {
         <textarea class="ed-input ed-textarea" id="ed-notes" placeholder="Notes visible in Present mode…" style="min-height:50px;">${esc(card.data.notes||'')}</textarea></div>
 
       <div style="background:rgba(99,102,241,.06);border-radius:10px;padding:9px 11px;font-size:11px;color:#6366f1;line-height:1.5;">
-        💡 Connect this card to a <b>Milestone</b> to track course completion. Use arrows to chain lessons — when you mark a lesson Done, the next one auto-unlocks.</div>
+        💡 Connect this card to a <b>Milestone</b> to track course completion. Use arrows to chain lessons - when you mark a lesson Done, the next one auto-unlocks.</div>
       <button class="ed-save" onclick="saveCardEditor()">✓ Save Lesson</button>`;
 
   } else if (card.type === 'assignment') {
@@ -4823,7 +4823,7 @@ async function edUploadImage() {
       const link = document.getElementById('ed-link');
       if (link) link.value = '';   // uploaded data URL wins; don't dump the huge string in the field
       edImagePreview(prepared.dataUrl);
-      (typeof _toastClipboard === 'function' ? _toastClipboard : toast)('🖼 Image ready — click Save');
+      (typeof _toastClipboard === 'function' ? _toastClipboard : toast)('🖼 Image ready - click Save');
     } catch (err) {
       toast && toast(err.message || 'Could not load image.');
     }
@@ -5448,7 +5448,7 @@ const FRAME_COLORS = [
 function showLayerPopover(cardId) {
   if (state.selected.size !== 1) { hideLayerPopover(); return; }
   const card = state.cards.find(c => c.id === cardId);
-  // Text cards have their own built-in formatting toolbar — don't stack a
+  // Text cards have their own built-in formatting toolbar - don't stack a
   // second floating menu on top of it.
   if (card?.type === 'text') { hideLayerPopover(); return; }
   const pop = ensureLayerPopover();
@@ -5456,7 +5456,7 @@ function showLayerPopover(cardId) {
   pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
   pop.querySelector('[data-layer="lock"]').title = card?.data?.locked ? 'Unlock' : 'Lock movement';
 
-  // Card color row — sticky / note cards get a small inline palette
+  // Card color row - sticky / note cards get a small inline palette
   let cardColorRow = pop.querySelector('.card-color-row');
   if (card && (card.type === 'sticky' || card.type === 'note')) {
     if (!cardColorRow) {
@@ -5502,7 +5502,7 @@ function showLayerPopover(cardId) {
     }
   }
 
-  // Accent color row — worksheet / activity / vocab cards get a vivid accent
+  // Accent color row - worksheet / activity / vocab cards get a vivid accent
   // palette that drives the card's accent line, headers and interactive controls.
   let accentRow = pop.querySelector('.accent-color-row');
   if (card && (card.type === 'worksheet' || card.type === 'vocab')) {
@@ -5609,7 +5609,7 @@ function positionLayerPopover() {
   } else if (r.bottom + popH + GAP <= window.innerHeight - 12) {
     top = r.bottom + GAP;
   } else {
-    // No room above or below — pin at MIN_TOP and let it overlap slightly.
+    // No room above or below - pin at MIN_TOP and let it overlap slightly.
     top = MIN_TOP;
   }
   const left = Math.min(window.innerWidth - popW - 12, Math.max(12, r.left + r.width/2 - popW/2));
@@ -5745,13 +5745,13 @@ function startResize(e, card, el, dir) {
   e.preventDefault();
 }
 
-/* ════════════════════════ PAN — with momentum ════════════════════════ */
+/* ════════════════════════ PAN - with momentum ════════════════════════ */
 let _panVelX = 0, _panVelY = 0, _panRaf = null;
 let _lastPanTime = 0, _lastPanX = 0, _lastPanY = 0;
 let _didPan = false; // track whether a real pan happened (suppress context menu)
 
 // Shared inertia kick-off for whatever gesture just ended a pan (desktop
-// mouse-drag or single-finger touch) — both track velocity into
+// mouse-drag or single-finger touch) - both track velocity into
 // _panVelX/_panVelY the same way, so they can share the same decay loop.
 function _startPanMomentum() {
   if (_panRaf) { cancelAnimationFrame(_panRaf); _panRaf = null; }
@@ -5879,7 +5879,7 @@ boardWrap.addEventListener('mousedown', e => {
 boardWrap.addEventListener('dblclick', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
-  // Двойной тап на телефоне уже означает «открыть карточку» — создавать по
+  // Двойной тап на телефоне уже означает «открыть карточку» - создавать по
   // нему нельзя, иначе каждый промах мимо карточки рождает пустой текст.
   if (isBoardPhone()) return;
   if (state.mode !== 'select' && state.mode !== 'text') return;
@@ -5899,10 +5899,10 @@ boardWrap.addEventListener('dblclick', e => {
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
 /* A mouseup that happens outside the window never reaches the document, so a
    drag or a pan can outlive the button being released: the user drags a card,
-   lets go over another app, comes back — and the card is still glued to the
+   lets go over another app, comes back - and the card is still glued to the
    cursor, with the grab cursor stuck on. Ending the gesture through the normal
    mouseup path (dispatched on <body>, because that handler calls
-   e.target.closest) keeps the usual cleanup — snapshot, save, class removal —
+   e.target.closest) keeps the usual cleanup - snapshot, save, class removal -
    in one place instead of duplicating it here. */
 function _endStuckGesture(clientX, clientY) {
   document.body.dispatchEvent(new MouseEvent('mouseup', {
@@ -5911,7 +5911,7 @@ function _endStuckGesture(clientX, clientY) {
 }
 let _lastPointerPos = { x: 0, y: 0 };
 // Releasing outside the window is only noticed when the pointer comes back, so
-// also bail out on blur / pointercancel — otherwise the board keeps panning
+// also bail out on blur / pointercancel - otherwise the board keeps panning
 // under a cursor that is no longer pressing anything.
 window.addEventListener('blur', () => {
   if (isDraggingCard || isPanning || isResizing) _endStuckGesture(_lastPointerPos.x, _lastPointerPos.y);
@@ -5964,7 +5964,7 @@ document.addEventListener('mousemove', e => {
       dragStarted = true;
       // Snapshot BEFORE the first pixel of movement so Cmd+Z reverts the
       // drag to the original position. (Alt-drag duplicate already
-      // snapshotted in startCardDrag — skip the double entry.)
+      // snapshotted in startCardDrag - skip the double entry.)
       if (!document.body.classList.contains('alt-duplicating')) snapshot();
       // Add Miro-style dragging class to all dragged cards (subtle ghost + shadow)
       dragCards.forEach(({ card }) => getCardEl(card.id)?.classList.add('dragging'));
@@ -6146,7 +6146,7 @@ document.addEventListener('mouseup', e => {
         const toCard = cardEl && state.cards.find(c => c.id === cardEl.dataset.id);
         if (toCard) { finishConnection({ card: toCard, anchor: dot.dataset.anchor }); return; }
       }
-      // Walk element stack at cursor — pick first real board-card that isn't the source
+      // Walk element stack at cursor - pick first real board-card that isn't the source
       const fromId = connectPending?.from?.card?.id;
       const stack = document.elementsFromPoint(e.clientX, e.clientY);
       let targetCardEl = null;
@@ -6216,7 +6216,7 @@ document.addEventListener('mouseup', e => {
     const { card, el, dir, sh } = resizeStart;
     if (card.type === 'game') applyGameScale(el, card);
     /* A worksheet dragged WIDER rewraps its text, so the height it needed a
-       moment ago is the wrong height now — left alone it either scrolls or
+       moment ago is the wrong height now - left alone it either scrolls or
        trails blank paper. Re-fit, and allow shrinking here specifically because
        the teacher just changed the wrapping themselves.
 
@@ -6248,7 +6248,7 @@ document.addEventListener('mouseup', e => {
           selectCard?.(fid);
           // Smooth-zoom to the new frame so the result is immediately visible
           setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 80);
-          toast && toast(`✨ ${sidebarDragData.tool.title} template ready — edit the stickies`);
+          toast && toast(`✨ ${sidebarDragData.tool.title} template ready - edit the stickies`);
         }
       } else if (sidebarDragData.__lessonPack) {
         // Lesson Pack drop: drop a full multi-frame lesson layout
@@ -6270,7 +6270,7 @@ document.addEventListener('mouseup', e => {
   }
 });
 
-/* ════════════════════ TOUCH — Miro-quality ══════════════════ */
+/* ════════════════════ TOUCH - Miro-quality ══════════════════ */
 (function() {
   let t0 = null, t1 = null;
   let panOrigin = null;
@@ -6513,7 +6513,7 @@ document.addEventListener('mouseup', e => {
     else if (ts.length === 1) {
       t0 = ts[0]; t1 = null; pinchOrigin = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
-      _lastPanTime = 0; // fresh gesture (e.g. after a 2-finger pinch) — don't carry a stale velocity sample
+      _lastPanTime = 0; // fresh gesture (e.g. after a 2-finger pinch) - don't carry a stale velocity sample
     }
   }, { passive: true });
   boardWrap.addEventListener('touchcancel', e => {
@@ -6532,10 +6532,10 @@ document.addEventListener('mouseup', e => {
   }, { passive: true });
 })();
 
-/* ════════════════════════ ZOOM — Miro-style ════════════════════════ */
+/* ════════════════════════ ZOOM - Miro-style ════════════════════════ */
 // Normalize wheel deltas across browsers/devices: Chrome/Safari report
 // pixel deltas (deltaMode 0, ~100/notch); Firefox with a physical mouse
-// reports line deltas (deltaMode 1, ~3/notch) — without this, pan/zoom
+// reports line deltas (deltaMode 1, ~3/notch) - without this, pan/zoom
 // is ~30x too slow in Firefox.
 function _wheelDelta(e) {
   const mult = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? window.innerHeight : 1;
@@ -6572,7 +6572,7 @@ document.getElementById('btn-zoom-out').addEventListener('click', () => {
 });
 document.getElementById('btn-fit').addEventListener('click', fitAll);
 
-/* Sync zoom % to bottom-right control — handled in applyTransform above */
+/* Sync zoom % to bottom-right control - handled in applyTransform above */
 
 /* ════════════════════════ SPACE PAN ════════════════════════ */
 document.addEventListener('keyup', e => {
@@ -6596,7 +6596,7 @@ window.addEventListener('blur', () => {
 
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
-  // Space = pan — but never while typing in a sticky / text card (contenteditable)
+  // Space = pan - but never while typing in a sticky / text card (contenteditable)
   if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT' && !e.target.isContentEditable) {
     if (!spaceDown) {
       spaceDown = true;
@@ -6938,7 +6938,7 @@ function setMode(mode) {
   // Leaving connect mode with a rubber-band still stretched (started a
   // connector, then hit V / clicked another tool instead of finishing or
   // hitting Escape) used to strand connectPending and its dashed
-  // .arrow-pending path in the SVG forever — a phantom connector nobody
+  // .arrow-pending path in the SVG forever - a phantom connector nobody
   // drew, sitting on the board on reload. Every setMiroTool/toggleConnectMode
   // exit path calls setMode('select') directly, so cleaning up centrally
   // here (rather than at each of the dozen call sites) is the one place
@@ -7114,7 +7114,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && _handMode) toggleHandTool();
 });
 // 'H' shortcut already used by Highlighter; bind only with no modifier and when not typing
-// (Highlighter is 'h' but you said low priority — keep the highlighter as is, document with Shift+H.
+// (Highlighter is 'h' but you said low priority - keep the highlighter as is, document with Shift+H.
 //  Currently we leave H for highlighter; user can click the icon for hand pan.)
 
 /* ─── Comment mode ─── */
@@ -7324,7 +7324,7 @@ function disableCommentMode() {
   document.getElementById('mt-comment')?.classList.remove('active');
   document.getElementById('mt-select')?.classList.add('active');
 }
-// Handle click in comment mode — shows a small inline composer instead of a native prompt.
+// Handle click in comment mode - shows a small inline composer instead of a native prompt.
 function _handleCommentClick(e) {
   if (_miroTool !== 'comment') return false;
   const bp = screenToBoard(e.clientX, e.clientY);
@@ -7424,7 +7424,7 @@ function _arrowEndpoint(arrow, side) {
     return arrow.toPoint ? { x: arrow.toPoint.x, y: arrow.toPoint.y } : null;
   }
 }
-// Effective anchor used by the bezier/elbow routers — fall back to 'auto'
+// Effective anchor used by the bezier/elbow routers - fall back to 'auto'
 // when an endpoint is free (no card-side anchor).
 function _arrowEffectiveAnchor(arrow, side) {
   if (side === 'from') return arrow.fromCard ? arrow.fromAnchor : 'auto';
@@ -7731,7 +7731,7 @@ function renderAllArrows() {
         handle.addEventListener('mousedown', e => _beginArrowEndpointDrag(e, arrow.id, side, handle));
         g.appendChild(handle);
       });
-      // Mid-line waypoint handles — drag to bend the arrow, double-click to remove
+      // Mid-line waypoint handles - drag to bend the arrow, double-click to remove
       wps.forEach((wp, idx) => {
         const wpW = boardToWrap(wp.x, wp.y);
         const wh = document.createElementNS('http://www.w3.org/2000/svg','circle');
@@ -7868,7 +7868,7 @@ function _addArrowWaypointAt(arrowId, sx, sy) {
   snapshot();
   const p = screenToBoard(sx, sy);
   arrow.waypoints = arrow.waypoints || [];
-  // Insert at end (a simple model — works fine for one or two waypoints)
+  // Insert at end (a simple model - works fine for one or two waypoints)
   arrow.waypoints.push({ x: p.x, y: p.y });
   state.selectedArrows.add(arrow.id);
   renderAllArrows();
@@ -7917,7 +7917,7 @@ document.getElementById('ctx-delete-arrow').addEventListener('click', () => {
   document.getElementById('ctx-arrow-sep').style.display = 'none';
 });
 
-/* Arrow target — finish connection when clicking anchor on another card */
+/* Arrow target - finish connection when clicking anchor on another card */
 document.addEventListener('mousedown', e => {
   if (!connectPending) return;
   const dot = e.target.closest('.anchor-dot');
@@ -7935,7 +7935,7 @@ let ctxPos = { x:0, y:0 };
 boardWrap.addEventListener('contextmenu', e => {
   e.preventDefault();
   if (_didPan) { _didPan = false; return; }
-  // Right-click always cancels a pending connection — intuitive escape hatch.
+  // Right-click always cancels a pending connection - intuitive escape hatch.
   if (connectPending) { cancelConnection(); setMode('select'); setMiroTool('select'); return; }
   ctxPos = screenToBoard(e.clientX, e.clientY);
   // Restore board-creation items (a prior arrow right-click hides them).
@@ -7983,7 +7983,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* Reusable helpers — keep the logic in ONE place so Cmd+V, Cmd+C and
+/* Reusable helpers - keep the logic in ONE place so Cmd+V, Cmd+C and
    right-click do exactly the same thing. */
 function _placeNewImageCard(boardX, boardY, data, w, h) {
   // Auto-sized cards land centred at the cursor with a sensible default rect.
@@ -8358,7 +8358,7 @@ function toggleCommentsPanel() {
 }
 
 // Switch sidebar tab from outside (e.g., top-bar Layout button).
-// Sidebar is now a Miro-style anchored popover — opening means adding .open.
+// Sidebar is now a Miro-style anchored popover - opening means adding .open.
 function setSidebarTab(name) {
   const sb = document.getElementById('sidebar');
   if (sb && !sb.classList.contains('open')) {
@@ -8451,7 +8451,7 @@ function _positionLibraryPopover() {
   const btn = document.getElementById('mt-templates');
   if (!sb || !btn) return;
   if (isBoardPhone()) {
-    // mobile: bottom-sheet — let the @media rules win, clear inline overrides
+    // mobile: bottom-sheet - let the @media rules win, clear inline overrides
     sb.style.top = ''; sb.style.left = '';
     return;
   }
@@ -8469,7 +8469,7 @@ window.addEventListener('resize', () => {
   if (sb && sb.classList.contains('open')) _positionLibraryPopover();
 });
 // Sidebar is now a Miro-style flyout: hidden by default.
-// We deliberately do NOT restore previous open state — board.html should look
+// We deliberately do NOT restore previous open state - board.html should look
 // like Miro on load (clean canvas, no panel).
 
 // Esc closes the flyout
@@ -8572,7 +8572,7 @@ const BOARD_TOOL_META = {
 // Tool IDs surfaced as "popular this week" featured row
 const BOARD_TOOL_FEATURED = ['lesson-pack','worksheet-builder','rewrite','flashcards','discussion'];
 let activeToolSkill = 'all';
-/* BOARD_TEACHER_TOOLS — extracted to js/teacher-tools-data.js */
+/* BOARD_TEACHER_TOOLS - extracted to js/teacher-tools-data.js */
 
 function setBoardToolSkill(skill, btn) {
   activeToolSkill = skill || 'all';
@@ -8585,17 +8585,17 @@ function setBoardToolSkill(skill, btn) {
    instant-template uses to make the result feel real, not a placeholder.
    Each entry is keyed by tool.id when we want something specific, and
    falls back to the category default below. ─── */
-/* TOOL_SEED_CONTENT — extracted to js/teacher-tools-data.js */
+/* TOOL_SEED_CONTENT - extracted to js/teacher-tools-data.js */
 
 /* Category fallbacks if a tool doesn't have a dedicated seed above. */
-/* TOOL_SEED_FALLBACKS — extracted to js/teacher-tools-data.js */
+/* TOOL_SEED_FALLBACKS - extracted to js/teacher-tools-data.js */
 
 function getToolSeed(tool) {
   return TOOL_SEED_CONTENT[tool.id] || TOOL_SEED_FALLBACKS[tool.cat] || TOOL_SEED_FALLBACKS.utility;
 }
 
 /* ════════════════════════════════════════════════════════════════
-   LESSON PACKS — fully written 45-min lesson plans on popular B1-B2
+   LESSON PACKS - fully written 45-min lesson plans on popular B1-B2
    topics. Dragging one of these onto the board drops an outer "lesson"
    Frame containing 5 sub-Frames in a row (warm-up → input → practice
    → production → homework) each pre-filled with REAL teachable content
@@ -8603,9 +8603,9 @@ function getToolSeed(tool) {
    can use it as-is or edit any sticky in place.
    Each pack: 5 stages × 1 main sticky each = 5 stickies + 1 header.
 ══════════════════════════════════════════════════════════════════ */
-/* LESSON_PACKS — extracted to js/teacher-tools-data.js */
+/* LESSON_PACKS - extracted to js/teacher-tools-data.js */
 
-/* Drop a full Lesson Pack on the board — an outer Frame containing 5
+/* Drop a full Lesson Pack on the board - an outer Frame containing 5
    sub-Frames (one per stage) each pre-filled with the real lesson
    content for the chosen topic.
    Returns the outer frame id so the caller can select / zoom. */
@@ -8629,7 +8629,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
   _suppressSnapshot++;
   let outer;
   try {
-    // Outer (lesson) frame — distinctive title with icon + level + duration
+    // Outer (lesson) frame - distinctive title with icon + level + duration
     outer = addCard('frame', x0, y0, {
       title: `${pack.icon}  ${pack.title} · ${pack.level} · ${pack.duration}`,
       bg: '#ffffff',
@@ -8770,7 +8770,7 @@ function instantiateToolTemplate(tool, anchorBoardX, anchorBoardY) {
 
 /* Category-keyed 5-step flow used as the sticky-row content. Same wording
    as the legacy toolMaterialText but split into individual lines. */
-/* TOOL_FLOW_TEMPLATES — extracted to js/teacher-tools-data.js */
+/* TOOL_FLOW_TEMPLATES - extracted to js/teacher-tools-data.js */
 
 function toolMaterialText(tool) {
   const focus = tool.title.replace(/\s+/g, ' ');
@@ -8844,7 +8844,7 @@ const TT_NEEDS_SOURCE_SET = new Set([
   // tools whose whole purpose is to process a pasted text / transcript
   'summary-task','three-titles','cefr-checker','add-text',
   'audio-video-questions','answer-key',
-  // exam-style reading tasks — all read FROM a pasted text
+  // exam-style reading tasks - all read FROM a pasted text
   'tf-not-given','vocab-in-context','reference-questions',
   'match-headings','sentence-insertion','reading-bits',
 ]);
@@ -8859,22 +8859,22 @@ const TT_NEEDS_VOCAB_SET = new Set([
 const TT_REQUIRE_VOCAB_SET = new Set([
   'text-topic-vocab','link-words','sentence-translation',
   'sentences-vocab','odd-one-out','word-sorting',
-  // word-definition-match works from a word list — definitions are auto-filled,
+  // word-definition-match works from a word list - definitions are auto-filled,
   // no source text needed; block only until the words are given.
   'word-definition-match',
   // The five vocabulary drills below moved into TT_LOCAL_QUALITY_SET, and they
-  // are the teacher's own words plus a fixed instruction — with the field empty
+  // are the teacher's own words plus a fixed instruction - with the field empty
   // their generator returns null and the caller drops to the generic scaffold.
   // Asking for the words is the honest branch: "Give a synonym for ___" has
   // nothing to be about otherwise. Same pattern as word-definition-match above.
   'collocations','synonyms-antonyms','word-families','phrasal-verbs','idioms',
 ]);
-// Listening / video tools — offer a YouTube link that auto-fills the transcript.
+// Listening / video tools - offer a YouTube link that auto-fills the transcript.
 const TT_MEDIA_SET = new Set([
   'audio-video-questions','transcript-helper','summary-gapfill',
   'choose-summary','warmup-listening','listening-dictation','add-video',
 ]);
-// Text-generation tools — offer Genre + Length controls for the produced text.
+// Text-generation tools - offer Genre + Length controls for the produced text.
 const TT_TEXTGEN_SET = new Set(['generate-text','text-topic-vocab']);
 const TT_BUILDER_DRAFT_KEY = 'teachedos_tt_builder_draft_v1';
 const TT_BUILDER_DRAFT_MAX_CHARS = 180000;
@@ -9236,7 +9236,7 @@ async function fetchYoutubeTranscript() {
    Paste a link → fetch transcript → generate a curated set of exercises from
    it → drop them as styled worksheet cards inside a single "Lesson" frame.   */
 /* The six exercises a video lesson can be built from. `stage` is where each one
-   belongs in a LESSON, which is not the order this list is written in — the
+   belongs in a LESSON, which is not the order this list is written in - the
    list is a picker, grouped the way a teacher shops, while a lesson runs
    pre-teach → comprehension → language work → production. Vocabulary is
    generated third and taught first; discussion is generated last and stays
@@ -9262,8 +9262,8 @@ const YT_TOOL_COUNT = {
 };
 /* УРОВЕНЬ МЕНЯЕТ И ОБЪЁМ, а не только формулировки.
 
-   Одно и то же число на всех уровнях — это разный урок по длине. Двенадцать
-   слов на A1 — половина занятия и гарантированная перегрузка; шесть вопросов на
+   Одно и то же число на всех уровнях - это разный урок по длине. Двенадцать
+   слов на A1 - половина занятия и гарантированная перегрузка; шесть вопросов на
    обсуждение на A2 бессмысленны, потому что там ещё нечем обсуждать, зато на C1
    именно они и есть урок, а проверка фактов не нужна почти совсем.
 
@@ -9297,7 +9297,7 @@ function _ytCountFor(toolId, level) {
    five transcript-sized prompts.
 
    Two things are deliberately NOT cached. A rule-engine answer (engine:'rules')
-   is what the server returns when the AI could not be reached — caching the
+   is what the server returns when the AI could not be reached - caching the
    degraded lesson would freeze it in place for a day. And the key includes a
    hash of the exact source sample, so a different video, a different level or
    a change to how the transcript is sampled all miss, rather than serving
@@ -9322,7 +9322,7 @@ function _ytCacheGet(key) {
   try { return JSON.parse(JSON.stringify(hit.out)); } catch { return null; }
 }
 function _ytCacheSet(key, out) {
-  /* Ни шаблоны, ни страховочная модель в кэш не идут: и то и другое — ответ
+  /* Ни шаблоны, ни страховочная модель в кэш не идут: и то и другое - ответ
      на «основная модель сегодня недоступна», и держать его сутки означало бы
      закрепить худший результат ещё на день после того, как всё починилось. */
   if (!out || out.engine === 'rules' || out.engine === 'backup' || out.engine === 'archive') return;
@@ -9336,7 +9336,7 @@ function _ytCacheSet(key, out) {
     const kept = {};
     keys.forEach(k => { kept[k] = all[k]; });
     localStorage.setItem(YT_CACHE_KEY, JSON.stringify(kept));
-  } catch { /* quota or private mode — the cache is an optimisation, not a feature */ }
+  } catch { /* quota or private mode - the cache is an optimisation, not a feature */ }
 }
 
 /* ── YouTube→Lesson run state ──────────────────────────────────────────────
@@ -9375,8 +9375,8 @@ function openYtLesson() {
   _ytFailedPicks = [];
   /* Restore last-used exercise picks + level. The default is every block: four
      of six produced a lesson with a gap where the discussion should be, and a
-     teacher who wants a shorter lesson unticks what they do not need — which
-     they can see — rather than discovering two blocks they never knew were
+     teacher who wants a shorter lesson unticks what they do not need - which
+     they can see - rather than discovering two blocks they never knew were
      there. The choice is remembered either way. */
   const prefs = _ytLoadPrefs();
   const saved = (prefs && Array.isArray(prefs.picks) && prefs.picks.length) ? prefs.picks : null;
@@ -9468,9 +9468,9 @@ async function runYtLesson() {
    transcript pushed each request to roughly 8,300 tokens, and on the free Groq
    tier that meant:
 
-     llama-3.3-70b-versatile   429 — the account allows 12,000 tokens a minute,
+     llama-3.3-70b-versatile   429 - the account allows 12,000 tokens a minute,
                                      and this flow fires two requests at once
-     llama-3.1-8b-instant      413 — over the per-request ceiling outright
+     llama-3.1-8b-instant      413 - over the per-request ceiling outright
 
    Both tiers refused, the OpenRouter backstop was answering 404 (dead model
    slug), and so every exercise came from the rule engine. What looked like a
@@ -9478,12 +9478,12 @@ async function runYtLesson() {
 
    Sampling, not truncation: a lesson built from the first few thousand
    characters of a twenty-minute video asks only about its opening. This keeps a
-   generous head — where the topic is actually established — then spreads the
+   generous head - where the topic is actually established - then spreads the
    rest of the budget over evenly spaced windows, each cut back to a sentence
    boundary so the model is not handed half a word.
 
    And the budget is per tool, because the six tools do not need the same thing.
-   Five of them read the transcript closely — they quote it, gap it, or ask
+   Five of them read the transcript closely - they quote it, gap it, or ask
    about details in it. The lesson plan does not: it needs to know what the video
    is about, and a plan is not improved by feeding it every sentence. Sending all
    six the same block meant paying for the same transcript six times over, which
@@ -9493,7 +9493,7 @@ const YT_SOURCE_BUDGET = 4000;   // tools that read the text
 const YT_BRIEF_BUDGET  = 1200;   // tools that only need the gist
 
 /* Discussion questions are the exception inside TT_NEEDS_SOURCE_SET. That set
-   answers "does this tool read a pasted text", and open-questions does — but it
+   answers "does this tool read a pasted text", and open-questions does - but it
    asks the class what THEY think about what the video was about, and it cannot
    quote, gap or check a detail. Feeding it every sentence buys nothing: the
    same prompt at the brief budget produces the same kind of question, and it is
@@ -9505,7 +9505,7 @@ function _ytBudgetFor(toolId) {
 }
 
 /* Caption noise, removed once before anything is sampled from it. Measured on
-   real auto-caption tracks this is only about 2% of the text — worth doing
+   real auto-caption tracks this is only about 2% of the text - worth doing
    because it is free and because everything it removes is content the model
    would have had to ignore anyway, but it is not where the tokens are. Do not
    expect a lesson to get cheaper from this alone. */
@@ -9520,7 +9520,7 @@ function _ytCleanTranscript(text) {
      the rule cannot tell it from a real repeat across a phrase boundary: on the
      test sentence it turned "all around you" + "you know" into "all around you
      know". Removing a word the speaker said, to save two percent, is the wrong
-     trade — the point of this pass is that everything it drops is certainly
+     trade - the point of this pass is that everything it drops is certainly
      noise. */
   s = s.replace(/\s+([,.!?;:])/g, '$1');
   return s.replace(/\s+/g, ' ').trim();
@@ -9544,7 +9544,7 @@ function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
   const parts = [toBoundary(t.slice(0, HEAD))];
   // Spread the windows so the LAST one ends at the end of the transcript.
   // Stepping by an even fraction of what remains instead left the final
-  // stretch of the video unsampled — a lesson that never asks how it concluded.
+  // stretch of the video unsampled - a lesson that never asks how it concluded.
   const span = Math.max(0, t.length - winLen - HEAD);
   for (let i = 0; i < WINDOWS; i++) {
     const start = HEAD + Math.round(span * (i / Math.max(1, WINDOWS - 1)));
@@ -9557,9 +9557,9 @@ function _ytSampleTranscript(text, budget = YT_SOURCE_BUDGET) {
 
 /* ЧТО НАПИСАТЬ ПЛАНУ ПРО ОСТАЛЬНОЙ УРОК.
 
-   План — единственный блок, который должен знать про соседей: остальные пять
+   План - единственный блок, который должен знать про соседей: остальные пять
    самостоятельны, а он их расставляет по времени. Отдаём ему короткую опись
-   собранного: название блока, сколько в нём заданий и несколько первых —
+   собранного: название блока, сколько в нём заданий и несколько первых -
    этого хватает, чтобы план назвал вещи своими именами («раздайте карточки
    Key vocabulary, 12 слов»), и не хватает, чтобы раздуть запрос транскриптом
    во второй раз. */
@@ -9577,7 +9577,7 @@ function _ytMaterialsManifest(results) {
   }).join('\n');
 }
 
-/* Длительность занятия. Сорок пять минут — школьный урок и разумная середина;
+/* Длительность занятия. Сорок пять минут - школьный урок и разумная середина;
    всё остальное учитель выбирает сам, и от этого зависят минуты в плане. */
 function _ytDuration() {
   const el = document.getElementById('yt-duration');
@@ -9595,7 +9595,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
   if (cancelBtn) cancelBtn.textContent = 'Stop';
 
   try {
-    // 1) Transcript — reuse the cached one when the URL is unchanged.
+    // 1) Transcript - reuse the cached one when the URL is unchanged.
     let transcript = transcriptOverride
       || (_ytLastUrl === url ? _ytLastTranscript : '') || '';
     let videoTitle = (_ytLastUrl === url ? _ytLastTitle : '') || '';
@@ -9658,7 +9658,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       done++;
       _ytSetProgress(10 + Math.round((done / picks.length) * 88));
       /* Which of the six tools made this. Every sheet in a lesson shares the
-         video's topic, so the topic alone cannot tell two blocks apart —
+         video's topic, so the topic alone cannot tell two blocks apart -
          "Gist + Detail questions" vs "Key vocabulary" is the only thing that
          does, and it is known here and nowhere downstream. */
       if (out) {
@@ -9679,9 +9679,9 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     /* План идёт ПОСЛЕДНИМ и отдельно от остальных.
 
        Пока он собирался в общей пачке, он не мог знать, что именно попало на
-       доску, и планировал урок «вообще»: pre-teach vocabulary — при том, что
+       доску, и планировал урок «вообще»: pre-teach vocabulary - при том, что
        конкретные двенадцать слов уже лежали рядом. Теперь сначала собирается
-       материал, потом по его описи строится расписание занятия. Цена — один
+       материал, потом по его описи строится расписание занятия. Цена - один
        запрос не параллельно с прочими, то есть несколько секунд ожидания;
        взамен план перестаёт быть отдельным уроком рядом с уроком. */
     const planIdx = picks.indexOf('lesson-pack');
@@ -9710,7 +9710,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     const results = ordered.filter(Boolean);
     _ytFailedPicks = failed;
     if (!results.length) {
-      _ytStatus('⚠ The engine was busy — no exercises came back. Try again in a moment.');
+      _ytStatus('⚠ The engine was busy - no exercises came back. Try again in a moment.');
       return;
     }
 
@@ -9718,7 +9718,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
     _placeLessonOnBoard(results, videoTitle, url, { source: sampled[YT_SOURCE_BUDGET], level });
 
     if (failed.length) {
-      // Partial success — keep the modal open and let the user retry the misses.
+      // Partial success - keep the modal open and let the user retry the misses.
       const labels = failed.map(id => (YT_LESSON_TOOLS.find(t => t.id === id) || {}).label || id);
       _ytStatus(`✓ ${results.length}/${picks.length} placed. ${failed.length} failed: ${esc(labels.join(', '))}. ` +
         `<button type="button" class="yt-retry-btn" onclick="_ytRetryFailed()">↻ Retry failed</button>`);
@@ -9730,7 +9730,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride) {
       // way to know the second build was free, and it is the difference between
       // "the AI is slow today" and "there was nothing to wait for".
       const free = reused ? ` · ${reused} reused` : '';
-      toast(`🎬 Lesson built — ${results.length} exercise${results.length > 1 ? 's' : ''} on the board${free}`);
+      toast(`🎬 Lesson built - ${results.length} exercise${results.length > 1 ? 's' : ''} on the board${free}`);
     }
   } finally {
     _ytRunning = false;
@@ -9752,16 +9752,16 @@ function _ytRetryFailed() {
 }
 
 // Lay the generated worksheets out in a grid (≤3 per row) inside one titled frame.
-// Lesson Pack results (boardKind:'cards' — a multi-stage pack, not a linear
+// Lesson Pack results (boardKind:'cards' - a multi-stage pack, not a linear
 // question list) are placed SEPARATELY, below the frame, at their own
-// landscape width — cramming them into the same fixed CARD_W as the other
+// landscape width - cramming them into the same fixed CARD_W as the other
 // exercises is exactly what forced a 9-stage pack into one narrow scrolling
 // column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
 function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   let gridResults = results.filter(out => !cardsResults.includes(out));
   /* Each exercise is generated from the same transcript by a separate call, so
-     none of them knows what the others asked — and the same fact is the most
+     none of them knows what the others asked - and the same fact is the most
      quotable one in the video for all of them. "How long has she lived in the
      U.S.?" as a multiple choice, then the same thing as a gap-fill, is a lesson
      that looks longer than it is. Dedupe ACROSS the sheets, first one wins, so
@@ -9775,7 +9775,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   }).filter(out => !Array.isArray(out.questions) || out.questions.length > 0);
   /* Teaching order, not generation order. The tools run in whatever order the
      teacher ticked them and finish in whatever order the AI answered, and the
-     grid then laid them out in exactly that arbitrary sequence — a lesson whose
+     grid then laid them out in exactly that arbitrary sequence - a lesson whose
      first block was a gap-fill and whose vocabulary came fourth, after the
      exercises that use those words. Sorting by the stage each tool belongs to
      turns the same set of cards into a lesson that can be taught top to bottom.
@@ -9792,24 +9792,24 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   // Горизонтальный и вертикальный промежутки РАЗНЫЕ. Одно число на оба
   // означало 26px между колонками: соседние листы почти касались друг друга,
   // и глаз читал две колонки как одну простыню. По ширине это теперь ~2 см
-  // (100px при 100% масштаба доски) — столько нужно, чтобы колонка выглядела
+  // (100px при 100% масштаба доски) - столько нужно, чтобы колонка выглядела
   // отдельным столбцом задания, а не продолжением соседней. По вертикали
   // хватает меньшего: карточки и так разделены рамкой и заголовком.
   const { CARD_W, COL_GAP, ROW_GAP, PAD, HEAD } = LESSON_GRID;
   /* The source video is a CELL OF THE GRID, not a card parked beside the frame.
      Floating outside it, it was the one piece of the lesson that a teacher
-     could move, print or export without, and it broke the frame's rectangle —
+     could move, print or export without, and it broke the frame's rectangle -
      the lesson read as "a frame, and also a video". First cell, top-left: the
      thing the lesson is made from is the first thing in it. */
   const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
-  // True 16:9 for the player area itself, plus the card header's own height —
+  // True 16:9 for the player area itself, plus the card header's own height -
   // sizing the WHOLE card to 16:9 left the actual video letterboxed.
   const VIDEO_HEADER_H = 34, VIDEO_H = Math.round(CARD_W * 9 / 16) + VIDEO_HEADER_H;
   /* CUT THE LONG BLOCKS DOWN TO THE SIZE THE COLUMNS CAN BALANCE.
 
      A lesson is four or five blocks whose natural heights differ by five times:
      a 460px vocabulary card, a 2100px question sheet. No arrangement of five
-     such cards into two or three columns is level — whichever column gets the
+     such cards into two or three columns is level - whichever column gets the
      question sheet ends 1100px below the others, and that difference is the
      empty half of the frame a teacher sees.
 
@@ -9821,13 +9821,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   gridResults = _ttSplitLessonBlocks(gridResults, CARD_W, COL_GAP, ROW_GAP, HEAD, embedUrl ? VIDEO_H : 0);
   const cells = [];
   if (embedUrl) cells.push({ video: true, h: VIDEO_H });
-  /* The frame is one lesson, so its blocks are numbered — a teacher (and a
+  /* The frame is one lesson, so its blocks are numbered - a teacher (and a
      student handed a printout) can see that vocabulary comes before the
      questions that use it, which the layout alone cannot say once the grid
      packs the cards into columns of unequal length. The video, when present,
      is step 1: watching it IS the first activity. */
   let step = embedUrl ? 1 : 0;
-  // Measured against the REAL card width — the estimator assumes 440 unless
+  // Measured against the REAL card width - the estimator assumes 440 unless
   // told otherwise, so every wide card here used to be estimated far too tall.
   // Deliberately not clamped on top of that: _ttEstWorksheetHeight already
   // stops at WS_MAX_SHEET, and a card shorter than its content scrolls, which
@@ -9843,7 +9843,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   // the ratio decide below that instead of jumping straight to a 3-wide grid.
   /* Column packing, not fixed rows. A row is as tall as its tallest card, so a
      440px vocabulary card sharing a row with a 2100px question sheet left a
-     1600px hole under it — and the video, the shortest cell of all, opened the
+     1600px hole under it - and the video, the shortest cell of all, opened the
      lesson with the biggest hole. Each card instead goes to whichever column is
      currently shortest, which is what makes the block heights read as one grid
      rather than three ribbons of different length. The first pass fills the top
@@ -9852,7 +9852,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   const layout = _ttPackColumns(cells.map(c => c.h), cols, HEAD, ROW_GAP);
   const FW = n ? PAD * 2 + cols * CARD_W + (cols - 1) * COL_GAP : 0;
   /* The lesson plan is the widest thing in the lesson and the one block that is
-     read across rather than down, so it does not belong in a 720px column — but
+     read across rather than down, so it does not belong in a 720px column - but
      it does belong in the frame. Parked under it, as it used to be, it was the
      part of the lesson a teacher could scroll past, print without or drag away
      by accident, and the frame ended on a ragged bottom edge with the plan
@@ -9873,13 +9873,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   }
   /* When the model cannot be reached the server quietly answers from its rule
      engine instead. The material is usable but noticeably flatter, and until
-     now nothing said so — a teacher blamed the tool for output it only produces
+     now nothing said so - a teacher blamed the tool for output it only produces
      when it is running blind. Say it on the frame, which stays with the lesson,
      rather than only in a toast the teacher may miss. */
   const ruleMade = results.filter(o => o && o.engine === 'rules');
   const archiveMade = results.filter(o => o && o.engine === 'archive');
   const backupMade = results.filter(o => o && o.engine === 'backup');
-  if (ruleMade.length) title += '   ·  ⚠︎ draft — AI unavailable';
+  if (ruleMade.length) title += '   ·  ⚠︎ draft - AI unavailable';
   /* Материал из архива собрала настоящая модель, но раньше и, возможно, для
      другого класса. Отличать его от свежего обязательно: иначе учитель не
      поймёт, почему повтор генерации дал ровно тот же лист. */
@@ -9893,7 +9893,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
         _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video',
-        /* Из чего собран урок — на кадре. Без этого блок нельзя пересобрать:
+        /* Из чего собран урок - на кадре. Без этого блок нельзя пересобрать:
            карточка знает СВОИ вопросы, но не текст, из которого они сделаны.
            Тот же слепок транскрипта, что уходил в генерацию, поэтому «сделать
            проще» строится ровно из того же материала, а не из другого куска
@@ -9913,7 +9913,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
           : addCard('worksheet', x, y, {
               title: out.title, topic: out.topic, kind: out.kind, cat: out.cat, level: out.level || 'B1',
               boardKind: out.boardKind, questions: out.questions, items: out.items, cards: out.cards,
-              // Generated, never hand-sized — so the measure pass below may
+              // Generated, never hand-sized - so the measure pass below may
               // shrink it to its content instead of leaving the estimate's
               // slack as a hole in the grid.
               _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
@@ -9932,7 +9932,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
           }
           /* Перерисовка ПОСЛЕ того, как карточка попала в кадр. Шапка листа
              показывает регулятор уровня, только если видит, из чего сделан урок,
-             а материал лежит на кадре — в момент первой отрисовки карточка ещё
+             а материал лежит на кадре - в момент первой отрисовки карточка ещё
              ничья, и регулятор не появлялся до следующего перерендера. */
           reRenderCard(card);
         }
@@ -9951,7 +9951,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
         boardKind: out.boardKind, cards: out.cards, _ttSrc: 1,
         // Признак «ряд во всю ширину кадра», а не догадка по ширине: в режиме
         // показа план сжимается до 480 и по ширине уже неотличим от обычной
-        // карточки — а при возврате его снова надо класть во всю полосу.
+        // карточки - а при возврате его снова надо класть во всю полосу.
         _lessonFull: n ? 1 : 0,
       }, W2, H2);
       if (card) {
@@ -9966,12 +9966,12 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   } finally { _suppressSnapshot--; }
   /* Everything above was laid out from estimated heights, because the grid has
      to exist before anything can render. Now that it has rendered, measure and
-     lay it out again for real — otherwise a card that grew to fit its content
+     lay it out again for real - otherwise a card that grew to fit its content
      overlaps the row beneath it and hangs out of the frame. */
   if ((frame && gridCardIds.length) || packCardIds.length) {
     /* Run it TWICE. Each worksheet measures and fits itself in a rAF of its
        own (end of renderWorksheet), and a card that has not fitted yet reports
-       no slack — so a single pass here packs the grid from the estimates it
+       no slack - so a single pass here packs the grid from the estimates it
        was trying to replace. The layout is idempotent, so the second pass
        simply repacks once every card has settled; without it the generated
        lesson kept the estimate's empty tails under the shorter cards. */
@@ -9982,7 +9982,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
           { x0, y0, cols, CARD_W, COL_GAP, ROW_GAP, PAD, HEAD, pack: true, fullIds: packCardIds });
       }
       // Without a frame the packs are loose cards in a column of their own, so
-      // they still need re-stacking on measured heights — inside a frame
+      // they still need re-stacking on measured heights - inside a frame
       // _relayoutLessonFrame has already placed them as its last rows.
       if (packCardIds.length && !(frame && gridCardIds.length)) _restackBelow(packCardIds, below, GAP);
       if (frame) _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
@@ -9991,33 +9991,33 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
     setTimeout(relayout, 180);
   }
   scheduleSave?.(); saveLocal?.();
-  // The toast fades after 1.8s, so it is the nudge, not the record — the frame
+  // The toast fades after 1.8s, so it is the nudge, not the record - the frame
   // title above carries the same warning for as long as the lesson exists.
   if (ruleMade.length) {
     const why = ruleMade[0].engineReason;
     const cause = why === 'busy' ? 'AI was busy'
       : why === 'timeout' ? 'AI timed out'
       : 'AI unavailable';
-    toast('⚠︎ ' + cause + ' — ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
+    toast('⚠︎ ' + cause + ' - ' + ruleMade.length + ' of ' + results.length + ' built offline. Regenerate for better questions.');
   } else if (backupMade.length) {
-    /* Страховка сработала — значит основная модель была недоступна. Сказать об
+    /* Страховка сработала - значит основная модель была недоступна. Сказать об
        этом важнее, чем промолчать: материал рабочий, но заметно проще, и
        переспросить через час стоит одного нажатия. */
-    toast('⚠︎ Main engine unavailable — ' + backupMade.length + ' of ' + results.length + ' built on the backup engine. Regenerate later for sharper questions.');
+    toast('⚠︎ Main engine unavailable - ' + backupMade.length + ' of ' + results.length + ' built on the backup engine. Regenerate later for sharper questions.');
   }
 }
 
 /* ── КАРТИНКИ К СЛОВАМ ────────────────────────────────────────────────────
 
    Образ держится в памяти дольше слова и даёт контекст, которого нет в
-   определении, — ради этого всё и затевалось. Подбор идёт через наш
+   определении, - ради этого всё и затевалось. Подбор идёт через наш
    /api/images/search, которому теперь можно передать тему урока и пример
    предложения: без контекста поиск по слову промахивается чаще, чем попадает
    («nervous» отдавал обезьяну).
 
    Три правила, все из осторожности:
    • урок не ждёт картинок. Лист ставится на доску сразу, снимки долетают и
-     дорисовываются — если сеть медленная, у учителя всё равно есть материал;
+     дорисовываются - если сеть медленная, у учителя всё равно есть материал;
    • не больше трёх запросов одновременно, чтобы не выесть часовой лимит
      фотобанка одним уроком на двенадцать слов;
    • подпись автора сохраняется вместе с адресом, а не берётся заново при
@@ -10026,18 +10026,18 @@ const _TT_IMG_CONCURRENCY = 3;
 
 /* КОГДА КАРТИНКИ НЕТ.
 
-   Фотобанк не находит снимок примерно на каждом десятом слове — абстрактном
+   Фотобанк не находит снимок примерно на каждом десятом слове - абстрактном
    («justice»), узком («semicolon») или просто редком. Раньше на его месте
    оставалась заштрихованная пустая рамка: на экране она читается как «идёт
-   загрузка», на печати — как брак вёрстки.
+   загрузка», на печати - как брак вёрстки.
 
    Рисуем вместо неё буквенную плитку прямо в браузере: первая буква слова на
    спокойном фоне и подпись «draw it». Внешних сервисов не нужно вовсе, а
-   пустое место превращается в задание — ученик рисует слово сам, и это лучший
+   пустое место превращается в задание - ученик рисует слово сам, и это лучший
    способ его запомнить из всех, что у нас тут были.
 
    Цвет выводится из самого слова, поэтому один и тот же термин всегда одного
-   оттенка — и на доске, и в PNG-экспорте, и на перепечатке через месяц.     */
+   оттенка - и на доске, и в PNG-экспорте, и на перепечатке через месяц.     */
 function _ttLetterTile(word) {
   const w = String(word || '').trim();
   const letter = (w[0] || '?').toUpperCase();
@@ -10072,16 +10072,16 @@ async function _ttFetchWordImage(word, topic, context) {
 }
 
 /* Дополняет карточку словаря картинками и перерисовывает её по мере готовности.
-   Возвращает число найденных — вызывающему это нужно, чтобы решить, стоит ли
+   Возвращает число найденных - вызывающему это нужно, чтобы решить, стоит ли
    пересобирать кадр под изменившуюся высоту. */
 /* ЗАМЕНА КАРТИНКИ.
 
-   Автоподбор на абстрактных словах ошибается всегда, и это нормально — если
+   Автоподбор на абстрактных словах ошибается всегда, и это нормально - если
    исправление стоит одно нажатие. Клик по снимку показывает четыре варианта
    из той же выдачи; выбранный сразу встаёт в карточку.
 
    Открывается по клику именно на изображении, а не по кнопке рядом: кнопка на
-   каждой из двенадцати карточек — это двенадцать лишних элементов на листе,
+   каждой из двенадцати карточек - это двенадцать лишних элементов на листе,
    который учитель ещё и печатает. */
 async function openVocabImagePicker(cardId, index, anchorEl) {
   const card = state.cards.find(c => c.id === cardId);
@@ -10183,13 +10183,13 @@ async function _ttAttachImagesToVocabCard(cardId, topic) {
 
    Уровень выбирался один раз на весь урок в выпадающем списке и после этого
    становился надписью на карточке. Живой класс так не устроен: в одной группе
-   лексика идёт тяжело, а обсуждение — легко, и первое, что делает учитель,
-   увидев лист, — «этот блок попроще». Раньше это означало собрать урок заново
+   лексика идёт тяжело, а обсуждение - легко, и первое, что делает учитель,
+   увидев лист, - «этот блок попроще». Раньше это означало собрать урок заново
    целиком, другим уровнем, и потерять всё остальное.
 
    Теперь у каждого сгенерированного блока свои − и +: карточка пересобирается
    на соседней ступени CEFR из того же куска транскрипта (frame.data.lesson),
-   тем же инструментом и тем же числом заданий — меняется только уровень.
+   тем же инструментом и тем же числом заданий - меняется только уровень.
    Остальной урок при этом не трогается. */
 const CEFR_LADDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -10199,7 +10199,7 @@ function _cefrStep(level, dir) {
   return (j < 0 || j >= CEFR_LADDER.length) ? null : CEFR_LADDER[j];
 }
 
-/* Сколько заданий в блоке сейчас — столько же просим и на новом уровне: смена
+/* Сколько заданий в блоке сейчас - столько же просим и на новом уровне: смена
    уровня не должна незаметно укорачивать урок. */
 function _wsItemCount(d) {
   return (Array.isArray(d.questions) && d.questions.length)
@@ -10211,10 +10211,10 @@ function _wsItemCount(d) {
 
    Генераторов у нас несколько: урок из видео, урок из текста в кадре, хаб
    инструментов на полсотни вправ и активности, добавленные к готовому кадру.
-   Регулятор уровня не должен знать их все — ему нужны две вещи: каким
+   Регулятор уровня не должен знать их все - ему нужны две вещи: каким
    инструментом сделано и из какого материала. Кто именно это записал, неважно.
 
-   Материал ищется у карточки, а если его там нет — у кадра, в котором она
+   Материал ищется у карточки, а если его там нет - у кадра, в котором она
    лежит: активности из кадра источник не копируют, он общий на весь урок. */
 function _wsLevelOrigin(card) {
   const d = card?.data || {};
@@ -10222,7 +10222,7 @@ function _wsLevelOrigin(card) {
   const L = frame?.data?.lesson || null;
   const toolId = d._ytToolId || d._ttToolId || d._ttOrigin?.toolId || '';
   const source = String(d._ttSource || L?.source || '').trim();
-  if (!toolId || source.length < 120) return null;   // короче — это не материал
+  if (!toolId || source.length < 120) return null;   // короче - это не материал
   return { toolId, source, topic: d.topic || L?.topic || 'Lesson', level: d.level || L?.level || 'B1', frame };
 }
 
@@ -10232,7 +10232,7 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
   const d = card.data;
   const org = _wsLevelOrigin(card);
   if (!org) {
-    toast('This block does not remember what it was built from — rebuild it from a tool or a lesson to get level controls.', 'error');
+    toast('This block does not remember what it was built from - rebuild it from a tool or a lesson to get level controls.', 'error');
     return;
   }
   const frame = org.frame;
@@ -10247,11 +10247,11 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
       { tool: { id: org.toolId }, level: next, count: _wsItemCount(d), topic: org.topic, source: org.source },
       35000);
     const ok = out && (out.questions?.length || out.items?.length || out.cards?.length);
-    if (!ok) { toast('The engine came back empty — the level is unchanged.', 'error'); return; }
+    if (!ok) { toast('The engine came back empty - the level is unchanged.', 'error'); return; }
     snapshot();
     d.level = next;
     /* Присваиваем только то, что пришло: инструмент отдаёт либо вопросы, либо
-       словарь, либо этапы, и затирать пустотой чужое поле — это молча стереть
+       словарь, либо этапы, и затирать пустотой чужое поле - это молча стереть
        блок вместо того, чтобы поменять ему уровень. */
     if (out.questions?.length) d.questions = out.questions;
     if (out.items?.length) d.items = out.items;
@@ -10275,7 +10275,7 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
   }
 }
 
-/* Пересборка кадра его же геометрией — после того как один блок изменился в
+/* Пересборка кадра его же геометрией - после того как один блок изменился в
    размере. Отдельная обёртка, потому что вызывать это приходится из мест, у
    которых нет под рукой параметров постановки. */
 function _relayoutLessonFrameNow(frame) {
@@ -10309,7 +10309,7 @@ function _lessonFrameChildren(frameId) {
 
 /* ПЕРЕКЛЮЧЕНИЕ КАДРА МЕЖДУ РЕЖИМАМИ УЧИТЕЛЯ И УЧЕНИКА.
 
-   В режиме показа каждая карточка становится степпером — окном на один вопрос,
+   В режиме показа каждая карточка становится степпером - окном на один вопрос,
    480x460 (activateWorksheet). Значит меняется не только вид карточки, но и
    ширина колонки, поэтому кадр пересобирается: иначе степперы 480 стояли бы в
    сетке, посчитанной под листы 720, и половина кадра ушла бы в пустоту.
@@ -10354,7 +10354,7 @@ function setLessonFrameMode(frameId, mode) {
   } finally { _suppressSnapshot--; }
 
   /* Пересборка в rAF: карточки только что перерисовались, а раскладка строится
-     по измеренным высотам — в том же кадре они ещё не улеглись. Плюс таймер:
+     по измеренным высотам - в том же кадре они ещё не улеглись. Плюс таймер:
      в неактивной вкладке rAF не вызывается вовсе, и переключение, сделанное
      перед уходом на другую вкладку, осталось бы с карточками нового размера в
      сетке старого. Пересборка идемпотентна, второй проход ничего не портит. */
@@ -10363,7 +10363,7 @@ function setLessonFrameMode(frameId, mode) {
     if (done) return;
     /* Отложенный вызов от ПРЕДЫДУЩЕГО переключения не должен догонять
        следующее: при быстром Plan→Play таймер плана срабатывал уже после
-       перехода в показ и раскладывал степперы по сетке листов — колонки в 820
+       перехода в показ и раскладывал степперы по сетке листов - колонки в 820
        и растянутые до 621 карточки. Сверяемся с текущим режимом кадра. */
     if ((frame.data._mode === 'play' ? 'play' : 'plan') !== next) return;
     done = true;
@@ -10372,7 +10372,7 @@ function setLessonFrameMode(frameId, mode) {
       CARD_W: next === 'play' ? PLAY_CARD_W : CARD_W,
       COL_GAP, ROW_GAP, PAD, HEAD,
       pack: true,
-      // В режиме показа карточка — окно фиксированного размера, растягивать её
+      // В режиме показа карточка - окно фиксированного размера, растягивать её
       // под длину колонки нечем и незачем.
       stretch: next !== 'play',
       fullIds: next === 'play' ? [] : full.map(c => c.id),
@@ -10386,7 +10386,7 @@ function setLessonFrameMode(frameId, mode) {
 
 /* ──────────── LAY THE LESSON GRID OUT AGAIN, ON MEASURED HEIGHTS ────────────
 
-   Reading order stays row-major (left to right, then down) — a lesson is a
+   Reading order stays row-major (left to right, then down) - a lesson is a
    sequence, and packing columns independently the way a masonry layout would
    is tidier but scrambles the order the exercises are meant to be worked in.
    So each row starts below the tallest card in the row above, and cards keep
@@ -10403,7 +10403,7 @@ function _relayoutLessonFrame(frameId, cardIds, geom) {
   const cards = cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
   if (!cards.length) return;
 
-  // Ask every card its true height before any of them are positioned — the
+  // Ask every card its true height before any of them are positioned - the
   // layout below is built entirely from these numbers, so one un-measured card
   // misplaces everything after it.
   cards.forEach(c => _wsFitToContent(c.id, {
@@ -10494,7 +10494,7 @@ function _relayoutLessonFrame(frameId, cardIds, geom) {
     if (el) { el.style.left = card.x + 'px'; el.style.top = card.y + 'px'; }
   });
 
-  /* Cards that span the frame's whole width — the lesson plan — are rows under
+  /* Cards that span the frame's whole width - the lesson plan - are rows under
      the packed columns rather than members of them, so they are measured and
      placed here, after the grid's height is known and before the frame is
      sized around both. */
@@ -10557,8 +10557,8 @@ function _restackBelow(cardIds, startY, gap) {
    the real shape only after fonts, grids and wrapped text have rendered. This
    audit is the last safety net for every generated FRAME: it detects cards
    escaping their frame, accidental overlaps, overly empty tails and a layout
-   that has become implausibly tall. It corrects only the frame envelope — not
-   a teacher's cards — so manual placement always remains authoritative. */
+   that has become implausibly tall. It corrects only the frame envelope - not
+   a teacher's cards - so manual placement always remains authoritative. */
 function _ttAuditGeneratedFrame(frameId, opts = {}) {
   const frame = state.cards.find(card => card && card.id === frameId && card.type === 'frame');
   if (!frame || frame.data?._ttSrc !== 1) return null;
@@ -10656,7 +10656,7 @@ function _ttScheduleGeneratedHarmonyAudit(frameId, opts = {}) {
   }));
 }
 
-// Tools that produce a single artifact or a fixed scaffold — the "Items" count
+// Tools that produce a single artifact or a fixed scaffold - the "Items" count
 // is meaningless, so hide it to avoid confusion (e.g. "Simplify a Text" + 50).
 const TT_NO_COUNT_SET = new Set([
   'lesson-pack','worksheet-builder','homework-set','cefr-checker','rubric-maker',
@@ -10666,50 +10666,50 @@ const TT_NO_COUNT_SET = new Set([
   'generate-text',
   // Fixed-scaffold writing/speaking tools: the prompt hardcodes how many cards
   // it returns (task + word list + model, 4 opinions, pros/cons, …) and ignores
-  // the Items value — so showing "Items: 40" only misleads (you set 40, get 3).
+  // the Items value - so showing "Items: 40" only misleads (you set 40, get 3).
   'link-words','creative-writing','four-opinions','pros-cons','lead-in',
   'interesting-facts','find-quotes','essay-topics',
   // Vocab tools whose output is strictly ONE item per target word the teacher
-  // pastes — the count is dictated by the word list, not a number. Showing
+  // pastes - the count is dictated by the word list, not a number. Showing
   // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
   // teacher controls the count by how many words they type.
   'sentences-vocab','flashcards',
-  // match-headings makes one heading PER PARAGRAPH of the pasted text — the
+  // match-headings makes one heading PER PARAGRAPH of the pasted text - the
   // count comes from the text, not a number.
   'match-headings',
 ]);
 const TT_SOURCE_PLACEHOLDERS = {
-  'abcd-text':'Paste a reading text — we\'ll generate MCQ comprehension questions from it.',
-  'true-false':'Paste a reading text — we\'ll create True/False statements from it.',
-  'extract-vocab':'Paste a text — we\'ll pull key vocabulary from it.',
-  'gap':'Paste a text — we\'ll make gap-fill sentences from it.',
-  'gaps-abcd':'Paste a text — we\'ll create MCQ gap-fill grammar sentences.',
-  'open-questions':'Paste a text — we\'ll generate open discussion questions.',
-  'error-correction':'Paste a text — we\'ll introduce mistakes to find and fix.',
-  'gaps-brackets':'Paste a text — we\'ll create word-form exercises from it.',
-  'two-options':'Paste a text — we\'ll make two-option grammar sentences.',
-  'gist-detail':'Paste a text — we\'ll make a gist question + detail questions.',
-  'listening-dictation':'Paste a transcript — we\'ll make dictation gap-fill sentences.',
-  'simplify-text':'Paste a text — choose Simplify, Upgrade or Keep level.',
-  'transcript-helper':'Paste a transcript — we\'ll build before/during/after tasks.',
+  'abcd-text':'Paste a reading text - we\'ll generate MCQ comprehension questions from it.',
+  'true-false':'Paste a reading text - we\'ll create True/False statements from it.',
+  'extract-vocab':'Paste a text - we\'ll pull key vocabulary from it.',
+  'gap':'Paste a text - we\'ll make gap-fill sentences from it.',
+  'gaps-abcd':'Paste a text - we\'ll create MCQ gap-fill grammar sentences.',
+  'open-questions':'Paste a text - we\'ll generate open discussion questions.',
+  'error-correction':'Paste a text - we\'ll introduce mistakes to find and fix.',
+  'gaps-brackets':'Paste a text - we\'ll create word-form exercises from it.',
+  'two-options':'Paste a text - we\'ll make two-option grammar sentences.',
+  'gist-detail':'Paste a text - we\'ll make a gist question + detail questions.',
+  'listening-dictation':'Paste a transcript - we\'ll make dictation gap-fill sentences.',
+  'simplify-text':'Paste a text - choose Simplify, Upgrade or Keep level.',
+  'transcript-helper':'Paste a transcript - we\'ll build before/during/after tasks.',
   'summary-task':'Paste the text your students will summarize.',
-  'three-titles':'Paste the text — we\'ll create one correct title and two distractors.',
-  'cefr-checker':'Paste a text — we\'ll estimate its CEFR level and suggest changes.',
-  'add-text':'Paste your classroom text — we\'ll add pre/post-reading tasks.',
+  'three-titles':'Paste the text - we\'ll create one correct title and two distractors.',
+  'cefr-checker':'Paste a text - we\'ll estimate its CEFR level and suggest changes.',
+  'add-text':'Paste your classroom text - we\'ll add pre/post-reading tasks.',
   'audio-video-questions':'Paste the transcript or your notes about the audio/video.',
   'answer-key':'Paste the exercise / questions you need an answer key for.',
 };
 const TT_VOCAB_PLACEHOLDERS = {
-  'sentences-vocab':'One word or phrase per line — students will make sentences with each.',
-  'odd-one-out':'One word per line — we\'ll group them into odd-one-out sets.',
-  'word-sorting':'One word per line — students will sort them into categories.',
-  'essential-vocab':'One word per line — we\'ll generate definitions and examples.',
-  'flashcards':'One word per line — we\'ll create flashcard entries.',
-  'collocations':'Key words — we\'ll find their strongest collocations.',
-  'word-families':'Key words — we\'ll give noun/verb/adj/adv forms.',
-  'text-topic-vocab':'One word or phrase per line — we\'ll weave them into a leveled text.',
+  'sentences-vocab':'One word or phrase per line - students will make sentences with each.',
+  'odd-one-out':'One word per line - we\'ll group them into odd-one-out sets.',
+  'word-sorting':'One word per line - students will sort them into categories.',
+  'essential-vocab':'One word per line - we\'ll generate definitions and examples.',
+  'flashcards':'One word per line - we\'ll create flashcard entries.',
+  'collocations':'Key words - we\'ll find their strongest collocations.',
+  'word-families':'Key words - we\'ll give noun/verb/adj/adv forms.',
+  'text-topic-vocab':'One word or phrase per line - we\'ll weave them into a leveled text.',
   'creative-writing':'Target words students must use in their writing.',
-  'link-words':'One word or phrase per line — students link them into sentences.',
+  'link-words':'One word or phrase per line - students link them into sentences.',
   'sentence-translation':'Words or phrases to practise via translation.',
   'synonyms-antonyms':'Optional: specific words. Leave empty to generate from the topic.',
   'phrasal-verbs':'Optional: specific phrasal verbs. Leave empty to generate from the topic.',
@@ -10717,7 +10717,7 @@ const TT_VOCAB_PLACEHOLDERS = {
 };
 /* Пустое состояние предпросмотра рисуется своей графикой, а не эмодзи: эмодзи
    берётся из системного шрифта, поэтому на разных машинах это разные картинки в
-   чужих цветах — на светлой панели конструктора они выглядели наклейкой. Здесь
+   чужих цветах - на светлой панели конструктора они выглядели наклейкой. Здесь
    один штрих (1.6, скруглённые концы) и цвет, наследуемый от панели. */
 const TT_EMPTY_ART = (paths) =>
   `<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
@@ -10765,7 +10765,7 @@ function _ttAdaptFields(tool) {
   if (ytWrap) ytWrap.classList.toggle('tb-field-hidden', !isMedia);
   if (ytStatus) ytStatus.textContent = '';
 
-  // Source field — shown for text tools and (as an optional transcript) media tools
+  // Source field - shown for text tools and (as an optional transcript) media tools
   if (needsSource || isMedia) {
     srcWrap?.classList.remove('tb-field-hidden');
     srcWrap?.classList.toggle('tb-field-required', needsSource);
@@ -10795,7 +10795,7 @@ function _ttAdaptFields(tool) {
     if (vocTA) vocTA.placeholder = 'Key words or phrases for this task (optional)…';
   }
 
-  // Extra field — always optional, sometimes less relevant
+  // Extra field - always optional, sometimes less relevant
   if (extraWrap) extraWrap.classList.remove('tb-field-hidden');
   const sourceHint = document.getElementById('tbuilder-source-hint');
   const vocabHint = document.getElementById('tbuilder-vocab-hint');
@@ -10833,7 +10833,7 @@ function _ttSetAddToBoard(enabled) {
   }
 }
 
-/* "Add to board ▾" dropdown — worksheet / interactive quiz / game. */
+/* "Add to board ▾" dropdown - worksheet / interactive quiz / game. */
 function toggleAddToBoardMenu() {
   const menu = document.getElementById('tbuilder-add-menu');
   if (!menu) return;
@@ -10853,7 +10853,7 @@ function _ttAddMenuOutside(e) {
 // One-line cleaner for game payloads.
 function _ttG(v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); }
 
-// All playable games a teacher-tool result can become — one result often fits
+// All playable games a teacher-tool result can become - one result often fits
 // several (e.g. vocab → Memory Match / Flashcards / Hangman). Returns an array
 // of { gameType, label, icon, content }; the teacher picks one.
 function _ttGamePayloads(out) {
@@ -10871,7 +10871,7 @@ function _ttGamePayloads(out) {
 
   if (Array.isArray(out.questions) && out.questions.length) {
     const qs = out.questions;
-    // Matching exercise — word↔definition or word↔category (word-sorting).
+    // Matching exercise - word↔definition or word↔category (word-sorting).
     if (qs[0].type === 'match' && Array.isArray(qs[0].pairs)) {
       const raw = qs[0].pairs.map(p => ({ left: _ttG(p.left), right: _ttG(p.right) })).filter(p => p.left && p.right);
       const rights = [...new Set(raw.map(p => p.right.toLowerCase()))];
@@ -10901,7 +10901,7 @@ function _ttGamePayloads(out) {
   return games;
 }
 
-// Kept for the enable check — true when at least one game fits.
+// Kept for the enable check - true when at least one game fits.
 function _ttToGamePayload(out) { return _ttGamePayloads(out)[0] || null; }
 
 function _assignmentGamePayloads(data) {
@@ -11025,7 +11025,7 @@ function sendAssignmentToGameType(cardId, gameType) {
 function sendTeacherToolToGameType(gameType) {
   const games = _ttGamePayloads(lastTeacherToolBuilderOutput);
   const g = games.find(x => x.gameType === gameType) || games[0];
-  if (!g) { toast('This result can\'t become a game — try a vocabulary, matching or quiz tool.', 'error'); return; }
+  if (!g) { toast('This result can\'t become a game - try a vocabulary, matching or quiz tool.', 'error'); return; }
   placeGameOnBoard(
     g.gameType,
     lastTeacherToolBuilderOutput.title || 'From Teacher Tools',
@@ -11036,13 +11036,13 @@ function sendTeacherToolToGameType(gameType) {
 // Back-compat: default to the best-fit game.
 function sendTeacherToolToGame() { sendTeacherToolToGameType(); }
 
-/* ════════════ LESSON "+ Add activity" — interactive activities ════════════
+/* ════════════ LESSON "+ Add activity" - interactive activities ════════════
    A lesson frame (reading text + before/after) carries frame.data.lesson with
    the glossary word↔meaning pairs and the reading text. The "+ Add activity"
    button builds INTERACTIVE assignment cards (taken on the board, auto-scored)
    from that same lesson and drops them inside the frame. */
 
-// Lesson vocabulary as builder-style "word - meaning" lines — passed into the
+// Lesson vocabulary as builder-style "word - meaning" lines - passed into the
 // AI follow-up requests so generated questions target the lesson's own words.
 function _ttLessonVocabText(L) {
   return ((L && L.vocab) || [])
@@ -11123,7 +11123,7 @@ function _ttHtmlToText(html) {
 }
 
 /* Parse a rendered glossary panel's HTML back into {word, def} pairs. The
-   composer renders each entry as a <div> holding a bold word span + a "— def"
+   composer renders each entry as a <div> holding a bold word span + a "- def"
    span; the wrapper and the uppercase label have no em-dash so they're dropped. */
 function _ttParseGlossaryHtml(html) {
   const root = _ttHtmlToText(html);
@@ -11132,8 +11132,8 @@ function _ttParseGlossaryHtml(html) {
     if (d.querySelector('div')) return;            // skip wrappers
     const t = (d.textContent || '').replace(/\s+/g, ' ').trim();
     if (!t) return;
-    const p = t.split(/\s+[—–-]\s+/);
-    if (p.length >= 2) out.push({ word: p.shift().trim(), def: p.join(' — ').trim() });
+    const p = t.split(/\s+[-]\s+/);
+    if (p.length >= 2) out.push({ word: p.shift().trim(), def: p.join(' - ').trim() });
   });
   return out;
 }
@@ -11206,7 +11206,7 @@ function _ttPlaceActivityWorksheet(frame, title, kind, cat, level, questions, to
   const data = {
     title, kind, cat: cat || 'vocabulary', level: level || 'B1',
     boardKind: 'quiz', questions, _ttSrc: 1, _interactive: true,
-    // Активность собрана из урока в кадре — значит источник у неё есть, и
+    // Активность собрана из урока в кадре - значит источник у неё есть, и
     // уровень у неё тоже должен крутиться.
     _ttToolId: toolId || '',
     _ttSource: String(frame?.data?.lesson?.source || '').slice(0, 6000),
@@ -11225,7 +11225,7 @@ async function addLessonActivity(frameId, type) {
   const L = _ttEffectiveLesson(frame);
   if (type === 'match') {
     const pairs = (L.vocab || []).slice(0, 10).map(v => ({ left: v.word, right: v.def })).filter(p => p.left && p.right);
-    if (pairs.length < 2) { toast('Not enough words to match — add a glossary to this lesson', 'error'); return; }
+    if (pairs.length < 2) { toast('Not enough words to match - add a glossary to this lesson', 'error'); return; }
     _ttPlaceActivityWorksheet(frame, 'Match: words & meanings', 'Matching', 'vocabulary', L.level,
       [{ type: 'match', text: 'Match each word to its meaning.', pairs, points: pairs.length }]);
   } else if (type === 'gap') {
@@ -11257,7 +11257,7 @@ async function addLessonActivity(frameId, type) {
       { tool: { id: 'true-false' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'truefalse').slice(0, 8);
-    if (!qs.length) { toast('Could not generate true/false right now — try again.', 'error'); return; }
+    if (!qs.length) { toast('Could not generate true/false right now - try again.', 'error'); return; }
     _ttPlaceActivityWorksheet(frame, 'True or False', 'Check', 'reading', L.level, qs, 'true-false');
   } else if (type === 'open') {
     toast('✨ Generating open questions…');
@@ -11265,7 +11265,7 @@ async function addLessonActivity(frameId, type) {
       { tool: { id: 'open-questions' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'open').slice(0, 8);
-    if (!qs.length) { toast('Could not generate open questions right now — try again.', 'error'); return; }
+    if (!qs.length) { toast('Could not generate open questions right now - try again.', 'error'); return; }
     _ttPlaceActivityWorksheet(frame, 'Open questions', 'Questions', 'reading', L.level, qs, 'open-questions');
   } else if (type === 'quiz') {
     toast('✨ Generating a quiz from the text…');
@@ -11273,7 +11273,7 @@ async function addLessonActivity(frameId, type) {
       { tool: { id: 'abcd-text' }, level: L.level, count: 6, topic: L.topic, source: L.source, vocab: _ttLessonVocabText(L), extra: '', genre: '', length: '' },
       20000);
     const qs = ((out && out.questions) || []).filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2).slice(0, 8);
-    if (!qs.length) { toast('Could not generate a quiz right now — try again.', 'error'); return; }
+    if (!qs.length) { toast('Could not generate a quiz right now - try again.', 'error'); return; }
     _ttPlaceActivityWorksheet(frame, 'Comprehension quiz', 'MCQ', 'reading', L.level, qs, 'abcd-text');
   }
 }
@@ -11357,7 +11357,7 @@ function _ttAppendActivityCard(frame, type, data, w, h) {
     _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
   });
   if (card) { clearSelection?.(); selectCard?.(card.id); setTimeout(() => { try { zoomToCard?.(card.id, true); } catch {} }, 80); }
-  toast('✨ Interactive activity added — students can take it on the board');
+  toast('✨ Interactive activity added - students can take it on the board');
 }
 
 function openTeacherToolBuilder(toolId) {
@@ -11623,7 +11623,7 @@ function generateTeacherToolOutput(input) {
   const sections = [];
 
   if (tool.cat === 'vocabulary') {
-    sections.push({title:'Vocabulary set', items:vocab.map((w,i)=>`${i+1}. ${w} — student-friendly definition + personal example`)});
+    sections.push({title:'Vocabulary set', items:vocab.map((w,i)=>`${i+1}. ${w} - student-friendly definition + personal example`)});
     sections.push({title:'Student task', items:[
       'Match each item with a definition or image.',
       'Write one personal sentence with three new items.',
@@ -11696,7 +11696,7 @@ function teacherToolOutputText(output) {
     })).join('\n').trim();
   }
   if (output.boardKind === 'vocab') {
-    return [output.title, ''].concat(output.items.map((it, i) => `${i+1}. ${it.word}${it.example ? ` — ${it.example}` : ''}`)).join('\n').trim();
+    return [output.title, ''].concat(output.items.map((it, i) => `${i+1}. ${it.word}${it.example ? ` - ${it.example}` : ''}`)).join('\n').trim();
   }
   if (output.boardKind === 'cards') {
     return [output.title, ''].concat((output.cards || []).map((card, i) => `${i+1}. ${card.title}\n${card.text || ''}`)).join('\n\n').trim();
@@ -11731,11 +11731,11 @@ function renderTeacherToolBuilderOutput(output) {
    board-gen.js generation engine). _ttShuffle/_ttHideRetry relocated here. ── */
 
 function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); if(b) b.style.display='none'; }
-/* PILOT local-heuristic generators moved to scripts/board-gen.js — loaded
+/* PILOT local-heuristic generators moved to scripts/board-gen.js - loaded
    on demand via _ensureGenLoaded() (see generateTeacherToolBuilder). */
 /* Height model for the worksheet card.
    The constants below are MEASURED off the rendered card (640px wide) rather
-   than guessed — see the .ws-* block in board.css. If you change worksheet
+   than guessed - see the .ws-* block in board.css. If you change worksheet
    type sizes or padding there, re-measure and update here in the same commit,
    or generated sheets silently get an inner scrollbar again. The old constants
    assumed ~26px option rows; the real row is 60px, which is why sheets were
@@ -11745,14 +11745,14 @@ function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); 
    of a card is harmless, clipped questions are not. */
 /* Generated content is not always sane. When the AI engine is busy the server
    falls back to a rule engine, and on an unpunctuated YouTube transcript that
-   handed back the ENTIRE transcript as question one — a card several thousand
+   handed back the ENTIRE transcript as question one - a card several thousand
    pixels tall, which is what "it stretches" meant.
 
    The cap has to be on the TEXT, not on the height estimate. Capping the
    estimate over uncapped text would put the sizer and the renderer back out of
    step, which is precisely how sheets started scrolling before (see the notes
-   on WS_H below). Trim here, where output enters the app, and every path — the
-   YouTube builder, the tools sidebar, the composer — gets the same guarantee. */
+   on WS_H below). Trim here, where output enters the app, and every path - the
+   YouTube builder, the tools sidebar, the composer - gets the same guarantee. */
 const TT_CAP = { question: 320, option: 140, item: 200, title: 120 };
 
 function _ttTrim(value, max) {
@@ -11771,12 +11771,12 @@ function _ttTrim(value, max) {
    defend themselves against a broken item.
 
    The one worth naming is answer position. Generators put the correct option
-   first far more often than chance — across a sheet of eight that is a pattern
+   first far more often than chance - across a sheet of eight that is a pattern
    a student spots long before they read the questions, and it quietly turns a
    comprehension task into a guessing game. Rotating fixes it without touching a
    single word: the options keep their relative order, they just start at a
    different one. The target position is derived from the question text, not
-   Math.random, so the same sheet is always the same sheet — a re-render, a
+   Math.random, so the same sheet is always the same sheet - a re-render, a
    reload or a re-print cannot reshuffle a key a teacher has already handed out.  */
 function _ttQNorm(t) { return String(t || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
 function _ttStrHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
@@ -11794,7 +11794,7 @@ function _ttPolishQuestion(q) {
     opts = opts.filter(o => { const k = _ttQNorm(o); if (!k || seen.has(k)) return false; seen.add(k); return true; });
     const ans = String(q.answer == null ? '' : q.answer).trim();
     if (ans && !opts.some(o => _ttQNorm(o) === _ttQNorm(ans))) opts.unshift(ans);
-    // Nothing to choose between — render it as the open question it has become
+    // Nothing to choose between - render it as the open question it has become
     // rather than a multiple choice with one option.
     if (opts.length < 2) return { ...q, type: 'open', options: undefined, answer: undefined };
     const at = opts.findIndex(o => _ttQNorm(o) === _ttQNorm(ans));
@@ -11819,8 +11819,8 @@ function _ttPolishQuestion(q) {
   return q;
 }
 
-/* Drop questions that ask the same thing twice. Same normalised text, or — for
-   gap-fill, where the sentences differ but the point does not — the same answer
+/* Drop questions that ask the same thing twice. Same normalised text, or - for
+   gap-fill, where the sentences differ but the point does not - the same answer
    twice. Keeps the first, which is the order the generator thought best. */
 function _ttDedupeQuestions(list, seen = new Set()) {
   const out = [];
@@ -11866,7 +11866,7 @@ function _ttSanitizeOutput(out) {
       out.cards.forEach(c => {
         if (!c) return;
         if (c.title) c.title = _ttTrim(c.title, TT_CAP.title);
-        // pack cards are multi-line on purpose — cap each line, keep the shape
+        // pack cards are multi-line on purpose - cap each line, keep the shape
         if (c.text) c.text = String(c.text).split('\n').map(l => _ttTrim(l, TT_CAP.item)).join('\n');
       });
     }
@@ -11879,7 +11879,7 @@ const WS_H = {
   trueFalse: 136,                  // measured 128
   matchBase: 76, matchPerPair: 54, // measured 219px at 3 pairs
   other: 140,                      // gap-fill
-  open: 212,                       // open question — four 8mm ruled lines
+  open: 212,                       // open question - four 8mm ruled lines
   chipCharPx: 8.4, chipPad: 34, chipRow: 56, chipUsable: 607,  // glossary chip: measured 235px wide for 24 chars, 42px tall + 8 gap
   gap: 12,                         // grid gap between questions
   groupHead: 46,                   // .ws-group-head: title + rubric + its 10px lead
@@ -11893,18 +11893,18 @@ const WS_H = {
   chromeCards: 268,                // lesson-pack strip is taller (stepper row) + lime masthead + section eyebrow
 };
 /* One question's rendered height. Split into its own function because the
-   sheet splitter has to measure questions the same way the card sizer does —
+   sheet splitter has to measure questions the same way the card sizer does -
    two copies of these sums drifting apart is exactly what silently clipped
    sheets before (the old estimate assumed 26px option rows against a real 44). */
 function _ttQuestionHeight(q, k = 1){
   // Wrapped lines, not just item counts. Every constant here assumed one line
   // of prompt and one line per option; a long generated question or option
-  // then under-measured the card and it scrolled — the same way the masthead
+  // then under-measured the card and it scrolled - the same way the masthead
   // title did once it was allowed to wrap.
   // k scales the per-row character counts, which were measured on a 440px card:
   // a wider sheet fits more characters per line, so the same text wraps fewer
   // times. Without it a 560px card is measured as if it were still 440 and comes
-  // out needlessly tall — the same estimate/render mismatch as the old bugs,
+  // out needlessly tall - the same estimate/render mismatch as the old bugs,
   // just in the other direction.
   const rows = (text, per) => Math.max(0, Math.ceil(String(text || '').length / (per * k)) - 1);
   const extra = rows(q.text, WS_H.qCharsPerRow) * WS_H.qRow;
@@ -11916,7 +11916,7 @@ function _ttQuestionHeight(q, k = 1){
   if (q.type === 'truefalse') return WS_H.trueFalse + extra;
   if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair + extra;
   // Open questions carry four 8mm ruled lines, so they are far taller than the
-  // gap-fill they used to share a constant with — one number for both left
+  // gap-fill they used to share a constant with - one number for both left
   // every open-question sheet scrolling.
   if (q.type === 'open') return WS_H.open + extra;
   return WS_H.other + extra;
@@ -11931,7 +11931,7 @@ function _ttChipsPerRow(items){
   return Math.max(1, Math.floor(WS_H.chipUsable / Math.max(1, avg)));
 }
 /* `clamp:false` returns the height the content actually wants, past the cap a
-   card is allowed to have. The splitter needs that number — asking a clamped
+   card is allowed to have. The splitter needs that number - asking a clamped
    estimate whether a sheet is too tall can only ever be answered "no". */
 function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
   const k = Math.max(0.6, cardW / 440);   // constants below were measured at 440px
@@ -11940,19 +11940,19 @@ function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
   /* The masthead title is generated, so its length is unknown, and it wraps
      now rather than being cut off with an ellipsis. A fixed header constant
      therefore under-measures every long title by a line or two and the sheet
-     scrolls — the defect this file has already been bitten by twice.
+     scrolls - the defect this file has already been bitten by twice.
      Held separately and added at the end: the Lesson Pack branch below
      reassigns `chrome`, which silently threw this allowance away. */
   const titleLen = String(output.topic || output.title || '').length;
   const titleExtra = Math.max(0, Math.ceil(titleLen / WS_H.titleCharsPerRow) - 1) * WS_H.titleRow;
   if (Array.isArray(output.questions)) {
     /* Two-column question grids (see _ttQuestionCols) wrap against the COLUMN,
-       not the card, so the width factor has to be the column's — measuring a
+       not the card, so the width factor has to be the column's - measuring a
        two-up sheet at full card width is the under-estimate that clips content.
        Height then tracks grid ROWS: the tallest question in each row. */
     const qcols = _ttQuestionCols(output.questions.length, cardW);
     const kq = Math.max(0.6, (cardW / qcols) / 440);
-    /* Per GROUP, not across the whole list — the sheet is a column of grouped
+    /* Per GROUP, not across the whole list - the sheet is a column of grouped
        sections now (see _ttGroupQuestions), so a group's last row is its own
        and does not pair up with the first row of the next one. Measuring the
        flat list instead would under-count by one row per group boundary, which
@@ -11968,14 +11968,14 @@ function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
       if (gi) sum += WS_H.groupGap;
     });
   } else if (Array.isArray(output.items)) {
-    /* Chips wrap, so height follows how many fit per row — not their summed
+    /* Chips wrap, so height follows how many fit per row - not their summed
        width. A chip cannot be split across rows, so two 235px chips leave
        137px of a 607px row unused; dividing total width by row width
        under-counted every glossary and the card scrolled. Pack instead. */
-    /* Словарь с картинками — сетка карточек (см. .ws-list-vcards), а не строка
+    /* Словарь с картинками - сетка карточек (см. .ws-list-vcards), а не строка
        чипов: 150px колонка, картинка 4:3, слово и значение под ней. Если не
        считать это здесь, карточка окажется вдвое ниже содержимого и лист
-       обрежется — ровно тот дефект, которым этот файл болел трижды. */
+       обрежется - ровно тот дефект, которым этот файл болел трижды. */
     const imgs = output.items.filter(it => it && it.image && it.image.url).length;
     if (imgs >= Math.ceil(output.items.length / 2) && imgs > 0) {
       const cols = Math.max(1, Math.floor((cardW - 40) / (150 + 14)));
@@ -11991,18 +11991,18 @@ function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
     chrome = WS_H.chromeCards;
     // Lesson Pack stages render as a landscape grid (see .ws-list-cards), not a
     // single stacked column, so height tracks ROWS of the grid, not the sum of
-    // every stage's height — otherwise an 11-stage pack would ask for a card
+    // every stage's height - otherwise an 11-stage pack would ask for a card
     // tall enough to stack all 11 vertically even though most sit side-by-side.
     const cols = _ttLessonPackCols(output.cards.length);
     // A stage's text wraps against ITS COLUMN, so a pack given the full width
     // of a lesson frame has columns nearly twice PACK_COL_W and its stages wrap
     // half as often. Measuring at the nominal column width there over-estimates
-    // the card by hundreds of pixels — which the frame then has to hold.
+    // the card by hundreds of pixels - which the frame then has to hold.
     const kc = Math.max(0.6, ((cardW - PACK_CHROME_W) / cols) / PACK_COL_W);
     const perCard = output.cards.map(c => WS_H.cardBase + Math.ceil((c.text||'').length/(WS_H.cardCharsPerRow*kc))*WS_H.cardPerRow);
     const rows = Math.ceil(perCard.length / cols);
     // Approximate each row's height as the average card height in that slice
-    // (good enough — the browser's own grid auto-sizing handles the real
+    // (good enough - the browser's own grid auto-sizing handles the real
     // per-row max; this only has to get the CARD big enough to avoid a scrollbar).
     let rowSum = 0;
     for (let r = 0; r < rows; r++) {
@@ -12014,7 +12014,7 @@ function _ttEstWorksheetHeight(output, cardW = 440, { clamp = true } = {}){
   // Size to fit ALL content (generous ceiling + headroom): the card then has no
   // inner scroll for realistic worksheets, so the whole sheet shows on the board
   // and exports/prints in full (html2canvas clips scrolled-away overflow).
-  // Ceiling raised with the type scale — at the old 1850 even a 4-question
+  // Ceiling raised with the type scale - at the old 1850 even a 4-question
   // sheet clipped. WS_MAX_SHEET covers the realistic worst case measured
   // (8 MCQs with 4 options each ≈ 3030px); anything past it is split across
   // sheets by _ttSplitWorksheet rather than left to scroll inside one card.
@@ -12034,7 +12034,7 @@ const WS_MAX_SHEET = 3200;
 const WS_MIN_SHEET = 260;
 
 /* Split output too tall for one card into consecutive sheets.
-   Returns an array of outputs — length 1 (the original object, untouched) when
+   Returns an array of outputs - length 1 (the original object, untouched) when
    it already fits, so the common case allocates nothing and behaves exactly as
    before. Only questions and items split: a Lesson Pack's `cards` are stages of
    one lesson laid out as a grid, and cutting that in half would misrepresent
@@ -12054,8 +12054,8 @@ function _ttSplitWorksheet(output, cardW = 640, maxH = WS_MAX_SHEET, minPer = 1)
   const key = Array.isArray(output.questions) ? 'questions' : 'items';
   /* Measure a candidate sheet with the function that SIZES a sheet, at the
      width it will really be given, rather than re-deriving the sum here. The
-     splitter used to keep its own copy of the model — per-question heights
-     plus a fixed chrome constant — and every change to how a sheet is laid out
+     splitter used to keep its own copy of the model - per-question heights
+     plus a fixed chrome constant - and every change to how a sheet is laid out
      had to be made in both places or they disagreed: the question groups and
      their rubrics were invisible to it, so it packed sheets that then rendered
      taller than the cap it was enforcing. One function decides now, and a
@@ -12071,7 +12071,7 @@ function _ttSplitWorksheet(output, cardW = 640, maxH = WS_MAX_SHEET, minPer = 1)
     // it its own card and let that one scroll rather than dropping it.
     /* minPer is a floor on how few entries a sheet may be cut down to. Against
        a cap smaller than two multiple-choice questions the greedy loop is
-       perfectly happy to emit "1/9, 2/9, 3/9…" — nine cards of one question,
+       perfectly happy to emit "1/9, 2/9, 3/9…" - nine cards of one question,
        each with its own masthead, which is a worse answer than the ragged
        column the pagination was for. */
     if (cur.length >= minPer && !fits(cur.concat([entry]))) { greedy.push(cur); cur = []; }
@@ -12083,12 +12083,12 @@ function _ttSplitWorksheet(output, cardW = 640, maxH = WS_MAX_SHEET, minPer = 1)
   /* Greedy fills each sheet to the cap and leaves the remainder on the last
      one, so nine questions at four-per-sheet came out 4 + 4 + 1: a stub card
      that reads as a mistake next to two full ones. Keep the sheet COUNT greedy
-     found — it is the smallest that respects the cap — and spread the entries
+     found - it is the smallest that respects the cap - and spread the entries
      evenly across that many sheets instead. */
   const per = Math.max(minPer, Math.ceil(list.length / greedy.length));
   const even = [];
   for (let i = 0; i < list.length; i += per) even.push(list.slice(i, i + per));
-  // Entries differ in height, so an even COUNT can still overflow the cap —
+  // Entries differ in height, so an even COUNT can still overflow the cap -
   // in which case greedy's answer, ragged tail and all, is the correct one.
   const chunks = even.every(fits) ? even : greedy;
 
@@ -12108,28 +12108,28 @@ function _ttSplitWorksheet(output, cardW = 640, maxH = WS_MAX_SHEET, minPer = 1)
 /* How much of a column's leftover height the last card in it may absorb before
    a full sheet starts reading as a padded one. Shared, because the layout does
    the stretching and the function below has to score what will be left after
-   it — two copies of this number would decide differently. */
+   it - two copies of this number would decide differently. */
 const WS_STRETCH = 0.35;
 
-/* ГЕОМЕТРИЯ СЕТКИ УРОКА — одно место на всех.
+/* ГЕОМЕТРИЯ СЕТКИ УРОКА - одно место на всех.
    Раскладку урока строят три функции: постановка на доску, пересборка по
    измеренным высотам и переключатель Plan/Play. Пока числа лежали в первой из
-   них, две другие знали их «по памяти» — а расходятся такие копии молча.
+   них, две другие знали их «по памяти» - а расходятся такие копии молча.
    Play-режим меняет ширину: интерактивная карточка это степпер на 480, а не
    лист на 720, поэтому колонка в режиме показа уже.
 
    PAD и HEAD равны COL_GAP не случайно. Промежуток между колонками стал 2 см,
-   а поля кадра оставались прежними 30px — и крайние листы оказались прижаты к
+   а поля кадра оставались прежними 30px - и крайние листы оказались прижаты к
    рамке вдвое плотнее, чем стоят друг к другу. Глаз читает такое как ошибку
    вёрстки: внешнее поле не может быть уже внутреннего. Теперь вокруг урока
-   ровная рамка в те же 2 см со всех четырёх сторон (HEAD — верхнее поле:
+   ровная рамка в те же 2 см со всех четырёх сторон (HEAD - верхнее поле:
    заголовок кадра висит НАД рамкой и места внутри не занимает). */
 const LESSON_GRID = { CARD_W: 720, PLAY_CARD_W: 480, COL_GAP: 100, ROW_GAP: 34, PAD: 100, HEAD: 100 };
 
 /* PICK THE SHEET SIZE THAT LEAVES THE LESSON FRAME WITH NO HOLES.
 
    A lesson's blocks have wildly unequal natural heights, and no arrangement of
-   five such cards into three columns comes out level — the difference between
+   five such cards into three columns comes out level - the difference between
    the longest column and the shortest one IS the empty part of the frame.
    Paginating the long blocks fixes that, but the cap cannot be a constant:
    too generous and the columns stay ragged, too tight and the lesson becomes
@@ -12143,13 +12143,13 @@ const LESSON_GRID = { CARD_W: 720, PLAY_CARD_W: 480, COL_GAP: 100, ROW_GAP: 34, 
 function _ttSplitLessonBlocks(results, cardW, colGap, rowGap, head, videoH = 0, maxCols = 3) {
   const CAPS = [WS_MAX_SHEET, 2000, 1600, 1300, 1100];
   /* What one extra sheet costs in the score. A sheet is a masthead, a section
-     label and a "· 2/3" — real page furniture — so closing a 100px gap by
+     label and a "· 2/3" - real page furniture - so closing a 100px gap by
      adding one is a bad trade and closing an 800px one is a good trade. This
      number is where that line sits. */
   const SHEET_COST = 120;
   /* Never fewer than THREE questions on a sheet, which is where _ttQuestionCols
      stops splitting a list two-up: paginate past it and the sheet reverts to a
-     single reading column, so half of a 720px card goes white — trading the
+     single reading column, so half of a 720px card goes white - trading the
      hole at the bottom of the frame for a hole down the side of every card. */
   const MIN_PER_SHEET = 3;
   let best = null;
@@ -12178,8 +12178,8 @@ function _ttSplitLessonBlocks(results, cardW, colGap, rowGap, head, videoH = 0, 
 
    Every placement function used to hardcode its own thresholds ("2 columns up
    to 6 items, then 3"), and each of them leaned tall: six cards became a 2×3
-   column, eight stickies a 3×3. On a board — which pans sideways far more
-   comfortably than it scrolls down — that reads as a stack of exercises rather
+   column, eight stickies a 3×3. On a board - which pans sideways far more
+   comfortably than it scrolls down - that reads as a stack of exercises rather
    than a lesson laid out.
 
    So pick the column count by the shape it produces instead: score each
@@ -12190,14 +12190,14 @@ function _ttSplitLessonBlocks(results, cardW, colGap, rowGap, head, videoH = 0, 
    thresholds without either:
 
    OVERSHOOT IS CHEAP. Too wide is scored at a quarter of too tall, because a
-   board pans sideways easily and scrolls down badly — they are not symmetric
+   board pans sideways easily and scrolls down badly - they are not symmetric
    costs. Scored evenly, four vocab cards came out 3x2 instead of a clean row
    of four, which is the exact opposite of what this function is for.
 
    A RAGGED LAST ROW COSTS REAL POINTS. Otherwise the ratio wins arguments it
    should lose: three stages laid out 2x2, leaving a hole in a lesson of three.
 
-   cellH is nominal — rows are really as tall as their tallest card — so it only
+   cellH is nominal - rows are really as tall as their tallest card - so it only
    has to be roughly right for the ratio to come out sensible. */
 function _ttGridCols(count, cellW, cellH, maxCols = 6, targetRatio = 2.2) {
   if (!(count > 1)) return 1;
@@ -12213,12 +12213,12 @@ function _ttGridCols(count, cellW, cellH, maxCols = 6, targetRatio = 2.2) {
 }
 
 /* Nominal width of one Lesson Pack stage column, and the widest the card may
-   get. The cap has to leave room for the column count actually chosen — at the
+   get. The cap has to leave room for the column count actually chosen - at the
    old 1180 a 4-column pack was handed a card that only fits three. */
 const PACK_COL_W = 300, PACK_CHROME_W = 210, PACK_MAX_W = PACK_CHROME_W + 4 * PACK_COL_W;
 function _packWidth(count){ return Math.min(PACK_MAX_W, PACK_CHROME_W + _ttLessonPackCols(count) * PACK_COL_W); }
 
-/* Column count for the Lesson Pack stage grid — the one place that decides, so
+/* Column count for the Lesson Pack stage grid - the one place that decides, so
    the card's width, its height estimate and the rendered grid cannot disagree.
    .ws-list-cards now reads this through --lp-cols rather than choosing its own
    column count from the card width, which is what let the estimate size a card
@@ -12230,13 +12230,13 @@ function _ttLessonPackCols(count){ return _ttGridCols(count, PACK_COL_W, 230, 4)
    fixed cellH, which is fine when every cell is the same shape and wrong here:
    a lesson's cards differ by 5x in height, so the nominal ratio has almost
    nothing to do with the rectangle the frame actually ends up as. Pack for each
-   candidate, keep the one closest to a landscape frame — the shape a board pans
+   candidate, keep the one closest to a landscape frame - the shape a board pans
    to comfortably. Ties go to fewer columns, so a short lesson stays compact. */
 function _ttPackedCols(heights, cellW, colGap, rowGap, top, maxCols = 3, targetRatio = 1.3) {
   const n = heights.length;
   if (n < 2) return 1;
   /* A column holding ONE card is not a column, it is a ribbon with a hole under
-     it — and the hole is exactly the difference between that card and the
+     it - and the hole is exactly the difference between that card and the
      tallest one. The shape score cannot see this: it reads a 2x1 lesson as a
      pleasingly landscape frame that happens to be half empty. So no more
      columns than can be given two cards each; pagination is what earns a
@@ -12262,14 +12262,14 @@ function _ttPackedCols(heights, cellW, colGap, rowGap, top, maxCols = 3, targetR
    Two earlier shapes were both wrong. Fixed rows made a row as tall as its
    tallest card, so one long question sheet beside a short vocabulary card left
    a hole the size of the difference. Then shortest-column packing balanced the
-   heights beautifully and scattered the sequence — step 5 landed under step 1
+   heights beautifully and scattered the sequence - step 5 landed under step 1
    because that column happened to be short, which is fine for a gallery and
    wrong for a lesson.
 
    Balanced contiguous partition gives both: exact via a small DP (minimise the
    tallest column), because the card count here is single digits and the greedy
    "fill to the average" answer is visibly worse on exactly the shapes that
-   occur — one very tall sheet among short ones. */
+   occur - one very tall sheet among short ones. */
 function _ttPackColumns(heights, cols, top = 0, gap = 26) {
   const n = heights.length;
   const k = Math.max(1, Math.min(cols, n || 1));
@@ -12306,14 +12306,14 @@ function _ttPackColumns(heights, cols, top = 0, gap = 26) {
   return { cells, height: Math.max(...colH) - gap };
 }
 
-/* Column count for a QUESTION list, and the one place that decides it — the
+/* Column count for a QUESTION list, and the one place that decides it - the
    renderer sets --q-cols from here and _ttEstWorksheetHeight measures rows from
    here, so the estimate cannot size a card for a grid the browser never drew
    (the same trap _ttLessonPackCols was written to close).
 
    A question list used to be a single reading column at every width. On a
    narrow sheet that is right; on the wide sheets a video lesson generates it is
-   what stretched every block into a tall ribbon — eight questions stacked when
+   what stretched every block into a tall ribbon - eight questions stacked when
    the card had room for two abreast. Column width, not card width, is the
    constraint: an MCQ option below ~300px wraps every few words, so the split
    only happens once each column can still hold a readable line. */
@@ -12323,11 +12323,11 @@ function _ttQuestionCols(count, cardW = 440){
      started paginating its blocks into sheets that small: on a 720px card a
      lone column of three questions leaves the right half of the sheet white,
      which is the same hole the pagination exists to close, turned ninety
-     degrees. The narrow standalone sheet is unaffected — `fits` is 1 there. */
+     degrees. The narrow standalone sheet is unaffected - `fits` is 1 there. */
   if (count < 3) return 1;
   // 8 = .ws-list right padding, 12 = the grid gap between columns. Deliberately
   // strict: at 330 the standalone 640px sheet stays a single reading column, so
-  // this only reshapes the wide cards a generated lesson builds — not every
+  // this only reshapes the wide cards a generated lesson builds - not every
   // worksheet a teacher already has on a board.
   const fits = Math.floor((cardW - 8 + 12) / (WS_QCOL_MIN + 12));
   return Math.max(1, Math.min(2, fits));
@@ -12401,7 +12401,7 @@ function _ttPlaceWorksheetOnBoard(output){
         /* Словарь, собранный любым инструментом, получает картинки так же, как
            словарь видео-урока: раньше это работало только на одном пути, и
            учитель видел картинки или нет в зависимости от того, откуда пришёл
-           лист — что выглядит как случайность, а не как правило. */
+           лист - что выглядит как случайность, а не как правило. */
         if (Array.isArray(card.data.items) && card.data.items.length) {
           _ttAttachImagesToVocabCard(card.id, part.topic || output.topic || '');
         }
@@ -12444,8 +12444,8 @@ function _ttPlaceWorksheetOnBoard(output){
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
   toast(placed.length > 1
-    ? `✨ Worksheet added as a ${COLS}×${ROWS} page grid — too long for one sheet`
-    : '✨ Worksheet added — print-ready, click ✏️ on any card to annotate');
+    ? `✨ Worksheet added as a ${COLS}×${ROWS} page grid - too long for one sheet`
+    : '✨ Worksheet added - print-ready, click ✏️ on any card to annotate');
 }
 
 /* Complex Teacher Tool board layouts live in js/teacher-tool-board-composer.js */
@@ -12478,14 +12478,14 @@ function _ttPlaceQuizOnBoard(output){
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
-  toast('✨ Quiz added — open it to preview the key; students can take it');
+  toast('✨ Quiz added - open it to preview the key; students can take it');
 }
 
 /* Warm-up / icebreaker prompts (kind:'Warm-up') as a loose cluster of small
-   sticky notes instead of a tall stacked worksheet — order doesn't matter for
+   sticky notes instead of a tall stacked worksheet - order doesn't matter for
    these (they're picked freely in class), so a scattered cluster reads better
    than a numbered list with unused writing lines. Keeps the app's existing
-   .tt-note accent-stripe look (same system as every other note card) — only
+   .tt-note accent-stripe look (same system as every other note card) - only
    the SHAPE changes: small squares, one per prompt, each a different accent. */
 function _ttPlaceWarmupStickers(output){
   const qs = (output.questions || []).filter(q => q && q.text);
@@ -12498,7 +12498,7 @@ function _ttPlaceWarmupStickers(output){
   const totalH = ROWS * H + (ROWS - 1) * GAP;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const x0 = Math.round(c0.x - totalW / 2), y0 = Math.round(c0.y - totalH / 2);
-  // Deterministic pseudo-random jitter (no Math.random — stays put across re-renders).
+  // Deterministic pseudo-random jitter (no Math.random - stays put across re-renders).
   const jitter = i => { const s = Math.sin(i * 12.9898) * 43758.5453; return ((s - Math.floor(s)) - 0.5) * 16; };
   snapshot(); _suppressSnapshot++;
   const created = [];
@@ -12532,7 +12532,7 @@ function _ttPlaceCardsOnBoard(output){
   const isDialogue = output.kind === 'Dialogue';
   const CARD_W = isDialogue ? 340 : 300, GAP = 22, PAD = 28, HEAD = 62;
   // Estimate each card's natural height from BOTH its title and its body so
-  // nothing is clipped or squished — idioms/phrases wrap their (long) title too,
+  // nothing is clipped or squished - idioms/phrases wrap their (long) title too,
   // which the old estimate ignored, causing the compressed look.
   const bodyCharsPerLine  = Math.max(16, Math.floor((CARD_W - 30) / 7.1));
   const titleCharsPerLine = Math.max(12, Math.floor((CARD_W - 30) / 9.0)); // title font is larger
@@ -12579,7 +12579,7 @@ function _ttPlaceCardsOnBoard(output){
       const card = addCard('note', cx, cy, {
         icon: meta.icon, title: c.title || `Card ${i+1}`, body: c.text || '', accent: meta.color,
         // Tag vocabulary-category cards (idioms / collocations / phrasal verbs)
-        // so "⚡ Practice all vocab" can find them — the frame's _ttCat lives on
+        // so "⚡ Practice all vocab" can find them - the frame's _ttCat lives on
         // the frame, not on these child note cards.
         _vocabTerm: output.cat === 'vocabulary', _ttCat: output.cat || 'utility', _ttKind: output.kind || '',
       }, CARD_W, rowHeights[row]);
@@ -12646,11 +12646,11 @@ function _ttPlaceVocabOnBoard(output){
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   _ttScheduleGeneratedHarmonyAudit?.(frame?.id, { minH: 460, shrink: true });
   closeTeacherToolBuilder();
-  toast('✨ Vocabulary cards added — meanings pre-filled; edit translations as you teach');
+  toast('✨ Vocabulary cards added - meanings pre-filled; edit translations as you teach');
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   LESSON COLLECTOR — "Build Lesson from Board"
+   LESSON COLLECTOR - "Build Lesson from Board"
    Scans the board for TeachEd-generated cards (_ttSrc:1), groups them
    by pedagogical category, and creates a Lesson Plan worksheet card.
    ══════════════════════════════════════════════════════════════════ */
@@ -12686,7 +12686,7 @@ function _ttCardCat(c){
 function openLessonCollectorModal(){
   const found = _ttCollectBoardCards();
   if (!found.length){
-    toast('No Teacher Tool results on the board yet — generate some tasks first!');
+    toast('No Teacher Tool results on the board yet - generate some tasks first!');
     return;
   }
 
@@ -12828,27 +12828,27 @@ function buildLessonFromSelected(){
     items: null,
     cards: null,
   });
-  toast(`📚 Lesson plan created — ${found.length} activities, ${stageNum} stages`);
+  toast(`📚 Lesson plan created - ${found.length} activities, ${stageNum} stages`);
 }
 
-// Tools with a genuinely useful offline generator — mechanical tasks that build
+// Tools with a genuinely useful offline generator - mechanical tasks that build
 // from the vocab/sentences the teacher already supplied (gap-fill, sorting,
 // flashcards, etc.). For these "Generate fast" stays instant and local.
 //
 // NOT here (→ AI-first when logged in, local only as offline fallback):
-//  • comprehension tools — a template can't understand a text: abcd-text,
+//  • comprehension tools - a template can't understand a text: abcd-text,
 //    true-false, open-questions, gaps-abcd, gist-detail.
 //  • tools whose local output is misleading: word-sorting (split the list in
 //    half into meaningless "Category A/B"), two-options (two random words as the
 //    choices), odd-one-out (random 4 words, no shared category), simplify-text
 //    (a template can't actually re-level a text).
 //
-// The five vocabulary drills on the last line were in neither list — never
+// The five vocabulary drills on the last line were in neither list - never
 // argued against, just never considered. They belong here: each one is the
 // teacher's own word plus a fixed instruction ("give a synonym and an antonym",
 // "complete the word family", "explain the idiom and use it in a sentence").
 // There is nothing for a template to get wrong, because there is no answer key
-// and no text to understand — the model words the prompt more gracefully, and
+// and no text to understand - the model words the prompt more gracefully, and
 // that is the whole of the difference. Every one of them is also in
 // TT_REQUIRE_VOCAB_SET, so the empty-field case asks for words instead of
 // falling through to the generic scaffold.
@@ -12862,7 +12862,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 ]);
 
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
-// first generates — keeps the initial board parse lean. Cached promise so it
+// first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
 const TEACHEDOS_ASSET_VERSION = '332';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
@@ -12904,7 +12904,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   const input = readTeacherToolBuilderInput();
   const toolId = activeTeacherToolBuilder.id;
   const isPilot = !!TT_PILOT_TOOLS[toolId];
-  // Count-hidden tools have no meaningful target count, so never show "N of M" —
+  // Count-hidden tools have no meaningful target count, so never show "N of M" -
   // the item count IS the result (one per pasted word / a fixed scaffold).
   const hideCount = TT_NO_COUNT_SET.has(toolId);
   // AI-first: tools without a quality local generator default to the LLM so they
@@ -12933,21 +12933,21 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     return;
   }
 
-  // Source-text requirement — single source of truth shared with the field
+  // Source-text requirement - single source of truth shared with the field
   // configurator (TT_NEEDS_SOURCE_SET), so the guard and the UI never diverge.
   if (TT_NEEDS_SOURCE_SET.has(toolId) && !input.source) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs text';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» — цей інструмент будує завдання з вашого тексту.</div>';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Вставте вихідний текст у поле «Source text / lesson notes» - цей інструмент будує завдання з вашого тексту.</div>';
     _ttSetGenerating(false);
     return;
   }
 
-  // Vocabulary requirement — tools that are meaningless without target words.
+  // Vocabulary requirement - tools that are meaningless without target words.
   if (TT_REQUIRE_VOCAB_SET.has(toolId) && !String(input.vocab || '').trim()) {
     lastTeacherToolBuilderOutput = null;
     if (chip) chip.textContent = 'needs vocab';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">Додайте цільові слова у поле «Your Vocabulary» — цей інструмент будує завдання навколо ваших слів.</div>';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Додайте цільові слова у поле «Your Vocabulary» - цей інструмент будує завдання навколо ваших слів.</div>';
     _ttSetGenerating(false);
     return;
   }
@@ -12980,7 +12980,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     const instantBase = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
     const instant = enhanceTeacherToolOutputFast(instantBase, input);
     lastTeacherToolBuilderOutput = instant;
-    // NB: do NOT cache the draft under the AI key — only the real server result
+    // NB: do NOT cache the draft under the AI key - only the real server result
     // is cached below, so a failed AI call retries instead of returning a draft.
     if (instant.boardKind === 'quiz' || instant.boardKind === 'vocab' || instant.boardKind === 'cards') {
       renderTeacherToolLocalPreview(instant);
@@ -12995,7 +12995,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     }
     _ttSetGenerating(false);
     _ttSetImproving(true);
-    // The cloud LLM (Groq 70B/8B → OpenRouter) usually answers in 0.5–2 s but
+    // The cloud LLM (Groq 70B/8B → OpenRouter) usually answers in 0.5-2 s but
     // can take longer under load; give it a realistic window before giving up.
     requestServerTeacherTool(input, 20000).then(serverOutput => {
       if (_ttActiveGenerationKey !== cacheKey) return;          // superseded
@@ -13055,15 +13055,15 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         return;
       }
       // JSON parsed but couldn't map → warn and fall through to heuristics
-      console.warn('[tt-ai] response parsed but mapping failed — falling back');
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI відповів не в тому форматі — використовую локальну генерацію.</div>';
+      console.warn('[tt-ai] response parsed but mapping failed - falling back');
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI відповів не в тому форматі - використовую локальну генерацію.</div>';
     } catch (err) {
       console.warn('[tt-ai] generation error, falling back:', err.message);
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI помилка — використовую локальну генерацію.</div>';
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI помилка - використовую локальну генерацію.</div>';
     }
   } else if (wantsAI) {
     if (chip) chip.textContent = 'AI unavailable';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">AI зараз недоступний у цьому браузері — використовую швидку локальну генерацію.</div>';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">AI зараз недоступний у цьому браузері - використовую швидку локальну генерацію.</div>';
   }
 
   // ── Local heuristic fallback ───────────────────────────────────
@@ -13095,18 +13095,18 @@ async function applyTeacherToolBuilderToBoard(mode) {
   if (!output) return;
   // Carry the builder's raw inputs with the placed output so EVERY lesson frame
   // keeps full context (source text + word list) for the "+ Add activity"
-  // chain — even when the visible result (e.g. a quiz) doesn't include them.
+  // chain - even when the visible result (e.g. a quiz) doesn't include them.
   try {
     const _in = readTeacherToolBuilderInput();
     output._ctx = { source: _in.source || '', vocab: _in.vocab || '', topic: _in.topic || '', level: _in.level || 'B1' };
   } catch {}
-  // Warm-up / icebreaker prompts: sticky-note cluster, regardless of mode —
+  // Warm-up / icebreaker prompts: sticky-note cluster, regardless of mode -
   // a stacked numbered worksheet never fit these (order doesn't matter, no
   // writing lines needed).
   if (output.kind === 'Warm-up' && output.boardKind === 'quiz' && Array.isArray(output.questions)) {
     _ttPlaceWarmupStickers(output); return;
   }
-  // Styled read-only worksheet — available for the primitive board kinds.
+  // Styled read-only worksheet - available for the primitive board kinds.
   if (mode === 'worksheet' &&
       ['quiz','vocab','cards'].includes(output.boardKind)) {
     _ttPlaceWorksheetOnBoard(output); return;
@@ -13120,7 +13120,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
-  // Layout grid for the customised template — height auto-fits content
+  // Layout grid for the customised template - height auto-fits content
   const PAD = 26;
   const sections = (output.sections || []).slice(0, 3);
   const sectionsH = Math.max(320, sections.reduce((max, s) => {
@@ -13150,7 +13150,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
     const headerY = y0 + 56;
     const headerH = 100;
     const header = addCard('text', x0 + PAD, headerY, defaultTextData({
-      text: `${output.title}\n${(BOARD_TOOL_NAMES[output.cat] || output.cat)} · ${output.kind}\n\nLevel · ${output.level || 'B1'}    Topic · ${output.topic || '—'}`,
+      text: `${output.title}\n${(BOARD_TOOL_NAMES[output.cat] || output.cat)} · ${output.kind}\n\nLevel · ${output.level || 'B1'}    Topic · ${output.topic || '-'}`,
       textColor: meta.color,
       bgColor: '#ffffff',
       align: 'left',
@@ -13158,7 +13158,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
     }), FRAME_W - PAD * 2, headerH);
     if (frame && header) setCardParentFrame?.(header, frame);
 
-    // Main sections — render up to 3 first sections as white panels in a row.
+    // Main sections - render up to 3 first sections as white panels in a row.
     const sectionsY = headerY + headerH + 16;
     const colW = Math.floor((FRAME_W - PAD * 2 - 16 * (sections.length - 1)) / Math.max(sections.length, 1));
     sections.forEach((s, i) => {
@@ -13241,8 +13241,8 @@ function makeTeacherToolSnippet(tool) {
     </div>
     <div class="ts-desc">${esc(tool.desc)}</div>
   `;
-  // Tool drag drops a "rich template" — a Frame containing header, 5
-  // step stickies and a teacher-prompt + sample-seed sticky — instead
+  // Tool drag drops a "rich template" - a Frame containing header, 5
+  // step stickies and a teacher-prompt + sample-seed sticky - instead
   // of a single text card. We flag the drag with __toolTemplate so the
   // global drop handler routes through instantiateToolTemplate.
   function startToolDrag(e) {
@@ -13400,7 +13400,7 @@ function setToolsSubTab(tab) {
 }
 
 /* Map LESSON_PACKS to a tool category. Each pack carries a `skill` line
-   like "Speaking + Vocab" — derive the primary skill for filtering. */
+   like "Speaking + Vocab" - derive the primary skill for filtering. */
 function lessonPackCat(p) {
   const s = (p.skill || '').toLowerCase();
   if (s.includes('reading')) return 'reading';
@@ -13434,7 +13434,7 @@ function renderToolsTab(sec) {
   `;
   sec.appendChild(subTabs);
 
-  // ═══ Compact hero — context-aware to the active sub-tab ═══
+  // ═══ Compact hero - context-aware to the active sub-tab ═══
   const hero = document.createElement('div');
   hero.className = 'tools-mini-hero';
   if (activeToolsSubTab === 'tools') {
@@ -13456,7 +13456,7 @@ function renderToolsTab(sec) {
   }
   sec.appendChild(hero);
 
-  // ═══ Skill filter chips — shared between sub-tabs ═══
+  // ═══ Skill filter chips - shared between sub-tabs ═══
   const cats = BOARD_TEACHER_TOOLS.reduce((m,t)=>{m[t.cat]=(m[t.cat]||0)+1;return m;},{});
   const packCats = LESSON_PACKS.reduce((m,p)=>{ const c=lessonPackCat(p); m[c]=(m[c]||0)+1; return m;},{});
   const filters = document.createElement('div');
@@ -13495,7 +13495,7 @@ function renderToolsTab_Tools(sec, q, cats) {
     const cta = document.createElement('button');
     cta.type = 'button';
     cta.className = 'yt-lesson-cta';
-    cta.innerHTML = `<span class="yt-cta-ic">🎬</span><span class="yt-cta-tx"><b>YouTube → Lesson</b><small>Paste a link — get a full set of exercises in one click</small></span><span class="yt-cta-go">→</span>`;
+    cta.innerHTML = `<span class="yt-cta-ic">🎬</span><span class="yt-cta-tx"><b>YouTube → Lesson</b><small>Paste a link - get a full set of exercises in one click</small></span><span class="yt-cta-go">→</span>`;
     cta.onclick = openYtLesson;
     sec.appendChild(cta);
   }
@@ -13726,7 +13726,7 @@ function renderNotesTab(sec) {
   });
 }
 
-/* GAMES — extracted to js/teacher-tools-data.js */
+/* GAMES - extracted to js/teacher-tools-data.js */
 
 function renderGamesTab(sec) {
   // Tag filter chips, like the tools tab
@@ -13900,7 +13900,7 @@ function renderElementsTab(sec) {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   SAVE / LOAD  —  dual-layer (localStorage + cloud), version history,
+   SAVE / LOAD  -  dual-layer (localStorage + cloud), version history,
    offline detection, retry backoff, session stats, Ctrl+S
    ════════════════════════════════════════════════════════════════ */
 const SAVE_KEY     = 'teachedos_board_v3';
@@ -13947,12 +13947,12 @@ const SESSION_KEY  = 'teachedos_session_v1';
       // token, the old email-keyed flag is dead weight)
       if (k.startsWith('teachedos_onboarding_pending_') &&
           k !== 'teachedos_onboarding_pending') {
-        // Keep max 2 email variants — old ones are orphans
-        if (i > 50) toRemove.push(k); // rough guard — only prune when many keys
+        // Keep max 2 email variants - old ones are orphans
+        if (i > 50) toRemove.push(k); // rough guard - only prune when many keys
       }
     }
     toRemove.forEach(k => { try { localStorage.removeItem(k); } catch {} });
-  } catch {} // never throw — cleanup is best-effort
+  } catch {} // never throw - cleanup is best-effort
 })();
 
 let saveTimer       = null;
@@ -14030,7 +14030,7 @@ function setSaveUI(state, detail) {
   }
 }
 
-/* ── "X min ago" ticker — updates every 30s ── */
+/* ── "X min ago" ticker - updates every 30s ── */
 setInterval(() => {
   if (!lastSavedAt) return;
   const diff = Math.round((Date.now() - lastSavedAt) / 60000);
@@ -14057,7 +14057,7 @@ setInterval(() => {
   }
 }, 30000);
 
-/* Session stats ticker — only updates the (visible) board-meta card count */
+/* Session stats ticker - only updates the (visible) board-meta card count */
 setInterval(() => {
   const cards = state.cards.length;
   const meta = document.getElementById('board-meta-cards');
@@ -14076,7 +14076,7 @@ function serializeBoard() {
 
 /* ════ LOCAL SAVE ════ */
 function saveLocal() {
-  // Skip write if nothing has changed since last save — avoids redundant
+  // Skip write if nothing has changed since last save - avoids redundant
   // JSON.stringify + localStorage write on every scheduleSave() call.
   const h = boardHash();
   if (h === lastSavedHash) return true;
@@ -14088,7 +14088,7 @@ function saveLocal() {
     localSaveQuotaWarned = false;
     return true;
   } catch(e) {
-    // localStorage full — prune old versions and retry
+    // localStorage full - prune old versions and retry
     pruneVersions(3);
     try {
       localStorage.setItem(SAVE_KEY, payload);
@@ -14114,7 +14114,7 @@ async function saveToCloud(retryCount = 0) {
       body: { state: data, thumbnail: thumb || undefined },
     }, 15000);
     if (r.status === 401 || r.status === 403) {
-      // Token expired mid-session — show reconnect
+      // Token expired mid-session - show reconnect
       setSaveUI('error');
       pendingCloudSave = true;
       startReconnectLoop();
@@ -14207,7 +14207,7 @@ function scheduleSave() {
       toast('Local cache is full; saving this board to cloud.');
     }
     // Show "Saved" immediately after the local write completes.
-    // The cloud sync continues in the background — when it finishes it
+    // The cloud sync continues in the background - when it finishes it
     // upgrades the status to "☁ synced". Keeping the pill on "saving…"
     // after the local write was the race the user kept seeing.
     setSaveUI('saved');
@@ -14246,16 +14246,16 @@ function loadBoard() {
     const data = JSON.parse(raw);
     /* Start from a clean slate. state.cards is push()ed into below, and this
        function has three call sites: the init at the bottom of the file, the
-       "cloud load failed, using local" catch, and the "backend unreachable —
+       "cloud load failed, using local" catch, and the "backend unreachable -
        loading cache" catch in the auth path. That last one runs again on every
        attempt of startReconnectLoop(), so a board opened while the API was down
-       or cold-starting gained a complete extra copy of every card per retry —
+       or cold-starting gained a complete extra copy of every card per retry -
        4 -> 8 -> 12 -> 16, observed at 16 with 4 unique ids after a few minutes,
        and persisted at that size as soon as anything triggered a save.
        Duplicates stack exactly on top of each other, which is the intermittent
        "ghost card" artifact; worse, getCardEl() resolves an id to the first
        match, so dragging a card could move one copy and leave the other behind.
-       Only cards need this — arrows, strokes and groups are assigned, not
+       Only cards need this - arrows, strokes and groups are assigned, not
        appended. */
     state.cards.length = 0;
     board.querySelectorAll('.board-card').forEach(el => el.remove());
@@ -14447,7 +14447,7 @@ function handleOnline() {
   isOffline = false;
   document.getElementById('offline-banner').classList.remove('show');
   if (pendingCloudSave && currentUser && currentBoardId) {
-    toast('Back online — syncing…');
+    toast('Back online - syncing…');
     saveToCloud();
   }
 }
@@ -14477,7 +14477,7 @@ function resolveConflict(choice) {
     toast('Loaded server version');
   } else {
     saveToCloud(); // force push mine
-    toast('Kept your version — syncing');
+    toast('Kept your version - syncing');
   }
   serverConflictData = null;
 }
@@ -14495,7 +14495,7 @@ applyTransform();
 renderSidebar();
 
 // Warm the on-demand generation engine (board-gen.js) into cache during idle so
-// offline/guest generation still works — WITHOUT parsing it on the critical path
+// offline/guest generation still works - WITHOUT parsing it on the critical path
 // (parse stays lazy; the <script> is injected only on first real generation via
 // _ensureGenLoaded). rel=prefetch downloads + caches without executing.
 (window.requestIdleCallback || (cb => setTimeout(cb, 2500)))(() => {
@@ -14562,7 +14562,7 @@ function seedMobileWelcomeBoard() {
   setTimeout(() => { try { zoomToCard(frame?.id || children[0]?.id, false); } catch {} }, 70);
 }
 if (!loaded && !_welcomeSeen) {
-  // Welcome board — only on a fresh user, never re-seeded after "Clear board"
+  // Welcome board - only on a fresh user, never re-seeded after "Clear board"
   if (isBoardPhone()) {
     seedMobileWelcomeBoard();
   } else {
@@ -14587,7 +14587,7 @@ if (isBoardPhone() && state.cards.length) {
 updateEmpty();
 renderMinimap();
 
-/* ════════ COMMUNITY IMPORT — ?communityImport=<base64> ════════ */
+/* ════════ COMMUNITY IMPORT - ?communityImport=<base64> ════════ */
 // Parsed early; applied only after the user confirms AND after initUserBoard() has settled,
 // preventing the race where initUserBoard()'s loadBoardData overwrites the import.
 window.__pendingCommunityImport = null;
@@ -14621,7 +14621,7 @@ let _communityImportApplied = false;
   banner.innerHTML = `
     <div style="flex:1;">
       <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
-      <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards — import to a new board?</div>
+      <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards - import to a new board?</div>
     </div>
     <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
     <button onclick="this.closest('div').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
@@ -14693,7 +14693,7 @@ window.__pendingToolMaterialImport = null;
     if (!raw) return;
     const material = JSON.parse(raw);
     sessionStorage.removeItem('teachedos_pending_tool_material');
-    /* Матеріал тепер може приїхати структурою — вправа з питаннями, у якої
+    /* Матеріал тепер може приїхати структурою - вправа з питаннями, у якої
        плоского тексту може не бути взагалі. Стара умова вимагала саме text і
        тихо викидала б таку посилку. */
     const hasBody = material && (material.text || (material.struct && (
@@ -14718,15 +14718,15 @@ function runPendingToolMaterialImport() {
     const title = material.title || 'Teacher Tool Material';
     const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
     /* Матеріал зі студії інструментів приходить структурою (struct із
-       boardKind/questions/items/cards) — тими самими полями, які чекає
+       boardKind/questions/items/cards) - тими самими полями, які чекає
        worksheet-картка. Раніше все, що завгодно, ставало одним text-блоком
        520x420: вправа втрачала тип, ключ відповідей був запечений у текст, а
        висота бралася зі стелі, тож довге завдання обрізалось, а коротке висіло
        в порожнечі.
 
-       Тепер: є struct — робимо worksheet тим самим шляхом, що й власна
+       Тепер: є struct - робимо worksheet тим самим шляхом, що й власна
        генерація дошки (та сама оцінка висоти _ttEstWorksheetHeight). Немає
-       struct — лишається текстова картка, але вже як усвідомлений випадок для
+       struct - лишається текстова картка, але вже як усвідомлений випадок для
        матеріалів, що справді є просто текстом. */
     /* Двосторонній звʼязок. Раніше він був одноразовим: матеріал поїхав на
        дошку і слід загубився. Через це та сама вправа, надіслана двічі,
@@ -14734,7 +14734,7 @@ function runPendingToolMaterialImport() {
        повторній відправці отримував ще одну копію поруч зі своєю правкою.
 
        Тепер картка памʼятає, з чого зроблена (_ttOrigin), і якщо така вже
-       лежить — ми її показуємо, а не дублюємо. Перезаписувати теж не можна:
+       лежить - ми її показуємо, а не дублюємо. Перезаписувати теж не можна:
        правки вчителя на дошці головніші за повторний експорт. */
     const originKey = material.materialKey || '';
     if (originKey) {
@@ -14745,7 +14745,7 @@ function runPendingToolMaterialImport() {
           const el = document.querySelector('[data-id="' + twin.id + '"]');
           el && el.scrollIntoView({ block: 'center', inline: 'center' });
         } catch (_) {}
-        toast && toast('Already on the board — showing the existing card');
+        toast && toast('Already on the board - showing the existing card');
         const p0 = new URLSearchParams(location.search);
         p0.delete('addToolMaterial');
         const q0 = p0.toString();
@@ -14778,14 +14778,14 @@ function runPendingToolMaterialImport() {
         questions: struct.questions || null,
         items: struct.items || null,
         cards: struct.cards || null,
-        /* Ключ відповідей — властивість картки, а не тексту: кнопка
+        /* Ключ відповідей - властивість картки, а не тексту: кнопка
            «🔑 Key on / 👁 Key off» на картці тепер працює і для матеріалу
            з інструментів. */
         showAnswers: material.showAnswers !== false,
         _ttSrc: 1,
         _ttOrigin: origin,
-        /* Из чего и чем сделано — чтобы регулятор уровня работал и здесь, а не
-           только у видео-уроков. Инструмент лежит в _ttOrigin, но материал —
+        /* Из чего и чем сделано - чтобы регулятор уровня работал и здесь, а не
+           только у видео-уроков. Инструмент лежит в _ttOrigin, но материал -
            нет, а без него «сделать проще» пришлось бы выдумывать содержание. */
         _ttToolId: material.toolId || '',
         _ttSource: String(material.source || '').slice(0, 6000),
@@ -14798,7 +14798,7 @@ function runPendingToolMaterialImport() {
         : 420;
       /* Структурована картка більша за колишній текстовий прямоугольник, тож
          падати рівно в центр екрана вона стала частіше поверх уже наявної.
-         findFreePlacement — той самий помічник, яким користується решта дошки. */
+         findFreePlacement - той самий помічник, яким користується решта дошки. */
       const spot = (typeof findFreePlacement === 'function')
         ? findFreePlacement(Math.round(pos.x - w / 2), Math.round(pos.y - h / 2), w, h)
         : { x: Math.round(pos.x - w / 2), y: Math.round(pos.y - h / 2) };
@@ -15054,7 +15054,7 @@ let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 // Board fetch kicked off in parallel with the /api/auth/me check on boot
-// (see the init IIFE near the bottom) — initUserBoard() consumes it instead
+// (see the init IIFE near the bottom) - initUserBoard() consumes it instead
 // of issuing a second sequential request, saving one full round trip.
 let _boardPrefetch = null;
 function _settleP(p) { return p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e })); }
@@ -15143,7 +15143,7 @@ let _authReturnFocus = null;
 
 /* Keep Tab inside the dialog while it is open, and let Escape out.
    Without this, tabbing past the last field walks into the board behind the
-   overlay — you keep tabbing through cards you cannot see — and the only way
+   overlay - you keep tabbing through cards you cannot see - and the only way
    to dismiss was the mouse. */
 function _authKeydown(e) {
   if (e.key === 'Escape') { e.preventDefault(); closeAuthModal(); return; }
@@ -15494,7 +15494,7 @@ let _boardLiveInterval = null;
 function openBoardCall() {
   const url = _boardOwnerMeetingUrl || (currentUser && (currentUser.meeting_url || currentUser.zoom_url));
   if (url) window.open(url, '_blank');
-  else toast('No meeting room saved — set one in Calls & Meetings');
+  else toast('No meeting room saved - set one in Calls & Meetings');
 }
 
 async function checkBoardLive() {
@@ -15512,7 +15512,7 @@ async function checkBoardLive() {
     if (banner) {
       const s = sessions[0];
       _boardOwnerMeetingUrl = s.meeting_url || null;
-      if (label) label.textContent = `${s.teacher_name || 'Your teacher'} is live — ${s.title || 'Class in progress'}`;
+      if (label) label.textContent = `${s.teacher_name || 'Your teacher'} is live - ${s.title || 'Class in progress'}`;
       if (joinBtn) {
         if (s.meeting_url) {
           joinBtn.href = s.meeting_url;
@@ -15549,7 +15549,7 @@ function applyRoleUI() {
   editTools.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    // Keep export visible for owners even on Free — clicking it shows the
+    // Keep export visible for owners even on Free - clicking it shows the
     // upgrade modal, which is a key conversion entry point.
     el.style.display = isOwner ? '' : 'none';
   });
@@ -15634,7 +15634,7 @@ async function logout() {
   localStorage.removeItem('teachedos_board_id');
   try { localStorage.removeItem('teachedos_user'); } catch {}
   toast('Signed out');
-  // Return to home — a board with no account is a dead end.
+  // Return to home - a board with no account is a dead end.
   setTimeout(() => { location.href = 'index.html'; }, 350);
 }
 
@@ -15660,7 +15660,7 @@ async function initUserBoard() {
         const { board } = await r.json();
         currentBoardId = board.id;
         _realMembers = null; _membersLoaded = false; // reset for new board
-        // Set ownership correctly — collaborators are not owners
+        // Set ownership correctly - collaborators are not owners
         boardOwnerId = board.user_id || currentUser.id;
         isOwner = board.user_id === currentUser.id;
         updateFollowUI();
@@ -15706,7 +15706,7 @@ async function initUserBoard() {
           else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         }
       } else if (currentUser.role === 'student') {
-        // Student with no owned boards — redirect to student dashboard
+        // Student with no owned boards - redirect to student dashboard
         location.href = 'student.html';
       }
     }
@@ -15766,7 +15766,7 @@ function loadBoardData(data) {
   state.pan    = data.pan    || { x:100, y:60 };
   state.scale  = data.scale  || 1;
   state.nextId = data.nextId || 1;
-  // Build all card elements off-DOM first, then insert in a single append —
+  // Build all card elements off-DOM first, then insert in a single append -
   // avoids one reflow/style-recalc per card on boards with many cards.
   const _cardFrag = document.createDocumentFragment();
   (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
@@ -15814,7 +15814,7 @@ function loadBoardData(data) {
   setTimeout(_ttRefreshBuildLessonBtn, 300);
 }
 
-// (duplicate saveToCloud removed — canonical version with retry is defined above)
+// (duplicate saveToCloud removed - canonical version with retry is defined above)
 
 // ── Share & Rename ────────────────────────────────────────────
 // ── Share panel ───────────────────────────────────────────────
@@ -16092,7 +16092,7 @@ async function switchBoard(id, name) {
   currentBoardId = id;
   localStorage.setItem('teachedos_board_id', id);
   history.replaceState(null, '', `board.html?id=${id}`);
-  // Clear in-memory tool builder cache on board switch — the previous
+  // Clear in-memory tool builder cache on board switch - the previous
   // board's cached AI outputs are irrelevant to the new board.
   TT_BUILDER_RESULT_CACHE.clear();
   // Trim undo stack to free memory before loading a new board
@@ -16294,7 +16294,7 @@ function wsSendCursor(bx, by) {
 }
 
 function applyRemoteState(remote) {
-  // Full replace — server is source of truth for collab.
+  // Full replace - server is source of truth for collab.
   remote = migrateLegacyCommentStickies(remote);
   state.cards.forEach(c => getCardEl(c.id)?.remove());
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
@@ -16433,7 +16433,7 @@ function applyFollowViewport(pan, scale) {
 
 function jumpToStudent(userId) {
   const vp = peerViewports[userId];
-  if (!vp) { toast('No position yet — student hasn\'t moved'); return; }
+  if (!vp) { toast('No position yet - student hasn\'t moved'); return; }
   board.style.transition = 'transform .3s ease';
   state.pan.x = vp.pan.x; state.pan.y = vp.pan.y; state.scale = vp.scale;
   board.style.transform = `translate(${vp.pan.x}px,${vp.pan.y}px) scale(${vp.scale})`;
@@ -16510,7 +16510,7 @@ function setCardCommentCount(cardId, count) {
     <span>${count}</span>`;
 }
 
-/* Miro-style snap guides — draw blue dashed lines while dragging */
+/* Miro-style snap guides - draw blue dashed lines while dragging */
 function _drawSnapGuides(bestX, bestY, cx, cy, cw, ch) {
   const svg = document.getElementById('snap-guides');
   if (!svg) return;
@@ -16544,7 +16544,7 @@ function openExportMenu(e) {
 }
 document.addEventListener('click', () => document.getElementById('export-menu')?.classList.remove('open'));
 
-// Lazy CDN script loader (board has no bundler) — memoised per URL.
+// Lazy CDN script loader (board has no bundler) - memoised per URL.
 const _loadedScripts = {};
 function loadBoardScript(src) {
   if (_loadedScripts[src]) return _loadedScripts[src];
@@ -16581,14 +16581,14 @@ function boardContentBounds(pad = 48) {
 
 /* html2canvas 1.4.1 (the last release, 2022) parses colours itself and throws
    `unsupported color function "…"` on anything it does not know, rather than
-   degrading — so one such value anywhere in the captured subtree aborts the
+   degrading - so one such value anywhere in the captured subtree aborts the
    whole export: no image at all, not one wrong colour.
 
    Two independent sources, which is why this resolves colours generically
    instead of matching a syntax. board.css uses color-mix() throughout (tt-note
    cards, .vocab-*, worksheet rails), and browsers resolve that to
    `color(srgb …)`. Separately, any in-flight colour interpolation serialises as
-   `oklab(…)` — a card caught mid-cardPopIn produced exactly that, and no grep
+   `oklab(…)` - a card caught mid-cardPopIn produced exactly that, and no grep
    of the source would ever have found it, since it exists only at runtime.
    .board-exporting now freezes animations so that second source is gone, but a
    parser that only knew `color(srgb …)` was a patch for one spelling.
@@ -16636,7 +16636,7 @@ function _flattenColorFn(value) {
    animations restart inside the clone after onclone has finished, and
    pseudo-elements take no inline style at all. Every colour html2canvas sees
    arrives through getComputedStyle, so wrapping that single call covers all of
-   them at once — whatever the source, whatever the timing.
+   them at once - whatever the source, whatever the timing.
 
    Installed on the clone's window and on the live one for the duration of the
    capture (html2canvas measures the original document too); renderBoardToCanvas
@@ -16659,8 +16659,8 @@ function installColorFlattenHook(win) {
   return () => { win.getComputedStyle = orig; delete win.__ttColorHook; };
 }
 
-/* Keep animations from starting in the clone. Not a colour concern any more —
-   the hook above handles that — but a card cloned mid-cardPopIn would be
+/* Keep animations from starting in the clone. Not a colour concern any more -
+   the hook above handles that - but a card cloned mid-cardPopIn would be
    captured half-scaled and half-transparent. The cloned nodes keep their
    trigger classes, so the freeze has to be a stylesheet: it applies to
    animations that have not begun, which settling them cannot. */
@@ -16676,7 +16676,7 @@ function freezeMotionInClone(doc) {
 
 /* Wait one painted frame, but never wait forever. requestAnimationFrame does
    not fire in a hidden tab, and "Rendering PDF…" is exactly the moment a user
-   switches away to wait — which used to hang the export for good, with the
+   switches away to wait - which used to hang the export for good, with the
    board left mid-capture: pan zeroed, scale 1, .board-exporting still on, and
    the restore never reached. The timeout is the fallback, not the path: when
    the tab is visible rAF always wins the race. */
@@ -16694,7 +16694,7 @@ function _exportSettleFrame() {
 // the snapshot looks like a clean printable artboard.
 async function renderBoardToCanvas() {
   const bounds = boardContentBounds();
-  if (!bounds) { toast('Board is empty — nothing to export'); return null; }
+  if (!bounds) { toast('Board is empty - nothing to export'); return null; }
   await loadBoardScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
   if (!window.html2canvas) throw new Error('html2canvas unavailable');
 
@@ -16760,7 +16760,7 @@ async function exportBoardImage(format) {
       canvas.toBlob(blob => {
         // toBlob hands back null rather than throwing when the canvas is over
         // the browser's area cap, and this callback runs outside the try below.
-        if (!blob) { toast('⚠️ Board is too large to export as PNG — try PDF'); return; }
+        if (!blob) { toast('⚠️ Board is too large to export as PNG - try PDF'); return; }
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = name + '.png';
@@ -16834,7 +16834,7 @@ async function exportBoardImage(format) {
     }
   } catch (err) {
     console.error('[board export]', err);
-    toast('⚠️ Export failed — please try again');
+    toast('⚠️ Export failed - please try again');
   }
 }
 
@@ -17211,7 +17211,7 @@ function _endPlaceDrag(e) {
   const h = drag.dragged && cur ? Math.abs(cur.y - min.y) : 0;
   const x = drag.dragged && cur ? Math.min(min.x, cur.x) : min.x;
   const y = drag.dragged && cur ? Math.min(min.y, cur.y) : min.y;
-  // Min size — anything smaller than this is treated as a click
+  // Min size - anything smaller than this is treated as a click
   const MIN = 24;
   if (drag.dragged && w >= MIN && h >= MIN) {
     _doPlace(0, 0, { x, y, w, h, draggedRect: true });
@@ -17348,7 +17348,7 @@ document.addEventListener('mousedown', e => {
   _closeMoreShapes();
 }, true);
 
-/* ── Connector starters from the shape panel — drop into connect mode ─ */
+/* ── Connector starters from the shape panel - drop into connect mode ─ */
 function _startConnectorFromPanel(route) {
   closeShapePanel();
   setMode && setMode('connect');
@@ -17419,10 +17419,10 @@ function _addFramePreset(key) {
 }
 
 function toolbarQuickAdd(type) {
-  // Image / video need a modal first — open modal, then place on board
+  // Image / video need a modal first - open modal, then place on board
   if (type === 'image' || type === 'video') { toolbarOpenModal(type); return; }
   // Miro behaviour: text and sticky drop straight onto the board at the
-  // current viewport centre on a SINGLE click — no second click needed.
+  // current viewport centre on a SINGLE click - no second click needed.
   if (type === 'text' || type === 'sticky') {
     const pos = (typeof getBoardViewportCenter === 'function')
       ? getBoardViewportCenter()
@@ -17504,7 +17504,7 @@ function quickAddCard(type, bx, by) {
 
 /* ════════════════════════ VOCABULARY CARD ════════════════════════ */
 // Speak a word aloud via the browser's built-in TTS, picking a US or UK voice.
-// No backend / audio files — works offline once voices are loaded.
+// No backend / audio files - works offline once voices are loaded.
 function speakWord(word, lang) {
   try {
     if (!('speechSynthesis' in window) || !word) return;
@@ -17542,12 +17542,12 @@ function renderVocab(el, card) {
     <div class="vocab-pron-row">
       <button class="vocab-say" title="Hear US pronunciation" onclick="event.stopPropagation();speakWord('${wEsc}','us')">🔊</button>
       <span class="vocab-pron-flag">US</span>
-      <span class="vocab-pron-ipa">${usIpa ? esc(usIpa) : '—'}</span>
+      <span class="vocab-pron-ipa">${usIpa ? esc(usIpa) : '-'}</span>
     </div>
     <div class="vocab-pron-row">
       <button class="vocab-say" title="Hear UK pronunciation" onclick="event.stopPropagation();speakWord('${wEsc}','uk')">🔊</button>
       <span class="vocab-pron-flag">UK</span>
-      <span class="vocab-pron-ipa">${ukIpa ? esc(ukIpa) : '—'}</span>
+      <span class="vocab-pron-ipa">${ukIpa ? esc(ukIpa) : '-'}</span>
     </div>`;
   body.innerHTML = `
     <div>
@@ -17619,7 +17619,7 @@ function quickPracticeVocab(cardId) {
     setTimeout(() => { try { zoomToCard && zoomToCard(nc.id, true); } catch (e) {} }, 80);
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
-  toast(`⚡ Quick practice created — ${qs.length} question${qs.length > 1 ? 's' : ''}`);
+  toast(`⚡ Quick practice created - ${qs.length} question${qs.length > 1 ? 's' : ''}`);
 }
 
 /* Collect every practisable term on the board: real vocab cards + idiom/phrase
@@ -17668,14 +17668,14 @@ function _blankTermInExample(example, term) {
   return re.test(ex) ? ex.replace(re, '_____') : '';
 }
 
-/* Build ONE practice worksheet covering EVERY vocab/idiom term on the board —
+/* Build ONE practice worksheet covering EVERY vocab/idiom term on the board -
    one question per phrase. Question TYPE rotates (meaning MCQ → reverse MCQ →
    gap-fill) so a long list doesn't become a wall of identical questions, while
    still honouring "one question per phrase". */
 function quickPracticeAllVocab() {
   const { terms, level } = _collectBoardVocabTerms();
   if (!terms.length) { toast('Add some vocabulary or idiom cards first', 'error'); return; }
-  if (terms.length === 1) { toast('Only one term found — use ⚡ Quick Practice on the card'); }
+  if (terms.length === 1) { toast('Only one term found - use ⚡ Quick Practice on the card'); }
   const allMeanings = terms.map(t => t.meaning).filter(Boolean);
   const allTerms = terms.map(t => t.term);
   // ── Question builders (return null when a phrase can't support the type) ──
@@ -17742,7 +17742,7 @@ function quickPracticeAllVocab() {
     setTimeout(() => { try { zoomToCard && zoomToCard(nc.id, true); } catch (e) {} }, 80);
   }
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
-  toast(`⚡ Practice built — ${qs.length} ${level} question${qs.length > 1 ? 's' : ''} from your board`);
+  toast(`⚡ Practice built - ${qs.length} ${level} question${qs.length > 1 ? 's' : ''} from your board`);
 }
 
 /* ════════════════════════ CHECKLIST CARD ════════════════════════ */
@@ -18339,7 +18339,7 @@ function applyAiAssistantToBoard() {
     }, IW, ROW_LESSON);
     cy += ROW_LESSON + GAP;
 
-    // ── Row 2: Stage note cards — each gets a unique accent stripe ──
+    // ── Row 2: Stage note cards - each gets a unique accent stripe ──
     if (stages.length) {
       const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
       stages.forEach((stage, idx) => {
@@ -18690,7 +18690,7 @@ function startReconnectLoop() {
         return;
       }
       if (r.status === 401 || r.status === 403) {
-        // Token invalid — stop retrying, show login
+        // Token invalid - stop retrying, show login
         if (banner) banner.classList.remove('show');
         setToken(null); localStorage.removeItem('teachedos_user');
         openAuthModal('login'); return;
@@ -18708,7 +18708,7 @@ function startReconnectLoop() {
   if (authToken) {
     const loginBtn = document.getElementById('auth-login-btn');
     if (loginBtn) { loginBtn.textContent = '⟳'; loginBtn.style.pointerEvents = 'none'; }
-    // Fire the board fetch in parallel with the auth check — both use the
+    // Fire the board fetch in parallel with the auth check - both use the
     // same JWT, so if the token is invalid both fail together; if it's
     // valid we save a full round trip instead of waiting for auth/me first.
     const _prefetchTargetId = URL_BOARD_ID || currentBoardId;
@@ -18732,13 +18732,13 @@ function startReconnectLoop() {
         wsConnect();
         return;
       }
-      // 401/403 — token genuinely invalid
+      // 401/403 - token genuinely invalid
       setToken(null);
       localStorage.removeItem('teachedos_user');
       openAuthModal('login');
     } catch {
-      // Network failure / timeout (Render cold start) — load from cache, retry in background
-      console.warn('[auth] backend unreachable — loading cache, starting reconnect loop');
+      // Network failure / timeout (Render cold start) - load from cache, retry in background
+      console.warn('[auth] backend unreachable - loading cache, starting reconnect loop');
       const cached = localStorage.getItem('teachedos_user');
       if (cached) try { currentUser = JSON.parse(cached); } catch {}
       updateAuthUI();
@@ -18746,13 +18746,13 @@ function startReconnectLoop() {
       if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
       if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
       showOfflineBanner();
-      toast('⚠️ Server starting up — reconnecting…');
+      toast('⚠️ Server starting up - reconnecting…');
       startReconnectLoop();
     }
   } else {
     // No token
     if (URL_BOARD_ID) {
-      // Someone opened a shared link without being logged in — show auth modal
+      // Someone opened a shared link without being logged in - show auth modal
       openAuthModal('login');
     } else {
       openAuthModal('login');
@@ -18975,7 +18975,7 @@ async function prepareBoardImageFile(file) {
 }
 
 /* Open the native file picker straight away and drop the chosen image onto
-   the board — no modal, no extra "Add Image" click (Miro-style quick upload). */
+   the board - no modal, no extra "Add Image" click (Miro-style quick upload). */
 function pickImageFile(pos) {
   pendingImagePos = pos || (typeof getBoardViewportCenter === 'function' ? getBoardViewportCenter() : null);
   if (typeof setMiroTool === 'function') setMiroTool('select');
@@ -19025,7 +19025,7 @@ function handleImageFileDrop(e) {
   closeImageModal();
   placeImageFile(file, pos);
 }
-/* Choosing a file places it immediately — the modal's "Add Image" button is
+/* Choosing a file places it immediately - the modal's "Add Image" button is
    now only needed for the URL field. */
 function handleImageFileSelect(input) {
   const file = input.files && input.files[0];
@@ -19036,7 +19036,7 @@ function handleImageFileSelect(input) {
   placeImageFile(file, pos);
 }
 
-/* Global paste handler — add image directly to the board on Ctrl/⌘+V.
+/* Global paste handler - add image directly to the board on Ctrl/⌘+V.
    Accepts: raw image data, image URL pasted as text (data:/http:/https:). */
 document.addEventListener('paste', e => {
   // Don't hijack pasting inside inputs / editable fields
@@ -19177,7 +19177,7 @@ document.getElementById('video-url-input').addEventListener('keydown', e => { if
 document.getElementById('image-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmImageEmbed(); });
 
 /* ════════════════════════ STICKER / EMOJI PICKER ════════════════════════ */
-/* STICKER_CATEGORIES — extracted to js/teacher-tools-data.js */
+/* STICKER_CATEGORIES - extracted to js/teacher-tools-data.js */
 let _stickerActiveTab = 'Smileys';
 let _stickerAddCount = 0;
 const STICKER_RECENTS_KEY = 'teached.sticker.recents.v1';
@@ -19215,7 +19215,7 @@ function _positionStickerPanel() {
   const btn = document.getElementById('mt-sticker');
   if (!panel || !btn) return;
   if (isBoardPhone()) {
-    // mobile bottom-sheet — clear inline so @media wins
+    // mobile bottom-sheet - clear inline so @media wins
     panel.style.top = ''; panel.style.left = '';
     return;
   }
@@ -19451,7 +19451,7 @@ document.addEventListener('drop', e => {
 //   game-result      { score, max, ... }              (final)
 //   game-finished    { score?, max?, ... }            (final)
 // Previously `gameScore` was not handled at all, so flashcards / fill-blank /
-// speed-quiz / spin-wheel scores were silently dropped — fixed here.
+// speed-quiz / spin-wheel scores were silently dropped - fixed here.
 const GAME_SCORE_TYPES = new Set(['teachedos-score', 'gameScore', 'game-progress', 'game-result', 'game-finished']);
 const GAME_FINAL_TYPES = new Set(['gameScore', 'game-result', 'game-finished']);
 window.addEventListener('message', e => {
@@ -19913,7 +19913,7 @@ function openDrawPalette(anchorBtn, tool) {
   // Mark the active tool in the vertical icon column
   pal.querySelectorAll('.dp-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
 
-  // Build color grid — eraser hides the color section
+  // Build color grid - eraser hides the color section
   const grid = document.getElementById('draw-color-grid');
   const colorSection = document.getElementById('draw-color-section');
   if (tool === 'eraser') {
@@ -20129,7 +20129,7 @@ function _endDraw(e) {
   _currentStroke = null;
   if (!wasErasing && finishedStroke) {
     if (typeof snapshot === 'function') {
-      // Undo entry was not made on begin — we did mutate state.strokes already.
+      // Undo entry was not made on begin - we did mutate state.strokes already.
       // Pop and snapshot pre-state, then push back.
       const last = state.strokes.pop();
       snapshot();
@@ -20181,7 +20181,7 @@ document.addEventListener('keydown', e => {
     t.isContentEditable ||
     t.closest?.('[contenteditable=""],[contenteditable=true],[contenteditable=plaintext-only]')
   )) return;
-  // Modifier combos handled first — DON'T short-circuit before them.
+  // Modifier combos handled first - DON'T short-circuit before them.
   if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === '0') {
     e.preventDefault();
     const r = boardWrap.getBoundingClientRect();
@@ -20194,7 +20194,7 @@ document.addEventListener('keydown', e => {
     fitAll && fitAll(true);
     return;
   }
-  // Cmd/Ctrl+S — force save now + nice toast (don't trigger browser "Save As…")
+  // Cmd/Ctrl+S - force save now + nice toast (don't trigger browser "Save As…")
   if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 's' || e.key === 'S')) {
     e.preventDefault();
     saveLocal && saveLocal();
@@ -20206,7 +20206,7 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') {
     // Single Escape: cancel pending arrow AND exit connect mode in one step.
-    // Two-press was confusing — the user expects Esc to fully reset.
+    // Two-press was confusing - the user expects Esc to fully reset.
     if (typeof connectPending !== 'undefined' && connectPending) {
       e.preventDefault();
       cancelConnection?.();
@@ -20323,7 +20323,7 @@ function openSettings() {
 function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); }
 
 function setTheme(name, save=true) {
-  if (name === 'dark') name = 'pink'; // dark mode removed — never allow it (incl. old saved settings)
+  if (name === 'dark') name = 'pink'; // dark mode removed - never allow it (incl. old saved settings)
   boardSettings.theme = name;
   // Clear any previous theme attribute, then set the new one (unless it's
   // the default "pink" theme, which is keyed by the absence of data-theme).
@@ -20426,17 +20426,17 @@ document.getElementById('settings-overlay').addEventListener('click', e => {
 loadSettings();
 
 /* ════════════════════════════════════════════════════════════
-   TASK BUILDER — library + generator + UI
+   TASK BUILDER - library + generator + UI
    ════════════════════════════════════════════════════════════ */
 
-/* Built-in question library — no external AI needed.
+/* Built-in question library - no external AI needed.
    Structure: TASK_LIB[topic][level][qtype] = [ {text, answer, options?, pairs?} ]
    Generator shuffles & picks N items, building deterministic offline sets. */
 const TASK_LIB = {
   articles: {
     A2: {
       'gap-fill': [
-        {text:'___ sun rises in the east.',answer:'The',hint:'unique object — both know which one'},
+        {text:'___ sun rises in the east.',answer:'The',hint:'unique object - both know which one'},
         {text:'She is ___ English teacher.',answer:'an',hint:'first mention, vowel sound'},
         {text:'I have ___ dog. ___ dog is very friendly.',answer:['a','The'],hint:'first/second mention'},
         {text:'Can you pass me ___ salt, please?',answer:'the',hint:'specific, on the table'},
@@ -20446,20 +20446,20 @@ const TASK_LIB = {
         {text:'I need ___ umbrella. It is raining.',answer:'an',hint:'first mention, vowel sound'},
         {text:'We went to ___ cinema last night.',answer:'the',hint:'the specific local cinema'},
         {text:'He is ___ honest man.',answer:'an',hint:'vowel sound /ɒ/'},
-        {text:'___ water in this bottle is cold.',answer:'The',hint:'specific water — this bottle'},
+        {text:'___ water in this bottle is cold.',answer:'The',hint:'specific water - this bottle'},
         {text:'I saw ___ elephant at the zoo.',answer:'an',hint:'first mention, vowel sound'},
       ],
       'mcq': [
-        {text:'She bought ___ new car yesterday.',options:['a','an','the','—'],answer:'a',hint:'first mention'},
-        {text:'___ Amazon is the longest river in South America.',options:['A','An','The','—'],answer:'The',hint:'unique river name with THE'},
-        {text:'He is ___ best student in the class.',options:['a','an','the','—'],answer:'the',hint:'superlative → THE'},
-        {text:'I usually have ___ breakfast at 8 am.',options:['a','an','the','—'],answer:'—',hint:'meals without article'},
-        {text:'She speaks ___ English very well.',options:['a','an','the','—'],answer:'—',hint:'languages without article'},
-        {text:'We live on ___ Moon Street.',options:['a','an','the','—'],answer:'—',hint:'street names no article'},
-        {text:'___ Pacific Ocean is the largest ocean.',options:['A','An','The','—'],answer:'The',hint:'oceans take THE'},
-        {text:'He wants to be ___ doctor.',options:['a','an','the','—'],answer:'a',hint:'profession, first mention'},
-        {text:'I read ___ interesting article today.',options:['a','an','the','—'],answer:'an',hint:'vowel sound'},
-        {text:'___ history of Rome is fascinating.',options:['A','An','The','—'],answer:'The',hint:'specific history'},
+        {text:'She bought ___ new car yesterday.',options:['a','an','the','-'],answer:'a',hint:'first mention'},
+        {text:'___ Amazon is the longest river in South America.',options:['A','An','The','-'],answer:'The',hint:'unique river name with THE'},
+        {text:'He is ___ best student in the class.',options:['a','an','the','-'],answer:'the',hint:'superlative → THE'},
+        {text:'I usually have ___ breakfast at 8 am.',options:['a','an','the','-'],answer:'-',hint:'meals without article'},
+        {text:'She speaks ___ English very well.',options:['a','an','the','-'],answer:'-',hint:'languages without article'},
+        {text:'We live on ___ Moon Street.',options:['a','an','the','-'],answer:'-',hint:'street names no article'},
+        {text:'___ Pacific Ocean is the largest ocean.',options:['A','An','The','-'],answer:'The',hint:'oceans take THE'},
+        {text:'He wants to be ___ doctor.',options:['a','an','the','-'],answer:'a',hint:'profession, first mention'},
+        {text:'I read ___ interesting article today.',options:['a','an','the','-'],answer:'an',hint:'vowel sound'},
+        {text:'___ history of Rome is fascinating.',options:['A','An','The','-'],answer:'The',hint:'specific history'},
       ],
       'truefalse': [
         {text:'We use "a" before words that start with a vowel sound.',answer:false,hint:'We use "an" before vowel sounds'},
@@ -20472,7 +20472,7 @@ const TASK_LIB = {
         {text:'Names of oceans and seas take THE.',answer:true},
       ],
       'match': [
-        {pairs:[['a/an','first mention, one of many'],['the','both speaker and listener know which'],['— (no article)','general plurals and uncountable nouns'],['the','superlatives and ordinals'],['— (no article)','languages and most countries']]},
+        {pairs:[['a/an','first mention, one of many'],['the','both speaker and listener know which'],['- (no article)','general plurals and uncountable nouns'],['the','superlatives and ordinals'],['- (no article)','languages and most countries']]},
         {pairs:[['a university','vowel letter, consonant sound /j/'],['an hour','consonant letter, vowel sound /aʊ/'],['a European','vowel letter, consonant sound /j/'],['an umbrella','vowel sound /ʌ/'],['a one-way street','vowel letter, consonant sound /w/']]},
       ],
     },
@@ -20480,15 +20480,15 @@ const TASK_LIB = {
       'gap-fill': [
         {text:'___ news is bad today. Have you heard ___ latest report?',answer:['The','the']},
         {text:'She has ___ MBA from ___ University of Oxford.',answer:['an','the']},
-        {text:'___ rich should pay more taxes — it is ___ matter of fairness.',answer:['The','a']},
+        {text:'___ rich should pay more taxes - it is ___ matter of fairness.',answer:['The','a']},
         {text:'He plays ___ violin in ___ orchestra.',answer:['the','an']},
         {text:'___ Spanish spoken in Mexico differs from ___ Spanish in Spain.',answer:['The','the']},
       ],
       'mcq': [
-        {text:'___ police are investigating the crime.',options:['A','An','The','—'],answer:'The'},
-        {text:'She is ___ most talented artist I have ever met.',options:['a','an','the','—'],answer:'the'},
-        {text:'We had ___ wonderful time at the party.',options:['a','an','the','—'],answer:'a'},
-        {text:'___ Mount Everest is ___ highest mountain in the world.',options:['—/the','The/a','The/the','—/—'],answer:'—/the'},
+        {text:'___ police are investigating the crime.',options:['A','An','The','-'],answer:'The'},
+        {text:'She is ___ most talented artist I have ever met.',options:['a','an','the','-'],answer:'the'},
+        {text:'We had ___ wonderful time at the party.',options:['a','an','the','-'],answer:'a'},
+        {text:'___ Mount Everest is ___ highest mountain in the world.',options:['-/the','The/a','The/the','-/-'],answer:'-/the'},
       ],
     },
   },
@@ -20509,13 +20509,13 @@ const TASK_LIB = {
         {text:'We saw him ___ Christmas.',answer:'at',hint:'holidays → at'},
       ],
       'mcq': [
-        {text:'I have a meeting ___ Friday morning.',options:['in','on','at','—'],answer:'on'},
-        {text:'She will be back ___ an hour.',options:['in','on','at','—'],answer:'in'},
+        {text:'I have a meeting ___ Friday morning.',options:['in','on','at','-'],answer:'on'},
+        {text:'She will be back ___ an hour.',options:['in','on','at','-'],answer:'in'},
         {text:'He arrived ___ the airport late.',options:['in','on','at','to'],answer:'at'},
         {text:'They got married ___ spring.',options:['in','on','at','during'],answer:'in'},
         {text:'The train leaves ___ 7:45.',options:['in','on','at','by'],answer:'at'},
         {text:'We are staying here ___ the weekend.',options:['in','on','at','for'],answer:'for'},
-        {text:'She was born ___ a cold winter night.',options:['in','on','at','—'],answer:'on'},
+        {text:'She was born ___ a cold winter night.',options:['in','on','at','-'],answer:'on'},
         {text:'I will call you ___ the evening.',options:['in','on','at','during'],answer:'in'},
       ],
       'truefalse': [
@@ -20560,7 +20560,7 @@ const TASK_LIB = {
         {text:'I ___ my keys. I can\'t find them anywhere.',options:['lost','have lost','was losing','had lost'],answer:'have lost'},
         {text:'She ___ in Paris for five years before moving to London.',options:['has lived','lived','is living','had lived'],answer:'lived'},
         {text:'"___ you ever eaten insects?" "Yes, once in Thailand."',options:['Did','Have','Were','Do'],answer:'Have'},
-        {text:'He ___ just ___ the email when the boss called.',options:['had / sent','has / sent','sent / —','was / sending'],answer:'had / sent'},
+        {text:'He ___ just ___ the email when the boss called.',options:['had / sent','has / sent','sent / -','was / sending'],answer:'had / sent'},
         {text:'I ___ him three times but he didn\'t answer.',options:['have called','called','have been calling','was calling'],answer:'called'},
         {text:'She ___ in this company since she graduated.',options:['works','worked','has worked','is working'],answer:'has worked'},
         {text:'When I arrived, they ___ already ___ dinner.',options:['had / finished','have / finished','were / finishing','did / finish'],answer:'had / finished'},
@@ -20579,15 +20579,15 @@ const TASK_LIB = {
   phrasalverbs: {
     B1: {
       'gap-fill': [
-        {text:'I need to ___ up early tomorrow — my flight is at 6 am.',answer:'get',hint:'get up = rise from bed'},
-        {text:'She ___s ___ her mother — same eyes and smile.',answer:['takes','after'],hint:'take after = resemble'},
+        {text:'I need to ___ up early tomorrow - my flight is at 6 am.',answer:'get',hint:'get up = rise from bed'},
+        {text:'She ___s ___ her mother - same eyes and smile.',answer:['takes','after'],hint:'take after = resemble'},
         {text:'Can you ___ up the volume? I can\'t hear.',answer:'turn',hint:'turn up = increase'},
         {text:'He ___ up smoking three years ago.',answer:'gave',hint:'give up = stop'},
         {text:'They ___ the meeting ___ until Friday.',answer:['put','off'],hint:'put off = postpone'},
         {text:'I can\'t ___ out what he is saying.',answer:'make',hint:'make out = understand/hear'},
         {text:'She ___ ___ a great idea for the project.',answer:['came','up with'],hint:'come up with = think of'},
         {text:'He ___ ___ his old friends at the reunion.',answer:['ran','into'],hint:'run into = meet by chance'},
-        {text:'Please ___ on — the doctor will see you soon.',answer:'hold',hint:'hold on = wait'},
+        {text:'Please ___ on - the doctor will see you soon.',answer:'hold',hint:'hold on = wait'},
         {text:'They ___ ___ the company three years ago.',answer:['set','up'],hint:'set up = establish'},
       ],
       'mcq': [
@@ -20596,7 +20596,7 @@ const TASK_LIB = {
         {text:'He ___ the information in a dictionary.',options:['looked up','looked for','looked after','looked into'],answer:'looked up'},
         {text:'The meeting has been ___ until next week.',options:['put off','put out','put up','put away'],answer:'put off'},
         {text:'I ___ a great solution to the problem.',options:['came up with','came across','came round','came up'],answer:'came up with'},
-        {text:'She ___ her father — both are very stubborn.',options:['takes after','takes over','takes off','takes up'],answer:'takes after'},
+        {text:'She ___ her father - both are very stubborn.',options:['takes after','takes over','takes off','takes up'],answer:'takes after'},
         {text:'The plane ___ two hours late.',options:['took off','took over','took in','took up'],answer:'took off'},
         {text:'Could you ___ the noise? I\'m trying to work.',options:['turn down','turn up','turn off','turn into'],answer:'turn down'},
       ],
@@ -20636,11 +20636,11 @@ const TASK_LIB = {
         {text:'As far as I am ___, the decision is premature.',answer:'concerned'},
         {text:'I see your ___, but I still think we need more evidence.',answer:'point'},
         {text:'With all due ___, I believe you have misread the figures.',answer:'respect'},
-        {text:'That is a ___ point — I had not considered that angle.',answer:'fair'},
+        {text:'That is a ___ point - I had not considered that angle.',answer:'fair'},
       ],
       'mcq': [
         {text:'___ my view, we should invest more in education.',options:['In','By','At','On'],answer:'In'},
-        {text:'I ___ agree with you — there are too many exceptions.',options:['broadly','strongly','deeply','softly'],answer:'broadly'},
+        {text:'I ___ agree with you - there are too many exceptions.',options:['broadly','strongly','deeply','softly'],answer:'broadly'},
         {text:'She made a ___ argument for reducing carbon emissions.',options:['compelling','compelling','compelled','compulsion'],answer:'compelling'},
         {text:'To ___ the devil\'s advocate, what if the opposite is true?',options:['play','be','take','make'],answer:'play'},
         {text:'I take your ___, but the evidence points the other way.',options:['point','idea','thought','meaning'],answer:'point'},
@@ -20653,11 +20653,11 @@ const TASK_LIB = {
   conditionals: {
     B1: {
       'gap-fill': [
-        {text:'If you heat water to 100°C, it ___ (boil).',answer:'boils',hint:'Zero conditional — fact'},
-        {text:'If I ___ (have) more time, I will call you.',answer:'have',hint:'1st conditional — real future'},
-        {text:'If she ___ (study) harder, she would pass.',answer:'studied',hint:'2nd conditional — unreal present'},
+        {text:'If you heat water to 100°C, it ___ (boil).',answer:'boils',hint:'Zero conditional - fact'},
+        {text:'If I ___ (have) more time, I will call you.',answer:'have',hint:'1st conditional - real future'},
+        {text:'If she ___ (study) harder, she would pass.',answer:'studied',hint:'2nd conditional - unreal present'},
         {text:'If it rains tomorrow, we ___ (not / go) to the park.',answer:'won\'t go',hint:'1st conditional'},
-        {text:'I would travel the world if I ___ (be) rich.',answer:'were',hint:'2nd conditional — were for all persons'},
+        {text:'I would travel the world if I ___ (be) rich.',answer:'were',hint:'2nd conditional - were for all persons'},
         {text:'If you mix red and blue, you ___ (get) purple.',answer:'get',hint:'Zero conditional'},
         {text:'She ___ (call) you if she needs help.',answer:'will call',hint:'1st conditional'},
         {text:'If I ___ (know) the answer, I would tell you.',answer:'knew',hint:'2nd conditional'},
@@ -20685,18 +20685,18 @@ const TASK_LIB = {
         {text:'She ___ speak three languages fluently.',answer:'can',hint:'ability'},
         {text:'___ I open the window? It is very hot.',answer:'Can/Could/May',hint:'permission'},
         {text:'You ___ smoke in the hospital. (prohibition)',answer:'must not/cannot',hint:'must not = prohibition'},
-        {text:'He ___ be at home — his car is outside.',answer:'must',hint:'logical deduction'},
-        {text:'You ___ take an umbrella — it probably won\'t rain.',answer:'don\'t have to/needn\'t',hint:'no obligation'},
+        {text:'He ___ be at home - his car is outside.',answer:'must',hint:'logical deduction'},
+        {text:'You ___ take an umbrella - it probably won\'t rain.',answer:'don\'t have to/needn\'t',hint:'no obligation'},
       ],
       'mcq': [
-        {text:'You ___ see a doctor — that cough sounds serious.',options:['should','would','might','shall'],answer:'should'},
+        {text:'You ___ see a doctor - that cough sounds serious.',options:['should','would','might','shall'],answer:'should'},
         {text:'Children ___ play in the street after dark.',options:['should not','do not have to','must not','need not'],answer:'must not'},
-        {text:'She ___ already be there — the meeting started an hour ago.',options:['can','must','shall','will'],answer:'must'},
-        {text:'You ___ buy a ticket in advance — it is free entry.',options:['must not','do not have to','should not','cannot'],answer:'do not have to'},
+        {text:'She ___ already be there - the meeting started an hour ago.',options:['can','must','shall','will'],answer:'must'},
+        {text:'You ___ buy a ticket in advance - it is free entry.',options:['must not','do not have to','should not','cannot'],answer:'do not have to'},
         {text:'"___ you help me with this?" is a polite request.',options:['Must','Can','Will','Shall'],answer:'Can'},
       ],
       'match': [
-        {pairs:[['can','ability or permission'],['must','strong obligation or deduction'],['should','advice or recommendation'],['must not','prohibition'],['don\'t have to','no obligation — it\'s optional'],['could','past ability or polite request']]},
+        {pairs:[['can','ability or permission'],['must','strong obligation or deduction'],['should','advice or recommendation'],['must not','prohibition'],['don\'t have to','no obligation - it\'s optional'],['could','past ability or polite request']]},
       ],
     },
   },
@@ -20824,7 +20824,7 @@ function generateTaskSet() {
     return;
   }
 
-  // Handle match type — expand pairs into individual questions
+  // Handle match type - expand pairs into individual questions
   let items = pool;
   if (qtype === 'match') {
     items = pool.flatMap(p => p.pairs || []).map(pair => ({
@@ -20884,7 +20884,7 @@ function saveTaskBuilder() {
   reRenderCard(card);
   scheduleSave();
   closeTaskBuilder();
-  toast('Assignment saved — ' + tbQuestions.length + ' questions');
+  toast('Assignment saved - ' + tbQuestions.length + ' questions');
 }
 
 /* ── Student Quiz Modal ── */
@@ -21016,7 +21016,7 @@ function openStudentQuiz(cardId) {
     // Show result
     modal.innerHTML = `
       <div class="quiz-header">
-        <div class="quiz-title">${esc(d.title||'Assignment')} — Results</div>
+        <div class="quiz-title">${esc(d.title||'Assignment')} - Results</div>
         <button class="quiz-close-btn" onclick="closeStudentQuiz()">×</button>
       </div>
       <div class="quiz-result-body">

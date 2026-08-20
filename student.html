@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="stylesheet" href="styles/fonts.css?v=332">
-<title>TeachEd — Student Dashboard</title>
+<title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -453,7 +453,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── RESPONSIVE ── */
 @media(max-width:860px){
-  /* Respect dark theme — do NOT override background to white */
+  /* Respect dark theme - do NOT override background to white */
   body{ overflow-y: auto; overflow-x: hidden; min-height:100dvh; }
   /* #shell was a 100vh flex container with overflow:hidden for the desktop
      two-column layout. On mobile the content card grows past 100vh and was
@@ -477,7 +477,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .topbar{
     position:sticky;top:0;z-index:140;
     padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
-    /* no backdrop-filter — expensive on mobile */
+    /* no backdrop-filter - expensive on mobile */
     background:var(--bg);
     border-bottom:1px solid var(--border);
   }
@@ -540,7 +540,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <div class="sb-counter" id="sb-counter-wrap">
-      <div class="sb-counter-num" id="sb-lessons-left">—</div>
+      <div class="sb-counter-num" id="sb-lessons-left">-</div>
       <div class="sb-counter-label">Lessons Left</div>
     </div>
 
@@ -548,8 +548,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="sb-section-title">My Milestones</div>
       <div class="sb-milestone" id="sb-milestone">
         <div class="sb-milestone-labels">
-          <span class="sb-milestone-level from" id="ms-from">—</span>
-          <span class="sb-milestone-level to" id="ms-to">—</span>
+          <span class="sb-milestone-level from" id="ms-from">-</span>
+          <span class="sb-milestone-level to" id="ms-to">-</span>
         </div>
         <div class="sb-milestone-bar">
           <div class="sb-milestone-fill" id="ms-fill" style="width:0%"></div>
@@ -588,7 +588,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="live-banner" id="live-banner">
         <div class="live-dot"></div>
         <div class="live-info">
-          <div class="live-title">🔴 Live Now — Your teacher is online!</div>
+          <div class="live-title">🔴 Live Now - Your teacher is online!</div>
           <div class="live-sub" id="live-class-name">Class in progress</div>
         </div>
         <a class="live-join" id="live-join-btn" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1">Join →</a>
@@ -605,15 +605,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="ms-copy" id="ms-copy">Once the dashboard finishes loading, this area will surface the most important student context for phone use.</div>
         <div class="ms-stats">
           <div class="ms-stat">
-            <div class="ms-stat-value" id="ms-lessons">—</div>
+            <div class="ms-stat-value" id="ms-lessons">-</div>
             <div class="ms-stat-label">Lessons Left</div>
           </div>
           <div class="ms-stat">
-            <div class="ms-stat-value" id="ms-streak">—</div>
+            <div class="ms-stat-value" id="ms-streak">-</div>
             <div class="ms-stat-label">Streak</div>
           </div>
           <div class="ms-stat">
-            <div class="ms-stat-value" id="ms-words">—</div>
+            <div class="ms-stat-value" id="ms-words">-</div>
             <div class="ms-stat-label">Words</div>
           </div>
         </div>
@@ -625,22 +625,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="vs-card">
           <span class="vs-icon">📋</span>
           <div class="vs-label">Learned Words</div>
-          <div class="vs-num" id="v-learned">—</div>
+          <div class="vs-num" id="v-learned">-</div>
         </div>
         <div class="vs-card">
           <span class="vs-icon">🎯</span>
           <div class="vs-label">To Learn</div>
-          <div class="vs-num" id="v-tolearn" style="color:var(--lavender)">—</div>
+          <div class="vs-num" id="v-tolearn" style="color:var(--lavender)">-</div>
         </div>
         <div class="vs-card">
           <span class="vs-icon">⚡</span>
           <div class="vs-label">Pace / Day</div>
-          <div class="vs-num" id="v-pace">—</div>
+          <div class="vs-num" id="v-pace">-</div>
         </div>
         <div class="vs-card">
           <span class="vs-icon">🏆</span>
           <div class="vs-label">Day Record</div>
-          <div class="vs-num" id="v-record" style="color:var(--lime)">—</div>
+          <div class="vs-num" id="v-record" style="color:var(--lime)">-</div>
         </div>
       </div>
 
@@ -679,22 +679,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="tab-pane" id="pane-progress">
         <div class="progress-grid" id="progress-grid">
           <div class="prog-card">
-            <div class="prog-card-num" id="pg-boards">—</div>
+            <div class="prog-card-num" id="pg-boards">-</div>
             <div class="prog-card-label">Enrolled Boards</div>
           </div>
           <div class="prog-card">
-            <div class="prog-card-num" id="pg-done">—</div>
+            <div class="prog-card-num" id="pg-done">-</div>
             <div class="prog-card-label">Lessons Done</div>
           </div>
           <div class="prog-card">
-            <div class="prog-card-num" id="pg-pct">—%</div>
+            <div class="prog-card-num" id="pg-pct">-%</div>
             <div class="prog-card-label">Overall Progress</div>
             <div class="prog-bar-wrap">
               <div class="prog-bar"><div class="prog-bar-fill" id="pg-bar" style="width:0%"></div></div>
             </div>
           </div>
           <div class="prog-card">
-            <div class="prog-card-num" id="pg-streak" style="color:var(--orange)">—</div>
+            <div class="prog-card-num" id="pg-streak" style="color:var(--orange)">-</div>
             <div class="prog-card-label">🔥 Day Streak</div>
           </div>
         </div>
@@ -761,10 +761,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="modal-box" style="max-width:500px;">
     <div class="modal-title">💡 How does it work</div>
     <div style="font-size:13px;color:var(--text-2);line-height:1.7;">
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">1. Your teacher creates boards</strong> — structured lesson plans with materials, exercises, and vocabulary.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">2. You learn and practice</strong> — open boards, study materials, complete assignments, and play vocabulary games.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">3. Track your progress</strong> — see your streak, lessons done, vocabulary growth, and quiz scores.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">4. Stay connected</strong> — get notified when your teacher goes live or adds new tasks.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">1. Your teacher creates boards</strong> - structured lesson plans with materials, exercises, and vocabulary.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">2. You learn and practice</strong> - open boards, study materials, complete assignments, and play vocabulary games.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">3. Track your progress</strong> - see your streak, lessons done, vocabulary growth, and quiz scores.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">4. Stay connected</strong> - get notified when your teacher goes live or adds new tasks.</p>
     </div>
     <button class="modal-submit" style="width:100%;margin-top:8px;" onclick="closeGuide()">Got it!</button>
   </div>
@@ -854,8 +854,8 @@ function renderDashboardFromCache(cache, options = {}) {
     document.getElementById('ms-words').textContent = cache.vocabData.length;
   }
   if (cache.vocabStats) {
-    document.getElementById('v-learned').textContent = cache.vocabStats.learned ?? '—';
-    document.getElementById('v-tolearn').textContent = cache.vocabStats.toLearn ?? '—';
+    document.getElementById('v-learned').textContent = cache.vocabStats.learned ?? '-';
+    document.getElementById('v-tolearn').textContent = cache.vocabStats.toLearn ?? '-';
   }
   if (Array.isArray(cache.quizResults) && cache.quizResults.length) {
     renderQuizHistory(cache.quizResults);
@@ -1017,7 +1017,7 @@ function renderSidebarBoards(boards) {
   document.getElementById('sb-lessons-left').textContent = left > 0 ? left : '0';
   document.getElementById('ms-lessons').textContent = left > 0 ? left : '0';
 
-  // Milestone — use first board's level or overall progress
+  // Milestone - use first board's level or overall progress
   const pct = totalAll ? Math.round(doneAll / totalAll * 100) : 0;
   const levels = ['A1','A2','B1','B2','C1','C2'];
   let fromLevel = 'A1', toLevel = 'A2';
@@ -1042,7 +1042,7 @@ function renderStats(boards, stats) {
   document.getElementById('pg-done').textContent = stats.done;
   document.getElementById('pg-pct').textContent = pct + '%';
   document.getElementById('pg-bar').style.width = pct + '%';
-  document.getElementById('pg-streak').textContent = stats.streak > 0 ? stats.streak : '—';
+  document.getElementById('pg-streak').textContent = stats.streak > 0 ? stats.streak : '-';
   document.getElementById('ms-streak').textContent = stats.streak > 0 ? stats.streak : '0';
   document.getElementById('ms-copy').textContent = boards.length
     ? `You are enrolled in ${boards.length} board${boards.length === 1 ? '' : 's'} and have finished ${stats.done} lesson${stats.done === 1 ? '' : 's'} so far.`
@@ -1110,7 +1110,7 @@ async function checkLiveSessions() {
     const session = sessions[0];
     banner.style.display = 'flex';
     const nameEl = document.getElementById('live-class-name');
-    if (nameEl) nameEl.textContent = `${session.teacher_name || 'Your teacher'} — ${session.title || 'Class in progress'}`;
+    if (nameEl) nameEl.textContent = `${session.teacher_name || 'Your teacher'} - ${session.title || 'Class in progress'}`;
     const btn = document.getElementById('live-join-btn');
     if (btn) {
       if (session.meeting_url) {
@@ -1206,8 +1206,8 @@ function renderPortalData(data) {
     document.getElementById('notif-dot').style.display = '';
   }
   if (data.stats) {
-    document.getElementById('v-pace').textContent = data.stats.vocabPace || '—';
-    document.getElementById('v-record').textContent = data.stats.vocabRecord || '—';
+    document.getElementById('v-pace').textContent = data.stats.vocabPace || '-';
+    document.getElementById('v-record').textContent = data.stats.vocabRecord || '-';
   }
 }
 
@@ -1267,7 +1267,7 @@ function renderVocab() {
   const list = document.getElementById('vocab-list');
   if (!list) return;
   if (!_vocabData.length) {
-    list.innerHTML = '<div class="empty-state">No words yet — add your first word!</div>';
+    list.innerHTML = '<div class="empty-state">No words yet - add your first word!</div>';
     return;
   }
   list.innerHTML = _vocabData.slice(0, 30).map(w => `

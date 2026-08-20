@@ -754,7 +754,7 @@
     );
   }
 
-  // Capture the install prompt silently — no auto-popping banner.
+  // Capture the install prompt silently - no auto-popping banner.
   // Pages that want to offer install call TeachedosPWA.promptInstall() from a button.
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
@@ -783,7 +783,7 @@
   };
 
   window.addEventListener('load', () => {
-    // No auto iOS install hint — it's available via TeachedosPWA.showIosHint() on demand.
+    // No auto iOS install hint - it's available via TeachedosPWA.showIosHint() on demand.
     wireServiceWorkerStatus();
     if (!navigator.onLine) setOfflineState(true);
   });

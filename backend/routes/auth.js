@@ -59,7 +59,7 @@ pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20
 pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`).catch(() => {});
 ensureBillingSchema(pool).catch(() => {});
 
-// Public OAuth 2.0 Web client ID (not a secret — it is exposed in browser code
+// Public OAuth 2.0 Web client ID (not a secret - it is exposed in browser code
 // by design). Hardcoded as the default so Google Sign-In works without setting
 // a server env var; GOOGLE_CLIENT_ID env still overrides it if present.
 const DEFAULT_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
@@ -344,7 +344,7 @@ router.post('/register', authLimiter, async (req, res) => {
   }
 });
 
-// GET /api/auth/invites/:token — fetch invite details
+// GET /api/auth/invites/:token - fetch invite details
 router.get('/invites/:token', async (req, res) => {
   try {
     const invite = await loadActiveInvite(req.params.token);
@@ -361,7 +361,7 @@ router.get('/invites/:token', async (req, res) => {
   }
 });
 
-// POST /api/auth/invites/:token/accept — create account from invite
+// POST /api/auth/invites/:token/accept - create account from invite
 router.post('/invites/:token/accept', authLimiter, async (req, res) => {
   const { name, password, avatar } = req.body;
   const nameError = nameProblem(name);
@@ -505,7 +505,7 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Success — reset counter, update last_login_at
+    // Success - reset counter, update last_login_at
     await pool.query(
       `UPDATE users SET failed_login_count=0, locked_at=NULL, last_login_at=NOW() WHERE id=$1`,
       [user.id]
@@ -519,12 +519,12 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 });
 
-// GET /api/auth/config — public client config (which providers are enabled)
+// GET /api/auth/config - public client config (which providers are enabled)
 router.get('/config', (_req, res) => {
   res.json({ googleClientId: GOOGLE_CLIENT_ID || null, googleEnabled: !!googleClient });
 });
 
-// POST /api/auth/google — sign in / sign up with a Google ID token
+// POST /api/auth/google - sign in / sign up with a Google ID token
 router.post('/google', authLimiter, async (req, res) => {
   if (!googleClient) {
     return res.status(503).json({ error: 'Google sign-in is not configured on this server.' });
@@ -601,12 +601,12 @@ router.post('/google', authLimiter, async (req, res) => {
   }
 });
 
-// GET /api/auth/me  — verify token & return current user
+// GET /api/auth/me  - verify token & return current user
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
 
-// PATCH /api/auth/me — update profile fields
+// PATCH /api/auth/me - update profile fields
 router.patch('/me', requireAuth, async (req, res) => {
   const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode } = req.body;
   const updates = [];
@@ -666,7 +666,7 @@ router.post('/logout', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// GET /api/auth/sessions — list active sessions for current user
+// GET /api/auth/sessions - list active sessions for current user
 router.get('/sessions', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id, user_agent, ip, created_at, expires_at
@@ -677,7 +677,7 @@ router.get('/sessions', requireAuth, async (req, res) => {
   res.json({ sessions: rows });
 });
 
-// DELETE /api/auth/sessions/:id — revoke a session
+// DELETE /api/auth/sessions/:id - revoke a session
 router.delete('/sessions/:id', requireAuth, async (req, res) => {
   await pool.query(
     'DELETE FROM sessions WHERE id = $1 AND user_id = $2',
@@ -687,7 +687,7 @@ router.delete('/sessions/:id', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /api/auth/make-admin  — promote user to admin using ADMIN_SECRET
+// POST /api/auth/make-admin  - promote user to admin using ADMIN_SECRET
 router.post('/make-admin', adminSecretLimiter, async (req, res) => {
   const { email, secret } = req.body;
   const normalizedEmail = normalizeEmail(email);
@@ -708,7 +708,7 @@ router.post('/make-admin', adminSecretLimiter, async (req, res) => {
   }
 });
 
-// POST /api/auth/set-role  — set any role using ADMIN_SECRET
+// POST /api/auth/set-role  - set any role using ADMIN_SECRET
 router.post('/set-role', adminSecretLimiter, async (req, res) => {
   const { email, role, secret } = req.body;
   const normalizedEmail = normalizeEmail(email);
@@ -750,7 +750,7 @@ router.post('/forgot-password', forgotLimiter, async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT id FROM users WHERE email = $1', [email]);
-    if (!rows.length) return; // silent — don't leak existence
+    if (!rows.length) return; // silent - don't leak existence
 
     const userId = rows[0].id;
     const token  = crypto.randomBytes(32).toString('hex');
@@ -774,7 +774,7 @@ router.post('/forgot-password', forgotLimiter, async (req, res) => {
   }
 });
 
-// GET /api/auth/reset-password?token=...  — validate token
+// GET /api/auth/reset-password?token=...  - validate token
 router.get('/reset-password', resetTokenCheckLimiter, async (req, res) => {
   const token = String(req.query.token || '');
   if (!token || token.length > AUTH_TOKEN_MAX_LENGTH) return res.status(400).json({ valid: false, error: 'Invalid reset link.' });

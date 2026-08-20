@@ -35,7 +35,7 @@ svg.gallows{width:160px;height:140px}
 <body>
 <a class="back" href="index.html">← Games</a>
 <h1>🎯 Hangman</h1>
-<p class="subtitle">Guess the word — 6 chances</p>
+<p class="subtitle">Guess the word - 6 chances</p>
 <div class="card">
   <div class="score-row"><div>Score: <span id="score">0</span></div><div>Round: <span id="round">1</span></div></div>
   <svg class="gallows" viewBox="0 0 160 140" id="svg">
@@ -100,7 +100,7 @@ function start(){
 
 function nextWord(){
   if(idx>=queue.length){
-    // One full pass through every word completed — report it as a finished
+    // One full pass through every word completed - report it as a finished
     // round, then reshuffle for endless practice.
     try{window.parent.postMessage({type:'game-finished',score:score,max:queue.length*6,game:'Hangman',status:'done'},'*');}catch(e){}
     idx=0;queue=shuffle([...WORDS]);

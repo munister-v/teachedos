@@ -63,7 +63,7 @@ const LIST_COLS = `id, kind, title, description, level, skill, tags,
 
 router.use(requireAuth);
 
-// ── GET /api/library — my library (metadata only) ──────────────────────────
+// ── GET /api/library - my library (metadata only) ──────────────────────────
 router.get('/', async (req, res) => {
   try {
     const { kind, q } = req.query;
@@ -82,7 +82,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ── GET /api/library/community — browse published items ─────────────────────
+// ── GET /api/library/community - browse published items ─────────────────────
 router.get('/community', async (req, res) => {
   try {
     const { kind, level, skill, q } = req.query;
@@ -113,7 +113,7 @@ router.get('/community', async (req, res) => {
   }
 });
 
-// ── GET /api/library/:id — full item (owner, or anyone if community) ─────────
+// ── GET /api/library/:id - full item (owner, or anyone if community) ─────────
 router.get('/:id', async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -130,7 +130,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ── POST /api/library — create ──────────────────────────────────────────────
+// ── POST /api/library - create ──────────────────────────────────────────────
 router.post('/', async (req, res) => {
   const b = req.body || {};
   try {
@@ -171,7 +171,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ── PATCH /api/library/:id — update (owner only) ────────────────────────────
+// ── PATCH /api/library/:id - update (owner only) ────────────────────────────
 router.patch('/:id', async (req, res) => {
   const b = req.body || {};
   const sets = [];
@@ -209,7 +209,7 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// ── DELETE /api/library/:id — delete (owner only) ───────────────────────────
+// ── DELETE /api/library/:id - delete (owner only) ───────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
     const { rowCount } = await pool.query(
@@ -223,7 +223,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// ── POST /api/library/:id/publish — share to community ──────────────────────
+// ── POST /api/library/:id/publish - share to community ──────────────────────
 router.post('/:id/publish', requireTeacher, async (req, res) => {
   try {
     const source = await pool.query(
@@ -250,7 +250,7 @@ router.post('/:id/publish', requireTeacher, async (req, res) => {
   }
 });
 
-// ── POST /api/library/:id/unpublish — make private again ────────────────────
+// ── POST /api/library/:id/unpublish - make private again ────────────────────
 router.post('/:id/unpublish', async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -264,7 +264,7 @@ router.post('/:id/unpublish', async (req, res) => {
   }
 });
 
-// ── POST /api/library/:id/clone — copy a community (or own) item to my library
+// ── POST /api/library/:id/clone - copy a community (or own) item to my library
 router.post('/:id/clone', async (req, res) => {
   try {
     const src = await pool.query(

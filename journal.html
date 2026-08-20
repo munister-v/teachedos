@@ -245,10 +245,10 @@ a{text-decoration:none;color:inherit;}
   </nav>
 
   <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Students</div></div>
-    <div class="stat-card primary"><div class="stat-num" id="s-lessons">—</div><div class="stat-lbl">Lessons available</div></div>
-    <div class="stat-card attention"><div class="stat-num" id="s-low">—</div><div class="stat-lbl">Low balance (≤2)</div></div>
-    <div class="stat-card good"><div class="stat-num" id="s-ready">—</div><div class="stat-lbl">Ready (3+)</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-total">-</div><div class="stat-lbl">Students</div></div>
+    <div class="stat-card primary"><div class="stat-num" id="s-lessons">-</div><div class="stat-lbl">Lessons available</div></div>
+    <div class="stat-card attention"><div class="stat-num" id="s-low">-</div><div class="stat-lbl">Low balance (≤2)</div></div>
+    <div class="stat-card good"><div class="stat-num" id="s-ready">-</div><div class="stat-lbl">Ready (3+)</div></div>
   </div>
 
   <section class="journal-controls" aria-labelledby="roster-heading">
@@ -648,7 +648,7 @@ async function saveAttendance() {
   try {
     const res = await fetch(API + '/api/journal/' + attendingId + '/attendance', { method:'POST', ...auth, body: JSON.stringify(body) });
     if (!res.ok) throw new Error('Unable to save attendance');
-    toast(body.status === 'present' ? 'Marked present — 1 lesson deducted' : 'Attendance saved', 'ok');
+    toast(body.status === 'present' ? 'Marked present - 1 lesson deducted' : 'Attendance saved', 'ok');
     closeAttendModal();
     await loadJournal();
   } catch (error) {

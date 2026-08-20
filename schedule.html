@@ -378,7 +378,7 @@ a{text-decoration:none;color:inherit;}
   }
   .mobile-schedule-action-title{font-size:13px;font-weight:650;line-height:1.2;}
   .mobile-schedule-action-sub{margin-top:3px;font-size:11px;color:var(--text3);line-height:1.35;}
-  /* Hide duplicate desktop action buttons on mobile — already in mobile-schedule-actions */
+  /* Hide duplicate desktop action buttons on mobile - already in mobile-schedule-actions */
   .side-section-actions{display:none !important;}
   .lesson-presets{grid-template-columns:1fr;}
   .form-input,.form-select{min-height:44px;font-size:16px;}
@@ -494,7 +494,7 @@ a{text-decoration:none;color:inherit;}
       </div>
 
       <div class="mp-daypicker" id="mp-daypicker">
-        <!-- Filled by JS — fallback shows 7 days centered on today -->
+        <!-- Filled by JS - fallback shows 7 days centered on today -->
       </div>
 
       <div class="mp-timeline-head">
@@ -504,7 +504,7 @@ a{text-decoration:none;color:inherit;}
 
       <div class="mp-timeline" id="mp-timeline">
         <div class="mp-tl-row">
-          <div class="mp-tl-time">—</div>
+          <div class="mp-tl-time">-</div>
           <div class="mp-tl-card">
             <div class="mp-tl-info">
               <div class="mp-tl-t">No lessons yet</div>
@@ -553,8 +553,8 @@ a{text-decoration:none;color:inherit;}
     <div class="side-section desktop-schedule-only">
       <div class="side-label">Time Zone</div>
       <div class="stat-pill" style="text-align:left;padding:12px 14px;">
-        <div style="font-size:12px;font-weight:650;color:var(--text);" id="tz-schedule-zone">—</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tz-schedule-now">—</div>
+        <div style="font-size:12px;font-weight:650;color:var(--text);" id="tz-schedule-zone">-</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tz-schedule-now">-</div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.45;" id="tz-schedule-note">Students in other countries will see lesson times in their local timezone.</div>
       </div>
       <div id="tz-student-zones" style="margin-top:8px;display:none;"></div>
@@ -571,20 +571,20 @@ a{text-decoration:none;color:inherit;}
     <div class="schedule-canvas-bar desktop-schedule-only">
       <div>
         <div class="scb-kicker">Teaching week</div>
-        <div class="scb-title" id="week-canvas-range">—</div>
+        <div class="scb-title" id="week-canvas-range">-</div>
       </div>
       <div class="scb-note">Drag a class to reschedule</div>
     </div>
     <!-- Day headers -->
     <div class="grid-head">
       <div class="gh-time"></div>
-      <div class="gh-day" id="gh-0"><span class="gh-day-num" id="gd-0">—</span>Mon</div>
-      <div class="gh-day" id="gh-1"><span class="gh-day-num" id="gd-1">—</span>Tue</div>
-      <div class="gh-day" id="gh-2"><span class="gh-day-num" id="gd-2">—</span>Wed</div>
-      <div class="gh-day" id="gh-3"><span class="gh-day-num" id="gd-3">—</span>Thu</div>
-      <div class="gh-day" id="gh-4"><span class="gh-day-num" id="gd-4">—</span>Fri</div>
-      <div class="gh-day" id="gh-5"><span class="gh-day-num" id="gd-5">—</span>Sat</div>
-      <div class="gh-day" id="gh-6"><span class="gh-day-num" id="gd-6">—</span>Sun</div>
+      <div class="gh-day" id="gh-0"><span class="gh-day-num" id="gd-0">-</span>Mon</div>
+      <div class="gh-day" id="gh-1"><span class="gh-day-num" id="gd-1">-</span>Tue</div>
+      <div class="gh-day" id="gh-2"><span class="gh-day-num" id="gd-2">-</span>Wed</div>
+      <div class="gh-day" id="gh-3"><span class="gh-day-num" id="gd-3">-</span>Thu</div>
+      <div class="gh-day" id="gh-4"><span class="gh-day-num" id="gd-4">-</span>Fri</div>
+      <div class="gh-day" id="gh-5"><span class="gh-day-num" id="gd-5">-</span>Sat</div>
+      <div class="gh-day" id="gh-6"><span class="gh-day-num" id="gd-6">-</span>Sun</div>
     </div>
 
     <!-- Time grid -->
@@ -651,7 +651,7 @@ a{text-decoration:none;color:inherit;}
       <div class="form-group">
         <label class="form-label">Level</label>
         <select class="form-select" id="f-level">
-          <option value="">—</option>
+          <option value="">-</option>
           <option>A1</option><option>A2</option><option>B1</option>
           <option>B2</option><option>C1</option><option>C2</option>
         </select>
@@ -668,13 +668,13 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting URL <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional — Zoom or Meet link)</span></label>
+      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting URL <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional - Zoom or Meet link)</span></label>
       <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…">
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Lesson board <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional — open this board from the class)</span></label>
-      <select class="form-select" id="f-board"><option value="">— None —</option></select>
+      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Lesson board <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional - open this board from the class)</span></label>
+      <select class="form-select" id="f-board"><option value="">- None -</option></select>
     </div>
 
     <div class="form-group" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
@@ -682,7 +682,7 @@ a{text-decoration:none;color:inherit;}
       <label for="f-recurring" style="font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Recurring (repeats weekly)</label>
     </div>
 
-    <!-- Specific date — shown only when recurring is OFF -->
+    <!-- Specific date - shown only when recurring is OFF -->
     <div id="f-date-row" class="form-row" style="display:none;margin-bottom:14px;">
       <div class="form-group">
         <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Specific date</label>
@@ -732,7 +732,7 @@ let weekOffset = 0; // weeks from current
 let selectedColor = '#7C8A7B';
 const apiClient = createApiClient(() => token);
 
-// Same muted family as the course dots — lesson chips sit on top of a dense
+// Same muted family as the course dots - lesson chips sit on top of a dense
 // week grid, so they identify without turning the calendar into a rainbow.
 const COLORS = [
   '#7C8A7B','#8C9A7A','#A8A882','#C2B48A','#C79E86',
@@ -845,7 +845,7 @@ function renderModalTzPreview() {
     const zoneName = z.timezone.split('/').pop().replace(/_/g, ' ');
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">
       <span>${zoneName} <span style="color:var(--text3);font-size:10px;">(${names})</span></span>
-      <span style="font-weight:650;font-family:var(--mono);font-size:11px;">${studentStart} – ${studentEnd}</span>
+      <span style="font-weight:650;font-family:var(--mono);font-size:11px;">${studentStart} - ${studentEnd}</span>
     </div>`;
   }).join('');
 }
@@ -926,7 +926,7 @@ function updateMobileWeekLabel() {
   if (!el) return;
   const dates = getMobileWeekDates();
   const fmt = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  el.textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  el.textContent = `${fmt(dates[0])} - ${fmt(dates[6])}`;
 }
 
 function renderMobileProSchedule(_unused) {
@@ -993,7 +993,7 @@ function renderMobileProSchedule(_unused) {
   tl.innerHTML = '';
   if (!dayClasses.length) {
     tl.innerHTML = `<div class="mp-tl-row">
-      <div class="mp-tl-time">—</div>
+      <div class="mp-tl-time">-</div>
       <div class="mp-tl-card">
         <div class="mp-tl-info">
           <div class="mp-tl-t">No lessons</div>
@@ -1092,7 +1092,7 @@ async function loadBoardsForPicker() {
   const sel = document.getElementById('f-board');
   if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = '<option value="">— None —</option>' +
+  sel.innerHTML = '<option value="">- None -</option>' +
     _scheduleBoards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name)}</option>`).join('');
   sel.value = cur;
 }
@@ -1166,7 +1166,7 @@ function updateWeekHeader() {
   const dates = getWeekDates();
   const today = new Date(); today.setHours(0,0,0,0);
   const fmt = (d) => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const range = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  const range = `${fmt(dates[0])} - ${fmt(dates[6])}`;
   document.getElementById('week-label').textContent = range;
   const canvasRange = document.getElementById('week-canvas-range');
   if (canvasRange) canvasRange.textContent = range;
@@ -1263,7 +1263,7 @@ function renderUpNext() {
 
   const live = !!slot.is_live;
   const isNow = !!current;
-  const time = `${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}`;
+  const time = `${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}`;
   let when, eyebrow, pct = 0;
   if (isNow) {
     const startM = toMin(slot.start_time), endM = toMin(slot.end_time);
@@ -1566,7 +1566,7 @@ function buildBlock(slot, layout) {
     <div class="cb-title">${esc(slot.title)}</div>
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
     ${slot.room ? `<div class="cb-meta">${esc(slot.room)}</div>` : ''}
-    <div class="cb-time">${slot.start_time.slice(0,5)} – ${slot.end_time.slice(0,5)}</div>
+    <div class="cb-time">${slot.start_time.slice(0,5)} - ${slot.end_time.slice(0,5)}</div>
     ${slot.meeting_url||slot.is_live ? `<button type="button" class="slot-action ${slot.is_live ? 'live' : ''}" onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})">${slot.is_live ? 'End live' : 'Go live'}</button>` : ''}
     ${slot.board_id ? `<button type="button" class="slot-action" onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')">Open board</button>` : ''}`;
   el.style.position = 'absolute';
@@ -1650,7 +1650,7 @@ function moveSlotDrag(e) {
     tip.style.display = 'block';
     tip.style.left = e.clientX + 'px';
     tip.style.top = e.clientY + 'px';
-    tip.textContent = `${DAY_NAMES[day]} ${minutesToTime(start)}–${minutesToTime(start + dragState.duration)}`;
+    tip.textContent = `${DAY_NAMES[day]} ${minutesToTime(start)}-${minutesToTime(start + dragState.duration)}`;
   }
   e.preventDefault();
 }
@@ -1738,7 +1738,7 @@ function renderSideList() {
       <div class="cls-dot" style="background:${slot.color};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
       <div class="cls-info">
         <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#ef4444;font-weight:650;">LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(200,230,50,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600;">Once</span>':''}</div>
-        <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · ':''}</div>
+        <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · ':''}</div>
       </div>
       <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
     el.addEventListener('click', () => openModal(slot));
@@ -1904,7 +1904,7 @@ async function saveClass() {
     return newStart < sE && newEnd > sS;
   });
   if (conflict) {
-    const ok = confirm(`⚠️ Time conflict with "${conflict.title}" (${conflict.start_time}–${conflict.end_time}). Save anyway?`);
+    const ok = confirm(`⚠️ Time conflict with "${conflict.title}" (${conflict.start_time}-${conflict.end_time}). Save anyway?`);
     if (!ok) return;
   }
 

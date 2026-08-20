@@ -54,14 +54,14 @@ async function requireAuth(req, res, next) {
                  WHERE user_id = $1 AND token = ANY($2::text[]) AND expires_at > NOW()`,
           values: [payload.sub, [tokenHash, token]],
         };
-    /* Сессия и пользователь — одним запросом.
+    /* Сессия и пользователь - одним запросом.
 
        Раньше это были два последовательных обращения к базе, и они висели на
        КАЖДОМ запросе к API: открытие доски, автосохранение, опрос уведомлений.
        На одном учителе разницы не видно, на сотне одновременно это удвоенное
        число round-trip'ов и вдвое больше занятых соединений из пула в десять.
-       Проверки те же самые, порядок ответов сохранён: нет живой сессии —
-       401 про токен, нет пользователя — 401 про пользователя. */
+       Проверки те же самые, порядок ответов сохранён: нет живой сессии -
+       401 про токен, нет пользователя - 401 про пользователя. */
     const joined = await pool.query({
       text: `SELECT s.id AS session_id, u.id, u.email, u.name, u.role, u.avatar, u.plan,
                     u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at,
@@ -75,7 +75,7 @@ async function requireAuth(req, res, next) {
     const { session_id: sessionId, ...userRow } = joined.rows[0];
     req.user = userRow;
     req.authSessionId = sessionId;
-    // Auto-revert expired plans — but NOT if plan_status='pending' (IBAN
+    // Auto-revert expired plans - but NOT if plan_status='pending' (IBAN
     // payment awaiting admin review: plan may still be 'free' but user should
     // see the pending badge, not get silently reverted).
     if (

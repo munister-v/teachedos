@@ -113,7 +113,7 @@ td.rm button{background:none;color:#c62828;padding:4px 8px;font-size:1rem}
 <body>
 <a class="back" href="index.html">← Games</a>
 <h1>✨ Create a Word Set</h1>
-<p class="subtitle">Type your own words or generate them with AI — then play them in any vocab game</p>
+<p class="subtitle">Type your own words or generate them with AI - then play them in any vocab game</p>
 
 <div class="import-banner" id="importBanner" style="display:none">
   <span id="importBannerText"></span>
@@ -126,14 +126,14 @@ td.rm button{background:none;color:#c62828;padding:4px 8px;font-size:1rem}
 <div class="card">
   <h2>1. Words</h2>
   <label>Set name</label>
-  <input type="text" id="setName" placeholder="e.g. Unit 5 — Phrasal Verbs">
+  <input type="text" id="setName" placeholder="e.g. Unit 5 - Phrasal Verbs">
   <div class="icon-row" style="margin-top:14px">
     <div>
       <label style="margin:0">Icon</label>
       <div id="iconPicks" style="display:flex;gap:6px;margin-top:6px"></div>
     </div>
   </div>
-  <label>Your words / phrases (one per line — or "word - translation")</label>
+  <label>Your words / phrases (one per line - or "word - translation")</label>
   <textarea id="wordsInput" placeholder="give up&#10;run out of&#10;look forward to"></textarea>
   <div class="import-row">
     <div class="hint" style="margin:0">Leave blank and use the AI generator below to create a set from a topic.</div>
@@ -361,7 +361,7 @@ function renderSets(){
   void wrap.offsetWidth;
   wrap.classList.add('fade');
   const sets = TEACHEDOS_CUSTOM.list();
-  if(!sets.length){ wrap.innerHTML = '<div class="empty">No saved sets yet — create one above.</div>'; return; }
+  if(!sets.length){ wrap.innerHTML = '<div class="empty">No saved sets yet - create one above.</div>'; return; }
   wrap.innerHTML = '';
   sets.forEach(s=>{
     const div = document.createElement('div');
@@ -439,7 +439,7 @@ async function searchImages(){
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d = await r.json();
     const results = (d.results||[]).filter(x=>x.thumbnail || x.url).slice(0,9);
-    if(!results.length){ statusEl.textContent = 'No images found — try a different term.'; return; }
+    if(!results.length){ statusEl.textContent = 'No images found - try a different term.'; return; }
     statusEl.textContent = 'Click an image to use it:';
     results.forEach(res=>{
       const img = document.createElement('img');

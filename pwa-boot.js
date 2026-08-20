@@ -1,4 +1,4 @@
-/* TeachEd — unified PWA bootstrap.
+/* TeachEd - unified PWA bootstrap.
  * One file to (1) backfill required PWA <head> tags, (2) register the
  * service worker with an update→reload flow, and (3) load the pwa.js UX
  * layer (install banner + offline/online status) exactly once.
@@ -82,7 +82,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       // updateViaCache:'none' forces the browser to fetch sw.js from the network
-      // on every load instead of its HTTP cache — so a new deploy's service
+      // on every load instead of its HTTP cache - so a new deploy's service
       // worker is detected immediately (no day-long stale-SW window).
       navigator.serviceWorker.register('sw.js?v=' + ASSET_VERSION, { updateViaCache: 'none' }).then(reg => {
         reg.update();

@@ -41,7 +41,7 @@ async function enforceStudentLimit({ boardId, ownerPlan, inviteeId }) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   GET /api/members/my/boards  — boards shared with current user (as student)
+   GET /api/members/my/boards  - boards shared with current user (as student)
 ────────────────────────────────────────────────────────────── */
 router.get('/my/boards', requireAuth, async (req, res) => {
   try {
@@ -62,7 +62,7 @@ router.get('/my/boards', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   GET /api/members/:boardId  — list members of a board (owner only)
+   GET /api/members/:boardId  - list members of a board (owner only)
 ────────────────────────────────────────────────────────────── */
 router.get('/:boardId', requireAuth, async (req, res) => {
   const { boardId } = req.params;
@@ -87,7 +87,7 @@ router.get('/:boardId', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   POST /api/members/:boardId/invite  — invite by email
+   POST /api/members/:boardId/invite  - invite by email
    body: { email, role? }
 ────────────────────────────────────────────────────────────── */
 router.post('/:boardId/invite', requireAuth, async (req, res) => {
@@ -134,7 +134,7 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   DELETE /api/members/:boardId/:userId  — remove member
+   DELETE /api/members/:boardId/:userId  - remove member
 ────────────────────────────────────────────────────────────── */
 router.delete('/:boardId/:userId', requireAuth, async (req, res) => {
   const { boardId, userId } = req.params;
@@ -156,7 +156,7 @@ router.delete('/:boardId/:userId', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   POST /api/members/:boardId/bulk-invite  — invite multiple by email (CSV)
+   POST /api/members/:boardId/bulk-invite  - invite multiple by email (CSV)
    body: { emails: ["a@b.com", "c@d.com"], role? }
 ────────────────────────────────────────────────────────────── */
 router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
@@ -219,7 +219,7 @@ router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   GET /api/members/:boardId/progress  — per-student lesson progress
+   GET /api/members/:boardId/progress  - per-student lesson progress
    Returns: [{ user_id, name, avatar, email, lessons: [{id, status}] }]
 ────────────────────────────────────────────────────────────── */
 router.get('/:boardId/progress', requireAuth, async (req, res) => {
@@ -251,7 +251,7 @@ router.get('/:boardId/progress', requireAuth, async (req, res) => {
       );
       progressRows = pr.rows;
     } catch {
-      // table may not exist yet — will be created below on first write
+      // table may not exist yet - will be created below on first write
     }
 
     // build map: user_id -> { card_id -> status }
@@ -279,7 +279,7 @@ router.get('/:boardId/progress', requireAuth, async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────────────────────
-   PATCH /api/members/:boardId/progress  — student updates own lesson status
+   PATCH /api/members/:boardId/progress  - student updates own lesson status
    body: { cardId, status }
 ────────────────────────────────────────────────────────────── */
 router.patch('/:boardId/progress', requireAuth, async (req, res) => {

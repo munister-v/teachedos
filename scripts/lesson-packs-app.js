@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   lesson-packs-app.js — TeachEd Lesson Packs page logic
+   lesson-packs-app.js - TeachEd Lesson Packs page logic
    Extracted from the inline <script> block for HTTP/SW cacheability
    ════════════════════════════════════════════════════════════════ */
 /* ═══ DATA ═══ */
@@ -16,7 +16,7 @@ const PACKS = [
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'Articles — the main trap for Slavic learners. The whole system in one lesson.',
+  desc:'Articles - the main trap for Slavic learners. The whole system in one lesson.',
   content:`═══════════════════════════════════════
  ARTICLES: a / an / the / Ø (zero)
  Level: A2  |  Duration: 30 min
@@ -28,7 +28,7 @@ const PACKS = [
   ▸ Practise with 12 targeted exercises
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-A / AN  — indefinite (general / first mention)
+A / AN  - indefinite (general / first mention)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   A  → before consonant SOUND
        a book   a user   a university   a one-way street
@@ -42,7 +42,7 @@ A / AN  — indefinite (general / first mention)
   • General:         A cat has four legs.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-THE — definite (specific, known to both)
+THE - definite (specific, known to both)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Use when:
   • Mentioned before:  I saw a dog. The dog barked.
@@ -54,7 +54,7 @@ THE — definite (specific, known to both)
     the USA, the Netherlands, the Beatles
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Ø  — ZERO article (no article needed)
+Ø  - ZERO article (no article needed)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   • Languages:       I speak English. (NOT the English)
   • Sports:          play football / tennis / chess
@@ -63,7 +63,7 @@ THE — definite (specific, known to both)
   • Proper names:    London, Ukraine, John
   • Plural generics: Dogs are loyal animals.
 
-📝 EXAMPLES — complete the gap
+📝 EXAMPLES - complete the gap
   1. She's ___ teacher at ___ local school.
      → a teacher / the local school
 
@@ -80,7 +80,7 @@ THE — definite (specific, known to both)
      → Ø guitar / a band  (first mention)
 
 ✅ QUICK EXERCISES
-  Fill in: a / an / the / —
+  Fill in: a / an / the / -
 
   1. He's ___ honest politician. (rare!)
   2. I'd love ___ cup of tea.
@@ -95,13 +95,13 @@ THE — definite (specific, known to both)
 
 💬 DISCUSSION STARTERS
   • Do articles exist in your language? What feels strange?
-  • Make 3 sentences about yourself — use a, an, and the.
+  • Make 3 sentences about yourself - use a, an, and the.
   • Why do you think "the Internet" but "on Facebook"?
 
 📌 TEACHER NOTES
-  ▸ Slavic speakers often omit articles completely at A1–A2
+  ▸ Slavic speakers often omit articles completely at A1-A2
   ▸ Focus on a/the distinction first; zero article last
-  ▸ "A university" vs "an hour" — test the SOUND rule
+  ▸ "A university" vs "an hour" - test the SOUND rule
   ▸ Good drilling game: Article Rush (Tools → Grammar)
 `
 },
@@ -178,7 +178,7 @@ COMPARISON TABLE
   3. We (not finish) ___ the project yet.       [haven't finished]
   4. When (you/arrive) ___ ?                    [did you arrive]
   5. The company (launch) ___ a new app today.  [has launched]
-  6. I (study) ___ English for five years.      [have studied / studied — discuss difference!]
+  6. I (study) ___ English for five years.      [have studied / studied - discuss difference!]
 
 ⚠️ COMMON SLAVIC ERRORS
   ✗ "I have seen this film yesterday."
@@ -193,8 +193,8 @@ COMPARISON TABLE
   • Share a recent news headline using Present Perfect.
 
 📌 TEACHER NOTES
-  ▸ SINCE vs FOR confusion is common — dedicate 5 min
-  ▸ "For 3 years" can go with BOTH tenses — great discussion starter
+  ▸ SINCE vs FOR confusion is common - dedicate 5 min
+  ▸ "For 3 years" can go with BOTH tenses - great discussion starter
   ▸ Game: Tense Picker (Tools → Grammar) works great here
 `
 },
@@ -205,14 +205,14 @@ COMPARISON TABLE
   icon:'🔀',
   accent:'#0E0E10',
   title:'Conditionals: 0 / 1st / 2nd / 3rd',
-  eyebrow:'Grammar · B1–B2 · 50 min',
+  eyebrow:'Grammar · B1-B2 · 50 min',
   level:'B2',
   duration:'50 min',
   langs:['ru','ua','pl'],
   desc:'All four types of conditional sentences with examples, comparison and exercises.',
   content:`═══════════════════════════════════════
  CONDITIONALS: 0 / 1st / 2nd / 3rd
- Level: B1–B2  |  Duration: 50 min
+ Level: B1-B2  |  Duration: 50 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -221,14 +221,14 @@ COMPARISON TABLE
   ▸ Mix types in natural speech
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TYPE 0 — General truth / scientific fact
+TYPE 0 - General truth / scientific fact
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   IF + present simple → present simple
   If you heat water to 100°C, it boils.
   If I don't eat, I get angry.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TYPE 1 — Real / likely future situation
+TYPE 1 - Real / likely future situation
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   IF + present simple → will + base verb
   If it rains, I'll take an umbrella.
@@ -238,17 +238,17 @@ TYPE 1 — Real / likely future situation
   If you have time, you can help me.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TYPE 2 — Unreal / hypothetical present or future
+TYPE 2 - Unreal / hypothetical present or future
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   IF + past simple → would + base verb
   If I had a million dollars, I would travel the world.
   If she spoke Spanish, she could get the job.
 
-  Note: "If I WERE" (not "was") — formal/subjunctive
+  Note: "If I WERE" (not "was") - formal/subjunctive
   If I were you, I would apologise.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TYPE 3 — Unreal past / regret / criticism
+TYPE 3 - Unreal past / regret / criticism
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   IF + past perfect → would have + past participle
   If you had studied, you would have passed.
@@ -278,8 +278,8 @@ COMPARISON CHART
 
 📌 TEACHER NOTES
   ▸ Start with Types 0 and 1 before introducing 2 and 3
-  ▸ "Would of" is a common written error — address it
-  ▸ Mixed conditionals (Type 2/3) are C1 territory — mention briefly
+  ▸ "Would of" is a common written error - address it
+  ▸ Mixed conditionals (Type 2/3) are C1 territory - mention briefly
   ▸ Pair work: finish each other's conditional sentences
 `
 },
@@ -334,7 +334,7 @@ BY + AGENT
   ✓ Romeo and Juliet was written by Shakespeare.
   ✗ The door was opened by someone. (unnecessary)
 
-📝 TRANSFORM — active → passive:
+📝 TRANSFORM - active → passive:
   1. Scientists discovered a new planet.
      → A new planet was discovered (by scientists).
 
@@ -344,7 +344,7 @@ BY + AGENT
   3. Someone has hacked the database.
      → The database has been hacked.
 
-📝 TRANSFORM — passive → active:
+📝 TRANSFORM - passive → active:
   4. The report was submitted by the team.
      → The team submitted the report.
 
@@ -363,7 +363,7 @@ BY + AGENT
   • Find 3 news headlines using passive voice today.
 
 📌 TEACHER NOTES
-  ▸ Slavic speakers understand the concept quickly — focus on form
+  ▸ Slavic speakers understand the concept quickly - focus on form
   ▸ Common error: "is wrote" instead of "is written"
   ▸ Highlight: the agent (by + noun) is often omitted
   ▸ Grammar Fix game is perfect for passive error correction drills
@@ -380,7 +380,7 @@ BY + AGENT
   level:'B1',
   duration:'40 min',
   langs:['ru','ua','pl'],
-  desc:'Can, could, may, might, must, should, would — meanings, rules, exercises.',
+  desc:'Can, could, may, might, must, should, would - meanings, rules, exercises.',
   content:`═══════════════════════════════════════
  MODAL VERBS: Full Guide
  Level: B1  |  Duration: 40 min
@@ -408,7 +408,7 @@ MODAL MEANING GRID
             past possibility:     She might have forgotten.
 
   MUST      strong obligation:    You must wear a seatbelt.
-            deduction (certain):  She must be tired — she's yawning.
+            deduction (certain):  She must be tired - she's yawning.
 
   MUSTN'T   prohibition:          You mustn't park here.
 
@@ -431,17 +431,17 @@ PAST MODALS (modal + have + past participle)
     I could have been a doctor. (but chose otherwise)
 
   must have + PP    →  past deduction
-    She must have left early — her coat is gone.
+    She must have left early - her coat is gone.
 
   might have + PP   →  past possibility
     He might have taken the wrong bus.
 
-📝 EXERCISES — choose the right modal:
-  1. You ___ (not/park) here — it's a fire lane.   [mustn't]
+📝 EXERCISES - choose the right modal:
+  1. You ___ (not/park) here - it's a fire lane.   [mustn't]
   2. ___ I use your pen for a moment?               [May/Can/Could]
-  3. He ___ (know) the answer — he studied all week.[must]
+  3. He ___ (know) the answer - he studied all week.[must]
   4. I ___ (call) you earlier. Sorry!               [should have called]
-  5. She ___ (be) at home — her car is in the drive.[must be]
+  5. She ___ (be) at home - her car is in the drive.[must be]
   6. You ___ (try) sushi if you ever visit Japan.   [should]
 
 💬 DISCUSSION
@@ -452,7 +452,7 @@ PAST MODALS (modal + have + past participle)
 📌 TEACHER NOTES
   ▸ Must vs Have to: must = internal obligation; have to = external rule
   ▸ Needn't vs Don't have to: both = not necessary (not prohibited)
-  ▸ Common error: "should to go" — modals never take "to"
+  ▸ Common error: "should to go" - modals never take "to"
   ▸ Past modals are B2 territory; introduce if class is ready
 `
 },
@@ -464,14 +464,14 @@ PAST MODALS (modal + have + past participle)
   icon:'💼',
   accent:'#6366f1',
   title:'Business English: Meetings',
-  eyebrow:'Vocabulary · B1–B2 · 40 min',
+  eyebrow:'Vocabulary · B1-B2 · 40 min',
   level:'B2',
   duration:'40 min',
   langs:['ru','ua','pl'],
   desc:'20 key phrases for meetings, presentations and conferences in English.',
   content:`═══════════════════════════════════════
  BUSINESS ENGLISH: Meetings & Discussions
- Level: B1–B2  |  Duration: 40 min
+ Level: B1-B2  |  Duration: 40 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -496,7 +496,7 @@ GIVING YOUR OPINION
 AGREEING
   • "Absolutely. I couldn't agree more."
   • "That's a good point."
-  • "Exactly — that's what I was thinking."
+  • "Exactly - that's what I was thinking."
   • "I'd go along with that."
 
 DISAGREEING DIPLOMATICALLY
@@ -513,7 +513,7 @@ INTERRUPTING POLITELY
 ASKING FOR CLARIFICATION
   • "Could you elaborate on that?"
   • "What exactly do you mean by…?"
-  • "Just to clarify — are you saying…?"
+  • "Just to clarify - are you saying…?"
 
 SUMMARISING / CLOSING
   • "So to summarise the main points…"
@@ -524,14 +524,14 @@ SUMMARISING / CLOSING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 KEY VOCABULARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  agenda         — список питань зустрічі
-  minutes        — протокол зустрічі
-  action point   — завдання після зустрічі
-  follow up      — зробити після зустрічі
-  AOB            — Any Other Business (різне)
-  take the floor — взяти слово
-  defer          — відкласти питання
-  tabled         — відкладено (UK) / поставлено на порядок денний (US!)
+  agenda         - список питань зустрічі
+  minutes        - протокол зустрічі
+  action point   - завдання після зустрічі
+  follow up      - зробити після зустрічі
+  AOB            - Any Other Business (різне)
+  take the floor - взяти слово
+  defer          - відкласти питання
+  tabled         - відкладено (UK) / поставлено на порядок денний (US!)
 
 📝 ROLE-PLAY TASK
   Сценарій: командна нарада щодо нового продукту.
@@ -557,14 +557,14 @@ KEY VOCABULARY
   icon:'✈️',
   accent:'#06b6d4',
   title:'Travel & Airport English',
-  eyebrow:'Vocabulary · A2–B1 · 30 min',
+  eyebrow:'Vocabulary · A2-B1 · 30 min',
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
-  desc:'All the vocabulary for airports, hotels and travel — with dialogues.',
+  desc:'All the vocabulary for airports, hotels and travel - with dialogues.',
   content:`═══════════════════════════════════════
  TRAVEL & AIRPORT ENGLISH
- Level: A2–B1  |  Duration: 30 min
+ Level: A2-B1  |  Duration: 30 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -575,30 +575,30 @@ KEY VOCABULARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 AT THE AIRPORT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  check-in desk       — стійка реєстрації
-  boarding pass       — посадковий талон
-  passport control    — паспортний контроль
-  departure gate      — вихід на посадку (гейт)
-  hand luggage        — ручна поклажа
-  overhead locker     — верхня полиця
-  delayed / on time   — із запізненням / вчасно
-  window / aisle seat — місце біля вікна / в проході
+  check-in desk       - стійка реєстрації
+  boarding pass       - посадковий талон
+  passport control    - паспортний контроль
+  departure gate      - вихід на посадку (гейт)
+  hand luggage        - ручна поклажа
+  overhead locker     - верхня полиця
+  delayed / on time   - із запізненням / вчасно
+  window / aisle seat - місце біля вікна / в проході
 
   USEFUL PHRASES:
   "I'd like to check in, please."
   "Is this the gate for flight BA207?"
-  "My bag is overweight — what should I do?"
+  "My bag is overweight - what should I do?"
   "I've missed my connection. Can you help?"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 AT THE HOTEL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  reservation         — бронювання
-  single / double     — одномісний / двомісний номер
-  ensuite             — номер з ванною
-  room service        — обслуговування в номері
-  check out           — виселитися
-  housekeeping        — прибирання
+  reservation         - бронювання
+  single / double     - одномісний / двомісний номер
+  ensuite             - номер з ванною
+  room service        - обслуговування в номері
+  check out           - виселитися
+  housekeeping        - прибирання
 
   USEFUL PHRASES:
   "I have a reservation under the name…"
@@ -615,13 +615,13 @@ ASKING FOR DIRECTIONS
   "It's about 10 minutes from here."
   "You can't miss it."
 
-📝 DIALOGUE — Airport check-in (practise in pairs):
+📝 DIALOGUE - Airport check-in (practise in pairs):
   A: Good morning. Can I see your passport, please?
   B: Of course. Here you are.
   A: Are you checking any bags in today?
   B: Yes, one suitcase.
   A: Would you prefer a window or aisle seat?
-  B: Aisle, please — I have a long flight.
+  B: Aisle, please - I have a long flight.
   A: Your gate is B14. Boarding starts at 10:40.
 
 💬 DISCUSSION
@@ -632,7 +632,7 @@ ASKING FOR DIRECTIONS
 📌 TEACHER NOTES
   ▸ Vocabulary Match game works great for this topic
   ▸ Bring real boarding passes or hotel receipts as realia
-  ▸ Great topic for A2–B1 — high frequency, motivating
+  ▸ Great topic for A2-B1 - high frequency, motivating
 `
 },
 
@@ -687,14 +687,14 @@ USEFUL PHRASES
   "I'll send it to you on WhatsApp."
   "That video went viral overnight."
   "I need to update my software."
-  "My account was hacked — I lost everything."
+  "My account was hacked - I lost everything."
 
 📝 EXERCISES
   Fill in the correct word:
-  1. I can't open the file — my laptop keeps ___ing.  [crashing]
+  1. I can't open the file - my laptop keeps ___ing.  [crashing]
   2. Don't forget to ___ your files before the trip.   [back up]
   3. She posted a photo and it ___ viral in 2 hours.   [went]
-  4. Just ___ me the link — I'll look at it later.     [send/drop]
+  4. Just ___ me the link - I'll look at it later.     [send/drop]
   5. The app asks you to ___ in with your email.       [log]
 
 💬 DISCUSSION QUESTIONS
@@ -745,7 +745,7 @@ SYMPTOMS & CONDITIONS
   I have a headache.        My throat is sore.
   I feel nauseous.          My ankle is swollen.
   I'm coming down with something. (getting ill)
-  I'm under the weather.   (feeling unwell — idiom)
+  I'm under the weather.   (feeling unwell - idiom)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 AT THE DOCTOR / PHARMACIST
@@ -771,7 +771,7 @@ HEALTHY HABITS
 
   "I try to work out three times a week."
   "I've been cutting down on caffeine."
-  "I need to get more sleep — I'm exhausted."
+  "I need to get more sleep - I'm exhausted."
 
 📝 ROLE-PLAY: Doctor & Patient
   Patient has: bad headache for 2 days, mild fever,
@@ -784,7 +784,7 @@ HEALTHY HABITS
   • What's more important: physical or mental health?
 
 📌 TEACHER NOTES
-  ▸ Role-play works very well — real-world scenario
+  ▸ Role-play works very well - real-world scenario
   ▸ Vocabulary matching game: symptoms ↔ treatments
   ▸ Extension: NHS leaflet reading for B2+
 `
@@ -796,14 +796,14 @@ HEALTHY HABITS
   icon:'🤝',
   accent:'#f97316',
   title:'False Friends: RU/UA/PL → EN',
-  eyebrow:'Vocabulary · A2–B1 · 25 min',
+  eyebrow:'Vocabulary · A2-B1 · 25 min',
   level:'A2',
   duration:'25 min',
   langs:['ru','ua','pl'],
   desc:'Look-alike words that mean different things. Top 20 mistakes.',
   content:`═══════════════════════════════════════
  FALSE FRIENDS: Slavic → English
- Level: A2–B1  |  Duration: 25 min
+ Level: A2-B1  |  Duration: 25 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -817,20 +817,20 @@ TOP FALSE FRIENDS (RU/UA → EN)
   симпатичний ≠ sympathetic (жалісливий → pretty/attractive)
   конкурент  ≠  concert     (концерт → competitor)
   аудиторія  ≠  auditorium  (= зал; аудиторія слухачів → audience)
-  декларація ≠  declaration (теж означає декларацію — BUT declaration of love ≠ кохання)
+  декларація ≠  declaration (теж означає декларацію - BUT declaration of love ≠ кохання)
   реалізація ≠  realisation (усвідомлення; продаж → sale/implementation)
   претендент ≠  pretender   (удавача → candidate/applicant)
   акуратний  ≠  accurate    (точний → neat/tidy)
   фабрика    ≠  fabric       (тканина → factory/plant)
-  лекція     ≠  lecture      (правильно: лекція — але "читати лекцію" = give a lecture, not read)
+  лекція     ≠  lecture      (правильно: лекція - але "читати лекцію" = give a lecture, not read)
   агент      ≠  agent        (often correct, but "estate agent" ≠ агент нерухомості in US)
   бібліотека ≠  bibliography (список літератури → library)
   гімназія   ≠  gymnasium    (спортзал → grammar school in UK)
   аспірант   ≠  aspirant     (той хто прагне → postgraduate student)
   комплекція ≠  complexion   (тон шкіри → build/physique)
-  дата       =  date         (TRUE FRIEND — works in EN!)
+  дата       =  date         (TRUE FRIEND - works in EN!)
   лист       ≠  list         (список → leaf/letter in UA; листопад ≠ November)
-  пластир    ≠  plaster      (стрічка → plaster/bandage — actually correct! But "plaster" also = стіна)
+  пластир    ≠  plaster      (стрічка → plaster/bandage - actually correct! But "plaster" also = стіна)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 POLISH FALSE FRIENDS
@@ -897,19 +897,19 @@ TASK CARD (typical format)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 STRUCTURE (use this every time)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  1. INTRO — who it is (1–2 sentences)
+  1. INTRO - who it is (1-2 sentences)
      "I'd like to talk about my university professor, Dr. Kovač."
 
-  2. BACKGROUND — how you know them (2–3 sentences)
+  2. BACKGROUND - how you know them (2-3 sentences)
      "I first met her in my second year when I took her linguistics course…"
 
-  3. QUALITIES — describe personality/skills (3–4 sentences)
+  3. QUALITIES - describe personality/skills (3-4 sentences)
      "She is incredibly passionate about her subject…"
 
-  4. INFLUENCE — why important (3–4 sentences)
+  4. INFLUENCE - why important (3-4 sentences)
      "She completely changed the way I think about…"
 
-  5. CONCLUSION — wrap up (1 sentence)
+  5. CONCLUSION - wrap up (1 sentence)
      "Without a doubt, she's the person who influenced me the most."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -944,11 +944,11 @@ SAMPLE ANSWER (Band 7+)
    how patient and encouraging she was with every student.
 
    She was the kind of teacher who made you feel that any question
-   was a good question. She was also extremely dedicated — she often
+   was a good question. She was also extremely dedicated - she often
    stayed after class just to help students who were struggling.
 
    What made her so influential was that she didn't just teach us
-   English — she genuinely inspired us to love learning. Because
+   English - she genuinely inspired us to love learning. Because
    of her encouragement, I went on to study linguistics at university.
    Looking back, I truly believe she changed the direction of my life."
 
@@ -961,7 +961,7 @@ SAMPLE ANSWER (Band 7+)
 
 📌 TEACHER NOTES
   ▸ Time strictly: 1 min prep, 2 min speak
-  ▸ Record students — self-evaluation is very effective
+  ▸ Record students - self-evaluation is very effective
   ▸ Follow-up questions: "Why do you think…? Would you say…?"
   ▸ Band 7 markers: range of vocabulary, complex sentences, fluency
 `
@@ -991,10 +991,10 @@ SAMPLE ANSWER (Band 7+)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 THE STAR METHOD (for behavioural questions)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  S — Situation  (set the scene)
-  T — Task       (what was your responsibility?)
-  A — Action     (what did YOU do?)
-  R — Result     (what happened?)
+  S - Situation  (set the scene)
+  T - Task       (what was your responsibility?)
+  A - Action     (what did YOU do?)
+  R - Result     (what happened?)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TOP 10 QUESTIONS & MODEL ANSWERS
@@ -1068,14 +1068,14 @@ USEFUL PHRASES
   icon:'💬',
   accent:'#a78bfa',
   title:'Discussion & Debate Language',
-  eyebrow:'Speaking · B2–C1 · 40 min',
+  eyebrow:'Speaking · B2-C1 · 40 min',
   level:'B2',
   duration:'40 min',
   langs:['ru','ua','pl'],
   desc:'Language tools for discussions, debates and exchanging opinions.',
   content:`═══════════════════════════════════════
  DISCUSSION & DEBATE LANGUAGE
- Level: B2–C1  |  Duration: 40 min
+ Level: B2-C1  |  Duration: 40 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1130,7 +1130,7 @@ DEBATE TOPICS (choose one)
   FORMAT: 2 teams → 3 min opening → 5 min rebuttal → 2 min closing
 
 📌 TEACHER NOTES
-  ▸ Assign positions randomly — great for pushing beyond comfort zone
+  ▸ Assign positions randomly - great for pushing beyond comfort zone
   ▸ Give a language feedback sheet: note phrases students missed
   ▸ Four Opinions Generator tool works perfectly as a warm-up
 `
@@ -1143,14 +1143,14 @@ DEBATE TOPICS (choose one)
   icon:'📧',
   accent:'#6ec98a',
   title:'Formal Email Writing',
-  eyebrow:'Writing · B1–B2 · 40 min',
+  eyebrow:'Writing · B1-B2 · 40 min',
   level:'B1',
   duration:'40 min',
   langs:['ru','ua','pl'],
   desc:'Structure, phrases and a sample business letter. Ready to practise.',
   content:`═══════════════════════════════════════
  FORMAL EMAIL WRITING
- Level: B1–B2  |  Duration: 40 min
+ Level: B1-B2  |  Duration: 40 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1181,7 +1181,7 @@ OPENING SENTENCES
   Following up:          "I am writing to follow up on my previous email…"
   Requesting:            "I am writing to enquire about…"
 
-BODY — keep it clear:
+BODY - keep it clear:
   One idea per paragraph. Use topic sentences.
   "Regarding the first point…"
   "I would like to draw your attention to…"
@@ -1211,7 +1211,7 @@ SAMPLE EMAIL
   and experience make me a strong candidate for this role.
 
   I hold a CELTA qualification and have four years of experience
-  teaching English to adult learners at B1–C1 level. In my current
+  teaching English to adult learners at B1-C1 level. In my current
   role at Language School Kyiv, I have developed a range of
   communicative lesson materials and achieved a 95% student
   satisfaction rate.
@@ -1237,7 +1237,7 @@ COMMON ERRORS
   ✓  "I look forward to your reply."
 
 📝 WRITING TASK
-  Write a formal email (120–150 words):
+  Write a formal email (120-150 words):
   You are applying for a course at a language school abroad.
   Ask about: start dates, fees, accommodation options.
 
@@ -1270,28 +1270,28 @@ COMMON ERRORS
   ▸ Express, support and conclude an argument
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ESSAY STRUCTURE (250–280 words)
+ESSAY STRUCTURE (250-280 words)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Para 1: INTRODUCTION (30–40 words)
+  Para 1: INTRODUCTION (30-40 words)
     • Hook / general statement about the topic
     • State your opinion clearly
     "Nowadays, [topic] has become increasingly [adj].
      In my opinion / I firmly believe that [your position]."
 
-  Para 2: MAIN ARGUMENT + SUPPORT (70–90 words)
+  Para 2: MAIN ARGUMENT + SUPPORT (70-90 words)
     • Topic sentence (your first reason)
     • Explanation + example / evidence
     "The main reason why I hold this view is that…
      For instance… / This is evident in…"
 
-  Para 3: SECOND ARGUMENT + CONCESSION (70–90 words)
+  Para 3: SECOND ARGUMENT + CONCESSION (70-90 words)
     • Topic sentence (second reason)
     • Address the other side briefly
     "Furthermore… / Another key point is…
      Admittedly, some people argue that [opposite view].
      However, I would contend that…"
 
-  Para 4: CONCLUSION (30–40 words)
+  Para 4: CONCLUSION (30-40 words)
     • Restate opinion (different words)
     • Summarise main points
     • Optional: call to action or broader implication
@@ -1330,7 +1330,7 @@ TOPICS TO PRACTISE
   • "Climate change is the greatest challenge of our generation."
 
 📌 TEACHER NOTES
-  ▸ Give students the structure card — let them fill it in first
+  ▸ Give students the structure card - let them fill it in first
   ▸ Peer review: swap essays, check structure + linkers used
   ▸ For IELTS: teach Task Achievement criteria explicitly
   ▸ Writing Prompts tool generates more topics on demand
@@ -1344,14 +1344,14 @@ TOPICS TO PRACTISE
   icon:'📖',
   accent:'#60a5fa',
   title:'Reading Strategies: Skim, Scan & Infer',
-  eyebrow:'Reading · B1–B2 · 35 min',
+  eyebrow:'Reading · B1-B2 · 35 min',
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
   desc:'Three key reading strategies with exercises and exam tips.',
   content:`═══════════════════════════════════════
  READING STRATEGIES: Skim, Scan & Infer
- Level: B1–B2  |  Duration: 35 min
+ Level: B1-B2  |  Duration: 35 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1369,7 +1369,7 @@ STRATEGY 1: SKIMMING (reading for gist)
   Tips:
   • Don't stop at unknown words.
   • Ask: "What is this text mainly about?"
-  • Takes: 30–60 seconds for a B1 text.
+  • Takes: 30-60 seconds for a B1 text.
 
   TASK: Skim this text in 45 seconds. What is it about?
   (Insert any short article/text here)
@@ -1378,13 +1378,13 @@ STRATEGY 1: SKIMMING (reading for gist)
 STRATEGY 2: SCANNING (finding specific info)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   WHAT: Move eyes quickly to find a particular fact, name, or number.
-  HOW:  Look for key words, dates, names, numbers — not every word.
+  HOW:  Look for key words, dates, names, numbers - not every word.
   WHEN: Answering specific questions; looking at a timetable/form.
 
   Tips:
   • Know WHAT you're looking for before scanning.
   • Use your finger or a pen to guide your eye.
-  • The answer will be near the keyword — not far.
+  • The answer will be near the keyword - not far.
 
   TASK: Find the answers in 30 seconds (from a sample text):
   1. When was the company founded?
@@ -1452,7 +1452,7 @@ EXAM QUESTION TYPES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WHY STRESS MATTERS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  "DESERT" (noun) vs "deSERT" (verb) — completely different!
+  "DESERT" (noun) vs "deSERT" (verb) - completely different!
   Wrong stress = miscommunication, even with perfect grammar.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1499,7 +1499,7 @@ PRACTICE EXERCISES
   3. "She will PROtest against the new PROtest law."
      → noun or verb? [verb proTEST / noun PROtest]
 
-  MINIMAL PAIRS — say them:
+  MINIMAL PAIRS - say them:
   IMport / imPORT      DEcrease / deCREASE
   OVerflow / overFLOW  INsult / inSULT
 
@@ -1521,14 +1521,14 @@ PRACTICE EXERCISES
   icon:'🔧',
   accent:'#ef4444',
   title:'Top 15 Slavic Learner Errors',
-  eyebrow:'Errors · A2–B2 · 35 min',
+  eyebrow:'Errors · A2-B2 · 35 min',
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
   desc:'The 15 most common mistakes Slavic students make, with explanations and fixes.',
   content:`═══════════════════════════════════════
  TOP 15 SLAVIC LEARNER ERRORS
- Level: A2–B2  |  Duration: 35 min
+ Level: A2-B2  |  Duration: 35 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1619,7 +1619,7 @@ THE 15 ERRORS
   5. We live here since five years.
 
 📌 TEACHER NOTES
-  ▸ Collect real student errors from their writing — personalise this list
+  ▸ Collect real student errors from their writing - personalise this list
   ▸ Grammar Fix game in Tools is perfect for this lesson
   ▸ Error Correction tool can generate 10 new sentences on demand
 `
@@ -1631,14 +1631,14 @@ THE 15 ERRORS
   icon:'🗣️',
   accent:'#f97316',
   title:'Everyday Phrases & Idioms',
-  eyebrow:'Vocabulary · B1–B2 · 35 min',
+  eyebrow:'Vocabulary · B1-B2 · 35 min',
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
   desc:'The top 25 colloquial phrases and idioms for natural English.',
   content:`═══════════════════════════════════════
  EVERYDAY PHRASES & IDIOMS
- Level: B1–B2  |  Duration: 35 min
+ Level: B1-B2  |  Duration: 35 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1649,48 +1649,48 @@ THE 15 ERRORS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TIME IDIOMS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  in the nick of time     — exactly when needed, almost too late
-  around the clock        — 24 hours a day, non-stop
-  hit the ground running  — start something energetically
-  the eleventh hour       — the last possible moment
-  call it a day           — stop working/doing something for today
-  buy time                — delay to get more time
+  in the nick of time     - exactly when needed, almost too late
+  around the clock        - 24 hours a day, non-stop
+  hit the ground running  - start something energetically
+  the eleventh hour       - the last possible moment
+  call it a day           - stop working/doing something for today
+  buy time                - delay to get more time
 
 WORK & EFFORT
-  bite the bullet         — endure a painful situation
-  on the ball             — alert, competent, quick-thinking
-  cut corners             — do something poorly to save time/money
-  go the extra mile       — do more than expected
-  pull one's weight       — do your fair share
-  burn the midnight oil   — work very late
+  bite the bullet         - endure a painful situation
+  on the ball             - alert, competent, quick-thinking
+  cut corners             - do something poorly to save time/money
+  go the extra mile       - do more than expected
+  pull one's weight       - do your fair share
+  burn the midnight oil   - work very late
 
 MONEY & SUCCESS
-  break even              — earn what you spent (no profit/loss)
-  hit the jackpot         — win big, have great success
-  penny-pinching          — being very careful/mean with money
-  cost a fortune          — be very expensive
+  break even              - earn what you spent (no profit/loss)
+  hit the jackpot         - win big, have great success
+  penny-pinching          - being very careful/mean with money
+  cost a fortune          - be very expensive
 
 PEOPLE & RELATIONSHIPS
-  get along (with)        — have a good relationship
-  give someone the cold shoulder — ignore someone deliberately
-  see eye to eye          — agree with someone
-  rub someone the wrong way — irritate someone
+  get along (with)        - have a good relationship
+  give someone the cold shoulder - ignore someone deliberately
+  see eye to eye          - agree with someone
+  rub someone the wrong way - irritate someone
 
 GENERAL
-  the tip of the iceberg  — only a small visible part of a big problem
-  under the weather       — feeling unwell
-  a blessing in disguise  — something bad that turns out to be good
-  kill two birds with one stone — achieve two things with one action
-  it's not rocket science — it's not complicated
+  the tip of the iceberg  - only a small visible part of a big problem
+  under the weather       - feeling unwell
+  a blessing in disguise  - something bad that turns out to be good
+  kill two birds with one stone - achieve two things with one action
+  it's not rocket science - it's not complicated
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 MATCH THE IDIOM TO THE SITUATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  1. "I'll stop working now — ___."             [call it a day]
-  2. "She finished just before midnight — ___." [in the nick of time]
-  3. "He ignores me at parties — ___."          [gives me the cold shoulder]
-  4. "The project costs are just the start — _."[tip of the iceberg]
-  5. "Losing that job led to a better one — _." [blessing in disguise]
+  1. "I'll stop working now - ___."             [call it a day]
+  2. "She finished just before midnight - ___." [in the nick of time]
+  3. "He ignores me at parties - ___."          [gives me the cold shoulder]
+  4. "The project costs are just the start - _."[tip of the iceberg]
+  5. "Losing that job led to a better one - _." [blessing in disguise]
 
 💬 DISCUSSION
   • Have you ever had to bite the bullet? What happened?
@@ -1698,9 +1698,9 @@ MATCH THE IDIOM TO THE SITUATION
   • What's something that looked bad but turned out to be a blessing in disguise?
 
 📌 TEACHER NOTES
-  ▸ Teach idioms in context — never in isolation lists alone
+  ▸ Teach idioms in context - never in isolation lists alone
   ▸ Memory Match game: idiom ↔ meaning works perfectly here
-  ▸ Ask students to find 3 idioms in articles — makes reading active
+  ▸ Ask students to find 3 idioms in articles - makes reading active
 `
 },
 
@@ -1710,14 +1710,14 @@ MATCH THE IDIOM TO THE SITUATION
   icon:'💬',
   accent:'#0E0E10',
   title:'Reported Speech',
-  eyebrow:'Grammar · B1–B2 · 35 min',
+  eyebrow:'Grammar · B1-B2 · 35 min',
   level:'B1',
   duration:'35 min',
   langs:['ru','ua','pl'],
   desc:'Direct and reported speech: rules for shifting tenses, pronouns and adverbs.',
   content:`═══════════════════════════════════════
  REPORTED SPEECH
- Level: B1–B2  |  Duration: 35 min
+ Level: B1-B2  |  Duration: 35 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1772,7 +1772,7 @@ REPORTED QUESTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Yes/No: "Do you like coffee?" → He asked if I liked coffee.
   Wh-:    "Where do you live?"  → She asked where I lived.
-  (Note: word order changes — no inversion after reporting verb!)
+  (Note: word order changes - no inversion after reporting verb!)
 
 📝 EXERCISES
   Transform:
@@ -1783,8 +1783,8 @@ REPORTED QUESTIONS
   5. "Where did you go?" he asked.         [he asked where I had gone]
 
 📌 TEACHER NOTES
-  ▸ Backshift is optional when reporting recent speech — mention this
-  ▸ Reporting verbs add nuance — expand the list at B2+
+  ▸ Backshift is optional when reporting recent speech - mention this
+  ▸ Reporting verbs add nuance - expand the list at B2+
   ▸ Good for practising news: "The president said that…"
 `
 },
@@ -1811,7 +1811,7 @@ REPORTED QUESTIONS
   ▸ Build natural-sounding English phrases
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MAKE — create, produce, cause
+MAKE - create, produce, cause
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   make a decision        make a mistake
   make progress          make an effort
@@ -1822,7 +1822,7 @@ MAKE — create, produce, cause
   make friends           make an excuse
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DO — perform a task, activity, duty
+DO - perform a task, activity, duty
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   do homework            do the washing up
   do research            do an exercise
@@ -1832,7 +1832,7 @@ DO — perform a task, activity, duty
   do sport               do someone's hair
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HAVE — experience, possess, eat/drink
+HAVE - experience, possess, eat/drink
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   have a meeting         have a break
   have breakfast/lunch   have an argument
@@ -1842,7 +1842,7 @@ HAVE — experience, possess, eat/drink
   have a look            have a conversation
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TAKE — accept, move, need
+TAKE - accept, move, need
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   take a break           take a photo
   take an exam           take an opportunity
@@ -1851,7 +1851,7 @@ TAKE — accept, move, need
   take turns             take advice
   take time              take a taxi/bus
 
-📝 EXERCISES — fill in make, do, have, take:
+📝 EXERCISES - fill in make, do, have, take:
   1. Can we ___ a break? I'm exhausted.          [have]
   2. She ___ an excellent suggestion at the meeting. [made]
   3. I need to ___ some research before deciding.  [do]
@@ -1866,7 +1866,7 @@ TAKE — accept, move, need
   • What are you doing research on right now?
 
 📌 TEACHER NOTES
-  ▸ Collocation errors are a B1–B2 plateau issue — drill often
+  ▸ Collocation errors are a B1-B2 plateau issue - drill often
   ▸ Phrasal verbs card game works well here
   ▸ Make students test each other with gapped sentences
 `
@@ -1878,14 +1878,14 @@ TAKE — accept, move, need
   icon:'☕',
   accent:'#a78bfa',
   title:'Small Talk & Social English',
-  eyebrow:'Speaking · A2–B1 · 30 min',
+  eyebrow:'Speaking · A2-B1 · 30 min',
   level:'A2',
   duration:'30 min',
   langs:['ru','ua','pl'],
   desc:'The art of small talk: topics, phrases and cultural context.',
   content:`═══════════════════════════════════════
  SMALL TALK & SOCIAL ENGLISH
- Level: A2–B1  |  Duration: 30 min
+ Level: A2-B1  |  Duration: 30 min
 ═══════════════════════════════════════
 
 🎯 OBJECTIVES
@@ -1898,10 +1898,10 @@ SAFE SMALL TALK TOPICS (UK/US)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✓ Weather ("Beautiful day, isn't it?")
   ✓ Weekend plans ("Any plans for the weekend?")
-  ✓ Work/studies (briefly — "How's work going?")
+  ✓ Work/studies (briefly - "How's work going?")
   ✓ Travel ("Have you been anywhere nice lately?")
   ✓ Food/restaurants ("Have you tried that new place on…?")
-  ✓ Hobbies ("I've just got into hiking — do you…?")
+  ✓ Hobbies ("I've just got into hiking - do you…?")
   ✓ Sport (UK: football; US: baseball/American football)
 
   AVOID in small talk:
@@ -1914,19 +1914,19 @@ STARTING A CONVERSATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   "Lovely weather today, isn't it?"
   "Is this your first time at one of these events?"
-  "I really like your [jacket/bag] — where's it from?"
+  "I really like your [jacket/bag] - where's it from?"
   "How do you know [host's name]?"
   "Have you tried the food? It's amazing."
 
 KEEPING IT GOING
   "Oh really? Tell me more about that."
-  "That's interesting — I've always wondered…"
+  "That's interesting - I've always wondered…"
   "What do you think about…?"
   "Same here! Actually, I…"
 
 ENDING GRACEFULLY
   "It was really nice meeting you."
-  "I'll let you mingle — enjoy the evening!"
+  "I'll let you mingle - enjoy the evening!"
   "I should go say hi to [name], but great talking to you."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1953,7 +1953,7 @@ CULTURAL NOTES
 📌 TEACHER NOTES
   ▸ Hugely practical for professional and travel contexts
   ▸ Video clip: British vs American small talk on YouTube
-  ▸ Debrief cultural differences — Slavic learners often find British
+  ▸ Debrief cultural differences - Slavic learners often find British
     indirectness confusing ("Not bad" = British compliment!)
 `
 },
@@ -1987,8 +1987,8 @@ function filterLevel(level, el) {
 }
 
 /* Строка урока, в которой нашлось слово, с подсветкой самого слова. */
-/* Один и тот же пак приходит в двух видах: готовые — текстом, собранные
-   моделью — карточками. Всё, что ниже (поиск, копирование, разбор на доску),
+/* Один и тот же пак приходит в двух видах: готовые - текстом, собранные
+   моделью - карточками. Всё, что ниже (поиск, копирование, разбор на доску),
    работает с плоским текстом, поэтому приводим к нему в одном месте. */
 function _lpPlainText(p) {
   if (p && Array.isArray(p.cards)) {
@@ -1999,7 +1999,7 @@ function _lpPlainText(p) {
 
 function _lpMatchLine(content, q) {
   const line = String(content || '').split('\n')
-    // Ведущий маркер списка в цитате — мусор: он размечал исходник, а не текст.
+    // Ведущий маркер списка в цитате - мусор: он размечал исходник, а не текст.
     .map(l => l.trim().replace(/^[•▸►·*\-]\s*/, ''))
     .find(l => l.toLowerCase().includes(q) && l.length > q.length + 2);
   if (!line) return '';
@@ -2016,7 +2016,7 @@ function renderPacks() {
     else if (activeSkill !== 'all' && p.skill !== activeSkill) return false;
     if (activeLevel !== 'all' && p.level !== activeLevel) return false;
     if (activeLang !== 'all' && p.langs && !p.langs.includes(activeLang)) return false;
-    /* Поиск шёл только по названию и описанию — то есть по двум строкам из
+    /* Поиск шёл только по названию и описанию - то есть по двум строкам из
        урока на три экрана. Учитель ищет «passive», «small talk», «agenda»:
        это слова ИЗ материала, и раньше они не находились ни в одном паке.
        Содержимое ищется третьим, после дешёвых полей. */
@@ -2079,8 +2079,8 @@ let activePack = null;
 
    Разметка в паках при этом настоящая, просто выражена символами. Тот же
    разбор, что раскладывает пак на доску, годится и здесь: разделы становятся
-   секциями, маркеры — списками, пары «слово — перевод» — словарём, реплики в
-   кавычках — примерами, пронумерованные строки — упражнениями. Моноширинный
+   секциями, маркеры - списками, пары «слово - перевод» - словарём, реплики в
+   кавычках - примерами, пронумерованные строки - упражнениями. Моноширинный
    шрифт остаётся ровно там, где он несёт смысл: в колонках-образцах, где
    выравнивание пробелами и есть содержание.                                 */
 const _LP_ESC = s => String(s == null ? '' : s)
@@ -2088,10 +2088,10 @@ const _LP_ESC = s => String(s == null ? '' : s)
 
 /* Термин ли это.
 
-   Тире внутри маркированного пункта — не всегда словарная статья. Пункт
-   «• Make 3 sentences about yourself — use a, an, and the.» разъезжался на
+   Тире внутри маркированного пункта - не всегда словарная статья. Пункт
+   «• Make 3 sentences about yourself - use a, an, and the.» разъезжался на
    термин и перевод, и задание для ученика превращалось в строку словаря.
-   Термин — это одно-три слова без завершающей точки, а не предложение. */
+   Термин - это одно-три слова без завершающей точки, а не предложение. */
 function _lpIsTerm(left) {
   const t = String(left || '').trim();
   if (!t || /[.!?:]$/.test(t)) return false;
@@ -2121,13 +2121,13 @@ function _lpBodyHtml(body) {
     if (!line.trim()) { flush(); continue; }
     const t = line.trim();
 
-    // Ответы к упражнению — отдельной плашкой: учитель прячет их от экрана.
+    // Ответы к упражнению - отдельной плашкой: учитель прячет их от экрана.
     const key = t.match(/^(KEY|ANSWERS?|ВІДПОВІДІ|ОТВЕТЫ)\s*[:：]\s*(.+)$/i);
     if (key) { flush(); out.push(`<p class="lp-key"><b>${_LP_ESC(key[1])}</b> ${_LP_ESC(key[2])}</p>`); continue; }
 
     /* Собранный моделью этап пишется тремя помеченными строками: цель,
        шаги, типичная ошибка. Их видно как метки, а не как абзацы, которые
-       начинаются с двоеточия. Шаги внутри «Do:» — уже нумерованный список,
+       начинаются с двоеточия. Шаги внутри «Do:» - уже нумерованный список,
        поэтому первый шаг отделяется от метки, а не тянется с ней в строке. */
     const tag = t.match(/^(Aim|Do|Watch for|Ціль|Мета|Кроки)\s*[:：]\s*(.*)$/i);
     if (tag) {
@@ -2145,7 +2145,7 @@ function _lpBodyHtml(body) {
     const bullet = t.match(/^[•▸►·*\-]\s+(.*)$/);
     if (bullet) {
       const item = bullet[1];
-      const pair = item.match(/^(.{1,32}?)\s+[—–]\s+(.+)$/);
+      const pair = item.match(/^(.{1,32}?)\s+[-]\s+(.+)$/);
       if (pair && _lpIsTerm(pair[1])) {
         push('dl', `<div><dt>${_LP_ESC(pair[1])}</dt><dd>${_LP_ESC(pair[2])}</dd></div>`);
         continue;
@@ -2154,12 +2154,12 @@ function _lpBodyHtml(body) {
       continue;
     }
 
-    /* «agenda         — список питань зустрічі»: словарь, выровненный
+    /* «agenda         - список питань зустрічі»: словарь, выровненный
        пробелами. Одинарный пробел вокруг тире считается тем же самым, иначе
-       строка «take the floor — взяти слово», написанная без выравнивания,
+       строка «take the floor - взяти слово», написанная без выравнивания,
        выпадала из словаря в обычный абзац. Ограничения по длине обеих частей
        не дают правилу схватить нормальное предложение с тире. */
-    const gloss = t.match(/^([^\s][^—–]{0,30}?)\s+[—–]\s+(.{1,90})$/)
+    const gloss = t.match(/^([^\s][^-]{0,30}?)\s+[-]\s+(.{1,90})$/)
       || t.match(/^([^\s].{0,30}?)\s{2,}[-]\s*(.{1,90})$/);
     if (gloss && _lpIsTerm(gloss[1])) {
       push('dl', `<div><dt>${_LP_ESC(gloss[1])}</dt><dd>${_LP_ESC(gloss[2])}</dd></div>`);
@@ -2167,7 +2167,7 @@ function _lpBodyHtml(body) {
     }
 
     /* Колонки-образцы: «a book   a user   a university». Выравнивание здесь и
-       есть содержание — его нельзя схлопывать в обычный абзац. */
+       есть содержание - его нельзя схлопывать в обычный абзац. */
     if (/\s{3,}\S/.test(line) && line.trim().length < 90) { push('mono', _LP_ESC(line)); continue; }
 
     flush();
@@ -2180,9 +2180,9 @@ function _lpBodyHtml(body) {
 /* Тип секции решает её цвет и подпись. Учитель ищет глазами «где практика» и
    «где ответы», а не читает заголовки подряд. */
 function _lpSectionKind(title) {
-  /* У собранных паков заголовок несёт часы: «12–20 min · Gist questions».
+  /* У собранных паков заголовок несёт часы: «12-20 min · Gist questions».
      Роль определяется по названию этапа, поэтому окно снимаем. */
-  title = String(title).replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '');
+  title = String(title).replace(/^\s*\d+\s*[-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '');
   if (/objective|aims?|goals?/i.test(title)) return { cls: 'aim', label: 'Aims' };
   if (/warm[-\s]?up|lead[-\s]?in/i.test(title)) return { cls: 'prod', label: 'Warm-up' };
   if (/vocab|word\s*bank|key\s*language|phrases/i.test(title)) return { cls: 'voc', label: 'Language' };
@@ -2199,24 +2199,24 @@ function _lpSkillMark(skill) {
 }
 
 function renderPackContent(p) {
-  /* Собранный моделью пак приходит уже разделами — этап и его текст. Гонять
+  /* Собранный моделью пак приходит уже разделами - этап и его текст. Гонять
      их через разбор ASCII-вёрстки незачем: структура и так есть. */
   const sections = Array.isArray(p.cards) && p.cards.length
     ? p.cards.map(c => ({ title: String(c.title || 'Stage'), body: String(c.text || '') }))
     : _lpSections(p.content);
   if (!sections.length) {
-    // Незнакомая вёрстка — показываем как есть, но честно, а не молча пустой.
+    // Незнакомая вёрстка - показываем как есть, но честно, а не молча пустой.
     return `<pre class="lp-mono lp-raw">${_LP_ESC(_lpPlainText(p))}</pre>`;
   }
   const nav = sections.length > 2
     ? `<nav class="lp-toc">${sections.map((s, i) =>
-        `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(String(s.title).replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, ''))}</button>`).join('')}</nav>`
+        `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(String(s.title).replace(/^\s*\d+\s*[-]\s*\d+\s*min[^·:]*[·:]?\s*/i, ''))}</button>`).join('')}</nav>`
     : '';
   const body = sections.map((s, i) => {
     const k = _lpSectionKind(s.title);
-    /* Часы этапа отделены от его названия: время — метка, а не часть
+    /* Часы этапа отделены от его названия: время - метка, а не часть
        заголовка, и в таком виде его видно, не вчитываясь в строку. */
-    const w = String(s.title).match(/^\s*(\d+\s*[–—-]\s*\d+\s*min)[^·:]*[·:]?\s*(.*)$/i);
+    const w = String(s.title).match(/^\s*(\d+\s*[-]\s*\d+\s*min)[^·:]*[·:]?\s*(.*)$/i);
     const clock = w ? w[1].replace(/\s+/g, ' ').replace(/\s*min$/i, ' min') : '';
     const heading = w ? w[2] : s.title;
     return `<section class="lp-sec lp-${k.cls}" id="lp-sec-${i}">
@@ -2239,7 +2239,7 @@ function openPack(id) {
   if (!p) return;
   activePack = p;
   /* Эмодзи в шапке урока не несёт информации и выбивается из остального
-     интерфейса, где их уже нет. На его месте — метка навыка: две буквы,
+     интерфейса, где их уже нет. На его месте - метка навыка: две буквы,
      по которым видно, что это за пак, ещё до чтения заголовка. */
   document.getElementById('modal-icon').textContent = _lpSkillMark(p.skill);
   document.getElementById('modal-icon').className = 'skill-' + (p.skill || 'other');
@@ -2264,23 +2264,23 @@ function closeModal() {
 
    Двадцать два готовых урока закрывают частые темы и не закрывают ни одной
    редкой: «собеседование в IT», «разговор с врачом», тема сегодняшнего
-   ученика. До сих пор учитель в этом месте уходил со страницы — на доску, в
+   ученика. До сих пор учитель в этом месте уходил со страницы - на доску, в
    конструктор, куда угодно, и возвращался с материалом, который здесь уже не
    жил.
 
    Тот же движок, что расписывает YouTube-урок по минутам, умеет собрать и
-   пак: у него на входе тема, уровень и длительность, на выходе — этапы с
+   пак: у него на входе тема, уровень и длительность, на выходе - этапы с
    часами, целями и разбором ошибок. Разбор, печать и «Open on board» здесь
    уже написаны, поэтому собственный пак попадает ровно в те же механизмы,
    что и готовые, и ничем от них не отличается в работе.
 
    Хранится в браузере. Это честная первая версия: пак появляется мгновенно и
-   никуда не уезжает; серверное хранение — следующий шаг, и оно ничего здесь
+   никуда не уезжает; серверное хранение - следующий шаг, и оно ничего здесь
    не сломает, потому что формат один и тот же.                             */
 const MY_PACKS_KEY = 'teachedos_my_packs';
 /* Страница паков публичная: сюда заходят и без входа, посмотреть готовые
    уроки. Общий клиент на 401 показывает красную плашку и через четыре
-   секунды уводит на главную — на закрытых страницах это правильно, здесь же
+   секунды уводит на главную - на закрытых страницах это правильно, здесь же
    гость, нажавший «Build a pack», просто терял страницу. Редирект выключен, а
    про необходимость входа мы говорим сами, ДО запроса. */
 window.__teachedNoRedirectOn401 = true;
@@ -2318,7 +2318,7 @@ async function runPackBuilder() {
   if (!topic) { status.textContent = 'Give the pack a topic first.'; return; }
   const signedIn = !!localStorage.getItem('teachedos_token');
   if (!_lpApi || !signedIn) {
-    status.innerHTML = 'Building your own pack needs an account — '
+    status.innerHTML = 'Building your own pack needs an account - '
       + '<a href="index.html" style="text-decoration:underline">sign in</a>. '
       + 'The 22 ready packs stay open to everyone.';
     return;
@@ -2350,7 +2350,7 @@ async function runPackBuilder() {
       duration: duration + ' min',
       langs: ['ru', 'ua', 'pl'],
       desc: 'Built for you' + (out.engine === 'rules' ? ' offline, from templates' : out.engine === 'archive' ? ' from an earlier lesson' : '') + '.',
-      /* Структуру храним как есть. Готовые паки — это текст, свои — карточки;
+      /* Структуру храним как есть. Готовые паки - это текст, свои - карточки;
          рендер и разбор ниже работают с обоими, поэтому переводить одно в
          другое (и терять на этом разметку) незачем. */
       cards,
@@ -2385,11 +2385,11 @@ function deleteMyPack(id) {
 
    Теперь пак открывается на доске тем же путём, которым туда попадает урок из
    конструктора: тот же ключ в sessionStorage и тот же board.html?addLessonFlow.
-   Второй механизм импорта городить незачем — доска уже умеет раскладывать
+   Второй механизм импорта городить незачем - доска уже умеет раскладывать
    этапы, цели, словарь и домашнее задание карточками.
 
    Разбор текста пака держится на его собственной вёрстке: разделы отбиты
-   линейками из ━ или ═, а первая строка под линейкой — заголовок раздела. Это
+   линейками из ━ или ═, а первая строка под линейкой - заголовок раздела. Это
    не догадка о формате, а то, как все двадцать два пака и написаны.         */
 function _lpSections(content) {
   const lines = String(content || '').split('\n');
@@ -2432,13 +2432,13 @@ function _lpSections(content) {
   if (cur) out.push(cur);
   return out
     .map(s => ({ title: s.title, body: s.body.join('\n').trim() }))
-    /* Шапка пака — не раздел: там стоят название, уровень и длительность,
+    /* Шапка пака - не раздел: там стоят название, уровень и длительность,
        которые на доске и так лежат на самой карточке урока. */
     .filter(s => s.title && s.body && !/Level:.*Duration:/s.test(s.body));
 }
 
 /* Раздел с целями и раздел со словарём вынимаются отдельно: на доске у них
-   свои карточки — чеклист и список слов, — а не ещё один этап урока. */
+   свои карточки - чеклист и список слов, - а не ещё один этап урока. */
 function _lpPickSection(sections, re) {
   const hit = sections.find(s => re.test(s.title));
   return hit ? hit.body : '';
@@ -2457,7 +2457,7 @@ function packToLessonFlow(p) {
     ? p.cards.map(c => ({ title: String(c.title || 'Stage'), body: String(c.text || '') }))
     : _lpSections(p.content);
   const objectives = _lpBullets(_lpPickSection(sections, /objective|aims?|goals?/i), 5);
-  // Свой пак несёт словарь отдельным полем — разбирать его из текста незачем.
+  // Свой пак несёт словарь отдельным полем - разбирать его из текста незачем.
   const vocab = (Array.isArray(p.vocab) && p.vocab.length)
     ? p.vocab.slice(0, 8).join('\n')
     : _lpBullets(_lpPickSection(sections, /vocab|word\s*bank|key\s*language|phrases/i), 8);
@@ -2467,12 +2467,12 @@ function packToLessonFlow(p) {
      Минуты раскладываются пропорционально длине раздела, а не поровну: в паке
      блок «правило» короткий, а «практика» занимает половину занятия, и ровные
      доли соврали бы учителю про хронометраж. */
-  /* Заметки учителю — не этап занятия: они не занимают времени в классе и
+  /* Заметки учителю - не этап занятия: они не занимают времени в классе и
      переезжают в описание урока. */
   const used = /objective|aims?|goals?|vocab|word\s*bank|key\s*language|phrases|homework|follow[-\s]?up|teacher\s*notes?/i;
-  /* У готового пака словарь и домашка — это справочные разделы, и на доске им
+  /* У готового пака словарь и домашка - это справочные разделы, и на доске им
      место в своих карточках, а не в расписании. У собранного плана всё иначе:
-     там «Pre-teach vocabulary» и «Homework» — настоящие этапы со своими
+     там «Pre-teach vocabulary» и «Homework» - настоящие этапы со своими
      минутами, и выбрасывать их значило потерять половину урока (проверено:
      из 45 минут на доску уезжало 25). */
   const isPlan = Array.isArray(p.cards) && p.cards.length;
@@ -2483,7 +2483,7 @@ function packToLessonFlow(p) {
   const mins = weight.map(w => Math.max(3, Math.round(total * (w / sum))));
   /* Расхождение округлений отдаём самому объёмному разделу, а не последнему.
      Последним в паке часто стоит короткий список тем для обсуждения, и именно
-     он получал бы лишние пятнадцать минут — план врал бы про хронометраж
+     он получал бы лишние пятнадцать минут - план врал бы про хронометраж
      ровно в том месте, где учитель на него смотрит. */
   const drift = total - mins.reduce((a, b) => a + b, 0);
   if (drift && mins.length) {
@@ -2491,14 +2491,14 @@ function packToLessonFlow(p) {
     mins[fat] = Math.max(3, mins[fat] + drift);
   }
   const stages = stageSecs.map((s, i) => {
-    /* Если этап уже несёт своё окно на часах, оно и есть длительность —
+    /* Если этап уже несёт своё окно на часах, оно и есть длительность -
        пересчитывать по объёму текста было бы враньём поверх точных данных. */
-    const w = s.title.match(/^\s*(\d+)\s*[–—-]\s*(\d+)\s*min/i);
+    const w = s.title.match(/^\s*(\d+)\s*[-]\s*(\d+)\s*min/i);
     const min = w ? Math.max(1, Number(w[2]) - Number(w[1])) : mins[i];
     return {
-      name: s.title.replace(/^\s*\d+\s*[–—-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '').replace(/\s+/g, ' ').slice(0, 60),
+      name: s.title.replace(/^\s*\d+\s*[-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '').replace(/\s+/g, ' ').slice(0, 60),
       min,
-      /* Слова целиком, а не куски: «MAKE — create, produce, cause» — это
+      /* Слова целиком, а не куски: «MAKE - create, produce, cause» - это
          презентация лексики, а подстрока «produc» делала из неё продукцию. */
       mode: /\b(practice|practise|exercises?|tasks?|drill)\b/i.test(s.title) ? 'Practice'
         : /\b(role-?play|discussion|debate|production|speaking)\b/i.test(s.title) ? 'Production'

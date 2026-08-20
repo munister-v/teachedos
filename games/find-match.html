@@ -40,7 +40,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 <body>
 <a class="back" href="index.html">← Games</a>
 <h1>Find the match</h1>
-<p class="subtitle" id="topicLabel">Click two tiles that match — word and translation</p>
+<p class="subtitle" id="topicLabel">Click two tiles that match - word and translation</p>
 <div class="card">
   <div class="top"><div>Pairs left: <span id="left">0</span></div><div>⏱ <span id="time">90</span>s</div></div>
   <div class="grid" id="grid"></div>
@@ -63,7 +63,7 @@ function loadWords(){
   if(setId && window.TEACHEDOS_CUSTOM){
     const set=TEACHEDOS_CUSTOM.get(setId);
     if(set && set.words.length>=4){
-      document.getElementById('topicLabel').textContent=set.name+' — match each word to its translation';
+      document.getElementById('topicLabel').textContent=set.name+' - match each word to its translation';
       return shuffle(set.words).slice(0,8);
     }
   }
@@ -76,7 +76,7 @@ function loadWords(){
     topicId=ids[Math.floor(Math.random()*ids.length)];
   }
   const topic=V.getTopic(topicId);
-  document.getElementById('topicLabel').textContent=topic.name+' — match each word to its translation';
+  document.getElementById('topicLabel').textContent=topic.name+' - match each word to its translation';
   let words=V.getWords(topicId, level);
   if(words.length<8) words=V.getWords(topicId,'mix');
   return shuffle(words).slice(0,8);
@@ -138,7 +138,7 @@ function clickTile(i,el){
     if(pairsLeft<=0) endGame(true);
   } else {
     first.el.classList.add('wrong-flash'); second.el.classList.add('wrong-flash');
-    document.getElementById('feedback').textContent='✗ Not a match — try again';
+    document.getElementById('feedback').textContent='✗ Not a match - try again';
     setTimeout(()=>{
       first.el.classList.remove('selected','wrong-flash');
       second.el.classList.remove('selected','wrong-flash');
@@ -151,7 +151,7 @@ function clickTile(i,el){
 function endGame(won){
   clearInterval(sInt);
   const found=totalPairs-pairsLeft;
-  document.getElementById('feedback').textContent= won ? 'All pairs matched' : 'Time up — '+found+'/'+totalPairs+' pairs found';
+  document.getElementById('feedback').textContent= won ? 'All pairs matched' : 'Time up - '+found+'/'+totalPairs+' pairs found';
   document.getElementById('again').style.display='inline-block';
   try{window.parent.postMessage({type:'game-finished',score:found,max:totalPairs,game:'Find the match',status:'done'},'*');}catch(e){}
 }
@@ -160,7 +160,7 @@ function applyCustomContent(content,title){
   const pairs=((content&&content.pairs)||[]).map(p=>({en:String(p.a||p.word||p.en||'').trim(),uk:String(p.b||p.definition||p.uk||'').trim()})).filter(p=>p.en&&p.uk);
   if(pairs.length<2)return;
   customWords=pairs.slice(0,8);
-  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?title:'Custom set')+' — match each word to its translation';
+  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?title:'Custom set')+' - match each word to its translation';
   if(title){document.title=title+' · Find the match';}
   start();
 }

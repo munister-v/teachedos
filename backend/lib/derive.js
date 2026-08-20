@@ -4,7 +4,7 @@
    useful B1 word or phrase for discussing X"), distractors ("An unrelated
    detail", "A grammar-only answer"), even whole reading texts ("Sentence 1:
    airport appears naturally in a classroom-friendly context"). Inventing prose
-   is the one thing a rule engine cannot do, so all of it came out unusable —
+   is the one thing a rule engine cannot do, so all of it came out unusable -
    and two of them came out broken as exercises, not merely flat. A matching
    task whose right-hand column is the same sentence six times has no answer at
    all. A true/false item that reports "false" after a substitution which never
@@ -16,7 +16,7 @@
    teacher supplied. A gap is a real sentence with a real word taken out. A
    false statement is a real sentence carrying a mutation that provably
    contradicts it. Matching halves are real clauses. Correctness then follows
-   from the source instead of from a model, which is the whole point — the
+   from the source instead of from a model, which is the whole point - the
    model is needed for prose, and for prose the caller should still prefer it.
 
    Nothing here throws and nothing here guesses. Every builder returns null
@@ -43,7 +43,7 @@ function countWords(text) {
 }
 
 /* Crude suffix stripping, deliberately not a real stemmer. Its only job is to
-   stop an inflection of the answer being offered as a distractor next to it —
+   stop an inflection of the answer being offered as a distractor next to it -
    "travel" against "travels" is not a choice a student can reason about. */
 function stem(word) {
   return String(word).toLowerCase()
@@ -59,7 +59,7 @@ function matchCase(original, replacement) {
 }
 
 /* Words worth building a task around: repeated, substantial, not function
-   words. Repetition is the signal — a word the source keeps coming back to is
+   words. Repetition is the signal - a word the source keeps coming back to is
    what the text is actually about, whereas document order just returns whatever
    the speaker said in their opening seconds. */
 function contentWords(text, limit = 40) {
@@ -87,7 +87,7 @@ function gapSentence(sentence, word, blank = '_____') {
   const re = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
   const hits = s.match(re);
   if (!hits || hits.length !== 1) return null;
-  // The answer keeps the source's own casing — it is what the student writes.
+  // The answer keeps the source's own casing - it is what the student writes.
   return { text: s.replace(re, blank), answer: hits[0] };
 }
 
@@ -97,7 +97,7 @@ function gapSentence(sentence, word, blank = '_____') {
    `taken` lets a caller building several exercises from one text skip words it
    has already used. Without it a sentence only ever offers its single
    highest-ranked word, so a worksheet whose first part claimed that word could
-   not build a second part from the same sentences — it silently came out with
+   not build a second part from the same sentences - it silently came out with
    two sections instead of three. A sentence usually has another word worth
    removing; this just asks for the next one. */
 function pickGapTarget(sentence, preferred = [], pool = [], taken = null) {
@@ -124,7 +124,7 @@ function pickGapTarget(sentence, preferred = [], pool = [], taken = null) {
    tagger here and it would be the wrong dependency for the gain: the only
    decision it informs is which distractors sit beside an answer, and matching
    "-ed" to "-ed" already stops the obvious tell of offering two verbs against a
-   noun. Order matters — the longer endings have to be tested before "s". */
+   noun. Order matters - the longer endings have to be tested before "s". */
 const SUFFIXES = ['tion', 'sion', 'ment', 'ness', 'ance', 'ence', 'ing', 'est', 'ed', 'ly', 'er', 's'];
 
 function suffixClass(word) {
@@ -171,7 +171,7 @@ function distractors(answer, pool, n = 3, avoidIn = '') {
 
 /* Pairs whose members contradict each other in any context, so swapping one
    for the other cannot accidentally leave the sentence true. Deliberately
-   excludes near-opposites ("big"/"small" — a thing can be both, relative to
+   excludes near-opposites ("big"/"small" - a thing can be both, relative to
    different comparisons) and anything scalar enough to argue about. */
 const OPPOSITES = [
   ['always', 'never'], ['never', 'always'],
@@ -210,7 +210,7 @@ function falsify(sentence) {
   const s = clean(sentence).replace(/\s+([.!?])$/, '$1');
   if (!s || countWords(s) < 5) return null;
 
-  // 1. A polar opposite reads most naturally — the sentence still sounds like
+  // 1. A polar opposite reads most naturally - the sentence still sounds like
   //    the text, which is what makes the item worth doing.
   for (const [from, to] of OPPOSITES) {
     const re = new RegExp(`\\b${from}\\b`, 'i');
@@ -224,7 +224,7 @@ function falsify(sentence) {
     const raw = num[1];
     const n = parseInt(raw, 10);
     // A year has to stay a year. Scaling 2019 by half again gives 3029, which a
-    // student rejects without reading the text at all — the same free marks the
+    // student rejects without reading the text at all - the same free marks the
     // generic distractors used to hand out.
     const isYear = /^(1[5-9]\d\d|20\d\d|21\d\d)$/.test(raw);
     const swapped = isYear ? String(n - 4)
@@ -251,7 +251,7 @@ function falsify(sentence) {
 /* Split a sentence where a clause actually begins, for matching halves.
 
    The marker stays with the right-hand half because it is the cue the student
-   matches on — "so property prices rose" is findable, "property prices rose"
+   matches on - "so property prices rose" is findable, "property prices rose"
    next to five other bare clauses is not. */
 const CLAUSE_MARKERS = [', which', ', so', ', but', ', because', ', and', ', while',
   ' because ', ' so that ', ' which ', ' although ', ' whereas ', ' unless ',
@@ -295,7 +295,7 @@ function scramble(sentence, rand = Math.random) {
 /* A shuffle seeded from the item's own text.
 
    Seeded rather than random because the old local MCQ put the answer first in
-   every single item — the key was "A" all the way down — and the obvious fix,
+   every single item - the key was "A" all the way down - and the obvious fix,
    Math.random, trades that for a worksheet that differs between the teacher's
    screen and their printout once the cache expires. Deriving the seed from the
    text means the same source always lays out the same way. */
@@ -321,7 +321,7 @@ function shuffle(arr, rand) {
   return a;
 }
 
-/* The real sentence a word appears in — the example that replaces "In X,
+/* The real sentence a word appears in - the example that replaces "In X,
    'word' helps students explain idea 3." Prefers a sentence with enough around
    the word to show how it behaves. */
 function exampleFor(word, sentences) {

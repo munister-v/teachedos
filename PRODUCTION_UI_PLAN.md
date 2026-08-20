@@ -1,16 +1,16 @@
-# TeachEd — production UI plan
+# TeachEd - production UI plan
 
 This is the release-oriented UI backlog for `teached.tech`. The current
 baseline is a healthy VPS/API, versioned static assets and a clean web-root
 sync. Items below are ordered by user impact and release risk.
 
-## P0 — release gates
+## P0 - release gates
 
 - **Session recovery:** intercept API `401` responses in the shared client,
   show “Session expired”, preserve the current draft, and offer a single
   re-login action. Acceptance: no authenticated page becomes an unexplained
   empty state after token expiry.
-- **Mobile layout:** run the main flows at 360, 390 and 768 px widths — home,
+- **Mobile layout:** run the main flows at 360, 390 and 768 px widths - home,
   board editor, lesson builder, teacher tools, profile and gradebook.
   Acceptance: no horizontal scroll, clipped primary actions or unreachable
   dialogs; keyboard focus remains visible.
@@ -20,7 +20,7 @@ sync. Items below are ordered by user impact and release risk.
 - **Offline/PWA safety:** verify the service worker updates after a release
   and that an old cached HTML shell cannot point at removed assets.
 
-## P1 — core teacher workflows
+## P1 - core teacher workflows
 
 - **Home → next action:** surface the most recently updated board/lesson first,
   with a persistent primary CTA (“Open”, “Continue” or “Read full lesson”).
@@ -36,7 +36,7 @@ sync. Items below are ordered by user impact and release risk.
   plain language; a disabled Stripe integration must not look like a broken
   checkout.
 
-## P2 — polish and performance
+## P2 - polish and performance
 
 - Split the heaviest board/editor code behind lazy routes; target a materially
   smaller first load without changing the card schema.

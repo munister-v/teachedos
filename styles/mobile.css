@@ -1,17 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   TeachEd — Unified Mobile System (mobile.css)
+   TeachEd - Unified Mobile System (mobile.css)
    ---------------------------------------------------------------------------
    Single source of truth for the phone experience (≤ 860px + PWA standalone).
    Supersedes the legacy trio: mobile-unified.css · mobile-pro.css · mobile-guard.css
 
    Architecture
-     0. View Transitions — native-app cross-page navigation
-     1. Tokens          — canonical palette / type / spacing (defined ONCE)
-     2. Reset & guard   — overflow, iOS zoom, safe-area, dvh, reduced-motion
-     3. Base            — typography, scroll momentum, focus, nav clearance
-     4. Components       — the mp-* design language (cards, buttons, stats…)
-     5. Pages           — per-screen layout (shell, legacy-nav hiding)
-     6. Utilities       — helpers, small-phone tuning
+     0. View Transitions - native-app cross-page navigation
+     1. Tokens          - canonical palette / type / spacing (defined ONCE)
+     2. Reset & guard   - overflow, iOS zoom, safe-area, dvh, reduced-motion
+     3. Base            - typography, scroll momentum, focus, nav clearance
+     4. Components       - the mp-* design language (cards, buttons, stats…)
+     5. Pages           - per-screen layout (shell, legacy-nav hiding)
+     6. Utilities       - helpers, small-phone tuning
 
    Modern patterns used: 100dvh/svh, env(safe-area-inset-*), container queries,
    scroll-snap-stop, overscroll-behavior, :has(), clamp() fluid type,
@@ -22,7 +22,7 @@
 .mobile-desktop-only { display: none; }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   0 · VIEW TRANSITIONS — smooth, native-feeling page navigation.
+   0 · VIEW TRANSITIONS - smooth, native-feeling page navigation.
    Opt-in per page via <html data-vt> (set by mobile-shell.js) so we never
    animate pages that aren't ready. Cross-document transitions need same-origin.
 ───────────────────────────────────────────────────────────────────────── */
@@ -31,14 +31,14 @@
 }
 /* App-shell feel: the persistent chrome (top bar te-topbar, bottom bar
    te-mobnav) is held steady; only the page CONTENT (root) animates. The new
-   content lifts in + fades, the old content fades out — reads like a native
+   content lifts in + fades, the old content fades out - reads like a native
    screen push rather than a website cross-fade. */
 @keyframes te-content-in  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 @keyframes te-content-out { from { opacity:1; } to { opacity:0; } }
 ::view-transition-old(root) { animation: te-content-out .18s cubic-bezier(.4,0,1,1) both; }
 ::view-transition-new(root) { animation: te-content-in  .26s cubic-bezier(.2,.7,.2,1) both; }
 
-/* Directional slides (native stack feel) — driven by the te-fwd / te-back
+/* Directional slides (native stack feel) - driven by the te-fwd / te-back
    transition types that nav-boost.js adds on pageswap/pagereveal. Mobile only;
    the persistent shell (te-mobnav / te-topbar) holds still while CONTENT slides.
    Forward = content exits left, new arrives from the right; back = the reverse. */
@@ -55,7 +55,7 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   1 · TOKENS — the one and only definition of the mobile design language.
+   1 · TOKENS - the one and only definition of the mobile design language.
 ───────────────────────────────────────────────────────────────────────── */
 :root {
   /* Surfaces */
@@ -84,7 +84,7 @@
   /* Lines */
   --mp-border:      rgba(14,14,16,0.08);
   --mp-border-2:    rgba(14,14,16,0.16);
-  /* Shadows (kept conservative — large soft shadows are paint-expensive) */
+  /* Shadows (kept conservative - large soft shadows are paint-expensive) */
   --mp-shadow-sm:   0 1px 6px rgba(14,14,16,0.07);
   --mp-shadow-md:   0 8px 22px rgba(14,14,16,0.08);
   --mp-shadow-lg:   0 16px 38px rgba(14,14,16,0.10);
@@ -97,7 +97,7 @@
   /* Type */
   /* System stack, same as unify.css gives every desktop screen. These used to
      lead with Manrope, Fraunces and JetBrains Mono, so a page fixed on desktop
-     reverted to a different typeface on a phone — which is the screen that
+     reverted to a different typeface on a phone - which is the screen that
      matters most for a landing page selling "in your pocket". */
   --mp-font:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --mp-serif:   -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
@@ -182,7 +182,7 @@
   .table-wrap::-webkit-scrollbar { display: none; }
 
   /* ───────────────────────────────────────────────────────────────────────
-     3 · BASE — typography, focus, nav clearance
+     3 · BASE - typography, focus, nav clearance
   ─────────────────────────────────────────────────────────────────────── */
   body {
     font-family: var(--mp-font);
@@ -198,7 +198,7 @@
   }
 
   /* ───────────────────────────────────────────────────────────────────────
-     4 · COMPONENTS — the mp-* design language
+     4 · COMPONENTS - the mp-* design language
   ─────────────────────────────────────────────────────────────────────── */
 
   /* Hide legacy desktop chrome that mp-* replaces */
@@ -209,7 +209,7 @@
   body:has(.mp-shell) #page { padding-top: 0 !important; }
   .mp-mobile-only { display: flex; }
   /* Hide the legacy .page-head ONLY on screens that ship an mp-* header
-     replacement — otherwise pages like analytics.html (which have a
+     replacement - otherwise pages like analytics.html (which have a
      .page-head but no mp- header) would lose their heading on mobile. */
   body:has(.mp-topbar, .mp-hero-head, .mp-page-head, .mp-greeting) .page-head { display: none !important; }
 
@@ -313,7 +313,7 @@
   .mp-next-title { font-family: var(--mp-serif); font-weight:600; font-size: 22px; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; color: #fff; }
   .mp-featured-meta, .mp-next-meta { font-size: 13px; color: var(--mp-text-inv-2); margin-bottom: 18px; line-height: 1.4; }
   .mp-featured-cta, .mp-next-cta { display: flex; gap: 8px; }
-  /* Pulse — opacity-only (stays on compositor, zero paint) */
+  /* Pulse - opacity-only (stays on compositor, zero paint) */
   .mp-pulse, .mp-next-dot {
     width: 10px; height: 10px; border-radius: 50%; background: var(--mp-lime);
     will-change: opacity; transform: translateZ(0);
@@ -359,7 +359,7 @@
     overflow-x: auto; overflow-y: hidden;
     scroll-snap-type: x mandatory; scroll-padding-left: 18px;
   }
-  /* Board cards (v1 + v2) — container-query aware */
+  /* Board cards (v1 + v2) - container-query aware */
   .mp-board-card, .mp-board-card2 {
     flex: 0 0 auto; scroll-snap-align: start; scroll-snap-stop: always;
     cursor: pointer; text-decoration: none; color: inherit;
@@ -509,7 +509,7 @@
   .mp-filter.active { background: var(--mp-premium); border-color: var(--mp-premium); color: var(--mp-text-inv); }
 
   /* ───────────────────────────────────────────────────────────────────────
-     BOTTOM SHEET — modern dialog pattern (slide-up, drag handle, scrim).
+     BOTTOM SHEET - modern dialog pattern (slide-up, drag handle, scrim).
      Use: <div class="mp-sheet" data-open> … or toggle .open via JS.
   ─────────────────────────────────────────────────────────────────────── */
   .mp-sheet-scrim {
@@ -557,7 +557,7 @@
   }
 }
 
-/* Small phones (≤ 380px) — tighten the grid */
+/* Small phones (≤ 380px) - tighten the grid */
 @media (max-width: 380px) {
   .mp-stats { gap: 6px; }
   .mp-stat { padding: 12px 10px; }

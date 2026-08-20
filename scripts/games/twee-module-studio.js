@@ -5,7 +5,7 @@ const MODULES = {
     desc: "Створює короткий текст на тему з урахуванням вашої лексики та рівня. Функціонально близько до Twee-модуля для швидкої підготовки reading materials.",
     pill: "CEFR-aligned",
     accent: "#5f7bff",
-    meta: "Reading · Vocabulary · A1–C1",
+    meta: "Reading · Vocabulary · A1-C1",
     copyLabel: "Скопіювати текст",
     fields: [
       { type: "textarea", id: "topic", label: "Тема або brief", placeholder: "Напр.: how friendships change after moving to a new city" },
@@ -22,7 +22,7 @@ const MODULES = {
     desc: "Створює відкриті питання до тексту, щоб перевірити розуміння змісту, деталей і висновків.",
     pill: "Question bank",
     accent: "#4d91ff",
-    meta: "Reading · Open-ended · A1–C2",
+    meta: "Reading · Open-ended · A1-C2",
     copyLabel: "Скопіювати питання",
     fields: [
       { type: "textarea", id: "text", label: "Текст", placeholder: "Вставте текст англійською..." },
@@ -38,7 +38,7 @@ const MODULES = {
     desc: "Будує true/false твердження для швидкої перевірки розуміння тексту. Частина тверджень навмисно модифікується для перевірки деталей.",
     pill: "Fast assessment",
     accent: "#4fb58b",
-    meta: "Reading · T/F · A1–C2",
+    meta: "Reading · T/F · A1-C2",
     copyLabel: "Скопіювати вправу",
     fields: [
       { type: "textarea", id: "text", label: "Текст", placeholder: "Вставте текст англійською..." },
@@ -54,7 +54,7 @@ const MODULES = {
     desc: "Генерує набір discussion questions на тему для warm-up, pair work, circles або freer speaking.",
     pill: "Speaking warm-up",
     accent: "#9a67f6",
-    meta: "Speaking · Discussion · A1–C2",
+    meta: "Speaking · Discussion · A1-C2",
     copyLabel: "Скопіювати питання",
     fields: [
       { type: "textarea", id: "topic", label: "Тема", placeholder: "Напр.: social media and attention span" },
@@ -71,7 +71,7 @@ const MODULES = {
     desc: "Створює приклади речень із цільовою лексикою, щоб потім використати їх у gap-fill, discussion або vocabulary review.",
     pill: "Vocabulary set",
     accent: "#f08d54",
-    meta: "Vocabulary · Sentence bank · A1–C2",
+    meta: "Vocabulary · Sentence bank · A1-C2",
     copyLabel: "Скопіювати речення",
     fields: [
       { type: "textarea", id: "vocabulary", label: "Список слів", placeholder: "achieve, deadline, reliable, replace, improve" },
@@ -87,7 +87,7 @@ const MODULES = {
     desc: "Перетворює текст на gap-fill вправу: ховає ключові слова, формує word bank і робить матеріал зручним для друку або цифрової перевірки.",
     pill: "Gap generator",
     accent: "#dc6a79",
-    meta: "Vocabulary · Grammar · A1–C2",
+    meta: "Vocabulary · Grammar · A1-C2",
     copyLabel: "Скопіювати вправу",
     fields: [
       { type: "textarea", id: "text", label: "Текст", placeholder: "Вставте текст англійською..." },
@@ -116,7 +116,7 @@ const MODULES = {
     desc: "Створює серію writing prompts на тему з урахуванням рівня і жанру. Підходить для classwork, homework або exam-style writing warm-up.",
     pill: "Writing set",
     accent: "#6bc18a",
-    meta: "Writing · Prompt bank · A1–C2",
+    meta: "Writing · Prompt bank · A1-C2",
     copyLabel: "Скопіювати prompts",
     fields: [
       { type: "textarea", id: "topic", label: "Тема", placeholder: "Напр.: learning to live independently" },
@@ -132,7 +132,7 @@ const MODULES = {
     desc: "Створює короткий діалог між двома персонажами на тему. Добре працює для reading aloud, role-play і comprehension follow-up.",
     pill: "Dialogue mode",
     accent: "#59b3c5",
-    meta: "Writing · Speaking · A1–C1",
+    meta: "Writing · Speaking · A1-C1",
     copyLabel: "Скопіювати діалог",
     fields: [
       { type: "textarea", id: "topic", label: "Ситуація", placeholder: "Напр.: a student asking for deadline extension" },
@@ -149,7 +149,7 @@ const MODULES = {
     desc: "Створює role-play scenario з ролями, цілями й tension points для pair work або speaking club.",
     pill: "Pair-work ready",
     accent: "#a96ff5",
-    meta: "Speaking · Role-play · A1–C2",
+    meta: "Speaking · Role-play · A1-C2",
     copyLabel: "Скопіювати сценарій",
     fields: [
       { type: "textarea", id: "topic", label: "Сюжет", placeholder: "Напр.: planning a school event with limited budget" },
@@ -165,7 +165,7 @@ const MODULES = {
     desc: "Будує набір речень з навмисними помилками, щоб учні виправляли grammar, vocabulary або word order.",
     pill: "Correction drill",
     accent: "#ef7b67",
-    meta: "Grammar · Accuracy · A1–C2",
+    meta: "Grammar · Accuracy · A1-C2",
     copyLabel: "Скопіювати вправу",
     fields: [
       { type: "textarea", id: "topic", label: "Тема або граматичний фокус", placeholder: "Напр.: present perfect vs past simple" },

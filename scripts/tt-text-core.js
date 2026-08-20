@@ -1,16 +1,16 @@
 /* Спільне ядро текстових помічників для генераторів вправ.
 
    Ці сім функцій жили в board-app.js, а board-gen.js кликав їх із глобальної
-   області — тобто рушій генерації не був самостійним і працював лише на
+   області - тобто рушій генерації не був самостійним і працював лише на
    сторінці дошки. Саме через це студія інструментів не могла ним скористатися
    і тримала власну копію тих самих генераторів: двадцять вправ у проєкті
    написано двічі.
 
-   Тут немає ні DOM, ні стану дошки — лише робота з текстом, тож файл безпечно
+   Тут немає ні DOM, ні стану дошки - лише робота з текстом, тож файл безпечно
    вантажити будь-якій сторінці.
 
    ПОРЯДОК ПІДКЛЮЧЕННЯ ВАЖЛИВИЙ: цей файл має йти ПЕРЕД board-app.js і перед
-   teacher-tools-app.js — обидва покладаються на ці імена в глобальній області. */
+   teacher-tools-app.js - обидва покладаються на ці імена в глобальній області. */
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -31,7 +31,7 @@ function teacherToolActionLabel(action) {
 
 function teacherToolTopicSeeds(_topic, count = 50) {
   // Generic last-resort filler words (used only when there is no real vocab and
-  // no source text). Returned as clean headwords — never with a "(topic)"
+  // no source text). Returned as clean headwords - never with a "(topic)"
   // suffix, which read as junk (e.g. "problem (travel problems)") on flashcards.
   const words = [
     'problem','reason','example','solution','opinion','evidence','summary','question','answer','detail','choice','result',
@@ -62,7 +62,7 @@ function teacherToolSourceSentences(text, topic, count = 6) {
     `A final speaking task helps students use the new language naturally.`
   ];
   // Real source text: return only the genuine sentences (never inflate the
-  // count with generic filler — better 8 relevant items than 20 with 12 junk).
+  // count with generic filler - better 8 relevant items than 20 with 12 junk).
   if (s.length) return s.slice(0, count);
   // No source at all (only reached by text-adaptation, since source-based
   // tools are gated behind a "paste text" check): use the pedagogical fallback.

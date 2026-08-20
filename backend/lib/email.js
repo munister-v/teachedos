@@ -1,15 +1,15 @@
 /**
- * Email sending — multi-provider with automatic fallback:
+ * Email sending - multi-provider with automatic fallback:
  *
  * 1. RESEND_API_KEY set  → use Resend REST API (no npm, native fetch)
  * 2. GMAIL_APP_PASSWORD  → use Gmail SMTP via nodemailer
  * 3. Neither             → log to console (dev mode)
  *
  * Recommended env vars (add to /opt/teachedos/backend/.env):
- *   # Option A — Resend (resend.com)
+ *   # Option A - Resend (resend.com)
  *   RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxx
  *
- *   # Option B — Gmail SMTP
+ *   # Option B - Gmail SMTP
  *   GMAIL_USER=tilandiya@gmail.com
  *   GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
  *
@@ -55,7 +55,7 @@ async function sendEmail({ to, subject, html }) {
     const from = process.env.FROM_EMAIL
       || `TeachEd <${process.env.GMAIL_USER || 'tilandiya@gmail.com'}>`;
     const info = await getTransport().sendMail({ from, to, subject, html });
-    console.log('[email] Sent via Gmail SMTP to', to, '— messageId:', info.messageId);
+    console.log('[email] Sent via Gmail SMTP to', to, '- messageId:', info.messageId);
     return { ok: true, messageId: info.messageId };
   }
 
@@ -84,7 +84,7 @@ function resetPasswordEmail(token) {
           <h2 style="font-size:20px;font-weight:800;margin:0 0 12px;">Reset your password</h2>
           <p style="color:#555;line-height:1.6;margin:0 0 28px;">
             We received a request to reset the password for your TeachEd account.<br>
-            Click the button below — this link expires in <strong>1 hour</strong>.
+            Click the button below - this link expires in <strong>1 hour</strong>.
           </p>
           <a href="${link}"
              style="display:inline-block;background:#C8E64A;color:#151515;font-weight:900;padding:14px 32px;border-radius:14px;text-decoration:none;font-size:15px;margin-bottom:28px;">

@@ -367,7 +367,7 @@ button{font-family:var(--font);cursor:pointer;}
 
     <div class="form-field">
       <label class="form-label" for="f-title">Title</label>
-      <input class="form-input" id="f-title" placeholder="e.g. Unit 3 — Tenses">
+      <input class="form-input" id="f-title" placeholder="e.g. Unit 3 - Tenses">
     </div>
     <div class="form-field">
       <label class="form-label" for="f-instructions">Instructions (shown to student)</label>
@@ -495,7 +495,7 @@ async function init() {
     await loadAll();
   } catch (e) {
     loadLocal();
-    toast('Server unavailable — local homework mode is active');
+    toast('Server unavailable - local homework mode is active');
   }
   maybeImportToolMaterial();
 }
@@ -513,7 +513,7 @@ function maybeImportToolMaterial(){
     if (t) t.value = payload.title || 'Teacher Tools material';
     if (ins) ins.value = payload.instructions || '';
   }, 80);
-  toast('Imported from Teacher Tools — pick a board and students, then create');
+  toast('Imported from Teacher Tools - pick a board and students, then create');
 }
 function updateUser(user){
   const first = (user.name || 'Teacher').split(' ')[0];
@@ -742,10 +742,10 @@ async function openCreateModal() {
   document.getElementById('f-due').value = '';
   if (!boards.length) boards = readLocal(LOCAL_BOARDS_KEY, seedBoards());
   const boardSel = document.getElementById('f-board');
-  boardSel.innerHTML = '<option value="">— Choose a board —</option>' + boards.map(b => '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join('');
+  boardSel.innerHTML = '<option value="">- Choose a board -</option>' + boards.map(b => '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join('');
   document.getElementById('f-cards').innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
   document.getElementById('f-cards-count').textContent = '';
-  // Students — load in background, show modal immediately
+  // Students - load in background, show modal immediately
   document.getElementById('f-students').innerHTML =
     '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Loading students…</div>';
   document.getElementById('create-overlay').classList.add('open');
@@ -773,7 +773,7 @@ async function loadStudents() {
 function renderStudentList() {
   const el = document.getElementById('f-students');
   if (!students.length) { el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text3);">No students yet.</div>'; return; }
-  el.innerHTML = students.map(s => { const id = s.user_id || s.id; const selected = selectedStudentIds.has(id); return '<button type="button" class="student-item '+(selected ? 'selected':'')+'" onclick=\'toggleStudent("'+esc(id)+'")\' aria-pressed="'+selected+'"><div class="cpi-check">'+(selected ? '✓' : '')+'</div><span style="font-size:16px;">'+esc(s.avatar || '👤')+'</span><div style="flex:1;min-width:0;"><div class="cpi-name">'+esc(s.name || '—')+'</div><div class="cpi-meta">'+esc(s.email || '')+'</div></div></button>'; }).join('');
+  el.innerHTML = students.map(s => { const id = s.user_id || s.id; const selected = selectedStudentIds.has(id); return '<button type="button" class="student-item '+(selected ? 'selected':'')+'" onclick=\'toggleStudent("'+esc(id)+'")\' aria-pressed="'+selected+'"><div class="cpi-check">'+(selected ? '✓' : '')+'</div><span style="font-size:16px;">'+esc(s.avatar || '👤')+'</span><div style="flex:1;min-width:0;"><div class="cpi-name">'+esc(s.name || '-')+'</div><div class="cpi-meta">'+esc(s.email || '')+'</div></div></button>'; }).join('');
 }
 function toggleStudent(id) { selectedStudentIds.has(id) ? selectedStudentIds.delete(id) : selectedStudentIds.add(id); renderStudentList(); }
 async function onBoardChange() {
@@ -821,7 +821,7 @@ async function submitHomework() {
     closeCreateModal(); renderList(); toast('Homework created locally');
   } catch (e) {
     createLocalHomework({ title, instructions, board_id, required_cards, pass_threshold, due_at: due || null, student_ids });
-    closeCreateModal(); renderList(); toast('Server unavailable — saved locally');
+    closeCreateModal(); renderList(); toast('Server unavailable - saved locally');
   } finally { submit.disabled = false; submit.textContent = 'Create & assign'; }
 }
 function createLocalHomework(data){

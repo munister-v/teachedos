@@ -3,7 +3,7 @@
    exposes the generator as window._ttAI for the board builder. */
 
 // Local in-browser model. Qwen2.5-3B follows instructions and emits clean JSON
-// far more reliably than the old Llama-3.2-3B at the same ~1.8 GB footprint —
+// far more reliably than the old Llama-3.2-3B at the same ~1.8 GB footprint -
 // which is exactly what the strict JSON-array prompts below depend on.
 // _FALLBACK_MODEL_ID keeps the old model as a safety net if the primary can't
 // load (e.g. not in the runtime's prebuilt list on some browsers).
@@ -31,7 +31,7 @@ async function _loadEngine(onProgress) {
 
 const _PROMPTS = {
   'abcd-text': (i) =>
-    `You are an EFL teacher. Create exactly ${i.count} multiple-choice comprehension questions at ${i.level} level from the text. Each question has 4 options (A B C D) and one correct answer. Topic: ${i.topic}.\nReturn ONLY a JSON array — no extra text:\n[{"text":"question","options":["option A","option B","option C","option D"],"answer":"correct option text"}]\n\nText:\n"""${i.source}"""`,
+    `You are an EFL teacher. Create exactly ${i.count} multiple-choice comprehension questions at ${i.level} level from the text. Each question has 4 options (A B C D) and one correct answer. Topic: ${i.topic}.\nReturn ONLY a JSON array - no extra text:\n[{"text":"question","options":["option A","option B","option C","option D"],"answer":"correct option text"}]\n\nText:\n"""${i.source}"""`,
   'true-false': (i) =>
     `You are an EFL teacher. Create exactly ${i.count} True/False statements at ${i.level} level based on the text. Alternate true and false. For false statements make one factual change. Topic: ${i.topic}.\nReturn ONLY a JSON array:\n[{"text":"statement","answer":true}]\n\nText:\n"""${i.source}"""`,
   'extract-vocab': (i) =>

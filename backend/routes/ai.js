@@ -188,7 +188,7 @@ function cacheSet(key, value) {
 // Auto-generated YouTube captions arrive with no punctuation at all, so the
 // old split on [.!?] returned ONE fragment holding the entire transcript. It
 // passed the length check and was handed straight into a question, which is how
-// a comprehension task ended up printing forty lines of raw speech — and why
+// a comprehension task ended up printing forty lines of raw speech - and why
 // the card it lived in stretched to thousands of pixels.
 const TRANSCRIPT_NOISE = /\[(music|applause|laughter|inaudible|foreign)\]/gi;
 const SENTENCE_MAX = 240;            // longer than this is not a sentence a student reads
@@ -245,7 +245,7 @@ function vocabList(input, count = input.count) {
 
   // Taking the first unique 4+ letter words in document order, minus an
   // eleven-word stoplist, meant a transcript handed back whatever the speaker
-  // said in their opening seconds — "know, even, though, tired, feel" as the
+  // said in their opening seconds - "know, even, though, tired, feel" as the
   // lesson's target language. Score by how much a word is actually used and how
   // substantial it is, and throw away function words and speech filler.
   const sourceWords = String(input.source || '')
@@ -261,7 +261,7 @@ function vocabList(input, count = input.count) {
     .slice(0, count);
   if (unique.length >= Math.min(6, count)) return unique;
 
-  /* Последняя ветка раньше отдавала TOPIC_WORDS с темой в скобках —
+  /* Последняя ветка раньше отдавала TOPIC_WORDS с темой в скобках -
      «challenge (airport)». Собранная библиотека приложения знает настоящие
      слова по двадцати школьным темам; берём их, и оффлайновый урок остаётся
      уроком. TOPIC_WORDS остаются только для тем, которых в ней нет. */
@@ -292,7 +292,7 @@ function base(input, boardKind) {
 function makeWordSet(input) {
   const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const source = wordsList.length ? wordsList : vocabList(input, input.count);
-  /* Перевод и пример — из библиотеки, если слово в ней есть: пустое поле «uk»
+  /* Перевод и пример - из библиотеки, если слово в ней есть: пустое поле «uk»
      и «попробуйте составить предложение» учитель всё равно дозаполняет руками. */
   const known = new Map(vocabLibrary.words(input.topic, 60).map(w => [w.en.toLowerCase(), w]));
   return {
@@ -313,7 +313,7 @@ function makeWordSet(input) {
 /* Vocabulary cards.
 
    The example is the sentence the word actually appeared in. The old one was
-   "In <topic>, "<word>" helps students explain idea 3." — the same sentence on
+   "In <topic>, "<word>" helps students explain idea 3." - the same sentence on
    every card with the index counting up, which is worse than an empty field
    because it looks filled in.
 
@@ -321,7 +321,7 @@ function makeWordSet(input) {
    definition cannot be derived from a text, only written, so the honest options
    are the model or the teacher; a fabricated one ("A useful B1 word or phrase
    for discussing X", identical on all twelve cards) is neither. Empty is also
-   what the board's editor expects — the field is contenteditable with a
+   what the board's editor expects - the field is contenteditable with a
    placeholder, so the teacher can fill it in, and the AI path overwrites it. */
 function makeVocab(input) {
   const words = vocabList(input, input.count);
@@ -345,7 +345,7 @@ function makeVocab(input) {
 }
 
 /* A matching task needs a right-hand column whose entries differ from one
-   another — that difference is the only thing the student has to reason about.
+   another - that difference is the only thing the student has to reason about.
    The old version paired every word with "Definition N: use this item
    accurately in a <topic> context", so the six right-hand cells were the same
    sentence six times and the exercise had no answer; the numbering was the only
@@ -353,7 +353,7 @@ function makeVocab(input) {
 
    Both forms below take their right-hand column from the source instead.
    Clause halves for the halves tools, and for the word tools the real sentence
-   the word came out of with the word removed — "match each word to the sentence
+   the word came out of with the word removed - "match each word to the sentence
    it belongs in" is a standard task, and every cell in it is real language. */
 function makeMatching(input) {
   const sentences = sourceSentences(input.source, input.topic, Math.max(input.count, 8));
@@ -404,16 +404,16 @@ function makeMatching(input) {
    Every closed item here is derived, never invented: the stem is a real
    sentence, the answer is a word that was in it, the distractors are words from
    the same text. The builders return null whenever the sentence will not carry
-   a sound item — a gap with no context around it, a "false" statement that
-   could not actually be made false — and the caller moves to the next sentence
+   a sound item - a gap with no context around it, a "false" statement that
+   could not actually be made false - and the caller moves to the next sentence
    instead of publishing the broken one. Coming back with nine good items beats
    twelve of which three are wrong.
 
    Open questions are the exception and are still written from a template. That
    is legitimate: an open question anchored to a real quotation is a real task,
    and there is no answer key to get wrong. They are also what the set is padded
-   with when the source runs dry, because the alternative — padding with
-   fabricated multiple choice — is how the engine used to produce items whose
+   with when the source runs dry, because the alternative - padding with
+   fabricated multiple choice - is how the engine used to produce items whose
    options were "An unrelated detail" and "A grammar-only answer". */
 function makeQuiz(input) {
   const sentences = sourceSentences(input.source, input.topic, input.count);
@@ -544,11 +544,11 @@ function makeCards(input) {
   }[input.toolId] || ['Teacher setup', 'Student task', 'Model answer', 'Practice', 'Feedback'];
 
   // Looping the stage names with % meant asking for 8 cards produced Warmer and
-  // Input twice — a lesson plan with two warmers. A pack has as many stages as
+  // Input twice - a lesson plan with two warmers. A pack has as many stages as
   // it has, and no more.
   const MOVES = [
     'model one example, then ask students to upgrade their answer',
-    'elicit first, correct after — let the class self-repair',
+    'elicit first, correct after - let the class self-repair',
     'pair students, then swap partners once for a second attempt',
     'drill the form chorally, then individually',
     'set a short time limit and take feedback on the board',
@@ -557,7 +557,7 @@ function makeCards(input) {
   const cards = [];
   const n = Math.min(input.count, stages.length);
   /* Минуты и в запасном плане тоже. План без времени учитель всё равно
-     доразмечает сам — а это ровно та работа, которую он и хотел не делать.
+     доразмечает сам - а это ровно та работа, которую он и хотел не делать.
      Раскладка простая и предсказуемая: разминка короче остальных этапов,
      остаток делится поровну, последнее окно дотягивается до конца занятия,
      чтобы сумма сходилась ровно, а не «примерно». */
@@ -572,7 +572,7 @@ function makeCards(input) {
     let title = stage;
     if (isPlan) {
       const len = i === 0 ? warm : (i === n - 1 ? total - clock : step);
-      title = `${clock}–${clock + len} min · ${stage}`;
+      title = `${clock}-${clock + len} min · ${stage}`;
       clock += len;
     }
     cards.push({
@@ -692,7 +692,7 @@ function boardKindFor(toolId) {
 
 /* With no source text there is nothing to derive from. The old code's answer to
    that was six hardcoded sentences about urban regeneration, printed under
-   whatever topic the teacher had typed — a worksheet on "food" opened with "The
+   whatever topic the teacher had typed - a worksheet on "food" opened with "The
    city centre has become very busy and ___", and all three parts were like it,
    so the topic field did nothing at all. These parts use the only real material
    available without a text: the teacher's own target words. Thin, but true, and
@@ -704,14 +704,14 @@ function vocabOnlyWorksheetParts(input, words) {
       word_bank: wb,
       items: wb.map((w, i) => ({ id: i + 1, stem: `(${w}) ______________________________`, answer: w })) },
     { type: 'essay', title: 'Part 2: Extended writing', instruction: `Use at least four of the words above.`,
-      items: [{ id: wb.length + 1, prompt: `Write 80–100 words about ${input.topic}.` }] },
+      items: [{ id: wb.length + 1, prompt: `Write 80-100 words about ${input.topic}.` }] },
     { type: 'essay', title: 'Teacher note', instruction: 'Generated without a source text.',
       items: [{ id: wb.length + 2, prompt: `Paste a reading text or transcript into "Source text" and generate again to get comprehension, gap-fill and matching parts built from it.` }] },
   ];
 }
 
 /* A worksheet built out of the pasted text: cloze multiple choice, gap-fill
-   against a word bank, and clause matching — all of them real sentences with
+   against a word bank, and clause matching - all of them real sentences with
    real words taken out of them.
 
    A part is dropped when the source cannot fill it, rather than padded. Three
@@ -815,19 +815,19 @@ function resolveMcqAnswer(answer, options) {
   // case-insensitive / trimmed match
   const ci = options.find(o => o.toLowerCase() === raw.toLowerCase());
   if (ci) return ci;
-  // a bare letter, optionally with ")"/"." — "A", "b)", "C."
+  // a bare letter, optionally with ")"/"." - "A", "b)", "C."
   const letter = raw.match(/^([A-Za-z])[).\s]*$/);
   if (letter) {
     const idx = letter[1].toUpperCase().charCodeAt(0) - 65;
     if (idx >= 0 && idx < options.length) return options[idx];
   }
-  // a 1-based index — "2", "3)"
+  // a 1-based index - "2", "3)"
   const num = raw.match(/^(\d+)[).\s]*$/);
   if (num) {
     const idx = parseInt(num[1], 10) - 1;
     if (idx >= 0 && idx < options.length) return options[idx];
   }
-  // an option that contains the answer (or vice versa) — minor wording drift
+  // an option that contains the answer (or vice versa) - minor wording drift
   const sub = options.find(o => o.toLowerCase().includes(raw.toLowerCase()) || raw.toLowerCase().includes(o.toLowerCase()));
   if (sub) return sub;
   return options[0];
@@ -871,13 +871,13 @@ function sanitizeQuestion(q) {
    sanitizeQuestion проверяет ФОРМУ: есть ли текст, не повторяются ли варианты,
    нашёлся ли ответ. Этого мало. Форма бывает безупречной у задания, которое
    нельзя дать классу: пропуск, в котором ответ уже написан рядом; десять
-   утверждений True/False, где все десять — True; «открытый» вопрос, на который
+   утверждений True/False, где все десять - True; «открытый» вопрос, на который
    отвечают словом «да»; два одинаковых вопроса подряд; вариант ответа, который
-   вдвое длиннее остальных — школьники такие угадывают, не читая.
+   вдвое длиннее остальных - школьники такие угадывают, не читая.
 
    Ни одно из этих правил не про модель. Это то, что проверил бы методист,
-   прежде чем печатать лист. Часть ошибок неисправима — такое задание
-   выбрасываем; часть безобидна поодиночке, но говорит о качестве всей пачки —
+   прежде чем печатать лист. Часть ошибок неисправима - такое задание
+   выбрасываем; часть безобидна поодиночке, но говорит о качестве всей пачки -
    такое помечаем, и по числу пометок дальше загорается семафор.                */
 
 function normStem(text) {
@@ -902,8 +902,8 @@ function auditQuestions(questions, input) {
     if (q.type === 'gap-fill') {
       const hasGap = GAP_MARK.test(q.text);
       const ans = String(q.answer || '').trim();
-      // Пропуск без пропуска — это просто предложение; ответ, стоящий в самом
-      // предложении, — это подсказка вместо задания.
+      // Пропуск без пропуска - это просто предложение; ответ, стоящий в самом
+      // предложении, - это подсказка вместо задания.
       if (!hasGap) { drop(q, 'no blank in the sentence'); continue; }
       if (!ans) { drop(q, 'no answer'); continue; }
       const stemWithoutGap = q.text.replace(GAP_MARK, ' ');
@@ -917,11 +917,11 @@ function auditQuestions(questions, input) {
       if (opts.length < 3) notes.push('a multiple-choice item has fewer than three options');
       if (!opts.some(o => o === q.answer)) { drop(q, 'answer is not one of the options'); continue; }
       /* Классический тест-крафт: самый длинный вариант почти всегда верный,
-         и ученик выбирает по длине. Одно такое — случайность, много — система. */
+         и ученик выбирает по длине. Одно такое - случайность, много - система. */
       const lens = opts.map(o => o.length);
       const longest = Math.max(...lens);
       if (opts.length > 2 && String(q.answer).length === longest && longest > Math.min(...lens) * 1.8) {
-        notes.push('the correct option is the longest one — guessable without reading');
+        notes.push('the correct option is the longest one - guessable without reading');
       }
     }
 
@@ -932,7 +932,7 @@ function auditQuestions(questions, input) {
     kept.push(q);
   }
 
-  // True/False целиком в одну сторону — не проверка, а лотерея с одним билетом.
+  // True/False целиком в одну сторону - не проверка, а лотерея с одним билетом.
   const tf = kept.filter(q => q.type === 'truefalse');
   if (tf.length >= 4) {
     const trues = tf.filter(q => q.answer === true).length;
@@ -967,8 +967,8 @@ function auditItems(items) {
   return { kept, dropped, notes };
 }
 
-/* Семафор. Зелёный — брать и вести урок. Жёлтый — годится, но стоит взглянуть:
-   что-то выброшено или замечено. Красный — материал неполный, лучше пересобрать.
+/* Семафор. Зелёный - брать и вести урок. Жёлтый - годится, но стоит взглянуть:
+   что-то выброшено или замечено. Красный - материал неполный, лучше пересобрать.
    Порог в две трети выбран по смыслу: если из десяти заданий уцелело шесть,
    учитель всё равно пойдёт добирать, и честнее сказать это сразу. */
 function qualitySignal({ kept, dropped, notes, asked }) {
@@ -1087,10 +1087,10 @@ function assembleFromLLM(input, data) {
   }
 
   if (kind === 'quiz') {
-    // Sanitise first, drop invalid, THEN cap to count — so bad items don't
+    // Sanitise first, drop invalid, THEN cap to count - so bad items don't
     // silently shrink the set below what the teacher asked for.
     const clean = (data.questions || []).map(sanitizeQuestion).filter(Boolean);
-    // Форма — выше (sanitizeQuestion), пригодность — здесь (auditQuestions).
+    // Форма - выше (sanitizeQuestion), пригодность - здесь (auditQuestions).
     const audit = auditQuestions(clean, input);
     const questions = audit.kept.slice(0, input.count);
     if (!questions.length) throw new Error('LLM returned no questions');
@@ -1138,12 +1138,12 @@ const METRICS = {
      provider's prefix cache carry it across the six calls of one video lesson;
      whether that actually happens is a property of the provider, the model and
      how long the calls are apart, and nothing here has ever reported it. The
-     provider returns the numbers in `usage` — they were captured into the last
+     provider returns the numbers in `usage` - they were captured into the last
      trace and then thrown away with it. `cachedPrompt` is what a lesson does
      NOT pay full price for; if it stays near zero, the prefix is being broken
      somewhere and the whole arrangement is buying nothing. */
   tokens: { calls: 0, prompt: 0, cachedPrompt: 0, completion: 0 },
-  /* Расход за сегодня. Токены уже считались, но в токенах никто не думает —
+  /* Расход за сегодня. Токены уже считались, но в токенах никто не думает -
      решение «дорого или нет» принимается в деньгах, поэтому оно и считается в
      деньгах. Сбрасывается по календарной дате: биллинг у провайдера тоже
      суточный, и совпадение окон избавляет от объяснений, почему цифры разные. */
@@ -1156,7 +1156,7 @@ function today() { return new Date().toISOString().slice(0, 10); }
 /* Цены за миллион токенов. Это ОЦЕНКА для бюджета, а не счёт от провайдера:
    тарифы меняются, и переопределить их можно через AI_PRICES без правки кода
    (JSON вида {"gpt-4.1-mini":{"in":0.4,"cachedIn":0.1,"out":1.6}}).
-   Кэшированный вход считается отдельно — ради него транскрипт и стоит первым
+   Кэшированный вход считается отдельно - ради него транскрипт и стоит первым
    в промпте, и без отдельной цены экономия была бы невидимой. */
 const DEFAULT_PRICES = {
   'gpt-4.1-mini': { in: 0.40, cachedIn: 0.10, out: 1.60 },
@@ -1166,12 +1166,12 @@ const PRICES = (() => {
   try { return { ...DEFAULT_PRICES, ...(JSON.parse(process.env.AI_PRICES || '{}')) }; }
   catch { return DEFAULT_PRICES; }
 })();
-// Порог суточного расхода в долларах. 0 — без ограничения (поведение как было).
+// Порог суточного расхода в долларах. 0 - без ограничения (поведение как было).
 const DAILY_BUDGET = Number(process.env.AI_DAILY_BUDGET_USD || 0) || 0;
 
 function priceFor(model) {
   const key = Object.keys(PRICES).find(k => String(model || '').includes(k));
-  // Незнакомая модель — не повод потерять счёт: берём самый дорогой известный
+  // Незнакомая модель - не повод потерять счёт: берём самый дорогой известный
   // тариф, чтобы оценка ошибалась в безопасную сторону.
   return key ? PRICES[key] : { in: 0.40, cachedIn: 0.10, out: 1.60 };
 }
@@ -1182,8 +1182,8 @@ function rollSpendDay() {
 }
 
 /* Светофор расходов: сколько потрачено сегодня и что из-за этого происходит.
-   green — работаем как обычно; amber — за порогом, тяжёлые задания уходят на
-   лёгкую модель; red — вдвое за порогом, к модели не обращаемся вовсе. */
+   green - работаем как обычно; amber - за порогом, тяжёлые задания уходят на
+   лёгкую модель; red - вдвое за порогом, к модели не обращаемся вовсе. */
 function budgetState() {
   rollSpendDay();
   if (!DAILY_BUDGET) return { level: 'green', usd: METRICS.spend.usd, budget: 0 };
@@ -1194,7 +1194,7 @@ function budgetState() {
 
 /* OpenAI reports the cache hit under prompt_tokens_details.cached_tokens;
    Anthropic-style providers use cache_read_input_tokens. Read both, prefer
-   whichever is present, and never let a missing field throw — this is
+   whichever is present, and never let a missing field throw - this is
    bookkeeping, not the request. */
 function recordTokens(usage) {
   if (!usage || typeof usage !== 'object') return;
@@ -1227,13 +1227,13 @@ function recordTokens(usage) {
    The fallback used to be silent to the caller, and that silence was its own
    problem: the rule engine writes noticeably flatter material, so a teacher who
    got it had no way to tell whether the tool is simply like this or whether
-   today it could not reach the model. `engine` now travels with every output —
+   today it could not reach the model. `engine` now travels with every output -
    and into the cache with it, which is right, since a cached result really was
-   made by whatever produced it — so the board can label what it is showing. */
+   made by whatever produced it - so the board can label what it is showing. */
 async function generate(input) {
   /* Отказ модели раньше означал шаблоны. Сначала смотрим в архив: такой же
      урок мог собираться раньше настоящей моделью, и прошлый живой лист
-     полезнее сегодняшней заглушки. Помечаем честно — вместе с датой, чтобы
+     полезнее сегодняшней заглушки. Помечаем честно - вместе с датой, чтобы
      учитель понимал, что видит вчерашнюю работу, а не свежую. */
   const local = (reason) => {
     const kept = genArchive.get(input);
@@ -1241,7 +1241,7 @@ async function generate(input) {
       const out = kept.output;
       out.engine = 'archive';
       out.engineReason = reason;
-      out.engineNote = `built earlier by the model on ${new Date(kept.at).toISOString().slice(0, 10)} — reused because the model is unavailable`;
+      out.engineNote = `built earlier by the model on ${new Date(kept.at).toISOString().slice(0, 10)} - reused because the model is unavailable`;
       return out;
     }
     const out = generateLocal(input);
@@ -1263,13 +1263,13 @@ async function generate(input) {
   try {
     input.boardKind = boardKindFor(input.toolId);
     const out = assembleFromLLM(input, await aiEngine.generate(input));
-    /* 'ai' — основна модель; 'backup' — відповіла страхувальна ланка ланцюга
+    /* 'ai' - основна модель; 'backup' - відповіла страхувальна ланка ланцюга
        (OpenRouter). Різниця не косметична: запасні моделі помітно слабші, і
-       вчитель має бачити, що урок зібрано ними, — інакше він читає це просто
+       вчитель має бачити, що урок зібрано ними, - інакше він читає це просто
        як «інструмент сьогодні дурний». Так само, як ми вже позначаємо роботу
        на локальних шаблонах. */
     out.engine = (aiEngine.getLastTier && aiEngine.getLastTier() === 'backup') ? 'backup' : 'ai';
-    if (input.preferLight) out.engineNote = 'daily budget reached — built on the light model';
+    if (input.preferLight) out.engineNote = 'daily budget reached - built on the light model';
     METRICS.llmOk++;
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
@@ -1351,7 +1351,7 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
   });
 });
 
-// ── GET /api/ai/usage — persistent daily counters (last N days) ──────────────
+// ── GET /api/ai/usage - persistent daily counters (last N days) ──────────────
 router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
   const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
   try {
@@ -1368,7 +1368,7 @@ router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
   }
 });
 
-// ── YouTube transcript (no API key, no auth — used by the Teacher Tools hub) ──
+// ── YouTube transcript (no API key, no auth - used by the Teacher Tools hub) ──
 const TRANSCRIPT_CACHE = new Map();
 const TITLE_CACHE = new Map();
 function ytVideoId(url) {
@@ -1384,7 +1384,7 @@ function decodeEntities(t) {
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
 }
 // Public InnerTube web key. The ANDROID client returns caption baseUrls that
-// still work when fetched directly — unlike the watch-page baseUrls, which
+// still work when fetched directly - unlike the watch-page baseUrls, which
 // YouTube now gates behind a proof-of-origin token and serves empty.
 const YT_INNERTUBE_KEY = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
 async function ytCaptionTracks(id) {
@@ -1438,7 +1438,7 @@ router.get('/youtube-transcript', async (req, res) => {
   }
 });
 
-// ── POST /api/ai/lesson-board — AI Memory Studio board generation ────────────
+// ── POST /api/ai/lesson-board - AI Memory Studio board generation ────────────
 // No login required (teachers use it freely). Rate-limited per IP.
 const lessonBoardLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -1487,7 +1487,7 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
   }
 });
 
-// ── POST /api/ai/wordset-guest — no login required ──────────────────────────
+// ── POST /api/ai/wordset-guest - no login required ──────────────────────────
 // Powers the "AI assist" box on games/create.html for visitors without a
 // teacher account. IP-limited and capped to keep free-tier usage in check.
 const guestLimiter = rateLimit({
@@ -1503,7 +1503,7 @@ router.post('/wordset-guest', guestLimiter, async (req, res) => {
     const input = normaliseInput({ ...req.body, toolId: 'word-set-builder' });
     input.count = Math.max(4, Math.min(10, input.count));
     input.vocab = input.vocab.slice(0, 600);
-    input.model = ''; // guests can't pick a model — use the server default chain
+    input.model = ''; // guests can't pick a model - use the server default chain
     const output = await generate(input);
     res.json({ output });
   } catch (err) {
@@ -1513,7 +1513,7 @@ router.post('/wordset-guest', guestLimiter, async (req, res) => {
 });
 
 module.exports = router;
-// The local engine is pure — no request, no database — so it is worth being able
+// The local engine is pure - no request, no database - so it is worth being able
 // to exercise it directly instead of booting express and postgres around it.
 module.exports.generateLocal = generateLocal;
 module.exports.normaliseInput = normaliseInput;

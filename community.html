@@ -340,7 +340,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   <!-- ══════ GAMES SECTION ══════ -->
   <div id="tab-games" style="display:none;">
     <div class="section-head">
-      <div><div class="section-title">Ready-made games</div><div class="section-sub">Interactive games by topic and level — just like Wordwall. Add to your board in one click.</div></div>
+      <div><div class="section-title">Ready-made games</div><div class="section-sub">Interactive games by topic and level - just like Wordwall. Add to your board in one click.</div></div>
       <a class="btn lime" href="game-builder.html">＋ Create game</a>
     </div>
     <div class="filters-row game-level-filters">
@@ -382,7 +382,7 @@ function renderSkeleton(gridId, count = 3) {
 function updateCommunityStats() {
   const posts = getCommunityPosts();
   setText('stat-boards', posts.length);
-  setText('stat-library', _communityLibrary.length || '—');
+  setText('stat-library', _communityLibrary.length || '-');
   setText('stat-games', COMMUNITY_GAMES.length);
 }
 
@@ -560,7 +560,7 @@ async function loadBoards() {
       const boards = d.boards || [];
       sel.innerHTML = boards.length
         ? boards.map(b => `<option value="${esc(b.id)}" data-name="${esc(b.name)}" data-cards="${Number(b.card_count)||0}">${esc(b.name)} · ${b.card_count||0} cards</option>`).join('')
-        : '<option value="">No boards yet — create one first</option>';
+        : '<option value="">No boards yet - create one first</option>';
     } catch {
       sel.innerHTML = '<option value="">Could not load boards</option>';
     }
@@ -668,7 +668,7 @@ async function publishBoard() {
 
     const link = buildShareLink(publishedPost);
     navigator.clipboard?.writeText(link).catch(()=>{});
-    toast(token ? '✓ Published to Community — lesson link copied' : '✓ Saved on this device — sign in to publish it for teachers');
+    toast(token ? '✓ Published to Community - lesson link copied' : '✓ Saved on this device - sign in to publish it for teachers');
   } catch (error) {
     toast(error?.message || 'Could not publish this lesson');
   } finally {
@@ -770,7 +770,7 @@ function copyPostLink(postId) {
   if (!post) { toast('Post not found'); return; }
   const link = buildShareLink(post);
   navigator.clipboard?.writeText(link)
-    .then(() => toast('✓ Share link copied — paste it to any teacher'))
+    .then(() => toast('✓ Share link copied - paste it to any teacher'))
     .catch(() => { prompt('Copy this link:', link); });
 }
 
@@ -1012,10 +1012,10 @@ const COMMUNITY_GAMES = [
   { id:'cg7', icon:'🛒', title:'At the Shop', type:'flashcards', level:'A2', topic:'Speaking', desc:'Practice shopping dialogues and phrases.', tags:['speaking','shopping','dialogue'], src:'games/flashcards.html' },
   { id:'cg8', icon:'✈️', title:'Travel Vocabulary', type:'memory-match', level:'A2', topic:'Vocabulary', desc:'Match travel-related words: airport, ticket, passport…', tags:['vocabulary','travel'], src:'games/memory.html' },
   { id:'cg9', icon:'🔧', title:'Irregular Verbs A2', type:'quiz', level:'A2', topic:'Grammar', desc:'Test knowledge of 30 common irregular verbs.', tags:['grammar','verbs','irregular'], src:'games/quiz-show.html' },
-  { id:'cg10', icon:'💬', title:'Making Plans', type:'fill-blank', level:'A2', topic:'Grammar', desc:'Going to / Will — fill in the correct future form.', tags:['grammar','future','plans'], src:'games/fill-blank.html' },
+  { id:'cg10', icon:'💬', title:'Making Plans', type:'fill-blank', level:'A2', topic:'Grammar', desc:'Going to / Will - fill in the correct future form.', tags:['grammar','future','plans'], src:'games/fill-blank.html' },
   { id:'cg11', icon:'📰', title:'News Headlines', type:'word-scramble', level:'B1', topic:'Reading', desc:'Unscramble words from real news headlines.', tags:['reading','news','vocabulary'], src:'games/word-scramble.html' },
   { id:'cg12', icon:'🗣️', title:'Opinion Phrases', type:'flashcards', level:'B1', topic:'Speaking', desc:'Master 25 opinion and discussion phrases for debates.', tags:['speaking','opinions','debate'], src:'games/flashcards.html' },
-  { id:'cg13', icon:'📝', title:'Conditionals Quiz', type:'quiz', level:'B1', topic:'Grammar', desc:'First and second conditional — choose the right form.', tags:['grammar','conditionals'], src:'games/quiz-show.html' },
+  { id:'cg13', icon:'📝', title:'Conditionals Quiz', type:'quiz', level:'B1', topic:'Grammar', desc:'First and second conditional - choose the right form.', tags:['grammar','conditionals'], src:'games/quiz-show.html' },
   { id:'cg14', icon:'🎭', title:'Phrasal Verbs: Emotions', type:'memory-match', level:'B1', topic:'Vocabulary', desc:'Match phrasal verbs with their emotion meanings.', tags:['vocabulary','phrasal-verbs'], src:'games/memory.html' },
   { id:'cg15', icon:'📖', title:'Reported Speech', type:'fill-blank', level:'B1', topic:'Grammar', desc:'Transform direct speech into reported speech.', tags:['grammar','reported-speech'], src:'games/fill-blank.html' },
   { id:'cg16', icon:'🎬', title:'Film & Media Vocabulary', type:'flashcards', level:'B2', topic:'Vocabulary', desc:'Advanced media vocabulary: plot twist, screenplay, sequel…', tags:['vocabulary','media','film'], src:'games/flashcards.html' },
@@ -1072,7 +1072,7 @@ function filterGames(level) {
 
 function renderCommunityGames() {
   const grid = document.getElementById('games-grid-comm');
-  // Topic-library variants need the vocabulary file — load it lazily, then re-render
+  // Topic-library variants need the vocabulary file - load it lazily, then re-render
   if (!_topicVariantsAdded && !window.TEACHEDOS_VOCAB) {
     ensureVocab().then(() => { expandWithTopicVariants(); renderCommunityGames(); }).catch(() => {});
   } else {

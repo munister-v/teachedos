@@ -95,7 +95,7 @@ pool.query(`
 
 pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read)`).catch(() => {});
 
-// GET /api/schedule/student-zones — distinct timezones of all students connected to this teacher
+// GET /api/schedule/student-zones - distinct timezones of all students connected to this teacher
 router.get('/student-zones', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -125,7 +125,7 @@ router.get('/student-zones', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/schedule — get user's weekly schedule
+// GET /api/schedule - get user's weekly schedule
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -139,7 +139,7 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/schedule/live — all currently live sessions across all teachers
+// GET /api/schedule/live - all currently live sessions across all teachers
 router.get('/live', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -161,7 +161,7 @@ router.get('/live', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/schedule — create or update a class slot
+// POST /api/schedule - create or update a class slot
 router.post('/', requireAuth, async (req, res) => {
   const { id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
   try {
@@ -186,7 +186,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/schedule/:id — update a slot
+// PATCH /api/schedule/:id - update a slot
 router.patch('/:id', requireAuth, async (req, res) => {
   if (req.params.id === 'live') return res.status(404).json({ error: 'Not found' });
   const { day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
@@ -207,7 +207,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/schedule/:id/live — toggle live status (owner only)
+// PATCH /api/schedule/:id/live - toggle live status (owner only)
 router.patch('/:id/live', requireAuth, async (req, res) => {
   const { is_live, meeting_url } = req.body;
   try {
@@ -225,7 +225,7 @@ router.patch('/:id/live', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/schedule/:id — delete a slot
+// DELETE /api/schedule/:id - delete a slot
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { rowCount } = await pool.query(

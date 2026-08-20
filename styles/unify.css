@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   TeachEd — Design Unification Layer
+   TeachEd - Design Unification Layer
    "Black + Lime" card system. Loaded LAST so it wins the cascade.
 
    Rules of the road:
@@ -15,22 +15,22 @@
 
 /* Desktop base for the mobile-only topbar. mobile-pro.css is now loaded with
    media="(max-width:860px)" so its base ".mp-mobile-only{display:none}" no
-   longer reaches desktop — restate it here behind a desktop-only query so the
+   longer reaches desktop - restate it here behind a desktop-only query so the
    mobile topbar stays hidden on wide screens. (mobile-pro.css flips it to
    display:flex inside its own ≤860px block, so the two never conflict.) */
 @media (min-width: 861px) { .mp-mobile-only { display: none !important; } }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SMOOTH NAVIGATION — MPA View Transitions
+   SMOOTH NAVIGATION - MPA View Transitions
    This is a multi-page app, so every link is a full document load that flashes
    / "redraws" between pages. Opting into cross-document view transitions makes
    same-origin navigations cross-fade instead of hard-cutting, which is what
    gives that "lightness" on both desktop and mobile. No-op in browsers that
-   don't support it (Safari/Firefox today) — they just navigate as before.
+   don't support it (Safari/Firefox today) - they just navigate as before.
 ═══════════════════════════════════════════════════════════════════════ */
 @view-transition { navigation: auto; }
 
-/* Keep the cross-fade fast and light — a slow fade feels heavier, not lighter. */
+/* Keep the cross-fade fast and light - a slow fade feels heavier, not lighter. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 150ms;
@@ -53,14 +53,14 @@
 
 /* Shared elements: give the persistent chrome a stable transition name so it
    stays ANCHORED across navigations (morphs in place) instead of cross-fading
-   with the page body — the top nav no longer flickers, only the content swaps.
+   with the page body - the top nav no longer flickers, only the content swaps.
    #nav is the desktop bar; .mp-topbar is the mobile header (only one renders
    per viewport, so the two names never collide). Names must be unique per page,
    and both elements appear exactly once, so this is safe. */
 #nav { view-transition-name: te-nav; }
 .mp-topbar { view-transition-name: te-topbar; }
 
-/* The anchored bars shouldn't fade at all — hold them steady through the swap. */
+/* The anchored bars shouldn't fade at all - hold them steady through the swap. */
 ::view-transition-group(te-nav),
 ::view-transition-group(te-topbar) { animation-duration: 150ms; }
 ::view-transition-old(te-nav),
@@ -98,7 +98,7 @@
 
 /* ═══════════════════════════════════════════════════════════════
    0. CANONICAL TYPOGRAPHY + LIGHT THEME LOCK
-   Dark mode retired — force cream+lime everywhere.
+   Dark mode retired - force cream+lime everywhere.
    SF Pro (Apple system) is the single typeface; Fraunces falls
    back to SF Pro Display so headings stay in the same family.
 ═══════════════════════════════════════════════════════════════ */
@@ -110,7 +110,7 @@
   --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif !important;
   --font-mono:  'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace !important;
 
-  /* Cream-light surface palette — same on every page */
+  /* Cream-light surface palette - same on every page */
   --bg:         #F5F0E8 !important;
   --bg-2:       #EDE8E0 !important;
   --bg2:        #EDE8E0 !important;
@@ -131,7 +131,7 @@
   --ink3:       #6A6A5A !important;
 }
 
-/* Neuter any stray [data-theme="dark"] still applied at runtime —
+/* Neuter any stray [data-theme="dark"] still applied at runtime -
    variables fall back to the cream palette above. */
 html[data-theme="dark"],
 :root[data-theme="dark"] {
@@ -163,7 +163,7 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* Every text element inherits the same family — kills harmony.css Manrope override */
+/* Every text element inherits the same family - kills harmony.css Manrope override */
 body, button, input, select, textarea,
 .nav-link, .nav-logo-name, .nav-user,
 h1, h2, h3, h4, h5, h6,
@@ -172,7 +172,7 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--font) !important;
 }
 
-/* Headlines previously set to Fraunces serif — now SF Pro Display, kept tight */
+/* Headlines previously set to Fraunces serif - now SF Pro Display, kept tight */
 .page-title, .section-title,
 h1, h2, h3,
 [style*="font-family:Fraunces"],
@@ -185,7 +185,7 @@ h1, h2, h3,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   1. PRIMARY ACTION BUTTONS — ink default, lime emphasis
+   1. PRIMARY ACTION BUTTONS - ink default, lime emphasis
 ═══════════════════════════════════════════════════════════════ */
 
 /* Default .btn and .btn-primary → ink (overrides harmony.css pink) */
@@ -207,7 +207,7 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
   transform: translateY(-1px);
 }
 
-/* Lime button — keep but harmonize with lime-glow shadow */
+/* Lime button - keep but harmonize with lime-glow shadow */
 .btn-lime,
 .btn.btn-lime {
   background: var(--u-lime) !important;
@@ -253,11 +253,11 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   2. CARD SYSTEM — white default, lime edge on hover, ink for featured
+   2. CARD SYSTEM - white default, lime edge on hover, ink for featured
 ═══════════════════════════════════════════════════════════════ */
 
 /* Regular content cards: white with subtle ink line
-   NOTE: .board-card excluded on body.board-page — editor canvas cards
+   NOTE: .board-card excluded on body.board-page - editor canvas cards
    manage their own background/border (sticky colors, frame, etc.) */
 body:not(.board-page) .board-card,
 .game-tile-comm,
@@ -276,7 +276,7 @@ body:not(.board-page) .board-card,
               transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1) !important;
 }
 
-/* Lime edge glow on hover — signature accent (NOT on editor canvas) */
+/* Lime edge glow on hover - signature accent (NOT on editor canvas) */
 body:not(.board-page) .board-card:hover,
 .game-tile-comm:hover,
 .community-card:hover,
@@ -288,7 +288,7 @@ body:not(.board-page) .board-card:hover,
               inset 0 0 0 1px var(--u-lime-edge) !important;
 }
 
-/* Card top accent stripe — NOT on editor canvas (would draw a stripe
+/* Card top accent stripe - NOT on editor canvas (would draw a stripe
    across every sticky / shape / frame which is wrong) */
 body:not(.board-page) .board-card::before,
 .lesson-card::before,
@@ -297,7 +297,7 @@ body:not(.board-page) .board-card::before,
   background: linear-gradient(90deg, var(--u-lime), var(--u-ink)) !important;
 }
 
-/* Featured / hero cards — ink with lime CTAs inside */
+/* Featured / hero cards - ink with lime CTAs inside */
 .hero-card.ink,
 .featured-card,
 .lesson-card.featured,
@@ -334,7 +334,7 @@ body:not(.board-page) .board-card::before,
   border-color: var(--u-lime-dark) !important;
 }
 
-/* Icon tiles inside cards — lime-tinted backgrounds */
+/* Icon tiles inside cards - lime-tinted backgrounds */
 .board-ic,
 .tool-icon,
 .feature-icon,
@@ -352,7 +352,7 @@ body:not(.board-page) .board-card::before,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   3. TABS, FILTERS, LEVEL PILLS — ink+lime active
+   3. TABS, FILTERS, LEVEL PILLS - ink+lime active
 ═══════════════════════════════════════════════════════════════ */
 
 /* Generic chips / filter pills */
@@ -380,7 +380,7 @@ body:not(.board-page) .board-card::before,
   color: var(--u-ink) !important;
 }
 
-/* "Lime-active" variant — when ink would be visually heavy */
+/* "Lime-active" variant - when ink would be visually heavy */
 .chip.active-lime,
 .sub-tab.active,
 .tag-btn.active {
@@ -390,7 +390,7 @@ body:not(.board-page) .board-card::before,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   4. SIDEBAR / NAV — ink+lime active state
+   4. SIDEBAR / NAV - ink+lime active state
 ═══════════════════════════════════════════════════════════════ */
 
 .sb-item.active,
@@ -411,7 +411,7 @@ body:not(.board-page) .board-card::before,
   background: var(--u-lime);
   border-radius: 0 3px 3px 0;
 }
-/* Dark sidebar variant — keep lime accent visible */
+/* Dark sidebar variant - keep lime accent visible */
 [data-theme="dark"] .sb-item.active,
 .sidebar.dark .sb-item.active {
   background: rgba(200, 230, 50, 0.12) !important;
@@ -419,7 +419,7 @@ body:not(.board-page) .board-card::before,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   5. STATUS BADGES & TAGS — neutralise pink "custom" tags
+   5. STATUS BADGES & TAGS - neutralise pink "custom" tags
 ═══════════════════════════════════════════════════════════════ */
 
 /* "My game" tag in community.html (inline pink) → neutral ink */
@@ -441,7 +441,7 @@ body:not(.board-page) .board-card::before,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   6. LESSON-PACKS — retire #E85D75 pink theme to ink+lime
+   6. LESSON-PACKS - retire #E85D75 pink theme to ink+lime
 ═══════════════════════════════════════════════════════════════ */
 
 /* Override accent stripes that used the pack accent variable */
@@ -466,7 +466,7 @@ body:not(.board-page) .board-card::before,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   7. PROGRESS BARS / FILLS — lime instead of pink-magenta
+   7. PROGRESS BARS / FILLS - lime instead of pink-magenta
 ═══════════════════════════════════════════════════════════════ */
 
 .lc-prog-fill,
@@ -481,7 +481,7 @@ body:not(.board-page) .board-card::before,
 /* .wg-today-prog-fill is already gradient pink→lime, keep it */
 
 /* ═══════════════════════════════════════════════════════════════
-   8. SEMANTIC PINK — preserved (do not touch these classes)
+   8. SEMANTIC PINK - preserved (do not touch these classes)
    • .dot-live              live status pulse
    • .di-dot, .tb-dot       notification badges
    • .mp-pulse.pink         live event pulse
@@ -494,16 +494,16 @@ body:not(.board-page) .board-card::before,
    • .badge.live, .badge-live
 ═══════════════════════════════════════════════════════════════ */
 
-/* Just make sure "today/now" still feels alive — current hour is pink */
+/* Just make sure "today/now" still feels alive - current hour is pink */
 .mp-tl-row.now .mp-tl-card,
 .cal-cell.now .cal-day,
 .day-pill.now,
 .mp-day.now {
-  /* Inherits from mobile-pro.css / harmony.css — pink stays */
+  /* Inherits from mobile-pro.css / harmony.css - pink stays */
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   9. DARK THEME — card surfaces stay consistent
+   9. DARK THEME - card surfaces stay consistent
 ═══════════════════════════════════════════════════════════════ */
 
 body:not(.board-page)[data-theme="dark"] .board-card,
@@ -518,7 +518,7 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   border-color: rgba(255, 255, 255, 0.08);
 }
 /* profile.html's .card hardcodes #1C1C1E text + card-title color via --text,
-   which was never repointed for dark mode — left it reading near-black text
+   which was never repointed for dark mode - left it reading near-black text
    on the new #2C2C2E card fill above. */
 [data-theme="dark"] .card,
 [data-theme="dark"] .card-title,
@@ -590,7 +590,7 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 }
 
 /* 1b. Community hero-card + share-card: force light on cream bg
-      (harmony.css @min-width:861 makes these dark glass — wrong on community)
+      (harmony.css @min-width:861 makes these dark glass - wrong on community)
       Note: .hero-inner .hero-card rule above has higher specificity and
       comes later → it overrides these light rules for teacher-tools pages. */
 @media (min-width: 861px) {
@@ -628,7 +628,7 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 }
 
 /* 2. Modal inputs (onboarding, settings): light regardless of OS dark mode.
-      Inline-styled inputs have no background — harmony gradient should apply,
+      Inline-styled inputs have no background - harmony gradient should apply,
       but OS dark mode can override before color-scheme propagates. Lock it. */
 #onboarding-overlay input,
 #onboarding-overlay textarea,
@@ -648,8 +648,8 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   color-scheme: light !important;
 }
 
-/* 3. GLOBAL: every native form control on the ENTIRE site renders light —
-      light field, dark text — regardless of OS dark mode or which page it's on.
+/* 3. GLOBAL: every native form control on the ENTIRE site renders light -
+      light field, dark text - regardless of OS dark mode or which page it's on.
       :root inherits no color-scheme, so native <select>/<textarea>/<input> would
       otherwise fall back to the OS scheme (dark) and render dark-on-dark. This is
       the single source of truth; intentionally-dark panels are exempted below and
@@ -670,7 +670,7 @@ select optgroup {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   POINT FIX — sb-item text on light backgrounds
+   POINT FIX - sb-item text on light backgrounds
    harmony.css @min-width:861px sets .sb-item to cream/light text
    (designed for dark board sidebar). Restore dark text on light-bg pages.
 ═══════════════════════════════════════════════════════════════ */
@@ -708,7 +708,7 @@ select optgroup {
    on the dark game-builder panels, and it kills the recurring dark-on-dark bug. */
 
 /* ═══════════════════════════════════════════════════════════════
-   POINT FIX — community board cards: reduce top stripe height
+   POINT FIX - community board cards: reduce top stripe height
    The lime→ink gradient stripe is too thick on community cards.
 ═══════════════════════════════════════════════════════════════ */
 
@@ -717,7 +717,7 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MOBILE FIX — btn-primary must be lime, not pink.
+   MOBILE FIX - btn-primary must be lime, not pink.
    harmony.css sets .btn-primary → var(--pink) which is wrong for
    action buttons like "Create course". unify.css wins the cascade.
 ═══════════════════════════════════════════════════════════════ */
@@ -751,7 +751,7 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DESKTOP FIXES — harmony.css @media(min-width:861px) forces
+   DESKTOP FIXES - harmony.css @media(min-width:861px) forces
    .sb-item-badge → pink. Override to lime. Also fix sch-view.active
    (schedule "Open full schedule" button) and the board search input.
 ═══════════════════════════════════════════════════════════════ */
@@ -785,7 +785,7 @@ body:not(.board-page) .board-card::before {
    LESSON CARD TEXT FIX
    harmony.css @media(min-width:861px) forces .lesson-card to a
    near-black background BUT only defines .lc-title/.lc-desc for
-   the text — courses.html uses .lc-name/.lc-num which keep their
+   the text - courses.html uses .lc-name/.lc-num which keep their
    dark ink color (#1C1C1E) → black on black = invisible.
    Fix: make those text nodes cream/white when inside dark cards.
 ═══════════════════════════════════════════════════════════════ */
@@ -807,7 +807,7 @@ body:not(.board-page) .board-card::before {
     background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
   }
 
-  /* ── .lc-lang language badge: harmony forces pink-on-pink — fix to lime ── */
+  /* ── .lc-lang language badge: harmony forces pink-on-pink - fix to lime ── */
   .lc-lang {
     background: rgba(200,230,50,0.16) !important;
     border-color: rgba(200,230,50,0.28) !important;
@@ -849,7 +849,7 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PROFILE PAGE — board card names & recent-boards names are
+   PROFILE PAGE - board card names & recent-boards names are
    near-invisible (inherit from a faint cascade chain).
    Pin them to solid ink.
 ═══════════════════════════════════════════════════════════════ */
@@ -862,7 +862,7 @@ body:not(.board-page) .board-card::before {
   color: #6E6E5C !important;
 }
 
-/* Profile board grid: Primary "Open" button — ink, not pink */
+/* Profile board grid: Primary "Open" button - ink, not pink */
 .bc-btn.primary {
   background: #0E0E10 !important;
   color: #F5F0E8 !important;
@@ -977,7 +977,7 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ISSUE 1 — WIN WINDOWS: LIGHT CREAM THEME
+   ISSUE 1 - WIN WINDOWS: LIGHT CREAM THEME
    harmony.css forces dark glass on .win, .win-sidebar, .win-main
    and all inner board cards. The user wants the OS windows to be
    light cream (matching the rest of the design language).
@@ -1125,7 +1125,7 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NAV USER CHIP — text visibility on dark nav
+   NAV USER CHIP - text visibility on dark nav
    harmony.css forces #nav dark glass globally (not inside @media).
    The .nav-user chip inherits dark text (--text2 = #3A3A2E) which
    is invisible on rgba(17,17,20,0.92). Force cream text to match
@@ -1168,7 +1168,7 @@ body:not(.board-page) .board-card::before {
   body:not(.os-desktop) .share-title {
     color: #1C1C1E !important;
   }
-  /* mp-board-card: harmony sets dark glass bg globally — restore on non-OS pages */
+  /* mp-board-card: harmony sets dark glass bg globally - restore on non-OS pages */
   body:not(.os-desktop) .mp-board-card:not(.dark):not(.lime) {
     background: #FFFFFF !important;
     border-color: rgba(14,14,16,0.08) !important;
@@ -1184,7 +1184,7 @@ body:not(.board-page) .board-card::before {
   }
 }
 
-/* ── Chrome autofill yellow override — auth overlay inputs ── */
+/* ── Chrome autofill yellow override - auth overlay inputs ── */
 /* When Chrome autofills email/password it forces a yellow bg that
    overrides our cream. Fake the bg with an inset box-shadow. */
 #os-auth-fields input:-webkit-autofill,
@@ -1198,21 +1198,21 @@ body:not(.board-page) .board-card::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ISSUE 3 — CONTENT JUMP PREVENTION
+   ISSUE 3 - CONTENT JUMP PREVENTION
    A) Mobile: pre-declare body padding-bottom so mobile-nav.js
       injection doesn't cause a layout shift (jitter).
    B) All pages: subtle fade-in on load to soften the flash
       when navigating between pages.
 ═══════════════════════════════════════════════════════════════ */
 
-/* A — Mobile nav padding pre-declare (kills jitter on all pages) */
+/* A - Mobile nav padding pre-declare (kills jitter on all pages) */
 @media (max-width: 860px) {
   body {
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
-/* B — Page fade-in: 180 ms softens the hard cut between pages */
+/* B - Page fade-in: 180 ms softens the hard cut between pages */
 @keyframes teachedPageIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -1343,7 +1343,7 @@ body.lesson-builder-page .chip.ok {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DESKTOP WIDGETS — LIGHT CARDS ON SPACE WALLPAPER
+   DESKTOP WIDGETS - LIGHT CARDS ON SPACE WALLPAPER
    Keep the space wallpaper, but make right-side widgets readable,
    soft and consistent with the light OS windows.
 ═══════════════════════════════════════════════════════════════ */
@@ -1431,7 +1431,7 @@ body.os-desktop .wg-vocab-next:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   FIX — native <select> rendered grey/dark on light pages
+   FIX - native <select> rendered grey/dark on light pages
    A native <select> with appearance:auto ignores its CSS background and
    paints in the OS theme, so on dark-mode browsers it showed up charcoal
    next to the white text inputs (Share board, tool forms, etc.). Force the
@@ -1455,7 +1455,7 @@ body:not(.board-page) select:not([multiple]):not(.module-select):not(.topic-ctl)
 }
 
 /* Game-builder panel selects now follow the same single light rule as the rest
-   of the site (white field, dark text) — the previous dark re-assertion was the
+   of the site (white field, dark text) - the previous dark re-assertion was the
    source of the recurring dark-on-dark dropdowns and has been retired. */
 body:not(.board-page) .topic-bar select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
 body:not(.board-page) .ink-panel select:not([data-a]):not([data-b]):not([data-c]):not([data-d]):not([data-e]),
@@ -1470,7 +1470,7 @@ body:not(.board-page) .topic-ctl select:not([data-a]):not([data-b]):not([data-c]
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   POLISH LAYER — app-wide smoothness & finish (2026)
+   POLISH LAYER - app-wide smoothness & finish (2026)
    Non-destructive: scoped with :where() (0 specificity) so any page rule
    still wins. Respects prefers-reduced-motion.
    ═══════════════════════════════════════════════════════════════════════ */
@@ -1517,7 +1517,7 @@ a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-hi
 img, svg, video, canvas{ }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   PERFORMANCE + MOTION PASS — desktop smoothness, mobile resilience
+   PERFORMANCE + MOTION PASS - desktop smoothness, mobile resilience
    Keeps the existing visual language, but cuts the expensive parts:
    huge live blurs, permanent will-change layers, layout-shifting hover
    effects, and grids/tables that overflow small screens.
@@ -2741,7 +2741,7 @@ body.board-page .mq-btn.active {
 }
 /* This is the rule that actually paints the board's top bar. #toolbar is
    declared twice in board.css as well, and both lose to these !important
-   declarations because unify.css loads last — so a blur "fixed" in board.css
+   declarations because unify.css loads last - so a blur "fixed" in board.css
    changes nothing on screen. Worth knowing before editing the other two. */
 body.board-page #toolbar {
   min-height: 54px !important;
@@ -2750,7 +2750,7 @@ body.board-page #toolbar {
   /* backdrop-filter on fixed chrome sitting over a canvas that pans and zooms
      means this strip is re-blurred every frame the board moves beneath it. At
      22px under a 94%-opaque background the blur was doing almost no visible
-     work — 6% of the backdrop reaches the eye — so the radius drops to
+     work - 6% of the backdrop reaches the eye - so the radius drops to
      something the compositor can afford. Opacity .9 -> .94 at the same time,
      since a smaller radius lets what does come through arrive sharper, and this
      is meant to read as a frosted edge rather than a window. */
@@ -2820,8 +2820,8 @@ body.board-page .empty-action.primary {
 
    Обе панели тёмные (так они держатся над розовым фоном и совпадают со
    строкой меню и доком), но правила для них лежали в harmony.css, а общее
-   правило «любой input — белый» живёт здесь. Этот файл грузится последним,
-   поэтому побеждал он: поле поиска оставалось белым, а текст в нём —
+   правило «любой input - белый» живёт здесь. Этот файл грузится последним,
+   поэтому побеждал он: поле поиска оставалось белым, а текст в нём -
    кремовым. То есть набранного не было видно вообще. Селекторы ниже
    привязаны к самой панели (#spotlight-overlay …), чтобы не зависеть от
    порядка файлов вообще.
@@ -2852,10 +2852,10 @@ body.board-page .empty-action.primary {
 #spotlight-overlay #spotlight-empty { color: rgba(245,240,232,.6) !important; }
 #spotlight-overlay .sp-result-kbd { background: rgba(245,240,232,.10) !important; color: rgba(245,240,232,.55) !important; }
 
-/* Панель уведомлений: граница и тень сильнее — без них тёмный прямоугольник
+/* Панель уведомлений: граница и тень сильнее - без них тёмный прямоугольник
    над светлыми виджетами читался как дырка в макете. Пустое состояние было
    почти невидимым. «Mark all read» был розовым, а розовый в этой системе
-   означает срочность — обычному действию положен лайм. */
+   означает срочность - обычному действию положен лайм. */
 #notif-panel {
   background: rgba(18,18,22,.97) !important;
   border: 1px solid rgba(245,240,232,.14) !important;
@@ -2867,7 +2867,7 @@ body.board-page .empty-action.primary {
 #notif-panel button, #notif-panel [class*="mark"] { color: #CDF24F !important; }
 #notif-panel [class*="item"] { border-bottom: 1px solid rgba(245,240,232,.08) !important; }
 
-/* Геометрия и краска панели уведомлений — здесь, одним местом. */
+/* Геометрия и краска панели уведомлений - здесь, одним местом. */
 #notif-panel {
   position: fixed; top: 40px; right: 10px; width: 330px; max-height: 440px;
   z-index: 1100; overflow: hidden; flex-direction: column; border-radius: 16px;
@@ -2928,7 +2928,7 @@ body.board-page .empty-action.primary {
 .plan-option-icon .ic, .mobile-profile-action-ic .ic { width: 22px; height: 22px; }
 
 /* ═══════════════════════════════════════════════════════════════
-   CALM UI PASS — neutral editorial controls
+   CALM UI PASS - neutral editorial controls
 
    The product needs one quiet visual language: warm surfaces, graphite
    actions and a restrained sage accent. Lime/pink remain available for
@@ -3112,13 +3112,13 @@ body:not(.board-page) :where(.chip.active, .tag-btn.active) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CALM UI PASS — the board
+   CALM UI PASS - the board
 
    The calm pass above deliberately stops at `body:not(.board-page)`, so the
    editor kept the old near-black chrome while the rest of the app moved to
    graphite. The board is fully tokenised on --accent, but unify's global
    `--accent:#0E0E10` (set on :root, and this file loads last) outranked
-   board.css's own value — so the retune has to land here, on body, to reach
+   board.css's own value - so the retune has to land here, on body, to reach
    the editor's descendants.
 ═══════════════════════════════════════════════════════════════ */
 body.board-page {
@@ -3172,9 +3172,9 @@ body.board-page :where(.mq-btn.primary, .tb-btn.primary, .ed-btn.primary) {
 
 /* Rename input + its hint: make the edit state obviously an input.
    harmony.css styles every bare `input` through an :is() list with !important
-   (46px tall, 17px radius, form borders) — that outranks a lone class, and a
+   (46px tall, 17px radius, form borders) - that outranks a lone class, and a
    46px field would also blow the 54px top bar apart. Its six :not([type=…])
-   clauses score (0,6,1), so no reasonable class chain outranks it — the id is
+   clauses score (0,6,1), so no reasonable class chain outranks it - the id is
    what wins here. */
 body.board-page input#board-rename-input.tb-rename-input {
   font-size: 14px !important;
@@ -3182,7 +3182,7 @@ body.board-page input#board-rename-input.tb-rename-input {
   font-family: var(--font) !important;
   color: var(--text, #22261F) !important;
   background: #fff !important;
-  /* Border and shadow stay with harmony's global form styling — it wins these
+  /* Border and shadow stay with harmony's global form styling - it wins these
      two even against an id, so declaring them here would just be dead CSS. */
   border-radius: 7px !important;
   padding: 4px 9px !important;
@@ -3215,7 +3215,7 @@ body.board-page .empty-action.primary {
   border-color: var(--accent) !important;
   color: #fff !important;
 }
-/* The primary empty-state action flipped to hot pink on hover — pink is
+/* The primary empty-state action flipped to hot pink on hover - pink is
    reserved for urgency, not for a routine "Open tools". */
 body.board-page .empty-action.primary:hover {
   background: #465047 !important;
@@ -3237,7 +3237,7 @@ body.board-page #empty-state::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CALM UI PASS — the OS desktop (index.html)
+   CALM UI PASS - the OS desktop (index.html)
 
    Same cascade trap as the board: index.html defines its own --accent on
    :root, and this file loads afterwards and overwrites it. Re-declare on
@@ -3252,7 +3252,7 @@ body.os-desktop {
 }
 
 /* Lesson-workspace hero, simplified.
-   It was a dark slab sitting inside an already-light window — a card inside a
+   It was a dark slab sitting inside an already-light window - a card inside a
    card, with an italic accent doing the work a plain heading does better. Same
    words, no container: a section header with one solid action and two quiet
    links, separated from the list by a hairline instead of a colour block. */

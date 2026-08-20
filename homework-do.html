@@ -437,7 +437,7 @@ async function submitAssignment() {
   if (!confirm('Submit this homework? Your teacher will receive your results.')) return;
   try {
     const r = await api('/api/homework/my/' + current.assignment.id + '/submit', { method: 'POST' });
-    toast(`✅ Submitted${typeof r.final_score === 'number' ? ' — score: ' + r.final_score : ''}`);
+    toast(`✅ Submitted${typeof r.final_score === 'number' ? ' - score: ' + r.final_score : ''}`);
     setTimeout(closeRunner, 1000);
   } catch (e) { toast('Error: ' + e.message); }
 }

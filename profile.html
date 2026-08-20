@@ -408,7 +408,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   /* #layout.mp-shell is an overflow/contain container that does NOT scroll
      (the window scrolls). That trapped this sticky strip so its top:52px
      offset applied at scroll=0, overlapping the hero by ~40px. The sticky
-     never actually engaged, so use static — clean layout, no false offset. */
+     never actually engaged, so use static - clean layout, no false offset. */
   #sidebar-tabs{
     position:static;
     z-index:160;
@@ -545,13 +545,13 @@ body.profile-page #nav .nav-link.active {
 }
 body.profile-page #nav .nav-logo-name { color: #1C1C1E !important; }
 body.profile-page #nav .nav-sep { background: rgba(94,94,74,.18) !important; }
-/* СВЕТЛАЯ ШАПКА — ЗНАЧИТ ТЁМНЫЙ ТЕКСТ, ВКЛЮЧАЯ ВЛОЖЕННЫЙ.
+/* СВЕТЛАЯ ШАПКА - ЗНАЧИТ ТЁМНЫЙ ТЕКСТ, ВКЛЮЧАЯ ВЛОЖЕННЫЙ.
 
-   Здесь красился только сам чип (.nav-user), а имя внутри него — отдельный
+   Здесь красился только сам чип (.nav-user), а имя внутри него - отдельный
    элемент со своим цветом: unify.css задаёт «#nav #nav-name { color:
    rgba(245,240,232,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
    с двумя id перебивало наследование. На профиле шапка светлая, поэтому имя
-   выходило кремовым по белому — «Teacher» читался только под углом.
+   выходило кремовым по белому - «Teacher» читался только под углом.
    Тот же класс ошибки, что был у поля поиска: правило для тёмной поверхности
    доживало до светлой. */
 body.profile-page #nav .nav-user {
@@ -565,7 +565,7 @@ body.profile-page #nav #nav-name,
 body.profile-page #nav .nav-user span:not(#nav-avatar) {
   color: #3A3A2E !important;
 }
-/* Инициал в кружке: лаймовый по светло-лаймовому — то же самое, только тише.
+/* Инициал в кружке: лаймовый по светло-лаймовому - то же самое, только тише.
    Тёмная буква на лаймовом кружке читается на любом фоне. */
 body.profile-page #nav #nav-avatar {
   background: #C8E632 !important;
@@ -860,9 +860,9 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
           <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')"></div>
         </div>
         <div style="flex:1;min-width:180px;">
-          <div id="profile-name-big">—</div>
-          <div id="profile-email-big">—</div>
-          <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">—</div>
+          <div id="profile-name-big">-</div>
+          <div id="profile-email-big">-</div>
+          <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">-</div>
           <div class="role-badge" id="profile-role-badge">Teacher</div>
         </div>
       </div>
@@ -870,10 +870,10 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
       <div class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Stats</div>
         <div class="stats-grid" id="stats-grid">
-          <div class="stat-card"><div class="stat-n" id="stat-boards">—</div><div class="stat-label">Total Boards</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-cards">—</div><div class="stat-label">Total Cards</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-since">—</div><div class="stat-label">Member since</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-sessions">—</div><div class="stat-label">Active sessions</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-since">-</div><div class="stat-label">Member since</div></div>
+          <div class="stat-card"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Active sessions</div></div>
         </div>
       </div>
 
@@ -997,7 +997,7 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
         <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(200,230,50,.05);">
           <div>
             <div class="setting-label" style="margin-bottom:4px;">Use computer time automatically</div>
-            <div style="font-size:12px;color:var(--text-3);">Detected zone: <span id="tz-detected-label">—</span></div>
+            <div style="font-size:12px;color:var(--text-3);">Detected zone: <span id="tz-detected-label">-</span></div>
           </div>
           <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
             <input id="set-tz-auto" type="checkbox" onchange="toggleTimeZoneMode(this.checked)">
@@ -1010,8 +1010,8 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
           <datalist id="timezone-options"></datalist>
         </div>
         <div style="font-size:12px;color:var(--text-3);line-height:1.7;">
-          <div>Saved zone: <span id="tz-current-label">—</span></div>
-          <div>Current local time there: <span id="tz-preview-time">—</span></div>
+          <div>Saved zone: <span id="tz-current-label">-</span></div>
+          <div>Current local time there: <span id="tz-preview-time">-</span></div>
         </div>
         <button class="setting-btn" onclick="saveTimeZoneSettings()" style="margin-top:14px;">Save Time Zone</button>
       </div>
@@ -1019,7 +1019,7 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
       <!-- Support -->
       <div class="card">
         <div class="card-title">Technical Support</div>
-        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Access, billing, PWA glitches, or classroom workflow trouble — send a prefilled WhatsApp message with your account and device context.</p>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Access, billing, PWA glitches, or classroom workflow trouble - send a prefilled WhatsApp message with your account and device context.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button class="setting-btn" type="button" onclick="window.openTeachSupport&&window.openTeachSupport('Profile settings support')">WhatsApp Tech Support</button>
           <a class="setting-btn secondary" href="mailto:hello@teachedos.app?subject=TeachEd%20support" style="text-decoration:none;display:inline-flex;align-items:center;">Email Support</a>
@@ -1081,9 +1081,9 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:monospace;font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
                 <button onclick="copyIBAN()" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);font-size:10px;font-weight:600;cursor:pointer;color:var(--text-2);">Copy</button>
               </div>
-              <div><strong>Plan:</strong> <span id="iban-plan-name">—</span></div>
-              <div><strong>Amount:</strong> <span id="iban-plan-price">—</span></div>
-              <div><strong>Cycle:</strong> <span id="iban-plan-cycle">—</span></div>
+              <div><strong>Plan:</strong> <span id="iban-plan-name">-</span></div>
+              <div><strong>Amount:</strong> <span id="iban-plan-price">-</span></div>
+              <div><strong>Cycle:</strong> <span id="iban-plan-cycle">-</span></div>
             </div>
             <div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.6;">
               After payment, enter your transaction details below. Admin will confirm the transfer and activate the tariff.

@@ -1,6 +1,6 @@
 /* TeachEd in-browser speech-to-text for Teacher Tools.
    Lazy-loads Whisper (via @xenova/transformers) only when a teacher uploads
-   an audio/video file, and exposes it as window._ttSTT. Fully local — no API
+   an audio/video file, and exposes it as window._ttSTT. Fully local - no API
    key, no upload to a server. Mirrors the WebLLM engine in teacher-tool-ai.js. */
 
 const STT_MODEL_ID = 'Xenova/whisper-tiny.en';

@@ -6,7 +6,7 @@ const base = path => new URL(path, self.registration.scope).pathname;
 // Install: skip pre-caching the full shell.
 // addAll(60+ files) was the root cause of silent install failures:
 // any single 4xx/5xx/network error aborts the install promise chain so
-// skipWaiting never runs and the new SW is discarded — users stay on the
+// skipWaiting never runs and the new SW is discarded - users stay on the
 // old version indefinitely. Resources are built up organically in the
 // fetch handler (network-first runtime caching) which is enough for
 // offline fallback after the first full visit.
@@ -89,7 +89,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
 
-  // API — always network. Returning stale auth/billing data is worse than a
+  // API - always network. Returning stale auth/billing data is worse than a
   // visible offline error.
   if (url.pathname.startsWith('/api/')) {
     e.respondWith(fetch(freshRequest(e.request)));
@@ -101,7 +101,7 @@ self.addEventListener('fetch', e => {
   const isHTML = e.request.mode === 'navigate' ||
     (e.request.headers.get('accept') || '').includes('text/html');
 
-  // Same-origin static assets — fresh-first for everything, including images
+  // Same-origin static assets - fresh-first for everything, including images
   // and fonts. The server already sends no-store on HTML; this makes SW behavior
   // match that contract across browsers and installed PWA shells.
   e.respondWith(networkFirst(e.request, isHTML));

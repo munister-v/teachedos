@@ -10,10 +10,10 @@ configuration checks are documented in [`DEPLOY.md`](DEPLOY.md).
 
 ## Structure
 
-- `index.html` — main OS shell
-- `games/` — interactive embedded modules
-- `scripts/` — app data, curriculum bindings, shared helpers, game data, and per-game logic in `scripts/games/`
-- `styles/` — extracted application styles plus shared game foundation
+- `index.html` - main OS shell
+- `games/` - interactive embedded modules
+- `scripts/` - app data, curriculum bindings, shared helpers, game data, and per-game logic in `scripts/games/`
+- `styles/` - extracted application styles plus shared game foundation
 
 ## Deploy to GitHub Pages
 

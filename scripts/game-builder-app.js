@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   game-builder-app.js — TeachEd Game Builder page logic
+   game-builder-app.js - TeachEd Game Builder page logic
    Extracted from the inline <script> block for HTTP/SW cacheability
    (loads after app-core.js + vocab-loader.js, same as before)
    ════════════════════════════════════════════════════════════════ */
@@ -961,7 +961,7 @@ function renderTopicBar() {
     bar.style.display = 'none';
     return;
   }
-  // Vocabulary dictionaries load on demand — fetch then re-render once ready
+  // Vocabulary dictionaries load on demand - fetch then re-render once ready
   if (!window.TEACHEDOS_VOCAB) {
     bar.style.display = 'none';
     ensureVocab().then(renderTopicBar).catch(() => { bar.style.display = 'none'; });
@@ -1513,17 +1513,17 @@ function _gbRegEscape(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'
 
 /* ── ГЕНЕРАЦИЯ ИГРЫ НАШИМИ МОДЕЛЯМИ ────────────────────────────────────────
 
-   «Smart fill» ниже — это подстановка из локальной библиотеки тем, а когда её
-   не хватает — скелет из десяти общих слов («challenge», «solution»…). Для
+   «Smart fill» ниже - это подстановка из локальной библиотеки тем, а когда её
+   не хватает - скелет из десяти общих слов («challenge», «solution»…). Для
    игры по конкретной теме и конкретному уровню это заметно: слова верные, но
-   не про то. При этом у нас есть движок, который умеет ровно это — с
+   не про то. При этом у нас есть движок, который умеет ровно это - с
    ограничениями CEFR (длина, частотная полоса, грамматика) и проверкой
    пригодности заданий.
 
    Здесь тот же endpoint, что и у конструктора уроков, и тот же уровень из
-   формы. Инструмент выбирается по тому, ЧТО игре нужно: пары «слово —
+   формы. Инструмент выбирается по тому, ЧТО игре нужно: пары «слово -
    перевод», список слов, предложения с пропуском, утверждения или вопросы с
-   вариантами. Если модель недоступна, ничего не ломается — остаётся прежняя
+   вариантами. Если модель недоступна, ничего не ломается - остаётся прежняя
    подстановка из библиотеки.                                                */
 const GB_TOOL_FOR_FIELDS = {
   pairs:      'word-translation-match',
@@ -1571,12 +1571,12 @@ async function aiFillGame() {
     renderContentFields(); populateContent({ content }); updateItemCounter(); refreshLivePreview(true);
     /* Честно говорим, чем собрано: страховочная модель и локальные шаблоны
        пишут заметно проще, и учитель должен видеть это до урока, а не на нём. */
-    const note = out.engine === 'rules' ? ' (offline templates — regenerate later)'
-      : out.engine === 'archive' ? ' (reused an earlier lesson — the model is unavailable)'
-      : out.engine === 'backup' ? ' (backup engine — regenerate later for sharper items)' : '';
+    const note = out.engine === 'rules' ? ' (offline templates - regenerate later)'
+      : out.engine === 'archive' ? ' (reused an earlier lesson - the model is unavailable)'
+      : out.engine === 'backup' ? ' (backup engine - regenerate later for sharper items)' : '';
     toast(`Filled ${level} content for “${topic}”${note}`);
   } catch (e) {
-    toast('AI is unavailable right now — using the topic library instead');
+    toast('AI is unavailable right now - using the topic library instead');
     autoFillGame();
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = label || 'Generate with AI'; }
@@ -2042,7 +2042,7 @@ let _previewMsgHandler = null;
 
    Игру можно было увидеть только модальным окном по кнопке «Preview»: правишь
    вслепую, открываешь, закрываешь, правишь снова. Для конструктора это главный
-   недостаток — редактор игры должен показывать игру.
+   недостаток - редактор игры должен показывать игру.
 
    Пересборка отложена на 550 мс после последней правки: игра при получении
    контента стартует заново (таймер, перемешивание), и пересобирать её на каждое
@@ -2073,7 +2073,7 @@ function refreshLivePreview(force) {
   const count = _liveItemCount(content);
   const min = 2;
   if (!content || count < min) {
-    stage.innerHTML = '<div class="gb-live-empty">Add at least two items — the game will play here.</div>';
+    stage.innerHTML = '<div class="gb-live-empty">Add at least two items - the game will play here.</div>';
     if (note) { note.textContent = ''; note.classList.remove('warn'); }
     _liveSignature = '';
     return;
@@ -2091,7 +2091,7 @@ function refreshLivePreview(force) {
   if (note) {
     const want = selectedType.minItems || 4;
     if (count < want) {
-      note.textContent = `${count} items — most classes need ${want}+ for this game.`;
+      note.textContent = `${count} items - most classes need ${want}+ for this game.`;
       note.classList.add('warn');
     } else {
       note.textContent = `${count} items · ${document.getElementById('game-level').value || 'B1'}`;
@@ -2137,7 +2137,7 @@ function _mountLiveGame(type, content, title, stage) {
   window.addEventListener('message', _liveMsgHandler);
 
   stage.appendChild(iframe);
-  // Игра нарисована в своих размерах — вписываем её в колонку, но не растягиваем
+  // Игра нарисована в своих размерах - вписываем её в колонку, но не растягиваем
   // сверх 1:1, иначе текст плывёт.
   requestAnimationFrame(() => {
     const avail = (stage.clientWidth || w) - 2;
@@ -2148,7 +2148,7 @@ function _mountLiveGame(type, content, title, stage) {
   });
 }
 
-/* Любая правка в области контента — повод пересобрать предпросмотр. Слушаем на
+/* Любая правка в области контента - повод пересобрать предпросмотр. Слушаем на
    контейнере, а не на полях: поля перерисовываются при смене типа игры и
    добавлении строк, и вешать обработчики на каждое означало бы терять их. */
 (function bindLivePreview() {
@@ -2280,7 +2280,7 @@ function switchTemplate(typeId) {
   return true;
 }
 
-/* "Also playable as" strip inside the builder — the same content, any template. */
+/* "Also playable as" strip inside the builder - the same content, any template. */
 function renderTemplateSwitcher() {
   const host = document.getElementById('template-switcher');
   if (!host) return;

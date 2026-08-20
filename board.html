@@ -386,7 +386,7 @@
   </button>
   <div id="auth-chip" class="tb-auth-chip" style="display:none;" onclick="showUserMenu()">
     <span id="auth-avatar" class="tb-auth-avatar">🧑‍🏫</span>
-    <span id="auth-name">—</span>
+    <span id="auth-name">-</span>
     <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.6;flex-shrink:0;"><path d="M4 6l4 4 4-4"/></svg>
   </div>
   <div id="auth-login-btn" class="tb-btn text" onclick="openAuthModal('login')" style="color:var(--accent);border-color:var(--accent);">Sign in</div>
@@ -469,7 +469,7 @@
     <div class="more-phone-nav more-account" id="more-account">
       <span class="more-account-av" id="more-account-av">🧑‍🏫</span>
       <span class="more-account-info">
-        <span class="more-account-name" id="more-account-name">—</span>
+        <span class="more-account-name" id="more-account-name">-</span>
         <span class="more-account-email" id="more-account-email"></span>
       </span>
     </div>
@@ -621,7 +621,7 @@
   <button class="mt-btn" id="mt-pen" aria-label="Pen / highlighter / eraser (P)" data-tip="Pen / highlighter / eraser (P)" onclick="openUnifiedDrawMenu(event)">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.5l3 3L5.5 15.5h-3v-3z"/><path d="M10.5 4.5l3 3"/></svg>
   </button>
-  <!-- 8b. Marker / Highlighter — distinct silhouette: chisel tip + bright accent stripe -->
+  <!-- 8b. Marker / Highlighter - distinct silhouette: chisel tip + bright accent stripe -->
   <button class="mt-btn mt-marker" id="mt-marker" aria-label="Highlighter" data-tip="Highlighter" onclick="toggleDrawTool('marker', event)" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <!-- highlighter body -->
@@ -646,10 +646,10 @@
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><circle cx="6.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.5" r=".9" fill="currentColor"/><path d="M6 11c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg>
   </button>
   <!-- 11. Comment -->
-  <button class="mt-btn" id="mt-comment" aria-label="Comment — click canvas to add" data-tip="Comment — click canvas to add" onclick="toggleCommentMode()">
+  <button class="mt-btn" id="mt-comment" aria-label="Comment - click canvas to add" data-tip="Comment - click canvas to add" onclick="toggleCommentMode()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h13v9H7l-3.5 3v-12z"/></svg>
   </button>
-  <!-- 11b. Games Hub — one click instead of buried in "+ More tools" -->
+  <!-- 11b. Games Hub - one click instead of buried in "+ More tools" -->
   <button class="mt-btn" id="mt-games" aria-label="Games Hub (G)" data-tip="Games Hub (G)" onclick="openGamesModal()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="5.5" width="15" height="8" rx="4"/><path d="M5.5 9h-2M4.5 8v2"/><circle cx="11.5" cy="8" r=".75" fill="currentColor" stroke="none"/><circle cx="13.5" cy="10" r=".75" fill="currentColor" stroke="none"/></svg>
   </button>
@@ -669,7 +669,7 @@
   <button id="mt-fit" style="display:none;" onclick="document.getElementById('btn-fit').click()"></button>
 </div>
 
-<!-- More tools popover — anchored to the + button -->
+<!-- More tools popover - anchored to the + button -->
 <div id="mt-more-pop" role="menu" aria-hidden="true">
   <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span><span class="mtm-lbl">Table</span></button>
@@ -684,7 +684,7 @@
   <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-trash"/></svg></span><span class="mtm-lbl">Clear drawing</span></button>
 </div>
 
-<!-- SHAPE PANEL — Miro-style: list of connectors + shapes with labels + shortcuts -->
+<!-- SHAPE PANEL - Miro-style: list of connectors + shapes with labels + shortcuts -->
 <div id="shape-panel">
   <!-- Connectors first (Line / Arrow / Elbow / Block Arrow) -->
   <button class="sp-row" onclick="_startConnectorFromPanel('straight')">
@@ -753,7 +753,7 @@
   </div>
 </div>
 
-<!-- FRAME PANEL — preset aspect ratios -->
+<!-- FRAME PANEL - preset aspect ratios -->
 <div id="frame-panel">
   <div class="fp-title">Frame</div>
   <div class="fp-grid">
@@ -1131,7 +1131,7 @@ polite request</textarea>
   <div class="yt-modal-card">
     <div class="yt-modal-head">
       <div><div class="yt-modal-title">🎬 YouTube → Lesson</div>
-      <div class="yt-modal-sub">Paste a video link — TeachEd pulls the transcript and builds a full set of exercises on the board.</div></div>
+      <div class="yt-modal-sub">Paste a video link - TeachEd pulls the transcript and builds a full set of exercises on the board.</div></div>
       <button class="yt-modal-close" onclick="closeYtLesson()" aria-label="Close">×</button>
     </div>
     <label class="yt-modal-label" for="yt-lesson-url">Video link</label>
@@ -1302,7 +1302,7 @@ polite request</textarea>
 
 <!-- Context menu -->
 <div id="ctx-menu">
-  <!-- Image clipboard actions — pinned at top, only visible when applicable -->
+  <!-- Image clipboard actions - pinned at top, only visible when applicable -->
   <div class="ctx-item" id="ctx-paste-image" style="display:none;">📥 Paste image here</div>
   <div class="ctx-item" id="ctx-copy-image"  style="display:none;">📋 Copy image</div>
   <div class="ctx-sep"  id="ctx-image-sep"   style="display:none;"></div>
@@ -1334,7 +1334,7 @@ polite request</textarea>
   <div class="ctx-arrow-style" id="ctx-arrow-style-wrap">
     <div class="ctx-arrow-style-row">
       <span class="ctx-arrow-style-lbl">Line</span>
-      <button class="ctx-arrow-style-btn" id="cas-solid" onclick="setArrowStyle('solid')">—</button>
+      <button class="ctx-arrow-style-btn" id="cas-solid" onclick="setArrowStyle('solid')">-</button>
       <button class="ctx-arrow-style-btn" id="cas-dashed" onclick="setArrowStyle('dashed')">- -</button>
       <button class="ctx-arrow-style-btn" id="cas-dotted" onclick="setArrowStyle('dotted')">···</button>
     </div>
@@ -1343,7 +1343,7 @@ polite request</textarea>
       <button class="ctx-arrow-style-btn" id="cad-forward" onclick="setArrowDir('forward')">→</button>
       <button class="ctx-arrow-style-btn" id="cad-both" onclick="setArrowDir('both')">↔</button>
       <button class="ctx-arrow-style-btn" id="cad-backward" onclick="setArrowDir('backward')">←</button>
-      <button class="ctx-arrow-style-btn" id="cad-none" onclick="setArrowDir('none')">—</button>
+      <button class="ctx-arrow-style-btn" id="cad-none" onclick="setArrowDir('none')">-</button>
     </div>
     <div class="ctx-arrow-style-row">
       <span class="ctx-arrow-style-lbl">Path</span>
@@ -1437,7 +1437,7 @@ polite request</textarea>
 
     <div id="upgrade-proof">⭐️⭐️⭐️⭐️⭐️ Loved by 12,000+ teachers worldwide</div>
 
-    <button id="upgrade-cta" onclick="goToUpgrade()">Upgrade to Pro — get 33% off →</button>
+    <button id="upgrade-cta" onclick="goToUpgrade()">Upgrade to Pro - get 33% off →</button>
     <button id="upgrade-later" onclick="closeUpgradeModal()">Maybe later</button>
     <div id="upgrade-fineprint">Cancel anytime · Secure payment · Instant activation</div>
   </div>
@@ -1457,7 +1457,7 @@ polite request</textarea>
   <div id="lesson-present-card"></div>
 </div>
 
-<!-- FULL-BOARD PRESENT MODE — floating controls; the board itself zooms slide-to-slide -->
+<!-- FULL-BOARD PRESENT MODE - floating controls; the board itself zooms slide-to-slide -->
 <div id="board-present-bar" aria-hidden="true">
   <button class="bp-btn" id="bp-prev" title="Previous (←)" onclick="presentPrev()" aria-label="Previous slide">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4l-6 6 6 6"/></svg>
@@ -1825,7 +1825,7 @@ polite request</textarea>
   </div>
 </div>
 
-<!-- DRAWING TOOL PALETTE — Miro-style vertical column flyout -->
+<!-- DRAWING TOOL PALETTE - Miro-style vertical column flyout -->
 <div id="draw-palette" class="draw-palette" role="menu" aria-hidden="true">
   <!-- Tool icons (vertical column like Miro) -->
   <button class="dp-tool" data-tool="pen" onclick="chooseDrawTool('pen')" title="Pen (P)">
@@ -1889,7 +1889,7 @@ polite request</textarea>
 </div>
 
 <!-- STICKER / EMOJI / GIF PICKER -->
-<!-- Sticky notes palette — Miro-style colors flyout -->
+<!-- Sticky notes palette - Miro-style colors flyout -->
 <div id="sticky-palette" aria-label="Sticky note colors">
   <div class="sticky-color-grid" id="sticky-color-grid"></div>
   <button class="sticky-palette-action" type="button" onclick="addStickyStack()">
@@ -1903,7 +1903,7 @@ polite request</textarea>
   </button>
 </div>
 
-<!-- Sticker side panel — anchored next to the Sticker icon in the left tray (Miro-style flyout) -->
+<!-- Sticker side panel - anchored next to the Sticker icon in the left tray (Miro-style flyout) -->
 <div id="sticker-panel">
   <div class="sp-head">
     <span>
@@ -1978,7 +1978,7 @@ polite request</textarea>
 
 <!-- OFFLINE BANNER -->
 <div id="offline-banner">
-  <span>📡</span><span>Offline — saving locally, will sync when reconnected</span>
+  <span>📡</span><span>Offline - saving locally, will sync when reconnected</span>
 </div>
 
 <!-- CONFLICT BANNER -->

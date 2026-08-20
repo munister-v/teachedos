@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   nav-boost.js — smooth + fast cross-page navigation for TeachEd PWA
+   nav-boost.js - smooth + fast cross-page navigation for TeachEd PWA
 
    Strategies:
    • Prefetch HTML on hover/touchstart (≤80ms before click → cache warm)
@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  // Keep navigation reliably tappable on touch screens. The old 32–36px
+  // Keep navigation reliably tappable on touch screens. The old 32-36px
   // macOS-style targets were easy to miss, especially on Homework/Schedule.
   const navStyle = document.createElement('style');
   navStyle.textContent = `
@@ -56,7 +56,7 @@
     try {
       const u = new URL(a.href, location.href);
       if (u.origin !== SAME_ORIGIN) return false;
-      // strip hash — same page anchor
+      // strip hash - same page anchor
       if (u.pathname === location.pathname && u.search === location.search) return false;
       return u;
     } catch { return false; }
@@ -67,7 +67,7 @@
     const key = url.pathname + url.search;
     if (PREFETCHED.has(key)) return;
     PREFETCHED.add(key);
-    // Prefer <link rel=prefetch> — cheap, browser-managed, low priority
+    // Prefer <link rel=prefetch> - cheap, browser-managed, low priority
     const l = document.createElement('link');
     l.rel = 'prefetch';
     l.href = url.href;
@@ -161,7 +161,7 @@
   if (document.readyState === 'complete') finishBar();
   else window.addEventListener('load', finishBar);
 
-  // ── View Transitions (cross-document) — Chrome 126+ ──────────
+  // ── View Transitions (cross-document) - Chrome 126+ ──────────
   // Opt-in via a tiny CSS injection so transitions animate page swaps
   const reducedMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;

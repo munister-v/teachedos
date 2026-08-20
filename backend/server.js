@@ -46,7 +46,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Stripe webhook needs raw body — must be before express.json()
+// Stripe webhook needs raw body - must be before express.json()
 app.post('/api/billing/webhook',
   express.raw({ type: 'application/json' }),
   require('./routes/billing').handleWebhook
@@ -123,14 +123,14 @@ async function main() {
     try { await migrate(); }
     catch (err) { console.error('[startup] migration error (continuing):', err.message); }
   } else {
-    console.warn('[startup] DATABASE_URL not set — DB features disabled until env var is added');
+    console.warn('[startup] DATABASE_URL not set - DB features disabled until env var is added');
   }
 
   server.listen(PORT, () => {
     console.log(`[server] TeachedOS API running on port ${PORT}`);
   });
 
-  // Deadline reminder job — runs every hour
+  // Deadline reminder job - runs every hour
   if (process.env.DATABASE_URL) {
     const { scheduleDeadlineReminders } = require('./jobs/deadlineReminders');
     scheduleDeadlineReminders();

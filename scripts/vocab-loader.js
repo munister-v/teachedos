@@ -1,4 +1,4 @@
-/* TeachEd — lazy loader for the heavy vocabulary library (~81 KB).
+/* TeachEd - lazy loader for the heavy vocabulary library (~81 KB).
  * The vocabulary dictionaries are only needed when a teacher actually uses
  * "Generate / Load from topic", so we defer the download until first use
  * instead of blocking initial page paint.

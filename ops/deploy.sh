@@ -38,7 +38,7 @@ if [[ -d "$BACKEND" ]]; then
     -C "$(dirname "$BACKEND")" -czf "$BACKUP_DIR/backend.tgz" "$(basename "$BACKEND")"
 fi
 
-log "new commit $REMOTE (deployed: $DEPLOYED) — deploying with clean sync"
+log "new commit $REMOTE (deployed: $DEPLOYED) - deploying with clean sync"
 git reset --hard --quiet "$REMOTE"
 
 # Backend runtime keeps only its secret env, dependencies and database data.
@@ -74,7 +74,7 @@ rsync -a --delete --delete-excluded \
     done
     log "minified $count frontend assets"
   else
-    log "esbuild missing at $ESBUILD — frontend served unminified"
+    log "esbuild missing at $ESBUILD - frontend served unminified"
   fi
 ) || log "minify step error (continuing deploy)"
 

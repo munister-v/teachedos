@@ -96,7 +96,7 @@ function start(){
     document.getElementById('prompt').textContent='Vocabulary library not available.';
     return;
   }
-  document.getElementById('topicLabel').textContent = topicMeta.name+' — pick the matching word';
+  document.getElementById('topicLabel').textContent = topicMeta.name+' - pick the matching word';
   buildQuestions();
   idx=0; score=0;
   document.getElementById('score').textContent=0;
@@ -145,13 +145,13 @@ function answer(opt,btn){
   if(ok){
     score++;
     btn.classList.add('correct-flash');
-    document.getElementById('feedback').textContent='✓ '+q.answer.en+' — '+q.answer.ex;
+    document.getElementById('feedback').textContent='✓ '+q.answer.en+' - '+q.answer.ex;
   } else {
     btn.classList.add('wrong-flash');
     [...document.querySelectorAll('.opt')].forEach(b=>{
       if(b.textContent.includes(q.answer.en)) b.classList.add('correct-flash');
     });
-    document.getElementById('feedback').textContent='✗ Correct: '+q.answer.en+' — '+q.answer.ex;
+    document.getElementById('feedback').textContent='✗ Correct: '+q.answer.en+' - '+q.answer.ex;
   }
   document.getElementById('score').textContent=score;
   window.parent.postMessage({type:'teachedos-score',score:score},'*');

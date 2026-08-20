@@ -368,7 +368,7 @@ async function ibanActivateHandler(req, res) {
 
     // Mark user plan_status as 'pending' so the UI immediately reflects the
     // pending state (the auth middleware won't auto-revert because plan is still
-    // 'free' or the current plan — only plan_status changes).
+    // 'free' or the current plan - only plan_status changes).
     await pool.query(
       `UPDATE users SET plan_status='pending' WHERE id=$1 AND plan_status IN ('free','expired','canceled','rejected')`,
       [req.user.id]

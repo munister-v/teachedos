@@ -4,7 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// GET /api/notifications — get user's notifications
+// GET /api/notifications - get user's notifications
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -50,7 +50,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Internal helper — create notification (used by other routes)
+// Internal helper - create notification (used by other routes)
 async function createNotification(userId, type, title, body, link) {
   try {
     await pool.query(

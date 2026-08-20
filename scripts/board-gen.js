@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
-   TeachEd — local teacher-tool GENERATION engine (PILOT heuristic generators).
+   TeachEd - local teacher-tool GENERATION engine (PILOT heuristic generators).
    Extracted from board-app.js and loaded ON DEMAND (only when a teacher first
    generates), via _ensureGenLoaded() in board-app.js. Keeps the core board
-   bundle smaller/faster to parse. Classic script — globals, no module.
+   bundle smaller/faster to parse. Classic script - globals, no module.
    Shared helpers _ttShuffle / _ttHideRetry / _ttEstWorksheetHeight stay in
    board-app.js (also used by core), so this file references them as globals.
    ════════════════════════════════════════════════════════════════════ */
@@ -13,7 +13,7 @@
    - true-false  → assignment (Quiz) with True/False statements + key
    - extract-vocab → a frame of real vocab cards (word + example from text)
    Anything else falls back to the legacy template generator below.        */
-// All 62 tools covered — specific generators for quality ones, _ttGenScaffold for the rest.
+// All 62 tools covered - specific generators for quality ones, _ttGenScaffold for the rest.
 const TT_PILOT_TOOLS = Object.fromEntries(
   (typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS : []).map(t => [t.id, 1])
 );
@@ -35,7 +35,7 @@ function _ttBlank(sentence, word){
 
 /* Turn a true sentence into one the text contradicts.
 
-   Swapping in a random word of similar length — what true/false used to do —
+   Swapping in a random word of similar length - what true/false used to do -
    fails twice over. It can land on something still true ("the council invested
    in new buses" -> "in new plans"), and the replacement was passed through
    _ttCap(), which capitalises mid-sentence: every false item carried a stray
@@ -85,7 +85,7 @@ function _ttFalsify(sentence){
     if (swapped !== raw) return s.replace(new RegExp('\\b' + raw + '\\b'), swapped);
   }
 
-  // Negate an auxiliary — grammatical, unlike dropping "not" before a main
+  // Negate an auxiliary - grammatical, unlike dropping "not" before a main
   // verb. Skipped on an already-negative sentence, where a second negative
   // turns the item into a grammar puzzle and often restores the meaning.
   if (!/\bnot\b|n['’]t\b|\bno\b|\bnever\b/i.test(s)) {
@@ -98,8 +98,8 @@ function _ttFalsify(sentence){
   return null;
 }
 
-// Build (sentence, target-word) pairs — up to `perSentence` different content
-// words per sentence — so a short text still yields many distinct questions
+// Build (sentence, target-word) pairs - up to `perSentence` different content
+// words per sentence - so a short text still yields many distinct questions
 // (each blanks a different word). Interleaved so variety comes first.
 function _ttSentenceTargets(sents, perSentence = 3){
   const rows = sents.map(s => ({ s, ws: _ttContentWords(s).sort((a,b)=>b.length-a.length).slice(0, perSentence) }));
@@ -151,7 +151,7 @@ function _ttGenTrueFalse(input){
       questions.push({ type:'truefalse', text:s, answer:true, points:1 });
     } else {
       // Provable contradiction first. Only if the sentence carries nothing to
-      // mutate do we fall back to the word swap — and that swap now keeps the
+      // mutate do we fall back to the word swap - and that swap now keeps the
       // replaced word's own case instead of capitalising mid-sentence.
       const falsified = _ttFalsify(s);
       const repl = pool.find(w => w !== target && Math.abs(w.length - (target ? target.length : 0)) <= 3 && !s.toLowerCase().includes(w));
@@ -159,7 +159,7 @@ function _ttGenTrueFalse(input){
         questions.push({ type:'truefalse', text:falsified, answer:false, points:1 });
       } else if (target && repl) {
         // Case comes from the word as it appears in the sentence, not from
-        // `target` — that is always lower-cased, so keying off it would strip
+        // `target` - that is always lower-cased, so keying off it would strip
         // the capital from a word standing at the start of the sentence.
         const re = new RegExp('\\b' + target.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i');
         const shown = s.replace(re, (found) => _ttMatchCase(found, repl));
@@ -390,7 +390,7 @@ function _ttGenLinkWords(input){
   return { boardKind:'cards', kind:'Link Words', cat:'writing', level:input.level, topic:input.topic,
     title:`${input.level} · Link Words: ${input.topic}`,
     cards:[
-      { title:'Task', text:`Write a short paragraph (50–80 words) about "${input.topic||'the topic'}" using ALL the words in the list. Underline each word when you use it.` },
+      { title:'Task', text:`Write a short paragraph (50-80 words) about "${input.topic||'the topic'}" using ALL the words in the list. Underline each word when you use it.` },
       { title:'Word list', text:wordList },
       { title:'Model answer', text:'[AI will fill a model paragraph using all the words above]' },
     ] };
@@ -442,8 +442,8 @@ function _ttCountItems(out){
   if (Array.isArray(out.items)) return out.items.length;
   // Card-based tools (reading text, summary, grammar rules…) wrap a small set of
   // STRUCTURAL cards (text / glossary / before / after) around a larger set of
-  // teachable items. Report the meaningful count — the glossary/vocab — instead
-  // of the 3–4 wrapper cards, so "12 items" never shows up as "4". Only when the
+  // teachable items. Report the meaningful count - the glossary/vocab - instead
+  // of the 3-4 wrapper cards, so "12 items" never shows up as "4". Only when the
   // vocab list is genuinely larger than the card count (i.e. the cards are
   // wrappers, not the content themselves, as in flashcards).
   const cards = Array.isArray(out.cards) ? out.cards.length : 0;
@@ -591,7 +591,7 @@ function _ttGenGapsBrackets(input){
     if (questions.length >= input.count) break;
     // gap-fill, не open: текст уже несе пропуск від _ttBlank і має answer, а
     // картка для 'open' малює лінійки для письма й до q.answer не звертається
-    // взагалі — ключ мовчки губився. Та сама пастка, що й у reading-bits.
+    // взагалі - ключ мовчки губився. Та сама пастка, що й у reading-bits.
     questions.push({ type:'gap-fill',
       text:`Use the word in the correct form:\n"${_ttBlank(s,target)}"  (${target.toUpperCase()})`,
       answer:target, points:1 });
@@ -671,11 +671,11 @@ function _ttGenTenseContrast(input){
     // so we ask students to identify it (open) instead of asserting a fixed,
     // often-wrong MCQ answer. The AI upgrade produces graded gap MCQs.
     questions.push({ type:'open',
-      text:`Which tense is used here — ${tA} or ${tB}? Underline the verb and explain why.\n"${s}"`,
+      text:`Which tense is used here - ${tA} or ${tB}? Underline the verb and explain why.\n"${s}"`,
       points:1 });
   }
   if (!questions.length){
-    // No source text — open writing prompt
+    // No source text - open writing prompt
     questions.push({ type:'open',
       text:`Write 3 sentences using the ${tA} and 3 using the ${tB} about "${input.topic || 'the topic'}". Explain in one line why you chose each tense.`,
       points:4 });
@@ -697,7 +697,7 @@ function _ttGenGistDetail(input){
   questions.push({ type:'mcq', text:'What is the main topic of this text?',
     options:_ttShuffle([_ttCap(gt),...gDistract]), answer:_ttCap(gt), points:1 });
   // Detail questions scaled to the requested count (a short text shouldn't yield
-  // only 2 questions). This is an instant local DRAFT — the AI upgrade turns most
+  // only 2 questions). This is an instant local DRAFT - the AI upgrade turns most
   // of these into detail MCQs; here they are open prompts cycling the key words.
   const detailT = ['What does the text say about _____?','Why is _____ important here?',
     'How is _____ described in the text?','What happens to _____?',
@@ -714,7 +714,7 @@ function _ttGenGistDetail(input){
 
 /* ── discussion questions (speaking) ────────────────────────────── */
 function _ttGenDiscussion(input){
-  // The "word" here is a vocabulary item (lexis), not a discussion subject —
+  // The "word" here is a vocabulary item (lexis), not a discussion subject -
   // so frame each question around the TOPIC and ask students to USE the word,
   // shown lowercased and quoted. This avoids clumsy, mis-capitalised phrasing
   // like "Have you ever experienced anything related to Complaint?".
@@ -751,11 +751,11 @@ function _ttGenDiscussion(input){
 function _ttGenQuestionLadder(input){
   // One 5-rung ladder per subject; add subjects until we reach input.count rungs.
   const rungs = [
-    w => ({ type:'open', text:`Level 1 — Factual: What is ${w}? Give a short definition.`, points:1 }),
-    w => ({ type:'open', text:`Level 2 — Descriptive: What is ${w} like? Describe it in 2–3 sentences.`, points:1 }),
-    w => ({ type:'open', text:`Level 3 — Analytical: Why does ${w} happen / exist? Explain the reason.`, points:2 }),
-    w => ({ type:'open', text:`Level 4 — Evaluative: Is ${w} positive or negative overall? Give evidence.`, points:2 }),
-    w => ({ type:'open', text:`Level 5 — Personal: How does ${w} affect you or your community?`, points:3 }),
+    w => ({ type:'open', text:`Level 1 - Factual: What is ${w}? Give a short definition.`, points:1 }),
+    w => ({ type:'open', text:`Level 2 - Descriptive: What is ${w} like? Describe it in 2-3 sentences.`, points:1 }),
+    w => ({ type:'open', text:`Level 3 - Analytical: Why does ${w} happen / exist? Explain the reason.`, points:2 }),
+    w => ({ type:'open', text:`Level 4 - Evaluative: Is ${w} positive or negative overall? Give evidence.`, points:2 }),
+    w => ({ type:'open', text:`Level 5 - Personal: How does ${w} affect you or your community?`, points:3 }),
   ];
   const pool = _ttContentPool(input);
   const subjects = pool.length ? pool : [input.topic || 'the topic'];
@@ -798,7 +798,7 @@ function _ttGenDebate(input){
    Ці п'ять інструментів досі падали в _ttGenScaffold, а він роздає картки
    по КАТЕГОРІЇ, не по інструменту. Тобто «Lead-in», «Interesting Facts» і
    «Pros and Cons» повертали один і той самий текст про «Preparation (1 min)»
-   — три різні кнопки з однаковим результатом. Тут у кожного своя форма.
+   - три різні кнопки з однаковим результатом. Тут у кожного своя форма.
 
    Свідомо не вигадуємо фактів і думок за вчителя: локальний генератор не
    знає нічого про тему, тож усе, що виглядає як зміст, або взяте з
@@ -825,26 +825,26 @@ function _ttGenLeadIn(input){
 function _ttGenInterestingFacts(input){
   const topic=input.topic||'the topic';
   // З фактами обережно: вигадувати їх локально не можна. Якщо вчитель вставив
-  // текст — беремо речення з нього, це справжній матеріал. Якщо ні — даємо
+  // текст - беремо речення з нього, це справжній матеріал. Якщо ні - даємо
   // рамки під факти, а не вигадані «цікавинки».
   const sents = String(input.source||'').trim()
     ? teacherToolSourceSentences(input.source, topic, 30).filter(s=>s.split(/\s+/).length>=6).slice(0,4)
     : [];
   const factCard = sents.length
     ? { title:'Facts from the text', text:sents.map((s,i)=>`${i+1}. ${s}`).join('\n') }
-    : { title:'Facts (fill in before class)', text:`1. ____________________ about ${topic}\n2. ____________________\n3. ____________________\n\nOne of them should be false — students guess which.` };
+    : { title:'Facts (fill in before class)', text:`1. ____________________ about ${topic}\n2. ____________________\n3. ____________________\n\nOne of them should be false - students guess which.` };
   return { boardKind:'cards', kind:'Facts', cat:'speaking', level:input.level, topic,
     title:`${input.level} · Interesting Facts: ${topic}`,
     cards:[
       factCard,
-      { title:'React to each fact', text:'Choose one line for every fact and say why:\n• That surprises me because…\n• I already knew that, but…\n• I doubt that — I think…' },
+      { title:'React to each fact', text:'Choose one line for every fact and say why:\n• That surprises me because…\n• I already knew that, but…\n• I doubt that - I think…' },
       { title:'Two truths and a lie', text:`In groups of three: each student says three statements about ${topic}, two true and one false.\nThe others guess the false one and explain their reasoning.` },
     ]};
 }
 
 function _ttGenProsCons(input){
   const topic=input.topic||'the topic';
-  // Перші три слова тексту — це майже завжди сама тема ("Remote, Work, Grew"),
+  // Перші три слова тексту - це майже завжди сама тема ("Remote, Work, Grew"),
   // тобто підказка ні про що. Викидаємо слова з теми і беремо найдовші: без
   // розбору частин мови це найдешевший спосіб дістати саме змістовні слова
   // (productivity, colleagues), а не службові.
@@ -868,7 +868,7 @@ function _ttGenProsCons(input){
 function _ttGenCommSituations(input){
   const ws=_ttContentPool(input).filter(Boolean);
   // Інструмент побудований навколо слів учителя. Без них це просто рольова
-  // гра, яка вже є окремим інструментом, тож повертаємо null — хай впаде далі.
+  // гра, яка вже є окремим інструментом, тож повертаємо null - хай впаде далі.
   if (ws.length < 3) return null;
   const topic=input.topic||'the topic';
   const per = Math.max(2, Math.ceil(ws.length / 3));
@@ -898,10 +898,10 @@ function _ttGenFourOpinions(input){
     ['Dan', 'has not decided', 'and asks a question instead'],
   ];
   const cards = VOICES.map(([name,stance,note])=>({
-    title:`${name} — ${stance}`,
+    title:`${name} - ${stance}`,
     text:`"____________________________________________"\n(${note})\nOn: ${topic}`,
   }));
-  cards.push({ title:'Your response', text:`Whose opinion is closest to yours, and whose is furthest? Say why.\nWrite a reply to ONE of them in 80–100 words: name the opinion, agree or disagree, give a reason and an example.` });
+  cards.push({ title:'Your response', text:`Whose opinion is closest to yours, and whose is furthest? Say why.\nWrite a reply to ONE of them in 80-100 words: name the opinion, agree or disagree, give a reason and an example.` });
   return { boardKind:'cards', kind:'Four Opinions', cat:'writing', level:input.level, topic,
     title:`${input.level} · Four Opinions: ${topic}`, cards };
 }
@@ -918,15 +918,15 @@ function _ttGenCreativeWriting(input){
     title:`${input.level} · Creative Writing: ${topic}`,
     cards:[
       { title:'Word bank (all of them must appear)', text:must.join(' · ') },
-      { title:'Prompt A · a scene', text:`Write about a moment connected to "${topic}" where something goes wrong.\nStart in the middle of the action, not with the background.\n120–150 words.` },
+      { title:'Prompt A · a scene', text:`Write about a moment connected to "${topic}" where something goes wrong.\nStart in the middle of the action, not with the background.\n120-150 words.` },
       { title:'Prompt B · a voice', text:`Someone who disagrees with the usual view of "${topic}" writes a short message explaining why.\nKeep it to one paragraph and one clear reason.` },
       { title:'Prompt C · a constraint', text:`Same topic, but: no adjectives in the first two sentences, and the last sentence is a question.\nUse at least ${Math.min(4, must.length)} words from the bank.` },
-      { title:'Before you hand it in', text:`✅ Every word from the bank is used, and used correctly\n✅ The opening does not repeat the prompt\n✅ One sentence you are proud of — underline it` },
+      { title:'Before you hand it in', text:`✅ Every word from the bank is used, and used correctly\n✅ The opening does not repeat the prompt\n✅ One sentence you are proud of - underline it` },
     ]};
 }
 
 function _ttGenEssayTopics(input){
-  // Тут вигадувати нічого й не треба: чотири екзаменаційні типи завдання —
+  // Тут вигадувати нічого й не треба: чотири екзаменаційні типи завдання -
   // це реальні сталі формати, а не наш здогад про тему. Тема лише
   // підставляється в кожен.
   const topic=input.topic||'the topic';
@@ -944,7 +944,7 @@ function _ttGenEssayTopics(input){
 
 function _ttGenGrammarRules(input){
   // Граматичну точку знає лише тема ("present perfect"), самого правила
-  // локально не вивести — тож картки лишаються рамкою в тому самому
+  // локально не вивести - тож картки лишаються рамкою в тому самому
   // порядку, що й у промпті aiEngine (Rule → Examples → Mistakes →
   // Practice), щоб швидкий і AI-варіант мали однакову форму.
   const point=input.topic||'the target structure', lv=input.level||'B1';
@@ -961,12 +961,12 @@ function _ttGenGrammarRules(input){
 function _ttGenWarmupListening(input){
   // Розминка ПЕРЕД слуханням. Навмисно ігноруємо input.source: якщо
   // підмішати сюди речення з транскрипту, вправа на передбачення перестає
-  // бути передбаченням — учень уже прочитав відповідь.
+  // бути передбаченням - учень уже прочитав відповідь.
   const topic=input.topic||'the topic';
   return { boardKind:'cards', kind:'Warm-Up', cat:'speaking', level:input.level, topic,
     title:`${input.level} · Warm-Up Before Listening: ${topic}`,
     cards:[
-      { title:'1 · Predict the words', text:`You are about to hear something about "${topic}".\nIn pairs, write 8 words you expect to hear.\nTick them off while listening — who guessed most?` },
+      { title:'1 · Predict the words', text:`You are about to hear something about "${topic}".\nIn pairs, write 8 words you expect to hear.\nTick them off while listening - who guessed most?` },
       { title:'2 · Predict the content', text:`• Who is speaking, and to whom?\n• Will the speaker be positive or critical about ${topic}?\n• Name one thing you are sure will be mentioned.` },
       { title:'3 · Your reason to listen', text:'Write ONE question you want the recording to answer.\nIf it is not answered, that is your first question afterwards.' },
       { title:'4 · Pre-teach (teacher)', text:'Words the class will not survive without:\n1. ____________________\n2. ____________________\n3. ____________________' },
@@ -975,7 +975,7 @@ function _ttGenWarmupListening(input){
 
 function _ttGenAudioVideoQuestions(input){
   // Відрізняється від transcript-helper: там перевірка кожного речення на
-  // переказ, тут — набір із градацією (суть → деталі → ставлення) на весь
+  // переказ, тут - набір із градацією (суть → деталі → ставлення) на весь
   // запис. Без транскрипту повертаємо null: вигадувати питання до аудіо,
   // якого ми не чули, не можна.
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
@@ -988,7 +988,7 @@ function _ttGenAudioVideoQuestions(input){
     if (questions.length >= count-1) break;
     // Не перше слово речення: воно стоїть на передбачуваній позиції і
     // вгадується без слухання, а ще робить усі пункти однаковими на вигляд.
-    // Найдовше змістовне слово — це майже завжди те, заради чого пункт і є.
+    // Найдовше змістовне слово - це майже завжди те, заради чого пункт і є.
     const cands=_ttContentWords(s).slice(1);
     const w=cands.slice().sort((a,b)=>b.length-a.length)[0];
     if (!w) continue;
@@ -1003,12 +1003,12 @@ function _ttGenWordTranslationMatch(input){
   // Перекласти локально ми не можемо, але два справжні джерела є:
   // рядки виду "dog - собака", які вчитель уже вписав, і бібліотека
   // TEACHEDOS_VOCAB (680 слів з uk). Слова без перекладу ВИКИДАЄМО, а не
-  // лишаємо з порожнім правим боком: у memory-match порожня картка — це
+  // лишаємо з порожнім правим боком: у memory-match порожня картка - це
   // зламана гра, а не підказка вчителю.
-  // Рядок або вже пара ("dog - собака"), або перелік через кому — у другому
+  // Рядок або вже пара ("dog - собака"), або перелік через кому - у другому
   // випадку кому не можна вважати роздільником пари, бо переклад сам буває
   // з комою, тож ділимо на слова лише те, де пари немає.
-  const PAIR = /^(.+?)\s*(?:[-–—=:]|\s{2,})\s*(.+)$/;
+  const PAIR = /^(.+?)\s*(?:[-=:]|\s{2,})\s*(.+)$/;
   const raw = [];
   for (const line of String(input.vocab||'').split(/[\n;]+/).map(x=>x.trim()).filter(Boolean)) {
     if (PAIR.test(line)) raw.push(line);
@@ -1032,7 +1032,7 @@ function _ttGenWordTranslationMatch(input){
   if (pairs.length < 2) return null;
   // Той самий конверт, що й у word-definition-match: пари на дошці живуть як
   // quiz з одним питанням type:'match'. Окремий boardKind:'pairs' тут ніхто
-  // не читає — ні прев'ю, ні передача в memory-match.
+  // не читає - ні прев'ю, ні передача в memory-match.
   return { boardKind:'quiz', kind:'Translation Match', cat:'vocabulary', level:input.level, topic:input.topic,
     title:`${input.level} · Word-Translation Matching: ${input.topic}`,
     questions: [{ type:'match', text:'Match each word to its translation.', pairs, points: pairs.length }] };
@@ -1058,21 +1058,21 @@ function _ttGenLessonPack(input){
     {title:'🎯 Lesson aims & objectives',
      text:`Topic: ${t} · Level: ${lv}\nDuration: ~60 min\n\nBy the end, students will be able to:\n• Use target vocabulary in context: ${vocStr}\n• Identify gist and key details in the input\n• Complete controlled practice (80%+ accuracy)\n• Communicate ideas on "${tl}" for 2+ minutes\n\n📌 Key vocabulary: ${vocStr}\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________`},
     {title:'🔥 Warm-up & lead-in (7 min)',
-     text:`Option A — Word association (3 min)\nWrite "${t}" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2–3 unknown words.\n\nOption B — Two Truths and a Lie (4 min)\nSay 3 statements about ${tl} — students guess which is false. Then pairs do the same.\n\nOption C — Image / quote prompt (3 min)\nShow an image about ${tl}. Students describe and predict the lesson focus.\n\n💡 Aim: activate prior knowledge + create curiosity.`},
+     text:`Option A - Word association (3 min)\nWrite "${t}" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2-3 unknown words.\n\nOption B - Two Truths and a Lie (4 min)\nSay 3 statements about ${tl} - students guess which is false. Then pairs do the same.\n\nOption C - Image / quote prompt (3 min)\nShow an image about ${tl}. Students describe and predict the lesson focus.\n\n💡 Aim: activate prior knowledge + create curiosity.`},
     {title:'📖 Vocabulary presentation (8 min)',
-     text:`Target words: ${vocStr}.\n\nStep-by-step:\n1. Context — show each word in a sentence (not isolated)\n2. Meaning — elicit, then confirm\n3. CCQ — ask 1–2 concept check questions per word\n4. Pronunciation — model → choral drill → individual\n5. Record — word / definition / example in notebook\n\n⏱ ~1 min per word. Don't rush — quality over quantity.\n💡 Use the Flashcards tool to build a drill activity.`},
+     text:`Target words: ${vocStr}.\n\nStep-by-step:\n1. Context - show each word in a sentence (not isolated)\n2. Meaning - elicit, then confirm\n3. CCQ - ask 1-2 concept check questions per word\n4. Pronunciation - model → choral drill → individual\n5. Record - word / definition / example in notebook\n\n⏱ ~1 min per word. Don't rush - quality over quantity.\n💡 Use the Flashcards tool to build a drill activity.`},
     {title:'📄 Input & reading/listening (12 min)',
      text:`1. PRE-TASK (2 min): "What is the main idea?"\n2. FIRST READ (3 min): students find gist answer only.\n3. FEEDBACK (1 min): quick whole-class check.\n4. SECOND READ (4 min):\n   a) Find 3 specific facts about ${tl}.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer's/speaker's opinion.\n5. PEER CHECK (2 min): compare in pairs before whole-class.\n\n💡 Extension: stronger students write a 2-sentence summary.`},
     {title:'✏️ Controlled practice (10 min)',
-     text:`Activity: gap-fill / matching / MCQ (choose one).\n\n1. Demo one example together.\n2. Students work individually (5 min).\n3. Peer check in pairs (2 min).\n4. Whole-class feedback (3 min).\n\nMonitoring tips:\n• Circulate — note 2–3 errors anonymously.\n• Give quiet support; avoid giving answers directly.\n\n✦ Fast finishers: write 3 new gap-fill sentences for a partner.`},
+     text:`Activity: gap-fill / matching / MCQ (choose one).\n\n1. Demo one example together.\n2. Students work individually (5 min).\n3. Peer check in pairs (2 min).\n4. Whole-class feedback (3 min).\n\nMonitoring tips:\n• Circulate - note 2-3 errors anonymously.\n• Give quiet support; avoid giving answers directly.\n\n✦ Fast finishers: write 3 new gap-fill sentences for a partner.`},
     {title:'🗣 Freer practice & production (12 min)',
-     text:`Task: "Discuss with your partner — what do you think about ${tl}?"\n\n• 30 sec: individual think time (3 bullet points)\n• 3 min: pair discussion (both speak equally)\n• 1 min: report back — "My partner said that…"\n\nExpect 4+ target words used. Monitor and note:\n✅ 2 strong examples to praise\n❌ 2–3 errors for feedback\n\n💡 Fast pairs: "Now argue the opposite point of view."`},
+     text:`Task: "Discuss with your partner - what do you think about ${tl}?"\n\n• 30 sec: individual think time (3 bullet points)\n• 3 min: pair discussion (both speak equally)\n• 1 min: report back - "My partner said that…"\n\nExpect 4+ target words used. Monitor and note:\n✅ 2 strong examples to praise\n❌ 2-3 errors for feedback\n\n💡 Fast pairs: "Now argue the opposite point of view."`},
     {title:'📋 Feedback & error correction (5 min)',
-     text:`1. PRAISE (1 min) — write 2 strong student examples on board.\n   Ask: what is good about these?\n2. ERRORS (2 min) — write 2–3 anonymous errors.\n   Students identify and correct as a class.\n3. CLARIFY (2 min) — address remaining confusion.\n\n   ✗ "_______________"\n   ✓ "_______________" — because _______________\n\n📌 Keep error notes — revisit at the start of next lesson!`},
+     text:`1. PRAISE (1 min) - write 2 strong student examples on board.\n   Ask: what is good about these?\n2. ERRORS (2 min) - write 2-3 anonymous errors.\n   Students identify and correct as a class.\n3. CLARIFY (2 min) - address remaining confusion.\n\n   ✗ "_______________"\n   ✓ "_______________" - because _______________\n\n📌 Keep error notes - revisit at the start of next lesson!`},
     {title:'📚 Homework (set in final 2 min)',
-     text:`Task: Write 80–100 words on "${t}". Use 5+ target words.\n\nPrompt: "Describe your experience with ${tl}. Include your opinion and one recommendation for others."\n\nDifferentiation:\n✦ Support: use starters — "In my experience…" / "One thing I noticed…"\n✦ Extension: add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check: vocabulary ☐ · opinion ☐ · spelling ☐`},
+     text:`Task: Write 80-100 words on "${t}". Use 5+ target words.\n\nPrompt: "Describe your experience with ${tl}. Include your opinion and one recommendation for others."\n\nDifferentiation:\n✦ Support: use starters - "In my experience…" / "One thing I noticed…"\n✦ Extension: add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check: vocabulary ☐ · opinion ☐ · spelling ☐`},
     {title:'🔄 Fast finishers & extension',
-     text:`After vocabulary:\n→ Write a paragraph using 5 target words. Make it surprising or personal.\n\nAfter controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\nAfter freer practice:\n→ "Teach your partner — explain the key ideas as if they missed the lesson."\n\n🏆 Challenge:\n→ Find a real-world example of ${tl} (news, video, website) and present it in 60 sec next lesson.`},
+     text:`After vocabulary:\n→ Write a paragraph using 5 target words. Make it surprising or personal.\n\nAfter controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\nAfter freer practice:\n→ "Teach your partner - explain the key ideas as if they missed the lesson."\n\n🏆 Challenge:\n→ Find a real-world example of ${tl} (news, video, website) and present it in 60 sec next lesson.`},
     {title:'📊 Assessment & success criteria',
      text:`✅ Vocabulary: students define/use ${Math.min(ws.length||4,5)} words without prompting.\n✅ Comprehension: gist + 2 detail questions answered correctly.\n✅ Practice: 80%+ accuracy on controlled exercise.\n✅ Production: students speak for 90+ sec on ${tl}.\n\n☐ All students participated in warm-up.\n☐ Vocabulary drilled 3+ times.\n☐ Errors corrected anonymously.\n☐ Homework set with clear deadline.\n\nNext lesson: revisit errors → 5-min vocab quiz → homework feedback.`},
   ]};
@@ -1085,22 +1085,22 @@ function _ttGenWorksheetBoard(input){
     title:`${lv} · Worksheet: ${t}`,cards:[
     {title:'📝 Student information',
      text:`Student name: ____________________   Date: __________\nClass: ____________________   Teacher: __________\nLevel: ${lv}   Topic: ${t}\n\n📌 Read all instructions before starting.\n📌 Check your work when you finish each section.`},
-    {title:'A. Vocabulary — match & define',
+    {title:'A. Vocabulary - match & define',
      text:`Match the words with their meanings:\n\n${wsSlice.map((w,i)=>`${i+1}. ${w}  → ___________________________`).join('\n')}\n\nWord bank: ${shuffled.join(' · ')}\n\nChoose 2 words. Write your own sentence for each:\na) _______________________________________________\nb) _______________________________________________`},
-    {title:'B. Vocabulary in context — gap fill',
+    {title:'B. Vocabulary in context - gap fill',
      text:`Complete the sentences with a word from Section A:\n\n${wsSlice.slice(0,5).map((w,i)=>`${i+1}. Understanding _____ helps us make progress in ${tl}.`).join('\n')}\n\n★ Challenge: which sentence is most true for you? Explain why.`},
     {title:'C. Reading comprehension',
      text:`Answer in full sentences:\n\n1. Main idea: What is the text mainly about?\n   → ________________________________\n\n2. Give two specific facts from the text:\n   a) ________________________________\n   b) ________________________________\n\n3. What is the writer's view on ${tl}?\n   → ________________________________\n\n4. Find a word in the text meaning "important" or "essential":\n   → The word is: ___________  (line: ___)` },
     {title:'D. Grammar in context',
-     text:`Find one example of the target grammar structure in the text:\n   → ________________________________\n\nWrite two more examples using the same structure:\na) ________________________________\nb) ________________________________\n\n★ Challenge: write an INCORRECT version of b) — swap with a partner to correct it.`},
+     text:`Find one example of the target grammar structure in the text:\n   → ________________________________\n\nWrite two more examples using the same structure:\na) ________________________________\nb) ________________________________\n\n★ Challenge: write an INCORRECT version of b) - swap with a partner to correct it.`},
     {title:'E. Speaking / discussion (5 min)',
      text:`Work with a partner:\n\n🗣 Q1: How does ${tl} affect everyday life? Give a real example.\n🗣 Q2: Is ${tl} important for your future? Why / why not?\n🗣 Q3: What else would you like to know about ${tl}?\n\nUse at least 3 words from Section A.\n\nUseful phrases:\n• "In my experience…"\n• "I think this is important because…"\n• "On the other hand…"`},
-    {title:'F. Writing task (80–100 words)',
+    {title:'F. Writing task (80-100 words)',
      text:`Choose ONE prompt:\n\n✍️ Opinion: "Is ${tl} important today? Give your view with 2 reasons and an example."\n\n✍️ Personal: "Describe a time when ${tl} made a difference to you or someone you know."\n\nChecklist:\n☐ Used 4+ words from Section A.\n☐ Complete sentences (subject + verb + idea).\n☐ Included personal opinion.\n☐ Checked spelling and punctuation.`},
     {title:'G. Reflection & self-assessment',
      text:`Rate yourself honestly (✗ / ✦ / ✅):\n\nVocabulary: I can explain 4+ words without looking.     ___\nReading: I found main idea + 2 details.                 ___\nGrammar: I formed the structure correctly.              ___\nSpeaking: I spoke for 2+ minutes.                      ___\nWriting: Clear paragraph using target language.         ___\n\nStrongest skill today: ________________________________\nWhat I need to practise more: ________________________________\nOne word I'll use this week: ________________________________`},
     {title:'🔑 Answer key (teacher only)',
-     text:`Vocabulary:\n${wsSlice.map((w,i)=>`${i+1}. ${w} — [definition / translation]`).join('\n')}\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min`},
+     text:`Vocabulary:\n${wsSlice.map((w,i)=>`${i+1}. ${w} - [definition / translation]`).join('\n')}\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min`},
   ]};
 }
 function _ttGenHomeworkBoard(input){
@@ -1110,21 +1110,21 @@ function _ttGenHomeworkBoard(input){
   return {boardKind:'cards',kind:'Homework',cat:'utility',level:lv,topic:t,
     title:`${lv} · Homework: ${t}`,cards:[
     {title:'📚 Homework brief',
-     text:`Topic: ${t} · Level: ${lv}\nEstimated time: 30–40 minutes\nDue date: ____________________\n\n📌 Complete all 5 tasks in order.\n📌 Quality matters more than length.\n📌 If stuck: re-read your class notes first.`},
-    {title:'Task 1 — Vocabulary review (8 min)',
-     text:`Words to practise: ${vocStr}.\n\n① Write one personal, true sentence for each word.\n② Circle the 2 words you found hardest. Write an extra sentence for those.\n③ Write one question using any word — ask your partner next class.\n\n💡 Read your sentences aloud. If it sounds natural, it probably is.`},
-    {title:'Task 2 — Reading / listening review (8 min)',
+     text:`Topic: ${t} · Level: ${lv}\nEstimated time: 30-40 minutes\nDue date: ____________________\n\n📌 Complete all 5 tasks in order.\n📌 Quality matters more than length.\n📌 If stuck: re-read your class notes first.`},
+    {title:'Task 1 - Vocabulary review (8 min)',
+     text:`Words to practise: ${vocStr}.\n\n① Write one personal, true sentence for each word.\n② Circle the 2 words you found hardest. Write an extra sentence for those.\n③ Write one question using any word - ask your partner next class.\n\n💡 Read your sentences aloud. If it sounds natural, it probably is.`},
+    {title:'Task 2 - Reading / listening review (8 min)',
      text:`Return to the lesson text or audio.\n\n① Write 5 key ideas IN YOUR OWN WORDS:\n   1.___ 2.___ 3.___ 4.___ 5.___\n\n② Underline 3 phrases you want to use yourself:\n   • ___  • ___  • ___\n\n③ Write one thing you are still unsure about:\n   → _______________`},
-    {title:'Task 3 — Grammar (7 min)',
-     text:`Focus on today's target structure.\n\n① Write 5 original sentences (NOT from class examples):\n   1.___ 2.___ 3.___ 4.___ 5.___\n\n② Check for errors — correct them now.\n\n③ Write ONE sentence combining today's grammar + vocabulary:\n   → _______________\n\n💡 Mixing grammar + vocabulary = excellent practice.`},
-    {title:'Task 4 — Speaking preparation (7 min)',
-     text:`Prepare a 60–90 second answer:\n\n"What is your opinion about ${tl}?"\n\nStructure:\n📌 Point: "I think / believe that…"\n📌 Reason: "This is because…"\n📌 Example: "For example…"\n📌 Conclusion: "Overall, I would say…"\n\n★ Record yourself. Listen back. Improve one sentence. Record again.\n★ Target: speak for 60+ sec without reading notes.`},
-    {title:'Task 5 — Writing (10 min)',
-     text:`Write 80–100 words on "${t}".\n\nChoose a prompt:\n✍️ Opinion: "Is ${tl} important today? Give 2 reasons."\n✍️ Personal: "Describe your experience with ${tl}."\n\nRequirements:\n☐ Use 5+ words from Task 1.\n☐ Use today's grammar structure at least once.\n☐ Include your personal opinion.\n☐ Write in paragraphs (not bullets).`},
+    {title:'Task 3 - Grammar (7 min)',
+     text:`Focus on today's target structure.\n\n① Write 5 original sentences (NOT from class examples):\n   1.___ 2.___ 3.___ 4.___ 5.___\n\n② Check for errors - correct them now.\n\n③ Write ONE sentence combining today's grammar + vocabulary:\n   → _______________\n\n💡 Mixing grammar + vocabulary = excellent practice.`},
+    {title:'Task 4 - Speaking preparation (7 min)',
+     text:`Prepare a 60-90 second answer:\n\n"What is your opinion about ${tl}?"\n\nStructure:\n📌 Point: "I think / believe that…"\n📌 Reason: "This is because…"\n📌 Example: "For example…"\n📌 Conclusion: "Overall, I would say…"\n\n★ Record yourself. Listen back. Improve one sentence. Record again.\n★ Target: speak for 60+ sec without reading notes.`},
+    {title:'Task 5 - Writing (10 min)',
+     text:`Write 80-100 words on "${t}".\n\nChoose a prompt:\n✍️ Opinion: "Is ${tl} important today? Give 2 reasons."\n✍️ Personal: "Describe your experience with ${tl}."\n\nRequirements:\n☐ Use 5+ words from Task 1.\n☐ Use today's grammar structure at least once.\n☐ Include your personal opinion.\n☐ Write in paragraphs (not bullets).`},
     {title:'🏆 Challenge extension (optional)',
      text:`For students who want extra practice:\n\n① Find a short English article or video about ${tl}. Summarise in 3 sentences. Share next class.\n\n② Write 5 questions for an expert on ${tl}:\n   What…? Why…? How…? Do you think…? What if…?\n\n③ Teach a family member one word from today. Write what they asked you.\n\n📌 Bonus: share your Task 4 recording and invite feedback.`},
     {title:'✅ Self-check before submitting',
-     text:`☐ Task 1: personal sentences (not definitions).\n☐ Task 2: my own words, not copied.\n☐ Task 3: grammar sentences are correct.\n☐ Task 4: I recorded and listened back.\n☐ Task 5: 80–100 words with vocab + grammar used.\n\nStrongest moment: ________________________________\nWhat to practise more: ________________________________\nA word I'll use more often: ________________________________\n\n📌 Bring this sheet to class — we review it together.`},
+     text:`☐ Task 1: personal sentences (not definitions).\n☐ Task 2: my own words, not copied.\n☐ Task 3: grammar sentences are correct.\n☐ Task 4: I recorded and listened back.\n☐ Task 5: 80-100 words with vocab + grammar used.\n\nStrongest moment: ________________________________\nWhat to practise more: ________________________________\nA word I'll use more often: ________________________________\n\n📌 Bring this sheet to class - we review it together.`},
   ]};
 }
 function _ttGenScaffold(toolId, input){
@@ -1144,10 +1144,10 @@ function _ttGenScaffold(toolId, input){
     grammar:[
       { title:'Grammar focus', text:`${tool.title} · ${level}\nTopic: ${topic}` },
       { title:'Explanation', text:'Rule: …\nExample 1: …\nExample 2: …\nCommon mistake: …' },
-      { title:'Practice', text:`[Exercise here — ${tool.kind}]` },
+      { title:'Practice', text:`[Exercise here - ${tool.kind}]` },
     ],
     speaking:[
-      { title:'Preparation (1 min)', text:`Think about "${topic}". Note 2–3 ideas.` },
+      { title:'Preparation (1 min)', text:`Think about "${topic}". Note 2-3 ideas.` },
       { title:'Task', text:`${tool.title}:\nDiscuss with your partner using the language below.` },
       { title:'Useful language', text:`Giving opinion: I think… / In my view…\nAgreeing: Exactly / You're right…\nDisagreeing: I'm not sure… / Actually…` },
     ],
@@ -1353,7 +1353,7 @@ function _ttBuildFromAI(toolId, input, items) {
       title:`${input.level} · Discussion Questions: ${input.topic}`, questions } : null;
   }
   if (toolId === 'question-ladder') {
-    const questions = items.map(it=>({ type:'open', text:`Level ${it.level||'?'} — ${String(it.text||'')}`, points:it.level||1 })).filter(q=>q.text.length>10);
+    const questions = items.map(it=>({ type:'open', text:`Level ${it.level||'?'} - ${String(it.text||'')}`, points:it.level||1 })).filter(q=>q.text.length>10);
     return questions.length ? { ...base, boardKind:'quiz', kind:'Question Ladder', cat:'speaking',
       title:`${input.level} · Question Ladder: ${input.topic}`, questions } : null;
   }
@@ -1440,18 +1440,18 @@ function _ttBuildFromAI(toolId, input, items) {
    Кожен повертає ту саму структуру, що й решта рушія, тож картка на дошці
    виходить нормальною worksheet, а не прямокутником.
 
-   Джерело слів беремо з input.vocab, якщо воно є, інакше з тексту — студія
+   Джерело слів беремо з input.vocab, якщо воно є, інакше з тексту - студія
    передає обидва, а дошка може дати лише текст. */
 
 /* Не плутати з `_ttVocabLines` вище: та повертає масив РЯДКІВ і має 15
-   викликів. Ця віддає пари {word, def} — я спершу назвав її так само і
+   викликів. Ця віддає пари {word, def} - я спершу назвав її так само і
    перекрив оригінал, після чого word-image-match впав на `w.toLowerCase is not
    a function`, а чотири інструменти тихо з'їхали на гілку хаба. */
 function _ttVocabPairs(input){
   const raw = String(input.vocab || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
   if (raw.length) {
     return raw.map(line => {
-      const m = line.split(/\s*[-–—:|]\s*/);
+      const m = line.split(/\s*[-:|]\s*/);
       return { word: (m[0] || line).trim(), def: (m[1] || '').trim() };
     });
   }
@@ -1585,7 +1585,7 @@ function _ttGenSummaryGapFill(input){
 
 function _ttGenFindQuotes(input){
   /* Поріг у шість слів відсікав майже все: у звичайному навчальному тексті
-     речення короткі, і з пʼяти лишалась одна цитата. Пʼять — межа, за якою
+     речення короткі, і з пʼяти лишалась одна цитата. Пʼять - межа, за якою
      речення ще має що обговорювати. */
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
     .filter(s => s.split(/\s+/).length >= 5);
@@ -1624,7 +1624,7 @@ function _ttGenTextTopicVocab(input){
     title:`${input.level} · Text with your vocabulary: ${input.topic}`,
     cards:[
       { title:'Text', text:sents.slice(0, 8).join(' ') },
-      { title:'Target vocabulary', text:items.map(x => '• ' + x.word + (x.def ? ' — ' + x.def : '')).join('\n') },
+      { title:'Target vocabulary', text:items.map(x => '• ' + x.word + (x.def ? ' - ' + x.def : '')).join('\n') },
       { title:'Tasks', text:'• Find each target word in the text.\n• Write one new sentence per word.\n• Retell the text using at least four of them.' },
     ] };
 }
@@ -1633,7 +1633,7 @@ function _ttGenTextTopicVocab(input){
 /* ── Третя партія: reading-bits і transcript-helper ────────────────────────
    word-translation-match лишається текстом свідомо: переклад слів у хабі бере
    з MINI_DICT, який живе тільки там і ніколи не завантажується на дошці.
-   Тягнути сюди неповний словник — робити вигляд, що переклад є там, де його
+   Тягнути сюди неповний словник - робити вигляд, що переклад є там, де його
    нема; чесніше не видавати структуру, ніж видати порожні пари. */
 
 function _ttGenReadingBits(input){
@@ -1642,10 +1642,10 @@ function _ttGenReadingBits(input){
   const labeled = parts.map((s, i) => ({ n: i + 1, s }));
   const shuffled = _ttShuffle([...labeled]);
   const order = labeled.map(x => String.fromCharCode(65 + shuffled.findIndex(y => y === x)));
-  /* type:'open' — це відкрите завдання, де відповідь пише учень, і рендер
+  /* type:'open' - це відкрите завдання, де відповідь пише учень, і рендер
      карточки НІКОЛИ не друкує туди q.answer (перевірено: ключ на такій
      картці не показує нічого, і це не баг, а межа типу). Правильний
-     порядок — рядок-факт, тож пакуємо його як gap-fill із СПРАВЖНІМ
+     порядок - рядок-факт, тож пакуємо його як gap-fill із СПРАВЖНІМ
      пропуском: тільки цей тип рендерить answer. */
   return { boardKind:'quiz', kind:'Reading: bits and pieces', cat:'reading', level:input.level, topic:input.topic,
     title:`${input.level} · Bits and pieces: ${input.topic}`,
@@ -1805,7 +1805,7 @@ function _ttAppendSuggestions(body) {
   body.appendChild(row);
 }
 // Switch the constructor to another tool, KEEP the current inputs, and generate
-// straight away — a one-tap pivot to a related activity.
+// straight away - a one-tap pivot to a related activity.
 function switchTeacherToolAndGenerate(toolId) {
   const tool = (typeof BOARD_TEACHER_TOOLS !== 'undefined' ? BOARD_TEACHER_TOOLS : []).find(t => t.id === toolId);
   if (!tool) return;
@@ -1818,7 +1818,7 @@ function switchTeacherToolAndGenerate(toolId) {
   generateTeacherToolBuilder('fast');
 }
 
-// Premium result header shown above the generated cards — tool icon badge,
+// Premium result header shown above the generated cards - tool icon badge,
 // title and meta chips (kind · level · count).
 function _ttPreviewHeader(out, n, unit){
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[out.cat]) || { icon:'✦', color:'#4262FF' };
@@ -1873,7 +1873,7 @@ function renderTeacherToolLocalPreview(out){
     return;
   }
 
-  // quiz — for match/sort tasks the meaningful count is the number of pairs
+  // quiz - for match/sort tasks the meaningful count is the number of pairs
   // (a sort is one "question" holding many words), not the question count.
   const isMatchSet = out.questions.length > 0 && out.questions.every(q => q.type === 'match');
   const pairCount = out.questions.reduce((s, q) => s + (Array.isArray(q.pairs) ? q.pairs.length : 0), 0);
@@ -1903,7 +1903,7 @@ function renderTeacherToolLocalPreview(out){
           <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="right" style="font-size:11px;padding:3px 8px;color:#5f6070" data-ph="match / definition…">${esc(p.right||'')}</span>`).join('')
       }</div>`;
     } else if (q.type === 'open') {
-      ans = `<div style="font-size:11px;margin-top:5px;color:#9ca3af;font-style:italic;">Open answer — students write freely</div>`;
+      ans = `<div style="font-size:11px;margin-top:5px;color:#9ca3af;font-style:italic;">Open answer - students write freely</div>`;
     }
     return `<div class="tbuilder-section tt-q" style="--i:${i}" data-qi="${i}">
       <button class="tt-del" data-del-q="${i}" title="Remove question">×</button>
@@ -1980,4 +1980,4 @@ function _ttWirePreviewEvents(out, body){
   }));
 }
 
-/* Styled, read-only worksheet card — mirrors the builder preview on the board. */
+/* Styled, read-only worksheet card - mirrors the builder preview on the board. */

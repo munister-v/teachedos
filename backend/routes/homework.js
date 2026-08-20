@@ -27,7 +27,7 @@ function computeFinalScore(attempts, requiredCards) {
     counted++;
   }
   if (!counted) return 0;
-  // Cards never attempted count as 0 — so the average is over all required cards
+  // Cards never attempted count as 0 - so the average is over all required cards
   return Math.round(sum / requiredCards.length);
 }
 
@@ -291,7 +291,7 @@ router.get('/my/:assignmentId', async (req, res) => {
     if (!ar.length) return res.status(404).json({ error: 'Assignment not found' });
     const a = ar[0];
 
-    // Board data — student needs to play the cards
+    // Board data - student needs to play the cards
     const { rows: br } = await pool.query(
       `SELECT id, name, data FROM boards WHERE id=$1`, [a.board_id]
     );

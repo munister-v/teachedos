@@ -287,7 +287,7 @@ CREATE INDEX IF NOT EXISTS idx_shared_materials_owner ON shared_materials(owner_
 -- каждом автосохранении запросом SUM(pg_column_size(data)) по всем доскам
 -- учителя: Postgres поднимал из TOAST и распаковывал КАЖДУЮ доску, чтобы
 -- узнать её размер. При пятидесяти досках это десятки мегабайт чтения на
--- одно нажатие «сохранить» — незаметно на одном учителе и смертельно на ста.
+-- одно нажатие «сохранить» - незаметно на одном учителе и смертельно на ста.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS data_bytes INTEGER NOT NULL DEFAULT 0;
 
 CREATE OR REPLACE FUNCTION set_board_data_bytes() RETURNS TRIGGER AS $$
@@ -312,10 +312,10 @@ CREATE INDEX IF NOT EXISTS idx_boards_user_bytes ON boards(user_id) INCLUDE (dat
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 
 -- Дубли индексов: те же колонки уже покрыты UNIQUE-ограничениями. Каждый лишний
--- индекс — это ещё одна запись при каждом входе и лишние страницы в памяти.
+-- индекс - это ещё одна запись при каждом входе и лишние страницы в памяти.
 DROP INDEX IF EXISTS idx_sessions_token;
 -- У quiz_results два одинаковых UNIQUE по (board_id, card_id, user_id): один
--- достался от прежнего имени ограничения. Снимаем именно ограничение — индекс
+-- достался от прежнего имени ограничения. Снимаем именно ограничение - индекс
 -- под ним отдельно не удаляется.
 ALTER TABLE quiz_results DROP CONSTRAINT IF EXISTS quiz_results_board_card_user_key;
 

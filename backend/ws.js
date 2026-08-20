@@ -105,13 +105,13 @@ function setup(server) {
         case 'board_patch':
           broadcast(boardId, { ...msg, userId }, ws);
           break;
-        // Drawing strokes — fan out as-is (state.strokes carries the latest set)
+        // Drawing strokes - fan out as-is (state.strokes carries the latest set)
         case 'strokes_patch':
           if (Array.isArray(msg.strokes)) {
             broadcast(boardId, { type: 'strokes_patch', strokes: msg.strokes, userId }, ws);
           }
           break;
-        // Per-object incremental updates (future-proofing — client may opt in)
+        // Per-object incremental updates (future-proofing - client may opt in)
         case 'card_update':
         case 'card_add':
         case 'card_delete':

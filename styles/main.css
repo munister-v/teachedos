@@ -263,7 +263,7 @@ h1,h2,h3,h4,h5,h6 {
   -webkit-app-region: drag;
 }
 .win-controls { display:flex; gap:4px; align-items:center; z-index:1; }
-/* Свои кнопки окна вместо трёх цветных кружков macOS — та же система, что в
+/* Свои кнопки окна вместо трёх цветных кружков macOS - та же система, что в
    index.html. Кружки читаются как «это Mac», а не «это TeachEd»; здесь то же
    действие сказано своим языком, и цветом отмечено только закрытие. */
 .tl {
@@ -1064,7 +1064,7 @@ h1,h2,h3,h4,h5,h6 {
   .win-sidebar.mob-open { display:flex !important; }
   .win-main { background:transparent; }
 
-  /* Dock — hidden on mobile, replaced by mobile-nav.js */
+  /* Dock - hidden on mobile, replaced by mobile-nav.js */
   #dock-wrap { display:none !important; }
 
   /* Content tweaks */

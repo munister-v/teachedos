@@ -13,10 +13,10 @@ function passwordProblem(password) {
 
 router.use(requireAuth);
 
-// GET /api/users/me — full profile
+// GET /api/users/me - full profile
 router.get('/me', (req, res) => res.json({ user: req.user }));
 
-// PATCH /api/users/me — update name / avatar / email
+// PATCH /api/users/me - update name / avatar / email
 router.patch('/me', async (req, res) => {
   const { name, avatar, email } = req.body;
   const sets   = [];

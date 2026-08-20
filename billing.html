@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Upgrade Plan — TeachEd</title>
+<title>Upgrade Plan - TeachEd</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -217,7 +217,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
             <div class="iban-number" id="pay-iban">UA62 3052 9902 6205 6400 9907 00807</div>
             <div class="iban-meta">
               <div class="iban-meta-item"><div class="label">Recipient</div><div class="val">TeachEd</div></div>
-              <div class="iban-meta-item"><div class="label">Amount</div><div class="val" id="pay-amount">—</div></div>
+              <div class="iban-meta-item"><div class="label">Amount</div><div class="val" id="pay-amount">-</div></div>
               <div class="iban-meta-item"><div class="label">Reference</div><div class="val">Your email</div></div>
             </div>
             <button class="copy-btn" onclick="copyIban()">📋 Copy IBAN</button>
@@ -229,7 +229,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
         <div class="step-num">2</div>
         <div class="step-body">
           <h3>Confirm your transfer</h3>
-          <p>Fill in the details — we'll activate your plan once the payment is verified.</p>
+          <p>Fill in the details - we'll activate your plan once the payment is verified.</p>
           <div style="margin-top:14px">
             <div id="pay-err" class="err" hidden></div>
             <div class="form-field">
@@ -244,7 +244,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
               <label>Transfer note / comment (optional)</label>
               <input type="text" id="pay-note" placeholder="Invoice number or any note you added">
             </div>
-            <button class="submit-btn" id="pay-submit-btn" onclick="submitPayment()">I've transferred — confirm ✓</button>
+            <button class="submit-btn" id="pay-submit-btn" onclick="submitPayment()">I've transferred - confirm ✓</button>
           </div>
         </div>
       </div>
@@ -254,8 +254,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
     <div class="pending-box" id="pending-box" hidden>
       <div class="pending-icon">⏳</div>
       <h2>Payment under review</h2>
-      <p id="pending-text">We've registered your transfer request. Your plan activates once we verify the payment — usually within a few hours.</p>
-      <div class="invoice-badge" id="pending-invoice">📄 Invoice: —</div>
+      <p id="pending-text">We've registered your transfer request. Your plan activates once we verify the payment - usually within a few hours.</p>
+      <div class="invoice-badge" id="pending-invoice">📄 Invoice: -</div>
       <p style="font-size:13px;color:var(--muted)">You'll get an in-app notification when your plan is activated.</p>
       <div class="btn-row">
         <a href="index.html" class="btn-dark">Back to TeachEd</a>
@@ -312,7 +312,7 @@ async function init() {
     if (!r.ok) throw new Error('overview-failed');
     OVERVIEW = await r.json();
   } catch (e) {
-    // Graceful fallback — still let them request an upgrade with default catalog
+    // Graceful fallback - still let them request an upgrade with default catalog
     OVERVIEW = null;
   }
   $('loading').hidden = true;
@@ -466,7 +466,7 @@ function updatePayBox() {
   box.hidden = false;
   const q = planQuote(selectedPlan, selectedCycle);
   const name = OVERVIEW?.plans?.[selectedPlan]?.name || selectedPlan;
-  const total = q ? fmtMoney(q.total, q.currency) : '—';
+  const total = q ? fmtMoney(q.total, q.currency) : '-';
   $('pay-amount').textContent = total;
   $('pay-sub').textContent = `${name} · ${cycleLabel(selectedCycle)} · ${total}`;
   if (!$('pay-date').value) $('pay-date').value = new Date().toISOString().slice(0, 10);
@@ -514,7 +514,7 @@ async function submitPayment() {
     err.textContent = e.message || 'Something went wrong. Please try again.';
     err.hidden = false;
     btn.disabled = false;
-    btn.textContent = "I've transferred — confirm ✓";
+    btn.textContent = "I've transferred - confirm ✓";
   }
 }
 
@@ -526,10 +526,10 @@ function showPending(payment) {
   const box = $('pending-box');
   box.hidden = false;
   const inv = payment?.invoice_no || (payment?.id ? '#' + payment.id : null);
-  $('pending-invoice').textContent = '📄 Invoice: ' + (inv || '—');
+  $('pending-invoice').textContent = '📄 Invoice: ' + (inv || '-');
   if (payment?.plan) {
     const nm = OVERVIEW?.plans?.[payment.plan]?.name || payment.plan;
-    $('pending-text').textContent = `Your ${nm} request (${cycleLabel(payment.billing_cycle || 'monthly')}) is awaiting verification. Your plan activates once we confirm the payment — usually within a few hours.`;
+    $('pending-text').textContent = `Your ${nm} request (${cycleLabel(payment.billing_cycle || 'monthly')}) is awaiting verification. Your plan activates once we confirm the payment - usually within a few hours.`;
   }
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (!_pendingPollTimer) _pendingPollTimer = setInterval(pollPendingStatus, 30000);

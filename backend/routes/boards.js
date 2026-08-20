@@ -11,7 +11,7 @@ async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
   const serialized = typeof boardData === 'string' ? boardData : JSON.stringify(boardData);
   /* Размеры чужих досок берём из колонки data_bytes, которую поддерживает
      триггер, а не пересчитываем распаковкой каждой доски. Размер входящей
-     считаем тем же pg_column_size, чтобы единицы совпадали с хранимыми, —
+     считаем тем же pg_column_size, чтобы единицы совпадали с хранимыми, -
      и обе величины одним запросом, а не двумя. */
   const { rows } = await pool.query(
     `SELECT (SELECT COALESCE(SUM(data_bytes), 0)::bigint
@@ -36,7 +36,7 @@ async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
 // All board routes require auth
 router.use(requireAuth);
 
-// GET /api/boards — list user's boards (name, id, updated_at, thumbnail)
+// GET /api/boards - list user's boards (name, id, updated_at, thumbnail)
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id, name, thumbnail, updated_at, created_at,
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
   res.json({ boards: rows });
 });
 
-// POST /api/boards — create new board
+// POST /api/boards - create new board
 router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Board' } = req.body;
   const plan = normalizePlanKey(req.user.plan);
@@ -82,7 +82,7 @@ router.post('/', requireTeacher, async (req, res) => {
   res.status(201).json({ board: rows[0] });
 });
 
-// GET /api/boards/:id — load full board data
+// GET /api/boards/:id - load full board data
 router.get('/:id', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT b.id, b.name, b.data, b.thumbnail, b.updated_at, b.created_at,
@@ -98,13 +98,13 @@ router.get('/:id', async (req, res) => {
   // A collaborator gets the board as they are entitled to see it: private cards
   // of other authors are absent, and cards the teacher is still holding back
   // arrive as empty placeholders. Filtering here rather than in the client is
-  // the point — the payload itself must not carry what the viewer may not read.
+  // the point - the payload itself must not carry what the viewer may not read.
   const board = rows[0];
   board.data = filterBoardData(board.data, req.user.id, board.user_id);
   res.json({ board });
 });
 
-// PUT /api/boards/:id — save board state (legacy)
+// PUT /api/boards/:id - save board state (legacy)
 router.put('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
   const boardData = data || stateBody;
@@ -133,7 +133,7 @@ router.put('/:id', requireAuth, async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-// PATCH /api/boards/:id — update board (state, name, or thumbnail)
+// PATCH /api/boards/:id - update board (state, name, or thumbnail)
 router.patch('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
   const boardData = data || stateBody;
@@ -167,7 +167,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-// PATCH /api/boards/:id/name — rename board (legacy)
+// PATCH /api/boards/:id/name - rename board (legacy)
 router.patch('/:id/name', requireAuth, async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'name is required' });
@@ -179,7 +179,7 @@ router.patch('/:id/name', requireAuth, async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-// DELETE /api/boards/:id — delete board
+// DELETE /api/boards/:id - delete board
 router.delete('/:id', async (req, res) => {
   const { rowCount } = await pool.query(
     'DELETE FROM boards WHERE id = $1 AND user_id = $2',
@@ -189,7 +189,7 @@ router.delete('/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /api/boards/:id/progress — student submits quiz result
+// POST /api/boards/:id/progress - student submits quiz result
 router.post('/:id/progress', async (req, res) => {
   const { cardId, score, maxScore, pct, answers } = req.body;
   if (!cardId) return res.status(400).json({ error: 'cardId required' });
@@ -210,7 +210,7 @@ router.post('/:id/progress', async (req, res) => {
     // The ON CONFLICT upsert below needs the unique constraint; add it for
     // legacy tables created before it existed (no-op if already present).
     await pool.query(`ALTER TABLE quiz_results ADD CONSTRAINT quiz_results_board_card_user_key UNIQUE (board_id, card_id, user_id)`).catch(() => {});
-    // upsert — one result per student per card
+    // upsert - one result per student per card
     await pool.query(`
       INSERT INTO quiz_results (board_id, card_id, user_id, score, max_score, pct, answers)
       VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -232,7 +232,7 @@ router.post('/:id/progress', async (req, res) => {
   }
 });
 
-// GET /api/boards/:id/quiz-results — teacher views all student quiz results
+// GET /api/boards/:id/quiz-results - teacher views all student quiz results
 router.get('/:id/quiz-results', async (req, res) => {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS quiz_results (
@@ -304,7 +304,7 @@ router.post('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/boards/:id/cards/:cardId/comments/:commentId — author or board owner
+// DELETE /api/boards/:id/cards/:cardId/comments/:commentId - author or board owner
 router.delete('/:id/cards/:cardId/comments/:commentId', requireAuth, async (req, res) => {
   try {
     await ensureCommentsTable();

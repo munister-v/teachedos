@@ -5,7 +5,7 @@ const { normalizePlanKey, getPlanLimit } = require('../lib/billing');
 
 router.use(requireAuth);
 
-/* ── GET /api/courses — list teacher's courses ────────────────────────── */
+/* ── GET /api/courses - list teacher's courses ────────────────────────── */
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT c.id, c.name, c.description, c.level, c.color, c.created_at,
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
   res.json({ courses: rows });
 });
 
-/* ── POST /api/courses — create course ───────────────────────────────── */
+/* ── POST /api/courses - create course ───────────────────────────────── */
 router.post('/', requireTeacher, async (req, res) => {
   const { name = 'New Course', description = '', level = '', color = '#FF4B8B' } = req.body;
   const plan = normalizePlanKey(req.user.plan);
@@ -47,7 +47,7 @@ router.post('/', requireTeacher, async (req, res) => {
   res.status(201).json({ course: rows[0] });
 });
 
-/* ── GET /api/courses/:id — full course with modules + boards ─────────── */
+/* ── GET /api/courses/:id - full course with modules + boards ─────────── */
 router.get('/:id', async (req, res) => {
   const { rows: cr } = await pool.query(
     'SELECT * FROM courses WHERE id=$1 AND user_id=$2',
@@ -82,7 +82,7 @@ router.get('/:id', async (req, res) => {
   res.json({ course, modules: Object.values(modMap), unassigned });
 });
 
-/* ── PATCH /api/courses/:id — rename / update course ─────────────────── */
+/* ── PATCH /api/courses/:id - rename / update course ─────────────────── */
 router.patch('/:id', async (req, res) => {
   const { name, description, level, color } = req.body;
   const sets = [], params = [req.params.id, req.user.id];
@@ -98,7 +98,7 @@ router.patch('/:id', async (req, res) => {
   res.json({ course: rows[0] });
 });
 
-/* ── DELETE /api/courses/:id — delete course (boards stay, unlinked) ─── */
+/* ── DELETE /api/courses/:id - delete course (boards stay, unlinked) ─── */
 router.delete('/:id', async (req, res) => {
   await pool.query(
     'UPDATE boards SET course_id=NULL, module_id=NULL WHERE course_id=$1',
@@ -111,7 +111,7 @@ router.delete('/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ── POST /api/courses/:id/modules — add module ──────────────────────── */
+/* ── POST /api/courses/:id/modules - add module ──────────────────────── */
 router.post('/:id/modules', requireTeacher, async (req, res) => {
   const { name = 'New Module', ord = 0 } = req.body;
   const { rows: own } = await pool.query(
@@ -125,7 +125,7 @@ router.post('/:id/modules', requireTeacher, async (req, res) => {
   res.status(201).json({ module: rows[0] });
 });
 
-/* ── PATCH /api/courses/:id/modules/:mid — rename / reorder module ───── */
+/* ── PATCH /api/courses/:id/modules/:mid - rename / reorder module ───── */
 router.patch('/:id/modules/:mid', async (req, res) => {
   const { name, ord } = req.body;
   const sets = [], params = [req.params.mid, req.params.id];
@@ -139,7 +139,7 @@ router.patch('/:id/modules/:mid', async (req, res) => {
   res.json({ module: rows[0] });
 });
 
-/* ── DELETE /api/courses/:id/modules/:mid — delete module ────────────── */
+/* ── DELETE /api/courses/:id/modules/:mid - delete module ────────────── */
 router.delete('/:id/modules/:mid', async (req, res) => {
   await pool.query(
     'UPDATE boards SET module_id=NULL WHERE module_id=$1', [req.params.mid]
@@ -151,7 +151,7 @@ router.delete('/:id/modules/:mid', async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ── PATCH /api/courses/:id/boards/:bid — assign board to module/order ─ */
+/* ── PATCH /api/courses/:id/boards/:bid - assign board to module/order ─ */
 router.patch('/:id/boards/:bid', async (req, res) => {
   const { module_id, board_order } = req.body;
   const sets = [`course_id=$3`], params = [req.params.bid, req.user.id, req.params.id];
@@ -165,7 +165,7 @@ router.patch('/:id/boards/:bid', async (req, res) => {
   res.json({ board: rows[0] });
 });
 
-/* ── DELETE /api/courses/:id/boards/:bid — remove board from course ──── */
+/* ── DELETE /api/courses/:id/boards/:bid - remove board from course ──── */
 router.delete('/:id/boards/:bid', async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE boards SET course_id=NULL, module_id=NULL
@@ -177,7 +177,7 @@ router.delete('/:id/boards/:bid', async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ── GET /api/courses/shared — courses shared with me (as student) ───── */
+/* ── GET /api/courses/shared - courses shared with me (as student) ───── */
 router.get('/shared/list', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT DISTINCT c.id, c.name, c.description, c.level, c.color,
@@ -193,7 +193,7 @@ router.get('/shared/list', async (req, res) => {
   res.json({ courses: rows });
 });
 
-/* ── GET /api/courses/:id/boards — boards in a course (student-accessible) */
+/* ── GET /api/courses/:id/boards - boards in a course (student-accessible) */
 router.get('/:id/boards', async (req, res) => {
   try {
     // Allow owner OR enrolled student

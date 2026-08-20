@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   TeachEd — Vocabulary Library
-   20 thematic dictionaries × 5 CEFR levels × ~25–30 words each
+   TeachEd - Vocabulary Library
+   20 thematic dictionaries × 5 CEFR levels × ~25-30 words each
    ≈ 550 entries total. Each word: [en, uk, ru, example_en]
 
    Consumers:

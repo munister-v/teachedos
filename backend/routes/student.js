@@ -96,7 +96,7 @@ function buildUpcomingSlot(slot, now = new Date()) {
 // GET /api/student/vapid-public-key
 router.get('/vapid-public-key', (req, res) => res.json({ key: VAPID_PUBLIC }));
 
-// GET /api/student/portal/:studentId — teacher views a student's portal
+// GET /api/student/portal/:studentId - teacher views a student's portal
 router.get('/portal/:studentId', requireAuth, async (req, res) => {
   const { studentId } = req.params;
   try {
@@ -219,7 +219,7 @@ router.get('/portal/:studentId', requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/student/portal/:studentId/note — teacher adds note
+// PATCH /api/student/portal/:studentId/note - teacher adds note
 router.patch('/portal/:studentId/note', requireAuth, async (req, res) => {
   const { studentId } = req.params;
   const { note } = req.body;
@@ -254,7 +254,7 @@ router.patch('/portal/:studentId/note', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/student/push-subscribe — save subscription for the authenticated user
+// POST /api/student/push-subscribe - save subscription for the authenticated user
 router.post('/push-subscribe', requireAuth, async (req, res) => {
   try {
     await pool.query(`
@@ -278,7 +278,7 @@ router.post('/push-subscribe', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/quiz-history — student's own quiz submissions
+// GET /api/student/quiz-history - student's own quiz submissions
 router.get('/quiz-history', requireAuth, async (req, res) => {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS quiz_results (

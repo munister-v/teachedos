@@ -20,11 +20,11 @@ pool.query(`CREATE TABLE IF NOT EXISTS shared_materials (
 
 const clip = (s, n) => String(s ?? '').slice(0, n);
 
-// POST /api/share — teacher creates a public interactive link
+// POST /api/share - teacher creates a public interactive link
 router.post('/', requireAuth, requireTeacher, async (req, res) => {
   const { title, level, text, gameType, gameContent, tags } = req.body || {};
   if (!title || (!text && !gameContent)) {
-    return res.status(400).json({ error: 'Nothing to share — generate a material first' });
+    return res.status(400).json({ error: 'Nothing to share - generate a material first' });
   }
   try {
     const token = crypto.randomBytes(9).toString('base64url'); // 12 url-safe chars
@@ -45,7 +45,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
   }
 });
 
-// GET /api/share/:token — public fetch (no auth) + view counter
+// GET /api/share/:token - public fetch (no auth) + view counter
 router.get('/:token', async (req, res) => {
   try {
     const { rows } = await pool.query(

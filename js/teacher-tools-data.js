@@ -1,9 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
-   TeachEd · board.html — teacher tools, seed content and lesson
+   TeachEd · board.html - teacher tools, seed content and lesson
    pack data. Extracted to its own file so the main board.html
    stays editable. Loaded synchronously from board.html before the
    inline script, so the constants are accessible as bare names.
-   Total ~60 KB of pure data — no behaviour, safe to cache long.
+   Total ~60 KB of pure data - no behaviour, safe to cache long.
 ═══════════════════════════════════════════════════════════════ */
 (function() {
 
@@ -103,8 +103,8 @@ const TOOL_SEED_CONTENT = {
   },
   'roleplay-cards': {
     samples: [
-      'Student A — Goal: convince B to choose your plan. Constraint: must use one polite request.',
-      'Student B — Goal: protect your time. Constraint: must give one reason and one compromise.',
+      'Student A - Goal: convince B to choose your plan. Constraint: must use one polite request.',
+      'Student B - Goal: protect your time. Constraint: must give one reason and one compromise.',
       'Phrases A: "What if we…", "How about…", "I really think…"',
       'Phrases B: "I see your point, but…", "I would prefer…", "Could we agree on…?"',
       'Challenge: switch roles after 2 minutes and try again with new phrases.'
@@ -144,11 +144,11 @@ const TOOL_SEED_CONTENT = {
   },
   'true-false': {
     samples: [
-      '1. The text says X happens every day. (T / F — paragraph 1)',
-      '2. The author personally agrees with Y. (T / F — last paragraph)',
-      '3. Z is the main reason mentioned. (T / F — paragraph 3)',
-      '4. The text gives a clear solution. (T / F — paragraph 4)',
-      '5. The example is from a real study. (T / F — paragraph 2)'
+      '1. The text says X happens every day. (T / F - paragraph 1)',
+      '2. The author personally agrees with Y. (T / F - last paragraph)',
+      '3. Z is the main reason mentioned. (T / F - paragraph 3)',
+      '4. The text gives a clear solution. (T / F - paragraph 4)',
+      '5. The example is from a real study. (T / F - paragraph 2)'
     ],
     language: ['according to', 'the text states', 'the author mentions', 'it suggests that', 'we can conclude']
   },
@@ -164,16 +164,16 @@ const TOOL_SEED_CONTENT = {
   },
   // Vocabulary
   'extract-vocab': {
-    samples: ['word — short student-friendly definition + 1 example', 'collocation — common partner words', 'phrasal — verb + particle meaning', 'idiom — figurative meaning + register', 'word family — noun / verb / adj. / adv.'],
+    samples: ['word - short student-friendly definition + 1 example', 'collocation - common partner words', 'phrasal - verb + particle meaning', 'idiom - figurative meaning + register', 'word family - noun / verb / adj. / adv.'],
     language: ['means', 'can be replaced by', 'collocates with', 'is used to', 'is the opposite of']
   },
   'essential-vocab': {
     samples: [
-      'core noun — definition + example sentence',
-      'core verb — definition + collocation + example',
-      'core adjective — definition + opposite',
-      'useful phrase — definition + when to use it',
-      'connector — purpose + example'
+      'core noun - definition + example sentence',
+      'core verb - definition + collocation + example',
+      'core adjective - definition + opposite',
+      'useful phrase - definition + when to use it',
+      'connector - purpose + example'
     ],
     language: ['It means…', 'For example…', 'The opposite is…', 'It collocates with…', 'We use this when…']
   },
@@ -265,7 +265,7 @@ const TOOL_SEED_CONTENT = {
   'audio-video-questions': {
     samples: [
       'Gist: in one sentence, what is the clip about?',
-      'Detail 1: write the exact word / number you hear at 00:00–00:30.',
+      'Detail 1: write the exact word / number you hear at 00:00-00:30.',
       'Detail 2: who says X and why?',
       'Inference: what does the speaker probably feel? Quote the line that shows it.',
       'Language: pick one chunk you want to start using.'
@@ -274,7 +274,7 @@ const TOOL_SEED_CONTENT = {
   },
   'warmup-listening': {
     samples: [
-      'Predict: read the title — what 5 words will you hear?',
+      'Predict: read the title - what 5 words will you hear?',
       'Vocabulary: pre-teach 3 essential terms with definitions + a check question.',
       'Visualise: describe the setting in one sentence.',
       'Personalise: what do you already know about the topic?',
@@ -297,7 +297,7 @@ const TOOL_SEED_FALLBACKS = {
     language: ['According to the text…', 'In paragraph X…', 'The author implies…', 'I would (not) share this because…']
   },
   vocabulary: {
-    samples: ['word — short definition + 1 collocation', 'word — antonym + register note', 'word — example sentence + your own example', 'phrase — when we use it', 'word family — derived forms'],
+    samples: ['word - short definition + 1 collocation', 'word - antonym + register note', 'word - example sentence + your own example', 'phrase - when we use it', 'word family - derived forms'],
     language: ['means', 'collocates with', 'is the opposite of', 'is more formal than', 'is used to']
   },
   writing: {
@@ -319,7 +319,7 @@ const TOOL_SEED_FALLBACKS = {
       'Notice: highlight the target structure in 2 example sentences.',
       'Rule: students complete a one-line rule with you.',
       'Controlled: 5 gap-fill or transformation items.',
-      'Error repair: 5 typical mistakes — find and correct.',
+      'Error repair: 5 typical mistakes - find and correct.',
       'Free use: 1 personal sentence using the structure correctly.'
     ],
     language: ['form', 'meaning', 'use', 'register', 'common mistake']
@@ -327,7 +327,7 @@ const TOOL_SEED_FALLBACKS = {
   listening: {
     samples: [
       'Before: predict 5 words you expect to hear from the title.',
-      'First listen: gist only — one-sentence summary.',
+      'First listen: gist only - one-sentence summary.',
       'Second listen: detail / number / name questions.',
       'Language mine: write 5 useful chunks from the transcript.',
       'After: 2-minute speaking transfer using the chunks.'
@@ -358,14 +358,14 @@ const LESSON_PACKS = [
       { title:'🌟 Warm-up · 5 min', color:'#FFE566', text:
 `Quick speak (60s each, swap partner):
 
-• The last trip you took — where, who with, what surprised you?
+• The last trip you took - where, who with, what surprised you?
 • A place you have always wanted to visit and why.
 • Beach holiday or city break? Defend your choice.
-• A trip that went wrong — what happened?
+• A trip that went wrong - what happened?
 • Cheap-and-rough or comfortable-and-quiet?
 
 Teacher: monitor for *because*, *I would*, *I have been to*.` },
-      { title:'📚 Input — Vocab · 12 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Vocab · 12 min', color:'#AFF4C6', text:
 `Match the 10 travel verbs to definitions:
 
 • check in / check out
@@ -385,32 +385,32 @@ After matching → write 1 personal sentence per pair (5 sentences total).
 "My flight was delayed/cancelled."
 "I had to run to catch the connection."
 "We were upgraded to business."` },
-      { title:'💪 Practice — Reading · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Reading · 10 min', color:'#CFE2FF', text:
 `Read the 80-word post and answer 4 questions:
 
-"Last summer I missed my connection in Istanbul. I'd booked a tight 50-minute transfer, the first flight was delayed by 40 minutes, and by the time I reclaimed my luggage and ran to the gate, the doors were closed. The airline rebooked me, but I had to sleep in the terminal. Now I always leave at least 2 hours between flights — and travel insurance is non-negotiable."
+"Last summer I missed my connection in Istanbul. I'd booked a tight 50-minute transfer, the first flight was delayed by 40 minutes, and by the time I reclaimed my luggage and ran to the gate, the doors were closed. The airline rebooked me, but I had to sleep in the terminal. Now I always leave at least 2 hours between flights - and travel insurance is non-negotiable."
 
 1. Why did the author miss the flight? (gist)
 2. Find 3 travel verbs from your vocab in the text. (detail)
 3. What's the author's main lesson? (inference)
 4. Have you ever had a similar story? (transfer)` },
-      { title:'🎤 Production — Pair task · 12 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - Pair task · 12 min', color:'#FFB8D9', text:
 `Plan a 3-day trip for your partner.
 
-Step 1 — interview (2 min):
+Step 1 - interview (2 min):
 "What do you usually look for in a trip?"
 "Comfort or adventure?"
 "Cities or nature?"
 "How much can you spend?"
 
-Step 2 — present your plan (2 min):
+Step 2 - present your plan (2 min):
 "On day 1 you will… Day 2 we'll… The reason I chose this is…"
 
-Step 3 — react (1 min):
+Step 3 - react (1 min):
 "That sounds great because…"
 "I'd swap day 2 for…"
 
-Step 4 — swap roles.` },
+Step 4 - swap roles.` },
       { title:'🏠 Homework + Wrap · 6 min', color:'#CDB4F6', text:
 `Wrap (in class, 3 min):
 Each student says 1 new word they will use this week and where.
@@ -438,11 +438,11 @@ Send to teacher by Friday. Mark with: ✓ ✓ ✗.` }
 
 • When was your last "interview" (job, university, even an apartment viewing)?
 • What's the WORST interview question you've heard?
-• Skills that look great on a CV vs skills that actually matter — same or different?
+• Skills that look great on a CV vs skills that actually matter - same or different?
 • If you were the hiring manager, what would you ask first?
 
 Teacher elicit: tell me about a time when…, my biggest strength is…, I'd say my weakness is… but…` },
-      { title:'📚 Input — Vocab · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Vocab · 10 min', color:'#AFF4C6', text:
 `Pre-teach these CV/interview chunks:
 
 Strengths:
@@ -461,19 +461,19 @@ Situational verbs:
 - deliver / launch / improve
 
 Check: students cover the list and read each phrase aloud from memory.` },
-      { title:'💪 Practice — STAR · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - STAR · 10 min', color:'#CFE2FF', text:
 `STAR technique for behavioural questions:
 
-S — Situation (1 sentence: where + when)
-T — Task (1 sentence: your responsibility)
-A — Action (3 sentences: what YOU did, not the team)
-R — Result (1 sentence + 1 number if possible)
+S - Situation (1 sentence: where + when)
+T - Task (1 sentence: your responsibility)
+A - Action (3 sentences: what YOU did, not the team)
+R - Result (1 sentence + 1 number if possible)
 
 Practice prompt:
 "Tell me about a time you handled a difficult colleague."
 
 Students write a 5-sentence STAR answer (4 min), then swap and tighten each other's answer (3 min).` },
-      { title:'🎤 Production — Mock interview · 15 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - Mock interview · 15 min', color:'#FFB8D9', text:
 `Pair A = interviewer · Pair B = candidate.
 
 Interviewer asks 4 from this set:
@@ -510,7 +510,7 @@ Optional: send a real job ad you want to apply for + we'll do a tailored mock ne
     summary: 'Quick survey → time vocabulary → present simple drill → personal video script.',
     stages: [
       { title:'🌟 Warm-up · 5 min', color:'#FFE566', text:
-`Class survey — "How many of us…"
+`Class survey - "How many of us…"
 
 Raise your hand if you:
 • …get up before 7 a.m.
@@ -521,7 +521,7 @@ Raise your hand if you:
 • …cook your own dinner
 
 Teacher counts. Pairs predict which habit is the most/least popular before counting.` },
-      { title:'📚 Input — Time vocab · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Time vocab · 10 min', color:'#AFF4C6', text:
 `Time markers:
 
 Frequency: always / usually / often / sometimes / rarely / never
@@ -536,7 +536,7 @@ Daily verbs (full sentences):
 - I go to bed at midnight.
 
 Drill: students change the times to be true for them.` },
-      { title:'💪 Practice — Present Simple · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Present Simple · 10 min', color:'#CFE2FF', text:
 `Gap-fill (write -s if needed):
 
 1. She _____ (get) up at 6 every morning.
@@ -544,11 +544,11 @@ Drill: students change the times to be true for them.` },
 3. My brother never _____ (cook) at home.
 4. We _____ (have) dinner together on Sundays.
 5. They _____ (not / like) early starts.
-6. _____ you _____ (work) from home? — Yes, I _____.
+6. _____ you _____ (work) from home? - Yes, I _____.
 7. He _____ (go) to the gym twice a week.
 
 Answers: gets · drink · cooks · have · don't like · Do, work, do · goes` },
-      { title:'🎤 Production — Day script · 10 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - Day script · 10 min', color:'#FFB8D9', text:
 `Write your "Day in 90 seconds" script.
 
 Structure (~80 words):
@@ -591,7 +591,7 @@ Send the audio to your teacher.` }
 
 What % of plastic ever produced has been recycled?
 What % of food in your country is wasted at home?
-Which uses more water — 1 kg of beef or 1 pair of jeans?
+Which uses more water - 1 kg of beef or 1 pair of jeans?
 
 After predictions, reveal:
 • Recycled plastic: ~9%
@@ -599,10 +599,10 @@ After predictions, reveal:
 • 1 kg of beef ≈ 15,000 L water; jeans ≈ 7,500 L
 
 Question: which number surprised you most and why?` },
-      { title:'📚 Input — Reading · 12 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Reading · 12 min', color:'#AFF4C6', text:
 `Read 150 words and find evidence for 3 claims.
 
-"Climate scientists agree that the next decade is decisive. Reducing meat consumption by half could save more emissions than switching every car to electric. Yet households focus on plastic straws and ignore the kitchen — where the biggest individual impact lives. The honest answer isn't 'recycle more'; it's 'consume differently'. The data is clear, the political will is not, and the responsibility — uncomfortable as it sounds — sits with consumers who keep voting with their wallet."
+"Climate scientists agree that the next decade is decisive. Reducing meat consumption by half could save more emissions than switching every car to electric. Yet households focus on plastic straws and ignore the kitchen - where the biggest individual impact lives. The honest answer isn't 'recycle more'; it's 'consume differently'. The data is clear, the political will is not, and the responsibility - uncomfortable as it sounds - sits with consumers who keep voting with their wallet."
 
 Claims:
 1. Diet > cars for emissions.
@@ -610,7 +610,7 @@ Claims:
 3. Consumers, not policy, drive the problem.
 
 Find the line. Mark it. Compare with a partner.` },
-      { title:'💪 Practice — Vocab + collocations · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Vocab + collocations · 10 min', color:'#CFE2FF', text:
 `Useful chunks from the text:
 
 • the next decade is decisive
@@ -628,8 +628,8 @@ Sentence transformations:
 3. "Consumers cause it" → using *drive*: ____________
 
 Then build 1 personal sentence with 2 chunks.` },
-      { title:'🎤 Production — Debate · 15 min', color:'#FFB8D9', text:
-`Debate cards (groups of 4 — 2 vs 2).
+      { title:'🎤 Production - Debate · 15 min', color:'#FFB8D9', text:
+`Debate cards (groups of 4 - 2 vs 2).
 
 CLAIM A: "Climate change is mainly the responsibility of individuals."
 CLAIM B: "Climate change is mainly the responsibility of governments and corporations."
@@ -680,7 +680,7 @@ Discuss:
 - Is the number higher or lower than you expected?
 - Which app would you delete tomorrow if you HAD to?
 - Which app would you keep if you could only have ONE?` },
-      { title:'📚 Input — Language · 8 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Language · 8 min', color:'#AFF4C6', text:
 `Hedging + opinion bank:
 
 Soft opinions:
@@ -700,7 +700,7 @@ Concessions:
 - I'd agree if it weren't for…
 
 Drill: students rephrase 3 strong opinions with hedges.` },
-      { title:'💪 Practice — Opinion gradient · 8 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Opinion gradient · 8 min', color:'#CFE2FF', text:
 `Place yourself on the line:
 
 Strongly agree ←────────────────→ Strongly disagree
@@ -713,14 +713,14 @@ Statements (one at a time):
 5. We need a "right to disconnect" law for work hours.
 
 After each statement: ONE student from the strongest agreement and ONE from the strongest disagreement explain in 30 seconds.` },
-      { title:'🎤 Production — Debate snapshot · 15 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - Debate snapshot · 15 min', color:'#FFB8D9', text:
 `Mini-debate (groups of 3): one moderator, two debaters.
 
 Motion: "Children under 14 should not have social media accounts."
 
 Roles:
-- Debater A (3 min prep) — 90s opening
-- Debater B (3 min prep) — 90s opening
+- Debater A (3 min prep) - 90s opening
+- Debater B (3 min prep) - 90s opening
 - Moderator: ask ONE sharp follow-up to each side
 - 60-second closing each
 - Moderator scores: clarity, evidence, language
@@ -765,7 +765,7 @@ In pairs answer in turn (45s each):
 • Food you used to hate as a kid but love now?
 
 Teacher elicit: I can't stand…, I'm not a fan of…, I'm crazy about…` },
-      { title:'📚 Input — Menu vocab · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Menu vocab · 10 min', color:'#AFF4C6', text:
 `Cooking methods (verb + ed):
 - grilled, roasted, baked, fried, boiled, steamed, stewed, smoked, marinated, glazed
 
@@ -777,7 +777,7 @@ Dietary notes:
 - vegan / vegetarian / gluten-free / dairy-free / nut allergy
 
 Mini-task: write a 1-line description of a dish you love using 2 cooking methods + 2 flavour words. Example: "Slow-roasted lamb with a tangy yogurt sauce, crispy onions on top."` },
-      { title:'💪 Practice — Restaurant phrases · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Restaurant phrases · 10 min', color:'#CFE2FF', text:
 `Match phrases to moments:
 
 ARRIVING:
@@ -800,7 +800,7 @@ PAYING:
 - "Could we split the bill?"
 
 Pairs: say each phrase, then partner gives the next likely line.` },
-      { title:'🎤 Production — Role-play · 12 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - Role-play · 12 min', color:'#FFB8D9', text:
 `3-person scene (rotate every 4 min):
 
 Server · Customer A · Customer B
@@ -821,8 +821,8 @@ Teacher: feed cards with surprise twists ("Server: cash only", "Customer A: spil
 `Wrap (3 min):
 Each table votes the most natural server / most demanding customer.
 
-Homework — Restaurant review (140 words):
-Title: "A meal I won't forget — for the right or wrong reason."
+Homework - Restaurant review (140 words):
+Title: "A meal I won't forget - for the right or wrong reason."
 Include:
 - the dish (with cooking method + flavour)
 - the service (1 specific moment)
@@ -853,7 +853,7 @@ After predictions, reveal the actual outcome.
 Question to reflect:
 - Which prediction was the most confident?
 - Did anyone predict the right thing for the right reason?` },
-      { title:'📚 Input — will vs going to · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - will vs going to · 10 min', color:'#AFF4C6', text:
 `Rules in one line each:
 
 going to → plan / intention decided BEFORE now
@@ -869,20 +869,20 @@ Likely to / unlikely to → for predictions
 "They're likely to win." / "He's unlikely to call."
 
 Pairs: turn each example into a personal sentence about next month.` },
-      { title:'💪 Practice — Pick the form · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Pick the form · 10 min', color:'#CFE2FF', text:
 `Choose will / going to / might / be likely to:
 
-1. The phone's ringing — I _____ get it.
+1. The phone's ringing - I _____ get it.
 2. I _____ change jobs in March (decided last week).
 3. The sky's dark, it _____ rain.
-4. I'm not sure — I _____ come, depends on time.
+4. I'm not sure - I _____ come, depends on time.
 5. By 2030 most people _____ work from home (prediction).
-6. — "I'm hungry." — "I _____ make you a sandwich."
-7. I've signed up for the course — I _____ study every weekend.
+6. - "I'm hungry." - "I _____ make you a sandwich."
+7. I've signed up for the course - I _____ study every weekend.
 
 Answers: 'll · 'm going to · might/'s going to · might · are likely to · 'll · 'm going to` },
-      { title:'🎤 Production — Bucket list · 12 min', color:'#FFB8D9', text:
-`Pair task — bucket list interview (5 min each side):
+      { title:'🎤 Production - Bucket list · 12 min', color:'#FFB8D9', text:
+`Pair task - bucket list interview (5 min each side):
 
 Ask your partner:
 "Three things you're going to do this year?"
@@ -900,14 +900,14 @@ Teacher: count correct uses of going to / will / might per student.` },
 `Wrap (3 min):
 Each student writes ONE goal for the next month and gives it to the teacher (sealed).
 
-Homework — "My one-year manifesto" (130 words):
+Homework - "My one-year manifesto" (130 words):
 3 goals using going to (decided)
 2 predictions using will (probable)
 2 maybes using might
 
 End with one promise sentence: "By next December, I'll have…"
 
-Send as a voice note OR text — student's choice.` }
+Send as a voice note OR text - student's choice.` }
     ]
   },
 
@@ -932,7 +932,7 @@ Discuss in pairs:
 - Easiest habit on this list for you?
 - Which finger went down first?
 - Which habit gives the biggest payback for least effort?` },
-      { title:'📚 Input — Health vocab · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Health vocab · 10 min', color:'#AFF4C6', text:
 `Verbs + nouns to mix and match:
 
 Verbs:
@@ -951,20 +951,20 @@ Nouns + adjectives:
 
 Mini-drill: make a sentence with each pair (verb + suitable noun).
 Example: "I'm trying to break the habit of skipping breakfast."` },
-      { title:'💪 Practice — Habit interview · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Habit interview · 10 min', color:'#CFE2FF', text:
 `Interview chain (3-min turns):
 
 Ask your partner:
 1. A habit you've built that you're proud of?
 2. A habit you've tried to break and failed?
 3. A "guilty pleasure" you refuse to give up?
-4. Sleep, food, or exercise — which is your weakest right now?
+4. Sleep, food, or exercise - which is your weakest right now?
 5. One thing you used to do that you've stopped doing?
 
 Use: I've been -ing / I used to / I gave up -ing / I'm trying to cut down on…
 
 Note one phrase your partner used that you'd like to steal.` },
-      { title:'🎤 Production — 7-day contract · 12 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - 7-day contract · 12 min', color:'#FFB8D9', text:
 `Design a 7-day habit contract for a partner:
 
 Step 1 (3 min): interview partner about their goal.
@@ -1008,14 +1008,14 @@ Send to teacher with the original contract.` }
 `Spending personality:
 
 In pairs (45s each):
-• Saver or spender — be honest.
+• Saver or spender - be honest.
 • Last "I shouldn't have" purchase?
 • Best-value thing you ever bought?
 • Worst-value thing you ever bought?
-• Cash or card — and why?
+• Cash or card - and why?
 
-Then: rank in the class — who's the biggest saver? Biggest spender? Vote without talking.` },
-      { title:'📚 Input — Money chunks · 10 min', color:'#AFF4C6', text:
+Then: rank in the class - who's the biggest saver? Biggest spender? Vote without talking.` },
+      { title:'📚 Input - Money chunks · 10 min', color:'#AFF4C6', text:
 `Useful money + shopping chunks:
 
 Spending:
@@ -1037,7 +1037,7 @@ Shopping problems:
 - it doesn't fit / suit me
 - the size was wrong
 - the colour faded after one wash` },
-      { title:'💪 Practice — Complaint phrases · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Complaint phrases · 10 min', color:'#CFE2FF', text:
 `Match the customer line to the right verb:
 
 1. Complain about a product
@@ -1054,8 +1054,8 @@ E. "I think I'm entitled to a full refund."
 F. "Could you check with your manager?"
 
 Pairs say each line out loud, then build a 4-line mini-dialogue using one from each category.` },
-      { title:'🎤 Production — Shop role-play · 12 min', color:'#FFB8D9', text:
-`Pairs — assign roles, swap after 5 min.
+      { title:'🎤 Production - Shop role-play · 12 min', color:'#FFB8D9', text:
+`Pairs - assign roles, swap after 5 min.
 
 CUSTOMER:
 - Bought item online, arrived wrong colour + 1 size too small.
@@ -1073,12 +1073,12 @@ Use:
 
 End either with a refund, an exchange, or "speak to manager".
 
-Teacher: feed twists ("Card limit reached", "Sales item — no refund").` },
+Teacher: feed twists ("Card limit reached", "Sales item - no refund").` },
       { title:'🏠 Homework + Wrap · 8 min', color:'#CDB4F6', text:
 `Wrap (3 min):
 Each pair shares one "killer line" their role-play used.
 
-Homework — "My last 5 purchases" (120 words):
+Homework - "My last 5 purchases" (120 words):
 List them with:
 - price
 - worth-every-penny / waste-of-money?
@@ -1109,7 +1109,7 @@ For each headline in pairs (60s each):
 Then reveal sources and check predictions.
 
 Teacher elicit: it suggests, it implies, it sounds biased, the word "X" is loaded.` },
-      { title:'📚 Input — Reading + chunks · 12 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Reading + chunks · 12 min', color:'#AFF4C6', text:
 `Read the 130-word neutral article + spot the chunks.
 
 Useful news + opinion chunks:
@@ -1124,7 +1124,7 @@ Useful news + opinion chunks:
 
 After reading:
 Highlight 5 chunks you'd actually use. Build 1 sentence with each that applies to your country / city / industry.` },
-      { title:'💪 Practice — Bias spotting · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Bias spotting · 10 min', color:'#CFE2FF', text:
 `Rewriting drill:
 
 Take these biased lines and make them NEUTRAL:
@@ -1140,7 +1140,7 @@ a) in a sympathetic style
 b) in a hostile style
 
 Discuss: how easy was the manipulation?` },
-      { title:'🎤 Production — News round-up · 15 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - News round-up · 15 min', color:'#FFB8D9', text:
 `Each student brings 1 news story they care about (max 30s of background).
 
 Round-table format (5 students per group):
@@ -1189,7 +1189,7 @@ Pairs (60s each):
 • Is "online friends" a real circle or a different category?
 
 Teacher elicit: we drifted apart, we grew closer, we lost touch, we reconnected.` },
-      { title:'📚 Input — Relationship verbs · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Relationship verbs · 10 min', color:'#AFF4C6', text:
 `Relationship verbs (with collocations):
 
 Getting closer:
@@ -1213,12 +1213,12 @@ Repairing:
 - bury the hatchet
 
 Build 1 personal sentence per group (3 sentences total).` },
-      { title:'💪 Practice — Advice column · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Advice column · 10 min', color:'#CFE2FF', text:
 `Read this micro-letter:
 
 "Dear X,
 My best friend of 10 years has stopped replying to my messages since I told her I'm moving abroad. I think she's hurt but won't admit it. I'm leaving in 6 weeks. Should I confront her or just give her space?
-— Caught in between"
+- Caught in between"
 
 In pairs draft a 3-paragraph reply (~80 words) using:
 - 1 empathy line ("It sounds like…")
@@ -1227,8 +1227,8 @@ In pairs draft a 3-paragraph reply (~80 words) using:
 - 1 honest warning ("but be prepared for…")
 
 Read aloud. Class votes the warmest + the wisest reply.` },
-      { title:'🎤 Production — Hot seat · 12 min', color:'#FFB8D9', text:
-`Hot seat — 1 in the chair, 3 ask.
+      { title:'🎤 Production - Hot seat · 12 min', color:'#FFB8D9', text:
+`Hot seat - 1 in the chair, 3 ask.
 
 The chair-holder picks a card:
 A. "Forgive a friend who lied to you."
@@ -1277,7 +1277,7 @@ Pitch a movie/series to someone who hasn't seen it. Constraints:
 Pairs swap. After 5 pitches, vote on the most convincing.
 
 Teacher elicit: it follows…, it's set in…, it explores…, what hooked me was…` },
-      { title:'📚 Input — Review chunks · 10 min', color:'#AFF4C6', text:
+      { title:'📚 Input - Review chunks · 10 min', color:'#AFF4C6', text:
 `Review vocabulary:
 
 Praise:
@@ -1302,7 +1302,7 @@ Hedges:
 - depending on your tolerance for…
 
 Drill: rewrite 1 movie review in your phone using 4 chunks.` },
-      { title:'💪 Practice — Sentence patterns · 10 min', color:'#CFE2FF', text:
+      { title:'💪 Practice - Sentence patterns · 10 min', color:'#CFE2FF', text:
 `Build with these patterns:
 
 1. Set-up + verb:
@@ -1322,7 +1322,7 @@ Drill: rewrite 1 movie review in your phone using 4 chunks.` },
 "Skip it unless you really love…"
 
 Students draft 4 sentences about a real show using each pattern.` },
-      { title:'🎤 Production — 90-word review · 12 min', color:'#FFB8D9', text:
+      { title:'🎤 Production - 90-word review · 12 min', color:'#FFB8D9', text:
 `Write a 90-word review of any film / series.
 
 Structure:
@@ -1343,7 +1343,7 @@ Revise.` },
 `Wrap (3 min):
 Read aloud the partner's strongest line. Vote for "best opener" + "harshest but fair critique".
 
-Homework — Full review (180 words):
+Homework - Full review (180 words):
 Use the same structure, expanded:
 - 2-line setup
 - 1 paragraph strength (with example)
@@ -1360,7 +1360,7 @@ const TOOL_FLOW_TEMPLATES = {
   reading: [
     '1️⃣ Lead-in\nPredict the topic from the title or first sentence.',
     '2️⃣ Gist\nChoose the best summary in 60 seconds.',
-    '3️⃣ Detail\nAnswer 4–6 questions with evidence from the text.',
+    '3️⃣ Detail\nAnswer 4-6 questions with evidence from the text.',
     '4️⃣ Language\nCollect useful phrases and build new examples.',
     '5️⃣ Transfer\nDiscuss or write a personal response.'
   ],
@@ -1428,18 +1428,18 @@ const GAMES = [
   { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   desc:'Type the word from its definition clue',                  src:'games/spelling-bee.html',          w:460, h:560 },
   { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', desc:'Sort words into the correct topic groups',                src:'games/word-categories.html',       w:560, h:640 },
   { icon:'🃏', title:'Definition Match',  tag:'Vocabulary', desc:'Match words to their definitions',                        src:'games/word-definition-match.html', w:520, h:580 },
-  { icon:'🗂️', title:'Flashcards',        tag:'Vocabulary', desc:'Flip cards to test yourself — Got it / Again tracking',    src:'games/flashcards.html',            w:460, h:560 },
+  { icon:'🗂️', title:'Flashcards',        tag:'Vocabulary', desc:'Flip cards to test yourself - Got it / Again tracking',    src:'games/flashcards.html',            w:460, h:560 },
   { icon:'✍️', title:'Fill in the Blank', tag:'Grammar',    desc:'Type the missing word to complete each sentence',          src:'games/fill-blank.html',            w:460, h:560 },
   { icon:'🔍', title:'Word Search',        tag:'Spelling',   desc:'Find hidden words in a 12×12 letter grid',                src:'games/word-search.html',           w:520, h:620 },
-  { icon:'⚡', title:'Speed Quiz',         tag:'Speed',      desc:'4-option MCQ with 6-second countdown — how fast are you?', src:'games/speed-quiz.html',            w:480, h:560 },
-  { icon:'🎡', title:'Spin the Wheel',     tag:'Speaking',   desc:'Editable word wheel — great for hot-seat vocabulary drills', src:'games/spin-wheel.html',          w:460, h:560 },
+  { icon:'⚡', title:'Speed Quiz',         tag:'Speed',      desc:'4-option MCQ with 6-second countdown - how fast are you?', src:'games/speed-quiz.html',            w:480, h:560 },
+  { icon:'🎡', title:'Spin the Wheel',     tag:'Speaking',   desc:'Editable word wheel - great for hot-seat vocabulary drills', src:'games/spin-wheel.html',          w:460, h:560 },
   { icon:'🃏', title:'Find the Match',     tag:'Vocabulary', desc:'Tap matching word + translation tiles before time runs out', src:'games/find-match.html',          w:560, h:600 },
   { icon:'❓', title:'Vocabulary Quiz',    tag:'Vocabulary', desc:'Multiple-choice quiz built from your word pairs',         src:'games/vocab-quiz.html',            w:480, h:560 },
-  { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword — your words, your clues',        src:'games/crossword.html',             w:600, h:620 },
+  { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword - your words, your clues',        src:'games/crossword.html',             w:600, h:620 },
   { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:560 },
   { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
   { icon:'🔨', title:'Whack-a-Mole',       tag:'Vocabulary', desc:'Whack only the words from the target category',           src:'games/whack-a-mole.html',          w:560, h:560 },
-  { icon:'🖼️', title:'Photo Match',        tag:'Vocabulary', desc:'Match each word to its photo — images fetched automatically', src:'games/word-image-match.html',      w:560, h:620 },
+  { icon:'🖼️', title:'Photo Match',        tag:'Vocabulary', desc:'Match each word to its photo - images fetched automatically', src:'games/word-image-match.html',      w:560, h:620 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */
@@ -1453,7 +1453,7 @@ const STICKER_CATEGORIES = {
   'Food':['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🍆','🥔','🥕','🌽','🌶️','🥒','🥬','🥦','🍞','🥐','🥖','🧀','🥚','🍳','🥞','🧇','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🥗','🍝','🍜','🍣','🍱','🥟','🍤','🍦','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍯','☕','🍵','🥤','🍺','🍷','🥂'],
 };
 
-/* ─── STICKER_KEYWORDS — maps English words → emoji glyphs ─── */
+/* ─── STICKER_KEYWORDS - maps English words → emoji glyphs ─── */
 const STICKER_KEYWORDS = {
   heart:   ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💖','💗','💓','💞','💕','💘','💝','💟','♥️','💔','❣️'],
   love:    ['❤️','💕','💖','🥰','😍','💘'],

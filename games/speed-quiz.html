@@ -161,7 +161,7 @@ function endGame(){
   const pct=Math.round(score/max*100);
   document.getElementById('finalScore').textContent=score+' / '+max;
   document.getElementById('finalTitle').textContent=pct>=80?'Outstanding! 🏆':pct>=60?'Well done! 👍':'Keep going! 📚';
-  document.getElementById('finalMsg').textContent=pct+'% — '+QUESTIONS.length+' questions answered';
+  document.getElementById('finalMsg').textContent=pct+'% - '+QUESTIONS.length+' questions answered';
   window.parent.postMessage({type:'gameScore',score:score,max:max,game:'Speed Quiz'},'*');
 }
 

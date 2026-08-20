@@ -46,8 +46,8 @@ function _ttDeriveLesson(output) {
     const gl = output.cards.find(c => /glossary|vocabulary|key words|word list/i.test(c.title || ''));
     if (gl && !vocab.length) {
       vocab = String(gl.text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-        const p = l.split(/\s+[—–-]\s+/);
-        return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' — ')) } : null;
+        const p = l.split(/\s+[-]\s+/);
+        return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' - ')) } : null;
       }).filter(Boolean);
     }
     const rt = output.cards.find(c => /reading text|generated text|\btext\b/i.test(c.title || ''));
@@ -56,15 +56,15 @@ function _ttDeriveLesson(output) {
   if (Array.isArray(output.vocab) && output.vocab.length && !vocab.length) {
     vocab = output.vocab.map(w => ({ word: clean(w), def: '' })).filter(v => v.word);
   }
-  // Builder context (raw inputs the teacher typed/pasted) — fills the gaps when
+  // Builder context (raw inputs the teacher typed/pasted) - fills the gaps when
   // the visible output doesn't carry the text or the word list itself, so the
   // "+ Add activity" chain works from ANY generated task.
   const ctx = output._ctx || {};
   if (!source && ctx.source) source = String(ctx.source);
   if (vocab.length < 2 && ctx.vocab) {
     const parsed = String(ctx.vocab).split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-      const p = l.split(/\s+[—–-]\s+/);
-      return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' — ')) } : { word: clean(l), def: '' };
+        const p = l.split(/\s+[-]\s+/);
+      return p.length >= 2 ? { word: clean(p.shift()), def: clean(p.join(' - ')) } : { word: clean(l), def: '' };
     }).filter(v => v.word);
     if (parsed.length >= 2) vocab = parsed;
   }
@@ -73,7 +73,7 @@ function _ttDeriveLesson(output) {
 }
 
 // Create a composer frame that carries lesson context (→ "+ Add activity").
-// Tag it as a Teacher-Tool source (_ttSrc) so "📚 Build Lesson" can collect it —
+// Tag it as a Teacher-Tool source (_ttSrc) so "📚 Build Lesson" can collect it -
 // every placement path goes through here, so this is the single point that makes
 // generated activities discoverable to the lesson collector.
 function _ttLessonFrame(meta, output, x, y, w, h) {
@@ -531,7 +531,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
     const GRID_TOP = 208;
     // Stage grid: the SAME landscape Lesson Pack card used everywhere else on
     // the board (structured aims/practice/grammar formatting, single accent,
-    // row-height clamp, anchors, timing badges) — not a separate custom
+    // row-height clamp, anchors, timing badges) - not a separate custom
     // layout, so "Add to board" always looks the same regardless of which
     // button the teacher clicked to place it.
     const lpCols = _ttLessonPackCols(shown.length);
@@ -604,7 +604,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
   // Standard activity flow: same visual system as lesson packs, but smaller.
   const visibleCards = Math.min(cards.length, 12);
   const shown = cards.slice(0, visibleCards);
-  // A two-column flow is easy to read for a short activity, but with 7–12
+  // A two-column flow is easy to read for a short activity, but with 7-12
   // generated cards it turns into a very long lesson strip. Let larger sets
   // use one extra column: boards pan horizontally well, while a long vertical
   // scroll hides the later prompts during a live class.
@@ -699,10 +699,10 @@ function _ttReadingTextBody(text) {
 }
 function _ttReadingGlossaryBody(text) {
   return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(r => {
-    const parts = r.split(/\s+[—–-]\s+/);
+    const parts = r.split(/\s+[-]\s+/);
     if (parts.length >= 2) {
       const w = parts.shift();
-      return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px"><span style="font-weight:700;color:#0f172a">${_ttMdInline(w)}</span><span style="color:#5b6472"> — ${_ttMdInline(parts.join(' — '))}</span></div>`;
+      return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px"><span style="font-weight:700;color:#0f172a">${_ttMdInline(w)}</span><span style="color:#5b6472"> - ${_ttMdInline(parts.join(' - '))}</span></div>`;
     }
     return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px;color:#232830">${_ttMdInline(r)}</div>`;
   }).join('');
@@ -872,7 +872,7 @@ function _ttPlaceWorksheetBoard(output, meta) {
   } finally {
     _suppressSnapshot--;
   }
-  _ttFinishComposedBoard(frame, `Interactive worksheet ready — ${parts.length} parts on board`);
+  _ttFinishComposedBoard(frame, `Interactive worksheet ready - ${parts.length} parts on board`);
   return true;
 }
 
@@ -892,8 +892,8 @@ function _ttPlaceComplexToolOnBoard(output) {
     // pre→text→post + glossary layout (full-height passage + **bold** target words);
     // everything else uses the generic card flow.
     // Route here when the category says reading OR when the output carries the
-    // unmistakable reading signature — a long passage card paired with reading
-    // scaffolding — even if `cat` wasn't tagged (e.g. boards built via the lesson
+    // unmistakable reading signature - a long passage card paired with reading
+    // scaffolding - even if `cat` wasn't tagged (e.g. boards built via the lesson
     // collector). Without this, a real reading lesson falls into the fixed-height
     // grid and the passage gets clipped with raw ** markers showing.
     const titled = re => cards.some(c => re.test(String(c.title || '')));

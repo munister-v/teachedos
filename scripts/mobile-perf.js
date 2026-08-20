@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   mobile-perf.js — anti-jank + speed tweaks for TeachEd mobile
+   mobile-perf.js - anti-jank + speed tweaks for TeachEd mobile
 
    Active only when viewport is ≤860px OR PWA standalone mode.
 
@@ -20,7 +20,7 @@
   // Re-evaluate on every viewport change instead of deciding once at script
   // load: a page that first paints at a transient narrow width (window not
   // yet maximized, PWA window resize, split-view) would otherwise get stuck
-  // in "lite" mode — no blur, no animations — even after growing to desktop
+  // in "lite" mode - no blur, no animations - even after growing to desktop
   // size, since nothing ever removed the class.
   function syncMobileLite() {
     root.classList.toggle('te-mobile-lite', mqMobile.matches || isStandalone());
@@ -42,7 +42,7 @@
   css.textContent = `
     * { -webkit-tap-highlight-color: transparent; }
 
-    /* Kill EVERY live backdrop-filter on mobile — iOS repaints blurred regions
+    /* Kill EVERY live backdrop-filter on mobile - iOS repaints blurred regions
        on every scroll frame (the #1 scroll-jank source). Targeted rules below
        only covered nav/overlays; this also catches .widget (which on mobile
        gets blur(34px) via body.os-desktop), glass cards, sheets, etc.
@@ -222,7 +222,7 @@
     }
 
     /* NOTE: content-visibility:auto was removed here. On iOS Safari it makes
-       scrolling stutter — offscreen blocks are sized from an estimate, then
+       scrolling stutter - offscreen blocks are sized from an estimate, then
        jump to real layout as they scroll in, shifting the scroll position.
        Native scrolling of these pages is smooth without it. */
 
@@ -288,7 +288,7 @@
         img.setAttribute('loading', 'lazy');
       }
       if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
-      // (content-visibility:auto on images intentionally NOT set — it caused
+      // (content-visibility:auto on images intentionally NOT set - it caused
       // layout jumps / scroll stutter on iOS as images entered the viewport.)
     });
   }

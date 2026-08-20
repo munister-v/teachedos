@@ -127,22 +127,22 @@ body{
   <div class="hero">
     <div class="hero-avatar" id="p-avatar">🎓</div>
     <div>
-      <div class="hero-name" id="p-name">—</div>
-      <div class="hero-email" id="p-email">—</div>
+      <div class="hero-name" id="p-name">-</div>
+      <div class="hero-email" id="p-email">-</div>
     </div>
     <div class="hero-spacer"></div>
     <div style="text-align:center;background:rgba(200,230,50,.08);border-radius:14px;padding:14px 20px;border:1.5px solid rgba(200,230,50,.18)">
-      <div style="font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono)" id="p-lessons">—</div>
+      <div style="font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono)" id="p-lessons">-</div>
       <div style="font-size:10px;font-weight:600;color:#c2410c;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-top:3px">lessons left</div>
     </div>
   </div>
 
   <!-- Stats -->
   <div class="stats-row">
-    <div class="stat"><div class="stat-n" id="s-boards">—</div><div class="stat-l">Boards</div></div>
-    <div class="stat"><div class="stat-n" id="s-done">—</div><div class="stat-l">Done</div></div>
-    <div class="stat"><div class="stat-n" id="s-vocab">—</div><div class="stat-l">Vocab</div></div>
-    <div class="stat"><div class="stat-n" id="s-quiz">—</div><div class="stat-l">Quiz avg</div></div>
+    <div class="stat"><div class="stat-n" id="s-boards">-</div><div class="stat-l">Boards</div></div>
+    <div class="stat"><div class="stat-n" id="s-done">-</div><div class="stat-l">Done</div></div>
+    <div class="stat"><div class="stat-n" id="s-vocab">-</div><div class="stat-l">Vocab</div></div>
+    <div class="stat"><div class="stat-n" id="s-quiz">-</div><div class="stat-l">Quiz avg</div></div>
   </div>
 
   <!-- Teacher note (teacher view only) -->
@@ -246,11 +246,11 @@ function render(d, studentId){
   document.getElementById('p-email').textContent = isTeacherView
     ? `${student.email} · ${studentZone}`
     : `${student.email} · ${formatZoneNow(studentZone)}`;
-  document.getElementById('p-lessons').textContent = stats.lessonsLeft||'—';
+  document.getElementById('p-lessons').textContent = stats.lessonsLeft||'-';
   document.getElementById('s-boards').textContent = stats.boards;
   document.getElementById('s-done').textContent = stats.done;
   document.getElementById('s-vocab').textContent = stats.vocabLearned+'/'+stats.vocabTotal;
-  document.getElementById('s-quiz').textContent = stats.quizAvg ? stats.quizAvg+'%' : '—';
+  document.getElementById('s-quiz').textContent = stats.quizAvg ? stats.quizAvg+'%' : '-';
 
   // Teacher note
   if(isTeacherView){

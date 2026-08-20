@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   TeachEd shared auth styles — used by:
+   TeachEd shared auth styles - used by:
    • landing.html  (#lp-auth modal)
    • reset-password.html (.auth-page)
    • os-auth-overlay (desktop-app.js, injected via .os-auth-*)
@@ -249,7 +249,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Card fills the whole screen — no card frame visible */
+  /* Card fills the whole screen - no card frame visible */
   .auth-card {
     width: 100% !important;
     min-height: 100dvh !important;

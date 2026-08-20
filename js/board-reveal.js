@@ -4,7 +4,7 @@
    lesson, keep it covered while the class works, uncover it when they are done.
 
    The flag is only half of it. What makes this real is that the server stops
-   sending the card's content to anyone but the board owner — see
+   sending the card's content to anyone but the board owner - see
    backend/lib/boardVisibility.js, which filters both GET /api/boards/:id and
    every websocket board_patch. A student receives geometry and a marker, never
    the text, so the answer is not sitting in the network tab waiting to be read.
@@ -42,7 +42,7 @@
     if (!hdr || !canHoldBack()) return;
     var card = findCard(cardId);
     if (!card) return;
-    // A card already private to its author is invisible to the class anyway —
+    // A card already private to its author is invisible to the class anyway -
     // offering "hide from students" as well would be two controls for one effect.
     if (card.data && card.data.private) return;
 
@@ -52,7 +52,7 @@
     btn.style.marginRight = '2px';
     btn.style.fontSize = '12px';
     btn.textContent = held ? '🙈' : '👁';
-    btn.title = held ? 'Hidden from students — click to reveal' : 'Hide this card from students';
+    btn.title = held ? 'Hidden from students - click to reveal' : 'Hide this card from students';
     btn.addEventListener('mousedown', function (e) { e.stopPropagation(); });
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -62,7 +62,7 @@
   };
 
   // Rebuild just this card's header so the icon flips, mirroring how
-  // toggleCardPrivate does it — re-rendering the whole card would blow away
+  // toggleCardPrivate does it - re-rendering the whole card would blow away
   // focus and caret position inside an editable one.
   function refreshHeader(cardId) {
     try {
@@ -99,8 +99,8 @@
     if (typeof saveLocal === 'function') saveLocal();
   };
 
-  /* Context-menu entry. Stickies and text cards — the two most likely places to
-     park an answer — render without a header, so the header toggle never
+  /* Context-menu entry. Stickies and text cards - the two most likely places to
+     park an answer - render without a header, so the header toggle never
      reaches them; right-click covers every card type. */
   var _ctxCardId = null;
 
@@ -127,7 +127,7 @@
   });
 
   /* The banner is the only way to reach revealAllForStudents(), so it has to be
-     right whenever the board changes — including undo, redo and a change that
+     right whenever the board changes - including undo, redo and a change that
      arrived from someone else. Rather than reach into board-app's render path,
      recompute on our own actions plus a slow tick; counting a few hundred cards
      costs nothing next to a repaint. */
@@ -141,7 +141,7 @@
       }
     } catch (e) { n = 0; }
     // A student cannot reveal anything, and their held-back cards arrive
-    // stripped anyway — the banner is for whoever owns the board.
+    // stripped anyway - the banner is for whoever owns the board.
     if (!n || !canHoldBack()) { bar.classList.remove('show'); return; }
     var label = document.getElementById('reveal-bar-count');
     if (label) label.textContent = n + ' card' + (n === 1 ? '' : 's') + ' hidden from students';
@@ -154,7 +154,7 @@
     setInterval(refreshRevealBar, 1500);
   });
 
-  // Reveal everything at once — the usual end-of-task move.
+  // Reveal everything at once - the usual end-of-task move.
   window.revealAllForStudents = function () {
     if (!canHoldBack()) return;
     if (typeof state === 'undefined' || !state || !Array.isArray(state.cards)) return;

@@ -123,7 +123,7 @@
     return diff > 0 ? `${pretty} ${ahead}` : `${pretty} ${behind}`;
   }
 
-  // Mid-session 401 handler — show a banner once, redirect after 4 s.
+  // Mid-session 401 handler - show a banner once, redirect after 4 s.
   // Pages can suppress the auto-redirect by setting window.__teachedNoRedirectOn401.
   var _sessionExpiredShown = false;
   function _handleSessionExpired() {

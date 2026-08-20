@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   admin-app.js — TeachEd Admin panel logic
+   admin-app.js - TeachEd Admin panel logic
    Extracted from the inline <script> block for HTTP/SW cacheability
    ════════════════════════════════════════════════════════════════ */
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
@@ -211,9 +211,9 @@ async function refreshStats() {
     document.getElementById('stat-users').textContent    = stats.users;
     document.getElementById('stat-boards').textContent   = stats.boards;
     document.getElementById('stat-sessions').textContent = stats.sessions;
-    document.getElementById('stat-courses').textContent  = stats.courses ?? '—';
-    document.getElementById('stat-cards').textContent    = stats.cards ?? '—';
-    document.getElementById('stat-new-users').textContent = stats.newUsers7d ?? '—';
+    document.getElementById('stat-courses').textContent  = stats.courses ?? '-';
+    document.getElementById('stat-cards').textContent    = stats.cards ?? '-';
+    document.getElementById('stat-new-users').textContent = stats.newUsers7d ?? '-';
     document.getElementById('stat-storage').textContent  = fmtBytes(stats.storageBytes);
     document.getElementById('stat-health').textContent   = health?.ok ? '✅ OK' : '❌ Down';
     document.getElementById('stat-invites').textContent  = system?.invites?.active ?? 0;
@@ -512,7 +512,7 @@ function renderAnalytics(analytics) {
         <div class="leader-rank">${idx + 1}</div>
         <div>
           <div class="leader-name">${esc(row.name || 'Unknown')}</div>
-          <div class="leader-email">${esc(row.email || '—')}</div>
+          <div class="leader-email">${esc(row.email || '-')}</div>
         </div>
       </div>
       <div class="leader-metric">${row.boards} updates</div>
@@ -552,7 +552,7 @@ async function loadAdminBrief() {
 function renderAdminBrief(brief) {
   const root = document.getElementById('admin-brief');
   root.querySelector('.brief-score').style.setProperty('--score', brief.score || 0);
-  root.querySelector('.brief-score-num').textContent = brief.score ?? '—';
+  root.querySelector('.brief-score-num').textContent = brief.score ?? '-';
   root.querySelector('.brief-sub').textContent =
     brief.tone === 'good' ? 'Platform looks healthy. Keep momentum and review routine operations.' :
     brief.tone === 'watch' ? 'A few operational items need attention before they pile up.' :
@@ -733,9 +733,9 @@ async function loadAdminAuditLog() {
     }
     tbody.innerHTML = d.entries.map(e => `<tr>
       <td class="time-text">${fmtDate(e.created_at)}</td>
-      <td>${esc(e.admin_email || '—')}</td>
+      <td>${esc(e.admin_email || '-')}</td>
       <td><span class="badge badge-teacher">${esc(e.action)}</span></td>
-      <td>${esc(e.target_label || '—')}</td>
+      <td>${esc(e.target_label || '-')}</td>
       <td style="color:var(--muted);font-size:13px">${esc(e.detail || '')}</td>
       <td class="time-text">${esc(e.ip || '')}</td>
     </tr>`).join('');
@@ -810,7 +810,7 @@ async function loadUsers() {
     const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
     document.getElementById('users-page-info').textContent = usersTotal
-      ? `${usersOffset+1}–${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`
+      ? `${usersOffset+1}-${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`
       : 'No results';
     document.getElementById('users-prev').disabled = usersOffset === 0;
     document.getElementById('users-next').disabled = usersOffset + usersLimit >= usersTotal;
@@ -842,7 +842,7 @@ async function loadUsers() {
           ${u.plan_expires_at?`<div class="time-text">until ${fmtDate(u.plan_expires_at)}</div>`:''}
         </td>
         <td data-label="Boards" style="text-align:center">${u.boards_count}</td>
-        <td data-label="Last Login" class="time-text">${u.last_login_at ? fmtRelative(u.last_login_at) : '—'}</td>
+        <td data-label="Last Login" class="time-text">${u.last_login_at ? fmtRelative(u.last_login_at) : '-'}</td>
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
@@ -1055,7 +1055,7 @@ async function grantSubscription() {
   const email = document.getElementById('grant-email').value.trim();
   if (!email) { toast('Enter user email', 'error'); return; }
   const payload = grantPayloadFromForm();
-  if (payload.plan !== 'free' && payload.months <= 0) { toast('Set months (1–24) for a paid plan', 'error'); return; }
+  if (payload.plan !== 'free' && payload.months <= 0) { toast('Set months (1-24) for a paid plan', 'error'); return; }
   confirm(
     `Apply ${PLAN_CATALOG[payload.plan]?.label || payload.plan} to ${email}?`,
     payload.plan_expires_at ? `Subscription will expire on ${fmtDate(payload.plan_expires_at)}.` : 'This plan will be applied without an expiration date.',
@@ -1207,7 +1207,7 @@ async function loadBillingMetrics() {
     const lastMonth = months.length ? Number(months[0].revenue || 0) : 0;
     document.getElementById('bill-last-month').textContent = '$' + lastMonth.toFixed(0);
   } catch {
-    document.getElementById('bill-total-rev').textContent = '—';
+    document.getElementById('bill-total-rev').textContent = '-';
   }
 }
 
@@ -1324,7 +1324,7 @@ async function loadBoards() {
     const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(search)}&owner=${encodeURIComponent(owner)}&limit=${boardsLimit}&offset=${boardsOffset}`);
     boardsTotal = d.total;
     document.getElementById('boards-page-info').textContent = boardsTotal
-      ? `${boardsOffset+1}–${Math.min(boardsOffset+boardsLimit,boardsTotal)} of ${boardsTotal}`
+      ? `${boardsOffset+1}-${Math.min(boardsOffset+boardsLimit,boardsTotal)} of ${boardsTotal}`
       : 'No results';
     document.getElementById('boards-prev').disabled = boardsOffset === 0;
     document.getElementById('boards-next').disabled = boardsOffset + boardsLimit >= boardsTotal;
@@ -1340,7 +1340,7 @@ async function loadBoards() {
           <div style="font-size:13px;font-weight:600">${esc(b.owner_name)}</div>
           <div class="ip-text">${esc(b.owner_email)}</div>
         </td>
-        <td data-label="Cards" style="text-align:center">${b.cards_count ?? '—'}</td>
+        <td data-label="Cards" style="text-align:center">${b.cards_count ?? '-'}</td>
         <td data-label="Size" class="ip-text">${fmtBytes(b.data_bytes)}</td>
         <td data-label="Updated" class="time-text">${fmtDate(b.updated_at)}</td>
         <td data-label="Created" class="time-text">${fmtDate(b.created_at)}</td>
@@ -1405,7 +1405,7 @@ async function loadSessions() {
         <td data-label="Device" style="font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
           ${esc(uaIcon(s.user_agent))} ${esc(s.user_agent||'Unknown')}
         </td>
-        <td data-label="IP" class="ip-text">${esc(s.ip||'—')}</td>
+        <td data-label="IP" class="ip-text">${esc(s.ip||'-')}</td>
         <td data-label="Started" class="time-text">${fmtDate(s.created_at)}</td>
         <td data-label="Expires" class="time-text">${fmtDate(s.expires_at)}</td>
         <td data-label="Action">
@@ -1469,10 +1469,10 @@ function productionReportText(data = productionStatusSnapshot) {
   const lines = [
     `TeachEd production: ${data.ok ? 'OK' : 'BLOCKED'}`,
     ...Object.values(data.checks || {}).map(check => `${check.label}: ${check.ready ? 'ready' : (check.required ? 'missing' : 'fallback')}`),
-    `Environment: ${data.environment || '—'}`,
-    `Node: ${data.nodeVersion || '—'}`,
-    `Release: ${data.release?.version || '—'} / ${data.release?.deployedSha || '—'}`,
-    `Checked: ${data.checkedAt || '—'}`,
+    `Environment: ${data.environment || '-'}`,
+    `Node: ${data.nodeVersion || '-'}`,
+    `Release: ${data.release?.version || '-'} / ${data.release?.deployedSha || '-'}`,
+    `Checked: ${data.checkedAt || '-'}`,
   ];
   return lines.join('\n');
 }
@@ -1483,7 +1483,7 @@ async function copyProductionReport() {
     await navigator.clipboard.writeText(report);
     toast('Production report copied ✅', 'success');
   } catch {
-    toast('Clipboard unavailable — select the status manually', 'error');
+    toast('Clipboard unavailable - select the status manually', 'error');
   }
 }
 
@@ -1516,11 +1516,11 @@ function renderProductionStatus(data) {
 
   const release = data.release || {};
   const releaseBits = [
-    `Environment <strong>${esc(data.environment || '—')}</strong>`,
-    `Node <strong>${esc(data.nodeVersion || '—')}</strong>`,
-    `Version <strong>${esc(release.version || '—')}</strong>`,
+    `Environment <strong>${esc(data.environment || '-')}</strong>`,
+    `Node <strong>${esc(data.nodeVersion || '-')}</strong>`,
+    `Version <strong>${esc(release.version || '-')}</strong>`,
     `SHA <strong>${esc(release.deployedSha || 'not available')}</strong>`,
-    `Checked <strong>${esc(data.checkedAt ? fmtDate(data.checkedAt) : '—')}</strong>`,
+    `Checked <strong>${esc(data.checkedAt ? fmtDate(data.checkedAt) : '-')}</strong>`,
   ];
   meta.innerHTML = releaseBits.join(' &nbsp;·&nbsp; ');
 }
@@ -1601,12 +1601,12 @@ async function loadSysInfo() {
     ]);
     document.getElementById('sys-info').innerHTML = `
       <div>🟢 API: <strong>${h?.ok ? 'Online' : 'Offline'}</strong></div>
-      <div>🕐 Server time: <strong>${system?.serverTime ? fmtDate(system.serverTime) : '—'}</strong></div>
+      <div>🕐 Server time: <strong>${system?.serverTime ? fmtDate(system.serverTime) : '-'}</strong></div>
       <div>⏱ Uptime: <strong>${fmtDuration(system?.uptimeSec)}</strong></div>
-      <div>🧠 Node: <strong>${esc(system?.nodeVersion || '—')}</strong></div>
-      <div>🧹 Expired sessions: <strong>${system?.expiredSessions ?? '—'}</strong></div>
+      <div>🧠 Node: <strong>${esc(system?.nodeVersion || '-')}</strong></div>
+      <div>🧹 Expired sessions: <strong>${system?.expiredSessions ?? '-'}</strong></div>
       <div>🌐 Endpoint: <strong>${API}</strong></div>
-      <div>👤 Admin: <strong>${currentAdminUser?.name || '—'}</strong></div>
+      <div>👤 Admin: <strong>${currentAdminUser?.name || '-'}</strong></div>
     `;
   } catch(e) {
     document.getElementById('sys-info').textContent = 'Could not load system info';
@@ -1737,7 +1737,7 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function escAttr(s){ return esc(s).replace(/'/g,'&#39;'); }
 
 function fmtDate(iso) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
          d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -1748,14 +1748,14 @@ function billingCycleLabel(cycle) {
 }
 
 function fmtBytes(n) {
-  if (!n) return '—';
+  if (!n) return '-';
   if (n < 1024) return n + ' B';
   if (n < 1048576) return (n/1024).toFixed(1) + ' KB';
   return (n/1048576).toFixed(1) + ' MB';
 }
 
 function fmtDuration(sec) {
-  if (typeof sec !== 'number' || Number.isNaN(sec)) return '—';
+  if (typeof sec !== 'number' || Number.isNaN(sec)) return '-';
   const hours = Math.floor(sec / 3600);
   const minutes = Math.floor((sec % 3600) / 60);
   if (hours <= 0) return `${minutes}m`;
@@ -1763,7 +1763,7 @@ function fmtDuration(sec) {
 }
 
 function fmtRelative(iso) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.max(0, Math.floor(diff / 60000));
   if (min < 1) return 'now';
@@ -1783,7 +1783,7 @@ function inviteState(invite) {
 }
 
 function shortDay(day) {
-  if (!day) return '—';
+  if (!day) return '-';
   const d = new Date(`${day}T00:00:00`);
   return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
 }
@@ -1955,9 +1955,9 @@ async function openUserDrawer(u) {
   document.getElementById('drawer-avatar').textContent = u.avatar || '🧑';
   document.getElementById('drawer-name').textContent = u.name;
   document.getElementById('drawer-email').textContent = u.email;
-  document.getElementById('drawer-boards-n').textContent = u.boards_count ?? '—';
+  document.getElementById('drawer-boards-n').textContent = u.boards_count ?? '-';
   document.getElementById('drawer-plan').textContent = u.plan || 'free';
-  const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+  const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '-';
   document.getElementById('drawer-joined').textContent = joined;
   document.getElementById('drawer-badges').innerHTML = `
     <span class="badge badge-${u.role}">${u.role}</span>
@@ -2016,7 +2016,7 @@ async function loadUserAuthEventsDrawer(userId) {
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:11.5px">
         <span>${icons[e.event] || '⚪'}</span>
         <span style="font-weight:600;min-width:100px">${esc(e.event)}</span>
-        <span style="color:var(--muted);flex:1">${esc(e.ip || '—')}</span>
+        <span style="color:var(--muted);flex:1">${esc(e.ip || '-')}</span>
         ${e.detail ? `<span style="color:var(--muted)">${esc(e.detail)}</span>` : ''}
         <span style="color:var(--muted);white-space:nowrap">${fmtRelative(e.created_at)}</span>
       </div>`).join('');
@@ -2123,7 +2123,7 @@ async function loadAuthEvents() {
     const d = await api('GET', `/api/admin/auth-events?search=${encodeURIComponent(search)}&event=${encodeURIComponent(event)}&limit=${secLimit}&offset=${secOffset}`);
     secTotal = d.total || 0;
     const info = document.getElementById('sec-page-info');
-    if (info) info.textContent = secTotal ? `${secOffset+1}–${Math.min(secOffset+secLimit,secTotal)} of ${secTotal}` : 'No results';
+    if (info) info.textContent = secTotal ? `${secOffset+1}-${Math.min(secOffset+secLimit,secTotal)} of ${secTotal}` : 'No results';
     const prev = document.getElementById('sec-prev'); if (prev) prev.disabled = secOffset === 0;
     const next = document.getElementById('sec-next'); if (next) next.disabled = secOffset + secLimit >= secTotal;
     if (!d.events?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="empty-note">No auth events found.</div></td></tr>'; return; }
@@ -2131,10 +2131,10 @@ async function loadAuthEvents() {
     tbody.innerHTML = d.events.map(e => `<tr>
       <td class="time-text">${fmtRelative(e.created_at)}</td>
       <td><span style="font-weight:600">${icons[e.event]||'⚪'} ${esc(e.event)}</span></td>
-      <td style="font-size:12px">${esc(e.user_name || e.email || '—')}<br><span style="color:var(--muted);font-size:11px">${esc(e.email||'')}</span></td>
-      <td style="font-size:12px;font-family:monospace">${esc(e.ip||'—')}</td>
-      <td style="font-size:12px;color:var(--muted)">${esc(e.detail||'—')}</td>
-      <td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(e.user_agent||'')}">${esc((e.user_agent||'').slice(0,40)||'—')}</td>
+      <td style="font-size:12px">${esc(e.user_name || e.email || '-')}<br><span style="color:var(--muted);font-size:11px">${esc(e.email||'')}</span></td>
+      <td style="font-size:12px;font-family:monospace">${esc(e.ip||'-')}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(e.detail||'-')}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(e.user_agent||'')}">${esc((e.user_agent||'').slice(0,40)||'-')}</td>
     </tr>`).join('');
   } catch(e) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Error: ${esc(e.message)}</td></tr>`;

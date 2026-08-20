@@ -78,7 +78,7 @@ export class Home implements AfterViewInit {
         if (classes.length > 0) {
           const next = classes[0];
           const titleEl = document.querySelector('.wg-today-title');
-          if (titleEl) titleEl.textContent = next.title || next.group_name || '—';
+          if (titleEl) titleEl.textContent = next.title || next.group_name || '-';
           const metaEl = document.querySelector('.wg-today-meta span');
           if (metaEl) metaEl.textContent = `${next.start_time} · ${next.level || ''}`;
         }

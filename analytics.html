@@ -406,11 +406,11 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div class="sec-body">
       <div class="stats-row" id="overview-stats">
-        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-board"/></svg></div><div><div class="stat-val" id="ov-boards">—</div><div class="stat-lbl">Boards</div></div></div>
-        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="ov-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
-        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-check"/></svg></div><div><div class="stat-val" id="ov-done">—</div><div class="stat-lbl">Completed</div></div></div>
-        <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="ov-pct">—</div><div class="stat-lbl">Avg completion</div></div></div>
-        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div><div class="stat-val" id="ov-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
+        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-board"/></svg></div><div><div class="stat-val" id="ov-boards">-</div><div class="stat-lbl">Boards</div></div></div>
+        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="ov-lessons">-</div><div class="stat-lbl">Lessons</div></div></div>
+        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-check"/></svg></div><div><div class="stat-val" id="ov-done">-</div><div class="stat-lbl">Completed</div></div></div>
+        <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="ov-pct">-</div><div class="stat-lbl">Avg completion</div></div></div>
+        <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div><div class="stat-val" id="ov-assign">-</div><div class="stat-lbl">Assignments</div></div></div>
       </div>
       <div id="ov-board-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
@@ -418,11 +418,11 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Stats row -->
   <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-board"/></svg></div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div></div>
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="s-assign">—</div><div class="stat-lbl">Assignments</div></div></div>
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div><div class="stat-val" id="s-milestones">—</div><div class="stat-lbl">Milestones</div></div></div>
-    <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-check"/></svg></div><div><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">Completion</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-board"/></svg></div><div><div class="stat-val" id="s-lessons">-</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="s-done">-</div><div class="stat-lbl">Completed</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="s-assign">-</div><div class="stat-lbl">Assignments</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div><div class="stat-val" id="s-milestones">-</div><div class="stat-lbl">Milestones</div></div></div>
+    <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-check"/></svg></div><div><div class="stat-val" id="s-pct">-</div><div class="stat-lbl">Completion</div></div></div>
   </div>
 
   <!-- Insights -->
@@ -721,7 +721,7 @@ async function renderOverview() {
     return `<button type="button" class="ov-board-row" onclick="selectBoard('${r.id}')" aria-label="Open board analytics">
       <div class="ovb-name">${esc(r.name)}</div>
       <div class="ovb-bar"><div class="ovb-fill" style="width:${p}%"></div></div>
-      <div class="ovb-pct">${r.lessons ? p + '%' : '—'}</div>
+      <div class="ovb-pct">${r.lessons ? p + '%' : '-'}</div>
       <div class="ovb-meta">${r.lessons} lesson${r.lessons !== 1 ? 's' : ''}${r.done ? ` · ${r.done} done` : ''}${r.assignments ? ` · ${r.assignments} assignment${r.assignments !== 1 ? 's' : ''}` : ''}</div>
     </button>`;
   }).join('');
@@ -729,7 +729,7 @@ async function renderOverview() {
 
 function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
-  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet — <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>'; }
+  if (!boards.length) { wrap.innerHTML='<span style="color:var(--text3);font-size:13px;">No boards yet - <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>'; }
   else {
     wrap.innerHTML = boards.map(b =>
       `<button type="button" class="board-pill${b.id===activeBoardId?' active':''}" onclick="selectBoard('${b.id}')" aria-pressed="${b.id===activeBoardId}">${esc(b.name)}</button>`
@@ -926,9 +926,9 @@ function analyzeBoard(boardId, cards, boardName) {
       const [cls, label] = statusMap[l.data.status||'available'] || statusMap.available;
       return `<tr>
         <td><strong>${esc(l.data.title||'Lesson')}</strong></td>
-        <td><span class="status-pill" style="background:rgba(99,102,241,.12);color:#6366f1;">${esc(l.data.level||'—')}</span></td>
-        <td>${esc(l.data.skill||'—')}</td>
-        <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(l.data.duration||'—')}</td>
+        <td><span class="status-pill" style="background:rgba(99,102,241,.12);color:#6366f1;">${esc(l.data.level||'-')}</span></td>
+        <td>${esc(l.data.skill||'-')}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(l.data.duration||'-')}</td>
         <td><span class="status-pill ${cls}">${label}</span></td>
       </tr>`;
     }).join('');

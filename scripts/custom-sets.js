@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   TeachEd — Custom Word Sets
+   TeachEd - Custom Word Sets
    Lets a teacher build their own vocabulary set (own words, or AI-assisted
    via /api/ai/teacher-tool) and play it in any games/*.html that supports
    ?set=<id> the same way it supports ?topic=<id>.
 
-   Storage: localStorage key "teachedos_customsets" — { [id]: SetRecord }
+   Storage: localStorage key "teachedos_customsets" - { [id]: SetRecord }
    SetRecord: { id, name, icon, color, words:[{en,uk,ru,ex,img}], createdAt }
    ═══════════════════════════════════════════════════════════════════════ */
 

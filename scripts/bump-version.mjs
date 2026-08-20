@@ -3,8 +3,8 @@
  *
  * There are three things that must agree and used to be updated by hand:
  * sw.js (CACHE + VERSION), version.json, and the ?v= query on every asset
- * link in every page. They drifted — board.css was being served as ?v=210
- * while the service worker was on 220 — and because nginx sends
+ * link in every page. They drifted - board.css was being served as ?v=210
+ * while the service worker was on 220 - and because nginx sends
  * `max-age=86400, must-revalidate`, a returning teacher could keep up to a
  * day of stale CSS after a deploy that was supposed to fix exactly that.
  *
@@ -31,7 +31,7 @@ const sw = readFileSync('sw.js', 'utf8')
   .replace(/const VERSION = '\d+';/, `const VERSION = '${next}';`);
 writeFileSync('sw.js', sw);
 
-/* board-gen.js is not referenced from any HTML — board-app.js loads it at
+/* board-gen.js is not referenced from any HTML - board-app.js loads it at
    runtime and versions it with a constant of its own. That constant escaped
    this script and had sat at 188 while the site reached 246, so every fix
    shipped inside board-gen.js kept being served from cache for up to a day,
@@ -69,5 +69,5 @@ for (const file of listStaticHtml()) {
   }
 }
 
-console.log(`v${next} — sw.js, version.json, ${links} asset links across ${touched} pages`
+console.log(`v${next} - sw.js, version.json, ${links} asset links across ${touched} pages`
   + (assetConstBumped ? ', TEACHEDOS_ASSET_VERSION' : ''));

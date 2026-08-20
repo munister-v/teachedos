@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.json?v=332">
 <meta name="theme-color" content="#F7F3EA">
-<title>TeachEd — lesson boards, worksheets and games for language teachers</title>
+<title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
 <link rel="canonical" href="https://teached.tech/">
 <script type="application/ld+json">
@@ -40,7 +40,7 @@
      "name": "How does the AI generation work?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise — reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet — that you can edit, print, play as a game or drop on a board."
+      "text": "Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise - reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet - that you can edit, print, play as a game or drop on a board."
      }
     },
     {
@@ -48,7 +48,7 @@
      "name": "Do I need my own API key? Does AI cost extra?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "No. AI is built in — no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked."
+      "text": "No. AI is built in - no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked."
      }
     },
     {
@@ -56,7 +56,7 @@
      "name": "Can I edit what the AI produces?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Always. Every generated item is fully editable before you export it — fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem."
+      "text": "Always. Every generated item is fully editable before you export it - fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem."
      }
     },
     {
@@ -64,7 +64,7 @@
      "name": "Do I need to download anything?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "No. TeachEd is a Progressive Web App — you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually."
+      "text": "No. TeachEd is a Progressive Web App - you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually."
      }
     },
     {
@@ -106,7 +106,7 @@
 </script>
 
 <script>
-  /* Корень сайта теперь отдаёт эту страницу всем — без прежнего прыжка через
+  /* Корень сайта теперь отдаёт эту страницу всем - без прежнего прыжка через
      дашборд. Значит, проверку «а этот гость вообще гость?» нужно делать здесь:
      учителю с живой сессией незачем читать рекламу своего же продукта. Проверка
      синхронная и до отрисовки, чтобы не мигнуть лендингом; ?stay=1 остаётся
@@ -118,21 +118,21 @@
       if (!t) return;
       var role = localStorage.getItem('teachedos_role');
       location.replace(role === 'student' ? 'student.html' : 'index.html');
-    } catch (e) { /* приватный режим без localStorage — просто показываем лендинг */ }
+    } catch (e) { /* приватный режим без localStorage - просто показываем лендинг */ }
   })();
 </script>
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TeachEd">
-<meta property="og:title" content="TeachEd — lesson boards, worksheets and games for language teachers">
-<meta property="og:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games — online or offline.">
+<meta property="og:title" content="TeachEd - lesson boards, worksheets and games for language teachers">
+<meta property="og:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games - online or offline.">
 <meta property="og:url" content="https://teached.tech/">
 <meta property="og:image" content="https://teached.tech/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="TeachEd — a classroom workspace for language teachers">
+<meta property="og:image:alt" content="TeachEd - a classroom workspace for language teachers">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TeachEd — lesson boards, worksheets and games for language teachers">
+<meta name="twitter:title" content="TeachEd - lesson boards, worksheets and games for language teachers">
 <meta name="twitter:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ games.">
 <meta name="twitter:image" content="https://teached.tech/og-cover.png">
 
@@ -302,7 +302,7 @@ nav.ln{
   border-bottom:1px solid rgba(14,14,16,.06);
   display:flex;align-items:center;padding:0 14px;gap:7px;
 }
-/* Window chrome — TeachEd brand chips, not Apple traffic lights */
+/* Window chrome - TeachEd brand chips, not Apple traffic lights */
 .tb{
   height:22px;border-radius:999px;display:inline-flex;align-items:center;
   padding:0 9px;font-size:10px;font-weight:650;letter-spacing:.03em;
@@ -631,7 +631,7 @@ footer{
   font-size:12px;color:var(--ink3);font-weight:600;
 }
 
-/* ── Footer col as <details> — accordion on mobile, static on desktop ── */
+/* ── Footer col as <details> - accordion on mobile, static on desktop ── */
 .footer-col{display:block;}
 /* Remove browser disclosure triangle everywhere */
 .footer-col > summary{list-style:none;cursor:default;pointer-events:none;display:block;}
@@ -655,7 +655,7 @@ h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
 .hero-h em,.sec-h em,.feat-h em,.stat-n em,.final-h em,.footer-brand em{font-style:normal!important;}
 .sticky-mob-text{font-size:13px;font-weight:600;color:#fff;line-height:1.3;}
 .sticky-mob-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
-/* Override the generic mobile ".btn{width:100%}" rule below — this button
+/* Override the generic mobile ".btn{width:100%}" rule below - this button
    must stay content-sized or it swallows the whole bar and wraps the label. */
 .sticky-mob .btn{width:auto;flex-shrink:0;}
 
@@ -694,7 +694,7 @@ h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
   transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1);}
 .reveal.in{opacity:1;transform:none;}
 /* will-change is applied per-element by JS right before it animates in, and
-   removed once the transition ends — NOT set here statically. A permanent
+   removed once the transition ends - NOT set here statically. A permanent
    will-change on every .reveal element (there can be 40-60+ across the page)
    forces the browser to keep that many separate GPU compositor layers alive
    for the whole page lifetime, which is the #1 cause of scroll/load jank. */
@@ -706,7 +706,7 @@ h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
 .bc:hover,.cat:hover{box-shadow:0 18px 44px rgba(14,14,16,.12),0 4px 14px rgba(14,14,16,.06);}
 /* Tabular figures so count-up doesn't jitter */
 .stat-n,.pc-sn{font-variant-numeric:tabular-nums;}
-/* Subtle film grain — premium, tactile surface */
+/* Subtle film grain - premium, tactile surface */
 body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.022;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
 /* ── PREMIUM ++ : living accents ── */
@@ -731,7 +731,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 @keyframes sheen{from{left:-65%;}to{left:130%;}}
 
 /* ════════ IMMERSIVE HERO ════════ */
-/* Living aurora — morphing colour blobs that mix into the cream surface */
+/* Living aurora - morphing colour blobs that mix into the cream surface */
 .hero-aurora{position:absolute;inset:-12% -6%;z-index:0;pointer-events:none;
   filter:blur(64px);opacity:.72;}
 .hero-aurora .ab{position:absolute;border-radius:50%;mix-blend-mode:multiply;will-change:transform;}
@@ -747,7 +747,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 @keyframes ab1{from{transform:translate(0,0) scale(1);}to{transform:translate(8%,-6%) scale(1.16);}}
 @keyframes ab2{from{transform:translate(0,0) scale(1);}to{transform:translate(-7%,9%) scale(1.22);}}
 @keyframes ab3{from{transform:translate(0,0) scale(1);}to{transform:translate(5%,-10%) scale(1.12);}}
-/* Cursor spotlight — a soft light that tracks the pointer */
+/* Cursor spotlight - a soft light that tracks the pointer */
 .hero-spot{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;
   transition:opacity .6s ease;
   background:radial-gradient(440px circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.55),rgba(255,255,255,0) 62%);}
@@ -776,7 +776,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
 @keyframes chipFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 @media(max-width:860px){.hero-chips{display:none;}}
 
-/* Kinetic headline — line-by-line mask reveal (only when motion is welcome) */
+/* Kinetic headline - line-by-line mask reveal (only when motion is welcome) */
 .hero-h .line{display:block;overflow:hidden;padding:.04em .12em;margin:-.04em -.12em;}
 .hero-h .line > span{display:block;}
 @media (prefers-reduced-motion: no-preference){
@@ -806,8 +806,8 @@ html,body{background:var(--cream);}
 body{font-weight:450;color:var(--ink);letter-spacing:-0.005em;}
 
 /* ── Typography: serif for the big display headlines (hero / section / final
-   CTA) reads more editorial and considered; everything else — labels, UI
-   text, card titles, prices — stays on the clean grotesque for legibility
+   CTA) reads more editorial and considered; everything else - labels, UI
+   text, card titles, prices - stays on the clean grotesque for legibility
    at small sizes. Same split used by Stripe/Linear-style "serious" sites. ── */
 .plan-price,.bc-h,.cat-name,.step-h,.testi-q,.footer-brand,.feat-h,.lp-auth-title{
   font-family:var(--font);
@@ -873,7 +873,7 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
 .hero-trust{color:var(--ink3);font-weight:600;letter-spacing:.04em;}
 .hero-trust .dot2{background:var(--lime-dark);}
 
-/* product mockup — refined */
+/* product mockup - refined */
 .preview-shell{
   background:#fff;border:1px solid var(--line);border-radius:18px;
   box-shadow:0 24px 60px rgba(11,11,12,.10),0 4px 14px rgba(11,11,12,.05);
@@ -910,7 +910,7 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
 .bc.lav{background:var(--lavender);border-color:rgba(216,197,251,.4);}
 .bc.peach{background:var(--peach);border-color:rgba(255,181,174,.4);}
 .bc .ic{border-radius:11px;background:rgba(11,11,12,.045);}
-/* Desaturate the emoji glyphs used as feature/tool icons — full-colour emoji
+/* Desaturate the emoji glyphs used as feature/tool icons - full-colour emoji
    next to serif headlines reads like a consumer app; grayscale turns them
    into a de-facto monochrome icon system without redrawing 60+ glyphs. The
    ink-tinted bento cards keep their icon on the light .ic-ink background,
@@ -1061,7 +1061,7 @@ html.pwa-standalone body,
 body.pwa-standalone{padding-top:0!important;}
 body.pwa-standalone .sticky-mob{display:none!important;}
 
-/* ════════ MOBILE LANDING APP POLISH — cleaner PWA first screen ════════ */
+/* ════════ MOBILE LANDING APP POLISH - cleaner PWA first screen ════════ */
 @media(max-width:860px){
   body{
     background:
@@ -1151,7 +1151,7 @@ body.pwa-standalone .hero{
   padding-top:calc(94px + env(safe-area-inset-top,0px))!important;
 }
 
-/* ════════ SUPPORT (coffee) — quiet, two-column card above the footer ════════ */
+/* ════════ SUPPORT (coffee) - quiet, two-column card above the footer ════════ */
 #support{padding:clamp(40px,7vw,72px) 0;background:transparent;}
 .support-card{
   display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;
@@ -1176,7 +1176,7 @@ body.pwa-standalone .hero{
 .support-val{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.1em;color:var(--ink);word-break:break-all;}
 .support-val.mono-sm{font-size:12px;letter-spacing:.06em;}
 
-/* ════════ MOBILE RHYTHM — tighten the desktop-scale vertical air on phones ════════ */
+/* ════════ MOBILE RHYTHM - tighten the desktop-scale vertical air on phones ════════ */
 @media(max-width:860px){
   section{padding:clamp(40px,8vw,60px) 0;}
   #features,#tools,#how,#pricing,#faq{padding-top:clamp(40px,8vw,58px);padding-bottom:clamp(40px,8vw,58px);}
@@ -1245,7 +1245,7 @@ body.pwa-standalone .hero{
 .pv-avatars span:nth-child(2){background:var(--lime-dark);}
 .pv-avatars span:nth-child(3){background:var(--ink);font-size:8px;}
 
-/* the canvas itself — sizing system is container-query px so it scales fluidly */
+/* the canvas itself - sizing system is container-query px so it scales fluidly */
 .pv-board{
   position:relative;container-type:inline-size;
   aspect-ratio:16/9.7;width:100%;overflow:hidden;
@@ -1286,7 +1286,7 @@ body.pwa-standalone .hero{
   letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;
 }
 
-/* — AI worksheet card (the star, with selection handles) — */
+/* - AI worksheet card (the star, with selection handles) - */
 .pv-ws{left:10.5%;top:8%;width:41cqw;}
 .pv-ws.sel{border-color:var(--pink);box-shadow:0 0 0 .35cqw rgba(225,29,116,.16),0 2.4cqw 5.4cqw rgba(11,11,12,.13);}
 .pv-ws .hndl{position:absolute;width:1.5cqw;height:1.5cqw;background:#fff;border:.28cqw solid var(--pink);border-radius:50%;z-index:5;}
@@ -1310,7 +1310,7 @@ body.pwa-standalone .hero{
 .pv-chip{font-size:1.15cqw;font-weight:600;color:var(--ink2);background:#FAFAF9;border:1px solid var(--line-2);padding:.55cqw 1.1cqw;border-radius:99px;}
 .pv-chip.go{background:var(--lime);border-color:rgba(138,174,18,.25);color:var(--lime-text);}
 
-/* — sticky note — */
+/* - sticky note - */
 .pv-sticky{
   position:absolute;z-index:4;left:67%;top:9%;width:23cqw;padding:2cqw;
   background:linear-gradient(165deg,#F4F8DE,#E9F2C6);
@@ -1320,7 +1320,7 @@ body.pwa-standalone .hero{
 }
 .pv-sticky-h{font-family:var(--font);font-weight:650;font-size:1.5cqw;letter-spacing:.04em;text-transform:uppercase;color:#5b7011;margin-bottom:.9cqw;}
 
-/* — vocab match card — */
+/* - vocab match card - */
 .pv-match{left:13.5%;top:54%;width:35cqw;}
 .pv-mrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.8cqw;margin-top:1.2cqw;}
 .pv-mrow:first-of-type{margin-top:1.1cqw;}
@@ -1328,13 +1328,13 @@ body.pwa-standalone .hero{
 .pv-mrow span:last-child{color:var(--ink2);font-weight:600;}
 .pv-mrow i{width:3cqw;height:0;border-top:.3cqw dotted var(--pink);opacity:.7;}
 
-/* — speaking timer card — */
+/* - speaking timer card - */
 .pv-timer{left:72%;top:55%;width:21cqw;text-align:center;}
 .pv-time{font-family:var(--mono,monospace);font-size:5.2cqw;font-weight:650;letter-spacing:-.02em;color:var(--ink);line-height:1;margin:.7cqw 0 1cqw;}
 .pv-timer-bar{height:1cqw;border-radius:99px;background:rgba(11,11,12,.08);overflow:hidden;}
 .pv-timer-bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--pink),#f25fa3);border-radius:99px;}
 
-/* — live collaborator cursor — */
+/* - live collaborator cursor - */
 .pv-cursor{position:absolute;z-index:7;left:58%;top:41%;animation:pvCursor 7s ease-in-out infinite;}
 .pv-cursor svg{width:3cqw;height:3cqw;filter:drop-shadow(0 .5cqw 1cqw rgba(11,11,12,.25));display:block;}
 .pv-cursor span{position:absolute;left:2.6cqw;top:2.4cqw;white-space:nowrap;background:var(--pink);color:#fff;font-size:1.2cqw;font-weight:650;padding:.4cqw 1cqw;border-radius:99px;font-family:var(--font);}
@@ -1529,7 +1529,7 @@ body.pwa-standalone .hero{
 @keyframes fpPop{from{opacity:0;transform:translateY(9px) scale(.9);}to{opacity:1;transform:none;}}
 
 /* ═══════════ GLOBAL REALISM PASS ═══════════ */
-/* hero social proof — avatar stack + rating */
+/* hero social proof - avatar stack + rating */
 .hero-proof{display:inline-flex;align-items:center;gap:13px;margin:2px auto 0;}
 .hp-avatars{display:flex;}
 .hp-avatars span{width:30px;height:30px;border-radius:50%;margin-left:-9px;border:2.5px solid var(--cream);display:grid;place-items:center;font-size:10.5px;font-weight:650;color:#fff;font-family:var(--font);box-shadow:0 1px 3px rgba(11,11,12,.12);}
@@ -1541,7 +1541,7 @@ body.pwa-standalone .hero{
 .hp-stars{color:#A96F10;font-size:12px;letter-spacing:1.5px;margin-bottom:1px;}
 @media(max-width:860px){.hero-proof{margin-bottom:6px;}}
 
-/* board — zoom control, minimap, live typing, 2nd cursor */
+/* board - zoom control, minimap, live typing, 2nd cursor */
 .pv-zoom{position:absolute;right:3%;bottom:6%;z-index:6;display:flex;align-items:center;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:2.2cqw;box-shadow:0 1.2cqw 3cqw rgba(11,11,12,.12);overflow:hidden;font-size:1.7cqw;font-weight:650;color:var(--ink2);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
 .pv-zoom b{padding:.9cqw 1.4cqw;}
 .pv-zoom b.mid{color:var(--ink);border-left:1px solid var(--line-2);border-right:1px solid var(--line-2);font-family:var(--mono,monospace);font-size:1.4cqw;}
@@ -1558,7 +1558,7 @@ body.pwa-standalone .hero{
 @keyframes pvCursor2{0%,100%{transform:translate(0,0);}33%{transform:translate(6cqw,-3cqw);}66%{transform:translate(-2cqw,3cqw);}}
 @media(max-width:540px){.pv-mini{display:none;}}
 
-/* How it works — mini product screenshots per step */
+/* How it works - mini product screenshots per step */
 .step{display:flex;flex-direction:column;}
 .step .step-p{flex:0 0 auto;}
 .step-shot{margin-top:18px;background:var(--cream);border:1px solid var(--line);border-radius:13px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6);}
@@ -1578,7 +1578,7 @@ body.pwa-standalone .hero{
 .fp-track .row em{font-style:normal;font-weight:650;color:var(--ink);}
 .fp-track .share{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--pink);background:var(--pink-soft);border-radius:99px;padding:6px 11px;}
 
-/* testimonials — initials avatars + verified source */
+/* testimonials - initials avatars + verified source */
 .testi{display:flex;flex-direction:column;}
 .testi-q{flex:1;}
 .testi-avatar{font-size:13px!important;font-weight:650;color:#fff!important;letter-spacing:.02em;box-shadow:0 2px 6px rgba(11,11,12,.14);}
@@ -1626,7 +1626,7 @@ body.pwa-standalone .hero{
 
 /* ═══════════ PRODUCTION POLISH: real depth, light & content ═══════════ */
 :root{
-  /* layered elevation — ambient + key light, consistent top-down source */
+  /* layered elevation - ambient + key light, consistent top-down source */
   --elev-1:0 1px 1px rgba(11,11,12,.04),0 2px 4px rgba(11,11,12,.04),0 6px 12px rgba(11,11,12,.045);
   --elev-2:0 1px 2px rgba(11,11,12,.05),0 6px 14px rgba(11,11,12,.07),0 18px 36px rgba(11,11,12,.06);
   --elev-3:0 2px 4px rgba(11,11,12,.05),0 10px 22px rgba(11,11,12,.08),0 30px 56px rgba(11,11,12,.10),0 64px 100px rgba(11,11,12,.07);
@@ -1639,7 +1639,7 @@ body.pwa-standalone .hero{
 .pv-board::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(135% 80% at 50% -12%,transparent 60%,rgba(11,11,12,.045));}
 /* canvas cards: graduated soft shadow, crisper hairline */
 .pv-card{box-shadow:0 .3cqw .8cqw rgba(11,11,12,.05),0 1.6cqw 3.4cqw rgba(11,11,12,.07),0 3.6cqw 7cqw rgba(11,11,12,.05);border-color:rgba(11,11,12,.085);}
-/* content cards were flat — give them subtle, crafted elevation */
+/* content cards were flat - give them subtle, crafted elevation */
 .bc,.cat,.plan,.testi,.step{box-shadow:var(--elev-1);}
 .bc:hover,.cat:hover,.testi:hover,.step:hover{box-shadow:var(--elev-2);}
 .plan.pop{box-shadow:var(--elev-3);}
@@ -1823,7 +1823,7 @@ section{scroll-margin-top:64px;}
       <span class="line"><span><em>in your pocket</em></span></span>
     </h1>
     <p class="hero-sub">
-      A focused workspace for language teachers: build lesson boards, shape worksheets, turn YouTube into class material, and run 30+ games — online or offline.
+      A focused workspace for language teachers: build lesson boards, shape worksheets, turn YouTube into class material, and run 30+ games - online or offline.
     </p>
     <div class="hero-ctas">
       <button class="btn btn-pink btn-lg" type="button" onclick="openAuth('register')">Start for free →</button>
@@ -1888,7 +1888,7 @@ section{scroll-margin-top:64px;}
               <span class="pv-eye">Worksheet draft</span>
               <span class="pv-ai"><span class="sp"></span>Ready to edit</span>
             </div>
-            <div class="pv-ws-title">Present Perfect — gap-fill</div>
+            <div class="pv-ws-title">Present Perfect - gap-fill</div>
             <div class="pv-ws-meta">Fill each gap with the correct adverb · 7 questions</div>
             <div class="pv-line"><b>1.</b> I have <span class="pv-gap fill">just</span> finished my homework.</div>
             <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-type">yet<span class="car"></span></span> .</div>
@@ -1983,11 +1983,11 @@ section{scroll-margin-top:64px;}
   <div class="container">
     <div class="sec-eye">Everything in one place</div>
     <h2 class="sec-h">From a blank page to a<br>full lesson in <em>minutes</em></h2>
-    <p class="sec-sub">Stop stitching together six apps and a stack of PDFs. TeachEd generates your materials with AI, lets you build and share interactive lessons, and keeps your whole studio organised — all from one place, online or offline.</p>
+    <p class="sec-sub">Stop stitching together six apps and a stack of PDFs. TeachEd generates your materials with AI, lets you build and share interactive lessons, and keeps your whole studio organised - all from one place, online or offline.</p>
 
     <div class="bento">
 
-      <!-- AI generator — big hero card -->
+      <!-- AI generator - big hero card -->
       <div class="bc span3 row2 ink">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;">
           <div>
@@ -1995,13 +1995,13 @@ section{scroll-margin-top:64px;}
             <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:600;">Worksheet &amp;<br>exercise studio</div>
             <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link. TeachEd drafts reading tasks, gap-fills, vocabulary sets, quizzes and A4 worksheets at the CEFR level you choose. Edit, print, or play interactively.</div>
             <div class="bc-points">
-              <span>CEFR A1–C2</span><span>Answer keys</span><span>PDF &amp; A4 print</span><span>Editable</span><span>Interactive mode</span>
+              <span>CEFR A1-C2</span><span>Answer keys</span><span>PDF &amp; A4 print</span><span>Editable</span><span>Interactive mode</span>
             </div>
           </div>
           <div class="ic ic-ink" style="font-size:26px;">✨</div>
         </div>
         <div class="fp-paper">
-          <div class="pt"><b>Used to — habits</b><span class="gen"><i></i>Generated in 4s</span></div>
+          <div class="pt"><b>Used to - habits</b><span class="gen"><i></i>Generated in 4s</span></div>
           <div class="pq"><b>1.</b> When I was a kid, I <span class="pgap f">used to</span> play outside every day.</div>
           <div class="pq"><b>2.</b> They <span class="pgap"></span> live in Rome before moving here.</div>
           <div class="pq"><b>3.</b> Did you <span class="pgap"></span> have long hair at school?</div>
@@ -2014,7 +2014,7 @@ section{scroll-margin-top:64px;}
           <div>
             <div class="bento-tag" style="background:rgba(14,14,16,.10);border-color:rgba(14,14,16,.20);color:var(--lime-text);">30+ games</div>
             <div class="bc-h" style="margin-top:10px;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--lime-text);">Interactive classroom games</div>
-            <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Auto-built from your vocabulary — projector-ready, team mode, live scoring.</div>
+            <div class="bc-p" style="margin-top:6px;color:var(--lime-text);opacity:.7;">Auto-built from your vocabulary - projector-ready, team mode, live scoring.</div>
           </div>
           <div class="ic" style="font-size:26px;">🎮</div>
         </div>
@@ -2036,7 +2036,7 @@ section{scroll-margin-top:64px;}
         <div class="ic ic-lime">📖</div>
         <div>
           <div class="bc-h">Reading &amp; comprehension</div>
-          <div class="bc-p">Graded texts with ABCD, true/false &amp; open questions — IELTS-style included.</div>
+          <div class="bc-p">Graded texts with ABCD, true/false &amp; open questions - IELTS-style included.</div>
         </div>
         <div class="fp-shot fp-read">
           <div class="fp-cap">Reading · gist &amp; detail</div>
@@ -2081,7 +2081,7 @@ section{scroll-margin-top:64px;}
         <div>
           <div class="bento-tag">AI</div>
           <div class="bc-h" style="margin-top:8px;">YouTube → Lesson</div>
-          <div class="bc-p" style="color:var(--ink2);">Paste a link — AI pulls the transcript and builds exercises around it.</div>
+          <div class="bc-p" style="color:var(--ink2);">Paste a link - AI pulls the transcript and builds exercises around it.</div>
         </div>
         <div class="fp-shot fp-yt">
           <div class="thumb"><b>5:21</b></div>
@@ -2097,7 +2097,7 @@ section{scroll-margin-top:64px;}
         <div class="ic ic-pink">📌</div>
         <div>
           <div class="bc-h">Lesson boards</div>
-          <div class="bc-p">A Miro-style canvas — cards, tasks &amp; timers, shared live.</div>
+          <div class="bc-p">A Miro-style canvas - cards, tasks &amp; timers, shared live.</div>
         </div>
         <div class="fp-shot">
           <div class="fp-cap">Live board · 4 online</div>
@@ -2148,7 +2148,7 @@ section{scroll-margin-top:64px;}
         <div class="ic" style="font-size:22px;">📊</div>
         <div>
           <div class="bc-h">Run your studio</div>
-          <div class="bc-p">Schedule, gradebook, attendance &amp; analytics — all built in.</div>
+          <div class="bc-p">Schedule, gradebook, attendance &amp; analytics - all built in.</div>
         </div>
         <div class="fp-shot fp-studio">
           <div class="tbl">
@@ -2229,8 +2229,8 @@ section{scroll-margin-top:64px;}
           <div class="r"><b>abroad</b><i></i><s>overseas</s></div>
         </div>
         <div class="cat-tags">
-          <span class="cat-tag">Word–definition match</span>
-          <span class="cat-tag">Word–image</span>
+          <span class="cat-tag">Word-definition match</span>
+          <span class="cat-tag">Word-image</span>
           <span class="cat-tag">Translations</span>
           <span class="cat-tag">Odd one out</span>
           <span class="cat-tag">Word sorting</span>
@@ -2338,7 +2338,7 @@ section{scroll-margin-top:64px;}
       <div style="max-width:520px;">
         <div class="bento-tag" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#F5F0E8;">Lesson builders</div>
         <div style="font-family:var(--serif);font-size:22px;font-weight:600;margin-top:10px;">Assemble a whole lesson, then export it</div>
-        <p style="font-size:13.5px;line-height:1.65;color:rgba(245,240,232,.72);margin-top:8px;">Lesson Pack, Worksheet and Homework builders turn any topic into a complete, printable lesson — with a CEFR level checker, plus blocks for your own text, images and video.</p>
+        <p style="font-size:13.5px;line-height:1.65;color:rgba(245,240,232,.72);margin-top:8px;">Lesson Pack, Worksheet and Homework builders turn any topic into a complete, printable lesson - with a CEFR level checker, plus blocks for your own text, images and video.</p>
       </div>
       <div class="cat-tags" style="max-width:340px;">
         <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Lesson pack</span>
@@ -2362,7 +2362,7 @@ section{scroll-margin-top:64px;}
       <div class="step">
         <div class="step-pill">1</div>
         <div class="step-h">Create your free account</div>
-        <p class="step-p">Sign up with email or Google in seconds — no card, no download. It runs in any browser and installs to your home screen on iOS, Android, Mac and Windows.</p>
+        <p class="step-p">Sign up with email or Google in seconds - no card, no download. It runs in any browser and installs to your home screen on iOS, Android, Mac and Windows.</p>
         <div class="step-shot fp-auth">
           <div class="scap">Sign up · 20 seconds</div>
           <div class="field">you@school.com</div>
@@ -2406,7 +2406,7 @@ section{scroll-margin-top:64px;}
     <div class="testi-grid">
       <div class="testi">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-q">"I've tried Notion, Trello, Google Slides — nothing came close. TeachEd was built by someone who actually teaches. The board with arrow connections changed how I structure lessons."</p>
+        <p class="testi-q">"I've tried Notion, Trello, Google Slides - nothing came close. TeachEd was built by someone who actually teaches. The board with arrow connections changed how I structure lessons."</p>
         <div class="testi-author">
           <div class="testi-avatar" style="background:#7C5CE0;">SK</div>
           <div>
@@ -2430,7 +2430,7 @@ section{scroll-margin-top:64px;}
       </div>
       <div class="testi">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-q">"Offline mode is the killer feature for me — I teach in a village with patchy Wi-Fi. The whole app works from cache. Grade book, boards, everything."</p>
+        <p class="testi-q">"Offline mode is the killer feature for me - I teach in a village with patchy Wi-Fi. The whole app works from cache. Grade book, boards, everything."</p>
         <div class="testi-author">
           <div class="testi-avatar" style="background:#159B9B;">OP</div>
           <div>
@@ -2450,7 +2450,7 @@ section{scroll-margin-top:64px;}
     <div style="text-align:center;margin-bottom:48px;">
       <div class="sec-eye" style="margin-left:auto;margin-right:auto;">Pricing</div>
       <h2 class="sec-h">Start free. Upgrade<br>only when you <em>grow</em></h2>
-      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every plan includes the full teaching toolkit, 30+ games and offline mode. No credit card to start, no hidden fees — cancel anytime.</p>
+      <p class="sec-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Every plan includes the full teaching toolkit, 30+ games and offline mode. No credit card to start, no hidden fees - cancel anytime.</p>
     </div>
     <div class="pricing-grid">
 
@@ -2525,28 +2525,28 @@ section{scroll-margin-top:64px;}
           How does the AI generation work?
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise — reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet — that you can edit, print, play as a game or drop on a board.</div>
+        <div class="faq-a">Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise - reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet - that you can edit, print, play as a game or drop on a board.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Do I need my own API key? Does AI cost extra?
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">No. AI is built in — no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked.</div>
+        <div class="faq-a">No. AI is built in - no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Can I edit what the AI produces?
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">Always. Every generated item is fully editable before you export it — fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem.</div>
+        <div class="faq-a">Always. Every generated item is fully editable before you export it - fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
           Do I need to download anything?
           <span class="faq-icon">+</span>
         </div>
-        <div class="faq-a">No. TeachEd is a Progressive Web App — you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually.</div>
+        <div class="faq-a">No. TeachEd is a Progressive Web App - you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
@@ -2592,7 +2592,7 @@ section{scroll-margin-top:64px;}
   <div class="final-blob a"></div>
   <div class="final-blob b"></div>
   <h2 class="final-h">Plan with less friction.<br>Teach with <em>more rhythm</em>.</h2>
-  <p class="final-p">Keep worksheets, boards, games and student follow-up in one calm workspace — free to start, no card needed.</p>
+  <p class="final-p">Keep worksheets, boards, games and student follow-up in one calm workspace - free to start, no card needed.</p>
   <div class="final-ctas">
     <button class="btn btn-lime btn-xl" type="button" onclick="openAuth('register')">Start free →</button>
     <button class="btn btn-cream btn-xl" type="button" onclick="openAuth('login')">Sign in</button>
@@ -2630,7 +2630,7 @@ section{scroll-margin-top:64px;}
     <div class="footer-grid">
       <div>
         <div class="footer-brand brand-wordmark">Teach<em>Ed</em></div>
-        <p class="footer-desc">A practical workspace for language teachers: 50+ tools, 30+ games, lesson boards and your whole studio — one offline-ready app.</p>
+        <p class="footer-desc">A practical workspace for language teachers: 50+ tools, 30+ games, lesson boards and your whole studio - one offline-ready app.</p>
       </div>
       <details class="footer-col" open>
         <summary><h4>Product</h4></summary>
@@ -2683,7 +2683,7 @@ section{scroll-margin-top:64px;}
   background:radial-gradient(ellipse 70% 55% at 18% 16%,rgba(236,45,140,.10) 0%,transparent 62%),
     radial-gradient(ellipse 58% 46% at 86% 78%,rgba(216,197,251,.22) 0%,transparent 60%),rgba(20,16,24,.44);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
-/* lp-inp wraps are injected by JS — override padding-right for non-password */
+/* lp-inp wraps are injected by JS - override padding-right for non-password */
 .lp-inp-wrap { position:relative;margin-bottom:11px; }
 .lp-inp-wrap .auth-inp:not([type="password"]) { padding-right:16px; }
 .lp-inp-wrap.has-toggle .auth-eye { top:39px; }
@@ -3040,7 +3040,7 @@ window.toggleFaq = function(trigger){
 <script>window.__TEACHED_STATIC_LANDING__ = true;</script>
 <script>
 /* Premium motion: scroll-reveal (staggered) + number count-up.
-   Fully progressive — if this never runs, nothing is hidden. */
+   Fully progressive - if this never runs, nothing is hidden. */
 (function () {
   if (window.__TEACHED_STATIC_LANDING__) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -3060,12 +3060,12 @@ window.toggleFaq = function(trigger){
     perParent.set(p, i + 1);
     el.style.transitionDelay = Math.min(i * 60, 300) + 'ms';
   });
-  // Position-based reveal (deterministic — never leaves content hidden, even on
+  // Position-based reveal (deterministic - never leaves content hidden, even on
   // anchor jumps or fast flicks, unlike IntersectionObserver which can coalesce).
   var pending = els.slice();
   function animateIn(el) {
     // Promote to a GPU layer only for the ~0.7s the transition actually runs,
-    // then drop it — see the .reveal.will-anim comment in <style> for why.
+    // then drop it - see the .reveal.will-anim comment in <style> for why.
     el.classList.add('will-anim', 'in');
     var done = function () { el.classList.remove('will-anim'); el.removeEventListener('transitionend', done); };
     el.addEventListener('transitionend', done);
@@ -3138,7 +3138,7 @@ window.toggleFaq = function(trigger){
 })();
 </script>
 <script>
-/* Hero board — subtle "live app" micro-motion. Fully progressive: if this
+/* Hero board - subtle "live app" micro-motion. Fully progressive: if this
    never runs (reduced-motion, no JS), the board stays in its valid static
    state (timer 04:32, "yet" filled, "Synced"). */
 (function () {
@@ -3189,7 +3189,7 @@ window.toggleFaq = function(trigger){
 </script>
 <script>
 /* Immersive hero: cursor spotlight + 3D parallax (desktop / fine pointer only).
-   Progressive — does nothing under reduced-motion or on touch. */
+   Progressive - does nothing under reduced-motion or on touch. */
 (function () {
   if (window.__TEACHED_STATIC_LANDING__) return;
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -3224,7 +3224,7 @@ window.toggleFaq = function(trigger){
 })();
 </script>
 <script>
-/* Footer accordion — collapse on mobile, always-open on desktop */
+/* Footer accordion - collapse on mobile, always-open on desktop */
 (function () {
   var mq = window.matchMedia('(max-width:540px)');
   function initFooterAccordion(isMobile) {

@@ -34,7 +34,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 <body>
 <a class="back" href="index.html">← Games</a>
 <h1>⚡ Article Rush</h1>
-<p class="subtitle">Pick the right article — fast!</p>
+<p class="subtitle">Pick the right article - fast!</p>
 <div class="card">
   <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/20</div><div>⏱ <span id="time">60</span>s</div></div>
   <div class="timer-bar"><div class="timer-fill" id="tfill" style="width:100%"></div></div>
@@ -45,26 +45,26 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 
 <script>
 const QS=[
-  {s:'___ sun rises in the east.',a:'The',opts:['A','An','The','—']},
-  {s:'She is ___ engineer.',a:'an',opts:['a','an','the','—']},
-  {s:'I want ___ apple from that tree.',a:'an',opts:['a','an','the','—']},
-  {s:'He plays ___ guitar every day.',a:'—',opts:['a','an','the','—']},
-  {s:'___ Nile is the longest river.',a:'The',opts:['A','An','The','—']},
-  {s:'They live in ___ small village.',a:'a',opts:['a','an','the','—']},
-  {s:'I love ___ music.',a:'—',opts:['a','an','the','—']},
-  {s:'She is ___ honest person.',a:'an',opts:['a','an','the','—']},
-  {s:'We visited ___ Eiffel Tower.',a:'the',opts:['a','an','the','—']},
-  {s:'He has ___ dog and two cats.',a:'a',opts:['a','an','the','—']},
-  {s:'___ Moon orbits Earth.',a:'The',opts:['A','An','The','—']},
-  {s:'She studies ___ history.',a:'—',opts:['a','an','the','—']},
-  {s:'Can I have ___ glass of water?',a:'a',opts:['a','an','the','—']},
-  {s:'He is ___ best student in class.',a:'the',opts:['a','an','the','—']},
-  {s:'We went to ___ restaurant last night.',a:'a',opts:['a','an','the','—']},
-  {s:'___ Amazon is in South America.',a:'The',opts:['A','An','The','—']},
-  {s:'She wore ___ elegant dress.',a:'an',opts:['a','an','the','—']},
-  {s:'I play ___ tennis on weekends.',a:'—',opts:['a','an','the','—']},
-  {s:'They found ___ old map in the attic.',a:'an',opts:['a','an','the','—']},
-  {s:'___ United Kingdom has four countries.',a:'The',opts:['A','An','The','—']},
+  {s:'___ sun rises in the east.',a:'The',opts:['A','An','The','-']},
+  {s:'She is ___ engineer.',a:'an',opts:['a','an','the','-']},
+  {s:'I want ___ apple from that tree.',a:'an',opts:['a','an','the','-']},
+  {s:'He plays ___ guitar every day.',a:'-',opts:['a','an','the','-']},
+  {s:'___ Nile is the longest river.',a:'The',opts:['A','An','The','-']},
+  {s:'They live in ___ small village.',a:'a',opts:['a','an','the','-']},
+  {s:'I love ___ music.',a:'-',opts:['a','an','the','-']},
+  {s:'She is ___ honest person.',a:'an',opts:['a','an','the','-']},
+  {s:'We visited ___ Eiffel Tower.',a:'the',opts:['a','an','the','-']},
+  {s:'He has ___ dog and two cats.',a:'a',opts:['a','an','the','-']},
+  {s:'___ Moon orbits Earth.',a:'The',opts:['A','An','The','-']},
+  {s:'She studies ___ history.',a:'-',opts:['a','an','the','-']},
+  {s:'Can I have ___ glass of water?',a:'a',opts:['a','an','the','-']},
+  {s:'He is ___ best student in class.',a:'the',opts:['a','an','the','-']},
+  {s:'We went to ___ restaurant last night.',a:'a',opts:['a','an','the','-']},
+  {s:'___ Amazon is in South America.',a:'The',opts:['A','An','The','-']},
+  {s:'She wore ___ elegant dress.',a:'an',opts:['a','an','the','-']},
+  {s:'I play ___ tennis on weekends.',a:'-',opts:['a','an','the','-']},
+  {s:'They found ___ old map in the attic.',a:'an',opts:['a','an','the','-']},
+  {s:'___ United Kingdom has four countries.',a:'The',opts:['A','An','The','-']},
 ];
 let q=[],idx=0,score=0,timer=60,tInt,locked=false;
 
@@ -96,7 +96,7 @@ function nextQ(){
   item.opts.forEach(opt=>{
     const btn=document.createElement('button');
     btn.className='choice';
-    btn.textContent=opt==='—'?'∅ (nothing)':opt;
+    btn.textContent=opt==='-'?'∅ (nothing)':opt;
     btn.onclick=()=>pick(opt,btn,item.a);
     ch.appendChild(btn);
   });

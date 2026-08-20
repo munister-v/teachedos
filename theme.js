@@ -1,4 +1,4 @@
-// TeachEd shared theme manager — light cream + lime is the single canonical theme.
+// TeachEd shared theme manager - light cream + lime is the single canonical theme.
 // Dark mode was retired; this script clears any lingering dark preference
 // so that returning users no longer see a half-applied dark UI.
 (function () {

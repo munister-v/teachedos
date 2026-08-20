@@ -3,7 +3,7 @@
 /* ═══════════════════ WHO IS ENTITLED TO SEE WHICH CARD ═══════════════════
 
    A card a viewer may not see must not reach them AS DATA. Hiding it in the
-   interface is not enough — the whole board travels to every collaborator, both
+   interface is not enough - the whole board travels to every collaborator, both
    through GET /api/boards/:id and through every websocket board_patch, so the
    content sat in the payload regardless of what the canvas drew.
 
@@ -15,7 +15,7 @@
      private        the author's own note. Removed outright for anybody else,
                     matching what the canvas already does visually.
 
-     studentHidden  the teacher is holding it back — an answer, a key. Everyone
+     studentHidden  the teacher is holding it back - an answer, a key. Everyone
                     except the board owner receives a content-free placeholder
                     that keeps its position, so a student sees that something is
                     there and is yet to come. Setting revealed:true releases it.

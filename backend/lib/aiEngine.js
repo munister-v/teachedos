@@ -5,9 +5,9 @@
 // (board.html / lesson-builder.html / game-builder.html / teacher-tools.html).
 //
 // Configure via environment (set these on the VPS):
-//   AI_API_KEY    — required to enable the engine (free key from Groq/Gemini/…)
-//   AI_BASE_URL   — default https://api.groq.com/openai/v1
-//   AI_MODEL      — default llama-3.3-70b-versatile
+//   AI_API_KEY    - required to enable the engine (free key from Groq/Gemini/…)
+//   AI_BASE_URL   - default https://api.groq.com/openai/v1
+//   AI_MODEL      - default llama-3.3-70b-versatile
 //
 // Examples:
 //   Groq    : AI_BASE_URL=https://api.groq.com/openai/v1            AI_MODEL=llama-3.3-70b-versatile
@@ -18,7 +18,7 @@
 //     AI_OPENROUTER_SORT=throughput|latency|price
 //
 // Without AI_API_KEY, or on any error, the caller falls back to the local rule
-// engine — nothing breaks, generation just degrades to the old templates.
+// engine - nothing breaks, generation just degrades to the old templates.
 
 const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 12000);
 const MAX_ATTEMPTS = Math.max(1, Math.min(4, Number(process.env.AI_MAX_ATTEMPTS || 2)));
@@ -34,14 +34,14 @@ function uniq(values) {
 }
 
 /* OpenRouter's free tier is the backstop for when Groq rate-limits us, and on
-   2026-07-29 every model listed here answered 404 — "unavailable for free, the
+   2026-07-29 every model listed here answered 404 - "unavailable for free, the
    paid version is available now". All four had been retired from the free tier,
    so the backstop had quietly not existed for some time: a 429 from Groq went
    straight to the rule engine while the logs blamed OpenRouter.
 
    Checked against the live API; these three answered 200 that day. They will
    rot the same way and nothing here will notice, so when the logs start showing
-   404s from OpenRouter, set AI_OPENROUTER_MODELS in .env to a working list —
+   404s from OpenRouter, set AI_OPENROUTER_MODELS in .env to a working list -
    that overrides this one and needs a restart, not a deploy. */
 const OPENROUTER_DEFAULT_MODEL = 'openai/gpt-oss-20b:free';
 const OPENROUTER_FALLBACK_MODELS = listEnv('AI_OPENROUTER_MODELS', [
@@ -63,7 +63,7 @@ const LIGHT_MODEL = process.env.AI_MODEL_LIGHT === undefined
 // Ordered provider chain. We try each in turn; on the final failure the caller
 // falls back to the local rule engine. The chain is:
 //   1) primary model            (e.g. Groq llama-3.3-70b-versatile)
-//   2) light model, same key    (e.g. Groq llama-3.1-8b-instant) — fresh quota
+//   2) light model, same key    (e.g. Groq llama-3.1-8b-instant) - fresh quota
 //   3) external secondary        (e.g. OpenRouter free, via AI_API_KEY_2)
 const PROVIDERS = [
   { name: 'primary', key: PRIMARY_KEY, baseUrl: PRIMARY_URL, model: PRIMARY_MODEL },
@@ -74,14 +74,14 @@ if (PRIMARY_KEY && LIGHT_MODEL && LIGHT_MODEL !== PRIMARY_MODEL) {
 /* СТРАХОВКА ПОВЕРНУЛАСЬ, АЛЕ ВЖЕ НЕ МОВЧКИ.
 
    OpenRouter звідси прибрали свідомо: він стояв страховкою на часи, коли
-   основним був безкоштовний Groq, а потім основним став платний OpenAI — і
+   основним був безкоштовний Groq, а потім основним став платний OpenAI - і
    тихе падіння на безкоштовні моделі OpenRouter давало поверхневі питання,
    які вчитель читав як «інструмент слабкий». Проблемою була не сама страховка,
    а МОВЧАННЯ: неможливо було відрізнити «сьогодні відповідала запасна модель»
    від «так воно і працює».
 
-   Тому страховка є знову — коли OpenAI недоступний або впав у ліміт, урок
-   краще зібрати запасною моделлю, ніж локальними шаблонами, — але провайдер,
+   Тому страховка є знову - коли OpenAI недоступний або впав у ліміт, урок
+   краще зібрати запасною моделлю, ніж локальними шаблонами, - але провайдер,
    який відповів, тепер їде разом із результатом (getLastTier), і дошка про це
    каже вголос, так само як каже про роботу на шаблонах.
 
@@ -101,7 +101,7 @@ const CHAIN = PROVIDERS.filter(p => p.key);
 
 // Перемикач моделей у games/create.html жив на безкоштовних моделях
 // OpenRouter. Порожній список він обробляє сам (`(d.freeModels||[])`), тож
-// лишається один пункт «Default (server)» — саме те, що треба.
+// лишається один пункт «Default (server)» - саме те, що треба.
 const FREE_MODELS = [];
 
 // Primary descriptors kept for status reporting / the engine label.
@@ -112,7 +112,7 @@ const BASE_URL = CHAIN[0]?.baseUrl || PRIMARY_URL;
 let lastUsedModel = null;
 let lastTrace = null;
 /* Яка саме ступінь ланцюга відповіла: 'primary' | 'light' | 'backup'.
-   Потрібна не для логів, а для екрана вчителя — див. коментар про мовчазний
+   Потрібна не для логів, а для екрана вчителя - див. коментар про мовчазний
    фолбек вище. */
 let lastTier = null;
 function getLastModel() { return lastUsedModel; }
@@ -129,16 +129,16 @@ function listModels() {
 // latency, with the big model still behind it as a quality backstop.
 /* Інструменти, які йдуть НА СИЛЬНУ модель.
 
-   Список складався, коли основною була безкоштовна Groq 70B, а легкою — 8B, і
+   Список складався, коли основною була безкоштовна Groq 70B, а легкою - 8B, і
    кожен зайвий пункт коштував квоти. Тепер це $0.0009 проти $0.0003 за вправу,
-   і економити на мисленні немає сенсу: `open-questions` — головний інструмент
-   критичного мислення — сидів у легкій групі, тобто саме питання «на глибину»
+   і економити на мисленні немає сенсу: `open-questions` - головний інструмент
+   критичного мислення - сидів у легкій групі, тобто саме питання «на глибину»
    писала слабша модель. Це друга половина скарги вчителя, поряд з промптами.
 
    Критерій простий: чи потрібне тут судження. Питання на висновок, правдоподібні
    дистрактори, справжнє (а не переформульоване) хибне твердження, оцінка рівня
-   тексту — потрібне. Механічне (перемішати слова, розрізати на половинки,
-   зробити картки зі списку) — ні, там легка модель дає той самий результат
+   тексту - потрібне. Механічне (перемішати слова, розрізати на половинки,
+   зробити картки зі списку) - ні, там легка модель дає той самий результат
    дешевше і швидше. */
 const HEAVY_TOOLS = new Set([
   // читання: розуміння й екзаменаційні формати
@@ -165,7 +165,7 @@ function isLight(input) {
 function orderedChain(input) {
   /* Бюджет має право пересунути важке завдання на легку модель. Це не те саме,
      що isLight: там рішення про СКЛАДНІСТЬ («це переказ чи це міркування»), а
-     тут — про ГРОШІ. Розділені навмисно: коли добова межа мине, лишається
+     тут - про ГРОШІ. Розділені навмисно: коли добова межа мине, лишається
      чесний вибір «дешевше, але працює» замість тиші. */
   if (input.preferLight) {
     const light = CHAIN.filter(p => p.name === 'light');
@@ -210,27 +210,27 @@ function extractJson(text) {
 
 const SYSTEM = [
   'You are an expert EFL/ESL teacher and materials writer.',
-  'You design clear, classroom-ready content pitched precisely to the requested CEFR level (A1–C2):',
+  'You design clear, classroom-ready content pitched precisely to the requested CEFR level (A1-C2):',
   'control the vocabulary, grammar and sentence length so it is neither too easy nor too hard for that level.',
   'Quality rules that ALWAYS apply:',
-  '• Produce EXACTLY the number of items requested — no more, no fewer.',
-  '• Every item must be distinct — never repeat or trivially reword another item.',
+  '• Produce EXACTLY the number of items requested - no more, no fewer.',
+  '• Every item must be distinct - never repeat or trivially reword another item.',
   '• Use natural, native-like English; keep content culturally neutral and age-appropriate.',
   '• For multiple-choice questions: exactly ONE option is correct; the other options must be',
   '  plausible but clearly wrong distractors (real misconceptions, not random words), all the same',
   '  type/length as the answer. The "answer" field MUST be the full text of the correct option, copied verbatim.',
   '• For anything built from a source text/transcript, base every item strictly on that text.',
-  'You always return ONLY a single valid JSON object that exactly matches the requested shape —',
+  'You always return ONLY a single valid JSON object that exactly matches the requested shape -',
   'no markdown, no commentary, no code fences, no trailing text.',
 ].join(' ');
 
 /* ── РІВЕНЬ ЯК ОБМЕЖЕННЯ, А НЕ ЯК ЯРЛИК ────────────────────────────────────
 
-   Досі рівень існував у промпті одним рядком — «CEFR level: B1» — плюс загальна
+   Досі рівень існував у промпті одним рядком - «CEFR level: B1» - плюс загальна
    фраза в системному повідомленні «підбирай лексику й довжину речень під
    рівень». Модель робила з цим рівно те, що можна зробити з побажанням: A2 і B2
    виходили майже однакові, різниця бачилась хіба у випадкових словах. Вчитель
-   міняв рівень у списку і не бачив, щоб щось змінилось — бо майже нічого й не
+   міняв рівень у списку і не бачив, щоб щось змінилось - бо майже нічого й не
    змінювалось.
 
    Тут рівень стає набором ПЕРЕВІРЯЛЬНИХ обмежень: скільки слів у реченні,
@@ -243,14 +243,14 @@ const SYSTEM = [
    тримає «найуживаніші 1500 слів, речення до 12 слів». */
 const CEFR = {
   A1: {
-    sentence: 'Sentences of 6–10 words, one clause each. No relative clauses, no passive.',
+    sentence: 'Sentences of 6-10 words, one clause each. No relative clauses, no passive.',
     lexis: 'Only the ~1000 most frequent English words. No idioms, no phrasal verbs, no figurative meaning.',
     grammar: 'Present simple, present continuous, "can", "there is/are", past simple of common verbs.',
-    task: 'Ask about facts stated in one short sentence. Options differ obviously and are 1–4 words long.',
+    task: 'Ask about facts stated in one short sentence. Options differ obviously and are 1-4 words long.',
     avoid: 'Never ask for inference, opinion-with-justification, or anything needing more than one sentence to answer.',
   },
   A2: {
-    sentence: 'Sentences of 8–14 words, at most two clauses joined by and/but/because.',
+    sentence: 'Sentences of 8-14 words, at most two clauses joined by and/but/because.',
     lexis: 'The ~2000 most frequent words, plus topic words that appear in the source. Very common phrasal verbs only, and only if the source uses them.',
     grammar: 'All simple tenses, going to, comparatives, common modals. Passive only if the source uses it.',
     task: 'Facts and simple reasons. MCQ options are short phrases of similar length; one is right, the others are wrong for a visible reason.',
@@ -259,7 +259,7 @@ const CEFR = {
   B1: {
     sentence: 'Sentences up to about 18 words; subordinate clauses are fine, nested ones are not.',
     lexis: 'The ~3000 most frequent words, plus the source’s own topic vocabulary. Common idioms allowed when the source uses them.',
-    grammar: 'Perfect tenses, conditionals 1–2, passive, reported speech.',
+    grammar: 'Perfect tenses, conditionals 1-2, passive, reported speech.',
     task: 'A mix of stated facts and light inference. Distractors must be plausible for someone who skimmed, not obviously wrong.',
     avoid: 'No specialist jargon, no rhetorical analysis of the text.',
   },
@@ -291,7 +291,7 @@ function cefrKey(level) {
   return m && CEFR[m[0]] ? m[0] : 'B1';
 }
 
-/* Компактний блок під рівень. Один рядок на вимогу — так модель тримає їх усі;
+/* Компактний блок під рівень. Один рядок на вимогу - так модель тримає їх усі;
    розгорнутий абзац на кожну вона переказує і забуває. */
 function cefrBrief(level) {
   const key = cefrKey(level);
@@ -331,18 +331,18 @@ function shapeSpec(input) {
   if (input.source) ctx.push(`Source text / transcript:\n"""${input.source}"""`);
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
   if (input.extra) ctx.push(`Extra teacher note: ${input.extra}`);
-  /* Транскрипт іде ПЕРШИМ, а не в кінці — заради кешу префікса у провайдера.
+  /* Транскрипт іде ПЕРШИМ, а не в кінці - заради кешу префікса у провайдера.
 
-     Один YouTube-урок — це окремий запит на КОЖНУ вправу, і в кожному лежить
+     Один YouTube-урок - це окремий запит на КОЖНУ вправу, і в кожному лежить
      той самий транскрипт (до 18 000 символів, ~4 500 токенів). Кеш працює по
      збігу початку промпту, а початок у нас розходився одразу: спершу йшла
      інструкція конкретного інструмента, і лише потім спільний текст. Тобто
      платили за транскрипт стільки разів, скільки вправ.
 
-     Тепер спільна частина (system + транскрипт) — це і є префікс, а те, що
+     Тепер спільна частина (system + транскрипт) - це і є префікс, а те, що
      різне, зсунуто за нього. Кешований вхід коштує вчетверо дешевше повного,
      тож урок на шість вправ платить за транскрипт приблизно один раз замість
-     шести. Для моделі порядок нешкідливий: спершу матеріал, потім завдання —
+     шести. Для моделі порядок нешкідливий: спершу матеріал, потім завдання -
      саме так і рекомендують будувати промпт під кешування. */
   const prefix = ctx.length ? `${ctx.join('\n\n')}\n\n` : '';
   const context = '';
@@ -359,32 +359,32 @@ function shapeSpec(input) {
   };
   const genre = GENRES[String(input.genre || '').toLowerCase()] || '';
   const genreText = genre ? ` Write it as ${genre}.` : '';
-  const LEN_BANDS = { short: '90–130', medium: '160–200', long: '240–320' };
-  const lvlDefaultWords = /^A[12]/i.test(level) ? '90–130' : /^C[12]/i.test(level) ? '240–320' : '160–200';
+  const LEN_BANDS = { short: '90-130', medium: '160-200', long: '240-320' };
+  const lvlDefaultWords = /^A[12]/i.test(level) ? '90-130' : /^C[12]/i.test(level) ? '240-320' : '160-200';
   const words = LEN_BANDS[String(input.length || '').toLowerCase()] || lvlDefaultWords;
 
   if (boardKind === 'vocab') {
     if (toolId === 'flashcards') {
       return {
-        task: `${head} Build a flashcard for EACH target word/phrase the teacher provided: "word" = the target word, "definition" = a short student-friendly definition (max 12 words), "example" = a natural ${level} sentence using it. Make exactly one item per target word — do NOT invent extra words. If no target words are given, choose the ${count} most essential words for the topic.${context}`,
+        task: `${head} Build a flashcard for EACH target word/phrase the teacher provided: "word" = the target word, "definition" = a short student-friendly definition (max 12 words), "example" = a natural ${level} sentence using it. Make exactly one item per target word - do NOT invent extra words. If no target words are given, choose the ${count} most essential words for the topic.${context}`,
         schema: '{"items":[{"word":"...","definition":"...","example":"..."}]}',
       };
     }
     if (toolId === 'collocations') {
       return {
-        task: `${head} Produce exactly ${count} collocation entries for this topic. For each: "word" = the headword; "definition" = its 3–4 strongest natural collocations separated by commas (e.g. "make a decision, take a decision, reach a decision"); "example" = one natural ${level} sentence using one collocation.${context}`,
+        task: `${head} Produce exactly ${count} collocation entries for this topic. For each: "word" = the headword; "definition" = its 3-4 strongest natural collocations separated by commas (e.g. "make a decision, take a decision, reach a decision"); "example" = one natural ${level} sentence using one collocation.${context}`,
         schema: '{"items":[{"word":"headword","definition":"collocation, collocation, collocation","example":"..."}]}',
       };
     }
     if (toolId === 'word-families') {
       return {
-        task: `${head} Produce exactly ${count} word-family entries. For each: "word" = the base word; "definition" = the family forms labelled "noun: … · verb: … · adjective: … · adverb: …" (use "—" when a form does not exist); "example" = one natural ${level} sentence using one of the forms.${context}`,
+        task: `${head} Produce exactly ${count} word-family entries. For each: "word" = the base word; "definition" = the family forms labelled "noun: … · verb: … · adjective: … · adverb: …" (use "-" when a form does not exist); "example" = one natural ${level} sentence using one of the forms.${context}`,
         schema: '{"items":[{"word":"base word","definition":"noun: … · verb: … · adjective: … · adverb: …","example":"..."}]}',
       };
     }
     if (toolId === 'synonyms-antonyms') {
       return {
-        task: `${head} Produce exactly ${count} entries for useful topic words. For each: "word" = the headword; "definition" = "synonyms: … · antonyms: …" (2–3 each at ${level} level; if a word has no real antonym, write "antonyms: —"); "example" = one natural sentence using the headword.${context}`,
+        task: `${head} Produce exactly ${count} entries for useful topic words. For each: "word" = the headword; "definition" = "synonyms: … · antonyms: …" (2-3 each at ${level} level; if a word has no real antonym, write "antonyms: -"); "example" = one natural sentence using the headword.${context}`,
         schema: '{"items":[{"word":"headword","definition":"synonyms: …, … · antonyms: …, …","example":"..."}]}',
       };
     }
@@ -402,11 +402,11 @@ function shapeSpec(input) {
     }
     const source = toolId === 'extract-vocab'
       /* «quote or adapt» на практиці означало «вигадай»: приклади виходили
-         правильні, але з іншого життя — «I love drawing pictures of animals in
+         правильні, але з іншого життя - «I love drawing pictures of animals in
          my sketchbook» до інтерв'ю, де слово прозвучало зовсім інакше. Речення
          з тексту прив'язує слово до того, що учень щойно подивився, і показує
          справжнє вживання, а не словникове. */
-      ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below — collocations and multi-word phrases where the text has them, and skip trivial function words. For each: a short student-friendly definition (max 15 words) of the meaning IT HAS HERE, and as "example" the sentence from the source text where it appears, trimmed to at most 18 words and lightly cleaned up (fix false starts and filler; keep the speaker's own wording). Only write a new sentence if the source one truly cannot stand alone, and keep it at ${level} level.`
+      ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below - collocations and multi-word phrases where the text has them, and skip trivial function words. For each: a short student-friendly definition (max 15 words) of the meaning IT HAS HERE, and as "example" the sentence from the source text where it appears, trimmed to at most 18 words and lightly cleaned up (fix false starts and filler; keep the speaker's own wording). Only write a new sentence if the source one truly cannot stand alone, and keep it at ${level} level.`
       : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
     return {
       task: `${head} ${source}${context}`,
@@ -424,19 +424,19 @@ function shapeSpec(input) {
     if (toolId === 'word-sorting') {
       const cats = Math.max(2, Math.min(4, Math.round(count / 4)));
       return {
-        task: `${head} Build a word-sorting task. First invent ${cats} DISTINCT categories that group words by a GENUINE shared property — by part of speech, by function, or by sub-theme. STRICT RULES: (1) NEVER use the topic name "${topic}" as a category label; (2) no vague catch-alls such as "Other", "Misc", "Language skills" or "General"; (3) the categories must be clearly different from each other; (4) every category must receive at least 2 words; (5) assign each word to the ONE category it genuinely belongs to (do not spread randomly). Produce exactly ${count} words. "left" = the word, "right" = its category label.${context}`,
+        task: `${head} Build a word-sorting task. First invent ${cats} DISTINCT categories that group words by a GENUINE shared property - by part of speech, by function, or by sub-theme. STRICT RULES: (1) NEVER use the topic name "${topic}" as a category label; (2) no vague catch-alls such as "Other", "Misc", "Language skills" or "General"; (3) the categories must be clearly different from each other; (4) every category must receive at least 2 words; (5) assign each word to the ONE category it genuinely belongs to (do not spread randomly). Produce exactly ${count} words. "left" = the word, "right" = its category label.${context}`,
         schema: '{"pairs":[{"left":"word","right":"Category label"}]}',
       };
     }
     if (toolId === 'matching-halves') {
       return {
-        task: `${head} Produce exactly ${count} items split into two halves to be matched — sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${context}`,
+        task: `${head} Produce exactly ${count} items split into two halves to be matched - sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${context}`,
         schema: '{"pairs":[{"left":"first half","right":"second half"}]}',
       };
     }
     if (toolId === 'word-image-match') {
       return {
-        task: `${head} Produce exactly ${count} concrete, picturable vocabulary items for this topic. Choose words that have a clear visual referent — nouns and concrete objects work best. "left" = the English word at ${level} level; "right" = a short Wikipedia-style search query (2–4 words, no articles, specific enough to find a clear photo — e.g. "volcano eruption", "hospital operating room", "wheat field harvest"). If the teacher provided target words, use exactly those words.${context}`,
+        task: `${head} Produce exactly ${count} concrete, picturable vocabulary items for this topic. Choose words that have a clear visual referent - nouns and concrete objects work best. "left" = the English word at ${level} level; "right" = a short Wikipedia-style search query (2-4 words, no articles, specific enough to find a clear photo - e.g. "volcano eruption", "hospital operating room", "wheat field harvest"). If the teacher provided target words, use exactly those words.${context}`,
         schema: '{"pairs":[{"left":"word","right":"wikipedia search query"}]}',
       };
     }
@@ -448,7 +448,7 @@ function shapeSpec(input) {
     }
     if (toolId === 'match-headings') {
       return {
-        task: `${head} Read the source text and divide it into its natural paragraphs (or, if it is one block, into 4–6 logical sections). For EACH paragraph write ONE short, accurate heading that captures its main idea. "left" = "Paragraph N: <first 6–8 words…>" so the student can identify the paragraph; "right" = the heading. Keep headings parallel in style and at ${level} level. Do NOT reuse a heading.${context}`,
+        task: `${head} Read the source text and divide it into its natural paragraphs (or, if it is one block, into 4-6 logical sections). For EACH paragraph write ONE short, accurate heading that captures its main idea. "left" = "Paragraph N: <first 6-8 words…>" so the student can identify the paragraph; "right" = the heading. Keep headings parallel in style and at ${level} level. Do NOT reuse a heading.${context}`,
         schema: '{"pairs":[{"left":"Paragraph 1: first words…","right":"Heading"}]}',
       };
     }
@@ -477,7 +477,7 @@ function shapeSpec(input) {
     }
     if (toolId === 'vocab-in-context') {
       return {
-        task: `${head} Choose exactly ${count} useful words/phrases that ACTUALLY APPEAR in the source text. For each write a question: "text" = 'In the text, "<word>" means:'; "options" = 4 short meanings — exactly ONE matching how the word is used IN THIS TEXT, plus 3 plausible distractors (include a common but wrong-in-this-context meaning); "answer" = the correct meaning text verbatim. Use type "mcq".${context}`,
+        task: `${head} Choose exactly ${count} useful words/phrases that ACTUALLY APPEAR in the source text. For each write a question: "text" = 'In the text, "<word>" means:'; "options" = 4 short meanings - exactly ONE matching how the word is used IN THIS TEXT, plus 3 plausible distractors (include a common but wrong-in-this-context meaning); "answer" = the correct meaning text verbatim. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"In the text, \\"word\\" means:","options":["correct meaning","distractor","distractor","distractor"],"answer":"correct meaning","points":1}]}',
       };
     }
@@ -497,7 +497,7 @@ function shapeSpec(input) {
     if (isOdd) {
       return {
         task: `${head} Produce exactly ${count} "odd one out" groups. In each group, "options" is an array of 4 words where 3 clearly share a category (meaning, grammar or theme) and 1 does not belong; "answer" is the word that does NOT belong; "text" briefly names what the 3 have in common. Use type "mcq".${context}`,
-        schema: '{"questions":[{"type":"mcq","text":"3 are ... — which is the odd one?","options":["w1","w2","w3","w4"],"answer":"odd word","points":1}]}',
+        schema: '{"questions":[{"type":"mcq","text":"3 are ... - which is the odd one?","options":["w1","w2","w3","w4"],"answer":"odd word","points":1}]}',
       };
     }
     if (toolId === 'error-correction') {
@@ -532,18 +532,18 @@ function shapeSpec(input) {
     }
     if (isTf) {
       return {
-        task: `${head} Produce exactly ${count} True/False statements at ${level} level. Each "text" must be ONE short original sentence (max ~20 words) that YOU write to test a single fact from the source — never copy or quote a whole sentence, paragraph or the transcript itself. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
+        task: `${head} Produce exactly ${count} True/False statements at ${level} level. Each "text" must be ONE short original sentence (max ~20 words) that YOU write to test a single fact from the source - never copy or quote a whole sentence, paragraph or the transcript itself. Alternate true and false; for false ones make one factual change. Use type "truefalse" and a boolean "answer".${context}`,
         schema: '{"questions":[{"type":"truefalse","text":"statement","answer":true,"points":1}]}',
       };
     }
     if (isGap) {
-      /* Це був найкоротший промпт у файлі — «зроби N речень з пропуском» — і
+      /* Це був найкоротший промпт у файлі - «зроби N речень з пропуском» - і
          віддавав рівно те, що просили: підручникові речення нізвідки, які до
          відео не мають стосунку. Тепер речення береться з тексту, а пропуск
          стоїть на слові, яке варто вчити, а не на першому-ліпшому. */
       const fromSource = String(input.source || '').trim().length > 120;
       const sourced = fromSource
-        ? ` Build every sentence FROM THE SOURCE TEXT: take a sentence where something happens or is claimed, shorten it to at most 18 words if you must, and keep its wording. Work through the text in order, so the sheet follows the video. Blank the word that is worth learning — a key noun, verb, adjective or the second half of a collocation — never a name, number, article or preposition that can only be guessed. No two answers may be the same word, and each sentence must carry enough context for exactly one answer to fit.`
+        ? ` Build every sentence FROM THE SOURCE TEXT: take a sentence where something happens or is claimed, shorten it to at most 18 words if you must, and keep its wording. Work through the text in order, so the sheet follows the video. Blank the word that is worth learning - a key noun, verb, adjective or the second half of a collocation - never a name, number, article or preposition that can only be guessed. No two answers may be the same word, and each sentence must carry enough context for exactly one answer to fit.`
         : '';
       return {
         task: `${head} Produce exactly ${count} gap-fill sentences at ${level} level. Use "_____" for the gap and give the exact missing word as "answer".${sourced} Use type "gap-fill".${context}`,
@@ -564,7 +564,7 @@ function shapeSpec(input) {
     }
     if (toolId === 'audio-video-questions') {
       return {
-        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq") and the rest open detail questions (type "open"). Each MCQ must test a DIFFERENT specific moment or fact from the transcript — do not write generic template questions ("What can we understand from this part?") and do not reuse the same 4 options (or same option pattern) across questions. Every MCQ has 4 full, meaningful answer phrases as options (never a copy-pasted chunk of the transcript, never a meta-comment about the question itself like "an unrelated detail" or "the opposite of the main idea") — exactly one is correct and "answer" must equal that option's text verbatim. Open questions ask about a detail or opinion, not the transcript verbatim.${context}`,
+        task: `${head} Based on the transcript / notes, produce exactly ${count} comprehension questions about the audio or video. Make the first ~half multiple-choice (type "mcq") and the rest open detail questions (type "open"). Each MCQ must test a DIFFERENT specific moment or fact from the transcript - do not write generic template questions ("What can we understand from this part?") and do not reuse the same 4 options (or same option pattern) across questions. Every MCQ has 4 full, meaningful answer phrases as options (never a copy-pasted chunk of the transcript, never a meta-comment about the question itself like "an unrelated detail" or "the opposite of the main idea") - exactly one is correct and "answer" must equal that option's text verbatim. Open questions ask about a detail or opinion, not the transcript verbatim.${context}`,
         schema: '{"questions":[{"type":"mcq","text":"Why did the speaker visit the museum?","options":["To see a specific exhibit","To meet a friend for lunch","To attend a work meeting","To get out of the rain"],"answer":"To see a specific exhibit","points":1},{"type":"open","text":"What surprised the speaker most, and why?","points":1}]}',
       };
     }
@@ -588,7 +588,7 @@ function shapeSpec(input) {
            взагалі, і виходили питання, які можна поставити до БУДЬ-ЯКОГО
            виступу, не читавши цього. Тепер кожне прив'язане до конкретного
            місця в тексті і вибудуване драбиною складності. */
-        : `${head} Produce exactly ${count} open-ended discussion questions at ${level} level. Anchor EVERY question in something specific the source text says — name the moment, claim or example it refers to, so the question cannot be answered by someone who has not read it. Order them as a ladder: the first checks understanding of what the text argues, the next asks the student to analyse WHY, the next asks them to evaluate or challenge it, the last invites their own experience. No yes/no questions and nothing answerable in a single word; each must need several sentences. Keep the wording within ${level} vocabulary even when the thinking is demanding. Use type "open".`;
+        : `${head} Produce exactly ${count} open-ended discussion questions at ${level} level. Anchor EVERY question in something specific the source text says - name the moment, claim or example it refers to, so the question cannot be answered by someone who has not read it. Order them as a ladder: the first checks understanding of what the text argues, the next asks the student to analyse WHY, the next asks them to evaluate or challenge it, the last invites their own experience. No yes/no questions and nothing answerable in a single word; each must need several sentences. Keep the wording within ${level} vocabulary even when the thinking is demanding. Use type "open".`;
       return {
         task: `${openTask}${context}`,
         schema: '{"questions":[{"type":"open","text":"question?","points":1}]}',
@@ -609,13 +609,13 @@ function shapeSpec(input) {
     }
     if (toolId === 'summary-gapfill') {
       return {
-        task: `${head} Write a 5–7 sentence summary of the source text / topic at ${level} level. Remove 6–8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
+        task: `${head} Write a 5-7 sentence summary of the source text / topic at ${level} level. Remove 6-8 key content words and replace each with "_____". Return one "gap-fill" question per gap: "text" = the full sentence containing "_____", "answer" = the removed word exactly. Use type "gap-fill".${context}`,
         schema: '{"questions":[{"type":"gap-fill","text":"sentence with _____","answer":"removed word","points":1}]}',
       };
     }
     if (toolId === 'choose-summary') {
       return {
-        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate SUMMARY of the source text / topic — a summary is a short original paraphrase in your own words (2-3 sentences), never the transcript/source text copied or quoted directly. "options" = 3 such summaries, each 2-3 sentences: one accurate, one that sounds plausible but is too vague/generic to show real understanding, one that states a specific wrong detail (a name, number, place or event that contradicts the source). Do NOT write meta-descriptions of the options (never "the speaker lists unrelated details" or "the opposite of the main idea") — write the actual summary sentences a student would read and judge for themselves. "answer" = the accurate summary's text exactly. Use type "mcq".${context}`,
+        task: `${head} Produce exactly 1 MCQ where the student picks the most accurate SUMMARY of the source text / topic - a summary is a short original paraphrase in your own words (2-3 sentences), never the transcript/source text copied or quoted directly. "options" = 3 such summaries, each 2-3 sentences: one accurate, one that sounds plausible but is too vague/generic to show real understanding, one that states a specific wrong detail (a name, number, place or event that contradicts the source). Do NOT write meta-descriptions of the options (never "the speaker lists unrelated details" or "the opposite of the main idea") - write the actual summary sentences a student would read and judge for themselves. "answer" = the accurate summary's text exactly. Use type "mcq".${context}`,
         schema: '{"questions":[{"type":"mcq","text":"Which summary best describes the video?","options":["Two-to-three sentence paraphrase that accurately covers the main points of the video.","Two-to-three sentence paraphrase that is technically true but too generic to show the video was watched.","Two-to-three sentence paraphrase that gets one concrete fact wrong."],"answer":"Two-to-three sentence paraphrase that accurately covers the main points of the video.","points":1}]}',
       };
     }
@@ -627,7 +627,7 @@ function shapeSpec(input) {
     }
     if (isGist) {
       return {
-        task: `${head} Produce EXACTLY ${count} reading-comprehension questions based ONLY on the source text, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts stated in the text — make these the bulk of the set; (3) end with only 1–2 OPEN inference / opinion questions. So most questions are multiple-choice. Every MCQ has 4 plausible options that are FULL, meaningful answers (complete phrases — NOT single words copied from the text), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
+        task: `${head} Produce EXACTLY ${count} reading-comprehension questions based ONLY on the source text, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts stated in the text - make these the bulk of the set; (3) end with only 1-2 OPEN inference / opinion questions. So most questions are multiple-choice. Every MCQ has 4 plausible options that are FULL, meaningful answers (complete phrases - NOT single words copied from the text), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
         schema: '{"questions":[{"type":"mcq","text":"What is the main idea of the text?","options":["full answer phrase A","full answer phrase B","full answer phrase C","full answer phrase D"],"answer":"full answer phrase A","points":1},{"type":"mcq","text":"detail question about a stated fact?","options":["...","...","...","..."],"answer":"...","points":1},{"type":"open","text":"inference or opinion question?","points":2}]}',
       };
     }
@@ -636,9 +636,9 @@ function shapeSpec(input) {
        Тут довго стояло саме «produce N multiple-choice comprehension
        questions», і модель робила рівно те, що просили: буквальний переказ
        перших рядків, іноді двічі про те саме. Скарга вчителя на «мізерну
-       глибину» була скаргою на цей рядок, а не на модель — перевірено
+       глибину» була скаргою на цей рядок, а не на модель - перевірено
        порівнянням: дорога модель зі старим формулюванням дала ті самі
-       поверхневі питання, а дешева з цим — головну думку, деталь, висновок і
+       поверхневі питання, а дешева з цим - головну думку, деталь, висновок і
        ставлення, вчетверо дешевше. Решта промптів у цьому файлі давно детальні,
        відставав саме головний інструмент розуміння тексту. */
     const abcdTask = `Produce exactly ${count} multiple-choice comprehension questions (4 options) at ${level} level. Spread them across the WHOLE text, not only its opening. Vary what each one tests, cycling through: the main idea or the speaker's purpose; a specific detail; an INFERENCE the text implies but never states; the speaker's attitude or tone. At least one MUST be an inference question. Reject any question a student could answer correctly without having read the text, any that repeats what another question already tests, and any whose wording copies a sentence verbatim so the answer can be matched by eye. Every distractor must be plausible to someone who half-understood the text, and must match the answer in topic and length.`;
@@ -661,25 +661,25 @@ function shapeSpec(input) {
   }
   if (toolId === 'text-topic-vocab') {
     return {
-      task: `${head} Write a leveled reading text (about ${words} words, 2–4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context — mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" — a short title on the first line, then the text; 2) "🔑 Glossary" — every target word, one per line as "word — short ${level} definition"; 3) "Before reading" — 2 prediction/lead-in questions; 4) "After reading" — 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
-      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word — definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …\\n3. …"}],"vocab":["word"]}',
+      task: `${head} Write a leveled reading text (about ${words} words, 2-4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context - mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - every target word, one per line as "word - short ${level} definition"; 3) "Before reading" - 2 prediction/lead-in questions; 4) "After reading" - 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …\\n3. …"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'summary-task') {
     return {
-      task: `${head} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" — ONE sentence capturing the central point; 2) "🔑 Key details" — 4–6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" — a guided frame for the student to write a 40–60 word summary, with 2–3 sentence starters (one per line); 4) "✅ Model summary" — a teacher model summary of 40–60 words. Put key words in "vocab".${context}`,
-      schema: '{"cards":[{"title":"🎯 Main idea","text":"…"},{"title":"🔑 Key details","text":"• …\\n• …"},{"title":"✍️ Your summary","text":"Write 40–60 words.\\nStart: \\"The text is about…\\"\\n…"},{"title":"✅ Model summary","text":"…"}],"vocab":["word"]}',
+      task: `${head} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" - ONE sentence capturing the central point; 2) "🔑 Key details" - 4-6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" - a guided frame for the student to write a 40-60 word summary, with 2-3 sentence starters (one per line); 4) "✅ Model summary" - a teacher model summary of 40-60 words. Put key words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"🎯 Main idea","text":"…"},{"title":"🔑 Key details","text":"• …\\n• …"},{"title":"✍️ Your summary","text":"Write 40-60 words.\\nStart: \\"The text is about…\\"\\n…"},{"title":"✅ Model summary","text":"…"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'generate-text') {
     return {
-      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2–4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" — a short title on the first line, then the text; 2) "🔑 Glossary" — 6–8 key words from the text, one per line as "word — short ${level} definition"; 3) "Before reading" — 2–3 prediction/lead-in questions; 4) "After reading" — 3–4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
-      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word — definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …"}],"vocab":["word"]}',
+      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2-4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - 6-8 key words from the text, one per line as "word - short ${level} definition"; 3) "Before reading" - 2-3 prediction/lead-in questions; 4) "After reading" - 3-4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
+      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'sentences-vocab') {
     return {
-      task: `${head} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word — do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
+      task: `${head} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word - do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"target word","text":"Example sentence with **word**."}],"vocab":["word"]}',
     };
   }
@@ -704,33 +704,33 @@ function shapeSpec(input) {
   // ── Listening ────────────────────────────────────────────────────────────────
   if (toolId === 'transcript-helper') {
     return {
-      task: `${head} From the transcript / notes create exactly 4 classroom cards in this order: 1) "Pre-listening vocab" — 5–6 key words with short student-friendly definitions; 2) "While-listening task" — one clear focus task to do while listening; 3) "Post-listening questions" — 4–5 comprehension questions; 4) "Speaking follow-up" — 2–3 open discussion prompts. Include a "vocab" list of the key words.${context}`,
-      schema: '{"cards":[{"title":"Pre-listening vocab","text":"word — definition\\n..."},{"title":"While-listening task","text":"..."},{"title":"Post-listening questions","text":"1. ...\\n2. ..."},{"title":"Speaking follow-up","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
+      task: `${head} From the transcript / notes create exactly 4 classroom cards in this order: 1) "Pre-listening vocab" - 5-6 key words with short student-friendly definitions; 2) "While-listening task" - one clear focus task to do while listening; 3) "Post-listening questions" - 4-5 comprehension questions; 4) "Speaking follow-up" - 2-3 open discussion prompts. Include a "vocab" list of the key words.${context}`,
+      schema: '{"cards":[{"title":"Pre-listening vocab","text":"word - definition\\n..."},{"title":"While-listening task","text":"..."},{"title":"Post-listening questions","text":"1. ...\\n2. ..."},{"title":"Speaking follow-up","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
     };
   }
 
   // ── Speaking ─────────────────────────────────────────────────────────────────
   if (toolId === 'dialogue') {
     return {
-      task: `${head} Write a natural 8–12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" — full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" — 5–6 key phrases with brief explanations (one per line: phrase — meaning); 3) "Extension task" — a speaking or writing follow-up activity. Include "vocab" list.${context}`,
-      schema: '{"cards":[{"title":"Dialogue","text":"A: ...\\nB: ..."},{"title":"Useful language","text":"phrase — meaning\\n..."},{"title":"Extension task","text":"..."}],"vocab":["phrase"]}',
+      task: `${head} Write a natural 8-12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" - full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" - 5-6 key phrases with brief explanations (one per line: phrase - meaning); 3) "Extension task" - a speaking or writing follow-up activity. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Dialogue","text":"A: ...\\nB: ..."},{"title":"Useful language","text":"phrase - meaning\\n..."},{"title":"Extension task","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'lead-in') {
     return {
-      task: `${head} Design 3–4 warm-up activities (5–7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
+      task: `${head} Design 3-4 warm-up activities (5-7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
       schema: '{"cards":[{"title":"Activity 1: Brainstorm","text":"..."},{"title":"Activity 2: Quick poll","text":"..."},{"title":"Activity 3: Prediction","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'interesting-facts') {
     return {
-      task: `${head} Generate 5–6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2–3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,
+      task: `${head} Generate 5-6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2-3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,
       schema: '{"cards":[{"title":"Fact 1: ...","text":"Interesting fact text.\\n💬 Discussion: open question?"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'pros-cons') {
     return {
-      task: `${head} Produce 3 cards for debate/writing: 1) "Pros" — 5 arguments in favour, each on its own line starting "N. ..."; 2) "Cons" — 5 arguments against, same format; 3) "Discussion starter" — 2–3 nuanced questions to open debate. Language at ${level} level. Include "vocab" of useful discourse markers and opinion phrases.${context}`,
+      task: `${head} Produce 3 cards for debate/writing: 1) "Pros" - 5 arguments in favour, each on its own line starting "N. ..."; 2) "Cons" - 5 arguments against, same format; 3) "Discussion starter" - 2-3 nuanced questions to open debate. Language at ${level} level. Include "vocab" of useful discourse markers and opinion phrases.${context}`,
       schema: '{"cards":[{"title":"Pros","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Cons","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Discussion starter","text":"1. ...\\n2. ..."}],"vocab":["discourse marker"]}',
     };
   }
@@ -738,45 +738,45 @@ function shapeSpec(input) {
   // ── Writing ──────────────────────────────────────────────────────────────────
   if (toolId === 'link-words') {
     return {
-      task: `${head} Choose 5–7 target words/phrases from the topic. Return 3 cards: 1) "Task" — instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" — each word with a one-line usage note; 3) "Model answer" — a short model paragraph using all words (target words in **bold**) plus 2–3 writing tips. Include "vocab" list.${context}`,
-      schema: '{"cards":[{"title":"Task","text":"..."},{"title":"Word list","text":"word — usage note\\n..."},{"title":"Model answer","text":"Model paragraph.\\n\\nTips:\\n1. ..."}],"vocab":["word"]}',
+      task: `${head} Choose 5-7 target words/phrases from the topic. Return 3 cards: 1) "Task" - instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" - each word with a one-line usage note; 3) "Model answer" - a short model paragraph using all words (target words in **bold**) plus 2-3 writing tips. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Task","text":"..."},{"title":"Word list","text":"word - usage note\\n..."},{"title":"Model answer","text":"Model paragraph.\\n\\nTips:\\n1. ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'creative-writing') {
     return {
-      task: `${head} Create a creative writing task at ${level} level. Return 4 cards: 1) "Writing prompt" — an engaging scenario or question; 2) "Requirements" — 3 clear requirements (text type, length, vocabulary to include); 3) "Useful phrases" — 5–6 phrases with brief usage notes; 4) "Model opener" — first 2–3 sentences as a model. Include "vocab" list.${context}`,
-      schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Requirements","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Useful phrases","text":"phrase — use\\n..."},{"title":"Model opener","text":"..."}],"vocab":["phrase"]}',
+      task: `${head} Create a creative writing task at ${level} level. Return 4 cards: 1) "Writing prompt" - an engaging scenario or question; 2) "Requirements" - 3 clear requirements (text type, length, vocabulary to include); 3) "Useful phrases" - 5-6 phrases with brief usage notes; 4) "Model opener" - first 2-3 sentences as a model. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Requirements","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Useful phrases","text":"phrase - use\\n..."},{"title":"Model opener","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'four-opinions') {
     return {
-      task: `${head} Write 4 contrasting opinions on the topic for debate or response writing at ${level} level. Return one card per opinion: 1) "Strongly agree" — confident, direct; 2) "Partially agree" — nuanced, with a concession; 3) "Disagree" — clear counterargument; 4) "Provocative" — surprising or extreme view to spark debate. Include "vocab" of opinion/hedging phrases.${context}`,
+      task: `${head} Write 4 contrasting opinions on the topic for debate or response writing at ${level} level. Return one card per opinion: 1) "Strongly agree" - confident, direct; 2) "Partially agree" - nuanced, with a concession; 3) "Disagree" - clear counterargument; 4) "Provocative" - surprising or extreme view to spark debate. Include "vocab" of opinion/hedging phrases.${context}`,
       schema: '{"cards":[{"title":"Strongly agree","text":"..."},{"title":"Partially agree","text":"..."},{"title":"Disagree","text":"..."},{"title":"Provocative","text":"..."}],"vocab":["opinion phrase"]}',
     };
   }
   if (toolId === 'find-quotes') {
     return {
-      task: `${head} Select or compose 5–6 quotes on the topic (real or plausible, varied viewpoints). Each card: "title" = "Author Name", "text" = the quote in quotation marks + a blank line + "💬 " + an open discussion question. Include "vocab" of key concepts from the quotes.${context}`,
+      task: `${head} Select or compose 5-6 quotes on the topic (real or plausible, varied viewpoints). Each card: "title" = "Author Name", "text" = the quote in quotation marks + a blank line + "💬 " + an open discussion question. Include "vocab" of key concepts from the quotes.${context}`,
       schema: '{"cards":[{"title":"Author Name","text":"\\"Quote text.\\"\\n\\n💬 Discussion question?"}],"vocab":["concept"]}',
     };
   }
   if (toolId === 'essay-topics') {
     return {
-      task: `${head} Generate 5–6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4–5 useful terms. Include "vocab" list.${context}`,
-      schema: '{"cards":[{"title":"Argumentative","text":"Essay prompt.\\n\\n📋 Structure: Introduction → Main arguments (2–3) → Conclusion\\n📝 Key vocabulary: term1, term2, term3"}],"vocab":["term"]}',
+      task: `${head} Generate 5-6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4-5 useful terms. Include "vocab" list.${context}`,
+      schema: '{"cards":[{"title":"Argumentative","text":"Essay prompt.\\n\\n📋 Structure: Introduction → Main arguments (2-3) → Conclusion\\n📝 Key vocabulary: term1, term2, term3"}],"vocab":["term"]}',
     };
   }
 
   // ── Writing ──────────────────────────────────────────────────────────────────
   if (toolId === 'essay-outline') {
     return {
-      task: `${head} Build a complete essay outline at ${level} level. Return cards: 1) "Essay question" — a clear prompt; 2) "Thesis statement" — a model thesis; 3) "Introduction" — hook + background + thesis plan; 4) "Body paragraph 1/2/3" — one card each with topic sentence + supporting points + example; 5) "Conclusion" — restate + final thought. Include "vocab" of useful linking/academic phrases.${context}`,
+      task: `${head} Build a complete essay outline at ${level} level. Return cards: 1) "Essay question" - a clear prompt; 2) "Thesis statement" - a model thesis; 3) "Introduction" - hook + background + thesis plan; 4) "Body paragraph 1/2/3" - one card each with topic sentence + supporting points + example; 5) "Conclusion" - restate + final thought. Include "vocab" of useful linking/academic phrases.${context}`,
       schema: '{"cards":[{"title":"Essay question","text":"..."},{"title":"Thesis statement","text":"..."},{"title":"Introduction","text":"..."},{"title":"Body paragraph 1","text":"Topic sentence: ...\\nSupport: ...\\nExample: ..."},{"title":"Conclusion","text":"..."}],"vocab":["linking phrase"]}',
     };
   }
   if (toolId === 'email-reply') {
     return {
-      task: `${head} Create an email-writing task at ${level} level. Return cards: 1) "The email" — a short prompt email the student must reply to; 2) "Your task" — what to include in the reply + register (formal/informal); 3) "Useful phrases" — opening, body and closing phrases for this register; 4) "Model reply" — a complete sample answer. Include "vocab" of functional phrases.${context}`,
+      task: `${head} Create an email-writing task at ${level} level. Return cards: 1) "The email" - a short prompt email the student must reply to; 2) "Your task" - what to include in the reply + register (formal/informal); 3) "Useful phrases" - opening, body and closing phrases for this register; 4) "Model reply" - a complete sample answer. Include "vocab" of functional phrases.${context}`,
       schema: '{"cards":[{"title":"The email","text":"..."},{"title":"Your task","text":"..."},{"title":"Useful phrases","text":"Opening: ...\\nBody: ...\\nClosing: ..."},{"title":"Model reply","text":"..."}],"vocab":["phrase"]}',
     };
   }
@@ -784,14 +784,14 @@ function shapeSpec(input) {
   // ── Speaking ─────────────────────────────────────────────────────────────────
   if (toolId === 'roleplay-cards') {
     return {
-      task: `${head} Create a role-play at ${level} level. Return cards: 1) "Situation" — the scenario + goal; 2) "Role A" — who they are, their aim and 2–3 things to say; 3) "Role B" — the contrasting role, aim and 2–3 things to say; 4) "Useful language" — functional phrases for this interaction; 5) "Extension" — a follow-up speaking task. Include "vocab".${context}`,
+      task: `${head} Create a role-play at ${level} level. Return cards: 1) "Situation" - the scenario + goal; 2) "Role A" - who they are, their aim and 2-3 things to say; 3) "Role B" - the contrasting role, aim and 2-3 things to say; 4) "Useful language" - functional phrases for this interaction; 5) "Extension" - a follow-up speaking task. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Situation","text":"..."},{"title":"Role A","text":"..."},{"title":"Role B","text":"..."},{"title":"Useful language","text":"..."},{"title":"Extension","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'debate-cards') {
     return {
-      task: `${head} Create debate material at ${level} level. Return cards: 1) "Motion" — a clear debate statement; 2) "For — arguments" — 4–5 supporting points with brief evidence; 3) "Against — arguments" — 4–5 opposing points; 4) "Rebuttals" — how each side answers the other; 5) "Useful language" — phrases for arguing, conceding and rebutting. Include "vocab".${context}`,
-      schema: '{"cards":[{"title":"Motion","text":"..."},{"title":"For — arguments","text":"1. ...\\n2. ..."},{"title":"Against — arguments","text":"1. ...\\n2. ..."},{"title":"Rebuttals","text":"..."},{"title":"Useful language","text":"..."}],"vocab":["phrase"]}',
+      task: `${head} Create debate material at ${level} level. Return cards: 1) "Motion" - a clear debate statement; 2) "For - arguments" - 4-5 supporting points with brief evidence; 3) "Against - arguments" - 4-5 opposing points; 4) "Rebuttals" - how each side answers the other; 5) "Useful language" - phrases for arguing, conceding and rebutting. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Motion","text":"..."},{"title":"For - arguments","text":"1. ...\\n2. ..."},{"title":"Against - arguments","text":"1. ...\\n2. ..."},{"title":"Rebuttals","text":"..."},{"title":"Useful language","text":"..."}],"vocab":["phrase"]}',
     };
   }
 
@@ -801,7 +801,7 @@ function shapeSpec(input) {
 
        Раньше план собирался одновременно с остальными блоками урока и ничего
        о них не знал. Получался вежливый план вообще: «pre-teach vocabulary»,
-       «controlled practice» — при том, что в двадцати сантиметрах справа уже
+       «controlled practice» - при том, что в двадцати сантиметрах справа уже
        лежат конкретные двенадцать слов и десять вопросов. Учителю приходилось
        сводить два урока в один самому, а это ровно та работа, ради которой
        инструмент и нужен.
@@ -820,27 +820,27 @@ function shapeSpec(input) {
        называется прямо и требование непрерывности стоит рядом с ним. */
     /* Число этапов выводится из длительности, а не из общего `count`. При
        восьми этапах на сорок пять минут модель упиралась в арифметику и
-       выдавала два этапа с ОДНИМ окном «40–45 min» — расписание, по которому
+       выдавала два этапа с ОДНИМ окном «40-45 min» - расписание, по которому
        нельзя вести урок. Примерно этап на восемь минут: 30 мин → 5, 45 → 6,
        90 → 9. */
     const stageCount = Math.max(5, Math.min(9, Math.round(mins / 8)));
     return {
       task: `${head} Build a ready-to-teach ${mins}-minute lesson at ${level} level. ${planFor}\n`
-        + `Return EXACTLY ${stageCount} cards in lesson order — the schema below shows the shape, not the number. Every card title MUST start with its clock window and stage name, e.g. "0–5 min · Warm-up", "5–12 min · Pre-teach vocabulary". Each window starts on the minute the previous one ended, leaving no gap, no two cards may share the same window, and the last one ends at exactly ${mins} min.\n`
+        + `Return EXACTLY ${stageCount} cards in lesson order - the schema below shows the shape, not the number. Every card title MUST start with its clock window and stage name, e.g. "0-5 min · Warm-up", "5-12 min · Pre-teach vocabulary". Each window starts on the minute the previous one ended, leaving no gap, no two cards may share the same window, and the last one ends at exactly ${mins} min.\n`
         + `Each card text must contain, on separate lines: "Aim:" one line on what the students will be able to do; "Do:" the numbered classroom steps with what the teacher says or asks; "Watch for:" the mistake or misunderstanding likely at ${level} and how to fix it on the spot.\n`
         + `First card is the warm-up (no materials needed), last card is homework tied to the material used in class. Include "vocab" of the target words.${context}`,
-      schema: '{"cards":[{"title":"0–5 min · Warm-up","text":"Aim: ...\\nDo: 1. ...\\n2. ...\\nWatch for: ..."},{"title":"5–12 min · Pre-teach vocabulary","text":"Aim: ...\\nDo: ...\\nWatch for: ..."},{"title":"40–45 min · Homework","text":"Aim: ...\\nDo: ...\\nWatch for: ..."}],"vocab":["word"]}',
+      schema: '{"cards":[{"title":"0-5 min · Warm-up","text":"Aim: ...\\nDo: 1. ...\\n2. ...\\nWatch for: ..."},{"title":"5-12 min · Pre-teach vocabulary","text":"Aim: ...\\nDo: ...\\nWatch for: ..."},{"title":"40-45 min · Homework","text":"Aim: ...\\nDo: ...\\nWatch for: ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'worksheet-builder') {
     return {
-      task: `${head} Build an interactive ESL worksheet at ${level} level on the topic: "${topic}". Return exactly 3 parts in this order: (1) type "multiple_choice" — 6 items, each with a stem sentence containing a blank "___" and 4 options A–D, answer = index 0–3; (2) type "fill_blank" — 6 items with stem sentences containing "___", a word_bank array of 8 words, answer = correct word; (3) type "matching" — 6 items, each item has a sentence stem and 3 options, answer = index of correct ending. Keep language natural and ${level}-appropriate. All answers must be clearly correct.${context}`,
+      task: `${head} Build an interactive ESL worksheet at ${level} level on the topic: "${topic}". Return exactly 3 parts in this order: (1) type "multiple_choice" - 6 items, each with a stem sentence containing a blank "___" and 4 options A-D, answer = index 0-3; (2) type "fill_blank" - 6 items with stem sentences containing "___", a word_bank array of 8 words, answer = correct word; (3) type "matching" - 6 items, each item has a sentence stem and 3 options, answer = index of correct ending. Keep language natural and ${level}-appropriate. All answers must be clearly correct.${context}`,
       schema: '{"parts":[{"type":"multiple_choice","title":"Part 1: Multiple Choice","instruction":"Select the best option to complete each sentence.","items":[{"id":1,"stem":"New offices and shops are ___ all over the city center.","options":["springing up","going down","falling out","breaking in"],"answer":0}]},{"type":"fill_blank","title":"Part 2: Sentence Completion","instruction":"Use the correct word from the word bank to complete each sentence.","word_bank":["neglected","sprawling","congested","vibrant","demolished","renovated","affordable","thriving"],"items":[{"id":7,"stem":"The old factory was ___ to make way for a new park.","answer":"demolished"}]},{"type":"matching","title":"Part 3: Matching Contexts","instruction":"Choose the most logical sentence ending.","items":[{"id":13,"stem":"The city centre has become so congested that","options":["many people now avoid driving there","the parks are full of children","new cafes open every week"],"answer":0}]}]}',
     };
   }
   if (toolId === 'homework-set') {
     return {
-      task: `${head} Create a homework assignment at ${level} level. Return cards: "Brief" — what to do and why; "Tasks" — 3–4 numbered tasks of increasing challenge; "Success criteria" — what a good answer includes; "Self-check" — a short checklist. Include "vocab".${context}`,
+      task: `${head} Create a homework assignment at ${level} level. Return cards: "Brief" - what to do and why; "Tasks" - 3-4 numbered tasks of increasing challenge; "Success criteria" - what a good answer includes; "Self-check" - a short checklist. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Brief","text":"..."},{"title":"Tasks","text":"1. ...\\n2. ..."},{"title":"Success criteria","text":"..."},{"title":"Self-check","text":"✅ ...\\n✅ ..."}],"vocab":["word"]}',
     };
   }
@@ -852,20 +852,20 @@ function shapeSpec(input) {
   }
   if (toolId === 'answer-key') {
     return {
-      task: `${head} Produce a teacher answer key for the exercise in the source text. Return cards: "Answers" — numbered correct answers; "Distractor notes" — why common wrong options are wrong; "Common errors" — mistakes to watch for and how to fix them.${context}`,
+      task: `${head} Produce a teacher answer key for the exercise in the source text. Return cards: "Answers" - numbered correct answers; "Distractor notes" - why common wrong options are wrong; "Common errors" - mistakes to watch for and how to fix them.${context}`,
       schema: '{"cards":[{"title":"Answers","text":"1. ...\\n2. ..."},{"title":"Distractor notes","text":"..."},{"title":"Common errors","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'cefr-checker') {
     return {
-      task: `${head} Analyse the source text's difficulty. Return cards: "Estimated level" — the CEFR level + a one-line justification; "Why" — features driving the level (sentence length, tenses, vocabulary); "To simplify" — concrete moves to lower it one level; "To upgrade" — moves to raise it one level. Include "vocab" of the hardest words found.${context}`,
-      schema: '{"cards":[{"title":"Estimated level","text":"B1 — ..."},{"title":"Why","text":"..."},{"title":"To simplify","text":"..."},{"title":"To upgrade","text":"..."}],"vocab":["hard word"]}',
+      task: `${head} Analyse the source text's difficulty. Return cards: "Estimated level" - the CEFR level + a one-line justification; "Why" - features driving the level (sentence length, tenses, vocabulary); "To simplify" - concrete moves to lower it one level; "To upgrade" - moves to raise it one level. Include "vocab" of the hardest words found.${context}`,
+      schema: '{"cards":[{"title":"Estimated level","text":"B1 - ..."},{"title":"Why","text":"..."},{"title":"To simplify","text":"..."},{"title":"To upgrade","text":"..."}],"vocab":["hard word"]}',
     };
   }
   if (toolId === 'add-text' || toolId === 'add-images' || toolId === 'add-video') {
     const media = toolId === 'add-images' ? 'image' : toolId === 'add-video' ? 'video' : 'text';
     return {
-      task: `${head} Build a ${media}-based activity at ${level} level. Return cards: "Before" — prediction / lead-in questions; "While" — a focus task to do during reading/viewing; "After" — comprehension + discussion questions; "Speaking follow-up" — a personal-response task. Include "vocab".${context}`,
+      task: `${head} Build a ${media}-based activity at ${level} level. Return cards: "Before" - prediction / lead-in questions; "While" - a focus task to do during reading/viewing; "After" - comprehension + discussion questions; "Speaking follow-up" - a personal-response task. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Before","text":"..."},{"title":"While","text":"..."},{"title":"After","text":"..."},{"title":"Speaking follow-up","text":"..."}],"vocab":["word"]}',
     };
   }
@@ -962,7 +962,7 @@ async function callProvider(provider, user) {
       signal: ctrl.signal,
     });
   } catch (err) {
-    // Network error or aborted by our timeout — treat as retryable, but flag
+    // Network error or aborted by our timeout - treat as retryable, but flag
     // timeouts so the caller skips the same-provider retry (see generate()):
     // a hung connection is very likely to hang again, so retrying it in place
     // just burns the client's whole wait budget before ever reaching a
@@ -1014,7 +1014,7 @@ async function generate(input) {
   const user = `${task}\n\nReturn ONLY a JSON object matching this exact shape:\n${schema}`;
 
   // Вибір конкретної моделі з боку клієнта прибрано разом з OpenRouter: єдине,
-  // що там можна було вибрати, — його безкоштовні моделі.
+  // що там можна було вибрати, - його безкоштовні моделі.
   const chain = orderedChain(input);
 
   const trace = { at: new Date().toISOString(), kind: 'teacher-tool', attempts: [] };
@@ -1047,7 +1047,7 @@ async function generate(input) {
         attemptInfo.ms = Date.now() - started;
         trace.attempts.push(attemptInfo);
         console.warn(`[ai/${provider.name}] ${provider.model} attempt ${attempt + 1} failed: ${err.message}`);
-        // A hung/timed-out connection is likely to hang again — don't burn a
+        // A hung/timed-out connection is likely to hang again - don't burn a
         // second full TIMEOUT_MS retrying it in place; move to the next
         // provider immediately instead. Fast HTTP errors (429/5xx) still get
         // their normal same-provider retry with back-off.

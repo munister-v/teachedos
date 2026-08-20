@@ -18,7 +18,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<title>TeachEd — Admin</title>
+<title>TeachEd - Admin</title>
 <style>
 :root{
   --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
@@ -694,7 +694,7 @@ html{scroll-behavior:smooth}
   <div class="login-box">
     <div class="login-logo">🛡️</div>
     <div class="login-title">Admin Panel</div>
-    <div class="login-sub">TeachEd — Administrator Access</div>
+    <div class="login-sub">TeachEd - Administrator Access</div>
     <input id="l-email" type="email" placeholder="Email" autocomplete="username"/>
     <input id="l-pass"  type="password" placeholder="Password" autocomplete="current-password"/>
     <button class="btn-primary" onclick="doLogin()">Sign in as Admin</button>
@@ -744,8 +744,8 @@ html{scroll-behavior:smooth}
     <div class="sb-user">
       <div class="sb-avatar" id="sb-avatar">🧑‍💻</div>
       <div>
-        <div class="sb-uname" id="sb-name">—</div>
-        <div class="sb-uemail" id="sb-email">—</div>
+        <div class="sb-uname" id="sb-name">-</div>
+        <div class="sb-uemail" id="sb-email">-</div>
       </div>
     </div>
     <a href="index.html" style="display:block;margin-bottom:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;font-weight:600;text-decoration:none;text-align:center;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">← Back to App</a>
@@ -772,40 +772,40 @@ html{scroll-behavior:smooth}
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon pink">👥</div>
-        <div><div class="stat-num" id="stat-users">—</div><div class="stat-label">Total Users</div></div>
+        <div><div class="stat-num" id="stat-users">-</div><div class="stat-label">Total Users</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue">📋</div>
-        <div><div class="stat-num" id="stat-boards">—</div><div class="stat-label">Total Boards</div></div>
+        <div><div class="stat-num" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green">🟢</div>
         <div>
-          <div class="stat-num" id="stat-sessions">—</div>
+          <div class="stat-num" id="stat-sessions">-</div>
           <div class="stat-label">Active Sessions</div>
           <div class="signal"><span class="signal-dot" id="signal-sessions"></span><span id="signal-sessions-text">Checking session hygiene</span></div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon pink">🎓</div>
-        <div><div class="stat-num" id="stat-courses">—</div><div class="stat-label">Courses</div></div>
+        <div><div class="stat-num" id="stat-courses">-</div><div class="stat-label">Courses</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue">🧩</div>
-        <div><div class="stat-num" id="stat-cards">—</div><div class="stat-label">Lesson Cards</div></div>
+        <div><div class="stat-num" id="stat-cards">-</div><div class="stat-label">Lesson Cards</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green">✨</div>
-        <div><div class="stat-num" id="stat-new-users">—</div><div class="stat-label">New Users / 7d</div></div>
+        <div><div class="stat-num" id="stat-new-users">-</div><div class="stat-label">New Users / 7d</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon orange">💾</div>
-        <div><div class="stat-num" id="stat-storage">—</div><div class="stat-label">Board Storage</div></div>
+        <div><div class="stat-num" id="stat-storage">-</div><div class="stat-label">Board Storage</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon orange">📡</div>
         <div>
-          <div class="stat-num" id="stat-health">—</div>
+          <div class="stat-num" id="stat-health">-</div>
           <div class="stat-label">API Status</div>
           <div class="signal"><span class="signal-dot" id="signal-api"></span><span id="signal-api-text">Waiting for backend signal</span></div>
         </div>
@@ -813,7 +813,7 @@ html{scroll-behavior:smooth}
       <div class="stat-card">
         <div class="stat-icon pink">📩</div>
         <div>
-          <div class="stat-num" id="stat-invites">—</div>
+          <div class="stat-num" id="stat-invites">-</div>
           <div class="stat-label">Active Invites</div>
           <div class="signal"><span class="signal-dot" id="signal-invites"></span><span id="signal-invites-text">Tracking onboarding flow</span></div>
         </div>
@@ -821,7 +821,7 @@ html{scroll-behavior:smooth}
       <div class="stat-card">
         <div class="stat-icon green">💳</div>
         <div>
-          <div class="stat-num" id="stat-payments">—</div>
+          <div class="stat-num" id="stat-payments">-</div>
           <div class="stat-label">Pending Payments</div>
           <div class="signal"><span class="signal-dot" id="signal-payments"></span><span id="signal-payments-text">Checking billing queue</span></div>
         </div>
@@ -839,11 +839,11 @@ html{scroll-behavior:smooth}
         <span class="badge" id="ai-engine-badge" style="font-size:12px">checking…</span>
       </div>
       <div class="stats-grid" style="margin-bottom:0">
-        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-num" id="ai-model" style="font-size:15px">—</div><div class="stat-label">Active model</div></div></div>
-        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-num" id="ai-llmok">—</div><div class="stat-label">LLM generations</div></div></div>
-        <div class="stat-card"><div class="stat-icon orange">↩️</div><div><div class="stat-num" id="ai-fallback">—</div><div class="stat-label">Rule fallbacks</div></div></div>
-        <div class="stat-card"><div class="stat-icon pink">⚡</div><div><div class="stat-num" id="ai-cache">—</div><div class="stat-label">Cache hits</div></div></div>
-        <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-num" id="ai-total">—</div><div class="stat-label">Total requests</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-num" id="ai-model" style="font-size:15px">-</div><div class="stat-label">Active model</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-num" id="ai-llmok">-</div><div class="stat-label">LLM generations</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">↩️</div><div><div class="stat-num" id="ai-fallback">-</div><div class="stat-label">Rule fallbacks</div></div></div>
+        <div class="stat-card"><div class="stat-icon pink">⚡</div><div><div class="stat-num" id="ai-cache">-</div><div class="stat-label">Cache hits</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-num" id="ai-total">-</div><div class="stat-label">Total requests</div></div></div>
       </div>
       <div class="time-text" id="ai-chain" style="margin-top:10px;color:var(--muted)"></div>
       <div class="time-text" id="ai-lasterror" style="margin-top:4px;color:var(--muted)"></div>
@@ -855,7 +855,7 @@ html{scroll-behavior:smooth}
 
     <div class="brief-card" id="admin-brief">
       <div class="brief-score" style="--score:0">
-        <div class="brief-score-num">—</div>
+        <div class="brief-score-num">-</div>
         <div class="brief-score-label">Health</div>
       </div>
       <div>
@@ -967,19 +967,19 @@ html{scroll-behavior:smooth}
         <div class="ops-kpis">
           <div class="ops-kpi">
             <div class="ops-kpi-label">Expired Sessions Waiting</div>
-            <div class="ops-kpi-value" id="ops-expired-sessions">—</div>
+            <div class="ops-kpi-value" id="ops-expired-sessions">-</div>
           </div>
           <div class="ops-kpi">
             <div class="ops-kpi-label">Invites Used</div>
-            <div class="ops-kpi-value" id="ops-used-invites">—</div>
+            <div class="ops-kpi-value" id="ops-used-invites">-</div>
           </div>
           <div class="ops-kpi">
             <div class="ops-kpi-label">Expired Invites</div>
-            <div class="ops-kpi-value" id="ops-expired-invites">—</div>
+            <div class="ops-kpi-value" id="ops-expired-invites">-</div>
           </div>
           <div class="ops-kpi">
             <div class="ops-kpi-label">Revoked Invites</div>
-            <div class="ops-kpi-value" id="ops-revoked-invites">—</div>
+            <div class="ops-kpi-value" id="ops-revoked-invites">-</div>
           </div>
         </div>
       </div>
@@ -1039,23 +1039,23 @@ html{scroll-behavior:smooth}
           <div class="chart-card">
             <div class="chart-title">New Users</div>
             <div class="chart-sub">Registrations per day</div>
-            <div class="chart-total" id="chart-signups-total">—</div>
+            <div class="chart-total" id="chart-signups-total">-</div>
             <div class="sparkline" id="chart-signups-bars"></div>
-            <div class="chart-labels"><span id="chart-signups-start">—</span><span id="chart-signups-end">Today</span></div>
+            <div class="chart-labels"><span id="chart-signups-start">-</span><span id="chart-signups-end">Today</span></div>
           </div>
           <div class="chart-card">
             <div class="chart-title">Board Updates</div>
             <div class="chart-sub">Boards touched per day</div>
-            <div class="chart-total" id="chart-boards-total">—</div>
+            <div class="chart-total" id="chart-boards-total">-</div>
             <div class="sparkline" id="chart-boards-bars"></div>
-            <div class="chart-labels"><span id="chart-boards-start">—</span><span id="chart-boards-end">Today</span></div>
+            <div class="chart-labels"><span id="chart-boards-start">-</span><span id="chart-boards-end">Today</span></div>
           </div>
           <div class="chart-card">
             <div class="chart-title">Session Starts</div>
             <div class="chart-sub">Logins created per day</div>
-            <div class="chart-total" id="chart-sessions-total">—</div>
+            <div class="chart-total" id="chart-sessions-total">-</div>
             <div class="sparkline" id="chart-sessions-bars"></div>
-            <div class="chart-labels"><span id="chart-sessions-start">—</span><span id="chart-sessions-end">Today</span></div>
+            <div class="chart-labels"><span id="chart-sessions-start">-</span><span id="chart-sessions-end">Today</span></div>
           </div>
         </div>
       </div>
@@ -1179,9 +1179,9 @@ html{scroll-behavior:smooth}
     <div class="page-sub">Auth event log, suspended accounts, and locked users</div>
 
     <div class="stats-grid" style="margin-bottom:22px">
-      <div class="stat-card"><div class="stat-num" id="sec-stat-suspended">—</div><div class="stat-lbl">Suspended</div></div>
-      <div class="stat-card"><div class="stat-num" id="sec-stat-locked">—</div><div class="stat-lbl">Locked</div></div>
-      <div class="stat-card"><div class="stat-num" id="sec-stat-failed24h">—</div><div class="stat-lbl">Failed logins 24h</div></div>
+      <div class="stat-card"><div class="stat-num" id="sec-stat-suspended">-</div><div class="stat-lbl">Suspended</div></div>
+      <div class="stat-card"><div class="stat-num" id="sec-stat-locked">-</div><div class="stat-lbl">Locked</div></div>
+      <div class="stat-card"><div class="stat-num" id="sec-stat-failed24h">-</div><div class="stat-lbl">Failed logins 24h</div></div>
     </div>
 
     <div class="table-card" style="margin-bottom:18px">
@@ -1261,42 +1261,42 @@ html{scroll-behavior:smooth}
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Stale Boards</div>
-          <div class="audit-count" id="audit-stale-count">—</div>
+          <div class="audit-count" id="audit-stale-count">-</div>
         </div>
         <div class="audit-list" id="audit-stale">Loading…</div>
       </div>
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Empty Boards</div>
-          <div class="audit-count" id="audit-empty-count">—</div>
+          <div class="audit-count" id="audit-empty-count">-</div>
         </div>
         <div class="audit-list" id="audit-empty">Loading…</div>
       </div>
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Users Without Boards</div>
-          <div class="audit-count" id="audit-noboards-count">—</div>
+          <div class="audit-count" id="audit-noboards-count">-</div>
         </div>
         <div class="audit-list" id="audit-noboards">Loading…</div>
       </div>
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Admin Accounts</div>
-          <div class="audit-count" id="audit-admins-count">—</div>
+          <div class="audit-count" id="audit-admins-count">-</div>
         </div>
         <div class="audit-list" id="audit-admins">Loading…</div>
       </div>
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Sessions Expiring Soon</div>
-          <div class="audit-count" id="audit-expiring-count">—</div>
+          <div class="audit-count" id="audit-expiring-count">-</div>
         </div>
         <div class="audit-list" id="audit-expiring">Loading…</div>
       </div>
       <div class="audit-card">
         <div class="audit-card-head">
           <div class="audit-card-title">Recent Users</div>
-          <div class="audit-count" id="audit-recent-count">—</div>
+          <div class="audit-count" id="audit-recent-count">-</div>
         </div>
         <div class="audit-list" id="audit-recent">Loading…</div>
       </div>
@@ -1328,38 +1328,38 @@ html{scroll-behavior:smooth}
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon orange">⏳</div>
-        <div><div class="stat-num" id="bill-pending">—</div><div class="stat-label">Pending Review</div></div>
+        <div><div class="stat-num" id="bill-pending">-</div><div class="stat-label">Pending Review</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green">💵</div>
-        <div><div class="stat-num" id="bill-approved-30d">—</div><div class="stat-label">Approved / 30d</div></div>
+        <div><div class="stat-num" id="bill-approved-30d">-</div><div class="stat-label">Approved / 30d</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue">🚀</div>
-        <div><div class="stat-num" id="bill-pro-users">—</div><div class="stat-label">Pro Users</div></div>
+        <div><div class="stat-num" id="bill-pro-users">-</div><div class="stat-label">Pro Users</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon pink">🏫</div>
-        <div><div class="stat-num" id="bill-school-users">—</div><div class="stat-label">School Users</div></div>
+        <div><div class="stat-num" id="bill-school-users">-</div><div class="stat-label">School Users</div></div>
       </div>
     </div>
 
     <div class="stats-grid" id="billing-metrics-grid" style="margin-bottom:20px">
       <div class="stat-card">
         <div class="stat-icon" style="background:rgba(22,163,74,.12);color:#16a34a">💰</div>
-        <div><div class="stat-num" id="bill-total-rev">—</div><div class="stat-label">Total Revenue</div></div>
+        <div><div class="stat-num" id="bill-total-rev">-</div><div class="stat-label">Total Revenue</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:rgba(66,98,255,.12);color:#4262FF">📊</div>
-        <div><div class="stat-num" id="bill-conversion">—</div><div class="stat-label">Conversion Rate</div></div>
+        <div><div class="stat-num" id="bill-conversion">-</div><div class="stat-label">Conversion Rate</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:rgba(239,68,68,.12);color:#ef4444">📉</div>
-        <div><div class="stat-num" id="bill-churn">—</div><div class="stat-label">Churned (90d)</div></div>
+        <div><div class="stat-num" id="bill-churn">-</div><div class="stat-label">Churned (90d)</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6">📅</div>
-        <div><div class="stat-num" id="bill-last-month">—</div><div class="stat-label">Last Month Rev</div></div>
+        <div><div class="stat-num" id="bill-last-month">-</div><div class="stat-label">Last Month Rev</div></div>
       </div>
     </div>
 
@@ -1505,10 +1505,10 @@ html{scroll-behavior:smooth}
           <button class="btn-sm btn-edit" onclick="loadPackageControl()">Refresh</button>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:16px">
-          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon blue">🚀</div><div><div class="stat-num" id="pkg-pro-users">—</div><div class="stat-label">Pro</div></div></div>
-          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon pink">🏫</div><div><div class="stat-num" id="pkg-school-users">—</div><div class="stat-label">School</div></div></div>
-          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon orange">⏳</div><div><div class="stat-num" id="pkg-pending">—</div><div class="stat-label">Pending Payments</div></div></div>
-          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon green">💵</div><div><div class="stat-num" id="pkg-approved">—</div><div class="stat-label">Approved / 30d</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon blue">🚀</div><div><div class="stat-num" id="pkg-pro-users">-</div><div class="stat-label">Pro</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon pink">🏫</div><div><div class="stat-num" id="pkg-school-users">-</div><div class="stat-label">School</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon orange">⏳</div><div><div class="stat-num" id="pkg-pending">-</div><div class="stat-label">Pending Payments</div></div></div>
+          <div class="stat-card" style="box-shadow:none;border:1px solid var(--border)"><div class="stat-icon green">💵</div><div><div class="stat-num" id="pkg-approved">-</div><div class="stat-label">Approved / 30d</div></div></div>
         </div>
         <div class="queue-list" id="pkg-expiring-list">
           <div class="activity-item"><div><div class="activity-title">Loading…</div><div class="activity-sub">Checking subscription expirations</div></div></div>
@@ -1772,7 +1772,7 @@ html{scroll-behavior:smooth}
           <div class="table-header-title">Response</div>
           <div id="at-status-badge" style="display:none;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:650"></div>
         </div>
-        <div id="at-timing" style="font-size:11px;color:var(--muted);margin-bottom:10px;display:none">Response time: <strong id="at-time-ms">—</strong></div>
+        <div id="at-timing" style="font-size:11px;color:var(--muted);margin-bottom:10px;display:none">Response time: <strong id="at-time-ms">-</strong></div>
         <pre id="at-response" style="background:#1C1C1E;color:#C8E64A;padding:16px;border-radius:12px;font-size:12px;overflow:auto;min-height:320px;max-height:520px;white-space:pre-wrap;word-break:break-word">// Hit "Send Request" to see the response here</pre>
         <div style="display:flex;gap:8px;margin-top:12px">
           <button onclick="copyApiResponse()" style="padding:8px 14px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:12px;cursor:pointer">📋 Copy</button>
@@ -1924,17 +1924,17 @@ html{scroll-behavior:smooth}
   <div class="drawer-head">
     <div class="drawer-avatar" id="drawer-avatar">🧑</div>
     <div class="drawer-meta">
-      <div class="drawer-name" id="drawer-name">—</div>
-      <div class="drawer-email" id="drawer-email">—</div>
+      <div class="drawer-name" id="drawer-name">-</div>
+      <div class="drawer-email" id="drawer-email">-</div>
       <div class="drawer-badges" id="drawer-badges"></div>
     </div>
     <button class="drawer-close" onclick="closeUserDrawer()">✕</button>
   </div>
   <div class="drawer-body">
     <div class="drawer-stat-row">
-      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-boards-n">—</div><div class="drawer-stat-lbl">Boards</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-plan">—</div><div class="drawer-stat-lbl">Plan</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-joined">—</div><div class="drawer-stat-lbl">Joined</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-boards-n">-</div><div class="drawer-stat-lbl">Boards</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-plan">-</div><div class="drawer-stat-lbl">Plan</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="drawer-joined">-</div><div class="drawer-stat-lbl">Joined</div></div>
     </div>
     <div class="drawer-section-title">Plan details</div>
     <div id="drawer-plan-detail" style="font-size:13px;color:var(--muted);line-height:1.8">Loading…</div>

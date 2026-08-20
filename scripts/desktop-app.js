@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   desktop-app.js — TeachEd desktop (index.html) home logic
+   desktop-app.js - TeachEd desktop (index.html) home logic
    Extracted from inline <script> blocks for HTTP/SW cacheability
    (perf: smaller HTML payload, independently cached across visits)
    ════════════════════════════════════════════════════════════════ */
@@ -171,7 +171,7 @@ function updateMobileTeacherOverview() {
       }).join('');
     }
 
-    /* Today's schedule timeline — the at-a-glance day-control view */
+    /* Today's schedule timeline - the at-a-glance day-control view */
     const todayEl = document.getElementById('mp-today-list');
     if (todayEl) {
       if (todays.length) {
@@ -188,7 +188,7 @@ function updateMobileTeacherOverview() {
                     : done   ? '<span class="mp-today-check">✓</span>'
                              : '<span class="mp-today-arrow">→</span>';
           return `<a class="mp-today-item${isNext ? ' next' : ''}${done ? ' done' : ''}" href="schedule.html">
-            <div class="mp-today-time"><b>${start || '—'}</b>${end ? `<span>${end}</span>` : ''}</div>
+            <div class="mp-today-time"><b>${start || '-'}</b>${end ? `<span>${end}</span>` : ''}</div>
             <div class="mp-today-info">
               <div class="mp-today-name">${name}</div>
               ${meta ? `<div class="mp-today-sub">${meta.replace(/</g, '&lt;')}</div>` : ''}
@@ -204,7 +204,7 @@ function updateMobileTeacherOverview() {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   Window Manager v2 — drag, 8-way resize, snap, maximize, minimize,
+   Window Manager v2 - drag, 8-way resize, snap, maximize, minimize,
    persistent geometry, focus z-stacking, smart cascade.
    ════════════════════════════════════════════════════════════════ */
 const WM = (function () {
@@ -290,7 +290,7 @@ const WM = (function () {
     win.classList.add('open');
     if (!wasOpen) {
       if (!applyGeom(id)) {
-        // first open ever — cascade from default authored position
+        // first open ever - cascade from default authored position
         const r = win.getBoundingClientRect();
         const off = (cascade++ % 6) * 18;
         if (!win.style.left) win.style.left = (r.left + off) + 'px';
@@ -750,7 +750,7 @@ function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRende
 schRender();
 
 /* ══════════════════════ NOTES ══════════════════════ */
-/* ══════════════════════ NOTES — API connected ══════════════════════ */
+/* ══════════════════════ NOTES - API connected ══════════════════════ */
 const NOTES_KEY = 'teachedos_notes_v1';
 let NOTES = [];
 let activeNote = null;
@@ -977,27 +977,27 @@ const TOOLS_DATA = [
   { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
   // WRITING
   { id:'sentence-builder', name:'Sentence Builder', desc:'Drag scrambled words into the correct order to form a grammatically correct sentence. Works for any level.', tags:['Writing','Grammar'], badge:null, icon:'🧩', group:'writing', url:'games/sentence-builder.html' },
-  { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules — useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
+  { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules - useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
   // SPEAKING
-  { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic — students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
+  { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic - students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
   // VOCABULARY
-  { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap — Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
+  { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap - Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
   { id:'hangman', name:'Hangman', desc:'Classic word-guessing game. Configurable word lists by level and topic.', tags:['Vocabulary'], badge:null, icon:'🪢', group:'vocabulary', url:'games/hangman.html' },
   { id:'memory-match', name:'Memory Match', desc:'Pair word ↔ image (or word ↔ definition) cards. Fun warm-up that boosts retention.', tags:['Vocabulary'], badge:null, icon:'🧠', group:'vocabulary', url:'games/memory-match.html' },
   { id:'phrasal-verbs', name:'Phrasal Verbs', desc:'Match phrasal verbs to meanings or fill them into sentences. Covers the core B1/B2 set.', tags:['Vocabulary'], badge:null, icon:'🔗', group:'vocabulary', url:'games/phrasal-verbs.html' },
   { id:'spelling-bee', name:'Spelling Bee', desc:'Type the word you hear. Pronunciation + spelling combined.', tags:['Vocabulary'], badge:null, icon:'🐝', group:'vocabulary', url:'games/spelling-bee.html' },
   { id:'synonym-snap', name:'Synonym Snap', desc:'Tap pairs that share a meaning. Fast-paced synonym recognition drill.', tags:['Vocabulary'], badge:null, icon:'⚡', group:'vocabulary', url:'games/synonym-snap.html' },
-  { id:'typing-rain', name:'Typing Rain', desc:'Words fall from the top — type them before they hit the ground. Builds typing speed + recall.', tags:['Vocabulary'], badge:null, icon:'🌧️', group:'vocabulary', url:'games/typing-rain.html' },
+  { id:'typing-rain', name:'Typing Rain', desc:'Words fall from the top - type them before they hit the ground. Builds typing speed + recall.', tags:['Vocabulary'], badge:null, icon:'🌧️', group:'vocabulary', url:'games/typing-rain.html' },
   { id:'word-categories', name:'Word Categories', desc:'Sort words into the right category (food, animals, jobs, etc.). Great for theme-based vocab.', tags:['Vocabulary'], badge:null, icon:'🗂️', group:'vocabulary', url:'games/word-categories.html' },
-  { id:'word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible — load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
+  { id:'word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible - load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
   { id:'word-scramble', name:'Word Scramble', desc:'Unscramble the letters to find the hidden word. Quick and addictive.', tags:['Vocabulary'], badge:null, icon:'🔤', group:'vocabulary', url:'games/word-scramble.html' },
   // GRAMMAR
   { id:'article-rush', name:'Article Rush', desc:'Tap a / an / the / Ø as fast as possible. Drill articles for Slavic learners.', tags:['Grammar'], badge:null, icon:'⏱️', group:'grammar', url:'games/article-rush.html' },
-  { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2–C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
-  { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap — at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
+  { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2-C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
+  { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap - at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
   { id:'tense-picker', name:'Tense Picker', desc:'Choose the correct tense for the context. Covers all 12 tenses with timeline hints.', tags:['Grammar'], badge:null, icon:'⏳', group:'grammar', url:'games/tense-picker.html' },
   // UTILITY
-  { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz — generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
+  { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz - generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
 ];
 
 const TAG_COLORS = {
@@ -1245,7 +1245,7 @@ function mobInit() {
       if (!isMob()) return;
       document.querySelectorAll('.win').forEach(w => w.classList.remove('open'));
       document.querySelectorAll('.di').forEach(d => d.classList.remove('open'));
-    }, true); // capture phase — fires before openApp
+    }, true); // capture phase - fires before openApp
   });
 })();
 
@@ -1286,7 +1286,7 @@ function readTeacherDashboardCache() {
     const raw = localStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY);
     if (!raw) return null;
     const entry = JSON.parse(raw);
-    // Invalidate cache older than 4 hours — prevents stale data from appearing
+    // Invalidate cache older than 4 hours - prevents stale data from appearing
     if (entry?.cachedAt && Date.now() - new Date(entry.cachedAt).getTime() > 4 * 60 * 60 * 1000) {
       localStorage.removeItem(TEACHER_DASHBOARD_CACHE_KEY);
       return null;
@@ -1421,7 +1421,7 @@ async function checkAuthAndRoute() {
       return;
     }
 
-    // Offline / Render cold start — check cached role before showing desktop
+    // Offline / Render cold start - check cached role before showing desktop
     const cachedRole = localStorage.getItem('teachedos_role');
     if (cachedRole === 'student') {
       location.href = 'student.html';
@@ -1586,7 +1586,7 @@ function showAuthOverlay() {
     setupGoogleSignIn();
   }
   // Always reset to a clean Sign-in state on every show. A returning user
-  // (re-auth after logout / token expiry) should land on Login — not the
+  // (re-auth after logout / token expiry) should land on Login - not the
   // Register/Forgot state, role picker and half-filled fields left over from
   // the last time the overlay was opened.
   _osAuthMode = 'login';
@@ -1608,7 +1608,7 @@ function loadGsiScript() {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.id) return resolve();
     if (document.getElementById('gsi-script')) {
-      // Script tag exists but not yet loaded — wait for it
+      // Script tag exists but not yet loaded - wait for it
       const existing = document.getElementById('gsi-script');
       existing.addEventListener('load', resolve, {once:true});
       existing.addEventListener('error', () => reject(new Error('GSI load failed')), {once:true});
@@ -1648,7 +1648,7 @@ async function _initGsi() {
   }
 }
 
-/* Called once after page load if user is not authenticated —
+/* Called once after page load if user is not authenticated -
    shows Google One Tap floating prompt.  If dismissed, nothing
    happens (user can still use the email/password modal).        */
 async function tryGoogleOneTap() {
@@ -1664,7 +1664,7 @@ async function tryGoogleOneTap() {
   });
 }
 
-/* Called when the auth modal opens — renders the Google button inside it. */
+/* Called when the auth modal opens - renders the Google button inside it. */
 async function setupGoogleSignIn() {
   const ok = await _initGsi();
   if (!ok) return;
@@ -1948,14 +1948,14 @@ async function submitOsAuth() {
 
 /* ══════════════════════ KEYBOARD SHORTCUTS ══════════════════════ */
 document.addEventListener('keydown', e => {
-  // ⌘K / Ctrl+K — Spotlight
+  // ⌘K / Ctrl+K - Spotlight
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); return; }
-  // ⌘N / Ctrl+N — New note
+  // ⌘N / Ctrl+N - New note
   if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openApp('notes'); notesNew(); return; }
-  // ⌘B / Ctrl+B — Open board
+  // ⌘B / Ctrl+B - Open board
   if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); location.href = 'board.html'; return; }
 
-  // Escape — close top window
+  // Escape - close top window
   if (e.key === 'Escape') {
     const open = [...document.querySelectorAll('.win.open')];
     if (open.length) { const top = open[open.length-1]; const id = top.id.replace('win-',''); closeWin(id); }
@@ -1998,9 +1998,9 @@ function renderNotifList() {
     list.innerHTML = '<div class="np-empty">No notifications yet</div>';
     return;
   }
-  /* Цвета и наведение — в CSS (см. #notif-panel в unify.css). Здесь они были
+  /* Цвета и наведение - в CSS (см. #notif-panel в unify.css). Здесь они были
      инлайном со светлой палитрой, поэтому на тёмной панели заголовок письма
-     сливался с фоном. Значок типа — свой штриховой, а не эмодзи: системные
+     сливался с фоном. Значок типа - свой штриховой, а не эмодзи: системные
      картинки в этой строке выглядели наклейками. */
   const glyph = (t) => ({
     live:   '<circle cx="12" cy="12" r="4.5"/>',
@@ -2062,7 +2062,7 @@ document.addEventListener('click', e => {
 setInterval(loadNotifications, 120000);
 
 /* ════════════════════════════════════════════════════
-   LIVE WIDGETS (teacher/admin only — students are redirected above)
+   LIVE WIDGETS (teacher/admin only - students are redirected above)
    ════════════════════════════════════════════════════ */
 (function() {
   const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
@@ -2075,7 +2075,7 @@ setInterval(loadNotifications, 120000);
   fetchMe().then(res => {
     const d = { user: res.ok ? res.user : null };
     if (!d.user) return;
-    // Students are handled by checkAuthAndRoute — skip widget wiring for them
+    // Students are handled by checkAuthAndRoute - skip widget wiring for them
     if (d.user.role === 'student') return;
     writeTeacherDashboardCache({ user: d.user });
     const chip = document.getElementById('desktop-user-chip');
@@ -2115,10 +2115,10 @@ setInterval(loadNotifications, 120000);
     if (streakSub) {
       if (!todays.length) streakSub.innerHTML = `Nothing scheduled today<br><a href="schedule.html" style="color:var(--accent);">Add class →</a>`;
       else if (next) streakSub.innerHTML = `${done} done · ${upcoming.length} upcoming<br>Next: <span style="color:var(--accent)">${next.group_name || next.title} ${next.start_time.slice(0,5)}</span>`;
-      else streakSub.innerHTML = `All ${todays.length} done — great job!`;
+      else streakSub.innerHTML = `All ${todays.length} done - great job!`;
     }
 
-    // Today widget — show next class
+    // Today widget - show next class
     const todayLabel = document.querySelector('#wg-today .wg-today-label');
     const todayTitle = document.querySelector('#wg-today .wg-today-title');
     const todayMeta = document.querySelector('#wg-today .wg-today-meta');
@@ -2126,7 +2126,7 @@ setInterval(loadNotifications, 120000);
     if (next) {
       if (todayLabel) todayLabel.textContent = 'Next class';
       if (todayTitle) todayTitle.innerHTML = next.title.replace(/^([^:]+:)/, '$1<br>');
-      if (todayMeta) todayMeta.innerHTML = `<span>👥 ${next.group_name || '—'}</span><span>·</span><span>${next.level || ''}</span>`;
+      if (todayMeta) todayMeta.innerHTML = `<span>👥 ${next.group_name || '-'}</span><span>·</span><span>${next.level || ''}</span>`;
       const dur = toMin(next.end_time) - toMin(next.start_time);
       if (todayBadge) todayBadge.textContent = `🕐 ${next.start_time.slice(0,5)} · ${dur} min`;
     } else {

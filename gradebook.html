@@ -410,10 +410,10 @@ a{text-decoration:none;color:inherit;}
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
-   !important — override both back here, after all three stylesheets, so
+   !important - override both back here, after all three stylesheets, so
    Gradebook stays on the site's normal light theme instead of the dark shell.
    (Two paired rules: background at all widths, color inside a desktop-only
-   media query — both come back here regardless of viewport.) */
+   media query - both come back here regardless of viewport.) */
 #page.mp-shell{background:var(--bg) !important;color:var(--text) !important;}
 </style>
 <link rel="stylesheet" href="styles/teached-brand.css?v=332">
@@ -495,10 +495,10 @@ a{text-decoration:none;color:inherit;}
 
   <!-- Stats -->
   <div class="stats-grid" id="stats-grid">
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-users"/></svg></div><div><div class="stat-val" id="s-students">—</div><div class="stat-lbl">Students</div></div></div>
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="s-lessons">—</div><div class="stat-lbl">Lessons</div></div></div>
-    <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="s-avg">—</div><div class="stat-lbl">Avg. completion</div></div></div>
-    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-star"/></svg></div><div><div class="stat-val" id="s-top">—</div><div class="stat-lbl">Top student</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-users"/></svg></div><div><div class="stat-val" id="s-students">-</div><div class="stat-lbl">Students</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="stat-val" id="s-lessons">-</div><div class="stat-lbl">Lessons</div></div></div>
+    <div class="stat-card primary"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="stat-val" id="s-avg">-</div><div class="stat-lbl">Avg. completion</div></div></div>
+    <div class="stat-card"><div class="stat-icon" aria-hidden="true"><svg class="stat-ic" aria-hidden="true"><use href="#i-star"/></svg></div><div><div class="stat-val" id="s-top">-</div><div class="stat-lbl">Top student</div></div></div>
   </div>
 
   <section class="gradebook-pulse" id="gradebook-pulse" aria-live="polite">
@@ -539,7 +539,7 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div class="sec-body">
       <div class="invite-form" style="margin-bottom:18px;">
-        <input class="invite-input" type="email" id="invite-email" required autocomplete="email" aria-label="Student email" placeholder="student@email.com — invite by email"/>
+        <input class="invite-input" type="email" id="invite-email" required autocomplete="email" aria-label="Student email" placeholder="student@email.com - invite by email"/>
         <select id="invite-role" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:600;outline:none;">
           <option value="student">Student</option>
           <option value="editor">Co-teacher</option>
@@ -844,7 +844,7 @@ function renderBoardPills() {
   const wrap = document.getElementById('board-pills');
   const status = document.getElementById('board-status-copy');
   if (!boards.length) {
-    wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards — <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>';
+    wrap.innerHTML = '<span style="color:var(--text3);font-size:13px;">No boards - <a href="board.html" style="color:var(--accent);font-weight:600;">create one</a></span>';
     if (status) status.textContent = 'Create a board first, then your gradebook will appear here.';
   } else {
     wrap.innerHTML = boards.map(b =>
@@ -1059,7 +1059,7 @@ function renderGradebook() {
     <tr class="gb-summary">
       <td class="td-name" style="font-weight:700;color:var(--text2);">${hasGradebookFilter() ? 'Filtered avg' : 'Class avg'}</td>
       ${summCells}
-      <td>—</td>
+      <td>-</td>
       <td style="font-weight:700;color:var(--accent);">${classAvgPct(displayed)}%</td>
     </tr>`;
 
@@ -1090,7 +1090,7 @@ function renderGradebook() {
         <div class="gb-mobile-progress">
           <div class="gb-mobile-box"><div class="gb-mobile-box-n">${done}/${total}</div><div class="gb-mobile-box-l">Lessons</div></div>
           <div class="gb-mobile-box"><div class="gb-mobile-box-n">${pct}%</div><div class="gb-mobile-box-l">Completion</div></div>
-          <div class="gb-mobile-box"><div class="gb-mobile-box-n">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div><div class="gb-mobile-box-l">Quiz Avg</div></div>
+          <div class="gb-mobile-box"><div class="gb-mobile-box-n">${avgQuiz !== null ? avgQuiz+'%' : '-'}</div><div class="gb-mobile-box-l">Quiz Avg</div></div>
         </div>
         <div class="gb-mobile-lessons">${lessonPills}</div>
         <div class="gb-mobile-actions">
@@ -1128,7 +1128,7 @@ function updateStats() {
     })[0];
     document.getElementById('s-top').textContent = top.avatar + ' ' + top.name.split(' ')[0];
   } else {
-    document.getElementById('s-top').textContent = '—';
+    document.getElementById('s-top').textContent = '-';
   }
 }
 
@@ -1323,7 +1323,7 @@ function openStudentDetail(userId) {
     const icons = { done:'Done', 'in-progress':'Active', available:'Open', locked:'Locked' };
     return `<tr>
       <td style="font-size:11px;font-weight:600;padding:5px 8px;">${esc(lessonCols[i]?.data?.title || lessonCols[i]?.title || 'Lesson '+(i+1))}</td>
-      <td style="text-align:center;">${icons[l.status]||'—'}</td>
+      <td style="text-align:center;">${icons[l.status]||'-'}</td>
     </tr>`;
   }).join('');
 
@@ -1352,7 +1352,7 @@ function openStudentDetail(userId) {
         <div style="font-size:11px;color:var(--text3);font-weight:600;">Lessons done</div>
       </div>
       <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:22px;font-weight:700;color:#10b981;">${avgQuiz !== null ? avgQuiz+'%' : '—'}</div>
+        <div style="font-size:22px;font-weight:700;color:#10b981;">${avgQuiz !== null ? avgQuiz+'%' : '-'}</div>
         <div style="font-size:11px;color:var(--text3);font-weight:600;">Quiz avg (${quizzes.length})</div>
       </div>
     </div>

@@ -1,11 +1,11 @@
-/* TeachEd · board.html — main inline styles. Extracted from
+/* TeachEd · board.html - main inline styles. Extracted from
    the HTML to keep the page editable. Loaded synchronously via
    <link rel="stylesheet"> so first paint is identical. */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
   /* unify.css already sets --accent:#0E0E10 for every page, and loads after
-     this file — the board's blue was never the design system's, only ~250
+     this file - the board's blue was never the design system's, only ~250
      literals that ignored it. These values now agree with unify rather than
      fight it. */
   /* Calm pass: the board shares the app's graphite/sage action colour instead
@@ -15,8 +15,8 @@
   /* Ink carries structure: outlines, selected borders, filled buttons. But a
      grab handle drawn in ink sits on top of arbitrary card content and reads
      as just another border, so handles (resize, anchor dots, arrow endpoints,
-     multi-select corners) fill with --accent-hi — the same lime the generated
-     sheets use as their single highlight — and keep an ink stroke. */
+     multi-select corners) fill with --accent-hi - the same lime the generated
+     sheets use as their single highlight - and keep an ink stroke. */
   --accent-hi:var(--u-lime-pop,#CDF24F);--accent-hi-ink:#1F231F;
   /* Paired with --accent: readable text on an accent fill. White suits every
      accent shipped here; a user-picked light accent gets an ink pair computed
@@ -32,7 +32,7 @@
 /* ── Theme overrides ── */
 /* NOTE: unify.css neuters [data-theme="dark"] site-wide ("fall back to the
    cream palette") with !important, and its :root wins over this block anyway on
-   equal specificity by load order. So this block is inert today — it must not
+   equal specificity by load order. So this block is inert today - it must not
    set --on-accent, or the pair goes ink-on-ink: --accent would still come from
    unify (ink) while --on-accent came from here. */
 [data-theme="dark"]{
@@ -134,7 +134,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tb-undo-btn{transition:opacity .12s,background .12s;}
 .tb-undo-btn[disabled],.tb-undo-btn.is-disabled{opacity:.30;cursor:default;pointer-events:none;}
 .tb-icon-btn:active{transform:scale(.94);}
-/* Auth chip — Miro-style user dropdown trigger */
+/* Auth chip - Miro-style user dropdown trigger */
 .tb-auth-chip{
   display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;
   border-radius:20px;border:1px solid rgba(0,0,0,.10);
@@ -233,7 +233,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .user-menu-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent);}
 /* Пункты меню доски: одна колонка иконок, одна высота строки.
    До этого значки были смесью эмодзи (🧰 🔗 🎨 🗑) и типографских знаков
-   (⊞ ↖ ⛶ ⌨): разная ширина, разная высота, часть цветная, часть нет — текст
+   (⊞ ↖ ⛶ ⌨): разная ширина, разная высота, часть цветная, часть нет - текст
    в строках не выстраивался по одной линии, и меню читалось как список,
    собранный из разных мест. Теперь один штриховой набор, фиксированный слот
    под значок и наследуемый цвет: строка выделяется целиком, а не наполовину. */
@@ -269,7 +269,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
    for the same reason #mobile-quickbar above does. Its only other rules live in
    @media(max-width:860px), so on a desktop viewport it was styled by nothing at
    all: a plain block div, first child of <body>, sitting in the document flow at
-   y=0 with eight inline-block tiles across it — "📝Sticky TText ◯Shape ⊟Frame
+   y=0 with eight inline-block tiles across it - "📝Sticky TText ◯Shape ⊟Frame
    ↔Arrow 😊Sticker 📚Library 💬Comment". #toolbar is fixed with z-index 1000 so
    it kept the clicks, but its background is rgba(255,252,246,.9) over
    backdrop-filter:blur(22px), and 10% translucency plus a blur is enough to
@@ -313,7 +313,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .mq-status.warn{color:#f97316;}
 .mq-status.is-hidden{opacity:0;transform:translate(-50%,6px);}
 
-/* ── BACKGROUND MODAL — modern card with big circular swatches ── */
+/* ── BACKGROUND MODAL - modern card with big circular swatches ── */
 #bg-overlay{
   display:none;position:fixed;inset:0;z-index:5000;
   background:rgba(15,12,30,.45);
@@ -458,7 +458,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   .bg-swatch-grid{grid-template-columns:repeat(6,1fr);gap:12px;}
 }
 
-/* ── STICKER PANEL — Miro-style side flyout next to the Sticker tray icon ── */
+/* ── STICKER PANEL - Miro-style side flyout next to the Sticker tray icon ── */
 #sticky-palette{
   position:fixed;
   top:calc(var(--tb-h) + 12px);
@@ -504,7 +504,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   }
   #sticky-palette.open{transform:none!important;}
   .sticky-color-grid{grid-template-columns:repeat(4,58px);}
-  /* Sticker panel — full-width bottom sheet on mobile so emojis are reachable */
+  /* Sticker panel - full-width bottom sheet on mobile so emojis are reachable */
   #sticker-panel{
     top:auto!important;left:0!important;right:0!important;bottom:0!important;
     width:100%!important;max-width:none!important;
@@ -602,7 +602,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   [data-theme="dark"] #sticker-panel::before{background:rgba(255,255,255,.20);}
 }
 
-/* ── LIBRARY POPOVER — anchored next to the Library icon in the left tray ── */
+/* ── LIBRARY POPOVER - anchored next to the Library icon in the left tray ── */
 #sidebar{
   position:fixed;
   top:calc(var(--tb-h) + 12px);
@@ -747,7 +747,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 @keyframes annotationPopoverIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:600px){.annotation-popover{width:auto;right:12px;max-height:calc(100vh - 96px);}.annotation-messages{max-height:min(38vh,260px);}.comments-panel{top:calc(var(--tb-h,52px) + 8px);right:8px;width:calc(100vw - 16px);max-height:calc(100vh - var(--tb-h,52px) - 16px);}}
 
-/* Sub-tab segmented control at the top of the Tools tab — switches
+/* Sub-tab segmented control at the top of the Tools tab - switches
    between the Tools constructors and the Ready-made Exercises packs. */
 .tools-subtab-row{
   display:flex;gap:5px;margin:2px 4px 10px;padding:4px;border-radius:14px;
@@ -795,7 +795,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tools-mini-actions a:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(5,0,56,.25);}
 .tools-mini-actions button:hover{background:#f6f6f0;transform:translateY(-1px);}
 
-/* Stat strip under hero — quick metrics */
+/* Stat strip under hero - quick metrics */
 .tools-stat-strip{
   display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:0 4px 10px;
   flex-shrink:0;
@@ -838,7 +838,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   color:var(--text-3);font-weight:650;letter-spacing:.02em;text-transform:none;
 }
 
-/* Tool card — icon-first layout, category-colored */
+/* Tool card - icon-first layout, category-colored */
 /* ── Tool snippet: 2-col compact grid, description on hover ── */
 .tool-snippet-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:6px;
@@ -892,7 +892,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   font-size:8.5px;font-family:var(--mono);font-weight:600;
   color:var(--text-3);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;
 }
-/* Description + action — visible on hover only */
+/* Description + action - visible on hover only */
 .tool-snippet .ts-desc{
   font-size:11px;line-height:1.4;color:var(--text-3);
   margin:0;max-height:0;overflow:hidden;
@@ -905,7 +905,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   font-size:9.5px;color:var(--text-3);font-weight:600;
 }
 .tool-snippet:hover .ts-foot{display:flex;}
-/* Open button — top-right, hover only */
+/* Open button - top-right, hover only */
 .tool-open-dot{
   position:absolute;right:8px;top:8px;
   width:20px;height:20px;border-radius:6px;
@@ -919,7 +919,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tool-snippet .ts-body{min-width:0;display:flex;flex-direction:column;gap:3px;}
 .tool-snippet .ts-head{display:flex;align-items:center;gap:5px;flex-wrap:wrap;line-height:1;}
 
-/* Lesson Pack snippet — bigger, richer card with stage dots */
+/* Lesson Pack snippet - bigger, richer card with stage dots */
 .lesson-pack-snippet{
   position:relative;overflow:hidden;flex-shrink:0;
   padding:14px 14px 12px;border-radius:16px;background:#fff;
@@ -981,7 +981,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   margin-left:auto;color:var(--lp-color);font-weight:650;
 }
 
-/* Games snippet — icon-first layout like Miro's apps panel */
+/* Games snippet - icon-first layout like Miro's apps panel */
 .game-snippet{
   position:relative;display:flex;align-items:flex-start;gap:11px;
   padding:12px 14px 11px 12px;border-radius:14px;
@@ -1104,7 +1104,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 
 .mt-btn:active { transform:scale(.88); }
 
-/* Active state — filled accent pill */
+/* Active state - filled accent pill */
 .mt-btn.active {
   background:color-mix(in srgb,var(--accent) 13%,transparent);
   color:var(--accent);
@@ -1122,7 +1122,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* AI Memory Studio is intentionally discoverable from Board menu → Preferences. */
 .mt-btn.mt-ai{display:none!important;}
 
-/* ── Teacher Tools — brand lime ── */
+/* ── Teacher Tools - brand lime ── */
 .mt-btn.mt-tools {
   color:#26340E;
   background:#CDF24F;
@@ -1135,7 +1135,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 [data-theme="dark"] .mt-btn.mt-tools { color:#26340E; background:#CDF24F; }
 
-/* ── + More button — indigo outlined ── */
+/* ── + More button - indigo outlined ── */
 .mt-btn.mt-add {
   color:var(--accent);
   border:1.5px solid color-mix(in srgb,var(--accent) 28%,transparent);
@@ -1281,7 +1281,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 #board-wrap.panning{cursor:grabbing!important;}
 #board-wrap.connecting{cursor:crosshair;}
 #board-wrap.commenting{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='11' r='9' fill='%230E0E10' opacity='.9'/%3E%3Cpath d='M8 20l4-4' stroke='%230E0E10' stroke-width='2' fill='none'/%3E%3Ctext x='12' y='15' text-anchor='middle' fill='white' font-size='11' font-family='Arial' font-weight='bold'%3E%2B%3C/text%3E%3C/svg%3E") 12 12,crosshair!important;}
-/* Placement mode — crosshair everywhere */
+/* Placement mode - crosshair everywhere */
 #board-wrap.placing,
 #board-wrap.placing *{cursor:crosshair!important;}
 /* Floating placement ghost that follows cursor */
@@ -1328,7 +1328,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* Hold Space for grab cursor (Miro pan-mode preview) */
 body.space-down #board-wrap{cursor:grab;}
 body.space-down #board-wrap.panning{cursor:grabbing!important;}
-/* Alt-drag duplicate cursor — Miro shows + copy cursor */
+/* Alt-drag duplicate cursor - Miro shows + copy cursor */
 body.alt-duplicating,
 body.alt-duplicating *{cursor:copy!important;}
 /* Cards stay default cursor (move/grab handled inline) */
@@ -1364,7 +1364,7 @@ body.alt-duplicating *{cursor:copy!important;}
 #multi-sel-box .ms-h-sw{bottom:-5px;left:-5px;display:block;}
 #multi-sel-box .ms-h-se{bottom:-5px;right:-5px;display:block;}
 
-/* Group outlines (Miro-style — blue dashed) */
+/* Group outlines (Miro-style - blue dashed) */
 .group-outline{
   position:absolute;border:1.5px dashed var(--accent);border-radius:10px;
   pointer-events:none;z-index:2;opacity:.55;
@@ -1380,7 +1380,7 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 .group-outline .group-badge:hover{opacity:1;}
 
-/* Drawing layer (pencil / highlighter) — sits above cards when active */
+/* Drawing layer (pencil / highlighter) - sits above cards when active */
 #draw-svg{
   position:absolute;inset:0;width:100%;height:100%;
   pointer-events:none;z-index:6;overflow:visible;
@@ -1398,7 +1398,7 @@ body.alt-duplicating *{cursor:copy!important;}
   pointer-events:none;display:none;transform:translate(-50%,-50%);
 }
 
-/* Frame card — must come AFTER .board-card rules to properly override */
+/* Frame card - must come AFTER .board-card rules to properly override */
 /* We use !important because .board-card (later in file) would otherwise win */
 .card-frame{
   background:transparent!important;
@@ -1406,7 +1406,7 @@ body.alt-duplicating *{cursor:copy!important;}
   box-shadow:none!important;
   /* Allow frame-title to render above the card boundary */
   overflow:visible!important;
-  /* contain:layout clips children outside the box — disable for frames */
+  /* contain:layout clips children outside the box - disable for frames */
   contain:none!important;
 }
 [data-theme="dark"] .card-frame{background:transparent!important;}
@@ -1442,13 +1442,13 @@ body.alt-duplicating *{cursor:copy!important;}
 [data-theme="dark"] .card-frame .frame-title{color:var(--text);}
 .card-frame .frame-title:hover{background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:4px;}
 /* Полоса инструментов кадра (справа над рамкой): переключатель Plan/Play и
-   «+ Add activity». Раскладку задаёт flex — кнопки больше не занимают одну и
+   «+ Add activity». Раскладку задаёт flex - кнопки больше не занимают одну и
    ту же абсолютную точку. */
 .card-frame .frame-tools{
   position:absolute;top:-32px;right:0;z-index:11;
   display:inline-flex;align-items:center;gap:8px;
 }
-/* Plan / Play — сегментный переключатель: две половины одного элемента, а не
+/* Plan / Play - сегментный переключатель: две половины одного элемента, а не
    две кнопки, потому что это один выбор из двух, а не два действия. */
 .card-frame .frame-mode{
   display:inline-flex;align-items:stretch;
@@ -1572,7 +1572,7 @@ body.alt-duplicating *{cursor:copy!important;}
   -webkit-user-drag:none;pointer-events:none;
 }
 
-/* SVG arrows layer — covers board-wrap, pointer-events on paths */
+/* SVG arrows layer - covers board-wrap, pointer-events on paths */
 #arrows-svg{
   position:absolute;inset:0;width:100%;height:100%;
   pointer-events:none;z-index:5;overflow:visible;
@@ -1616,16 +1616,16 @@ body.alt-duplicating *{cursor:copy!important;}
   transition:box-shadow .18s ease,border-color .12s ease,transform .18s cubic-bezier(.22,.61,.36,1);
   min-width:80px;min-height:60px;
   display:flex;flex-direction:column;overflow:hidden;
-  /* layout+style+paint containment — browser skips recalc/repaint outside card bounds */
+  /* layout+style+paint containment - browser skips recalc/repaint outside card bounds */
   contain:layout style paint;
   isolation:isolate;
   /* No permanent will-change or translateZ(0). Each of those pins the card to
      its own compositor layer for as long as the board is open, and a board is
-     many cards — measured on a 40-card board, all 40 were promoted. That is the
+     many cards - measured on a 40-card board, all 40 were promoted. That is the
      intermittent-artifact case: it needs several elements before Chrome starts
      mis-invalidating, which is why it never showed on a board with three.
-     harmony.css reached this conclusion already — "Remove will-change
-     everywhere — too many layers = OOM & stretching" — but scoped the guard to
+     harmony.css reached this conclusion already - "Remove will-change
+     everywhere - too many layers = OOM & stretching" - but scoped the guard to
      a mobile media query, and a desktop board holds more cards, not fewer.
      box-shadow is not a compositable property, so naming it here bought
      nothing and cost a layer.
@@ -1662,20 +1662,20 @@ body.alt-duplicating *{cursor:copy!important;}
   transition:box-shadow .1s ease,opacity .1s ease!important;
   z-index:9000!important;
 }
-/* Miro-style 8 resize handles — corners (round) + edges (rounded bars) */
+/* Miro-style 8 resize handles - corners (round) + edges (rounded bars) */
 .resize-handle{
   position:absolute;background:var(--accent-hi);border:1.5px solid var(--accent);
   z-index:25;display:none;box-shadow:0 1px 3px rgba(0,0,0,.16);
 }
 .board-card.selected .resize-handle{display:block;}
-/* Corner handles — 10px circles */
+/* Corner handles - 10px circles */
 .resize-handle.h-nw,.resize-handle.h-ne,
 .resize-handle.h-sw,.resize-handle.h-se{
   width:10px;height:10px;border-radius:50%;
 }
 /* Handles sit just INSIDE the card, not straddling its border.
    .board-card is overflow:hidden with contain:paint, so anything outside the
-   box is clipped — and a clipped handle is not paintable OR hit-testable.
+   box is clipped - and a clipped handle is not paintable OR hit-testable.
    At -5px a 10px corner handle was half gone and the 6px edge bars had 2px of
    themselves left to grab, which is why dragging an edge so often caught the
    connector anchor instead: the anchor's inner half was the bigger target. */
@@ -1683,7 +1683,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .resize-handle.h-ne{top:2px;right:2px;cursor:nesw-resize;}
 .resize-handle.h-sw{bottom:2px;left:2px;cursor:nesw-resize;}
 .resize-handle.h-se{bottom:2px;right:2px;cursor:nwse-resize;}
-/* Edge handles — short rounded bars */
+/* Edge handles - short rounded bars */
 .resize-handle.h-n,.resize-handle.h-s{
   left:50%;transform:translateX(-50%);
   width:18px;height:6px;border-radius:3px;
@@ -1697,7 +1697,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .resize-handle.h-w{left:2px;cursor:ew-resize;}
 .resize-handle.h-e{right:2px;cursor:ew-resize;}
 /* The visible bars stay small, but an 18x6 target is a fiddly thing to hit.
-   Grow the grab area without growing the graphic — inward, since outward is
+   Grow the grab area without growing the graphic - inward, since outward is
    clipped by the card. Corners keep their own handles and sit far enough away
    on any real card that the two never overlap. */
 .resize-handle.h-n::before,.resize-handle.h-s::before{
@@ -1719,7 +1719,7 @@ body.alt-duplicating *{cursor:copy!important;}
   pointer-events:none;
 }
 
-/* Anchor dots (Miro-style — small blue squares with cross arrows on hover) */
+/* Anchor dots (Miro-style - small blue squares with cross arrows on hover) */
 .anchor-dot{
   position:absolute;width:12px;height:12px;border-radius:50%;
   background:var(--accent-hi);border:2px solid var(--accent);z-index:20;
@@ -1727,14 +1727,14 @@ body.alt-duplicating *{cursor:copy!important;}
   box-shadow:0 0 0 1.5px color-mix(in srgb,var(--accent) 25%,transparent),0 1px 4px color-mix(in srgb,var(--accent) 20%,transparent);
 }
 /* Larger invisible hit-area so the dot is easy to grab. Kept modest: at -8px
-   this halo was 28x28 centred on the middle of each edge — the exact spot the
-   edge resize handles occupy — so it swallowed resize drags and started a
+   this halo was 28x28 centred on the middle of each edge - the exact spot the
+   edge resize handles occupy - so it swallowed resize drags and started a
    connector instead. */
 .anchor-dot::after{
   content:'';position:absolute;inset:-3px;border-radius:50%;
 }
 /* On a SELECTED card the edges belong to resizing, so the anchors get out of
-   the way entirely — hidden, not merely inert, because a dot that looks
+   the way entirely - hidden, not merely inert, because a dot that looks
    draggable and isn't is worse than no dot. "Click the card, then drag its
    edge" now resizes instead of pulling out an arrow. Connect mode is the
    deliberate opposite and is handled above, where the resize handles are the
@@ -1778,13 +1778,13 @@ body.alt-duplicating *{cursor:copy!important;}
    bigger: .card-header is 35px tall with 8px/6px padding, so there are 21px of
    room inside it, and a 24px control pushes the header to 38. Card heights in
    this project are computed from constants, which is the thing that has broken
-   repeatedly — growing every card's header to widen one button is a bad trade.
+   repeatedly - growing every card's header to widen one button is a bad trade.
    So the box stays 20x20 and only the hit area grows, to 28x28. The 4px reaches
    nothing it should not: the private-eye toggle beside it ends 8px away, and the
    card's right edge is 12px clear, so this also stays inside the card and is not
    cut off by .board-card's overflow:hidden + contain:paint the way an outward
    handle would be. It does take 4px of header away from card-dragging, which is
-   the right side of that trade — a missed drag costs a gesture, a missed close
+   the right side of that trade - a missed drag costs a gesture, a missed close
    costs the teacher a click on a card they wanted gone. */
 .card-close::before{
   content:"";position:absolute;inset:-4px;border-radius:7px;
@@ -1806,7 +1806,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .more-account-info{display:flex;flex-direction:column;min-width:0;line-height:1.2;}
 .more-account-name{font-weight:600;font-size:14px;color:#0E0E10;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .more-account-email{font:600 11px var(--mono,monospace);color:#86868F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* Выход — не разрушительное действие, а конец сеанса: постоянный красный
+/* Выход - не разрушительное действие, а конец сеанса: постоянный красный
    ставил его в один ряд с «очистить доску» и делал список тревожным.
    Цвет появляется на наведении, как и у «очистить». */
 .more-signout{color:var(--text);font-weight:600;}
@@ -1840,7 +1840,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .board-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s;}
 .board-list-item:hover{border-color:var(--accent);background:var(--accent-2);}
 
-/* Game iframe overlay — hidden by default, shown when board is in drag/resize */
+/* Game iframe overlay - hidden by default, shown when board is in drag/resize */
 .game-iframe-overlay{
   position:absolute;inset:0;z-index:30;
   display:none;background:transparent;cursor:move;
@@ -1851,7 +1851,7 @@ body.board-dragging .game-iframe-overlay{display:block;}
 .board-card.card-game > .card-body{background:transparent!important;}
 body.board-dragging .board-card{will-change:transform,left,top;}
 
-/* Miro-style comment indicator badge — yellow speech bubble top-right */
+/* Miro-style comment indicator badge - yellow speech bubble top-right */
 .card-comment-badge{
   position:absolute;top:-10px;right:-10px;z-index:18;
   min-width:24px;height:24px;padding:0 7px;border-radius:12px 12px 12px 4px;
@@ -1923,7 +1923,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 
 /* ══════════════ IMAGE CARD ══════════════ */
-/* Raw image — no card frame, no header, transparent background. */
+/* Raw image - no card frame, no header, transparent background. */
 .card-image{background:transparent!important;box-shadow:none!important;border-color:transparent!important;}
 .card-image .card-header{display:none!important;}
 .card-image.selected{box-shadow:0 0 0 2px var(--accent)!important;}
@@ -1954,7 +1954,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .image-empty-title{font:700 13px var(--font);}
 .image-empty-sub{font:500 11px var(--font);opacity:.75;}
 
-/* Fit toggle — fades in on hover of the card. */
+/* Fit toggle - fades in on hover of the card. */
 .image-fit-btn{position:absolute;top:7px;right:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
   border:none;border-radius:8px;background:rgba(14,14,20,.62);color:#fff;font-size:14px;line-height:1;cursor:pointer;
   opacity:0;transform:translateY(-2px);transition:opacity .15s,transform .15s,background .15s;backdrop-filter:blur(6px);}
@@ -2134,7 +2134,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 
 /* ── STICKY ── */
 .card-sticky .card-body{padding:0;display:flex;flex-direction:column;}
-/* ── STICKY NOTES — Miro style (no header, pure color block) ── */
+/* ── STICKY NOTES - Miro style (no header, pure color block) ── */
 .card-sticky{
   border:none!important;
   border-radius:4px!important;
@@ -2144,7 +2144,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 .card-sticky.selected{border-color:transparent!important;box-shadow:0 8px 22px rgba(0,0,0,.18)!important;}
 .card-sticky.dragging{transform:rotate(-1.5deg) scale(1.03) translateZ(0)!important;box-shadow:0 18px 40px rgba(0,0,0,.22)!important;}
-/* Stickies can be resized & connected like Miro — keep handles/anchors
+/* Stickies can be resized & connected like Miro - keep handles/anchors
    hidden by default and surface them only on hover/selection. */
 .card-sticky .resize-handle{display:none;}
 .card-sticky.selected .resize-handle{display:block;}
@@ -2174,7 +2174,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   opacity:0;transition:opacity .15s;
 }
 .card-sticky:hover .sticky-close,.card-sticky.selected .sticky-close{opacity:1;}
-/* Sticky floating toolbar — Miro-style popover above sticky */
+/* Sticky floating toolbar - Miro-style popover above sticky */
 .sticky-toolbar{
   position:absolute;left:50%;top:-44px;transform:translateX(-50%);
   display:flex;gap:3px;padding:5px 7px;border-radius:8px;
@@ -2271,7 +2271,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   box-shadow:0 4px 6px rgba(0,0,0,.04),0 10px 28px rgba(0,0,0,.12);
   z-index:24;
 }
-/* Float text format toolbar ABOVE the card — Miro style */
+/* Float text format toolbar ABOVE the card - Miro style */
 .card-text .text-format-toolbar{
   position:absolute;bottom:calc(100% + 8px);left:0;
   width:max-content;max-width:560px;
@@ -2302,7 +2302,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .text-format-btn.active,.text-lock-btn.active{
   background:#0a0a28;color:#fff;
 }
-/* Font selector — no border, matches toolbar bg */
+/* Font selector - no border, matches toolbar bg */
 .text-format-select{
   height:26px;max-width:100px;border:none;border-radius:7px;
   background:rgba(20,20,22,.06);color:#1c1c1e;
@@ -2381,14 +2381,14 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   background:rgba(255,255,255,.08);color:#fff;
 }
 [data-theme="dark"] .generated-panel-btn:hover{background:#fff;color:#111827;}
-/* Interactive worksheet card — iframe fills the card, no editing toolbar */
+/* Interactive worksheet card - iframe fills the card, no editing toolbar */
 .card-text .card-body.text-interactive-wrap,
 .card-worksheet .card-body.text-interactive-wrap{padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
 .text-interactive-wrap iframe{flex:1;width:100%;border:none;display:block;min-height:0;}
 /* Interactive card: green left accent border */
 .card-text[data-interactive],
 .card-worksheet[data-interactive]{border:1.5px solid #447C6F !important;border-radius:14px;}
-/* Drag strip — the only grabbable area on an interactive card */
+/* Drag strip - the only grabbable area on an interactive card */
 .ws-drag-strip{
   height:26px;padding:0 10px 0 12px;flex-shrink:0;
   display:flex;align-items:center;
@@ -2526,7 +2526,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .mtm-sep{height:1px;background:rgba(0,0,0,.06);margin:4px 6px;}
 [data-theme="dark"] .mtm-sep{background:rgba(255,255,255,.06);}
 
-/* Global iOS/Android tap-highlight kill — no grey/orange flash on tap */
+/* Global iOS/Android tap-highlight kill - no grey/orange flash on tap */
 button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-item,
 .cascade-item,.user-menu-item,.filter-btn,.sb-tab,.ctx-item,.card-color-swatch,
 .bg-swatch,.cac-swatch,.mq-add-tile{
@@ -2765,7 +2765,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
 
-/* ── Toast notification (Miro style — dark pill bottom-center) ── */
+/* ── Toast notification (Miro style - dark pill bottom-center) ── */
 #undo-toast{
   position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(8px);
   font-size:13px;font-family:var(--font);font-weight:500;color:#fff;
@@ -3396,7 +3396,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .tbuilder-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;}
 .tbuilder-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;}
-/* Заголовок был набран до 46px с line-height .94 — на панели высотой 780px он
+/* Заголовок был набран до 46px с line-height .94 - на панели высотой 780px он
    вместе с подзаголовком съедал верхнюю треть, а работа начиналась ниже. Это
    служебное окно, а не витрина: название инструмента должно называть, а не
    объявлять. */
@@ -3406,7 +3406,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-close:hover{background:rgba(14,14,16,.14);}
 .tbuilder-close:active{transform:scale(.94);}
 /* Форма шире предпросмотра: пока не нажата «Generate», справа пустая
-   рамка, а слева — вся работа. Раньше пропорция была обратной. */
+   рамка, а слева - вся работа. Раньше пропорция была обратной. */
 .tbuilder-layout{display:grid;grid-template-columns:minmax(360px,1.08fr) minmax(320px,.92fr);gap:16px;}
 .tbuilder-form,.tbuilder-preview{
   border:1px solid rgba(14,14,16,.08);border-radius:22px;background:rgba(255,255,255,.86);
@@ -3428,10 +3428,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-inline-btn{min-height:32px;padding:6px 9px;border:1px solid rgba(14,14,16,.12);border-radius:10px;background:#fff;color:#4A483F;font:850 10px/1 var(--mono,monospace);cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;}
 .tbuilder-inline-btn:hover{border-color:rgba(14,14,16,.28);background:#F8F6EF;box-shadow:0 5px 14px rgba(14,14,16,.06);}
 .tbuilder-inline-btn.undo{border-color:rgba(38,110,74,.28);background:rgba(38,110,74,.07);color:#266e4a;}
-/* Разбор брифа и план сборки — про одно и то же: как понят бриф. Двумя
+/* Разбор брифа и план сборки - про одно и то же: как понят бриф. Двумя
    отдельными карточками с собственными рамками и фонами они спорили друг с
    другом и отодвигали поля, ради которых окно открывают. Теперь это один блок
-   с внутренней линией: сверху — состояние, снизу — что из этого следует. */
+   с внутренней линией: сверху - состояние, снизу - что из этого следует. */
 .tbuilder-brief{display:grid;gap:9px;padding:12px 13px;margin:0 0 14px;border:1px solid rgba(14,14,16,.10);border-radius:14px;background:rgba(255,255,255,.72);transition:border-color .16s ease,background .16s ease;}
 .tbuilder-brief-top{display:flex;align-items:flex-start;gap:9px;}
 .tbuilder-brief-copy{flex:1;min-width:0;}
@@ -3451,7 +3451,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-brief.attention .tbuilder-review-dot{background:#A36B0B;box-shadow:0 0 0 4px rgba(163,107,11,.11);}
 .tbuilder-brief.needs-input{border-color:rgba(185,69,57,.20);background:rgba(185,69,57,.045);}
 .tbuilder-brief.needs-input .tbuilder-review-dot{background:#A4453B;box-shadow:0 0 0 4px rgba(164,69,59,.11);}
-/* Статус справа в той же строке, что и заголовок разбора: одно состояние —
+/* Статус справа в той же строке, что и заголовок разбора: одно состояние -
    одно место. До этого «Ready to create», «Brief looks balanced» и «Brief
    mapped» жили в трёх карточках и повторяли друг друга. */
 .tbuilder-generation-plan{display:grid;gap:8px;padding:10px 0 0;margin:0;border:0;border-top:1px dashed rgba(14,14,16,.13);background:none;}
@@ -3467,7 +3467,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-plan-metric strong{overflow:hidden;color:#3D3A32;font:800 10px/1.25 var(--font);text-overflow:ellipsis;white-space:nowrap;}
 .tbuilder-generation-plan p{margin:0;color:#6F695D;font:700 10px/1.4 var(--font);}
 .tbuilder-form label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E6E5C;font-weight:600;margin:14px 0 6px;}
-/* Одна шкала скруглений на всё окно: 20 — панели, 14 — блоки, 12 — поля и
+/* Одна шкала скруглений на всё окно: 20 - панели, 14 - блоки, 12 - поля и
    кнопки. До этого в одном экране встречались 28, 22, 16, 15, 13, 11 и 10, и
    именно от этого интерфейс выглядел собранным из разных наборов. */
 .tbuilder-form,.tbuilder-preview{border-radius:20px;}
@@ -3485,7 +3485,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-form textarea{min-height:86px;resize:vertical;}
 .tbuilder-form input:focus,.tbuilder-form select:focus,.tbuilder-form textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent);}
 /* The light constructor panel must keep light fields even under the global dark
-   form theme (harmony.css forces dark controls with !important) — so the inputs,
+   form theme (harmony.css forces dark controls with !important) - so the inputs,
    selects and textareas stay consistent instead of half-dark/half-white. */
 #tool-builder-panel .tbuilder-form input,
 #tool-builder-panel .tbuilder-form select,
@@ -3494,7 +3494,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   border:1.5px solid rgba(14,14,16,.10) !important;border-radius:12px !important;
   font-weight:600 !important;
 }
-/* Системный вид выпадающего списка — это чужая деталь: macOS рисует свою
+/* Системный вид выпадающего списка - это чужая деталь: macOS рисует свою
    рамку, свой размер и свою стрелку, поэтому «Уровень» выбивался из ряда
    собственных полей формы. Рисуем сами: та же рамка, что у input, и своя
    стрелка на месте, где её ждёт глаз. */
@@ -3521,13 +3521,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-btn.lime{background:#C8E632;color:#0E0E10;}
 .tbuilder-btn.blue{background:var(--accent);color:var(--on-accent);}
 .tbuilder-btn.ghost{background:rgba(14,14,16,.07);color:#0E0E10;}
-/* Preview panel — light, readable */
+/* Preview panel - light, readable */
 .tbuilder-preview{background:#F5F0E8;color:#0E0E10;min-height:440px;}
 .tbuilder-preview-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px;align-items:center;}
 .tbuilder-preview-title{font-size:14px;font-weight:600;letter-spacing:-.01em;color:#6E6E5C;text-transform:uppercase;font-family:var(--mono);font-size:10px;letter-spacing:.09em;}
 .tbuilder-chip{border:1.5px solid color-mix(in srgb,var(--accent) 22%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:999px;padding:5px 10px;font-size:10px;font-weight:600;color:var(--accent);font-family:var(--mono);}
 .tbuilder-output{display:grid;gap:8px;overflow-y:auto;max-height:380px;}
-/* "AI improving…" shimmer — sweeping bar on the preview + pulsing chip while the
+/* "AI improving…" shimmer - sweeping bar on the preview + pulsing chip while the
    instant draft is being upgraded by the cloud model. */
 @keyframes ttShimmerSweep{0%{background-position:-160% 0;}100%{background-position:160% 0;}}
 .tbuilder-output.tt-improving{position:relative;}
@@ -3565,7 +3565,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tb-field-wrap.tb-field-invalid{border-color:rgba(185,69,57,.48);background:rgba(185,69,57,.055);}
 .tb-field-wrap.tb-field-invalid .tb-field-meta{color:#A4453B;}
 .tb-field-wrap.tb-field-attention{border-color:rgba(138,90,9,.28);background:rgba(248,198,80,.07);}
-/* Hide regardless of the companion class — #tb-wrap-count is a bare row child
+/* Hide regardless of the companion class - #tb-wrap-count is a bare row child
    (no .tb-field-wrap), so the old compound selector never matched it and the
    Items count stayed visible for scaffold tools. */
 .tb-field-hidden{display:none;}
@@ -3599,7 +3599,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-modal.open{opacity:1;}
 .yt-modal-card{width:100%;max-width:460px;background:#fff;border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(17,16,24,.4);max-height:90vh;overflow:auto;transform:translateY(10px) scale(.985);transition:transform .18s cubic-bezier(.34,1.3,.64,1);}
 .yt-modal.open .yt-modal-card{transform:none;}
-/* Уровень и длительность — две равные колонки: обе решают, каким выйдет план,
+/* Уровень и длительность - две равные колонки: обе решают, каким выйдет план,
    и ни одна не главнее другой. */
 .yt-modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 @media (max-width:420px){.yt-modal-row{grid-template-columns:1fr;}}
@@ -3647,7 +3647,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	/* ── Worksheet board card ──────────────────────────────────────────────
 	   Same visual language as games/*.html: one committed palette, flat
 	   surfaces, thick outlines, big touch/projector-sized rows. The palette
-	   lives in these four custom properties — reskinning the whole worksheet
+	   lives in these four custom properties - reskinning the whole worksheet
 	   (or giving one card its own accent) is a change to them, not to the
 	   30-odd rules below. --q-accent is the per-card override JS sets inline. */
 	.ws-body{
@@ -3661,7 +3661,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  border-radius:0 0 14px 14px;
 	}
 	/* Lime masthead, ink type. The sheet's one highlight belongs at the top of
-	   the sheet, not scattered through it — and the title, which is generated
+	   the sheet, not scattered through it - and the title, which is generated
 	   and therefore of unpredictable length, is allowed to wrap here instead of
 	   being cut off with an ellipsis as it was. */
 	.ws-strip{
@@ -3676,11 +3676,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
 	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(14,14,16,.56);}
 	/* Where this block sits in the lesson. Solid ink on the lime masthead rather
-	   than another tint of it — it has to survive being read at board zoom, and
+	   than another tint of it - it has to survive being read at board zoom, and
 	   flat colours also keep html2canvas happy on export. */
 	.ws-step-badge{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;
 	  background:#0E0E10;color:#CDF24F;font:800 11px var(--mono);letter-spacing:.09em;}
-	/* <h2> now (see the strip markup) — zero the UA margin so the masthead keeps
+	/* <h2> now (see the strip markup) - zero the UA margin so the masthead keeps
 	   the exact spacing it had as a span. */
 	.ws-strip-title{margin:0;font-size:25px;font-weight:600;letter-spacing:-.03em;color:var(--ws-on-accent);line-height:1.08;
 	  text-wrap:balance;overflow-wrap:anywhere;}
@@ -3701,23 +3701,23 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-pill{font-size:12px;font-weight:650;border-radius:999px;padding:6px 14px;background:rgba(255,255,255,.28);color:var(--ws-on-accent);border:1px solid rgba(14,14,16,.18);}
 	.ws-pill.level{background:var(--ws-on-accent);color:var(--ws-lime);border-color:var(--ws-on-accent);box-shadow:0 8px 20px rgba(14,14,16,.12);}
 	/* Семафор качества. Показывается только когда есть что сказать, поэтому
-	   бросается в глаза намеренно: жёлтый — «взгляните», красный — «пересоберите».
+	   бросается в глаза намеренно: жёлтый - «взгляните», красный - «пересоберите».
 	   Курсор help, потому что вся суть в подсказке при наведении. */
 	.ws-pill.sem{cursor:help;letter-spacing:.02em;text-transform:lowercase;}
 	.ws-pill.sem-amber{background:#f6c667;color:#4a3306;border-color:#b8860b;}
 	.ws-pill.sem-red{background:#e9908a;color:#4a1512;border-color:#a3352d;}
-	/* .ws-list is an <ol>/<ul> (see _ttWorksheetListTag) — kill the browser's
+	/* .ws-list is an <ol>/<ul> (see _ttWorksheetListTag) - kill the browser's
 	   list chrome, since the numbering a worksheet shows is its own .ws-num
 	   badge, not the marker. Applied to the nested lists too: MCQ options and
 	   the glossary are lists as well now. */
 	.ws-list,.ws-opts,.ws-chips{list-style:none;margin:0;padding:0;}
-	/* Воздух между заданиями: было 12px на лист шириной 720 — плотно даже без
+	/* Воздух между заданиями: было 12px на лист шириной 720 - плотно даже без
 	   картинок, а с ними задания начинали слипаться. */
 	.ws-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:18px;padding:6px 6px 6px 0;}
 	/* A glossary flows as chips; the list element itself is the chip row now
 	   that the extra .ws-chips wrapper is gone. */
 	.ws-list.ws-list-chips{display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;gap:8px;}
-	/* Словарь с картинками: сетка карточек. Минимум 150px на колонку — ниже
+	/* Словарь с картинками: сетка карточек. Минимум 150px на колонку - ниже
 	   этого снимок перестаёт что-либо показывать, а слово начинает рваться. */
 	.ws-list.ws-list-vcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;align-content:flex-start;}
 	.ws-vcard{display:flex;flex-direction:column;gap:7px;padding:10px;border-radius:14px;background:rgba(255,255,255,.72);border:1px solid rgba(14,14,16,.08);}
@@ -3725,27 +3725,27 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-vcard-img img{width:100%;height:100%;object-fit:cover;display:block;}
 	.ws-vcard-img--empty{background:repeating-linear-gradient(45deg,rgba(14,14,16,.04) 0 6px,transparent 6px 12px);}
 	/* Плитка вместо ненайденного снимка: место под рисунок ученика, а не
-	   дырка в листе. Цвета приходят инлайном — они выведены из слова. */
+	   дырка в листе. Цвета приходят инлайном - они выведены из слова. */
 	.ws-vcard-img--letter{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
 	.ws-vcard-letter{font-size:30px;font-weight:600;line-height:1;opacity:.85;}
 	.ws-vcard-draw{font-size:8px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;}
-	/* Подпись автора: мелко, но не невидимо — она обязана уехать в печать. */
+	/* Подпись автора: мелко, но не невидимо - она обязана уехать в печать. */
 	.ws-vcard-credit{position:absolute;left:0;right:0;bottom:0;padding:3px 6px;font-size:8px;line-height:1.2;color:#fff;background:rgba(14,14,16,.45);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 	.ws-vcard b{font-size:14px;line-height:1.25;}
 	.ws-vcard-def{font-size:11.5px;line-height:1.4;opacity:.78;}
 	.ws-vcard .ws-gap{display:block;height:14px;border-bottom:1px solid rgba(14,14,16,.18);}
-	/* Картинка кликабельна — это и есть кнопка замены. Подсказка появляется на
+	/* Картинка кликабельна - это и есть кнопка замены. Подсказка появляется на
 	   наведении, чтобы лист оставался листом, а не панелью управления. */
 	.ws-vcard-img{cursor:pointer;}
 	.ws-vcard-img::after{content:'change';position:absolute;top:6px;right:6px;padding:2px 6px;border-radius:999px;background:rgba(14,14,16,.62);color:#fff;font:800 8px/1.3 var(--font);opacity:0;transition:opacity .14s;}
 	.ws-vcard-img:hover::after{opacity:1;}
-	/* Lesson Pack stages: landscape grid instead of one long vertical stack —
+	/* Lesson Pack stages: landscape grid instead of one long vertical stack -
 	   reading order stays left-to-right, top-to-bottom (row-major), so the
 	   sequence still scans like a timeline.
 
 	   The column count comes from --lp-cols, set by the renderer. It used to be
 	   auto-fit/minmax, which meant the BROWSER chose the columns from the card's
-	   width while _ttEstWorksheetHeight sized the card from _ttLessonPackCols —
+	   width while _ttEstWorksheetHeight sized the card from _ttLessonPackCols -
 	   two answers to one question. Measured against the real stylesheet, they
 	   disagreed at 5 of 9 pack sizes: the card was built for four columns and
 	   the browser drew three, so the content ran past the height the card was
@@ -3771,7 +3771,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   Row-major, so 1-2-3-4 reads across then down; align-items:start keeps a
 	   short question from being stretched to its row's height. Within a group
 	   every item is the same TYPE, which is what makes these rows come out even
-	   — the mixed sheet this replaced put a four-option MCQ beside a one-line
+	   - the mixed sheet this replaced put a four-option MCQ beside a one-line
 	   true/false and left the difference as a hole. */
 	.ws-group-list{list-style:none;margin:0;padding:0;display:grid;
 	  grid-template-columns:repeat(var(--q-cols,1),minmax(0,1fr));
@@ -3805,7 +3805,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	/* The blank in a gap-fill. One inline-block, so it is a fixed rule that
 	   cannot break across lines the way a run of underscores could, and it
 	   scales with the type. Filled, it carries the answer on the sheet's one
-	   highlight — the same lime that marks a correct option. */
+	   highlight - the same lime that marks a correct option. */
 	.ws-chips{display:flex;flex-wrap:wrap;gap:8px;}
 	.ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:10px 14px;border-radius:14px;
 	  background:var(--ws-cream);border:2px solid var(--ws-line);font-size:14px;line-height:1.45;}
@@ -3820,7 +3820,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  background:var(--ws-lime);color:var(--ws-on-accent);font-weight:650;vertical-align:baseline;}
 	.ws-open{height:0;margin:16px 0 6px;border-bottom:2px dashed var(--ws-line);}
 .ws-open + .ws-open{margin-top:22px;}
-	/* 8mm pitch (30px at 96dpi) — a school exercise book's ruling. It used to be
+	/* 8mm pitch (30px at 96dpi) - a school exercise book's ruling. It used to be
 	   18px ≈ 4.8mm, which no one can write on by hand, on a sheet whose whole
 	   point is being print-ready. The mark sits ON the line, so the gap is the
 	   pitch minus the 2px rule. */
@@ -3831,7 +3831,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
 .ws-r{font-size:14px;line-height:1.45;color:var(--ws-ink);font-weight:600;}
 	/* Stage / lesson-plan cards (cards[] kind) */
-	/* Lesson Pack stage cards — one accent (the pack's own category colour, not
+	/* Lesson Pack stage cards - one accent (the pack's own category colour, not
 	   a different hue per stage type) so the sequence reads as one considered
 	   document instead of a rainbow of unrelated tags. Stage TYPE is still
 	   communicated, just by the text label alone instead of colour + a cryptic
@@ -3854,7 +3854,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  padding:5px 7px;border-radius:999px;background:color-mix(in srgb,var(--stage-accent) 7%,#f4efe7 93%);
 	  border:1px solid color-mix(in srgb,var(--stage-accent) 12%,rgba(14,14,16,.08));
 	}
-	/* Pacing badge — pulled out of the title text so timing is scannable at a
+	/* Pacing badge - pulled out of the title text so timing is scannable at a
 	   glance and consistent across every stage that has one. */
 	.ws-stage-time{
 	  font:800 9px var(--mono);letter-spacing:.05em;color:var(--stage-accent);white-space:nowrap;margin-left:auto;padding-left:6px;
@@ -3863,12 +3863,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-stage-time::before{
 	  content:'';display:inline-block;width:5px;height:5px;border-radius:999px;background:currentColor;opacity:.5;
 	}
-	/* Anchor stages (lesson aims / homework) bookend the sequence — a dashed
+	/* Anchor stages (lesson aims / homework) bookend the sequence - a dashed
 	   border + a small start/end mark set them apart from the procedural
 	   middle stages, without introducing a new colour. */
 	.ws-q-card.ws-anchor{border-style:dashed;position:relative;}
 	.ws-q-card.ws-anchor .ws-stage-rail{background:transparent;border:2px dashed color-mix(in srgb,var(--stage-accent) 45%,transparent);}
-	/* Small corner mark — keeps the rail number (position in the sequence)
+	/* Small corner mark - keeps the rail number (position in the sequence)
 	   intact, just adds a bookend glyph rather than replacing it. */
 	.ws-q-card.ws-anchor-start::after,.ws-q-card.ws-anchor-end::after{
 	  content:'';display:block;position:absolute;top:10px;right:12px;width:7px;height:7px;
@@ -3877,7 +3877,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	.ws-q-card.ws-anchor-end::after{border-radius:2px;}
 	/* No clamp. The height estimate already budgets for the full text
 	   (WS_H.cardBase + rows), so clamping hid content inside space that had
-	   been reserved for it — and html2canvas captures the DOM as laid out, so
+	   been reserved for it - and html2canvas captures the DOM as laid out, so
 	   whatever the fade covered was simply missing from PNG/PDF, with the
 	   gradient making the loss look deliberate. Same rule as the generated
 	   sheets: size to fit, never hide. */
@@ -3895,7 +3895,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
 	}
 	/* Drop-cap is opt-in (.has-dropcap, added by JS only for long-enough
-	   passages) — on a short one-liner it floats a huge letter next to almost
+	   passages) - on a short one-liner it floats a huge letter next to almost
 	   nothing and looks broken rather than editorial. */
 	.ws-reading-copy.has-dropcap::first-letter{
 	  float:left;font-size:42px;line-height:.82;font-weight:650;margin:4px 10px 0 0;
@@ -3934,17 +3934,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  background:var(--ws-lime,#CDF24F);color:var(--ws-on-accent,#0E0E10);font-size:11px;font-weight:650;
 	}
 	.ws-prompt-text{font-size:13px;line-height:1.5;color:#26261E;font-weight:650;}
-/* Aims/objectives — checklist, not prose: a teacher scans this, doesn't read it. */
+/* Aims/objectives - checklist, not prose: a teacher scans this, doesn't read it. */
 .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
 .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A2E;font-weight:650;}
 .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:8px;background:var(--ws-lime,#CDF24F);color:var(--ws-on-accent,#0E0E10);display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--mono);margin-top:2px;}
-/* Grammar/focus — a worked example, set in mono like a code sample so it reads
+/* Grammar/focus - a worked example, set in mono like a code sample so it reads
    as "the exact target form", not narrative text. */
 .ws-grammar-block{background:linear-gradient(180deg,#faf7f1,var(--ws-cream,#F5F0E8));border:1px solid rgba(14,14,16,.10);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.68);}
 .ws-grammar-line{font:600 12px/1.55 var(--mono);color:#26261E;}
 .ws-grammar-line strong{color:var(--ws-ink,#0E0E10);font-weight:650;box-shadow:inset 0 -7px 0 var(--ws-lime,#CDF24F);}
 
-/* ── Teacher-tool note cards — category accent (cohesive board set) ── */
+/* ── Teacher-tool note cards - category accent (cohesive board set) ── */
 .board-card.tt-note{box-shadow:inset 4px 0 0 var(--tt-accent,var(--accent)),0 1px 2px rgba(17,24,39,.05),0 10px 26px rgba(17,24,39,.08)!important;}
 .board-card.tt-note .card-header{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--tt-accent,var(--accent)) 18%,transparent);}
 .board-card.tt-note .card-title-text{color:#171420;font-weight:650;}
@@ -4063,7 +4063,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   display:none;flex-direction:column;gap:4px;
 }
 #align-bar.show{display:flex;}
-/* The heading was an unstyled div — label the panel so the icon grid reads as
+/* The heading was an unstyled div - label the panel so the icon grid reads as
    "align & distribute" instead of a column of anonymous glyphs. */
 .align-heading{
   font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
@@ -4252,7 +4252,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-exporting .tt-edit-hint{display:none!important;}
 
 /* ════════════════ FULL-BOARD PRESENT MODE ════════════════ */
-/* Hide ALL editing chrome so the board reads like a clean slideshow — toolbars,
+/* Hide ALL editing chrome so the board reads like a clean slideshow - toolbars,
    side panels (comments/library/stickers/shapes/frames/AI/share), selection and
    alignment affordances, and per-card edit buttons. */
 .board-presenting #toolbar,
@@ -4284,8 +4284,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Dim the editing canvas to a calm neutral so the focused slide pops. */
 .board-presenting #board-wrap{
   cursor:pointer;
-  /* Soft light studio backdrop (the app is light-only) so cards — including
-     transparent-background text cards — stay readable during a presentation. */
+  /* Soft light studio backdrop (the app is light-only) so cards - including
+     transparent-background text cards - stay readable during a presentation. */
   background-color:#E7E3DA;
   background-image:radial-gradient(circle,rgba(0,0,0,.05) .8px,transparent .8px);
 }
@@ -4389,7 +4389,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tb-zoom-display{display:none;}
   #export-btn{display:none;}
   #course-breadcrumb,.tb-sep,#btn-connect,#btn-fit,#btn-call,#presence-bar,#btn-follow-me,#auth-name,#auth-login-btn,
-  /* On phones the undo/redo buttons crowd the topbar — keep them off and rely on shortcuts / menu */
+  /* On phones the undo/redo buttons crowd the topbar - keep them off and rely on shortcuts / menu */
   #btn-undo,#btn-redo,
   /* Presentation is a desktop teaching mode; it is noisy and cramped on phones. */
   #btn-present,#board-present-bar,#board-present-hint,
@@ -4473,7 +4473,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .mq-btn{height:46px;min-width:44px;font-size:10.5px;}
   .mq-status{bottom:calc(100% + 8px);}
   /* (The "More" popover is styled as a full-width bottom sheet further down,
-     in the "Mobile sheets" block — no separate anchored-popover rule needed.) */
+     in the "Mobile sheets" block - no separate anchored-popover rule needed.) */
   #minimap{display:none!important;}
   #zoom-hint{display:none!important;}
   /* Push share/reconnect/follow banners above the quickbar */
@@ -4481,7 +4481,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;
   }
   /* Bigger card-close, anchor dots, resize handles for finger taps.
-     Apple HIG min 44pt — we expand the visual just enough not to overlap
+     Apple HIG min 44pt - we expand the visual just enough not to overlap
      content while expanding the hit area via padding/touch-action. */
   .card-close{width:32px!important;height:32px!important;font-size:18px!important;}
   .anchor-dot{width:20px!important;height:20px!important;}
@@ -4490,7 +4490,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .anchor-dot[data-anchor=bottom]{bottom:-9px!important;}
   .anchor-dot[data-anchor=left]  {left:-9px!important;}
   .anchor-dot[data-anchor=right] {right:-9px!important;}
-  /* iOS auto-zooms on inputs < 16px — keep sidebar/sticker/games search readable
+  /* iOS auto-zooms on inputs < 16px - keep sidebar/sticker/games search readable
      and prevent the zoom-jump that breaks layout when tapping a search field. */
   .sb-search input{font-size:16px!important;}
   .cfg-input,.cfg-select{font-size:16px!important;}
@@ -4508,7 +4508,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   @keyframes bvf-fade{from{opacity:0;}to{opacity:1;}}
   @keyframes bvf-up  {from{transform:translateY(100%);}to{transform:translateY(0);}}
 
-  /* User menu (account) — bottom sheet */
+  /* User menu (account) - bottom sheet */
   #user-menu{
     top:auto!important;right:0!important;left:0!important;
     bottom:0!important;
@@ -4526,7 +4526,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
   [data-theme="dark"] #user-menu::before{background:rgba(255,255,255,.20);}
 
-  /* More menu (board controls) — bottom sheet */
+  /* More menu (board controls) - bottom sheet */
   #more-menu{
     top:auto!important;right:0!important;left:0!important;
     bottom:0!important;
@@ -4551,7 +4551,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     min-height:44px;display:flex!important;align-items:center;
   }
 
-  /* Context menu (long-press) — bottom sheet */
+  /* Context menu (long-press) - bottom sheet */
   #ctx-menu{
     left:0!important;right:0!important;top:auto!important;bottom:0!important;
     width:100%!important;min-width:0!important;
@@ -4569,7 +4569,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   #ctx-menu .ctx-item{padding:13px 14px!important;font-size:15px!important;min-height:44px;border-radius:10px;}
   #ctx-menu .ctx-sep{margin:6px 0!important;}
 
-  /* Share panel — bottom sheet on mobile */
+  /* Share panel - bottom sheet on mobile */
   #share-panel{
     top:auto!important;right:0!important;left:0!important;bottom:0!important;
     width:100%!important;border-radius:22px 22px 0 0!important;
@@ -4888,7 +4888,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
   /* На телефоне скрыто только то, что там физически бессмысленно или опасно:
      список клавиатурных сокращений (клавиатуры нет), тонкая настройка
-     примагничивания и «очистить доску» — кнопка, стирающая всю работу, рядом
+     примагничивания и «очистить доску» - кнопка, стирающая всю работу, рядом
      с остальными пунктами на тач-экране. Генерация заданий, инструменты
      учителя, экспорт, фон и настройки открыты: учитель готовит урок с того
      устройства, которое у него в руках. */
@@ -4944,7 +4944,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
   /* CRITICAL: #more-menu / #user-menu are DOM children of #toolbar (z-index:1000).
      The sheet backdrop (body::after) is z-index:1980 in the root stacking
-     context, so it painted ON TOP of the trapped menu — dimming it and eating
+     context, so it painted ON TOP of the trapped menu - dimming it and eating
      every tap (menu looked greyish + unclickable). Lift the toolbar above the
      backdrop while a sheet is open so its descendant sheet becomes the real top
      hit-target. (Toolbar has no transform/filter on mobile, so its fixed-
@@ -5033,8 +5033,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
   body.board-phone-shell .empty-sub::after{
     /* Текст описывал прежний режим «только чтение». Создание на телефоне
-       включено, и обещать обратное — врать в самом заметном месте пустой доски. */
-    content:"Tap Add to put the first card down — sticky, text, frame or a ready lesson from the library.";
+       включено, и обещать обратное - врать в самом заметном месте пустой доски. */
+    content:"Tap Add to put the first card down - sticky, text, frame or a ready lesson from the library.";
     display:flex;
     align-items:center;
     justify-content:center;
@@ -5258,7 +5258,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .sp-item.active{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-color:var(--accent);}
 .sp-item svg{width:24px;height:24px;}
 
-/* FRAME PANEL — preset aspect-ratio grid */
+/* FRAME PANEL - preset aspect-ratio grid */
 #frame-panel{
   position:fixed;z-index:1300;background:var(--card-bg,#fff);
   border:1px solid rgba(0,0,0,.06);border-radius:14px;
@@ -5754,7 +5754,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ═══════════ Collected vocabulary panel (js/board-vocab.js) ═══════════
    Extraction from free-form stickies is a guess, so the teacher reviews and
-   unticks before the set becomes a card or a game. Plain rgb/rgba only —
+   unticks before the set becomes a card or a game. Plain rgb/rgba only -
    color-mix()/oklab() anywhere in a captured subtree breaks the html2canvas
    PNG/PDF export used elsewhere on the board. */
 #vocab-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(16,16,18,.46);
@@ -5800,7 +5800,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 
 /* ═══ Card held back from students (js/board-reveal.js) ═══
-   The student sees the space the card occupies and that it is coming — the
+   The student sees the space the card occupies and that it is coming - the
    content itself never reached the browser (backend/lib/boardVisibility.js). */
 .board-card.card-covered{background:repeating-linear-gradient(135deg,rgba(24,24,24,.045) 0 10px,rgba(24,24,24,.015) 10px 20px);
   border:1px dashed rgba(24,24,24,.22);border-radius:14px;display:grid;place-items:center}
@@ -5810,7 +5810,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .card-reveal-toggle.is-held{opacity:1}
 
 /* ═══ Held-back cards banner (js/board-reveal.js) ═══
-   Only on screen while at least one card is hidden — a teacher who covered
+   Only on screen while at least one card is hidden - a teacher who covered
    something before the lesson should not have to remember it later. */
 #reveal-bar{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:905;
   display:none;align-items:center;gap:10px;padding:6px 8px 6px 14px;border-radius:999px;

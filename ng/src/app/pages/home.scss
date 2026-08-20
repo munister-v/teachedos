@@ -107,7 +107,7 @@ html,body {
     inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
-/* Clock widget — dark card */
+/* Clock widget - dark card */
 #wg-clock {
   top:48px; right:24px;
   width:176px; padding:22px 20px 18px;
@@ -147,7 +147,7 @@ html,body {
 }
 .wg-streak-sub { font-size:11px; color: var(--text-2); margin-top:8px; line-height:1.4; }
 
-/* Today widget — dark card */
+/* Today widget - dark card */
 #wg-today {
   top:398px; right:24px;
   width:176px; padding:16px 18px;
@@ -257,7 +257,7 @@ html,body {
   width:1px; height:44px; background: rgba(202,201,183,0.22);
   margin:0 3px; align-self:center;
 }
-/* dock icon colors — updated palette */
+/* dock icon colors - updated palette */
 .di-icon.curriculum { background: linear-gradient(145deg,#C8E632,#8FAA2A); }
 .di-icon.flashcards  { background: linear-gradient(145deg,#1C1C1E,#2C2C2E); }
 .di-icon.progress    { background: linear-gradient(145deg,#C8E632,#9ab820); }
@@ -306,7 +306,7 @@ html,body {
   width:13px; height:13px; border-radius:50%; cursor:pointer;
   transition:filter .15s; flex-shrink:0;
 }
-/* Свои кнопки окна вместо кружков macOS — см. styles/main.css */
+/* Свои кнопки окна вместо кружков macOS - см. styles/main.css */
 .tl.close::before { content:'\\2715'; }
 .tl.min::before   { content:'\\2013'; }
 .tl.max::before   { content:'\\2197'; }
