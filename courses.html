@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=328">
+<link rel="manifest" href="manifest.json?v=329">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=328">
-<link rel="preload" as="style" href="styles/unify.css?v=328">
+<link rel="preload" as="style" href="styles/harmony.css?v=329">
+<link rel="preload" as="style" href="styles/unify.css?v=329">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -143,6 +143,11 @@ button{font-family:var(--font);cursor:pointer;}
   font-size:11px;font-weight:650;background:rgba(94,94,74,.12);color:var(--accent);
 }
 .ch-actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start;margin-top:4px;}
+.course-mobile-more{display:none;position:relative;}
+.course-mobile-more summary{list-style:none;display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:7px 12px;border:1.5px solid var(--border2);border-radius:10px;background:rgba(200,230,50,.08);color:var(--accent);font-size:12px;font-weight:650;cursor:pointer;}
+.course-mobile-more summary::-webkit-details-marker{display:none;}
+.course-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;gap:6px;min-width:170px;padding:8px;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 12px 28px rgba(5,5,23,.14);}
+.course-more-menu .btn{width:100%;text-align:left;justify-content:flex-start;}
 .btn{
   padding:7px 16px;border:none;border-radius:10px;
   font-size:12px;font-weight:650;transition:.15s;cursor:pointer;
@@ -350,10 +355,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=328" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=328">
-<link rel="stylesheet" href="styles/harmony.css?v=328">
-<link rel="stylesheet" href="styles/unify.css?v=328">
+<script src="theme.js?v=329" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=329">
+<link rel="stylesheet" href="styles/harmony.css?v=329">
+<link rel="stylesheet" href="styles/unify.css?v=329">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -404,6 +409,12 @@ button{font-family:var(--font);cursor:pointer;}
   #welcome{padding:28px 16px;min-height:44vh;}
   .ready-library{margin:12px 16px 0!important;grid-template-columns:1fr!important;}
   #course-header{border-radius:18px;margin:0 12px 0;padding:14px!important;}
+  #course-header .ch-actions{width:100%;align-items:center;}
+  #course-header .course-action-import,
+  #course-header .course-action-edit,
+  #course-header .course-action-delete{display:none;}
+  #course-header .course-action-module{flex:1;min-height:44px;}
+  #course-header .course-mobile-more{display:block;}
   .course-insights{margin:10px 12px 0!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   #modules-area{padding:12px!important;}
   .module-block{border-radius:16px;}
@@ -527,7 +538,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=328"></script>
+<script src="scripts/app-core.js?v=329"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -849,10 +860,18 @@ function renderCourseView({ course, modules, unassigned }) {
       </div>
     </div>
     <div class="ch-actions">
-      <button class="btn btn-ghost" onclick="openModuleForm('${course.id}')">+ Module</button>
-      <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">Import ready lessons</button>
-      <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">Edit</button>
-      <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">Delete</button>
+      <button class="btn btn-ghost course-action-module" onclick="openModuleForm('${course.id}')">+ Module</button>
+      <button class="btn btn-soft course-action-import" onclick="createTemplateModules('${course.id}')">Import ready lessons</button>
+      <button class="btn btn-ghost course-action-edit" onclick="openCourseForm('edit','${course.id}')">Edit</button>
+      <button class="btn btn-danger course-action-delete" onclick="deleteCourse('${course.id}')">Delete</button>
+      <details class="course-mobile-more">
+        <summary aria-label="More course actions">More</summary>
+        <div class="course-more-menu">
+          <button class="btn btn-soft" onclick="createTemplateModules('${course.id}')">Import ready lessons</button>
+          <button class="btn btn-ghost" onclick="openCourseForm('edit','${course.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">Delete</button>
+        </div>
+      </details>
     </div>`;
   renderCourseInsights(modules, unassigned);
   renderReadyLibrary(course.level);
@@ -1390,10 +1409,10 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=328" defer></script>
-<script src="scripts/mobile-perf.js?v=328" defer></script>
-<script src="scripts/mobile-nav.js?v=328"></script>
-<script src="scripts/mobile-zoom-guard.js?v=328" defer></script>
-<script src="pwa-boot.js?v=328" defer></script>
+<script src="scripts/nav-boost.js?v=329" defer></script>
+<script src="scripts/mobile-perf.js?v=329" defer></script>
+<script src="scripts/mobile-nav.js?v=329"></script>
+<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
+<script src="pwa-boot.js?v=329" defer></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=328">
+<link rel="manifest" href="manifest.json?v=329">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=328">
-<link rel="preload" as="style" href="styles/unify.css?v=328">
+<link rel="preload" as="style" href="styles/harmony.css?v=329">
+<link rel="preload" as="style" href="styles/unify.css?v=329">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -390,10 +390,10 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=328" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=328">
-<link rel="stylesheet" href="styles/harmony.css?v=328">
-<link rel="stylesheet" href="styles/unify.css?v=328">
+<script src="theme.js?v=329" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=329">
+<link rel="stylesheet" href="styles/harmony.css?v=329">
+<link rel="stylesheet" href="styles/unify.css?v=329">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -509,7 +509,6 @@ a{text-decoration:none;color:inherit;}
               <div class="mp-tl-t">No lessons yet</div>
               <div class="mp-tl-s">Tap + to add your first class.</div>
             </div>
-            <button class="mp-btn mp-btn-lime" onclick="openModal()">Add</button>
           </div>
         </div>
       </div>
@@ -711,7 +710,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=328"></script>
+<script src="scripts/app-core.js?v=329"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -999,7 +998,6 @@ function renderMobileProSchedule(_unused) {
           <div class="mp-tl-t">No lessons</div>
           <div class="mp-tl-s">${isToday ? 'A light day. Tap + to add one.' : 'Nothing scheduled for this day.'}</div>
         </div>
-        <button class="mp-btn mp-btn-lime" onclick="openModal()">Add</button>
       </div>
     </div>`;
     return;
@@ -2049,11 +2047,11 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=328"></script>
-<script src="scripts/nav-boost.js?v=328" defer></script>
-<script src="scripts/mobile-perf.js?v=328" defer></script>
-<script src="scripts/mobile-nav.js?v=328"></script>
-<script src="pwa-boot.js?v=328" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=328" defer></script>
+<script src="pwa.js?v=329"></script>
+<script src="scripts/nav-boost.js?v=329" defer></script>
+<script src="scripts/mobile-perf.js?v=329" defer></script>
+<script src="scripts/mobile-nav.js?v=329"></script>
+<script src="pwa-boot.js?v=329" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
 </body>
 </html>

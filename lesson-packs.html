@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<link rel="manifest" href="manifest.json?v=328">
+<link rel="manifest" href="manifest.json?v=329">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,13 +9,13 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=328">
-<link rel="preload" as="style" href="styles/unify.css?v=328">
+<link rel="preload" as="style" href="styles/harmony.css?v=329">
+<link rel="preload" as="style" href="styles/unify.css?v=329">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lesson Packs · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=328">
+<link rel="stylesheet" href="styles/fonts.css?v=329">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -248,6 +248,7 @@ a{text-decoration:none;color:inherit;}
   }
   .lp-mob-top img{width:28px;height:28px;border-radius:7px;}
   .lp-mob-top-title{font-size:17px;font-weight:650;letter-spacing:-.01em;color:var(--text);}
+  .lp-mob-build{margin-left:auto;min-height:44px;padding:0 13px;border:0;border-radius:11px;background:var(--lime);color:var(--lime-text);font:700 12px var(--font);white-space:nowrap;box-shadow:0 4px 12px rgba(168,196,42,.18);}
   .page-eyebrow,.page-title,.page-sub{display:none;}
   .search-wrap{margin-bottom:12px;}
   .level-tabs{margin-bottom:14px;}
@@ -277,10 +278,10 @@ a{text-decoration:none;color:inherit;}
   a[href]:after{content:none!important;}
 }
 </style>
-<script src="theme.js?v=328" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=328">
-<link rel="stylesheet" href="styles/harmony.css?v=328">
-<link rel="stylesheet" href="styles/unify.css?v=328">
+<script src="theme.js?v=329" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=329">
+<link rel="stylesheet" href="styles/harmony.css?v=329">
+<link rel="stylesheet" href="styles/unify.css?v=329">
 </head>
 <body>
 
@@ -328,6 +329,7 @@ a{text-decoration:none;color:inherit;}
     <div class="lp-mob-top">
       <a href="index.html"><img src="logo-sm.png" alt="TeachEd"></a>
       <span class="lp-mob-top-title">Lesson Packs</span>
+      <button class="lp-mob-build" type="button" onclick="openPackBuilder()">Build pack</button>
     </div>
     <div class="page-eyebrow">§ TeachEd · Ready-to-use</div>
     <div class="page-title">Lesson <em>Packs</em></div>
@@ -402,13 +404,13 @@ a{text-decoration:none;color:inherit;}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=328"></script>
-<script src="scripts/lesson-packs-app.js?v=328"></script>
-<script src="scripts/mobile-nav.js?v=328"></script>
-<script src="pwa.js?v=328"></script>
-<script src="scripts/nav-boost.js?v=328" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=328" defer></script>
-<script src="scripts/mobile-perf.js?v=328" defer></script>
-<script src="pwa-boot.js?v=328" defer></script>
+<script src="scripts/app-core.js?v=329"></script>
+<script src="scripts/lesson-packs-app.js?v=329"></script>
+<script src="scripts/mobile-nav.js?v=329"></script>
+<script src="pwa.js?v=329"></script>
+<script src="scripts/nav-boost.js?v=329" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
+<script src="scripts/mobile-perf.js?v=329" defer></script>
+<script src="pwa-boot.js?v=329" defer></script>
 </body>
 </html>

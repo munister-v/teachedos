@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=328">
+<link rel="manifest" href="manifest.json?v=329">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -119,13 +119,42 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .err{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.2);color:#c62828;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px}
 
 @media(max-width:600px){
-  .wrap{padding:20px 14px 80px}
+  .nav{padding:0 14px}
+  .nav-back{min-height:44px;padding:8px 10px}
+  .wrap{padding:20px 14px calc(32px + env(safe-area-inset-bottom,0px))}
+  .hero{text-align:left;margin-bottom:20px}
+  .hero h1{font-size:30px}
+  .hero p{font-size:14px;line-height:1.5}
+  .current{padding:16px;margin-bottom:18px;border-radius:18px}
+  .current-head{align-items:flex-start;gap:10px}
+  .current-icon{font-size:26px}
+  .current-name{font-size:16px}
+  .pill{width:100%;margin-left:0;text-align:center}
+  .usage{grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .usage-row{padding:9px 10px}
+  .usage-row .u-top{font-size:10px;gap:8px}
+  .usage-row .u-top span:last-child{white-space:nowrap}
+  .toggle-row{position:sticky;top:52px;z-index:10;padding:4px 0 10px;background:linear-gradient(var(--bg) 72%,transparent)}
+  .cycle-toggle{width:100%;margin:0 auto 12px;gap:2px;padding:3px;border-radius:13px}
+  .cycle-toggle button{flex:1;min-height:44px;padding:7px 4px;font-size:12px}
+  .plans{grid-template-columns:1fr;gap:10px;margin-bottom:22px}
+  .plan{padding:20px 16px;border-radius:18px}
+  .plan.popular::before{font-size:10px;padding:3px 10px}
+  .plan-price{font-size:28px}
+  .plan-feat{gap:5px;font-size:12.5px}
+  .pay-box{padding:20px 16px;border-radius:20px}
+  .pay-box h2{font-size:18px}
+  .pay-step{gap:10px}
+  .step-num{width:30px;height:30px;font-size:13px}
   .iban-number{font-size:15px;letter-spacing:.04em}
+  .iban-display{padding:16px}
+  .iban-meta{gap:12px}
+  .copy-btn,.submit-btn{min-height:44px}
 }
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=328">
-<link rel="stylesheet" href="styles/unify.css?v=328">
-<link rel="stylesheet" href="styles/mobile.css?v=328">
+<link rel="stylesheet" href="styles/harmony.css?v=329">
+<link rel="stylesheet" href="styles/unify.css?v=329">
+<link rel="stylesheet" href="styles/mobile.css?v=329">
 </head>
 <body>
 
@@ -381,7 +410,7 @@ function renderCycleToggle() {
   ];
   $('cycle-toggle').innerHTML = cycles.map(c => {
     const save = c.discount ? `<span class="save">save ${Math.round(c.discount * 100)}%</span>` : '';
-    return `<button data-cycle="${c.key}" class="${c.key === selectedCycle ? 'on' : ''}" onclick="setCycle('${c.key}')">${cycleLabel(c.key)}${save}</button>`;
+    return `<button type="button" data-cycle="${c.key}" class="${c.key === selectedCycle ? 'on' : ''}" aria-pressed="${c.key === selectedCycle}" onclick="setCycle('${c.key}')">${cycleLabel(c.key)}${save}</button>`;
   }).join('');
 }
 
@@ -412,8 +441,9 @@ function renderPlans() {
     const period = selectedCycle === 'monthly'
       ? 'billed monthly'
       : (total != null ? `${fmtMoney(total, cur)} billed ${selectedCycle}${q && q.savings > 0 ? ` · save ${fmtMoney(q.savings, cur)}` : ''}` : '');
+    const interactive = isCurrent ? 'aria-disabled="true"' : `role="button" tabindex="0" aria-pressed="${selectedPlan === key}" aria-label="Choose ${name}" onclick="selectPlan('${key}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlan('${key}')}"`;
     return `<div class="plan ${key === 'school' ? 'popular' : ''} ${isCurrent ? 'current-plan' : ''} ${selectedPlan === key ? 'selected' : ''}"
-                 id="plan-${key}" ${isCurrent ? '' : `onclick="selectPlan('${key}')"`}>
+                 id="plan-${key}" ${interactive}>
       ${isCurrent ? '<div class="plan-current-tag">✓ Your current plan</div>' : ''}
       <div class="plan-name">${PLAN_ICONS[key]} ${name}</div>
       <div class="plan-price">${fmtMoney(monthly, cur)} <span>/mo</span></div>
@@ -539,6 +569,6 @@ async function cancelPendingPayment() {
 
 init();
 </script>
-<script src="pwa-boot.js?v=328" defer></script>
+<script src="pwa-boot.js?v=329" defer></script>
 </body>
 </html>

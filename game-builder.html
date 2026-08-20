@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=328">
-<link rel="preload" as="style" href="styles/unify.css?v=328">
-<link rel="manifest" href="manifest.json?v=328">
+<link rel="preload" as="style" href="styles/harmony.css?v=329">
+<link rel="preload" as="style" href="styles/unify.css?v=329">
+<link rel="manifest" href="manifest.json?v=329">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -234,20 +234,35 @@ textarea{min-height:60px;resize:vertical}
 .pm-empty{grid-column:1/-1;text-align:center;padding:32px;color:#555;font-size:.9rem}
 .pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#777;font-size:.85rem}
 
+/* ── Mobile hand-off ─────────────────────────────────────────────────────── */
+@media(max-width:860px){
+  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(245,240,232,.96)}
+  .mdo-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid rgba(94,94,74,.14);border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(94,94,74,.16);text-align:center}
+  .mdo-ic{width:52px;height:52px;margin:0 auto 16px;display:grid;place-items:center;border-radius:16px;background:rgba(200,230,50,.22);font-size:26px}
+  .mdo-card h2{font-size:22px;line-height:1.08;letter-spacing:-.04em}
+  .mdo-card p{margin:10px auto 20px;max-width:310px;color:var(--text2);font-size:13px;line-height:1.5}
+  .mdo-actions{display:grid;gap:8px}
+  .mdo-btn{display:flex;align-items:center;justify-content:center;min-height:44px;padding:11px 14px;border-radius:13px;background:var(--accent);color:#fff;font:800 13px var(--font)}
+  .mdo-btn.secondary{background:rgba(200,230,50,.2);color:var(--accent);border:1px solid rgba(168,208,43,.45)}
+}
+
 </style>
-<script src="theme.js?v=328" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=328">
-<link rel="stylesheet" href="styles/harmony.css?v=328">
-<link rel="stylesheet" href="styles/unify.css?v=328">
+<script src="theme.js?v=329" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=329">
+<link rel="stylesheet" href="styles/harmony.css?v=329">
+<link rel="stylesheet" href="styles/unify.css?v=329">
 </head>
 <body>
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
-<div class="mobile-desktop-only" role="dialog" aria-label="Open on a computer">
+<div class="mobile-desktop-only" role="dialog" aria-modal="true" aria-labelledby="mdo-title">
   <div class="mdo-card">
     <div class="mdo-ic">🎮</div>
-    <h2>Build games on a computer</h2>
-    <p>The Game Builder uses drag-and-drop editing that needs a larger screen. Open TeachEd on a laptop or desktop to create games.</p>
-    <a class="mdo-btn" href="index.html">← Back to home</a>
+    <h2 id="mdo-title">Build games on a computer</h2>
+    <p>Game Builder uses drag-and-drop editing, so it works best on a laptop or desktop.</p>
+    <div class="mdo-actions">
+      <a class="mdo-btn" href="index.html">← Back to home</a>
+      <a class="mdo-btn secondary" href="lesson-builder.html">Build a lesson instead</a>
+    </div>
   </div>
 </div>
 <nav id="nav">
@@ -490,9 +505,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=328"></script>
-<script src="scripts/vocab-loader.js?v=328"></script>
-<script src="scripts/game-builder-app.js?v=328"></script>
+<script src="scripts/app-core.js?v=329"></script>
+<script src="scripts/vocab-loader.js?v=329"></script>
+<script src="scripts/game-builder-app.js?v=329"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -506,9 +521,9 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=328" defer></script>
-<script src="scripts/mobile-nav.js?v=328"></script>
-<script src="scripts/mobile-zoom-guard.js?v=328" defer></script>
-<script src="pwa-boot.js?v=328" defer></script>
+<script src="scripts/mobile-perf.js?v=329" defer></script>
+<script src="scripts/mobile-nav.js?v=329"></script>
+<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
+<script src="pwa-boot.js?v=329" defer></script>
 </body>
 </html>
