@@ -1,0 +1,577 @@
+/*
+  Teacher tool builder — a quiet, task-first layer.
+  The form and its result are the interface; status furniture stays out of the way.
+*/
+#tool-builder-panel{
+  --tb-ink:#20211d;
+  --tb-muted:#77786e;
+  --tb-line:#e4e4dc;
+  --tb-surface:#ffffff;
+  --tb-wash:#f6f6f1;
+  --tb-lime:#c9e747;
+  background:rgba(25,26,22,.54);
+  backdrop-filter:blur(5px);
+  padding:24px;
+  z-index:10000;
+}
+
+#tool-builder-panel .tbuilder-box{
+  width:min(1060px,100%);
+  max-height:min(88dvh,780px);
+  overflow:auto;
+  padding:0;
+  border:1px solid rgba(255,255,255,.58);
+  border-radius:20px;
+  background:var(--tb-surface);
+  box-shadow:0 28px 72px rgba(12,13,10,.25);
+  color:var(--tb-ink);
+}
+
+#tool-builder-panel .tbuilder-top{
+  margin:0;
+  padding:23px 28px 20px;
+  border-bottom:1px solid var(--tb-line);
+  align-items:flex-start;
+}
+
+#tool-builder-panel .tbuilder-kicker{
+  color:#85867c;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+
+#tool-builder-panel .tbuilder-title{
+  max-width:620px;
+  margin:4px 0 3px;
+  color:#171814;
+  font-size:26px;
+  font-weight:680;
+  line-height:1.08;
+  letter-spacing:-.035em;
+}
+
+#tool-builder-panel .tbuilder-sub{
+  max-width:580px;
+  color:var(--tb-muted);
+  font-size:13px;
+  font-weight:500;
+  line-height:1.45;
+}
+
+#tool-builder-panel .tbuilder-close{
+  width:40px;
+  height:40px;
+  border-radius:9px;
+  background:#f0f0eb;
+  color:#464740;
+  box-shadow:none;
+  transition:background .15s ease,color .15s ease;
+}
+
+#tool-builder-panel .tbuilder-close:hover{
+  background:#e4e4dd;
+  color:#171814;
+}
+
+#tool-builder-panel .tbuilder-close:focus-visible,
+#tool-builder-panel .tbuilder-btn:focus-visible,
+#tool-builder-panel .tbuilder-more-actions summary:focus-visible,
+#tool-builder-panel .tbuilder-menu-item:focus-visible{
+  outline:3px solid rgba(201,231,71,.55);
+  outline-offset:2px;
+}
+
+#tool-builder-panel .tbuilder-layout{
+  grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);
+  gap:0;
+}
+
+#tool-builder-panel .tbuilder-form,
+#tool-builder-panel .tbuilder-preview{
+  min-width:0;
+  padding:24px 28px 28px;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-form{
+  background:var(--tb-surface);
+}
+
+#tool-builder-panel .tbuilder-preview{
+  min-height:480px;
+  background:var(--tb-wash);
+  border-left:1px solid var(--tb-line);
+}
+
+/* One calm sentence is enough to explain readiness. The live status remains
+   accessible, but is not duplicated visually beside the sentence. */
+#tool-builder-panel .tbuilder-brief{
+  display:block;
+  margin:0 0 20px;
+  padding:0 0 14px;
+  border:0;
+  border-bottom:1px solid var(--tb-line);
+  border-radius:0;
+  background:transparent;
+}
+
+#tool-builder-panel .tbuilder-brief-top{
+  align-items:flex-start;
+  gap:9px;
+}
+
+#tool-builder-panel .tbuilder-review-dot{
+  width:7px;
+  height:7px;
+  margin-top:5px;
+  background:#9b9c92;
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-brief.ready .tbuilder-review-dot{background:#6f8467;box-shadow:none;}
+#tool-builder-panel .tbuilder-brief.attention .tbuilder-review-dot{background:#b4873f;box-shadow:none;}
+#tool-builder-panel .tbuilder-brief.needs-input .tbuilder-review-dot{background:#b4685d;box-shadow:none;}
+
+#tool-builder-panel .tbuilder-brief-copy strong{
+  color:#55564e;
+  font:750 11px/1.25 var(--font);
+  letter-spacing:0;
+  text-transform:none;
+}
+
+#tool-builder-panel .tbuilder-brief-copy small{
+  margin-top:2px;
+  color:var(--tb-muted);
+  font:500 12px/1.4 var(--font);
+}
+
+#tool-builder-panel .tbuilder-form-status{
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
+#tool-builder-panel .tbuilder-form label{
+  margin:17px 0 7px;
+  color:#77786e;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+
+#tool-builder-panel .tbuilder-row{
+  gap:12px;
+}
+
+#tool-builder-panel .tb-field-wrap{
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  transition:none;
+}
+
+#tool-builder-panel .tb-field-wrap:focus-within{
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-form input,
+#tool-builder-panel .tbuilder-form select,
+#tool-builder-panel .tbuilder-form textarea{
+  min-height:44px;
+  padding:11px 12px;
+  border:1px solid transparent !important;
+  border-radius:8px !important;
+  background:#f3f3ee !important;
+  color:var(--tb-ink) !important;
+  box-shadow:none !important;
+  font-size:13px;
+  font-weight:560 !important;
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+
+#tool-builder-panel .tbuilder-form textarea{
+  min-height:98px;
+}
+
+#tool-builder-panel .tbuilder-form input::placeholder,
+#tool-builder-panel .tbuilder-form textarea::placeholder{
+  color:#9c9d92 !important;
+}
+
+#tool-builder-panel .tbuilder-form input:focus,
+#tool-builder-panel .tbuilder-form select:focus,
+#tool-builder-panel .tbuilder-form textarea:focus{
+  border-color:#9baa40 !important;
+  background:#fff !important;
+  box-shadow:0 0 0 3px rgba(201,231,71,.27) !important;
+}
+
+#tool-builder-panel .tbuilder-choice-row{
+  gap:3px;
+  padding:3px;
+  border:0;
+  border-radius:9px;
+  background:#f1f1ec;
+}
+
+#tool-builder-panel .tbuilder-choice-row button{
+  min-height:40px;
+  border-radius:7px;
+  color:#696a61;
+  font-size:12px;
+  font-weight:650;
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-choice-row button:hover{
+  background:#e7e7df;
+  color:#31322d;
+}
+
+#tool-builder-panel .tbuilder-choice-row button.active{
+  background:#2c2d28;
+  color:#fff;
+  box-shadow:none;
+}
+
+/* Character counts and helper prose only appear while correcting an error or
+   actively working in the field. They should not become a second column of UI. */
+#tool-builder-panel .tb-field-meta{
+  display:none;
+  margin-top:5px;
+  color:#85867b;
+  font-size:10px;
+}
+
+#tool-builder-panel .tb-field-wrap:focus-within .tb-field-meta,
+#tool-builder-panel .tb-field-wrap.tb-field-invalid .tb-field-meta,
+#tool-builder-panel .tb-field-wrap.tb-field-attention .tb-field-meta{
+  display:flex;
+}
+
+#tool-builder-panel .tb-field-wrap.tb-field-invalid{
+  border:0;
+  background:transparent;
+}
+
+#tool-builder-panel .tb-field-wrap.tb-field-invalid input,
+#tool-builder-panel .tb-field-wrap.tb-field-invalid textarea{
+  border-color:#bd675d !important;
+  background:#fffafa !important;
+}
+
+#tool-builder-panel .tb-field-wrap.tb-field-required input,
+#tool-builder-panel .tb-field-wrap.tb-field-required textarea{
+  border-color:transparent !important;
+  background:#f3f3ee !important;
+}
+
+#tool-builder-panel .tb-field-wrap.tb-field-required:focus-within input,
+#tool-builder-panel .tb-field-wrap.tb-field-required:focus-within textarea{
+  border-color:#9baa40 !important;
+  background:#fff !important;
+}
+
+#tool-builder-panel .tbuilder-field-action{
+  min-height:28px;
+  padding:4px 7px;
+  border:0;
+  border-radius:6px;
+  background:#e7e7df;
+  color:#55564e;
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-actions{
+  align-items:center;
+  gap:8px;
+  margin-top:24px;
+}
+
+#tool-builder-panel .tbuilder-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:10px 13px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#5b5c54;
+  box-shadow:none;
+  font-size:12px;
+  font-weight:680;
+  line-height:1;
+  text-decoration:none;
+  transition:background .15s ease,color .15s ease,opacity .15s ease;
+}
+
+#tool-builder-panel .tbuilder-btn:hover{
+  background:#ecece6;
+  color:#252620;
+}
+
+#tool-builder-panel .tbuilder-btn.lime,
+#tool-builder-panel .tbuilder-btn.blue{
+  background:#2b2c27;
+  color:#fff;
+}
+
+#tool-builder-panel .tbuilder-btn.lime:hover,
+#tool-builder-panel .tbuilder-btn.blue:hover{
+  background:#121310;
+  color:#fff;
+}
+
+#tool-builder-panel .tbuilder-add-wrap{
+  display:inline-flex;
+}
+
+/* A destination cannot be chosen before there is a draft, so do not reserve a
+   disabled button for it. It appears in the same stable place once useful. */
+#tool-builder-panel .tbuilder-btn.blue:disabled,
+#tool-builder-panel .tbuilder-btn.blue[disabled]{
+  display:none;
+}
+
+#tool-builder-panel .tbuilder-more-actions{
+  position:relative;
+  margin-left:auto;
+}
+
+#tool-builder-panel .tbuilder-more-actions summary{
+  display:flex;
+  align-items:center;
+  min-height:42px;
+  padding:0 9px;
+  border-radius:8px;
+  color:#696a61;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:650;
+  list-style:none;
+}
+
+#tool-builder-panel .tbuilder-more-actions summary::-webkit-details-marker{display:none;}
+#tool-builder-panel .tbuilder-more-actions summary:hover{background:#ecece6;color:#252620;}
+
+#tool-builder-panel .tbuilder-more-menu{
+  position:absolute;
+  right:0;
+  bottom:calc(100% + 8px);
+  z-index:70;
+  display:none;
+  width:180px;
+  padding:5px;
+  border:1px solid var(--tb-line);
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 14px 30px rgba(17,18,14,.14);
+}
+
+#tool-builder-panel .tbuilder-more-actions[open] .tbuilder-more-menu{display:grid;gap:1px;}
+#tool-builder-panel .tbuilder-more-menu .tbuilder-btn{width:100%;justify-content:flex-start;min-height:36px;padding:8px 9px;}
+
+#tool-builder-panel .tbuilder-add-menu{
+  min-width:244px;
+  padding:5px;
+  border:1px solid var(--tb-line);
+  border-radius:10px;
+  box-shadow:0 14px 30px rgba(17,18,14,.14);
+}
+
+#tool-builder-panel .tbuilder-menu-item{
+  border-radius:7px;
+  padding:9px;
+}
+
+#tool-builder-panel .tbuilder-menu-item:hover{background:#f0f0e9;}
+#tool-builder-panel .tbuilder-menu-sep{border-top-color:var(--tb-line);}
+
+#tool-builder-panel .tbuilder-preview-head{
+  margin-bottom:16px;
+}
+
+#tool-builder-panel .tbuilder-preview-title{
+  color:#77786e;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+
+#tool-builder-panel .tbuilder-chip{display:none;}
+
+#tool-builder-panel .tbuilder-output{
+  gap:0;
+  max-height:calc(min(88dvh,780px) - 168px);
+}
+
+#tool-builder-panel .tbuilder-empty{
+  min-height:330px;
+  place-items:center;
+  padding:28px;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#9a9b91;
+  font-size:13px;
+  font-weight:550;
+  line-height:1.5;
+}
+
+#tool-builder-panel .tbuilder-empty strong{
+  display:none;
+}
+
+#tool-builder-panel .tbuilder-section{
+  padding:15px 0;
+  border:0;
+  border-bottom:1px solid var(--tb-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  transition:none;
+}
+
+#tool-builder-panel .tbuilder-section:first-child{padding-top:0;}
+#tool-builder-panel .tbuilder-section:hover{
+  transform:none;
+  border-color:var(--tb-line);
+  box-shadow:none;
+}
+
+#tool-builder-panel .tbuilder-section h4{
+  color:#2b2c27;
+  font-size:13px;
+  font-weight:680;
+}
+
+#tool-builder-panel .tbuilder-section p,
+#tool-builder-panel .tbuilder-section li{
+  color:#66675f;
+  font-weight:500;
+}
+
+/* Generated output starts as a document header, not another floating card. */
+#tool-builder-panel .tt-result-head{
+  gap:9px;
+  margin:0 0 12px;
+  padding:0 0 12px;
+  border:0;
+  border-bottom:1px solid var(--tb-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  animation:none;
+}
+
+#tool-builder-panel .tt-result-icon{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#e8e8e1;
+  box-shadow:none;
+  font-size:15px;
+}
+
+#tool-builder-panel .tt-result-title{
+  color:#2b2c27;
+  font-size:13px;
+  font-weight:700;
+}
+
+#tool-builder-panel .tt-result-chips{gap:0;margin-top:3px;}
+
+#tool-builder-panel .tt-rc{
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  color:#85867b;
+  font-size:8.5px;
+}
+
+#tool-builder-panel .tt-rc.accent{background:transparent;color:#6e6f67;}
+#tool-builder-panel .tt-rc + .tt-rc::before{content:'·';margin:0 6px;color:#b0b0a7;}
+
+#tool-builder-panel .tt-edit-hint{
+  margin:0 0 8px;
+  color:#96978e;
+  font-size:9px;
+  font-weight:550;
+}
+
+#tool-builder-panel .tbuilder-output.tt-improving::before{
+  height:2px;
+  border-radius:0;
+  background:linear-gradient(90deg,transparent,rgba(109,130,71,.75),transparent);
+}
+
+@media (max-width:760px){
+  #tool-builder-panel{
+    padding:0;
+    align-items:flex-end;
+  }
+
+  #tool-builder-panel .tbuilder-box{
+    max-height:92dvh;
+    border-width:1px 0 0;
+    border-radius:18px 18px 0 0;
+  }
+
+  #tool-builder-panel .tbuilder-top{
+    padding:20px 18px 16px;
+  }
+
+  #tool-builder-panel .tbuilder-title{font-size:23px;}
+  #tool-builder-panel .tbuilder-layout{grid-template-columns:1fr;}
+  #tool-builder-panel .tbuilder-form,
+  #tool-builder-panel .tbuilder-preview{padding:20px 18px 24px;}
+  #tool-builder-panel .tbuilder-preview{
+    min-height:300px;
+    border-top:1px solid var(--tb-line);
+    border-left:0;
+  }
+
+  #tool-builder-panel .tbuilder-actions{
+    position:sticky;
+    bottom:-24px;
+    z-index:3;
+    margin:20px -18px -24px;
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,255,255,.96);
+    border-top:1px solid var(--tb-line);
+  }
+
+  #tool-builder-panel .tbuilder-btn,
+  #tool-builder-panel .tbuilder-more-actions summary{min-height:44px;}
+
+  #tool-builder-panel .tbuilder-more-actions{margin-left:0;}
+  #tool-builder-panel .tbuilder-more-menu{
+    right:auto;
+    left:0;
+    width:min(220px,calc(100vw - 36px));
+  }
+
+  #tool-builder-panel .tbuilder-output{max-height:none;}
+  #tool-builder-panel .tbuilder-empty{min-height:250px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #tool-builder-panel .tbuilder-close,
+  #tool-builder-panel .tbuilder-form input,
+  #tool-builder-panel .tbuilder-form select,
+  #tool-builder-panel .tbuilder-form textarea,
+  #tool-builder-panel .tbuilder-btn{transition:none;}
+}

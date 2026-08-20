@@ -63,15 +63,22 @@ body{
 .status.success{color:var(--green)}
 .helper{margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6}
 @media (max-width: 840px){
-  .shell{grid-template-columns:1fr}
-  .hero{padding:28px 24px}
-  .panel{padding:28px 22px}
-  .hero-title{font-size:30px}
+  body{align-items:flex-start;padding:0}
+  .shell{grid-template-columns:1fr;min-height:100dvh;border-radius:0;border-inline:0;box-shadow:none}
+  .hero{padding:max(env(safe-area-inset-top,0px),24px) 22px 22px;gap:0}
+  .hero-title{font-size:30px;max-width:18ch}
+  .hero-sub{font-size:14px;line-height:1.5}
+  .hero-points{display:none}
+  .panel{padding:24px 18px max(32px,env(safe-area-inset-bottom,0px))}
+  .panel-title{font-size:24px}
+  .invite-meta{margin-top:16px;padding:14px}
+  .form{margin-top:18px;gap:12px}
+  .input,.btn{min-height:48px}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=329">
-<link rel="stylesheet" href="styles/harmony.css?v=329">
-<link rel="stylesheet" href="styles/unify.css?v=329">
+<link rel="stylesheet" href="styles/mobile.css?v=330">
+<link rel="stylesheet" href="styles/harmony.css?v=330">
+<link rel="stylesheet" href="styles/unify.css?v=330">
 </head>
 <body>
   <div class="shell">
@@ -113,7 +120,7 @@ body{
         <button class="btn" id="submit-btn" type="submit">Create Account</button>
       </form>
 
-      <div class="status" id="status"></div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
       <div class="helper">Need a fresh link? Ask your administrator to generate a new invite from the admin panel.</div>
     </section>
   </div>
@@ -224,7 +231,7 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=329" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
+<script src="scripts/nav-boost.js?v=330" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=330" defer></script>
 </body>
 </html>

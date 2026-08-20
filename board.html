@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=329">
+<link rel="manifest" href="manifest.json?v=330">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,11 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=329">
-<link rel="stylesheet" href="styles/auth.css?v=329">
-<link rel="stylesheet" href="styles/mobile.css?v=329">
-<link rel="stylesheet" href="styles/harmony.css?v=329">
-<link rel="stylesheet" href="styles/unify.css?v=329">
+<link rel="stylesheet" href="styles/board.css?v=330">
+<link rel="stylesheet" href="styles/auth.css?v=330">
+<link rel="stylesheet" href="styles/mobile.css?v=330">
+<link rel="stylesheet" href="styles/harmony.css?v=330">
+<link rel="stylesheet" href="styles/unify.css?v=330">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=330">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -379,8 +380,8 @@
   <button class="tb-icon-btn" id="btn-layout" style="display:none;" aria-hidden="true"></button>
   <div class="tb-divider"></div>
   <button id="btn-upgrade" title="Upgrade to Pro" onclick="showUpgradeModal('default')" style="display:none;">⚡ Upgrade</button>
-  <button class="tb-btn-primary" id="btn-share" title="Share board" onclick="openSharePanel()">
-    <span>Share</span>
+  <button class="tb-btn-primary" id="btn-share" title="Share board" aria-controls="share-panel" aria-expanded="false" onclick="openSharePanel()">
+    <svg class="tb-share-icon" aria-hidden="true"><use href="#bi-share"/></svg><span>Share</span>
   </button>
   <div id="auth-chip" class="tb-auth-chip" style="display:none;" onclick="showUserMenu()">
     <span id="auth-avatar" class="tb-auth-avatar">🧑‍🏫</span>
@@ -1001,46 +1002,14 @@
     </div>
     <div class="tbuilder-layout">
       <div class="tbuilder-form">
-        <!-- ОДИН БЛОК СОСТОЯНИЯ ВМЕСТО ЧЕТЫРЁХ.
-
-             Перед первым полем стояли четыре карточки подряд: «01 · Task brief»
-             с советом, строка черновика, разбор брифа и план сборки. Три из них
-             говорили одно и то же разными словами («Add source text» / «Source
-             text needed» / «Needs text»), а поля, ради которых окно и
-             открывают, начинались ниже сгиба.
-
-             Теперь это одна карточка: строка состояния сверху, под ней — что
-             именно не хватает, и полоска «как это будет собрано». Совет
-             «дайте генератору ясную цель» убран: он повторял подзаголовок
-             самого окна. -->
         <div class="tbuilder-brief" id="tbuilder-brief-review" aria-live="polite">
           <div class="tbuilder-brief-top">
             <span class="tbuilder-review-dot" aria-hidden="true"></span>
             <div class="tbuilder-brief-copy">
-              <strong id="tbuilder-brief-review-heading">Brief check</strong>
-              <small id="tbuilder-brief-review-copy">Add context and the builder will check it as you type.</small>
+              <strong id="tbuilder-brief-review-heading">Add the material</strong>
+              <small id="tbuilder-brief-review-copy">The tool will use it to make a first classroom draft.</small>
             </div>
-            <div class="tbuilder-form-status" id="tbuilder-form-status" aria-live="polite">Ready for a topic</div>
-          </div>
-          <div class="tbuilder-brief-review-items" id="tbuilder-brief-review-items"></div>
-          <div class="tbuilder-generation-plan" id="tbuilder-generation-plan">
-            <div class="tbuilder-generation-plan-head">
-              <div><span class="tbuilder-plan-eyebrow">Draft route</span><strong id="tbuilder-plan-heading">Classroom task plan</strong></div>
-              <span class="tbuilder-plan-status" id="tbuilder-plan-status">Choose a tool</span>
-            </div>
-            <div class="tbuilder-plan-metrics">
-              <span class="tbuilder-plan-metric"><small>Format</small><strong id="tbuilder-plan-format">—</strong></span>
-              <span class="tbuilder-plan-metric"><small>Input</small><strong id="tbuilder-plan-input">—</strong></span>
-              <span class="tbuilder-plan-metric"><small>Output</small><strong id="tbuilder-plan-output">—</strong></span>
-            </div>
-            <p id="tbuilder-plan-copy">The plan will explain how the generator will use your brief.</p>
-          </div>
-          <div class="tbuilder-draft-bar">
-            <div class="tbuilder-draft-state" id="tbuilder-draft-state" aria-live="polite">Draft stays on this device</div>
-            <div class="tbuilder-draft-actions">
-              <span class="tbuilder-shortcut"><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
-              <button type="button" class="tbuilder-inline-btn" id="tbuilder-clear-btn" onclick="clearTeacherToolBuilderFields()">Clear fields</button>
-            </div>
+            <div class="tbuilder-form-status" id="tbuilder-form-status" aria-live="polite">Add source text</div>
           </div>
         </div>
         <div class="tbuilder-row">
@@ -1121,10 +1090,9 @@ polite request</textarea>
           <div class="tb-field-meta"><span>Constraints, learner needs, or a desired classroom outcome.</span><span id="tbuilder-extra-meta">0 characters</span></div>
         </div>
         <div class="tbuilder-actions">
-          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">✦ Create draft</button>
-          <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Optional smart rewrite. Heavy local WebLLM is opt-in only.">Polish draft</button>
+          <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">Create draft</button>
           <div class="tbuilder-add-wrap" id="tbuilder-add-wrap">
-            <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="toggleAddToBoardMenu()" disabled>＋ Add to board ▾</button>
+            <button class="tbuilder-btn blue" id="tbuilder-add-btn" onclick="toggleAddToBoardMenu()" disabled>Add to board</button>
             <div class="tbuilder-add-menu" id="tbuilder-add-menu" role="menu">
               <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('worksheet')"><span>📄</span><div><strong>As worksheet</strong><small>Styled, print-ready sheet</small></div></button>
               <button class="tbuilder-menu-item" onclick="applyTeacherToolBuilderToBoard('quiz')"><span>📝</span><div><strong>As interactive quiz</strong><small>Students take it, auto-scored</small></div></button>
@@ -1132,9 +1100,16 @@ polite request</textarea>
               <div class="tbuilder-menu-sep"></div>
             </div>
           </div>
-          <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none" title="Generate again for a different result">↺ Retry</button>
-          <button class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy</button>
-          <a class="tbuilder-btn ghost" href="teacher-tools.html" style="text-decoration:none;">Full hub →</a>
+          <details class="tbuilder-more-actions">
+            <summary aria-label="More builder actions">More</summary>
+            <div class="tbuilder-more-menu">
+              <button class="tbuilder-btn ghost" id="tbuilder-ai-btn" onclick="generateTeacherToolBuilder('ai')" title="Optional smart rewrite. Heavy local WebLLM is opt-in only.">Refine with AI</button>
+              <button class="tbuilder-btn ghost" id="tbuilder-regen-btn" onclick="generateTeacherToolBuilder('fast')" style="display:none">Try another</button>
+              <button type="button" class="tbuilder-btn ghost" onclick="copyTeacherToolBuilderOutput()">Copy text</button>
+              <button type="button" class="tbuilder-btn ghost" id="tbuilder-clear-btn" onclick="clearTeacherToolBuilderFields()">Clear fields</button>
+              <a class="tbuilder-btn ghost" href="teacher-tools.html">Open tools hub</a>
+            </div>
+          </details>
         </div>
       </div>
       <div class="tbuilder-preview">
@@ -1143,7 +1118,7 @@ polite request</textarea>
           <div class="tbuilder-chip" id="tbuilder-chip">not generated</div>
         </div>
         <div class="tbuilder-output" id="tbuilder-output">
-          <div class="tbuilder-empty">Choose a tool from the left panel.<br>Then create a real classroom task here.</div>
+          <div class="tbuilder-empty">Your draft will appear here.</div>
         </div>
       </div>
     </div>
@@ -2023,12 +1998,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=329"></script>
-<script src="scripts/tt-text-core.js?v=329"></script>
-<script src="scripts/board-app.js?v=329"></script>
-<script src="js/board-vocab.js?v=329"></script>
-<script src="js/board-reveal.js?v=329"></script>
-<script src="js/teacher-tool-board-composer.js?v=329"></script>
+<script src="js/teacher-tools-data.js?v=330"></script>
+<script src="scripts/tt-text-core.js?v=330"></script>
+<script src="scripts/board-app.js?v=330"></script>
+<script src="js/board-vocab.js?v=330"></script>
+<script src="js/board-reveal.js?v=330"></script>
+<script src="js/teacher-tool-board-composer.js?v=330"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2036,7 +2011,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=329" defer></script>
+<script src="pwa-boot.js?v=330" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2044,24 +2019,45 @@ polite request</textarea>
   <span id="reconnect-msg">Reconnecting to server…</span>
 </div>
 
-<!-- Share & Invite panel -->
-<div id="share-panel">
+<!-- Share hub: link, classroom members, or a reusable Community lesson. -->
+<div id="share-panel" role="dialog" aria-label="Share board" aria-modal="false">
   <div id="share-panel-head">
-    <span id="share-panel-title">📎 Share Board</span>
-    <button class="sp-close" onclick="closeSharePanel()">×</button>
+    <span id="share-panel-title">Share board</span>
+    <button class="sp-close" type="button" aria-label="Close share options" onclick="closeSharePanel(true)">×</button>
   </div>
   <div id="share-panel-body">
+    <section class="sp-view" id="sp-home-view">
+      <p class="sp-hub-copy">Choose how you want to share this board.</p>
+      <div class="sp-destination-list">
+        <button class="sp-destination" id="sp-dest-link" type="button" onclick="spShowView('link')">
+          <span class="sp-destination-token">LINK</span>
+          <span><strong>Share a link</strong><small>Let someone open this exact board.</small></span>
+        </button>
+        <button class="sp-destination" id="sp-dest-invite" type="button" onclick="spShowView('invite')">
+          <span class="sp-destination-token">CLASS</span>
+          <span><strong>Invite students</strong><small id="sp-dest-invite-copy">Give students access to this board.</small></span>
+        </button>
+        <button class="sp-destination community" id="sp-dest-community" type="button" onclick="spShowView('community')">
+          <span class="sp-destination-token">COMM</span>
+          <span><strong>Publish a lesson</strong><small id="sp-dest-community-copy">Turn this board into a reusable Community lesson.</small></span>
+        </button>
+      </div>
+    </section>
+
     <!-- Board link -->
-    <div>
+    <section class="sp-view" id="sp-link-view" hidden>
+      <button class="sp-back" type="button" onclick="spShowView('home')">← All sharing options</button>
       <div class="sp-section-label">Board link</div>
       <div class="sp-link-row">
         <input class="sp-link-input" id="sp-link-input" readonly>
         <button class="sp-copy-btn" onclick="spCopyLink()">Copy</button>
         <button class="sp-copy-btn sp-native-btn" id="sp-native-share-btn" onclick="spNativeShare()" style="display:none;">Share</button>
       </div>
-    </div>
+    </section>
+
     <!-- Invite by email -->
-    <div id="sp-invite-section" style="display:none;">
+    <section class="sp-view" id="sp-invite-view" hidden>
+      <button class="sp-back" type="button" onclick="spShowView('home')">← All sharing options</button>
       <div class="sp-section-label">Invite student by email</div>
       <div class="sp-invite-row">
         <input class="sp-email-input" id="sp-email-input" type="email" placeholder="student@email.com"
@@ -2069,19 +2065,29 @@ polite request</textarea>
         <button class="sp-invite-btn" onclick="spInvite()">Invite</button>
       </div>
       <div class="sp-err" id="sp-err"></div>
-    </div>
-    <!-- Current members -->
-    <div id="sp-members-section" style="display:none;">
       <div class="sp-section-label">Students on this board</div>
       <div id="sp-members-list"></div>
-    </div>
+    </section>
+
+    <section class="sp-view" id="sp-community-view" hidden>
+      <button class="sp-back" type="button" onclick="spShowView('home')">← All sharing options</button>
+      <div class="sp-community-kicker">Community lesson</div>
+      <h2 class="sp-community-title">Publish a reusable lesson</h2>
+      <p class="sp-community-copy">We will publish a snapshot of this board, so later edits stay private until you publish a new version.</p>
+      <ul class="sp-community-points">
+        <li>Add title, level, description and tags</li>
+        <li>Generate an image preview for the lesson card</li>
+        <li>Let teachers preview and copy it to their own board</li>
+      </ul>
+      <button class="sp-community-continue" id="sp-community-continue" type="button" onclick="spOpenCommunityPublisher()">Continue to lesson details →</button>
+    </section>
   </div>
 </div>
-<script src="pwa.js?v=329"></script>
-<script src="scripts/nav-boost.js?v=329" defer></script>
-<script src="scripts/mobile-perf.js?v=329" defer></script>
-<script src="scripts/mobile-nav.js?v=329"></script>
-<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
+<script src="pwa.js?v=330"></script>
+<script src="scripts/nav-boost.js?v=330" defer></script>
+<script src="scripts/mobile-perf.js?v=330" defer></script>
+<script src="scripts/mobile-nav.js?v=330"></script>
+<script src="scripts/mobile-zoom-guard.js?v=330" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

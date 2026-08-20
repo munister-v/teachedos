@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#F5F0E8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=329">
+<link rel="stylesheet" href="styles/fonts.css?v=330">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -99,7 +99,17 @@ a{text-decoration:none;color:inherit;}
 .side-instructions{font-size:12px;color:var(--text-2);background:var(--bg);padding:10px;border-radius:10px;line-height:1.5;white-space:pre-wrap;}
 
 @media (max-width:760px){
-  #runner-side{width:100%;border-left:none;border-top:1px solid var(--border);max-height:40vh;}
+  #runner-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;padding:max(env(safe-area-inset-top,0px),10px) 12px 10px;}
+  #runner-top > .runner-btn:first-child{grid-column:1;grid-row:1;}
+  #runner-top > div[style]{grid-column:2;grid-row:1;align-self:center;}
+  #runner-progress{grid-column:1/-1;grid-row:2;width:100%;min-width:0;max-width:none;}
+  #btn-prev{grid-column:1;grid-row:3;min-width:44px;padding:0;font-size:0;}
+  #btn-prev::before{content:'←';font-size:18px;}
+  #btn-next,#btn-submit{grid-column:2;grid-row:3;min-height:44px;}
+  .runner-btn{min-height:44px;}
+  #runner-cardwrap{align-items:flex-start;padding:12px;}
+  #runner-card-host{width:100%;height:min(600px,calc(100dvh - 220px));}
+  #runner-side{width:100%;border-left:none;border-top:1px solid var(--border);max-height:32vh;padding:12px;}
   #runner-main{flex-direction:column;}
 }
 
@@ -107,10 +117,10 @@ a{text-decoration:none;color:inherit;}
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=329" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=329">
-<link rel="stylesheet" href="styles/harmony.css?v=329">
-<link rel="stylesheet" href="styles/unify.css?v=329">
+<script src="theme.js?v=330" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=330">
+<link rel="stylesheet" href="styles/harmony.css?v=330">
+<link rel="stylesheet" href="styles/unify.css?v=330">
 </head>
 <body>
 
@@ -465,8 +475,8 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=329" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
-<script src="pwa-boot.js?v=329" defer></script>
+<script src="scripts/nav-boost.js?v=330" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=330" defer></script>
+<script src="pwa-boot.js?v=330" defer></script>
 </body>
 </html>

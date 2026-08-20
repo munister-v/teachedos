@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=329">
+<link rel="manifest" href="manifest.json?v=330">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -57,11 +57,92 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=329" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=329">
-<link rel="stylesheet" href="styles/harmony.css?v=329">
-<link rel="stylesheet" href="styles/unify.css?v=329">
+<script src="theme.js?v=330" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=330">
+<link rel="stylesheet" href="styles/harmony.css?v=330">
+<link rel="stylesheet" href="styles/unify.css?v=330">
 <style>
+  body .publisher-intro{
+    margin:-6px 0 16px;
+    color:#626252;
+    font-size:12px;
+    line-height:1.5;
+  }
+  body .lesson-preview{
+    position:relative;
+    isolation:isolate;
+    min-height:164px;
+    margin:0 0 16px;
+    padding:15px;
+    overflow:hidden;
+    border-radius:18px;
+    color:#fff;
+    background:linear-gradient(135deg,#20291f 0%,#435246 62%,#68745d 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 10px 22px rgba(47,61,46,.14);
+  }
+  body .lesson-preview::before{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    right:-46px;
+    top:-64px;
+    width:190px;
+    height:190px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(200,230,50,.5),rgba(200,230,50,0) 68%);
+  }
+  body .lesson-preview-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  body .lesson-preview-kicker{font:800 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.68);}
+  body .lesson-preview-level{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:3px 8px;border-radius:999px;background:#C8E632;color:#1C1C1E;font:900 10px var(--mono);letter-spacing:.05em;}
+  body .lesson-preview-title{max-width:92%;margin-top:15px;font-size:20px;font-weight:750;line-height:1.05;letter-spacing:-.04em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  body .lesson-preview-meta{min-height:17px;margin-top:7px;color:rgba(255,255,255,.74);font:650 10px var(--mono);letter-spacing:.025em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  body .lesson-preview-canvas{display:grid;grid-template-columns:1.35fr .9fr .7fr;gap:5px;height:31px;margin-top:16px;}
+  body .lesson-preview-card{display:block;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:rgba(255,255,255,.15);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;}
+  body .lesson-preview-card:nth-child(2){background:rgba(200,230,50,.65);}
+  body .lesson-preview-card:nth-child(3){background:rgba(255,255,255,.28);}
+  body .publisher-meta-fields{display:grid;grid-template-columns:.75fr 1.2fr .9fr;gap:10px;}
+  body .publisher-note{display:flex;gap:7px;align-items:flex-start;margin:10px 1px 0;color:#777765;font-size:11px;line-height:1.42;}
+  body .publisher-note-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:16px;border-radius:50%;background:rgba(200,230,50,.28);color:#4e6100;font-size:10px;font-weight:900;}
+  body .community-lesson-card{min-height:0;padding:0;gap:0;border-color:rgba(28,28,30,.1);background:#fff;}
+  body .community-lesson-card::before{display:none;}
+  body .community-lesson-cover{position:relative;isolation:isolate;min-height:178px;overflow:hidden;padding:14px;background:linear-gradient(135deg,#28332a,#5d6e5e);}
+  body .community-lesson-cover::before{content:"";position:absolute;z-index:-1;right:-48px;top:-52px;width:172px;height:172px;border-radius:50%;background:radial-gradient(circle,rgba(200,230,50,.57),rgba(200,230,50,0) 69%);}
+  body .community-lesson-cover.cover-style-2{background:linear-gradient(135deg,#222a38,#5d617f);}
+  body .community-lesson-cover.cover-style-2::before{background:radial-gradient(circle,rgba(168,155,255,.68),rgba(168,155,255,0) 69%);}
+  body .community-lesson-cover.cover-style-3{background:linear-gradient(135deg,#3b2724,#855d50);}
+  body .community-lesson-cover.cover-style-3::before{background:radial-gradient(circle,rgba(255,194,128,.62),rgba(255,194,128,0) 69%);}
+  body .community-lesson-cover.cover-style-4{background:linear-gradient(135deg,#163339,#4d7971);}
+  body .community-lesson-cover.cover-style-4::before{background:radial-gradient(circle,rgba(123,235,202,.54),rgba(123,235,202,0) 69%);}
+  body .community-cover-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  body .community-cover-kind{font:800 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+  body .community-cover-level{display:inline-flex;align-items:center;justify-content:center;min-height:25px;padding:3px 8px;border-radius:999px;background:#C8E632;color:#171817;font:900 10px var(--mono);letter-spacing:.05em;}
+  body .community-cover-grid{position:absolute;z-index:1;top:50px;right:14px;bottom:37px;left:14px;display:grid;grid-template-columns:1.25fr .85fr .85fr;grid-template-rows:1fr 1fr;gap:5px;}
+  body .community-cover-block{display:block;min-height:0;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:rgba(255,255,255,.16);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;}
+  body .community-cover-block:nth-child(1){grid-row:1 / span 2;background:rgba(255,255,255,.25);}
+  body .community-cover-block:nth-child(2){background:rgba(200,230,50,.7);}
+  body .community-cover-block:nth-child(3){background:rgba(255,255,255,.12);}
+  body .community-cover-block:nth-child(4){grid-column:2 / span 2;background:rgba(255,255,255,.2);}
+  body .cover-style-2 .community-cover-block:nth-child(2){background:rgba(179,168,255,.75);}
+  body .cover-style-3 .community-cover-block:nth-child(2){background:rgba(255,198,129,.77);}
+  body .cover-style-4 .community-cover-block:nth-child(2){background:rgba(130,238,205,.74);}
+  body .community-cover-caption{position:absolute;z-index:2;bottom:13px;left:14px;color:rgba(255,255,255,.74);font:700 10px var(--mono);letter-spacing:.02em;}
+  body .community-lesson-body{display:flex;flex:1;flex-direction:column;padding:15px 16px 16px;}
+  body .community-lesson-title{margin:0;font-size:18px;font-weight:760;line-height:1.12;letter-spacing:-.035em;}
+  body .community-lesson-byline{display:flex;align-items:center;gap:7px;min-height:24px;margin-top:10px;color:#777765;font-size:11px;font-weight:650;}
+  body .community-author-avatar{display:inline-flex;align-items:center;justify-content:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:rgba(200,230,50,.3);color:#3e5000;font:900 9px var(--mono);}
+  body .community-lesson-desc{display:-webkit-box;min-height:56px;margin:12px 0 0;overflow:hidden;color:#555548;font-size:12px;line-height:1.5;-webkit-box-orient:vertical;-webkit-line-clamp:3;}
+  body .community-lesson-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:13px;}
+  body .community-lesson-meta span{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border-radius:999px;background:rgba(28,28,30,.055);color:#5c5c4d;font:750 9px var(--mono);letter-spacing:.02em;}
+  body .community-lesson-meta span:first-child{background:rgba(200,230,50,.24);color:#3d5000;}
+  body .community-card-tags{display:flex;gap:6px;flex-wrap:wrap;min-height:22px;margin:10px 0 0;}
+  body .community-topic-chip{display:inline-flex;align-items:center;min-width:0;max-width:100%;min-height:22px;padding:3px 7px;overflow:hidden;border:1px solid rgba(28,28,30,.07);border-radius:999px;background:rgba(28,28,30,.045);color:#656556;font:750 9px var(--mono);letter-spacing:.015em;text-overflow:ellipsis;white-space:nowrap;}
+  body .community-card-actions{display:flex;gap:8px;margin-top:14px;}
+  body .community-card-actions button{min-height:42px;}
+  body .community-primary-action{display:inline-flex;align-items:center;justify-content:center;flex:1;min-height:42px;border:0;border-radius:12px;padding:9px 11px;background:#1C1C1E;color:#fff;font:750 12px var(--font);cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s ease;}
+  body .community-primary-action:hover{background:#3e4a3f;transform:translateY(-1px);}
+  body .community-primary-action:active{transform:scale(.98);}
+  body .community-link-action{display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;border:1px solid rgba(28,28,30,.11);border-radius:12px;background:#fff;color:#555548;font:800 11px var(--mono);cursor:pointer;transition:background .15s ease,border-color .15s ease;}
+  body .community-link-action:hover{border-color:rgba(200,230,50,.65);background:rgba(200,230,50,.12);}
   body .comm-tab{
     color:#5E5E4A!important;
     letter-spacing:-.01em;
@@ -87,6 +168,17 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .stat-num{font-size:20px!important;}
     body .stat-label{font-size:8.5px!important;letter-spacing:.09em!important;}
     body .share-card{padding:20px!important;border-radius:22px!important;}
+    body .share-card input,body .share-card select{min-height:46px!important;font-size:16px!important;}
+    body .share-card textarea{min-height:104px!important;font-size:16px!important;}
+    body .lesson-preview{min-height:158px!important;}
+    body .publisher-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+    body .publisher-meta-fields .field:last-child{grid-column:1/-1;}
+    body .share-publish-btn{min-height:48px!important;}
+    body .community-lesson-cover{min-height:186px;}
+    body .community-lesson-body{padding:16px;}
+    body .community-lesson-title{font-size:19px;}
+    body .community-card-actions button{min-height:46px;}
+    body .community-link-action{flex-basis:46px;width:46px;}
     body .comm-tabs{
       display:grid!important;
       grid-template-columns:repeat(3,minmax(0,1fr))!important;
@@ -148,10 +240,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   <section class="hero">
     <div class="hero-card">
       <div class="eyebrow">TeachEd Community</div>
-      <h1>Ready-made boards teachers share with each other.</h1>
-      <p class="hero-copy">Publish your finished board as a lesson template: add a level, description, tags and link. Other teachers can open it and take the structure for themselves.</p>
+      <h1>Ready-made lessons teachers share with each other.</h1>
+      <p class="hero-copy">Turn a finished board into a copyable lesson: name it, add a level, skill, duration and a short teaching note. Other teachers can open it and take the structure for themselves.</p>
       <div class="hero-actions">
-        <button class="btn lime" onclick="document.getElementById('share-title').focus()">＋ Share board</button>
+        <button class="btn lime" onclick="focusCommunityPublisher()">＋ Share a lesson</button>
         <a class="btn ghost" href="board.html">Open my board</a>
       </div>
       <div class="community-stats" aria-label="Community summary">
@@ -160,25 +252,40 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <div class="stat-pill"><div class="stat-num" id="stat-games">0</div><div class="stat-label">Games</div></div>
       </div>
     </div>
-    <aside class="share-card">
-      <div class="share-title">Share board</div>
-      <div class="field">
-        <div class="label">Your board</div>
-        <select id="share-board"><option value="">Loading your boards…</option></select>
+    <aside class="share-card" aria-labelledby="publisher-heading">
+      <div class="share-title" id="publisher-heading">Publish a lesson</div>
+      <p class="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
+      <div class="lesson-preview" aria-label="Auto-generated lesson cover preview">
+        <div class="lesson-preview-top">
+          <span class="lesson-preview-kicker">Community lesson</span>
+          <span class="lesson-preview-level" id="share-preview-level">B1</span>
+        </div>
+        <div class="lesson-preview-title" id="share-preview-title">Your lesson title</div>
+        <div class="lesson-preview-meta" id="share-preview-meta">Choose a board to start</div>
+        <div class="lesson-preview-canvas" aria-hidden="true">
+          <span class="lesson-preview-card"></span><span class="lesson-preview-card"></span><span class="lesson-preview-card"></span>
+        </div>
       </div>
       <div class="field">
-        <div class="label">Title</div>
-        <input id="share-title" placeholder="B1 Speaking: Travel Problems">
+        <div class="label">Source board</div>
+        <select id="share-board" onchange="updatePublisherPreview()"><option value="">Loading your boards…</option></select>
+      </div>
+      <div class="field">
+        <div class="label">Lesson title</div>
+        <input id="share-title" placeholder="B1 Speaking: Travel Problems" oninput="updatePublisherPreview()">
+      </div>
+      <div class="publisher-meta-fields">
+        <div class="field"><div class="label">Level</div><select id="share-level" onchange="updatePublisherPreview()"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div>
+        <div class="field"><div class="label">Skill</div><select id="share-skill" onchange="updatePublisherPreview()"><option value="">Choose focus</option><option>Speaking</option><option>Grammar</option><option>Vocabulary</option><option>Reading</option><option>Writing</option><option>Listening</option><option>Mixed skills</option></select></div>
+        <div class="field"><div class="label">Duration</div><select id="share-duration" onchange="updatePublisherPreview()"><option value="">Not set</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
       </div>
       <div class="field">
         <div class="label">Description</div>
         <textarea id="share-desc" placeholder="Shortly explain what is inside this board and how to use it."></textarea>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="field"><div class="label">Level</div><select id="share-level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div>
-        <div class="field"><div class="label">Tags</div><input id="share-tags" placeholder="speaking, grammar"></div>
-      </div>
-      <button class="btn" id="publish-board-btn" style="width:100%;margin-top:4px" onclick="publishBoard()">Publish to Community</button>
+      <div class="field"><div class="label">Tags <span style="font-weight:600;text-transform:none;letter-spacing:0">(optional)</span></div><input id="share-tags" placeholder="speaking, grammar"></div>
+      <button class="btn share-publish-btn" id="publish-board-btn" style="width:100%;margin-top:4px" aria-describedby="publisher-note" onclick="publishBoard()">Publish lesson</button>
+      <p class="publisher-note" id="publisher-note"><span class="publisher-note-mark" aria-hidden="true">✓</span><span>This publishes a snapshot. Your original board stays private and editable.</span></p>
     </aside>
   </section>
 
@@ -192,11 +299,11 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   <!-- ══════ BOARDS SECTION ══════ -->
   <div id="tab-boards">
     <div class="section-head">
-      <div><div class="section-title">Community boards</div><div class="section-sub">Local gallery now, ready for shared public backend later.</div></div>
+      <div><div class="section-title">Community lessons</div><div class="section-sub">Published lesson snapshots, ready to copy into your own board.</div></div>
       <button class="btn ghost" onclick="loadBoards()">Refresh</button>
     </div>
     <div class="filters-row">
-      <input id="board-search" placeholder="Search boards, tags, descriptions…" oninput="renderCommunity()">
+      <input id="board-search" placeholder="Search lessons, tags, descriptions…" oninput="renderCommunity()">
       <select id="board-level" onchange="renderCommunity()">
         <option value="">All levels</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
       </select>
@@ -252,12 +359,13 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </main>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=329"></script>
-<script src="scripts/vocab-loader.js?v=329"></script>
+<script src="scripts/app-core.js?v=330"></script>
+<script src="scripts/vocab-loader.js?v=330"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
 const POST_KEY = 'teachedos_community_posts_v2';
+let _serverCommunityLessons = [];
 
 function setText(id, value) {
   const el = document.getElementById(id);
@@ -271,7 +379,7 @@ function renderSkeleton(gridId, count = 3) {
 }
 
 function updateCommunityStats() {
-  const posts = [...readPosts(), ...SAMPLE_POSTS];
+  const posts = getCommunityPosts();
   setText('stat-boards', posts.length);
   setText('stat-library', _communityLibrary.length || '—');
   setText('stat-games', COMMUNITY_GAMES.length);
@@ -285,6 +393,7 @@ const SAMPLE_POSTS = [
   {
     id:'sample-1', title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd',
     desc:'Warm-up, presentation cards, controlled practice and speaking prompts for Slavic learners.',
+    skill:'Grammar', duration:45,
     tags:['grammar','A2'],
     snapshot: { name:'A2 Articles: a/an/the', cards:[
       makeCard('sticky',60,60,260,120,{text:'🎯 Goal: Use a / an / the correctly in sentences.',color:'#fef3c7'}),
@@ -299,6 +408,7 @@ const SAMPLE_POSTS = [
   {
     id:'sample-2', title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd',
     desc:'Timeline board with examples, mini quiz and pair-speaking story cards.',
+    skill:'Grammar', duration:45,
     tags:['grammar','speaking'],
     snapshot: { name:'B1 Present Perfect Stories', cards:[
       makeCard('sticky',60,60,300,110,{text:'⏰ FORM:\nhas/have + past participle\n"I have visited Paris."',color:'#d1fae5'}),
@@ -312,6 +422,7 @@ const SAMPLE_POSTS = [
   {
     id:'sample-3', title:'B2 Debate Club', level:'B2', author:'TeachEd',
     desc:'Opinion cards, roles, vocabulary bank and feedback checklist for a full speaking lesson.',
+    skill:'Speaking', duration:60,
     tags:['speaking','debate'],
     snapshot: { name:'B2 Debate Club', cards:[
       makeCard('sticky',60,60,280,110,{text:'📢 Topic: "Social media does more harm than good."\nFor / Against',color:'#fce7f3'}),
@@ -329,6 +440,48 @@ function readPosts(){ try { return JSON.parse(localStorage.getItem(POST_KEY) || 
 function writePosts(posts){ localStorage.setItem(POST_KEY, JSON.stringify(posts)); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function assignmentToCommunityPost(assignment, dataOverride) {
+  const data = dataOverride || assignment.data || {};
+  const cardCount = Number(assignment.card_count ?? data.snapshot?.cards?.length ?? 0) || 0;
+  return {
+    id: `server-${assignment.id}`,
+    serverId: assignment.id,
+    title: assignment.title || 'Untitled lesson',
+    desc: assignment.description || '',
+    level: assignment.level || 'Mixed',
+    skill: assignment.skill || '',
+    duration: Number(assignment.duration ?? data.duration) || null,
+    tags: Array.isArray(assignment.tags) ? assignment.tags : [],
+    author: assignment.author_name || 'Teacher',
+    avatar: assignment.author_avatar || '',
+    cardCount,
+    snapshot: data.snapshot || null,
+    createdAt: assignment.published_at || assignment.created_at || new Date().toISOString(),
+  };
+}
+
+function getCommunityPosts() {
+  const seen = new Set();
+  return [..._serverCommunityLessons, ...readPosts(), ...SAMPLE_POSTS].filter(post => {
+    const key = post.serverId ? `server:${post.serverId}` : `local:${post.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function loadCommunityLessons() {
+  if (!token) { _serverCommunityLessons = []; return; }
+  try {
+    const response = await api('/api/library/community?kind=board');
+    if (!response.ok) throw new Error('Could not load community lessons');
+    const data = await response.json();
+    _serverCommunityLessons = (data.assignments || []).map(assignment => assignmentToCommunityPost(assignment));
+  } catch {
+    _serverCommunityLessons = [];
+  }
+}
+
 // ── Encode/decode board snapshot for URL sharing ───────────────
 function encodeSnapshot(snapshot) {
   try { return btoa(unescape(encodeURIComponent(JSON.stringify(snapshot)))); } catch { return ''; }
@@ -337,28 +490,103 @@ function decodeSnapshot(b64) {
   try { return JSON.parse(decodeURIComponent(escape(atob(b64)))); } catch { return null; }
 }
 
+function getSelectedPublisherBoard() {
+  const select = document.getElementById('share-board');
+  const option = select?.selectedOptions?.[0];
+  return {
+    id: select?.value || '',
+    name: option?.dataset?.name || '',
+    cardCount: Number(option?.dataset?.cards || 0),
+  };
+}
+
+function updatePublisherPreview() {
+  const board = getSelectedPublisherBoard();
+  const level = document.getElementById('share-level')?.value || 'Mixed';
+  const skill = document.getElementById('share-skill')?.value || '';
+  const duration = document.getElementById('share-duration')?.value || '';
+  const title = document.getElementById('share-title')?.value.trim() || board.name || 'Your lesson title';
+  const detail = [
+    skill,
+    duration ? `${duration} min` : '',
+    board.cardCount ? `${board.cardCount} cards` : (board.name ? 'Board snapshot' : 'Choose a board to start'),
+  ].filter(Boolean).join(' · ');
+
+  setText('share-preview-title', title);
+  setText('share-preview-level', level);
+  setText('share-preview-meta', detail);
+}
+
+function focusCommunityPublisher() {
+  const publisher = document.querySelector('.share-card');
+  publisher?.scrollIntoView({ behavior:'smooth', block:'start' });
+  requestAnimationFrame(() => document.getElementById('share-title')?.focus({ preventScroll:true }));
+}
+
+function canPublishCommunityLesson() {
+  if (!token) return false;
+  try {
+    const role = JSON.parse(localStorage.getItem('teachedos_user') || '{}').role;
+    return !role || role === 'teacher' || role === 'admin';
+  } catch {
+    return true;
+  }
+}
+
+function updatePublisherAvailability() {
+  const allowed = canPublishCommunityLesson();
+  const button = document.getElementById('publish-board-btn');
+  const note = document.getElementById('publisher-note')?.lastElementChild;
+  if (button) button.disabled = !allowed;
+  if (note) note.textContent = allowed
+    ? 'This publishes a snapshot. Your original board stays private and editable.'
+    : (token ? 'Only teacher accounts can publish lessons to Community.' : 'Sign in as a teacher to publish a lesson to Community.');
+  return allowed;
+}
+
 // ── Load boards list from API ──────────────────────────────────
 async function loadBoards() {
   setNavUser();
   renderSkeleton('community-grid');
   const sel = document.getElementById('share-board');
-  if (!token) {
-    sel.innerHTML = '<option value="">Sign in to share a synced board</option>';
+  const canPublish = updatePublisherAvailability();
+  if (!canPublish) {
+    sel.innerHTML = `<option value="">${token ? 'Teacher account required to publish' : 'Sign in to share a synced board'}</option>`;
   } else {
     try {
       const r = await api('/api/boards');
       const d = await r.json();
       const boards = d.boards || [];
       sel.innerHTML = boards.length
-        ? boards.map(b => `<option value="${esc(b.id)}" data-name="${esc(b.name)}">${esc(b.name)} · ${b.card_count||0} cards</option>`).join('')
+        ? boards.map(b => `<option value="${esc(b.id)}" data-name="${esc(b.name)}" data-cards="${Number(b.card_count)||0}">${esc(b.name)} · ${b.card_count||0} cards</option>`).join('')
         : '<option value="">No boards yet — create one first</option>';
     } catch {
       sel.innerHTML = '<option value="">Could not load boards</option>';
     }
   }
+  updatePublisherPreview();
+  await loadCommunityLessons();
   renderCommunity();
   updateCommunityStats();
   checkImportParam();
+  openCommunityPublisherFromBoard();
+}
+
+function openCommunityPublisherFromBoard() {
+  const boardId = new URLSearchParams(location.search).get('publishBoard');
+  if (!boardId) return;
+  const sel = document.getElementById('share-board');
+  const option = Array.from(sel?.options || []).find(item => item.value === boardId);
+  if (!option) {
+    toast('That board is not available to publish');
+    return;
+  }
+  sel.value = boardId;
+  const title = document.getElementById('share-title');
+  if (title && !title.value.trim()) title.value = option.dataset.name || option.textContent.split(' · ')[0];
+  updatePublisherPreview();
+  focusCommunityPublisher();
+  history.replaceState({}, '', location.pathname);
 }
 
 function setNavUser() {
@@ -375,57 +603,121 @@ async function publishBoard() {
   const publishBtn = document.getElementById('publish-board-btn');
   if (publishBtn) { publishBtn.disabled = true; publishBtn.textContent = 'Publishing…'; }
   try {
-    const sel = document.getElementById('share-board');
-    const boardId = sel.value;
-    const selectedName = sel.selectedOptions[0]?.dataset?.name || '';
+    if (!canPublishCommunityLesson()) { toast(token ? 'Teacher account required to publish' : 'Sign in as a teacher to publish'); return; }
+    const { id:boardId, name:selectedName } = getSelectedPublisherBoard();
+    if (!boardId) { toast('Choose a board to publish first'); return; }
     const title = document.getElementById('share-title').value.trim() || selectedName || 'Untitled';
     const desc  = document.getElementById('share-desc').value.trim() || 'Ready-to-use board from TeachEd.';
     const level = document.getElementById('share-level').value;
+    const skill = document.getElementById('share-skill').value;
+    const duration = Number(document.getElementById('share-duration').value) || null;
     const tags  = document.getElementById('share-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
     const author = document.getElementById('nav-name').textContent || 'Teacher';
 
-    // Try to fetch actual board cards from API
-    let snapshot = null;
-    if (token && boardId) {
-      try {
-        const r = await api('/api/boards/' + encodeURIComponent(boardId));
-        if (r.ok) {
-          const d = await r.json();
-          const board = d.board || {};
-          snapshot = { name: title, cards: board.cards || [], links: board.links || [] };
-        }
-      } catch {}
-    }
-    // Fallback: try localStorage
-    if (!snapshot) {
-      try {
-        const local = JSON.parse(localStorage.getItem('teachedos_board') || 'null');
-        if (local) snapshot = { name: title, cards: local.cards || [], links: local.links || [] };
-      } catch {}
-    }
+    // A community lesson is always an exact snapshot of the selected server board,
+    // never a live reference or whichever board happens to be cached locally.
+    const boardResponse = await api('/api/boards/' + encodeURIComponent(boardId));
+    const boardResult = await boardResponse.json().catch(() => ({}));
+    if (!boardResponse.ok) throw new Error(boardResult.error || 'Could not load the selected board');
+    const board = boardResult.board || {};
+    const boardData = board.data || board;
+    const snapshot = {
+      name: title,
+      cards: Array.isArray(boardData.cards) ? boardData.cards : [],
+      links: Array.isArray(boardData.links) ? boardData.links : (boardData.arrows || []),
+    };
 
-    const post = { id:'post-'+Date.now(), title, desc, level, tags, author, snapshot, createdAt:new Date().toISOString() };
-    writePosts([post, ...readPosts()]);
+    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, sourceBoardId:boardId, sourceBoardName:selectedName, snapshot, createdAt:new Date().toISOString() };
+    let publishedPost = post;
+    if (token) {
+      const response = await api('/api/library', {
+        method:'POST',
+        body:{
+          kind:'board',
+          title,
+          description:desc,
+          level,
+          skill,
+          tags,
+          visibility:'community',
+          data:{
+            snapshot_version:1,
+            sourceBoardId:boardId,
+            sourceBoardName:selectedName,
+            duration,
+            snapshot,
+          },
+        },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Could not publish this lesson');
+      publishedPost = assignmentToCommunityPost({ ...result.assignment, author_name:author }, {
+        snapshot_version:1,
+        sourceBoardId:boardId,
+        sourceBoardName:selectedName,
+        duration,
+        snapshot,
+      });
+      _serverCommunityLessons = [publishedPost, ..._serverCommunityLessons.filter(item => item.serverId !== publishedPost.serverId)];
+    } else {
+      writePosts([post, ...readPosts()]);
+    }
     renderCommunity();
     updateCommunityStats();
 
-    const link = buildShareLink(post);
+    const link = buildShareLink(publishedPost);
     navigator.clipboard?.writeText(link).catch(()=>{});
-    toast('✓ Published! Share link copied to clipboard');
-  } catch {
-    toast('Could not publish this board');
+    toast(token ? '✓ Published to Community — lesson link copied' : '✓ Saved on this device — sign in to publish it for teachers');
+  } catch (error) {
+    toast(error?.message || 'Could not publish this lesson');
   } finally {
-    if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = 'Publish to Community'; }
+    if (publishBtn) { publishBtn.disabled = !canPublishCommunityLesson(); publishBtn.textContent = 'Publish lesson'; }
   }
 }
 
 function buildShareLink(post) {
-  const base = location.origin + location.pathname; // .../community.html
-  if (post.snapshot) {
-    const encoded = encodeSnapshot(post.snapshot);
-    if (encoded) return base + '?import=' + encoded;
+  return buildLessonUrl(post);
+}
+
+function buildLessonUrl(post) {
+  const url = new URL('lesson-view.html', location.href);
+  if (post?.serverId) {
+    url.searchParams.set('id', post.serverId);
+    return url.href;
   }
-  return base;
+  if (!post?.snapshot) return url.href;
+  const payload = {
+    title: post.title,
+    desc: post.desc,
+    level: post.level,
+    skill: post.skill,
+    duration: post.duration,
+    tags: post.tags || [],
+    author: post.author,
+    createdAt: post.createdAt,
+    snapshot: post.snapshot,
+  };
+  const encoded = encodeSnapshot(payload);
+  if (encoded) url.searchParams.set('lesson', encoded);
+  return url.href;
+}
+
+function getAuthorInitials(name) {
+  return String(name || 'Teacher').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || 'T';
+}
+
+function lessonCoverHtml(post, cardCount) {
+  const seed = Array.from(String(post.id || post.title || '')).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const style = (seed % 4) + 1;
+  const caption = cardCount ? `${cardCount} activity cards` : 'Lesson snapshot';
+  return `<div class="community-lesson-cover cover-style-${style}" aria-hidden="true">
+    <div class="community-cover-head">
+      <span class="community-cover-kind">Board lesson</span>
+      <span class="community-cover-level">${esc(post.level || 'Mixed')}</span>
+    </div>
+    <div class="community-cover-grid"><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span></div>
+    <span class="community-cover-caption">${caption}</span>
+  </div>`;
 }
 
 // ── Render community grid ──────────────────────────────────────
@@ -433,35 +725,33 @@ function renderCommunity() {
   const grid = document.getElementById('community-grid');
   const q = (document.getElementById('board-search')?.value || '').trim().toLowerCase();
   const level = document.getElementById('board-level')?.value || '';
-  const posts = [...readPosts(), ...SAMPLE_POSTS].filter(p => {
-    const hay = [p.title, p.desc, p.author, p.level, ...(p.tags || [])].join(' ').toLowerCase();
+  const posts = getCommunityPosts().filter(p => {
+    const hay = [p.title, p.desc, p.author, p.level, p.skill, p.duration, ...(p.tags || [])].join(' ').toLowerCase();
     return (!level || p.level === level) && (!q || hay.includes(q));
   });
   if (!posts.length) {
-    grid.innerHTML = '<div class="empty">No community boards match this view. Clear filters or share the first one.</div>';
+    grid.innerHTML = '<div class="empty">No community lessons match this view. Clear filters or share the first one.</div>';
     updateCommunityStats();
     return;
   }
   grid.innerHTML = posts.map(p => {
-    const cardCount = p.snapshot?.cards?.length || 0;
-    const meta = cardCount ? ` · ${cardCount} cards` : '';
+    const cardCount = Number(p.cardCount) || p.snapshot?.cards?.length || 0;
+    const meta = [p.level || 'Mixed', p.skill || 'Lesson board', p.duration ? `${p.duration} min` : '', cardCount ? `${cardCount} cards` : ''].filter(Boolean);
     return `
-    <article class="board-card">
-      <div class="board-top">
-        <div class="board-ic">BRD</div>
-        <div>
-          <div class="board-name">${esc(p.title)}</div>
-          <div class="board-meta">${esc(p.author||'Teacher')} · ${esc(p.level||'Mixed')}${meta}</div>
-        </div>
-      </div>
-      <div class="board-desc">${esc(p.desc)}</div>
-      <div class="tags">${(p.tags||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
-      <div class="card-actions">
-        ${p.snapshot
-          ? `<button class="mini-btn" onclick='importBoard(${JSON.stringify(p.id)})'>Import to board →</button>`
-          : `<a class="mini-btn" href="board.html">Open board</a>`
+    <article class="board-card community-lesson-card">
+      ${lessonCoverHtml(p, cardCount)}
+      <div class="community-lesson-body">
+        <h3 class="community-lesson-title">${esc(p.title)}</h3>
+        <div class="community-lesson-byline"><span class="community-author-avatar" aria-hidden="true">${esc(getAuthorInitials(p.author))}</span><span>${esc(p.author||'Teacher')}</span><span aria-hidden="true">·</span><span>Shared lesson</span></div>
+        <p class="community-lesson-desc">${esc(p.desc || 'Ready-to-use lesson snapshot from TeachEd.')}</p>
+        <div class="community-lesson-meta">${meta.map(item => `<span>${esc(item)}</span>`).join('')}</div>
+        <div class="community-card-tags">${(p.tags||[]).slice(0,3).map(t=>`<span class="community-topic-chip">${esc(t)}</span>`).join('')}</div>
+        <div class="community-card-actions">
+        ${p.snapshot || p.serverId
+          ? `<a class="community-primary-action" href="${esc(buildLessonUrl(p))}">View lesson →</a>`
+          : `<a class="community-primary-action" href="board.html">Open board</a>`
         }
-        <button class="mini-btn alt" onclick='copyPostLink(${JSON.stringify(p.id)})'>Copy link</button>
+        </div>
       </div>
     </article>`;
   }).join('');
@@ -470,7 +760,7 @@ function renderCommunity() {
 
 // ── Get post by id ─────────────────────────────────────────────
 function findPost(id) {
-  return [...readPosts(), ...SAMPLE_POSTS].find(p => p.id === id);
+  return getCommunityPosts().find(p => p.id === id || p.serverId === id);
 }
 
 // ── Copy shareable link with board snapshot encoded ────────────
@@ -845,9 +1135,9 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=329" defer></script>
-<script src="scripts/mobile-nav.js?v=329"></script>
-<script src="scripts/mobile-zoom-guard.js?v=329" defer></script>
-<script src="pwa-boot.js?v=329" defer></script>
+<script src="scripts/mobile-perf.js?v=330" defer></script>
+<script src="scripts/mobile-nav.js?v=330"></script>
+<script src="scripts/mobile-zoom-guard.js?v=330" defer></script>
+<script src="pwa-boot.js?v=330" defer></script>
 </body>
 </html>

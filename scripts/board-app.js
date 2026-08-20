@@ -9025,11 +9025,10 @@ function _ttRefreshBriefReview() {
   const review = document.getElementById('tbuilder-brief-review');
   const heading = document.getElementById('tbuilder-brief-review-heading');
   const copy = document.getElementById('tbuilder-brief-review-copy');
-  const items = document.getElementById('tbuilder-brief-review-items');
   const tidyButton = document.getElementById('tbuilder-tidy-vocab');
   const cleanSourceButton = document.getElementById('tbuilder-clean-source');
   const tool = activeTeacherToolBuilder;
-  if (!review || !heading || !copy || !items || !tool) return;
+  if (!review || !heading || !copy || !tool) return;
   const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
   const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
   const rawVocab = String(document.getElementById('tbuilder-vocab')?.value || '');
@@ -9063,11 +9062,11 @@ function _ttRefreshBriefReview() {
   review.classList.toggle('ready', !hasNeeds && !hasAttention);
   review.classList.toggle('attention', !hasNeeds && hasAttention);
   review.classList.toggle('needs-input', hasNeeds);
-  heading.textContent = hasNeeds ? 'Brief needs input' : (hasAttention ? 'Brief is usable' : 'Brief looks balanced');
+  heading.textContent = 'Task input';
+  const missing = checks.filter(check => check.type === 'needs').map(check => check.text.toLowerCase());
   copy.textContent = hasNeeds
-    ? 'Add the missing detail to unlock a reliable draft.'
-    : (hasAttention ? 'You can create now; one small improvement may sharpen the result.' : 'Context is clear enough to generate a focused activity.');
-  items.innerHTML = checks.map(check => `<span class="tbuilder-review-item ${check.type}">${check.text}</span>`).join('');
+    ? `Add ${missing.join(' and ')} to create the draft.`
+    : (hasAttention ? 'You can create now; a little more detail will sharpen the result.' : 'Ready for a first draft. You can edit the result on the board.');
   if (tidyButton) {
     const compact = _ttUniqueVocabulary(vocab).join('\n');
     const needsTidy = !!rawVocab.trim() && compact !== rawVocab.trim();
@@ -9081,55 +9080,6 @@ function _ttRefreshBriefReview() {
     cleanSourceButton.textContent = _ttTidySourceUndo !== null ? 'Undo clean' : 'Clean text';
   }
   document.getElementById('tb-wrap-vocab')?.classList.toggle('tb-field-attention', duplicateCount > 0);
-}
-
-function _ttRefreshGenerationPlan() {
-  const tool = activeTeacherToolBuilder;
-  if (!tool) return;
-  const heading = document.getElementById('tbuilder-plan-heading');
-  const status = document.getElementById('tbuilder-plan-status');
-  const copy = document.getElementById('tbuilder-plan-copy');
-  const format = document.getElementById('tbuilder-plan-format');
-  const input = document.getElementById('tbuilder-plan-input');
-  const output = document.getElementById('tbuilder-plan-output');
-  if (!heading || !status || !copy || !format || !input || !output) return;
-  const level = String(document.getElementById('tbuilder-level')?.value || 'B1');
-  const requestedCount = Number(document.getElementById('tbuilder-count')?.value || 0);
-  const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
-  const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
-  const vocab = _ttVocabularyEntries(document.getElementById('tbuilder-vocab')?.value || '');
-  const sourceWords = _ttSourceWordCount(source);
-  const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
-  const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
-  const sourceRelevant = needsSource || TT_MEDIA_SET.has(tool.id);
-  const oneArtifact = TT_NO_COUNT_SET.has(tool.id);
-  const missingSource = needsSource && !source;
-  const missingVocab = needsVocab && !vocab.length;
-  heading.textContent = `${level} ${tool.kind} plan`;
-  format.textContent = tool.kind;
-  output.textContent = oneArtifact ? 'One task' : `${requestedCount || 12} items`;
-  if (missingSource) input.textContent = 'Text needed';
-  else if (missingVocab) input.textContent = 'Terms needed';
-  else if (sourceRelevant && sourceWords) input.textContent = `${sourceWords} words`;
-  else if (vocab.length) input.textContent = `${vocab.length} terms`;
-  else input.textContent = 'Topic-led';
-  const blocked = missingSource || missingVocab;
-  status.classList.toggle('ready', !blocked);
-  status.classList.toggle('needs-input', blocked);
-  status.textContent = missingSource ? 'Needs text' : (missingVocab ? 'Needs terms' : 'Brief mapped');
-  if (missingSource) {
-    copy.textContent = `Paste the core text and the generator will build ${oneArtifact ? 'one classroom task' : `${requestedCount || 12} items`} from it.`;
-  } else if (missingVocab) {
-    copy.textContent = 'Add the target terms and the generator will keep every prompt anchored to them.';
-  } else if (sourceRelevant && sourceWords && vocab.length) {
-    copy.textContent = `The generator will use your ${sourceWords}-word source together with ${vocab.length} selected term${vocab.length === 1 ? '' : 's'}.`;
-  } else if (sourceRelevant && sourceWords) {
-    copy.textContent = `The generator will shape the activity from your ${sourceWords}-word source.`;
-  } else if (vocab.length) {
-    copy.textContent = `The generator will build the activity around ${vocab.length} selected term${vocab.length === 1 ? '' : 's'}.`;
-  } else {
-    copy.textContent = topic ? `The generator will shape the task around “${topic}”.` : 'Add one focused theme to make the task more specific.';
-  }
 }
 
 function tidyTeacherToolVocabulary() {
@@ -9255,7 +9205,6 @@ function _ttSyncFormReadiness(opts = {}) {
   });
   if (!ready && opts.attempted) document.getElementById(missing[0]?.input)?.focus();
   _ttRefreshBriefReview();
-  _ttRefreshGenerationPlan();
   return ready;
 }
 
@@ -11422,7 +11371,7 @@ function openTeacherToolBuilder(toolId) {
   document.getElementById('tbuilder-kicker').textContent = `${BOARD_TOOL_NAMES[tool.cat] || tool.cat} / ${tool.kind}`;
   document.getElementById('tbuilder-chip').textContent = 'ready';
   const icon = TT_EMPTY_ICONS[tool.cat] || TT_EMPTY_ART('<circle cx="12" cy="12" r="7.5"/><path d="M12 8.5v7M8.5 12h7"/>');
-  document.getElementById('tbuilder-output').innerHTML = `<div class="tbuilder-empty"><strong>${icon}</strong>Fill the fields and click Generate.<br>The result will preview here before landing on the board.</div>`;
+  document.getElementById('tbuilder-output').innerHTML = `<div class="tbuilder-empty"><strong>${icon}</strong>Your draft will appear here.</div>`;
   _ttAdaptFields(tool);
   _ttSetAddToBoard(false);
   _ttHideRetry();
@@ -12915,7 +12864,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates — keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '329';
+const TEACHEDOS_ASSET_VERSION = '330';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15870,11 +15819,33 @@ function loadBoardData(data) {
 // ── Share & Rename ────────────────────────────────────────────
 // ── Share panel ───────────────────────────────────────────────
 let _sharePanelOpen = false;
+let _shareCanInvite = false;
+let _shareCanPublish = false;
 
 function getShareUrl() {
   if (currentBoardId) return location.origin + location.pathname + '?id=' + currentBoardId;
   forceSave && forceSave();
   return location.origin + location.pathname + '?local=1';
+}
+
+function spShowView(view) {
+  if (view === 'invite' && !_shareCanInvite) {
+    toast('Sync this board first to invite students');
+    view = 'home';
+  }
+  if (view === 'community' && !_shareCanPublish) {
+    toast('Only the signed-in board owner can publish a lesson');
+    view = 'home';
+  }
+  const titles = { home:'Share board', link:'Share a link', invite:'Invite students', community:'Publish a lesson' };
+  ['home', 'link', 'invite', 'community'].forEach(name => {
+    const section = document.getElementById(`sp-${name}-view`);
+    if (section) section.hidden = name !== view;
+  });
+  const title = document.getElementById('share-panel-title');
+  if (title) title.textContent = titles[view] || titles.home;
+  if (view === 'invite' && _shareCanInvite) spLoadMembers();
+  requestAnimationFrame(() => document.querySelector(`#sp-${view}-view button, #sp-${view}-view input`)?.focus());
 }
 
 function openSharePanel() {
@@ -15884,19 +15855,39 @@ function openSharePanel() {
   const url = getShareUrl();
   document.getElementById('sp-link-input').value = url;
   const canInvite = !!(currentBoardId && isOwner && currentUser);
-  document.getElementById('sp-invite-section').style.display = canInvite ? '' : 'none';
-  document.getElementById('sp-members-section').style.display = canInvite ? '' : 'none';
+  const canPublish = !!(currentBoardId && isOwner && currentUser && currentUser.role !== 'student');
+  _shareCanInvite = canInvite;
+  _shareCanPublish = canPublish;
+  const inviteDest = document.getElementById('sp-dest-invite');
+  const publishDest = document.getElementById('sp-dest-community');
+  if (inviteDest) inviteDest.disabled = !canInvite;
+  if (publishDest) publishDest.disabled = !canPublish;
+  const inviteCopy = document.getElementById('sp-dest-invite-copy');
+  const publishCopy = document.getElementById('sp-dest-community-copy');
+  if (inviteCopy) inviteCopy.textContent = canInvite ? 'Give students access to this board.' : 'Sync a board you own to invite students.';
+  if (publishCopy) publishCopy.textContent = canPublish ? 'Turn this board into a reusable Community lesson.' : 'Sync a board you own to publish it.';
   const nativeBtn = document.getElementById('sp-native-share-btn');
   if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
   if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
-  if (canInvite) spLoadMembers();
+  document.getElementById('btn-share')?.setAttribute('aria-expanded', 'true');
+  spShowView('home');
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 }
 
-function closeSharePanel() {
+function closeSharePanel(restoreFocus = false) {
   _sharePanelOpen = false;
   document.getElementById('share-panel').classList.remove('open');
+  document.getElementById('btn-share')?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) document.getElementById('btn-share')?.focus();
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
+}
+
+function spOpenCommunityPublisher() {
+  if (!_shareCanPublish || !currentBoardId) {
+    toast('Sync a board you own before publishing it');
+    return;
+  }
+  window.location.href = 'community.html?publishBoard=' + encodeURIComponent(currentBoardId);
 }
 
 function copyTextFallback(text) {
@@ -16005,7 +15996,7 @@ document.addEventListener('click', e => {
     const panel = document.getElementById('share-panel');
     const shareBtn = document.getElementById('btn-share');
     const membersBtn = document.getElementById('btn-members');
-    if (!panel.contains(e.target) && e.target !== shareBtn && e.target !== membersBtn) {
+    if (!panel.contains(e.target) && !shareBtn?.contains(e.target) && !membersBtn?.contains(e.target)) {
       closeSharePanel();
     }
   }

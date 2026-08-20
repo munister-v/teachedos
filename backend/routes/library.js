@@ -1,8 +1,11 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireTeacher } = require('../middleware/auth');
 
 const KINDS = ['lesson', 'quiz', 'game', 'board', 'other'];
+const COMMUNITY_SNAPSHOT_MAX_BYTES = 10 * 1024 * 1024;
+const COMMUNITY_SNAPSHOT_MAX_CARDS = 1200;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const cleanKind = k => (KINDS.includes(k) ? k : 'other');
 const clip = (s, n) => String(s ?? '').trim().slice(0, n);
 const cleanTags = t => {
@@ -10,6 +13,48 @@ const cleanTags = t => {
   if (typeof t === 'string') return t.split(',').map(x => x.trim()).filter(Boolean).slice(0, 12);
   return [];
 };
+
+function normalizeCommunityBoardData(raw, title) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { error: 'A board snapshot is required to publish this lesson' };
+  }
+  const snapshot = raw.snapshot;
+  if (!snapshot || typeof snapshot !== 'object' || !Array.isArray(snapshot.cards)) {
+    return { error: 'A board snapshot is required to publish this lesson' };
+  }
+  if (snapshot.cards.length > COMMUNITY_SNAPSHOT_MAX_CARDS) {
+    return { error: `A shared lesson can contain up to ${COMMUNITY_SNAPSHOT_MAX_CARDS} cards` };
+  }
+  const serialized = JSON.stringify(snapshot);
+  if (Buffer.byteLength(serialized, 'utf8') > COMMUNITY_SNAPSHOT_MAX_BYTES) {
+    return { error: 'This board snapshot is too large to publish' };
+  }
+  const rawDuration = Number(raw.duration);
+  return {
+    value: {
+      snapshot_version: Math.max(1, Math.floor(Number(raw.snapshot_version) || 1)),
+      source_board_id: clip(raw.source_board_id || raw.sourceBoardId, 64) || null,
+      source_board_name: clip(raw.source_board_name || raw.sourceBoardName, 255) || null,
+      duration: Number.isFinite(rawDuration) && rawDuration > 0 && rawDuration <= 600 ? Math.round(rawDuration) : null,
+      snapshot: { ...snapshot, name: clip(snapshot.name || title, 255) || 'Community lesson' },
+    }
+  };
+}
+
+async function assertSourceBoardOwnership(userId, data) {
+  const sourceBoardId = data?.source_board_id;
+  if (!sourceBoardId || !UUID_RE.test(sourceBoardId)) {
+    return { status:400, error:'Select one of your boards before publishing this lesson' };
+  }
+  const owned = await pool.query(
+    'SELECT 1 FROM boards WHERE id = $1 AND user_id = $2',
+    [sourceBoardId, userId]
+  );
+  if (!owned.rows.length) {
+    return { status:403, error:'Only the owner can publish a board snapshot to Community' };
+  }
+  return null;
+}
 
 // Metadata columns for list views (never ship the heavy `data`/`image` blobs in lists)
 const LIST_COLS = `id, kind, title, description, level, skill, tags,
@@ -50,6 +95,11 @@ router.get('/community', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT a.id, a.kind, a.title, a.description, a.level, a.skill, a.tags,
               (a.image IS NOT NULL) AS has_image, a.clone_count, a.published_at,
+              CASE WHEN jsonb_typeof(a.data #> '{snapshot,cards}') = 'array'
+                   THEN jsonb_array_length(a.data #> '{snapshot,cards}')
+                   ELSE 0 END AS card_count,
+              NULLIF(a.data->>'duration', '') AS duration,
+              NULLIF(a.data->>'snapshot_version', '') AS snapshot_version,
               u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
        WHERE ${where}
@@ -84,20 +134,34 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const b = req.body || {};
   try {
+    const kind = cleanKind(b.kind);
+    const visibility = b.visibility === 'community' ? 'community' : 'private';
+    if (visibility === 'community' && (req.user.role !== 'teacher' && req.user.role !== 'admin')) {
+      return res.status(403).json({ error: 'Teacher access required to publish to Community' });
+    }
+    let data = b.data || {};
+    if (visibility === 'community' && kind === 'board') {
+      const normalized = normalizeCommunityBoardData(data, b.title);
+      if (normalized.error) return res.status(400).json({ error: normalized.error });
+      data = normalized.value;
+      const ownershipError = await assertSourceBoardOwnership(req.user.id, data);
+      if (ownershipError) return res.status(ownershipError.status).json({ error: ownershipError.error });
+    }
     const { rows } = await pool.query(
-      `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, visibility, published_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $10 = 'community' THEN NOW() ELSE NULL END)
        RETURNING ${LIST_COLS}`,
       [
         req.user.id,
-        cleanKind(b.kind),
+        kind,
         clip(b.title, 255) || 'Untitled',
         clip(b.description, 2000),
         clip(b.level, 20),
         clip(b.skill, 40),
         JSON.stringify(cleanTags(b.tags)),
-        b.data || {},
+        data,
         b.image ? String(b.image).slice(0, 2_000_000) : null,
+        visibility,
       ]
     );
     res.status(201).json({ assignment: rows[0] });
@@ -123,6 +187,16 @@ router.patch('/:id', async (req, res) => {
   if (b.image !== undefined)       push('image', b.image ? String(b.image).slice(0, 2_000_000) : null);
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
   try {
+    if (b.data !== undefined || b.kind !== undefined) {
+      const current = await pool.query(
+        'SELECT kind, visibility FROM assignments WHERE id = $1 AND user_id = $2',
+        [req.params.id, req.user.id]
+      );
+      if (!current.rows.length) return res.status(404).json({ error: 'Not found or not owner' });
+      if (current.rows[0].kind === 'board' && current.rows[0].visibility === 'community') {
+        return res.status(409).json({ error: 'Published board lessons keep their snapshot and type. Unpublish and create a new version instead.' });
+      }
+    }
     const { rows } = await pool.query(
       `UPDATE assignments SET ${sets.join(', ')} WHERE id = $1 AND user_id = $2 RETURNING ${LIST_COLS}`,
       params
@@ -150,8 +224,19 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ── POST /api/library/:id/publish — share to community ──────────────────────
-router.post('/:id/publish', async (req, res) => {
+router.post('/:id/publish', requireTeacher, async (req, res) => {
   try {
+    const source = await pool.query(
+      'SELECT kind, data FROM assignments WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (!source.rows.length) return res.status(404).json({ error: 'Not found or not owner' });
+    if (source.rows[0].kind === 'board') {
+      const normalized = normalizeCommunityBoardData(source.rows[0].data, 'Community lesson');
+      if (normalized.error) return res.status(400).json({ error: normalized.error });
+      const ownershipError = await assertSourceBoardOwnership(req.user.id, normalized.value);
+      if (ownershipError) return res.status(ownershipError.status).json({ error: ownershipError.error });
+    }
     const { rows } = await pool.query(
       `UPDATE assignments SET visibility='community', published_at=COALESCE(published_at, NOW())
        WHERE id = $1 AND user_id = $2 RETURNING ${LIST_COLS}`,

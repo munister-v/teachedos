@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=329">
+<link rel="manifest" href="manifest.json?v=330">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -231,12 +231,13 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 }
 
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=329">
-<link rel="stylesheet" href="styles/unify.css?v=329">
-<link rel="stylesheet" href="styles/knowledge-bases.css?v=329">
-<link rel="stylesheet" href="styles/mobile.css?v=329">
+<link rel="stylesheet" href="styles/harmony.css?v=330">
+<link rel="stylesheet" href="styles/unify.css?v=330">
+<link rel="stylesheet" href="styles/knowledge-bases.css?v=330">
+<link rel="stylesheet" href="styles/mobile.css?v=330">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=330">
 </head>
-<body>
+<body class="tools-workbench">
 <nav class="nav">
   <button class="nav-menu" type="button" onclick="toggleSide()" aria-label="Open tools menu">☰</button>
   <a class="logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span>TeachEd</span></a>
@@ -250,21 +251,14 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   <a class="nav-link" href="game-builder.html">Game Builder</a>
   <a class="nav-link" href="schedule.html">Schedule</a>
   <div class="nav-spacer"></div>
-  <div class="nav-pill"><span id="tool-count-pill">0</span> tools ready</div>
+  <div class="nav-pill"><span id="tool-count-pill">0</span> tools</div>
 </nav>
 <div class="shell">
   <aside class="side" id="side">
-    <div class="side-title">Workspace</div>
+    <div class="side-title">Tools</div>
     <button class="side-btn active" type="button" onclick="setCategory('all', this)"><span class="side-ic">A</span>All Tools<span class="side-count" data-count="all">0</span></button>
     <button class="side-btn" type="button" onclick="setCategory('favorites', this)"><span class="side-ic">★</span>Favorites<span class="side-count" data-count="favorites">0</span></button>
-    <div class="side-title">TeachEd</div>
-    <a class="side-btn" href="courses.html"><span class="side-ic">LB</span>Library / Courses</a>
-    <a class="side-btn" href="schedule.html"><span class="side-ic">CL</span>Classes</a>
-    <a class="side-btn" href="homework.html"><span class="side-ic">AS</span>Assignments</a>
-    <a class="side-btn" href="lesson-builder.html"><span class="side-ic">LB</span>Lesson Builder</a>
-    <a class="side-btn" href="lesson-packs.html"><span class="side-ic">ESL</span>Lesson Packs</a>
-    <a class="side-btn" href="profile.html#billing"><span class="side-ic">$</span>Pricing</a>
-    <div class="side-title">Skills</div>
+    <div class="side-title">Browse by skill</div>
     <button class="side-btn" type="button" onclick="setCategory('reading', this)"><span class="side-ic">R</span>Reading<span class="side-count" data-count="reading">0</span></button>
     <button class="side-btn" type="button" onclick="setCategory('vocabulary', this)"><span class="side-ic">V</span>Vocabulary<span class="side-count" data-count="vocabulary">0</span></button>
     <button class="side-btn" type="button" onclick="setCategory('writing', this)"><span class="side-ic">W</span>Writing<span class="side-count" data-count="writing">0</span></button>
@@ -272,38 +266,18 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
     <button class="side-btn" type="button" onclick="setCategory('grammar', this)"><span class="side-ic">G</span>Grammar<span class="side-count" data-count="grammar">0</span></button>
     <button class="side-btn" type="button" onclick="setCategory('listening', this)"><span class="side-ic">L</span>Listening<span class="side-count" data-count="listening">0</span></button>
     <button class="side-btn" type="button" onclick="setCategory('utility', this)"><span class="side-ic">U</span>Utility<span class="side-count" data-count="utility">0</span></button>
-    <div class="unlock">
-      <b>Teacher production mode</b>
-      <p>Draft worksheets, games, discussion cards and vocabulary packs, then send the useful parts into your TeachEd lesson flow.</p>
-      <button class="btn sm lime" type="button" onclick="openFirstTool()">Start creating</button>
-    </div>
+    <a class="side-library-link" href="#library-section">Saved materials</a>
   </aside>
   <main class="main">
     <section class="hero">
       <div class="hero-inner">
-        <div>
-          <div class="eyebrow">Independent TeachEd tool studio</div>
-          <h1>Build lesson materials <span class="mark">fast</span>, then turn them into games.</h1>
-          <p>A practical prep desk for language teachers: reading tasks, vocabulary builders, grammar drills, speaking prompts, listening scaffolds, worksheet blocks and exports to the Game Builder.</p>
+        <div class="hero-copy">
+          <div class="eyebrow">Teacher tools</div>
+          <h1>Build the next useful activity.</h1>
+          <p>Start with a topic, a text or a word list. TeachEd turns it into a classroom draft you can adapt, print or place on the board.</p>
           <div class="hero-actions">
-            <button class="btn lime" type="button" onclick="openFirstTool()">Create an exercise</button>
-            <a class="btn ghost" href="game-builder.html">Open Game Builder</a>
-            <details class="tt-mobile-more">
-              <summary class="btn soft">More</summary>
-              <div class="tt-mobile-more-menu">
-                <button class="btn soft" type="button" onclick="scrollToLibrary()">My saved materials</button>
-                <a class="btn ghost" href="lesson-builder.html">Open Lesson Builder</a>
-              </div>
-            </details>
+            <button class="btn lime" type="button" onclick="openFirstTool()">Choose a tool</button>
           </div>
-        </div>
-        <div class="hero-card">
-          <div class="small">What is inside</div>
-          <ul>
-            <li><span>01</span><span>30+ classroom templates across vocabulary, reading, writing, speaking, grammar, listening and utility.</span></li>
-            <li><span>02</span><span>Local generators for printable tasks and reusable game content.</span></li>
-            <li><span>03</span><span>Saved teacher library with one-click copy and Game Builder handoff.</span></li>
-          </ul>
         </div>
       </div>
     </section>
@@ -320,8 +294,8 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
          Це вітрина готових уроків, а не те, повз що треба щоразу гортати. -->
     <details class="presets-block" aria-label="Ready preset lessons" style="margin:18px 0 4px;">
       <summary class="presets-summary">
-        <span class="kb-summary-title">Drop a lesson in one click</span>
-        <span class="kb-summary-hint"><span class="kb-summary-count" id="preset-summary-count">0</span> pre-written topic, vocab and source text</span>
+        <span class="kb-summary-title">Use a ready preset</span>
+        <span class="kb-summary-hint"><span class="kb-summary-count" id="preset-summary-count">0</span> starting points</span>
       </summary>
       <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 8px;">
         <div>
@@ -338,7 +312,7 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
       <div class="preset-strip" id="preset-strip"></div>
     </details>
     <div class="bar">
-      <div class="search"><input id="search" placeholder="Search by lesson goal, skill or exercise..." oninput="scheduleSearch()"><span>⌕</span></div>
+      <div class="search"><input id="search" placeholder="Search tools" oninput="scheduleSearch()"><span>⌕</span></div>
       <div class="chips" id="top-chips"></div>
     </div>
     <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
@@ -405,11 +379,11 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/knowledge-bases.js?v=329"></script>
-<script src="scripts/tt-text-core.js?v=329"></script>
-<script src="scripts/teacher-tools-app.js?v=329"></script>
-<script src="js/teacher-tool-ai.js?v=329" defer></script>
-<script src="js/teacher-tool-stt.js?v=329" defer></script>
-<script src="pwa-boot.js?v=329" defer></script>
+<script src="scripts/knowledge-bases.js?v=330"></script>
+<script src="scripts/tt-text-core.js?v=330"></script>
+<script src="scripts/teacher-tools-app.js?v=330"></script>
+<script src="js/teacher-tool-ai.js?v=330" defer></script>
+<script src="js/teacher-tool-stt.js?v=330" defer></script>
+<script src="pwa-boot.js?v=330" defer></script>
 </body>
 </html>
