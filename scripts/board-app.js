@@ -12864,7 +12864,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '335';
+const TEACHEDOS_ASSET_VERSION = '336';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14615,7 +14615,24 @@ let _communityImportApplied = false;
   }));
   window.__pendingCommunityImport = { newCards, newArrows, name: snapshot.name || 'Community board', count: newCards.length };
 
-  // Show confirmation banner
+  /* Read the token straight from storage: `authToken` is declared with `let`
+     further down this same file, and this IIFE runs before that line - a
+     reference here would hit the temporal dead zone, not just an early
+     `undefined`. */
+  const hasToken = !!localStorage.getItem('teachedos_token');
+  if (!hasToken) {
+    /* Guest coming from a shared lesson has nowhere to import into yet: the
+       auth modal is about to open regardless (see the init IIFE below), and
+       it sits at z-index 9998 while this banner used z-index 9999 - it was
+       floating on top of the sign-in card, overlapping the form underneath
+       it. Sign-in already re-applies the pending import on its own (see
+       initUserBoard -> runPendingCommunityImport), so the fix is to fold the
+       message into the modal that is opening anyway instead of stacking a
+       second one above it. */
+    return;
+  }
+
+  // Show confirmation banner (signed-in users only - see above)
   const banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
@@ -15169,6 +15186,18 @@ function openAuthModal(mode = 'login') {
   setTimeout(() => document.querySelector('.auth-inp')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
   if (authMode === 'login') setupBoardGoogle();
+  /* A shared lesson waiting to land on this board (see checkCommunityImport
+     above) used to get its own floating banner on top of this modal. Now the
+     modal explains it instead: one message, not two overlapping ones. It
+     clears itself the moment the import is consumed, so a later, unrelated
+     sign-in (session expiry, etc.) sees the ordinary subtitle again. */
+  const subtitle = document.getElementById('auth-subtitle');
+  if (subtitle) {
+    const pending = window.__pendingCommunityImport;
+    subtitle.textContent = pending
+      ? `Sign in to add "${pending.name}" (${pending.count} card${pending.count === 1 ? '' : 's'}) to your board`
+      : 'Sign in to sync your boards';
+  }
 }
 function closeAuthModal() {
   document.getElementById('auth-overlay').style.display = 'none';
