@@ -1,10 +1,17 @@
 (function () {
-  const ASSET_VERSION = '249';
+  /* ДЕРЖАТЬ РАВНЫМ version.json - вторая копия той же константы, что в
+     pwa-boot.js, вместе с дублирующей логикой очистки кэша и перезагрузки.
+     Тоже звалась ASSET_VERSION и тоже застряла на 249, и вреда от неё было
+     больше: раз previous ('350') никогда не совпадал с '249', блок ниже
+     СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
+     То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
+     сети заново. Имя приведено к тому, которое ловит бамп версии. */
+  const TEACHEDOS_ASSET_VERSION = '350';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
-    if (previous !== ASSET_VERSION) {
-      localStorage.setItem(key, ASSET_VERSION);
+    if (previous !== TEACHEDOS_ASSET_VERSION) {
+      localStorage.setItem(key, TEACHEDOS_ASSET_VERSION);
       if ('caches' in window) {
         caches.keys()
           .then(keys => Promise.all(keys.filter(k => /^teachedos-v/.test(k)).map(k => caches.delete(k))))
@@ -26,7 +33,7 @@
 
   function reloadForVersion(next) {
     next = String(next || '').trim();
-    if (!next || next === ASSET_VERSION) return;
+    if (!next || next === TEACHEDOS_ASSET_VERSION) return;
     const key = 'teachedos_reload_for_version';
     const raw = localStorage.getItem(key) || '';
     const [seen, at] = raw.split(':');

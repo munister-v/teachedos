@@ -5,13 +5,27 @@
  * Safe to include on any page: it detects what's already present and
  * never double-registers or double-loads. */
 (function () {
-  const ASSET_VERSION = '249';
+  /* ДЕРЖАТЬ РАВНЫМ version.json. Раньше константа звалась ASSET_VERSION и
+     застряла на 249, пока сайт ушёл на 349: имя не совпадало ни с одним
+     шаблоном, по которому бампится версия, поэтому её три недели никто не
+     трогал. Сломано было всё, чем она управляет:
+       - reloadForVersion() сравнивает version.json с этим числом и, не
+         дождавшись совпадения никогда, перезагружал страницу у каждого
+         посетителя раз в 10 минут;
+       - purgeOldRuntimeCaches() наоборот считал, что версия не менялась,
+         и старые рантайм-кэши не чистились;
+       - sw.js и pwa.js регистрировались как ?v=249, то есть service worker
+         не обновлялся вовсе - и правка версии в 66 файлах для вернувшегося
+         пользователя почти ничего не меняла.
+     Имя теперь то же, что у константы в scripts/board-app.js, - его бамп
+     версии уже ловит, так что рассинхрон больше не повторится. */
+  const TEACHEDOS_ASSET_VERSION = '350';
   const CACHE_VERSION_KEY = 'teachedos_asset_version';
   const purgeOldRuntimeCaches = () => {
     try {
       const previous = localStorage.getItem(CACHE_VERSION_KEY);
-      if (previous === ASSET_VERSION) return;
-      localStorage.setItem(CACHE_VERSION_KEY, ASSET_VERSION);
+      if (previous === TEACHEDOS_ASSET_VERSION) return;
+      localStorage.setItem(CACHE_VERSION_KEY, TEACHEDOS_ASSET_VERSION);
       if ('caches' in window) {
         caches.keys()
           .then(keys => Promise.all(keys.filter(k => /^teachedos-v/.test(k)).map(k => caches.delete(k))))
@@ -34,7 +48,7 @@
 
   const reloadForVersion = next => {
     next = String(next || '').trim();
-    if (!next || next === ASSET_VERSION) return;
+    if (!next || next === TEACHEDOS_ASSET_VERSION) return;
     const key = 'teachedos_reload_for_version';
     const raw = localStorage.getItem(key) || '';
     const [seen, at] = raw.split(':');
@@ -84,7 +98,7 @@
       // updateViaCache:'none' forces the browser to fetch sw.js from the network
       // on every load instead of its HTTP cache - so a new deploy's service
       // worker is detected immediately (no day-long stale-SW window).
-      navigator.serviceWorker.register('sw.js?v=' + ASSET_VERSION, { updateViaCache: 'none' }).then(reg => {
+      navigator.serviceWorker.register('sw.js?v=' + TEACHEDOS_ASSET_VERSION, { updateViaCache: 'none' }).then(reg => {
         reg.update();
         reg.addEventListener('updatefound', () => {
           const nw = reg.installing;
@@ -105,7 +119,7 @@
 
   // ── 3. Load the pwa.js UX layer once (skip if the page already includes it) ─
   if (!window.TeachedosPWA && !document.querySelector('script[src*="pwa.js"]')) {
-    const s = mk('script', { src: 'pwa.js?v=' + ASSET_VERSION, defer: 'defer' });
+    const s = mk('script', { src: 'pwa.js?v=' + TEACHEDOS_ASSET_VERSION, defer: 'defer' });
     head.appendChild(s);
   }
 })();
