@@ -174,7 +174,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 }
 </style>
 <link rel="stylesheet" href="styles/mobile.css?v=350">
-<link rel="stylesheet" href="styles/teached-brand.css?v=351">
+<link rel="stylesheet" href="styles/teached-brand.css?v=353">
 </head>
 <body>
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -752,6 +752,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
+<script src="scripts/autogrow.js?v=353" defer></script>
 <script src="pwa-boot.js?v=350" defer></script>
 </body>
 </html>

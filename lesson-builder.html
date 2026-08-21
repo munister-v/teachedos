@@ -27,7 +27,7 @@ html{background:var(--cream);scroll-behavior:smooth}body{min-height:100dvh;font-
 <style id="lesson-builder-mobile-offset">
 @media(max-width:760px){.pane-switcher{top:54px;}}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=351">
+<link rel="stylesheet" href="styles/teached-brand.css?v=353">
 </head>
 <body class="lesson-builder-page">
 <nav class="nav">
@@ -400,6 +400,7 @@ init();
 window.addEventListener('pagehide', flushDraft);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraft(); });
 </script>
+<script src="scripts/autogrow.js?v=353" defer></script>
 <script src="pwa-boot.js?v=350" defer></script>
 </body>
 </html>

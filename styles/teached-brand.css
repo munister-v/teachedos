@@ -837,3 +837,17 @@ body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { backgrou
   .modal-overlay .modal,
   .modal-overlay .modal-box { transition: none !important; }
 }
+
+/* ── Поля ввода по содержимому ─────────────────────────────────────────────
+   Список слов на четыре строки показывался тремя с половиной: последняя
+   срезалась пополам, и текст выглядел испорченным. Где браузер умеет
+   `field-sizing`, поле подстраивается само — без скриптов и перерисовок;
+   остальным то же самое делает scripts/autogrow.js.
+   Потолок нужен обоим: без него длинная вставка растянула бы поле на
+   несколько экранов и увела кнопку «Создать» далеко вниз. */
+@supports (field-sizing: content) {
+  textarea:not([data-no-autogrow="1"]) {
+    field-sizing: content;
+    max-height: 60vh;
+  }
+}
