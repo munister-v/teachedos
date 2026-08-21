@@ -14,12 +14,12 @@
          посетителя раз в 10 минут;
        - purgeOldRuntimeCaches() наоборот считал, что версия не менялась,
          и старые рантайм-кэши не чистились;
-       - sw.js и pwa.js регистрировались как ?v=367, то есть service worker
+       - sw.js и pwa.js регистрировались как ?v=368, то есть service worker
          не обновлялся вовсе - и правка версии в 66 файлах для вернувшегося
          пользователя почти ничего не меняла.
      Имя теперь то же, что у константы в scripts/board-app.js, - его бамп
      версии уже ловит, так что рассинхрон больше не повторится. */
-  const TEACHEDOS_ASSET_VERSION = '367';
+  const TEACHEDOS_ASSET_VERSION = '368';
   const CACHE_VERSION_KEY = 'teachedos_asset_version';
   const purgeOldRuntimeCaches = () => {
     try {

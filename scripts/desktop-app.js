@@ -1455,10 +1455,15 @@ function applyUserToDesktop(user) {
   document.getElementById('desktop-admin-badge')?.remove();
   // Show plan badge in menubar
   const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
+  const planBorders = { free:'rgba(107,114,128,.25)', pro:'rgba(124,58,237,.25)', school:'rgba(5,150,105,.25)' };
   const planBadge = document.getElementById('mb-plan-badge') || (() => {
     const b = document.createElement('span');
     b.id = 'mb-plan-badge';
-    b.style.cssText = 'font-size:10px;font-weight:650;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+    // Was borderless next to two bordered chips (user pill, notif icon) in the
+    // same bar - the one flat rectangle among rounded-outline pills was the
+    // "hangs off wrong" edge feeling. Border color rides the same map as the
+    // fill so each plan tier still reads as one coherent color, not three-tone.
+    b.style.cssText = 'font-size:10px;font-weight:650;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border:1px solid transparent;';
     b.title = 'Open subscription settings';
     b.setAttribute('role', 'button');
     b.tabIndex = 0;
@@ -1477,6 +1482,7 @@ function applyUserToDesktop(user) {
   planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
   planBadge.style.background = plan === 'free' ? '#f3f4f6' : plan === 'pro' ? '#ede9fe' : '#d1fae5';
   planBadge.style.color = planColors[plan] || '#6b7280';
+  planBadge.style.borderColor = planBorders[plan] || planBorders.free;
   updateMobileTeacherOverview();
   // Load calls + billing data
 
