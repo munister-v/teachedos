@@ -969,7 +969,7 @@ function renderTools(){
     div.dataset.id=t.id;
     div.dataset.catkey=t.cat;
     div.setAttribute('aria-label', `${t.title}. ${t.desc}`);
-    div.innerHTML=`<button class="star ${_favSet.has(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.5-5-2.7-5 2.7.9-5.5-4-3.9 5.6-.8Z"/></svg></button><div class="tool-visual" data-cat="${esc(t.cat)}" aria-hidden="true">${esc(t.icon)}</div><div class="tool-copy"><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>`;
+    div.innerHTML=`<button class="star ${_favSet.has(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.5-5-2.7-5 2.7.9-5.5-4-3.9 5.6-.8Z"/></svg></button><div class="tool-visual" aria-hidden="true">${esc(t.icon)}</div><div class="tool-copy"><h3>${esc(t.title)}</h3><p>${esc(t.desc)}</p></div>`;
     div.addEventListener('click',()=>selectTool(t.id));
     div.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')selectTool(t.id);});
     frag.appendChild(div);
