@@ -869,3 +869,143 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 }
 .tools-workbench .tt-ws-ans { color:#21863d; }
 .tools-workbench .tt-ws-stage { border-left-color:var(--pink) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   БИБЛИОТЕКА И ЧЕРНОВИК — в языке готового бланка
+
+   Готовая генерация на доске выглядит собранной: лаймовая шапка сверху,
+   спокойное белое тело под ней, номера заданий в лаймовых квадратах.
+   Библиотека же в этой теме потеряла и рамку, и фон, и скругление —
+   осталась строка текста с пятью одинаковыми серыми кнопками, где
+   «Delete» весил столько же, сколько «View».
+
+   Возвращаем карточке форму и берём у бланка его приём: одна яркая
+   точка — сверху, дальше тихо. Лайм здесь тонкой полосой по верхнему
+   краю, а не заливкой: карточек в сетке много, и заливка превратила бы
+   библиотеку в витрину светофоров.
+   ══════════════════════════════════════════════════════════════════ */
+.tools-workbench .library-grid { gap: 14px; }
+
+.tools-workbench .library-item {
+  position: relative;
+  border: 1px solid rgba(24, 24, 24, .1);
+  border-top: 0;
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px 16px 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .85) inset, 0 8px 22px rgba(24, 24, 24, .05);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.tools-workbench .library-item::before {
+  content: '';
+  position: absolute; inset: 0 0 auto; height: 4px;
+  background: linear-gradient(90deg, var(--lime, #CDF940), color-mix(in srgb, var(--lime, #CDF940) 45%, #fff));
+}
+.tools-workbench .library-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .85) inset, 0 14px 30px rgba(24, 24, 24, .09);
+  border-color: rgba(24, 24, 24, .16);
+}
+
+/* Кикер — тот же моно-шрифт с широким трекингом, что над заголовком бланка. */
+.tools-workbench .library-kicker {
+  display: block;
+  font: 800 10px var(--mono, monospace);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: rgba(14, 14, 16, .5);
+  margin-bottom: 6px;
+}
+.tools-workbench .library-item h4 {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+  color: #17171B;
+  margin: 0 26px 6px 0;
+}
+.tools-workbench .library-item p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(14, 14, 16, .58);
+  margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Удаление больше не стоит в одном ряду с обычными действиями: промахнуться
+   по нему было так же легко, как по «Copy». */
+.tools-workbench .library-del {
+  position: absolute; top: 12px; right: 10px;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 8px;
+  background: transparent;
+  color: rgba(14, 14, 16, .35);
+  font-size: 17px; line-height: 1; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.tools-workbench .library-del:hover { background: rgba(215, 51, 51, .1); color: #D73333; }
+
+.tools-workbench .library-item footer { gap: 6px; margin-top: 12px; }
+/* Второстепенное — без рамки, чтобы не спорить с главным действием. */
+/* Тихие действия НЕ носят класс `.btn` — и это осознанно. Фон кнопок в панели
+   задаётся правилом со сложным селектором и `!important`, которое перебивало
+   даже четыре класса с собственным `!important`: спорить с ним дороже, чем
+   выйти из спора. Своё имя — свои правила, без каскадной борьбы. */
+.tools-workbench .library-mini {
+  border: 0;
+  background: transparent;
+  color: rgba(14, 14, 16, .55);
+  font: 650 12px var(--font, inherit);
+  padding: 0 8px;
+  min-height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.tools-workbench .library-mini:hover {
+  background: rgba(24, 24, 24, .06);
+  color: #17171B;
+}
+/* Главное действие — тёмное, «Use again» рядом остаётся светлым. */
+.tools-workbench .library-item footer .btn.ghost {
+  background: #fff !important;
+  border: 1px solid var(--tt-line) !important;
+  color: #41423D !important;
+}
+
+/* ── Шапка черновика — как масthead у готового бланка ──────────────────────
+   Готовая генерация узнаётся с одного взгляда: лаймовая шапка, под ней белое
+   поле. Панель «Draft» в редакторе была плоской надписью, и переход от
+   редактора к результату выглядел разрывом: собираешь в одном языке,
+   получаешь в другом. Даём ей ту же шапку — тот же кикер моно-капсом, тот же
+   лайм, только тише: здесь она стоит рядом с формой и не должна её перекрикивать. */
+.tools-workbench .panel.result .panel-head {
+  position: relative;
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--lime, #CDF940) 34%, #fff),
+    color-mix(in srgb, var(--lime, #CDF940) 22%, #fff));
+  border: 1px solid color-mix(in srgb, #0E0E10 12%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.tools-workbench .panel.result .panel-head::before {
+  content: 'Draft';
+  display: block;
+  font: 800 10px var(--mono, monospace);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: rgba(14, 14, 16, .52);
+  margin-bottom: 4px;
+}
+.tools-workbench .panel.result .panel-head h2 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  color: #14140F;
+}
+.tools-workbench .panel.result .panel-sub { color: rgba(14, 14, 16, .6); }
