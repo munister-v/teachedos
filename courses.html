@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=365">
+<link rel="manifest" href="manifest.json?v=366">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=365">
-<link rel="preload" as="style" href="styles/unify.css?v=365">
+<link rel="preload" as="style" href="styles/harmony.css?v=366">
+<link rel="preload" as="style" href="styles/unify.css?v=366">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -355,10 +355,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=365" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=365">
-<link rel="stylesheet" href="styles/harmony.css?v=365">
-<link rel="stylesheet" href="styles/unify.css?v=365">
+<script src="theme.js?v=366" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=366">
+<link rel="stylesheet" href="styles/harmony.css?v=366">
+<link rel="stylesheet" href="styles/unify.css?v=366">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -422,7 +422,7 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=365">
+<link rel="stylesheet" href="styles/teached-brand.css?v=366">
 </head>
 <body class="mp-shell">
 
@@ -539,7 +539,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=365"></script>
+<script src="scripts/app-core.js?v=366"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -579,6 +579,11 @@ const COURSE_TEMPLATES = {
         lesson('Daily Routine', 'Speaking', 'A1', '50 min', ['describe a simple day', 'use present simple I/you', 'ask about habits'], ['routine picture ordering', 'find someone who', 'my perfect morning'], 'Make a 7-step routine list.'),
         lesson('Food, Likes & Dislikes', 'Vocabulary', 'A1', '45 min', ['name common food', 'use like/love/hate', 'order politely'], ['menu matching', 'restaurant role-play', 'taste ranking'], 'Prepare a cafe order dialogue.'),
         lesson('Shopping & Money', 'Functional', 'A1', '45 min', ['ask prices', 'use this/that/these/those', 'buy simple items'], ['price tag race', 'shop assistant role-play', 'receipt check'], 'Write 5 shopping questions.')
+      ]},
+      { name: 'Module 3 · Getting Around', lessons: [
+        lesson('Asking for Directions', 'Speaking', 'A1', '45 min', ['ask where places are', 'understand simple directions', 'use prepositions of place'], ['town map matching', 'give-and-follow directions', 'lost tourist role-play'], 'Draw a map and write 4 directions.'),
+        lesson('Weather & Small Talk', 'Vocabulary', 'A1', '40 min', ['describe today\'s weather', 'make simple small talk', 'ask how someone is'], ['weather forecast cards', 'small talk chain', 'season sorting'], 'Write a 3-line weather chat.'),
+        lesson('My Family & Friends', 'Speaking', 'A1', '45 min', ['name family members', 'use possessive \'s', 'describe people simply'], ['family tree building', 'photo describe & guess', 'partner interview'], 'Draw your family tree with labels.')
       ]}
     ]
   },
@@ -596,6 +601,11 @@ const COURSE_TEMPLATES = {
         lesson('Travel English: Hotel Check-in', 'Speaking', 'A2', '45 min', ['check in at a hotel', 'ask about facilities', 'solve simple problems'], ['hotel form warm-up', 'reception role-play', 'problem cards'], 'Write a hotel email asking 3 questions.'),
         lesson('Past Simple Stories', 'Grammar', 'A2', '50 min', ['use regular and irregular past verbs', 'tell a short story', 'ask follow-up questions'], ['verb auction', 'story dice', 'yesterday interview'], 'Write a 90-word story about last weekend.'),
         lesson('Comparatives & Superlatives', 'Grammar', 'A2', '45 min', ['compare places and products', 'use -er/more/the most', 'justify choices'], ['product comparison', 'city debate', 'best/worst ranking'], 'Compare two cities or products.')
+      ]},
+      { name: 'Module 3 · Work & Free Time', lessons: [
+        lesson('Jobs & Daily Tasks', 'Vocabulary', 'A2', '45 min', ['name common jobs and duties', 'ask about someone\'s job', 'use have to / don\'t have to'], ['job charades', 'a-day-at-work interview', 'dream job pitch'], 'Describe your job or dream job.'),
+        lesson('Making Plans: Going to & Will', 'Grammar', 'A2', '50 min', ['talk about future plans', 'choose going to vs will', 'make quick decisions politely'], ['weekend plan swap', 'decision cards', 'plan vs promise sort'], 'Write your plans for next weekend.'),
+        lesson('Hobbies & Free Time', 'Speaking', 'A2', '45 min', ['talk about hobbies fluently', 'use gerunds after like/enjoy', 'ask follow-up questions'], ['hobby speed chat', 'find a hobby buddy', 'class hobby poll'], 'Write a short paragraph about your hobby.')
       ]}
     ]
   },
@@ -613,6 +623,11 @@ const COURSE_TEMPLATES = {
         lesson('Agreeing and Disagreeing Politely', 'Speaking', 'B1', '50 min', ['give opinions with reasons', 'agree/disagree softly', 'ask for clarification'], ['opinion corners', 'softening phrase bank', 'mini debate'], 'Write 5 opinion sentences with reasons.'),
         lesson('Media & Technology Vocabulary', 'Vocabulary', 'B1', '45 min', ['discuss apps and online habits', 'use collocations', 'explain digital problems'], ['collocation matching', 'app pitch', 'problem-solving role-play'], 'Describe your most useful app.'),
         lesson('Email: Request and Follow-up', 'Writing', 'B1', '50 min', ['write polite requests', 'structure follow-up emails', 'use formal openings/closings'], ['bad email repair', 'tone upgrade', 'live email draft'], 'Send a polished request email draft.')
+      ]},
+      { name: 'Module 3 · Culture & Travel', lessons: [
+        lesson('Travel Problems & Complaints', 'Speaking', 'B1', '50 min', ['describe travel problems', 'make polite complaints', 'suggest solutions'], ['problem card draw', 'hotel complaint role-play', 'solution brainstorm'], 'Write a polite complaint email.'),
+        lesson('Describing Trends', 'Grammar', 'B1', '50 min', ['use present perfect continuous', 'describe change over time', 'talk about ongoing habits'], ['trend line reading', 'has been doing mingle', 'chart description'], 'Describe 3 recent trends in your life.'),
+        lesson('Job Interview Practice', 'Speaking', 'B1', '55 min', ['answer common interview questions', 'talk about strengths and weaknesses', 'ask smart questions back'], ['interview question bank', 'mock interview pairs', 'feedback round'], 'Prepare answers to 5 interview questions.')
       ]}
     ]
   },
@@ -630,6 +645,11 @@ const COURSE_TEMPLATES = {
         lesson('Conditionals & Alternatives', 'Grammar', 'B2', '55 min', ['use 2nd/3rd conditionals', 'make regrets and hypotheses', 'recognise mixed conditionals'], ['conditional ladder', 'regret cards', 'what-if scenarios'], 'Write 6 conditional sentences about decisions.'),
         lesson('Passive Voice in Reports', 'Grammar', 'B2', '50 min', ['use passive for processes', 'sound formal in reports', 'omit unnecessary agents'], ['process rewrite', 'news headline expansion', 'mini report'], 'Describe a process using 8 passive forms.'),
         lesson('Presentation Skills', 'Speaking', 'B2', '60 min', ['open and close clearly', 'signpost ideas', 'handle questions'], ['signpost sorting', '60-second talk', 'Q&A practice'], 'Prepare a 2-minute presentation outline.')
+      ]},
+      { name: 'Module 3 · Modern Life', lessons: [
+        lesson('Remote Work Culture', 'Speaking', 'B2', '55 min', ['discuss pros and cons of remote work', 'use collocations for work-life balance', 'compare working styles'], ['pros/cons debate', 'ideal workday design', 'async vs sync discussion'], 'Write a short opinion piece on remote work.'),
+        lesson('Reported Speech in the News', 'Grammar', 'B2', '55 min', ['convert direct to reported speech', 'report questions and commands', 'paraphrase news headlines'], ['headline rewrite', 'gossip chain', 'reported interview'], 'Rewrite 6 quotes as reported speech.'),
+        lesson('Sustainability & Everyday Choices', 'Vocabulary', 'B2', '55 min', ['discuss climate and sustainability', 'use cause-effect language', 'propose realistic solutions'], ['footprint quiz', 'cause-effect chains', 'solution pitch'], 'Propose 3 sustainable changes for your routine.')
       ]}
     ]
   },
@@ -642,6 +662,16 @@ const COURSE_TEMPLATES = {
         lesson('Diplomatic Language', 'Speaking', 'C1', '60 min', ['disagree without sounding blunt', 'use tactful reformulations', 'control register'], ['blunt-to-diplomatic rewrite', 'meeting role-play', 'feedback ladder'], 'Rewrite 10 blunt phrases diplomatically.'),
         lesson('Collocation Precision', 'Vocabulary', 'C1', '55 min', ['choose natural collocations', 'avoid translation-heavy phrasing', 'upgrade lexical range'], ['collocation audit', 'sentence upgrade', 'mini corpus noticing'], 'Upgrade a paragraph with 12 collocations.'),
         lesson('Persuasive Executive Summary', 'Writing', 'C1', '60 min', ['summarise complex ideas', 'lead with recommendations', 'write concise business prose'], ['summary compression', 'recommendation pyramid', 'peer edit'], 'Write a 150-word executive summary.')
+      ]},
+      { name: 'Module 2 · Global Issues & Precision', lessons: [
+        lesson('Cleft Sentences for Emphasis', 'Grammar', 'C1', '55 min', ['use it-clefts and what-clefts', 'emphasise key information', 'vary sentence rhythm'], ['emphasis rewrite', 'stress-shift reading', 'debate with emphasis'], 'Rewrite 8 sentences using clefts for emphasis.'),
+        lesson('Discourse Markers in Debate', 'Speaking', 'C1', '55 min', ['sequence complex arguments', 'signal contrast and concession', 'sound natural in fast discussion'], ['marker bank sorting', 'impromptu debate', 'transcript upgrade'], 'Annotate a debate transcript with markers.'),
+        lesson('Analytical Essay Writing', 'Writing', 'C1', '65 min', ['structure a multi-paragraph argument', 'integrate counter-arguments', 'write a precise thesis statement'], ['thesis workshop', 'counter-argument insertion', 'peer review circle'], 'Draft a 300-word analytical essay.')
+      ]},
+      { name: 'Module 3 · Fluency Under Pressure', lessons: [
+        lesson('Impromptu Speaking Strategies', 'Speaking', 'C1', '55 min', ['buy thinking time naturally', 'structure an answer on the spot', 'avoid filler word overuse'], ['random topic draw', 'stalling phrase drill', 'timed response chain'], 'Record a 90-second impromptu response.'),
+        lesson('Idioms in Professional Context', 'Vocabulary', 'C1', '50 min', ['use idioms appropriately at work', 'avoid overuse or mismatched register', 'decode idioms from context'], ['idiom matching', 'context-appropriate rewrite', 'boardroom role-play'], 'Use 8 idioms correctly in a short dialogue.'),
+        lesson('Critical Response to a Long Text', 'Reading', 'C1', '60 min', ['identify implicit argument and bias', 'summarise critically, not just descriptively', 'support judgements with evidence'], ['bias-spotting', 'summary vs critique sort', 'evidence-linked response'], 'Write a critical response to an article.')
       ]}
     ]
   }
@@ -1410,11 +1440,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=365" defer></script>
-<script src="scripts/mobile-perf.js?v=365" defer></script>
-<script src="scripts/mobile-nav.js?v=365"></script>
-<script src="scripts/mobile-zoom-guard.js?v=365" defer></script>
-<script src="scripts/autogrow.js?v=365" defer></script>
-<script src="pwa-boot.js?v=365" defer></script>
+<script src="scripts/nav-boost.js?v=366" defer></script>
+<script src="scripts/mobile-perf.js?v=366" defer></script>
+<script src="scripts/mobile-nav.js?v=366"></script>
+<script src="scripts/mobile-zoom-guard.js?v=366" defer></script>
+<script src="scripts/autogrow.js?v=366" defer></script>
+<script src="pwa-boot.js?v=366" defer></script>
 </body>
 </html>
