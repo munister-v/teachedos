@@ -731,3 +731,109 @@ body.board-page .empty-icon { background:var(--te-surface-violet) !important; co
 body.landing-page .nav-lnk:hover { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; }
 body.landing-page .btn-glass,body.landing-page .btn-cream { background:#fff !important; border-color:var(--te-line) !important; color:var(--te-ink) !important; }
 body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.30) !important; color:var(--te-violet) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ЕДИНЫЙ ВИД ОКОН — по образцу «YouTube → Lesson»
+
+   Эта модалка на доске задаёт айдентику окон TeachEd, и остальные должны
+   читаться как её родня. До сих пор каждое окно описывали заново прямо в
+   своей странице, и расходилось всё сразу: подложка была то чёрной без
+   размытия, то бордовой с размытием вдвое сильнее; скругление 20 против 22;
+   тень то мягкая дальняя, то короткая и резкая; заголовок 16/700, 18/700 и
+   19/600; окно въезжало то сверху, то снизу, то появлялось рывком без
+   анимации, а длительность гуляла от 0.18 до 0.32 секунды.
+
+   Эталон:
+     подложка  — чернильная полупрозрачная, размытие 3px;
+     карточка  — белая, скругление 22, отступ 22, дальняя мягкая тень;
+     появление — короткий подъём снизу со «схлопыванием» масштаба;
+     заголовок — 19/600 с плотным трекингом, подпись — 12 приглушённая;
+     поля      — скругление 13, акцентная рамка и кольцо в фокусе.
+
+   Правила привязаны к `.modal-overlay`: в играх класс `.modal` означает не
+   карточку, а сам оверлей, и голый селектор сломал бы им вёрстку. Файл
+   подключается последним на всех страницах, поэтому перебивать локальные
+   описания не нужно — достаточно равной силы селектора.
+   ══════════════════════════════════════════════════════════════════════ */
+.modal-overlay,
+#picker-overlay {
+  background: rgba(17, 16, 24, .5) !important;
+  backdrop-filter: blur(3px);
+  padding: 20px;
+}
+
+.modal-overlay .modal,
+.modal-overlay .modal-box,
+#picker-overlay #picker-modal {
+  background: var(--te-white, #fff) !important;
+  border-radius: 22px !important;
+  padding: 22px !important;
+  box-shadow: 0 30px 80px rgba(17, 16, 24, .4) !important;
+  max-height: 90vh;
+  overflow: auto;
+  transition: transform .18s cubic-bezier(.34, 1.3, .64, 1);
+}
+
+/* Окно приподнимается снизу — то же движение, что у эталона. Стартовое
+   состояние даём только там, где страница сама управляет классом `open`:
+   иначе окно, которое показывают через `display`, замерло бы сдвинутым. */
+.modal-overlay:not(.open) .modal,
+.modal-overlay:not(.open) .modal-box {
+  transform: translateY(10px) scale(.985);
+}
+.modal-overlay.open .modal,
+.modal-overlay.open .modal-box {
+  transform: none;
+}
+
+.modal-overlay .modal-title,
+#picker-overlay #picker-title {
+  font-size: 19px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.02em !important;
+  color: var(--te-ink, #171420) !important;
+}
+.modal-overlay .modal-sub {
+  font-size: 12px !important;
+  line-height: 1.45;
+  color: #6B7280 !important;
+  margin-top: 4px;
+}
+
+.modal-overlay .modal-close {
+  border: 0 !important;
+  background: rgba(17, 24, 39, .06) !important;
+  width: 34px; height: 34px;
+  border-radius: 11px !important;
+  font-size: 18px;
+  color: #6B7280 !important;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.modal-overlay .modal-input,
+.modal-overlay input[type="text"],
+.modal-overlay input[type="url"],
+.modal-overlay input[type="number"],
+.modal-overlay input[type="date"],
+.modal-overlay input[type="time"],
+.modal-overlay select,
+.modal-overlay textarea {
+  border-radius: 13px !important;
+  border: 1px solid rgba(24, 24, 24, .14) !important;
+  padding: 11px 13px !important;
+  font-size: 14px;
+  font-weight: 650;
+}
+.modal-overlay input:focus,
+.modal-overlay select:focus,
+.modal-overlay textarea:focus {
+  border-color: color-mix(in srgb, var(--te-lime, #CDF940) 55%, transparent) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--te-lime, #CDF940) 18%, transparent) !important;
+  outline: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay .modal,
+  .modal-overlay .modal-box { transition: none !important; }
+}
