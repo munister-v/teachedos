@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=334">
+<link rel="manifest" href="manifest.json?v=335">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -57,10 +57,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=334" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=334">
-<link rel="stylesheet" href="styles/harmony.css?v=334">
-<link rel="stylesheet" href="styles/unify.css?v=334">
+<script src="theme.js?v=335" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=335">
+<link rel="stylesheet" href="styles/harmony.css?v=335">
+<link rel="stylesheet" href="styles/unify.css?v=335">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -229,7 +229,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=334">
+<link rel="stylesheet" href="styles/teached-brand.css?v=335">
 </head>
 <body>
 <nav id="nav">
@@ -325,6 +325,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       <select id="board-level" onchange="renderCommunity()">
         <option value="">All levels</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
       </select>
+      <select id="board-sort" onchange="renderCommunity()">
+        <option value="newest">Newest first</option>
+        <option value="popular">Most saved</option>
+      </select>
     </div>
     <section class="grid" id="community-grid"></section>
   </div>
@@ -377,8 +381,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </main>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=334"></script>
-<script src="scripts/vocab-loader.js?v=334"></script>
+<script src="scripts/app-core.js?v=335"></script>
+<script src="scripts/vocab-loader.js?v=335"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -476,6 +480,7 @@ function assignmentToCommunityPost(assignment, dataOverride) {
     avatar: assignment.author_avatar || '',
     cardCount,
     snapshot: data.snapshot || null,
+    cloneCount: Number(assignment.clone_count) || 0,
     createdAt: assignment.published_at || assignment.created_at || new Date().toISOString(),
   };
 }
@@ -863,10 +868,20 @@ function renderCommunity() {
   const grid = document.getElementById('community-grid');
   const q = (document.getElementById('board-search')?.value || '').trim().toLowerCase();
   const level = document.getElementById('board-level')?.value || '';
+  const sort = document.getElementById('board-sort')?.value || 'newest';
   const posts = getCommunityPosts().filter(p => {
     const hay = [p.title, p.desc, p.author, p.level, p.skill, p.duration, ...(p.tags || [])].join(' ').toLowerCase();
     return (!level || p.level === level) && (!q || hay.includes(q));
   });
+  /* «Most saved» сортирует по числу копирований на доску, а не по клонам
+     библиотеки — это разные счётчики (см. cloneCount у track-copy). При
+     равном счёте вперёд идёт более свежая публикация. */
+  if (sort === 'popular') {
+    posts.sort((a, b) => (Number(b.cloneCount) || 0) - (Number(a.cloneCount) || 0)
+      || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  } else {
+    posts.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }
   if (!posts.length) {
     grid.innerHTML = '<div class="empty">No community lessons match this view. Clear filters or share the first one.</div>';
     updateCommunityStats();
@@ -874,7 +889,8 @@ function renderCommunity() {
   }
   grid.innerHTML = posts.map(p => {
     const cardCount = Number(p.cardCount) || p.snapshot?.cards?.length || 0;
-    const meta = [p.level || 'Mixed', p.skill || 'Lesson board', p.duration ? `${p.duration} min` : '', cardCount ? `${cardCount} cards` : ''].filter(Boolean);
+    const saves = Number(p.cloneCount) || 0;
+    const meta = [p.level || 'Mixed', p.skill || 'Lesson board', p.duration ? `${p.duration} min` : '', cardCount ? `${cardCount} cards` : '', saves ? `${saves} saves` : ''].filter(Boolean);
     return `
     <article class="board-card community-lesson-card">
       ${lessonCoverHtml(p, cardCount)}
@@ -1275,9 +1291,9 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=334" defer></script>
-<script src="scripts/mobile-nav.js?v=334"></script>
-<script src="scripts/mobile-zoom-guard.js?v=334" defer></script>
-<script src="pwa-boot.js?v=334" defer></script>
+<script src="scripts/mobile-perf.js?v=335" defer></script>
+<script src="scripts/mobile-nav.js?v=335"></script>
+<script src="scripts/mobile-zoom-guard.js?v=335" defer></script>
+<script src="pwa-boot.js?v=335" defer></script>
 </body>
 </html>

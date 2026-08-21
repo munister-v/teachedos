@@ -116,6 +116,29 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
+/* POST /api/library/:id/track-copy - счётчик «сколько раз урок скопировали».
+
+   Урок-доска копируется не через /clone (тот создаёт запись в библиотеке
+   заказчика): снимок уходит прямо на холст board.html через communityImport,
+   без обращения к серверу вообще. Из-за этого clone_count у уроков-досок
+   всегда оставался нулевым, хотя колонка и читалась в списке витрины.
+   Маршрут публичный и намеренно ничего не создаёт и не требует входа —
+   это popularity-метрика витрины, а не персональное действие пользователя. */
+router.post('/:id/track-copy', async (req, res) => {
+  try {
+    if (!UUID_RE.test(String(req.params.id || ''))) return res.status(204).end();
+    const { rows } = await pool.query(
+      `UPDATE assignments SET clone_count = clone_count + 1
+       WHERE id = $1 AND visibility = 'community' RETURNING clone_count`,
+      [req.params.id]
+    );
+    res.json({ ok: true, cloneCount: rows[0]?.clone_count ?? null });
+  } catch (err) {
+    // Метрика не должна ронять поток копирования на клиенте.
+    res.status(204).end();
+  }
+});
+
 router.use(requireAuth);
 
 // ── GET /api/library - my library (metadata only) ──────────────────────────
