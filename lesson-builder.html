@@ -366,7 +366,35 @@ async function migrateLocalToCloud(){
   localStorage.setItem(FLAG,'1');
   if(synced)toast('☁️ '+synced+' lesson'+(synced>1?'s':'')+' synced to My Library');
 }
-function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();apply(draft||PRESETS[1]);renderLibrary();setTimeout(()=>migrateLocalToCloud().catch(()=>{}),1200)}
+/* Открыть урок из облачной библиотеки: `lesson-builder.html?lesson=<id>`.
+   Без этого «Сохранить себе» в Комьюнити было действием в никуда — запись
+   появлялась в библиотеке, но открыть её было нечем: `applySaved()` ищет урок
+   только в localStorage этого браузера, а пришедший из Комьюнити там не лежит.
+
+   Чужой урок открывается как заготовка: `cloudId` не подставляем, поэтому
+   первое сохранение создаст СВОЮ запись, а не попытается переписать оригинал
+   (PATCH чужого сервер и не позволит). Свой — открывается как есть и правится
+   на месте. */
+async function loadCloudLesson(id){
+  const r=await libFetch('/api/library/'+id);
+  if(!r.ok)throw new Error(r.status===404?'Lesson not found or not shared':'Could not open lesson');
+  const j=await r.json();
+  const a=j&&j.assignment;
+  const d=a&&a.data;
+  if(!d||typeof d!=='object')throw new Error('This item has no lesson data');
+  const mine=!!a.is_owner;
+  const lesson={...d};
+  lesson.cloudId=mine?a.id:null;
+  if(!mine){lesson.id='lesson-'+Date.now();lesson.title=d.title||a.title||'Untitled lesson';}
+  currentCloudId=mine?a.id:null;
+  apply(lesson);
+  toast(mine?'Lesson opened':'Opened a copy — press “Save lesson” to keep it');
+}
+function init(){renderPresets();renderActivities();const draft=(()=>{try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}})();
+  const wanted=new URLSearchParams(location.search).get('lesson');
+  if(wanted){apply(draft||PRESETS[1]);loadCloudLesson(wanted).catch(e=>toast(e.message||'Could not open lesson'));}
+  else apply(draft||PRESETS[1]);
+  renderLibrary();setTimeout(()=>migrateLocalToCloud().catch(()=>{}),1200)}
 init();
 // Flush any pending debounced autosave before the page is hidden/closed
 window.addEventListener('pagehide', flushDraft);

@@ -1141,8 +1141,15 @@ function renderMyLibrary() {
     const pub = a.visibility === 'community'
       ? `<button class="mini-btn alt" onclick='unpublishItem(${JSON.stringify(a.id)})'>Unpublish</button>`
       : `<button class="mini-btn" onclick='publishItem(${JSON.stringify(a.id)})'>🌍 Publish</button>`;
+    /* «Open builder» вёл в пустой конструктор — без номера урока. Для записи,
+       пришедшей из Комьюнити, это тупик: в localStorage её нет, открыть было
+       нечем. Теперь ссылка несёт id, и конструктор подтягивает урок из
+       библиотеки. */
+    const open = a.kind === 'lesson'
+      ? `<a class="mini-btn" href="lesson-builder.html?lesson=${encodeURIComponent(a.id)}">Open lesson</a>`
+      : `<a class="mini-btn" href="board.html">Open board</a>`;
     return libCardHtml(a, { actions:
-      `<a class="mini-btn" href="lesson-builder.html">Open builder</a>${pub}` +
+      `${open}${pub}` +
       `<button class="mini-btn alt" onclick='deleteItem(${JSON.stringify(a.id)})'>Delete</button>` });
   }).join('');
 }
@@ -1156,8 +1163,17 @@ function renderCommunityLibrary() {
     (!kind || a.kind === kind) && (!level || a.level === level) &&
     (!q || (a.title + ' ' + (a.description||'')).toLowerCase().includes(q)));
   if (!list.length) { grid.innerHTML = '<div class="empty">No shared resources match your filters yet.</div>'; updateCommunityStats(); return; }
-  grid.innerHTML = list.map(a => libCardHtml(a, { actions:
-    `<button class="mini-btn" onclick='cloneItem(${JSON.stringify(a.id)})'>＋ Save to my library</button>` })).join('');
+  /* Раньше единственным действием было «Save to my library»: урок брали
+     вслепую, не заглянув внутрь. Просмотр открывает опубликованный урок
+     целиком (сервер отдаёт его любому, раз он в Комьюнити) — решение
+     «нужен ли он мне» принимается до сохранения, а не после. */
+  grid.innerHTML = list.map(a => {
+    const peek = a.kind === 'lesson'
+      ? `<a class="mini-btn alt" href="lesson-builder.html?lesson=${encodeURIComponent(a.id)}">Preview</a>`
+      : '';
+    return libCardHtml(a, { actions:
+      `<button class="mini-btn" onclick='cloneItem(${JSON.stringify(a.id)})'>＋ Save to my library</button>${peek}` });
+  }).join('');
 }
 
 async function publishItem(id) {
@@ -1180,7 +1196,21 @@ async function deleteItem(id) {
 async function cloneItem(id) {
   if (!token) { toast('Sign in to save to your library'); return; }
   try { const r = await api('/api/library/' + id + '/clone', { method:'POST' });
-    if (!r.ok) throw 0; toast('✓ Saved to your library'); loadLibrary(); }
+    if (!r.ok) throw 0;
+    /* Сохранение заканчивалось тостом «Saved» — и на этом след терялся: копия
+       уходила в другую вкладку, которую человек не открывал, и выглядело так,
+       будто ничего не произошло. Теперь переносим туда же, куда положили урок,
+       и говорим, что с ним делать дальше. */
+    const j = await r.json().catch(() => null);
+    const copy = j && j.assignment;
+    await loadLibrary();
+    switchCommTab('library');
+    if (copy && copy.kind === 'lesson' && copy.id) {
+      toast('✓ Saved — open it from “Open lesson”');
+    } else {
+      toast('✓ Saved to your library');
+    }
+  }
   catch { toast('Could not save'); }
 }
 
