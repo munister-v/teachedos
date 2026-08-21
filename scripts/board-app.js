@@ -6586,6 +6586,22 @@ boardWrap.addEventListener('wheel', e => {
   applyTransform();
 }, { passive: false });
 
+// Трекпад-pinch над панелями (Share board и т.п.) не долетает до слушателя
+// выше: панели - это z-index:3000 сиблинги boardWrap, а не его дети, так что
+// wheel с ctrlKey там ловит браузер, а не мы. Итог - реальный нативный зум
+// страницы, который визуально "раздувает" открытую панель и не имеет отношения
+// к state.scale - кнопки/сброс зума доски его не откатывают. Ловим pinch
+// глобально на document, чтобы он всегда уходил в зум доски, а не в браузер,
+// независимо от того, что сейчас под курсором.
+document.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) e.preventDefault();
+}, { passive: false, capture: true });
+// Safari трекпад-pinch генерирует отдельные gesture-события (не wheel) -
+// без этого их не поймать вообще, и панель зумится нативно даже с блоком выше.
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('gestureend', e => e.preventDefault());
+
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
   const r = boardWrap.getBoundingClientRect();
   zoomAt(r.left + r.width/2, r.top + r.height/2, 1.25);
@@ -12908,7 +12924,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '362';
+const TEACHEDOS_ASSET_VERSION = '363';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
