@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=366">
+<link rel="manifest" href="manifest.json?v=367">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=366">
-<link rel="preload" as="style" href="styles/unify.css?v=366">
+<link rel="preload" as="style" href="styles/harmony.css?v=367">
+<link rel="preload" as="style" href="styles/unify.css?v=367">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -355,10 +355,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=366" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=366">
-<link rel="stylesheet" href="styles/harmony.css?v=366">
-<link rel="stylesheet" href="styles/unify.css?v=366">
+<script src="theme.js?v=367" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=367">
+<link rel="stylesheet" href="styles/harmony.css?v=367">
+<link rel="stylesheet" href="styles/unify.css?v=367">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -422,7 +422,7 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=366">
+<link rel="stylesheet" href="styles/teached-brand.css?v=367">
 </head>
 <body class="mp-shell">
 
@@ -539,7 +539,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=366"></script>
+<script src="scripts/app-core.js?v=367"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1100,6 +1100,11 @@ function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
     type, x, y, w, h, data,
     color: data.color || null
   });
+  // renderAssignment() only knows five type pills (Quiz/Essay/Speaking/Project/
+  // Mixed) - anything else falls back to a generic orange "Practice" pill that
+  // doesn't match the lesson's actual skill. Map the curriculum's skill labels
+  // onto ones it recognises so the homework card's color/icon means something.
+  const assignmentType = { Speaking:'Speaking', Writing:'Essay', Functional:'Speaking' }[lessonTemplate.skill] || 'Quiz';
   const cards = [
     makeCard('plan', 80, 60, 330, 220, {
       title: lessonTemplate.title,
@@ -1115,8 +1120,12 @@ function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
       level: lessonTemplate.level,
       skill: lessonTemplate.skill,
       duration: lessonTemplate.duration,
-      desc: lessonTemplate.objectives.join('\n'),
-      objectives: lessonTemplate.objectives,
+      module: moduleTemplate.name,
+      // renderLesson() reads objectives as {text,done} pairs (it renders a
+      // clickable checklist, not plain strings) - passing raw strings left
+      // every objective line blank with just a checkbox, which is exactly the
+      // "junk" the board showed. Same fix as the checklist card below.
+      objectives: lessonTemplate.objectives.map(text => ({ text, done: false })),
       attachments: [],
       notes: 'Ready-made lesson board generated from TeachEd curriculum library.'
     }),
@@ -1141,8 +1150,9 @@ function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
       ].join('\n')
     }),
     makeCard('assignment', 800, 330, 280, 210, {
-      title: 'Homework',
-      type: 'Practice',
+      title: 'Homework: ' + lessonTemplate.title,
+      type: assignmentType,
+      level: lessonTemplate.level,
       maxScore: 100,
       deadline: '',
       desc: lessonTemplate.homework,
@@ -1440,11 +1450,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=366" defer></script>
-<script src="scripts/mobile-perf.js?v=366" defer></script>
-<script src="scripts/mobile-nav.js?v=366"></script>
-<script src="scripts/mobile-zoom-guard.js?v=366" defer></script>
-<script src="scripts/autogrow.js?v=366" defer></script>
-<script src="pwa-boot.js?v=366" defer></script>
+<script src="scripts/nav-boost.js?v=367" defer></script>
+<script src="scripts/mobile-perf.js?v=367" defer></script>
+<script src="scripts/mobile-nav.js?v=367"></script>
+<script src="scripts/mobile-zoom-guard.js?v=367" defer></script>
+<script src="scripts/autogrow.js?v=367" defer></script>
+<script src="pwa-boot.js?v=367" defer></script>
 </body>
 </html>

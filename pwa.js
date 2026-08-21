@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '366';
+  const TEACHEDOS_ASSET_VERSION = '367';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);

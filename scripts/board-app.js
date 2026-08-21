@@ -2320,7 +2320,7 @@ const LESSON_STATUS_MAP = {
   'in-progress':{ label:'⏳ In Progress',cls:'in-progress' },
   done:        { label:'✅ Done',         cls:'done' },
 };
-const SKILL_MAP = { Grammar:'g', Vocabulary:'v', Speaking:'s', Reading:'r', Writing:'w', Listening:'l' };
+const SKILL_MAP = { Grammar:'g', Vocabulary:'v', Speaking:'s', Reading:'r', Writing:'w', Listening:'l', Functional:'s' };
 const LEVEL_COLORS = { A1:'a1',A2:'a2',B1:'b1',B2:'b2b',C1:'c1',C2:'c2' };
 
 function renderLesson(el, card) {
@@ -12924,7 +12924,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '366';
+const TEACHEDOS_ASSET_VERSION = '367';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
