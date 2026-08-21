@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=336">
+<link rel="manifest" href="manifest.json?v=337">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -57,10 +57,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=336" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=336">
-<link rel="stylesheet" href="styles/harmony.css?v=336">
-<link rel="stylesheet" href="styles/unify.css?v=336">
+<script src="theme.js?v=337" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=337">
+<link rel="stylesheet" href="styles/harmony.css?v=337">
+<link rel="stylesheet" href="styles/unify.css?v=337">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -229,7 +229,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=336">
+<link rel="stylesheet" href="styles/teached-brand.css?v=337">
 </head>
 <body>
 <nav id="nav">
@@ -267,10 +267,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     </div>
     <aside class="share-card" aria-labelledby="publisher-heading">
       <div class="share-title" id="publisher-heading">Publish a lesson</div>
-      <p class="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
+      <p class="publisher-intro" id="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
       <div class="lesson-preview" aria-label="Auto-generated lesson cover preview">
         <div class="lesson-preview-top">
-          <span class="lesson-preview-kicker">Community lesson</span>
+          <span class="lesson-preview-kicker" id="lesson-preview-kicker">Community lesson</span>
           <span class="lesson-preview-level" id="share-preview-level">B1</span>
         </div>
         <div class="lesson-preview-title" id="share-preview-title">Your lesson title</div>
@@ -317,7 +317,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   <!-- ══════ BOARDS SECTION ══════ -->
   <div id="tab-boards">
     <div class="section-head">
-      <div><div class="section-title">Community lessons</div><div class="section-sub">Published lesson snapshots, ready to copy into your own board.</div></div>
+      <div><div class="section-title">Community lessons &amp; spaces</div><div class="section-sub">Single lesson frames or whole boards, published as a snapshot ready to copy.</div></div>
       <button class="btn ghost" onclick="loadBoards()">Refresh</button>
     </div>
     <div class="filters-row">
@@ -328,6 +328,11 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       <select id="board-sort" onchange="renderCommunity()">
         <option value="newest">Newest first</option>
         <option value="popular">Most saved</option>
+      </select>
+      <select id="board-type" onchange="renderCommunity()">
+        <option value="">Lessons &amp; Spaces</option>
+        <option value="lesson">Lessons only</option>
+        <option value="space">Spaces only</option>
       </select>
     </div>
     <section class="grid" id="community-grid"></section>
@@ -381,8 +386,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </main>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=336"></script>
-<script src="scripts/vocab-loader.js?v=336"></script>
+<script src="scripts/app-core.js?v=337"></script>
+<script src="scripts/vocab-loader.js?v=337"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -481,6 +486,11 @@ function assignmentToCommunityPost(assignment, dataOverride) {
     cardCount,
     snapshot: data.snapshot || null,
     cloneCount: Number(assignment.clone_count) || 0,
+    /* Кадр урока был выбран при публикации (sourceFrameId в publishBoard())
+       -> это «Lesson»; пусто -> опубликована вся доска -> «Space». Локальные
+       демо-посты (SAMPLE_POSTS) не задают это поле и по умолчанию считаются
+       уроками - это и есть их смысл. */
+    isSpace: !(assignment.sourceFrameId || assignment.source_frame_id || data.sourceFrameId),
     createdAt: assignment.published_at || assignment.created_at || new Date().toISOString(),
   };
 }
@@ -600,6 +610,19 @@ function updatePublisherPreview() {
   setText('share-preview-title', title);
   setText('share-preview-level', level);
   setText('share-preview-meta', detail);
+
+  /* Одно и то же окно публикует два разных продукта: кадр урока ("Lesson") -
+     если выбрана рамка на доске, и всю доску целиком ("Space") - если нет.
+     Заголовок, вступление, значок предпросмотра и подпись кнопки следуют за
+     этим выбором, а не остаются подписаны «lesson» для обоих случаев. */
+  const isSpace = !publisherFrameId;
+  setText('publisher-heading', isSpace ? 'Publish a Space' : 'Publish a lesson');
+  setText('publisher-intro', isSpace
+    ? 'Share this whole board as a reusable Space other teachers can open and build on.'
+    : 'Share a clean, copyable lesson snapshot with other teachers.');
+  setText('lesson-preview-kicker', isSpace ? 'Community space' : 'Community lesson');
+  const publishBtn = document.getElementById('publish-board-btn');
+  if (publishBtn) publishBtn.textContent = isSpace ? 'Publish Space' : 'Publish lesson';
 }
 
 function focusCommunityPublisher() {
@@ -755,6 +778,11 @@ async function publishBoard() {
         snapshot_version:1,
         sourceBoardId:boardId,
         sourceBoardName:selectedName,
+        /* Терялось здесь: тот же объект data строится заново для мгновенного
+           показа карточки и раньше не повторял sourceFrameId, отправленный на
+           сервер несколькими строками выше, - опубликованный урок мог на
+           секунду показать себя «Space» до следующей перезагрузки ленты. */
+        sourceFrameId:publisherFrameId || null,
         duration,
         snapshot,
       });
@@ -855,7 +883,7 @@ function lessonCoverHtml(post, cardCount) {
   const body = map || `<div class="community-cover-grid">${blocks}</div>`;
   return `<div class="community-lesson-cover cover-style-${style}" aria-hidden="true">
     <div class="community-cover-head">
-      <span class="community-cover-kind">Board lesson</span>
+      <span class="community-cover-kind">${post.isSpace ? 'Space' : 'Lesson'}</span>
       <span class="community-cover-level">${esc(post.level || 'Mixed')}</span>
     </div>
     ${body}
@@ -869,9 +897,11 @@ function renderCommunity() {
   const q = (document.getElementById('board-search')?.value || '').trim().toLowerCase();
   const level = document.getElementById('board-level')?.value || '';
   const sort = document.getElementById('board-sort')?.value || 'newest';
+  const type = document.getElementById('board-type')?.value || '';
   const posts = getCommunityPosts().filter(p => {
     const hay = [p.title, p.desc, p.author, p.level, p.skill, p.duration, ...(p.tags || [])].join(' ').toLowerCase();
-    return (!level || p.level === level) && (!q || hay.includes(q));
+    const matchesType = !type || (type === 'space' ? !!p.isSpace : !p.isSpace);
+    return (!level || p.level === level) && (!q || hay.includes(q)) && matchesType;
   });
   /* «Most saved» сортирует по числу копирований на доску, а не по клонам
      библиотеки — это разные счётчики (см. cloneCount у track-copy). При
@@ -1291,9 +1321,9 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=336" defer></script>
-<script src="scripts/mobile-nav.js?v=336"></script>
-<script src="scripts/mobile-zoom-guard.js?v=336" defer></script>
-<script src="pwa-boot.js?v=336" defer></script>
+<script src="scripts/mobile-perf.js?v=337" defer></script>
+<script src="scripts/mobile-nav.js?v=337"></script>
+<script src="scripts/mobile-zoom-guard.js?v=337" defer></script>
+<script src="pwa-boot.js?v=337" defer></script>
 </body>
 </html>

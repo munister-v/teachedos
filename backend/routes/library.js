@@ -74,6 +74,10 @@ router.get('/community', optionalAuth, async (req, res) => {
     if (level)                        { params.push(level);  where += ` AND a.level = $${params.length}`; }
     if (skill)                        { params.push(skill);  where += ` AND a.skill = $${params.length}`; }
     if (q && q.trim())                { params.push(`%${q.trim()}%`); where += ` AND (a.title ILIKE $${params.length} OR a.description ILIKE $${params.length})`; }
+    /* Публикация помнит, был ли выбран кадр урока при отправке (поле
+       sourceFrameId в publishBoard() на community.html): пусто - опубликована
+       вся доска целиком ("Space"), заполнено - один кадр ("Lesson"). Значение
+       нужно клиенту, чтобы подписать карточку в ленте тем или иным словом. */
     const { rows } = await pool.query(
       `SELECT a.id, a.kind, a.title, a.description, a.level, a.skill, a.tags,
               (a.image IS NOT NULL) AS has_image, a.clone_count, a.published_at,
@@ -82,6 +86,7 @@ router.get('/community', optionalAuth, async (req, res) => {
                    ELSE 0 END AS card_count,
               NULLIF(a.data->>'duration', '') AS duration,
               NULLIF(a.data->>'snapshot_version', '') AS snapshot_version,
+              (a.data->>'sourceFrameId') AS source_frame_id,
               u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
        WHERE ${where}

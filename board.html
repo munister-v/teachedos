@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=336">
+<link rel="manifest" href="manifest.json?v=337">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=336">
-<link rel="stylesheet" href="styles/auth.css?v=336">
-<link rel="stylesheet" href="styles/mobile.css?v=336">
-<link rel="stylesheet" href="styles/harmony.css?v=336">
-<link rel="stylesheet" href="styles/unify.css?v=336">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=336">
+<link rel="stylesheet" href="styles/board.css?v=337">
+<link rel="stylesheet" href="styles/auth.css?v=337">
+<link rel="stylesheet" href="styles/mobile.css?v=337">
+<link rel="stylesheet" href="styles/harmony.css?v=337">
+<link rel="stylesheet" href="styles/unify.css?v=337">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=337">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -273,7 +273,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=336">
+<link rel="stylesheet" href="styles/teached-brand.css?v=337">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1999,12 +1999,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=336"></script>
-<script src="scripts/tt-text-core.js?v=336"></script>
-<script src="scripts/board-app.js?v=336"></script>
-<script src="js/board-vocab.js?v=336"></script>
-<script src="js/board-reveal.js?v=336"></script>
-<script src="js/teacher-tool-board-composer.js?v=336"></script>
+<script src="js/teacher-tools-data.js?v=337"></script>
+<script src="scripts/tt-text-core.js?v=337"></script>
+<script src="scripts/board-app.js?v=337"></script>
+<script src="js/board-vocab.js?v=337"></script>
+<script src="js/board-reveal.js?v=337"></script>
+<script src="js/teacher-tool-board-composer.js?v=337"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2012,7 +2012,7 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="pwa-boot.js?v=336" defer></script>
+<script src="pwa-boot.js?v=337" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2044,7 +2044,7 @@ polite request</textarea>
         </button>
         <button class="sp-destination community" id="sp-dest-community" type="button" onclick="spShowView('community')">
           <span class="sp-destination-token" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#bi-boards"/></svg></span>
-          <span><strong>Publish a lesson</strong><small id="sp-dest-community-copy">Turn this board into a reusable Community lesson.</small></span>
+          <span><strong id="sp-dest-community-title">Publish a lesson</strong><small id="sp-dest-community-copy">Turn this board into a reusable Community lesson.</small></span>
         </button>
       </div>
     </section>
@@ -2076,11 +2076,11 @@ polite request</textarea>
 
     <section class="sp-view" id="sp-community-view" hidden>
       <button class="sp-back" type="button" onclick="spShowView('home')">← All sharing options</button>
-      <div class="sp-community-kicker">Community lesson</div>
-      <h2 class="sp-community-title">Publish a reusable lesson</h2>
-      <p class="sp-community-copy">We will publish a snapshot of this board, so later edits stay private until you publish a new version.</p>
+      <div class="sp-community-kicker" id="sp-community-kicker">Community lesson</div>
+      <h2 class="sp-community-title" id="sp-community-title">Publish a reusable lesson</h2>
+      <p class="sp-community-copy" id="sp-community-copy">We will publish a snapshot of this board, so later edits stay private until you publish a new version.</p>
       <div class="sp-community-preview" aria-hidden="true">
-        <div class="sp-community-preview-top"><span>BOARD LESSON</span><span id="sp-preview-count">0 cards</span></div>
+        <div class="sp-community-preview-top"><span id="sp-preview-kind">LESSON</span><span id="sp-preview-count">0 cards</span></div>
         <strong id="sp-preview-title">This board</strong>
         <div class="sp-community-preview-canvas"><i></i><i></i><i></i><i></i></div>
         <small id="sp-preview-scope">Title, level and description are added next.</small>
@@ -2094,11 +2094,11 @@ polite request</textarea>
     </section>
   </div>
 </div>
-<script src="pwa.js?v=336"></script>
-<script src="scripts/nav-boost.js?v=336" defer></script>
-<script src="scripts/mobile-perf.js?v=336" defer></script>
-<script src="scripts/mobile-nav.js?v=336"></script>
-<script src="scripts/mobile-zoom-guard.js?v=336" defer></script>
+<script src="pwa.js?v=337"></script>
+<script src="scripts/nav-boost.js?v=337" defer></script>
+<script src="scripts/mobile-perf.js?v=337" defer></script>
+<script src="scripts/mobile-nav.js?v=337"></script>
+<script src="scripts/mobile-zoom-guard.js?v=337" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

@@ -12864,7 +12864,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '336';
+const TEACHEDOS_ASSET_VERSION = '337';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15903,6 +15903,23 @@ function spUpdateBoardContext() {
   if (previewScope) previewScope.textContent = _shareFrameId
     ? 'Only this lesson frame and its activities will be published.'
     : 'Title, level and description are added next.';
+
+  /* Тот же выбор (кадр или вся доска), что определяет содержимое публикации,
+     определяет и то, как её называть: кадр урока - «Lesson», вся доска -
+     «Space». Один переключатель, все подписи панели следуют за ним. */
+  const isSpace = !_shareFrameId;
+  const destTitle = document.getElementById('sp-dest-community-title');
+  if (destTitle) destTitle.textContent = isSpace ? 'Publish this Space' : 'Publish this lesson';
+  const kickerEl = document.getElementById('sp-community-kicker');
+  if (kickerEl) kickerEl.textContent = isSpace ? 'Community space' : 'Community lesson';
+  const titleEl = document.getElementById('sp-community-title');
+  if (titleEl) titleEl.textContent = isSpace ? 'Publish this board as a Space' : 'Publish a reusable lesson';
+  const copyEl = document.getElementById('sp-community-copy');
+  if (copyEl) copyEl.textContent = isSpace
+    ? 'We will publish a snapshot of the whole board, so later edits stay private until you publish a new version.'
+    : 'We will publish a snapshot of this board, so later edits stay private until you publish a new version.';
+  const kindEl = document.getElementById('sp-preview-kind');
+  if (kindEl) kindEl.textContent = isSpace ? 'SPACE' : 'LESSON';
 }
 
 function spShowView(view) {
