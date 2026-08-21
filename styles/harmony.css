@@ -2094,7 +2094,13 @@ body { font-family: var(--font) !important; }
   .board-ic {
     background: rgba(205,242,79,0.12) !important;
   }
-  .tag {
+  /* Ограничено .os-desktop намеренно. Правило кремовое-по-прозрачному
+     написано для тёмной поверхности - оно и стоит среди .board-* соседей,
+     - но голый .tag ловил ВСЕ страницы шире 861px. Реально .tag живёт
+     только на светлых: game-builder (229 тегов у карточек шаблонов),
+     teacher-tools, community. Там выходило 1.06:1, то есть теги были
+     не видны вообще. На доске и в OS-шелле .tag не используется. */
+  .os-desktop .tag {
     background: rgba(245,240,232,0.08) !important;
     color: rgba(245,240,232,0.65) !important;
     font-family: var(--font-mono) !important;

@@ -1137,8 +1137,23 @@ body:not(.board-page) .board-card::before {
    the rest of the nav-link styling.
 ═══════════════════════════════════════════════════════════════ */
 
+/* ВАЖНО: комментарий выше описывает состояние, которого больше нет.
+   harmony.css действительно красил #nav в тёмное стекло, и кремовый текст
+   был верным. Но ниже в этом же файле и в teached-brand.css шапка
+   возвращена СВЕТЛОЙ для body:not(.board-page):not(.os-desktop) -
+   итоговый фон rgba(255,252,248,.94). Цвет текста за этим не пошёл, и
+   на всех обычных страницах имя в чипе висело кремовым по светлому:
+   1.06:1, то есть не читалось.
+
+   Чип #nav-name есть на 10 светлых страницах (analytics, community,
+   courses, game-builder, gradebook, homework, journal, lesson-packs,
+   profile, schedule) и НИ НА ОДНОЙ тёмной: у доски своя шапка без #nav,
+   у OS-шелла #nav нет вовсе. То есть кремовое правило не обслуживало
+   ничего и ломало все десять. Ветка board-page/os-desktop ниже оставлена
+   как страховка на случай возврата тёмной шапки; сегодня она не совпадает
+   ни с чем. Предикат тот же, которым задан фон, чтобы цвет текста и фон
+   больше не расходились. */
 #nav .nav-user {
-  color: rgba(245,240,232,0.85) !important;
   border-color: rgba(205,242,79,0.20) !important;
   background: rgba(205,242,79,0.08) !important;
 }
@@ -1146,8 +1161,15 @@ body:not(.board-page) .board-card::before {
   background: rgba(205,242,79,0.14) !important;
   border-color: rgba(205,242,79,0.32) !important;
 }
-#nav #nav-name {
+body.board-page #nav .nav-user,
+body.os-desktop #nav .nav-user,
+body.board-page #nav #nav-name,
+body.os-desktop #nav #nav-name {
   color: rgba(245,240,232,0.85) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav .nav-user,
+body:not(.board-page):not(.os-desktop) #nav #nav-name {
+  color: #1C1C1E !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
