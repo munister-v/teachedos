@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=340">
+<link rel="manifest" href="manifest.json?v=341">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -155,17 +155,18 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .hero-card li span:first-child{font:950 10px var(--mono);color:var(--lime);background:rgba(200,230,50,.10);border:1px solid rgba(200,230,50,.18);border-radius:9px;padding:3px 6px;}
 .preset-card,.tool,.panel,.library-item{box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 10px 28px rgba(24,24,24,.055);}
 .preset-card{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(250,250,244,.78));}
-.tool{--cat:#8e90a0;--catfg:#fff;--catrgb:142,144,160;overflow:visible;background:linear-gradient(var(--cat),var(--cat)) left top/100% 3px no-repeat,linear-gradient(180deg,rgba(255,255,255,.95),rgba(250,250,244,.80));border-radius:22px;}
-.tool[data-catkey="reading"]{--cat:#5b6cff;--catfg:#fff;--catrgb:91,108,255}
-.tool[data-catkey="vocabulary"]{--cat:#42c878;--catfg:#fff;--catrgb:66,200,120}
-.tool[data-catkey="writing"]{--cat:#ffb546;--catfg:#1b1c22;--catrgb:255,181,70}
-.tool[data-catkey="speaking"]{--cat:#ec2d8c;--catfg:#fff;--catrgb:236,45,140}
-.tool[data-catkey="grammar"]{--cat:#8b5cf6;--catfg:#fff;--catrgb:139,92,246}
-.tool[data-catkey="listening"]{--cat:#73dce2;--catfg:#14343a;--catrgb:115,220,226}
-.tool[data-catkey="utility"]{--cat:#8e90a0;--catfg:#fff;--catrgb:142,144,160}
-.tool::before{content:none;}
-.tool-visual{height:auto;align-self:stretch;background:linear-gradient(160deg,rgba(var(--catrgb),.10),rgba(var(--catrgb),.18)),linear-gradient(160deg,#fff,#f5f2e8);border:1px solid rgba(24,24,24,.08);box-shadow:inset 0 -16px 26px rgba(24,24,24,.035);}
-.tool-visual::after{background:var(--cat);color:var(--catfg);letter-spacing:.06em;}
+/* .tool{--cat...}, семь .tool[data-catkey=X]{--cat...} и оба потребителя ниже
+   (.tool-visual градиентный фон, .tool-visual::after) были второй попыткой раскрасить
+   иконки по категориям - через CSS-переменные и цветную 3px-полосу сверху карточки.
+   Проверено на живой странице (getComputedStyle) и по всему каскаду: styles/teacher-
+   tools-refined.css грузится позже, и .tools-workbench на body поднимает специфичность
+   выше - .tool целиком перекрашен в прозрачный, а .tool-visual в плоский цвет без
+   градиента. Ни одно из объявлений здесь не отрисовывалось ни разу. Переменные
+   --cat/--catfg/--catrgb дублировались ещё и в styles/teached-brand.css с пометкой
+   «reusable in the catalogue, Tools and future pages» - это общий файл бренда для
+   будущих страниц, его не трогаю; var(--cat) там тоже нигде не читается, но это
+   заявленный задел, а не случайно оставленный мусор. Живая раскраска иконок - в
+   teacher-tools-refined.css: .tools-workbench .tool[data-catkey=X] .tool-visual. */
 .tool h3{letter-spacing:-.035em;padding-right:34px;}
 .tool p{color:#565862;}
 .tag{border:1px solid rgba(24,24,24,.055);}
@@ -232,12 +233,12 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 }
 
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=340">
-<link rel="stylesheet" href="styles/unify.css?v=340">
-<link rel="stylesheet" href="styles/knowledge-bases.css?v=340">
-<link rel="stylesheet" href="styles/mobile.css?v=340">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=340">
-<link rel="stylesheet" href="styles/teached-brand.css?v=340">
+<link rel="stylesheet" href="styles/harmony.css?v=341">
+<link rel="stylesheet" href="styles/unify.css?v=341">
+<link rel="stylesheet" href="styles/knowledge-bases.css?v=341">
+<link rel="stylesheet" href="styles/mobile.css?v=341">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=341">
+<link rel="stylesheet" href="styles/teached-brand.css?v=341">
 </head>
 <body class="tools-workbench">
 <nav class="nav">
@@ -381,11 +382,11 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/knowledge-bases.js?v=340"></script>
-<script src="scripts/tt-text-core.js?v=340"></script>
-<script src="scripts/teacher-tools-app.js?v=340"></script>
-<script src="js/teacher-tool-ai.js?v=340" defer></script>
-<script src="js/teacher-tool-stt.js?v=340" defer></script>
-<script src="pwa-boot.js?v=340" defer></script>
+<script src="scripts/knowledge-bases.js?v=341"></script>
+<script src="scripts/tt-text-core.js?v=341"></script>
+<script src="scripts/teacher-tools-app.js?v=341"></script>
+<script src="js/teacher-tool-ai.js?v=341" defer></script>
+<script src="js/teacher-tool-stt.js?v=341" defer></script>
+<script src="pwa-boot.js?v=341" defer></script>
 </body>
 </html>
