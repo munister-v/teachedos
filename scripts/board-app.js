@@ -12924,7 +12924,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '363';
+const TEACHEDOS_ASSET_VERSION = '364';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20485,11 +20485,49 @@ function _onAccentFor(hex) {
   return L > 0.18 ? '#0E0E10' : '#FFFFFF';
 }
 
+/* Accent used as TEXT on a light/white surface (chips, status lines) rather
+   than as a fill. --on-accent solves fills; it doesn't help here - a light
+   custom accent (lime, yellow) as plain color:var(--accent) on white reads
+   almost invisible (e.g. lime text on a 10%-lime chip background), which is
+   exactly what was reported: "Discussion questions" chip and the "Generating
+   N exercises..." status line both nearly unreadable once the user picked a
+   light accent. Same luminance math as _onAccentFor, but instead of flipping
+   to a fixed ink/white, darken the accent itself (HSL lightness clamp) so it
+   keeps its hue and still reads on white. Dark accents pass through as-is. */
+function _accentTextFor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  if (L <= 0.32) return hex; // already dark enough for ~4.5:1 on white
+  // Too light - convert to HSL, clamp lightness down to a legible ceiling.
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0; const l = (max + min) / 2;
+  const d = max - min;
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  const l2 = 0.4; // ~good white-contrast ceiling for saturated hues
+  const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1/6) return p + (q - p) * 6 * t; if (t < 1/2) return q; if (t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p; };
+  const q = l2 < 0.5 ? l2 * (1 + s) : l2 + s - l2 * s;
+  const p = 2 * l2 - q;
+  const toHex = v => Math.round(v * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(hue2rgb(p, q, h + 1/3)) + toHex(hue2rgb(p, q, h)) + toHex(hue2rgb(p, q, h - 1/3));
+}
+
 function setAccentColor(hex, save=true) {
   boardSettings.accent = hex;
   document.documentElement.style.setProperty('--accent', hex);
   document.documentElement.style.setProperty('--accent-2', hex + '18');
   document.documentElement.style.setProperty('--on-accent', _onAccentFor(hex));
+  document.documentElement.style.setProperty('--accent-text', _accentTextFor(hex));
   if (save) { updateSettingsUI(); saveSettings(); }
 }
 
