@@ -2415,7 +2415,10 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   .mob-nav-tab {
     height: 56px !important;
     border-radius: 16px !important;
-    color: rgba(94,94,74,.58) !important;
+    /* .58 давал 2.93:1 на белом - подпись под неактивной иконкой таб-бара
+       читалась с трудом. .82 держит визуальную приглушённость (активная
+       остаётся отдельным #1C1C1E выше) и поднимает контраст до нормы. */
+    color: rgba(94,94,74,.82) !important;
   }
 
   .mob-nav-tab.active {
