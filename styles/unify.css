@@ -1298,10 +1298,6 @@ body.lesson-builder-page .lib-item {
   color: #0E0E10 !important;
 }
 
-body.lesson-builder-page .stage {
-  border-left-color: var(--acc, #c8e632) !important;
-}
-
 body.lesson-builder-page .panel-sub,
 body.lesson-builder-page .preset span,
 body.lesson-builder-page .activity-btn span,
@@ -1369,8 +1365,8 @@ body.lesson-builder-page .chip {
 }
 
 body.lesson-builder-page .chip.ok {
-  background: var(--acc-bg, rgba(35,191,114,0.14)) !important;
-  color: var(--acc, #168A52) !important;
+  background: var(--calm-accent-soft, rgba(35,191,114,0.14)) !important;
+  color: var(--calm-ink, #168A52) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
