@@ -1531,6 +1531,12 @@ const GB_TOOL_FOR_FIELDS = {
   sentences:  'gap',
   statements: 'true-false',
   mcq:        'abcd-text',
+  /* Единственный формат, у которого не было пары на бэкенде, - а на нём
+     висят Word Categories, Group Sort, Odd One Out и Whack-a-Mole, то есть
+     кнопка отвечала им "not available for this game type yet".
+     word-sorting отдаёт ровно то, что нужно: left = слово, right = ярлык
+     категории, и в промпте уже запрещены свалки вроде "Other"/"Misc". */
+  categories: 'word-sorting',
 };
 
 function _gbApiBase() {
@@ -1603,6 +1609,28 @@ function _gbContentFromAI(fields, out) {
   if (fields === 'words') {
     const list = items.map(i => String(i.word || '').trim()).filter(Boolean);
     return list.length >= 2 ? { words: list } : null;
+  }
+  /* word-sorting присылает плоский список «слово → ярлык категории», а игре
+     нужны сгруппированные корзины [{name, words}]. Группируем, сохраняя
+     порядок первого появления категории: так корзины идут в том же порядке,
+     в каком их придумала модель, а не по алфавиту.
+     Категорию из одного слова выбрасываем - сортировать там нечего, а в игре
+     она превращается в подсказку: единственное слово видно куда класть. */
+  if (fields === 'categories') {
+    const flat = [
+      pairs.map(p => ({ w: String(p.left || '').trim(), c: String(p.right || '').trim() })),
+      qs.filter(q => Array.isArray(q.pairs)).flatMap(q => q.pairs)
+        .map(p => ({ w: String(p.left || '').trim(), c: String(p.right || '').trim() })),
+    ].find(x => x.some(p => p.w && p.c)) || [];
+    const order = [], byCat = new Map();
+    flat.forEach(({ w, c }) => {
+      if (!w || !c) return;
+      if (!byCat.has(c)) { byCat.set(c, []); order.push(c); }
+      const bucket = byCat.get(c);
+      if (!bucket.includes(w)) bucket.push(w);
+    });
+    const list = order.map(name => ({ name, words: byCat.get(name) })).filter(g => g.words.length >= 2);
+    return list.length >= 2 ? { categories: list } : null;
   }
   if (fields === 'sentences') {
     // Игре нужен формат «предложение с ___|ответ».
