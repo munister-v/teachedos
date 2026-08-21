@@ -419,11 +419,11 @@ router.get('/production-status', async (req, res) => {
   let deployedAt = null;
   try {
     const markerPath = process.env.TEACHED_DEPLOY_MARKER || '/opt/teachedos/.deployed_sha';
-    deployedSha = fs.readFileSync(markerPath, 'utf8').trim().slice(0, 40) || null;
+    deployedSha = (await fs.promises.readFile(markerPath, 'utf8')).trim().slice(0, 40) || null;
   } catch (_) { /* local/dev installs may not have a deploy marker */ }
   try {
     const versionPath = process.env.TEACHED_VERSION_FILE || path.join(__dirname, '..', '..', 'version.json');
-    const release = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+    const release = JSON.parse(await fs.promises.readFile(versionPath, 'utf8'));
     version = release.version || null;
     deployedAt = release.deployedAt || null;
   } catch (_) { /* version metadata is optional during local development */ }

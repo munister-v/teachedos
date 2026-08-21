@@ -179,15 +179,32 @@ router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
 
     const results = { added: [], notFound: [], alreadyMember: [] };
 
+    /* Раньше на каждый email в списке уходил свой SELECT - до 100 круговых
+       обращений к базе последовательно одно за другим. Список email известен
+       весь и сразу, так что ищем всех разом одним запросом (ANY($1) по
+       нормализованным адресам) и дальше просто читаем из карты в памяти.
+       Проверку лимита (enforceStudentLimit) и сам INSERT не трогаю: там
+       ранний break по лимиту тарифа и обработка конфликтов по каждой
+       строке - переписывать вслепую на боевом биллинге без стенда для
+       проверки не стал. */
+    const normalizedEmails = [...new Set(
+      emails.slice(0, 100)
+        .map(e => e.trim().toLowerCase())
+        .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+    )];
+    const { rows: foundUsers } = normalizedEmails.length
+      ? await pool.query(
+          'SELECT id, name, email, avatar FROM users WHERE email = ANY($1)', [normalizedEmails]
+        )
+      : { rows: [] };
+    const userByEmail = new Map(foundUsers.map(u => [u.email.toLowerCase(), u]));
+
     for (const rawEmail of emails.slice(0, 100)) {
       const email = rawEmail.trim().toLowerCase();
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
 
-      const { rows: users } = await pool.query(
-        'SELECT id, name, email, avatar FROM users WHERE email=$1', [email]
-      );
-      if (!users.length) { results.notFound.push(email); continue; }
-      const invitee = users[0];
+      const invitee = userByEmail.get(email);
+      if (!invitee) { results.notFound.push(email); continue; }
       if (invitee.id === req.user.id) continue;
       const limitError = await enforceStudentLimit({ boardId, ownerPlan: plan, inviteeId: invitee.id });
       if (limitError) {

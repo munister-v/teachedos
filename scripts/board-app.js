@@ -9926,9 +9926,23 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
           setCardParentFrame?.(card, frame);
           gridCardIds.push(card.id);
           /* Словарь урока получает картинки. Не ждём их: лист уже на доске,
-             снимки долетают следом и карточка перерисовывается. */
+             снимки долетают следом и карточка перерисовывается.
+
+             Тема НЕ берётся из videoTitle - раньше бралась, и это давало
+             странные подборки. buildQueries() на сервере кладёт первые три
+             слова темы в САМЫЙ приоритетный запрос («${word} ${theme}»), а
+             заголовок ролика - это заголовок ролика, не тема урока: «5 SLANG
+             WORDS You NEED to Know!», «How I Learned English by Watching
+             Movies» - первые три слова оттуда не описывают вообще ничего,
+             и результат по ним подбирался прежде, чем по одному чистому
+             слову словаря, которое само по себе искало бы точнее. out?.topic
+             тоже не спасает - это тот же заголовок, эхом прошедший через
+             генерацию (клиент сам отправляет topic:videoTitle в запрос на
+             сборку урока). Оставляем поиск на паре word+context: пример или
+             определение приходят от модели по каждому слову отдельно и не
+             зависят от того, каким кликбейтом видео себя называет. */
           if (Array.isArray(card.data.items) && card.data.items.length) {
-            _ttAttachImagesToVocabCard(card.id, videoTitle || out?.topic || '');
+            _ttAttachImagesToVocabCard(card.id, '');
           }
           /* Перерисовка ПОСЛЕ того, как карточка попала в кадр. Шапка листа
              показывает регулятор уровня, только если видит, из чего сделан урок,
@@ -10104,7 +10118,13 @@ async function openVocabImagePicker(cardId, index, anchorEl) {
   };
   setTimeout(() => document.addEventListener('mousedown', close), 0);
 
-  const topic = state.cards.find(c => c.id === card.data.parentFrame)?.data?.lesson?.topic || card.data.topic || '';
+  /* Тот же случай, что и в _ttAttachImagesToVocabCard: у урока из видео
+     frame.data.lesson.topic - это заголовок ролика, а не тема, и он же
+     засорял бы ручной подбор ровно так, как засорял автоматический. Для
+     остальных уроков topic - тема, которую ввёл сам учитель, её оставляем. */
+  const parentFrame = state.cards.find(c => c.id === card.data.parentFrame);
+  const isVideoLesson = parentFrame?.data?._ttKind === 'Lesson from video';
+  const topic = isVideoLesson ? '' : (parentFrame?.data?.lesson?.topic || card.data.topic || '');
   const qs = new URLSearchParams({ q: it.word, limit: '4' });
   if (topic) qs.set('topic', topic);
   if (it.example || it.definition) qs.set('context', it.example || it.definition);
@@ -12864,7 +12884,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '357';
+const TEACHEDOS_ASSET_VERSION = '358';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
