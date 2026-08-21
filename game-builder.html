@@ -36,7 +36,7 @@ a{text-decoration:none;color:inherit}
 .nav-spacer{flex:1}
 .nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:700}
-.wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
+.shell{display:flex;align-items:flex-start;max-width:1380px;margin:0 auto}.wrap{flex:1;min-width:0;max-width:1180px;padding:34px 22px 60px}.side{width:196px;flex:0 0 196px;position:sticky;top:44px;padding:24px 8px 40px 14px}.side-title{font:900 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:16px 10px 7px}.side-title:first-child{margin-top:0}.side-btn{width:100%;min-height:40px;border:0;background:transparent;border-radius:12px;display:flex;align-items:center;gap:9px;padding:8px 10px;color:var(--text2);font-weight:650;font-size:13px;text-align:left;transition:background .16s;cursor:pointer}.side-btn:hover{background:rgba(28,28,30,.06);color:var(--text)}.side-ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:800;flex:0 0 auto}
 .hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
 .hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(94,94,74,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(237,232,224,.82))}
 .eyebrow{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:12px}
@@ -201,7 +201,7 @@ textarea{min-height:60px;resize:vertical}
   .type-grid{grid-template-columns:1fr 1fr}.games-grid{grid-template-columns:1fr}.tpl-grid{grid-template-columns:1fr 1fr}
   .dict-toolbar{grid-template-columns:1fr}.dict-grid{grid-template-columns:1fr}
   .pair-row{grid-template-columns:24px 1fr;gap:4px}.pair-row .pair-remove{justify-self:end}
-  .wrap{padding:18px 14px 80px}#nav{display:none}.preset-bar{flex-direction:column;align-items:flex-start}
+  .wrap{padding:18px 14px 80px}#nav{display:none}.preset-bar{flex-direction:column;align-items:flex-start}.side{display:none}.shell{display:block}
 }
 @media(max-width:500px){.type-grid,.tpl-grid{grid-template-columns:1fr}.preview-overlay{padding:12px;align-items:flex-end}.preview-box{max-width:none;max-height:92vh;padding:18px;border-radius:20px 20px 18px 18px;padding-bottom:max(18px,env(safe-area-inset-bottom,18px))}}
 
@@ -282,7 +282,18 @@ textarea{min-height:60px;resize:vertical}
   <a class="nav-user" href="profile.html"><span id="nav-avatar">T</span><span id="nav-name">Teacher</span></a>
 </nav>
 
-<main class="wrap">
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="side-title">Game Builder</div>
+    <button class="side-btn" type="button" onclick="scrollToTemplates()"><span class="side-ic">1</span>Templates</button>
+    <button class="side-btn" type="button" onclick="scrollToBuilder()"><span class="side-ic">2</span>Choose type</button>
+    <button class="side-btn" type="button" onclick="document.getElementById('dictionary-anchor').scrollIntoView({behavior:'smooth',block:'start'})"><span class="side-ic">3</span>Dictionaries</button>
+    <button class="side-btn" type="button" onclick="document.getElementById('my-games-anchor').scrollIntoView({behavior:'smooth',block:'start'})"><span class="side-ic">4</span>My games</button>
+    <div class="side-title">Quick actions</div>
+    <button class="side-btn" type="button" onclick="scrollToBuilder()"><span class="side-ic">+</span>Create new game</button>
+    <a class="side-btn" href="board.html"><span class="side-ic">↗</span>Open Board</a>
+  </aside>
+  <main class="wrap">
   <section class="hero">
     <div class="hero-card">
       <div class="eyebrow">Game Builder</div>
@@ -480,7 +491,7 @@ textarea{min-height:60px;resize:vertical}
     </aside>
   </div>
 
-  <div class="section-head">
+  <div class="section-head" id="my-games-anchor">
     <div>
       <div class="section-title">My Games Library</div>
       <div class="section-sub">Your custom-built games. Add them to any board.</div>
@@ -496,7 +507,8 @@ textarea{min-height:60px;resize:vertical}
     <input id="games-search" placeholder="Search your games..." oninput="renderMyGames()">
   </div>
   <div class="games-grid" id="my-games"></div>
-</main>
+  </main>
+</div>
 
 <div id="toast"></div>
 <div class="preview-overlay" id="preview-overlay">
