@@ -563,10 +563,15 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   body:not(.os-desktop) .hero-inner .hero-card .small {
     color: rgba(255,255,255,0.55) !important;
   }
-  /* .btn.ghost inside these dark cards → keep cream style */
+  /* .btn.ghost inside these dark cards → keep cream style.
+     Только два селектора выше, привязанных к тёмной карточке. Голый
+     .hero-actions .btn.ghost сюда не годится: у game-builder и community
+     .hero-actions лежит в СВЕТЛОЙ карточке (их .hero-card не вложен в
+     .hero-inner, поэтому тёмным не красится), и белый текст на кремовом
+     фоне давал контраст 1.02:1 - кнопки "Browse Templates", "Open Board"
+     и "Open my board" были не видны вообще. */
   body:not(.os-desktop) .hero-inner .hero-card .btn.ghost,
-  body:not(.os-desktop) .hero-in    .hero-side .btn.ghost,
-  body:not(.os-desktop) .hero-actions .btn.ghost {
+  body:not(.os-desktop) .hero-in    .hero-side .btn.ghost {
     background: rgba(255,255,255,0.10) !important;
     color: #fff !important;
     border-color: rgba(255,255,255,0.20) !important;
@@ -577,12 +582,12 @@ body:not(.board-page)[data-theme="dark"] .board-card,
    harmony.css @min-width:861 forces cream text on ALL .btn.ghost globally.
    On light-background pages this makes ghost buttons invisible. */
 @media (min-width: 861px) {
-  body:not(.os-desktop) .btn.ghost:not(.hero-actions .btn.ghost):not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
+  body:not(.os-desktop) .btn.ghost:not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
     background: rgba(255,255,255,0.90) !important;
     color: #1C1C1E !important;
     border: 1px solid rgba(14,14,16,0.16) !important;
   }
-  body:not(.os-desktop) .btn.ghost:hover:not(.hero-actions .btn.ghost):not(.hero-inner .btn.ghost) {
+  body:not(.os-desktop) .btn.ghost:hover:not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
     background: rgba(200,230,50,0.12) !important;
     border-color: rgba(200,230,50,0.40) !important;
     color: #1C1C1E !important;
