@@ -1723,6 +1723,30 @@ function renderFrame(el, card) {
     addBtn.addEventListener('mousedown', e => e.stopPropagation());
     tools.appendChild(addBtn);
   }
+
+  /* Публикация в Community для конкретного кадра уже была полностью собрана:
+     выделить кадр на холсте → открыть панель Share → она сама видит выбранный
+     фрейм (spUpdateBoardContext), скоупит снапшот только им и его карточками,
+     подписывает "Publish this lesson" вместо "Publish this Space". Не
+     хватало входа С САМОГО КАДРА - учителю, только что собравшему урок из
+     видео, приходилось сперва кликнуть по кадру, затем искать общую кнопку
+     Share наверху. Кнопка здесь делает то же самое одним кликом: выделяет
+     этот кадр и открывает ту же панель, ничего в паблише не меняя. */
+  if (card.data.lesson && _lessonFrameChildren(card.id).grid.length) {
+    const shareBtn = document.createElement('button');
+    shareBtn.type = 'button';
+    shareBtn.className = 'frame-add-activity frame-share-community';
+    shareBtn.innerHTML = '<span class="faa-ic">🌍</span> Share';
+    shareBtn.title = 'Share this lesson to Community';
+    shareBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      clearSelection();
+      selectCard(card.id);
+      openSharePanel();
+    });
+    shareBtn.addEventListener('mousedown', e => e.stopPropagation());
+    tools.appendChild(shareBtn);
+  }
   if (tools.childElementCount) el.appendChild(tools);
   const body = document.createElement('div');
   body.className = 'frame-body';
@@ -12884,7 +12908,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '358';
+const TEACHEDOS_ASSET_VERSION = '359';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
