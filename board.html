@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=369">
+<link rel="manifest" href="manifest.json?v=370">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=369">
-<link rel="stylesheet" href="styles/auth.css?v=369">
-<link rel="stylesheet" href="styles/mobile.css?v=369">
-<link rel="stylesheet" href="styles/harmony.css?v=369">
-<link rel="stylesheet" href="styles/unify.css?v=369">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=369">
+<link rel="stylesheet" href="styles/board.css?v=370">
+<link rel="stylesheet" href="styles/auth.css?v=370">
+<link rel="stylesheet" href="styles/mobile.css?v=370">
+<link rel="stylesheet" href="styles/harmony.css?v=370">
+<link rel="stylesheet" href="styles/unify.css?v=370">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=370">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -48,15 +48,6 @@
   width:44px!important;
   height:44px!important;
   border-radius:12px!important;
-}
-.mt-btn:focus-visible,
-.tb-icon-btn:focus-visible,
-.tb-btn:focus-visible,
-.tb-btn-primary:focus-visible,
-.tb-board-chip-menu:focus-visible,
-.zc-btn:focus-visible{
-  outline:3px solid rgba(122,142,0,.72)!important;
-  outline-offset:2px!important;
 }
 #zoom-controls{
   min-height:44px!important;
@@ -212,11 +203,21 @@
   color:#fff!important;
 }
 #miro-toolbar .mt-btn:active{transform:scale(.94)!important;}
-#toolbar :where(.tb-btn,.tb-btn-primary,.tb-icon-btn,.tb-auth-chip):focus-visible,
+/* Was 3px/offset-2px on every toolbar control alike - fine on the 44px pill
+   buttons (Share, auth chip), but on the plain 36px/radius-8 icon buttons
+   (⋮ more, undo/redo) that ring reads as a chunky square slapped onto a
+   small target, out of proportion with its own button. Rings now scale
+   down with the smaller, squarer control instead of one size for both. */
+#toolbar :where(.tb-btn,.tb-btn-primary,.tb-auth-chip):focus-visible,
 #miro-toolbar .mt-btn:focus-visible,
 #align-bar .align-btn:focus-visible{
   outline:3px solid rgba(124,138,123,.62)!important;
   outline-offset:2px!important;
+}
+#toolbar .tb-icon-btn:focus-visible{
+  outline:2px solid rgba(124,138,123,.62)!important;
+  outline-offset:1px!important;
+  border-radius:8px;
 }
 #mt-more-pop{
   border-color:var(--board-calm-line)!important;
@@ -273,7 +274,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=369">
+<link rel="stylesheet" href="styles/teached-brand.css?v=370">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1999,12 +2000,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=369"></script>
-<script src="scripts/tt-text-core.js?v=369"></script>
-<script src="scripts/board-app.js?v=369"></script>
-<script src="js/board-vocab.js?v=369"></script>
-<script src="js/board-reveal.js?v=369"></script>
-<script src="js/teacher-tool-board-composer.js?v=369"></script>
+<script src="js/teacher-tools-data.js?v=370"></script>
+<script src="scripts/tt-text-core.js?v=370"></script>
+<script src="scripts/board-app.js?v=370"></script>
+<script src="js/board-vocab.js?v=370"></script>
+<script src="js/board-reveal.js?v=370"></script>
+<script src="js/teacher-tool-board-composer.js?v=370"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2012,8 +2013,8 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=369" defer></script>
-<script src="pwa-boot.js?v=369" defer></script>
+<script src="scripts/autogrow.js?v=370" defer></script>
+<script src="pwa-boot.js?v=370" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2095,11 +2096,11 @@ polite request</textarea>
     </section>
   </div>
 </div>
-<script src="pwa.js?v=369"></script>
-<script src="scripts/nav-boost.js?v=369" defer></script>
-<script src="scripts/mobile-perf.js?v=369" defer></script>
-<script src="scripts/mobile-nav.js?v=369"></script>
-<script src="scripts/mobile-zoom-guard.js?v=369" defer></script>
+<script src="pwa.js?v=370"></script>
+<script src="scripts/nav-boost.js?v=370" defer></script>
+<script src="scripts/mobile-perf.js?v=370" defer></script>
+<script src="scripts/mobile-nav.js?v=370"></script>
+<script src="scripts/mobile-zoom-guard.js?v=370" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

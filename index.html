@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=369">
-<link rel="preload" as="style" href="styles/unify.css?v=369">
+<link rel="preload" as="style" href="styles/harmony.css?v=370">
+<link rel="preload" as="style" href="styles/unify.css?v=370">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=369">
+<link rel="manifest" href="manifest.json?v=370">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=369">
-<link rel="stylesheet" href="styles/main.css?v=369">
+<link rel="stylesheet" href="styles/tokens.css?v=370">
+<link rel="stylesheet" href="styles/main.css?v=370">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -230,6 +230,32 @@ html,body {
 .mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
 #mb-clock {
   font-family: var(--font-ui); font-size:13px; font-weight:600; color: var(--text-2);
+}
+
+/* Account chip: plan tag + name as one control, not two pills glued together.
+   The plan segment carries its color as text only, not its own fill/border -
+   the divider is the one shared piece of chrome that separates them, so the
+   whole thing reads as "one chip, two fields" instead of "two chips". */
+.mb-account-chip {
+  --mb-plan-color: #6b7280;
+  align-items:center; gap:7px; text-decoration:none; margin-right:6px;
+  padding:3px 11px 3px 10px; border-radius:999px;
+  background: rgba(94,94,74,.07); border:1px solid rgba(94,94,74,.16);
+  transition: background .15s ease, border-color .15s ease;
+}
+.mb-account-chip:hover { background: rgba(94,94,74,.12); border-color: rgba(94,94,74,.26); }
+#mb-plan-badge {
+  font-size:10px; font-weight:700; color: var(--mb-plan-color);
+  text-transform:uppercase; letter-spacing:.05em;
+  position:relative; padding-right:9px;
+}
+#mb-plan-badge::after {
+  content:''; position:absolute; right:0; top:50%; transform:translateY(-50%);
+  width:1px; height:12px; background: rgba(94,94,74,.22);
+}
+#mb-account-name {
+  font-size:12px; font-weight:600; color: var(--text, #333);
+  display:inline-flex; align-items:center; gap:5px;
 }
 
 /* ═══════════════════════════ DESKTOP WIDGETS ═══════════════════════════ */
@@ -1548,10 +1574,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=369" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=369">
-<link rel="stylesheet" href="styles/harmony.css?v=369">
-<link rel="stylesheet" href="styles/unify.css?v=369">
+<script src="theme.js?v=370" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=370">
+<link rel="stylesheet" href="styles/harmony.css?v=370">
+<link rel="stylesheet" href="styles/unify.css?v=370">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1559,7 +1585,7 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=369">
+<link rel="stylesheet" href="styles/teached-brand.css?v=370">
 </head>
 <body class="os-desktop">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1684,7 +1710,15 @@ html,body {
     <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" href="profile.html" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text,#333);text-decoration:none;padding:2px 9px;border-radius:8px;background:rgba(94,94,74,.09);border:1px solid rgba(94,94,74,.2);margin-right:6px;"></a>
+    <!-- Was two separate pills (plan badge, user chip) each with their own
+         border/radius/background fighting for attention in a 32px-tall bar -
+         merged into one account chip: plan tag and name now read as two
+         fields of one control, not two unrelated buttons that happen to sit
+         next to each other. -->
+    <a id="mb-account-chip" class="mb-account-chip" href="profile.html" style="display:none;">
+      <span id="mb-plan-badge"></span>
+      <span id="mb-account-name"></span>
+    </a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
       <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
@@ -2242,7 +2276,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=369"></script>
+<script src="scripts/desktop-app.js?v=370"></script>
 
 <script>
 
@@ -2262,8 +2296,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=369" defer></script>
-<script src="pwa-boot.js?v=369" defer></script>
+<script src="scripts/autogrow.js?v=370" defer></script>
+<script src="pwa-boot.js?v=370" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2483,10 +2517,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=369" defer></script>
-<script src="scripts/nav-boost.js?v=369" defer></script>
-<script src="scripts/mobile-perf.js?v=369" defer></script>
-<script src="scripts/mobile-nav.js?v=369" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=369" defer></script>
+<script src="pwa.js?v=370" defer></script>
+<script src="scripts/nav-boost.js?v=370" defer></script>
+<script src="scripts/mobile-perf.js?v=370" defer></script>
+<script src="scripts/mobile-nav.js?v=370" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=370" defer></script>
 </body>
 </html>

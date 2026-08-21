@@ -1453,36 +1453,26 @@ function applyUserToDesktop(user) {
   const avatarEls = document.querySelectorAll('.user-display-avatar');
   avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
   document.getElementById('desktop-admin-badge')?.remove();
-  // Show plan badge in menubar
+  // Plan tag + name used to be two separate pills, each carrying its own
+  // border/radius/background - two unrelated buttons that happened to sit
+  // next to each other. #mb-plan-badge and #mb-account-name now live inside
+  // one #mb-account-chip shell (single border, single hover state in CSS);
+  // this just colors the plan segment's text and divider tint per tier.
   const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
-  const planBorders = { free:'rgba(107,114,128,.25)', pro:'rgba(124,58,237,.25)', school:'rgba(5,150,105,.25)' };
-  const planBadge = document.getElementById('mb-plan-badge') || (() => {
-    const b = document.createElement('span');
-    b.id = 'mb-plan-badge';
-    // Was borderless next to two bordered chips (user pill, notif icon) in the
-    // same bar - the one flat rectangle among rounded-outline pills was the
-    // "hangs off wrong" edge feeling. Border color rides the same map as the
-    // fill so each plan tier still reads as one coherent color, not three-tone.
-    b.style.cssText = 'font-size:10px;font-weight:650;padding:2px 8px;border-radius:8px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border:1px solid transparent;';
-    b.title = 'Open subscription settings';
-    b.setAttribute('role', 'button');
-    b.tabIndex = 0;
-    b.onclick = () => { window.location.href = 'profile.html#plans'; };
-    b.onkeydown = e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        window.location.href = 'profile.html#plans';
-      }
-    };
-    const mbRight = document.querySelector('.mb-right');
-    if (mbRight) mbRight.prepend(b);
-    return b;
-  })();
+  const planBadge = document.getElementById('mb-plan-badge');
   const plan = user.plan || 'free';
-  planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
-  planBadge.style.background = plan === 'free' ? '#f3f4f6' : plan === 'pro' ? '#ede9fe' : '#d1fae5';
-  planBadge.style.color = planColors[plan] || '#6b7280';
-  planBadge.style.borderColor = planBorders[plan] || planBorders.free;
+  if (planBadge) {
+    planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
+    planBadge.style.color = planColors[plan] || '#6b7280';
+  }
+  const chip = document.getElementById('mb-account-chip');
+  if (chip) {
+    chip.style.setProperty('--mb-plan-color', planColors[plan] || '#6b7280');
+    chip.title = 'Open subscription settings';
+    chip.style.display = 'flex';
+  }
+  const nameEl = document.getElementById('mb-account-name');
+  if (nameEl) nameEl.innerHTML = `<span>${user.avatar || '🧑‍🏫'}</span> ${user.name.split(' ')[0]}`;
   updateMobileTeacherOverview();
   // Load calls + billing data
 
@@ -2084,11 +2074,10 @@ setInterval(loadNotifications, 120000);
     // Students are handled by checkAuthAndRoute - skip widget wiring for them
     if (d.user.role === 'student') return;
     writeTeacherDashboardCache({ user: d.user });
-    const chip = document.getElementById('desktop-user-chip');
-    if (chip) {
-      chip.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
-      chip.style.display = 'flex';
-    }
+    const nameEl = document.getElementById('mb-account-name');
+    if (nameEl) nameEl.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
+    const chip = document.getElementById('mb-account-chip');
+    if (chip) chip.style.display = 'flex';
     const wgClockLang = document.querySelector('.wg-clock-lang');
     if (wgClockLang) wgClockLang.innerHTML = `${d.user.avatar || '🧑‍🏫'} ${d.user.name.split(' ')[0]}`;
   }).catch(() => {
