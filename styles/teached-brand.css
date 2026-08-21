@@ -50,7 +50,6 @@
   --te-lime:#CDF940;
   --te-paper:#F6F6F2;
   --te-white:#FFFFFF;
-  --te-cloud:#CACCCA;
 
   /* Secondary palette */
   --te-yellow:#FFE44D;
@@ -61,12 +60,8 @@
   --te-violet:#8B42FD;
   --te-lavender:#9B8CEB;
   --te-lime-soft:#D3F36B;
-  --te-gold:#F3CF6B;
-  --te-peach:#F3A46B;
   --te-sky:#69AFF3;
-  --te-purple:#8B6FF3;
   --te-olive:#5D5A42;
-  --te-mist:#A3A4ED;
   --te-muted:#6C6C77;
 
   /* Typography */
@@ -97,19 +92,8 @@
   --lavender:var(--te-lavender) !important;
   --accent:var(--te-violet) !important;
   --accent2:var(--te-violet) !important;
-  --color-primary:var(--te-lime) !important;
   --color-lime:var(--te-lime) !important;
   --color-rose:var(--te-lime) !important;
-  --color-black:var(--te-ink) !important;
-  --color-bg:var(--te-paper) !important;
-  --color-surface:var(--te-white) !important;
-  --color-text:var(--te-ink) !important;
-  --color-text-2:#50505C !important;
-  --color-text-3:#85858F !important;
-  --color-info:var(--te-blue) !important;
-  --color-success:#248745 !important;
-  --color-warning:#B96B03 !important;
-  --color-error:#C92C22 !important;
 
   /* The late legacy "calm" pass still powers a number of shared controls.
      Keep its API, but make it speak the TeachEd palette instead of sage. */
@@ -118,7 +102,6 @@
   --calm-ink-soft:#F1F3E6 !important;
   --calm-accent:var(--te-violet) !important;
   --calm-accent-soft:#EEE8FF !important;
-  --calm-surface:var(--te-white) !important;
   --calm-line:rgba(32,32,44,.14) !important;
   --calm-muted:#6C6C77 !important;
 
@@ -177,10 +160,6 @@ body:not(.board-page) :where(
 :where(.btn.pink,.btn-danger,.danger-btn) {
   background:var(--te-coral);
   color:var(--te-white);
-}
-
-:where(.nav-link.active,.side-btn.active,.chip.active,.tab.active,.is-active) {
-  --te-active-ink:var(--te-violet);
 }
 
 /* Secondary buttons remain light and clear; they are not another grey fill. */
@@ -288,13 +267,13 @@ body.os-desktop {
 }
 
 /* Category language is reusable in the catalogue, Tools and future pages. */
-.tools-workbench .tool[data-catkey="reading"] { --cat:var(--te-blue) !important; --catfg:#fff !important; --catrgb:63,143,255 !important; }
-.tools-workbench .tool[data-catkey="vocabulary"] { --cat:#35B96E !important; --catfg:#fff !important; --catrgb:53,185,110 !important; }
-.tools-workbench .tool[data-catkey="writing"] { --cat:var(--te-orange) !important; --catfg:var(--te-ink) !important; --catrgb:255,142,58 !important; }
-.tools-workbench .tool[data-catkey="speaking"] { --cat:var(--te-coral) !important; --catfg:#fff !important; --catrgb:255,78,0 !important; }
-.tools-workbench .tool[data-catkey="grammar"] { --cat:var(--te-violet) !important; --catfg:#fff !important; --catrgb:139,66,253 !important; }
-.tools-workbench .tool[data-catkey="listening"] { --cat:var(--te-cyan) !important; --catfg:var(--te-ink) !important; --catrgb:79,198,224 !important; }
-.tools-workbench .tool[data-catkey="utility"] { --cat:var(--te-olive) !important; --catfg:#fff !important; --catrgb:93,90,66 !important; }
+.tools-workbench .tool[data-catkey="reading"] { --cat:var(--te-blue) !important; }
+.tools-workbench .tool[data-catkey="vocabulary"] { --cat:#35B96E !important; }
+.tools-workbench .tool[data-catkey="writing"] { --cat:var(--te-orange) !important; }
+.tools-workbench .tool[data-catkey="speaking"] { --cat:var(--te-coral) !important; }
+.tools-workbench .tool[data-catkey="grammar"] { --cat:var(--te-violet) !important; }
+.tools-workbench .tool[data-catkey="listening"] { --cat:var(--te-cyan) !important; }
+.tools-workbench .tool[data-catkey="utility"] { --cat:var(--te-olive) !important; }
 
 :where(.card-tag.vocab,.tag-vocab,.cat-vocab) { background:var(--te-lime-soft) !important; color:var(--te-ink) !important; }
 :where(.card-tag.grammar,.tag-grammar,.cat-grammar) { background:var(--te-violet) !important; color:#fff !important; }
@@ -392,7 +371,6 @@ body.landing-page .final {
 body.os-desktop {
   --bg:var(--te-paper) !important;
   --bg-2:#EEEDE7 !important;
-  --bg-3:#D9D7D0 !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
   --text-3:#85858F !important;
@@ -403,8 +381,6 @@ body.os-desktop {
   --accent-3:rgba(32,32,44,.18) !important;
   --rose:var(--te-lime) !important;
   --deep-rose:var(--te-coral) !important;
-  --blush:#FFE1D2 !important;
-  --plum:var(--te-violet) !important;
 }
 body.os-desktop #desktop {
   background:
@@ -491,22 +467,6 @@ body.os-desktop .note-item.active .note-item-title { background:#EEE8FF !importa
   outline-offset:2px;
 }
 
-[data-catkey="reading"] { --te-category:var(--te-blue); }
-[data-catkey="vocabulary"] { --te-category:#35B96E; }
-[data-catkey="writing"] { --te-category:var(--te-orange); }
-[data-catkey="speaking"] { --te-category:var(--te-coral); }
-[data-catkey="grammar"] { --te-category:var(--te-violet); }
-[data-catkey="listening"] { --te-category:var(--te-cyan); }
-[data-catkey="utility"] { --te-category:var(--te-olive); }
-
-.te-accent-lime{--te-local-accent:var(--te-lime)}
-.te-accent-yellow{--te-local-accent:var(--te-yellow)}
-.te-accent-orange{--te-local-accent:var(--te-orange)}
-.te-accent-coral{--te-local-accent:var(--te-coral)}
-.te-accent-blue{--te-local-accent:var(--te-blue)}
-.te-accent-cyan{--te-local-accent:var(--te-cyan)}
-.te-accent-violet{--te-local-accent:var(--te-violet)}
-
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { transition-duration:.001ms !important; }
 }
@@ -530,10 +490,8 @@ body.os-desktop .note-item.active .note-item-title { background:#EEE8FF !importa
   --te-surface-violet:#EEE8FF;
   --te-surface-coral:#FFE7DB;
   --te-surface-blue:#E6F0FF;
-  --te-surface-cyan:#E0F7FA;
   --te-surface-yellow:#FFF4C8;
   --te-line:rgba(32,32,44,.14);
-  --te-line-strong:rgba(32,32,44,.24);
   --te-shadow:0 10px 26px rgba(32,32,44,.08);
   --te-shadow-hover:0 16px 34px rgba(32,32,44,.12);
 }
@@ -619,7 +577,6 @@ body.tools-workbench {
   --tt-muted:#666672;
   --tt-faint:#8D8D98;
   --tt-line:var(--te-line);
-  --tt-paper:#fff;
   --tt-wash:#FFFCF8;
   --tt-accent:var(--te-lime);
   background:

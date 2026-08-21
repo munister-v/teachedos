@@ -7,7 +7,7 @@
  * Idempotent: the script is fetched at most once per page. */
 window.ensureVocab = (function () {
   let pending = null;
-  const versionedVocabSrc = 'scripts/vocabulary.js?v=356';
+  const versionedVocabSrc = 'scripts/vocabulary.js?v=357';
   return function ensureVocab() {
     if (window.TEACHEDOS_VOCAB) return Promise.resolve(window.TEACHEDOS_VOCAB);
     if (pending) return pending;

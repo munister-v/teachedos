@@ -40,11 +40,6 @@
   --font-mono:     'SF Mono', SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
 
   /* compat aliases (remote harmony used these) */
-  --lime-2:      var(--lime-dark);
-  --lime-soft:   rgba(205,242,79,0.18);
-  --lime-border: rgba(205,242,79,0.48);
-  --premium:     var(--ink);
-  --premium-2:   #2A2A2E;
 }
 
 /* ── Form System v3: readable, colorful, touch-safe controls ───────────── */

@@ -75,11 +75,9 @@
   --accent: #0E0E10;
 
   --u-ink:       #0E0E10;
-  --u-ink-2:     #1C1C1E;
   --u-ink-hover: #1F1F22;
   --u-ink-soft:  rgba(14, 14, 16, 0.06);
   --u-ink-line:  rgba(14, 14, 16, 0.08);
-  --u-ink-line2: rgba(14, 14, 16, 0.14);
   --u-lime:      #C8E632;
   --u-lime-pop:  #CDF24F;
   --u-lime-dark: #A8C42A;
@@ -93,7 +91,6 @@
   --u-card:      #2C2C2E;
   --u-ink-soft:  rgba(255, 255, 255, 0.06);
   --u-ink-line:  rgba(255, 255, 255, 0.08);
-  --u-ink-line2: rgba(255, 255, 255, 0.14);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -148,7 +145,6 @@ html[data-theme="dark"],
   --u-card:     #FFFFFF !important;
   --u-ink-soft: rgba(14, 14, 16, 0.06) !important;
   --u-ink-line: rgba(14, 14, 16, 0.08) !important;
-  --u-ink-line2:rgba(14, 14, 16, 0.14) !important;
 }
 
 html, body {
@@ -1540,8 +1536,6 @@ body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
 /* Kill the blue tap flash on touch for a native-app feel. */
 a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-highlight-color: transparent; }
 
-/* Images/media render smoothly. */
-img, svg, video, canvas{ }
 
 /* ═══════════════════════════════════════════════════════════════════════
    PERFORMANCE + MOTION PASS - desktop smoothness, mobile resilience
@@ -1551,7 +1545,6 @@ img, svg, video, canvas{ }
 ═══════════════════════════════════════════════════════════════════════ */
 :root {
   --motion-fast: 140ms;
-  --motion-med: 220ms;
   --motion-ease: cubic-bezier(.22,.61,.36,1);
   --glass-blur-desktop: 18px;
 }
@@ -2484,12 +2477,10 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   :root {
     --m2-canvas: #F7F5F0;
     --m2-surface: rgba(255,255,255,.88);
-    --m2-surface-strong: #FFFFFF;
     --m2-border: rgba(28,28,30,.085);
     --m2-border-strong: rgba(28,28,30,.14);
     --m2-text: #151516;
     --m2-muted: #626252;
-    --m2-soft: #8B8B77;
     --m2-lime: #C8E632;
     --m2-shadow: 0 1px 0 rgba(255,255,255,.82) inset, 0 4px 14px rgba(44,40,31,.045);
     --m2-shadow-soft: 0 1px 0 rgba(255,255,255,.72) inset;
@@ -2970,7 +2961,6 @@ body.board-page .empty-action.primary {
   --calm-ink-soft: #EEF1EC;
   --calm-accent: #7C8A7B;
   --calm-accent-soft: #E7ECE6;
-  --calm-surface: #FFFDF9;
   --calm-line: rgba(68, 78, 69, .16);
   --calm-muted: #737A72;
 }
@@ -3085,7 +3075,6 @@ body.mp-shell .ch-pill {
   font-weight: 500 !important;
 }
 body.mp-shell :where(.ci-dot, .ready-card .ready-icon) {
-  --level-color: var(--calm-accent);
 }
 body.mp-shell .ci-dot {
   background: var(--calm-accent) !important;
