@@ -183,8 +183,14 @@ router.post('/', async (req, res) => {
       if (ownershipError) return res.status(ownershipError.status).json({ error: ownershipError.error });
     }
     const { rows } = await pool.query(
+      /* `$10::text` в CASE — не украшение. Тот же параметр стоит в позиции
+         колонки visibility (она VARCHAR(16)), и оттуда Postgres выводит для
+         него varchar, а из сравнения с литералом 'community' — text. Для
+         ОДНОГО параметра это два разных вывода, и запрос падает целиком:
+         «inconsistent types deduced for parameter $10». Явный каст снимает
+         спор: в колонку идёт varchar, в сравнение — text. */
       `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, visibility, published_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $10 = 'community' THEN NOW() ELSE NULL END)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $10::text = 'community' THEN NOW() ELSE NULL END)
        RETURNING ${LIST_COLS}`,
       [
         req.user.id,
