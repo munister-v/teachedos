@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=368">
+<link rel="manifest" href="manifest.json?v=369">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=368">
-<link rel="preload" as="style" href="styles/unify.css?v=368">
+<link rel="preload" as="style" href="styles/harmony.css?v=369">
+<link rel="preload" as="style" href="styles/unify.css?v=369">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -355,10 +355,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=368" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=368">
-<link rel="stylesheet" href="styles/harmony.css?v=368">
-<link rel="stylesheet" href="styles/unify.css?v=368">
+<script src="theme.js?v=369" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=369">
+<link rel="stylesheet" href="styles/harmony.css?v=369">
+<link rel="stylesheet" href="styles/unify.css?v=369">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -422,7 +422,7 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=368">
+<link rel="stylesheet" href="styles/teached-brand.css?v=369">
 </head>
 <body class="mp-shell">
 
@@ -539,7 +539,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=368"></script>
+<script src="scripts/app-core.js?v=369"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1094,7 +1094,18 @@ function previewReadyTemplate(level) {
 }
 
 function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
+  // Loose cards joined by arrows was the OLD shape here - the YouTube-lesson
+  // generator (_placeLessonOnBoard in board-app.js) moved on to a single
+  // titled frame holding its cards as real children (card.data.parentFrame /
+  // frame.data.childIds), which is what "+ Add activity" and drag-the-whole-
+  // lesson rely on. Same container shape here now, just laid out on a fixed
+  // grid instead of the AI version's height-packed columns (nothing here has
+  // an unpredictable worksheet height to pack around).
   let nextCardId = 1;
+  // z is deliberately left unset: normalizeCardLayer() (loadBoard and every
+  // other board-load path) falls back to array position when a card has no
+  // z of its own, so putting the frame first in the returned cards array is
+  // enough to keep it behind its children - no need to hand-number layers.
   const makeCard = (type, x, y, w, h, data) => ({
     id:'c' + (nextCardId++),
     type, x, y, w, h, data,
@@ -1105,76 +1116,88 @@ function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
   // doesn't match the lesson's actual skill. Map the curriculum's skill labels
   // onto ones it recognises so the homework card's color/icon means something.
   const assignmentType = { Speaking:'Speaking', Writing:'Essay', Functional:'Speaking' }[lessonTemplate.skill] || 'Quiz';
-  const cards = [
-    makeCard('plan', 80, 60, 330, 220, {
-      title: lessonTemplate.title,
-      level: lessonTemplate.level,
-      type: lessonTemplate.skill,
-      dur: lessonTemplate.duration,
-      status: 'active',
-      desc: `${moduleTemplate.name}. Ready teacher plan with objectives, lesson flow and homework.`
-    }),
-    makeCard('lesson', 460, 60, 300, 230, {
-      title: lessonTemplate.title,
-      status: 'available',
-      level: lessonTemplate.level,
-      skill: lessonTemplate.skill,
-      duration: lessonTemplate.duration,
-      module: moduleTemplate.name,
-      // renderLesson() reads objectives as {text,done} pairs (it renders a
-      // clickable checklist, not plain strings) - passing raw strings left
-      // every objective line blank with just a checkbox, which is exactly the
-      // "junk" the board showed. Same fix as the checklist card below.
-      objectives: lessonTemplate.objectives.map(text => ({ text, done: false })),
-      attachments: [],
-      notes: 'Ready-made lesson board generated from TeachEd curriculum library.'
-    }),
-    makeCard('checklist', 80, 330, 300, 210, {
-      title: 'Lesson Flow',
-      items: lessonTemplate.activities.map(text => ({ text, done: false }))
-    }),
-    makeCard('note', 420, 330, 340, 230, {
-      title: 'Teacher Notes',
-      preview: lessonTemplate.homework,
-      body: [
-        `${template.title} / ${moduleTemplate.name}`,
-        '',
-        'OBJECTIVES',
-        ...lessonTemplate.objectives.map(item => `- ${item}`),
-        '',
-        'ACTIVITIES',
-        ...lessonTemplate.activities.map(item => `- ${item}`),
-        '',
-        'HOMEWORK',
-        lessonTemplate.homework
-      ].join('\n')
-    }),
-    makeCard('assignment', 800, 330, 280, 210, {
-      title: 'Homework: ' + lessonTemplate.title,
-      type: assignmentType,
-      level: lessonTemplate.level,
-      maxScore: 100,
-      deadline: '',
-      desc: lessonTemplate.homework,
-      submitted: 0,
-      total: 0
-    }),
-    makeCard('sticky', 800, 60, 280, 200, {
-      text: `Warm-up prompt:\nWhat do you already know about "${lessonTemplate.title}"?\n\nEnd with one student example + one correction.`,
-      color: '#FFF9C4'
-    })
-  ];
+
+  const PAD = 28, GAP = 24, HEAD = 46;
+  const fx = 60, fy = 40; // frame origin
+  const colX = i => fx + PAD + i * (330 + GAP);
+
+  const frame = makeCard('frame', fx, fy, PAD * 2 + 330 * 3 + GAP * 2, HEAD + PAD + 230 + GAP + 210 + PAD, {
+    title: `🎓  ${lessonTemplate.title}`,
+    bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
+    lesson: { source: '', topic: lessonTemplate.title, level: lessonTemplate.level, vocab: [] },
+  });
+
+  const rowY = fy + HEAD + PAD;
+  const row2Y = rowY + 230 + GAP;
+
+  const plan = makeCard('plan', colX(0), rowY, 330, 230, {
+    title: lessonTemplate.title,
+    level: lessonTemplate.level,
+    type: lessonTemplate.skill,
+    dur: lessonTemplate.duration,
+    status: 'active',
+    desc: `${moduleTemplate.name}. Ready teacher plan with objectives, lesson flow and homework.`
+  });
+  const lessonCard = makeCard('lesson', colX(1), rowY, 330, 230, {
+    title: lessonTemplate.title,
+    status: 'available',
+    level: lessonTemplate.level,
+    skill: lessonTemplate.skill,
+    duration: lessonTemplate.duration,
+    module: moduleTemplate.name,
+    // renderLesson() reads objectives as {text,done} pairs (it renders a
+    // clickable checklist, not plain strings) - passing raw strings left
+    // every objective line blank with just a checkbox, which is exactly the
+    // "junk" the board showed. Same fix as the checklist card below.
+    objectives: lessonTemplate.objectives.map(text => ({ text, done: false })),
+    attachments: [],
+    notes: 'Ready-made lesson board generated from TeachEd curriculum library.'
+  });
+  const sticky = makeCard('sticky', colX(2), rowY, 330, 230, {
+    text: `Warm-up prompt:\nWhat do you already know about "${lessonTemplate.title}"?\n\nEnd with one student example + one correction.`,
+    color: '#FFF9C4'
+  });
+  const checklist = makeCard('checklist', colX(0), row2Y, 330, 210, {
+    title: 'Lesson Flow',
+    items: lessonTemplate.activities.map(text => ({ text, done: false }))
+  });
+  const note = makeCard('note', colX(1), row2Y, 330, 210, {
+    title: 'Teacher Notes',
+    preview: lessonTemplate.homework,
+    body: [
+      `${template.title} / ${moduleTemplate.name}`,
+      '',
+      'OBJECTIVES',
+      ...lessonTemplate.objectives.map(item => `- ${item}`),
+      '',
+      'ACTIVITIES',
+      ...lessonTemplate.activities.map(item => `- ${item}`),
+      '',
+      'HOMEWORK',
+      lessonTemplate.homework
+    ].join('\n')
+  });
+  const assignment = makeCard('assignment', colX(2), row2Y, 330, 210, {
+    title: 'Homework: ' + lessonTemplate.title,
+    type: assignmentType,
+    level: lessonTemplate.level,
+    maxScore: 100,
+    deadline: '',
+    desc: lessonTemplate.homework,
+    submitted: 0,
+    total: 0
+  });
+
+  const children = [plan, lessonCard, sticky, checklist, note, assignment];
+  children.forEach(c => { c.data.parentFrame = frame.id; });
+  frame.data.childIds = children.map(c => c.id);
+
   return {
-    cards,
-    arrows: [
-      { id:'a7', fromCard:'c1', fromAnchor:'right', toCard:'c2', toAnchor:'left' },
-      { id:'a8', fromCard:'c2', fromAnchor:'bottom', toCard:'c3', toAnchor:'top' },
-      { id:'a9', fromCard:'c3', fromAnchor:'right', toCard:'c4', toAnchor:'left' },
-      { id:'a10', fromCard:'c4', fromAnchor:'right', toCard:'c5', toAnchor:'left' }
-    ],
-    pan:{ x:100, y:60 },
+    cards: [frame, ...children],
+    arrows: [],
+    pan:{ x: fx - 40, y: fy - 40 },
     scale:1,
-    nextId:11
+    nextId: nextCardId
   };
 }
 
@@ -1450,11 +1473,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=368" defer></script>
-<script src="scripts/mobile-perf.js?v=368" defer></script>
-<script src="scripts/mobile-nav.js?v=368"></script>
-<script src="scripts/mobile-zoom-guard.js?v=368" defer></script>
-<script src="scripts/autogrow.js?v=368" defer></script>
-<script src="pwa-boot.js?v=368" defer></script>
+<script src="scripts/nav-boost.js?v=369" defer></script>
+<script src="scripts/mobile-perf.js?v=369" defer></script>
+<script src="scripts/mobile-nav.js?v=369"></script>
+<script src="scripts/mobile-zoom-guard.js?v=369" defer></script>
+<script src="scripts/autogrow.js?v=369" defer></script>
+<script src="pwa-boot.js?v=369" defer></script>
 </body>
 </html>
