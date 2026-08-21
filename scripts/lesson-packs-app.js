@@ -2370,7 +2370,7 @@ async function runPackBuilder() {
 }
 
 function deleteMyPack(id) {
-  if (!confirm('Delete this pack? It is stored only in this browser.')) return;
+  if (!confirm('Delete this pack? This cannot be undone.')) return;
   saveMyPacks(myPacks().filter(p => p.id !== id));
   closeModal();
   renderPacks();

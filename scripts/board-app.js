@@ -8925,15 +8925,15 @@ function _ttSaveBuilderDraft() {
   const draft = _ttReadBuilderDraft();
   const payload = JSON.stringify({ version: 1, savedAt: Date.now(), draft });
   if (payload.length > TT_BUILDER_DRAFT_MAX_CHARS) {
-    _ttSetDraftState('Draft is too large to save locally', 'unsaved');
+    _ttSetDraftState('Draft is too large to save', 'unsaved');
     return false;
   }
   try {
     localStorage.setItem(TT_BUILDER_DRAFT_KEY, payload);
-    _ttSetDraftState('Saved automatically on this device', 'saved');
+    _ttSetDraftState('Saved', 'saved');
     return true;
   } catch {
-    _ttSetDraftState('Draft stays in this open panel', 'unsaved');
+    _ttSetDraftState('Kept while this panel is open', 'unsaved');
     return false;
   }
 }
@@ -8957,11 +8957,11 @@ function _ttRestoreBuilderDraft() {
   try {
     const saved = JSON.parse(localStorage.getItem(TT_BUILDER_DRAFT_KEY) || 'null');
     if (saved?.version === 1 && _ttApplyBuilderDraft(saved.draft)) {
-      _ttSetDraftState('Restored your local draft', 'saved');
+      _ttSetDraftState('Draft restored', 'saved');
       return true;
     }
   } catch {}
-  _ttSetDraftState('Draft stays on this device');
+  _ttSetDraftState('Saved on this device');
   return false;
 }
 
@@ -8989,7 +8989,7 @@ function clearTeacherToolBuilderFields() {
   try { localStorage.removeItem(TT_BUILDER_DRAFT_KEY); } catch {}
   const button = document.getElementById('tbuilder-clear-btn');
   if (button) { button.textContent = 'Undo clear'; button.classList.add('undo'); }
-  _ttSetDraftState('Fields cleared · undo is available', 'unsaved');
+  _ttSetDraftState('Fields cleared — you can undo', 'unsaved');
   _ttSyncFormReadiness();
   _ttClearUndoTimer = setTimeout(() => { _ttClearedDraft = null; _ttResetClearButton(); }, 8000);
 }
