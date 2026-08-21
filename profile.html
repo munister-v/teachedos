@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=364">
-<link rel="preload" as="style" href="styles/unify.css?v=364">
-<link rel="manifest" href="manifest.json?v=364">
+<link rel="preload" as="style" href="styles/harmony.css?v=365">
+<link rel="preload" as="style" href="styles/unify.css?v=365">
+<link rel="manifest" href="manifest.json?v=365">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -116,27 +116,62 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .card-title { font-size: 16px; font-weight:600; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
 /* ── Avatar area ── */
-#profile-avatar-big { font-size: 72px; line-height: 1; margin-bottom: 12px; cursor: pointer; transition: .15s; display: inline-block; }
-#profile-avatar-big:hover { transform: scale(1.08); }
-#profile-name-big { font-size: 26px; font-weight:650; letter-spacing: -.04em; line-height: 1.02; color: var(--text, #1C1C1E) !important; }
+.profile-hero-card { position: relative; overflow: hidden; padding: 0; }
+/* Quiet decorative band behind the identity row - same lime-radial language
+   as the mobile hero, just toned down for a dense desktop card instead of
+   a full-bleed phone screen. Card content sits in its own padded row so the
+   band can bleed to the card's own rounded corners without clipping tricks. */
+.profile-hero-band {
+  height: 64px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(200,230,50,.22), transparent 60%),
+    linear-gradient(135deg, rgba(200,230,50,.10), rgba(139,66,253,.06));
+  border-bottom: 1px solid rgba(94,94,74,.08);
+}
+.profile-hero-row { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 0 24px 24px; margin-top: -34px; }
+#profile-avatar-big {
+  font-size: 56px; line-height: 1; cursor: pointer; transition: transform .18s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
+  display: flex; align-items: center; justify-content: center;
+  width: 92px; height: 92px; border-radius: 26px; flex-shrink: 0;
+  background: #fff; border: 4px solid #fff;
+  box-shadow: 0 6px 20px rgba(5,5,23,.14);
+}
+#profile-avatar-big:hover { transform: scale(1.05) translateY(-1px); box-shadow: 0 10px 26px rgba(5,5,23,.2); }
+#profile-name-big { font-size: 24px; font-weight:650; letter-spacing: -.04em; line-height: 1.15; color: var(--text, #1C1C1E) !important; margin-top: 2px; }
 #profile-email-big { font-size: 14px; color: var(--text-3); margin-top: 2px; }
+.profile-badge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .role-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  margin-top: 8px; padding: 3px 12px; border-radius: 20px;
+  padding: 4px 12px; border-radius: 20px;
   font-size: 12px; font-weight:600;
   background: var(--accent-3); color: var(--accent);
 }
 
 /* ── Stats grid ── */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
 .stat-card {
+  display: flex; align-items: center; gap: 12px;
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
-  padding: 16px; text-align: center;
+  padding: 14px 16px; text-align: left;
   transition: transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(94,94,74,.1); }
-.stat-n { font-size: 32px; font-weight:650; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
-.stat-label { font-size: 12px; font-weight:600; color: var(--text-3); margin-top: 4px; }
+/* One icon chip per metric so the row scans like the rest of the app's stat
+   rows (analytics/journal/gradebook already do this) instead of four bare
+   numbers - a plain color-coded left stripe was the only signal before,
+   which read as filler rather than meaning. */
+.stat-icon {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--te-surface-violet, rgba(139,66,253,.1)); color: var(--te-violet, #8B42FD);
+}
+.stat-icon .ic { width: 18px; height: 18px; }
+.stat-card:nth-child(4n+2) .stat-icon { background: var(--te-surface-blue, rgba(0,120,255,.1)); color: var(--te-blue, #0078FF); }
+.stat-card:nth-child(4n+3) .stat-icon { background: var(--te-surface-lime, rgba(200,230,50,.18)); color: #4C6800; }
+.stat-card:nth-child(4n+4) .stat-icon { background: var(--te-surface-yellow, rgba(255,180,0,.14)); color: #A35D00; }
+.stat-body { min-width: 0; }
+.stat-n { font-size: 22px; font-weight:650; letter-spacing: -.03em; color: var(--text, #1C1C1E); line-height: 1.15; }
+.stat-label { font-size: 11.5px; font-weight:600; color: var(--text-3); margin-top: 2px; }
 
 /* ── Recent boards ── */
 .recent-board-item {
@@ -394,10 +429,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=364" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=364">
-<link rel="stylesheet" href="styles/harmony.css?v=364">
-<link rel="stylesheet" href="styles/unify.css?v=364">
+<script src="theme.js?v=365" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=365">
+<link rel="stylesheet" href="styles/harmony.css?v=365">
+<link rel="stylesheet" href="styles/unify.css?v=365">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -696,7 +731,16 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=364">
+<link rel="stylesheet" href="styles/teached-brand.css?v=365">
+<style>
+/* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
+   (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
+   now carries its own per-metric icon-chip colour, so the stripe was both
+   off-rhythm (1st and 4th card landing on the same colour by coincidence)
+   and redundant next to the chip. Drop it here only - other stat-card users
+   on the profile/admin pages keep the stripe as designed. */
+body.profile-page .stats-grid .stat-card::before { display: none; }
+</style>
 </head>
 <body class="profile-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -855,25 +899,28 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 
     <!-- OVERVIEW TAB -->
     <div id="tab-overview" class="tab-panel active">
-      <div class="card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-        <div style="text-align:center;">
+      <div class="card profile-hero-card">
+        <div class="profile-hero-band" aria-hidden="true"></div>
+        <div class="profile-hero-row">
           <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')"></div>
-        </div>
-        <div style="flex:1;min-width:180px;">
-          <div id="profile-name-big">-</div>
-          <div id="profile-email-big">-</div>
-          <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">-</div>
-          <div class="role-badge" id="profile-role-badge">Teacher</div>
+          <div style="flex:1;min-width:180px;">
+            <div id="profile-name-big">-</div>
+            <div id="profile-email-big">-</div>
+            <div id="profile-timezone-big" style="font-size:12px;color:var(--text-3);margin-top:6px;">-</div>
+            <div class="profile-badge-row">
+              <div class="role-badge" id="profile-role-badge">Teacher</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Stats</div>
         <div class="stats-grid" id="stats-grid">
-          <div class="stat-card"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-since">-</div><div class="stat-label">Member since</div></div>
-          <div class="stat-card"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Active sessions</div></div>
+          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div></div>
+          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div></div>
+          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-since">-</div><div class="stat-label">Member since</div></div></div>
+          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Active sessions</div></div></div>
         </div>
       </div>
 
@@ -1139,10 +1186,10 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=364"></script>
-<script src="scripts/profile-app.js?v=364"></script>
-<script src="scripts/autogrow.js?v=364" defer></script>
-<script src="pwa-boot.js?v=364" defer></script>
+<script src="scripts/app-core.js?v=365"></script>
+<script src="scripts/profile-app.js?v=365"></script>
+<script src="scripts/autogrow.js?v=365" defer></script>
+<script src="pwa-boot.js?v=365" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1162,11 +1209,11 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
   </div>
 </div>
-<script src="pwa.js?v=364"></script>
-<script src="scripts/nav-boost.js?v=364" defer></script>
-<script src="scripts/mobile-perf.js?v=364" defer></script>
-<script src="scripts/mobile-nav.js?v=364"></script>
-<script src="scripts/mobile-zoom-guard.js?v=364" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=364" defer></script>
+<script src="pwa.js?v=365"></script>
+<script src="scripts/nav-boost.js?v=365" defer></script>
+<script src="scripts/mobile-perf.js?v=365" defer></script>
+<script src="scripts/mobile-nav.js?v=365"></script>
+<script src="scripts/mobile-zoom-guard.js?v=365" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=365" defer></script>
 </body>
 </html>
