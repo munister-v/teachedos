@@ -122,4 +122,22 @@ function requireTeacher(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin, requireTeacher, signToken, hashSessionToken };
+/* Мягкая авторизация для витрины сообщества.
+
+   Раздел Community должен открываться и без входа: это витрина, на которую
+   учителя приходят до регистрации. При этом залогиненному пользователю те же
+   маршруты обязаны отдавать и его собственные записи, поэтому токен, если он
+   есть, разбирается обычным путём. Невалидный или просроченный токен здесь не
+   ошибка — посетитель просто видит публичную часть. */
+function optionalAuth(req, res, next) {
+  const header = req.headers['authorization'];
+  if (!header || !header.startsWith('Bearer ')) return next();
+  let handled = false;
+  const asGuest = () => { if (!handled) { handled = true; req.user = undefined; next(); } };
+  const proceed = () => { if (!handled) { handled = true; next(); } };
+  // Ответы requireAuth перехватываются: 401 превращается в проход гостем.
+  const shim = { status() { return { json() { asGuest(); return shim; } }; } };
+  Promise.resolve(requireAuth(req, shim, proceed)).catch(asGuest);
+}
+
+module.exports = { requireAuth, optionalAuth, requireAdmin, requireTeacher, signToken, hashSessionToken };

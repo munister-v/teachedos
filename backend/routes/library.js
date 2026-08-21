@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
-const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { requireAuth, optionalAuth, requireTeacher } = require('../middleware/auth');
 
 const KINDS = ['lesson', 'quiz', 'game', 'board', 'other'];
 const COMMUNITY_SNAPSHOT_MAX_BYTES = 10 * 1024 * 1024;
@@ -61,29 +61,11 @@ const LIST_COLS = `id, kind, title, description, level, skill, tags,
   (image IS NOT NULL) AS has_image, visibility, cloned_from, clone_count,
   published_at, created_at, updated_at`;
 
-router.use(requireAuth);
-
-// ── GET /api/library - my library (metadata only) ──────────────────────────
-router.get('/', async (req, res) => {
-  try {
-    const { kind, q } = req.query;
-    const params = [req.user.id];
-    let where = 'user_id = $1';
-    if (kind && KINDS.includes(kind)) { params.push(kind); where += ` AND kind = $${params.length}`; }
-    if (q && q.trim())               { params.push(`%${q.trim()}%`); where += ` AND (title ILIKE $${params.length} OR description ILIKE $${params.length})`; }
-    const { rows } = await pool.query(
-      `SELECT ${LIST_COLS} FROM assignments WHERE ${where} ORDER BY updated_at DESC LIMIT 300`,
-      params
-    );
-    res.json({ assignments: rows });
-  } catch (err) {
-    console.error('[library] list error:', err.message);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
+/* Витрина сообщества и просмотр опубликованного урока доступны без входа:
+   именно с них начинается знакомство с TeachEd. Всё, что ниже requireAuth,
+   работает только для авторизованных. */
 // ── GET /api/library/community - browse published items ─────────────────────
-router.get('/community', async (req, res) => {
+router.get('/community', optionalAuth, async (req, res) => {
   try {
     const { kind, level, skill, q } = req.query;
     const params = [];
@@ -114,18 +96,43 @@ router.get('/community', async (req, res) => {
 });
 
 // ── GET /api/library/:id - full item (owner, or anyone if community) ─────────
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
+    if (!UUID_RE.test(String(req.params.id || ''))) return res.status(404).json({ error: 'Not found' });
+    // Гость видит только опубликованное; владелец — ещё и свои приватные записи.
+    const viewerId = req.user?.id || null;
     const { rows } = await pool.query(
-      `SELECT a.*, (a.user_id = $2) AS is_owner, u.name AS author_name, u.avatar AS author_avatar
+      `SELECT a.*, ($2::uuid IS NOT NULL AND a.user_id = $2) AS is_owner,
+              u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
-       WHERE a.id = $1 AND (a.user_id = $2 OR a.visibility = 'community')`,
-      [req.params.id, req.user.id]
+       WHERE a.id = $1 AND (a.visibility = 'community' OR ($2::uuid IS NOT NULL AND a.user_id = $2))`,
+      [req.params.id, viewerId]
     );
     if (!rows.length) return res.status(404).json({ error: 'Not found' });
     res.json({ assignment: rows[0] });
   } catch (err) {
     console.error('[library] get error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.use(requireAuth);
+
+// ── GET /api/library - my library (metadata only) ──────────────────────────
+router.get('/', async (req, res) => {
+  try {
+    const { kind, q } = req.query;
+    const params = [req.user.id];
+    let where = 'user_id = $1';
+    if (kind && KINDS.includes(kind)) { params.push(kind); where += ` AND kind = $${params.length}`; }
+    if (q && q.trim())               { params.push(`%${q.trim()}%`); where += ` AND (title ILIKE $${params.length} OR description ILIKE $${params.length})`; }
+    const { rows } = await pool.query(
+      `SELECT ${LIST_COLS} FROM assignments WHERE ${where} ORDER BY updated_at DESC LIMIT 300`,
+      params
+    );
+    res.json({ assignments: rows });
+  } catch (err) {
+    console.error('[library] list error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

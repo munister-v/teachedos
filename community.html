@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=332">
+<link rel="manifest" href="manifest.json?v=333">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -57,10 +57,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=332" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=332">
-<link rel="stylesheet" href="styles/harmony.css?v=332">
-<link rel="stylesheet" href="styles/unify.css?v=332">
+<script src="theme.js?v=333" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=333">
+<link rel="stylesheet" href="styles/harmony.css?v=333">
+<link rel="stylesheet" href="styles/unify.css?v=333">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -101,6 +101,9 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .lesson-preview-card:nth-child(2){background:rgba(200,230,50,.65);}
   body .lesson-preview-card:nth-child(3){background:rgba(255,255,255,.28);}
   body .publisher-meta-fields{display:grid;grid-template-columns:.75fr 1.2fr .9fr;gap:10px;}
+  /* Правило ниже весит два селектора и перебивает [hidden]: без явного
+     сброса блок «выбранный кадр» оставался на экране даже скрытым. */
+  body .publisher-scope[hidden]{display:none;}
   body .publisher-scope{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;margin:-2px 0 13px;padding:9px 10px;border:1px solid rgba(139,66,253,.18);border-radius:13px;background:linear-gradient(135deg,#faf8ff,#f0eaff);}
   body .publisher-scope-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#8B42FD;color:#fff;font:900 10px var(--mono);}
   body .publisher-scope-copy{display:grid;gap:2px;min-width:0;}
@@ -123,6 +126,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .community-cover-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;}
   body .community-cover-kind{font:800 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);}
   body .community-cover-level{display:inline-flex;align-items:center;justify-content:center;min-height:25px;padding:3px 8px;border-radius:999px;background:#C8E632;color:#171817;font:900 10px var(--mono);letter-spacing:.05em;}
+  body .community-cover-map{position:absolute;z-index:1;top:50px;right:14px;bottom:37px;left:14px;}
+  body .community-cover-node{position:absolute;border:1px solid rgba(255,255,255,.28);border-radius:4px;box-shadow:0 1px 0 rgba(255,255,255,.14) inset;}
   body .community-cover-grid{position:absolute;z-index:1;top:50px;right:14px;bottom:37px;left:14px;display:grid;grid-template-columns:1.25fr .85fr .85fr;grid-template-rows:1fr 1fr;gap:5px;}
   body .community-cover-block{display:flex;min-height:0;overflow:hidden;align-items:flex-end;padding:6px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:rgba(255,255,255,.16);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;color:rgba(255,255,255,.7);font:800 8px var(--mono);letter-spacing:.04em;text-transform:uppercase;}
   body .community-cover-block:nth-child(1){grid-row:1 / span 2;background:rgba(255,255,255,.25);}
@@ -224,7 +229,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=332">
+<link rel="stylesheet" href="styles/teached-brand.css?v=333">
 </head>
 <body>
 <nav id="nav">
@@ -372,8 +377,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </main>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=332"></script>
-<script src="scripts/vocab-loader.js?v=332"></script>
+<script src="scripts/app-core.js?v=333"></script>
+<script src="scripts/vocab-loader.js?v=333"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -396,7 +401,7 @@ function renderSkeleton(gridId, count = 3) {
 function updateCommunityStats() {
   const posts = getCommunityPosts();
   setText('stat-boards', posts.length);
-  setText('stat-library', _communityLibrary.length || '-');
+  setText('stat-library', _communityLibrary.length);
   setText('stat-games', COMMUNITY_GAMES.length);
 }
 
@@ -486,7 +491,9 @@ function getCommunityPosts() {
 }
 
 async function loadCommunityLessons() {
-  if (!token) { _serverCommunityLessons = []; return; }
+  /* Витрина открыта и гостю: Community — то, что учитель смотрит до
+     регистрации. Раньше без токена показывались только демонстрационные
+     уроки, а реальные опубликованные работы оставались невидимыми. */
   try {
     const response = await api('/api/library/community?kind=board');
     if (!response.ok) throw new Error('Could not load community lessons');
@@ -794,24 +801,54 @@ function previewColor(value, fallback) {
   return /^#[0-9a-f]{3,8}$/i.test(color) ? color : fallback;
 }
 
+function lessonMiniMapHtml(cards) {
+  /* Мини-план доски: карточки показываются там же, где они лежат на холсте.
+     Четыре абстрактные плитки выглядели одинаково у всех уроков и ничего не
+     говорили о содержимом — по расположению же видно, из чего собран урок. */
+  const nodes = (Array.isArray(cards) ? cards : [])
+    .filter(card => card && card.type !== 'frame' && Number.isFinite(Number(card.x)) && Number.isFinite(Number(card.y)))
+    .slice(0, 40)
+    .map(card => ({
+      x: Number(card.x), y: Number(card.y),
+      w: Math.max(Number(card.w) || 160, 40), h: Math.max(Number(card.h) || 90, 30),
+      color: previewColor(card.data?.color, '#ffffff66'),
+    }));
+  if (nodes.length < 2) return '';
+  const minX = Math.min(...nodes.map(n => n.x));
+  const minY = Math.min(...nodes.map(n => n.y));
+  const maxX = Math.max(...nodes.map(n => n.x + n.w));
+  const maxY = Math.max(...nodes.map(n => n.y + n.h));
+  const spanX = Math.max(maxX - minX, 1);
+  const spanY = Math.max(maxY - minY, 1);
+  const blocks = nodes.map(node => {
+    const left = ((node.x - minX) / spanX) * 100;
+    const top = ((node.y - minY) / spanY) * 100;
+    const width = Math.max((node.w / spanX) * 100, 4);
+    const height = Math.max((node.h / spanY) * 100, 5);
+    return `<span class="community-cover-node" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${Math.min(width, 100 - left).toFixed(2)}%;height:${Math.min(height, 100 - top).toFixed(2)}%;background:${esc(node.color)}"></span>`;
+  }).join('');
+  return `<div class="community-cover-map">${blocks}</div>`;
+}
+
 function lessonCoverHtml(post, cardCount) {
   const seed = Array.from(String(post.id || post.title || '')).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const style = (seed % 4) + 1;
   const caption = cardCount ? `${cardCount} activity cards` : 'Lesson snapshot';
   const palette = ['#ffffff66','#c8e632','#ffffff33','#ffffff4d'];
+  const map = lessonMiniMapHtml(post.snapshot?.cards);
+  /* Запасной вариант для записей без снимка — прежняя абстрактная сетка. */
   const cards = Array.isArray(post.snapshot?.cards) ? post.snapshot.cards.filter(card => card.type !== 'frame').slice(0,4) : [];
-  const labels = cards.map(card => String(card.type || 'activity').replace(/[-_]/g, ' '));
   const blocks = Array.from({ length:4 }, (_, index) => {
-    const card = cards[index];
-    const color = previewColor(card?.data?.color, palette[index]);
-    return `<span class="community-cover-block" style="background:${esc(color)}">${esc(labels[index] || '')}</span>`;
+    const color = previewColor(cards[index]?.data?.color, palette[index]);
+    return `<span class="community-cover-block" style="background:${esc(color)}"></span>`;
   }).join('');
+  const body = map || `<div class="community-cover-grid">${blocks}</div>`;
   return `<div class="community-lesson-cover cover-style-${style}" aria-hidden="true">
     <div class="community-cover-head">
       <span class="community-cover-kind">Board lesson</span>
       <span class="community-cover-level">${esc(post.level || 'Mixed')}</span>
     </div>
-    <div class="community-cover-grid">${blocks || '<span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span><span class="community-cover-block"></span>'}</div>
+    ${body}
     <span class="community-cover-caption">${caption}</span>
   </div>`;
 }
@@ -1231,9 +1268,9 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=332" defer></script>
-<script src="scripts/mobile-nav.js?v=332"></script>
-<script src="scripts/mobile-zoom-guard.js?v=332" defer></script>
-<script src="pwa-boot.js?v=332" defer></script>
+<script src="scripts/mobile-perf.js?v=333" defer></script>
+<script src="scripts/mobile-nav.js?v=333"></script>
+<script src="scripts/mobile-zoom-guard.js?v=333" defer></script>
+<script src="pwa-boot.js?v=333" defer></script>
 </body>
 </html>
