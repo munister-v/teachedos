@@ -12948,7 +12948,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '382';
+const TEACHEDOS_ASSET_VERSION = '383';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15810,6 +15810,19 @@ async function initUserBoard() {
         else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
         return;
       } else if (URL_BOARD_ID) {
+        // Not this account's board - but it may be the very lesson published
+        // to Community under a different account. That link is a private
+        // board.html?id= address (bookmarked or copied from the bar), not the
+        // public lesson-view.html link, so it 404s here even though the same
+        // lesson is sitting in the Community feed. Check before giving up.
+        try {
+          const pub = await apiFetch('/api/library/by-board/' + URL_BOARD_ID);
+          if (pub.ok) {
+            const { id } = await pub.json();
+            location.replace('lesson-view.html?id=' + id);
+            return;
+          }
+        } catch {}
         toast('Board not found');
       }
     }

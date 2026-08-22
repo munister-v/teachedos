@@ -111,6 +111,33 @@ router.get('/community', optionalAuth, async (req, res) => {
   }
 });
 
+/* GET /api/library/by-board/:boardId - find the published Community listing
+   for a private board, if any.
+
+   board.html?id=<boardId> is a private edit link: /api/boards/:id 404s for
+   anyone but the owner or an invited collaborator, even after the owner
+   publishes that same board to Community. A teacher who shares the address-
+   bar URL instead of the Community card gets a flat "Board not found" on
+   every other account, although the lesson is sitting right there in the
+   feed. The publish snapshot keeps source_board_id, so this looks up the
+   community listing it belongs to and lets the client redirect there. */
+router.get('/by-board/:boardId', optionalAuth, async (req, res) => {
+  try {
+    if (!UUID_RE.test(String(req.params.boardId || ''))) return res.status(404).json({ error: 'Not found' });
+    const { rows } = await pool.query(
+      `SELECT id FROM assignments
+       WHERE visibility = 'community' AND data->>'source_board_id' = $1
+       ORDER BY published_at DESC NULLS LAST LIMIT 1`,
+      [req.params.boardId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    res.json({ id: rows[0].id });
+  } catch (err) {
+    console.error('[library] by-board error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── GET /api/library/:id - full item (owner, or anyone if community) ─────────
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
