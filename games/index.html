@@ -192,6 +192,11 @@ body {
 .card-tag.create   { background: rgba(59,130,246,0.10);  color: #2563EB; border-color: rgba(59,130,246,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
 .card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
+/* Two games (Four Opinions, LinguaQuiz) have a Ukrainian-only interface in an
+   otherwise English hub - not a bug, just worth knowing before you open one
+   mid-lesson. Same pill shape as the rest of the meta row, distinct color so
+   it doesn't blend into the pace/category pills next to it. */
+.card-pill.lang-pill{background:rgba(0,91,187,.08);color:#005BBB;border-color:rgba(0,91,187,.20);}
 
 .card-arrow {
   width: 28px; height: 28px; border-radius: 8px;
@@ -242,8 +247,8 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=373">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=373">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=374">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=374">
 </head>
 <body>
 
@@ -614,7 +619,7 @@ body {
       </div>
     </a>
 
-    <a class="card" href="four-opinions-uk.html" data-tag="speaking">
+    <a class="card" href="four-opinions-uk.html" data-tag="speaking" data-lang="uk">
       <span class="card-icon">💬</span>
       <div class="card-title">Four Opinions</div>
       <div class="card-desc">Four discussion prompts on one topic to launch a speaking round</div>
@@ -624,7 +629,7 @@ body {
       </div>
     </a>
 
-    <a class="card" href="linguaquiz-ai-uk.html" data-tag="ai">
+    <a class="card" href="linguaquiz-ai-uk.html" data-tag="ai" data-lang="uk">
       <span class="card-icon">📖</span>
       <div class="card-title">LinguaQuiz: ABCD from a Text</div>
       <div class="card-desc">Paste any text and AI builds a multiple-choice reading quiz from it</div>
@@ -653,7 +658,8 @@ function enhanceGameCards(){
       const tag = card.dataset.tag || 'vocab';
       const meta = document.createElement('div');
       meta.className = 'card-meta';
-      meta.innerHTML = `<span class="card-pill">${tagLabels[tag] || tag}</span><span class="card-pill">${tagPace[tag] || '5 min'}</span>`;
+      const langPill = card.dataset.lang === 'uk' ? '<span class="card-pill lang-pill">🇺🇦 UI</span>' : '';
+      meta.innerHTML = `<span class="card-pill">${tagLabels[tag] || tag}</span><span class="card-pill">${tagPace[tag] || '5 min'}</span>${langPill}`;
       card.insertBefore(meta, card.querySelector('.card-desc'));
     }
     card.addEventListener('click', () => {
@@ -732,6 +738,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=373"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=374"></script>
 </body>
 </html>
