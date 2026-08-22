@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=417">
+<link rel="manifest" href="manifest.json?v=418">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -66,10 +66,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=417" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=417">
-<link rel="stylesheet" href="styles/harmony.css?v=417">
-<link rel="stylesheet" href="styles/unify.css?v=417">
+<script src="theme.js?v=418" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=418">
+<link rel="stylesheet" href="styles/harmony.css?v=418">
+<link rel="stylesheet" href="styles/unify.css?v=418">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -262,8 +262,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=417">
-<link rel="stylesheet" href="styles/tool-window.css?v=417">
+<link rel="stylesheet" href="styles/teached-brand.css?v=418">
+<link rel="stylesheet" href="styles/tool-window.css?v=418">
 </head>
 <body class="tw-page">
 <nav id="nav">
@@ -401,7 +401,6 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   <div id="tab-library" style="display:none;">
     <div class="section-head">
       <div><div class="section-title">My Library</div><div class="section-sub">Lessons & exercises you created. Synced to your account.</div></div>
-      <a class="btn lime" href="lesson-builder.html">＋ Create lesson</a>
     </div>
     <section class="grid" id="my-library-grid"></section>
 
@@ -446,8 +445,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=417"></script>
-<script src="scripts/vocab-loader.js?v=417"></script>
+<script src="scripts/app-core.js?v=418"></script>
+<script src="scripts/vocab-loader.js?v=418"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -1345,18 +1344,12 @@ function libCardHtml(a, opts) {
 
 function renderMyLibrary() {
   const grid = document.getElementById('my-library-grid');
-  if (!_myLibrary.length) { grid.innerHTML = '<div class="empty">No saved lessons yet. Create one in the Lesson Builder.</div>'; return; }
+  if (!_myLibrary.length) { grid.innerHTML = '<div class="empty">No saved lessons yet.</div>'; return; }
   grid.innerHTML = _myLibrary.map(a => {
     const pub = a.visibility === 'community'
       ? `<button class="mini-btn alt" onclick='unpublishItem(${JSON.stringify(a.id)})'>Unpublish</button>`
       : `<button class="mini-btn" onclick='publishItem(${JSON.stringify(a.id)})'>🌍 Publish</button>`;
-    /* «Open builder» вёл в пустой конструктор — без номера урока. Для записи,
-       пришедшей из Комьюнити, это тупик: в localStorage её нет, открыть было
-       нечем. Теперь ссылка несёт id, и конструктор подтягивает урок из
-       библиотеки. */
-    const open = a.kind === 'lesson'
-      ? `<a class="mini-btn" href="lesson-builder.html?lesson=${encodeURIComponent(a.id)}">Open lesson</a>`
-      : `<a class="mini-btn" href="board.html">Open board</a>`;
+    const open = a.kind === 'lesson' ? '' : `<a class="mini-btn" href="board.html">Open board</a>`;
     return libCardHtml(a, { actions:
       `${open}${pub}` +
       `<button class="mini-btn alt" onclick='deleteItem(${JSON.stringify(a.id)})'>Delete</button>` });
@@ -1372,14 +1365,8 @@ function renderCommunityLibrary() {
     (!kind || a.kind === kind) && (!level || a.level === level) &&
     (!q || (a.title + ' ' + (a.description||'')).toLowerCase().includes(q)));
   if (!list.length) { grid.innerHTML = '<div class="empty">No shared resources match your filters yet.</div>'; updateCommunityStats(); return; }
-  /* Раньше единственным действием было «Save to my library»: урок брали
-     вслепую, не заглянув внутрь. Просмотр открывает опубликованный урок
-     целиком (сервер отдаёт его любому, раз он в Комьюнити) — решение
-     «нужен ли он мне» принимается до сохранения, а не после. */
   grid.innerHTML = list.map(a => {
-    const peek = a.kind === 'lesson'
-      ? `<a class="mini-btn alt" href="lesson-builder.html?lesson=${encodeURIComponent(a.id)}">Preview</a>`
-      : '';
+    const peek = '';
     return libCardHtml(a, { actions:
       `<button class="mini-btn" onclick='cloneItem(${JSON.stringify(a.id)})'>＋ Save to my library</button>${peek}` });
   }).join('');
@@ -1569,10 +1556,10 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=417" defer></script>
-<script src="scripts/mobile-nav.js?v=417"></script>
-<script src="scripts/mobile-zoom-guard.js?v=417" defer></script>
-<script src="scripts/autogrow.js?v=417" defer></script>
-<script src="pwa-boot.js?v=417" defer></script>
+<script src="scripts/mobile-perf.js?v=418" defer></script>
+<script src="scripts/mobile-nav.js?v=418"></script>
+<script src="scripts/mobile-zoom-guard.js?v=418" defer></script>
+<script src="scripts/autogrow.js?v=418" defer></script>
+<script src="pwa-boot.js?v=418" defer></script>
 </body>
 </html>

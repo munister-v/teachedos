@@ -2,7 +2,7 @@
 // Replaces the old `vps-fast-v1` rule engine with a real LLM, using any
 // OpenAI-compatible chat-completions endpoint. Defaults to Groq's free tier.
 // Keeps the exact same output envelope the front-end consumes
-// (board.html / lesson-builder.html / game-builder.html / teacher-tools.html).
+// (board.html / game-builder.html / teacher-tools.html).
 //
 // Configure via environment (set these on the VPS):
 //   AI_API_KEY    - required to enable the engine (free key from Groq/Gemini/…)

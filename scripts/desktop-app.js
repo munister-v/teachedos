@@ -1090,7 +1090,6 @@ studentsRender();
 
 /* ══════════════════════ TOOLS ══════════════════════ */
 const TOOLS_DATA = [
-  { id:'lesson-builder', name:'Lesson Builder', desc:'Full lesson construction studio with stages, timing, objectives, materials, homework, exports and board handoff.', tags:['Utility','New'], badge:'New', icon:'📋', group:'utility', url:'lesson-builder.html' },
   { id:'teacher-tools-hub', name:'Teacher Tools Hub', desc:'Full TeachEd studio for worksheets, vocabulary extraction, reading tasks, grammar drills, speaking prompts and Game Builder exports.', tags:['Utility','New'], badge:'New', icon:'✦', group:'utility', url:'teacher-tools.html' },
   // READING
   { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
@@ -1207,7 +1206,6 @@ const SP_ITEMS = [
   { icon:'👥', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#786E5F,#635B4E)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#585C59,#474B48)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
-  { icon:'📋', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Lesson Builder', sub:'Build a full lesson plan', kbd:'Builder', action:()=>location.href='lesson-builder.html' },
   { icon:'🪄', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
   { icon:'💳', iconBg:'linear-gradient(145deg,#5A6459,#6B7669)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
