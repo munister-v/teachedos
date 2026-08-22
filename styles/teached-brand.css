@@ -80,6 +80,8 @@
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
   --text-3:#5E5E6A !important;
+  --text3:var(--text-3) !important;
+  --muted:var(--te-muted) !important;
   --cream:var(--te-paper) !important;
   --bg:var(--te-paper) !important;
   --bg2:#ECECE8 !important;
@@ -182,6 +184,12 @@ body:not(.board-page) :where(
   background:#EEE8FF !important;
   color:var(--te-ink) !important;
   border-color:rgba(139,66,253,.36) !important;
+}
+
+/* .btn's border-radius drifted per page (8px to 20px, no shared scale) since
+   every page defines its own .btn{} base rule. One radius, everywhere. */
+:where(.btn) {
+  border-radius:12px !important;
 }
 
 /* Main application chrome: bright enough to orient, quiet enough to let
